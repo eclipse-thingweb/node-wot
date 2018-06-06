@@ -1,0 +1,9 @@
+{
+    "servient": {
+        "scriptDir": ".",
+        "scriptAction": true
+    },
+    "coap": {
+        "port": 5685
+    }
+}

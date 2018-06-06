@@ -1,0 +1,29 @@
+{
+  "name": "my-node-wot-cli",
+  "version": "1.0.0",
+  "private": true,
+  "description": "my-cli example",
+  "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
+  "license": "EPL-2.0 OR W3C-20150513",
+  "repository": "https://github.com/thingweb/node-wot/tree/master/examples/servients",
+  "main": "coap-servient.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/my-cli.js"
+  },
+  "bin": {
+    "my-cli": "dist/my-cli.js"
+  },
+  "keywords": [
+    "test"
+  ],
+  "devDependencies": {
+    "@types/node": "9.4.1",
+    "typescript": "2.5.2"
+  },
+  "dependencies": {
+    "wot-typescript-definitions": "0.4.0",
+    "@node-wot/core": "0.4.0",
+    "@node-wot/binding-coap": "0.4.0"
+  }
+}
