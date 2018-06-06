@@ -16,50 +16,51 @@
 // global W3C WoT Scripting API definitions
 import WoT from "wot-typescript-definitions";
 
-import "reflect-metadata";
+export const DEFAULT_HTTP_CONTEXT: string = "http://w3c.github.io/wot/w3c-wot-td-context.jsonld";
+export const DEFAULT_HTTPS_CONTEXT: string = "https://w3c.github.io/wot/w3c-wot-td-context.jsonld";
+export const DEFAULT_THING_TYPE: string = "Thing";
 
-/** Internet Media Types */
-/*export enum MediaType {
-    JSON = <any>"application/json",
-    XML = <any>"application/xml",
-    EXI = <any>"application/exi"
-
-} */
-
-export const DEFAULT_HTTP_CONTEXT : string = "http://w3c.github.io/wot/w3c-wot-td-context.jsonld" ;
-export const DEFAULT_HTTPS_CONTEXT : string = "https://w3c.github.io/wot/w3c-wot-td-context.jsonld";
-export const DEFAULT_THING_TYPE : string = "Thing";
-
-/** Interaction pattern */
-export enum InteractionPattern {
-  Property = 'Property' as any,
-  Action = 'Action' as any,
-  Event = 'Event' as any
-}
+/* TODOs / Questions
+ ~ In Thing index structure could be read-only (sanitizing needs write access)
+*/
 
 /**
- * node-wot definition for security metadata
+ * node-wot definition for instantiated Thing Descriptions (Things)
  */
-export class ThingSecurity {
-  public mode: string;
+export default class Thing {
+  /** collection of string-based keys that reference values of any type */
+  [key: string]: any; /* e.g., @context besides the one that are explitecly defined below */
+  id: string;
+  name: string;
+  description: string;
+  base?: string;
 
-  public proxy: string;
-}
+  /** collection of string-based keys that reference a property of type Property2 */
+  properties: {
+    [key: string]: Property
+  };
 
-/**
- * node-wot definition for form / binding metadata
- */
-export class InteractionForm {
+  /** collection of string-based keys that reference a property of type Action2 */
+  actions: {
+    [key: string]: Action;
+  }
 
-  /** relativ or absulut URI path of the Interaction resource */
-  public href: string;
+  /** collection of string-based keys that reference a property of type Event2 */
+  events: {
+    [key: string]: Event;
+  }
+  securityDefinitions: Security;
 
-  /** used mediaType of the interacion resources */
-  public mediaType?: string;
+  /** Web links to other Things or metadata */
+  public link?: Array<any>;
 
-  constructor(href?: string, mediaType?: string) {
-    if (href) this.href = href;
-    if (mediaType) this.mediaType = mediaType;
+  constructor() {
+    this["@context"] = DEFAULT_HTTPS_CONTEXT;
+    this["@type"] = DEFAULT_THING_TYPE;
+    this.properties = {};
+    this.actions = {};
+    this.events = {};
+    this.link = []
   }
 }
 
@@ -67,87 +68,50 @@ export class InteractionForm {
  * node-wot definition for Interactions
  */
 export class Interaction {
-  /** @ type information of the Interaction */
-  public semanticType: Array<WoT.SemanticType>;
-
-  public metadata: Array<WoT.SemanticMetadata>;
-
-  /** name/identifier of the Interaction */
-  public name: string;
-
-  /** type of the Interaction (action, property, event) */
-  public pattern: InteractionPattern;
-
-  /** form information of the Interaction resources */
-  public form: Array<InteractionForm>;
-
-  /** writable flag for the Property */
-  public writable: boolean;
-
-  /** observable flag for the Property */
-  public observable: boolean;
-
-  /** Property/Event schema */
-  public schema: any;
-  /** Action input schema */
-  public inputSchema: any;
-  /** Action output schema */
-  public outputSchema: any;
-
-  constructor() {
-    this.semanticType = []; // semanticType is subset of @type (without Pattern)
-    this.metadata = [];
-    this.form = [];
-  }
+  name: string;
+  form: Array<Form>;
 }
 
-export class PrefixedContext {
-  public prefix: string;
-  public context: string;
 
-  constructor(prefix: string, context: string) {
-    this.prefix = prefix;
-    this.context = context;
-  }
-}
+
 
 /**
- * node-wot definition for instantiated Thing Descriptions (Things)
+ * node-wot definition for form / binding metadata
  */
-export default class Thing {
+export class Form {
+  href: string;
+  mediaType: string;
+  rel: string;
+  security: string; /* FIXME: what type */
 
-  /** @context information of the TD */
-  public context: Array<string | object>;
-
-  /** @ type information, usually 'Thing' */
-  public semanticType: Array<WoT.SemanticType>;
-
-  /** container for all custom metadata */
-  public metadata: Array<WoT.SemanticMetadata>;
-
-  /** human-readable name of the Thing */
-  public name: string;
-
-  /** unique identifier (a URI, includes URN) */
-  public id: string;
-
-  /** security metadata */
-  public security: Array<object>;
-
-  /** base URI of the Interaction resources */
-  public base?: string;
-
-  /** Interactions of this Thing */
-  public interaction: Array<Interaction>;
-
-  /** Web links to other Things or metadata */
-  public link?: Array<any>;
-
-  constructor() {
-    this.context = [DEFAULT_HTTPS_CONTEXT];
-    this.semanticType = []; // semanticType is subset of @type (without "Thing")
-    this.metadata = [];
-    this.interaction = [];
-    this.link = []
+  constructor(href?: string, mediaType?: string) {
+    if (href) this.href = href;
+    if (mediaType) this.mediaType = mediaType;
   }
+}
+
+export class Property extends Interaction {
+  writable: boolean;
+  observable: boolean;
+
+  schema: string;
+}
+
+export class Action extends Interaction {
+  /** TODO add definitions */
+  inputSchema: string;
+  outputSchema: string;
+}
+export class Event extends Interaction {
+  /** TODO add definitions */
+  schema: string;
+}
+
+
+/**
+ * node-wot definition for security metadata
+ */
+export class Security {
+  readonly in: string;
+  readonly scheme: string;
 }

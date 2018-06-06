@@ -16,14 +16,38 @@
 import Thing from './thing-description';
 import * as TD from './thing-description';
 
-// import {plainToClass, classToPlain} from "class-transformer";
-import "reflect-metadata";
-
-
 function stringToThingDescription(tdJson: string): Thing {
-  let tdPlain = JSON.parse(tdJson);
-  let td: Thing = new Thing();
+  let td: Thing = JSON.parse(tdJson);
 
+  // let tdPlain = JSON.parse(tdJson);
+  // let td: Thing = new Thing();
+  // TODO "sanitize" Thing class
+  if (td["@context"] == undefined) {
+    td["@context"] = TD.DEFAULT_HTTPS_CONTEXT;
+  }
+  if (td.properties != undefined && td.properties instanceof Object) {
+    for (var propName in td.properties) {
+      let prop = td.properties[propName];
+      if (prop.writable == undefined) { // } || prop.writable instanceof Boolean) {
+        prop.writable = false;
+      }
+      if (prop.observable == undefined) { // } || prop.observable instanceof Boolean) {
+        prop.observable = false;
+      }
+    }
+  }
+
+  if (typeof td.properties !== 'object' || td.properties === null) {
+    td.properties = {};
+  }
+  if (typeof td.actions !== 'object' || td.actions === null) {
+    td.actions = {};
+  }
+  if (typeof td.events !== 'object' || td.events === null) {
+    td.events = {};
+  }
+
+  /*
   for (var fieldNameRoot in tdPlain) {
     if (tdPlain.hasOwnProperty(fieldNameRoot)) {
       switch (fieldNameRoot) {
@@ -61,8 +85,13 @@ function stringToThingDescription(tdJson: string): Thing {
                 if (typeEntry === TD.DEFAULT_THING_TYPE) {
                   // default, additional @types to "Thing" only
                 } else {
-                  let splitEntry = typeEntry.split(":");
-                  td.semanticType.push({ context: "", prefix: splitEntry[0], name: splitEntry[1] });
+                  let st: WoT.SemanticType = {
+                    name: typeEntry,
+                    context: "TODO"
+                    // ,
+                    // prefix: "p"
+                  };
+                  td.semanticType.push(st);
                 }
               }
             }
@@ -116,17 +145,7 @@ function stringToThingDescription(tdJson: string): Thing {
                         } else if (Array.isArray(interactionEntry[fieldNameInteraction])) {
                           for (let typeInteractionEntry of interactionEntry[fieldNameInteraction]) {
                             if (typeof typeInteractionEntry === "string") {
-
-                              let splitEntry = typeInteractionEntry.split(":");
-
-                              if (splitEntry.length==1) {
-                                if (typeInteractionEntry==="Property") inter.pattern = TD.InteractionPattern.Property;
-                                else if (typeInteractionEntry==="Action") inter.pattern = TD.InteractionPattern.Action;
-                                else if (typeInteractionEntry==="Event") inter.pattern = TD.InteractionPattern.Event;
-                                else inter.semanticType.push({ context: "", prefix: "", name: typeInteractionEntry });
-                              } else {
-                                inter.semanticType.push({ context: "", prefix: splitEntry[0], name: splitEntry[1] });
-                              }
+                              inter.semanticType.push(typeInteractionEntry);
                             } else {
                               console.error("interaction @type field not of type string");
                             }
@@ -158,7 +177,7 @@ function stringToThingDescription(tdJson: string): Thing {
                           console.error("observable field of interaction not of type boolean");
                         }
                         break;
-                      case "link": /* link replaced by form */
+                      case "link": // link replaced by form
                       case "form":
                         // InteractionForm
                         if (Array.isArray(interactionEntry[fieldNameInteraction])) {
@@ -197,12 +216,17 @@ function stringToThingDescription(tdJson: string): Thing {
                         }
                         break;
                       default: // metadata
-                        let splitEntry = fieldNameInteraction.split(":");
-                        if (splitEntry.length==1) {
-                          inter.metadata.push({ type: { name: fieldNameInteraction, context: "" }, value: interactionEntry[fieldNameInteraction] } );
-                        } else {
-                          inter.metadata.push({ type: { name: splitEntry[1], context: "", prefix: splitEntry[0] }, value: interactionEntry[fieldNameInteraction] } );
-                        }
+                        // TODO prefix/context parsing metadata
+                        let md: WoT.SemanticMetadata = {
+                          type: {
+                            name: fieldNameInteraction,
+                            context: "TODO"
+                            // ,
+                            // prefix: "p" 
+                          },
+                          value: interactionEntry[fieldNameInteraction]
+                        };
+                        inter.metadata.push(md);
                         break;
                     }
                   }
@@ -219,56 +243,56 @@ function stringToThingDescription(tdJson: string): Thing {
           td.link = tdPlain[fieldNameRoot];
           break;
         default: // metadata
-          let splitEntry = fieldNameRoot.split(":");
-          if (splitEntry.length==1) {
-            td.metadata.push({ type: { name: fieldNameRoot, context: "" }, value: tdPlain[fieldNameRoot] } );
-          } else {
-            td.metadata.push({ type: { name: splitEntry[1], context: "", prefix: splitEntry[0] }, value: tdPlain[fieldNameRoot] } );
-          }
+          // TODO prefix/context parsing metadata
+          let md: WoT.SemanticMetadata = {
+            type: {
+              name: fieldNameRoot,
+              context: "TODO"
+              // ,
+              // prefix: "p" 
+            },
+            value: tdPlain[fieldNameRoot]
+          };
+          td.metadata.push(md);
           break;
       }
     }
   }
+  */
 
   return td;
 }
 
 function thingDescriptionToString(td: Thing): string {
-  let json: any = {};
+  return JSON.stringify(td);
 
+  /*
+  let json: any = {};
   // @context
   json["@context"] = td.context;
-
-  // @type
-  json["@type"] = ["Thing"];
+  // @type + "Thing"
+  json["@type"] = [TD.DEFAULT_THING_TYPE];
   for (let semType of td.semanticType) {
     json["@type"].push((semType.prefix ? semType.prefix + ":" : "") + semType.name);
   }
-
   // name and id
   json.name = td.name;
   json["@id"] = td.id;
-
   // base
   json.base = td.base;
-
   // metadata
   for (let md of td.metadata) {
-    let mdKey = (md.type.prefix ? md.type.prefix + ":" : "") + md.type.name;
-    json[mdKey] = md.value;
+    // TODO align with parsing method
+    json[md.type.name] = md.value;
   }
-
   // security
   json.security = td.security;
-
   // interaction
   json.interaction = [];
   for (let inter of td.interaction) {
     let jsonInter: any = {};
-
     // name
     jsonInter.name = inter.name;
-
     // @type and Interaction-specific metadata
     if (inter.pattern == TD.InteractionPattern.Property) {
       jsonInter["@type"] = ["Property"];
@@ -277,18 +301,17 @@ function thingDescriptionToString(td: Thing): string {
         jsonInter.schema = inter.schema;
       }
       // writable
-      if(inter.writable === true) {
+      if(inter.writable == true) {
         jsonInter.writable = inter.writable;
       } else {
         jsonInter.writable = false;
       }
       // observable
-      if(inter.observable === true) {
+      if(inter.observable == true) {
         jsonInter.observable = inter.observable;
       } else {
         jsonInter.observable = false;
       }
-    
     } else if (inter.pattern == TD.InteractionPattern.Action) {
       jsonInter["@type"] = ["Action"];
       // schema
@@ -298,7 +321,6 @@ function thingDescriptionToString(td: Thing): string {
       if (inter.outputSchema) {
         jsonInter.outputSchema = inter.outputSchema;
       }
-
     } else if (inter.pattern == TD.InteractionPattern.Event) {
       jsonInter["@type"] = ["Event"];
       // schema
@@ -306,17 +328,11 @@ function thingDescriptionToString(td: Thing): string {
         jsonInter.schema = inter.schema;
       }
     }
-
-    // custom @type
     for (let semType of inter.semanticType) {
-      // fallback if script does not use WoT.SemanticType
-      if (typeof semType === "string") {
-        jsonInter["@type"].push(semType);
-      } else {
-        jsonInter["@type"].push((semType.prefix ? semType.prefix + ":" : "") + semType.name);
-      }
+      //if(semType != "Property" && semType != "Action" && semType != "Event") {
+      jsonInter["@type"].push(semType);
+      //}
     }
-
     // form
     jsonInter.form = [];
     for (let form of inter.form) {
@@ -333,21 +349,18 @@ function thingDescriptionToString(td: Thing): string {
       }
       jsonInter.form.push(jsonForm);
     }
-
     // metadata
     for (let md of inter.metadata) {
-      let mdKey = (md.type.prefix ? md.type.prefix + ":" : "") + md.type.name;
-      jsonInter[mdKey] = md.value;
+      // TODO align with parsing method
+      jsonInter[md.type.name] = md.value;
     }
-
     json.interaction.push(jsonInter);
   }
-
   if (td.link.length > 0) {
     json.link = td.link;
   }
-
   return JSON.stringify(json);
+  */
 }
 
 export function parseTDString(json: string, normalize?: boolean): Thing {
@@ -356,26 +369,42 @@ export function parseTDString(json: string, normalize?: boolean): Thing {
 
   if (td.security) console.log(`parseTDString() found security metadata`);
 
+  // TODO normalize normalize each Interaction link
+  return td;
+
+  /*
   console.debug(`parseTDString() found ${td.interaction.length} Interaction${td.interaction.length === 1 ? '' : 's'}`);
   // for each interaction assign the Interaction type (Property, Action, Event)
   // and, if "base" is given, normalize each Interaction link
-  
-  if (normalize == null || normalize) {
-
-    for (let interaction of td.interaction) {
-
-      /* if a base uri is used normalize all relative hrefs in links */
+  for (let interaction of td.interaction) {
+    // moving Interaction Pattern information to 'pattern' field
+    let indexProperty = interaction.semanticType.indexOf(TD.InteractionPattern.Property.toString());
+    let indexAction = interaction.semanticType.indexOf(TD.InteractionPattern.Action.toString());
+    let indexEvent = interaction.semanticType.indexOf(TD.InteractionPattern.Event.toString());
+    if (indexProperty !== -1) {
+      console.debug(` * Property '${interaction.name}'`);
+      interaction.pattern = TD.InteractionPattern.Property;
+      interaction.semanticType.splice(indexProperty, 1);
+    } else if (indexAction !== -1) {
+      console.debug(` * Action '${interaction.name}'`);
+      interaction.pattern = TD.InteractionPattern.Action;
+      interaction.semanticType.splice(indexAction, 1);
+    } else if (indexEvent !== -1) {
+      console.debug(` * Event '${interaction.name}'`);
+      interaction.pattern = TD.InteractionPattern.Event;
+      interaction.semanticType.splice(indexEvent, 1);
+    } else {
+      console.error(`parseTDString() found no Interaction pattern`);
+    }
+    if (normalize == null || normalize) {
+      // if a base uri is used normalize all relative hrefs in links
       if (td.base !== undefined) {
-
         let url = require('url');
-
         for (let form of interaction.form) {
           console.debug(`parseTDString() applying base '${td.base}' to '${form.href}'`);
-
           let href: string = form.href;
-
-          /* url modul works only for http --> so replace any protocol to
-             http and after resolving replace orign protocol back */
+          // url modul works only for http --> so replace any protocol to
+          //    http and after resolving replace orign protocol back
           let n: number = td.base.indexOf(':');
           let scheme: string = td.base.substr(0, n + 1); // save origin protocol
           let uriTemp: string = td.base.replace(scheme, 'http:'); // replace protocol
@@ -386,8 +415,8 @@ export function parseTDString(json: string, normalize?: boolean): Thing {
       }
     }
   }
-
   return td;
+  */
 }
 
 export function serializeTD(td: Thing): string {

@@ -25,27 +25,28 @@ import { expect, should } from "chai";
 // should must be called to augment all variables
 should();
 
-import { InteractionForm } from "@node-wot/td-tools";
+import { Form, Thing } from "@node-wot/td-tools";
 import Servient from "../src/servient";
 import { ProtocolClient, ProtocolClientFactory, Content } from "../src/resource-listeners/protocol-interfaces"
+import ConsumedThing from "../src/consumed-thing";
 
 class TDDataClient implements ProtocolClient {
 
-    public readResource(uri: InteractionForm): Promise<Content> {
+    public readResource(uri: Form): Promise<Content> {
         // Note: this is not a "real" DataClient! Instead it just reports the same TD in any case
         let c: Content = { mediaType: "application/json", body: new Buffer(JSON.stringify(myThingDesc)) };
         return Promise.resolve(c);
     }
 
-    public writeResource(uri: InteractionForm, content: Content): Promise<void> {
+    public writeResource(uri: Form, content: Content): Promise<void> {
         return Promise.reject("writeResource not implemented");
     }
 
-    public invokeResource(uri: InteractionForm, content: Content): Promise<Content> {
+    public invokeResource(uri: Form, content: Content): Promise<Content> {
         return Promise.reject("invokeResource not implemented");
     }
 
-    public unlinkResource(uri: InteractionForm): Promise<void> {
+    public unlinkResource(uri: Form): Promise<void> {
         return Promise.reject("unlinkResource not implemented");
     }
 
@@ -88,19 +89,19 @@ class TrapClient implements ProtocolClient {
         this.trap = callback
     }
 
-    public readResource(uri: InteractionForm): Promise<Content> {
+    public readResource(uri: Form): Promise<Content> {
         return Promise.resolve(this.trap(uri));
     }
 
-    public writeResource(uri: InteractionForm, content: Content): Promise<void> {
+    public writeResource(uri: Form, content: Content): Promise<void> {
         return Promise.resolve(this.trap(uri, content));
     }
 
-    public invokeResource(uri: InteractionForm, content: Content): Promise<Content> {
+    public invokeResource(uri: Form, content: Content): Promise<Content> {
         return Promise.resolve(this.trap(uri, content));
     }
 
-    public unlinkResource(uri: InteractionForm): Promise<void> {
+    public unlinkResource(uri: Form): Promise<void> {
         return Promise.resolve(this.trap(uri));
     }
 
@@ -141,27 +142,24 @@ let myThingDesc = {
     "@context": ["https://w3c.github.io/wot/w3c-wot-td-context.jsonld"],
     "@type": ["Thing"],
     "name": "aThing",
-    "interaction": [
-        {
-            "@type": ["Property"],
-            "name": "aProperty",
+    "properties": {
+        "aProperty": {
             "schema": { "type": "number" },
             "writable": false,
             "form": [
                 { "href": "test://host/athing/properties/aproperty", "mediaType": "application/json" }
             ]
-        },
-        {
-            "@type": ["Action"],
-            "name": "anAction",
+        }
+    },
+    "actions": {
+        "anAction": {
             "inputSchema": { "type": "number" },
             "outputSchema": { "type": "number" },
             "form": [
                 { "href": "test://host/athing/actions/anaction", "mediaType": "application/json" }
             ]
         }
-
-    ]
+    }
 }
 
 @suite("client flow of servient")
@@ -172,7 +170,6 @@ class WoTClientTest {
     static WoT: WoT.WoTFactory;
 
     // static tdFileUri : string = "td.json";
-
     static before() {
         this.servient = new Servient();
         this.clientFactory = new TrapClientFactory();
@@ -201,6 +198,7 @@ class WoTClientTest {
             }
         );
 
+        // JSON.stringify(myThingDesc)
         WoTClientTest.WoT.fetch("data://" + "tdFoo")
             .then((td) => {
                 let thing = WoTClientTest.WoT.consume(td);
@@ -268,6 +266,7 @@ class WoTClientTest {
             }
         )
 
+        // JSON.stringify(myThingDesc)
         WoTClientTest.WoT.fetch("data://" + "tdFoo")
             .then((td) => {
                 let thing = WoTClientTest.WoT.consume(td);
@@ -288,6 +287,7 @@ class WoTClientTest {
             }
         )
 
+        // JSON.stringify(myThingDesc)
         WoTClientTest.WoT.fetch("data://" + "tdFoo")
             .then((td) => {
                 let thing = WoTClientTest.WoT.consume(td);

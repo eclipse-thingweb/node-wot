@@ -91,7 +91,7 @@ export default class Servient {
         return this.offeredMediaTypes.slice(0);
     }
 
-    public chooseLink(links: Array<TD.InteractionForm>): string {
+    public chooseLink(links: Array<TD.Form>): string {
         // TODO add an effective way of choosing a link
         // @mkovatsc order of ClientFactories added could decide priority
         return (links.length > 0) ? links[0].href : "nope://none";

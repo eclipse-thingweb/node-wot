@@ -45,7 +45,7 @@ export default class WoTImpl implements WoT.WoTFactory {
         return new Promise<WoT.ThingDescription>((resolve, reject) => {
             let client = this.srv.getClientFor(Helpers.extractScheme(uri));
             console.info(`WoTImpl fetching TD from '${uri}' with ${client}`);
-            client.readResource(new TD.InteractionForm(uri, "application/ld+json"))
+            client.readResource(new TD.Form(uri, "application/ld+json"))
                 .then((content) => {
                     if (content.mediaType !== "application/ld+json") {
                         console.warn(`WoTImpl parsing TD from '${content.mediaType}' media type`);
@@ -62,12 +62,12 @@ export default class WoTImpl implements WoT.WoTFactory {
 
         let trimmedTD = td.trim();
 
-        if (td[0]!=='{') {
+        if (td[0] !== '{') {
             throw new Error("WoT.consume() takes a Thing Description. Use WoT.fetch() for URIs.");
         }
 
         let newThing = new ConsumedThing(this.srv, td);
-        console.info(`WoTImpl consuming TD ${newThing.id ? "'"+newThing.id+"'" : "without @id"} for ConsumedThing '${newThing.name}'`);
+        console.info(`WoTImpl consuming TD ${newThing.id ? "'" + newThing.id + "'" : "without @id"} for ConsumedThing '${newThing.name}'`);
         return newThing;
     }
 

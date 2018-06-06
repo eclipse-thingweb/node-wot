@@ -25,7 +25,9 @@ import * as Rest from "./resource-listeners/all-resource-listeners";
 import { ResourceListener } from "./resource-listeners/protocol-interfaces";
 import { Content, ContentSerdes } from "./content-serdes";
 
-export default class ExposedThing extends ConsumedThing implements WoT.ConsumedThing, WoT.ExposedThing {
+export default class ExposedThing extends ConsumedThing implements
+    // TD.Thing, 
+    WoT.ConsumedThing, WoT.ExposedThing {
     private propertyStates: Map<string, PropertyState> = new Map<string, PropertyState>();
     private actionStates: Map<string, ActionState> = new Map<string, ActionState>();
     private interactionObservables: Map<string, Subject<Content>> = new Map<string, Subject<Content>>();
@@ -35,25 +37,42 @@ export default class ExposedThing extends ConsumedThing implements WoT.ConsumedT
         // TODO check if extending ConsumedThing is worth the complexity
         super(servient, td);
 
-        // create state for all TD-declared Interactions
-        let initialInteractions = this.interaction.slice(0);
-        // copied TD entries and reset interaction for adding stateful Interactions
-        this.interaction = [];
-
-        for (let inter of initialInteractions) {
-            if (inter.pattern === TD.InteractionPattern.Property) {
-                this.addProperty(inter as WoT.ThingProperty);
-            } else if (inter.pattern === TD.InteractionPattern.Action) {
-                this.addAction(inter as WoT.ThingProperty);
-            } else if (inter.pattern === TD.InteractionPattern.Event) {
-                this.addEvent(inter as WoT.ThingEvent);
-            } else {
-                console.error(`ExposedThing '${this.name}' ignoring unknown Interaction '${inter.name}':`, inter);
-            }
+        // create state for all initial Interactions
+        for (let propertyName in this.thing.properties) {
+            let property = this.thing.properties[propertyName];
+            this.propertyStates.set(propertyName, new PropertyState());
+            this.addResourceListener("/" + this.name + "/properties/" + propertyName, new Rest.PropertyResourceListener(this, propertyName));
+        }
+        for (let actionName in this.thing.actions) {
+            let action = this.thing.actions[actionName];
+            this.actionStates.set(actionName, new ActionState());
+            this.addResourceListener("/" + this.name + "/actions/" + actionName, new Rest.PropertyResourceListener(this, actionName));
+        }
+        for (let eventName in this.thing.events) {
+            let event = this.thing.events[eventName];
+            // TODO connection to bindings
         }
 
+        /*
+        for (let inter of this.interaction) {
+            // reset forms in case already set via ThingModel
+            inter.form = [];
+            if (inter.pattern === TD.InteractionPattern.Property) {
+                this.propertyStates.set(inter.name, new PropertyState());
+                this.addResourceListener("/" + this.name + "/properties/" + inter.name, new Rest.PropertyResourceListener(this, inter.name));
+            } else if (inter.pattern === TD.InteractionPattern.Action) {
+                this.actionStates.set(inter.name, new ActionState());
+                this.addResourceListener("/" + this.name + "/actions/" + inter.name, new Rest.ActionResourceListener(this, inter.name));
+            } else if (inter.pattern === TD.InteractionPattern.Event) {
+                // TODO connection to bindings
+            } else {
+                console.error(`ExposedThing '${this.name}' ignoring unknown Interaction '${inter.name}':`, inter);
+            }  
+        }
+        */
+
         // expose Thing
-        this.addResourceListener("/" + encodeURIComponent(this.name), new Rest.TDResourceListener(this));
+        this.addResourceListener("/" + this.name, new Rest.TDResourceListener(this));
     }
 
     public getThingDescription(): WoT.ThingDescription {
@@ -70,10 +89,12 @@ export default class ExposedThing extends ConsumedThing implements WoT.ConsumedT
         this.srv.removeResourceListener(path);
     }
 
+    /*
     public getInteractions(): Array<TD.Interaction> {
         // returns a copy -- FIXME: not a deep copy
         return this.interaction.slice(0);
     }
+    */
 
     /**
      * Read a given property
@@ -86,16 +107,12 @@ export default class ExposedThing extends ConsumedThing implements WoT.ConsumedT
                 // call read handler (if any)
                 if (state.readHandler != null) {
                     console.log(`ExposedThing '${this.name}' calls registered readHandler for property ${propertyName}`);
-                    state.readHandler.call(state.that).then( (result: any) => {
-                        state.value = result;
-                        resolve(state.value);
-                    }).catch( (err: Error) => {
-                        reject(err);
-                    });
+                    state.value = state.readHandler.call(state.that);
                 } else {
                     console.log(`ExposedThing '${this.name}' reports value ${state.value} for property ${propertyName}`);
-                    resolve(state.value);
                 }
+
+                resolve(state.value);
             } else {
                 reject(new Error("No property called " + propertyName));
             }
@@ -114,17 +131,13 @@ export default class ExposedThing extends ConsumedThing implements WoT.ConsumedT
                 // call write handler (if any)
                 if (state.writeHandler != null) {
                     console.log(`ExposedThing '${this.name}' calls registered writeHandler for property ${propertyName}`);
-                    state.writeHandler.call(state.that, newValue).then( (result: any) => {
-                        state.value = result;
-                        resolve();
-                    }).catch( (err: Error) => {
-                        reject(err);
-                    });
+                    state.value = state.writeHandler.call(state.that, newValue);
                 } else {
                     console.log(`ExposedThing '${this.name}' sets new value ${newValue} for property ${propertyName}`);
                     state.value = newValue;
-                    resolve();
                 }
+
+                resolve();
             } else {
                 reject(new Error("No property called " + propertyName));
             }
@@ -155,7 +168,6 @@ export default class ExposedThing extends ConsumedThing implements WoT.ConsumedT
     }
 
     // define how to expose and run the Thing
-
     /** @inheritDoc */
     register(directory?: USVString): Promise<void> {
         return new Promise<void>((resolve, reject) => {
@@ -192,40 +204,28 @@ export default class ExposedThing extends ConsumedThing implements WoT.ConsumedT
     /** @inheritDoc */
     addProperty(property: WoT.ThingProperty): WoT.ExposedThing {
 
-        if (property.name===undefined) throw new Error("addProperty() requires ThingProperty 'name'");
-        if (property.schema===undefined) throw new Error("addProperty() requires ThingProperty 'schema'");
-
         console.log(`ExposedThing '${this.name}' adding Property '${property.name}'`);
 
-        let newProp = new TD.Interaction();
-        newProp.pattern = TD.InteractionPattern.Property;
+        let newProp = new TD.Property();
 
         newProp.name = property.name;
+        newProp.writable = property.writable;
+        newProp.observable = property.observable;
+        newProp.schema = JSON.parse(property.schema);
 
-        // convert from string if necessary (when using ThingPropertyInit)
-        newProp.schema = (typeof property.schema === "string") ? JSON.parse(property.schema) : property.schema;
+        // TODO metadata
+        //action.semanticType
+        //action.metadata
+        this.thing.properties[property.name] = newProp;
 
-        newProp.writable = property.writable===undefined ? false : property.writable;
-        newProp.observable = property.observable===undefined ? false : property.observable;
-        
-        // metadata
-        if (Array.isArray(property.semanticType)) {
-            newProp.semanticType = property.semanticType.slice(0);
-        }
-        if (Array.isArray(property.metadata)) {
-            newProp.metadata = property.metadata.slice(0);
-        }
-
-        this.interaction.push(newProp);
-
-        // TODO would it make sense to push the state to the ResourceListener? Or can we get rid of ResourceListeners?
+        // FIXME does it makes sense to push the state to the ResourceListener?
         let state = new PropertyState();
         if (property.value != null) {
             state.value = property.value;
             console.log(`ExposedThing '${this.name}' sets initial property '${property.name}' to '${state.value}'`);
         }
         this.propertyStates.set(newProp.name, state);
-        this.addResourceListener("/" + encodeURIComponent(this.name) + "/properties/" + encodeURIComponent(newProp.name), new Rest.PropertyResourceListener(this, newProp.name));
+        this.addResourceListener("/" + this.name + "/properties/" + newProp.name, new Rest.PropertyResourceListener(this, newProp.name));
 
         // inform TD observers
         this.observablesTDChange.next(this.getThingDescription());
@@ -236,31 +236,21 @@ export default class ExposedThing extends ConsumedThing implements WoT.ConsumedT
     /** @inheritDoc */
     addAction(action: WoT.ThingAction): WoT.ExposedThing {
 
-        if (action.name===undefined) throw new Error("addAction() requires ThingAction 'name'");
-
         console.log(`ExposedThing '${this.name}' adding Action '${action.name}'`);
 
-        let newAction = new TD.Interaction();
-        newAction.pattern = TD.InteractionPattern.Action;
+        let newAction = new TD.Action();
 
         newAction.name = action.name;
+        newAction.inputSchema = action.inputSchema ? JSON.parse(action.inputSchema) : null;
+        newAction.outputSchema = action.outputSchema ? JSON.parse(action.outputSchema) : null;
 
-        // convert from string if necessary (when using ThingActionInit)
-        newAction.inputSchema = (typeof action.inputSchema === "string") ? JSON.parse(action.inputSchema) : action.inputSchema;
-        newAction.outputSchema = (typeof action.outputSchema === "string") ? JSON.parse(action.outputSchema) : action.outputSchema;
-
-        // metadata
-        if (Array.isArray(action.semanticType)) {
-            newAction.semanticType = action.semanticType.slice(0);
-        }
-        if (Array.isArray(action.metadata)) {
-            newAction.metadata = action.metadata.slice(0);
-        }
-
-        this.interaction.push(newAction);
+        // TODO metadata
+        //action.semanticType
+        //action.metadata
+        this.thing.actions[action.name] = newAction;
 
         this.actionStates.set(newAction.name, new ActionState());
-        this.addResourceListener("/" + encodeURIComponent(this.name) + "/actions/" + encodeURIComponent(newAction.name), new Rest.ActionResourceListener(this, newAction.name));
+        this.addResourceListener("/" + this.name + "/actions/" + newAction.name, new Rest.ActionResourceListener(this, newAction.name));
 
         // inform TD observers
         this.observablesTDChange.next(this.getThingDescription());
@@ -272,36 +262,20 @@ export default class ExposedThing extends ConsumedThing implements WoT.ConsumedT
      * declare a new eventsource for the ExposedThing
      */
     addEvent(event: WoT.ThingEvent): WoT.ExposedThing {
-
-        if (event.name===undefined) throw new Error("addEvent() requires ThingEvent 'name'");
-        if (event.schema===undefined) throw new Error("addEvent() requires ThingEvent 'schema'");
-
-        console.log(`ExposedThing '${this.name}' adding Event '${event.name}'`);
-
-        let newEvent = new TD.Interaction();
-        newEvent.pattern = TD.InteractionPattern.Event;
-
+        // eventName: string
+        let newEvent = new TD.Event();
         newEvent.name = event.name;
+        newEvent.schema = JSON.parse(event.schema);
 
-        // convert from string if necessary (when using ThingEventInit)
-        newEvent.schema = (typeof event.schema === "string") ? JSON.parse(event.schema) : event.schema;
+        this.thing.events[event.name] = newEvent;
 
-        // metadata
-        if (Array.isArray(event.semanticType)) {
-            newEvent.semanticType = event.semanticType.slice(0);
-        }
-        if (Array.isArray(event.metadata)) {
-            newEvent.metadata = event.metadata.slice(0);
-        }
-
-        this.interaction.push(newEvent);
 
         let subject = new Subject<Content>();
 
         // lookup table for emitEvent()
         this.interactionObservables.set(newEvent.name, subject);
         // connection to bindings, which use ResourceListeners to subscribe/unsubscribe
-        this.addResourceListener("/" + encodeURIComponent(this.name) + "/events/" + encodeURIComponent(newEvent.name), new Rest.EventResourceListener(newEvent.name, subject));
+        this.addResourceListener("/" + this.name + "/events/" + newEvent.name, new Rest.EventResourceListener(newEvent.name, subject));
 
         // inform TD observers
         this.observablesTDChange.next(this.getThingDescription());
@@ -314,7 +288,7 @@ export default class ExposedThing extends ConsumedThing implements WoT.ConsumedT
         this.interactionObservables.get(propertyName).complete();
         this.interactionObservables.delete(propertyName);
         this.propertyStates.delete(propertyName);
-        this.removeResourceListener("/" + encodeURIComponent(this.name) + "/properties/" + encodeURIComponent(propertyName));
+        this.removeResourceListener(this.name + "/properties/" + propertyName);
 
         // inform TD observers
         this.observablesTDChange.next(this.getThingDescription());
@@ -325,7 +299,7 @@ export default class ExposedThing extends ConsumedThing implements WoT.ConsumedT
     /** @inheritDoc */
     removeAction(actionName: string): WoT.ExposedThing {
         this.actionStates.delete(actionName);
-        this.removeResourceListener("/" + encodeURIComponent(this.name) + "/actions/" + encodeURIComponent(actionName));
+        this.removeResourceListener(this.name + "/actions/" + actionName);
 
         // inform TD observers
         this.observablesTDChange.next(this.getThingDescription());
@@ -337,7 +311,7 @@ export default class ExposedThing extends ConsumedThing implements WoT.ConsumedT
     removeEvent(eventName: string): WoT.ExposedThing {
         this.interactionObservables.get(eventName).complete();
         this.interactionObservables.delete(eventName);
-        this.removeResourceListener("/" + encodeURIComponent(this.name) + "/events/" + encodeURIComponent(eventName));
+        this.removeResourceListener(this.name + "/events/" + eventName);
 
         // inform TD observers
         this.observablesTDChange.next(this.getThingDescription());
