@@ -13,21 +13,21 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
- import { InteractionForm } from "@node-wot/td-tools";
+import { Form } from "@node-wot/td-tools";
 
 export interface ProtocolClient {
 
   /** this client is requested to perform a "read" on the resource with the given URI */
-  readResource(form: InteractionForm): Promise<Content>;
+  readResource(form: Form): Promise<Content>;
 
   /** this cliet is requested to perform a "write" on the resource with the given URI  */
-  writeResource(form: InteractionForm, content: Content): Promise<void>;
+  writeResource(form: Form, content: Content): Promise<void>;
 
   /** this client is requested to perform an "invoke" on the resource with the given URI */
-  invokeResource(form: InteractionForm, content: Content): Promise<Content>;
+  invokeResource(form: Form, content: Content): Promise<Content>;
 
   /** this client is requested to perform an "unlink" on the resource with the given URI */
-  unlinkResource(form: InteractionForm): Promise<void>;
+  unlinkResource(form: Form): Promise<void>;
 
   /** start the client (ensure it is ready to send requests) */
   start(): boolean;
