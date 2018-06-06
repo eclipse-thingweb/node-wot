@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { InteractionForm } from "@node-wot/td-tools";
+import { Form } from "@node-wot/td-tools";
 
 export { default as HttpServer } from './http-server'
 export { default as HttpClient } from './http-client'
@@ -24,7 +24,7 @@ export * from './http-client'
 export * from './http-client-factory'
 export * from './https-client-factory'
 
-export class HttpForm extends InteractionForm {
+export class HttpForm extends Form {
     public "http:methodName"?: string; // "GET", "PUT", "POST", "DELETE"
     public "http:headers"?: Array<HttpHeader> | HttpHeader;
 }

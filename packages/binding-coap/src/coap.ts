@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { InteractionForm } from "@node-wot/td-tools";
+import { Form } from "@node-wot/td-tools";
 
 export { default as CoapServer } from "./coap-server";
 export { default as CoapClientFactory } from "./coap-client-factory";
@@ -23,7 +23,7 @@ export * from "./coap-server";
 export * from "./coap-client-factory";
 export * from "./coap-client";
 
-export class CoapForm extends InteractionForm {
+export class CoapForm extends Form {
     public "coap:methodCode"?: number; // 1=0.01=GET, 2=0.02=POST, 3=0.03=PUT, 4=0.04=DELETE
     public "coap:options"?: Array<CoapOption> | CoapOption;
 }
