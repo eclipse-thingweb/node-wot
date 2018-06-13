@@ -21,6 +21,8 @@ import _ from "@node-wot/core";
 import { Servient } from "@node-wot/core";
 import { HttpServer } from "@node-wot/binding-http";
 
+import { DataType } from "wot-typescript-definitions";
+
 // exposed protocols
 import { CoapServer } from "@node-wot/binding-coap";
 
@@ -76,64 +78,68 @@ function main() {
       let thing = WoT.produce(template);
       unicorn = thing;
 
-      let thingPropertyInitBrightness: WoT.ThingProperty = {
-        name: "brightness",
+      let thingPropertyInitBrightness: WoT.PropertyInit = {
+        // name: "brightness",
         value: 100,
-        schema: `{ "type": "integer", "minimum": 0, "maximum": 255 }`,
+        type: DataType.integer,
+        // schema: `{ "type": "integer", "minimum": 0, "maximum": 255 }`,
         writable: true
       };
 
 
-      let thingPropertyInitColor: WoT.ThingProperty = {
-        name: "color",
+      let thingPropertyInitColor: WoT.PropertyInit = {
+        // name: "color",
         value: { r: 0, g: 0, b: 0 },
-        schema: `{
-          "type": "object",
-          "field": [
-            { "name": "r", "schema": { "type": "integer", "minimum": 0, "maximum": 255 } },
-            { "name": "g", "schema": { "type": "integer", "minimum": 0, "maximum": 255 } },
-            { "name": "b", "schema": { "type": "integer", "minimum": 0, "maximum": 255 } }
-          ]
-        }`,
+        type: DataType.object,
+        // schema: `{
+        //   "type": "object",
+        //   "field": [
+        //     { "name": "r", "schema": { "type": "integer", "minimum": 0, "maximum": 255 } },
+        //     { "name": "g", "schema": { "type": "integer", "minimum": 0, "maximum": 255 } },
+        //     { "name": "b", "schema": { "type": "integer", "minimum": 0, "maximum": 255 } }
+        //   ]
+        // }`,
         writable: true
       };
 
-      let thingActionInitGradient: WoT.ThingAction = {
-        name: "gradient",
-        inputSchema: `{
-          "type": "array",
-          "item": {
-            "type": "object",
-            "field": [
-              { "name": "r", "schema": { "type": "integer", "minimum": 0, "maximum": 255 } },
-              { "name": "g", "schema": { "type": "integer", "minimum": 0, "maximum": 255 } },
-              { "name": "b", "schema": { "type": "integer", "minimum": 0, "maximum": 255 } }
-            ]
-          },
-          "minItems": 2
-        }`
+      let thingActionInitGradient: WoT.ActionInit = {
+        // name: "gradient",
+        input: {type: DataType.array}
+        // inputSchema: `{
+        //   "type": "array",
+        //   "item": {
+        //     "type": "object",
+        //     "field": [
+        //       { "name": "r", "schema": { "type": "integer", "minimum": 0, "maximum": 255 } },
+        //       { "name": "g", "schema": { "type": "integer", "minimum": 0, "maximum": 255 } },
+        //       { "name": "b", "schema": { "type": "integer", "minimum": 0, "maximum": 255 } }
+        //     ]
+        //   },
+        //   "minItems": 2
+        // }`
       };
 
-      let thingActionInitForce: WoT.ThingAction = {
-        name: "forceColor",
-        inputSchema: `{
-          "type": "object",
-          "field": [
-            { "name": "r", "schema": { "type": "integer", "minimum": 0, "maximum": 255 } },
-            { "name": "g", "schema": { "type": "integer", "minimum": 0, "maximum": 255 } },
-            { "name": "b", "schema": { "type": "integer", "minimum": 0, "maximum": 255 } }
-          ]
-        }`
+      let thingActionInitForce: WoT.ActionInit = {
+        // name: "forceColor",
+        input: {type: DataType.object}
+        // inputSchema: `{
+        //   "type": "object",
+        //   "field": [
+        //     { "name": "r", "schema": { "type": "integer", "minimum": 0, "maximum": 255 } },
+        //     { "name": "g", "schema": { "type": "integer", "minimum": 0, "maximum": 255 } },
+        //     { "name": "b", "schema": { "type": "integer", "minimum": 0, "maximum": 255 } }
+        //   ]
+        // }`
       };
 
-      let thingActionInitCancel: WoT.ThingAction = {
-        name: "cancel"
+      let thingActionInitCancel: WoT.ActionInit = {
+        // name: "cancel"
       };
 
       unicorn
-        .addProperty(thingPropertyInitBrightness)
+        .addProperty("brightness", thingPropertyInitBrightness)
         .setPropertyWriteHandler(
-          thingPropertyInitBrightness.name,
+          "brightness",
           (value : any) => {
             return new Promise((resolve, reject) => {
               setBrightness(value);
@@ -141,13 +147,13 @@ function main() {
             });
           }
         )
-        .addProperty(thingPropertyInitColor)
+        .addProperty("color", thingPropertyInitColor)
         .setPropertyWriteHandler(
-          thingPropertyInitColor.name,
+          "color",
           (value : any) => {
             return new Promise((resolve, reject) => {
               if (typeof value !== "object") {
-                reject(new Error(thingPropertyInitColor.name + " requires application/json"));
+                reject(new Error("color" + " requires application/json"));
               } else {
                 setAll(value.r, value.g, value.b);
                 resolve(value);
@@ -155,9 +161,9 @@ function main() {
             });
           }
         )
-        .addAction(thingActionInitGradient)
+        .addAction("gradient", thingActionInitGradient)
         .setActionHandler(
-          thingActionInitGradient.name,
+          "gradient",
           (input: Array<Color>) => {
             return new Promise((resolve, reject) => {
               if (input.length < 2) {
@@ -179,9 +185,9 @@ function main() {
             });
           }
         )
-        .addAction(thingActionInitForce)
+        .addAction("forceColor", thingActionInitForce)
         .setActionHandler(
-          thingActionInitForce.name,
+          "forceColor",
           (input: Color) => {
             return new Promise((resolve, reject) => {
                 unicorn.invokeAction('cancel');
@@ -190,9 +196,9 @@ function main() {
             });
           }
         )
-        .addAction(thingActionInitCancel)
+        .addAction("cancel", thingActionInitCancel)
         .setActionHandler(
-          thingActionInitCancel.name,
+          "cancel",
           () => {
             return new Promise((resolve, reject) => {
               if (gradientTimer) {

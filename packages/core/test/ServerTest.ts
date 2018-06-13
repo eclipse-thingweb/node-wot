@@ -30,6 +30,9 @@ import * as listeners from "../src/resource-listeners/all-resource-listeners";
 import { ProtocolServer, Content, ResourceListener } from "../src/resource-listeners/protocol-interfaces"
 import ExposedThing from "../src/exposed-thing";
 
+// import { ThingProperty } from "../src/consumed-thing";
+import { JSONType } from "wot-typescript-definitions";
+
 // implement a testserver to mock a server
 class TestProtocolServer implements ProtocolServer {
 
@@ -53,6 +56,36 @@ class TestProtocolServer implements ProtocolServer {
     stop(): Promise<void> { return new Promise<void>((resolve, reject) => { resolve(); }); }
     getPort(): number { return -1 }
 }
+
+
+class TestThingProperty implements WoT.ThingProperty {
+    writable: boolean;
+    observable: boolean;
+    value: any;
+    type: JSONType;
+    get(): Promise<any> {
+        return;
+    };
+
+    set(value: any): Promise<void> {
+        return;
+    }
+}
+
+
+class TestThingAction implements WoT.ThingAction {
+    input?: WoT.ValueType;
+    output?: WoT.ValueType;
+    description?: string;
+    label?: string;
+    forms: Array<WoT.Form>;
+    links: Array<WoT.Link>;
+
+    run(parameter?: any): Promise<any> {
+        return;
+    }
+}
+
 
 @suite("the server side of servient")
 class WoTServerTest {
@@ -103,70 +136,117 @@ class WoTServerTest {
 
     @test async "should be able to add a property with default value 0"() {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "otherthing100" });
-        let initp: WoT.ThingProperty = {
-            name: "number",
-            writable: true,
-            schema: `{ "type": "number" }`,
-            value: 0
-        };
-        thing.addProperty(initp);
-        let value1 = await thing.readProperty("number");
+        // let initp: WoT.ThingProperty = {
+        //     writable: true,
+        //     observable: false,
+        //     value: 0,
+        //     type: JSONType.number,
+        //     set(value: any): Promise<void>{return},
+        //     get(): Promise<any> {return}
+        // }
+        let initp = new TestThingProperty();
+        initp.writable = true;
+        initp.value = 0;
+
+        // let initp : WoT.ThingProperty = {
+        //     writable: true,
+        //     observable: false,
+        //     value: 0,
+        //     type: JSONType.number,
+        //     get(): Promise<any> {
+        //         return;
+        //     },
+        //     set(value: any): Promise<void> {
+        //         return;
+        //     }
+        // }; // null, null, null, null, null);
+        // initp.writable = true;
+        // initp.value = 0;
+        //  {
+        //     // name: "number",
+        //     writable: true,
+        //     observable: false,
+        //     type: JSONType.number, //  `{ "type": "number" }`,
+        //     value: 0,
+        //     label: undefined,
+        //     forms: undefined,
+        //     links: undefined,
+        //     get = null,
+        //     set = null;
+        // };
+        thing.addProperty("number", initp);
+        let value1 = await thing.properties["number"].get();
+        // let value1 = await thing.readProperty("number");
         expect(value1).to.equal(0);
     }
 
 
     @test async "should be able to add a property with default value XYZ"() {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "otherthing101" });
-        let initp: WoT.ThingProperty = {
-            name: "string",
-            writable: true,
-            schema: `{ "type": "string" }`,
-            value: "XYZ"
-        };
-        thing.addProperty(initp);
-        let value1 = await thing.readProperty("string");
+        let initp = new TestThingProperty();
+        initp.writable = true;
+        // initp.type = JSONType.string;
+        initp.value = "XYZ";
+        // let initp: WoT.ThingProperty = {
+        //     name: "string",
+        //     writable: true,
+        //     schema: `{ "type": "string" }`,
+        //     value: "XYZ"
+        // };
+        thing.addProperty("string", initp);
+        // let value1 = await thing.readProperty("string");
+        let value1 = await thing.properties["string"].get();
         expect(value1).to.equal("XYZ");
     }
 
     @test async "should be able to add a property without any default value"() {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "otherthing102" });
-        let initp: WoT.ThingProperty = {
-            name: "number",
-            writable: true,
-            schema: `{ "type": "number" }`
-        };
-        thing.addProperty(initp);
-        let value1 = await thing.readProperty("number");
+        let initp = new TestThingProperty();
+        initp.writable = true;
+        // let initp: WoT.ThingProperty = {
+        //     name: "number",
+        //     writable: true,
+        //     schema: `{ "type": "number" }`
+        // };
+        thing.addProperty("number", initp);
+        // let value1 = await thing.readProperty("number");
+        let value1 = await thing.properties["number"].get();
         expect(value1).to.equal(null);
     }
 
     @test async "should be able to add a property, read it and write it locally"() {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "otherthing" });
-        let initp: WoT.ThingProperty = {
-            name: "number",
-            writable: true,
-            schema: `{ "type": "number" }`,
-            value: 10
-        };
-        thing.addProperty(initp);
-        let value0 = await thing.readProperty("number");
+        let initp = new TestThingProperty();
+        initp.value = 10;
+        // let initp: WoT.ThingProperty = {
+        //     name: "number",
+        //     writable: true,
+        //     schema: `{ "type": "number" }`,
+        //     value: 10
+        // };
+        thing.addProperty("number", initp);
+        // let value0 = await thing.readProperty("number");
+        let value0 = await thing.properties["number"].get();
         expect(value0).to.equal(10);
-        await thing.writeProperty("number", 5);
-        let value1 = await thing.readProperty("number");
+        // await thing.writeProperty("number", 5);
+        await thing.properties["number"].set(5);
+        // let value1 = await thing.readProperty("number");
+        let value1 = await thing.properties["number"].get();
         expect(value1).to.equal(5);
     }
 
 
     @test async "should be able to add a property, read it by setting read increment handler (with lambda)"() {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "otherthingIncRead" });
-        let initp: WoT.ThingProperty = {
-            name: "number",
-            writable: true,
-            schema: `{ "type": "number" }`
-        };
+        let initp = new TestThingProperty();
+        // let initp: WoT.ThingProperty = {
+        //     name: "number",
+        //     writable: true,
+        //     schema: `{ "type": "number" }`
+        // };
         let counter: number = 0;
-        thing.addProperty(initp).setPropertyReadHandler(
-            initp.name,
+        thing.addProperty("number", initp).setPropertyReadHandler(
+            "number",
             () => {
                 return new Promise((resolve, reject) => {
                     resolve(++counter);
@@ -174,21 +254,25 @@ class WoTServerTest {
             }
         );
 
-        expect(await thing.readProperty("number")).to.equal(1);
-        expect(await thing.readProperty("number")).to.equal(2);
-        expect(await thing.readProperty("number")).to.equal(3);
+        // expect(await thing.readProperty("number")).to.equal(1);
+        expect(await thing.properties["number"].get()).to.equal(1);
+        // expect(await thing.readProperty("number")).to.equal(2);
+        expect(await thing.properties["number"].get()).to.equal(2);
+        // expect(await thing.readProperty("number")).to.equal(3);
+        expect(await thing.properties["number"].get()).to.equal(3);
     }
 
     @test async "should be able to add a property, read it by setting read increment handler (with function)"() {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "otherthingIncRead2" });
-        let initp: WoT.ThingProperty = {
-            name: "number",
-            writable: true,
-            schema: `{ "type": "number" }`
-        };
+        let initp = new TestThingProperty();
+        // let initp: WoT.ThingProperty = {
+        //     name: "number",
+        //     writable: true,
+        //     schema: `{ "type": "number" }`
+        // };
         let counter: number = 0;
-        thing.addProperty(initp).setPropertyReadHandler(
-            initp.name,
+        thing.addProperty("number", initp).setPropertyReadHandler(
+            "number",
             function () {
                 return new Promise((resolve, reject) => {
                     resolve(++counter);
@@ -196,21 +280,25 @@ class WoTServerTest {
             }
         );
 
-        expect(await thing.readProperty("number")).to.equal(1);
-        expect(await thing.readProperty("number")).to.equal(2);
-        expect(await thing.readProperty("number")).to.equal(3);
+        // expect(await thing.readProperty("number")).to.equal(1);
+        expect(await thing.properties["number"].get()).to.equal(1);
+        // expect(await thing.readProperty("number")).to.equal(2);
+        expect(await thing.properties["number"].get()).to.equal(2);
+        // expect(await thing.readProperty("number")).to.equal(3);
+        expect(await thing.properties["number"].get()).to.equal(3);
     }
 
 
     @test async "should be able to add a property, read it by setting read increment handler (with local counter state)"() {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "otherthingIncRead3" });
-        let initp: WoT.ThingProperty = {
-            name: "number",
-            writable: true,
-            schema: `{ "type": "number" }`
-        };
-        thing.addProperty(initp).setPropertyReadHandler(
-            initp.name,
+        let initp = new TestThingProperty();
+        // let initp: WoT.ThingProperty = {
+        //     name: "number",
+        //     writable: true,
+        //     schema: `{ "type": "number" }`
+        // };
+        thing.addProperty("number", initp).setPropertyReadHandler(
+            "number",
             function () {
                 return new Promise((resolve, reject) => {
                     // TODO: figure out a way to provide a common scope that can be used for consecutive handler calls
@@ -226,59 +314,75 @@ class WoTServerTest {
             }
         );
 
-        expect(await thing.readProperty("number")).to.equal(1);
-        expect(await thing.readProperty("number")).to.equal(2);
-        expect(await thing.readProperty("number")).to.equal(3);
+        // expect(await thing.readProperty("number")).to.equal(1);
+        expect(await thing.properties["number"].get()).to.equal(1);
+        // expect(await thing.readProperty("number")).to.equal(2);
+        expect(await thing.properties["number"].get()).to.equal(2);
+        // expect(await thing.readProperty("number")).to.equal(3);
+        expect(await thing.properties["number"].get()).to.equal(3);
     }
 
     @test async "should be able to add a property, read it by setting write handler double"() {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "otherthingWrite" });
-        let initp: WoT.ThingProperty = {
-            name: "number",
-            writable: true,
-            schema: `{ "type": "number" }`
-        };
-        thing.addProperty(initp);
-        let initp2: WoT.ThingProperty = {
-            name: "number2",
-            writable: true,
-            schema: `{ "type": "number" }`
-        };
-        thing.addProperty(initp2);
+        let initp = new TestThingProperty();
+        // let initp: WoT.ThingProperty = {
+        //     name: "number",
+        //     writable: true,
+        //     schema: `{ "type": "number" }`
+        // };
+        thing.addProperty("number", initp);
+        let initp2 = new TestThingProperty();
+        // let initp2: WoT.ThingProperty = {
+        //     name: "number2",
+        //     writable: true,
+        //     schema: `{ "type": "number" }`
+        // };
+        thing.addProperty("number2", initp2);
+
         thing.setPropertyWriteHandler(
-            initp.name,
+            "number",
             (value: any) => {
                 return new Promise((resolve, reject) => {
-                    thing.writeProperty(initp2.name, value * 2);
+                    thing.properties["number2"].set(value * 2);
+                    // thing.writeProperty(initp2.name, value * 2);
                     resolve(value);
                 });
             }
         );
 
-        await thing.writeProperty("number", 12);
-        expect(await thing.readProperty("number")).to.equal(12);
-        expect(await thing.readProperty("number2")).to.equal(24);
+        // await thing.writeProperty("number", 12);
+        // expect(await thing.readProperty("number")).to.equal(12);
+        // expect(await thing.readProperty("number2")).to.equal(24);
+        await thing.properties["number"].set(12);
+        expect(await thing.properties["number"].get()).to.equal(12);
+        expect(await thing.properties["number2"].get()).to.equal(24);
 
-        await thing.writeProperty("number", 13)
-        expect(await thing.readProperty("number")).to.equal(13);
-        expect(await thing.readProperty("number2")).to.equal(26);
+
+        // await thing.writeProperty("number", 13)
+        // expect(await thing.readProperty("number")).to.equal(13);
+        // expect(await thing.readProperty("number2")).to.equal(26);
+        await thing.properties["number"].set(13);
+        expect(await thing.properties["number"].get()).to.equal(13);
+        expect(await thing.properties["number2"].get()).to.equal(26);
     }
 
     @test async "should be able to add a property, read it by setting write handler with reading old value"() {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "otherthingReadWrite" });
-        let initp: WoT.ThingProperty = {
-            name: "number",
-            writable: true,
-            schema: `{ "type": "number" }`,
-            value: 2
-        };
-        thing.addProperty(initp);
+        let initp = new TestThingProperty();
+        initp.value = 2;
+        // let initp: WoT.ThingProperty = {
+        //     name: "number",
+        //     writable: true,
+        //     schema: `{ "type": "number" }`,
+        //     value: 2
+        // };
+        thing.addProperty("number", initp);
         // set handler that writes newValue as oldValue+request
         thing.setPropertyWriteHandler(
-            initp.name,
+            "number",
             (value: any) => {
                 return new Promise((resolve, reject) => {
-                    thing.readProperty(initp.name).then(
+                    thing.properties["number"].get().then(
                         (oldValue) => {
                             resolve(oldValue + value);
                         }
@@ -289,89 +393,40 @@ class WoTServerTest {
 
         // Note: writePropety uses side-effect (sets new value plus old value)
         // Defintely not a good idea to do so (for testing purposes only!)
-        await thing.writeProperty("number", 1);  // 2 + 1 = 3
-        expect(await thing.readProperty("number")).to.equal(3);
+        await thing.properties["number"].set(1);  // 2 + 1 = 3
+        expect(await thing.properties["number"].get()).to.equal(3);
 
-        await thing.writeProperty("number", 2); // 3 + 2 = 5
-        expect(await thing.readProperty("number")).to.equal(5);
+        await thing.properties["number"].set(2); // 3 + 2 = 5
+        expect(await thing.properties["number"].get()).to.equal(5);
     }
 
     @test async "should be able to add a property, write and read it locally"() {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "thing3" });
-        let initp: WoT.ThingProperty = {
-            name: "prop1",
-            writable: true,
-            schema: `{ "type": "number" }`,
-            value: 10
-        };
-        thing.addProperty(initp);
+        let initp = new TestThingProperty();
+        initp.value = 10;
+        // let initp: WoT.ThingProperty = {
+        //     name: "prop1",
+        //     writable: true,
+        //     schema: `{ "type": "number" }`,
+        //     value: 10
+        // };
+        thing.addProperty("prop1", initp);
 
-        await thing.writeProperty("prop1", 5);
-        expect(await thing.readProperty("prop1")).to.equal(5);
+        await thing.properties["prop1"].set(5);
+        expect(await thing.properties["prop1"].get()).to.equal(5);
     }
 
     @test "should be able to add an action and invoke it locally"() {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({
             name: "thing6"
         });
-        let inita: WoT.ThingAction = {
-            name: "action1",
-            inputSchema: `{ "type": "number" }`,
-            outputSchema: JSON.stringify({ "type": "number" })
-        };
-        thing.addAction(inita).setActionHandler(
-            inita.name,
-            (parameters: any) => {
-                return new Promise((resolve, reject) => {
-                    parameters.should.be.a("number");
-                    parameters.should.equal(23);
-                    resolve(42);
-                });
-            }
-        );
-
-        return thing.invokeAction("action1", 23).then((result) => result.should.equal(42));
-    }
-
-    @test "should be able to add an action and invoke it locally (based on WoT.ThingTemplate)"() {
-        let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({
-            name: "thing6c"
-        });
-        let inita: WoT.ThingAction = {
-            name: "action1",
-            inputSchema: `{ "type": "number" }`,
-            outputSchema: `{ "type": "number" }`
-        };
-
-        thing.addAction(inita).setActionHandler(
-            inita.name,
-            (parameters: any) => {
-                return new Promise((resolve, reject) => {
-                    parameters.should.be.a("number");
-                    parameters.should.equal(23);
-                    resolve(42);
-                });
-            }
-        );
-
-        return thing.invokeAction("action1", 23).then((result) => result.should.equal(42));
-    }
-
-    @test "should be able to add an action and invoke it locally (based on WoT.ThingDescription)"() {
-        let thing: WoT.ExposedThing = WoTServerTest.WoT.produce(`{
-            "@context": ["https://w3c.github.io/wot/w3c-wot-td-context.jsonld"],
-            "@type": ["Thing"],
-            "name": "thing6b",
-            "actions": {
-                "action1" : {
-                    "inputSchema": { "type": "number" },
-                    "outputSchema": { "type": "number" }
-                }
-            }
-        }`);
-        expect(thing).to.have.property("actions");
-
-        thing.setActionHandler(
+        let inita = new TestThingAction();
+        // let inita: WoT.ThingAction = {
+        //     name: "action1",
+        //     inputSchema: `{ "type": "number" }`,
+        //     outputSchema: JSON.stringify({ "type": "number" })
+        // };
+        thing.addAction("action1", inita).setActionHandler(
             "action1",
             (parameters: any) => {
                 return new Promise((resolve, reject) => {
@@ -382,6 +437,62 @@ class WoTServerTest {
             }
         );
 
-        return thing.invokeAction("action1", 23).then((result) => result.should.equal(42));
+        return thing.actions["action1"].run(23).then((result) => result.should.equal(42));
+        // return thing.invokeAction("action1", 23).then((result) => result.should.equal(42));
     }
+
+    @test "should be able to add an action and invoke it locally (based on WoT.ThingTemplate)"() {
+        let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({
+            name: "thing6c"
+        });
+        let inita = new TestThingAction();
+        // let inita: WoT.ThingAction = {
+        //     name: "action1",
+        //     inputSchema: `{ "type": "number" }`,
+        //     outputSchema: `{ "type": "number" }`
+        // };
+
+        thing.addAction("action1", inita).setActionHandler(
+            "action1",
+            (parameters: any) => {
+                return new Promise((resolve, reject) => {
+                    parameters.should.be.a("number");
+                    parameters.should.equal(23);
+                    resolve(42);
+                });
+            }
+        );
+
+        return thing.actions["action1"].run(23).then((result) => result.should.equal(42));
+        // return thing.invokeAction("action1", 23).then((result) => result.should.equal(42));
+    }
+
+    // @test "should be able to add an action and invoke it locally (based on WoT.ThingDescription)"() {
+    //     let thing: WoT.ExposedThing = WoTServerTest.WoT.produce(`{
+    //         "@context": ["https://w3c.github.io/wot/w3c-wot-td-context.jsonld"],
+    //         "@type": ["Thing"],
+    //         "name": "thing6b",
+    //         "actions": {
+    //             "action1" : {
+    //                 "inputSchema": { "type": "number" },
+    //                 "outputSchema": { "type": "number" }
+    //             }
+    //         }
+    //     }`);
+    //     expect(thing).to.have.property("actions");
+
+    //     thing.setActionHandler(
+    //         "action1",
+    //         (parameters: any) => {
+    //             return new Promise((resolve, reject) => {
+    //                 parameters.should.be.a("number");
+    //                 parameters.should.equal(23);
+    //                 resolve(42);
+    //             });
+    //         }
+    //     );
+
+    //     return thing.actions["action1"].run(23).then((result) => result.should.equal(42));
+    //     // return thing.invokeAction("action1", 23).then((result) => result.should.equal(42));
+    // }
 }

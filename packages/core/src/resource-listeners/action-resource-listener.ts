@@ -46,7 +46,8 @@ export default class ActionResourceListener extends BasicResourceListener implem
         } catch(err) {
             return new Promise<Content>( (resolve, reject) => { reject(err); })
         }
-        return this.thing.invokeAction(this.name, param).then((output) => {
+        return this.thing.actions[this.name].run(param).then((output) => {
+        // return this.thing.invokeAction(this.name, param).then((output) => {
             // TODO do assertion with this.description and spit warning?
             if (output === undefined) {
                 // action without output - skip ContentSerdes

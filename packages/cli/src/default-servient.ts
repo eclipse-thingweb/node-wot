@@ -14,7 +14,7 @@
  ********************************************************************************/
 
 // global W3C WoT Scripting API definitions
-import _, { WoTFactory } from "wot-typescript-definitions";
+import _, { WoTFactory, ThingProperty, DataType } from "wot-typescript-definitions";
 // node-wot implementation of W3C WoT Servient 
 import Servient from "@node-wot/core";
 // protocols used
@@ -62,6 +62,7 @@ export default class DefaultServient extends Servient {
      */
     public start(): Promise<WoTFactory> {
 
+
         return new Promise<WoTFactory>((resolve, reject) => {
             super.start().then(WoT => {
                 console.info("DefaultServient started");
@@ -72,14 +73,20 @@ export default class DefaultServient extends Servient {
                     "description": "node-wot CLI Servient",
                     "system": "${process.arch}"
                 }`)
-                    .addProperty({
-                        name: "things",
-                        schema: `{ "type": "array", "items": { "type": "string" } }`,
+                    .addProperty("things", {
+                        writable: true,
+                        observable: false,
+                        value: undefined,
+                        type: DataType.string
+                        // name: "things",
+                        // schema: `{ "type": "array", "items": { "type": "string" } }`,
                     })
-                    .addAction({
-                        name: "log",
-                        inputSchema: `{ "type": "string" }`,
-                        outputSchema: `{ "type": "string" }`
+                    .addAction("log", {
+                        input: { type: DataType.string},
+                        output: { type: DataType.string}
+                        // name: "log",
+                        // inputSchema: `{ "type": "string" }`,
+                        // outputSchema: `{ "type": "string" }`
                     })
                     .setActionHandler(
                         "log",
@@ -90,9 +97,10 @@ export default class DefaultServient extends Servient {
                             });
                         }
                     )
-                    .addAction({
-                        name: "shutdown",
-                        outputSchema: `{ "type": "string" }`
+                    .addAction("shutdown", {
+                        output: { type: DataType.string}
+                        // name: "shutdown",
+                        // outputSchema: `{ "type": "string" }`
                     })
                     .setActionHandler(
                         "shutdown",
@@ -107,10 +115,12 @@ export default class DefaultServient extends Servient {
 
                 if (this.config.servient.scriptAction) {
                     thing
-                        .addAction({
-                            name: "runScript",
-                            inputSchema: `{ "type": "string" }`,
-                            outputSchema: `{ "type": "string" }`
+                        .addAction("runScript", {
+                            input: { type: DataType.string},
+                            output: { type: DataType.string}
+                            // name: "runScript",
+                            // inputSchema: `{ "type": "string" }`,
+                            // outputSchema: `{ "type": "string" }`
                         })
                         .setActionHandler(
                             "runScript",
