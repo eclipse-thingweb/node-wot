@@ -39,8 +39,8 @@ export default class PropertyResourceListener extends BasicResourceListener impl
     }
 
     public onRead() : Promise<Content> {
-        return this.thing
-            .readProperty(this.name)
+        // return this.thing.readProperty(this.name)
+        return this.thing.properties[this.name].get()
             .then((value) => {
                 let content = ContentSerdes.valueToContent(value);
                 return Promise.resolve(content);
@@ -55,6 +55,7 @@ export default class PropertyResourceListener extends BasicResourceListener impl
         } catch(err) {
             return new Promise<void>( (resolve, reject) => { reject(err); })
         }
-        return this.thing.writeProperty(this.name, value);
+        // return this.thing.writeProperty(this.name, value);
+        return this.thing.properties[this.name].set(value);
     }
 }

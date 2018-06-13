@@ -43,7 +43,7 @@ export function generateTD(thing: ExposedThing, servient: Servient): Thing {
   genTD.actions = thing.actions;
   genTD.events = thing.events;
   // genTD.link = thing.link.slice(0); // FIXME: not a deep copy
-  genTD.link = thing.link;
+  genTD.link = thing.links;
 
   // fill in binding data (for properties)
   console.debug(`generateTD() found ${Object.keys(genTD.properties).length} Properties`);
@@ -51,7 +51,7 @@ export function generateTD(thing: ExposedThing, servient: Servient): Thing {
     let property = genTD.properties[propertyName];
 
     // reset as slice() does not make a deep copy
-    property.form = [];
+    property.forms = [];
 
     // a form is generated for each address, supported protocol, and mediatype
     for (let address of Helpers.getAddresses()) {
@@ -63,7 +63,7 @@ export function generateTD(thing: ExposedThing, servient: Servient): Thing {
             let href: string = server.scheme + "://" + address + ":" + server.getPort() + "/" + thing.name;
 
             // depending on the resource pattern, uri is constructed
-            property.form.push(new TD.Form(href + "/properties/" + propertyName, type));
+            property.forms.push(new TD.Form(href + "/properties/" + propertyName, type));
             console.debug(`generateTD() assigns href '${href}' to Property '${propertyName}'`);
           }
         }
@@ -77,7 +77,7 @@ export function generateTD(thing: ExposedThing, servient: Servient): Thing {
     let action = genTD.actions[actionName];
 
     // reset as slice() does not make a deep copy
-    action.form = [];
+    action.forms = [];
 
     // a form is generated for each address, supported protocol, and mediatype
     for (let address of Helpers.getAddresses()) {
@@ -89,7 +89,7 @@ export function generateTD(thing: ExposedThing, servient: Servient): Thing {
             let href: string = server.scheme + "://" + address + ":" + server.getPort() + "/" + thing.name;
 
             // depending on the resource pattern, uri is constructed
-            action.form.push(new TD.Form(href + "/actions/" + actionName, type));
+            action.forms.push(new TD.Form(href + "/actions/" + actionName, type));
             console.debug(`generateTD() assigns href '${href}' to Action '${actionName}'`);
           }
         }
@@ -103,7 +103,7 @@ export function generateTD(thing: ExposedThing, servient: Servient): Thing {
     let event = genTD.events[eventName];
 
     // reset as slice() does not make a deep copy
-    event.form = [];
+    event.forms = [];
 
     // a form is generated for each address, supported protocol, and mediatype
     for (let address of Helpers.getAddresses()) {
@@ -115,7 +115,7 @@ export function generateTD(thing: ExposedThing, servient: Servient): Thing {
             let href: string = server.scheme + "://" + address + ":" + server.getPort() + "/" + thing.name;
 
             // depending on the resource pattern, uri is constructed
-            event.form.push(new TD.Form(href + "/events/" + eventName, type));
+            event.forms.push(new TD.Form(href + "/events/" + eventName, type));
             console.debug(`generateTD() assigns href '${href}' to Event '${eventName}'`);
           }
         }

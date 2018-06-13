@@ -14,7 +14,7 @@
  ********************************************************************************/
 
 // global W3C WoT Scripting API definitions
-import WoT from "wot-typescript-definitions";
+import WoT, { WoTFactory } from "wot-typescript-definitions";
 
 export const DEFAULT_HTTP_CONTEXT: string = "http://w3c.github.io/wot/w3c-wot-td-context.jsonld";
 export const DEFAULT_HTTPS_CONTEXT: string = "https://w3c.github.io/wot/w3c-wot-td-context.jsonld";
@@ -27,7 +27,7 @@ export const DEFAULT_THING_TYPE: string = "Thing";
 /**
  * node-wot definition for instantiated Thing Descriptions (Things)
  */
-export default class Thing {
+export default class Thing implements WoT.Thing {
   /** collection of string-based keys that reference values of any type */
   [key: string]: any; /* e.g., @context besides the one that are explitecly defined below */
   id: string;
@@ -36,23 +36,24 @@ export default class Thing {
   base?: string;
 
   /** collection of string-based keys that reference a property of type Property2 */
+  // properties: Map<string, WoT.ThingProperty>;
   properties: {
-    [key: string]: Property
+    [key: string]: WoT.ThingProperty
   };
 
   /** collection of string-based keys that reference a property of type Action2 */
   actions: {
-    [key: string]: Action;
+    [key: string]: WoT.ThingAction;
   }
 
   /** collection of string-based keys that reference a property of type Event2 */
   events: {
-    [key: string]: Event;
+    [key: string]: WoT.ThingEvent;
   }
   securityDefinitions: Security;
 
   /** Web links to other Things or metadata */
-  public link?: Array<any>;
+  links: Array<WoT.WebLink>;
 
   constructor() {
     this["@context"] = DEFAULT_HTTPS_CONTEXT;
@@ -67,9 +68,10 @@ export default class Thing {
 /**
  * node-wot definition for Interactions
  */
-export class Interaction {
-  name: string;
-  form: Array<Form>;
+export class Interaction implements WoT.Interaction {
+  label: string;
+  forms: Array<WoT.Form>;
+  links: Array<WoT.Link>;
 }
 
 
@@ -78,11 +80,11 @@ export class Interaction {
 /**
  * node-wot definition for form / binding metadata
  */
-export class Form {
+export class Form implements WoT.Form {
   href: string;
-  mediaType: string;
-  rel: string;
-  security: string; /* FIXME: what type */
+  mediaType?: string;
+  rel?: string;
+  security?: WoT.Security;
 
   constructor(href?: string, mediaType?: string) {
     if (href) this.href = href;
@@ -90,28 +92,11 @@ export class Form {
   }
 }
 
-export class Property extends Interaction {
-  writable: boolean;
-  observable: boolean;
-
-  schema: string;
-}
-
-export class Action extends Interaction {
-  /** TODO add definitions */
-  inputSchema: string;
-  outputSchema: string;
-}
-export class Event extends Interaction {
-  /** TODO add definitions */
-  schema: string;
-}
-
 
 /**
  * node-wot definition for security metadata
  */
-export class Security {
-  readonly in: string;
-  readonly scheme: string;
+export class Security implements WoT.Security {
+  scheme: string;
+  in?: string;
 }

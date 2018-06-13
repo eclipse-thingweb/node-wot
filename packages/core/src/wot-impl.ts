@@ -111,4 +111,18 @@ export default class WoTImpl implements WoT.WoTFactory {
             throw new Error("Thing already exists: " + newThing.name);
         }
     }
+
+    /** @inheritDoc */
+    register(directory: USVString, thing: WoT.ExposedThing): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            reject(new Error("WoT.register not implemented"));
+        });
+    }
+
+    /** @inheritDoc */
+    unregister(directory: USVString, thing: WoT.ExposedThing): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            reject(new Error("WoT.unregister not implemented"));
+        });
+    }
 }
