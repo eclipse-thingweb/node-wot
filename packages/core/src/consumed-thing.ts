@@ -38,7 +38,7 @@ export abstract class ConsumedThingInteraction {
     label: string;
     forms: Array<WoT.Form>;
     links: Array<WoT.Link>;
-    
+
     thingName: string;
     thingId: string;
     thingSecurity: any;
@@ -167,84 +167,57 @@ export class ConsumedThingEvent extends ConsumedThingProperty implements WoT.Thi
 
 export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing {
 
-    protected readonly td: WoT.ThingDescription;
-    protected thing: TD.Thing;
-
     protected readonly srv: Servient;
     protected clients: Map<string, ProtocolClient> = new Map();
     protected observablesEvent: Map<string, Subject<any>> = new Map();
     protected observablesPropertyChange: Map<string, Subject<any>> = new Map();
     protected observablesTDChange: Subject<any> = new Subject<any>();
 
-    constructor(servient: Servient, td: WoT.ThingDescription) {
+    constructor(servient: Servient) {
         super();
         this.srv = servient;
-        // cache original TD
-        this.td = td;
+    }
 
-        // apply TD to Thing with normalized URIs (base resolved)
-        this.thing = TD.parseTDString(td, true);
-        console.log("Properties #: " + Object.keys(this.thing.properties).length);
-        console.log("Actions    #: " + Object.keys(this.thing.actions).length);
-        console.log("Events     #: " + Object.keys(this.thing.events).length);
-        // console.log("TD as JSON: " + JSON.stringify(td));
+    /**
+     * Walk over all interactions and extend
+     */
+    init() {
+        console.log("Properties #: " + Object.keys(this.properties).length);
+        console.log("Actions    #: " + Object.keys(this.actions).length);
+        console.log("Events     #: " + Object.keys(this.events).length);
 
-        this.name = this.thing.name;
-        this.id = this.thing.id;
-        this.properties = {};
-        // this.properties = this.thing.properties;
-        if (this.thing.properties != undefined && this.thing.properties instanceof Object) {
-            for (var name in this.thing.properties) {
-                let prop = this.thing.properties[name];
-                let p = new ConsumedThingProperty(this.thing.name, this.thing.id, this.thing.security, this.clients, this.srv);
-                p.forms = prop.forms;
+        if (this.properties != undefined && this.properties instanceof Object) {
+            for (var name in this.properties) {
+                let prop = this.properties[name];
+                let ctProp = new ConsumedThingProperty(this.name, this.id, this.security, this.clients, this.srv);
+                let p: ConsumedThingProperty = Helpers.extend(prop, ctProp);
                 this.properties[name] = p;
             }
+        } else {
+            this.properties = {};
         }
-        this.actions = {};
-        // this.actions = this.thing.actions;
-        if (this.thing.actions != undefined && this.thing.actions instanceof Object) {
-            for (var name in this.thing.actions) {
-                let act = this.thing.actions[name];
-                let a = new ConsumedThingAction(this.thing.name, this.thing.id, this.thing.security, this.clients, this.srv);
-                a.forms = act.forms;
+
+        if (this.actions != undefined && this.actions instanceof Object) {
+            for (var name in this.actions) {
+                let act = this.actions[name];
+                let ctAct = new ConsumedThingAction(this.name, this.id, this.security, this.clients, this.srv);
+                let a = Helpers.extend(act, ctAct);
                 this.actions[name] = a;
             }
-        }
-        this.events = {};
-        // this.events = this.thing.events;
-        if (this.thing.events != undefined && this.thing.events instanceof Object) {
-            for (var name in this.thing.events) {
-                let ev = this.thing.events[name];
-                let e = new ConsumedThingEvent(this.thing.name, this.thing.id, this.thing.security, this.clients, this.srv);
-                e.forms = ev.forms;
-                this.events[name] = e;
-            }
-        }
-
-        // TODO security
-        this.security = this.thing.security;
-        // TODO metadata
-        this.links = this.thing.links;
-
-        /*
-        let tdObj = TD.parseTDString(td, true);
-        this.context = tdObj.context;
-        this.semanticType = tdObj.semanticType;
-        this.name = tdObj.name;
-        this.id = tdObj.id;
-        if (Array.isArray(tdObj.security) && tdObj.security.length >= 1) {
-            if (tdObj.security.length > 1) {
-                console.warn(`ConsumedThing '${this.name}' received multiple security metadata entries, selecting first`)
-            }
-            this.security = tdObj.security[0];
         } else {
-            this.security = tdObj.security;
+            this.actions = {};
         }
-        this.metadata = tdObj.metadata;
-        this.interaction = tdObj.interaction;
-        this.link = tdObj.link;
-        */
+
+        if (this.events != undefined && this.events instanceof Object) {
+            for (var name in this.events) {
+                let ev = this.events[name];
+                let ctEv = new ConsumedThingEvent(this.name, this.id, this.security, this.clients, this.srv);
+                let a = Helpers.extend(ev, ctEv);
+                this.events[name] = a;
+            }
+        } else {
+            this.events = {};
+        }
     }
 
     get(param: string): any {
@@ -256,7 +229,8 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
      */
     getThingDescription(): WoT.ThingDescription {
         // returning cached version
-        return this.td;
+        // return this.td;
+        return JSON.stringify(this); // TODO strip out internals
     }
 
     // onPropertyChange(name: string): Observable<any> {

@@ -66,7 +66,9 @@ export default class WoTImpl implements WoT.WoTFactory {
             throw new Error("WoT.consume() takes a Thing Description. Use WoT.fetch() for URIs.");
         }
 
-        let newThing = new ConsumedThing(this.srv, td);
+        let thing: TD.Thing = TD.parseTDString(td, true);
+        let newThing: ConsumedThing = Helpers.extend(thing, new ConsumedThing(this.srv)); // , td));
+        newThing.init();
         console.info(`WoTImpl consuming TD ${newThing.id ? "'" + newThing.id + "'" : "without @id"} for ConsumedThing '${newThing.name}'`);
         return newThing;
     }
@@ -102,7 +104,10 @@ export default class WoTImpl implements WoT.WoTFactory {
             throw new Error("WoTImpl could not create Thing because of unknown model argument " + model);
         }
 
-        let newThing = new ExposedThing(this.srv, td);
+
+        let thing: TD.Thing = TD.parseTDString(td, true);
+        let newThing: ExposedThing = Helpers.extend(thing, new ExposedThing(this.srv));
+        newThing.init();
         console.info(`WoTImpl producing new ExposedThing '${newThing.name}'`);
 
         if (this.srv.addThing(newThing)) {
