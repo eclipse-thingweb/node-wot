@@ -35,7 +35,7 @@ let tdSample1 = `{
 			"schema": {
 				"type": "number"
 			},
-			"form": [{
+			"forms": [{
 				"href": "coap://mytemp.example.com:5683/temp",
 				"mediaType": "application/json"
 			}],
@@ -56,7 +56,7 @@ let tdSample2 = `{
 			"schema": {
 				"type": "number"
 			},
-			"form": [{
+			"forms": [{
 				"href": "coap://mytemp.example.com:5683/temp",
 				"mediaType": "application/json"
 			}],
@@ -80,7 +80,7 @@ let tdSample3 = `{
 			},
 			"writable": true,
 			"observable": false,
-			"form": [{
+			"forms": [{
 				"href": "temp",
 				"mediaType": "application/json"
 			}]
@@ -91,7 +91,7 @@ let tdSample3 = `{
 			},
 			"writable": false,
 			"observable": false,
-			"form": [{
+			"forms": [{
 				"href": "./temp",
 				"mediaType": "application/json"
 			}]
@@ -100,7 +100,7 @@ let tdSample3 = `{
 			"schema": {
 				"type": "number"
 			},
-			"form": [{
+			"forms": [{
 				"href": "/humid",
 				"mediaType": "application/json"
 			}]
@@ -127,7 +127,7 @@ let tdSampleLemonbeatBurlingame = `{
 			"schema": { "type": "number" },
 			"writable": false,
 			"observable": true,
-			"form": [{
+			"forms": [{
 				"href" : "sensors/luminance", 
 				"mediaType": "application/json"
 			}]
@@ -138,7 +138,7 @@ let tdSampleLemonbeatBurlingame = `{
 			"schema": { "type": "number" },
 			"writable": false,
 			"observable": true,
-			"form": [{
+			"forms": [{
 				"href" : "sensors/humidity", 
 				"mediaType": "application/json"
 			}]
@@ -149,7 +149,7 @@ let tdSampleLemonbeatBurlingame = `{
 			"schema": { "type": "number" },
 			"writable": false,
 			"observable": true,
-			"form": [{
+			"forms": [{
 				"href" : "sensors/temperature", 
 				"mediaType": "application/json"
 			}]
@@ -159,7 +159,7 @@ let tdSampleLemonbeatBurlingame = `{
 			"schema": { "type": "boolean" },
 			"writable": false,
 			"observable": true,
-			"form": [{
+			"forms": [{
 				"href" : "fan/status",
 				"mediaType": "application/json"
 			}]
@@ -168,14 +168,14 @@ let tdSampleLemonbeatBurlingame = `{
   "actions": {
     "turnOn": {
 			"@type": ["actuator:turnOn"],
-			"form": [{
+			"forms": [{
 				"href" : "fan/turnon",
 				"mediaType": "application/json"
 			}]									
     },
     "turnOff": {
 			"@type": ["actuator:turnOff"],
-			"form": [{
+			"forms": [{
 				"href" : "fan/turnoff",
 				"mediaType": "application/json"
 			}]									
@@ -200,7 +200,7 @@ let tdSampleMetadata1 = `{
 				"type": "number"
 			},
 			"writable": false,
-			"form": [{
+			"forms": [{
 				"href": "temp",
 				"mediaType": "application/json"
 			}]
@@ -259,9 +259,9 @@ class TDParserTest {
     expect(td.properties["temperature"]).to.have.property("writable").that.equals(false);
     expect(td.properties["temperature"]).to.have.property("observable").that.equals(false);
 
-    expect(td.properties["temperature"]).to.have.property("form").to.have.lengthOf(1);
-    expect(td.properties["temperature"].form[0]).to.have.property("mediaType").that.equals("application/json");
-    expect(td.properties["temperature"].form[0]).to.have.property("href").that.equals("coap://mytemp.example.com:5683/temp");
+    expect(td.properties["temperature"]).to.have.property("forms").to.have.lengthOf(1);
+    expect(td.properties["temperature"].forms[0]).to.have.property("mediaType").that.equals("application/json");
+    expect(td.properties["temperature"].forms[0]).to.have.property("href").that.equals("coap://mytemp.example.com:5683/temp");
   }
 
   @test "should parse writable Property"() {
@@ -275,9 +275,9 @@ class TDParserTest {
     expect(td.properties["temperature"]).to.have.property("writable").that.equals(true);
     expect(td.properties["temperature"]).to.have.property("observable").that.equals(true);
 
-    expect(td.properties["temperature"]).to.have.property("form").to.have.lengthOf(1);
-    expect(td.properties["temperature"].form[0]).to.have.property("mediaType").that.equals("application/json");
-    expect(td.properties["temperature"].form[0]).to.have.property("href").that.equals("coap://mytemp.example.com:5683/temp");
+    expect(td.properties["temperature"]).to.have.property("forms").to.have.lengthOf(1);
+    expect(td.properties["temperature"].forms[0]).to.have.property("mediaType").that.equals("application/json");
+    expect(td.properties["temperature"].forms[0]).to.have.property("href").that.equals("coap://mytemp.example.com:5683/temp");
 
   }
 
@@ -292,27 +292,27 @@ class TDParserTest {
     expect(td.properties).to.have.property("temperature");
     expect(td.properties["temperature"]).to.have.property("writable").that.equals(true);
     expect(td.properties["temperature"]).to.have.property("observable").that.equals(false);
-    expect(td.properties["temperature"]).to.have.property("form").to.have.lengthOf(1);
-    expect(td.properties["temperature"].form[0]).to.have.property("mediaType").that.equals("application/json");
+    expect(td.properties["temperature"]).to.have.property("forms").to.have.lengthOf(1);
+    expect(td.properties["temperature"].forms[0]).to.have.property("mediaType").that.equals("application/json");
     // TODO base
-    expect(td.properties["temperature"].form[0]).to.have.property("href").that.equals("temp");
+    expect(td.properties["temperature"].forms[0]).to.have.property("href").that.equals("temp");
 
 
     expect(td.properties).to.have.property("temperature2");
     expect(td.properties["temperature2"]).to.have.property("writable").that.equals(false);
     expect(td.properties["temperature2"]).to.have.property("observable").that.equals(false);
-    expect(td.properties["temperature2"]).to.have.property("form").to.have.lengthOf(1);
-    expect(td.properties["temperature2"].form[0]).to.have.property("mediaType").that.equals("application/json");
+    expect(td.properties["temperature2"]).to.have.property("forms").to.have.lengthOf(1);
+    expect(td.properties["temperature2"].forms[0]).to.have.property("mediaType").that.equals("application/json");
     // TODO base
-    expect(td.properties["temperature2"].form[0]).to.have.property("href").that.equals("./temp");
+    expect(td.properties["temperature2"].forms[0]).to.have.property("href").that.equals("./temp");
 
     expect(td.properties).to.have.property("humidity");
     expect(td.properties["humidity"]).to.have.property("writable").that.equals(false);
     expect(td.properties["humidity"]).to.have.property("observable").that.equals(false);
-    expect(td.properties["humidity"]).to.have.property("form").to.have.lengthOf(1);
-    expect(td.properties["humidity"].form[0]).to.have.property("mediaType").that.equals("application/json");
+    expect(td.properties["humidity"]).to.have.property("forms").to.have.lengthOf(1);
+    expect(td.properties["humidity"].forms[0]).to.have.property("mediaType").that.equals("application/json");
     // TODO base
-    expect(td.properties["humidity"].form[0]).to.have.property("href").that.equals("/humid");
+    expect(td.properties["humidity"].forms[0]).to.have.property("href").that.equals("/humid");
   }
 
   @test "should return same TD in round-trips"() {
@@ -397,10 +397,10 @@ class TDParserTest {
     expect(td.properties).to.have.property("myTemp");
     expect(td.properties["myTemp"]).to.have.property("writable").that.equals(false);
     expect(td.properties["myTemp"]).to.have.property("observable").that.equals(false);
-    expect(td.properties["myTemp"]).to.have.property("form").to.have.lengthOf(1);
-    expect(td.properties["myTemp"].form[0]).to.have.property("mediaType").that.equals("application/json");
+    expect(td.properties["myTemp"]).to.have.property("forms").to.have.lengthOf(1);
+    expect(td.properties["myTemp"].forms[0]).to.have.property("mediaType").that.equals("application/json");
     // TODO base
-    expect(td.properties["myTemp"].form[0]).to.have.property("href").that.equals("temp");
+    expect(td.properties["myTemp"].forms[0]).to.have.property("href").that.equals("temp");
 
 
     // metadata
