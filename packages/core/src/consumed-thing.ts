@@ -221,7 +221,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     }
 
     get(param: string): any {
-        return this.thing[param];
+        return this[param];
     }
 
     /**
