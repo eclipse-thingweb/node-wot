@@ -50,7 +50,7 @@ export default class Thing implements WoT.Thing {
   events: {
     [key: string]: WoT.ThingEvent;
   }
-  securityDefinitions: Security;
+  security: Security;
 
   /** Web links to other Things or metadata */
   links: Array<WoT.WebLink>;
