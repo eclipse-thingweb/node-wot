@@ -159,7 +159,8 @@ export default class ExposedThing extends ConsumedThing implements WoT.ConsumedT
 
     // setter for ThingTemplate properties
     public set(name: string, value: any): void {
-
+        // TODO shall we do some sanity check to avoid setting internal values that are needed et cetera
+        this[name] = value;
     }
 
     public getThingDescription(): WoT.ThingDescription {
