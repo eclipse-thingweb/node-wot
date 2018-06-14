@@ -32,34 +32,26 @@ abstract class ExposedThingInteraction {
     links: Array<WoT.Link>;
 }
 
-class ExposedThingProperty
-// extends TD.ThingProperty
-extends ExposedThingInteraction
-implements WoT.ThingProperty, WoT.DataSchema
-{
+class ExposedThingProperty extends ExposedThingInteraction implements WoT.ThingProperty, WoT.DataSchema {
     writable: boolean;
     observable: boolean;
     value: any;
 
     type: WoT.DataType;
-   
 
-    thingName : string;
-    propertyName : string;
-    propertyState : PropertyState;
-    
 
-    constructor(thingName : string, propertyName : string, propertyState : PropertyState) {
+    thingName: string;
+    propertyName: string;
+    propertyState: PropertyState;
+
+
+    constructor(thingName: string, propertyName: string, propertyState: PropertyState) {
         super();
         this.thingName = thingName;
         this.propertyName = propertyName;
         this.propertyState = propertyState;
     }
 
-    // getter for PropertyInit properties
-    // get(name: string): any {
-
-    // }
     // get and set interface for the Property
     get(): Promise<any> {
         return new Promise<any>((resolve, reject) => {
@@ -94,17 +86,14 @@ implements WoT.ThingProperty, WoT.DataSchema
     }
 }
 
-class ExposedThingAction
-// extends TD.ThingAction
-extends ExposedThingInteraction
-implements WoT.ThingAction {
-    
-    thingName : string;
-    actionName : string;
-    actionState : ActionState;
-    
+class ExposedThingAction extends ExposedThingInteraction implements WoT.ThingAction {
 
-    constructor(thingName : string, actionName : string, actionState : ActionState) {
+    thingName: string;
+    actionName: string;
+    actionState: ActionState;
+
+
+    constructor(thingName: string, actionName: string, actionState: ActionState) {
         super();
         this.thingName = thingName;
         this.actionName = actionName;
@@ -112,10 +101,9 @@ implements WoT.ThingAction {
     }
 
 
-    run(parameter?: any) : Promise<any> {
+    run(parameter?: any): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             if (this.actionState) {
-                // TODO debug-level
                 console.debug(`ExposedThing '${this.thingName}' Action state of '${this.actionName}':`, this.actionState);
 
                 if (this.actionState.handler != null) {
@@ -136,11 +124,7 @@ class ExposedThingEvent extends ExposedThingProperty implements WoT.ThingEvent {
 
 
 
-export default class ExposedThing
-extends ConsumedThing
-implements
-    // TD.Thing, 
-    WoT.ConsumedThing, WoT.ExposedThing {
+export default class ExposedThing extends ConsumedThing implements WoT.ConsumedThing, WoT.ExposedThing {
     private propertyStates: Map<string, PropertyState> = new Map<string, PropertyState>();
     private actionStates: Map<string, ActionState> = new Map<string, ActionState>();
     private interactionObservables: Map<string, Subject<Content>> = new Map<string, Subject<Content>>();
@@ -166,31 +150,13 @@ implements
             // TODO connection to bindings
         }
 
-        /*
-        for (let inter of this.interaction) {
-            // reset forms in case already set via ThingModel
-            inter.form = [];
-            if (inter.pattern === TD.InteractionPattern.Property) {
-                this.propertyStates.set(inter.name, new PropertyState());
-                this.addResourceListener("/" + this.name + "/properties/" + inter.name, new Rest.PropertyResourceListener(this, inter.name));
-            } else if (inter.pattern === TD.InteractionPattern.Action) {
-                this.actionStates.set(inter.name, new ActionState());
-                this.addResourceListener("/" + this.name + "/actions/" + inter.name, new Rest.ActionResourceListener(this, inter.name));
-            } else if (inter.pattern === TD.InteractionPattern.Event) {
-                // TODO connection to bindings
-            } else {
-                console.error(`ExposedThing '${this.name}' ignoring unknown Interaction '${inter.name}':`, inter);
-            }  
-        }
-        */
-
         // expose Thing
         this.addResourceListener("/" + this.name, new Rest.TDResourceListener(this));
     }
 
     // setter for ThingTemplate properties
     public set(name: string, value: any): void {
-        
+
     }
 
     public getThingDescription(): WoT.ThingDescription {
@@ -207,88 +173,9 @@ implements
         this.srv.removeResourceListener(path);
     }
 
-    /*
-    public getInteractions(): Array<TD.Interaction> {
-        // returns a copy -- FIXME: not a deep copy
-        return this.interaction.slice(0);
-    }
-    */
 
-    /**
-     * Read a given property
-     * @param propertyName Name of the property
-     */
-    // public readProperty(propertyName: string): Promise<any> {
-    //     return new Promise<any>((resolve, reject) => {
-    //         let state = this.propertyStates.get(propertyName);
-    //         if (state) {
-    //             // call read handler (if any)
-    //             if (state.readHandler != null) {
-    //                 console.log(`ExposedThing '${this.name}' calls registered readHandler for property ${propertyName}`);
-    //                 state.value = state.readHandler.call(state.that);
-    //             } else {
-    //                 console.log(`ExposedThing '${this.name}' reports value ${state.value} for property ${propertyName}`);
-    //             }
-
-    //             resolve(state.value);
-    //         } else {
-    //             reject(new Error("No property called " + propertyName));
-    //         }
-    //     });
-    // }
-
-    // /**
-    //  * Write a given property
-    //  * @param propertyName of the property
-    //  * @param newValue value to be set
-    //  */
-    // public writeProperty(propertyName: string, newValue: any): Promise<void> {
-    //     return new Promise<void>((resolve, reject) => {
-    //         let state = this.propertyStates.get(propertyName);
-    //         if (state) {
-    //             // call write handler (if any)
-    //             if (state.writeHandler != null) {
-    //                 console.log(`ExposedThing '${this.name}' calls registered writeHandler for property ${propertyName}`);
-    //                 state.value = state.writeHandler.call(state.that, newValue);
-    //             } else {
-    //                 console.log(`ExposedThing '${this.name}' sets new value ${newValue} for property ${propertyName}`);
-    //                 state.value = newValue;
-    //             }
-
-    //             resolve();
-    //         } else {
-    //             reject(new Error("No property called " + propertyName));
-    //         }
-    //     });
-    // }
-
-    // /** invokes an action on the target thing
-    //  * @param actionName Name of the action to invoke
-    //  * @param parameter optional json object to supply parameters
-    // */
-    // public invokeAction(actionName: string, parameter?: any): Promise<any> {
-    //     return new Promise<any>((resolve, reject) => {
-    //         let state = this.actionStates.get(actionName);
-    //         if (state) {
-    //             // TODO debug-level
-    //             console.debug(`ExposedThing '${this.name}' Action state of '${actionName}':`, state);
-
-    //             if (state.handler != null) {
-    //                 let handler = state.handler;
-    //                 resolve(handler(parameter));
-    //             } else {
-    //                 reject(new Error(`ExposedThing '${this.name}' has no action handler for '${actionName}'`));
-    //             }
-    //         } else {
-    //             reject(new Error(`ExposedThing '${this.name}' has no Action '${actionName}'`));
-    //         }
-    //     });
-    // }
 
     // define how to expose and run the Thing
-    /** @inheritDoc */
-
-
     /** @inheritDoc */
     expose(): Promise<void> {
         return new Promise<void>((resolve, reject) => {
@@ -309,7 +196,6 @@ implements
         });
     }
 
- 
 
     /** @inheritDoc */
     addProperty(name: string, property: WoT.ThingProperty): WoT.ExposedThing {
@@ -323,7 +209,7 @@ implements
         newProp.writable = property.writable;
         newProp.observable = property.observable;
         // newProp.type = JSON.parse(property.type);
-        newProp.forms = [{href: "", rel:"", security: null}];
+        newProp.forms = [{ href: "", rel: "", security: null }];
 
         // TODO metadata
         //action.semanticType
