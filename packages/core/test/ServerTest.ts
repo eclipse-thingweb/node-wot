@@ -137,7 +137,6 @@ class WoTServerTest {
             type: undefined // DataType.number //  `{ "type": "number" }`
         };
         thing.addProperty("number", initp);
-        // let value1 = await thing.readProperty("number");
         let value1 = await thing.properties["number"].get();
         expect(value1).to.equal(null);
     }
@@ -242,10 +241,22 @@ class WoTServerTest {
         };
         thing.addProperty("number2", initp2);
 
+        let v : number = null;
+
+        thing.setPropertyReadHandler(
+            "number",
+            () => {
+                return new Promise((resolve, reject) => {
+                    resolve(v);
+                });
+            }
+        );
         thing.setPropertyWriteHandler(
             "number",
             (value: any) => {
                 return new Promise((resolve, reject) => {
+                    // thing.properties["number"].set(value);
+                    v = value;
                     thing.properties["number2"].set(value * 2);
                     resolve(value);
                 });
@@ -269,6 +280,18 @@ class WoTServerTest {
             value: 2
         };
         thing.addProperty("number", initp);
+
+        let ov = thing.properties["number"].get();
+
+        thing.setPropertyReadHandler(
+            "number",
+            () => {
+                return new Promise((resolve, reject) => {
+                    resolve(ov);
+                });
+            }
+        );
+
         // set handler that writes newValue as oldValue+request
         thing.setPropertyWriteHandler(
             "number",
@@ -276,7 +299,8 @@ class WoTServerTest {
                 return new Promise((resolve, reject) => {
                     thing.properties["number"].get().then(
                         (oldValue) => {
-                            resolve(oldValue + value);
+                            ov = oldValue + value;
+                            resolve(ov);
                         }
                     );
                 });
@@ -350,32 +374,33 @@ class WoTServerTest {
         return thing.actions["action1"].run(23).then((result) => result.should.equal(42));
     }
 
-    // @test "should be able to add an action and invoke it locally (based on WoT.ThingDescription)"() {
-    //     let thing: WoT.ExposedThing = WoTServerTest.WoT.produce(`{
-    //         "@context": ["https://w3c.github.io/wot/w3c-wot-td-context.jsonld"],
-    //         "@type": ["Thing"],
-    //         "name": "thing6b",
-    //         "actions": {
-    //             "action1" : {
-    //                 "input": { "type": "number" },
-    //                 "output": { "type": "number" }
-    //             }
-    //         }
-    //     }`);
-    //     expect(thing).to.have.property("actions");
+    @test "should be able to add an action and invoke it locally (based on WoT.ThingDescription)"() {
+        let thing: WoT.ExposedThing = WoTServerTest.WoT.produce(`{
+            "@context": ["https://w3c.github.io/wot/w3c-wot-td-context.jsonld"],
+            "@type": ["Thing"],
+            "name": "thing6b",
+            "actions": {
+                "action1" : {
+                    "input": { "type": "number" },
+                    "output": { "type": "number" }
+                }
+            }
+        }`);
+        
+        expect(thing).to.have.property("actions");
+        expect(thing.actions).to.have.property("action1");
 
-    //     thing.setActionHandler(
-    //         "action1",
-    //         (parameters: any) => {
-    //             return new Promise((resolve, reject) => {
-    //                 parameters.should.be.a("number");
-    //                 parameters.should.equal(23);
-    //                 resolve(42);
-    //             });
-    //         }
-    //     );
+        thing.setActionHandler(
+            "action1",
+            (parameters: any) => {
+                return new Promise((resolve, reject) => {
+                    parameters.should.be.a("number");
+                    parameters.should.equal(23);
+                    resolve(42);
+                });
+            }
+        );
 
-    //     return thing.actions["action1"].run(23).then((result) => result.should.equal(42));
-    //     // return thing.invokeAction("action1", 23).then((result) => result.should.equal(42));
-    // }
+        return thing.actions["action1"].run(23).then((result) => result.should.equal(42));
+    }
 }
