@@ -15,6 +15,8 @@
 
 import * as vm from "vm";
 
+import * as WoT from "wot-typescript-definitions";
+
 import WoTImpl from "./wot-impl";
 import ExposedThing from "./exposed-thing";
 import { ProtocolClientFactory, ProtocolServer, ResourceListener, ProtocolClient } from "./resource-listeners/protocol-interfaces"

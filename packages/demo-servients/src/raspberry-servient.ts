@@ -21,7 +21,7 @@ import _ from "@node-wot/core";
 import { Servient } from "@node-wot/core";
 import { HttpServer } from "@node-wot/binding-http";
 
-import { DataType } from "wot-typescript-definitions";
+import * as WoT from "wot-typescript-definitions";
 
 // exposed protocols
 import { CoapServer } from "@node-wot/binding-coap";
@@ -67,7 +67,7 @@ function main() {
   servient.addServer(new CoapServer());
 
   // get WoT object for privileged script
-  servient.start().then( WoT => {
+  servient.start().then( myWoT => {
   
     console.info("RaspberryServient started");
 
@@ -75,36 +75,32 @@ function main() {
 
       let template: WoT.ThingTemplate = { name: "Unicorn" };
 
-      let thing = WoT.produce(template);
+      let thing = myWoT.produce(template);
       unicorn = thing;
 
       let thingPropertyInitBrightness: WoT.PropertyInit = {
         // name: "brightness",
         value: 100,
-        type: DataType.integer,
+        type: WoT.DataType.integer,
         // schema: `{ "type": "integer", "minimum": 0, "maximum": 255 }`,
         writable: true
       };
 
 
       let thingPropertyInitColor: WoT.PropertyInit = {
-        // name: "color",
         value: { r: 0, g: 0, b: 0 },
-        type: DataType.object,
-        // schema: `{
-        //   "type": "object",
-        //   "field": [
-        //     { "name": "r", "schema": { "type": "integer", "minimum": 0, "maximum": 255 } },
-        //     { "name": "g", "schema": { "type": "integer", "minimum": 0, "maximum": 255 } },
-        //     { "name": "b", "schema": { "type": "integer", "minimum": 0, "maximum": 255 } }
-        //   ]
-        // }`,
+        type: WoT.DataType.object,
+/*        properties: {
+          r: { type: "integer", minimum: 0, maximum: 255 },
+          g: { type: "integer", minimum: 0, maximum: 255 },
+          b: { type: "integer", minimum: 0, maximum: 255 },
+        }, */
         writable: true
       };
 
       let thingActionInitGradient: WoT.ActionInit = {
         // name: "gradient",
-        input: {type: DataType.array}
+        input: {type: WoT.DataType.array}
         // inputSchema: `{
         //   "type": "array",
         //   "item": {
@@ -121,7 +117,7 @@ function main() {
 
       let thingActionInitForce: WoT.ActionInit = {
         // name: "forceColor",
-        input: {type: DataType.object}
+        input: {type: WoT.DataType.object}
         // inputSchema: `{
         //   "type": "object",
         //   "field": [

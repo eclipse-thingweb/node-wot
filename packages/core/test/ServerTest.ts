@@ -26,12 +26,7 @@ import { expect, should } from "chai";
 should();
 
 import Servient from "../src/servient";
-import * as listeners from "../src/resource-listeners/all-resource-listeners";
-import { ProtocolServer, Content, ResourceListener } from "../src/resource-listeners/protocol-interfaces"
-import ExposedThing from "../src/exposed-thing";
-
-// import { ThingProperty } from "../src/consumed-thing";
-import { DataType } from "wot-typescript-definitions";
+import { ProtocolServer, ResourceListener } from "../src/resource-listeners/protocol-interfaces"
 
 // implement a testserver to mock a server
 class TestProtocolServer implements ProtocolServer {

@@ -1,6 +1,6 @@
 {
   "name": "@node-wot/binding-file",
-  "version": "0.5.0-SNAPSHOT.0",
+  "version": "0.5.0-SNAPSHOT.1",
   "description": "File client protocol binding for node-wot",
   "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
   "license": "EPL-2.0 OR W3C-20150513",
@@ -15,12 +15,12 @@
   "types": "dist/file.d.ts",
   "devDependencies": {
     "@types/node": "9.4.1",
-    "typescript": "2.5.2",
+    "typescript": "2.9.2",
     "typescript-standard": "0.3.30"
   },
   "dependencies": {
-    "@node-wot/td-tools": "0.5.0-SNAPSHOT.0",
-    "@node-wot/core": "0.5.0-SNAPSHOT.0"
+    "@node-wot/td-tools": "0.5.0-SNAPSHOT.1",
+    "@node-wot/core": "0.5.0-SNAPSHOT.1"
   },
   "scripts": {
     "build": "tsc",

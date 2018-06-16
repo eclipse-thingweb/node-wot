@@ -19,59 +19,48 @@ const NAME_ACTION_DECREMENT = "decrement";
 const NAME_ACTION_RESET = "reset";
 
 let thing = WoT.produce({
-    name: "counter"
+	name: "counter",
+	description: "counter example Thing"
 });
 
 console.log("Created thing " + thing.name);
 
-thing.addProperty({
-	name : NAME_PROPERTY_COUNT,
-	schema : '{ "type": "number"}',
-	value : 0,
-	observable : true,
-	writeable : true
-})
+thing.addProperty(NAME_PROPERTY_COUNT, {
+	type: "integer",
+	observable: true,
+	writeable: true,
+	value: 23
+});
 
-thing.addAction({
-    name : NAME_ACTION_INCREMENT
-})
-
-thing.addAction({
-    name : NAME_ACTION_DECREMENT
-})
-
-thing.addAction({
-    name : NAME_ACTION_RESET
-})
-
-thing.setActionHandler( 
-	NAME_ACTION_RESET,
-	(parameters) => {
-		console.log("Resetting");
-		thing.writeProperty(NAME_PROPERTY_COUNT, 0);
-	}
-);
-
+thing.addAction(NAME_ACTION_INCREMENT);
 thing.setActionHandler(
 	NAME_ACTION_INCREMENT,
 	(parameters) => {
 		console.log("Incrementing");
-		return thing.readProperty(NAME_PROPERTY_COUNT).then(function(count){
+		return thing.properties[NAME_PROPERTY_COUNT].get().then( (count) => {
 			let value = count + 1;
-			thing.writeProperty(NAME_PROPERTY_COUNT, value);
+			thing.properties[NAME_PROPERTY_COUNT].set(value);
 		});
 	}
 );
 
+thing.addAction(NAME_ACTION_DECREMENT);
 thing.setActionHandler(
 	NAME_ACTION_DECREMENT,
 	(parameters) => {
 		console.log("Decrementing");
-		return thing.readProperty(NAME_PROPERTY_COUNT).then(function(count){
+		return thing.properties[NAME_PROPERTY_COUNT].get().then( (count) => {
 			let value = count - 1;
-			thing.writeProperty(NAME_PROPERTY_COUNT, value);
+			thing.properties[NAME_PROPERTY_COUNT].set(value);
 		});
 	}
 );
 
-thing.start();
+thing.addAction(NAME_ACTION_RESET);
+thing.setActionHandler(
+	NAME_ACTION_RESET,
+	(parameters) => {
+		console.log("Resetting");
+		thing.properties[NAME_PROPERTY_COUNT].set(0);
+	}
+);
