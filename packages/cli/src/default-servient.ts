@@ -14,7 +14,7 @@
  ********************************************************************************/
 
 // global W3C WoT Scripting API definitions
-import _, { WoTFactory, ThingProperty, DataType } from "wot-typescript-definitions";
+import * as WoT from "wot-typescript-definitions";
 // node-wot implementation of W3C WoT Servient 
 import Servient from "@node-wot/core";
 // protocols used
@@ -60,15 +60,14 @@ export default class DefaultServient extends Servient {
     /**
      * start
      */
-    public start(): Promise<WoTFactory> {
+    public start(): Promise<WoT.WoTFactory> {
 
-
-        return new Promise<WoTFactory>((resolve, reject) => {
-            super.start().then(WoT => {
+        return new Promise<WoT.WoTFactory>((resolve, reject) => {
+            super.start().then(myWoT => {
                 console.info("DefaultServient started");
 
                 // TODO think about builder pattern that starts with produce() ends with expose(), which exposes/publishes the Thing
-                let thing = WoT.produce(`{
+                let thing = myWoT.produce(`{
                     "name": "servient",
                     "description": "node-wot CLI Servient",
                     "system": "${process.arch}"
@@ -76,17 +75,11 @@ export default class DefaultServient extends Servient {
                     .addProperty("things", {
                         writable: true,
                         observable: false,
-                        value: undefined,
-                        type: DataType.string
-                        // name: "things",
-                        // schema: `{ "type": "array", "items": { "type": "string" } }`,
+                        type: "string"
                     })
                     .addAction("log", {
-                        input: { type: DataType.string},
-                        output: { type: DataType.string}
-                        // name: "log",
-                        // inputSchema: `{ "type": "string" }`,
-                        // outputSchema: `{ "type": "string" }`
+                        input: { type: "string" },
+                        output: { type: "string" }
                     })
                     .setActionHandler(
                         "log",
@@ -98,9 +91,7 @@ export default class DefaultServient extends Servient {
                         }
                     )
                     .addAction("shutdown", {
-                        output: { type: DataType.string}
-                        // name: "shutdown",
-                        // outputSchema: `{ "type": "string" }`
+                        output: { type: "string" }
                     })
                     .setActionHandler(
                         "shutdown",
@@ -116,25 +107,23 @@ export default class DefaultServient extends Servient {
                 if (this.config.servient.scriptAction) {
                     thing
                         .addAction("runScript", {
-                            input: { type: DataType.string},
-                            output: { type: DataType.string}
-                            // name: "runScript",
-                            // inputSchema: `{ "type": "string" }`,
-                            // outputSchema: `{ "type": "string" }`
+                            input: { type: "string" },
+                            output: { type: "string" }
                         })
                         .setActionHandler(
                             "runScript",
                             (script: string) => {
                                 return new Promise((resolve, reject) => {
                                     console.log("runnig script", script);
-                                    resolve(this.runScript(script));
+                                    this.runScript(script);
+                                    resolve();
                                 });
                             }
                         );
                 }
 
                 // pass WoTFactory on
-                resolve(WoT);
+                resolve(myWoT);
 
             }).catch(err => {
                 console.trace(`error building CLI Management Thing: ${err}`);

@@ -19,7 +19,7 @@
   ],
   "devDependencies": {
     "@types/node": "9.4.1",
-    "typescript": "2.5.2"
+    "typescript": "2.9.2"
   },
   "dependencies": {
     "wot-typescript-definitions": "0.4.0",

@@ -14,12 +14,6 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-// global W3C WoT Scripting API definitions
-// using core definitions instead of 'wot-typescript-definitions' to avoid typing error
-import _ from "@node-wot/core";
-// node-wot implementation of W3C WoT Servient 
-import { Servient } from "@node-wot/core";
-
 // default implementation of W3C WoT Servient (http(s) and file bindings)
 import DefaultServient from "./default-servient";
 
