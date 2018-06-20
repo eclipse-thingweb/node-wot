@@ -16,38 +16,43 @@
 try {
   var thing = WoT.produce({ name: "tempSensor" });
   // manually add Interactions
-  thing.addProperty({
-    name: "temperature",
-    value: 0.0,
-    schema: '{ "type": "number" }'
-    // use default values for the rest
-  }).addProperty({
-    name: "max",
-    value: 0.0,
-    schema: '{ "type": "number" }'
-    // use default values for the rest
-  }).addAction({
-    name: "reset",
-    // no input, no output
-  }).addEvent({
-    name: "onchange",
-    schema: '{ "type": "number" }'
-  });
-  // add server functionality
-  thing.setActionHandler("reset", () => {
-    console.log("Resetting maximum");
-    thing.writeProperty("max", 0.0);
-  });
+  thing
+    .addProperty(
+      "temperature",
+      {
+        type: "number"
+      },
+      0.0)
+    .addProperty(
+      "max",
+      {
+        type: "number"
+      },
+      0.0)
+    .addAction("reset")
+    .addEvent(
+      "onchange",
+      {
+        type: "number" 
+      });
   
-  thing.start();
+  // add server functionality
+  thing.setActionHandler(
+    "reset",
+    () => {
+      console.log("Resetting maximum");
+      return thing.properties.max.set(0.0);
+    });
+  
+  thing.expose();
   
   setInterval( async () => {
     let mock = Math.random()*100;
-    thing.writeProperty("temperature", mock);
-    let old = await thing.readProperty("max");
+    thing.properties.temperature.set(mock);
+    let old = await thing.properties.max.get();
     if (old < mock) {
-      thing.writeProperty("max", mock);
-      thing.emitEvent("onchange");
+      thing.properties.max.set(mock);
+      thing.events.onchange.emit();
     }
   }, 1000);
   

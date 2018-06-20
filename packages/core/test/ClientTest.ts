@@ -80,10 +80,9 @@ class TDDataClientFactory implements ProtocolClientFactory {
     }
 }
 
-
 class TrapClient implements ProtocolClient {
 
-    private trap: Function
+    private trap: Function;
 
     public setTrap(callback: Function) {
         this.trap = callback
@@ -144,8 +143,8 @@ let myThingDesc = {
     "name": "aThing",
     "properties": {
         "aProperty": {
-            "schema": { "type": "number" },
-            "writable": false,
+            "type": "integer",
+            "writable": true,
             "forms": [
                 { "href": "test://host/athing/properties/aproperty", "mediaType": "application/json" }
             ]
@@ -153,8 +152,8 @@ let myThingDesc = {
     },
     "actions": {
         "anAction": {
-            "inputSchema": { "type": "number" },
-            "outputSchema": { "type": "number" },
+            "input": { "type": "integer" },
+            "output": { "type": "integer" },
             "forms": [
                 { "href": "test://host/athing/actions/anaction", "mediaType": "application/json" }
             ]
@@ -175,7 +174,7 @@ class WoTClientTest {
         this.clientFactory = new TrapClientFactory();
         this.servient.addClientFactory(this.clientFactory);
         this.servient.addClientFactory(new TDDataClientFactory());
-        this.servient.start().then(WoTfactory => { this.WoT = WoTfactory; });
+        this.servient.start().then(myWoT => { this.WoT = myWoT; });
 
         console.log("starting test suite");
     }
@@ -183,11 +182,6 @@ class WoTClientTest {
     static after() {
         console.log("finishing test suite");
         this.servient.shutdown();
-    }
-
-    getThingName(ct: WoT.ConsumedThing): string {
-        let td: WoT.ThingDescription = ct.getThingDescription();
-        return JSON.parse(td).name;
     }
 
     @test "read a value"(done: Function) {
@@ -198,21 +192,19 @@ class WoTClientTest {
             }
         );
 
-        // JSON.stringify(myThingDesc)
         WoTClientTest.WoT.fetch("data://" + "tdFoo")
             .then((td) => {
                 let thing = WoTClientTest.WoT.consume(td);
-                expect(thing).not.to.be.null;
-                expect(this.getThingName(thing)).to.equal("aThing");
-                return thing.properties["aProperty"].get();
-                // return thing.readProperty("aProperty");
+                expect(thing).to.have.property("name").that.equals("aThing");
+                expect(thing.properties).to.have.property("aProperty");
+                return thing.properties.aProperty.get();
             })
             .then((value) => {
                 expect(value).not.to.be.null;
                 expect(value.toString()).to.equal("42");
                 done();
             })
-            .catch(err => { throw err })
+            .catch(err => { done(err); });
     }
 
     // @test "observe a value"(done: Function) {
@@ -271,10 +263,9 @@ class WoTClientTest {
         WoTClientTest.WoT.fetch("data://" + "tdFoo")
             .then((td) => {
                 let thing = WoTClientTest.WoT.consume(td);
-                expect(thing).not.to.be.null;
-                expect(this.getThingName(thing)).to.equal("aThing");
+                expect(thing).to.have.property("name").that.equals("aThing");
+                expect(thing.properties).to.have.property("aProperty");
                 return thing.properties["aProperty"].set(23);
-                // return thing.writeProperty("aProperty", 23);
             })
             .then(() => done())
             .catch(err => { done(err) });
@@ -293,10 +284,8 @@ class WoTClientTest {
         WoTClientTest.WoT.fetch("data://" + "tdFoo")
             .then((td) => {
                 let thing = WoTClientTest.WoT.consume(td);
-                thing.should.not.be.null;
-                this.getThingName(thing).should.equal("aThing");
-                return thing.actions["anAction"].run(23);
-                // return thing.invokeAction("anAction", 23);
+                expect(thing).to.have.property("name").that.equals("aThing");
+                return thing.actions.anAction.run(23);
             })
             .then((result) => {
                 expect(result).not.to.be.null;

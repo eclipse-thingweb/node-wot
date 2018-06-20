@@ -14,28 +14,38 @@
  ********************************************************************************/
 
 try {
+    // internal state, not exposed as Property
     var counter = 0;
 
     var thing = WoT.produce({ name: "EventSource" });
     // manually add Interactions
-    thing.addAction({
-        name: "reset",
+    thing.addAction(
+      "reset",
+      {
         // no input, no output
-      }).addEvent({
-      name: "onchange",
-      schema: '{ "type": "number" }'
-    });
+      })
+    .addEvent(
+      "onchange",
+      {
+        type: "number"
+      });
+
     // add server functionality
-    thing.setActionHandler("reset", () => {
-      console.log("Resetting");
-      counter = 0;
-    });
+    thing.setActionHandler(
+      "reset",
+      () => {
+        console.log("Resetting");
+        counter = 0;
+        return new Promise((resolve, reject) => {
+          resolve();
+        });
+      });
     
-    thing.start();
+    thing.expose();
     
     setInterval( async () => {
       ++counter;
-      thing.emitEvent("onchange", counter);
+      thing.events.onchange.emit(counter);
     }, 5000);
     
   } catch (err) {

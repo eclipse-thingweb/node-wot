@@ -25,17 +25,21 @@ let thing = WoT.produce({
 
 console.log("Created thing " + thing.name);
 
-thing.addProperty(NAME_PROPERTY_COUNT, {
-	type: "integer",
-	observable: true,
-	writeable: true,
-	value: 23
-});
+thing.addProperty(
+	NAME_PROPERTY_COUNT,
+	{
+		type: "integer",
+		description: "current counter value",
+		"iot:custom": "nothing",
+		observable: true,
+		writeable: true
+	},
+	0);
 
 thing.addAction(NAME_ACTION_INCREMENT);
 thing.setActionHandler(
 	NAME_ACTION_INCREMENT,
-	(parameters) => {
+	() => {
 		console.log("Incrementing");
 		return thing.properties[NAME_PROPERTY_COUNT].get().then( (count) => {
 			let value = count + 1;
@@ -47,7 +51,7 @@ thing.setActionHandler(
 thing.addAction(NAME_ACTION_DECREMENT);
 thing.setActionHandler(
 	NAME_ACTION_DECREMENT,
-	(parameters) => {
+	() => {
 		console.log("Decrementing");
 		return thing.properties[NAME_PROPERTY_COUNT].get().then( (count) => {
 			let value = count - 1;
@@ -59,8 +63,13 @@ thing.setActionHandler(
 thing.addAction(NAME_ACTION_RESET);
 thing.setActionHandler(
 	NAME_ACTION_RESET,
-	(parameters) => {
+	() => {
 		console.log("Resetting");
 		thing.properties[NAME_PROPERTY_COUNT].set(0);
 	}
 );
+
+thing.set("support", "none");
+console.info(thing.support);
+
+thing.expose();

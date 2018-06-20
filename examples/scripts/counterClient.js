@@ -13,47 +13,36 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-var targetUri = "http://localhost:8080/counter";
+WoT.fetch("http://localhost:8080/counter").then( async (td) => {
 
-WoT.fetch(targetUri)
-.then(function(td) {
 	let thing = WoT.consume(td);
-	console.log("TD: " + td);
-	
-	// read property #1
-	thing.readProperty("count")
-	.then(function(count){
-		console.log("count value is ", count);
-    })
-	.catch(err => { throw err });
-	
-	// increment property #1
-	thing.invokeAction("increment")
-	.then(function(count){
-		console.log("count value after increment #1 is ", count);
-    })
-	.catch(err => { throw err });
-	
-	// increment property #2
-	thing.invokeAction("increment")
-	.then(function(count){
-		console.log("count value after increment #2 is ", count);
-    })
-	.catch(err => { throw err });
-	
-	// decrement property
-	thing.invokeAction("decrement")
-	.then(function(count){
-		console.log("count value after decrement is ", count);
-    })
-	.catch(err => { throw err });
-	
-	// read property #2
-	thing.readProperty("count")
-	.then(function(count){
-		console.log("count value is ", count);
-    })
-	.catch(err => { throw err });
-	
-})
-.catch(err => { throw err });
+	console.info("=== TD ===");
+	console.info(td);
+	console.info("==========");
+
+	// using await for serial execution (note 'async' in then() of fetch())
+	try {
+		// read property #1
+		let read1 = await thing.properties.count.get();
+		console.info("count value is", read1);
+				
+		// increment property #1
+		await thing.actions.increment.run();
+		let inc1 = await thing.properties.count.get();
+		console.info("count value after increment #1 is", inc1);
+				
+		// increment property #2
+		await thing.actions.increment.run();
+		let inc2 = await thing.properties.count.get();
+		console.info("count value after increment #2 is", inc2);
+				
+		// decrement property
+		await thing.actions.decrement.run();
+		let dec1 = await thing.properties.count.get();
+		console.info("count value after decrement is", dec1);
+
+	} catch(err) {
+		console.error("Script error:", err);
+	}
+
+}).catch( (err) => { console.error("Fetch error:", err); });

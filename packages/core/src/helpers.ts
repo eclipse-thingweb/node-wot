@@ -58,7 +58,10 @@ export function getAddresses(): Array<string> {
     });
   }
 
-  //addresses.push('127.0.0.1');
+  // add localhost only if no external addresses
+  if (addresses.length===0) {
+    addresses.push('localhost');
+  }
 
   console.debug(`AddressHelper identified ${addresses}`);
 

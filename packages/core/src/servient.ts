@@ -35,7 +35,17 @@ export default class Servient {
 
     /** runs the script in a new sandbox */
     public runScript(code: string, filename = 'script') {
-        let script = new vm.Script(code);
+        
+        let script;
+
+        try {
+            script = new vm.Script(code);
+        } catch (err) {
+            let scriptPosition = err.stack.match(/evalmachine\.<anonymous>\:([0-9]+)\n/)[1];
+            console.error(`Servient found error in '${filename}' at line ${scriptPosition}\n    ${err}`);
+            return;
+        }
+
         let context = vm.createContext({
             'WoT': new WoTImpl(this),
             'console': console,
@@ -50,13 +60,23 @@ export default class Servient {
             script.runInContext(context, options);
         } catch (err) {
             let scriptPosition = err.stack.match(/at evalmachine\.<anonymous>\:([0-9]+\:[0-9]+)\n/)[1];
-            console.error(`Servient caught error in privileged '${filename}' and halted at line ${scriptPosition}\n    ${err}`);
+            console.error(`Servient caught error in '${filename}' and halted at line ${scriptPosition}\n    ${err}`);
         }
     }
 
     /** runs the script in privileged context (dangerous) - means here: scripts can require */
     public runPrivilegedScript(code: string, filename = 'script') {
-        let script = new vm.Script(code);
+        
+        let script;
+
+        try {
+            script = new vm.Script(code);
+        } catch (err) {
+            let scriptPosition = err.stack.match(/evalmachine\.<anonymous>\:([0-9]+)\n/)[1];
+            console.error(`Servient found error in privileged script '${filename}' at line ${scriptPosition}\n    ${err}`);
+            return;
+        }
+
         let context = vm.createContext({
             'WoT': new WoTImpl(this),
             'console': console,

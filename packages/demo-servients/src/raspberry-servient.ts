@@ -15,13 +15,11 @@
  ********************************************************************************/
 
 // global W3C WoT Scripting API definitions
-import _ from "@node-wot/core";
+import * as WoT from "wot-typescript-definitions";
 
 // node-wot implementation of W3C WoT Servient 
 import { Servient } from "@node-wot/core";
 import { HttpServer } from "@node-wot/binding-http";
-
-import * as WoT from "wot-typescript-definitions";
 
 // exposed protocols
 import { CoapServer } from "@node-wot/binding-coap";
@@ -73,67 +71,21 @@ function main() {
 
     try {
 
-      let template: WoT.ThingTemplate = { name: "Unicorn" };
+      let template: WoT.ThingFragment = { name: "Unicorn" };
 
       let thing = myWoT.produce(template);
       unicorn = thing;
 
-      let thingPropertyInitBrightness: WoT.PropertyInit = {
-        // name: "brightness",
-        value: 100,
-        type: WoT.DataType.integer,
-        // schema: `{ "type": "integer", "minimum": 0, "maximum": 255 }`,
-        writable: true
-      };
-
-
-      let thingPropertyInitColor: WoT.PropertyInit = {
-        value: { r: 0, g: 0, b: 0 },
-        type: WoT.DataType.object,
-/*        properties: {
-          r: { type: "integer", minimum: 0, maximum: 255 },
-          g: { type: "integer", minimum: 0, maximum: 255 },
-          b: { type: "integer", minimum: 0, maximum: 255 },
-        }, */
-        writable: true
-      };
-
-      let thingActionInitGradient: WoT.ActionInit = {
-        // name: "gradient",
-        input: {type: WoT.DataType.array}
-        // inputSchema: `{
-        //   "type": "array",
-        //   "item": {
-        //     "type": "object",
-        //     "field": [
-        //       { "name": "r", "schema": { "type": "integer", "minimum": 0, "maximum": 255 } },
-        //       { "name": "g", "schema": { "type": "integer", "minimum": 0, "maximum": 255 } },
-        //       { "name": "b", "schema": { "type": "integer", "minimum": 0, "maximum": 255 } }
-        //     ]
-        //   },
-        //   "minItems": 2
-        // }`
-      };
-
-      let thingActionInitForce: WoT.ActionInit = {
-        // name: "forceColor",
-        input: {type: WoT.DataType.object}
-        // inputSchema: `{
-        //   "type": "object",
-        //   "field": [
-        //     { "name": "r", "schema": { "type": "integer", "minimum": 0, "maximum": 255 } },
-        //     { "name": "g", "schema": { "type": "integer", "minimum": 0, "maximum": 255 } },
-        //     { "name": "b", "schema": { "type": "integer", "minimum": 0, "maximum": 255 } }
-        //   ]
-        // }`
-      };
-
-      let thingActionInitCancel: WoT.ActionInit = {
-        // name: "cancel"
-      };
-
       unicorn
-        .addProperty("brightness", thingPropertyInitBrightness)
+        .addProperty(
+          "brightness",
+          {
+            type: "integer",
+            minimum: 0,
+            maximum: 255,
+            writable: true
+          },
+          100 )
         .setPropertyWriteHandler(
           "brightness",
           (value : any) => {
@@ -141,9 +93,19 @@ function main() {
               setBrightness(value);
               resolve(value);
             });
-          }
-        )
-        .addProperty("color", thingPropertyInitColor)
+          } )
+        .addProperty(
+          "color",
+          {
+            type: "object",
+            properties: {
+              r: { type: "integer", minimum: 0, maximum: 255 },
+              g: { type: "integer", minimum: 0, maximum: 255 },
+              b: { type: "integer", minimum: 0, maximum: 255 },
+            },
+            writable: true
+          },
+          { r: 0, g: 0, b: 0 } )
         .setPropertyWriteHandler(
           "color",
           (value : any) => {
@@ -155,9 +117,24 @@ function main() {
                 resolve(value);
               }
             });
-          }
-        )
-        .addAction("gradient", thingActionInitGradient)
+          } );
+        unicorn
+        .addAction(
+          "gradient",
+          {
+            input: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  r: { type: "integer", minimum: 0, maximum: 255 },
+                  g: { type: "integer", minimum: 0, maximum: 255 },
+                  b: { type: "integer", minimum: 0, maximum: 255 },
+                }
+              },
+              "minItems": 2
+            }
+          } )
         .setActionHandler(
           "gradient",
           (input: Array<Color>) => {
@@ -181,7 +158,18 @@ function main() {
             });
           }
         )
-        .addAction("forceColor", thingActionInitForce)
+        .addAction(
+          "forceColor",
+          {
+            input: {
+              type: "object",
+              properties: {
+                r: { type: "integer", minimum: 0, maximum: 255 },
+                g: { type: "integer", minimum: 0, maximum: 255 },
+                b: { type: "integer", minimum: 0, maximum: 255 }
+              }
+            }
+          })
         .setActionHandler(
           "forceColor",
           (input: Color) => {
@@ -192,7 +180,7 @@ function main() {
             });
           }
         )
-        .addAction("cancel", thingActionInitCancel)
+        .addAction("cancel", {})
         .setActionHandler(
           "cancel",
           () => {

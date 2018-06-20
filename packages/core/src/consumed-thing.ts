@@ -27,201 +27,90 @@ import ContentSerdes from "./content-serdes"
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 
-export interface ClientAndForm {
-    client: ProtocolClient
-    form: WoT.Form
-}
+export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing {
 
+    /** A map of interactable Thing Properties with get()/set() functions */
+    properties: {
+        [key: string]: WoT.ThingProperty
+    };
 
-export abstract class ConsumedThingInteraction {
-    // export getClientFor
-    label: string;
-    forms: Array<WoT.Form>;
-    links: Array<WoT.Link>;
-
-    thingName: string;
-    thingId: string;
-    thingSecurity: any;
-    clients: Map<string, ProtocolClient> = new Map();
-    readonly srv: Servient;
-
-
-    constructor(thingName: string, thingId: string, thingSecurity: any, clients: Map<string, ProtocolClient>, srv: Servient) {
-        this.thingName = thingName;
-        this.thingId = thingId;
-        this.thingSecurity = thingSecurity;
-        this.clients = clients;
-        this.srv = srv;
+    /** A map of interactable Thing Actions with run() function */
+    actions: {
+        [key: string]: WoT.ThingAction;
     }
 
-    // utility for Property, Action and Event
+    /** A map of interactable Thing Events with subscribe() function */
+    events: {
+        [key: string]: WoT.ThingEvent;
+    }
+    
+    private getServient: () => Servient;
+    private getClients: () => Map<string, ProtocolClient>;
+
+//    protected observablesEvent: Map<string, Subject<any>> = new Map();
+//    protected observablesPropertyChange: Map<string, Subject<any>> = new Map();
+//    protected observablesTDChange: Subject<any> = new Subject<any>();
+
+    constructor(servient: Servient) {
+        super();
+
+        this.getServient = () => { return servient; };
+        this.getClients = (new class {
+            clients: Map<string, ProtocolClient> = new Map<string, ProtocolClient>();
+            getMap = () => { return this.clients };
+        }).getMap;
+    }
+
+    extendInteractions(): void {
+        for (let propertyName in this.properties) {
+            let newProp = Helpers.extend(this.properties[propertyName], new ConsumedThingProperty(propertyName, this));
+            this.properties[propertyName] = newProp;
+        }
+        for (let actionName in this.actions) {
+            let newAction = Helpers.extend(this.actions[actionName], new ConsumedThingAction(actionName, this));
+            this.actions[actionName] = newAction;
+        }
+        for (let eventName in this.events) {
+            let newEvent = Helpers.extend(this.events[eventName], new ConsumedThingEvent(eventName, this));
+            this.events[eventName] = newEvent;
+        }
+    }
+    
+    // utility for Property, Action, and Event
     getClientFor(forms: Array<TD.Form>): ClientAndForm {
         if (forms.length === 0) {
-            throw new Error("ConsumedThing '${this.name}' has no links for this interaction");
+            throw new Error(`ConsumedThing '${this.name}' has no links for this interaction`);
         }
 
         let schemes = forms.map(link => Helpers.extractScheme(link.href))
-        let cacheIdx = schemes.findIndex(scheme => this.clients.has(scheme))
+        let cacheIdx = schemes.findIndex(scheme => this.getClients().has(scheme))
 
         if (cacheIdx !== -1) {
             // from cache
-            console.debug(`ConsumedThing '${this.thingName}' chose cached client for '${schemes[cacheIdx]}'`);
-            let client = this.clients.get(schemes[cacheIdx]);
+            console.debug(`ConsumedThing '${this.name}' chose cached client for '${schemes[cacheIdx]}'`);
+            let client = this.getClients().get(schemes[cacheIdx]);
             let form = forms[cacheIdx];
             return { client: client, form: form };
         } else {
             // new client
-            console.debug(`ConsumedThing '${this.thingName}' has no client in cache (${cacheIdx})`);
-            let srvIdx = schemes.findIndex(scheme => this.srv.hasClientFor(scheme));
-            if (srvIdx === -1) throw new Error(`ConsumedThing '${this.thingName}' missing ClientFactory for '${schemes}'`);
-            let client = this.srv.getClientFor(schemes[srvIdx]);
+            console.debug(`ConsumedThing '${this.name}' has no client in cache (${cacheIdx})`);
+            let srvIdx = schemes.findIndex(scheme => this.getServient().hasClientFor(scheme));
+            if (srvIdx === -1) throw new Error(`ConsumedThing '${this.name}' missing ClientFactory for '${schemes}'`);
+            let client = this.getServient().getClientFor(schemes[srvIdx]);
             if (client) {
-                console.log(`ConsumedThing '${this.thingName}' got new client for '${schemes[srvIdx]}'`);
-                if (this.thingSecurity) {
+                console.log(`ConsumedThing '${this.name}' got new client for '${schemes[srvIdx]}'`);
+                if (this.security) {
                     console.warn("ConsumedThing applying security metadata");
                     //console.dir(this.security);
-                    client.setSecurity(this.thingSecurity, this.srv.getCredentials(this.thingId));
+                    client.setSecurity(this.security, this.getServient().getCredentials(this.id));
                 }
-                this.clients.set(schemes[srvIdx], client);
+                this.getClients().set(schemes[srvIdx], client);
                 let form = forms[srvIdx];
                 return { client: client, form: form }
             } else {
-                throw new Error(`ConsumedThing '${this.thingName}' could not get client for '${schemes[srvIdx]}'`);
+                throw new Error(`ConsumedThing '${this.name}' could not get client for '${schemes[srvIdx]}'`);
             }
         }
-    }
-}
-
-export class ConsumedThingProperty extends ConsumedThingInteraction implements WoT.ThingProperty, WoT.DataSchema {
-    writable: boolean;
-    observable: boolean;
-    value: any;
-    type: WoT.DataType;
-
-    // get and set interface for the Property
-    get(): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
-            // get right client
-            let { client, form } = this.getClientFor(this.forms);
-            if (!client) {
-                reject(new Error(`ConsumedThing '${this.thingName}' did not get suitable client for ${form.href}`));
-            } else {
-                console.log(`ConsumedThing '${this.thingName}' reading ${form.href}`);
-                client.readResource(form).then((content) => {
-                    if (!content.mediaType) content.mediaType = form.mediaType;
-                    //console.log(`ConsumedThing decoding '${content.mediaType}' in readProperty`);
-                    let value = ContentSerdes.contentToValue(content);
-                    resolve(value);
-                })
-                    .catch(err => { console.log("Failed to read because " + err); });
-            }
-
-        });
-    }
-    set(value: any): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            let { client, form } = this.getClientFor(this.forms);
-            if (!client) {
-                reject(new Error(`ConsumedThing '${this.thingName}' did not get suitable client for ${form.href}`));
-            } else {
-                console.log(`ConsumedThing '${this.thingName}' writing ${form.href} with '${value}'`);
-                let content = ContentSerdes.valueToContent(value, form.mediaType)
-                resolve(client.writeResource(form, content));
-
-                // // TODO observables
-                // if (this.observablesPropertyChange.get(propertyName)) {
-                //     this.observablesPropertyChange.get(propertyName).next(newValue);
-                // };
-            }
-        });
-    }
-}
-
-export class ConsumedThingAction extends ConsumedThingInteraction implements WoT.ThingAction {
-    run(parameter?: any): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
-            let { client, form } = this.getClientFor(this.forms);
-            if (!client) {
-                reject(new Error(`ConsumedThing '${this.thingName}' did not get suitable client for ${form.href}`));
-            } else {
-                console.log(`ConsumedThing '${this.thingName}' invoking ${form.href} with '${parameter}'`);
-
-                let mediaType = form.mediaType;
-                let input = ContentSerdes.valueToContent(parameter, form.mediaType);
-
-                client.invokeResource(form, input).then((output) => {
-                    if (!output.mediaType) output.mediaType = form.mediaType;
-                    //console.log(`ConsumedThing decoding '${output.mediaType}' in invokeAction`);
-                    let value = ContentSerdes.contentToValue(output);
-                    resolve(value);
-                });
-            }
-        });
-    }
-}
-
-export class ConsumedThingEvent extends ConsumedThingProperty implements WoT.ThingEvent {
-}
-
-
-
-export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing {
-
-    protected readonly srv: Servient;
-    protected clients: Map<string, ProtocolClient> = new Map();
-    protected observablesEvent: Map<string, Subject<any>> = new Map();
-    protected observablesPropertyChange: Map<string, Subject<any>> = new Map();
-    protected observablesTDChange: Subject<any> = new Subject<any>();
-
-    constructor(servient: Servient) {
-        super();
-        this.srv = servient;
-    }
-
-    /**
-     * Walk over all interactions and extend
-     */
-    init() {
-        console.log("Properties #: " + Object.keys(this.properties).length);
-        console.log("Actions    #: " + Object.keys(this.actions).length);
-        console.log("Events     #: " + Object.keys(this.events).length);
-
-        if (this.properties != undefined && this.properties instanceof Object) {
-            for (var name in this.properties) {
-                let prop = this.properties[name];
-                let ctProp = new ConsumedThingProperty(this.name, this.id, this.security, this.clients, this.srv);
-                let p: ConsumedThingProperty = Helpers.extend(prop, ctProp);
-                this.properties[name] = p;
-            }
-        } else {
-            this.properties = {};
-        }
-
-        if (this.actions != undefined && this.actions instanceof Object) {
-            for (var name in this.actions) {
-                let act = this.actions[name];
-                let ctAct = new ConsumedThingAction(this.name, this.id, this.security, this.clients, this.srv);
-                let a = Helpers.extend(act, ctAct);
-                this.actions[name] = a;
-            }
-        } else {
-            this.actions = {};
-        }
-
-        if (this.events != undefined && this.events instanceof Object) {
-            for (var name in this.events) {
-                let ev = this.events[name];
-                let ctEv = new ConsumedThingEvent(this.name, this.id, this.security, this.clients, this.srv);
-                let a = Helpers.extend(ev, ctEv);
-                this.events[name] = a;
-            }
-        } else {
-            this.events = {};
-        }
-    }
-
-    get(param: string): any {
-        return this[param];
     }
 
     /**
@@ -257,3 +146,115 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
 
 }
 
+export interface ClientAndForm {
+    client: ProtocolClient
+    form: WoT.Form
+}
+
+class ConsumedThingProperty extends TD.PropertyFragment implements WoT.ThingProperty, WoT.BaseSchema {
+
+    // functions for wrapping internal state
+    private getName: () => string;
+    private getThing: () => ConsumedThing;
+
+    constructor(name: string, thing: ConsumedThing) {
+        super();
+
+        // wrap internal state into functions to not be stringified in TD
+        this.getName = () => { return name; }
+        this.getThing = () => { return thing; }
+    }
+
+    // get and set interface for the Property
+    get(): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            // get right client
+            let { client, form } = this.getThing().getClientFor(this.forms);
+            if (!client) {
+                reject(new Error(`ConsumedThing '${this.getThing().name}' did not get suitable client for ${form.href}`));
+            } else {
+                console.log(`ConsumedThing '${this.getThing().name}' reading ${form.href}`);
+                client.readResource(form).then((content) => {
+                    if (!content.mediaType) content.mediaType = form.mediaType;
+                    //console.log(`ConsumedThing decoding '${content.mediaType}' in readProperty`);
+                    let value = ContentSerdes.contentToValue(content);
+                    resolve(value);
+                })
+                .catch(err => { console.log("Failed to read because " + err); });
+            }
+        });
+    }
+    set(value: any): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            let { client, form } = this.getThing().getClientFor(this.forms);
+            if (!client) {
+                reject(new Error(`ConsumedThing '${this.getThing().name}' did not get suitable client for ${form.href}`));
+            } else {
+                console.log(`ConsumedThing '${this.getThing().name}' writing ${form.href} with '${value}'`);
+                let content = ContentSerdes.valueToContent(value, form.mediaType)
+                resolve(client.writeResource(form, content));
+
+                // // TODO observables
+                // if (this.observablesPropertyChange.get(propertyName)) {
+                //     this.observablesPropertyChange.get(propertyName).next(newValue);
+                // };
+            }
+        });
+    }
+}
+
+class ConsumedThingAction extends TD.ActionFragment implements WoT.ThingAction {
+
+    // functions for wrapping internal state
+    private getName: () => string;
+    private getThing: () => ConsumedThing;
+
+    constructor(name: string, thing: ConsumedThing) {
+        super();
+
+        // wrap internal state into functions to not be stringified in TD
+        this.getName = () => { return name; }
+        this.getThing = () => { return thing; }
+    }
+
+    run(parameter?: any): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            let { client, form } = this.getThing().getClientFor(this.forms);
+            if (!client) {
+                reject(new Error(`ConsumedThing '${this.getThing().name}' did not get suitable client for ${form.href}`));
+            } else {
+                console.log(`ConsumedThing '${this.getThing().name}' invoking ${form.href}${parameter!==undefined ? " with '"+parameter+"'" : ""}`);
+
+                let input;
+                
+                if (parameter!== undefined) {
+                    input = ContentSerdes.valueToContent(parameter, form.mediaType);
+                }
+
+                client.invokeResource(form, input).then((output: any) => {
+                    // infer media type from form if not in response metadata
+                    if (!output.mediaType) output.mediaType = form.mediaType;
+                    let value = ContentSerdes.contentToValue(output);
+                    resolve(value);
+                });
+            }
+        });
+    }
+}
+
+class ConsumedThingEvent extends TD.EventFragment // implements Observable<any> {
+{
+    // functions for wrapping internal state
+    private getName: () => string;
+    private getThing: () => ConsumedThing;
+
+    constructor(name: string, thing: ConsumedThing) {
+        super();
+
+        Helpers.extend(this, new Observable<any>());
+
+        // wrap internal state into functions to not be stringified in TD
+        this.getName = () => { return name; }
+        this.getThing = () => { return thing; }
+    }
+}

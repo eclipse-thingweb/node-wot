@@ -46,7 +46,7 @@ class TDGeneratorTest {
       input: { type: "string" }
     });
 
-    let td: TD.Thing = TD.parseTDString(thing.getThingDescription());
+    let td: TD.Thing = TD.parseTD(thing.getThingDescription());
 
     expect(td).to.have.property("name").that.equals("TDGeneratorTest");
 
