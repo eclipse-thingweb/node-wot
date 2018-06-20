@@ -21,7 +21,7 @@ npm install -g lerna
 
 On Windows, install the build tools and lerna (CMD shell as administrator)
 ```
-npm install --global --production windows-build-tools -g lerna 
+npm install -g --production windows-build-tools
 ```
 
 ## How to get ready for coding
@@ -31,7 +31,7 @@ npm install --global --production windows-build-tools -g lerna
 git clone https://github.com/eclipse/thingweb.node-wot
 
 # Go into the repository
-cd node-wot
+cd thingweb.node-wot
 
 # install root dependencies (locally installs tools like typescript and lerna)
 npm install 
@@ -45,14 +45,21 @@ npm run build
 
 # run test suites of all packets
 npm run test 
-
+```
+```
 # (OPTIONAL!) 
 # make all packages available on your local machine (as symlinks)
 # you can then use each paket in its local version via "npm link" instead of "npm install"
 # see also https://docs.npmjs.com/cli/link
 sudo npm run link
-
 ```
+On Windows omit `sudo`
+
+## Trouble shooting
+
+* `sudo npm run link` does not work
+   * try `npm run unlock` before calling `[sudo] npm run link`
+   * try `npm link` in each package directory in this order: td-tools, core, binding-\*, cli, demo-servients
 
 ## No time for explanations - I want to start from something running!
 Run all the steps above and then run this:
@@ -64,9 +71,9 @@ wot-servient
 
 # e.g., Windows CMD shell (Counter Example)
 # expose
-# node packages\cli\dist\cli.js  examples\scripts\counter.js
+node packages\cli\dist\cli.js examples\scripts\counter.js
 # consume
-# node packages\cli\dist\cli.js  examples\scripts\counterClient.js
+node packages\cli\dist\cli.js examples\scripts\counterClient.js
 ```
 
 * go to http://localhost:8080/counter and you'll find a thing description.
