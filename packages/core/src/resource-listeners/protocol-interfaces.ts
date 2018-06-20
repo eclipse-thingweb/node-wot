@@ -13,6 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
+import * as WoT from "wot-typescript-definitions";
 import { Form } from "@node-wot/td-tools";
 
 export interface ProtocolClient {
@@ -35,7 +36,7 @@ export interface ProtocolClient {
   stop(): boolean;
 
   /** apply TD security metadata */
-  setSecurity(metadata: any, credentials?: any): boolean;
+  setSecurity(metadata: Array<WoT.Security>, credentials?: any): boolean;
 }
 
 export interface ProtocolClientFactory {

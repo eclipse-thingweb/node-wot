@@ -20,13 +20,15 @@ try {
   // WoT.procude() adds Interactions from TD
   let thing = WoT.produce(thingDescription);
   // add server functionality
-  thing.setPropertyReadHandler( (propertyName) => {
+  thing.setPropertyReadHandler(
+    "prop1",
+    (propertyName) => {
     console.log("Handling read request for " + propertyName);
     return new Promise((resolve, reject) => {
       resolve(Math.random(100));
     })
-  }, "prop1");
-  thing.start();
+  });
+  thing.expose();
 } catch(err) {
   console.log("Script error: " + err);
 }

@@ -24,62 +24,68 @@ export const DEFAULT_THING_TYPE: string = "Thing";
  ~ In Thing index structure could be read-only (sanitizing needs write access)
 */
 
-/**
- * node-wot definition for instantiated Thing Descriptions (Things)
- */
-export default class Thing implements WoT.Thing {
-  /** collection of string-based keys that reference values of any type */
-  [key: string]: any; /* e.g., @context besides the one that are explitecly defined below */
+/** Implements the Thing Description as software object */
+export default class Thing implements WoT.ThingFragment {
   id: string;
   name: string;
   description: string;
+  security: Array<WoT.Security>;
   base?: string;
-
-  /** collection of string-based keys that reference a property of type Property2 */
-  // properties: Map<string, WoT.ThingProperty>;
   properties: {
-    [key: string]: WoT.ThingProperty
+    [key: string]: WoT.PropertyFragment
   };
-
-  /** collection of string-based keys that reference a property of type Action2 */
   actions: {
-    [key: string]: WoT.ThingAction;
+    [key: string]: WoT.ActionFragment;
   }
-
-  /** collection of string-based keys that reference a property of type Event2 */
   events: {
-    [key: string]: WoT.ThingEvent;
+    [key: string]: WoT.EventFragment;
   }
-  security: Security;
-
-  /** Web links to other Things or metadata */
   links: Array<WoT.WebLink>;
+
+  [key: string]: any;
 
   constructor() {
     this["@context"] = DEFAULT_HTTPS_CONTEXT;
     this["@type"] = DEFAULT_THING_TYPE;
+    this.security = [];
     this.properties = {};
     this.actions = {};
     this.events = {};
-    this.link = []
+    this.links = [];
   }
 }
 
-/**
- * node-wot definition for Interactions
- */
-export class Interaction implements WoT.Interaction {
+/** Basis from implementing the Thing Interaction descriptions for Property, Action, and Event */
+export abstract class InteractionFragment implements WoT.InteractionFragment {
   label: string;
-  forms: Array<WoT.Form>;
-  links: Array<WoT.Link>;
+  description: string;
+  forms: Array<Form>;
+  [key: string]: any;
+}
+/** Implements the Thing Property description */
+export class PropertyFragment extends InteractionFragment implements WoT.PropertyFragment, WoT.BaseSchema {
+  writable: boolean;
+  observable: boolean;
+  type: string;
+}
+/** Implements the Thing Action description */
+export class ActionFragment extends InteractionFragment implements WoT.ActionFragment {
+  input: WoT.DataSchema;
+  output: WoT.DataSchema;
+}
+/** Implements the Thing Action description */
+export class EventFragment extends InteractionFragment implements WoT.EventFragment, WoT.BaseSchema {
+  type: string;
 }
 
+/** Implements the Thing Security definitions */
+export class Security implements WoT.SecurityScheme {
+  scheme: string;
+  description: string;
+  proxyURI?: string;
+}
 
-
-
-/**
- * node-wot definition for form / binding metadata
- */
+/** Implements the Interaction Form description */
 export class Form implements WoT.Form {
   href: string;
   mediaType?: string;
@@ -90,13 +96,4 @@ export class Form implements WoT.Form {
     if (href) this.href = href;
     if (mediaType) this.mediaType = mediaType;
   }
-}
-
-
-/**
- * node-wot definition for security metadata
- */
-export class Security implements WoT.Security {
-  scheme: string;
-  in?: string;
 }

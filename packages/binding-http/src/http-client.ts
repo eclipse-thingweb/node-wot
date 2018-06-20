@@ -17,6 +17,8 @@
  * HTTP client based on http
  */
 
+import * as WoT from "wot-typescript-definitions";
+
 import * as http from "http";
 import * as https from "https";
 import * as url from "url";
@@ -198,24 +200,41 @@ export default class HttpClient implements ProtocolClient {
     return true;
   }
 
-  public setSecurity(metadata: any, credentials?: any): boolean {
+  public setSecurity(metadata: Array<WoT.Security>, credentials?: any): boolean {
 
-    if (Array.isArray(metadata)) {
-      metadata = metadata[0];
+    if (metadata === undefined || !Array.isArray(metadata) || metadata.length == 0) {
+      console.warn(`HttpClient received empty security metadata`);
+      return false;
     }
 
-    if (metadata.authorization === "Basic") {
+    let security: WoT.Security = metadata[0];
+
+    if (security.scheme === "basic") {
       this.authorization = "Basic " + new Buffer(credentials.username + ":" + credentials.password).toString('base64');
 
-    } else if (metadata.authorization === "Bearer") {
+    } else if (security.scheme === "bearer") {
       // TODO get token from metadata.as (authorization server)
       this.authorization = "Bearer " + credentials.token;
 
-    } else if (metadata.authorization === "Proxy" && metadata.href !== null) {
+    } else if (security.scheme === "apikey") {
+      // TODO this is just an idea sketch
+      console.error(`HttpClient cannot use Apikey: Not implemented`);
+
+    } else {
+      console.error(`HttpClient cannot set security scheme '${security.scheme}'`);
+      console.dir(metadata);
+      return false;
+    }
+
+    if (security.proxyURI) {
       if (this.proxyOptions !== null) {
-        console.info(`HttpClient overriding client-side proxy with security metadata 'Proxy'`);
+        console.info(`HttpClient overriding client-side proxy with security proxyURI '${security.proxyURI}`);
       }
-      this.proxyOptions = this.uriToOptions(metadata.href);
+
+      this.proxyOptions = this.uriToOptions(security.proxyURI);
+
+      // TODO: Get back proxy configuration
+      /*
       if (metadata.proxyauthorization == "Basic") {
         this.proxyOptions.headers = {};
         this.proxyOptions.headers['Proxy-Authorization'] = "Basic " + new Buffer(credentials.username + ":" + credentials.password).toString('base64');
@@ -223,18 +242,10 @@ export default class HttpClient implements ProtocolClient {
         this.proxyOptions.headers = {};
         this.proxyOptions.headers['Proxy-Authorization'] = "Bearer " + credentials.token;
       }
-
-    } else if (metadata.authorization === "SessionID") {
-      // TODO this is just an idea sketch
-      console.error(`HttpClient cannot use SessionID: Not implemented`);
-
-    } else {
-      console.error(`HttpClient cannot set security metadata '${metadata.authorization}'`);
-      console.dir(metadata);
-      return false;
+      */
     }
 
-    console.log(`HttpClient using security metadata '${metadata.authorization}'`);
+    console.log(`HttpClient using security scheme '${security.scheme}'`);
     return true;
   }
 

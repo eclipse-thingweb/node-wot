@@ -45,31 +45,27 @@ export default class WoTImpl implements WoT.WoTFactory {
         return new Promise<WoT.ThingDescription>((resolve, reject) => {
             let client = this.srv.getClientFor(Helpers.extractScheme(uri));
             console.info(`WoTImpl fetching TD from '${uri}' with ${client}`);
-            client.readResource(new TD.Form(uri, "application/ld+json"))
+            client.readResource(new TD.Form(uri, "application/td+json"))
                 .then((content) => {
-                    if (content.mediaType !== "application/ld+json") {
+                    if (content.mediaType !== "application/td+json") {
                         console.warn(`WoTImpl parsing TD from '${content.mediaType}' media type`);
                     }
                     client.stop();
                     resolve(content.body.toString());
                 })
-                .catch((err) => { console.error(err); });
+                .catch((err) => { reject(err); });
         });
     }
 
     /** @inheritDoc */
     consume(td: WoT.ThingDescription): WoT.ConsumedThing {
+        let thing: TD.Thing = TD.parseTD(td, true);
 
-        let trimmedTD = td.trim();
+        let newThing: ConsumedThing = Helpers.extend(thing, new ConsumedThing(this.srv));
 
-        if (td[0] !== '{') {
-            throw new Error("WoT.consume() takes a Thing Description. Use WoT.fetch() for URIs.");
-        }
+        newThing.extendInteractions();
 
-        let thing: TD.Thing = TD.parseTDString(td, true);
-        let newThing: ConsumedThing = Helpers.extend(thing, new ConsumedThing(this.srv)); // , td));
-        newThing.init();
-        console.info(`WoTImpl consuming TD ${newThing.id ? "'" + newThing.id + "'" : "without @id"} for ConsumedThing '${newThing.name}'`);
+        console.info(`WoTImpl consuming TD ${newThing.id ? "'" + newThing.id + "'" : "without id"} to instantiate ConsumedThing '${newThing.name}'`);
         return newThing;
     }
 
@@ -80,7 +76,7 @@ export default class WoTImpl implements WoT.WoTFactory {
     isWoTThingDescription(arg: any): arg is WoT.ThingDescription {
         return arg.length !== undefined;
     }
-    isWoTThingTemplate(arg: any): arg is WoT.ThingTemplate {
+    isWoTThingTemplate(arg: any): arg is WoT.ThingFragment {
         return arg.name !== undefined;
     }
 
@@ -90,24 +86,23 @@ export default class WoTImpl implements WoT.WoTFactory {
      * @param name name/identifier of the thing to be created
      */
     produce(model: WoT.ThingModel): WoT.ExposedThing {
-        let td: WoT.ThingDescription = null;
+        
+        let newThing: ExposedThing;
+
         if (this.isWoTThingDescription(model)) {
-            td = model;
+            let template = TD.parseTD(model, true);
+            newThing = Helpers.extend(template, new ExposedThing(this.srv));
+
         } else if (this.isWoTThingTemplate(model)) {
-            // FIXME WoT.ThingTempalte should be compatible to ThingDescription object and carry more than just name
-            //let tdObj = new TD.Thing();
-            //tdObj.name = model.name;
-            //td = TDParser.serializeTD(tdObj);
-            // TODO for now `name` is the only element defined
-            td = `{"name": "${model.name}"}`;
+            let template = Helpers.extend(model, new TD.Thing());
+            newThing = Helpers.extend(template, new ExposedThing(this.srv));
         } else {
             throw new Error("WoTImpl could not create Thing because of unknown model argument " + model);
         }
 
+        // augment Interaction descriptions with interactable functions
+        newThing.extendInteractions();
 
-        let thing: TD.Thing = TD.parseTDString(td, true);
-        let newThing: ExposedThing = Helpers.extend(thing, new ExposedThing(this.srv));
-        newThing.init();
         console.info(`WoTImpl producing new ExposedThing '${newThing.name}'`);
 
         if (this.srv.addThing(newThing)) {
@@ -130,4 +125,26 @@ export default class WoTImpl implements WoT.WoTFactory {
             reject(new Error("WoT.unregister not implemented"));
         });
     }
+}
+
+export enum DiscoveryMethod {
+    /** does not provide any restriction */
+    "any",
+    /** for discovering Things defined in the same device */
+    "local",
+    /** for discovery based on a service provided by a directory or repository of Things  */
+    "directory",
+    /** for discovering Things in the device's network by using a supported multicast protocol  */
+    "multicast"
+}
+
+/** Instantiation of the WoT.DataType declaration */
+export enum DataType {
+    boolean = "boolean",
+    number = "number",
+    integer = "integer",
+    string = "string",
+    object = "object",
+    array = "array",
+    null = "null"
 }
