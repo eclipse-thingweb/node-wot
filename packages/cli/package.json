@@ -1,6 +1,6 @@
 {
   "name": "@node-wot/cli",
-  "version": "0.5.0-SNAPSHOT.2",
+  "version": "0.5.0-SNAPSHOT.3",
   "description": "servient command line interface",
   "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
   "license": "EPL-2.0 OR W3C-20150513",
@@ -24,11 +24,11 @@
     "typescript-standard": "0.3.30"
   },
   "dependencies": {
-    "@node-wot/binding-coap": "0.5.0-SNAPSHOT.2",
-    "@node-wot/binding-file": "0.5.0-SNAPSHOT.2",
-    "@node-wot/binding-http": "0.5.0-SNAPSHOT.2",
-    "@node-wot/core": "0.5.0-SNAPSHOT.2",
-    "@node-wot/td-tools": "0.5.0-SNAPSHOT.2"
+    "@node-wot/binding-coap": "0.5.0-SNAPSHOT.3",
+    "@node-wot/binding-file": "0.5.0-SNAPSHOT.3",
+    "@node-wot/binding-http": "0.5.0-SNAPSHOT.3",
+    "@node-wot/core": "0.5.0-SNAPSHOT.3",
+    "@node-wot/td-tools": "0.5.0-SNAPSHOT.3"
   },
   "scripts": {
     "build": "tsc",

@@ -180,15 +180,17 @@ export class ContentSerdes {
 
     if (value === undefined) console.warn("ContentSerdes valueToContent got no value");
 
-    console.debug(`ContentSerdes serializing to ${mediaType}`);
-    // choose codec based on mediaType
-    if (!this.codecs.has(mediaType)) {
-      throw new Error(`Unsupported serialization format: ${mediaType}`)
-    }
-    let codec = this.codecs.get(mediaType);
+    let bytes = null;
 
-    // use codec to serialize
-    let bytes = codec.valueToBytes(value);
+    // choose codec based on mediaType
+    if (this.codecs.has(mediaType)) {    
+      console.debug(`ContentSerdes serializing to ${mediaType}`);
+      let codec = this.codecs.get(mediaType);
+      bytes = codec.valueToBytes(value);
+    } else {
+      console.warn(`ContentSerdes passthrough due to unsupported serialization format '${mediaType}'`);
+      bytes = new Buffer(value);
+    }
 
     return { mediaType: mediaType, body: bytes };
   }
