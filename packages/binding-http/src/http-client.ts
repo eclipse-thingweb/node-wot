@@ -264,6 +264,11 @@ export default class HttpClient implements ProtocolClient {
       options.headers["Host"] = requestUri.hostname;
     } else {
       options.hostname = requestUri.hostname;
+      // NodeJS cannot resolve localhost when not connected to any network...
+      if (options.hostname==="localhost") {
+        console.warn("LOCALHOST FIX");
+        options.hostname = "127.0.0.1";
+      }
       options.port = parseInt(requestUri.port, 10);
       options.path = requestUri.path;
       options.headers = {};
