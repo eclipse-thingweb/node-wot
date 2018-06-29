@@ -29,6 +29,7 @@ export default class DefaultServient extends Servient {
 
     private static readonly defaultServientConf = {
         servient: {
+            clientOnly: false,
             scriptDir: ".",
             scriptAction: false
         },
@@ -46,8 +47,11 @@ export default class DefaultServient extends Servient {
         Object.assign(this.config, config);
         console.info("DefaultServient configured with", this.config);
 
-        let httpServer = (typeof this.config.http.port === "number") ? new HttpServer(this.config.http.port) : new HttpServer();
-        this.addServer(httpServer);
+        if (!this.config.servient.clientOnly) {
+            let httpServer = (typeof this.config.http.port === "number") ? new HttpServer(this.config.http.port) : new HttpServer();
+            this.addServer(httpServer);
+        }
+        
         this.addClientFactory(new FileClientFactory());
         this.addClientFactory(new HttpClientFactory(this.config.http));
         this.addClientFactory(new HttpsClientFactory(this.config.http));

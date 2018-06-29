@@ -21,18 +21,29 @@ import DefaultServient from "./default-servient";
 import fs = require("fs");
 import * as path from "path";
 
+const argv = process.argv.slice(2);
 const confFile = "wot-servient.conf.json";
 const baseDir = ".";
 
+var clientOnly: boolean = false;
+var file: string;
+
 const readConf = function () : Promise<any> {
     return new Promise((resolve, reject) => {
-        fs.readFile(path.join(baseDir, confFile), "utf-8", (err, data) => {
+
+        let open = file!==undefined ? file : path.join(baseDir, confFile);
+
+        fs.readFile(open, "utf-8", (err, data) => {
             if (err) {
                 reject(err);
             }
             if (data) {
                 const config = JSON.parse(data);
-                console.info("WoT-Servient using conf file", confFile);
+                console.info("WoT-Servient using conf file", open);
+
+                // apply cli flags
+                if (clientOnly) config.servient.clientOnly = true;
+                
                 resolve(config);
             }
         });
@@ -73,8 +84,8 @@ const runAllScripts = function(srv : DefaultServient) : void {
 }
 
 // main
-if (process.argv.length>2) {
-    process.argv.slice(2).forEach( (arg) => {
+if (argv.length>0) {
+    argv.forEach( (arg) => {
         if (arg.match(/^(-h|--help|\/?|\/h)$/i)) {
             console.log(`Usage: wot-servient [SCRIPT]...
 Run a WoT Servient in the current directory. Automatically loads all .js files in the directory.
@@ -115,9 +126,20 @@ wot-servient.conf.json:
   USERNAME is an HTTP Basic Auth username
   PASSWORD is an HTTP Basic Auth password`);
             process.exit(0);
+
+        } else if (arg.match(/^(-c|--clientonly|\/c)$/i)) {
+            console.log(`WoT-Servient in client-only mode`);
+            clientOnly = true;
+            argv.shift();
+        
+        } else if (arg.match(/^(-f|--configfile|\/f)$/i)) {
+            console.log(`WoT-Servient in client-only mode`);
+            clientOnly = true;
+            argv.shift();
         }
     });
 }
+
 readConf()
     .then((conf) => {
         return new DefaultServient(conf);
@@ -134,9 +156,9 @@ readConf()
     .then(servient => {
         servient.start()
             .then( () => {
-                if (process.argv.length>2) {
-                    console.info(`WoT-Servient loading ${process.argv.length-2} command line script${process.argv.length-2>1 ? "s" : ""}`);
-                    return runScripts(servient, process.argv.slice(2));
+                if (argv.length>0) {
+                    console.info(`WoT-Servient loading ${argv.length} command line script${argv.length>1 ? "s" : ""}`);
+                    return runScripts(servient, argv);
                 } else {
                     return runAllScripts(servient);
                 }
