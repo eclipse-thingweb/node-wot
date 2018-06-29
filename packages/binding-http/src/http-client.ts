@@ -17,11 +17,14 @@
  * HTTP client based on http
  */
 
-import * as WoT from "wot-typescript-definitions";
-
 import * as http from "http";
 import * as https from "https";
 import * as url from "url";
+
+import { Subscription } from 'rxjs/Subscription';
+
+// for Security definition
+import * as WoT from "wot-typescript-definitions";
 
 import { ProtocolClient, Content } from "@node-wot/core";
 import { HttpForm, HttpHeader, HttpConfig } from "./http";
@@ -62,7 +65,7 @@ export default class HttpClient implements ProtocolClient {
     }
 
     // using one client impl for both HTTP and HTTPS
-    this.agent = secure ? new https.Agent({ keepAlive: true, }) : new http.Agent({ keepAlive: true });
+    this.agent = secure ? new https.Agent() : new http.Agent();
     this.provider = secure ? https : http;
   }
 
@@ -85,8 +88,9 @@ export default class HttpClient implements ProtocolClient {
     return new Promise<Content>((resolve, reject) => {
 
       let req = this.generateRequest(form, "GET");
+      let info = <any>req;
 
-      console.log(`HttpClient sending ${req.method} to ${form.href}`);
+      console.log(`HttpClient sending ${info.method} to ${form.href}`);
 
       req.on("response", (res: https.IncomingMessage) => {
         console.log(`HttpClient received ${res.statusCode} from ${form.href}`);
@@ -108,11 +112,12 @@ export default class HttpClient implements ProtocolClient {
     return new Promise<void>((resolve, reject) => {
 
       let req = this.generateRequest(form, "PUT");
+      let info = <any>req;
 
       req.setHeader("Content-Type", content.mediaType);
       req.setHeader("Content-Length", content.body.byteLength);
 
-      console.log(`HttpClient sending ${req.method} with '${req.getHeader("Content-Type")}' to ${form.href}`);
+      console.log(`HttpClient sending ${info.method} with '${req.getHeader("Content-Type")}' to ${form.href}`);
 
       req.on("response", (res: https.IncomingMessage) => {
         console.log(`HttpClient received ${res.statusCode} from ${form.href}`);
@@ -136,13 +141,14 @@ export default class HttpClient implements ProtocolClient {
     return new Promise<Content>((resolve, reject) => {
 
       let req = this.generateRequest(form, "POST");
+      let info = <any>req;
 
       if (content) {
         req.setHeader("Content-Type", content.mediaType);
         req.setHeader("Content-Length", content.body.byteLength);
       }
 
-      console.log(`HttpClient sending ${req.method} with '${req.getHeader("Content-Type")}' to ${form.href}`);
+      console.log(`HttpClient sending ${info.method} with '${req.getHeader("Content-Type")}' to ${form.href}`);
 
       req.on("response", (res: https.IncomingMessage) => {
         console.log(`HttpClient received ${res.statusCode} from ${form.href}`);
@@ -165,14 +171,11 @@ export default class HttpClient implements ProtocolClient {
 
   public unlinkResource(form: HttpForm): Promise<any> {
     return new Promise<void>((resolve, reject) => {
-      let options: http.RequestOptions = this.uriToOptions(form.href);
+      
+      let req = this.generateRequest(form, "DELETE");
+      let info = <any>req;
 
-      options.method = 'DELETE';
-
-      let req = this.provider.request(options);
-      this.generateRequest(form, req);
-
-      console.log(`HttpClient sending ${req.method} to ${form.href}`);
+      console.log(`HttpClient sending ${info.method} to ${form.href}`);
 
       req.on("response", (res: https.IncomingMessage) => {
         console.log(`HttpClient received ${res.statusCode} from ${form.href}`);
@@ -189,6 +192,41 @@ export default class HttpClient implements ProtocolClient {
       req.on('error', (err: any) => reject(err));
       req.end();
     });
+  }
+
+  public subscribeResource(form: HttpForm, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): Subscription {
+
+    let active = true;
+    let polling = () => {
+      let req = this.generateRequest(form, "GET");
+      let info = <any>req;
+      
+      // long timeout for long polling
+      req.setTimeout(60*60*1000);
+
+      console.log(`HttpClient sending ${info.method} to ${form.href}`);
+  
+      req.on("response", (res: https.IncomingMessage) => {
+        console.log(`HttpClient received ${res.statusCode} from ${form.href}`);
+        let mediaType: string = this.getContentType(res);
+        let body: Array<any> = [];
+        res.on("data", (data) => { body.push(data) });
+        res.on("end", () => {
+          if (active) {
+            next({ mediaType: mediaType, body: Buffer.concat(body) });
+            polling();
+          }
+        });
+      });
+      req.on("error", (err: any) => error(err));
+
+      req.flushHeaders();
+      req.end();
+    };
+
+    polling();
+
+    return new Subscription( () => { active = false; } );
   }
 
   public start(): boolean {
@@ -219,6 +257,7 @@ export default class HttpClient implements ProtocolClient {
     } else if (security.scheme === "apikey") {
       // TODO this is just an idea sketch
       console.error(`HttpClient cannot use Apikey: Not implemented`);
+      return false;
 
     } else {
       console.error(`HttpClient cannot set security scheme '${security.scheme}'`);
@@ -284,7 +323,7 @@ export default class HttpClient implements ProtocolClient {
 
     return options;
   }
-  private generateRequest(form: HttpForm, dflt: string): any {
+  private generateRequest(form: HttpForm, dflt: string): http.ClientRequest {
 
     let options: http.RequestOptions = this.uriToOptions(form.href);
 
@@ -304,16 +343,16 @@ export default class HttpClient implements ProtocolClient {
 
     let req = this.provider.request(options);
 
-    console.log(`HttpClient applying form`);
+    console.debug(`HttpClient applying form`);
     //console.dir(form);
 
     // apply form data
     if (typeof form.mediaType === "string") {
-      console.log("HttpClient got Form 'mediaType'", form.mediaType);
+      console.debug("HttpClient got Form 'mediaType'", form.mediaType);
       req.setHeader("Accept", form.mediaType);
     }
     if (Array.isArray(form["http:headers"])) {
-      console.log("HttpClient got Form 'headers'", form["http:headers"]);
+      console.debug("HttpClient got Form 'headers'", form["http:headers"]);
       let headers = form["http:headers"] as Array<HttpHeader>;
       for (let option of headers) {
         req.setHeader(option["http:fieldName"], option["http:fieldValue"]);

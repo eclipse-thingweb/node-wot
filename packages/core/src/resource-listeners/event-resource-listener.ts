@@ -17,17 +17,13 @@
  * Interaction resource that provides an Event
  */
 
-import { Observable } from 'rxjs/Observable';
 import { PartialObserver } from 'rxjs/Observer';
 import { Subject } from 'rxjs/Subject';
 import { Subscription } from 'rxjs/Subscription';
 
-import * as TD from "@node-wot/td-tools";
-
 import BasicResourceListener from "./basic-resource-listener";
 import { ResourceListener } from "./protocol-interfaces";
-import ExposedThing from "../exposed-thing";
-import { ContentSerdes, Content } from "../content-serdes";
+import { Content } from "../content-serdes";
 
 /**
  * Interaction resource that provides an Action

@@ -57,19 +57,26 @@ export default class FileClient implements ProtocolClient {
   }
 
   public writeResource(form: Form, content: Content): Promise<any> {
-    return;
+    return new Promise<Object>((resolve, reject) => {
+      reject(new Error(`FileClient does not implement write`));
+    });
   }
 
   public invokeResource(form: Form, payload: Object): Promise<any> {
     return new Promise<Object>((resolve, reject) => {
-      resolve('FileClient POST_' + form.href + '_' + new Date())
-    })
+      reject(new Error(`FileClient does not implement invoke`));
+    });
   }
 
   public unlinkResource(form: Form): Promise<any> {
     return new Promise<Object>((resolve, reject) => {
-      resolve('FileClient DELETE_' + form.href + '_' + new Date())
-    })
+      reject(new Error(`FileClient does not implement unlink`));
+    });
+  }
+
+  public subscribeResource(form: Form, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): any {
+    error(new Error(`FileClient does not implement subscribe`));
+    return null;
   }
 
   public start(): boolean {

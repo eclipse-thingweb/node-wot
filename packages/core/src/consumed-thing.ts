@@ -24,8 +24,8 @@ import { ProtocolClient } from "./resource-listeners/protocol-interfaces";
 
 import ContentSerdes from "./content-serdes"
 
-import { Observable } from 'rxjs/Observable';
-import { Subject } from 'rxjs/Subject';
+import { Subscribable } from 'rxjs/Observable';
+import { Subscription } from 'rxjs/Subscription';
 
 export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing {
 
@@ -242,8 +242,8 @@ class ConsumedThingAction extends TD.ActionFragment implements WoT.ThingAction {
     }
 }
 
-class ConsumedThingEvent extends TD.EventFragment // implements Observable<any> {
-{
+class ConsumedThingEvent extends TD.EventFragment implements Subscribable<any> {
+
     // functions for wrapping internal state
     private getName: () => string;
     private getThing: () => ConsumedThing;
@@ -251,10 +251,31 @@ class ConsumedThingEvent extends TD.EventFragment // implements Observable<any> 
     constructor(name: string, thing: ConsumedThing) {
         super();
 
-        Helpers.extend(this, new Observable<any>());
-
         // wrap internal state into functions to not be stringified in TD
         this.getName = () => { return name; }
         this.getThing = () => { return thing; }
+    }
+
+    public subscribe(next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): Subscription {
+
+        let { client, form } = this.getThing().getClientFor(this.forms);
+            if (!client) {
+                error(new Error(`ConsumedThing '${this.getThing().name}' did not get suitable client for ${form.href}`));
+            } else {
+                console.log(`ConsumedThing '${this.getThing().name}' subscribing to ${form.href}`);
+
+                return client.subscribeResource(form,
+                    (content) => {
+                        if (!content.mediaType) content.mediaType = form.mediaType;
+                        next( ContentSerdes.contentToValue(content) );
+                    },
+                    (err) => {
+                        error(err);
+                    },
+                    () => {
+                        complete();
+                    }
+                );
+            }
     }
 }

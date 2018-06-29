@@ -20,8 +20,8 @@
 import * as http from "http";
 import * as url from "url";
 
-import TDResourceListener, { ProtocolServer, ResourceListener, ContentSerdes } from "@node-wot/core";
-import { PropertyResourceListener, ActionResourceListener, EventResourceListener } from "@node-wot/core";
+import { ProtocolServer, ResourceListener, ContentSerdes } from "@node-wot/core";
+import { EventResourceListener } from "@node-wot/core";
 
 export default class HttpServer implements ProtocolServer {
 
@@ -64,6 +64,11 @@ export default class HttpServer implements ProtocolServer {
   public start(): Promise<void> {
     console.info(`HttpServer starting on ${(this.address !== undefined ? this.address + ' ' : '')}port ${this.port}`);
     return new Promise<void>((resolve, reject) => {
+
+      // long timeout for long polling
+      this.server.setTimeout(60*60*1000, () => { console.info("HttpServer on port ${this.getPort()} timed out connection"); });
+      // no keep-alive because NodeJS HTTP clients do not properly use same socket due to pooling
+      this.server.keepAliveTimeout = 0;
 
       // start promise handles all errors until successful start
       this.server.once('error', (err: Error) => { reject(err); });
@@ -200,20 +205,20 @@ export default class HttpServer implements ProtocolServer {
         });
 
       } else if (requestHandler instanceof EventResourceListener) {
-        res.setHeader("Connection", "Keep-Alive");
+        // NOTE: Using Keep-Alive does not work well with NodeJS HTTP client because of socket pooling :/
+
         // FIXME get supported content types from EventResourceListener
         res.setHeader("Content-Type", ContentSerdes.DEFAULT);
         res.writeHead(200);
         let subscription = requestHandler.subscribe({
-          next: (content) => res.end(content.body),
+          next: (content) => {
+            // send event data
+            res.end(content.body);
+          },
           complete: () => res.end()
         });
-        res.on("close", () => {
-          console.warn(`HttpServer on port ${this.getPort()} lost Event connection`);
-          subscription.unsubscribe();
-        });
         res.on("finish", () => {
-          console.warn(`HttpServer on port ${this.getPort()} closed Event connection`);
+          console.debug(`HttpServer on port ${this.getPort()} closed Event connection`);
           subscription.unsubscribe();
         });
         res.setTimeout(60*60*1000, () => subscription.unsubscribe());

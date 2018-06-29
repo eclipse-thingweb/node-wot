@@ -20,6 +20,11 @@
 let coap = require("coap");
 import * as url from "url";
 
+import { Subscription } from 'rxjs/Subscription';
+
+// for Security definition
+import * as WoT from "wot-typescript-definitions";
+
 import { ProtocolClient, Content } from "@node-wot/core";
 import { CoapForm, CoapRequestConfig, CoapOption } from "./coap";
 
@@ -114,6 +119,11 @@ export default class CoapClient implements ProtocolClient {
       req.on("error", (err: Error) => reject(err));
       req.end();
     });
+  }
+
+  public subscribeResource(form: CoapForm, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): Subscription {
+    error(new Error(`CoapClient does not implement subscribe`));
+    return null;
   }
 
   public start(): boolean {

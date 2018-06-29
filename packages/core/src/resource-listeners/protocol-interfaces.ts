@@ -15,6 +15,7 @@
 
 import * as WoT from "wot-typescript-definitions";
 import { Form } from "@node-wot/td-tools";
+import { Subscription } from "rxjs/Subscription";
 
 export interface ProtocolClient {
 
@@ -29,6 +30,8 @@ export interface ProtocolClient {
 
   /** this client is requested to perform an "unlink" on the resource with the given URI */
   unlinkResource(form: Form): Promise<void>;
+
+  subscribeResource(form: Form, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): Subscription;
 
   /** start the client (ensure it is ready to send requests) */
   start(): boolean;

@@ -18,8 +18,7 @@
  */
 
 import * as url from 'url';
-import {ContentSerdes} from "@node-wot/core";
-import { ProtocolServer, ResourceListener, Content } from "@node-wot/core"
+import { ProtocolServer, ResourceListener } from "@node-wot/core"
 
 const coap = require('coap');
 

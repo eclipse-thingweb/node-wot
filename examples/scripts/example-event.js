@@ -34,7 +34,7 @@ try {
     thing.setActionHandler(
       "reset",
       () => {
-        console.log("Resetting");
+        console.info("Resetting");
         counter = 0;
         return new Promise((resolve, reject) => {
           resolve();
@@ -46,9 +46,10 @@ try {
     setInterval( async () => {
       ++counter;
       thing.events.onchange.emit(counter);
+      console.info("Emitted change", counter);
     }, 5000);
     
   } catch (err) {
-     console.log("Script error: " + err);
+     console.error("Script error: " + err);
   }
   
