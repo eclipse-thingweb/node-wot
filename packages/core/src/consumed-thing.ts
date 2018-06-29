@@ -180,7 +180,7 @@ class ConsumedThingProperty extends TD.PropertyFragment implements WoT.ThingProp
                     let value = ContentSerdes.contentToValue(content);
                     resolve(value);
                 })
-                .catch(err => { console.log("Failed to read because " + err); });
+                .catch(err => { reject(err); });
             }
         });
     }
@@ -191,13 +191,12 @@ class ConsumedThingProperty extends TD.PropertyFragment implements WoT.ThingProp
                 reject(new Error(`ConsumedThing '${this.getThing().name}' did not get suitable client for ${form.href}`));
             } else {
                 console.log(`ConsumedThing '${this.getThing().name}' writing ${form.href} with '${value}'`);
-                let content = ContentSerdes.valueToContent(value, form.mediaType)
-                resolve(client.writeResource(form, content));
+                let content = ContentSerdes.valueToContent(value, form.mediaType);
 
-                // // TODO observables
-                // if (this.observablesPropertyChange.get(propertyName)) {
-                //     this.observablesPropertyChange.get(propertyName).next(newValue);
-                // };
+                client.writeResource(form, content).then(() => {
+                    resolve();
+                })
+                .catch(err => { reject(err); });
             }
         });
     }
@@ -236,7 +235,8 @@ class ConsumedThingAction extends TD.ActionFragment implements WoT.ThingAction {
                     if (!output.mediaType) output.mediaType = form.mediaType;
                     let value = ContentSerdes.contentToValue(output);
                     resolve(value);
-                });
+                })
+                .catch(err => { reject(err); });
             }
         });
     }
