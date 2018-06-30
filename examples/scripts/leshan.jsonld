@@ -1,0 +1,29 @@
+{
+    "id": "urn:dev:wot:org:eclipse:leshan",
+    "name": "LeshanServer",
+    "description": "Leshan OMA LWM2M sandbox",
+    "security": [{ "scheme": "psk"}],
+    "properties": {
+        "status": {
+            "description": "Look-up Interface",
+            "type": "string",
+            "forms": [
+                {
+                    "href": "coaps://leshan.eclipse.org:5684/rd-lookup/res"
+                }
+            ]
+        }
+    },
+    "actions": {
+        "register": {
+            "description": "Register as LWM2M Client",
+            "input": { "type": "string" },
+            "forms": [
+                {
+                    "href": "coaps://leshan.eclipse.org:5684/rd?ep=node-wot-test",
+                    "mediaType": "application/link-format"
+                }
+            ]
+        }
+    }
+}

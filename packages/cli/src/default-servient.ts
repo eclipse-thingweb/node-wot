@@ -24,6 +24,7 @@ import { FileClientFactory } from "@node-wot/binding-file";
 import { HttpClientFactory } from "@node-wot/binding-http";
 import { HttpsClientFactory } from "@node-wot/binding-http";
 import { CoapClientFactory } from "@node-wot/binding-coap";
+import { CoapsClientFactory } from "@node-wot/binding-coap";
 
 export default class DefaultServient extends Servient {
 
@@ -56,6 +57,7 @@ export default class DefaultServient extends Servient {
         this.addClientFactory(new HttpClientFactory(this.config.http));
         this.addClientFactory(new HttpsClientFactory(this.config.http));
         this.addClientFactory(new CoapClientFactory());
+        this.addClientFactory(new CoapsClientFactory());
 
         // loads credentials from the configuration
         this.addCredentials(this.config.credentials);

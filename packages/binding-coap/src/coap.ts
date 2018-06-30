@@ -18,10 +18,14 @@ import { Form } from "@node-wot/td-tools";
 export { default as CoapServer } from "./coap-server";
 export { default as CoapClientFactory } from "./coap-client-factory";
 export { default as CoapClient } from "./coap-client";
+export { default as CoapsClientFactory } from "./coaps-client-factory";
+export { default as CoapsClient } from "./coaps-client";
 
 export * from "./coap-server";
 export * from "./coap-client-factory";
 export * from "./coap-client";
+export * from "./coaps-client-factory";
+export * from "./coaps-client";
 
 export class CoapForm extends Form {
     public "coap:methodCode"?: number; // 1=0.01=GET, 2=0.02=POST, 3=0.03=PUT, 4=0.04=DELETE

@@ -1,0 +1,19 @@
+{
+    "servient": {
+        "scriptDir": ".",
+        "scriptAction": true
+    },
+    "http": {
+        "port": 8080,
+        "allowSelfSigned": true
+    },
+    "log": {
+        "level": "info"
+    },
+    "credentials": {
+        "urn:dev:wot:org:eclipse:leshan": {
+            "identity": "node-wot",
+            "psk": "hello"
+        }
+    }
+}
