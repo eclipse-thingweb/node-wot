@@ -106,14 +106,43 @@ export default class WoTImpl implements WoT.WoTFactory {
         let newThing: ExposedThing;
 
         if (this.isWoTThingDescription(model)) {
-            let template = TD.parseTD(model, true);
+            let template = TD.parseTD(model, false);
             newThing = Helpers.extend(template, new ExposedThing(this.srv));
 
         } else if (this.isWoTThingTemplate(model)) {
             let template = Helpers.extend(model, new TD.Thing());
             newThing = Helpers.extend(template, new ExposedThing(this.srv));
+
         } else {
             throw new Error("Invalid Thing model: " + model);
+        }
+
+        // ensure TD context
+        if (typeof newThing["@context"]==="string") {
+            if (newThing["@context"]!==TD.DEFAULT_HTTPS_CONTEXT &&
+                newThing["@context"]!==TD.DEFAULT_HTTP_CONTEXT) {
+
+                // put TD context last with other context files
+                let newContext = [];
+                newContext.push(newThing["@context"]);
+                newContext.push(TD.DEFAULT_HTTPS_CONTEXT);
+                newThing["@context"] = newContext;
+            }
+        } else if (Array.isArray(newThing["@context"])) {
+            if (newThing["@context"].indexOf(TD.DEFAULT_HTTPS_CONTEXT)===-1 &&
+                newThing["@context"].indexOf(TD.DEFAULT_HTTP_CONTEXT)===-1) {
+                
+                // put TD context last with other context files
+                newThing["@context"].push(TD.DEFAULT_HTTPS_CONTEXT);
+            }
+        } else if (typeof newThing["@context"]==="object") {
+            // put TD context without prefix
+            let newContext = [];
+            newContext.push(TD.DEFAULT_HTTPS_CONTEXT);
+            newContext.push(newThing["@context"]);
+            newThing["@context"] = newContext;
+        } else {
+            console.error(`WoTImpl found illegal @context: ${newThing["@context"]}`);
         }
 
         // augment Interaction descriptions with interactable functions

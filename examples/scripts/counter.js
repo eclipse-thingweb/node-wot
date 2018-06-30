@@ -20,7 +20,8 @@ const NAME_ACTION_RESET = "reset";
 
 let thing = WoT.produce({
 	name: "counter",
-	description: "counter example Thing"
+	description: "counter example Thing",
+	"@context": { "iot": "http://iotschema.org/" }
 });
 
 console.log("Created thing " + thing.name);
@@ -30,7 +31,7 @@ thing.addProperty(
 	{
 		type: "integer",
 		description: "current counter value",
-		"iot:custom": "nothing",
+		"iot:Custom": "example annotation",
 		observable: true,
 		writeable: true
 	},
