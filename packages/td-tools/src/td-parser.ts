@@ -72,9 +72,47 @@ export function parseTD(td: string, normalize?: boolean): Thing {
     console.warn(`parseTD() found no security metadata`);
   }
 
-  if (normalize) {
+  if (normalize===undefined || normalize===true) {
     console.log(`parseTD() normalizing 'base' into 'forms'`);
-    // TODO normalize normalize each Interaction link
+
+    if (thing.base !== undefined) {
+
+      let url = require('url');
+      /* url modul works only for http --> so replace URI scheme with
+         http and after resolving replace again replace with original scheme */
+      let n: number = thing.base.indexOf(':');
+      let scheme: string = thing.base.substr(0, n + 1); // save origin protocol
+      let base: string = thing.base.replace(scheme, 'http:'); // replace protocol
+
+      let allForms: WoT.Form[] = [];
+
+      for (let property in thing.properties) {
+        for (let form of thing.properties[property].forms) {
+          allForms.push(form);
+        }
+      }
+      for (let action in thing.actions) {
+        for (let form of thing.actions[action].forms) {
+          allForms.push(form);
+        }
+      }
+      for (let event in thing.events) {
+        for (let form of thing.events[event].forms) {
+          allForms.push(form);
+        }
+      }
+
+      for (let form of allForms) {
+        if (!form.href.match(/^([a-z0-9\+-\.]+\:).+/i)) {
+          console.debug(`parseTDString() applying base '${thing.base}' to '${form.href}'`);
+
+          let href: string = url.resolve(base, form.href) // URL resolving
+          href = href.replace('http:', scheme); // replace protocol back to origin
+          form.href = href;
+        }
+      }
+
+    }
   }
 
   return thing;

@@ -87,7 +87,21 @@ let tdSample3 = `{
 				"mediaType": "application/json"
 			}]
 		}
-	}
+  },
+  "actions": {
+    "reset": {
+      "forms": [{
+				"href": "/actions/reset"
+			}]
+    }
+  },
+  "events": {
+    "update": {
+      "forms": [{
+				"href": "events/update"
+			}]
+    }
+  }
 }`;
 
 /** sample TD json-ld string from the CP page*/
@@ -260,7 +274,7 @@ class TDParserTest {
 
   }
 
-  @test "should parse and apply base field"() {
+  @test "should parse TD with base field"() {
     let thing: Thing = TDParser.parseTD(tdSample3);
 
     expect(thing).to.have.property("@context").that.has.lengthOf(1);
@@ -273,25 +287,18 @@ class TDParserTest {
     expect(thing.properties["temperature"]).to.have.property("observable").that.equals(false);
     expect(thing.properties["temperature"]).to.have.property("forms").to.have.lengthOf(1);
     expect(thing.properties["temperature"].forms[0]).to.have.property("mediaType").that.equals("application/json");
-    // TODO base
-    expect(thing.properties["temperature"].forms[0]).to.have.property("href").that.equals("temp");
-
 
     expect(thing.properties).to.have.property("temperature2");
     expect(thing.properties["temperature2"]).to.have.property("writable").that.equals(false);
     expect(thing.properties["temperature2"]).to.have.property("observable").that.equals(false);
     expect(thing.properties["temperature2"]).to.have.property("forms").to.have.lengthOf(1);
     expect(thing.properties["temperature2"].forms[0]).to.have.property("mediaType").that.equals("application/json");
-    // TODO base
-    expect(thing.properties["temperature2"].forms[0]).to.have.property("href").that.equals("./temp");
 
     expect(thing.properties).to.have.property("humidity");
     expect(thing.properties["humidity"]).to.have.property("writable").that.equals(false);
     expect(thing.properties["humidity"]).to.have.property("observable").that.equals(false);
     expect(thing.properties["humidity"]).to.have.property("forms").to.have.lengthOf(1);
     expect(thing.properties["humidity"].forms[0]).to.have.property("mediaType").that.equals("application/json");
-    // TODO base
-    expect(thing.properties["humidity"].forms[0]).to.have.property("href").that.equals("/humid");
   }
 
   // TODO: wait for exclude https://github.com/chaijs/chai/issues/885
@@ -354,9 +361,6 @@ class TDParserTest {
     expect(thing.properties["myTemp"]).to.have.property("observable").that.equals(false);
     expect(thing.properties["myTemp"]).to.have.property("forms").to.have.lengthOf(1);
     expect(thing.properties["myTemp"].forms[0]).to.have.property("mediaType").that.equals("application/json");
-    // TODO base
-    expect(thing.properties["myTemp"].forms[0]).to.have.property("href").that.equals("temp");
-
 
     // metadata
     // metadata "unit": "celsius"
@@ -366,10 +370,23 @@ class TDParserTest {
 
     // serialize
     let newJson = TDParser.serializeTD(thing);
-    console.log(newJson);
+    // TODO JSON.parse() and expect
   }
 
+  @test "should normalize forms with base"() {
 
+    let thing: Thing = TDParser.parseTD(tdSample3);
+
+    expect(thing).to.have.property("base").that.equals("coap://mytemp.example.com:5683/interactions/");
+
+    expect(thing.properties["temperature"].forms[0]).to.have.property("href").that.equals("coap://mytemp.example.com:5683/interactions/temp");
+    expect(thing.properties["temperature2"].forms[0]).to.have.property("href").that.equals("coap://mytemp.example.com:5683/interactions/temp");
+    expect(thing.properties["humidity"].forms[0]).to.have.property("href").that.equals("coap://mytemp.example.com:5683/humid");
+
+    expect(thing.actions["reset"].forms[0]).to.have.property("href").that.equals("coap://mytemp.example.com:5683/actions/reset");
+
+    expect(thing.events["update"].forms[0]).to.have.property("href").that.equals("coap://mytemp.example.com:5683/interactions/events/update");
+  }
 
   @test "simplified TD 1"() {
     let thing: Thing = TDParser.parseTD(tdSimple1);
