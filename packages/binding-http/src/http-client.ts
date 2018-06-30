@@ -21,7 +21,7 @@ import * as http from "http";
 import * as https from "https";
 import * as url from "url";
 
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from "rxjs/Subscription";
 
 // for Security definition
 import * as WoT from "wot-typescript-definitions";
@@ -194,7 +194,7 @@ export default class HttpClient implements ProtocolClient {
     });
   }
 
-  public subscribeResource(form: HttpForm, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): Subscription {
+  public subscribeResource(form: HttpForm, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): any {
 
     let active = true;
     let polling = () => {
