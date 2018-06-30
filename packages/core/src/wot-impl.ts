@@ -47,10 +47,20 @@ export default class WoTImpl implements WoT.WoTFactory {
             console.info(`WoTImpl fetching TD from '${uri}' with ${client}`);
             client.readResource(new TD.Form(uri, "application/td+json"))
                 .then((content) => {
-                    if (content.mediaType !== "application/td+json") {
-                        console.warn(`WoTImpl parsing TD from '${content.mediaType}' media type`);
-                    }
                     client.stop();
+
+                    if (content.mediaType !== "application/td+json") {
+                        console.warn(`WoTImpl fetched media type '${content.mediaType}' from '${uri}'`);
+                    }
+
+                    let td = content.body.toString();
+
+                    try {
+                        JSON.parse(td);
+                    } catch(err) {
+                        console.warn(`WoTImpl fetched invalid JSON from '${uri}': ${err.message}`);
+                    }
+
                     resolve(content.body.toString());
                 })
                 .catch((err) => { reject(err); });
@@ -59,7 +69,13 @@ export default class WoTImpl implements WoT.WoTFactory {
 
     /** @inheritDoc */
     consume(td: WoT.ThingDescription): WoT.ConsumedThing {
-        let thing: TD.Thing = TD.parseTD(td, true);
+        let thing: TD.Thing;
+        
+        try {
+            thing = TD.parseTD(td, true);
+        } catch(err) {
+            throw new Error("Cannot consume TD because " + err);
+        }
 
         let newThing: ConsumedThing = Helpers.extend(thing, new ConsumedThing(this.srv));
 
@@ -97,7 +113,7 @@ export default class WoTImpl implements WoT.WoTFactory {
             let template = Helpers.extend(model, new TD.Thing());
             newThing = Helpers.extend(template, new ExposedThing(this.srv));
         } else {
-            throw new Error("WoTImpl could not create Thing because of unknown model argument " + model);
+            throw new Error("Invalid Thing model: " + model);
         }
 
         // augment Interaction descriptions with interactable functions
