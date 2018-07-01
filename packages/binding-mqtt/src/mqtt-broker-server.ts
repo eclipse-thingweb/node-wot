@@ -56,12 +56,12 @@ export class MqttBrokerServer implements ProtocolServer {
                 let subscription = res.subscribe({
                     next: (content) => {
                       // send event data
-                      this.logInfo(`publish topic '${path}'`);
+                      this.logInfo(`Publish data to the topic '${path}'`);
 
                       this.broker.publish(path, content.body)
                     }
                     //,
-                   // complete: () => res.
+                   //complete: () => res.
                   });
                 
             }
@@ -81,7 +81,6 @@ export class MqttBrokerServer implements ProtocolServer {
             this.broker = mqtt.connect(this.address+":"+this.port);
 
             console.info(`Try to onnect to the MQTT Broker ${(this.address !== undefined ? this.address + ' ' : '')}port ${this.port}`);
-
 
             this.broker.on('connect', function () {
 
@@ -112,61 +111,6 @@ export class MqttBrokerServer implements ProtocolServer {
         }*/
 
         return this.port;
-    }
-
-
-
-
-    private handlePublish = (topic: string, payload: Buffer, qos: MqttQoS, retain: Boolean): void => {
-        let requestHandler = this.resources[topic];
-        //FIXME: Detect content + fancy bug??? let contentType doesn't work... ?!?
-        const contentType = 'application/json';
-
-        this.logInfo(`Received publish on topic ${topic}`);
-
-        if (requestHandler === undefined) {
-            // No resource handler, stop here.
-            //FIXME: How to signal this to mqtt client?
-            return;
-        } else if (retain && (requestHandler.getType() === 'Property' || requestHandler.getType() === 'Asset')) {
-            requestHandler.onWrite({ mediaType: contentType, body: payload })
-                .then(() => {
-                    // Publish changed property.
-                   // this.adapter.publish(topic, payload, MqttQoS.QoS0, true);
-                })
-                .catch(err => {
-                    this.logError(`Got internal error on write '${topic}': ${err.message}`);
-                });
-        } else if (requestHandler.getType() === 'Action') {
-            requestHandler.onInvoke({ mediaType: contentType, body: payload })
-                .then(content => {
-                    // Publish action's result.
-                    //this.adapter.publish(topic, content.body, MqttQoS.QoS0, false);
-                })
-                .catch(err => {
-                    this.logError(`Got internal error on invoke '${topic}': ${err.message}`);
-                });
-        } else {
-            //TODO
-        }
-    }
-
-    private handleSubscribe = (topic: string, clientId: string): void => {
-        let requestHandler = this.resources[topic];
-        if (requestHandler === undefined) {
-            // No resource handler, stop here.
-            //FIXME: How to signal this to mqtt client?
-            return;
-        } else if (requestHandler.getType() === 'Property' || requestHandler.getType() === 'Asset' || requestHandler.getType() === 'TD') {
-            requestHandler.onRead()
-                .then(content => {
-                   // this.adapter.publish(topic, content.body, MqttQoS.QoS0, true);
-                });
-        } else if (requestHandler instanceof EventResourceListener) {
-            //FIXME: Nothing to do here? Or should we open another topic and pushing the messages there?
-        } else {
-            //TODO
-        }
     }
 
     private logInfo = (message: string) => {

@@ -20,7 +20,8 @@ servient.start().then(wotFactory => {
 
     setInterval( async () => {
         ++counter;
-        thing.events.event1.emit(counter);
+        thing.events.event1.emit(counter); // sends data to the topic /Test/events/event1
+
         console.info("Emitted change", counter);
     }, 5000);
 
