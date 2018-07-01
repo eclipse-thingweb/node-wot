@@ -194,6 +194,7 @@ function main() {
             });
           }
         );
+      unicorn.expose();
 
       unicorn.expose();
       console.info(unicorn.name + " ready");
