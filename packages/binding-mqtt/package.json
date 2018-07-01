@@ -1,6 +1,6 @@
 {
   "name": "@node-wot/binding-mqtt",
-  "version": "0.5.0-SNAPSHOT.3",
+  "version": "0.5.0-SNAPSHOT.4",
   "description": "HTTP client & server protocol binding for node-wot",
   "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
   "license": "EPL-2.0 OR W3C-20150513",

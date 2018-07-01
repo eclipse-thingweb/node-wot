@@ -25,6 +25,8 @@ import { HttpClientFactory } from "@node-wot/binding-http";
 import { HttpsClientFactory } from "@node-wot/binding-http";
 import { CoapClientFactory } from "@node-wot/binding-coap";
 import { CoapsClientFactory } from "@node-wot/binding-coap";
+import { MqttClientFactory } from "../../binding-mqtt";
+
 
 export default class DefaultServient extends Servient {
 
@@ -58,6 +60,8 @@ export default class DefaultServient extends Servient {
         this.addClientFactory(new HttpsClientFactory(this.config.http));
         this.addClientFactory(new CoapClientFactory());
         this.addClientFactory(new CoapsClientFactory());
+        this.addClientFactory(new MqttClientFactory());
+
 
         // loads credentials from the configuration
         this.addCredentials(this.config.credentials);
