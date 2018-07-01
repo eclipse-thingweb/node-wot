@@ -199,9 +199,7 @@ export default class Servient {
         }
     }
     public getCredentials(identifier: string): any {
-        let credentials = this.credentialStore.get(identifier);
-        if (!credentials) console.error(`Servient missing credentials for '${identifier}'`);
-        return credentials;
+        return this.credentialStore.get(identifier);
     }
 
     // will return WoT object

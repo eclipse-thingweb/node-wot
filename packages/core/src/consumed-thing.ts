@@ -95,21 +95,18 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
             // new client
             console.debug(`ConsumedThing '${this.name}' has no client in cache (${cacheIdx})`);
             let srvIdx = schemes.findIndex(scheme => this.getServient().hasClientFor(scheme));
+            
             if (srvIdx === -1) throw new Error(`ConsumedThing '${this.name}' missing ClientFactory for '${schemes}'`);
+            
             let client = this.getServient().getClientFor(schemes[srvIdx]);
-            if (client) {
-                console.log(`ConsumedThing '${this.name}' got new client for '${schemes[srvIdx]}'`);
-                if (this.security) {
-                    console.warn("ConsumedThing applying security metadata");
-                    //console.dir(this.security);
-                    client.setSecurity(this.security, this.getServient().getCredentials(this.id));
-                }
-                this.getClients().set(schemes[srvIdx], client);
-                let form = forms[srvIdx];
-                return { client: client, form: form }
-            } else {
-                throw new Error(`ConsumedThing '${this.name}' could not get client for '${schemes[srvIdx]}'`);
+            console.log(`ConsumedThing '${this.name}' got new client for '${schemes[srvIdx]}'`);
+            
+            if (this.security) {
+                client.setSecurity(this.security, this.getServient().getCredentials(this.id));
             }
+            this.getClients().set(schemes[srvIdx], client);
+            let form = forms[srvIdx];
+            return { client: client, form: form }
         }
     }
 

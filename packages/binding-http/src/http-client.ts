@@ -242,8 +242,11 @@ export default class HttpClient implements ProtocolClient {
   public setSecurity(metadata: Array<WoT.Security>, credentials?: any): boolean {
 
     if (metadata === undefined || !Array.isArray(metadata) || metadata.length == 0) {
-      console.warn(`HttpClient received empty security metadata`);
+      console.warn(`HttpClient without security`);
       return false;
+    }
+    if (credentials === undefined) {
+      throw new Error(`No credentionals for Thing`);
     }
 
     let security: WoT.Security = metadata[0];
@@ -257,7 +260,7 @@ export default class HttpClient implements ProtocolClient {
 
     } else if (security.scheme === "apikey") {
       this.authorization = credentials.apikey;
-      if (security.in==="header" && security.pname!===undefined) {
+      if (security.in==="header" && security.pname!==undefined) {
         this.authorizationHeader = security.pname;
       }
 
@@ -303,6 +306,7 @@ export default class HttpClient implements ProtocolClient {
       // copy header fields for Proxy-Auth etc.
       for (let hf in this.proxyOptions.headers) options.headers[hf] = this.proxyOptions.headers[hf];
       options.headers["Host"] = requestUri.hostname;
+
     } else {
       options.hostname = requestUri.hostname;
       // NodeJS cannot resolve localhost when not connected to any network...
