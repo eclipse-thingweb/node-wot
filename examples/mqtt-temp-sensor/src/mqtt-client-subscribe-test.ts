@@ -27,7 +27,7 @@ let td =
     "id": "urn:dev:wot:com:siemens:parking",
     "events": {
         "lightSensor": {
-            "type": "int",
+            "type": "integer",
             "forms": [
                 {"href": "mqtt://192.168.1.187:1883/lightSensor", "mqtt:qos":  0, "mqtt:retain" : false}
             ]
@@ -39,7 +39,7 @@ let td =
             ]
         },
         "temperature": {
-            "type": "int",
+            "type": "integer",
             "forms": [
                 {"href": "mqtt://test.mosquitto.org:1883/wot/temperature",  "mqtt:qos":  0, "mqtt:retain" : false}
             ]
