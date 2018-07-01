@@ -39,19 +39,23 @@ let td =
     } 
 }`;
 
-
+try {
 let source = WoT.consume(td);
-console.info("=== TD ===");
-console.info(td);
-console.info("==========");
+    console.info("=== TD ===");
+    console.info(td);
+    console.info("==========");
 
-source.events.temperature.subscribe(
-		x => {
-			console.info("value:", x);
-		},
-		e => console.log("onError: %s", e),
-		() => {
-			console.log("onCompleted");
-		}
-	);
-console.info("Subscribed");
+    source.events.temperature.subscribe(
+            x => {
+                console.info("value:", x);
+            },
+            e => console.log("onError: %s", e),
+            () => {
+                console.log("onCompleted");
+            }
+        );
+    console.info("Subscribed");
+
+} catch(err) {
+    console.log("Script error: " + err);
+  }
