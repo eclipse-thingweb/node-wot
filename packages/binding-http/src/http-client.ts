@@ -35,6 +35,7 @@ export default class HttpClient implements ProtocolClient {
   private readonly provider: any;
   private proxyOptions: http.RequestOptions = null;
   private authorization: string = null;
+  private authorizationHeader: string = "Authorization";
   private allowSelfSigned: boolean = false;
 
   constructor(config: HttpConfig = null, secure = false) {
@@ -255,9 +256,10 @@ export default class HttpClient implements ProtocolClient {
       this.authorization = "Bearer " + credentials.token;
 
     } else if (security.scheme === "apikey") {
-      // TODO this is just an idea sketch
-      console.error(`HttpClient cannot use Apikey: Not implemented`);
-      return false;
+      this.authorization = credentials.apikey;
+      if (security.in==="header" && security.pname!===undefined) {
+        this.authorizationHeader = security.pname;
+      }
 
     } else {
       console.error(`HttpClient cannot set security scheme '${security.scheme}'`);
@@ -314,7 +316,7 @@ export default class HttpClient implements ProtocolClient {
     }
 
     if (this.authorization !== null) {
-      options.headers["Authorization"] = this.authorization;
+      options.headers[this.authorizationHeader] = this.authorization;
     }
 
     if (this.allowSelfSigned === true) {
