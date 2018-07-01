@@ -102,7 +102,12 @@ export function generateTD(thing: ExposedThing, servient: Servient): Thing {
             let href: string = server.scheme + "://" + address + ":" + server.getPort() + "/" + thing.name;
 
             // depending on the resource pattern, uri is constructed
-            event.forms.push(new TD.Form(href + "/events/" + eventName, type));
+            let newForm = new TD.Form(href + "/events/" + eventName, type);
+            if (server.scheme==="http") {
+              newForm.subProtocol = "LongPoll";
+            }
+
+            event.forms.push(newForm);
             console.debug(`generateTD() assigns href '${href}' to Event '${eventName}'`);
           }
         }
