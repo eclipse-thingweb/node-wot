@@ -19,6 +19,7 @@ import * as WoT from "wot-typescript-definitions";
 import Servient from "@node-wot/core";
 // protocols used
 import { HttpServer } from "@node-wot/binding-http";
+import { WebSocketServer } from "@node-wot/binding-websockets";
 import { CoapServer } from "@node-wot/binding-coap";
 import { FileClientFactory } from "@node-wot/binding-file";
 import { HttpClientFactory } from "@node-wot/binding-http";
@@ -51,6 +52,8 @@ export default class DefaultServient extends Servient {
         if (!this.config.servient.clientOnly) {
             let httpServer = (typeof this.config.http.port === "number") ? new HttpServer(this.config.http.port) : new HttpServer();
             this.addServer(httpServer);
+            // re-use httpServer (same port)
+            this.addServer(new WebSocketServer(httpServer));
         }
         
         this.addClientFactory(new FileClientFactory());

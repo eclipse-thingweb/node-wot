@@ -77,7 +77,7 @@ export function parseTD(td: string, normalize?: boolean): Thing {
 
     if (thing.base !== undefined) {
 
-      let url = require('url');
+      const url = require('url');
       /* url modul works only for http --> so replace URI scheme with
          http and after resolving replace again replace with original scheme */
       let n: number = thing.base.indexOf(':');

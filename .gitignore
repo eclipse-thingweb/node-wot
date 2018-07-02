@@ -53,6 +53,7 @@ packages/*
 !packages/binding-file
 !packages/binding-http
 !packages/binding-coap
+!packages/binding-websockets
 !packages/binding-oracle
 !packages/cli
 !packages/demo-servients
