@@ -26,9 +26,10 @@ import * as CS from '../../core/dist/content-serdes';
 import * as url from 'url';
 import { Subscription } from "rxjs/Subscription";
 
-
-
 export default class MqttClient implements ProtocolClient {
+    private user:string = undefined;
+
+    private psw:string = undefined;
 
     constructor(config: any = null, secure = false) {}
 
@@ -43,7 +44,7 @@ export default class MqttClient implements ProtocolClient {
         let requestUri = url.parse(form['href']);
         let topic = requestUri.pathname;
         let brokerUri : String = "mqtt://"+requestUri.host;
-
+        
         let client = mqtt.connect(brokerUri)
         .on('connect', () => client.subscribe(topic))
         .on('message', (receivedTopic, payload, packet: IPublishPacket) => {
@@ -53,10 +54,10 @@ export default class MqttClient implements ProtocolClient {
                 next({ mediaType: mediaType, body: payload });
             }
         })
-        .on('error', error => {
+        .on('error', error   => {
             if (client) client.end();
             // TODO: error handling
-          //  error(error);
+            //error(error);
         });
 
 
@@ -107,11 +108,15 @@ export default class MqttClient implements ProtocolClient {
         if (metadata === undefined || !Array.isArray(metadata) || metadata.length == 0) {
           console.warn(`MqttClient received empty security metadata`);
           return false;
+        }      
+        let security: WoT.Security = metadata[0];
+      
+        if (security.scheme === "basic") {
+            //this.authorization = "Basic " + new Buffer(credentials.username + ":" + credentials.password).toString('base64');
+          //  this.user = mqtt.username;
         }
-    
         return true;
       }
-
 
     private mapQoS = (qos: MqttQoS): QoS => {
         switch (qos) {

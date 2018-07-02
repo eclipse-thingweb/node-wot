@@ -102,6 +102,10 @@ export default class HttpServer implements ProtocolServer {
     }
   }
 
+
+  public getAddress = (): string => {
+    return this.address;
+}
   private handleRequest(req: http.IncomingMessage, res: http.ServerResponse) {
 
     res.on('finish', () => {

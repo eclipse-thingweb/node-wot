@@ -1,10 +1,13 @@
 
+console.info("Run this sample without cli.js!");
+
 let servient_lib = require("../../packages/core/dist/servient");
 let mqttBrokerServer_lib = require("../../packages/binding-mqtt/dist/mqtt-broker-server");
 let mqttClientFactory_lib = require("../../packages/binding-mqtt/dist/mqtt-client-factory");
 
 let servient = new servient_lib.default();
-let broker = new mqttBrokerServer_lib.MqttBrokerServer("mqtt://test.mosquitto.org", "1883");
+// setup the broker connection
+let broker = new mqttBrokerServer_lib.MqttBrokerServer("mqtt://test.mosquitto.org", "1883"); 
 
 servient.addClientFactory(new mqttClientFactory_lib.default());
 servient.addServer(broker);

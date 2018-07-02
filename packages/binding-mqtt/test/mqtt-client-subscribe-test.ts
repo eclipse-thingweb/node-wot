@@ -23,114 +23,54 @@ import { expect, should, assert } from "chai";
 // should must be called to augment all variables
 should();
 
-import { ResourceListener, BasicResourceListener, Content, ContentSerdes } from "@node-wot/core";
+import { EventResourceListener, BasicResourceListener, Servient, ContentSerdes } from "@node-wot/core";
 
 //import MQTTServer from "../src/http-server";
 import MqttClient from "../src/mqtt-client";
-
-class TestResourceListener extends BasicResourceListener implements ResourceListener {
-
-    public referencedVector: any;
-    constructor(vector: any) {
-        super();
-        this.referencedVector = vector;
-    }
+import { MqttBrokerServer } from "../dist/mqtt-broker-server";
+import MqttClientFactory from "../dist/mqtt-client-factory";
 
 
-/*
-    public subscribeResource(form: MQTTForm, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): Subscription {
 
-        let active = true;
-        let polling = () => {
-          let req = this.generateRequest(form, "GET");
-          let info = <any>req;
-          
-          // long timeout for long polling
-          req.setTimeout(60*60*1000);
-    
-          console.log(`HttpClient sending ${info.method} to ${form.href}`);
-      
-          req.on("response", (res: https.IncomingMessage) => {
-            console.log(`HttpClient received ${res.statusCode} from ${form.href}`);
-            let mediaType: string = this.getContentType(res);
-            let body: Array<any> = [];
-            res.on("data", (data) => { body.push(data) });
-            res.on("end", () => {
-              if (active) {
-                next({ mediaType: mediaType, body: Buffer.concat(body) });
-                polling();
-              }
-            });
-          });
-          req.on("error", (err: any) => error(err));
-    
-          req.flushHeaders();
-          req.end();
-        };
-    
-        polling();
-    
-        return new Subscription( () => { active = false; } );*/
-      }
-      
 
-@suite("MQTT client subscribe implementation")
+
+@suite("MQTT client implementation")
 class MqttClientSubscribeTest {
 
     @test async "should apply form information"() {
- /*
+
     try {
 
-       
-        var testVector = { expect: "UNSET" }
+        let servient = new Servient();
+        let brokerServer = new MqttBrokerServer("mqtt://test.mosquitto.org", 1883);
 
-        let httpServer = new HttpServer(60603);
-        httpServer.addResource("/", new TestResourceListener(testVector) );
+        servient.addClientFactory(new MqttClientFactory());
+        servient.addServer(brokerServer);
 
-        await httpServer.start();
-        expect(httpServer.getPort()).to.equal(60603);
+        var counter = 0;
 
-        let client = new HttpClient();
-        let representation;
-
-        // read with POST instead of GET
-        representation = await client.readResource({
-            href: "http://localhost:60603/",
-            "http:methodName": "POST"
-        });
-        expect(testVector.expect).to.equal("POST");
-        testVector.expect = "UNSET";
-
-        // write with POST instead of PUT
-        representation = await client.writeResource({
-            href: "http://localhost:60603/",
-            "http:methodName": "POST"
-        }, { mediaType: ContentSerdes.DEFAULT, body: new Buffer("test") } );
-        expect(testVector.expect).to.equal("POST");
-        testVector.expect = "UNSET";
-
-        // invoke with PUT instead of POST
-        representation = await client.invokeResource({
-            href: "http://localhost:60603/",
-            "http:methodName": "PUT"
-        }, { mediaType: ContentSerdes.DEFAULT, body: new Buffer("test") } );
-        expect(testVector.expect).to.equal("PUT");
-        testVector.expect = "UNSET";
-
-        // invoke with DELETE instead of POST
-        representation = await client.invokeResource({
-            href: "http://localhost:60603/",
-            "http:methodName": "DELETE"
-        });
-        expect(testVector.expect).to.equal("DELETE");
-        testVector.expect = "UNSET";
+        servient.start().then(wotFactory => {
+            let thing = wotFactory.produce({ name: "TestWoTMQTT" });
+            
+            thing.addEvent("event1", {type: "number"});
+            
+            thing.expose();        
         
-        // FIXME -- why does it block forever?
-        //await httpServer.stop();
+            setInterval( async () => {
+                ++counter;
+                thing.events.event1.emit(counter); // sends data to the topic /TestWoTMQTT/events/event1
+            }, 5000);
 
+            console.info(thing);
+        
+        });
+
+
+        expect(brokerServer.getPort()).to.equal(1883);
+        expect(brokerServer.getAddress()).to.equal("mqtt://test.mosquitto.org");
+    
     } catch (err) {
         console.error("ERROR", err);
-    }*/
     }
-    
+}
 }

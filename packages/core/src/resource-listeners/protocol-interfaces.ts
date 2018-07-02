@@ -56,6 +56,8 @@ export interface ProtocolServer {
   start(): Promise<void>;
   stop(): Promise<void>;
   getPort(): number;
+
+  getAddress() :  string;
 }
 
 export interface Content {

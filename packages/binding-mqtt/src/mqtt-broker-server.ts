@@ -29,18 +29,28 @@ export class MqttBrokerServer implements ProtocolServer {
 
     private port: number = 1883;
 
-    private readonly address: string = undefined;
+    private user:string = undefined; // in the case usesername is required to connect the broker
+
+    private psw:string = undefined; // in the case password is required to connect the broker
+
+    private address: string = undefined;
 
     private readonly resources: { [key: string]: ResourceListener } = {};
 
     private broker : any;
 
-    constructor(address?: string, port?: number) {
+    constructor(address?: string, port?: number, user?: string, psw?: string) {
         if (port !== undefined) {
         this.port = port;
         }
         if (address !== undefined) {
         this.address = address;
+        }
+        if (user !== undefined) {
+        this.user = user;
+        }
+        if (psw !== undefined) {
+        this.psw = psw;
         }
     }
 
@@ -53,6 +63,7 @@ export class MqttBrokerServer implements ProtocolServer {
             this.resources[path] = res;
 
             if (res instanceof EventResourceListener) {
+                
                 let subscription = res.subscribe({
                     next: (content) => {
                       // send event data
@@ -60,7 +71,7 @@ export class MqttBrokerServer implements ProtocolServer {
 
                       this.broker.publish(path, content.body)
                     }
-                    //,
+                    //TODO: when to complete?,
                    //complete: () => res.
                   });
                 
@@ -78,22 +89,22 @@ export class MqttBrokerServer implements ProtocolServer {
 
     public start = (): Promise<void> => {
         return new Promise<void>((resolve, reject) => {
-            this.broker = mqtt.connect(this.address+":"+this.port);
-
-            console.info(`Try to onnect to the MQTT Broker ${(this.address !== undefined ? this.address + ' ' : '')}port ${this.port}`);
-
+            // try to connect to the broker without or with credentials
+            if(this.psw==undefined) {
+                console.info(`Try to connect to the MQTT Broker ${(this.address !== undefined ? this.address + ' ' : '')}port ${this.port}`);
+                this.broker = mqtt.connect(this.address+":"+this.port);
+            } else {
+                console.info(`Try to connect to the MQTT Broker ${(this.address !== undefined ? this.address + ' ' : '')}port ${this.port} with credentials`);
+                this.broker = mqtt.connect({host:this.address, port:this.port}, {username:this.user, password:this.psw});
+            }
             this.broker.on('connect', function () {
-
                 console.info(`Connected to the MQTT Broker`);
-
                 resolve();
             })
-
             this.broker.on('error',  (error: Error) =>  {
                 console.error(`No connection to the MQTT Broker`);
                 reject(error);
             })
-
         });
     }
 
@@ -104,13 +115,11 @@ export class MqttBrokerServer implements ProtocolServer {
     }
 
     public getPort = (): number => {
-      /*  if (this.adapter) {
-            return this.adapter.getPort();
-        } else {
-            return -1;
-        }*/
-
         return this.port;
+    }
+
+    public getAddress = (): string => {
+        return this.address;
     }
 
     private logInfo = (message: string) => {

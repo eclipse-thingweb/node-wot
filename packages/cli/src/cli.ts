@@ -106,6 +106,12 @@ wot-servient.conf.json:
         "proxy": PROXY,
         "allowSelfSigned": ALLOW
     },
+    "mqtt": {
+        "host" : BROKER_URI,
+        "port" : BROKER_PORT,
+        "username": BROKER_USERNAME,
+        "password": BROKER_PASSWORD
+    },
     "credentials": {
         THING_ID1: {
             "token": TOKEN
@@ -121,6 +127,10 @@ wot-servient.conf.json:
   HPORT is a number defining the HTTP listening port
   PROXY is an object with "href" for the proxy URI, "authorization" for "Basic" or "Bearer", and then corresponding credential fields "username"/"password" or "token" as defined below
   ALLOW is a boolean indicating whether self-signed certificates should be allowed
+  BROKER_URI is the host URI of your broker as string
+  BROKER_PORT is the port number of your broker
+  BROKER_USERNAME is the username required by your broker, if any
+  BROKER_PASSWORD is the password required by your broker, if any
   THING_IDx is a TD @id for which credentials should be configured
   TOKEN is an OAuth (Bearer) token
   USERNAME is an HTTP Basic Auth username

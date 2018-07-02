@@ -93,6 +93,10 @@ export default class CoapServer implements ProtocolServer {
     }
   }
 
+  public getAddress = (): string => {
+    return this.address;
+}
+
   private handleRequest(req: any, res: any) {
     console.log(`CoapServer on port ${this.getPort()} received ${req.method} ${req.url}`
       + ` from ${req.rsinfo.address} port ${req.rsinfo.port}`);
