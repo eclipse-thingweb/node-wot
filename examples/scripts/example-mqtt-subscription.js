@@ -15,32 +15,27 @@
 
 let td = 
 `{
-    "name": "Node MCU MQTT Parking Sensor",
-    "id": "urn:dev:wot:com:siemens:parking",
+    "name": "MQTT Counter",
+    "id": "urn:dev:wot:mqtt:counter",
+    "actions" : {
+        "resetCounter": {
+            "forms": [
+                {"href": "mqtt://test.mosquitto.org:1883/Test/actions/resetCounter",  "mqtt:qos":  0, "mqtt:retain" : false}
+            ]
+        }
+    }, 
     "events": {
-        "lightSensor": {
-            "type": "integer",
-            "forms": [
-                {"href": "mqtt://192.168.1.187:1883/lightSensor", "mqtt:qos":  0, "mqtt:retain" : false}
-            ]
-        },
-        "parkingStatus": {
-            "type": "boolean",
-            "forms": [
-                {"href": "mqtt://192.168.1.187:1883/parkingStatus",  "mqtt:qos":  0, "mqtt:retain" : false}
-            ]
-        },
         "temperature": {
             "type": "integer",
             "forms": [
-                {"href": "mqtt://test.mosquitto.org:1883/wot/temperature",  "mqtt:qos":  0, "mqtt:retain" : false}
+                {"href": "mqtt://test.mosquitto.org:1883/Test/events/event1",  "mqtt:qos":  0, "mqtt:retain" : false}
             ]
         } 
     } 
 }`;
 
 try {
-let source = WoT.consume(td);
+    let source = WoT.consume(td);
     console.info("=== TD ===");
     console.info(td);
     console.info("==========");
@@ -55,6 +50,18 @@ let source = WoT.consume(td);
             }
         );
     console.info("Subscribed");
+
+
+    setInterval( async () => {
+        source.actions.resetCounter.run("").then( (res) => {
+
+        }).catch( (err) => {
+            console.error("ResetCounter error:", err.message);
+        });
+
+        console.info("Reset counter!",);
+    }, 20000);
+
 
 } catch(err) {
     console.log("Script error: " + err);

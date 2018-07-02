@@ -21,7 +21,7 @@ import { ProtocolClient, Content } from '@node-wot/core';
 import { Form } from '@node-wot/td-tools';
 import * as mqtt from 'mqtt';
 import { MqttForm, MqttQoS } from './mqtt';
-import { IPublishPacket, IClientPublishOptions, QoS } from 'mqtt';
+import { IPublishPacket, QoS } from 'mqtt';
 import * as CS from '../../core/dist/content-serdes';
 import * as url from 'url';
 import { Subscription } from "rxjs/Subscription";
@@ -33,7 +33,7 @@ export default class MqttClient implements ProtocolClient {
 
     constructor(config: any = null, secure = false) {}
 
-    private client : any;
+    private client : any = undefined;
 
     public subscribeResource(form: MqttForm, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): any {
 
@@ -45,23 +45,29 @@ export default class MqttClient implements ProtocolClient {
         let topic = requestUri.pathname;
         let brokerUri : String = "mqtt://"+requestUri.host;
         
-        let client = mqtt.connect(brokerUri)
-        .on('connect', () => client.subscribe(topic))
-        .on('message', (receivedTopic, payload, packet: IPublishPacket) => {
+        if(this.client==undefined) {
+            this.client = mqtt.connect(brokerUri)
+        }
+
+        this.client.on('connect', () => this.client.subscribe(topic))
+        this.client.on('message', (receivedTopic : string, payload : string, packet: IPublishPacket) => {
             //console.log("Received MQTT message (topic, data): (" + receivedTopic + ", "+ payload + ")");
             if (receivedTopic === topic) {
-                let content = new CS.Content(mediaType, payload);
+                let content = new CS.Content(mediaType, new Buffer(payload));
                 next({ mediaType: mediaType, body: payload });
             }
         })
-        .on('error', error   => {
-            if (client) client.end();
+        this.client.on('error', (error :any)  => {
+            if (this.client) {
+                this.client.end();
+            }
+            this.client == undefined;
             // TODO: error handling
-            //error(error);
+            error(error);
         });
 
 
-        return new Subscription(()=>{client.end()});
+        return new Subscription(()=>{this.client.end()});
       }
 
     
@@ -81,7 +87,19 @@ export default class MqttClient implements ProtocolClient {
 
     invokeResource = (form: MqttForm, content: Content): Promise<Content> => {
         return new Promise<Content>((resolve, reject) => {
-            throw new Error('Method not implemented.');
+
+
+            let requestUri = url.parse(form['href']);
+            let topic = requestUri.pathname;
+            let brokerUri : String = "mqtt://"+requestUri.host;
+            
+            if(this.client==undefined) {
+                this.client = mqtt.connect(brokerUri)
+            }
+            this.client.publish(topic, content.body)
+
+            // there will bo no response
+            resolve({ mediaType: CS.ContentSerdes.DEFAULT, body: new Buffer("") });
 
         });
     }

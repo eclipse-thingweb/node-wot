@@ -17,9 +17,9 @@
  * MQTT Broker Server based on http
  */
 
-import { MqttQoS } from './mqtt';
+import { IPublishPacket } from 'mqtt';
 import { ProtocolServer, ResourceListener, ContentSerdes } from "@node-wot/core";
-import { EventResourceListener } from "@node-wot/core";
+import { EventResourceListener, ActionResourceListener } from "@node-wot/core";
 import * as mqtt from 'mqtt';
 
 
@@ -75,6 +75,27 @@ export class MqttBrokerServer implements ProtocolServer {
                    //complete: () => res.
                   });
                 
+            }
+
+            if (res instanceof ActionResourceListener) {
+
+                // for Action: we going to subscribe this topic and check if there some new value provided on this topic
+                this.broker.subscribe(path);
+
+                this.broker.on('message', (receivedTopic : ByteString, payload :string, packet: IPublishPacket) => {
+                    //console.log("Received MQTT message (topic, data): (" + receivedTopic + ", "+ payload + ")");
+                    if (receivedTopic === path) {
+
+                        // TODO mediaType handling here
+                        res.onInvoke({ mediaType: "application/json", body: new Buffer(payload) })
+                        .then(content => {
+                            // Actions have a void return (no output)                            
+                          })
+                          .catch((err) => {
+                            console.error(err);
+                          });
+                    }
+                })
             }
 
             return true;
