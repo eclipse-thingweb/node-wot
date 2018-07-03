@@ -134,6 +134,7 @@ You can also see _examples/scripts_ to have a feeling of how to script a Thing.
 * HTTP :heavy_check_mark:
 * HTTPS :question: ?fix needed?
 * CoAP :heavy_check_mark:
+* MQTT :heavy_check_mark:
 * CoAPS :heavy_multiplication_x:
 * Websocket :heavy_multiplication_x:
 
