@@ -49,8 +49,9 @@ export default class WoTImpl implements WoT.WoTFactory {
                 .then((content) => {
                     client.stop();
 
-                    if (content.mediaType !== "application/td+json") {
-                        console.warn(`WoTImpl fetched media type '${content.mediaType}' from '${uri}'`);
+                    if (content.mediaType !== "application/td+json" &&
+                        content.mediaType !== "application/ld+json" ) {
+                        console.warn(`WoTImpl received TD with media type '${content.mediaType}' from ${uri}`);
                     }
 
                     let td = content.body.toString();
@@ -74,7 +75,7 @@ export default class WoTImpl implements WoT.WoTFactory {
         try {
             thing = TD.parseTD(td, true);
         } catch(err) {
-            throw new Error("Cannot consume TD because " + err);
+            throw new Error("Cannot consume TD because " + err.message);
         }
 
         let newThing: ConsumedThing = Helpers.extend(thing, new ConsumedThing(this.srv));

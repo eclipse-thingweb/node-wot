@@ -47,10 +47,6 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     private getServient: () => Servient;
     private getClients: () => Map<string, ProtocolClient>;
 
-//    protected observablesEvent: Map<string, Subject<any>> = new Map();
-//    protected observablesPropertyChange: Map<string, Subject<any>> = new Map();
-//    protected observablesTDChange: Subject<any> = new Subject<any>();
-
     constructor(servient: Servient) {
         super();
 
@@ -108,15 +104,6 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
             let form = forms[srvIdx];
             return { client: client, form: form }
         }
-    }
-
-    /**
-     * Returns the Thing Description of the Thing.
-     */
-    getThingDescription(): WoT.ThingDescription {
-        // returning cached version
-        // return this.td;
-        return JSON.stringify(this); // TODO strip out internals
     }
 
     // onPropertyChange(name: string): Observable<any> {

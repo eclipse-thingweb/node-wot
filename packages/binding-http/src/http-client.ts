@@ -43,12 +43,13 @@ export default class HttpClient implements ProtocolClient {
     // config proxy by client side (not from TD)
     if (config!==null && config.proxy && config.proxy.href) {
       this.proxyOptions = this.uriToOptions(config.proxy.href);
-      if (config.proxy.authorization === "Basic") {
-        if (!config.proxy.username || !config.proxy.password) console.warn(`HttpClient client configured for Basic proxy auth, but no username/password given`);
+
+      if (config.proxy.scheme === "basic") {
+        if (!config.proxy.hasOwnProperty("username") || !config.proxy.hasOwnProperty("password")) console.warn(`HttpClient client configured for basic proxy auth, but no username/password given`);
         this.proxyOptions.headers = {};
         this.proxyOptions.headers['Proxy-Authorization'] = "Basic " + new Buffer(config.proxy.username + ":" + config.proxy.password).toString('base64');
-      } else if (config.proxy.authorization === "Bearer") {
-        if (!config.proxy.token) console.warn(`HttpClient client configured for Bearer proxy auth, but no token given`);
+      } else if (config.proxy.scheme === "bearer") {
+        if (!config.proxy.hasOwnProperty("token")) console.warn(`HttpClient client configured for bearer proxy auth, but no token given`);
         this.proxyOptions.headers = {};
         this.proxyOptions.headers['Proxy-Authorization'] = "Bearer " + config.proxy.token;
       }
@@ -56,6 +57,7 @@ export default class HttpClient implements ProtocolClient {
       if (this.proxyOptions.protocol === "https") {
         secure = true;
       }
+      
       console.info(`HttpClient using ${secure ? "secure " : ""}proxy ${this.proxyOptions.hostname}:${this.proxyOptions.port}`);
     }
 

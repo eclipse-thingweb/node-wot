@@ -18,25 +18,26 @@
  */
 
 import { ProtocolClientFactory, ProtocolClient } from "@node-wot/core";
+import { HttpConfig } from "./http";
 import HttpClient from './http-client';
 
 export default class HttpClientFactory implements ProtocolClientFactory {
 
   public readonly scheme: string = "http";
-  private clientSideProxy : any = null;
+  private config: HttpConfig = null;
 
-  constructor(proxy : any = null) {
-    this.clientSideProxy = proxy;
+  constructor(config: HttpConfig = null) {
+    this.config = config;
   }
 
   public getClient(): ProtocolClient {
     // HTTP over HTTPS proxy requires HttpsClient
-    if (this.clientSideProxy && this.clientSideProxy.href && this.clientSideProxy.href.startsWith("https:")) {
-      console.warn(`HttpClientFactory creating client for 'https' due to insecure proxy configuration`);
-      return new HttpClient(this.clientSideProxy, true);
+    if (this.config.proxy && this.config.proxy.href && this.config.proxy.href.startsWith("https:")) {
+      console.warn(`HttpClientFactory creating client for 'https' due to secure proxy configuration`);
+      return new HttpClient(this.config, true);
     } else {
       console.log(`HttpClientFactory creating client for '${this.scheme}'`);
-      return new HttpClient(this.clientSideProxy);
+      return new HttpClient(this.config);
     }
   }
 

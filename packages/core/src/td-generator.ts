@@ -42,8 +42,9 @@ export function generateTD(thing: ExposedThing, servient: Servient): Thing {
 
     // a form is generated for each address, supported protocol, and mediatype
     for (let address of Helpers.getAddresses()) {
-      for (let server of servient.getServers()) {
-        for (let type of servient.getOffereddMediaTypes()) {
+      for (let type of servient.getOffereddMediaTypes()) {
+        for (let server of servient.getServers()) {
+          // TODO get form directly from server, do not define URI paths here
 
           // if server is online !==-1 assign the href information
           if (server.getPort() !== -1) {
@@ -68,8 +69,9 @@ export function generateTD(thing: ExposedThing, servient: Servient): Thing {
 
     // a form is generated for each address, supported protocol, and mediatype
     for (let address of Helpers.getAddresses()) {
-      for (let server of servient.getServers()) {
-        for (let type of servient.getOffereddMediaTypes()) {
+      for (let type of servient.getOffereddMediaTypes()) {
+        for (let server of servient.getServers()) {
+          // TODO get form directly from server, do not define URI paths here
 
           // if server is online !==-1 assign the href information
           if (server.getPort() !== -1) {
@@ -94,8 +96,9 @@ export function generateTD(thing: ExposedThing, servient: Servient): Thing {
 
     // a form is generated for each address, supported protocol, and mediatype
     for (let address of Helpers.getAddresses()) {
-      for (let server of servient.getServers()) {
-        for (let type of servient.getOffereddMediaTypes()) {
+      for (let type of servient.getOffereddMediaTypes()) {
+        for (let server of servient.getServers()) {
+          // TODO get form directly from server, do not define URI paths here
 
           // if server is online !==-1 assign the href information
           if (server.getPort() !== -1) {
