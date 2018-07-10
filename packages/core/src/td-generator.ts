@@ -118,8 +118,8 @@ export function generateTD(thing: ExposedThing, servient: Servient): Thing {
 
           // if server is online !==-1 assign the href information
           if (server.getPort() !== -1 && server.scheme!=="mqtt") {
-            let href: string = server.scheme + "://" +  server.getPort() + "/" + thing.name;
-
+            let href: string = server.scheme + "://" + address + ":" + server.getPort() + "/" + thing.name;
+            
             // depending on the resource pattern, uri is constructed
             event.forms.push(new TD.Form(href + "/events/" + eventName, type));
             console.debug(`generateTD() assigns href '${href}' to Event '${eventName}'`);
