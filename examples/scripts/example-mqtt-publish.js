@@ -13,43 +13,41 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-console.info("Run this sample without cli.js script!");
+try {
+    var counter  = 0;
+    var thing = WoT.produce({ 
+        name: "MQTT-Test",
+        description: "Tests a MQTT client that published counter values as an WoT event and subscribes the resetCounter topic as WoT action to reset the own counter."
+    });
 
-let servient_lib = require("../../packages/core/dist/servient");
-let mqttBrokerServer_lib = require("../../packages/binding-mqtt/dist/mqtt-broker-server");
-let mqttClientFactory_lib = require("../../packages/binding-mqtt/dist/mqtt-client-factory");
+    console.log("Setup MQTT broker address/port details in wot-servient.conf.json (also see sample in wot-servient.conf.json_mqtt)!");
 
-var counter = 0;
-
-let servient = new servient_lib.default();
-// setup the broker connection
-let broker = new mqttBrokerServer_lib.MqttBrokerServer("mqtt://test.mosquitto.org", "1883"); 
-
-servient.addClientFactory(new mqttClientFactory_lib.default());
-servient.addServer(broker);
-
-servient.start().then(wotFactory => {
-    let thing = wotFactory.produce({ name: "Test" });
+    // manually add Interactions
+    thing
+      .addAction("resetCounter")
+      .addEvent(
+        "counterEvent",
+        {
+          type: "integer" 
+        });
     
-    thing.addEvent("event1", {type: "number"});
-    thing.addAction("resetCounter");
-
-    // add action handler for the topic reset counter
     thing.setActionHandler(
-        "resetCounter",
-        () => {
+      "resetCounter",
+      () => {
         console.log("Resetting counter");
         counter = 0;
-        return ;
-    });
+        return;
+      });
     
     thing.expose();
-
+    
     setInterval( async () => {
         ++counter;
-        thing.events.event1.emit(counter); // sends data to the topic /Test/events/event1
+        thing.events.counterEvent.emit(counter);
+        console.info("New counter", counter);
 
-        console.info("Emitted change", counter);
-    }, 5000);
-
-});
+    }, 1000);
+    
+  } catch (err) {
+     console.log("Script error: " + err);
+  }

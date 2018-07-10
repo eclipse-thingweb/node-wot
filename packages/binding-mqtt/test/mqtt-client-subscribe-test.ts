@@ -27,7 +27,7 @@ import { EventResourceListener, BasicResourceListener, Servient, ContentSerdes }
 
 //import MQTTServer from "../src/http-server";
 import MqttClient from "../src/mqtt-client";
-import { MqttBrokerServer } from "../dist/mqtt-broker-server";
+import MqttBrokerServer  from "../dist/mqtt-broker-server";
 import MqttClientFactory from "../dist/mqtt-client-factory";
 
 

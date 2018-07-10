@@ -152,7 +152,7 @@ export class ContentSerdes {
       }
     }
 
-    console.debug(`ContentSerdes deserializing from ${content.mediaType}`);
+    //console.debug(`ContentSerdes deserializing from ${content.mediaType}`);
 
     // choose codec based on mediaType
     let isolMediaType: string = this.isolateMediaType(content.mediaType);

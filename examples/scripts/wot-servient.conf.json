@@ -7,10 +7,6 @@
         "port": 8080,
         "allowSelfSigned": true
     },
-    "mqtt" : {
-        "uri" : "mqtt://test.mosquitto.org",
-        "port": 1883 
-    },
     "log": {
         "level": "info"
     },

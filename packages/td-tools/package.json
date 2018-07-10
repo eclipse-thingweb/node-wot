@@ -24,8 +24,7 @@
     "typescript": "2.9.2",
     "typescript-standard": "0.3.30"
   },
-  "dependencies": {
-  },
+  "dependencies": {},
   "scripts": {
     "build": "tsc",
     "test": "mocha --compilers ts:ts-node/register",

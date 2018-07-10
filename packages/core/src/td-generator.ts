@@ -90,7 +90,7 @@ export function generateTD(thing: ExposedThing, servient: Servient): Thing {
           if(server.scheme=="mqtt") {
             for (let type of servient.getOffereddMediaTypes()) {
     
-              let href: string = server.scheme + "://" + server.getAddress() + ":" + server.getPort() + "/" + thing.name;
+              let href: string = server.getAddress() + ":" + server.getPort() + "/" + thing.name;
     
               // TODO: add mqtt based vocabularies (qos, retain) to the forms
     

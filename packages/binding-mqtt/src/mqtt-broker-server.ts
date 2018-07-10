@@ -23,7 +23,7 @@ import { EventResourceListener, ActionResourceListener } from "@node-wot/core";
 import * as mqtt from 'mqtt';
 
 
-export class MqttBrokerServer implements ProtocolServer {
+export default class MqttBrokerServer implements ProtocolServer {
 
     readonly scheme: string = 'mqtt'; 
 
@@ -39,11 +39,16 @@ export class MqttBrokerServer implements ProtocolServer {
 
     private broker : any;
 
-    constructor(address?: string, port?: number, user?: string, psw?: string) {
+    constructor(address: string, port?: number, user?: string, psw?: string) {
         if (port !== undefined) {
         this.port = port;
         }
         if (address !== undefined) {
+        
+            //if there is a MQTT protocol identicator missing, add this
+        if(address.indexOf("://")==-1) {
+            address = this.scheme + "://" + address;
+        }
         this.address = address;
         }
         if (user !== undefined) {
@@ -112,10 +117,10 @@ export class MqttBrokerServer implements ProtocolServer {
         return new Promise<void>((resolve, reject) => {
             // try to connect to the broker without or with credentials
             if(this.psw==undefined) {
-                console.info(`Try to connect to the MQTT Broker ${(this.address !== undefined ? this.address + ' ' : '')}port ${this.port}`);
+                console.info(`Try to connect the MQTT Broker ${(this.address)} port ${this.port}`);
                 this.broker = mqtt.connect(this.address+":"+this.port);
             } else {
-                console.info(`Try to connect to the MQTT Broker ${(this.address !== undefined ? this.address + ' ' : '')}port ${this.port} with credentials`);
+                console.info(`Try to connect the MQTT Broker ${(this.address !== undefined ? this.address + ' ' : '')} port ${this.port} with credentials`);
                 this.broker = mqtt.connect({host:this.address, port:this.port}, {username:this.user, password:this.psw});
             }
             this.broker.on('connect', function () {
@@ -140,7 +145,9 @@ export class MqttBrokerServer implements ProtocolServer {
     }
 
     public getAddress = (): string => {
-        return this.address;
+
+        // replace protocol information and return only the address value
+        return this.address.replace(this.scheme+"://","");
     }
 
     private logInfo = (message: string) => {
