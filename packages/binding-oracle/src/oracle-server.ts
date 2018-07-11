@@ -147,6 +147,11 @@ export default class OracleServer implements ProtocolServer {
     return -1;
   }
 
+
+  public getAddress = (): string => {
+    return "";
+}
+
   /** fetches the device model by URN */
   private getModel(modelUrn: string): Promise<any> {
     console.debug(`OracleServer ${this.activationId} getting model '${modelUrn}'`);

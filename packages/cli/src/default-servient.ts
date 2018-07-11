@@ -21,11 +21,15 @@ import Servient from "@node-wot/core";
 import { HttpServer } from "@node-wot/binding-http";
 import { WebSocketServer } from "@node-wot/binding-websockets";
 import { CoapServer } from "@node-wot/binding-coap";
+import { MqttBrokerServer } from "@node-wot/binding-mqtt"; // TODO: change to @node
+
 import { FileClientFactory } from "@node-wot/binding-file";
 import { HttpClientFactory } from "@node-wot/binding-http";
 import { HttpsClientFactory } from "@node-wot/binding-http";
 import { CoapClientFactory } from "@node-wot/binding-coap";
 import { CoapsClientFactory } from "@node-wot/binding-coap";
+import { MqttClientFactory } from "@node-wot/binding-mqtt"; // TODO: change to @node
+
 
 export default class DefaultServient extends Servient {
 
@@ -57,12 +61,23 @@ export default class DefaultServient extends Servient {
             // re-use httpServer (same port)
             this.addServer(new WebSocketServer(httpServer));
         }
+
+        // if a MQTT is provided in the wot-servient.conf.json file then add a MQTT broker server to the default servient
+        if(this.config.mqtt!==undefined) {
+            console.info("mqtt broker: " + this.config.mqtt.host);
+
+            let mqttBrokerServer  = new MqttBrokerServer(this.config.mqtt.host,  (typeof this.config.mqtt.port === "number") ?this.config.mqtt.port : undefined,(typeof this.config.mqtt.username === "string") ?this.config.mqtt.username : undefined,(typeof this.config.mqtt.password === "number") ?this.config.mqtt.password : undefined );
+            this.addServer(mqttBrokerServer);
+        }
+
         
         this.addClientFactory(new FileClientFactory());
         this.addClientFactory(new HttpClientFactory(this.config.http));
         this.addClientFactory(new HttpsClientFactory(this.config.http));
         this.addClientFactory(new CoapClientFactory());
         this.addClientFactory(new CoapsClientFactory());
+        this.addClientFactory(new MqttClientFactory()); //TODO pass config for security settings
+
 
         // loads credentials from the configuration
         this.addCredentials(this.config.credentials);

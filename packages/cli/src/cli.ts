@@ -116,6 +116,12 @@ wot-servient.conf.json syntax:
         "proxy": PROXY,
         "allowSelfSigned": ALLOW
     },
+    "mqtt": {
+        "host" : BROKER_URI,
+        "port" : BROKER_PORT,
+        "username": BROKER_USERNAME,
+        "password": BROKER_PASSWORD
+    },
     "credentials": {
         THING_ID1: {
             "token": TOKEN
@@ -127,22 +133,28 @@ wot-servient.conf.json syntax:
     }
 }
 
+
 wot-servient.conf.json fields:
   ---------------------------------------------------------------------------
   All entries in the config file structure are optional
   ---------------------------------------------------------------------------
-  CLIENTONLY : boolean setting if no servers shall be started (default=false)
-  AUTORUN    : string with path of directory to load at startup (default=".")
-  RUNSCRIPT  : boolean to activate the 'runScript' Action (default=false)
-  HPORT      : integer defining the HTTP listening port
-  PROXY      : object with "href" field for the proxy URI,
+  CLIENTONLY      : boolean setting if no servers shall be started (default=false)
+  AUTORUN         : string with path of directory to load at startup (default=".")
+  RUNSCRIPT       : boolean to activate the 'runScript' Action (default=false)
+  HPORT           : integer defining the HTTP listening port
+  PROXY           : object with "href" field for the proxy URI,
                            "scheme" field for either "basic" or "bearer", and
                            corresponding credential fields as defined below
-  ALLOW      : boolean whether self-signed certificates should be allowed
-  THING_IDx  : string with TD "id" for which credentials should be configured
-  TOKEN      : string for providing a Bearer token
-  USERNAME   : string for providing a Basic Auth username
-  PASSWORD   : string for providing a Basic Auth password`);
+  ALLOW           : boolean whether self-signed certificates should be allowed
+  BROKER_URI      : host URI of your MQTT broker as string
+  BROKER_PORT     : port of your MQTT broker as number
+  BROKER_USERNAME : username as string required by your MQTT broker, if any
+  BROKER_PASSWORD : password as string required by your MQTT broker, if any
+  THING_IDx       : string with TD "id" for which credentials should be configured
+  TOKEN           : string for providing a Bearer token
+  USERNAME        : string for providing a Basic Auth username
+  PASSWORD        : string for providing a Basic Auth password`);
+
             process.exit(0);
 
         } else if (arg.match(/^(-c|--clientonly|\/c)$/i)) {
