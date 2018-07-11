@@ -28,6 +28,7 @@
     "@node-wot/binding-file": "0.5.0-SNAPSHOT.4",
     "@node-wot/binding-http": "0.5.0-SNAPSHOT.4",
     "@node-wot/binding-mqtt": "0.5.0-SNAPSHOT.4",
+    "@node-wot/binding-websockets": "0.5.0-SNAPSHOT.4",
     "@node-wot/core": "0.5.0-SNAPSHOT.4",
     "@node-wot/td-tools": "0.5.0-SNAPSHOT.4"
   },

@@ -42,8 +42,9 @@ export function generateTD(thing: ExposedThing, servient: Servient): Thing {
 
     // a form is generated for each address (except for mqtt), supported protocol, and mediatype
     for (let address of Helpers.getAddresses()) {
-      for (let server of servient.getServers()) {
-        for (let type of servient.getOffereddMediaTypes()) {
+      for (let type of servient.getOffereddMediaTypes()) {
+        for (let server of servient.getServers()) {
+          // TODO get form directly from server, do not define URI paths here
 
           // if server is online !==-1 assign the href information
           if (server.getPort() !== -1) {
@@ -70,8 +71,9 @@ export function generateTD(thing: ExposedThing, servient: Servient): Thing {
 
     // a form is generated for each address, supported protocol, and mediatype
     for (let address of Helpers.getAddresses()) {
-      for (let server of servient.getServers()) {
-        for (let type of servient.getOffereddMediaTypes()) {
+      for (let type of servient.getOffereddMediaTypes()) {
+        for (let server of servient.getServers()) {
+          // TODO get form directly from server, do not define URI paths here
 
           // if server is online !==-1 assign the href information
           if (server.getPort() !== -1 && server.scheme!=="mqtt") {
@@ -113,15 +115,21 @@ export function generateTD(thing: ExposedThing, servient: Servient): Thing {
 
     // a form is generated for each address, supported protocol, and mediatype
     for (let address of Helpers.getAddresses()) {
-      for (let server of servient.getServers()) {
-        for (let type of servient.getOffereddMediaTypes()) {
+      for (let type of servient.getOffereddMediaTypes()) {
+        for (let server of servient.getServers()) {
+          // TODO get form directly from server, do not define URI paths here
 
           // if server is online !==-1 assign the href information
           if (server.getPort() !== -1 && server.scheme!=="mqtt") {
             let href: string = server.scheme + "://" + address + ":" + server.getPort() + "/" + thing.name;
             
             // depending on the resource pattern, uri is constructed
-            event.forms.push(new TD.Form(href + "/events/" + eventName, type));
+            let newForm = new TD.Form(href + "/events/" + eventName, type);
+            if (server.scheme==="http") {
+              newForm.subProtocol = "LongPoll";
+            }
+
+            event.forms.push(newForm);
             console.debug(`generateTD() assigns href '${href}' to Event '${eventName}'`);
           }
         }

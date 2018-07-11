@@ -19,6 +19,7 @@ import * as WoT from "wot-typescript-definitions";
 import Servient from "@node-wot/core";
 // protocols used
 import { HttpServer } from "@node-wot/binding-http";
+import { WebSocketServer } from "@node-wot/binding-websockets";
 import { CoapServer } from "@node-wot/binding-coap";
 import { MqttBrokerServer } from "@node-wot/binding-mqtt"; // TODO: change to @node
 
@@ -50,11 +51,15 @@ export default class DefaultServient extends Servient {
         super();
 
         Object.assign(this.config, config);
-        console.info("DefaultServient configured with", this.config);
+        // remove secrets from original for displaying config (still in copy on this)
+        delete config.credentials;
+        console.info("DefaultServient configured with", config);
 
         if (!this.config.servient.clientOnly) {
             let httpServer = (typeof this.config.http.port === "number") ? new HttpServer(this.config.http.port) : new HttpServer();
             this.addServer(httpServer);
+            // re-use httpServer (same port)
+            this.addServer(new WebSocketServer(httpServer));
         }
 
         // if a MQTT is provided in the wot-servient.conf.json file then add a MQTT broker server to the default servient

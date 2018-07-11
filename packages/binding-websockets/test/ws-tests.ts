@@ -13,20 +13,16 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-console.info("Ensure https://leshan.eclipse.org/#/security has the Client Endpoint 'node-wot-test' with Identity 'node-wot' and Key '68656c6c6f'");
-console.info("==========");
+/**
+ * Protocol test suite to test protocol implementations
+ */
 
-WoT.fetch("file://./leshan.jsonld").then( async (td) => {
+import { suite, test, slow, timeout, skip, only } from "mocha-typescript";
+import { expect, should, assert } from "chai";
+// should must be called to augment all variables
+should();
 
-	let leshan = WoT.consume(td);
-	console.info("=== TD ===");
-	console.info(td);
-	console.info("==========");
+@suite("WebSockets binding")
+class WebSocketsTest {
 
-	leshan.actions.register.run("</0/0>,</3/0>").then( (res) => {
-		console.info("Received:", res);
-	}).catch( (err) => {
-		console.error("Registration error:", err.message);
-	});
-
-}).catch( (err) => { console.error("Fetch error:", err.message); });
+}

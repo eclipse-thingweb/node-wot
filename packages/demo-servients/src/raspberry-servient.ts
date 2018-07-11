@@ -195,6 +195,7 @@ function main() {
           }
         );
 
+      unicorn.expose();
       console.info(unicorn.name + " ready");
 
     } catch (err) {

@@ -39,7 +39,7 @@ class JsonCodec implements ContentCodec {
   private subMediaType: string;
 
   constructor(subMediaType?: string) {
-    if(!subMediaType) {
+    if (!subMediaType) {
       this.subMediaType = ContentSerdes.DEFAULT; // 'application/json' 
     } else {
       this.subMediaType = subMediaType;
@@ -69,7 +69,7 @@ class JsonCodec implements ContentCodec {
       }
     }
     // remove legacy wrapping and use RFC 7159
-    if (parsed && parsed.value!==undefined) {
+    if (parsed && parsed.value !== undefined) {
       console.warn(`JsonCodec removing { value: ... } wrapper`);
       parsed = parsed.value;
     }
@@ -79,7 +79,7 @@ class JsonCodec implements ContentCodec {
   valueToBytes(value: any): Buffer {
     //console.debug("JsonCodec serializing", value);
     let body = "";
-    if(value !== undefined) {
+    if (value !== undefined) {
       body = JSON.stringify(value);
     }
     return new Buffer(body);
@@ -101,7 +101,7 @@ class TextCodec implements ContentCodec {
   valueToBytes(value: any): Buffer {
     //console.debug(`TextCodec serializing '${value}'`);
     let body = "";
-    if(value !== undefined) {
+    if (value !== undefined) {
       body = value;
     }
 
@@ -158,23 +158,27 @@ export class ContentSerdes {
     // choose codec based on mediaType
     let isolMediaType: string = this.isolateMediaType(content.mediaType);
 
-    if (!this.codecs.has(isolMediaType)) {
-      throw new Error(`Unsupported serialisation format: ${content.mediaType}`);
+    if (this.codecs.has(isolMediaType)) {
+
+      let codec = this.codecs.get(isolMediaType)
+
+      // use codec to deserialize
+      let res = codec.bytesToValue(content.body);
+
+      return res;
+
+    } else {
+      console.warn(`ContentSerdes passthrough due to unsupported deserialization format '${isolMediaType}'`);
+      return content.body.toString();
     }
-    let codec = this.codecs.get(isolMediaType)
-
-    // use codec to deserialize
-    let res = codec.bytesToValue(content.body);
-
-    return res;
   }
-  public isolateMediaType(mediaTypeValue:string):string {
-        let semiColumnIndex = mediaTypeValue.indexOf(';');
-        if (semiColumnIndex > 0) {
-            return mediaTypeValue.substring(0,semiColumnIndex);    
-        } else {
-            return mediaTypeValue;
-        }
+  public isolateMediaType(mediaTypeValue: string): string {
+    let semiColumnIndex = mediaTypeValue.indexOf(';');
+    if (semiColumnIndex > 0) {
+      return mediaTypeValue.substring(0, semiColumnIndex);
+    } else {
+      return mediaTypeValue;
+    }
   }
 
   public valueToContent(value: any, mediaType = ContentSerdes.DEFAULT): Content {
@@ -184,7 +188,7 @@ export class ContentSerdes {
     let bytes = null;
 
     // choose codec based on mediaType
-    if (this.codecs.has(mediaType)) {    
+    if (this.codecs.has(mediaType)) {
       console.debug(`ContentSerdes serializing to ${mediaType}`);
       let codec = this.codecs.get(mediaType);
       bytes = codec.valueToBytes(value);

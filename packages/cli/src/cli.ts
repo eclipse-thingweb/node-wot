@@ -87,17 +87,27 @@ const runAllScripts = function(srv : DefaultServient) : void {
 if (argv.length>0) {
     argv.forEach( (arg) => {
         if (arg.match(/^(-h|--help|\/?|\/h)$/i)) {
-            console.log(`Usage: wot-servient [SCRIPT]...
-Run a WoT Servient in the current directory. Automatically loads all .js files in the directory.
-If wot-servient.conf.json exists, that configuration is applied and scripts in 'scriptDir' are loaded.
-If one or more SCRIPT is given, these files are loaded instead of the directory.
-If no script is found, the Servient is still started and provides a 'runScript' Action.
-Examples: wot-servient
-          wot-servient autorun/hello-world.js
+            console.log(`Usage: wot-servient [options] [SCRIPT]...
+       wot-servient
+       wot-servient examples/scripts/counter.js examples/scripts/example-event.js
+       wot-servient -c counter-client.js
+       wot-servient -f ~/mywot.conf.json examples/testthing/testthing.js
 
-wot-servient.conf.json:
+Run a WoT Servient in the current directory.
+If no SCRIPT is given, all .js files in the current directory are loaded.
+If one or more SCRIPT is given, these files are loaded instead of the directory.
+If the file 'wot-servient.conf.json' exists, that configuration is applied.
+
+Options:
+  -c, --clientonly        do not start any servers
+                          (enables multiple instances without port conflicts)
+  -f, --configfile=file   load configuration from specified file
+  -h, --help              show this help
+
+wot-servient.conf.json syntax:
 {
     "servient": {
+        "clientOnly": CLIENTONLY,
         "scriptDir": AUTORUN,
         "scriptAction": RUNSCRIPT
     },
@@ -122,19 +132,29 @@ wot-servient.conf.json:
         }
     }
 }
-  AUTORUN is a path string for the directory to load at startup
-  RUNSCRIPT is a boolean indicating whether to provide the 'runScript' Action
-  HPORT is a number defining the HTTP listening port
-  PROXY is an object with "href" for the proxy URI, "authorization" for "Basic" or "Bearer", and then corresponding credential fields "username"/"password" or "token" as defined below
-  ALLOW is a boolean indicating whether self-signed certificates should be allowed
-  BROKER_URI is the host URI of your broker as string
-  BROKER_PORT is the port number of your broker
-  BROKER_USERNAME is the username required by your broker, if any
-  BROKER_PASSWORD is the password required by your broker, if any
-  THING_IDx is a TD @id for which credentials should be configured
-  TOKEN is an OAuth (Bearer) token
-  USERNAME is an HTTP Basic Auth username
-  PASSWORD is an HTTP Basic Auth password`);
+
+
+wot-servient.conf.json fields:
+  ---------------------------------------------------------------------------
+  All entries in the config file structure are optional
+  ---------------------------------------------------------------------------
+  CLIENTONLY      : boolean setting if no servers shall be started (default=false)
+  AUTORUN         : string with path of directory to load at startup (default=".")
+  RUNSCRIPT       : boolean to activate the 'runScript' Action (default=false)
+  HPORT           : integer defining the HTTP listening port
+  PROXY           : object with "href" field for the proxy URI,
+                           "scheme" field for either "basic" or "bearer", and
+                           corresponding credential fields as defined below
+  ALLOW           : boolean whether self-signed certificates should be allowed
+  BROKER_URI      : host URI of your MQTT broker as string
+  BROKER_PORT     : port of your MQTT broker as number
+  BROKER_USERNAME : username as string required by your MQTT broker, if any
+  BROKER_PASSWORD : password as string required by your MQTT broker, if any
+  THING_IDx       : string with TD "id" for which credentials should be configured
+  TOKEN           : string for providing a Bearer token
+  USERNAME        : string for providing a Basic Auth username
+  PASSWORD        : string for providing a Basic Auth password`);
+
             process.exit(0);
 
         } else if (arg.match(/^(-c|--clientonly|\/c)$/i)) {

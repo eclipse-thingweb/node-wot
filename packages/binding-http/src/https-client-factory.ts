@@ -18,19 +18,8 @@
  */
 
 import { ProtocolClientFactory, ProtocolClient } from "@node-wot/core"
+import { HttpConfig } from "./http";
 import HttpClient from "./http-client";
-
-export class HttpConfig {
-  public proxy?: HttpProxyConfig;
-  public allowSelfSigned: boolean;
-}
-export class HttpProxyConfig {
-  public href: USVString;
-  public authorization: string;
-  public token: string;
-  public username: string;
-  public password: string;
-}
 
 export default class HttpsClientFactory implements ProtocolClientFactory {
 

@@ -20,97 +20,137 @@
 import * as http from "http";
 import * as url from "url";
 
+import * as WebSocket from "ws";
+
 import { ProtocolServer, ResourceListener, ContentSerdes } from "@node-wot/core";
 import { EventResourceListener } from "@node-wot/core";
+import { HttpServer } from "@node-wot/binding-http";
 
-export default class HttpServer implements ProtocolServer {
+export default class WebSocketServer implements ProtocolServer {
 
-  public readonly scheme: string = "http";
-  private readonly port: number = 8080;
-  private readonly address: string = undefined;
-  private readonly server: http.Server = http.createServer((req, res) => { this.handleRequest(req, res) });
+  public readonly scheme: string = "ws";
+  private readonly port: number = 8081;
+  private readonly ownServer: boolean = true;
+  private readonly httpServer: http.Server;
+  private readonly server: WebSocketServer;
   private running: boolean = false;
   private failed: boolean = false;
 
   private readonly resources: { [key: string]: ResourceListener } = {};
+  private readonly socketServers: { [key: string]: WebSocket.Server } = {};
 
-  constructor(port?: number, address?: string) {
-    if (port !== undefined) {
-      this.port = port;
+  constructor(portOrServer?: number | HttpServer) {
+    if (typeof portOrServer==="number") {
+      this.port = portOrServer;
+      this.httpServer = http.createServer();
+    } else if (typeof portOrServer==="object") {
+      this.ownServer = false;
+      this.httpServer = portOrServer.getServer();
+      this.port = portOrServer.getPort();
+    } else {
+      throw new Error(`WebSocketServer constructor argument must be number, http.Server, or undefined`);
     }
-    if (address !== undefined) {
-      this.address = address;
-    }
-  }
-
-  /** returns http.Server to be re-used by other HTTP-based bindings (e.g., WebSockets) */
-  public getServer(): http.Server {
-    return this.server;
   }
 
   public addResource(path: string, res: ResourceListener): boolean {
     if (this.resources[path] !== undefined) {
-      console.warn(`HttpServer on port ${this.getPort()} already has ResourceListener '${path}' - skipping`);
+      console.warn(`WebSocketServer on port ${this.getPort()} already has ResourceListener '${path}' - skipping`);
       return false;
-    } else {
-      // TODO debug-level
-      console.log(`HttpServer on port ${this.getPort()} adding resource '${path}'`);
+    } else if (res instanceof EventResourceListener) {
+      console.debug(`WebSocketServer on port ${this.getPort()} adding resource '${path}'`);
       this.resources[path] = res;
+      this.socketServers[path] = new WebSocket.Server({ noServer: true });
+      this.socketServers[path].on('connection', (ws) => {
+        let subscription = res.subscribe({
+          next: (content) => {
+            switch (content.mediaType) {
+              case "application/json":
+              case "text/plain":
+                ws.send(content.body.toString());
+                break;
+              default:
+                ws.send(content.body);
+                break;
+            }
+          },
+          complete: () => ws.close()
+        });
+        ws.on("close", () => { subscription.unsubscribe(); });
+      });
       return true;
+    } else {
+      console.info("WebSocketServer skips non-Event resouce");
     }
   }
 
   public removeResource(path: string): boolean {
     // TODO debug-level
-    console.log(`HttpServer on port ${this.getPort()} removing resource '${path}'`);
-    return delete this.resources[path];
+    console.log(`WebSocketServer on port ${this.getPort()} removing resource '${path}'`);
+    delete this.resources[path];
+    this.socketServers[path].close();
+    delete this.socketServers[path];
+    return true;
   }
 
   public start(): Promise<void> {
-    console.info(`HttpServer starting on ${(this.address !== undefined ? this.address + ' ' : '')}port ${this.port}`);
+    console.info(`WebSocketServer starting on port ${this.port}`);
     return new Promise<void>((resolve, reject) => {
 
-      // long timeout for long polling
-      this.server.setTimeout(60*60*1000, () => { console.info("HttpServer on port ${this.getPort()} timed out connection"); });
-      // no keep-alive because NodeJS HTTP clients do not properly use same socket due to pooling
-      this.server.keepAliveTimeout = 0;
-
-      // start promise handles all errors until successful start
-      this.server.once('error', (err: Error) => { reject(err); });
-      this.server.once('listening', () => {
-        // once started, console "handles" errors
-        this.server.on('error', (err: Error) => {
-          console.error(`HttpServer on port ${this.port} failed: ${err.message}`);
+      if (this.ownServer) {
+        this.httpServer.once('error', (err: Error) => { reject(err); });
+        this.httpServer.once('listening', () => {
+          // once started, console "handles" errors
+          this.httpServer.on('error', (err: Error) => {
+            console.error(`WebSocketServer on port ${this.port} failed: ${err.message}`);
+            resolve();
+          });
         });
-        resolve();
+        this.httpServer.listen(this.port);
+      }
+
+      this.httpServer.on('upgrade', (request, socket, head) => {
+        const pathname = url.parse(request.url).pathname;
+
+        let socketServer = this.socketServers[pathname];
+
+        if (socketServer) {
+          socketServer.handleUpgrade(request, socket, head, (ws) => {
+            socketServer.emit('connection', ws, request);
+          });
+        } else {
+          socket.destroy();
+        }
       });
-      this.server.listen(this.port, this.address);
+      if (!this.ownServer) resolve();
     });
   }
 
   public stop(): Promise<void> {
-    console.info(`HttpServer stopping on port ${this.getPort()}`);
+    console.info(`WebSocketServer stopping on port ${this.port}`);
     return new Promise<void>((resolve, reject) => {
 
       // stop promise handles all errors from now on
-      this.server.once('error', (err: Error) => { reject(err); });
-      this.server.once('close', () => { resolve(); });
-      this.server.close();
+      if (this.ownServer) {
+        this.httpServer.once('error', (err: Error) => { reject(err); });
+        this.httpServer.once('close', () => { resolve(); });
+        this.httpServer.close();
+      } else {
+        for (let path in this.socketServers) {
+          this.socketServers[path].close();
+        }
+      }
     });
   }
 
   public getPort(): number {
-    if (this.server.address()) {
-      return this.server.address().port;
+    if (this.httpServer.address()) {
+      return this.httpServer.address().port;
     } else {
       return -1;
     }
   }
 
 
-  public getAddress = (): string => {
-    return this.address;
-}
   private handleRequest(req: http.IncomingMessage, res: http.ServerResponse) {
 
     res.on('finish', () => {
@@ -214,20 +254,20 @@ export default class HttpServer implements ProtocolServer {
         });
 
       } else if (requestHandler instanceof EventResourceListener) {
-        // NOTE: Using Keep-Alive does not work well with NodeJS HTTP client because of socket pooling :/
-
+        res.setHeader("Connection", "Keep-Alive");
         // FIXME get supported content types from EventResourceListener
         res.setHeader("Content-Type", ContentSerdes.DEFAULT);
         res.writeHead(200);
         let subscription = requestHandler.subscribe({
-          next: (content) => {
-            // send event data
-            res.end(content.body);
-          },
+          next: (content) => res.end(content.body),
           complete: () => res.end()
         });
+        res.on("close", () => {
+          console.warn(`HttpServer on port ${this.getPort()} lost Event connection`);
+          subscription.unsubscribe();
+        });
         res.on("finish", () => {
-          console.debug(`HttpServer on port ${this.getPort()} closed Event connection`);
+          console.warn(`HttpServer on port ${this.getPort()} closed Event connection`);
           subscription.unsubscribe();
         });
         res.setTimeout(60*60*1000, () => subscription.unsubscribe());

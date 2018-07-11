@@ -41,10 +41,10 @@ export default class CoapsClient implements ProtocolClient {
   public readResource(form: CoapForm): Promise<Content> {
     return new Promise<Content>((resolve, reject) => {
 
-      this.generateRequest(form, "GET").then( (res: any) => {
+      this.generateRequest(form, "get").then( (res: any) => {
         console.log(`CoapsClient received ${res.code} from ${form.href}`);
         console.debug(`CoapsClient received headers: ${JSON.stringify(res.format)}`);
-        resolve({ body: res.payload, mediaType: res.format });
+        resolve({ body: res.payload, mediaType: form.mediaType });
       })
       .catch( (err: any) => { reject(err) });
     });
@@ -53,7 +53,7 @@ export default class CoapsClient implements ProtocolClient {
   public writeResource(form: CoapForm, content: Content): Promise<any> {
     return new Promise<void>((resolve, reject) => {
 
-      this.generateRequest(form, "PUT", content).then( (res: any) => {
+      this.generateRequest(form, "put", content).then( (res: any) => {
         console.log(`CoapsClient received ${res.code} from ${form.href}`);
         console.debug(`CoapsClient received headers: ${JSON.stringify(res.format)}`);
         resolve();
@@ -65,10 +65,10 @@ export default class CoapsClient implements ProtocolClient {
   public invokeResource(form: CoapForm, content?: Content): Promise<Content> {
     return new Promise<Content>((resolve, reject) => {
 
-      this.generateRequest(form, "POST", content).then( (res: any) => {
+      this.generateRequest(form, "post", content).then( (res: any) => {
         console.log(`CoapsClient received ${res.code} from ${form.href}`);
         console.debug(`CoapsClient received headers: ${JSON.stringify(res.format)}`);
-        resolve({ body: res.payload, mediaType: res.format });
+        resolve({ body: res.payload, mediaType: form.mediaType });
       })
       .catch( (err: any) => { reject(err) });
     });
@@ -77,7 +77,7 @@ export default class CoapsClient implements ProtocolClient {
   public unlinkResource(form: CoapForm): Promise<any> {
     return new Promise<void>((resolve, reject) => {
 
-      this.generateRequest(form, "DELETE").then( (res: any) => {
+      this.generateRequest(form, "delete").then( (res: any) => {
         console.log(`CoapsClient received ${res.code} from ${form.href}`);
         console.debug(`CoapsClient received headers: ${JSON.stringify(res.format)}`);
         resolve();
@@ -156,10 +156,10 @@ export default class CoapsClient implements ProtocolClient {
     if (typeof form["coap:methodCode"] === "number") {
       console.log("CoapsClient got Form 'methodCode'", form["coap:methodCode"]);
       switch (form["coap:methodCode"]) {
-        case 1: method = "GET"; break;
-        case 2: method = "POST"; break;
-        case 3: method = "PUT"; break;
-        case 4: method = "DELETE"; break;
+        case 1: method = "get"; break;
+        case 2: method = "poset"; break;
+        case 3: method = "put"; break;
+        case 4: method = "delete"; break;
         default: console.warn("CoapsClient got invalid 'methodCode', using default", method);
       }
     }
@@ -168,7 +168,7 @@ export default class CoapsClient implements ProtocolClient {
     let req = coaps.request(
         form.href /* string */,
         method /* "get" | "post" | "put" | "delete" */,
-        content.body /* Buffer */
+        content ? content.body : undefined /* Buffer */
     );
 
     return req;

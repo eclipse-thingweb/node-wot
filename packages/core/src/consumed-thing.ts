@@ -47,10 +47,6 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     private getServient: () => Servient;
     private getClients: () => Map<string, ProtocolClient>;
 
-//    protected observablesEvent: Map<string, Subject<any>> = new Map();
-//    protected observablesPropertyChange: Map<string, Subject<any>> = new Map();
-//    protected observablesTDChange: Subject<any> = new Subject<any>();
-
     constructor(servient: Servient) {
         super();
 
@@ -95,31 +91,19 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
             // new client
             console.debug(`ConsumedThing '${this.name}' has no client in cache (${cacheIdx})`);
             let srvIdx = schemes.findIndex(scheme => this.getServient().hasClientFor(scheme));
+            
             if (srvIdx === -1) throw new Error(`ConsumedThing '${this.name}' missing ClientFactory for '${schemes}'`);
+            
             let client = this.getServient().getClientFor(schemes[srvIdx]);
-            if (client) {
-                console.log(`ConsumedThing '${this.name}' got new client for '${schemes[srvIdx]}'`);
-                if (this.security) {
-                    console.warn("ConsumedThing applying security metadata");
-                    //console.dir(this.security);
-                    client.setSecurity(this.security, this.getServient().getCredentials(this.id));
-                }
-                this.getClients().set(schemes[srvIdx], client);
-                let form = forms[srvIdx];
-                return { client: client, form: form }
-            } else {
-                throw new Error(`ConsumedThing '${this.name}' could not get client for '${schemes[srvIdx]}'`);
+            console.log(`ConsumedThing '${this.name}' got new client for '${schemes[srvIdx]}'`);
+            
+            if (this.security) {
+                client.setSecurity(this.security, this.getServient().getCredentials(this.id));
             }
+            this.getClients().set(schemes[srvIdx], client);
+            let form = forms[srvIdx];
+            return { client: client, form: form }
         }
-    }
-
-    /**
-     * Returns the Thing Description of the Thing.
-     */
-    getThingDescription(): WoT.ThingDescription {
-        // returning cached version
-        // return this.td;
-        return JSON.stringify(this); // TODO strip out internals
     }
 
     // onPropertyChange(name: string): Observable<any> {

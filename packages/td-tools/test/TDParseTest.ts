@@ -18,7 +18,7 @@
  */
 
 import { suite, test, slow, timeout, skip, only } from "mocha-typescript";
-import { expect, should } from "chai";
+import { expect, should, assert } from "chai";
 // should must be called to augment all variables
 should();
 
@@ -213,6 +213,37 @@ let tdSimple1 = `{
        "writable": false,
        "observable": false,
        "type": "string",
+       "forms": [{
+           "href": "coaps://mylamp.example.com:5683/status",
+           "mediaType": "application/json"
+       }]
+  }},
+  "actions": {
+   "toggle": {
+      "forms": [{
+          "href": "coaps://mylamp.example.com:5683/toggle",
+          "mediaType": "application/json"
+      }]}},
+  "events": {
+      "overheating": {
+          "type": "string",
+          "forms": [{
+              "href": "coaps://mylamp.example.com:5683/oh",
+              "mediaType": "application/json"
+          }]
+      }}
+}`;
+
+/** Broken TDs */
+let tdBroken1 = `{
+  "@context": "https://w3c.github.io/wot/w3c-wot-td-context.jsonld",
+  "id": "urn:dev:wot:com:example:servient:lamp",
+  "name": "MyLampThing",
+  "properties": {
+      "status": {
+       "writable": false,
+       "observable": false,
+       "type": "string",
        "form": [{
            "href": "coaps://mylamp.example.com:5683/status",
            "mediaType": "application/json"
@@ -220,20 +251,76 @@ let tdSimple1 = `{
   }},
   "actions": {
    "toggle": {
-      "form": [{
+      "forms": [{
           "href": "coaps://mylamp.example.com:5683/toggle",
           "mediaType": "application/json"
       }]}},
   "events": {
       "overheating": {
           "type": "string",
-          "form": [{
+          "forms": [{
               "href": "coaps://mylamp.example.com:5683/oh",
               "mediaType": "application/json"
           }]
       }}
 }`;
-
+let tdBroken2 = `{
+  "@context": "https://w3c.github.io/wot/w3c-wot-td-context.jsonld",
+  "id": "urn:dev:wot:com:example:servient:lamp",
+  "name": "MyLampThing",
+  "properties": {
+      "status": {
+       "writable": false,
+       "observable": false,
+       "type": "string",
+       "forms": [{
+           "href": "coaps://mylamp.example.com:5683/status",
+           "mediaType": "application/json"
+       }]
+  }},
+  "actions": {
+   "toggle": {
+      "forms": [{
+          "mediaType": "application/json"
+      }]}},
+  "events": {
+      "overheating": {
+          "type": "string",
+          "forms": [{
+              "href": "coaps://mylamp.example.com:5683/oh",
+              "mediaType": "application/json"
+          }]
+      }}
+}`;
+let tdBroken3 = `{
+  "@context": "https://w3c.github.io/wot/w3c-wot-td-context.jsonld",
+  "id": "urn:dev:wot:com:example:servient:lamp",
+  "name": "MyLampThing",
+  "properties": {
+      "status": {
+       "writable": false,
+       "observable": false,
+       "type": "string",
+       "forms": [{
+           "href": "coaps://mylamp.example.com:5683/status",
+           "mediaType": "application/json"
+       }]
+  }},
+  "actions": {
+   "toggle": {
+      "forms": [{
+          "href": "coaps://mylamp.example.com:5683/toggle",
+          "mediaType": "application/json"
+      }]}},
+  "events": {
+      "overheating": {
+          "type": "string",
+          "forms": [{
+              "href": "oh",
+              "mediaType": "application/json"
+          }]
+      }}
+}`;
 
 @suite("TD parsing/serialising")
 class TDParserTest {
@@ -406,6 +493,14 @@ class TDParserTest {
     expect(thing.properties).to.have.property("status");
     expect(thing.properties["status"].writable).equals(false);
     expect(thing.properties["status"].observable).equals(false);
+  }
+
+  @test "should detect broken TDs"() {
+
+    assert.throws( () => { TDParser.parseTD(tdBroken1); }, Error, "Property 'status' has no forms field");
+    assert.throws( () => { TDParser.parseTD(tdBroken2); }, Error, "Form of Action 'toggle' has no href field");
+    assert.throws( () => { TDParser.parseTD(tdBroken3); }, Error, "Form of Event 'overheating' has relative URI while TD has no base field");
+
   }
 
 }

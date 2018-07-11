@@ -24,6 +24,19 @@ export * from './http-client'
 export * from './http-client-factory'
 export * from './https-client-factory'
 
+export class HttpConfig {
+    public proxy?: HttpProxyConfig;
+    public allowSelfSigned: boolean;
+}
+
+export class HttpProxyConfig {
+    public href: USVString;
+    public scheme?: string;
+    public token?: string;
+    public username?: string;
+    public password?: string;
+}
+
 export class HttpForm extends Form {
     public "http:methodName"?: string; // "GET", "PUT", "POST", "DELETE"
     public "http:headers"?: Array<HttpHeader> | HttpHeader;

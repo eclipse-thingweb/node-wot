@@ -35,6 +35,7 @@ export default class HttpClient implements ProtocolClient {
   private readonly provider: any;
   private proxyOptions: http.RequestOptions = null;
   private authorization: string = null;
+  private authorizationHeader: string = "Authorization";
   private allowSelfSigned: boolean = false;
 
   constructor(config: HttpConfig = null, secure = false) {
@@ -42,12 +43,13 @@ export default class HttpClient implements ProtocolClient {
     // config proxy by client side (not from TD)
     if (config!==null && config.proxy && config.proxy.href) {
       this.proxyOptions = this.uriToOptions(config.proxy.href);
-      if (config.proxy.authorization === "Basic") {
-        if (!config.proxy.username || !config.proxy.password) console.warn(`HttpClient client configured for Basic proxy auth, but no username/password given`);
+
+      if (config.proxy.scheme === "basic") {
+        if (!config.proxy.hasOwnProperty("username") || !config.proxy.hasOwnProperty("password")) console.warn(`HttpClient client configured for basic proxy auth, but no username/password given`);
         this.proxyOptions.headers = {};
         this.proxyOptions.headers['Proxy-Authorization'] = "Basic " + new Buffer(config.proxy.username + ":" + config.proxy.password).toString('base64');
-      } else if (config.proxy.authorization === "Bearer") {
-        if (!config.proxy.token) console.warn(`HttpClient client configured for Bearer proxy auth, but no token given`);
+      } else if (config.proxy.scheme === "bearer") {
+        if (!config.proxy.hasOwnProperty("token")) console.warn(`HttpClient client configured for bearer proxy auth, but no token given`);
         this.proxyOptions.headers = {};
         this.proxyOptions.headers['Proxy-Authorization'] = "Bearer " + config.proxy.token;
       }
@@ -55,6 +57,7 @@ export default class HttpClient implements ProtocolClient {
       if (this.proxyOptions.protocol === "https") {
         secure = true;
       }
+      
       console.info(`HttpClient using ${secure ? "secure " : ""}proxy ${this.proxyOptions.hostname}:${this.proxyOptions.port}`);
     }
 
@@ -241,8 +244,11 @@ export default class HttpClient implements ProtocolClient {
   public setSecurity(metadata: Array<WoT.Security>, credentials?: any): boolean {
 
     if (metadata === undefined || !Array.isArray(metadata) || metadata.length == 0) {
-      console.warn(`HttpClient received empty security metadata`);
+      console.warn(`HttpClient without security`);
       return false;
+    }
+    if (credentials === undefined) {
+      throw new Error(`No credentionals for Thing`);
     }
 
     let security: WoT.Security = metadata[0];
@@ -255,9 +261,10 @@ export default class HttpClient implements ProtocolClient {
       this.authorization = "Bearer " + credentials.token;
 
     } else if (security.scheme === "apikey") {
-      // TODO this is just an idea sketch
-      console.error(`HttpClient cannot use Apikey: Not implemented`);
-      return false;
+      this.authorization = credentials.apikey;
+      if (security.in==="header" && security.pname!==undefined) {
+        this.authorizationHeader = security.pname;
+      }
 
     } else {
       console.error(`HttpClient cannot set security scheme '${security.scheme}'`);
@@ -301,6 +308,7 @@ export default class HttpClient implements ProtocolClient {
       // copy header fields for Proxy-Auth etc.
       for (let hf in this.proxyOptions.headers) options.headers[hf] = this.proxyOptions.headers[hf];
       options.headers["Host"] = requestUri.hostname;
+
     } else {
       options.hostname = requestUri.hostname;
       // NodeJS cannot resolve localhost when not connected to any network...
@@ -314,7 +322,7 @@ export default class HttpClient implements ProtocolClient {
     }
 
     if (this.authorization !== null) {
-      options.headers["Authorization"] = this.authorization;
+      options.headers[this.authorizationHeader] = this.authorization;
     }
 
     if (this.allowSelfSigned === true) {

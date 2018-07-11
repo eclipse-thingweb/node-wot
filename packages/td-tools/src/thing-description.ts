@@ -88,6 +88,7 @@ export class Security implements WoT.SecurityScheme {
 /** Implements the Interaction Form description */
 export class Form implements WoT.Form {
   href: string;
+  subProtocol?: string;
   mediaType?: string;
   rel?: string;
   security?: WoT.Security;
