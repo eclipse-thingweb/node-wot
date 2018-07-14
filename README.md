@@ -14,46 +14,76 @@ Please also see the additional [notices](NOTICE.md) and [how to contribute](CONT
 
 ## Prerequisites
 
-On Linux, install lerna
-```
-npm install -g lerna
-```
+All systems require:
+* [NodeJS](https://nodejs.org/) version 8+ (e.g., 8.11.3 LTS)
+* NodeJS version 10+ will not require certain polyfills, but is not LTS (long-term stable)
 
-On Windows, install the build tools and lerna (CMD shell as administrator)
+### Linux
+Meet the [node-gyp](https://github.com/nodejs/node-gyp#installation) requirements:
+* Python 2.7 (v3.x.x is not supported)
+* make
+* A proper C/C++ compiler toolchain, like GCC
+
+### Windows
+Install the Windows build tools through a CMD shell as administrator:
 ```
 npm install -g --production windows-build-tools
 ```
 
+### Mac OS
+Meet the [node-gyp](https://github.com/nodejs/node-gyp#installation) requirements:
+```
+xcode-select --install
+```
+
 ## How to get ready for coding
 
+Clone the repository:
 ```
-# Clone the repository
 git clone https://github.com/eclipse/thingweb.node-wot
-
-# Go into the repository
+```
+Go into the repository:
+```
 cd thingweb.node-wot
-
-# install root dependencies (locally installs tools like typescript and lerna)
+```
+Install root dependencies (locally installs tools such as [typescript](https://www.npmjs.com/package/typescript) and [lerna](https://www.npmjs.com/package/lerna)):
+```
 npm install 
-
-# bootstrap the packages (installs dependencies and links the inter-dependencies)
-# Note: This step is automatically done on building or testing
+```
+Bootstrap the packages (installs dependencies and links the inter-dependencies):
+*Note: This step is automatically done on building or testing, and hence is optional.*
+```
 npm run bootstrap
-
-# use tsc to transcompile TS code to JS in dist directory for each package
+```
+Use `tsc` to transcompile TS code to JS in dist directory for each package:
+```
 npm run build
+```
 
-# run test suites of all packets
-npm run test 
+### Optional
+
+#### Link Packages
+Make all packages available on your local machine (as symlinks). You can then use each paket in its local version via `npm link <module>` instead of `npm install <module>` (see also https://docs.npmjs.com/cli/link).
 ```
-```
-# (OPTIONAL!) 
-# make all packages available on your local machine (as symlinks)
-# you can then use each paket in its local version via "npm link" instead of "npm install"
-# see also https://docs.npmjs.com/cli/link
 sudo npm run link
 ```
-On Windows omit `sudo`
+(On Windows omit `sudo`)
+
+#### Link Local wot-typescript-definitions
+To evolve the Scripting API in development, you need to use a locally changed version of the [wot-typescript-definitions](https://www.npmjs.com/package/wot-typescript-definitions).
+Use npm link for this as well:
+```
+git clone https://github.com/thingweb/wot-typescript-definitions.git
+cd wot-typescript-definitions
+sudo npm link
+```
+(On Windows omit `sudo`)
+
+In each node-wot package, link the local version made available in the previous step:
+```
+sudo npm link wot-typescript-definitions
+```
+(On Windows omit `sudo`)
 
 ## Trouble shooting
 
@@ -62,36 +92,37 @@ On Windows omit `sudo`
    * try `npm link` in each package directory in this order: td-tools, core, binding-\*, cli, demo-servients
 
 ## No time for explanations - I want to start from something running!
-Run all the steps above and then run this:
+Run all the steps above including "Link Packages" and then run this:
 
 ```
+wot-servient -h
 cd examples/scripts
 wot-servient
+```
 
-
-# e.g., Windows CMD shell (Counter Example)
+Without the "Link Packages" step, the `wot-servient` command is not available and `node` needs to be used (e.g., Windows CMD shell):
+```
 # expose
 node packages\cli\dist\cli.js examples\scripts\counter.js
 # consume
 node packages\cli\dist\cli.js examples\scripts\counterClient.js
 ```
 
-* go to http://localhost:8080/counter and you'll find a thing description.
-* you can query the count by http://localhost:8080/counter/properties/count
-* you can modify the count via POST on http://localhost:8080/counter/actions/increment and http://localhost:8080/counter/actions/decrement
-* application logic is in ``examples/scripts/counter.js``
+* Go to http://localhost:8080/counter and you'll find a thing description
+* Query the count by http://localhost:8080/counter/properties/count
+* Modify the count via POST on http://localhost:8080/counter/actions/increment and http://localhost:8080/counter/actions/decrement
+* Application logic is in `examples/scripts/counter.js`
 
 ## How to use the library
 
-This library implements the WoT Scripting API
+This library implements the WoT Scripting API:
 
-* [First Public Working Draft](https://www.w3.org/TR/2017/WD-wot-scripting-api-20170914/) in [release v0.3.0](https://github.com/thingweb/node-wot/releases/tag/v0.3.0)
-  * Note: There are known differences between node-wot and FPWD (see [Issue72](https://github.com/w3c/wot-scripting-api/issues/72)).
-* [Editors Draft](w3c.github.io/wot-scripting-api/) in [master](https://github.com/thingweb/node-wot)
+* [Editors Draft](w3c.github.io/wot-scripting-api/) in [master](https://github.com/eclipse/thingweb.node-wot)
+* [Working Draft](https://www.w3.org/TR/wot-scripting-api/) corresponding to node-wot release versions ([v0.3.0](https://github.com/thingweb/node-wot/releases/tag/v0.3.0) for FPWD, [v0.4.0](https://github.com/thingweb/node-wot/releases/tag/v0.4.0) for WD-2018-04-05, [v0.5.0](https://github.com/eclipse/thingweb.node-wot/releases/tag/v0.5.0) t.b.d.)
 
-You can also see _examples/scripts_ to have a feeling of how to script a Thing.
+You can also see `examples/scripts` to have a feeling of how to script a Thing.
 
-<!---
+<!--
 ### Implemented/supported
 
 * [`WoT`](https://www.w3.org/TR/2017/WD-wot-scripting-api-20170914/#the-wot-object) object
@@ -132,17 +163,19 @@ You can also see _examples/scripts_ to have a feeling of how to script a Thing.
 #### Protocol Support
 
 * HTTP :heavy_check_mark:
-* HTTPS :question: ?fix needed?
+* HTTPS :heavy_check_mark:
 * CoAP :heavy_check_mark:
-* CoAPS :heavy_multiplication_x:
-* Websocket :heavy_multiplication_x:
+* CoAPS :heavy_check_mark:
+* Websocket :heavy_plus_sign: (server only)
+* MQTT :heavy_plus_sign: (in dev branch)
 
-Note: More protocols can be easily added by implementing `ProtocolClient`, `ProtocolClientFactory` and `ProtocolServer` interface.
+Note: More protocols can be easily added by implementing `ProtocolClient`, `ProtocolClientFactory`, and `ProtocolServer` interface.
 
 #### MediaType Support
 
-* JSON  :heavy_check_mark:
-* plainText :heavy_check_mark:
+* JSON :heavy_check_mark:
+* Plain text :heavy_check_mark:
+* CBOR :heavy_multiplication_x:
 
 Note: More mediaTyes can be easily added by implementing `ContentCodec` interface.
 
