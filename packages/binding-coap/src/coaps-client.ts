@@ -157,7 +157,7 @@ export default class CoapsClient implements ProtocolClient {
       console.log("CoapsClient got Form 'methodCode'", form["coap:methodCode"]);
       switch (form["coap:methodCode"]) {
         case 1: method = "get"; break;
-        case 2: method = "poset"; break;
+        case 2: method = "post"; break;
         case 3: method = "put"; break;
         case 4: method = "delete"; break;
         default: console.warn("CoapsClient got invalid 'methodCode', using default", method);
