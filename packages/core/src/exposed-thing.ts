@@ -95,7 +95,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 
     /** @inheritDoc */
     expose(): Promise<void> {
-        console.log("ExposedThing \"init\" called to add all initial interactions ");
+        console.log("ExposedThing '${this.name}' exposing all Interactions and TD");
         // create state for all initial Interactions
         for (let propertyName in this.properties) {
             this.addResourceListener("/" + encodeURIComponent(this.name) + "/properties/" + encodeURIComponent(propertyName), new Rest.PropertyResourceListener(this, propertyName));
@@ -104,7 +104,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             this.addResourceListener("/" + encodeURIComponent(this.name) + "/actions/" + encodeURIComponent(actionName), new Rest.ActionResourceListener(this, actionName));
         }
         for (let eventName in this.events) {
-            //this.addResourceListener("/" + encodeURIComponent(this.name) + "/events/" + encodeURIComponent(eventName), new Rest.EventResourceListener(eventName, subject));
+            this.addResourceListener("/" + encodeURIComponent(this.name) + "/events/" + encodeURIComponent(eventName), new Rest.EventResourceListener(eventName, this.events[eventName].getState().subject));
         }
 
         // expose Thing
@@ -130,16 +130,15 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         let newProp = Helpers.extend(template, new ExposedThingProperty(name, this));
         this.properties[name] = newProp;
 
-        // TODO: drop this variant
-        if (newProp.value !== undefined) {
-            console.warn(`ExposedThing '${this.name}' received init value '${newProp.value}' in template for '${name}'`);
-            newProp.set(newProp.value);
-            delete newProp.value;
-        } else 
-
         if (init !== undefined) {
             newProp.set(init);
         }
+        // TODO: drop this variant
+        else if (newProp.value !== undefined) {
+            console.warn(`ExposedThing '${this.name}' received init value '${newProp.value}' in template for '${name}'`);
+            newProp.set(newProp.value);
+            delete newProp.value;
+        } 
 
         this.addResourceListener("/" + this.name + "/properties/" + name, new Rest.PropertyResourceListener(this, name));
 
