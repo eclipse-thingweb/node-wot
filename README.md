@@ -1,9 +1,7 @@
 # Eclipse Thingweb node-wot
-
 W3C Web of Things implementation on NodeJS
 
 ## License
-
 Dual-licensed under both
 
 * [Eclipse Public License v. 2.0](http://www.eclipse.org/legal/epl-2.0)
@@ -13,7 +11,6 @@ Pick one of these two licenses that fits your needs.
 Please also see the additional [notices](NOTICE.md) and [how to contribute](CONTRIBUTING.md).
 
 ## Prerequisites
-
 All systems require:
 * [NodeJS](https://nodejs.org/) version 8+ (e.g., 8.11.3 LTS)
 * NodeJS version 10+ will not require certain polyfills, but is not LTS (long-term stable)
@@ -37,7 +34,6 @@ xcode-select --install
 ```
 
 ## How to get ready for coding
-
 Clone the repository:
 ```
 git clone https://github.com/eclipse/thingweb.node-wot
@@ -50,12 +46,8 @@ Install root dependencies (locally installs tools such as [typescript](https://w
 ```
 npm install 
 ```
-Bootstrap the packages (installs dependencies and links the inter-dependencies):
-*Note: This step is automatically done on building or testing, and hence is optional.*
-```
-npm run bootstrap
-```
 Use `tsc` to transcompile TS code to JS in dist directory for each package:
+*Note: This step automatically calls `npm run bootstrap`.*
 ```
 npm run build
 ```
@@ -105,7 +97,7 @@ Without the "Link Packages" step, the `wot-servient` command is not available an
 # expose
 node packages\cli\dist\cli.js examples\scripts\counter.js
 # consume
-node packages\cli\dist\cli.js examples\scripts\counterClient.js
+node packages\cli\dist\cli.js examples\scripts\counter-client.js
 ```
 
 * Go to http://localhost:8080/counter and you'll find a thing description
