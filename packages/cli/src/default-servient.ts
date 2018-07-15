@@ -51,7 +51,7 @@ export default class DefaultServient extends Servient {
 
         Object.assign(this.config, config);
         // remove secrets from original for displaying config (still in copy on this)
-        delete config.credentials;
+        if(config && config.credentials) delete config.credentials;
         console.info("DefaultServient configured with", config);
 
         if (!this.config.servient.clientOnly) {
