@@ -38,6 +38,9 @@ export default class DefaultServient extends Servient {
         http: {
             port: 8080,
             selfSigned: false
+        },
+        coap: {
+            port: 5683
         }
     }
 
@@ -54,8 +57,13 @@ export default class DefaultServient extends Servient {
         if (!this.config.servient.clientOnly) {
             let httpServer = (typeof this.config.http.port === "number") ? new HttpServer(this.config.http.port) : new HttpServer();
             this.addServer(httpServer);
+
             // re-use httpServer (same port)
             this.addServer(new WebSocketServer(httpServer));
+
+            // disabled in DefaultServient
+            //let coapServer = (typeof this.config.coap.port === "number") ? new CoapServer(this.config.coap.port) : new CoapServer();
+            //this.addServer(coapServer);
         }
         
         this.addClientFactory(new FileClientFactory());

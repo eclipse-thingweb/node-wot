@@ -40,6 +40,13 @@ export default class CoapServer implements ProtocolServer {
     if (address !== undefined) {
       this.address = address;
     }
+
+    // WoT-specific content formats
+    coap.registerFormat('application/ld+json', 2100);
+    // TODO also register content fromat with IANA
+    // from experimental range for now
+    coap.registerFormat('application/td+json', 65100);
+    // TODO need hook from ContentSerdes for runtime data formats
   }
 
   public addResource(path: string, res: ResourceListener): boolean {
