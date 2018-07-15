@@ -49,11 +49,15 @@ export default class PropertyResourceListener extends BasicResourceListener impl
 
     public onWrite(input : Content) : Promise<void> {
         let value;
+        // check if writable
+        if (this.thing.properties[this.name].writable!==true) {
+            return new Promise<void>( (resolve, reject) => { reject(new Error(`Property '${this.name}' is not writable`)); });
+        }
         // FIXME: Better way than creating Promise only for reject in catch?
         try {
             value = ContentSerdes.contentToValue(input);
         } catch(err) {
-            return new Promise<void>( (resolve, reject) => { reject(err); })
+            return new Promise<void>( (resolve, reject) => { reject(err); });
         }
         // return this.thing.writeProperty(this.name, value);
         return this.thing.properties[this.name].set(value);
