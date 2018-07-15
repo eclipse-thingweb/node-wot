@@ -78,9 +78,8 @@ class WoTServerTest {
         });
         expect(thing).to.exist;
         expect(JSON.parse(thing.getThingDescription()).name).equal("myThing");
-        expect(thing).to.have.property("name", "myThing");
+        expect(thing).to.have.property("name").that.equals("myThing");
     }
-
 
     @test "should be able to add a Thing given a TD"() {
         let desc = `{
@@ -97,11 +96,12 @@ class WoTServerTest {
         expect(thing).to.exist;
         expect(thing).to.have.property("name", "myThingX");
         expect(thing).to.have.property("properties");
+        expect(thing.properties).to.have.property("myPropX");
     }
 
     @test async "should be able to add a property with default value 0"() {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "otherthing100" });
-        let initp: WoT.PropertyInit = {
+        let initp: WoT.PropertyFragment = {
             writable: true,
             observable: false,
             value: 0,
@@ -115,7 +115,7 @@ class WoTServerTest {
 
     @test async "should be able to add a property with default value XYZ"() {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "otherthing101" });
-        let initp: WoT.PropertyInit = {
+        let initp: WoT.PropertyFragment = {
             writable: true,
             type: undefined, // DataType.string, //  `{ "type": "string" }`,
             value: "XYZ"
@@ -127,7 +127,7 @@ class WoTServerTest {
 
     @test async "should be able to add a property without any default value"() {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "otherthing102" });
-        let initp: WoT.PropertyInit = {
+        let initp: WoT.PropertyFragment = {
             writable: true,
             type: undefined // DataType.number //  `{ "type": "number" }`
         };
@@ -138,7 +138,7 @@ class WoTServerTest {
 
     @test async "should be able to add a property, read it and write it locally"() {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "otherthing" });
-        let initp: WoT.PropertyInit = {
+        let initp: WoT.PropertyFragment = {
             writable: true,
             type: undefined, // DataType.number // `{ "type": "number" }`,
             value: 10
@@ -154,7 +154,7 @@ class WoTServerTest {
 
     @test async "should be able to add a property, read it by setting read increment handler (with lambda)"() {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "otherthingIncRead" });
-        let initp: WoT.PropertyInit = {
+        let initp: WoT.PropertyFragment = {
             writable: true,
             type: undefined // DataType.number //  `{ "type": "number" }`
         };
@@ -175,7 +175,7 @@ class WoTServerTest {
 
     @test async "should be able to add a property, read it by setting read increment handler (with function)"() {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "otherthingIncRead2" });
-        let initp: WoT.PropertyInit = {
+        let initp: WoT.PropertyFragment = {
             writable: true,
             type: undefined // DataType.number //  `{ "type": "number" }`
         };
@@ -197,7 +197,7 @@ class WoTServerTest {
 
     @test async "should be able to add a property, read it by setting read increment handler (with local counter state)"() {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "otherthingIncRead3" });
-        let initp: WoT.PropertyInit = {
+        let initp: WoT.PropertyFragment = {
             writable: true,
             type: undefined // DataType.number `{ "type": "number" }`
         };
@@ -225,12 +225,12 @@ class WoTServerTest {
 
     @test async "should be able to add a property, read it by setting write handler double"() {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "otherthingWrite" });
-        let initp: WoT.PropertyInit = {
+        let initp: WoT.PropertyFragment = {
             writable: true,
             type: undefined // DataType.number `{ "type": "number" }`
         };
         thing.addProperty("number", initp);
-        let initp2: WoT.PropertyInit = {
+        let initp2: WoT.PropertyFragment = {
             writable: true,
             type: undefined // DataType.number `{ "type": "number" }`
         };
@@ -269,7 +269,7 @@ class WoTServerTest {
 
     @test async "should be able to add a property, read it by setting write handler with reading old value"() {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "otherthingReadWrite" });
-        let initp: WoT.PropertyInit = {
+        let initp: WoT.PropertyFragment = {
             writable: true,
             type: undefined, // DataType.number `{ "type": "number" }`,
             value: 2
@@ -313,7 +313,7 @@ class WoTServerTest {
 
     @test async "should be able to add a property, write and read it locally"() {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "thing3" });
-        let initp: WoT.PropertyInit = {
+        let initp: WoT.PropertyFragment = {
             writable: true,
             type: undefined, // DataType.number `{ "type": "number" }`,
             value: 10
@@ -328,7 +328,7 @@ class WoTServerTest {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({
             name: "thing6"
         });
-        let inita: WoT.ActionInit = {
+        let inita: WoT.ActionFragment = {
             input: undefined, // {type: DataType.number}, // `{ "type": "number" }`,
             output: undefined // {type: DataType.number}, //JSON.stringify({ "type": "number" })
         };
@@ -350,7 +350,7 @@ class WoTServerTest {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({
             name: "thing6c"
         });
-        let inita: WoT.ActionInit = {
+        let inita: WoT.ActionFragment = {
             input: undefined, // {type: DataType.number}, // `{ "type": "number" }`,
             output: undefined // {type: DataType.number}, // `{ "type": "number" }`
         };

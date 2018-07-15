@@ -93,7 +93,7 @@ export default class WoTImpl implements WoT.WoTFactory {
     isWoTThingDescription(arg: any): arg is WoT.ThingDescription {
         return arg.length !== undefined;
     }
-    isWoTThingTemplate(arg: any): arg is WoT.ThingFragment {
+    isWoTThingFragment(arg: any): arg is WoT.ThingFragment {
         return arg.name !== undefined;
     }
 
@@ -107,10 +107,11 @@ export default class WoTImpl implements WoT.WoTFactory {
         let newThing: ExposedThing;
 
         if (this.isWoTThingDescription(model)) {
-            let template = TD.parseTD(model, false);
+            // FIXME should be constrained version of TD.parseTD() that omits instance-specific parts (but keeps "id")
+            let template = JSON.parse(model);
             newThing = Helpers.extend(template, new ExposedThing(this.srv));
 
-        } else if (this.isWoTThingTemplate(model)) {
+        } else if (this.isWoTThingFragment(model)) {
             let template = Helpers.extend(model, new TD.Thing());
             newThing = Helpers.extend(template, new ExposedThing(this.srv));
 

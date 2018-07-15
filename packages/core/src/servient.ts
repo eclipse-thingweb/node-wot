@@ -23,7 +23,6 @@ import { ProtocolClientFactory, ProtocolServer, ResourceListener, ProtocolClient
 import { default as ContentSerdes, ContentCodec } from "./content-serdes";
 import { Thing } from "@node-wot/td-tools";
 import * as TD from "@node-wot/td-tools";
-import * as Helpers from "./helpers";
 
 export default class Servient {
     private servers: Array<ProtocolServer> = [];
@@ -47,10 +46,39 @@ export default class Servient {
         }
 
         let context = vm.createContext({
-            'WoT': new WoTImpl(this),
-            'console': console,
-            'setInterval': setInterval,
-            'setTimeout': setTimeout
+            "WoT": new WoTImpl(this),
+            "console": console,
+            // augmented scheduling functions that catch errors
+            "setInterval": (handler: (...args: any[]) => void, ms: number, ...args: any[]) => {
+                return setInterval( () => {
+                    try {
+                        handler(args);
+                    } catch(err) {
+                        this.logScriptError(`async error in setInterval() in '${filename}'`, err);
+                    }
+                }, ms);
+            },
+            "clearInterval": clearInterval,
+            "setTimeout": (handler: (...args: any[]) => void, ms: number, ...args: any[]) => {
+                return setTimeout( () => {
+                    try {
+                        handler(args);
+                    } catch(err) {
+                        this.logScriptError(`async error in setTimeout() in '${filename}'`, err);
+                    }
+                }, ms);
+            },
+            "clearTimeout": clearTimeout,
+            "setImmediate": (handler: (...args: any[]) => void, ...args: any[]) => {
+                return setImmediate( () => {
+                    try {
+                        handler(args);
+                    } catch(err) {
+                        this.logScriptError(`async error in setImmediate() in '${filename}'`, err);
+                    }
+                });
+            },
+            "clearImmediate": clearImmediate
         });
         let options = {
             "filename": filename,
@@ -59,8 +87,7 @@ export default class Servient {
         try {
             script.runInContext(context, options);
         } catch (err) {
-            let scriptPosition = err.stack.match(/at evalmachine\.<anonymous>\:([0-9]+\:[0-9]+)\n/)[1];
-            console.error(`Servient caught error in '${filename}' and halted at line ${scriptPosition}\n    ${err}`);
+            this.logScriptError(`error in '${filename}'`, err);
         }
     }
 
@@ -78,11 +105,41 @@ export default class Servient {
         }
 
         let context = vm.createContext({
-            'WoT': new WoTImpl(this),
-            'console': console,
-            'setInterval': setInterval,
-            'setTimeout': setTimeout,
-            'require': require
+            "WoT": new WoTImpl(this),
+            "console": console,
+            // augmented scheduling functions that catch errors
+            "setInterval": (handler: (...args: any[]) => void, ms: number, ...args: any[]) => {
+                return setInterval( () => {
+                    try {
+                        handler(args);
+                    } catch(err) {
+                        this.logScriptError(`async error in setInterval() in privileged '${filename}'`, err);
+                    }
+                }, ms);
+            },
+            "clearInterval": clearInterval,
+            "setTimeout": (handler: (...args: any[]) => void, ms: number, ...args: any[]) => {
+                return setTimeout( () => {
+                    try {
+                        handler(args);
+                    } catch(err) {
+                        this.logScriptError(`async error in setTimeout() in privileged '${filename}'`, err);
+                    }
+                }, ms);
+            },
+            "clearTimeout": clearTimeout,
+            "setImmediate": (handler: (...args: any[]) => void, ...args: any[]) => {
+                return setImmediate( () => {
+                    try {
+                        handler(args);
+                    } catch(err) {
+                        this.logScriptError(`async error in setImmediate() in privileged '${filename}'`, err);
+                    }
+                });
+            },
+            "clearImmediate": clearImmediate,
+            // privileged items
+            "require": require
         });
         let options = {
             "filename": filename,
@@ -91,9 +148,23 @@ export default class Servient {
         try {
             script.runInContext(context, options);
         } catch (err) {
-            let scriptPosition = err.stack.match(/at evalmachine\.<anonymous>\:([0-9]+\:[0-9]+)\n/)[1];
-            console.error(`Servient caught error in privileged '${filename}' and halted at line ${scriptPosition}\n    ${err}`);
+            this.logScriptError(`error in privileged '${filename}'`, err);
         }
+    }
+
+    private logScriptError(description: string, error: any): void {
+        let message: string;
+        if (typeof error==="object" && error.stack) {
+            let match = error.stack.match(/evalmachine\.<anonymous>\:([0-9]+\:[0-9]+)/);
+            if (Array.isArray(match)) {
+                message = `and halted at line ${match[1]}\n    ${error}`;
+            } else {
+                message = `and halted with ${error.stack}`;
+            }
+        } else {
+            message = `that threw ${typeof error} instead of Error\n    ${error}`;
+        }
+        console.error(`Servient caught ${description} ${message}`);
     }
 
     /** add a new codec to support a mediatype */
