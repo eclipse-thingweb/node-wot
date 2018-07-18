@@ -33,7 +33,7 @@ thing.addProperty(
 		description: "current counter value",
 		"iot:Custom": "example annotation",
 		observable: true,
-		writeable: true
+		writable: true
 	},
 	0);
 
