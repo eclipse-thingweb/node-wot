@@ -19,6 +19,7 @@ import ExposedThing from "./exposed-thing"
 import { Thing } from "@node-wot/td-tools"
 import * as TD from "@node-wot/td-tools"
 import * as Helpers from "./helpers";
+//import {MqttBrokerServer} from "@node-wot/binding-mqtt" 
 
 
 /** Copies TD members from Thing and adds Servient metadata (security, form)
@@ -74,7 +75,7 @@ export function generateTD(thing: ExposedThing, servient: Servient): Thing {
           // TODO get form directly from server, do not define URI paths here
 
           // if server is online !==-1 assign the href information
-          if (server.getPort() !== -1) {
+          if (server.getPort() !== -1 && server.scheme!=="mqtt") {
             let href: string = server.scheme + "://" + address + ":" + server.getPort() + "/" + thing.name;
 
             // depending on the resource pattern, uri is constructed
@@ -84,6 +85,23 @@ export function generateTD(thing: ExposedThing, servient: Servient): Thing {
         }
       }
     }
+
+    // in the case of mqtt the broker URI is used within the hrefs
+    for (let server of servient.getServers()) {
+      if(server.scheme=="mqtt") {
+        for (let type of servient.getOffereddMediaTypes()) {
+
+          let href: string = server.scheme + "://" + server.getAddress() + ":" + server.getPort() + "/" + thing.name;
+
+          // TODO: add mqtt based vocabularies (qos, retain) to the forms
+
+        // depending on the resource pattern, uri is constructed
+        action.forms.push(new TD.Form(href + "/actions/" + actionName, type));
+        console.debug(`generateTD() assigns href '${href}' to Action '${actionName}'`);
+        }
+      }
+    }
+
   }
 
   // fill in binding data (for events)
@@ -101,7 +119,7 @@ export function generateTD(thing: ExposedThing, servient: Servient): Thing {
           // TODO get form directly from server, do not define URI paths here
 
           // if server is online !==-1 assign the href information
-          if (server.getPort() !== -1) {
+          if (server.getPort() !== -1 && server.scheme!=="mqtt") {
             let href: string = server.scheme + "://" + address + ":" + server.getPort() + "/" + thing.name;
 
             // depending on the resource pattern, uri is constructed
@@ -116,6 +134,24 @@ export function generateTD(thing: ExposedThing, servient: Servient): Thing {
         }
       }
     }
+
+    // in the case of mqtt the broker URI is used within the hrefs
+    for (let server of servient.getServers()) {
+      if(server.scheme=="mqtt") {
+        for (let type of servient.getOffereddMediaTypes()) {
+        
+          // cast since MqttBrokerServer offers a getAddress
+          let href: string = server.scheme + "://" + server.getAddress() + ":" + server.getPort() + "/" + thing.name;
+        
+          // TODO: add mqtt based vocabularies (qos, retain) to the forms
+        
+          // depending on the resource pattern, uri is constructed
+          event.forms.push(new TD.Form(href + "/events/" + eventName, type));
+          console.debug(`generateTD() assigns href '${href}' to Event '${eventName}'`);
+        }
+      }
+    } 
+
   }
 
   return boundThing;

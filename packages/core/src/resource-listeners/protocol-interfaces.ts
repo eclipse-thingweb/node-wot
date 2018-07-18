@@ -56,6 +56,7 @@ export interface ProtocolServer {
   start(): Promise<void>;
   stop(): Promise<void>;
   getPort(): number;
+  getAddress?():string; // (optional) TODO: temporary solution for MQTT. May replaced with a generic getForms() method (or similar) in the future
 }
 
 export interface Content {
