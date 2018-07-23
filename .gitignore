@@ -54,6 +54,7 @@ packages/*
 !packages/binding-http
 !packages/binding-coap
 !packages/binding-websockets
+!packages/binding-mqtt
 !packages/binding-oracle
 !packages/cli
 !packages/demo-servients
