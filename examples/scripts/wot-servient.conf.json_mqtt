@@ -1,9 +1,0 @@
-{
-    "servient": {
-        "clientOnly" : true
-    },
-    "mqtt" : {
-        "host" : "mqtt://test.mosquitto.org",
-        "port": 1883 
-    }
-}
