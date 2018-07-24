@@ -23,7 +23,7 @@
   "dependencies": {
     "@node-wot/core": "0.5.0-SNAPSHOT.6",
     "iotcs-csl-js": "18.2.3",
-    "sqlite3": "4.0.0"
+    "sqlite3": "4.0.2"
   },
   "scripts": {
     "build": "tsc",
