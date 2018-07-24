@@ -31,7 +31,7 @@ thing.addProperty(
   {
     type: "integer",
     description: "current counter value",
-    observable: true,
+    observable: false,
     writeable: true
   },
 123);
