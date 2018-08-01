@@ -1,5 +1,8 @@
 language: node_js
+os:
+  - linux
+  - osx
 node_js:
-    - "node"
-    - "8"
-#    - "6.9"
+  - "node"
+  - "8"
+#  - "6.9"
