@@ -25,29 +25,34 @@ import { expect, should } from "chai";
 // should must be called to augment all variables
 should();
 
-import { Form, Thing } from "@node-wot/td-tools";
+import { Subscription } from "rxjs/Subscription";
+
 import Servient from "../src/servient";
+import { Form } from "@node-wot/td-tools";
 import { ProtocolClient, ProtocolClientFactory, Content } from "../src/resource-listeners/protocol-interfaces"
-import ConsumedThing from "../src/consumed-thing";
 
-class TDDataClient implements ProtocolClient {
+class TDClient implements ProtocolClient {
 
-    public readResource(uri: Form): Promise<Content> {
+    public readResource(form: Form): Promise<Content> {
         // Note: this is not a "real" DataClient! Instead it just reports the same TD in any case
         let c: Content = { mediaType: "application/json", body: new Buffer(JSON.stringify(myThingDesc)) };
         return Promise.resolve(c);
     }
 
-    public writeResource(uri: Form, content: Content): Promise<void> {
+    public writeResource(form: Form, content: Content): Promise<void> {
         return Promise.reject("writeResource not implemented");
     }
 
-    public invokeResource(uri: Form, content: Content): Promise<Content> {
+    public invokeResource(form: Form, content: Content): Promise<Content> {
         return Promise.reject("invokeResource not implemented");
     }
 
-    public unlinkResource(uri: Form): Promise<void> {
+    public unlinkResource(form: Form): Promise<void> {
         return Promise.reject("unlinkResource not implemented");
+    }
+
+    public subscribeResource(form: Form, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): Subscription {
+        return new Subscription();
     }
 
     public start(): boolean {
@@ -61,11 +66,11 @@ class TDDataClient implements ProtocolClient {
     public setSecurity = (metadata: any) => false;
 }
 
-class TDDataClientFactory implements ProtocolClientFactory {
+class TDClientFactory implements ProtocolClientFactory {
 
-    public readonly scheme: string = "data";
+    public readonly scheme: string = "td";
 
-    client = new TDDataClient();
+    client = new TDClient();
 
     public getClient(): ProtocolClient {
         return this.client;
@@ -88,20 +93,27 @@ class TrapClient implements ProtocolClient {
         this.trap = callback
     }
 
-    public readResource(uri: Form): Promise<Content> {
-        return Promise.resolve(this.trap(uri));
+    public readResource(form: Form): Promise<Content> {
+        return Promise.resolve(this.trap(form));
     }
 
-    public writeResource(uri: Form, content: Content): Promise<void> {
-        return Promise.resolve(this.trap(uri, content));
+    public writeResource(form: Form, content: Content): Promise<void> {
+        return Promise.resolve(this.trap(form, content));
     }
 
-    public invokeResource(uri: Form, content: Content): Promise<Content> {
-        return Promise.resolve(this.trap(uri, content));
+    public invokeResource(form: Form, content: Content): Promise<Content> {
+        return Promise.resolve(this.trap(form, content));
     }
 
-    public unlinkResource(uri: Form): Promise<void> {
-        return Promise.resolve(this.trap(uri));
+    public unlinkResource(form: Form): Promise<void> {
+        return Promise.resolve(this.trap(form));
+    }
+    public subscribeResource(form: Form, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): Subscription {
+        // send one event
+        next(this.trap(form));
+        // then complete
+        setImmediate(() => { complete(); });
+        return new Subscription();
     }
 
     public start(): boolean {
@@ -117,7 +129,7 @@ class TrapClient implements ProtocolClient {
 
 class TrapClientFactory implements ProtocolClientFactory {
 
-    public scheme: string = "test";
+    public scheme: string = "testdata";
     client = new TrapClient();
 
     public setTrap(callback: Function) {
@@ -140,22 +152,30 @@ class TrapClientFactory implements ProtocolClientFactory {
 let myThingDesc = {
     "@context": ["https://w3c.github.io/wot/w3c-wot-td-context.jsonld"],
     "@type": ["Thing"],
-    "name": "aThing",
-    "properties": {
-        "aProperty": {
-            "type": "integer",
-            "writable": true,
-            "forms": [
-                { "href": "test://host/athing/properties/aproperty", "mediaType": "application/json" }
+    name: "aThing",
+    properties: {
+        aProperty: {
+            type: "integer",
+            writable: true,
+            forms: [
+                { href: "testdata://host/athing/properties/aproperty", mediaType: "application/json" }
             ]
         }
     },
-    "actions": {
-        "anAction": {
-            "input": { "type": "integer" },
-            "output": { "type": "integer" },
-            "forms": [
-                { "href": "test://host/athing/actions/anaction", "mediaType": "application/json" }
+    actions: {
+        anAction: {
+            input: { "type": "integer" },
+            output: { "type": "integer" },
+            forms: [
+                { "href": "testdata://host/athing/actions/anaction", "mediaType": "application/json" }
+            ]
+        }
+    },
+    events: {
+        anEvent: {
+            type: "number",
+            forms: [
+                { "href": "testdata://host/athing/events/anevent", "mediaType": "application/json" }
             ]
         }
     }
@@ -168,12 +188,11 @@ class WoTClientTest {
     static clientFactory: TrapClientFactory;
     static WoT: WoT.WoTFactory;
 
-    // static tdFileUri : string = "td.json";
     static before() {
         this.servient = new Servient();
         this.clientFactory = new TrapClientFactory();
         this.servient.addClientFactory(this.clientFactory);
-        this.servient.addClientFactory(new TDDataClientFactory());
+        this.servient.addClientFactory(new TDClientFactory());
         this.servient.start().then(myWoT => { this.WoT = myWoT; });
 
         console.log("starting test suite");
@@ -192,7 +211,7 @@ class WoTClientTest {
             }
         );
 
-        WoTClientTest.WoT.fetch("data://" + "tdFoo")
+        WoTClientTest.WoT.fetch("td://foo")
             .then((td) => {
                 let thing = WoTClientTest.WoT.consume(td);
                 expect(thing).to.have.property("name").that.equals("aThing");
@@ -254,17 +273,16 @@ class WoTClientTest {
     @test "write a value"(done: Function) {
         //verify the value transmitted
         WoTClientTest.clientFactory.setTrap(
-            (uri: string, content: Content) => {
+            (form: Form, content: Content) => {
                 expect(content.body.toString()).to.equal("23");
             }
         )
 
-        // JSON.stringify(myThingDesc)
-        WoTClientTest.WoT.fetch("data://" + "tdFoo")
+        WoTClientTest.WoT.fetch("td://foo")
             .then((td) => {
                 let thing = WoTClientTest.WoT.consume(td);
                 expect(thing).to.have.property("name").that.equals("aThing");
-                expect(thing.properties).to.have.property("aProperty");
+                expect(thing).to.have.property("properties").that.has.property("aProperty");
                 return thing.properties["aProperty"].set(23);
             })
             .then(() => done())
@@ -274,23 +292,51 @@ class WoTClientTest {
     @test "call an action"(done: Function) {
         //an action
         WoTClientTest.clientFactory.setTrap(
-            (uri: string, content: Content) => {
+            (form: Form, content: Content) => {
                 expect(content.body.toString()).to.equal("23");
                 return { mediaType: "application/json", body: new Buffer("42") };
             }
         )
 
-        // JSON.stringify(myThingDesc)
-        WoTClientTest.WoT.fetch("data://" + "tdFoo")
+        WoTClientTest.WoT.fetch("td://foo")
             .then((td) => {
                 let thing = WoTClientTest.WoT.consume(td);
                 expect(thing).to.have.property("name").that.equals("aThing");
+                expect(thing).to.have.property("actions").that.has.property("anAction");
                 return thing.actions.anAction.run(23);
             })
             .then((result) => {
                 expect(result).not.to.be.null;
                 expect(result).to.equal(42);
                 done();
+            })
+            .catch(err => { done(err) });
+    }
+
+    @test "subscribe to event"(done: Function) {
+        
+        WoTClientTest.clientFactory.setTrap(
+            () => {
+                return { mediaType: "application/json", body: new Buffer("triggered") };
+            }
+        )
+
+        WoTClientTest.WoT.fetch("td://foo")
+            .then((td) => {
+                let thing = WoTClientTest.WoT.consume(td);
+                expect(thing).to.have.property("name").that.equals("aThing");
+                expect(thing).to.have.property("events").that.has.property("anEvent");
+                thing.events.anEvent.subscribe(
+                    (x: any) => {
+                        expect(x).to.equal("triggered");
+                    },
+                    (e: any) => {
+                        done(e);
+                    },
+                    () => {
+                        done();
+                    }
+                );
             })
             .catch(err => { done(err) });
     }
