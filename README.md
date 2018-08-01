@@ -1,7 +1,6 @@
 # Eclipse Thingweb node-wot
 W3C Web of Things implementation on NodeJS
 
-Build:
 [![Build Status](https://travis-ci.org/eclipse/thingweb.node-wot.svg?branch=master)](https://travis-ci.org/eclipse/thingweb.node-wot)
 
 ## License
@@ -82,6 +81,9 @@ sudo npm link wot-typescript-definitions
 
 ## Trouble shooting
 
+* Build error around `node-aead-crypto`
+   * node-gyp has been seen failing on MacOS
+   * try node 10+, which does not require the crypto polyfill
 * `sudo npm run link` does not work
    * try `npm run unlock` before calling `[sudo] npm run link`
    * try `npm link` in each package directory in this order: td-tools, core, binding-\*, cli, demo-servients
