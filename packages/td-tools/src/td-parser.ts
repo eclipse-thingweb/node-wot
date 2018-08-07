@@ -27,13 +27,17 @@ export function parseTD(td: string, normalize?: boolean): Thing {
   // apply defaults as per WoT Thing Description spec
 
   if (thing["@context"] === undefined) {
-    thing["@context"] = TD.DEFAULT_HTTPS_CONTEXT;
+    thing["@context"] = TD.DEFAULT_HTTP_CONTEXT;
   } else if (Array.isArray(thing["@context"])) {
     let semContext: Array<string> = thing["@context"];
-    if ( (semContext.indexOf(TD.DEFAULT_HTTPS_CONTEXT) === -1) &&
-         (semContext.indexOf(TD.DEFAULT_HTTP_CONTEXT) === -1) ) {
+    if ((semContext.indexOf(TD.DEFAULT_HTTPS_CONTEXT) === -1) &&
+      (semContext.indexOf(TD.DEFAULT_HTTP_CONTEXT) === -1) &&
+      // keep compatibility for "old" context URI for now
+      (semContext.indexOf("http://w3c.github.io/wot/w3c-wot-td-context.jsonld") === -1) &&
+      (semContext.indexOf("https://w3c.github.io/wot/w3c-wot-td-context.jsonld") === -1)
+    ) {
       // insert last
-      semContext.push(TD.DEFAULT_HTTPS_CONTEXT);
+      semContext.push(TD.DEFAULT_HTTP_CONTEXT);
     }
   }
 
@@ -86,7 +90,7 @@ export function parseTD(td: string, normalize?: boolean): Thing {
       // ensure forms mandatory forms field
       if (!thing[pattern][interaction].hasOwnProperty("forms")) throw new Error(`${interactionPatterns[pattern]} '${interaction}' has no forms field`);
       // ensure array structure internally
-      if (!Array.isArray(thing[pattern][interaction].forms)) thing[pattern][interaction].forms = [ thing[pattern][interaction].forms ];
+      if (!Array.isArray(thing[pattern][interaction].forms)) thing[pattern][interaction].forms = [thing[pattern][interaction].forms];
       for (let form of thing[pattern][interaction].forms) {
         // ensure mandatory href field
         if (!form.hasOwnProperty("href")) throw new Error(`Form of ${interactionPatterns[pattern]} '${interaction}' has no href field`);
@@ -99,7 +103,7 @@ export function parseTD(td: string, normalize?: boolean): Thing {
   }
 
   if (thing.hasOwnProperty("base")) {
-    if (normalize===undefined || normalize===true) {
+    if (normalize === undefined || normalize === true) {
       console.log(`parseTD() normalizing 'base' into 'forms'`);
 
       const url = require('url');

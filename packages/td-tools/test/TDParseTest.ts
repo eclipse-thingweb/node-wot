@@ -328,7 +328,7 @@ class TDParserTest {
   @test "should parse the example from Current Practices"() {
     let thing: Thing = TDParser.parseTD(tdSample1);
 
-    expect(thing).to.have.property("@context").that.equals("https://w3c.github.io/wot/w3c-wot-td-context.jsonld");
+    expect(thing).to.have.property("@context").that.equals("http://www.w3.org/ns/td");
     expect(thing).to.have.property("@type").that.equals("Thing");
     expect(thing).to.have.property("name").that.equals("MyTemperatureThing");
     expect(thing).to.not.have.property("base");
