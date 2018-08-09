@@ -11,7 +11,7 @@
         "port": 5683
     },
     "mqtt" : {
-        "host" : "mqtt://test.mosquitto.org",
+        "_broker" : "mqtt://test.mosquitto.org",
         "port": 1883 
     },
     "log": {

@@ -50,10 +50,9 @@ export default class HttpServer implements ProtocolServer {
 
   public addResource(path: string, res: ResourceListener): boolean {
     if (this.resources[path] !== undefined) {
-      console.warn(`HttpServer on port ${this.getPort()} already has ResourceListener '${path}' - skipping`);
+      console.warn(`HttpServer on port ${this.getPort()} already has resource '${path}' - skipping`);
       return false;
     } else {
-      // TODO debug-level
       console.log(`HttpServer on port ${this.getPort()} adding resource '${path}'`);
       this.resources[path] = res;
       return true;
@@ -61,7 +60,6 @@ export default class HttpServer implements ProtocolServer {
   }
 
   public removeResource(path: string): boolean {
-    // TODO debug-level
     console.log(`HttpServer on port ${this.getPort()} removing resource '${path}'`);
     return delete this.resources[path];
   }
