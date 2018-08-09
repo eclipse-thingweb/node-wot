@@ -53,7 +53,7 @@ export default class MqttClient implements ProtocolClient {
         this.client.on('message', (receivedTopic : string, payload : string, packet: IPublishPacket) => {
             console.log("Received MQTT message (topic, data): (" + receivedTopic + ", "+ payload + ")");
             if (receivedTopic === topic) {
-                let content = new CS.Content(mediaType, new Buffer(payload));
+                let content = new CS.Content(mediaType, Buffer.from(payload));
                 next({ mediaType: mediaType, body: payload });
             }
         })
@@ -99,7 +99,7 @@ export default class MqttClient implements ProtocolClient {
             this.client.publish(topic, content.body)
 
             // there will bo no response
-            resolve({ mediaType: CS.ContentSerdes.DEFAULT, body: new Buffer("") });
+            resolve({ mediaType: CS.ContentSerdes.DEFAULT, body: Buffer.from("") });
 
         });
     }
@@ -130,7 +130,7 @@ export default class MqttClient implements ProtocolClient {
         let security: WoT.Security = metadata[0];
       
         if (security.scheme === "basic") {
-            //this.authorization = "Basic " + new Buffer(credentials.username + ":" + credentials.password).toString('base64');
+            //this.authorization = "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString('base64');
           //  this.user = mqtt.username;
         }
         return true;

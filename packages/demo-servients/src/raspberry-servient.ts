@@ -239,7 +239,7 @@ function setBrightness(val: number) {
     console.error('not connected');
     return;
   }
-  client.write(new Buffer([0, val, 3]));
+  client.write(Buffer.from([0, val, 3]));
 }
 
 function setPixel(x: number, y: number, r: number, g: number, b: number) {
@@ -247,7 +247,7 @@ function setPixel(x: number, y: number, r: number, g: number, b: number) {
     console.error('not connected');
     return;
   }
-  client.write(new Buffer([1, x, y, g, r, b]));
+  client.write(Buffer.from([1, x, y, g, r, b]));
 }
 
 function show() {
@@ -255,7 +255,7 @@ function show() {
     console.error('not connected');
     return;
   }
-  client.write(new Buffer([3]));
+  client.write(Buffer.from([3]));
 }
 
 function setAll(r: number, g: number, b: number) {
@@ -270,6 +270,6 @@ function setAll(r: number, g: number, b: number) {
     all.push(b);
   }
   all.push(3);
-  client.write(new Buffer(all));
+  client.write(Buffer.from(all));
 }
 

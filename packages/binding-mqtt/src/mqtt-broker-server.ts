@@ -92,7 +92,7 @@ export default class MqttBrokerServer implements ProtocolServer {
                     if (receivedTopic === path) {
 
                         // TODO mediaType handling here
-                        res.onInvoke({ mediaType: "application/json", body: new Buffer(payload) })
+                        res.onInvoke({ mediaType: "application/json", body: Buffer.from(payload) })
                         .then(content => {
                             // Actions have a void return (no output)                            
                           })
