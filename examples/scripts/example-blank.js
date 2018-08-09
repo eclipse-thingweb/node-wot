@@ -41,17 +41,17 @@ try {
     "reset",
     () => {
       console.log("Resetting maximum");
-      return thing.properties.max.set(0.0);
+      return thing.properties.max.write(0.0);
     });
   
   thing.expose();
   
   setInterval( async () => {
     let mock = Math.random()*100;
-    thing.properties.temperature.set(mock);
-    let old = await thing.properties.max.get();
+    thing.properties.temperature.write(mock);
+    let old = await thing.properties.max.read();
     if (old < mock) {
-      thing.properties.max.set(mock);
+      thing.properties.max.write(mock);
       thing.events.onchange.emit();
     }
   }, 1000);

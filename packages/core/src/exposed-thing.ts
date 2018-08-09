@@ -14,7 +14,9 @@
  ********************************************************************************/
 
 import * as WoT from "wot-typescript-definitions";
+
 import { Subject } from "rxjs/Subject";
+import { Subscription } from "rxjs/Subscription";
 
 import * as TD from "@node-wot/td-tools";
 
@@ -29,12 +31,12 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 
     //private restListeners: Map<string, ResourceListener> = new Map<string, ResourceListener>();
 
-    /** A map of interactable Thing Properties with get()/set() functions */
+    /** A map of interactable Thing Properties with read()/write()/subscribe() functions */
     properties: {
         [key: string]: WoT.ThingProperty
     };
 
-    /** A map of interactable Thing Actions with run() function */
+    /** A map of interactable Thing Actions with invoke() function */
     actions: {
         [key: string]: WoT.ThingAction;
     }
@@ -72,24 +74,22 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         }
     }
 
-    // setter for ThingTemplate properties
+    // setter for ThingTemplate fields
     public set(name: string, value: any): void {
-        // TODO shall we do some sanity check to avoid setting internal values that are needed et cetera
+        // TODO setter only makes sense if we do something here
+        console.log(`ExposedThing '${this.name}' setting field '${name}' to '${value}'`);
         this[name] = value;
     }
 
     public getThingDescription(): WoT.ThingDescription {
-        // TODO strip out internals
         return TD.serializeTD(TDGenerator.generateTD(this, this.getServient()));
     }
 
     private addResourceListener(path: string, resourceListener: ResourceListener) {
-        //this.restListeners.set(path, resourceListener);
         this.getServient().addResourceListener(path, resourceListener);
     }
 
     private removeResourceListener(path: string) {
-        //this.restListeners.delete(path);
         this.getServient().removeResourceListener(path);
     }
 
@@ -131,12 +131,12 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         this.properties[name] = newProp;
 
         if (init !== undefined) {
-            newProp.set(init);
+            newProp.write(init);
         }
         // TODO: drop this variant
         else if (newProp.value !== undefined) {
             console.warn(`ExposedThing '${this.name}' received init value '${newProp.value}' in template for '${name}'`);
-            newProp.set(newProp.value);
+            newProp.write(newProp.value);
             delete newProp.value;
         } 
 
@@ -257,7 +257,6 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         } else {
             throw Error(`ExposedThing '${this.name}' cannot set action handler for unknown '${actionName}'`);
         }
-
         return this;
     }
 }
@@ -279,10 +278,14 @@ class ExposedThingProperty extends TD.PropertyFragment implements WoT.ThingPrope
             state: PropertyState = new PropertyState();
             getInternalState = () => { return this.state };
         }).getInternalState;
+
+        // apply defaults
+        this.writable = false;
+        this.observable = false;
     }
 
-    // implementing WoT.ThingProperty interface
-    get(): Promise<any> {
+    /** WoT.ThingProperty interface: read this Property locally (async) */
+    public read(): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             // call read handler (if any)
             if (this.getState().readHandler != null) {
@@ -298,21 +301,35 @@ class ExposedThingProperty extends TD.PropertyFragment implements WoT.ThingPrope
             }
         });
     }
-    set(value: any): Promise<void> {
+
+    /** WoT.ThingProperty interface: write this Property locally (async) */
+    public write(value: any): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             // call write handler (if any)
             if (this.getState().writeHandler != null) {
                 console.log(`ExposedThing '${this.getThing().name}' calls registered writeHandler for Property '${this.getName()}'`);
                 this.getState().writeHandler(value).then((customValue) => {
+                    /** notify state change */
+                    if (this.getState().value!==customValue) {
+                        this.getState().subject.next(customValue);
+                    }
                     this.getState().value = customValue;
                     resolve();
                 });
             } else {
                 console.log(`ExposedThing '${this.getThing().name}' sets internal value '${value}' for Property '${this.getName()}'`);
+                /** notify state change */
+                if (this.getState().value!==value) {
+                    this.getState().subject.next(value);
+                }
                 this.getState().value = value;
                 resolve();
             }
         });
+    }
+
+    public subscribe(next?: (value: any) => void, error?: (error: any) => void, complete?: () => void): Subscription {
+        return this.getState().subject.asObservable().subscribe(next, error, complete);
     }
 }
 
@@ -334,7 +351,8 @@ class ExposedThingAction extends TD.ActionFragment implements WoT.ThingAction {
         }).getInternalState;
     }
 
-    run(parameter?: any): Promise<any> {
+    /** WoT.ThingAction interface: invoke this Action locally (async) */
+    public invoke(parameter?: any): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             console.debug(`ExposedThing '${this.getThing().name}' has Action state of '${this.getName()}':`, this.getState());
 
@@ -365,7 +383,15 @@ class ExposedThingEvent extends TD.EventFragment implements WoT.ThingEvent, WoT.
             getInternalState = () => { return this.state };
         }).getInternalState;
     }
-    emit(data?: any): void {
+
+    /** WoT.ThingEvent interface: subscribe to this Event locally */
+    public subscribe(next?: (value: any) => void, error?: (error: any) => void, complete?: () => void): Subscription {
+        return this.getState().subject.asObservable().subscribe(next, error, complete);
+    }
+
+    // FIXME maybe move
+    /** WoT.ThingEvent interface: emit a new Event instance */
+    public emit(data?: any): void {
         let content;
         if (data!==undefined) {
             content = ContentSerdes.get().valueToContent(data);
@@ -376,6 +402,7 @@ class ExposedThingEvent extends TD.EventFragment implements WoT.ThingEvent, WoT.
 
 class PropertyState {
     public value: any;
+    public subject: Subject<Content>;
     public scope: Object;
 
     public readHandler: WoT.PropertyReadHandler;
@@ -383,6 +410,7 @@ class PropertyState {
 
     constructor(value: any = null) {
         this.value = value;
+        this.subject = new Subject<Content>();
         this.scope = {};        
         this.writeHandler = null;
         this.readHandler = null;
@@ -406,5 +434,3 @@ class EventState {
         this.subject = new Subject<Content>();
     }
 }
-
-

@@ -44,16 +44,16 @@ try {
             x => {
                 console.info("value:", x);
             },
-            e => console.log("onError: %s", e),
+            e => console.error("onError: %s", e),
             () => {
-                console.log("onCompleted");
+                console.info("onCompleted");
             }
         );
     console.info("Subscribed");
 
 
     setInterval( async () => {
-        source.actions.resetCounter.run("").then( (res) => {
+        source.actions.resetCounter.invoke().then( (res) => {
 
         }).catch( (err) => {
             console.error("ResetCounter error:", err.message);
@@ -64,5 +64,5 @@ try {
 
 
 } catch(err) {
-    console.log("Script error: " + err);
+    console.error("Script error: " + err);
   }
