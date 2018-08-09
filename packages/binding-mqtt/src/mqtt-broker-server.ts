@@ -29,26 +29,28 @@ export default class MqttBrokerServer implements ProtocolServer {
     readonly scheme: string = 'mqtt';
 
     private port: number = -1;
+    private address: string = undefined;
 
     private user: string = undefined; // in the case usesername is required to connect the broker
 
     private psw: string = undefined; // in the case password is required to connect the broker
 
-    private address: string = undefined;
+    private brokerURI: string = undefined;
 
     private readonly resources: { [key: string]: ResourceListener } = {};
 
     private broker: any;
 
-    constructor(address: string, user?: string, psw?: string) {
-        if (address !== undefined) {
+    constructor(uri: string, user?: string, psw?: string) {
+        if (uri !== undefined) {
 
             //if there is a MQTT protocol identicator missing, add this
-            if (address.indexOf("://") == -1) {
-                address = this.scheme + "://" + address;
+            if (uri.indexOf("://") == -1) {
+                uri = this.scheme + "://" + uri;
             }
-            this.address = address;
+            this.brokerURI = uri;
         }
+
         if (user !== undefined) {
             this.user = user;
         }
@@ -57,15 +59,15 @@ export default class MqttBrokerServer implements ProtocolServer {
         }
     }
 
-    public addResource = (path: string, res: ResourceListener): boolean => {
+    public addResource(path: string, res: ResourceListener): boolean {
         
         if (this.broker === undefined) return false;
 
         if (this.resources[path] !== undefined) {
-            console.warn(`MqttBrokerServer at ${this.address} already has resource '${path}' - skipping`);
+            console.warn(`MqttBrokerServer at ${this.brokerURI} already has resource '${path}' - skipping`);
             return false;
         } else {
-            console.log(`MqttBrokerServer at ${this.address} adding resource '${path}'`);
+            console.log(`MqttBrokerServer at ${this.brokerURI} adding resource '${path}'`);
             this.resources[path] = res;
 
             if (res instanceof EventResourceListener) {
@@ -73,7 +75,7 @@ export default class MqttBrokerServer implements ProtocolServer {
                 let subscription = res.subscribe({
                     next: (content) => {
                         // send event data
-                        console.log(`MqttBrokerServer at ${this.address} publishing to topic '${path}'`);
+                        console.log(`MqttBrokerServer at ${this.brokerURI} publishing to topic '${path}'`);
                         this.broker.publish(path, content.body)
                     }
                     //TODO: when to complete?,
@@ -107,44 +109,47 @@ export default class MqttBrokerServer implements ProtocolServer {
         }
     }
 
-    public removeResource = (path: string): boolean => {
-        console.log(`MqttBrokerServer at ${this.address} removing resource '${path}'`);
+    public removeResource(path: string): boolean {
+        console.log(`MqttBrokerServer at ${this.brokerURI} removing resource '${path}'`);
         return delete this.resources[path];
     }
 
-    public start = (): Promise<void> => {
+    public start(): Promise<void> {
         return new Promise<void>((resolve, reject) => {
 
-            if (this.address === undefined) {
+            if (this.brokerURI === undefined) {
                 console.warn(`No broker defined for MQTT server binding - skipping`);
                 resolve();
             }
 
-            this.broker.on('connect', function () {
-                console.log(`MqttBrokerServer connected to broker at ${this.address}`);
-                let port = parseInt(url.parse(this.address).port);
+            // try to connect to the broker without or with credentials
+            if (this.psw == undefined) {
+                console.info(`MqttBrokerServer trying to connect to broker at ${this.brokerURI}`);
+                // TODO test if mqtt extracts port from passed URI (this.address)
+                this.broker = mqtt.connect(this.brokerURI);
+            } else {
+                console.info(`MqttBrokerServer trying to connect to secured broker at ${this.brokerURI}`);
+                // TODO test if mqtt extracts port from passed URI (this.address)
+                this.broker = mqtt.connect({ host: this.brokerURI }, { username: this.user, password: this.psw });
+            }
+
+            this.broker.on("connect", () => {
+                console.log(`MqttBrokerServer connected to broker at ${this.brokerURI}`);
+
+                let parsed = url.parse(this.brokerURI);
+                this.address = parsed.hostname;
+                let port = parseInt(parsed.port);
                 this.port = port>0 ? port : 1883;
                 resolve();
             });
-            this.broker.on('error', (error: Error) => {
-                console.error(`MqttBrokerServer could not connect to broker at ${this.address}`);
+            this.broker.on("error", (error: Error) => {
+                console.error(`MqttBrokerServer could not connect to broker at ${this.brokerURI}`);
                 reject(error);
             });
-
-            // try to connect to the broker without or with credentials
-            if (this.psw == undefined) {
-                console.info(`MqttBrokerServer trying to connect to broker at ${(this.address)}`);
-                // TODO test if mqtt extracts port from passed URI (this.address)
-                this.broker = mqtt.connect(this.address);
-            } else {
-                console.info(`MqttBrokerServer trying to connect to secured broker at ${this.address}`);
-                // TODO test if mqtt extracts port from passed URI (this.address)
-                this.broker = mqtt.connect({ host: this.address }, { username: this.user, password: this.psw });
-            }
         });
     }
 
-    public stop = (): Promise<void> => {
+    public stop(): Promise<void> {
         return new Promise<void>((resolve, reject) => {
 
             if (this.broker === undefined) resolve();
@@ -153,13 +158,11 @@ export default class MqttBrokerServer implements ProtocolServer {
         });
     }
 
-    public getPort = (): number => {
+    public getPort(): number {
         return this.port;
     }
 
-    public getAddress = (): string => {
-
-        // replace protocol information and return only the address value
-        return this.address.replace(this.scheme + "://", "");
+    public getAddress(): string {
+        return this.address;
     }
 }

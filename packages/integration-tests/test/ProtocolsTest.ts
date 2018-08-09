@@ -34,7 +34,7 @@ const coap = require("coap");
 @suite("Multi-protcol implementation")
 class ProtocolsTest {
 
-    @test "should work cross-protocol"(done : Function) {
+    @test "should work cross-protocol"(done: Function) {
         let httpServer = new HttpServer(0);
         let coapServer = new CoapServer(0);
 
