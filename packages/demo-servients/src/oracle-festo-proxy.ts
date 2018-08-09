@@ -68,49 +68,49 @@ servient.start().then(async (WoT) => {
   let S112 = WoT.consume(tdS112); // overflow102
 
   setInterval( () => {
-    PumpP101.properties.Status.get()
+    PumpP101.properties.Status.read()
       .then( value => {
         console.info("+++ PumpStatus " + value);
-        thing.properties.PumpStatus.set(value==="ON"?true:false);
+        thing.properties.PumpStatus.write(value==="ON"?true:false);
       })
       .catch( err => { console.error("+++ PumpStatus read error: " + err); });
 
-    ValveV102.properties.Status.get()
+    ValveV102.properties.Status.read()
       .then( value => {
         console.info("+++ ValveStatus " + value);
-        thing.properties.ValveStatus.set(value==="OPEN"?true:false);
+        thing.properties.ValveStatus.write(value==="OPEN"?true:false);
       })
       .catch( err => { console.error("+++ ValveStatus read error: " + err); });
 
-    UltrasonicSensorB101.properties.level.get()
+    UltrasonicSensorB101.properties.level.read()
       .then( value => {
         console.info("+++ Tank102LevelValue " + value);
-        thing.properties.Tank102LevelValue.set(value);
+        thing.properties.Tank102LevelValue.write(value);
       })
       .catch( err => { console.error("+++ Tank102LevelValue read error: " + err); });
-    S112.properties.overflow102.get()
+    S112.properties.overflow102.read()
     .then( value => {
       console.info("+++ Tank102OverflowStatus " + value);
-      thing.properties.Tank102OverflowStatus.set(value);
+      thing.properties.Tank102OverflowStatus.write(value);
     })
     .catch( err => { console.error("+++ Tank102OverflowStatus read error: " + err); });
 
-    B114.properties.maxlevel101.get()
+    B114.properties.maxlevel101.read()
       .then( value => {
         console.info("+++ Tank101MaximumLevelStatus " + value);
-        thing.properties.Tank101MaximumLevelStatus.set(value);
+        thing.properties.Tank101MaximumLevelStatus.write(value);
       })
       .catch( err => { console.error("+++ Tank101MaximumLevelStatus read error: " + err); });
-    B113.properties.minlevel101.get()
+    B113.properties.minlevel101.read()
       .then( value => {
         console.info("+++ Tank101MinimumLevelStatus " + value);
-        thing.properties.Tank101MinimumLevelStatus.set(value);
+        thing.properties.Tank101MinimumLevelStatus.write(value);
       })
       .catch( err => { console.error("+++ Tank101MinimumLevelStatus read error: " + err); });
-    S111.properties.overflow101.get()
+    S111.properties.overflow101.read()
       .then( value => {
         console.info("+++ Tank101OverflowStatus " + value);
-        thing.properties.Tank101OverflowStatus.set(value);
+        thing.properties.Tank101OverflowStatus.write(value);
       })
       .catch( err => { console.error("+++ Tank101OverflowStatus read error: " + err); });
 
@@ -147,7 +147,7 @@ servient.start().then(async (WoT) => {
     .setActionHandler("OpenValve", () => {
         return new Promise((resolve, reject) => {
           console.warn(">>> Opening valve!");
-          ValveV102.actions.OpenPneumaticValve.run()
+          ValveV102.actions.OpenPneumaticValve.invoke()
             .catch( err => { console.error("+++ OpenValve invoke error: " + err); });
           resolve();
         });
@@ -156,7 +156,7 @@ servient.start().then(async (WoT) => {
     .setActionHandler("CloseValve", () => {
         return new Promise((resolve, reject) => {
           console.warn(">>> Closing valve!");
-          ValveV102.actions.ClosePneumaticValve.run()
+          ValveV102.actions.ClosePneumaticValve.invoke()
             .catch( err => { console.error("+++ CloseValve invoke error: " + err); });
           resolve();
         });
@@ -166,7 +166,7 @@ servient.start().then(async (WoT) => {
     .setActionHandler("StartPump", () => {
         return new Promise((resolve, reject) => {
           console.warn(">>> Startung pump!");
-          PumpP101.actions.On.run()
+          PumpP101.actions.On.invoke()
             .catch( err => { console.error("+++ StartPump invoke error: " + err); });
           resolve();
         });
@@ -175,7 +175,7 @@ servient.start().then(async (WoT) => {
     .setActionHandler("StopPump", () => {
         return new Promise((resolve, reject) => {
           console.warn(">>> Stopping pump!");
-          PumpP101.actions.Off.run()
+          PumpP101.actions.Off.invoke()
             .catch( err => { console.error("+++ StopPump invoke error: " + err); });
           resolve();
         });

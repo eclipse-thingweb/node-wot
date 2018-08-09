@@ -29,12 +29,12 @@ import { Subscription } from 'rxjs/Subscription';
 
 export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing {
 
-    /** A map of interactable Thing Properties with get()/set() functions */
+    /** A map of interactable Thing Properties with read()/write()/subscribe() functions */
     properties: {
         [key: string]: WoT.ThingProperty
     };
 
-    /** A map of interactable Thing Actions with run() function */
+    /** A map of interactable Thing Actions with invoke() function */
     actions: {
         [key: string]: WoT.ThingAction;
     }
@@ -105,29 +105,6 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
             return { client: client, form: form }
         }
     }
-
-    // onPropertyChange(name: string): Observable<any> {
-    //     if (!this.observablesPropertyChange.get(name)) {
-    //         console.log("Create propertyChange observable for " + name);
-    //         this.observablesPropertyChange.set(name, new Subject());
-    //     }
-
-    //     return this.observablesPropertyChange.get(name).asObservable();
-    // }
-
-    // onEvent(name: string): Observable<any> {
-    //     if (!this.observablesEvent.get(name)) {
-    //         console.log("Create event observable for " + name);
-    //         this.observablesEvent.set(name, new Subject());
-    //     }
-
-    //     return this.observablesEvent.get(name).asObservable();
-    // }
-
-    // onTDChange(): Observable<any> {
-    //     return this.observablesTDChange.asObservable();
-    // }
-
 }
 
 export interface ClientAndForm {
@@ -149,10 +126,10 @@ class ConsumedThingProperty extends TD.PropertyFragment implements WoT.ThingProp
         this.getThing = () => { return thing; }
     }
 
-    // get and set interface for the Property
-    get(): Promise<any> {
+    /** WoT.ThingProperty interface: read this Property of the remote Thing (async) */
+    public read(): Promise<any> {
         return new Promise<any>((resolve, reject) => {
-            // get right client
+            // TODO pass expected form rel to getClientFor()
             let { client, form } = this.getThing().getClientFor(this.forms);
             if (!client) {
                 reject(new Error(`ConsumedThing '${this.getThing().name}' did not get suitable client for ${form.href}`));
@@ -168,8 +145,11 @@ class ConsumedThingProperty extends TD.PropertyFragment implements WoT.ThingProp
             }
         });
     }
-    set(value: any): Promise<void> {
+
+    /** WoT.ThingProperty interface: write this Property of the remote Thing (async) */
+    public write(value: any): Promise<void> {
         return new Promise<void>((resolve, reject) => {
+            // TODO pass expected form rel to getClientFor()
             let { client, form } = this.getThing().getClientFor(this.forms);
             if (!client) {
                 reject(new Error(`ConsumedThing '${this.getThing().name}' did not get suitable client for ${form.href}`));
@@ -183,6 +163,12 @@ class ConsumedThingProperty extends TD.PropertyFragment implements WoT.ThingProp
                 .catch(err => { reject(err); });
             }
         });
+    }
+    
+    /** WoT.ThingProperty interface: subscribe to changes of this Property of the remote Thing */
+    public subscribe(next?: (value: any) => void, error?: (error: any) => void, complete?: () => void): Subscription {
+        // TODO pass expected form rel to getClientFor()
+        throw new Error(`Not implemented`);
     }
 }
 
@@ -200,7 +186,8 @@ class ConsumedThingAction extends TD.ActionFragment implements WoT.ThingAction {
         this.getThing = () => { return thing; }
     }
 
-    run(parameter?: any): Promise<any> {
+    /** WoT.ThingAction interface: invoke this Action on the remote Thing (async) */
+    public invoke(parameter?: any): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             let { client, form } = this.getThing().getClientFor(this.forms);
             if (!client) {
@@ -240,26 +227,27 @@ class ConsumedThingEvent extends TD.EventFragment implements Subscribable<any> {
         this.getThing = () => { return thing; }
     }
 
-    public subscribe(next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): Subscription {
+    /** WoT.ThingEvent interface: subscribe to this Event of the remote Thing */
+    public subscribe(next: (value: any) => void, error?: (error: any) => void, complete?: () => void): Subscription {
 
         let { client, form } = this.getThing().getClientFor(this.forms);
-            if (!client) {
-                error(new Error(`ConsumedThing '${this.getThing().name}' did not get suitable client for ${form.href}`));
-            } else {
-                console.log(`ConsumedThing '${this.getThing().name}' subscribing to ${form.href}`);
+        if (!client) {
+            error(new Error(`ConsumedThing '${this.getThing().name}' did not get suitable client for ${form.href}`));
+        } else {
+            console.log(`ConsumedThing '${this.getThing().name}' subscribing to ${form.href}`);
 
-                return client.subscribeResource(form,
-                    (content) => {
-                        if (!content.mediaType) content.mediaType = form.mediaType;
-                        next( ContentSerdes.contentToValue(content) );
-                    },
-                    (err) => {
-                        error(err);
-                    },
-                    () => {
-                        complete();
-                    }
-                );
-            }
+            return client.subscribeResource(form,
+                (content) => {
+                    if (!content.mediaType) content.mediaType = form.mediaType;
+                    next( ContentSerdes.contentToValue(content) );
+                },
+                (err) => {
+                    error(err);
+                },
+                () => {
+                    complete();
+                }
+            );
+        }
     }
 }

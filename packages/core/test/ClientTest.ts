@@ -35,7 +35,7 @@ class TDClient implements ProtocolClient {
 
     public readResource(form: Form): Promise<Content> {
         // Note: this is not a "real" DataClient! Instead it just reports the same TD in any case
-        let c: Content = { mediaType: "application/json", body: Buffer.from(JSON.stringify(myThingDesc)) };
+        let c: Content = { mediaType: "application/td+json", body: Buffer.from(JSON.stringify(myThingDesc)) };
         return Promise.resolve(c);
     }
 
@@ -64,6 +64,10 @@ class TDClient implements ProtocolClient {
     }
 
     public setSecurity = (metadata: any) => false;
+
+    public toString(): string {
+        return "TDClient";
+    }
 }
 
 class TDClientFactory implements ProtocolClientFactory {
@@ -152,7 +156,9 @@ class TrapClientFactory implements ProtocolClientFactory {
 let myThingDesc = {
     "@context": ["https://w3c.github.io/wot/w3c-wot-td-context.jsonld"],
     "@type": ["Thing"],
+    id: "urn:dev:wot:test-thing",
     name: "aThing",
+    security: [{ scheme: "nosec" }],
     properties: {
         aProperty: {
             type: "integer",
@@ -194,16 +200,15 @@ class WoTClientTest {
         this.servient.addClientFactory(this.clientFactory);
         this.servient.addClientFactory(new TDClientFactory());
         this.servient.start().then(myWoT => { this.WoT = myWoT; });
-
-        console.log("starting test suite");
+        console.log("started test suite");
     }
 
     static after() {
-        console.log("finishing test suite");
         this.servient.shutdown();
+        console.log("finished test suite");
     }
 
-    @test "read a value"(done: Function) {
+    @test "read a Property"(done: Function) {
         // let the client return 42
         WoTClientTest.clientFactory.setTrap(
             () => {
@@ -216,7 +221,8 @@ class WoTClientTest {
                 let thing = WoTClientTest.WoT.consume(td);
                 expect(thing).to.have.property("name").that.equals("aThing");
                 expect(thing.properties).to.have.property("aProperty");
-                return thing.properties.aProperty.get();
+
+                return thing.properties.aProperty.read();
             })
             .then((value) => {
                 expect(value).not.to.be.null;
@@ -226,7 +232,26 @@ class WoTClientTest {
             .catch(err => { done(err); });
     }
 
-    // @test "observe a value"(done: Function) {
+    @test "write a Property"(done: Function) {
+        //verify the value transmitted
+        WoTClientTest.clientFactory.setTrap(
+            (form: Form, content: Content) => {
+                expect(content.body.toString()).to.equal("23");
+            }
+        )
+
+        WoTClientTest.WoT.fetch("td://foo")
+            .then((td) => {
+                let thing = WoTClientTest.WoT.consume(td);
+                expect(thing).to.have.property("name").that.equals("aThing");
+                expect(thing).to.have.property("properties").that.has.property("aProperty");
+                return thing.properties["aProperty"].write(23);
+            })
+            .then(() => done())
+            .catch(err => { done(err) });
+    }
+
+    // @test "observe a Property"(done: Function) {
     //     // let the client return 42
     //     WoTClientTest.clientFactory.setTrap(
     //         () => {
@@ -270,25 +295,6 @@ class WoTClientTest {
     //         .catch(err => { throw err });
     // }
 
-    @test "write a value"(done: Function) {
-        //verify the value transmitted
-        WoTClientTest.clientFactory.setTrap(
-            (form: Form, content: Content) => {
-                expect(content.body.toString()).to.equal("23");
-            }
-        )
-
-        WoTClientTest.WoT.fetch("td://foo")
-            .then((td) => {
-                let thing = WoTClientTest.WoT.consume(td);
-                expect(thing).to.have.property("name").that.equals("aThing");
-                expect(thing).to.have.property("properties").that.has.property("aProperty");
-                return thing.properties["aProperty"].set(23);
-            })
-            .then(() => done())
-            .catch(err => { done(err) });
-    }
-
     @test "call an action"(done: Function) {
         //an action
         WoTClientTest.clientFactory.setTrap(
@@ -303,7 +309,7 @@ class WoTClientTest {
                 let thing = WoTClientTest.WoT.consume(td);
                 expect(thing).to.have.property("name").that.equals("aThing");
                 expect(thing).to.have.property("actions").that.has.property("anAction");
-                return thing.actions.anAction.run(23);
+                return thing.actions.anAction.invoke(23);
             })
             .then((result) => {
                 expect(result).not.to.be.null;

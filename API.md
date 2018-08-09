@@ -119,9 +119,9 @@ thing.setActionHandler(
   "increment",
   () => {
     console.log("Incrementing");
-    return thing.properties["counter"].get().then( (count) => {
+    return thing.properties.counter.read().then( (count) => {
       let value = count + 1;
-      thing.properties["counter"].set(value);
+      thing.properties.counter.write(value);
     });
   }
 );
@@ -198,70 +198,38 @@ You can access all the interactions this Thing has and interact with them.
   
   * Read the value of a Property or set of properties.
   
-  You can read the property values with the `get` method. It is an asynchronous function that will take some time to complete. So you should handle it explicitely. Here we use the await functionality of node.js.
+  You can read the property values with the `read` function. It is an asynchronous function that will take some time to complete. So you should handle it explicitely. Here we use the await functionality of node.js.
 
   ```javascript
-  let read1 = await thing.properties.count.get();
+  let read1 = await thing.properties.count.read();
   console.info("count value is", read1);
   ```
   * Set the value of a Property or a set of properties.
 
-You can write to a property by using the set method.
+You can write to a property by using the `write` function.
 
   ```javascript
-thing.properties.color.set({ r: 255, g: 255, b: 0 } );
+thing.properties.color.write({ r: 255, g: 255, b: 0 } );
   ```
   <!-- * Observe value changes of a Property. -->
 
   * Invoke an Action.
 
-  You can invoke an action by using the `run` method. It is an asynchronous function that will take some time to complete. So you should handle it explicitely. Here we use the await functionality of node.js.
+  You can invoke an action by using the `invoke` function. It is an asynchronous function that will take some time to complete. So you should handle it explicitly. Here we use the `async`/`await` functionality of NodeJS.
 
+  Declare the surrounding function as `async`, e.g., the `WoT.fetch()` resolve handler:
   ```javascript
-  await thing.actions.increment.run();
+  WoT.fetch(myURI).then( async (td) => { ...;
   ```
+
+  Use `await` to make Promises synchronous (blocking):
+  ```javascript
+  await thing.actions.increment.invoke();
+  ```
+
 <!--   * Observe Events emitted by the Thing.
   ```javascript
   ``` -->
   <!-- * Observe changes to the Thing Description of the Thing. -->
   <!-- * Get the Thing Description. -->
   <!-- * Get the list of linked resources based on the Thing Description. -->
-
-
-<!---
-### Implemented/supported
-
-* [`WoT`](https://www.w3.org/TR/2017/WD-wot-scripting-api-20170914/#the-wot-object) object
-  * `discover` :heavy_multiplication_x:
-  * `consume` :heavy_check_mark:
-  * `expose` :heavy_check_mark:
-  
-* [`ConsumedThing`](https://www.w3.org/TR/2017/WD-wot-scripting-api-20170914/#the-consumedthing-interface) interface
-  * `invokeAction` :heavy_check_mark:
-  * `setProperty` :heavy_check_mark:
-  * `getProperty` :heavy_check_mark:
-  
-  * `addListener` :heavy_multiplication_x:
-  * `removeListener` :heavy_multiplication_x:
-  * `removeAllListeners` :heavy_multiplication_x:
-  * `observe` :heavy_multiplication_x:
-
-* [`ExposedThing`](https://www.w3.org/TR/2017/WD-wot-scripting-api-20170914/#the-exposedthing-interface) interface
-  * `addProperty` :heavy_check_mark:
-  * `removeProperty` :heavy_check_mark:
-  * `addAction` :heavy_check_mark:
-  * `removeAction` :heavy_check_mark:
-  * `addEvent` :heavy_check_mark:
-  * `removeEvent` :heavy_check_mark:
-  
-  * `onRetrieveProperty` :heavy_check_mark:
-  * `onUpdateProperty` :heavy_check_mark:
-  * `onInvokeAction` :heavy_check_mark:
-  * `onObserve` :heavy_multiplication_x:
-  
-  * `register` :heavy_multiplication_x:
-  * `unregister` :heavy_multiplication_x:
-  * `start` :heavy_multiplication_x:
-  * `stop` :heavy_multiplication_x:
-  * `emitEvent` :heavy_multiplication_x:
--->

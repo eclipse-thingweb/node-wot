@@ -42,9 +42,9 @@ thing.setActionHandler(
 	NAME_ACTION_INCREMENT,
 	() => {
 		console.log("Incrementing");
-		return thing.properties[NAME_PROPERTY_COUNT].get().then( (count) => {
+		return thing.properties[NAME_PROPERTY_COUNT].read().then( (count) => {
 			let value = count + 1;
-			thing.properties[NAME_PROPERTY_COUNT].set(value);
+			thing.properties[NAME_PROPERTY_COUNT].write(value);
 		});
 	}
 );
@@ -54,9 +54,9 @@ thing.setActionHandler(
 	NAME_ACTION_DECREMENT,
 	() => {
 		console.log("Decrementing");
-		return thing.properties[NAME_PROPERTY_COUNT].get().then( (count) => {
+		return thing.properties[NAME_PROPERTY_COUNT].read().then( (count) => {
 			let value = count - 1;
-			thing.properties[NAME_PROPERTY_COUNT].set(value);
+			thing.properties[NAME_PROPERTY_COUNT].write(value);
 		});
 	}
 );
@@ -66,11 +66,11 @@ thing.setActionHandler(
 	NAME_ACTION_RESET,
 	() => {
 		console.log("Resetting");
-		thing.properties[NAME_PROPERTY_COUNT].set(0);
+		thing.properties[NAME_PROPERTY_COUNT].write(0);
 	}
 );
 
-thing.set("support", "none");
+thing["support"] = "none";
 console.info(thing.support);
 
 thing.expose();
