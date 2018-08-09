@@ -151,7 +151,7 @@ export default class HttpClient implements ProtocolClient {
         req.setHeader("Content-Length", content.body.byteLength);
       }
 
-      console.log(`HttpClient sending ${info.method} with '${req.getHeader("Content-Type")}' to ${form.href}`);
+      console.log(`HttpClient sending ${info.method} ${content ? "with '"+req.getHeader("Content-Type")+"' " : " "}to ${form.href}`);
 
       req.on("response", (res: https.IncomingMessage) => {
         console.log(`HttpClient received ${res.statusCode} from ${form.href}`);
