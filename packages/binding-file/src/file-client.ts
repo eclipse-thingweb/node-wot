@@ -52,7 +52,7 @@ export default class FileClient implements ProtocolClient {
         default:
           console.warn(`FileClient cannot determine media type of '${form.href}'`);
       }
-      resolve({ mediaType: mediaType, body: new Buffer(resource) });
+      resolve({ mediaType: mediaType, body: Buffer.from(resource) });
     });
   }
 

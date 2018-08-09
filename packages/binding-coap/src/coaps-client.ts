@@ -133,7 +133,7 @@ export default class CoapsClient implements ProtocolClient {
 
       if (metadata.proxyauthorization == "Basic") {
         this.proxyOptions.headers = {};
-        this.proxyOptions.headers['Proxy-Authorization'] = "Basic " + new Buffer(credentials.username + ":" + credentials.password).toString('base64');
+        this.proxyOptions.headers['Proxy-Authorization'] = "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString('base64');
       } else if (metadata.proxyauthorization == "Bearer") {
         this.proxyOptions.headers = {};
         this.proxyOptions.headers['Proxy-Authorization'] = "Bearer " + credentials.token;

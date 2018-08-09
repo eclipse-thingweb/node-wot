@@ -47,7 +47,7 @@ export default class HttpClient implements ProtocolClient {
       if (config.proxy.scheme === "basic") {
         if (!config.proxy.hasOwnProperty("username") || !config.proxy.hasOwnProperty("password")) console.warn(`HttpClient client configured for basic proxy auth, but no username/password given`);
         this.proxyOptions.headers = {};
-        this.proxyOptions.headers['Proxy-Authorization'] = "Basic " + new Buffer(config.proxy.username + ":" + config.proxy.password).toString('base64');
+        this.proxyOptions.headers['Proxy-Authorization'] = "Basic " + Buffer.from(config.proxy.username + ":" + config.proxy.password).toString('base64');
       } else if (config.proxy.scheme === "bearer") {
         if (!config.proxy.hasOwnProperty("token")) console.warn(`HttpClient client configured for bearer proxy auth, but no token given`);
         this.proxyOptions.headers = {};
@@ -254,7 +254,7 @@ export default class HttpClient implements ProtocolClient {
     let security: WoT.Security = metadata[0];
 
     if (security.scheme === "basic") {
-      this.authorization = "Basic " + new Buffer(credentials.username + ":" + credentials.password).toString('base64');
+      this.authorization = "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString('base64');
 
     } else if (security.scheme === "bearer") {
       // TODO get token from metadata.as (authorization server)
@@ -283,7 +283,7 @@ export default class HttpClient implements ProtocolClient {
       /*
       if (metadata.proxyauthorization == "Basic") {
         this.proxyOptions.headers = {};
-        this.proxyOptions.headers['Proxy-Authorization'] = "Basic " + new Buffer(credentials.username + ":" + credentials.password).toString('base64');
+        this.proxyOptions.headers['Proxy-Authorization'] = "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString('base64');
       } else if (metadata.proxyauthorization == "Bearer") {
         this.proxyOptions.headers = {};
         this.proxyOptions.headers['Proxy-Authorization'] = "Bearer " + credentials.token;

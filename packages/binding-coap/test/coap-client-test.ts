@@ -38,7 +38,7 @@ class TestResourceListener extends BasicResourceListener implements ResourceList
     public onRead(): Promise<Content> {
         this.referencedVector.expect = "GET";
         return new Promise<Content>(
-            (resolve, reject) => resolve({ mediaType: ContentSerdes.DEFAULT, body: new Buffer("TEST") })
+            (resolve, reject) => resolve({ mediaType: ContentSerdes.DEFAULT, body: Buffer.from("TEST") })
         );
     }
 
@@ -50,7 +50,7 @@ class TestResourceListener extends BasicResourceListener implements ResourceList
     public onInvoke(content: Content): Promise<Content> {
         this.referencedVector.expect = "POST";
         return new Promise<Content>(
-            (resolve, reject) => resolve({ mediaType: ContentSerdes.DEFAULT, body: new Buffer("TEST") })
+            (resolve, reject) => resolve({ mediaType: ContentSerdes.DEFAULT, body: Buffer.from("TEST") })
         );
     }
 
@@ -90,7 +90,7 @@ class CoapClientTest {
         representation = await client.writeResource({
             href: "coap://localhost:56833/",
             "coap:methodCode": 2 // POST
-        }, { mediaType: ContentSerdes.DEFAULT, body: new Buffer("test") });
+        }, { mediaType: ContentSerdes.DEFAULT, body: Buffer.from("test") });
         expect(testVector.expect).to.equal("POST");
         testVector.expect = "UNSET";
 
@@ -98,7 +98,7 @@ class CoapClientTest {
         representation = await client.invokeResource({
             href: "coap://localhost:56833/",
             "coap:methodCode": 3 // PUT
-        }, { mediaType: ContentSerdes.DEFAULT, body: new Buffer("test") });
+        }, { mediaType: ContentSerdes.DEFAULT, body: Buffer.from("test") });
         expect(testVector.expect).to.equal("PUT");
         testVector.expect = "UNSET";
 
@@ -106,7 +106,7 @@ class CoapClientTest {
         representation = await client.invokeResource({
             href: "coap://localhost:56833/",
             "coap:methodCode": 4 // DELETE
-        }, { mediaType: ContentSerdes.DEFAULT, body: new Buffer("test") });
+        }, { mediaType: ContentSerdes.DEFAULT, body: Buffer.from("test") });
         expect(testVector.expect).to.equal("DELETE");
         testVector.expect = "UNSET";
 

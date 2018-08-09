@@ -81,7 +81,7 @@ class JsonCodec implements ContentCodec {
     if (value !== undefined) {
       body = JSON.stringify(value);
     }
-    return new Buffer(body);
+    return Buffer.from(body);
   }
 }
 
@@ -104,7 +104,7 @@ class TextCodec implements ContentCodec {
       body = value;
     }
 
-    return new Buffer(body);
+    return Buffer.from(body);
   }
 }
 
@@ -193,7 +193,7 @@ export class ContentSerdes {
       bytes = codec.valueToBytes(value);
     } else {
       console.warn(`ContentSerdes passthrough due to unsupported serialization format '${mediaType}'`);
-      bytes = new Buffer(value);
+      bytes = Buffer.from(value);
     }
 
     return { mediaType: mediaType, body: bytes };
