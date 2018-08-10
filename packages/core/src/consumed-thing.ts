@@ -136,10 +136,13 @@ class ConsumedThingProperty extends TD.PropertyFragment implements WoT.ThingProp
             } else {
                 console.log(`ConsumedThing '${this.getThing().name}' reading ${form.href}`);
                 client.readResource(form).then((content) => {
-                    if (!content.mediaType) content.mediaType = form.mediaType;
-                    //console.log(`ConsumedThing decoding '${content.mediaType}' in readProperty`);
-                    let value = ContentSerdes.contentToValue(content);
-                    resolve(value);
+                    if (!content.contentType) content.contentType = form.mediaType;
+                    try {
+                        let value = ContentSerdes.contentToValue(content, <any>this);
+                        resolve(value);
+                    } catch {
+                        reject(new Error(`Received invalid content from Thing`));
+                    }
                 })
                 .catch(err => { reject(err); });
             }
@@ -204,8 +207,12 @@ class ConsumedThingAction extends TD.ActionFragment implements WoT.ThingAction {
                 client.invokeResource(form, input).then((output: any) => {
                     // infer media type from form if not in response metadata
                     if (!output.mediaType) output.mediaType = form.mediaType;
-                    let value = ContentSerdes.contentToValue(output);
-                    resolve(value);
+                    try {
+                        let value = ContentSerdes.contentToValue(output, this.output);
+                        resolve(value);
+                    } catch {
+                        reject(new Error(`Received invalid content from Thing`));
+                    }
                 })
                 .catch(err => { reject(err); });
             }
@@ -238,8 +245,13 @@ class ConsumedThingEvent extends TD.EventFragment implements Subscribable<any> {
 
             return client.subscribeResource(form,
                 (content) => {
-                    if (!content.mediaType) content.mediaType = form.mediaType;
-                    next( ContentSerdes.contentToValue(content) );
+                    if (!content.contentType) content.contentType = form.mediaType;
+                    try {
+                        let value = ContentSerdes.contentToValue(content, <any>this);
+                        next(value);
+                    } catch {
+                        error(new Error(`Received invalid content from Thing`));
+                    }
                 },
                 (err) => {
                     error(err);

@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import * as TD from "@node-wot/td-tools";
+import * as WoT from "wot-typescript-definitions";
 
 import {Content,ResourceListener} from "./protocol-interfaces"
 import BasicResourceListener from "./basic-resource-listener";
@@ -47,17 +47,20 @@ export default class PropertyResourceListener extends BasicResourceListener impl
             });
     }
 
-    public onWrite(input : Content) : Promise<void> {
+    public onWrite(input: Content): Promise<void> {
         let value;
         // check if writable
-        if (this.thing.properties[this.name].writable!==true) {
-            return new Promise<void>( (resolve, reject) => { reject(new Error(`Property '${this.name}' is not writable`)); });
+        if (this.thing.properties[this.name].writable !== true) {
+            return new Promise<void>((resolve, reject) => { reject(new Error(`Property '${this.name}' is not writable`)); });
         }
-        // FIXME: Better way than creating Promise only for reject in catch?
+
+        // TODO this second part should fully validate input based on this.thing.properties[this.name]
+        // FIXME Better way than creating Promise only for reject in catch?
         try {
-            value = ContentSerdes.contentToValue(input);
-        } catch(err) {
-            return new Promise<void>( (resolve, reject) => { reject(err); });
+            // FIXME cast to any not good, but WoT.DataSchema cannot be implemented...
+            value = ContentSerdes.contentToValue(input, <any>this.thing.properties[this.name]);
+        } catch (err) {
+            return new Promise<void>((resolve, reject) => { reject(err); });
         }
         // return this.thing.writeProperty(this.name, value);
         return this.thing.properties[this.name].write(value);

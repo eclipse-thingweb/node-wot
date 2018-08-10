@@ -23,11 +23,11 @@ import { Content, ResourceListener } from "./protocol-interfaces";
 export default class AssetResourceListener extends BasicResourceListener implements ResourceListener {
 
     private asset: Buffer;
-    private mediaType: string;
+    private contentType: string;
 
-    constructor(asset: string, mediaType: string = "text/plain") {
+    constructor(asset: string, contentType: string = "text/plain;charset=utf-8") {
         super();
-        this.mediaType = mediaType;
+        this.contentType = contentType;
         this.asset = Buffer.from(asset);
     }
 
@@ -38,13 +38,13 @@ export default class AssetResourceListener extends BasicResourceListener impleme
     public onRead(): Promise<Content> {
         console.log(`Reading asset`);
         return new Promise<Content>(
-            (resolve, reject) => resolve({ mediaType: this.mediaType, body: Buffer.from(this.asset) })
+            (resolve, reject) => resolve({ contentType: this.contentType, body: Buffer.from(this.asset) })
         );
     }
 
     public onWrite(content: Content): Promise<void> {
         console.log(`Writing '${content.body.toString()}' to asset`);
-        this.mediaType = content.mediaType;
+        this.contentType = content.contentType;
         this.asset = content.body;
         return new Promise<void>((resolve, reject) => resolve())
     }
@@ -52,7 +52,7 @@ export default class AssetResourceListener extends BasicResourceListener impleme
     public onInvoke(content: Content): Promise<Content> {
         console.log(`Invoking '${content.body.toString()}' on asset`);
         return new Promise<Content>(
-            (resolve, reject) => resolve({ mediaType: this.mediaType, body: Buffer.from("TODO") })
+            (resolve, reject) => resolve({ contentType: this.contentType, body: Buffer.from("TODO") })
         );
     }
 }

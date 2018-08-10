@@ -213,8 +213,9 @@ export default class OracleServer implements ProtocolServer {
           for (let resName in this.resources) {
             if (this.resources[resName] instanceof PropertyResourceListener) {
               let content = await this.resources[resName].onRead();
-              // FIXME: csl is not a low-level server and does not expect bytes
-              attributes[resName] = ContentSerdes.get().contentToValue(content);
+              // FIXME csl is not a low-level server and does not expect bytes
+              // FIXME passing null as schema currently not used, but what when it is -- how to access ThingProperty? ResourceListeners should go away..
+              attributes[resName] = ContentSerdes.get().contentToValue(content, null);
             }
           }
 
@@ -234,7 +235,7 @@ export default class OracleServer implements ProtocolServer {
         tupples.forEach( (tupple: any) => {
           if (this.resources[tupple.attribute.id] instanceof PropertyResourceListener) {
             console.warn(`### Thing has Property '${tupple.attribute.id}' for writing '${tupple.newValue}'`);
-            this.resources[tupple.attribute.id].onWrite({ mediaType: "application/json", body: tupple.newValue })
+            this.resources[tupple.attribute.id].onWrite({ contentType: "application/json", body: tupple.newValue })
               .catch( (err: any) => { console.error("Property write error: " + err) });
           }
         });
@@ -247,7 +248,7 @@ export default class OracleServer implements ProtocolServer {
           this.device[action.name].onExecute = (param: any) => {
             if (this.resources[action.name] instanceof ActionResourceListener) {
               console.warn(`### Thing has Action '${action.name}'`);
-              this.resources[action.name].onInvoke({ mediaType: "application/json", body: param })
+              this.resources[action.name].onInvoke({ contentType: "application/json", body: param })
                 .catch( (err: any) => { console.error("Action invoke error: " + err) });
               // No action results supported by Oracle
             }

@@ -21,7 +21,7 @@ import { IPublishPacket } from 'mqtt';
 import * as mqtt from 'mqtt';
 import * as url from 'url';
 
-import { ProtocolServer, ResourceListener } from "@node-wot/core";
+import { ProtocolServer, ResourceListener, ContentSerdes } from "@node-wot/core";
 import { EventResourceListener, ActionResourceListener } from "@node-wot/core";
 
 export default class MqttBrokerServer implements ProtocolServer {
@@ -94,7 +94,7 @@ export default class MqttBrokerServer implements ProtocolServer {
                     if (receivedTopic === path) {
 
                         // TODO mediaType handling here
-                        res.onInvoke({ mediaType: "application/json", body: Buffer.from(payload) })
+                        res.onInvoke({ contentType: ContentSerdes.DEFAULT, body: Buffer.from(payload) })
                             .then(content => {
                                 // Actions have a void return (no output)                            
                             })

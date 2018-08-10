@@ -44,7 +44,7 @@ export default class CoapsClient implements ProtocolClient {
       this.generateRequest(form, "get").then( (res: any) => {
         console.log(`CoapsClient received ${res.code} from ${form.href}`);
         console.debug(`CoapsClient received headers: ${JSON.stringify(res.format)}`);
-        resolve({ body: res.payload, mediaType: form.mediaType });
+        resolve({ body: res.payload, contentType: form.mediaType });
       })
       .catch( (err: any) => { reject(err) });
     });
@@ -68,7 +68,7 @@ export default class CoapsClient implements ProtocolClient {
       this.generateRequest(form, "post", content).then( (res: any) => {
         console.log(`CoapsClient received ${res.code} from ${form.href}`);
         console.debug(`CoapsClient received headers: ${JSON.stringify(res.format)}`);
-        resolve({ body: res.payload, mediaType: form.mediaType });
+        resolve({ body: res.payload, contentType: form.mediaType });
       })
       .catch( (err: any) => { reject(err) });
     });

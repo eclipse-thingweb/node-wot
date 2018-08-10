@@ -97,13 +97,13 @@ export default class HttpClient implements ProtocolClient {
 
       req.on("response", (res: https.IncomingMessage) => {
         console.log(`HttpClient received ${res.statusCode} from ${form.href}`);
-        let mediaType: string = this.getContentType(res);
+        let contentType: string = this.getContentType(res);
         //console.log(`HttpClient received Content-Type: ${mediaType}`);
         //console.log(`HttpClient received headers: ${JSON.stringify(res.headers)}`);
         let body: Array<any> = [];
         res.on('data', (data) => { body.push(data) });
         res.on('end', () => {
-          resolve({ mediaType: mediaType, body: Buffer.concat(body) });
+          resolve({ contentType: contentType, body: Buffer.concat(body) });
         });
       });
       req.on("error", (err: any) => reject(err));
@@ -117,7 +117,7 @@ export default class HttpClient implements ProtocolClient {
       let req = this.generateRequest(form, "PUT");
       let info = <any>req;
 
-      req.setHeader("Content-Type", content.mediaType);
+      req.setHeader("Content-Type", content.contentType);
       req.setHeader("Content-Length", content.body.byteLength);
 
       console.log(`HttpClient sending ${info.method} with '${req.getHeader("Content-Type")}' to ${form.href}`);
@@ -147,7 +147,7 @@ export default class HttpClient implements ProtocolClient {
       let info = <any>req;
 
       if (content) {
-        req.setHeader("Content-Type", content.mediaType);
+        req.setHeader("Content-Type", content.contentType);
         req.setHeader("Content-Length", content.body.byteLength);
       }
 
@@ -155,13 +155,12 @@ export default class HttpClient implements ProtocolClient {
 
       req.on("response", (res: https.IncomingMessage) => {
         console.log(`HttpClient received ${res.statusCode} from ${form.href}`);
-        let mediaType: string = this.getContentType(res);
-        //console.log(`HttpClient received Content-Type: ${mediaType}`);
-        //console.log(`HttpClient received headers: ${JSON.stringify(res.headers)}`);
+        let contentType: string = this.getContentType(res);
+        console.debug(`HttpClient received Content-Type: ${contentType}`);
         let body: Array<any> = [];
         res.on('data', (data) => { body.push(data) });
         res.on('end', () => {
-          resolve({ mediaType: mediaType, body: Buffer.concat(body) });
+          resolve({ contentType: contentType, body: Buffer.concat(body) });
         });
       });
       req.on("error", (err: any) => reject(err));
@@ -211,12 +210,12 @@ export default class HttpClient implements ProtocolClient {
   
       req.on("response", (res: https.IncomingMessage) => {
         console.log(`HttpClient received ${res.statusCode} from ${form.href}`);
-        let mediaType: string = this.getContentType(res);
+        let contentType: string = this.getContentType(res);
         let body: Array<any> = [];
         res.on("data", (data) => { body.push(data) });
         res.on("end", () => {
           if (active) {
-            next({ mediaType: mediaType, body: Buffer.concat(body) });
+            next({ contentType: contentType, body: Buffer.concat(body) });
             polling();
           }
         });

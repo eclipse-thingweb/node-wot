@@ -63,7 +63,7 @@ export default class WebSocketServer implements ProtocolServer {
       this.socketServers[path].on('connection', (ws) => {
         let subscription = res.subscribe({
           next: (content) => {
-            switch (content.mediaType) {
+            switch (content.contentType) {
               case "application/json":
               case "text/plain":
                 ws.send(content.body.toString());
@@ -171,14 +171,14 @@ export default class WebSocketServer implements ProtocolServer {
     let requestUri = url.parse(req.url);
     let requestHandler = this.resources[requestUri.pathname];
     let contentTypeHeader: string | string[] = req.headers["content-type"];
-    let mediaType: string = Array.isArray(contentTypeHeader) ? contentTypeHeader[0] : contentTypeHeader;
+    let contentType: string = Array.isArray(contentTypeHeader) ? contentTypeHeader[0] : contentTypeHeader;
 
     console.log(`HttpServer on port ${this.getPort()} received ${req.method} ${requestUri.pathname} from ${req.socket.remoteAddress} port ${req.socket.remotePort}`);
     
     // FIXME must be rejected with 415 Unsupported Media Type, guessing not allowed -> debug/testing flag
-    if ((req.method === "PUT" || req.method === "POST") && (!mediaType || mediaType.length == 0)) {
+    if ((req.method === "PUT" || req.method === "POST") && (!contentType || contentType.length == 0)) {
       console.warn(`HttpServer on port ${this.getPort()} got no Media Type for ${req.method}`);
-      mediaType = ContentSerdes.DEFAULT;
+      contentType = ContentSerdes.DEFAULT;
     }
 
     if (requestHandler === undefined) {
@@ -186,7 +186,7 @@ export default class WebSocketServer implements ProtocolServer {
       res.end("Not Found");
 
     } else if ( (req.method === "PUT" || req.method === "POST")
-              && ContentSerdes.get().getSupportedMediaTypes().indexOf(ContentSerdes.get().isolateMediaType(mediaType))<0) {
+              && ContentSerdes.get().getSupportedMediaTypes().indexOf(ContentSerdes.getMediaType(contentType))<0) {
       res.writeHead(415);
       res.end("Unsupported Media Type");
 
@@ -194,10 +194,10 @@ export default class WebSocketServer implements ProtocolServer {
       if (req.method === "GET" && (requestHandler.getType()==="Property" || requestHandler.getType()==="Asset" ||(requestHandler.getType()==="TD"))) {
         requestHandler.onRead()
           .then(content => {
-            if (!content.mediaType) {
+            if (!content.contentType) {
               console.warn(`HttpServer on port ${this.getPort()} got no Media Type from ${req.socket.remoteAddress} port ${req.socket.remotePort}`);
             } else {
-              res.setHeader("Content-Type", content.mediaType);
+              res.setHeader("Content-Type", content.contentType);
             }
             res.writeHead(200);
             res.end(content.body);
@@ -213,7 +213,7 @@ export default class WebSocketServer implements ProtocolServer {
         req.on("data", (data) => { body.push(data) });
         req.on("end", () => {
           console.debug(`HttpServer on port ${this.getPort()} completed body '${body}'`);
-          requestHandler.onWrite({ mediaType: mediaType, body: Buffer.concat(body) })
+          requestHandler.onWrite({ contentType: contentType, body: Buffer.concat(body) })
             .then(() => {
               res.writeHead(204);
               res.end("Changed");
@@ -230,17 +230,17 @@ export default class WebSocketServer implements ProtocolServer {
         req.on("data", (data) => { body.push(data) });
         req.on("end", () => {
           console.debug(`HttpServer on port ${this.getPort()} completed body '${body}'`);
-          requestHandler.onInvoke({ mediaType: mediaType, body: Buffer.concat(body) })
+          requestHandler.onInvoke({ contentType: contentType, body: Buffer.concat(body) })
             .then(content => {
               // Actions may have a void return (no output)
               if (content.body === null) {
                 res.writeHead(204);
                 res.end("Changed");
               } else {
-                if (!content.mediaType) {
+                if (!content.contentType) {
                   console.warn(`HttpServer on port ${this.getPort()} got no Media Type from '${requestUri.pathname}'`);
                 } else {
-                  res.setHeader('Content-Type', content.mediaType);
+                  res.setHeader('Content-Type', content.contentType);
                 }
                 res.writeHead(200);
                 res.end(content.body);

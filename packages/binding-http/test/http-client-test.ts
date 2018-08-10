@@ -38,7 +38,7 @@ class TestResourceListener extends BasicResourceListener implements ResourceList
     public onRead() : Promise<Content> {
         this.referencedVector.expect = "GET";
         return new Promise<Content>(
-            (resolve,reject) => resolve({ mediaType: ContentSerdes.DEFAULT , body: Buffer.from("TEST") })
+            (resolve,reject) => resolve({ contentType: ContentSerdes.DEFAULT , body: Buffer.from("TEST") })
         );
     }
 
@@ -50,7 +50,7 @@ class TestResourceListener extends BasicResourceListener implements ResourceList
     public onInvoke(content : Content) : Promise<Content> {
         this.referencedVector.expect = "POST";
         return new Promise<Content>(
-            (resolve,reject) => resolve({ mediaType: ContentSerdes.DEFAULT, body: Buffer.from("TEST") })
+            (resolve,reject) => resolve({ contentType: ContentSerdes.DEFAULT, body: Buffer.from("TEST") })
         );
     }
 
@@ -92,7 +92,7 @@ class HttpClientTest {
         representation = await client.writeResource({
             href: "http://localhost:60603/",
             "http:methodName": "POST"
-        }, { mediaType: ContentSerdes.DEFAULT, body: Buffer.from("test") } );
+        }, { contentType: ContentSerdes.DEFAULT, body: Buffer.from("test") } );
         expect(testVector.expect).to.equal("POST");
         testVector.expect = "UNSET";
 
@@ -100,7 +100,7 @@ class HttpClientTest {
         representation = await client.invokeResource({
             href: "http://localhost:60603/",
             "http:methodName": "PUT"
-        }, { mediaType: ContentSerdes.DEFAULT, body: Buffer.from("test") } );
+        }, { contentType: ContentSerdes.DEFAULT, body: Buffer.from("test") } );
         expect(testVector.expect).to.equal("PUT");
         testVector.expect = "UNSET";
 

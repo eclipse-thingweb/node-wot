@@ -17,12 +17,11 @@
  * Protocol test suite to test protocol implementations
  */
 
-import { ProtocolClient, Content } from '@node-wot/core';
+import { ProtocolClient, Content, ContentSerdes } from '@node-wot/core';
 import { Form } from '@node-wot/td-tools';
 import * as mqtt from 'mqtt';
 import { MqttForm, MqttQoS } from './mqtt';
 import { IPublishPacket, QoS } from 'mqtt';
-import * as CS from '../../core/dist/content-serdes';
 import * as url from 'url';
 import { Subscription } from "rxjs/Subscription";
 
@@ -38,7 +37,7 @@ export default class MqttClient implements ProtocolClient {
     public subscribeResource(form: MqttForm, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): any {
 
         // get MQTT-based metadata
-        let mediaType = form['mediaType'];
+        let contentType = form['mediaType'];
         let retain = form['mqtt:retain']; // TODO: is this needed here?
         let qos = form['mqtt:qos']; // TODO: is this needed here?
         let requestUri = url.parse(form['href']);
@@ -53,8 +52,7 @@ export default class MqttClient implements ProtocolClient {
         this.client.on('message', (receivedTopic : string, payload : string, packet: IPublishPacket) => {
             console.log("Received MQTT message (topic, data): (" + receivedTopic + ", "+ payload + ")");
             if (receivedTopic === topic) {
-                let content = new CS.Content(mediaType, Buffer.from(payload));
-                next({ mediaType: mediaType, body: payload });
+                next({ contentType: contentType, body: Buffer.from(payload) });
             }
         })
         this.client.on('error', (error :any)  => {
@@ -99,7 +97,7 @@ export default class MqttClient implements ProtocolClient {
             this.client.publish(topic, content.body)
 
             // there will bo no response
-            resolve({ mediaType: CS.ContentSerdes.DEFAULT, body: Buffer.from("") });
+            resolve({ contentType: ContentSerdes.DEFAULT, body: Buffer.from("") });
 
         });
     }
