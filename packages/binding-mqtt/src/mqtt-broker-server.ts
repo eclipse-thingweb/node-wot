@@ -78,7 +78,7 @@ export default class MqttBrokerServer implements ProtocolServer {
                         console.log(`MqttBrokerServer at ${this.brokerURI} publishing to topic '${path}'`);
                         this.broker.publish(path, content.body)
                     }
-                    //TODO: when to complete?,
+                    //TODO: when to complete?
                     //complete: () => res.
                 });
 
