@@ -16,16 +16,16 @@
 /** is a plugin for ContentSerdes for a specific format (such as JSON or EXI) */
 export interface ContentCodec {
   getMediaType(): string
-  bytesToValue(bytes: Buffer): any
+  bytesToValue(bytes: Buffer, schema: WoT.DataSchema, parameters?: string): any
   valueToBytes(value: any): Buffer
 }
 
 export class Content {
-  public mediaType: string;
+  public contentType: string;
   public body: Buffer;
 
-  constructor(mediaType: string, body: Buffer) {
-    this.mediaType = mediaType;
+  constructor(contentType: string, body: Buffer) {
+    this.contentType = contentType;
     this.body = body;
   }
 }
@@ -49,8 +49,10 @@ class JsonCodec implements ContentCodec {
     return this.subMediaType;
   }
 
-  bytesToValue(bytes: Buffer): any {
+  bytesToValue(bytes: Buffer, schema: WoT.DataSchema, parameters: string): any {
     //console.debug(`JsonCodec parsing '${bytes.toString()}'`);
+
+
     let parsed: any;
     try {
       parsed = JSON.parse(bytes.toString());
@@ -67,7 +69,11 @@ class JsonCodec implements ContentCodec {
         throw err;
       }
     }
+
+    // TODO validate using schema
+
     // remove legacy wrapping and use RFC 7159
+    // TODO remove once dropped from all PlugFest implementation
     if (parsed && parsed.value !== undefined) {
       console.warn(`JsonCodec removing { value: ... } wrapper`);
       parsed = parsed.value;
@@ -90,10 +96,14 @@ class TextCodec implements ContentCodec {
     return 'text/plain'
   }
 
-  bytesToValue(bytes: Buffer): any {
+  bytesToValue(bytes: Buffer, schema: WoT.DataSchema, parameters: string): any {
     //console.debug(`TextCodec parsing '${bytes.toString()}'`);
+    
     let parsed: any;
-    parsed = bytes.toString();
+    parsed = bytes.toString(parameters);
+
+    // TODO apply schema to convert string to real type
+
     return parsed;
   }
 
@@ -132,6 +142,17 @@ export class ContentSerdes {
     return this.instance;
   }
 
+  public static getMediaType(contentType: string): string {
+    
+    let parts = contentType.split(";");
+    return parts[0].trim();
+  }
+  public static getMediaTypeParameters(contentType: string): string {
+    
+    let parts = contentType.split(";");
+    return (parts.length === 2) ? parts[1].trim() : "";
+  }
+
   public addCodec(codec: ContentCodec) {
     ContentSerdes.get().codecs.set(codec.getMediaType(), codec);
   }
@@ -140,63 +161,56 @@ export class ContentSerdes {
     return Array.from(ContentSerdes.get().codecs.keys());
   }
 
-  public contentToValue(content: Content): any {
+  public contentToValue(content: Content, schema: WoT.DataSchema): any {
 
-    if (content.mediaType === undefined) {
+    if (content.contentType === undefined) {
       if (content.body.byteLength > 0) {
         // default to application/json
-        content.mediaType = ContentSerdes.DEFAULT;
+        content.contentType = ContentSerdes.DEFAULT;
       } else {
         // empty payload without media type -> void/undefined (note: e.g., empty payload with text/plain -> "")
         return;
       }
     }
 
-    console.debug(`ContentSerdes deserializing from ${content.mediaType}`);
+    // split into media type and parameters
+    let mt = ContentSerdes.getMediaType(content.contentType);
+    let par = ContentSerdes.getMediaTypeParameters(content.contentType);
 
     // choose codec based on mediaType
-    let isolMediaType: string = this.isolateMediaType(content.mediaType);
+    if (this.codecs.has(mt)) {
+      console.debug(`ContentSerdes deserializing from ${content.contentType}`);
 
-    if (this.codecs.has(isolMediaType)) {
-
-      let codec = this.codecs.get(isolMediaType)
+      let codec = this.codecs.get(mt)
 
       // use codec to deserialize
-      let res = codec.bytesToValue(content.body);
+      let res = codec.bytesToValue(content.body, schema, par);
 
       return res;
 
     } else {
-      console.warn(`ContentSerdes passthrough due to unsupported deserialization format '${isolMediaType}'`);
+      console.warn(`ContentSerdes passthrough due to unsupported media type '${mt}'`);
       return content.body.toString();
     }
   }
-  public isolateMediaType(mediaTypeValue: string): string {
-    let semiColumnIndex = mediaTypeValue.indexOf(';');
-    if (semiColumnIndex > 0) {
-      return mediaTypeValue.substring(0, semiColumnIndex);
-    } else {
-      return mediaTypeValue;
-    }
-  }
 
-  public valueToContent(value: any, mediaType = ContentSerdes.DEFAULT): Content {
+  public valueToContent(value: any, contentType = ContentSerdes.DEFAULT): Content {
 
     if (value === undefined) console.warn("ContentSerdes valueToContent got no value");
 
     let bytes = null;
 
     // choose codec based on mediaType
-    if (this.codecs.has(mediaType)) {
-      console.debug(`ContentSerdes serializing to ${mediaType}`);
-      let codec = this.codecs.get(mediaType);
+    if (this.codecs.has(ContentSerdes.getMediaType(contentType))) {
+      console.debug(`ContentSerdes serializing to ${contentType}`);
+      let codec = this.codecs.get(contentType);
       bytes = codec.valueToBytes(value);
     } else {
-      console.warn(`ContentSerdes passthrough due to unsupported serialization format '${mediaType}'`);
+      console.warn(`ContentSerdes passthrough due to unsupported serialization format '${contentType}'`);
       bytes = Buffer.from(value);
     }
 
-    return { mediaType: mediaType, body: bytes };
+    return { contentType: contentType, body: bytes };
   }
 }
 

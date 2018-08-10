@@ -52,8 +52,8 @@ export default class CoapClient implements ProtocolClient {
         console.log(`CoapClient received ${res.code} from ${form.href}`);
         console.debug(`CoapClient received Content-Format: ${res.headers["Content-Format"]}`);
         console.debug(`CoapClient received headers: ${JSON.stringify(res.headers)}`);
-        let mediaType = res.headers["Content-Format"];
-        resolve({ mediaType: mediaType, body: res.payload });
+        let contentType = res.headers["Content-Format"];
+        resolve({ contentType: contentType, body: res.payload });
       });
       req.on("error", (err: Error) => reject(err));
       req.end();
@@ -75,7 +75,7 @@ export default class CoapClient implements ProtocolClient {
         resolve();
       });
       req.on("error", (err: Error) => reject(err));
-      req.setOption("Content-Format", content.mediaType);
+      req.setOption("Content-Format", content.contentType);
       req.write(content.body);
       req.end();
     });
@@ -92,12 +92,12 @@ export default class CoapClient implements ProtocolClient {
         console.log(`CoapClient received ${res.code} from ${form.href}`);
         console.debug(`CoapClient received Content-Format: ${res.headers["Content-Format"]}`);
         console.debug(`CoapClient received headers: ${JSON.stringify(res.headers)}`);
-        let mediaType = res.headers["Content-Format"];
-        resolve({ mediaType: mediaType, body: res.payload });
+        let contentType = res.headers["Content-Format"];
+        resolve({ contentType: contentType, body: res.payload });
       });
       req.on("error", (err: Error) => reject(err));
       if (content) {
-        req.setOption("Content-Format", content.mediaType);
+        req.setOption("Content-Format", content.contentType);
         req.write(content.body);
       }
       req.end();

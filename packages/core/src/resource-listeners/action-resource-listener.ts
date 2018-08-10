@@ -39,18 +39,21 @@ export default class ActionResourceListener extends BasicResourceListener implem
     }
 
     public onInvoke(input: Content): Promise<Content> {
+
+        // TODO the first part should fully validate input based on this.thing.actions[this.name].input
         let param;
         // FIXME: Better way than creating Promise only for reject in catch?
         try {
-            param = ContentSerdes.contentToValue(input);
+            param = ContentSerdes.contentToValue(input, this.thing.actions[this.name].input);
         } catch(err) {
             return new Promise<Content>( (resolve, reject) => { reject(err); })
         }
+
         return this.thing.actions[this.name].invoke(param).then((output) => {
-            // TODO do assertion with this.description and spit warning?
+            // TODO? check with this.thing.actions[this.name].output and spit warning?
             if (output === undefined) {
                 // action without output - skip ContentSerdes
-                return { mediaType: null, body: null };
+                return { contentType: null, body: null };
             } else {
                 return ContentSerdes.valueToContent(output);
             }

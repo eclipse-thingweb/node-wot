@@ -60,7 +60,7 @@ export interface ProtocolServer {
 }
 
 export interface Content {
-  mediaType: string,
+  contentType: string,
   body: Buffer
 }
 

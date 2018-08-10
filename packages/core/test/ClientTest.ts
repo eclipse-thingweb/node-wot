@@ -35,7 +35,7 @@ class TDClient implements ProtocolClient {
 
     public readResource(form: Form): Promise<Content> {
         // Note: this is not a "real" DataClient! Instead it just reports the same TD in any case
-        let c: Content = { mediaType: "application/td+json", body: Buffer.from(JSON.stringify(myThingDesc)) };
+        let c: Content = { contentType: "application/td+json", body: Buffer.from(JSON.stringify(myThingDesc)) };
         return Promise.resolve(c);
     }
 
@@ -212,7 +212,7 @@ class WoTClientTest {
         // let the client return 42
         WoTClientTest.clientFactory.setTrap(
             () => {
-                return { mediaType: "application/json", body: Buffer.from("42") };
+                return { contentType: "application/json", body: Buffer.from("42") };
             }
         );
 
@@ -255,7 +255,7 @@ class WoTClientTest {
     //     // let the client return 42
     //     WoTClientTest.clientFactory.setTrap(
     //         () => {
-    //             return { mediaType: "application/json", body: Buffer.from("42") };
+    //             return { contentType: "application/json", body: Buffer.from("42") };
     //         }
     //     );
 
@@ -300,7 +300,7 @@ class WoTClientTest {
         WoTClientTest.clientFactory.setTrap(
             (form: Form, content: Content) => {
                 expect(content.body.toString()).to.equal("23");
-                return { mediaType: "application/json", body: Buffer.from("42") };
+                return { contentType: "application/json", body: Buffer.from("42") };
             }
         )
 
@@ -323,7 +323,7 @@ class WoTClientTest {
         
         WoTClientTest.clientFactory.setTrap(
             () => {
-                return { mediaType: "application/json", body: Buffer.from("triggered") };
+                return { contentType: "application/json", body: Buffer.from("triggered") };
             }
         )
 

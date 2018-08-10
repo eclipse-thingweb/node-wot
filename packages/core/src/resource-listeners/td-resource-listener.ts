@@ -36,6 +36,6 @@ export default class TDResourceListener extends BasicResourceListener implements
     }
 
     public onRead() : Promise<Content> {
-        return Promise.resolve({ mediaType: "application/td+json", body: Buffer.from(this.thing.getThingDescription()) });
+        return Promise.resolve({ contentType: "application/td+json", body: Buffer.from(this.thing.getThingDescription()) });
     }
 }

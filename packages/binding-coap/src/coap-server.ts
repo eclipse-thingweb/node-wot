@@ -18,7 +18,7 @@
  */
 
 import * as url from 'url';
-import { ProtocolServer, ResourceListener } from "@node-wot/core"
+import { ProtocolServer, ResourceListener, ContentSerdes } from "@node-wot/core"
 
 const coap = require('coap');
 
@@ -112,7 +112,7 @@ export default class CoapServer implements ProtocolServer {
     let requestUri = url.parse(req.url);
     let requestHandler = this.resources[requestUri.pathname];
     // TODO must be rejected with 4.15 Unsupported Content-Format, guessing not allowed
-    let mediaType = req.options['Content-Format'] ? req.options['Content-Format'] : 'application/json'; // ContentSerdes.DEFAULT;
+    let contentType = req.options['Content-Format'] ? req.options['Content-Format'] : ContentSerdes.DEFAULT;
 
     if (requestHandler === undefined) {
       res.code = '4.04';
@@ -122,10 +122,10 @@ export default class CoapServer implements ProtocolServer {
         requestHandler.onRead()
           .then(content => {
             res.code = '2.05';
-            if (!content.mediaType) {
+            if (!content.contentType) {
               console.warn(`CoapServer got no Media Type from '${requestUri.pathname}'`);
             } else {
-              res.setOption('Content-Format', content.mediaType);
+              res.setOption('Content-Format', content.contentType);
             }
             // finish
             res.end(content.body);
@@ -136,7 +136,7 @@ export default class CoapServer implements ProtocolServer {
             res.code = '5.00'; res.end(err.message);
           });
       } else if (req.method === 'PUT') {
-        requestHandler.onWrite({ mediaType: mediaType, body: req.payload })
+        requestHandler.onWrite({ contentType: contentType, body: req.payload })
           .then(() => {
             res.code = '2.04';
             // finish with diagnostic payload
@@ -148,17 +148,17 @@ export default class CoapServer implements ProtocolServer {
             res.code = '5.00'; res.end(err.message);
           });
       } else if (req.method === 'POST') {
-        requestHandler.onInvoke({ mediaType: mediaType, body: req.payload })
+        requestHandler.onInvoke({ contentType: contentType, body: req.payload })
           .then(content => {
             // Actions may have a void return (no output)
             if (content.body === null) {
               res.code = '2.04';
             } else {
               res.code = '2.05';
-              if (!content.mediaType) {
+              if (!content.contentType) {
                 console.warn(`CoapServer got no Media Type from '${requestUri.pathname}'`);
               } else {
-                res.setOption('Content-Format', content.mediaType);
+                res.setOption('Content-Format', content.contentType);
               }
             }
             // finish with whatever

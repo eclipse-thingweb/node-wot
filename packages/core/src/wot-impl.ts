@@ -49,9 +49,9 @@ export default class WoTImpl implements WoT.WoTFactory {
                 .then((content) => {
                     client.stop();
 
-                    if (content.mediaType !== "application/td+json" &&
-                        content.mediaType !== "application/ld+json" ) {
-                        console.warn(`WoTImpl received TD with media type '${content.mediaType}' from ${uri}`);
+                    if (content.contentType !== "application/td+json" &&
+                        content.contentType !== "application/ld+json" ) {
+                        console.warn(`WoTImpl received TD with media type '${content.contentType}' from ${uri}`);
                     }
 
                     let td = content.body.toString();
