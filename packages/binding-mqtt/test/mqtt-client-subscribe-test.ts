@@ -35,7 +35,7 @@ import MqttClientFactory from "../dist/mqtt-client-factory";
 @suite("MQTT implementation")
 class MqttClientSubscribeTest {
 
-    @test "should expose via broker"(done: Function) {
+    @test.skip "should expose via broker"(done: Function) {
 
         try {
 
@@ -76,7 +76,7 @@ class MqttClientSubscribeTest {
                     ++counter;
                     thing.events.event1.emit(counter); // sends data to the topic /TestWoTMQTT/events/event1
 
-                    if (counter===4) clearInterval(job);
+                    if (counter===3) clearInterval(job);
                 }, 100);
             });
 
