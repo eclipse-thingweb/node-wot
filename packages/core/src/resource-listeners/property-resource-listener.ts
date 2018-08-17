@@ -42,7 +42,7 @@ export default class PropertyResourceListener extends BasicResourceListener impl
         // return this.thing.readProperty(this.name)
         return this.thing.properties[this.name].read()
             .then((value) => {
-                let content = ContentSerdes.valueToContent(value);
+                let content = ContentSerdes.valueToContent(value, <any>this.thing.properties[this.name]);
                 return Promise.resolve(content);
             });
     }

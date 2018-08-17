@@ -16,8 +16,8 @@
 /** is a plugin for ContentSerdes for a specific format (such as JSON or EXI) */
 export interface ContentCodec {
   getMediaType(): string
-  bytesToValue(bytes: Buffer, schema: WoT.DataSchema, parameters?: string): any
-  valueToBytes(value: any): Buffer
+  bytesToValue(bytes: Buffer, schema: WoT.DataSchema, parameters?: {[key: string]: string}): any
+  valueToBytes(value: any, schema: WoT.DataSchema, parameters?: {[key: string]: string}): Buffer
 }
 
 export class Content {
@@ -49,7 +49,7 @@ class JsonCodec implements ContentCodec {
     return this.subMediaType;
   }
 
-  bytesToValue(bytes: Buffer, schema: WoT.DataSchema, parameters: string): any {
+  bytesToValue(bytes: Buffer, schema: WoT.DataSchema, parameters: {[key: string]: string}): any {
     //console.debug(`JsonCodec parsing '${bytes.toString()}'`);
 
 
@@ -81,7 +81,7 @@ class JsonCodec implements ContentCodec {
     return parsed;
   }
 
-  valueToBytes(value: any): Buffer {
+  valueToBytes(value: any, schema: WoT.DataSchema, parameters?: {[key: string]: string}): Buffer {
     //console.debug("JsonCodec serializing", value);
     let body = "";
     if (value !== undefined) {
@@ -96,25 +96,25 @@ class TextCodec implements ContentCodec {
     return 'text/plain'
   }
 
-  bytesToValue(bytes: Buffer, schema: WoT.DataSchema, parameters: string): any {
+  bytesToValue(bytes: Buffer, schema: WoT.DataSchema, parameters: {[key: string]: string}): any {
     //console.debug(`TextCodec parsing '${bytes.toString()}'`);
     
     let parsed: any;
-    parsed = bytes.toString(parameters);
+    parsed = bytes.toString(parameters.charset);
 
     // TODO apply schema to convert string to real type
 
     return parsed;
   }
 
-  valueToBytes(value: any): Buffer {
+  valueToBytes(value: any, schema: WoT.DataSchema, parameters?: {[key: string]: string}): Buffer {
     //console.debug(`TextCodec serializing '${value}'`);
     let body = "";
     if (value !== undefined) {
       body = value;
     }
 
-    return Buffer.from(body);
+    return Buffer.from(body, parameters.charset);
   }
 }
 
@@ -147,10 +147,23 @@ export class ContentSerdes {
     let parts = contentType.split(";");
     return parts[0].trim();
   }
-  public static getMediaTypeParameters(contentType: string): string {
-    
-    let parts = contentType.split(";");
-    return (parts.length === 2) ? parts[1].trim() : "";
+  public static getMediaTypeParameters(contentType: string): { [key: string]: string } {
+    let parts = contentType.split(";").slice(1);
+
+    // parse parameters into object
+    let params: { [key: string]: string } = {};
+    parts.forEach((p) => {
+      let eq = p.indexOf("=");
+
+      if (eq >= 0) {
+        params[p.substr(0, eq).trim()] = p.substr(eq + 1).trim();
+      } else {
+        // handle parameters without value
+        params[p.trim()] = null;
+      }
+    })
+
+    return params;
   }
 
   public addCodec(codec: ContentCodec) {
@@ -194,17 +207,21 @@ export class ContentSerdes {
     }
   }
 
-  public valueToContent(value: any, contentType = ContentSerdes.DEFAULT): Content {
+  public valueToContent(value: any, schema: WoT.DataSchema, contentType = ContentSerdes.DEFAULT): Content {
 
     if (value === undefined) console.warn("ContentSerdes valueToContent got no value");
 
     let bytes = null;
 
+    // split into media type and parameters
+    let mt = ContentSerdes.getMediaType(contentType);
+    let par = ContentSerdes.getMediaTypeParameters(contentType);
+
     // choose codec based on mediaType
-    if (this.codecs.has(ContentSerdes.getMediaType(contentType))) {
+    if (this.codecs.has(ContentSerdes.getMediaType(mt))) {
       console.debug(`ContentSerdes serializing to ${contentType}`);
-      let codec = this.codecs.get(contentType);
-      bytes = codec.valueToBytes(value);
+      let codec = this.codecs.get(mt);
+      bytes = codec.valueToBytes(value, schema, par);
     } else {
       console.warn(`ContentSerdes passthrough due to unsupported serialization format '${contentType}'`);
       bytes = Buffer.from(value);

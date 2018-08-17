@@ -158,7 +158,7 @@ class ConsumedThingProperty extends TD.PropertyFragment implements WoT.ThingProp
                 reject(new Error(`ConsumedThing '${this.getThing().name}' did not get suitable client for ${form.href}`));
             } else {
                 console.log(`ConsumedThing '${this.getThing().name}' writing ${form.href} with '${value}'`);
-                let content = ContentSerdes.valueToContent(value, form.mediaType);
+                let content = ContentSerdes.valueToContent(value, <any>this, form.mediaType);
 
                 client.writeResource(form, content).then(() => {
                     resolve();
@@ -201,7 +201,7 @@ class ConsumedThingAction extends TD.ActionFragment implements WoT.ThingAction {
                 let input;
                 
                 if (parameter!== undefined) {
-                    input = ContentSerdes.valueToContent(parameter, form.mediaType);
+                    input = ContentSerdes.valueToContent(parameter, <any>this, form.mediaType);
                 }
 
                 client.invokeResource(form, input).then((output: any) => {

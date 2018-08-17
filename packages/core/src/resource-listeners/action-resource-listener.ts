@@ -55,7 +55,7 @@ export default class ActionResourceListener extends BasicResourceListener implem
                 // action without output - skip ContentSerdes
                 return { contentType: null, body: null };
             } else {
-                return ContentSerdes.valueToContent(output);
+                return ContentSerdes.valueToContent(output, this.thing.actions[this.name].output);
             }
         });
     }
