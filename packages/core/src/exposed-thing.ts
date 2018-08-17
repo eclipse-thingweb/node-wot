@@ -394,7 +394,7 @@ class ExposedThingEvent extends TD.EventFragment implements WoT.ThingEvent, WoT.
     public emit(data?: any): void {
         let content;
         if (data!==undefined) {
-            content = ContentSerdes.get().valueToContent(data);
+            content = ContentSerdes.get().valueToContent(data, <any>this);
         }
         this.getState().subject.next(content);
     }

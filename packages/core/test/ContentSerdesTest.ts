@@ -31,7 +31,7 @@ let checkJsonToJs = (value: any): void => {
 }
 
 let checkJsToJson = (value: any): void => {
-    let jsonContent = ContentSerdes.valueToContent(value)
+    let jsonContent = ContentSerdes.valueToContent(value, { type: "object", properties: {} })
     let reparsed = JSON.parse(jsonContent.body.toString());
     expect(reparsed).to.deep.equal(value);
 }
@@ -76,7 +76,7 @@ class SerdesCodecTests {
     }
 
     @test "new codec should serialize"() {
-        ContentSerdes.valueToContent("The meaning of Life", "text/hodor").body.toString().should.equal("Hodor")
+        ContentSerdes.valueToContent("The meaning of Life", { type: "string" }, "text/hodor").body.toString().should.equal("Hodor")
     }
 
     @test "new codec should deserialize"() {
