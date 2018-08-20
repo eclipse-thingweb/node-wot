@@ -218,7 +218,7 @@ export class ContentSerdes {
     let par = ContentSerdes.getMediaTypeParameters(contentType);
 
     // choose codec based on mediaType
-    if (this.codecs.has(ContentSerdes.getMediaType(mt))) {
+    if (this.codecs.has(mt)) {
       console.debug(`ContentSerdes serializing to ${contentType}`);
       let codec = this.codecs.get(mt);
       bytes = codec.valueToBytes(value, schema, par);
