@@ -18,7 +18,7 @@
     "test"
   ],
   "devDependencies": {
-    "@types/node": "9.4.1",
+    "@types/node": "10.9.4",
     "typescript": "2.9.2"
   },
   "dependencies": {

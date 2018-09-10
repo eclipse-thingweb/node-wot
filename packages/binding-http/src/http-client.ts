@@ -95,7 +95,7 @@ export default class HttpClient implements ProtocolClient {
 
       console.log(`HttpClient sending ${info.method} to ${form.href}`);
 
-      req.on("response", (res: https.IncomingMessage) => {
+      req.on("response", (res: http.IncomingMessage) => {
         console.log(`HttpClient received ${res.statusCode} from ${form.href}`);
         let contentType: string = this.getContentType(res);
         //console.log(`HttpClient received Content-Type: ${mediaType}`);
@@ -122,7 +122,7 @@ export default class HttpClient implements ProtocolClient {
 
       console.log(`HttpClient sending ${info.method} with '${req.getHeader("Content-Type")}' to ${form.href}`);
 
-      req.on("response", (res: https.IncomingMessage) => {
+      req.on("response", (res: http.IncomingMessage) => {
         console.log(`HttpClient received ${res.statusCode} from ${form.href}`);
         //console.log(`HttpClient received headers: ${JSON.stringify(res.headers)}`);
         // Although 204 without payload is expected, data must be read 
@@ -153,7 +153,7 @@ export default class HttpClient implements ProtocolClient {
 
       console.log(`HttpClient sending ${info.method} ${content ? "with '"+req.getHeader("Content-Type")+"' " : " "}to ${form.href}`);
 
-      req.on("response", (res: https.IncomingMessage) => {
+      req.on("response", (res: http.IncomingMessage) => {
         console.log(`HttpClient received ${res.statusCode} from ${form.href}`);
         let contentType: string = this.getContentType(res);
         console.debug(`HttpClient received Content-Type: ${contentType}`);
@@ -179,7 +179,7 @@ export default class HttpClient implements ProtocolClient {
 
       console.log(`HttpClient sending ${info.method} to ${form.href}`);
 
-      req.on("response", (res: https.IncomingMessage) => {
+      req.on("response", (res: http.IncomingMessage) => {
         console.log(`HttpClient received ${res.statusCode} from ${form.href}`);
         //console.log(`HttpClient received headers: ${JSON.stringify(res.headers)}`);
         // Although 204 without payload is expected, data must be read
@@ -208,7 +208,7 @@ export default class HttpClient implements ProtocolClient {
 
       console.log(`HttpClient sending ${info.method} to ${form.href}`);
   
-      req.on("response", (res: https.IncomingMessage) => {
+      req.on("response", (res: http.IncomingMessage) => {
         console.log(`HttpClient received ${res.statusCode} from ${form.href}`);
         let contentType: string = this.getContentType(res);
         let body: Array<any> = [];

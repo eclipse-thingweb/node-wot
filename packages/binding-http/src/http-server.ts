@@ -22,6 +22,7 @@ import * as url from "url";
 
 import { ProtocolServer, ResourceListener, ContentSerdes } from "@node-wot/core";
 import { EventResourceListener } from "@node-wot/core";
+import { AddressInfo } from "net";
 
 export default class HttpServer implements ProtocolServer {
 
@@ -98,9 +99,10 @@ export default class HttpServer implements ProtocolServer {
   }
 
   public getPort(): number {
-    if (this.server.address()) {
-      return this.server.address().port;
+    if (this.server.address() && typeof this.server.address() === "object") {
+      return (<AddressInfo>this.server.address()).port;
     } else {
+      // includes typeof "string" case, which is only for unix sockets
       return -1;
     }
   }

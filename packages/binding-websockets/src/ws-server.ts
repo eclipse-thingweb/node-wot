@@ -25,6 +25,7 @@ import * as WebSocket from "ws";
 import { ProtocolServer, ResourceListener, ContentSerdes } from "@node-wot/core";
 import { EventResourceListener } from "@node-wot/core";
 import { HttpServer } from "@node-wot/binding-http";
+import { AddressInfo } from "net";
 
 export default class WebSocketServer implements ProtocolServer {
 
@@ -143,9 +144,10 @@ export default class WebSocketServer implements ProtocolServer {
   }
 
   public getPort(): number {
-    if (this.httpServer.address()) {
-      return this.httpServer.address().port;
+    if (this.httpServer.address() && typeof this.httpServer.address() === "object") {
+      return (<AddressInfo>this.httpServer.address()).port;
     } else {
+      // includes typeof "string" case, which is only for unix sockets
       return -1;
     }
   }
