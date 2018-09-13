@@ -184,29 +184,37 @@ export default class Servient {
         return this.offeredMediaTypes.slice(0);
     }
 
-    public chooseLink(links: Array<TD.Form>): string {
-        // TODO add an effective way of choosing a link
-        // @mkovatsc order of ClientFactories added could decide priority
-        return (links.length > 0) ? links[0].href : "nope://none";
+    public expose(thing: ExposedThing) {
+        console.log(`Servient exposing '${thing.name}'`);
+        this.servers.forEach( (server) => server.expose(thing));
+    }
+    
+    public addThing(thing: ExposedThing): boolean {
+
+        if (thing.id === undefined) {
+            console.warn(`Servient generating ID for '${thing.name}'`);
+            thing.id = "urn:uuid:" + require("uuid").v4();
+        }
+
+        if (!this.things.has(thing.id)) {
+            this.things.set(thing.id, thing);
+            return true;
+        } else {
+            return false;
+        }
     }
 
-    public addResourceListener(path: string, resourceListener: ResourceListener) {
-        // TODO debug-level
-        console.log(`Servient adding ${resourceListener.constructor.name} '${path}'`);
-        this.listeners.set(path, resourceListener);
-        this.servers.forEach(srv => srv.addResource(path, resourceListener));
-    }
-
-    public removeResourceListener(path: string) {
-        // TODO debug-level
-        console.log(`Servient removing ResourceListener '${path}'`);
-        this.listeners.delete(path);
-        this.servers.forEach(srv => srv.removeResource(path));
+    public getThing(name: string): ExposedThing {
+        if (this.things.has(name)) {
+            return this.things.get(name);
+        } else return null;
     }
 
     public addServer(server: ProtocolServer): boolean {
+        // add all exposed Things to new server
+        this.things.forEach((thing, id) => server.expose(thing));
+
         this.servers.push(server);
-        this.listeners.forEach((listener, path) => server.addResource(path, listener));
         return true;
     }
 
@@ -239,27 +247,6 @@ export default class Servient {
 
     public getClientSchemes(): string[] {
         return Array.from(this.clientFactories.keys());
-    }
-
-    public addThingFromTD(thing: Thing): boolean {
-        // TODO loop through all properties and add properties
-        // TODO loop through all actions and add actions
-        return false;
-    }
-
-    public addThing(thing: ExposedThing): boolean {
-        if (!this.things.has(thing.name)) {
-            this.things.set(thing.name, thing);
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public getThing(name: string): ExposedThing {
-        if (this.things.has(name)) {
-            return this.things.get(name);
-        } else return null;
     }
 
     public addCredentials(credentials: any) {

@@ -20,7 +20,7 @@
 import * as http from "http";
 import * as url from "url";
 
-import { ProtocolServer, ResourceListener, ContentSerdes } from "@node-wot/core";
+import { ProtocolServer, ResourceListener, ContentSerdes, ExposedThing, PropertyResourceListener, ActionResourceListener, TDResourceListener } from "@node-wot/core";
 import { EventResourceListener } from "@node-wot/core";
 import { AddressInfo } from "net";
 
@@ -33,6 +33,7 @@ export default class HttpServer implements ProtocolServer {
   private running: boolean = false;
   private failed: boolean = false;
 
+  private readonly thingNames: Set<string> = new Set<string>();
   private readonly resources: { [key: string]: ResourceListener } = {};
 
   constructor(port?: number, address?: string) {
@@ -48,16 +49,54 @@ export default class HttpServer implements ProtocolServer {
   public getServer(): http.Server {
     return this.server;
   }
+  
+  public expose(thing: ExposedThing): Promise<void> {
+
+    let name = thing.name;
+
+    if (this.thingNames.has(name)) {
+      let suffix = name.match(/.+_([0-9]+)$/);
+      if (suffix !== null) {
+        name = name.slice(0, -suffix[1].length) + (1+parseInt(suffix[1]));
+      } else {
+        name = name + "_2";
+      }
+    }
+
+    console.log(`HttpServer on port ${this.getPort()} exposes '${thing.name}' as unique '/${name}'`);
+    return new Promise<void>((resolve, reject) => {
+
+      // TODO clean-up on destroy
+      this.thingNames.add(name);
+      
+      // TODO more efficient routing to ExposedThing without ResourceListeners in each server
+      for (let propertyName in thing.properties) {
+        let path = "/" + encodeURIComponent(name) + "/properties/" + encodeURIComponent(propertyName);
+        let listener = new PropertyResourceListener(thing, propertyName);
+        this.addResource(path, listener);
+      }
+      for (let actionName in thing.actions) {
+        let path = "/" + encodeURIComponent(name) + "/actions/" + encodeURIComponent(actionName);
+        let listener = new ActionResourceListener(thing, actionName);
+        this.addResource(path, listener);
+      }
+      for (let eventName in thing.events) {
+        let path = "/" + encodeURIComponent(name) + "/events/" + encodeURIComponent(eventName);
+        let listener = new EventResourceListener(eventName, thing.events[eventName].getState().subject);
+        this.addResource(path, listener);
+      }
+
+      this.addResource("/" + encodeURIComponent(name), new TDResourceListener(thing));
+
+      resolve();
+    });
+  }
 
   public addResource(path: string, res: ResourceListener): boolean {
-    if (this.resources[path] !== undefined) {
-      console.warn(`HttpServer on port ${this.getPort()} already has resource '${path}' - skipping`);
-      return false;
-    } else {
-      console.log(`HttpServer on port ${this.getPort()} adding resource '${path}'`);
-      this.resources[path] = res;
-      return true;
-    }
+    console.log(`HttpServer on port ${this.getPort()} adding resource '${path}'`);
+    // path is constructed with unique Thing name
+    this.resources[path] = res;
+    return true;
   }
 
   public removeResource(path: string): boolean {

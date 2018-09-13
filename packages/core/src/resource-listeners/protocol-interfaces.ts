@@ -16,6 +16,7 @@
 import * as WoT from "wot-typescript-definitions";
 import { Form } from "@node-wot/td-tools";
 import { Subscription } from "rxjs/Subscription";
+import ExposedThing from "../exposed-thing";
 
 export interface ProtocolClient {
 
@@ -51,12 +52,11 @@ export interface ProtocolClientFactory {
 
 export interface ProtocolServer {
   readonly scheme: string;
-  addResource(path: string, res: ResourceListener): boolean;
-  removeResource(path: string): boolean;
+  expose(thing: ExposedThing): Promise<void>;
   start(): Promise<void>;
   stop(): Promise<void>;
   getPort(): number;
-  getAddress?():string; // (optional) TODO: temporary solution for MQTT. May replaced with a generic getForms() method (or similar) in the future
+  getAddress?(): string; // (optional) TODO: temporary solution for MQTT. May replaced with a generic getForms() method (or similar) in the future
 }
 
 export interface Content {

@@ -69,46 +69,46 @@ servient.start().then(async (WoT) => {
   setInterval( () => {
     PumpP101.properties.status.read()
       .then( value => {
-        console.info("+++ PumpStatus " + value);
+        console.debug("+++ PumpStatus " + value);
         thing.properties.PumpStatus.write(value==="ON" ? true : false);
       })
       .catch( err => { console.error("+++ PumpStatus read error: " + err); });
 
     ValveV102.properties.status.read()
       .then( value => {
-        console.info("+++ ValveStatus " + value);
+        console.debug("+++ ValveStatus " + value);
         thing.properties.ValveStatus.write(value==="OPEN" ? true : false);
       })
       .catch( err => { console.error("+++ ValveStatus read error: " + err); });
 
     UltrasonicSensorB101.properties.levelvalue.read()
       .then( value => {
-        console.info("+++ Tank102LevelValue " + value);
+        console.debug("+++ Tank102LevelValue " + value);
         thing.properties.Tank102LevelValue.write(value);
       })
       .catch( err => { console.error("+++ Tank102LevelValue read error: " + err); });
     FloatSwitchS112.properties.overflow102.read()
-    .then( value => {
-      console.info("+++ Tank102OverflowStatus " + value);
-      thing.properties.Tank102OverflowStatus.write(value);
-    })
-    .catch( err => { console.error("+++ Tank102OverflowStatus read error: " + err); });
+      .then( value => {
+        console.debug("+++ Tank102OverflowStatus " + value);
+        thing.properties.Tank102OverflowStatus.write(value);
+      })
+      .catch( err => { console.error("+++ Tank102OverflowStatus read error: " + err); });
 
     LevelSensorB114.properties.maxlevel101.read()
       .then( value => {
-        console.info("+++ Tank101MaximumLevelStatus " + value);
+        console.debug("+++ Tank101MaximumLevelStatus " + value);
         thing.properties.Tank101MaximumLevelStatus.write(value);
       })
       .catch( err => { console.error("+++ Tank101MaximumLevelStatus read error: " + err); });
     LevelSensorB113.properties.minlevel101.read()
       .then( value => {
-        console.info("+++ Tank101MinimumLevelStatus " + value);
+        console.debug("+++ Tank101MinimumLevelStatus " + value);
         thing.properties.Tank101MinimumLevelStatus.write(value);
       })
       .catch( err => { console.error("+++ Tank101MinimumLevelStatus read error: " + err); });
     LevelSwitchS111.properties.overflow101.read()
       .then( value => {
-        console.info("+++ Tank101OverflowStatus " + value);
+        console.debug("+++ Tank101OverflowStatus " + value);
         thing.properties.Tank101OverflowStatus.write(value);
       })
       .catch( err => { console.error("+++ Tank101OverflowStatus read error: " + err); });
@@ -119,11 +119,11 @@ servient.start().then(async (WoT) => {
 
   let thing = WoT.produce({
       name: "FestoLive",
-      "csiot:deviceModel": "urn:com:siemens:wot:festolive"
+      "iotcs:deviceModel": "urn:com:siemens:wot:festolive"
     }
   );
 
-  console.info(thing.name + " created");
+  console.info(thing.name + " produced");
 
   thing
     .addProperty("PumpStatus", { type: "boolean", writable: false }, false)
@@ -182,8 +182,8 @@ servient.start().then(async (WoT) => {
       }
     );
 
-    console.info(thing.name + " ready");
-
-    thing.expose();
+    thing.expose()
+      .then( () => { console.info(thing.name + " ready"); })
+      .catch((err) => { console.error("Expose error: " + err); });
 
 }).catch( err => { console.error("Servient start error: " + err); });

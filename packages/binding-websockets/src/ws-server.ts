@@ -22,7 +22,7 @@ import * as url from "url";
 
 import * as WebSocket from "ws";
 
-import { ProtocolServer, ResourceListener, ContentSerdes } from "@node-wot/core";
+import { ProtocolServer, ResourceListener, ContentSerdes, ExposedThing } from "@node-wot/core";
 import { EventResourceListener } from "@node-wot/core";
 import { HttpServer } from "@node-wot/binding-http";
 import { AddressInfo } from "net";
@@ -37,6 +37,7 @@ export default class WebSocketServer implements ProtocolServer {
   private running: boolean = false;
   private failed: boolean = false;
 
+  private readonly thingNames: Set<string> = new Set<string>();
   private readonly resources: { [key: string]: ResourceListener } = {};
   private readonly socketServers: { [key: string]: WebSocket.Server } = {};
 
@@ -53,44 +54,54 @@ export default class WebSocketServer implements ProtocolServer {
     }
   }
 
-  public addResource(path: string, res: ResourceListener): boolean {
-    if (this.resources[path] !== undefined) {
-      console.warn(`WebSocketServer on port ${this.getPort()} already has ResourceListener '${path}' - skipping`);
-      return false;
-    } else if (res instanceof EventResourceListener) {
-      console.debug(`WebSocketServer on port ${this.getPort()} adding resource '${path}'`);
-      this.resources[path] = res;
-      this.socketServers[path] = new WebSocket.Server({ noServer: true });
-      this.socketServers[path].on('connection', (ws) => {
-        let subscription = res.subscribe({
-          next: (content) => {
-            switch (content.contentType) {
-              case "application/json":
-              case "text/plain":
-                ws.send(content.body.toString());
-                break;
-              default:
-                ws.send(content.body);
-                break;
-            }
-          },
-          complete: () => ws.close()
-        });
-        ws.on("close", () => { subscription.unsubscribe(); });
-      });
-      return true;
-    } else {
-      console.info("WebSocketServer skips non-Event resouce");
-    }
-  }
+  public expose(thing: ExposedThing): Promise<void> {
 
-  public removeResource(path: string): boolean {
-    // TODO debug-level
-    console.log(`WebSocketServer on port ${this.getPort()} removing resource '${path}'`);
-    delete this.resources[path];
-    this.socketServers[path].close();
-    delete this.socketServers[path];
-    return true;
+    let name = thing.name;
+
+    if (this.thingNames.has(name)) {
+      let suffix = name.match(/.+_([0-9]+)$/);
+      if (suffix !== null) {
+        name = name.slice(0, -suffix[1].length) + (1+parseInt(suffix[1]));
+      } else {
+        name = name + "_2";
+      }
+    }
+
+    console.log(`WebSocketServer on port ${this.getPort()} exposes '${thing.name}' as unique '/${name}/*'`);
+    return new Promise<void>((resolve, reject) => {
+
+      // TODO clean-up on destroy
+      this.thingNames.add(name);
+      
+      // TODO more efficient routing to ExposedThing without ResourceListeners in each server
+      for (let eventName in thing.events) {
+        let path = "/" + encodeURIComponent(name) + "/events/" + encodeURIComponent(eventName);
+        let listener = new EventResourceListener(eventName, thing.events[eventName].getState().subject);
+        
+        console.debug(`WebSocketServer on port ${this.getPort()} adding resource '${path}'`);
+        this.socketServers[path] = new WebSocket.Server({ noServer: true });
+        this.socketServers[path].on('connection', (ws) => {
+          let subscription = listener.subscribe({
+            next: (content) => {
+              switch (content.contentType) {
+                case "application/json":
+                case "text/plain":
+                  ws.send(content.body.toString());
+                  break;
+                default:
+                  ws.send(content.body);
+                  break;
+              }
+            },
+            complete: () => ws.close()
+          });
+          ws.on("close", () => { subscription.unsubscribe(); });
+        });
+      }
+
+      resolve();
+    });
+
   }
 
   public start(): Promise<void> {

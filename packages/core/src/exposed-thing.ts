@@ -22,8 +22,6 @@ import * as TD from "@node-wot/td-tools";
 
 import Servient from "./servient";
 import * as TDGenerator from "./td-generator"
-import * as Rest from "./resource-listeners/all-resource-listeners";
-import { ResourceListener } from "./resource-listeners/protocol-interfaces";
 import { Content, ContentSerdes } from "./content-serdes";
 import * as Helpers from "./helpers";
 
@@ -85,30 +83,15 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         return TD.serializeTD(TDGenerator.generateTD(this, this.getServient()));
     }
 
-    private addResourceListener(path: string, resourceListener: ResourceListener) {
-        this.getServient().addResourceListener(path, resourceListener);
-    }
-
-    private removeResourceListener(path: string) {
-        this.getServient().removeResourceListener(path);
-    }
-
     /** @inheritDoc */
     expose(): Promise<void> {
-        console.log("ExposedThing '${this.name}' exposing all Interactions and TD");
-        // create state for all initial Interactions
-        for (let propertyName in this.properties) {
-            this.addResourceListener("/" + encodeURIComponent(this.name) + "/properties/" + encodeURIComponent(propertyName), new Rest.PropertyResourceListener(this, propertyName));
-        }
-        for (let actionName in this.actions) {
-            this.addResourceListener("/" + encodeURIComponent(this.name) + "/actions/" + encodeURIComponent(actionName), new Rest.ActionResourceListener(this, actionName));
-        }
-        for (let eventName in this.events) {
-            this.addResourceListener("/" + encodeURIComponent(this.name) + "/events/" + encodeURIComponent(eventName), new Rest.EventResourceListener(eventName, this.events[eventName].getState().subject));
-        }
+        console.log(`ExposedThing '${this.name}' exposing all Interactions and TD`);
 
-        // expose Thing
-        this.addResourceListener("/" + encodeURIComponent(this.name), new Rest.TDResourceListener(this));
+        // let servient forward exposure to the servers
+        this.getServient().expose(this);
+        
+        // inform TD observers
+        this.getSubjectTD().next(this.getThingDescription());
 
         return new Promise<void>((resolve, reject) => {
             resolve();
@@ -138,12 +121,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             console.warn(`ExposedThing '${this.name}' received init value '${newProp.value}' in template for '${name}'`);
             newProp.write(newProp.value);
             delete newProp.value;
-        } 
-
-        this.addResourceListener("/" + this.name + "/properties/" + name, new Rest.PropertyResourceListener(this, name));
-
-        // inform TD observers
-        this.getSubjectTD().next(this.getThingDescription());
+        }
 
         return this;
     }
@@ -156,11 +134,6 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         let newAction = Helpers.extend(action, new ExposedThingAction(name, this));
         this.actions[name] = newAction;
 
-        this.addResourceListener("/" + this.name + "/actions/" + name, new Rest.ActionResourceListener(this, name));
-
-        // inform TD observers
-        this.getSubjectTD().next(this.getThingDescription());
-
         return this;
     }
 
@@ -170,12 +143,6 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     addEvent(name: string, event: WoT.EventFragment): WoT.ExposedThing {
         let newEvent = Helpers.extend(event, new ExposedThingEvent(name, this));
         this.events[name] = newEvent;
-
-        // connection to bindings, which use ResourceListeners to subscribe/unsubscribe
-        this.addResourceListener("/" + this.name + "/events/" + name, new Rest.EventResourceListener(name, newEvent.getState().subject));
-
-        // inform TD observers
-        this.getSubjectTD().next(this.getThingDescription());
 
         return this;
     }
@@ -187,9 +154,6 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         
         delete this.properties[propertyName];
 
-        // inform TD observers
-        this.getSubjectTD().next(this.getThingDescription());
-
         return this;
     }
 
@@ -199,9 +163,6 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         // TODO: clean up state and listeners
 
         delete this.actions[actionName];
-
-        // inform TD observers
-        this.getSubjectTD().next(this.getThingDescription());
 
         return this;
     }
@@ -215,9 +176,6 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         //this.removeResourceListener(this.name + "/events/" + eventName);
 
         delete this.events[eventName];
-
-        // inform TD observers
-        this.getSubjectTD().next(this.getThingDescription());
 
         return this;
     }
