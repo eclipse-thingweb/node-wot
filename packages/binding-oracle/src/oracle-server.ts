@@ -37,14 +37,14 @@ export default class OracleServer implements ProtocolServer {
 
   // TODO remove and use hook for application script (e.g., Thing metadata)
   //private readonly hardcodedUrn: string = "urn:test:w3c-wot:testthing";
-  private readonly hardcodedUrn: string = "urn:dev:wot:siemens:festolive";
+  private readonly hardcodedUrn: string = "urn:com:siemens:wot:festolive";
   // TODO allow for dynamic Things whose device model is not registered yet (use case for .expose() function)
   private device: any;
   // TODO do not duplicate Interaction state down here -- client library design conflict
   private readonly properties: Map<string, any> = new Map<string, any>();
   private readonly actions: Map<string, any> = new Map<string, any>();
 
-  constructor(store: string = "W3CWOT-GATEWAY", password: string = "Wotf2fbj") {
+  constructor(store: string = "W3CWOT-GATEWAY", password: string = "Eclipse1") {
     this.activationId = store;
     this.server = new dcl.device.GatewayDevice(store, password);
   }

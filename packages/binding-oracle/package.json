@@ -22,8 +22,7 @@
   },
   "dependencies": {
     "@node-wot/core": "0.5.0-SNAPSHOT.8",
-    "iotcs-csl-js": "18.2.3",
-    "sqlite3": "4.0.2"
+    "iotcs-csl-js": "18.3.2"
   },
   "scripts": {
     "build": "tsc",
