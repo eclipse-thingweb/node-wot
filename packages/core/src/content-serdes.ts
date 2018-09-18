@@ -30,7 +30,7 @@ export class Content {
   }
 }
 
-
+import { OctetstreamCodec } from "./octetstream-codec";
 
 /** default implementation offerin Json de-/serialisation */
 class JsonCodec implements ContentCodec {
@@ -139,6 +139,7 @@ export class ContentSerdes {
       this.instance.addCodec(new JsonCodec(), true);
       this.instance.addCodec(new JsonCodec("application/senml+json"));
       this.instance.addCodec(new TextCodec());
+      this.instance.addCodec(new OctetstreamCodec());
     }
     return this.instance;
   }
