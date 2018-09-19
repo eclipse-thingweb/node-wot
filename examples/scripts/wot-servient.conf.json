@@ -1,5 +1,6 @@
 {
     "servient": {
+        "staticAddress": "plugfest.thingweb.io", 
         "scriptDir": ".",
         "scriptAction": true
     },

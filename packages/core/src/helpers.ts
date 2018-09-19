@@ -27,6 +27,7 @@
 
 import * as url from 'url';
 import * as os from 'os'
+import { addListener } from 'cluster';
 
 export function extractScheme(uri: string) {
   let parsed = url.parse(uri);
@@ -40,8 +41,19 @@ export function extractScheme(uri: string) {
   return scheme;
 }
 
+
+var staticAddress: string = undefined;
+export function setStaticAddress(addr: string): void {
+  staticAddress = addr;
+}
+
 export function getAddresses(): Array<string> {
   let addresses: Array<any> = [];
+
+  if (staticAddress!==undefined) {
+    addresses.push(staticAddress);
+    return addresses;
+  }
 
   let interfaces = os.networkInterfaces();
 

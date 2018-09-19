@@ -21,8 +21,6 @@ import WoTImpl from "./wot-impl";
 import ExposedThing from "./exposed-thing";
 import { ProtocolClientFactory, ProtocolServer, ResourceListener, ProtocolClient } from "./resource-listeners/protocol-interfaces"
 import { default as ContentSerdes, ContentCodec } from "./content-serdes";
-import { Thing } from "@node-wot/td-tools";
-import * as TD from "@node-wot/td-tools";
 
 export default class Servient {
     private servers: Array<ProtocolServer> = [];

@@ -109,6 +109,7 @@ wot-servient.conf.json syntax:
 {
     "servient": {
         "clientOnly": CLIENTONLY,
+        "staticAddress": STATIC,
         "scriptDir": AUTORUN,
         "scriptAction": RUNSCRIPT
     },
@@ -133,6 +134,7 @@ wot-servient.conf.json fields:
   All entries in the config file structure are optional
   ---------------------------------------------------------------------------
   CLIENTONLY : boolean setting if no servers shall be started (default=false)
+  STATIC     : string with hostname or IP literal for static address config
   AUTORUN    : string with path of directory to load at startup (default=".")
   RUNSCRIPT  : boolean to activate the 'runScript' Action (default=false)
   HPORT      : integer defining the HTTP listening port
