@@ -20,16 +20,21 @@
 
 import { ProtocolClientFactory, ProtocolClient } from "@node-wot/core"
 import CoapClient from './coap-client';
+import CoapServer from "./coap-server";
 
 export default class CoapClientFactory implements ProtocolClientFactory {
 
   public readonly scheme: string = "coap";
 
-  constructor(proxy? : string) { }
+  private readonly server: CoapServer;
+
+  constructor(server?: CoapServer) {
+    this.server = server;
+  }
 
   public getClient(): ProtocolClient {
     console.log(`CoapClientFactory creating client for '${this.scheme}'`);
-    return new CoapClient();
+    return new CoapClient(this.server);
   }
 
   public init(): boolean {

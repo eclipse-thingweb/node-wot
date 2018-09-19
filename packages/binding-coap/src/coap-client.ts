@@ -27,14 +27,17 @@ import * as WoT from "wot-typescript-definitions";
 
 import { ProtocolClient, Content } from "@node-wot/core";
 import { CoapForm, CoapRequestConfig, CoapOption } from "./coap";
+import CoapServer from "./coap-server";
+import { Socket } from "net";
 
 export default class CoapClient implements ProtocolClient {
 
   // FIXME coap Agent closes socket when no messages in flight -> new socket with every request
-  private readonly agent: any = new coap.Agent();
+  private readonly agent: any;
 
-  constructor() {
-    // Intentionally blank
+  constructor(server?: CoapServer) {
+    // if server is passed, feed its socket into the CoAP agent for socket re-use
+    this.agent = new coap.Agent(server ? { socket: server.getSocket() } : undefined);
   }
 
   public toString(): string {

@@ -69,7 +69,8 @@ export default class DefaultServient extends Servient {
 
             // optional servers based on wot-servient.conf.json
             if (this.config.coap !== undefined) {
-                let coapServer = (typeof this.config.coap.port === "number") ? new CoapServer(this.config.coap.port) : new CoapServer();
+                // var to reuse below in CoapClient
+                var coapServer = (typeof this.config.coap.port === "number") ? new CoapServer(this.config.coap.port) : new CoapServer();
                 this.addServer(coapServer);
             }
             if (this.config.mqtt !== undefined) {
@@ -81,7 +82,7 @@ export default class DefaultServient extends Servient {
         this.addClientFactory(new FileClientFactory());
         this.addClientFactory(new HttpClientFactory(this.config.http));
         this.addClientFactory(new HttpsClientFactory(this.config.http));
-        this.addClientFactory(new CoapClientFactory());
+        this.addClientFactory(new CoapClientFactory(coapServer));
         this.addClientFactory(new CoapsClientFactory());
 
         // optional clients based on wot-servient.conf.json
