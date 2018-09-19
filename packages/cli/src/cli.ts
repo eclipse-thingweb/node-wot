@@ -99,6 +99,7 @@ If one or more SCRIPT is given, these files are loaded instead of the directory.
 If the file 'wot-servient.conf.json' exists, that configuration is applied.
 
 Options:
+  -v, --version           display node-wot version
   -c, --clientonly        do not start any servers
                           (enables multiple instances without port conflicts)
   -f, --configfile=file   load configuration from specified file
@@ -143,6 +144,10 @@ wot-servient.conf.json fields:
   TOKEN      : string for providing a Bearer token
   USERNAME   : string for providing a Basic Auth username
   PASSWORD   : string for providing a Basic Auth password`);
+            process.exit(0);
+
+        } else if (arg.match(/^(-v|--version|\/c)$/i)) {
+            console.log( require('@node-wot/core/package.json').version );
             process.exit(0);
 
         } else if (arg.match(/^(-c|--clientonly|\/c)$/i)) {
