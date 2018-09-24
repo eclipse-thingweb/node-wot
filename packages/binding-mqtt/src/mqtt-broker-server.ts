@@ -62,7 +62,6 @@ export default class MqttBrokerServer implements ProtocolServer {
   public expose(thing: ExposedThing): Promise<void> {
 
     if (this.broker === undefined) {
-      console.error("MqttBrokerServer has no broker - skipping MQTT expose");
       return;
     }
 
@@ -132,32 +131,32 @@ export default class MqttBrokerServer implements ProtocolServer {
       if (this.brokerURI === undefined) {
         console.warn(`No broker defined for MQTT server binding - skipping`);
         resolve();
-      }
-
-      // try to connect to the broker without or with credentials
-      if (this.psw == undefined) {
-        console.info(`MqttBrokerServer trying to connect to broker at ${this.brokerURI}`);
-        // TODO test if mqtt extracts port from passed URI (this.address)
-        this.broker = mqtt.connect(this.brokerURI);
       } else {
-        console.info(`MqttBrokerServer trying to connect to secured broker at ${this.brokerURI}`);
-        // TODO test if mqtt extracts port from passed URI (this.address)
-        this.broker = mqtt.connect({ host: this.brokerURI }, { username: this.user, password: this.psw });
+        // try to connect to the broker without or with credentials
+        if (this.psw == undefined) {
+          console.info(`MqttBrokerServer trying to connect to broker at ${this.brokerURI}`);
+          // TODO test if mqtt extracts port from passed URI (this.address)
+          this.broker = mqtt.connect(this.brokerURI);
+        } else {
+          console.info(`MqttBrokerServer trying to connect to secured broker at ${this.brokerURI}`);
+          // TODO test if mqtt extracts port from passed URI (this.address)
+          this.broker = mqtt.connect({ host: this.brokerURI }, { username: this.user, password: this.psw });
+        }
+
+        this.broker.on("connect", () => {
+          console.log(`MqttBrokerServer connected to broker at ${this.brokerURI}`);
+
+          let parsed = url.parse(this.brokerURI);
+          this.address = parsed.hostname;
+          let port = parseInt(parsed.port);
+          this.port = port > 0 ? port : 1883;
+          resolve();
+        });
+        this.broker.on("error", (error: Error) => {
+          console.error(`MqttBrokerServer could not connect to broker at ${this.brokerURI}`);
+          reject(error);
+        });
       }
-
-      this.broker.on("connect", () => {
-        console.log(`MqttBrokerServer connected to broker at ${this.brokerURI}`);
-
-        let parsed = url.parse(this.brokerURI);
-        this.address = parsed.hostname;
-        let port = parseInt(parsed.port);
-        this.port = port > 0 ? port : 1883;
-        resolve();
-      });
-      this.broker.on("error", (error: Error) => {
-        console.error(`MqttBrokerServer could not connect to broker at ${this.brokerURI}`);
-        reject(error);
-      });
     });
   }
 
