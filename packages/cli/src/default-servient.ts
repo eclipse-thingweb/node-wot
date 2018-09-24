@@ -16,7 +16,7 @@
 // global W3C WoT Scripting API definitions
 import * as WoT from "wot-typescript-definitions";
 // node-wot implementation of W3C WoT Servient 
-import { Servient, setStaticAddress } from "@node-wot/core";
+import { Servient, Helpers } from "@node-wot/core";
 // protocols used
 import { HttpServer } from "@node-wot/binding-http";
 import { WebSocketServer } from "@node-wot/binding-websockets";
@@ -57,7 +57,7 @@ export default class DefaultServient extends Servient {
         console.info("DefaultServient configured with", config);
 
         if (typeof this.config.servient.staticAddress === "string") {
-            setStaticAddress(this.config.servient.staticAddress);
+            Helpers.setStaticAddress(this.config.servient.staticAddress);
         }
 
         if (!this.config.servient.clientOnly) {

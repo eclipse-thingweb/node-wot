@@ -21,7 +21,7 @@ import * as TD from "@node-wot/td-tools";
 import Servient from "./servient";
 import ExposedThing from "./exposed-thing";
 import ConsumedThing from "./consumed-thing";
-import * as Helpers from "./helpers";
+import Helpers from "./helpers";
 
 export default class WoTImpl implements WoT.WoTFactory {
     private srv: Servient;

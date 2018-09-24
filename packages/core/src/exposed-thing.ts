@@ -23,7 +23,7 @@ import * as TD from "@node-wot/td-tools";
 import Servient from "./servient";
 import * as TDGenerator from "./td-generator"
 import { Content, ContentSerdes } from "./content-serdes";
-import * as Helpers from "./helpers";
+import Helpers from "./helpers";
 
 export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 

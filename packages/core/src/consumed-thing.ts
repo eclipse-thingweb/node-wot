@@ -18,7 +18,7 @@ import * as WoT from "wot-typescript-definitions";
 import * as TD from "@node-wot/td-tools";
 
 import Servient from "./servient";
-import * as Helpers from "./helpers";
+import Helpers from "./helpers";
 
 import { ProtocolClient } from "./resource-listeners/protocol-interfaces";
 

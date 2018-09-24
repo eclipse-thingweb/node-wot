@@ -15,7 +15,7 @@
 
 /** Exports of this module */
 
-//Servient: is also the default export
+// Servient is also the default export
 import { default as Servient } from "./servient";
 
 export default Servient;
@@ -33,15 +33,10 @@ export * from "./content-serdes";
 // Protocols
 export * from "./resource-listeners/protocol-interfaces";
 
+// Scripting API objects
 export { default as ConsumedThing } from "./consumed-thing";
 export { default as ExposedThing } from "./exposed-thing";
 
-
-//export {ThingDescription} from 'node-wot-td-tools'
-//export * from "node-wot-td-tools";
-
 // Helper Implementations
-export * from './td-generator'
-
-// Helper Implementations
-export * from './helpers'
+export { default as Helpers } from "./helpers";
+export * from "./td-generator";

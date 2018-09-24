@@ -23,7 +23,7 @@
 import { suite, test, slow, timeout, skip, only } from "mocha-typescript";
 import { expect } from "chai";
 
-import * as Helpers from "../src/helpers";
+import Helpers from "../src/helpers";
 
 
 @suite("tests to verify the helpers")

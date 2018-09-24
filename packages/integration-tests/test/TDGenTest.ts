@@ -23,7 +23,7 @@ import { expect, should } from "chai";
 should();
 
 import { Servient, ProtocolServer } from "@node-wot/core";
-import * as Helpers from "@node-wot/core";
+import Helpers from "@node-wot/core";
 
 import * as TD from "@node-wot/td-tools";
 
