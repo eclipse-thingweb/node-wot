@@ -17,17 +17,17 @@ try {
   var thing = WoT.produce({ name: "DynamicThing" });
   // manually add Interactions
   thing
-    .addAction("addProperty")
-    .setActionHandler(
+    .addAction(
       "addProperty",
+      {},
       () => {
         console.log("Adding Property");
         thing.addProperty("dynProperty", { type: "string" }, "available");
         return new Promise((resolve, reject) => { resolve(); });
       })
-    .addAction("remProperty")
-    .setActionHandler(
+    .addAction(
       "remProperty",
+      {},
       () => {
         console.log("Removing Property");
         thing.removeProperty("dynProperty");

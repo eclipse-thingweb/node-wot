@@ -16,7 +16,8 @@
 import * as WoT from "wot-typescript-definitions";
 import { Form } from "@node-wot/td-tools";
 import { Subscription } from "rxjs/Subscription";
-import ExposedThing from "../exposed-thing";
+
+import ExposedThing from "./exposed-thing";
 
 export interface ProtocolClient {
 
@@ -56,28 +57,9 @@ export interface ProtocolServer {
   start(): Promise<void>;
   stop(): Promise<void>;
   getPort(): number;
-  getAddress?(): string; // (optional) TODO: temporary solution for MQTT. May replaced with a generic getForms() method (or similar) in the future
 }
 
 export interface Content {
   contentType: string,
   body: Buffer
-}
-
-/**
- * defines the behaviour for a Resource 
- * expected implementations are e.g. actionlistener, propertylistener etc.
- * 
- * mkovatsc: we probably need to pass around an object with Media Type info, Buffer, and maybe error code
- * mkovatsc: not sure if we need a promise here. The calls should be non-blocking IIRC
- * mkovatsc: we need some adapter that uses TD information to convert between our Scripting API valueType
- *           objects and the Buffer/mediaType. Where should this go?
- */
-export interface ResourceListener {
-  // FIXME instanceof does not work to determine type
-  getType(): string;
-  onRead(): Promise<Content>;
-  onWrite(value: Content): Promise<void>;
-  onInvoke(value: Content): Promise<Content>;
-  onUnlink(): Promise<void>;
 }

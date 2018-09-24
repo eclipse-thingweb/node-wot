@@ -21,17 +21,12 @@ import { default as Servient } from "./servient";
 export default Servient;
 export { Servient };
 
-// ResourceListener & Content
-export { ResourceListener, Content } from "./resource-listeners/protocol-interfaces";
-
-// ResourceListener Implementations
-export * from "./resource-listeners/all-resource-listeners";
-
 // ContentSerdes
 export * from "./content-serdes";
 
-// Protocols
-export * from "./resource-listeners/protocol-interfaces";
+// Protocols & Content
+export * from "./protocol-interfaces";
+export { Content } from "./protocol-interfaces";
 
 // Scripting API objects
 export { default as ConsumedThing } from "./consumed-thing";
@@ -39,4 +34,3 @@ export { default as ExposedThing } from "./exposed-thing";
 
 // Helper Implementations
 export { default as Helpers } from "./helpers";
-export * from "./td-generator";

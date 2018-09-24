@@ -21,7 +21,6 @@ import { Subscription } from "rxjs/Subscription";
 import * as TD from "@node-wot/td-tools";
 
 import Servient from "./servient";
-import * as TDGenerator from "./td-generator"
 import { Content, ContentSerdes } from "./content-serdes";
 import Helpers from "./helpers";
 
@@ -80,21 +79,21 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     }
 
     public getThingDescription(): WoT.ThingDescription {
-        return TD.serializeTD(TDGenerator.generateTD(this, this.getServient()));
+        return TD.serializeTD(this);
     }
 
     /** @inheritDoc */
     expose(): Promise<void> {
         console.log(`ExposedThing '${this.name}' exposing all Interactions and TD`);
 
-        // let servient forward exposure to the servers
-        this.getServient().expose(this);
-        
-        // inform TD observers
-        this.getSubjectTD().next(this.getThingDescription());
-
         return new Promise<void>((resolve, reject) => {
-            resolve();
+            // let servient forward exposure to the servers
+            this.getServient().expose(this).then( () => {
+                // inform TD observers
+                this.getSubjectTD().next(this.getThingDescription());
+                resolve();
+            })
+            .catch( (err) => reject(err) );
         });
     }
 
@@ -106,40 +105,37 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     }
 
     /** @inheritDoc */
-    addProperty(name: string, template: WoT.PropertyFragment, init: any): WoT.ExposedThing {
+    addProperty(name: string, property: WoT.PropertyFragment, init?: any): WoT.ExposedThing {
 
         console.log(`ExposedThing '${this.name}' adding Property '${name}'`);
 
-        let newProp = Helpers.extend(template, new ExposedThingProperty(name, this));
+        let newProp = Helpers.extend(property, new ExposedThingProperty(name, this));
         this.properties[name] = newProp;
 
         if (init !== undefined) {
             newProp.write(init);
-        }
-        // TODO: drop this variant
-        else if (newProp.value !== undefined) {
-            console.warn(`ExposedThing '${this.name}' received init value '${newProp.value}' in template for '${name}'`);
-            newProp.write(newProp.value);
-            delete newProp.value;
         }
 
         return this;
     }
 
     /** @inheritDoc */
-    addAction(name: string, action: WoT.ActionFragment): WoT.ExposedThing {
+    addAction(name: string, action: WoT.ActionFragment, handler: WoT.ActionHandler): WoT.ExposedThing {
+
+        if (!handler) {
+            throw new Error(`addAction() requires handler`);
+        }
 
         console.log(`ExposedThing '${this.name}' adding Action '${name}'`);
 
         let newAction = Helpers.extend(action, new ExposedThingAction(name, this));
+        newAction.getState().handler = handler.bind(newAction.getState().scope);
         this.actions[name] = newAction;
 
         return this;
     }
 
-    /**
-     * declare a new eventsource for the ExposedThing
-     */
+    /** @inheritDoc */
     addEvent(name: string, event: WoT.EventFragment): WoT.ExposedThing {
         let newEvent = Helpers.extend(event, new ExposedThingEvent(name, this));
         this.events[name] = newEvent;
@@ -150,9 +146,11 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     /** @inheritDoc */
     removeProperty(propertyName: string): WoT.ExposedThing {
         
-        // TODO: clean up state, listeners, and observables
-        
-        delete this.properties[propertyName];
+        if (this.properties[propertyName]) {
+            delete this.properties[propertyName];
+        } else {
+            throw new Error(`ExposedThing '${this.name}' has no Property '${propertyName}'`);
+        }
 
         return this;
     }
@@ -160,9 +158,11 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     /** @inheritDoc */
     removeAction(actionName: string): WoT.ExposedThing {
         
-        // TODO: clean up state and listeners
-
-        delete this.actions[actionName];
+        if (this.actions[actionName]) {
+            delete this.actions[actionName];
+        } else {
+            throw new Error(`ExposedThing '${this.name}' has no Action '${actionName}'`);
+        }
 
         return this;
     }
@@ -170,50 +170,50 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     /** @inheritDoc */
     removeEvent(eventName: string): WoT.ExposedThing {
         
-        // TODO: clean up state, listeners, and observables
-        //this.interactionObservables.get(eventName).complete();
-        //this.interactionObservables.delete(eventName);
-        //this.removeResourceListener(this.name + "/events/" + eventName);
-
-        delete this.events[eventName];
+        if (this.events[eventName]) {
+            (<ExposedThingEvent>this.events[eventName]).getState().subject.complete();
+            delete this.events[eventName];
+        } else {
+            throw new Error(`ExposedThing '${this.name}' has no Event '${eventName}'`);
+        }
 
         return this;
     }
 
     /** @inheritDoc */
-    setPropertyReadHandler(propertyName: string, readHandler: WoT.PropertyReadHandler): WoT.ExposedThing {
+    setPropertyReadHandler(propertyName: string, handler: WoT.PropertyReadHandler): WoT.ExposedThing {
         console.log(`ExposedThing '${this.name}' setting read handler for '${propertyName}'`);
 
         if (this.properties[propertyName]) {
             // in case of function instead of lambda, the handler is bound to a scope shared with the writeHandler in PropertyState
-            this.properties[propertyName].getState().readHandler = readHandler.bind(this.properties[propertyName].getState().scope);
+            this.properties[propertyName].getState().readHandler = handler.bind(this.properties[propertyName].getState().scope);
         } else {
-            throw Error(`ExposedThing '${this.name}' cannot set read handler for unknown '${propertyName}'`);
+            throw new Error(`ExposedThing '${this.name}' has no Property '${propertyName}'`);
         }
         return this;
     }
 
     /** @inheritDoc */
-    setPropertyWriteHandler(propertyName: string, writeHandler: WoT.PropertyWriteHandler): WoT.ExposedThing {
+    setPropertyWriteHandler(propertyName: string, handler: WoT.PropertyWriteHandler): WoT.ExposedThing {
         console.log(`ExposedThing '${this.name}' setting write handler for '${propertyName}'`);
         if (this.properties[propertyName]) {
             // in case of function instead of lambda, the handler is bound to a scope shared with the readHandler in PropertyState
-            this.properties[propertyName].getState().writeHandler = writeHandler.bind(this.properties[propertyName].getState().scope);
+            this.properties[propertyName].getState().writeHandler = handler.bind(this.properties[propertyName].getState().scope);
         } else {
-            throw Error(`ExposedThing '${this.name}' cannot set write handler for unknown '${propertyName}'`);
+            throw new Error(`ExposedThing '${this.name}' has no Property '${propertyName}'`);
         }
         return this;
     }
 
     /** @inheritDoc */
-    setActionHandler(actionName: string, action: WoT.ActionHandler): WoT.ExposedThing {
+    setActionHandler(actionName: string, handler: WoT.ActionHandler): WoT.ExposedThing {
         console.log(`ExposedThing '${this.name}' setting action Handler for '${actionName}'`);
 
         if (this.actions[actionName]) {
             // in case of function instead of lambda, the handler is bound to a clean scope of the ActionState
-            this.actions[actionName].getState().handler = action.bind(this.actions[actionName].getState().scope);
+            this.actions[actionName].getState().handler = handler.bind(this.actions[actionName].getState().scope);
         } else {
-            throw Error(`ExposedThing '${this.name}' cannot set action handler for unknown '${actionName}'`);
+            throw new Error(`ExposedThing '${this.name}' has no Action '${actionName}'`);
         }
         return this;
     }

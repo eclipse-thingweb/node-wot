@@ -17,8 +17,7 @@
  * CoAP Server based on coap by mcollina
  */
 
-import { ContentSerdes, ExposedThing } from "@node-wot/core";
-import { ProtocolServer, ResourceListener, PropertyResourceListener, ActionResourceListener } from "@node-wot/core"
+import { ProtocolServer, ExposedThing } from "@node-wot/core"
 
 const dcl = require("iotcs-csl-js");
 

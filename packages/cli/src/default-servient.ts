@@ -112,17 +112,19 @@ export default class DefaultServient extends Servient {
                     "description": "node-wot CLI Servient",
                     "system": "${process.arch}"
                 }`)
-                    .addProperty("things", {
-                        writable: true,
-                        observable: false,
-                        type: "string"
-                    })
-                    .addAction("log", {
-                        input: { type: "string" },
-                        output: { type: "string" }
-                    })
-                    .setActionHandler(
+                    .addProperty(
+                        "things",
+                        {
+                            writable: true,
+                            observable: false,
+                            type: "string"
+                        })
+                    .addAction(
                         "log",
+                        {
+                            input: { type: "string" },
+                            output: { type: "string" }
+                        },
                         (msg: any) => {
                             return new Promise((resolve, reject) => {
                                 console.info(msg);
@@ -130,11 +132,11 @@ export default class DefaultServient extends Servient {
                             });
                         }
                     )
-                    .addAction("shutdown", {
-                        output: { type: "string" }
-                    })
-                    .setActionHandler(
+                    .addAction(
                         "shutdown",
+                        {
+                            output: { type: "string" }
+                        },
                         () => {
                             return new Promise((resolve, reject) => {
                                 console.info("shutting down by remote");
@@ -146,12 +148,12 @@ export default class DefaultServient extends Servient {
 
                 if (this.config.servient.scriptAction) {
                     thing
-                        .addAction("runScript", {
-                            input: { type: "string" },
-                            output: { type: "string" }
-                        })
-                        .setActionHandler(
+                        .addAction(
                             "runScript",
+                            {
+                                input: { type: "string" },
+                                output: { type: "string" }
+                            },
                             (script: string) => {
                                 return new Promise((resolve, reject) => {
                                     console.log("runnig script", script);

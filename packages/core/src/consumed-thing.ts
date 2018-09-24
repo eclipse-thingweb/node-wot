@@ -20,9 +20,9 @@ import * as TD from "@node-wot/td-tools";
 import Servient from "./servient";
 import Helpers from "./helpers";
 
-import { ProtocolClient } from "./resource-listeners/protocol-interfaces";
+import { ProtocolClient } from "./protocol-interfaces";
 
-import ContentSerdes from "./content-serdes"
+import { default as ContentManager } from "./content-serdes"
 
 import { Subscribable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
@@ -138,7 +138,7 @@ class ConsumedThingProperty extends TD.PropertyFragment implements WoT.ThingProp
                 client.readResource(form).then((content) => {
                     if (!content.contentType) content.contentType = form.mediaType;
                     try {
-                        let value = ContentSerdes.contentToValue(content, <any>this);
+                        let value = ContentManager.contentToValue(content, <any>this);
                         resolve(value);
                     } catch {
                         reject(new Error(`Received invalid content from Thing`));
@@ -158,7 +158,7 @@ class ConsumedThingProperty extends TD.PropertyFragment implements WoT.ThingProp
                 reject(new Error(`ConsumedThing '${this.getThing().name}' did not get suitable client for ${form.href}`));
             } else {
                 console.log(`ConsumedThing '${this.getThing().name}' writing ${form.href} with '${value}'`);
-                let content = ContentSerdes.valueToContent(value, <any>this, form.mediaType);
+                let content = ContentManager.valueToContent(value, <any>this, form.mediaType);
 
                 client.writeResource(form, content).then(() => {
                     resolve();
@@ -201,14 +201,14 @@ class ConsumedThingAction extends TD.ActionFragment implements WoT.ThingAction {
                 let input;
                 
                 if (parameter!== undefined) {
-                    input = ContentSerdes.valueToContent(parameter, <any>this, form.mediaType);
+                    input = ContentManager.valueToContent(parameter, <any>this, form.mediaType);
                 }
 
                 client.invokeResource(form, input).then((output: any) => {
                     // infer media type from form if not in response metadata
                     if (!output.mediaType) output.mediaType = form.mediaType;
                     try {
-                        let value = ContentSerdes.contentToValue(output, this.output);
+                        let value = ContentManager.contentToValue(output, this.output);
                         resolve(value);
                     } catch {
                         reject(new Error(`Received invalid content from Thing`));
@@ -247,7 +247,7 @@ class ConsumedThingEvent extends TD.EventFragment implements Subscribable<any> {
                 (content) => {
                     if (!content.contentType) content.contentType = form.mediaType;
                     try {
-                        let value = ContentSerdes.contentToValue(content, <any>this);
+                        let value = ContentManager.contentToValue(content, <any>this);
                         next(value);
                     } catch {
                         error(new Error(`Received invalid content from Thing`));

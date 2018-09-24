@@ -29,20 +29,18 @@ try {
         type: "number"
       },
       0.0)
-    .addAction("reset")
+    .addAction(
+      "reset",
+      {},
+      () => {
+        console.log("Resetting maximum");
+        return thing.properties.max.write(0.0);
+      })
     .addEvent(
       "onchange",
       {
         type: "number" 
       });
-  
-  // add server functionality
-  thing.setActionHandler(
-    "reset",
-    () => {
-      console.log("Resetting maximum");
-      return thing.properties.max.write(0.0);
-    });
   
   thing.expose();
   

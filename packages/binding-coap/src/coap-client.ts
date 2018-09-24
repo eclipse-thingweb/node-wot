@@ -176,13 +176,10 @@ export default class CoapClient implements ProtocolClient {
 
     let req = this.agent.request(options);
 
-    console.log(`CoapClient applying form`);
-    //console.dir(form);
-
     // apply form data
     if (typeof form.mediaType === "string") {
       console.log("CoapClient got Form 'mediaType'", form.mediaType);
-      req.setOption("Accept", form.mediaType);
+      //req.setOption("Accept", form.mediaType);
     }
     if (Array.isArray(form["coap:options"])) {
       console.log("CoapClient got Form 'options'", form["coap:options"]);

@@ -24,20 +24,19 @@ try {
 
     // manually add Interactions
     thing
-      .addAction("resetCounter")
+      .addAction(
+        "resetCounter",
+        {},
+        () => {
+          console.log("Resetting counter");
+          counter = 0;
+          return;
+        })
       .addEvent(
         "counterEvent",
         {
           type: "integer" 
         });
-    
-    thing.setActionHandler(
-      "resetCounter",
-      () => {
-        console.log("Resetting counter");
-        counter = 0;
-        return;
-      });
     
     thing.expose();
     
@@ -45,7 +44,6 @@ try {
         ++counter;
         thing.events.counterEvent.emit(counter);
         console.info("New counter", counter);
-
     }, 1000);
     
   } catch (err) {

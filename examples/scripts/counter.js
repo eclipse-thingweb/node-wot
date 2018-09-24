@@ -19,12 +19,12 @@ const NAME_ACTION_DECREMENT = "decrement";
 const NAME_ACTION_RESET = "reset";
 
 let thing = WoT.produce({
-	name: "counter",
-	description: "counter example Thing",
-	"@context": { "iot": "http://iotschema.org/" }
-});
+		name: "counter",
+		description: "counter example Thing",
+		"@context": { "iot": "http://iotschema.org/" }
+	});
 
-console.log("Created thing " + thing.name);
+console.log("Produced " + thing.name);
 
 thing.addProperty(
 	NAME_PROPERTY_COUNT,
@@ -37,40 +37,37 @@ thing.addProperty(
 	},
 	0);
 
-thing.addAction(NAME_ACTION_INCREMENT);
-thing.setActionHandler(
+thing.addAction(
 	NAME_ACTION_INCREMENT,
+	{},
 	() => {
 		console.log("Incrementing");
 		return thing.properties[NAME_PROPERTY_COUNT].read().then( (count) => {
 			let value = count + 1;
 			thing.properties[NAME_PROPERTY_COUNT].write(value);
 		});
-	}
-);
+	});
 
-thing.addAction(NAME_ACTION_DECREMENT);
-thing.setActionHandler(
+thing.addAction(
 	NAME_ACTION_DECREMENT,
+	{},
 	() => {
 		console.log("Decrementing");
 		return thing.properties[NAME_PROPERTY_COUNT].read().then( (count) => {
 			let value = count - 1;
 			thing.properties[NAME_PROPERTY_COUNT].write(value);
 		});
-	}
-);
+	});
 
-thing.addAction(NAME_ACTION_RESET);
-thing.setActionHandler(
+thing.addAction(
 	NAME_ACTION_RESET,
+	{},
 	() => {
 		console.log("Resetting");
 		thing.properties[NAME_PROPERTY_COUNT].write(0);
-	}
-);
+	});
 
+// test setting metadata
 thing["support"] = "none";
-console.info(thing.support);
 
-thing.expose();
+thing.expose().then( () => { console.info(thing.name + " ready"); } );

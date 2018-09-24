@@ -17,22 +17,24 @@
  * CoAP Server based on coap by mcollina
  */
 
-import * as url from 'url';
-import { ProtocolServer, ResourceListener, ContentSerdes, ExposedThing, PropertyResourceListener, ActionResourceListener, EventResourceListener, TDResourceListener } from "@node-wot/core"
-
 const coap = require('coap');
+import * as url from 'url';
+
+import * as TD from "@node-wot/td-tools";
+import { ProtocolServer, ContentSerdes, ExposedThing, Helpers } from "@node-wot/core";
 
 export default class CoapServer implements ProtocolServer {
 
   public readonly scheme: string = "coap";
+
+  private readonly PROPERTY_DIR = "pr";
+  private readonly ACTION_DIR = "ac";
+  private readonly EVENT_DIR = "ev";
+
   private readonly port: number = 5683;
   private readonly address: string = undefined;
   private readonly server: any = coap.createServer((req: any, res: any) => { this.handleRequest(req, res); });
-  private running: boolean = false;
-  private failed: boolean = false;
-
-  private readonly thingNames: Set<string> = new Set<string>();
-  private readonly resources: { [key: string]: ResourceListener } = {};
+  private readonly things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
 
   constructor(port?: number, address?: string) {
     if (port !== undefined) {
@@ -50,66 +52,6 @@ export default class CoapServer implements ProtocolServer {
     // TODO need hook from ContentSerdes for runtime data formats
   }
 
-  public expose(thing: ExposedThing): Promise<void> {
-
-    let name = thing.name;
-
-    if (this.thingNames.has(name)) {
-      let suffix = name.match(/.+_([0-9]+)$/);
-      if (suffix !== null) {
-        name = name.slice(0, -suffix[1].length) + (1+parseInt(suffix[1]));
-      } else {
-        name = name + "_2";
-      }
-    }
-
-    console.log(`CoapServer on port ${this.getPort()} exposes '${thing.name}' as unique '/${name}'`);
-    return new Promise<void>((resolve, reject) => {
-
-      // TODO clean-up on destroy
-      this.thingNames.add(name);
-      
-      // TODO more efficient routing to ExposedThing without ResourceListeners in each server
-      for (let propertyName in thing.properties) {
-        let path = "/" + encodeURIComponent(name) + "/properties/" + encodeURIComponent(propertyName);
-        let listener = new PropertyResourceListener(thing, propertyName);
-        this.addResource(path, listener);
-      }
-      for (let actionName in thing.actions) {
-        let path = "/" + encodeURIComponent(name) + "/actions/" + encodeURIComponent(actionName);
-        let listener = new ActionResourceListener(thing, actionName);
-        this.addResource(path, listener);
-      }
-      for (let eventName in thing.events) {
-        let path = "/" + encodeURIComponent(name) + "/events/" + encodeURIComponent(eventName);
-        let listener = new EventResourceListener(eventName, thing.events[eventName].getState().subject);
-        this.addResource(path, listener);
-      }
-
-      this.addResource("/" + encodeURIComponent(name), new TDResourceListener(thing));
-
-      resolve();
-    });
-  }
-
-  public addResource(path: string, res: ResourceListener): boolean {
-    if (this.resources[path] !== undefined) {
-      console.warn(`CoapServer on port ${this.getPort()} already has ResourceListener '${path}' - skipping`);
-      return false;
-    } else {
-      // TODO debug-level
-      console.log(`CoapServer on port ${this.getPort()} adding resource '${path}'`);
-      this.resources[path] = res;
-      return true;
-    }
-  }
-
-  public removeResource(path: string): boolean {
-    // TODO debug-level
-    console.log(`CoapServer on port ${this.getPort()} removing resource '${path}'`);
-    return delete this.resources[path];
-  }
-
   public start(): Promise<void> {
     console.info(`CoapServer starting on ${(this.address !== undefined ? this.address + ' ' : '')}port ${this.port}`);
     return new Promise<void>((resolve, reject) => {
@@ -119,7 +61,7 @@ export default class CoapServer implements ProtocolServer {
       this.server.listen(this.port, this.address, () => {
         // once started, console "handles" errors
         this.server.on('error', (err: Error) => {
-          console.error(`CoapServer for port ${this.port} failed: ${err.message}`); this.failed = true;
+          console.error(`CoapServer for port ${this.port} failed: ${err.message}`);
         });
         resolve();
       });
@@ -135,6 +77,12 @@ export default class CoapServer implements ProtocolServer {
     });
   }
 
+  /** returns socket to be re-used by CoapClients */
+  public getSocket(): any {
+    return this.server._sock;
+  }
+
+  /** returns server port number and indicates that server is running when larger than -1  */
   public getPort(): number {
     if (this.server._sock) {
       return this.server._sock.address().port;
@@ -143,95 +91,274 @@ export default class CoapServer implements ProtocolServer {
     }
   }
 
-  public getSocket(): any {
-    return this.server._sock;
+  public expose(thing: ExposedThing): Promise<void> {
+
+    let name = thing.name;
+
+    if (this.things.has(name)) {
+      name = Helpers.generateUniqueName(name);
+    }
+
+    console.log(`CoapServer on port ${this.getPort()} exposes '${thing.name}' as unique '/${name}'`);
+
+    if (this.getPort() !== -1) {
+      this.things.set(name, thing);
+
+      // fill in binding data
+      for (let address of Helpers.getAddresses()) {
+        for (let type of ContentSerdes.get().getOfferedMediaTypes()) {
+          let base: string = this.scheme + "://" + address + ":" + this.getPort() + "/" + encodeURIComponent(name);
+
+          for (let propertyName in thing.properties) {
+            let property = thing.properties[propertyName];
+
+            let href = base + "/" + this.PROPERTY_DIR + "/" + encodeURIComponent(propertyName);
+            property.forms.push(new TD.Form(href, type));
+            console.log(`CoapServer on port ${this.getPort()} assigns '${href}' to Property '${propertyName}'`);
+          }
+          
+          for (let actionName in thing.actions) {
+            let action = thing.actions[actionName];
+
+            let href = base + "/" + this.ACTION_DIR + "/" + encodeURIComponent(actionName);
+            action.forms.push(new TD.Form(href, type));
+            console.log(`CoapServer on port ${this.getPort()} assigns '${href}' to Action '${actionName}'`);
+          }
+          
+          for (let eventName in thing.events) {
+            let event = thing.events[eventName];
+
+            let href = base + "/" + this.EVENT_DIR + "/" + encodeURIComponent(eventName);
+
+            // depending on the resource pattern, uri is constructed
+            event.forms.push(new TD.Form(href, type));
+            console.log(`CoapServer on port ${this.getPort()} assigns '${href}' to Event '${eventName}'`);
+          }
+        } // media types
+      } // addresses
+
+    } // running
+
+    return new Promise<void>((resolve, reject) => {
+      resolve();
+    });
   }
 
   private handleRequest(req: any, res: any) {
-    console.log(`CoapServer on port ${this.getPort()} received ${req.method} ${req.url}`
-      + ` from ${req.rsinfo.address} port ${req.rsinfo.port}`);
+    
+    console.log(`CoapServer on port ${this.getPort()} received '${req.method}(${req._packet.messageId}) ${req.url}' from ${Helpers.toUriLiteral(req.rsinfo.address)}:${req.rsinfo.port}`);
     res.on('finish', () => {
-      console.log(`CoapServer replied with ${res.code} to ${req.rsinfo.address} port ${req.rsinfo.port}`);
-      // FIXME res.options is undefined, no other useful property to get Content-Format
-      //logger.warn(`CoapServer sent Content-Format: '${res.options['Content-Format']}'`);
+      console.log(`CoapServer replied with '${res.code}' to ${Helpers.toUriLiteral(req.rsinfo.address)}:${req.rsinfo.port}`);
     });
 
     let requestUri = url.parse(req.url);
-    let requestHandler = this.resources[requestUri.pathname];
-    // TODO must be rejected with 4.15 Unsupported Content-Format, guessing not allowed
-    let contentType = req.options['Content-Format'] ? req.options['Content-Format'] : ContentSerdes.DEFAULT;
+    let contentType = req.options['Content-Format'];
 
-    if (requestHandler === undefined) {
-      res.code = '4.04';
-      res.end('Not Found');
-    } else {
-      if (req.method === 'GET') {
-        requestHandler.onRead()
-          .then(content => {
-            res.code = '2.05';
-            if (!content.contentType) {
-              console.warn(`CoapServer got no Media Type from '${requestUri.pathname}'`);
-            } else {
-              res.setOption('Content-Format', content.contentType);
-            }
-            // finish
-            res.end(content.body);
-          })
-          .catch(err => {
-            console.error(`CoapServer on port ${this.getPort()}`
-              + ` got internal error on read '${requestUri.pathname}': ${err.message}`);
-            res.code = '5.00'; res.end(err.message);
-          });
-      } else if (req.method === 'PUT') {
-        requestHandler.onWrite({ contentType: contentType, body: req.payload })
-          .then(() => {
-            res.code = '2.04';
-            // finish with diagnostic payload
-            res.end('Changed');
-          })
-          .catch(err => {
-            console.error(`CoapServer on port ${this.getPort()}`
-              + ` got internal error on write '${requestUri.pathname}': ${err.message}`);
-            res.code = '5.00'; res.end(err.message);
-          });
-      } else if (req.method === 'POST') {
-        requestHandler.onInvoke({ contentType: contentType, body: req.payload })
-          .then(content => {
-            // Actions may have a void return (no output)
-            if (content.body === null) {
-              res.code = '2.04';
-            } else {
-              res.code = '2.05';
-              if (!content.contentType) {
-                console.warn(`CoapServer got no Media Type from '${requestUri.pathname}'`);
-              } else {
-                res.setOption('Content-Format', content.contentType);
-              }
-            }
-            // finish with whatever
-            res.end(content.body);
-          })
-          .catch(err => {
-            console.error(`CoapServer on port ${this.getPort()}`
-              + ` got internal error on invoke '${requestUri.pathname}': ${err.message}`);
-            res.code = '5.00'; res.end(err.message);
-          });
-      } else if (req.method === 'DELETE') {
-        requestHandler.onUnlink()
-          .then(() => {
-            res.code = '2.02';
-            // finish with diagnostic payload
-            res.end('Deleted');
-          })
-          .catch(err => {
-            console.error(`CoapServer on port ${this.getPort()}`
-              + ` got internal error on unlink '${requestUri.pathname}': ${err.message}`);
-            res.code = '5.00'; res.end(err.message);
-          });
-      } else {
-        res.code = '4.05';
-        res.end('Method Not Allowed');
+    if (req.method === "PUT" || req.method === "POST") {
+      if (!contentType && req.payload) {
+        console.warn(`CoapServer on port ${this.getPort()} received no Content-Format from ${Helpers.toUriLiteral(req.rsinfo.address)}:${req.rsinfo.port}`);
+        contentType = ContentSerdes.DEFAULT;
+      } else if (ContentSerdes.get().getSupportedMediaTypes().indexOf(ContentSerdes.getMediaType(contentType))<0) {
+        res.code = "4.15";
+        res.end("Unsupported Media Type");
+        return;
       }
     }
+    
+    // route request
+    let segments = requestUri.pathname.split("/");
+
+    if (segments[1] === "") {
+      // no path -> list all Things
+      res.setHeader("Content-Type", ContentSerdes.DEFAULT);
+      res.writeHead(200);
+      let list = [];
+      for (let address of Helpers.getAddresses()) {
+        // FIXME are Iterables really such a non-feature that I need array?
+        for (let name of Array.from(this.things.keys())) {
+          list.push(this.scheme + "://" + Helpers.toUriLiteral(address) + ":" + this.getPort() + "/" + encodeURIComponent(name));
+        }
+      }
+      res.end(JSON.stringify(list));
+      // resource found and response sent
+      return;
+
+    } else {
+      // path -> select Thing
+      let thing = this.things.get(segments[1]);
+      if (thing) {
+
+        if (segments.length === 2 || segments[2] === "") {
+          // Thing root -> send TD
+          if (req.method === "GET") {
+            res.setOption("Content-Format", ContentSerdes.TD);
+            res.code = "2.05";
+            res.end(JSON.stringify(thing));
+          } else {
+            res.code = "4.05";
+            res.end("Method Not Allowed");
+          }
+          // resource found and response sent
+          return;
+
+        } else if (segments[2] === this.PROPERTY_DIR) {
+          // sub-path -> select Property
+          let property = thing.properties[segments[3]];
+          if (property) {
+            if (req.method === "GET") {
+              property.read()
+                .then((value) => {
+                  let content = ContentSerdes.get().valueToContent(value, <any>property);
+                  res.setOption("Content-Format", content.contentType);
+                  res.code = "2.05";
+                  setTimeout( () => {
+                    res.end(content.body);
+                  }, 2500);
+                })
+                .catch(err => {
+                  console.error(`CoapServer on port ${this.getPort()} got internal error on write '${requestUri.pathname}': ${err.message}`);
+                  res.code = "5.00";
+                  res.end(err.message);
+                });
+            } else if (req.method === "PUT") {
+              if (property.writable) {
+                let value;
+                try {
+                  value = ContentSerdes.get().contentToValue({ contentType: contentType, body: req.payload }, <any>property);
+                } catch(err) {
+                  res.code = "4.00";
+                  res.end("Invalid Data");
+                  return;
+                }
+                property.write(value)
+                  .then(() => {
+                    res.code = "2.04";
+                    res.end("Changed");
+                  })
+                  .catch(err => {
+                    console.error(`CoapServer on port ${this.getPort()} got internal error on write '${requestUri.pathname}': ${err.message}`);
+                    res.code = "5.00";
+                    res.end(err.message);
+                  });
+              } else {
+                res.code = "4.00";
+                res.end("Property Not Writable");
+              }
+            } else {
+              res.code = "4.05";
+              res.end("Method Not Allowed");
+            }
+            // resource found and response sent
+            return;
+          } // Property exists?
+
+        } else if (segments[2] === this.ACTION_DIR) {
+          // sub-path -> select Action
+          let action = thing.actions[segments[3]];
+          if (action) {
+            if (req.method === "POST") {
+              let input;
+              try {
+                input = ContentSerdes.get().contentToValue({ contentType: contentType, body: req.payload }, action.input);
+              } catch(err) {
+                res.code = "4.00";
+                res.end("Invalid Input Data");
+                return;
+              }
+              action.invoke(input)
+                .then((output) => {
+                  if (output) {
+                    let content = ContentSerdes.get().valueToContent(output, action.output);
+                    res.setOption("Content-Format", content.contentType);
+                    res.code = "2.05";
+                    res.end(content.body);
+                  } else {
+                    res.code = "2.04";
+                    res.end();
+                  }
+                })
+                .catch(err => {
+                  console.error(`CoapServer on port ${this.getPort()} got internal error on write '${requestUri.pathname}': ${err.message}`);
+                  res.code = "5.00";
+                  res.end(err.message);
+                });
+            } else {
+              res.code = "4.05";
+              res.end("Method Not Allowed");
+            }
+            // resource found and response sent
+            return;
+          } // Action exists?
+
+        } else if (segments[2] === this.EVENT_DIR) {
+          // sub-path -> select Event
+          let event = thing.events[segments[3]];
+          if (event) {
+            if (req.method === "GET") {
+              if (req.headers['Observe'] === 0) {
+
+                // work-around to avoid duplicate requests (resend due to no response)
+                // (node-coap does not deduplicate when Observe is set)
+                let packet = res._packet
+                packet.code = '0.00'
+                packet.payload = ''
+                packet.reset = false;
+                packet.ack = true
+                packet.token = new Buffer(0);
+              
+                res._send(res, packet)
+              
+                res._packet.confirmable = res._request.confirmable
+                res._packet.token = res._request.token
+                // end of work-around
+
+                let subscription = event.subscribe(
+                  (content) => {
+                    // send event data
+                    console.log(`CoapServer on port ${this.getPort()} sent '${segments[3]}' notification to ${Helpers.toUriLiteral(req.rsinfo.address)}:${req.rsinfo.port}`);
+                    res.setOption("Content-Format", content.contentType);
+                    res.code = "2.05";
+                    res.write(content.body);
+                  },
+                  () => {
+                    console.log(`CoapServer on port ${this.getPort()} failed '${segments[3]}' subscription`);
+                    res.code = "5.00";
+                    res.end();
+                  },
+                  () => {
+                    console.log(`CoapServer on port ${this.getPort()} completed '${segments[3]}' subscription`);
+                    res.end();
+                  }
+                );
+                res.on('finish', () => {
+                  console.log(`CoapServer on port ${this.getPort()} ended '${segments[3]}' observation from ${Helpers.toUriLiteral(req.rsinfo.address)}:${req.rsinfo.port}`);
+                  subscription.unsubscribe();
+                });
+              } else if (req.headers['Observe'] > 0) {
+                console.log(`CoapServer on port ${this.getPort()} sent '${segments[3]}' response to ${Helpers.toUriLiteral(req.rsinfo.address)}:${req.rsinfo.port}`);
+                
+                res.code = "5.02";
+                res.end("node-coap issue: no GET cancellation, send RST");
+              } else {
+                console.log(`CoapServer on port ${this.getPort()} rejected '${segments[3]}' read from ${Helpers.toUriLiteral(req.rsinfo.address)}:${req.rsinfo.port}`);
+                
+                res.code = "4.00";
+                res.end("No Observe Option");
+              }
+            } else {
+              res.code = "4.05";
+              res.end("Method Not Allowed");
+            }
+            // resource found and response sent
+            return;
+          } // Event exists?
+        }
+      } // Thing exists?
+    }
+
+    // resource not found
+    res.code = "4.04";
+    res.end("Not Found");
   }
+
 }

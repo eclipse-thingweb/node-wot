@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-WoT.fetch("http://localhost:8080/counter").then( async (td) => {
+WoT.fetch("coap://localhost:5683/counter").then( async (td) => {
 
 	let thing = WoT.consume(td);
 	console.info("=== TD ===");

@@ -23,22 +23,18 @@ try {
       "reset",
       {
         // no input, no output
-      })
-    .addEvent(
-      "onchange",
-      {
-        type: "number"
-      });
-
-    // add server functionality
-    thing.setActionHandler(
-      "reset",
+      },
       () => {
         console.info("Resetting");
         counter = 0;
         return new Promise((resolve, reject) => {
           resolve();
         });
+      })
+    .addEvent(
+      "onchange",
+      {
+        type: "number"
       });
     
     thing.expose();

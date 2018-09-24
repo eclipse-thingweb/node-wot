@@ -19,14 +19,13 @@ import * as WoT from "wot-typescript-definitions";
 
 import WoTImpl from "./wot-impl";
 import ExposedThing from "./exposed-thing";
-import { ProtocolClientFactory, ProtocolServer, ResourceListener, ProtocolClient } from "./resource-listeners/protocol-interfaces"
+import { ProtocolClientFactory, ProtocolServer, ProtocolClient } from "./protocol-interfaces"
 import { default as ContentManager, ContentCodec } from "./content-serdes";
 
 export default class Servient {
     private servers: Array<ProtocolServer> = [];
     private clientFactories: Map<string, ProtocolClientFactory> = new Map<string, ProtocolClientFactory>();
     private things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
-    private listeners: Map<string, ResourceListener> = new Map<string, ResourceListener>();
     private credentialStore: Map<string, any> = new Map<string, any>();
 
     /** runs the script in a new sandbox */
@@ -169,9 +168,26 @@ export default class Servient {
         ContentManager.addCodec(codec, offered);
     }
 
-    public expose(thing: ExposedThing) {
+    public expose(thing: ExposedThing): Promise<void> {
         console.log(`Servient exposing '${thing.name}'`);
-        this.servers.forEach( (server) => server.expose(thing));
+
+        // initiatlizing forms fields
+        for (let name in thing.properties) {
+            thing.properties[name].forms = [];
+        }
+        for (let name in thing.actions) {
+            thing.actions[name].forms = [];
+        }
+        for (let name in thing.events) {
+            thing.events[name].forms = [];
+        }
+
+        let serverPromises: Promise<void>[] = [];
+        this.servers.forEach( (server) => { serverPromises.push(server.expose(thing)); });
+
+        return new Promise<void>((resolve, reject) => {
+            Promise.all(serverPromises).then( () => resolve() ).catch( (err) => reject(err) );
+        });
     }
     
     public addThing(thing: ExposedThing): boolean {

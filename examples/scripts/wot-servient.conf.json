@@ -1,6 +1,6 @@
 {
     "servient": {
-        "staticAddress": "plugfest.thingweb.io", 
+        "_staticAddress": "plugfest.thingweb.io", 
         "scriptDir": ".",
         "scriptAction": true
     },
@@ -11,8 +11,8 @@
     "coap": {
         "port": 5683
     },
-    "mqtt" : {
-        "_broker" : "mqtt://test.mosquitto.org",
+    "_mqtt" : {
+        "broker" : "mqtt://test.mosquitto.org",
         "port": 1883 
     },
     "log": {

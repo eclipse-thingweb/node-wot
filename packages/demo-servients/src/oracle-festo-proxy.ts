@@ -157,47 +157,37 @@ servient.start().then(async (WoT) => {
     .addProperty("Tank101OverflowStatus", { type: "boolean", writable: false }, false)
     
     // actuators
-    .addAction("StartPump")
-    .addAction("StopPump")
-    .addAction("OpenValve")
-    .addAction("CloseValve")
-
-    .setActionHandler("StartPump", () => {
+    .addAction("StartPump", {}, () => {
         return new Promise((resolve, reject) => {
           console.warn(">>> Startung pump!");
           if (live) PumpP101.actions.on.invoke().catch( (err: any) => { console.error("+++ StartPump invoke error: " + err); });
           resolve();
         });
-      }
-    )
-    .setActionHandler("StopPump", () => {
+      })
+    .addAction("StopPump", {}, () => {
         return new Promise((resolve, reject) => {
           console.warn(">>> Stopping pump!");
           if (live) PumpP101.actions.off.invoke().catch( (err: any) => { console.error("+++ StopPump invoke error: " + err); });
           resolve();
         });
-      }
-    )
-
-    .setActionHandler("OpenValve", () => {
+      })
+    .addAction("OpenValve", {}, () => {
         return new Promise((resolve, reject) => {
           console.warn(">>> Opening valve!");
           if (live) ValveV102.actions.open.invoke().catch( (err: any) => { console.error("+++ OpenValve invoke error: " + err); });
           resolve();
         });
-      }
-    )
-    .setActionHandler("CloseValve", () => {
+      })
+    .addAction("CloseValve", {}, () => {
         return new Promise((resolve, reject) => {
           console.warn(">>> Closing valve!");
           if (live) ValveV102.actions.close.invoke().catch( (err: any) => { console.error("+++ CloseValve invoke error: " + err); });
           resolve();
         });
-      }
-    );
+      });
 
     thing.expose()
-      .then( () => { console.info(thing.name + " ready"); })
-      .catch((err) => { console.error("Expose error: " + err); });
+      .then( () => { console.info(thing.name + " ready"); } )
+      .catch( (err) => { console.error("Expose error: " + err); } );
 
-}).catch( err => { console.error("Servient start error: " + err); });
+}).catch( (err) => { console.error("Servient start error: " + err); } );
