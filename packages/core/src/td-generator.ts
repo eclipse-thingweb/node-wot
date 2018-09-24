@@ -13,13 +13,13 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
+import { Thing } from "@node-wot/td-tools"
+import * as TD from "@node-wot/td-tools"
 
 import Servient from "./servient"
 import ExposedThing from "./exposed-thing"
-import { Thing } from "@node-wot/td-tools"
-import * as TD from "@node-wot/td-tools"
-import * as Helpers from "./helpers";
-//import {MqttBrokerServer} from "@node-wot/binding-mqtt" 
+import { default as ContentManager } from "./content-serdes"
+import Helpers from "./helpers";
 
 
 /** Copies TD members from Thing and adds Servient metadata (security, form)
@@ -38,12 +38,9 @@ export function generateTD(thing: ExposedThing, servient: Servient): Thing {
   for (let propertyName in boundThing.properties) {
     let property = boundThing.properties[propertyName];
 
-    // reset as slice() does not make a deep copy
-    property.forms = [];
-
     // a form is generated for each address, supported protocol, and mediatype
     for (let address of Helpers.getAddresses()) {
-      for (let type of servient.getOffereddMediaTypes()) {
+      for (let type of ContentManager.getOfferedMediaTypes()) {
         for (let server of servient.getServers()) {
           // TODO get form directly from server, do not define URI paths here
 
@@ -65,12 +62,9 @@ export function generateTD(thing: ExposedThing, servient: Servient): Thing {
   for (let actionName in boundThing.actions) {
     let action = boundThing.actions[actionName];
 
-    // reset as slice() does not make a deep copy
-    action.forms = [];
-
     // a form is generated for each address, supported protocol, and mediatype
     for (let address of Helpers.getAddresses()) {
-      for (let type of servient.getOffereddMediaTypes()) {
+      for (let type of ContentManager.getOfferedMediaTypes()) {
         for (let server of servient.getServers()) {
           // TODO get form directly from server, do not define URI paths here
 
@@ -89,7 +83,7 @@ export function generateTD(thing: ExposedThing, servient: Servient): Thing {
     // in the case of mqtt the broker URI is used within the hrefs
     for (let server of servient.getServers()) {
       if(server.getPort() !== -1 && server.scheme=="mqtt") {
-        for (let type of servient.getOffereddMediaTypes()) {
+        for (let type of ContentManager.getOfferedMediaTypes()) {
 
           let href: string = server.scheme + "://" + server.getAddress() + ":" + server.getPort() + "/" + thing.name;
 
@@ -108,12 +102,9 @@ export function generateTD(thing: ExposedThing, servient: Servient): Thing {
   for (let eventName in boundThing.events) {
     let event = boundThing.events[eventName];
 
-    // reset as slice() does not make a deep copy
-    event.forms = [];
-
     // a form is generated for each address, supported protocol, and mediatype
     for (let address of Helpers.getAddresses()) {
-      for (let type of servient.getOffereddMediaTypes()) {
+      for (let type of ContentManager.getOfferedMediaTypes()) {
         for (let server of servient.getServers()) {
           // TODO get form directly from server, do not define URI paths here
 
@@ -137,7 +128,7 @@ export function generateTD(thing: ExposedThing, servient: Servient): Thing {
     // in the case of mqtt the broker URI is used within the hrefs
     for (let server of servient.getServers()) {
       if(server.getPort() !== -1 && server.scheme=="mqtt") {
-        for (let type of servient.getOffereddMediaTypes()) {
+        for (let type of ContentManager.getOfferedMediaTypes()) {
         
           // cast since MqttBrokerServer offers a getAddress
           let href: string = server.scheme + "://" + server.getAddress() + ":" + server.getPort() + "/" + thing.name;

@@ -20,14 +20,13 @@ import * as WoT from "wot-typescript-definitions";
 import WoTImpl from "./wot-impl";
 import ExposedThing from "./exposed-thing";
 import { ProtocolClientFactory, ProtocolServer, ResourceListener, ProtocolClient } from "./resource-listeners/protocol-interfaces"
-import { default as ContentSerdes, ContentCodec } from "./content-serdes";
+import { default as ContentManager, ContentCodec } from "./content-serdes";
 
 export default class Servient {
     private servers: Array<ProtocolServer> = [];
     private clientFactories: Map<string, ProtocolClientFactory> = new Map<string, ProtocolClientFactory>();
     private things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
     private listeners: Map<string, ResourceListener> = new Map<string, ResourceListener>();
-    private offeredMediaTypes: Array<string> = [ContentSerdes.DEFAUT]
     private credentialStore: Map<string, any> = new Map<string, any>();
 
     /** runs the script in a new sandbox */
@@ -165,21 +164,9 @@ export default class Servient {
         console.error(`Servient caught ${description} ${message}`);
     }
 
-    /** add a new codec to support a mediatype */
-    public addMediaType(codec: ContentCodec, offered: boolean = false): void {
-        ContentSerdes.addCodec(codec);
-        if (offered) this.offeredMediaTypes.push(codec.getMediaType());
-    }
-
-    /** retun all media types that this servient supports */
-    public getSupportedMediaTypes(): Array<string> {
-        return ContentSerdes.getSupportedMediaTypes();
-    }
-
-    /** return only the media types that should be offered in the TD */
-    public getOffereddMediaTypes(): Array<string> {
-        // return a copy
-        return this.offeredMediaTypes.slice(0);
+    /** add a new codec to support a mediatype; offered mediatypes are listed in TDs */
+    public addMediaType(codec: ContentCodec, offered: boolean = false) {
+        ContentManager.addCodec(codec, offered);
     }
 
     public expose(thing: ExposedThing) {

@@ -127,16 +127,17 @@ export class ContentSerdes {
   private static instance: ContentSerdes;
 
   public static readonly DEFAULT: string = "application/json";
-  // provide DEFAULT also on instance
-  public readonly DEFAUT: string = ContentSerdes.DEFAULT;
+  public static readonly TD: string = "application/td+json";
+  
   private codecs: Map<string, ContentCodec> = new Map();
+  private offered: Set<string> = new Set<string>();
   private constructor() { }
 
   public static get(): ContentSerdes {
     if (!this.instance) {
       this.instance = new ContentSerdes();
-      this.instance.addCodec(new JsonCodec());
-      this.instance.addCodec(new JsonCodec('application/senml+json'));
+      this.instance.addCodec(new JsonCodec(), true);
+      this.instance.addCodec(new JsonCodec("application/senml+json"));
       this.instance.addCodec(new TextCodec());
     }
     return this.instance;
@@ -166,12 +167,17 @@ export class ContentSerdes {
     return params;
   }
 
-  public addCodec(codec: ContentCodec) {
+  public addCodec(codec: ContentCodec, offered: boolean = false) {
     ContentSerdes.get().codecs.set(codec.getMediaType(), codec);
+    if (offered) ContentSerdes.get().offered.add(codec.getMediaType());
   }
 
   public getSupportedMediaTypes(): Array<string> {
     return Array.from(ContentSerdes.get().codecs.keys());
+  }
+
+  public getOfferedMediaTypes(): Array<string> {
+    return Array.from(ContentSerdes.get().offered);
   }
 
   public contentToValue(content: Content, schema: WoT.DataSchema): any {
