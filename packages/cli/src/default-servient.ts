@@ -31,7 +31,7 @@ import { MqttClientFactory }  from "@node-wot/binding-mqtt";
 
 export default class DefaultServient extends Servient {
 
-    private static readonly defaultServientConf = {
+    private static readonly defaultConfig = {
         servient: {
             clientOnly: false,
             scriptDir: ".",
@@ -46,12 +46,12 @@ export default class DefaultServient extends Servient {
         }
     }
 
-    public readonly config: any = DefaultServient.defaultServientConf;
+    public readonly config: any;
 
     public constructor(config?: any) {
         super();
 
-        Object.assign(this.config, config);
+        this.config = (typeof config === "object") ? config : DefaultServient.defaultConfig;
         // remove secrets from original for displaying config (still in copy on this)
         if(config && config.credentials) delete config.credentials;
         console.info("DefaultServient configured with", config);
@@ -61,11 +61,14 @@ export default class DefaultServient extends Servient {
         }
 
         if (!this.config.servient.clientOnly) {
-            let httpServer = (typeof this.config.http.port === "number") ? new HttpServer(this.config.http.port) : new HttpServer();
-            this.addServer(httpServer);
 
-            // re-use httpServer (same port)
-            this.addServer(new WebSocketServer(httpServer));
+            if (this.config.http !== undefined) {
+                let httpServer = (typeof this.config.http.port === "number") ? new HttpServer(this.config.http.port) : new HttpServer();
+                this.addServer(httpServer);
+
+                // re-use httpServer (same port)
+                this.addServer(new WebSocketServer(httpServer));
+            }
 
             // optional servers based on wot-servient.conf.json
             if (this.config.coap !== undefined) {
