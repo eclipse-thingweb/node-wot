@@ -23,11 +23,12 @@
  * to determine the proper encoding and decoding. The following content type
  * parameters are supported:
  * 
- * * length: Number of bytes which shall be produced during serialization.
+ * * length: Number of bytes which shall be produced during serialization
+ *   or consumed during deserialization.
  *   Required for `valueToBytes`, used for consistency check in `bytesToValue`.
- * * signed: `true` or `false`, defauls to `false`
- * * byteorder: `bigendian` or `littleendian`, defauls to `bigendian`
- * * charset: Charset used for encoding and decoding of strings, defauls to `utf8`.
+ * * signed: `true` or `false`, defaults to `false`
+ * * byteorder: `bigendian` or `littleendian`, defaults to `bigendian`
+ * * charset: Charset used for encoding and decoding of strings, defaults to `utf8`.
  * 
  * The following schema data types are supported:
  * 
@@ -52,7 +53,7 @@ export class OctetstreamCodec implements ContentCodec {
 
         // check length if specified
         if (parameters.length && parseInt(parameters.length) !== bytes.length) {
-            throw new Error("Lenghts do not match, required: " + parameters.length + " provided: " + bytes.length);
+            throw new Error("Lengths do not match, required: " + parameters.length + " provided: " + bytes.length);
         }
 
         // determine return type
