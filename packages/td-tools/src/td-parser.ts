@@ -131,9 +131,12 @@ export function parseTD(td: string, normalize?: boolean): Thing {
 /** Serializes a Thing object into a TD */
 export function serializeTD(thing: Thing): string {
 
-  let td: string = JSON.stringify(thing);
+  // clean-ups
+  if (!thing.security || thing.security.length===0) {
+    thing.security = [{ scheme: "nosec" }];
+  }
 
-  // TODO clean-ups
+  let td: string = JSON.stringify(thing);
 
   console.debug(`serializeTD() produced\n\`\`\`\n${td}\n\`\`\``);
 
