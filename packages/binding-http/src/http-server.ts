@@ -127,7 +127,9 @@ export default class HttpServer implements ProtocolServer {
           
           for (let eventName in thing.events) {
             let href = base + "/" + this.EVENT_DIR + "/" + encodeURIComponent(eventName);
-            thing.events[eventName].forms.push(new TD.Form(href, type));
+            let form = new TD.Form(href, type);
+            form.subProtocol = "LongPoll";
+            thing.events[eventName].forms.push(form);
             console.log(`HttpServer on port ${this.getPort()} assigns '${href}' to Event '${eventName}'`);
           }
         } // media types
