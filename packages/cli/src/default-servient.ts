@@ -52,8 +52,12 @@ export default class DefaultServient extends Servient {
         super();
 
         this.config = (typeof config === "object") ? config : DefaultServient.defaultConfig;
-        // remove secrets from original for displaying config (still in copy on this)
-        if(config && config.credentials) delete config.credentials;
+        
+        // loads credentials from the configuration
+        this.addCredentials(this.config.credentials);
+
+        // remove secrets from original for displaying config (already added)
+        if(this.config.credentials) delete this.config.credentials;
         console.info("DefaultServient configured with", config);
 
         if (typeof this.config.servient.staticAddress === "string") {
@@ -92,9 +96,6 @@ export default class DefaultServient extends Servient {
         if (this.config.mqtt !== undefined) {
             this.addClientFactory(new MqttClientFactory()); //TODO pass client config
         }
-        
-        // loads credentials from the configuration
-        this.addCredentials(this.config.credentials);
     }
 
     /**

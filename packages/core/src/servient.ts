@@ -253,11 +253,13 @@ export default class Servient {
     public addCredentials(credentials: any) {
         if (typeof credentials === "object") {
             for (let i in credentials) {
+                console.log(`Servient storing credentials for '${i}'`);
                 this.credentialStore.set(i, credentials[i]);
             }
         }
     }
     public getCredentials(identifier: string): any {
+        console.log(`Servient looking up credentials for '${identifier}'`);
         return this.credentialStore.get(identifier);
     }
 
