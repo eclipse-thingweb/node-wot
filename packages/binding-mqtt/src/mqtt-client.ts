@@ -94,8 +94,14 @@ export default class MqttClient implements ProtocolClient {
             if(this.client==undefined) {
                 this.client = mqtt.connect(brokerUri)
             }
-            this.client.publish(topic, content.body)
 
+            // if not input was provided, set up an own body otherwise take input as body
+            if (content == undefined){
+                this.client.publish(topic, JSON.stringify(Buffer.from("")))
+            }
+            else {
+                this.client.publish(topic, content.body)
+            }
             // there will bo no response
             resolve({ contentType: ContentSerdes.DEFAULT, body: Buffer.from("") });
 

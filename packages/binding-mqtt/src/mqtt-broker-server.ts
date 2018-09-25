@@ -103,7 +103,7 @@ export default class MqttBrokerServer implements ProtocolServer {
             if (segments[2] === "actions") {
               let action = thing.actions[segments[3]];
               if (action) {
-                action.invoke(payload)
+                action.invoke(JSON.parse(payload))
                   .then((output) => {
                     // MQTT cannot return results
                     if (output) {
@@ -129,8 +129,8 @@ export default class MqttBrokerServer implements ProtocolServer {
         let subscription = thing.events[eventName].subscribe(
           (value) => {
             // send event data
-            console.log(`MqttBrokerServer at ${this.brokerURI} publishing to Event topic '${eventName}'`);
-            this.broker.publish(topic, value);
+            console.log(`MqttBrokerServer at ${this.brokerURI} publishing to Event topic '${eventName}' `);
+            this.broker.publish(topic, value.body);
           }
         );
 

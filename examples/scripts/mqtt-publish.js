@@ -20,7 +20,7 @@ try {
         description: "Tests a MQTT client that published counter values as an WoT event and subscribes the resetCounter topic as WoT action to reset the own counter."
     });
 
-    console.log("Setup MQTT broker address/port details in wot-servient.conf.json (also see sample in wot-servient.conf.json_mqtt)!");
+    console.log("Setup MQTT broker address/port details in wot-servient.conf.json (also see sample in wot-servient.conf.json)!");
 
     // manually add Interactions
     thing
@@ -30,7 +30,7 @@ try {
         () => {
           console.log("Resetting counter");
           counter = 0;
-          return;
+          return "";
         })
       .addEvent(
         "counterEvent",
