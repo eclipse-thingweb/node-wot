@@ -24,13 +24,10 @@ import { HttpServer } from "@node-wot/binding-http";
 import { CoapClientFactory } from "@node-wot/binding-coap";
 import { FileClientFactory } from "@node-wot/binding-file";
 
-console.debug = () => {};
-console.log = () => {};
-
 let servient = new Servient();
 
 servient.addServer(new HttpServer());
-servient.addServer(new FujitsuServer("wss://echo.websocket.org/"));
+servient.addServer(new FujitsuServer("ws://wot.f-ncs.ad.jp/websocket/"));
 servient.addClientFactory(new CoapClientFactory());
 servient.addClientFactory(new FileClientFactory());
 
@@ -40,9 +37,8 @@ servient.start().then(async (WoT) => {
   console.info("FujitsuLocalProxy started");
 
   let thing = WoT.produce({
-      id: "urn:dev:wot:siemens:festolive",
-      name: "FestoLive",
-      "iotcs:deviceModel": "urn:com:siemens:wot:festolive"
+      id: "urn:dev:wot:siemens:festofake",
+      name: "FestoFake"
     }
   );
 
