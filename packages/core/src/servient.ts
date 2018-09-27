@@ -169,6 +169,12 @@ export default class Servient {
     }
 
     public expose(thing: ExposedThing): Promise<void> {
+
+        if (this.servers.length === 0) {
+            console.warn(`Servient has no servers to expose Things`);
+            return new Promise<void>((resolve) => { resolve(); });
+        }
+
         console.log(`Servient exposing '${thing.name}'`);
 
         // initiatlizing forms fields
