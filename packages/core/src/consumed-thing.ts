@@ -97,7 +97,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
             let client = this.getServient().getClientFor(schemes[srvIdx]);
             console.log(`ConsumedThing '${this.name}' got new client for '${schemes[srvIdx]}'`);
             
-            if (this.security && Array.isArray(this.security) && this.security[0].scheme !== "nosec" ) {
+            if (this.security && Array.isArray(this.security) && this.security.length>0 && this.security[0].scheme !== "nosec" ) {
                 console.log(`ConsumedThing '${this.name}' setting credentials for ${client}`);
                 client.setSecurity(this.security, this.getServient().getCredentials(this.id));
             }
