@@ -48,22 +48,33 @@ export default class DefaultServient extends Servient {
 
     public readonly config: any;
 
-    public constructor(config?: any) {
+    public constructor(clientOnly: boolean, config?: any) {
         super();
 
+        // init config
         this.config = (typeof config === "object") ? config : DefaultServient.defaultConfig;
+        if (!this.config.servient) this.config.servient = DefaultServient.defaultConfig.servient;
+
+        // apply flags
+        if (clientOnly) {
+            if (!this.config.servient) { this.config.servient = {}; }
+            this.config.servient.clientOnly = true;
+        }
         
-        // loads credentials from the configuration
+        // load credentials from config
         this.addCredentials(this.config.credentials);
 
         // remove secrets from original for displaying config (already added)
         if(this.config.credentials) delete this.config.credentials;
-        console.info("DefaultServient configured with", config);
 
+        // display
+        console.info("DefaultServient configured with");
+        console.dir(this.config);
+
+        // apply config
         if (typeof this.config.servient.staticAddress === "string") {
             Helpers.setStaticAddress(this.config.servient.staticAddress);
         }
-
         if (!this.config.servient.clientOnly) {
 
             if (this.config.http !== undefined) {
@@ -73,8 +84,6 @@ export default class DefaultServient extends Servient {
                 // re-use httpServer (same port)
                 this.addServer(new WebSocketServer(httpServer));
             }
-
-            // optional servers based on wot-servient.conf.json
             if (this.config.coap !== undefined) {
                 // var to reuse below in CoapClient
                 var coapServer = (typeof this.config.coap.port === "number") ? new CoapServer(this.config.coap.port) : new CoapServer();
@@ -104,7 +113,7 @@ export default class DefaultServient extends Servient {
     public start(): Promise<WoT.WoTFactory> {
 
         return new Promise<WoT.WoTFactory>((resolve, reject) => {
-            super.start().then(myWoT => {
+            super.start().then((myWoT) => {
                 console.info("DefaultServient started");
 
                 // TODO think about builder pattern that starts with produce() ends with expose(), which exposes/publishes the Thing
@@ -165,13 +174,12 @@ export default class DefaultServient extends Servient {
                         );
                 }
 
-                // pass WoTFactory on
-                resolve(myWoT);
+                thing.expose().then(() => {
+                        // pass on WoTFactory
+                        resolve(myWoT);
+                    }).catch((err) => reject(err));
 
-            }).catch(err => {
-                console.trace(`error building CLI Management Thing: ${err}`);
-                reject(err)
-            });
+            }).catch((err) => reject(err));
         });
     }
 }

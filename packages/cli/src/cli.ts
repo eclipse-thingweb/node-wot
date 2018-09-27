@@ -21,36 +21,37 @@ import DefaultServient from "./default-servient";
 import fs = require("fs");
 import * as path from "path";
 
-const argv = process.argv.slice(2);
-const confFile = "wot-servient.conf.json";
+const argv = process.argv.slice(2); // remove "node" and executable
+const defaultFile = "wot-servient.conf.json";
 const baseDir = ".";
 
 var clientOnly: boolean = false;
-var file: string;
 
-const readConf = function () : Promise<any> {
+var flagArgConfigfile = false;
+var confFile: string;
+
+const readConf = function (filename: string): Promise<any> {
     return new Promise((resolve, reject) => {
-
-        let open = file!==undefined ? file : path.join(baseDir, confFile);
-
+        let open = filename ? filename : path.join(baseDir, defaultFile);
         fs.readFile(open, "utf-8", (err, data) => {
             if (err) {
                 reject(err);
             }
             if (data) {
-                const config = JSON.parse(data);
-                console.info("WoT-Servient using conf file", open);
-
-                // apply cli flags
-                if (clientOnly) config.servient.clientOnly = true;
-                
+                let config: any;
+                try {
+                    config = JSON.parse(data);
+                } catch (err) {
+                    reject(err);
+                }
+                console.info(`WoT-Servient using config file '${open}'`);
                 resolve(config);
             }
         });
     });
 }
 
-const runScripts = function(srv : DefaultServient, scripts : Array<string>) : void {
+const runScripts = function(servient: DefaultServient, scripts: Array<string>) {
     scripts.forEach((fname) => {
         console.info("WoT-Servient reading script", fname);
         fs.readFile(fname, "utf8", (err, data) => {
@@ -59,14 +60,14 @@ const runScripts = function(srv : DefaultServient, scripts : Array<string>) : vo
             } else {
                 // limit printout to first line
                 console.info(`WoT-Servient running script '${data.substr(0, data.indexOf("\n")).replace("\r", "")}'... (${data.split(/\r\n|\r|\n/).length} lines)`);
-                srv.runPrivilegedScript(data, fname);
+                servient.runPrivilegedScript(data, fname);
             }
         });
     });
 }
 
-const runAllScripts = function(srv : DefaultServient) : void {
-    const scriptDir = path.join(baseDir, srv.config.servient.scriptDir);
+const runAllScripts = function(servient: DefaultServient) {
+    const scriptDir = path.join(baseDir, servient.config.servient.scriptDir);
     fs.readdir(scriptDir, (err, files) => {
         if (err) {
             console.warn("WoT-Servient experienced error while loading directory", err);
@@ -77,16 +78,34 @@ const runAllScripts = function(srv : DefaultServient) : void {
         let scripts = files.filter( (file) => {
             return (file.substr(0, 1) !== "." && file.slice(-3) === ".js");
         });
-        console.info(`WoT-Servient loading directory '${scriptDir}' with ${scripts.length} script${scripts.length>1 ? "s" : ""}`);
+        console.info(`WoT-Servient using directory '${scriptDir}' with ${scripts.length} script${scripts.length>1 ? "s" : ""}`);
         
-        runScripts(srv, scripts.map(value => path.join(scriptDir, value)));
+        runScripts(servient, scripts.map(value => path.join(scriptDir, value)));
     });
 }
 
 // main
-if (argv.length>0) {
-    argv.forEach( (arg) => {
-        if (arg.match(/^(-h|--help|\/?|\/h)$/i)) {
+if (argv.length > 0) {
+    let argvCopy = argv.slice(0);
+    argvCopy.forEach( (arg) => {
+        if (flagArgConfigfile) {
+            flagArgConfigfile = false;
+            confFile = arg;
+            argv.shift();
+
+        } else if (arg.match(/^(-c|--clientonly|\/c)$/i)) {
+            clientOnly = true;
+            argv.shift();
+        
+        } else if (arg.match(/^(-f|--configfile|\/f)$/i)) {
+            flagArgConfigfile = true;
+            argv.shift();
+
+        } else if (arg.match(/^(-v|--version|\/c)$/i)) {
+            console.log( require('@node-wot/core/package.json').version );
+            process.exit(0);
+
+        } else if (arg.match(/^(-h|--help|\/?|\/h)$/i)) {
             console.log(`Usage: wot-servient [options] [SCRIPT]...
        wot-servient
        wot-servient examples/scripts/counter.js examples/scripts/example-event.js
@@ -147,40 +166,26 @@ wot-servient.conf.json fields:
   USERNAME   : string for providing a Basic Auth username
   PASSWORD   : string for providing a Basic Auth password`);
             process.exit(0);
-
-        } else if (arg.match(/^(-v|--version|\/c)$/i)) {
-            console.log( require('@node-wot/core/package.json').version );
-            process.exit(0);
-
-        } else if (arg.match(/^(-c|--clientonly|\/c)$/i)) {
-            console.log(`WoT-Servient in client-only mode`);
-            clientOnly = true;
-            argv.shift();
-        
-        } else if (arg.match(/^(-f|--configfile|\/f)$/i)) {
-            console.log(`WoT-Servient in client-only mode`);
-            clientOnly = true;
-            argv.shift();
         }
     });
 }
 
-readConf()
+readConf(confFile)
     .then((conf) => {
-        return new DefaultServient(conf);
+        return new DefaultServient(clientOnly, conf);
     })
-    .catch(err => {
-        if (err.code == 'ENOENT') {
-            console.warn("WoT-Servient using defaults as 'wot-servient.conf.json' does not exist");
-            return new DefaultServient();
+    .catch((err) => {
+        if (err.code === "ENOENT" && !confFile) {
+            console.warn(`WoT-Servient using defaults as '${defaultFile}' does not exist`);
+            return new DefaultServient(clientOnly);
         } else {
-            console.error("WoT-Servient config file error: " + err.message);
+            console.error("WoT-Servient config file error:", err.message);
             process.exit(err.errno);
         }
     })
-    .then(servient => {
+    .then((servient) => {
         servient.start()
-            .then( () => {
+            .then(() => {
                 if (argv.length>0) {
                     console.info(`WoT-Servient loading ${argv.length} command line script${argv.length>1 ? "s" : ""}`);
                     return runScripts(servient, argv);
@@ -188,8 +193,8 @@ readConf()
                     return runAllScripts(servient);
                 }
             })
-        .catch( err => {
-            console.error("WoT-Servient cannot start: " + err.message);
-        });
+            .catch((err) => {
+                console.error("WoT-Servient cannot start:", err.message);
+            });
     })
-    .catch(err => console.error(err));
+    .catch((err) => console.error("WoT-Servient main error:", err.message));
