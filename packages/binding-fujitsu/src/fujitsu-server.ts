@@ -139,7 +139,6 @@ export default class FujitsuServer implements ProtocolServer {
     let message = JSON.parse(data);
 
     if (message.type === "REQUEST") {
-      console.dir(message);
 
       // select Thing based on "id" field
       let thing = this.things.get(decodeURIComponent(message.deviceID));
@@ -219,11 +218,7 @@ export default class FujitsuServer implements ProtocolServer {
     if (content) {
       response.mediaType = content.contentType;
       response.buffer = content.body.toString("base64");
-    } else {
-      response.buffer = null;
     }
-
-    console.dir(response);
 
     this.websocket.send(JSON.stringify(response), (err) => {
       if (err) {
