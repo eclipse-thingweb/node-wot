@@ -45,10 +45,10 @@ export default class CoapServer implements ProtocolServer {
     }
 
     // WoT-specific content formats
-    coap.registerFormat('application/ld+json', 2100);
+    coap.registerFormat(ContentSerdes.JSON_LD, 2100);
     // TODO also register content fromat with IANA
     // from experimental range for now
-    coap.registerFormat('application/td+json', 65100);
+    coap.registerFormat(ContentSerdes.TD, 65100);
     // TODO need hook from ContentSerdes for runtime data formats
   }
 
@@ -226,6 +226,7 @@ export default class CoapServer implements ProtocolServer {
                 try {
                   value = ContentSerdes.get().contentToValue({ contentType: contentType, body: req.payload }, <any>property);
                 } catch(err) {
+                  console.warn(`CoapServer on port ${this.getPort()} cannot process write data for Property '${segments[3]}: ${err.message}'`);
                   res.code = "4.00";
                   res.end("Invalid Data");
                   return;
@@ -261,6 +262,7 @@ export default class CoapServer implements ProtocolServer {
               try {
                 input = ContentSerdes.get().contentToValue({ contentType: contentType, body: req.payload }, action.input);
               } catch(err) {
+                console.warn(`CoapServer on port ${this.getPort()} cannot process input to Action '${segments[3]}: ${err.message}'`);
                 res.code = "4.00";
                 res.end("Invalid Input Data");
                 return;

@@ -25,10 +25,9 @@ import { Subscription } from "rxjs/Subscription";
 // for Security definition
 import * as WoT from "wot-typescript-definitions";
 
-import { ProtocolClient, Content } from "@node-wot/core";
+import { ProtocolClient, Content, ContentSerdes } from "@node-wot/core";
 import { CoapForm, CoapRequestConfig, CoapOption } from "./coap";
 import CoapServer from "./coap-server";
-import { Socket } from "net";
 
 export default class CoapClient implements ProtocolClient {
 
@@ -38,6 +37,13 @@ export default class CoapClient implements ProtocolClient {
   constructor(server?: CoapServer) {
     // if server is passed, feed its socket into the CoAP agent for socket re-use
     this.agent = new coap.Agent(server ? { socket: server.getSocket() } : undefined);
+    
+    // WoT-specific content formats
+    coap.registerFormat(ContentSerdes.JSON_LD, 2100);
+    // TODO also register content fromat with IANA
+    // from experimental range for now
+    coap.registerFormat(ContentSerdes.TD, 65100);
+    // TODO need hook from ContentSerdes for runtime data formats
   }
 
   public toString(): string {
@@ -54,8 +60,10 @@ export default class CoapClient implements ProtocolClient {
       req.on("response", (res: any) => {
         console.log(`CoapClient received ${res.code} from ${form.href}`);
         console.debug(`CoapClient received Content-Format: ${res.headers["Content-Format"]}`);
-        console.debug(`CoapClient received headers: ${JSON.stringify(res.headers)}`);
+        
+        // FIXME does not work with blockwise because of node-coap
         let contentType = res.headers["Content-Format"];
+        
         resolve({ contentType: contentType, body: res.payload });
       });
       req.on("error", (err: Error) => reject(err));

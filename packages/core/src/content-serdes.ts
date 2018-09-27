@@ -128,6 +128,7 @@ export class ContentSerdes {
 
   public static readonly DEFAULT: string = "application/json";
   public static readonly TD: string = "application/td+json";
+  public static readonly JSON_LD: string = "application/ld+json";
   
   private codecs: Map<string, ContentCodec> = new Map();
   private offered: Set<string> = new Set<string>();

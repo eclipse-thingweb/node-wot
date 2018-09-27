@@ -22,6 +22,7 @@ import Servient from "./servient";
 import ExposedThing from "./exposed-thing";
 import ConsumedThing from "./consumed-thing";
 import Helpers from "./helpers";
+import { ContentSerdes } from "./content-serdes";
 
 export default class WoTImpl implements WoT.WoTFactory {
     private srv: Servient;
@@ -45,12 +46,12 @@ export default class WoTImpl implements WoT.WoTFactory {
         return new Promise<WoT.ThingDescription>((resolve, reject) => {
             let client = this.srv.getClientFor(Helpers.extractScheme(uri));
             console.info(`WoTImpl fetching TD from '${uri}' with ${client}`);
-            client.readResource(new TD.Form(uri, "application/td+json"))
+            client.readResource(new TD.Form(uri, ContentSerdes.TD))
                 .then((content) => {
                     client.stop();
 
-                    if (content.contentType !== "application/td+json" &&
-                        content.contentType !== "application/ld+json" ) {
+                    if (content.contentType !== ContentSerdes.TD &&
+                        content.contentType !== ContentSerdes.JSON_LD ) {
                         console.warn(`WoTImpl received TD with media type '${content.contentType}' from ${uri}`);
                     }
 
