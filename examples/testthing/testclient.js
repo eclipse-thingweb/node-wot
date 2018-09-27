@@ -15,42 +15,76 @@
 
 "use strict"
 
-WoT.consume("http://127.0.0.1:8080/TestThing").then(thing => {
-        thing.getProperty("bool")
-            .then( res => {
-                console.log("READ bool: " + res);
-                thing.setProperty("bool", true).then( ret => {
-                thing.setProperty("bool", false).then( ret => {
-                thing.setProperty("bool", "true").then( ret => {
-                })})});
-            })
-            .catch(err => console.error(err));
-        
-        thing.getProperty("int")
-            .then( res => {
-                console.log("READ int: " + res);
-                thing.setProperty("int", 4711);
-                thing.setProperty("int", 3.1415);
-                thing.setProperty("int", "true");
-            })
-            .catch(err => console.error(err));
-        
-        thing.getProperty("num")
-            .then( res => {
-                console.log("READ num: " + res);
-                thing.setProperty("num", 4711);
-                thing.setProperty("num", 3.);
-                thing.setProperty("num", "true");
-            })
-            .catch(err => console.error(err));
-        
-        thing.getProperty("string")
-            .then( res => {
-                console.log("READ string: " + res);
-                thing.setProperty("string", "client");
-                thing.setProperty("string", null);
-                thing.setProperty("string", 12);
-            })
-            .catch(err => console.error(err));
-    })
-    .catch(err => console.error(err));
+console.log = () => {};
+
+async function fetchTD() {
+    let td;
+    try {
+        td = await WoT.fetch("http://localhost:8080/TestThing");
+        return td;
+    } catch (err) {
+        console.warn("Fetch error: Failed to get TD via HTTP, trying CoAP");
+        try {
+            td = await WoT.fetch("coap://localhost:5683/TestThing");
+            return td;
+        } catch (err) {
+            console.warn("Fetch error: Failed to get TD via CoAP");
+        }
+    }
+    return null;
+}
+
+async function testPropertyRead(name, property) {
+    try {
+        let res = await property.read();
+        console.info("PASS "+name+" READ:", res);
+    } catch (err) {
+        console.error("FAIL "+name+" READ:", err.message);
+    }
+}
+async function testPropertyWrite(name, property, value, shouldFail) {
+    let displayValue = JSON.stringify(value);
+    try {
+        await property.write(value);
+        if (!shouldFail) console.info("PASS "+name+" WRITE ("+displayValue+")");
+        else console.error("FAIL "+name+" WRITE: ("+displayValue+")");
+    } catch (err) {
+        if (!shouldFail) console.error("FAIL "+name+" WRITE ("+displayValue+"):", err.message);
+        else console.info("PASS "+name+" WRITE ("+displayValue+"):", err.message);
+    }
+}
+
+fetchTD().then((td) => {
+
+    let thing = WoT.consume(td);
+
+    testPropertyRead("bool", thing.properties.bool);
+    testPropertyWrite("bool", thing.properties.bool, true);
+    testPropertyWrite("bool", thing.properties.bool, false);
+    testPropertyWrite("bool", thing.properties.bool, "true", true);
+    
+    testPropertyRead("int", thing.properties.int);
+    testPropertyWrite("int", thing.properties.int, 4711);
+    testPropertyWrite("int", thing.properties.int, 3.1415, true);
+    testPropertyWrite("int", thing.properties.int, "Pi", true);
+    
+    testPropertyRead("num", thing.properties.num);
+    testPropertyWrite("num", thing.properties.num, 4711);
+    testPropertyWrite("num", thing.properties.num, 3.1415);
+    testPropertyWrite("num", thing.properties.num, "Pi", true);
+    
+    testPropertyRead("num", thing.properties.string);
+    testPropertyWrite("num", thing.properties.string, "testclient");
+    testPropertyWrite("num", thing.properties.string, 13, true);
+    testPropertyWrite("num", thing.properties.string, null, true);
+    
+    testPropertyRead("array", thing.properties.array);
+    testPropertyWrite("array", thing.properties.array, [23, "illuminated"]);
+    testPropertyWrite("array", thing.properties.array, { id: 24, name: "dark"}, true);
+    testPropertyWrite("array", thing.properties.array, null, true);
+    
+    testPropertyRead("object", thing.properties.object);
+    testPropertyWrite("object", thing.properties.object, { id: 23, name: "illuminated"});
+    testPropertyWrite("object", thing.properties.object, null);
+    testPropertyWrite("object", thing.properties.object, [24, "dark"], true);
+});
