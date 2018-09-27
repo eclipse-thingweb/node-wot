@@ -164,6 +164,8 @@ export default class OracleServer implements ProtocolServer {
 
     let device = this.server.createVirtualDevice(id, model);
 
+    thing.deviceID = id;
+
     this.devices[id] = device;
 
     return new Promise<void>( (resolve, reject) => {
@@ -178,7 +180,7 @@ export default class OracleServer implements ProtocolServer {
             attributes[propertyName] = await thing.properties[propertyName].read();
           }
 
-          console.info("### Oracle PROPERTY UPDATE");
+          console.info("### Oracle PROPERTY UPDATE for",thing.deviceID);
           console.dir(attributes);
 
           device.update(attributes);

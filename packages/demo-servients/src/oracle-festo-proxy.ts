@@ -41,7 +41,7 @@ servient.start().then(async (WoT) => {
   console.info("OracleServient started");
 
   // choose false for mockup
-  var live = true;
+  var live = false;
 
   var PumpP101: ConsumedThing, ValveV102: ConsumedThing;
 
@@ -129,7 +129,7 @@ servient.start().then(async (WoT) => {
   let thing = WoT.produce({
       id: "urn:dev:wot:siemens:festolive",
       name: "FestoLive",
-      "iotcs:deviceModel": "urn:com:siemens:wot:festolive"
+      "iotcs:deviceModel": "urn:com:siemens:wot:festo"
     }
   );
 
