@@ -15,7 +15,7 @@
  ********************************************************************************/
 
 // default implementation of W3C WoT Servient (http(s) and file bindings)
-import DefaultServient from "./default-servient";
+import DefaultServient from "./cli-default-servient";
 
 // tools
 import fs = require("fs");
@@ -67,8 +67,7 @@ const runScripts = function(servient: DefaultServient, scripts: Array<string>) {
 }
 
 const runAllScripts = function(servient: DefaultServient) {
-    const scriptDir = path.join(baseDir, servient.config.servient.scriptDir);
-    fs.readdir(scriptDir, (err, files) => {
+    fs.readdir(baseDir, (err, files) => {
         if (err) {
             console.warn("WoT-Servient experienced error while loading directory", err);
             return;
@@ -78,9 +77,9 @@ const runAllScripts = function(servient: DefaultServient) {
         let scripts = files.filter( (file) => {
             return (file.substr(0, 1) !== "." && file.slice(-3) === ".js");
         });
-        console.info(`WoT-Servient using directory '${scriptDir}' with ${scripts.length} script${scripts.length>1 ? "s" : ""}`);
+        console.info(`WoT-Servient using current directory with ${scripts.length} script${scripts.length>1 ? "s" : ""}`);
         
-        runScripts(servient, scripts.map(value => path.join(scriptDir, value)));
+        runScripts(servient, scripts.map(filename => path.join(baseDir, filename)));
     });
 }
 
@@ -129,7 +128,6 @@ wot-servient.conf.json syntax:
     "servient": {
         "clientOnly": CLIENTONLY,
         "staticAddress": STATIC,
-        "scriptDir": AUTORUN,
         "scriptAction": RUNSCRIPT
     },
     "http": {
@@ -154,7 +152,6 @@ wot-servient.conf.json fields:
   ---------------------------------------------------------------------------
   CLIENTONLY : boolean setting if no servers shall be started (default=false)
   STATIC     : string with hostname or IP literal for static address config
-  AUTORUN    : string with path of directory to load at startup (default=".")
   RUNSCRIPT  : boolean to activate the 'runScript' Action (default=false)
   HPORT      : integer defining the HTTP listening port
   PROXY      : object with "href" field for the proxy URI,

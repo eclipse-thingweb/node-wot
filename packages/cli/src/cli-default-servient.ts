@@ -34,7 +34,6 @@ export default class DefaultServient extends Servient {
     private static readonly defaultConfig = {
         servient: {
             clientOnly: false,
-            scriptDir: ".",
             scriptAction: false
         },
         http: {
