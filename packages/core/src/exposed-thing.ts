@@ -271,17 +271,41 @@ class ExposedThingProperty extends TD.PropertyFragment implements WoT.ThingPrope
         return new Promise<void>((resolve, reject) => {
             // call write handler (if any)
             if (this.getState().writeHandler != null) {
-                console.log(`ExposedThing '${this.getThing().name}' calls registered writeHandler for Property '${this.getName()}'`);
-                this.getState().writeHandler(value).then((customValue) => {
-                    /** notify state change */
-                    if (this.getState().value!==customValue) {
-                        this.getState().subject.next(customValue);
+                
+                // be generous when no promise is returned
+                let promiseOrValueOrNil = this.getState().writeHandler(value);
+                
+                if (promiseOrValueOrNil !== undefined) {
+                    if (typeof promiseOrValueOrNil.then === "function") {
+                        promiseOrValueOrNil.then((customValue) => {
+                            console.log(`ExposedThing '${this.getThing().name}' write handler for Property '${this.getName()}' sets custom value '${customValue}'`);
+                            /** notify state change */
+                            // FIXME object comparison
+                            if (this.getState().value!==customValue) {
+                                this.getState().subject.next(customValue);
+                            }
+                            this.getState().value = customValue;
+                            resolve();
+                        });
+                    } else  {
+                        console.warn(`ExposedThing '${this.getThing().name}' write handler for Property '${this.getName()}' does not return promise`);
+                        if (this.getState().value!==promiseOrValueOrNil) {
+                            this.getState().subject.next(<any>promiseOrValueOrNil);
+                        }
+                        this.getState().value = <any>promiseOrValueOrNil;
+                        resolve();
                     }
-                    this.getState().value = customValue;
+                } else {
+                    console.warn(`ExposedThing '${this.getThing().name}' write handler for Property '${this.getName()}' does not return custom value, using direct value '${value}'`);
+                    
+                    if (this.getState().value!==value) {
+                        this.getState().subject.next(value);
+                    }
+                    this.getState().value = value;
                     resolve();
-                });
+                }
             } else {
-                console.log(`ExposedThing '${this.getThing().name}' sets internal value '${value}' for Property '${this.getName()}'`);
+                console.log(`ExposedThing '${this.getThing().name}' directly sets Property '${this.getName()}' to value '${value}'`);
                 /** notify state change */
                 if (this.getState().value!==value) {
                     this.getState().subject.next(value);
