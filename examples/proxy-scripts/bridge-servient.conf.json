@@ -1,0 +1,8 @@
+{
+    "fujitsu": {
+        "remote": "ws://wot.f-ncs.ad.jp/websocket/"
+    },
+    "_oracle": {
+        "store": "please ask Michael.Lagally@oracle.com for a gateway activation store"
+    }
+}

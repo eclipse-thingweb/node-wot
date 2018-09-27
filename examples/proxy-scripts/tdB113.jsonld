@@ -1,0 +1,18 @@
+{
+    "@context": "http://www.w3.org/ns/td",
+    "@type": ["Thing"],
+    "id": "urn:dev:wot:com:siemens:festolive:b113",
+    "name": "LevelSensorB113",
+    "base": "coap://192.168.0.108:5683/B113/",
+    "properties": {
+        "minlevel101": {
+            "type": "boolean",
+            "writable": false,
+            "observable": false,
+            "forms": [{
+                "href": "tank101MinLevelStatus",
+                "mediaType": "application/json"
+            }]
+        }
+    }
+}

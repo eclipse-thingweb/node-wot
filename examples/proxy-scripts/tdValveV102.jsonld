@@ -1,0 +1,32 @@
+{
+    "@context": "http://www.w3.org/ns/td",
+    "@type": ["Thing"],
+    "id": "urn:dev:wot:com:siemens:festolive:v102",
+    "name": "Valve",
+    "base": "coap://192.168.0.109:5683/",
+    "properties": {
+        "status": {
+            "type": "string",
+            "writable": false,
+            "observable": false,
+            "forms": [{
+                "href": "status",
+                "mediaType": "application/json"
+            }]
+        }
+    },
+    "actions": {
+        "open": {
+            "forms": [{
+                "href": "open",
+                "mediaType": "application/json"
+            }]
+        },
+        "close": {
+            "forms": [{
+                "href": "close",
+                "mediaType": "application/json"
+            }]
+        } 
+    }
+}

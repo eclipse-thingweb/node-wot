@@ -1,0 +1,18 @@
+{
+    "@context": "http://www.w3.org/ns/td",
+    "@type": ["Thing"],
+    "id": "urn:dev:wot:com:siemens:festolive:s112",
+    "name": "FloatSwitchS112",
+    "base": "coap://192.168.0.107:5683/FloatSwitchS112/",
+    "properties": {
+        "overflow102": {
+            "type": "boolean",
+            "writable": false,
+            "observable": false,
+            "forms": [{
+                "href": "tank102OverflowStatus",
+                "mediaType": "application/json"
+            }]
+        }
+    }
+}

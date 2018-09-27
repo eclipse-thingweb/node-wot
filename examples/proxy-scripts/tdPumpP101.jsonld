@@ -1,0 +1,32 @@
+{
+    "@context": "http://www.w3.org/ns/td",
+    "@type": ["Thing"],
+    "id": "urn:dev:wot:com:siemens:festolive:p101",
+    "name": "Pump",
+    "base": "coap://192.168.0.106:5683/PumpP101/",
+    "properties": {
+        "status": {
+            "type": "string",
+            "writable": false,
+            "observable": false,
+            "forms": [{
+                "href": "status",
+                "mediaType": "application/json"
+            }]
+        }
+    },
+    "actions": {
+        "on": {
+            "forms": [{
+                "href": "on",
+                "mediaType": "application/json"
+            }]
+        },
+        "off": {
+            "forms": [{
+                "href": "off",
+                "mediaType": "application/json"
+            }]
+        }
+    }
+}
