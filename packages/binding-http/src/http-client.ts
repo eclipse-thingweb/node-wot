@@ -98,12 +98,10 @@ export default class HttpClient implements ProtocolClient {
       req.on("response", (res: http.IncomingMessage) => {
         console.log(`HttpClient received ${res.statusCode} from ${form.href}`);
         let contentType: string = this.getContentType(res);
-        //console.log(`HttpClient received Content-Type: ${mediaType}`);
-        //console.log(`HttpClient received headers: ${JSON.stringify(res.headers)}`);
         let body: Array<any> = [];
         res.on('data', (data) => { body.push(data) });
         res.on('end', () => {
-          resolve({ contentType: contentType, body: Buffer.concat(body) });
+          this.checkResponse(res.statusCode, contentType, Buffer.concat(body), resolve, reject);
         });
       });
       req.on("error", (err: any) => reject(err));
@@ -124,6 +122,7 @@ export default class HttpClient implements ProtocolClient {
 
       req.on("response", (res: http.IncomingMessage) => {
         console.log(`HttpClient received ${res.statusCode} from ${form.href}`);
+        let contentType: string = this.getContentType(res);
         //console.log(`HttpClient received headers: ${JSON.stringify(res.headers)}`);
         // Although 204 without payload is expected, data must be read 
         // to complete request (http blocks socket otherwise)
@@ -131,7 +130,7 @@ export default class HttpClient implements ProtocolClient {
         let body: Array<any> = [];
         res.on('data', (data) => { body.push(data) });
         res.on('end', () => {
-          resolve();
+          this.checkResponse(res.statusCode, contentType, Buffer.concat(body), resolve, reject);
         });
       });
       req.on('error', (err: any) => reject(err));
@@ -160,7 +159,7 @@ export default class HttpClient implements ProtocolClient {
         let body: Array<any> = [];
         res.on('data', (data) => { body.push(data) });
         res.on('end', () => {
-          resolve({ contentType: contentType, body: Buffer.concat(body) });
+          this.checkResponse(res.statusCode, contentType, Buffer.concat(body), resolve, reject);
         });
       });
       req.on("error", (err: any) => reject(err));
@@ -181,6 +180,7 @@ export default class HttpClient implements ProtocolClient {
 
       req.on("response", (res: http.IncomingMessage) => {
         console.log(`HttpClient received ${res.statusCode} from ${form.href}`);
+        let contentType: string = this.getContentType(res);
         //console.log(`HttpClient received headers: ${JSON.stringify(res.headers)}`);
         // Although 204 without payload is expected, data must be read
         //  to complete request (http blocks socket otherwise)
@@ -188,7 +188,7 @@ export default class HttpClient implements ProtocolClient {
         let body: Array<any> = [];
         res.on('data', (data) => { body.push(data) });
         res.on('end', () => {
-          resolve();
+          this.checkResponse(res.statusCode, contentType, Buffer.concat(body), resolve, reject);
         });
       });
       req.on('error', (err: any) => reject(err));
@@ -215,7 +215,7 @@ export default class HttpClient implements ProtocolClient {
         res.on("data", (data) => { body.push(data) });
         res.on("end", () => {
           if (active) {
-            next({ contentType: contentType, body: Buffer.concat(body) });
+            this.checkResponse(res.statusCode, contentType, Buffer.concat(body), next, error);
             polling();
           }
         });
@@ -371,5 +371,19 @@ export default class HttpClient implements ProtocolClient {
     }
 
     return req;
+  }
+
+  private checkResponse(statusCode: number, contentType: string, body: Buffer, resolve: Function, reject: Function) {
+    if (statusCode < 200) {
+      throw new Error(`HttpClient received ${statusCode} and cannot continue (not implemented, open GitHub Issue)`);
+    } else if (statusCode < 300) {
+      resolve({ contentType: contentType, body: body });
+    } else if (statusCode < 400) {
+      throw new Error(`HttpClient received ${statusCode} and cannot continue (not implemented, open GitHub Issue)`);
+    } else if (statusCode < 500) {
+      reject(new Error(`Client error: ${body.toString()}`));
+    } else {
+      reject(new Error(`Server error: ${body.toString()}`));
+    }
   }
 }

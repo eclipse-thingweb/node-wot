@@ -243,6 +243,7 @@ export default class HttpServer implements ProtocolServer {
                   try {
                     value = ContentSerdes.get().contentToValue({ contentType: contentType, body: Buffer.concat(body) }, <any>property);
                   } catch(err) {
+                    console.warn(`HttpServer on port ${this.getPort()} cannot process write value for Property '${segments[3]}: ${err.message}'`);
                     res.writeHead(400);
                     res.end("Invalid Data");
                     return;
@@ -284,6 +285,7 @@ export default class HttpServer implements ProtocolServer {
                 try {
                   input = ContentSerdes.get().contentToValue({ contentType: contentType, body: Buffer.concat(body) }, action.input);
                 } catch(err) {
+                  console.warn(`HttpServer on port ${this.getPort()} cannot process input to Action '${segments[3]}: ${err.message}'`);
                   res.writeHead(400);
                   res.end("Invalid Input Data");
                   return;
