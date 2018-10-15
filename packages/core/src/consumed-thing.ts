@@ -171,6 +171,34 @@ class ConsumedThingProperty extends TD.PropertyFragment implements WoT.ThingProp
     
     /** WoT.ThingProperty interface: subscribe to changes of this Property of the remote Thing */
     public subscribe(next?: (value: any) => void, error?: (error: any) => void, complete?: () => void): Subscription {
+        
+
+        let { client, form } = this.getThing().getClientFor(this.forms);
+        if (!client) {
+            error(new Error(`ConsumedThing '${this.getThing().name}' did not get suitable client for ${form.href}`));
+        } else {
+            console.log(`ConsumedThing '${this.getThing().name}' subscribing to ${form.href}`);
+
+            return client.subscribeResource(form,
+                (content) => {
+                    if (!content.contentType) content.contentType = form.mediaType;
+                    try {
+                        let value = ContentManager.contentToValue(content, <any>this);
+                        next(value);
+                    } catch {
+                        error(new Error(`Received invalid content from Thing`));
+                    }
+                },
+                (err) => {
+                    error(err);
+                },
+                () => {
+                    complete();
+                }
+            );
+        }
+
+
         // TODO pass expected form rel to getClientFor()
         throw new Error(`Not implemented`);
     }
