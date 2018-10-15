@@ -43,7 +43,7 @@ export default class MqttBrokerServer implements ProtocolServer {
   constructor(uri: string, user?: string, psw?: string) {
     if (uri !== undefined) {
 
-      //if there is a MQTT protocol identicator missing, add this
+      //if there is a MQTT protocol indicator missing, add this
       if (uri.indexOf("://") == -1) {
         uri = this.scheme + "://" + uri;
       }
@@ -130,13 +130,29 @@ export default class MqttBrokerServer implements ProtocolServer {
           (value) => {
             // send event data
             console.log(`MqttBrokerServer at ${this.brokerURI} publishing to Event topic '${eventName}' `);
-            this.broker.publish(topic, value.body);
+            this.broker.publish(topic, value.body, {retain:false});
           }
         );
 
         let href = this.brokerURI + topic;
         thing.events[eventName].forms.push(new TD.Form(href, ContentSerdes.DEFAULT));
         console.log(`MqttBrokerServer at ${this.brokerURI} assigns '${href}' to Event '${eventName}'`);
+      }
+
+      for (let propertyName in thing.properties) {
+        let topic = "/" + encodeURIComponent(name) + "/properties/" + encodeURIComponent(propertyName);
+        // FIXME store subscription and clean up on stop
+        let subscription = thing.properties[propertyName].subscribe(
+          (value) => {
+            // send event data
+            console.log(`MqttBrokerServer at ${this.brokerURI} publishing to Property topic '${propertyName}' `);
+            this.broker.publish(topic, value.body, {retain:true});
+          }
+        );
+
+        let href = this.brokerURI + topic;
+        thing.properties[propertyName].forms.push(new TD.Form(href, ContentSerdes.DEFAULT));
+        console.log(`MqttBrokerServer at ${this.brokerURI} assigns '${href}' to Property '${propertyName}'`);
       }
 
       resolve();

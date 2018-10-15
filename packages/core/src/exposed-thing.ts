@@ -319,6 +319,14 @@ class ExposedThingProperty extends TD.PropertyFragment implements WoT.ThingPrope
     public subscribe(next?: (value: any) => void, error?: (error: any) => void, complete?: () => void): Subscription {
         return this.getState().subject.asObservable().subscribe(next, error, complete);
     }
+
+    public emit(data?: any): void {
+        let content;
+        if (data!==undefined) {
+            content = ContentSerdes.get().valueToContent(data, <any>this);
+        }
+        this.getState().subject.next(content);
+    }
 }
 
 class ExposedThingAction extends TD.ActionFragment implements WoT.ThingAction {
