@@ -285,6 +285,7 @@ class ExposedThingProperty extends TD.PropertyFragment implements WoT.ThingPrope
                                 this.getState().subject.next(customValue);
                             }
                             this.getState().value = customValue;
+ 
                             resolve();
                         });
                     } else  {
@@ -292,7 +293,9 @@ class ExposedThingProperty extends TD.PropertyFragment implements WoT.ThingPrope
                         if (this.getState().value!==promiseOrValueOrNil) {
                             this.getState().subject.next(<any>promiseOrValueOrNil);
                         }
+                       
                         this.getState().value = <any>promiseOrValueOrNil;
+ 
                         resolve();
                     }
                 } else {
@@ -302,6 +305,7 @@ class ExposedThingProperty extends TD.PropertyFragment implements WoT.ThingPrope
                         this.getState().subject.next(value);
                     }
                     this.getState().value = value;
+
                     resolve();
                 }
             } else {
@@ -311,6 +315,14 @@ class ExposedThingProperty extends TD.PropertyFragment implements WoT.ThingPrope
                     this.getState().subject.next(value);
                 }
                 this.getState().value = value;
+
+                // notify subscriber clients
+                let content;
+                if (value!==undefined) {
+                    content = ContentSerdes.get().valueToContent(value, <any>this);
+                }
+                this.getState().subject.next(content);
+
                 resolve();
             }
         });
@@ -320,13 +332,7 @@ class ExposedThingProperty extends TD.PropertyFragment implements WoT.ThingPrope
         return this.getState().subject.asObservable().subscribe(next, error, complete);
     }
 
-    public emit(data?: any): void {
-        let content;
-        if (data!==undefined) {
-            content = ContentSerdes.get().valueToContent(data, <any>this);
-        }
-        this.getState().subject.next(content);
-    }
+
 }
 
 class ExposedThingAction extends TD.ActionFragment implements WoT.ThingAction {

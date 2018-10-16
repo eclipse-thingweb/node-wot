@@ -145,8 +145,11 @@ export default class MqttBrokerServer implements ProtocolServer {
         let subscription = thing.properties[propertyName].subscribe(
           (value) => {
             // send event data
-            console.log(`MqttBrokerServer at ${this.brokerURI} publishing to Property topic '${propertyName}' `);
-            this.broker.publish(topic, value.body, {retain:true});
+            if(value.body!==undefined) {
+
+              console.log(`MqttBrokerServer at ${this.brokerURI} publishing to Property topic '${propertyName} with value ${value.body} `);
+              this.broker.publish(topic, value.body, {retain:true});
+            }
           }
         );
 
