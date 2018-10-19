@@ -8,13 +8,13 @@
     "url": "https://github.com/thingweb/node-wot.git"
   },
   "devDependencies": {
-    "lerna": "3.3.0",
+    "lerna": "3.4.3",
     "lerna-run": "0.0.2",
-    "del-cli": "1.1.0"
+    "rimraf": "2.6.2"
   },
   "dependencies": {},
   "scripts": {
-    "bootstrap": "lerna bootstrap",
+    "bootstrap": "lerna bootstrap --no-ci",
     "prebuild": "npm run bootstrap",
     "build": "lerna run build",
     "pretest": "npm run build",
@@ -23,7 +23,7 @@
     "link": "lerna-run npm link",
     "codestyle": "lerna run codestyle",
     "clean": "lerna clean",
-    "unlock": "lerna-run del package-lock.json",
+    "unlock": "lerna-run rimraf package-lock.json",
     "publish": "lerna publish --force-publish=*"
   }
 }
