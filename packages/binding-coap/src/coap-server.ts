@@ -171,7 +171,7 @@ export default class CoapServer implements ProtocolServer {
     if (segments[1] === "") {
       // no path -> list all Things
       res.setHeader("Content-Type", ContentSerdes.DEFAULT);
-      res.writeHead(200);
+      res.code = "2.05";
       let list = [];
       for (let address of Helpers.getAddresses()) {
         // FIXME are Iterables really such a non-feature that I need array?
@@ -206,20 +206,29 @@ export default class CoapServer implements ProtocolServer {
           let property = thing.properties[segments[3]];
           if (property) {
             if (req.method === "GET") {
-              property.read()
-                .then((value) => {
-                  let content = ContentSerdes.get().valueToContent(value, <any>property);
-                  res.setOption("Content-Format", content.contentType);
-                  res.code = "2.05";
-                  setTimeout( () => {
+              // readproperty
+              if (req.headers['Observe'] === undefined) {
+                property.read()
+                  .then((value) => {
+                    let content = ContentSerdes.get().valueToContent(value, <any>property);
+                    res.setOption("Content-Format", content.contentType);
+                    res.code = "2.05";
                     res.end(content.body);
-                  }, 2500);
-                })
-                .catch(err => {
-                  console.error(`CoapServer on port ${this.getPort()} got internal error on write '${requestUri.pathname}': ${err.message}`);
-                  res.code = "5.00";
-                  res.end(err.message);
-                });
+                  })
+                  .catch(err => {
+                    console.error(`CoapServer on port ${this.getPort()} got internal error on read '${requestUri.pathname}': ${err.message}`);
+                    res.code = "5.00";
+                    res.end(err.message);
+                  });
+              // observeproperty
+              } else {
+                // TODO
+                console.log(`CoapServer on port ${this.getPort()} rejects observe for '${segments[3]}' from ${Helpers.toUriLiteral(req.rsinfo.address)}:${req.rsinfo.port}`);
+                
+                // work-around to reply with error code and without Observe option
+                throw new Error("observeproperty not implemented yet");
+              }
+            // writeproperty
             } else if (req.method === "PUT") {
               if (property.writable) {
                 let value;
@@ -257,6 +266,7 @@ export default class CoapServer implements ProtocolServer {
           // sub-path -> select Action
           let action = thing.actions[segments[3]];
           if (action) {
+            // invokeaction
             if (req.method === "POST") {
               let input;
               try {
@@ -280,7 +290,7 @@ export default class CoapServer implements ProtocolServer {
                   }
                 })
                 .catch(err => {
-                  console.error(`CoapServer on port ${this.getPort()} got internal error on write '${requestUri.pathname}': ${err.message}`);
+                  console.error(`CoapServer on port ${this.getPort()} got internal error on invoke '${requestUri.pathname}': ${err.message}`);
                   res.code = "5.00";
                   res.end(err.message);
                 });
@@ -296,22 +306,23 @@ export default class CoapServer implements ProtocolServer {
           // sub-path -> select Event
           let event = thing.events[segments[3]];
           if (event) {
+            // subscribeevent
             if (req.method === "GET") {
               if (req.headers['Observe'] === 0) {
 
                 // work-around to avoid duplicate requests (resend due to no response)
                 // (node-coap does not deduplicate when Observe is set)
-                let packet = res._packet
-                packet.code = '0.00'
-                packet.payload = ''
+                let packet = res._packet;
+                packet.code = '0.00';
+                packet.payload = '';
                 packet.reset = false;
-                packet.ack = true
+                packet.ack = true;
                 packet.token = new Buffer(0);
               
-                res._send(res, packet)
+                res._send(res, packet);
               
-                res._packet.confirmable = res._request.confirmable
-                res._packet.token = res._request.token
+                res._packet.confirmable = res._request.confirmable;
+                res._packet.token = res._request.token;
                 // end of work-around
 
                 let subscription = event.subscribe(
@@ -338,8 +349,8 @@ export default class CoapServer implements ProtocolServer {
                 });
               } else if (req.headers['Observe'] > 0) {
                 console.log(`CoapServer on port ${this.getPort()} sent '${segments[3]}' response to ${Helpers.toUriLiteral(req.rsinfo.address)}:${req.rsinfo.port}`);
-                
-                res.code = "5.02";
+                // node-coap does not support GET cancellation
+                res.code = "5.01";
                 res.end("node-coap issue: no GET cancellation, send RST");
               } else {
                 console.log(`CoapServer on port ${this.getPort()} rejected '${segments[3]}' read from ${Helpers.toUriLiteral(req.rsinfo.address)}:${req.rsinfo.port}`);

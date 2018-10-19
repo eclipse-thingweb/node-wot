@@ -85,6 +85,14 @@ export default class Helpers {
   }
 
   public static toUriLiteral(address: string): string {
+
+    // Due to crash logged with:
+    // TypeError: Cannot read property 'indexOf' of undefined at Function.Helpers.toUriLiteral 
+    if (!address) {
+      console.error(`AddressHelper received invalid address '${address}'`);
+      return "{invalid address}";
+    }
+
     if (address.indexOf(':') !== -1) {
       address = `[${address}]`;
     }

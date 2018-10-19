@@ -52,7 +52,7 @@ export default class HttpServer implements ProtocolServer {
     return new Promise<void>((resolve, reject) => {
 
       // long timeout for long polling
-      this.server.setTimeout(60*60*1000, () => { console.info("HttpServer on port ${this.getPort()} timed out connection"); });
+      this.server.setTimeout(60*60*1000, () => { console.info(`HttpServer on port ${this.getPort()} timed out connection`); });
       // no keep-alive because NodeJS HTTP clients do not properly use same socket due to pooling
       this.server.keepAliveTimeout = 0;
 
