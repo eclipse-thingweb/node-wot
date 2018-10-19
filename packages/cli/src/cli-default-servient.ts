@@ -100,12 +100,6 @@ export default class DefaultServient extends Servient {
         this.addClientFactory(new CoapClientFactory(coapServer));
         this.addClientFactory(new CoapsClientFactory());
         this.addClientFactory(new MqttClientFactory());
-
-
-        // optional clients based on wot-servient.conf.json
-        if (this.config.mqtt !== undefined) {
-            this.addClientFactory(new MqttClientFactory()); //TODO pass client config
-        }
     }
 
     /**
