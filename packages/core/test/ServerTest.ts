@@ -26,25 +26,16 @@ import { expect, should } from "chai";
 should();
 
 import Servient from "../src/servient";
-import { ProtocolServer, ResourceListener } from "../src/resource-listeners/protocol-interfaces"
+import { ProtocolServer } from "../src/protocol-interfaces"
+import ExposedThing from "../src/exposed-thing";
 
 // implement a testserver to mock a server
 class TestProtocolServer implements ProtocolServer {
 
     public readonly scheme: string = "test";
-    private listeners: Map<string, ResourceListener> = new Map();
-
-    getListenerFor(path: string): ResourceListener {
-        return this.listeners.get(path);
-    }
-
-    addResource(path: string, res: ResourceListener): boolean {
-        if (this.listeners.has(path)) return false;
-        this.listeners.set(path, res);
-    }
-
-    removeResource(path: string): boolean {
-        return true;
+    
+    expose(thing: ExposedThing): Promise<void> {
+        return new Promise<void>((resolve, reject) => {});
     }
 
     start(): Promise<void> { return new Promise<void>((resolve, reject) => { resolve(); }); }
@@ -351,8 +342,9 @@ class WoTServerTest {
             input: { type: "number" },
             output: { type: "number" }
         };
-        thing.addAction("action1", inita).setActionHandler(
+        thing.addAction(
             "action1",
+            inita,
             (parameters: any) => {
                 return new Promise((resolve, reject) => {
                     parameters.should.be.a("number");

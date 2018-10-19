@@ -22,101 +22,217 @@ import { expect, should, assert } from "chai";
 // should must be called to augment all variables
 should();
 
-import { ResourceListener, BasicResourceListener, Content, ContentSerdes } from "@node-wot/core";
+import * as http from "http";
+import * as url from "url";
+import { AddressInfo } from "net";
 
-import HttpServer from "../src/http-server";
+import { Content, ContentSerdes, ProtocolServer } from "@node-wot/core";
+
 import HttpClient from "../src/http-client";
+import { endianness } from "os";
 
-class TestResourceListener extends BasicResourceListener implements ResourceListener {
+interface TestVector {
+    op: string;
+    method?: string;
+    schema?: any;
+    payload?: any;
+    form: any;
+}
 
-    public referencedVector: any;
-    constructor(vector: any) {
-        super();
-        this.referencedVector = vector;
+class TestHttpServer implements ProtocolServer {
+    public readonly scheme: string = "test";
+
+    private testVector: TestVector;
+
+    private readonly port: number = 60606;
+    private readonly address: string = undefined;
+    private readonly server: http.Server = http.createServer((req, res) => { this.checkRequest(req, res) });
+
+    constructor(port?: number, address?: string) {
+        if (port !== undefined) {
+            this.port = port;
+        }
+        if (address !== undefined) {
+            this.address = address;
+        }
     }
 
-    public onRead() : Promise<Content> {
-        this.referencedVector.expect = "GET";
-        return new Promise<Content>(
-            (resolve,reject) => resolve({ contentType: ContentSerdes.DEFAULT , body: Buffer.from("TEST") })
-        );
+    public start(): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            this.server.once('listening', () => {
+                resolve();
+            });
+            this.server.listen(this.port, this.address);
+        });
     }
 
-    public onWrite(content : Content) : Promise<void> {
-        this.referencedVector.expect = "PUT";
-        return new Promise<void>((resolve,reject) => resolve())
+    public stop(): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            this.server.close(() => { console.error("STOPPED"); resolve(); });
+        });
     }
 
-    public onInvoke(content : Content) : Promise<Content> {
-        this.referencedVector.expect = "POST";
-        return new Promise<Content>(
-            (resolve,reject) => resolve({ contentType: ContentSerdes.DEFAULT, body: Buffer.from("TEST") })
-        );
+    /** returns server port number and indicates that server is running when larger than -1  */
+    public getPort(): number {
+        if (this.server.address() && typeof this.server.address() === "object") {
+            return (<AddressInfo>this.server.address()).port;
+        } else {
+            // includes address() typeof "string" case, which is only for unix sockets
+            return -1;
+        }
     }
 
-    public onUnlink() : Promise<void> {
-        this.referencedVector.expect = "DELETE";
-        return new Promise<void>(
-            (resolve,reject) => resolve()
-        );
+    public expose(thing: any): Promise<void> {
+        return new Promise<void>((resolve, reject) => { resolve(); });
+    }
+
+    public setTestVector(vector: TestVector) {
+        if (!vector.op) throw new Error("No vector op given");
+        if (!vector.form["http:methodName"]) {
+            switch (vector.op) {
+                case "readproperty": vector.method = "GET"; break;
+                case "writeproperty": vector.method = "PUT"; break;
+                case "observeproperty": vector.method = "GET"; break;
+                case "invokeaction": vector.method = "POST"; break;
+                case "subscribeevent": vector.method = "GET"; break;
+                default: throw new Error("Unknown op " + vector.op);
+            }
+        } else {
+            vector.method = vector.form["http:methodName"];
+        }
+        this.testVector = vector;
+    }
+
+    private checkRequest(req: http.IncomingMessage, res: http.ServerResponse) {
+        if (!this.testVector) throw new Error("No test vector given");
+
+        expect(req.method).to.equal(this.testVector.method);
+        expect(req.url).to.equal(url.parse(this.testVector.form.href).path);
+
+        if (this.testVector.payload !== undefined) {
+            // load payload
+            let body: Array<any> = [];
+            req.on("data", (data) => { body.push(data) });
+            req.on("end", () => {
+                let value;
+                try {
+                    value = ContentSerdes.get().contentToValue({ contentType: ContentSerdes.DEFAULT, body: Buffer.concat(body) }, this.testVector.schema);
+                } catch (err) {
+                    throw new Error("Cannot deserialize client payload");
+                }
+                expect(value).to.equal(this.testVector.payload);
+                res.end();
+            });
+        } else {
+            res.end();
+        }
     }
 }
 
 @suite("HTTP client implementation")
 class HttpClientTest {
 
-    @test async "should apply form information"() {
+    @test async "should apply defaults"() {
 
-    try {
+        var inputVector;
 
-        var testVector = { expect: "UNSET" }
-
-        let httpServer = new HttpServer(60603);
-        httpServer.addResource("/", new TestResourceListener(testVector) );
-
+        let httpServer = new TestHttpServer(60603);
         await httpServer.start();
         expect(httpServer.getPort()).to.equal(60603);
 
         let client = new HttpClient();
-        let representation;
+
+        // read with defaults
+        inputVector = {
+            op: "readproperty",
+            form: {
+                href: "http://localhost:60603/"
+            }
+        };
+        httpServer.setTestVector(inputVector);
+        let representation = await client.readResource(inputVector.form);
+
+        // write with defaults
+        inputVector = {
+            op: "writeproperty",
+            form: {
+                href: "http://localhost:60603/"
+            },
+            payload: "test"
+        };
+        httpServer.setTestVector(inputVector);
+        representation = await client.writeResource(inputVector.form, { contentType: ContentSerdes.DEFAULT, body: Buffer.from(inputVector.payload) });
+
+        // invoke with defaults
+        inputVector = {
+            op: "invokeaction",
+            form: {
+                href: "http://localhost:60603/"
+            },
+            payload: "test"
+        };
+        httpServer.setTestVector(inputVector);
+        representation = await client.invokeResource(inputVector.form, { contentType: ContentSerdes.DEFAULT, body: Buffer.from(inputVector.payload) });
+
+        return httpServer.stop();
+    }
+
+    @test async "should apply form information"() {
+
+        var inputVector;
+
+        let httpServer = new TestHttpServer(60603);
+        await httpServer.start();
+        expect(httpServer.getPort()).to.equal(60603);
+
+        let client = new HttpClient();
 
         // read with POST instead of GET
-        representation = await client.readResource({
-            href: "http://localhost:60603/",
-            "http:methodName": "POST"
-        });
-        expect(testVector.expect).to.equal("POST");
-        testVector.expect = "UNSET";
+        inputVector = {
+            op: "readproperty",
+            form: {
+                href: "http://localhost:60603/",
+                "http:methodName": "POST"
+            }
+        };
+        httpServer.setTestVector(inputVector);
+        let representation = await client.readResource(inputVector.form);
 
         // write with POST instead of PUT
-        representation = await client.writeResource({
-            href: "http://localhost:60603/",
-            "http:methodName": "POST"
-        }, { contentType: ContentSerdes.DEFAULT, body: Buffer.from("test") } );
-        expect(testVector.expect).to.equal("POST");
-        testVector.expect = "UNSET";
+        inputVector = {
+            op: "writeproperty",
+            form: {
+                href: "http://localhost:60603/",
+                "http:methodName": "POST"
+            },
+            payload: "test"
+        };
+        httpServer.setTestVector(inputVector);
+        representation = await client.writeResource(inputVector.form, { contentType: ContentSerdes.DEFAULT, body: Buffer.from(inputVector.payload) });
 
         // invoke with PUT instead of POST
-        representation = await client.invokeResource({
-            href: "http://localhost:60603/",
-            "http:methodName": "PUT"
-        }, { contentType: ContentSerdes.DEFAULT, body: Buffer.from("test") } );
-        expect(testVector.expect).to.equal("PUT");
-        testVector.expect = "UNSET";
+        inputVector = {
+            op: "invokeaction",
+            form: {
+                href: "http://localhost:60603/",
+                "http:methodName": "PUT"
+            },
+            payload: "test"
+        };
+        httpServer.setTestVector(inputVector);
+        representation = await client.invokeResource(inputVector.form, { contentType: ContentSerdes.DEFAULT, body: Buffer.from(inputVector.payload) });
 
         // invoke with DELETE instead of POST
-        representation = await client.invokeResource({
-            href: "http://localhost:60603/",
-            "http:methodName": "DELETE"
-        });
-        expect(testVector.expect).to.equal("DELETE");
-        testVector.expect = "UNSET";
-        
-        // FIXME -- why does it block forever?
-        //await httpServer.stop();
+        inputVector = {
+            op: "invokeaction",
+            form: {
+                href: "http://localhost:60603/",
+                "http:methodName": "DELETE"
+            }
+        };
+        httpServer.setTestVector(inputVector);
+        representation = await client.invokeResource(inputVector.form);
 
-    } catch (err) {
-        console.error("ERROR", err);
-    }
+        return httpServer.stop();
     }
 }

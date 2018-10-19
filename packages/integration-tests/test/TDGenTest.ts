@@ -22,8 +22,7 @@ import { expect, should } from "chai";
 // should must be called to augment all variables
 should();
 
-import { Servient, ProtocolServer } from "@node-wot/core";
-import Helpers from "@node-wot/core";
+import { Servient, ProtocolServer, Helpers } from "@node-wot/core";
 
 import * as TD from "@node-wot/td-tools";
 
@@ -34,23 +33,23 @@ class TDGeneratorTest {
   @test async "TD generation test"() {
 
     let servient: Servient = new Servient();
-    servient.addServer(new HttpServer());
+    servient.addServer(new HttpServer(60604));
+
+    Helpers.setStaticAddress("localhost");
+    
     let myWoT = await servient.start();
 
     let thing: WoT.ExposedThing = myWoT.produce({ name: "TDGeneratorTest" });
 
-    thing.addProperty("prop1", {
-      type: "number"
-    });
-    thing.addAction("act1", {
-      input: { type: "string" }
-    });
+    thing.addProperty("prop1", { type: "number" });
+    thing.addAction("act1", { input: { type: "string" } }, () => { return new Promise<void>((resolve, reject) => { resolve(); }); });
+
+    thing.expose();
 
     let td: TD.Thing = TD.parseTD(thing.getThingDescription());
 
     expect(td).to.have.property("name").that.equals("TDGeneratorTest");
 
-    let add = Helpers.getAddresses()[0];
     let ser: Array<ProtocolServer> = servient.getServers();
 
     expect(ser).to.be.an('Array').with.length.above(0);
@@ -58,13 +57,13 @@ class TDGeneratorTest {
     expect(td.properties).to.have.property("prop1");
     expect(td.actions).to.have.property("act1");
 
-    if (ser[0].getPort() !== -1) {
-      expect(td.properties.prop1).to.have.property("forms");
-      expect(td.properties.prop1.forms[0]).to.have.property("mediaType").that.equals("application/json");
-      expect(td.properties.prop1.forms[0]).to.have.property("href").that.equals("http://" + add + ":" + ser[0].getPort() + "/TDGeneratorTest/properties/prop1");
-      expect(td.actions.act1).to.have.property("forms");
-      expect(td.actions.act1.forms[0]).to.have.property("mediaType").that.equals("application/json");
-      expect(td.actions.act1.forms[0]).to.have.property("href").that.equals("http://" + add + ":" + ser[0].getPort() + "/TDGeneratorTest/actions/act1");
-    }
+    expect(ser[0].getPort()).to.equal(60604);
+
+    expect(td.properties.prop1).to.have.property("forms");
+    expect(td.properties.prop1.forms[0]).to.have.property("mediaType").that.equals("application/json");
+    expect(td.properties.prop1.forms[0]).to.have.property("href").that.equals("http://localhost:" + ser[0].getPort() + "/TDGeneratorTest/properties/prop1");
+    expect(td.actions.act1).to.have.property("forms");
+    expect(td.actions.act1.forms[0]).to.have.property("mediaType").that.equals("application/json");
+    expect(td.actions.act1.forms[0]).to.have.property("href").that.equals("http://localhost:" + ser[0].getPort() + "/TDGeneratorTest/actions/act1");
   }
 }

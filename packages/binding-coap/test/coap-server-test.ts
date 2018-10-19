@@ -22,8 +22,6 @@ import { expect, should, assert } from "chai";
 // should must be called to augment all variables
 should();
 
-import { AssetResourceListener } from "@node-wot/core";
-
 import CoapServer from "../src/coap-server";
 
 const coap = require("coap");
