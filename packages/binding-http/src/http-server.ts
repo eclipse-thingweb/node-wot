@@ -184,16 +184,21 @@ export default class HttpServer implements ProtocolServer {
 
     if (segments[1] === "") {
       // no path -> list all Things
-      res.setHeader("Content-Type", ContentSerdes.DEFAULT);
-      res.writeHead(200);
-      let list = [];
-      for (let address of Helpers.getAddresses()) {
-        // FIXME are Iterables really such a non-feature that I need array?
-        for (let name of Array.from(this.things.keys())) {
-          list.push(this.scheme + "://" + Helpers.toUriLiteral(address) + ":" + this.getPort() + "/" + encodeURIComponent(name));
+      if (req.method === "GET") {
+        res.setHeader("Content-Type", ContentSerdes.DEFAULT);
+        res.writeHead(200);
+        let list = [];
+        for (let address of Helpers.getAddresses()) {
+          // FIXME are Iterables really such a non-feature that I need array?
+          for (let name of Array.from(this.things.keys())) {
+            list.push(this.scheme + "://" + Helpers.toUriLiteral(address) + ":" + this.getPort() + "/" + encodeURIComponent(name));
+          }
         }
+        res.end(JSON.stringify(list));
+      } else {
+        res.writeHead(405);
+        res.end("Method Not Allowed");
       }
-      res.end(JSON.stringify(list));
       // resource found and response sent
       return;
 

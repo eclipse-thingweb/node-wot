@@ -170,16 +170,21 @@ export default class CoapServer implements ProtocolServer {
 
     if (segments[1] === "") {
       // no path -> list all Things
-      res.setHeader("Content-Type", ContentSerdes.DEFAULT);
-      res.code = "2.05";
-      let list = [];
-      for (let address of Helpers.getAddresses()) {
-        // FIXME are Iterables really such a non-feature that I need array?
-        for (let name of Array.from(this.things.keys())) {
-          list.push(this.scheme + "://" + Helpers.toUriLiteral(address) + ":" + this.getPort() + "/" + encodeURIComponent(name));
+      if (req.method === "GET") {
+        res.setHeader("Content-Type", ContentSerdes.DEFAULT);
+        res.code = "2.05";
+        let list = [];
+        for (let address of Helpers.getAddresses()) {
+          // FIXME are Iterables really such a non-feature that I need array?
+          for (let name of Array.from(this.things.keys())) {
+            list.push(this.scheme + "://" + Helpers.toUriLiteral(address) + ":" + this.getPort() + "/" + encodeURIComponent(name));
+          }
         }
+        res.end(JSON.stringify(list));
+      } else {
+        res.code = "4.05";
+        res.end("Method Not Allowed");
       }
-      res.end(JSON.stringify(list));
       // resource found and response sent
       return;
 
