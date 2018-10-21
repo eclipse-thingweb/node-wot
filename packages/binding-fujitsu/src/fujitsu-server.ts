@@ -196,12 +196,15 @@ export default class FujitsuServer implements ProtocolServer {
           }
         } else {
           console.warn(`FujitsuServer for ${this.remote} received invalid method '${message.method}'`);
+          this.replyClientError(message.requestID, message.deviceID, "Method Not Allowed");
+          return;
         }
+
       } else {
         console.warn(`FujitsuServer for ${this.remote} received invalid Thing ID '${decodeURIComponent(message.deviceID)}'`);
+        this.replyClientError(message.requestID, message.deviceID, "Not Found");
+        return;
       } // thing exists?
-
-      // not found
 
     } else {
       console.warn(`FujitsuServer for ${this.remote} received invalid message type '${message.type}'`);
@@ -220,6 +223,8 @@ export default class FujitsuServer implements ProtocolServer {
     if (content) {
       response.mediaType = content.type;
       response.buffer = content.body.toString("base64");
+    } else {
+      response.buffer = "";
     }
 
     this.websocket.send(JSON.stringify(response), (err) => {
@@ -227,6 +232,33 @@ export default class FujitsuServer implements ProtocolServer {
         console.error(`FujitsuServer for ${this.remote} failed to reply to '${requestID}' for '${thingID}': ${err.message}`);
       } else {
         console.log(`FujitsuServer for ${this.remote} replied to '${requestID}' ${content ? "with payload" : ""}`);
+      }
+    });
+  }
+
+  private replyClientError(requestID: string, thingID: string, diagnosticMessage?: string) {
+    this.replyError(false, requestID, thingID, diagnosticMessage);
+  }
+  private replyServerError(requestID: string, thingID: string, diagnosticMessage?: string) {
+    this.replyError(true, requestID, thingID, diagnosticMessage);
+  }
+
+  private replyError(server: boolean, requestID: string, thingID: string, diagnosticMessage?: string) {
+    let response: any = {
+      type: "RESPONSE",
+      requestID: requestID,
+      deviceID: thingID
+    };
+    
+    if (diagnosticMessage) {
+      response.buffer = Buffer.from(diagnosticMessage).toString("base64");
+    }
+
+    this.websocket.send(JSON.stringify(response), (err) => {
+      if (err) {
+        console.error(`FujitsuServer for ${this.remote} failed to error '${requestID}' for '${thingID}': ${err.message}`);
+      } else {
+        console.log(`FujitsuServer for ${this.remote} errored '${requestID}' ${diagnosticMessage ? "with message" : ""}`);
       }
     });
   }
