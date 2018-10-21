@@ -28,7 +28,7 @@ export default class WebSocketClient implements ProtocolClient {
   }
 
   public toString(): string {
-    return `[HttpClient]`;
+    return `[WebSocketClient]`;
   }
 
   public readResource(form: Form): Promise<Content> {

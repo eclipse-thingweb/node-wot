@@ -14,7 +14,6 @@
  ********************************************************************************/
 
 import * as WoT from "wot-typescript-definitions";
-import { Form } from "@node-wot/td-tools";
 import { Subscription } from "rxjs/Subscription";
 
 import ExposedThing from "./exposed-thing";
@@ -22,18 +21,18 @@ import ExposedThing from "./exposed-thing";
 export interface ProtocolClient {
 
   /** this client is requested to perform a "read" on the resource with the given URI */
-  readResource(form: Form): Promise<Content>;
+  readResource(form: WoT.Form): Promise<Content>;
 
   /** this cliet is requested to perform a "write" on the resource with the given URI  */
-  writeResource(form: Form, content: Content): Promise<void>;
+  writeResource(form: WoT.Form, content: Content): Promise<void>;
 
   /** this client is requested to perform an "invoke" on the resource with the given URI */
-  invokeResource(form: Form, content: Content): Promise<Content>;
+  invokeResource(form: WoT.Form, content: Content): Promise<Content>;
 
   /** this client is requested to perform an "unlink" on the resource with the given URI */
-  unlinkResource(form: Form): Promise<void>;
+  unlinkResource(form: WoT.Form): Promise<void>;
 
-  subscribeResource(form: Form, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): Subscription;
+  subscribeResource(form: WoT.Form, next: ((content: Content) => void), error?: (error: any) => void, complete?: () => void): Subscription;
 
   /** start the client (ensure it is ready to send requests) */
   start(): boolean;
@@ -60,6 +59,6 @@ export interface ProtocolServer {
 }
 
 export interface Content {
-  contentType: string,
+  type: string,
   body: Buffer
 }

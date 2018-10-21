@@ -22,7 +22,7 @@ import { expect, should, assert } from "chai";
 // should must be called to augment all variables
 should();
 
-import Thing from "../src/thing-description";
+import Thing, { DEFAULT_CONTEXT, DEFAULT_THING_TYPE } from "../src/thing-description";
 import * as TDParser from "../src/td-parser";
 
 /** sample TD json-ld string from the CP page*/
@@ -33,14 +33,13 @@ let tdSample1 = `{
 			"type": "number",
 			"forms": [{
 				"href": "coap://mytemp.example.com:5683/temp",
-				"mediaType": "application/json"
+				"contenttype": "application/json"
 			}]
 		}
   }
 }`;
 /** sample TD json-ld string from the CP page*/
 let tdSample2 = `{
-	"@context": "https://w3c.github.io/wot/w3c-wot-td-context.jsonld",
 	"@type": ["Thing"],
 	"name": "MyTemperatureThing2",
 	"properties": {
@@ -50,14 +49,14 @@ let tdSample2 = `{
 			"observable": false,
 			"forms": [{
 				"href": "coap://mytemp.example.com:5683/temp",
-				"mediaType": "application/json"
+				"contenttype": "application/json"
 			}]
 		}
 	}
 }`;
 /** sample TD json-ld string from the CP page*/
 let tdSample3 = `{
-	"@context": ["https://w3c.github.io/wot/w3c-wot-td-context.jsonld"],
+	"@context": ["http://www.w3.org/ns/td"],
 	"@type": ["Thing"],
 	"name": "MyTemperatureThing3",
 	"base": "coap://mytemp.example.com:5683/interactions/",
@@ -68,7 +67,7 @@ let tdSample3 = `{
 			"observable": false,
 			"forms": [{
 				"href": "temp",
-				"mediaType": "application/json"
+				"contenttype": "application/json"
 			}]
 		},
 		"temperature2": {
@@ -77,14 +76,14 @@ let tdSample3 = `{
 			"observable": false,
 			"forms": [{
 				"href": "./temp",
-				"mediaType": "application/json"
+				"contenttype": "application/json"
 			}]
 		},
 		"humidity": {
 			"type": "number",
 			"forms": [{
 				"href": "/humid",
-				"mediaType": "application/json"
+				"contenttype": "application/json"
 			}]
 		}
   },
@@ -107,7 +106,7 @@ let tdSample3 = `{
 /** sample TD json-ld string from the CP page*/
 let tdSampleLemonbeatBurlingame = `{
 	"@context": [
-		"https://w3c.github.io/wot/w3c-wot-td-context.jsonld",
+		"http://www.w3.org/ns/td",
 		{
 			"actuator": "http://example.org/actuator#",
 			"sensor": "http://example.org/sensors#"
@@ -125,7 +124,7 @@ let tdSampleLemonbeatBurlingame = `{
 			"observable": true,
 			"forms": [{
 				"href" : "sensors/luminance", 
-				"mediaType": "application/json"
+				"contenttype": "application/json"
 			}]
     },
     "humidity": {
@@ -136,7 +135,7 @@ let tdSampleLemonbeatBurlingame = `{
 			"observable": true,
 			"forms": [{
 				"href" : "sensors/humidity", 
-				"mediaType": "application/json"
+				"contenttype": "application/json"
 			}]
     },
     "temperature": {
@@ -147,7 +146,7 @@ let tdSampleLemonbeatBurlingame = `{
 			"observable": true,
 			"forms": [{
 				"href" : "sensors/temperature", 
-				"mediaType": "application/json"
+				"contenttype": "application/json"
 			}]
     },
     "status": {
@@ -157,7 +156,7 @@ let tdSampleLemonbeatBurlingame = `{
 			"observable": true,
 			"forms": [{
 				"href" : "fan/status",
-				"mediaType": "application/json"
+				"contenttype": "application/json"
 			}]
     }
   },
@@ -166,14 +165,14 @@ let tdSampleLemonbeatBurlingame = `{
 			"@type": ["actuator:turnOn"],
 			"forms": [{
 				"href" : "fan/turnon",
-				"mediaType": "application/json"
+				"contenttype": "application/json"
 			}]									
     },
     "turnOff": {
 			"@type": ["actuator:turnOff"],
 			"forms": [{
 				"href" : "fan/turnoff",
-				"mediaType": "application/json"
+				"contenttype": "application/json"
 			}]									
 		}
   }
@@ -181,7 +180,7 @@ let tdSampleLemonbeatBurlingame = `{
 
 /** sample metadata TD */
 let tdSampleMetadata1 = `{
-	"@context": ["https://w3c.github.io/wot/w3c-wot-td-context.jsonld"],
+	"@context": ["http://www.w3.org/ns/td"],
 	"@type": ["Thing"],
 	"reference": "myTempThing",
 	"name": "MyTemperatureThing3",
@@ -197,7 +196,7 @@ let tdSampleMetadata1 = `{
 			"writable": false,
 			"forms": [{
 				"href": "temp",
-				"mediaType": "application/json"
+				"contenttype": "application/json"
 			}]
 		}
 	}
@@ -205,7 +204,7 @@ let tdSampleMetadata1 = `{
 
 /** Simplified TD */
 let tdSimple1 = `{
-  "@context": "https://w3c.github.io/wot/w3c-wot-td-context.jsonld",
+  "@context": "http://www.w3.org/ns/td",
   "id": "urn:dev:wot:com:example:servient:lamp",
   "name": "MyLampThing",
   "properties": {
@@ -215,28 +214,28 @@ let tdSimple1 = `{
        "type": "string",
        "forms": [{
            "href": "coaps://mylamp.example.com:5683/status",
-           "mediaType": "application/json"
+           "contenttype": "application/json"
        }]
   }},
   "actions": {
    "toggle": {
       "forms": [{
           "href": "coaps://mylamp.example.com:5683/toggle",
-          "mediaType": "application/json"
+          "contenttype": "application/json"
       }]}},
   "events": {
       "overheating": {
           "type": "string",
           "forms": [{
               "href": "coaps://mylamp.example.com:5683/oh",
-              "mediaType": "application/json"
+              "contenttype": "application/json"
           }]
       }}
 }`;
 
 /** Broken TDs */
 let tdBroken1 = `{
-  "@context": "https://w3c.github.io/wot/w3c-wot-td-context.jsonld",
+  "@context": "http://www.w3.org/ns/td",
   "id": "urn:dev:wot:com:example:servient:lamp",
   "name": "MyLampThing",
   "properties": {
@@ -246,14 +245,14 @@ let tdBroken1 = `{
        "type": "string",
        "form": [{
            "href": "coaps://mylamp.example.com:5683/status",
-           "mediaType": "application/json"
+           "contenttype": "application/json"
        }]
   }},
   "actions": {
    "toggle": {
       "forms": [{
           "href": "coaps://mylamp.example.com:5683/toggle",
-          "mediaType": "application/json"
+          "contenttype": "application/json"
       }]}},
   "events": {
       "overheating": {
@@ -265,7 +264,6 @@ let tdBroken1 = `{
       }}
 }`;
 let tdBroken2 = `{
-  "@context": "https://w3c.github.io/wot/w3c-wot-td-context.jsonld",
   "id": "urn:dev:wot:com:example:servient:lamp",
   "name": "MyLampThing",
   "properties": {
@@ -293,7 +291,6 @@ let tdBroken2 = `{
       }}
 }`;
 let tdBroken3 = `{
-  "@context": "https://w3c.github.io/wot/w3c-wot-td-context.jsonld",
   "id": "urn:dev:wot:com:example:servient:lamp",
   "name": "MyLampThing",
   "properties": {
@@ -324,11 +321,62 @@ let tdBroken3 = `{
 
 @suite("TD parsing/serialising")
 class TDParserTest {
+    
+  @test "should insert context"() {
+    let testTD = `{ "name": "NoContext" }`;
+    let thing: Thing = TDParser.parseTD(testTD);
 
-  @test "should parse the example from Current Practices"() {
+    console.dir(thing);
+
+    expect(thing).to.have.property("@context").that.equals(DEFAULT_CONTEXT);
+    expect(thing).to.have.property("@type").that.equals(DEFAULT_THING_TYPE);
+  }
+    
+  @test "should add context to single string"() {
+    let testTD = `{ "name": "OtherContext", "@context": "http://iot.schema.org/", "@type": "iot:Sensor" }`;
+    let thing: Thing = TDParser.parseTD(testTD);
+
+    console.dir(thing);
+
+    expect(thing).to.have.property("@context").that.has.length(2);
+    expect(thing["@context"][0]).to.equal("http://iot.schema.org/");
+    expect(thing["@context"][1]).to.equal(DEFAULT_CONTEXT);
+
+    expect(thing).to.have.property("@type").that.has.length(2);
+    expect(thing["@type"][0]).to.equal(DEFAULT_THING_TYPE);
+    expect(thing["@type"][1]).to.equal("iot:Sensor");
+  }
+    
+  @test "should add context to array"() {
+    let testTD = `{ "name": "OtherContext", "@context": ["http://iot.schema.org/"], "@type": ["iot:Sensor"] }`;
+    let thing: Thing = TDParser.parseTD(testTD);
+    
+    console.dir(thing);
+
+    expect(thing).to.have.property("@context").that.has.length(2);
+    expect(thing["@context"][0]).to.equal("http://iot.schema.org/");
+    expect(thing["@context"][1]).to.equal(DEFAULT_CONTEXT);
+
+    expect(thing).to.have.property("@type").that.has.length(2);
+    expect(thing["@type"][0]).to.equal(DEFAULT_THING_TYPE);
+    expect(thing["@type"][1]).to.equal("iot:Sensor");
+  }
+    
+  @test "should add context to object"() {
+    let testTD = `{ "name": "OtherContext", "@context": { "iot": "http://iot.schema.org/" } }`;
+    let thing: Thing = TDParser.parseTD(testTD);
+
+    console.dir(thing);
+
+    expect(thing).to.have.property("@context").that.has.length(2);
+    expect(thing["@context"][0]).to.have.property("iot");
+    expect(thing["@context"][1]).to.equal(DEFAULT_CONTEXT);
+  }
+
+  @test "should parse the example from spec"() {
     let thing: Thing = TDParser.parseTD(tdSample1);
 
-    expect(thing).to.have.property("@context").that.equals("http://www.w3.org/ns/td");
+    expect(thing).to.have.property("@context").that.equals(DEFAULT_CONTEXT);
     expect(thing).to.have.property("@type").that.equals("Thing");
     expect(thing).to.have.property("name").that.equals("MyTemperatureThing");
     expect(thing).to.not.have.property("base");
@@ -338,14 +386,14 @@ class TDParserTest {
     expect(thing.properties["temperature"]).to.have.property("observable").that.equals(false);
 
     expect(thing.properties["temperature"]).to.have.property("forms").to.have.lengthOf(1);
-    expect(thing.properties["temperature"].forms[0]).to.have.property("mediaType").that.equals("application/json");
+    expect(thing.properties["temperature"].forms[0]).to.have.property("contenttype").that.equals("application/json");
     expect(thing.properties["temperature"].forms[0]).to.have.property("href").that.equals("coap://mytemp.example.com:5683/temp");
   }
 
   @test "should parse writable Property"() {
     let thing: Thing = TDParser.parseTD(tdSample2);
 
-    expect(thing).to.have.property("@context").that.equals("https://w3c.github.io/wot/w3c-wot-td-context.jsonld");
+    expect(thing).to.have.property("@context").that.contains(DEFAULT_CONTEXT);
     expect(thing).to.have.property("@type").that.has.lengthOf(1);
     expect(thing).to.have.property("@type").that.contains("Thing");
     expect(thing).to.have.property("name").that.equals("MyTemperatureThing2");
@@ -356,7 +404,7 @@ class TDParserTest {
     expect(thing.properties["temperature"]).to.have.property("observable").that.equals(false);
 
     expect(thing.properties["temperature"]).to.have.property("forms").to.have.lengthOf(1);
-    expect(thing.properties["temperature"].forms[0]).to.have.property("mediaType").that.equals("application/json");
+    expect(thing.properties["temperature"].forms[0]).to.have.property("contenttype").that.equals("application/json");
     expect(thing.properties["temperature"].forms[0]).to.have.property("href").that.equals("coap://mytemp.example.com:5683/temp");
 
   }
@@ -365,7 +413,7 @@ class TDParserTest {
     let thing: Thing = TDParser.parseTD(tdSample3);
 
     expect(thing).to.have.property("@context").that.has.lengthOf(1);
-    expect(thing).to.have.property("@context").contains("https://w3c.github.io/wot/w3c-wot-td-context.jsonld");
+    expect(thing).to.have.property("@context").contains(DEFAULT_CONTEXT);
     expect(thing).to.have.property("name").that.equals("MyTemperatureThing3");
     expect(thing).to.have.property("base").that.equals("coap://mytemp.example.com:5683/interactions/");
 
@@ -373,19 +421,19 @@ class TDParserTest {
     expect(thing.properties["temperature"]).to.have.property("writable").that.equals(true);
     expect(thing.properties["temperature"]).to.have.property("observable").that.equals(false);
     expect(thing.properties["temperature"]).to.have.property("forms").to.have.lengthOf(1);
-    expect(thing.properties["temperature"].forms[0]).to.have.property("mediaType").that.equals("application/json");
+    expect(thing.properties["temperature"].forms[0]).to.have.property("contenttype").that.equals("application/json");
 
     expect(thing.properties).to.have.property("temperature2");
     expect(thing.properties["temperature2"]).to.have.property("writable").that.equals(false);
     expect(thing.properties["temperature2"]).to.have.property("observable").that.equals(false);
     expect(thing.properties["temperature2"]).to.have.property("forms").to.have.lengthOf(1);
-    expect(thing.properties["temperature2"].forms[0]).to.have.property("mediaType").that.equals("application/json");
+    expect(thing.properties["temperature2"].forms[0]).to.have.property("contenttype").that.equals("application/json");
 
     expect(thing.properties).to.have.property("humidity");
     expect(thing.properties["humidity"]).to.have.property("writable").that.equals(false);
     expect(thing.properties["humidity"]).to.have.property("observable").that.equals(false);
     expect(thing.properties["humidity"]).to.have.property("forms").to.have.lengthOf(1);
-    expect(thing.properties["humidity"].forms[0]).to.have.property("mediaType").that.equals("application/json");
+    expect(thing.properties["humidity"].forms[0]).to.have.property("contenttype").that.equals("application/json");
   }
 
   // TODO: wait for exclude https://github.com/chaijs/chai/issues/885
@@ -436,7 +484,7 @@ class TDParserTest {
     let thing: Thing = TDParser.parseTD(tdSampleMetadata1);
 
     expect(thing).to.have.property("@context").that.has.lengthOf(1);
-    expect(thing).to.have.property("@context").contains("https://w3c.github.io/wot/w3c-wot-td-context.jsonld");
+    expect(thing).to.have.property("@context").contains(DEFAULT_CONTEXT);
     expect(thing).to.have.property("name").that.equals("MyTemperatureThing3");
     expect(thing).to.have.property("base").that.equals("coap://mytemp.example.com:5683/interactions/");
 
@@ -447,7 +495,7 @@ class TDParserTest {
     expect(thing.properties["myTemp"]).to.have.property("writable").that.equals(false);
     expect(thing.properties["myTemp"]).to.have.property("observable").that.equals(false);
     expect(thing.properties["myTemp"]).to.have.property("forms").to.have.lengthOf(1);
-    expect(thing.properties["myTemp"].forms[0]).to.have.property("mediaType").that.equals("application/json");
+    expect(thing.properties["myTemp"].forms[0]).to.have.property("contenttype").that.equals("application/json");
 
     // metadata
     // metadata "unit": "celsius"
@@ -479,8 +527,7 @@ class TDParserTest {
     let thing: Thing = TDParser.parseTD(tdSimple1);
 
     // simple elements
-    expect(thing).to.have.property("@context").that.equals("https://w3c.github.io/wot/w3c-wot-td-context.jsonld");
-    expect(thing["@context"]).equals("https://w3c.github.io/wot/w3c-wot-td-context.jsonld");
+    expect(thing).to.have.property("@context").that.equals(DEFAULT_CONTEXT);
     expect(thing.id).equals("urn:dev:wot:com:example:servient:lamp");
     expect(thing.name).equals("MyLampThing");
 

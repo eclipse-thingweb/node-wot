@@ -63,8 +63,9 @@ export default class CoapClient implements ProtocolClient {
         
         // FIXME does not work with blockwise because of node-coap
         let contentType = res.headers["Content-Format"];
+        if (!contentType) contentType = form.contenttype;
         
-        resolve({ contentType: contentType, body: res.payload });
+        resolve({ type: contentType, body: res.payload });
       });
       req.on("error", (err: Error) => reject(err));
       req.end();
@@ -86,7 +87,7 @@ export default class CoapClient implements ProtocolClient {
         resolve();
       });
       req.on("error", (err: Error) => reject(err));
-      req.setOption("Content-Format", content.contentType);
+      req.setOption("Content-Format", content.type);
       req.write(content.body);
       req.end();
     });
@@ -104,11 +105,11 @@ export default class CoapClient implements ProtocolClient {
         console.debug(`CoapClient received Content-Format: ${res.headers["Content-Format"]}`);
         console.debug(`CoapClient received headers: ${JSON.stringify(res.headers)}`);
         let contentType = res.headers["Content-Format"];
-        resolve({ contentType: contentType, body: res.payload });
+        resolve({ type: contentType, body: res.payload });
       });
       req.on("error", (err: Error) => reject(err));
       if (content) {
-        req.setOption("Content-Format", content.contentType);
+        req.setOption("Content-Format", content.type);
         req.write(content.body);
       }
       req.end();
@@ -185,8 +186,8 @@ export default class CoapClient implements ProtocolClient {
     let req = this.agent.request(options);
 
     // apply form data
-    if (typeof form.mediaType === "string") {
-      console.log("CoapClient got Form 'mediaType'", form.mediaType);
+    if (typeof form.contenttype === "string") {
+      console.log("CoapClient got Form 'mediaType'", form.contenttype);
       //req.setOption("Accept", form.mediaType);
     }
     if (Array.isArray(form["coap:options"])) {

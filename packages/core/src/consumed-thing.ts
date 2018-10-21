@@ -20,7 +20,7 @@ import * as TD from "@node-wot/td-tools";
 import Servient from "./servient";
 import Helpers from "./helpers";
 
-import { ProtocolClient } from "./protocol-interfaces";
+import { ProtocolClient, Content } from "./protocol-interfaces";
 
 import { default as ContentManager } from "./content-serdes"
 
@@ -113,7 +113,7 @@ export interface ClientAndForm {
     form: WoT.Form
 }
 
-class ConsumedThingProperty extends TD.PropertyFragment implements WoT.ThingProperty, WoT.BaseSchema {
+class ConsumedThingProperty extends TD.ThingProperty implements WoT.ThingProperty, WoT.BaseSchema {
 
     // functions for wrapping internal state
     private getName: () => string;
@@ -137,7 +137,7 @@ class ConsumedThingProperty extends TD.PropertyFragment implements WoT.ThingProp
             } else {
                 console.log(`ConsumedThing '${this.getThing().name}' reading ${form.href}`);
                 client.readResource(form).then((content) => {
-                    if (!content.contentType) content.contentType = form.mediaType;
+                    if (!content.type) content.type = form.contenttype;
                     try {
                         let value = ContentManager.contentToValue(content, <any>this);
                         resolve(value);
@@ -159,7 +159,7 @@ class ConsumedThingProperty extends TD.PropertyFragment implements WoT.ThingProp
                 reject(new Error(`ConsumedThing '${this.getThing().name}' did not get suitable client for ${form.href}`));
             } else {
                 console.log(`ConsumedThing '${this.getThing().name}' writing ${form.href} with '${value}'`);
-                let content = ContentManager.valueToContent(value, <any>this, form.mediaType);
+                let content = ContentManager.valueToContent(value, <any>this, form.contenttype);
 
                 client.writeResource(form, content).then(() => {
                     resolve();
@@ -176,7 +176,7 @@ class ConsumedThingProperty extends TD.PropertyFragment implements WoT.ThingProp
     }
 }
 
-class ConsumedThingAction extends TD.ActionFragment implements WoT.ThingAction {
+class ConsumedThingAction extends TD.ThingAction implements WoT.ThingAction {
 
     // functions for wrapping internal state
     private getName: () => string;
@@ -202,14 +202,14 @@ class ConsumedThingAction extends TD.ActionFragment implements WoT.ThingAction {
                 let input;
                 
                 if (parameter!== undefined) {
-                    input = ContentManager.valueToContent(parameter, <any>this, form.mediaType);
+                    input = ContentManager.valueToContent(parameter, <any>this, form.contenttype);
                 }
 
-                client.invokeResource(form, input).then((output: any) => {
+                client.invokeResource(form, input).then((content) => {
                     // infer media type from form if not in response metadata
-                    if (!output.mediaType) output.mediaType = form.mediaType;
+                    if (!content.type) content.type = form.contenttype;
                     try {
-                        let value = ContentManager.contentToValue(output, this.output);
+                        let value = ContentManager.contentToValue(content, this.output);
                         resolve(value);
                     } catch {
                         reject(new Error(`Received invalid content from Thing`));
@@ -221,7 +221,7 @@ class ConsumedThingAction extends TD.ActionFragment implements WoT.ThingAction {
     }
 }
 
-class ConsumedThingEvent extends TD.EventFragment implements Subscribable<any> {
+class ConsumedThingEvent extends TD.ThingEvent implements Subscribable<any> {
 
     // functions for wrapping internal state
     private getName: () => string;
@@ -246,7 +246,7 @@ class ConsumedThingEvent extends TD.EventFragment implements Subscribable<any> {
 
             return client.subscribeResource(form,
                 (content) => {
-                    if (!content.contentType) content.contentType = form.mediaType;
+                    if (!content.type) content.type = form.contenttype;
                     try {
                         let value = ContentManager.contentToValue(content, <any>this);
                         next(value);

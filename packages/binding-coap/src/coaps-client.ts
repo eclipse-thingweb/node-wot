@@ -44,7 +44,12 @@ export default class CoapsClient implements ProtocolClient {
       this.generateRequest(form, "get").then( (res: any) => {
         console.log(`CoapsClient received ${res.code} from ${form.href}`);
         console.debug(`CoapsClient received headers: ${JSON.stringify(res.format)}`);
-        resolve({ body: res.payload, contentType: form.mediaType });
+
+        // FIXME node-coap-client does not support options
+        let contentType; // = res.format[...]
+        if (!contentType) contentType = form.contenttype;
+        
+        resolve({ type: contentType, body: res.payload });
       })
       .catch( (err: any) => { reject(err) });
     });
@@ -56,6 +61,7 @@ export default class CoapsClient implements ProtocolClient {
       this.generateRequest(form, "put", content).then( (res: any) => {
         console.log(`CoapsClient received ${res.code} from ${form.href}`);
         console.debug(`CoapsClient received headers: ${JSON.stringify(res.format)}`);
+
         resolve();
       })
       .catch( (err: any) => { reject(err) });
@@ -68,7 +74,12 @@ export default class CoapsClient implements ProtocolClient {
       this.generateRequest(form, "post", content).then( (res: any) => {
         console.log(`CoapsClient received ${res.code} from ${form.href}`);
         console.debug(`CoapsClient received headers: ${JSON.stringify(res.format)}`);
-        resolve({ body: res.payload, contentType: form.mediaType });
+        
+        // FIXME node-coap-client does not support options
+        let contentType; // = res.format[...]
+        if (!contentType) contentType = form.contenttype;
+
+        resolve({ type: contentType, body: res.payload });
       })
       .catch( (err: any) => { reject(err) });
     });

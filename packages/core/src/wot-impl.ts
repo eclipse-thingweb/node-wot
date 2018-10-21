@@ -50,9 +50,9 @@ export default class WoTImpl implements WoT.WoTFactory {
                 .then((content) => {
                     client.stop();
 
-                    if (content.contentType !== ContentSerdes.TD &&
-                        content.contentType !== ContentSerdes.JSON_LD ) {
-                        console.warn(`WoTImpl received TD with media type '${content.contentType}' from ${uri}`);
+                    if (content.type !== ContentSerdes.TD &&
+                        content.type !== ContentSerdes.JSON_LD ) {
+                        console.warn(`WoTImpl received TD with media type '${content.type}' from ${uri}`);
                     }
 
                     let td = content.body.toString();
@@ -120,6 +120,7 @@ export default class WoTImpl implements WoT.WoTFactory {
             throw new Error("Invalid Thing model: " + model);
         }
 
+        /*
         // ensure TD context
         if (typeof newThing["@context"]==="string") {
             if (newThing["@context"]!==TD.DEFAULT_HTTPS_CONTEXT &&
@@ -147,6 +148,7 @@ export default class WoTImpl implements WoT.WoTFactory {
         } else {
             console.error(`WoTImpl found illegal @context: ${newThing["@context"]}`);
         }
+        */
 
         // augment Interaction descriptions with interactable functions
         newThing.extendInteractions();

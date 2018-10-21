@@ -158,7 +158,9 @@ export default class WebSocketServer implements ProtocolServer {
 
         for (let address of Helpers.getAddresses()) {
             let href = this.scheme + "://" + address + ":" + this.getPort() + path;
-            thing.events[eventName].forms.push(new TD.Form(href, ContentSerdes.DEFAULT));
+            let form = new TD.Form(href, ContentSerdes.DEFAULT);
+            form.op = "subscribeevent";
+            thing.events[eventName].forms.push(form);
             console.log(`WebSocketServer on port ${this.getPort()} assigns '${href}' to Event '${eventName}'`);
         }
       }

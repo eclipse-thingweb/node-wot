@@ -115,20 +115,25 @@ export default class HttpServer implements ProtocolServer {
 
           for (let propertyName in thing.properties) {
             let href = base + "/" + this.PROPERTY_DIR + "/" + encodeURIComponent(propertyName);
-            thing.properties[propertyName].forms.push(new TD.Form(href, type));
+            let form = new TD.Form(href, type);
+            form.op = ["readproperty", "writeproperty"];
+            thing.properties[propertyName].forms.push(form);
             console.log(`HttpServer on port ${this.getPort()} assigns '${href}' to Property '${propertyName}'`);
           }
           
           for (let actionName in thing.actions) {
             let href = base + "/" + this.ACTION_DIR + "/" + encodeURIComponent(actionName);
-            thing.actions[actionName].forms.push(new TD.Form(href, type));
+            let form = new TD.Form(href, type);
+            form.op = "invokeaction";
+            thing.actions[actionName].forms.push(form);
             console.log(`HttpServer on port ${this.getPort()} assigns '${href}' to Action '${actionName}'`);
           }
           
           for (let eventName in thing.events) {
             let href = base + "/" + this.EVENT_DIR + "/" + encodeURIComponent(eventName);
             let form = new TD.Form(href, type);
-            form.subProtocol = "LongPoll";
+            form.subprotocol = "longpoll";
+            form.op = "subscribeevent";
             thing.events[eventName].forms.push(form);
             console.log(`HttpServer on port ${this.getPort()} assigns '${href}' to Event '${eventName}'`);
           }
@@ -212,7 +217,7 @@ export default class HttpServer implements ProtocolServer {
           if (req.method === "GET") {
             res.setHeader("Content-Type", ContentSerdes.TD);
             res.writeHead(200);
-            res.end(JSON.stringify(thing));
+            res.end(thing.getThingDescription());
           } else {
             res.writeHead(405);
             res.end("Method Not Allowed");
@@ -228,7 +233,7 @@ export default class HttpServer implements ProtocolServer {
               property.read()
                 .then((value) => {
                   let content = ContentSerdes.get().valueToContent(value, <any>property);
-                  res.setHeader("Content-Type", content.contentType);
+                  res.setHeader("Content-Type", content.type);
                   res.writeHead(200);
                   res.end(content.body);
                 })
@@ -246,7 +251,7 @@ export default class HttpServer implements ProtocolServer {
                   console.debug(`HttpServer on port ${this.getPort()} completed body '${body}'`);
                   let value;
                   try {
-                    value = ContentSerdes.get().contentToValue({ contentType: contentType, body: Buffer.concat(body) }, <any>property);
+                    value = ContentSerdes.get().contentToValue({ type: contentType, body: Buffer.concat(body) }, <any>property);
                   } catch(err) {
                     console.warn(`HttpServer on port ${this.getPort()} cannot process write value for Property '${segments[3]}: ${err.message}'`);
                     res.writeHead(400);
@@ -288,7 +293,7 @@ export default class HttpServer implements ProtocolServer {
                 console.debug(`HttpServer on port ${this.getPort()} completed body '${body}'`);
                 let input;
                 try {
-                  input = ContentSerdes.get().contentToValue({ contentType: contentType, body: Buffer.concat(body) }, action.input);
+                  input = ContentSerdes.get().contentToValue({ type: contentType, body: Buffer.concat(body) }, action.input);
                 } catch(err) {
                   console.warn(`HttpServer on port ${this.getPort()} cannot process input to Action '${segments[3]}: ${err.message}'`);
                   res.writeHead(400);
@@ -299,7 +304,7 @@ export default class HttpServer implements ProtocolServer {
                   .then((output) => {
                     if (output) {
                       let content = ContentSerdes.get().valueToContent(output, action.output);
-                      res.setHeader("Content-Type", content.contentType);
+                      res.setHeader("Content-Type", content.type);
                       res.writeHead(200);
                       res.end(content.body);
                     } else {

@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
- import { ContentCodec } from "./content-serdes";
+ import { ContentCodec } from "../content-serdes";
 
 /**
  * Codec to produce and consume simple data items and deserialize and serialize
@@ -40,7 +40,7 @@
  * 
  * An Error is thrown if the codec is not able to perform the requested action.
  */
-export class OctetstreamCodec implements ContentCodec {
+export default class OctetstreamCodec implements ContentCodec {
     getMediaType(): string {
         return 'application/octet-stream'
     }

@@ -30,7 +30,7 @@ export class HttpConfig {
 }
 
 export class HttpProxyConfig {
-    public href: USVString;
+    public href: string;
     public scheme?: string;
     public token?: string;
     public username?: string;

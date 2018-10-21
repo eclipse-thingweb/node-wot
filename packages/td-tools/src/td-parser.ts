@@ -27,28 +27,29 @@ export function parseTD(td: string, normalize?: boolean): Thing {
   // apply defaults as per WoT Thing Description spec
 
   if (thing["@context"] === undefined) {
-    thing["@context"] = TD.DEFAULT_HTTP_CONTEXT;
+    thing["@context"] = TD.DEFAULT_CONTEXT;
   } else if (Array.isArray(thing["@context"])) {
     let semContext: Array<string> = thing["@context"];
-    if ((semContext.indexOf(TD.DEFAULT_HTTPS_CONTEXT) === -1) &&
-      (semContext.indexOf(TD.DEFAULT_HTTP_CONTEXT) === -1) &&
-      // keep compatibility for "old" context URI for now
-      (semContext.indexOf("http://w3c.github.io/wot/w3c-wot-td-context.jsonld") === -1) &&
-      (semContext.indexOf("https://w3c.github.io/wot/w3c-wot-td-context.jsonld") === -1)
-    ) {
+    if (semContext.indexOf(TD.DEFAULT_CONTEXT) === -1) {
       // insert last
-      semContext.push(TD.DEFAULT_HTTP_CONTEXT);
+      semContext.push(TD.DEFAULT_CONTEXT);
     }
+  } else if (thing["@context"] !== TD.DEFAULT_CONTEXT) {
+    let semContext: string | any = thing["@context"];
+    thing["@context"] = [ semContext, TD.DEFAULT_CONTEXT ];
   }
 
   if (thing["@type"] === undefined) {
-    thing["@type"] = "Thing";
+    thing["@type"] = TD.DEFAULT_THING_TYPE;
   } else if (Array.isArray(thing["@type"])) {
     let semTypes: Array<string> = thing["@type"];
-    if (semTypes.indexOf("Thing") === -1) {
+    if (semTypes.indexOf(TD.DEFAULT_THING_TYPE) === -1) {
       // insert first
-      semTypes.unshift("Thing");
+      semTypes.unshift(TD.DEFAULT_THING_TYPE);
     }
+  } else if (thing["@type"] !== TD.DEFAULT_THING_TYPE) {
+    let semType: string = thing["@type"];
+    thing["@type"] = [ TD.DEFAULT_THING_TYPE, semType ];
   }
 
   if (thing.properties !== undefined && thing.properties instanceof Object) {
@@ -131,12 +132,28 @@ export function parseTD(td: string, normalize?: boolean): Thing {
 /** Serializes a Thing object into a TD */
 export function serializeTD(thing: Thing): string {
 
+  let copy: any = JSON.parse(JSON.stringify(thing));
+
   // clean-ups
-  if (!thing.security || thing.security.length===0) {
-    thing.security = [{ scheme: "nosec" }];
+  if (!copy.security || copy.security.length === 0) {
+    copy.security = [{ scheme: "nosec" }];
+  }
+  
+  if (copy.properties && Object.keys(copy.properties).length === 0) {
+    delete copy.properties;
+  }
+  if (copy.actions && Object.keys(copy.actions).length === 0) {
+    delete copy.actions;
+  }
+  if (copy.events && Object.keys(copy.events).length === 0) {
+    delete copy.events;
   }
 
-  let td: string = JSON.stringify(thing);
+  if (copy.links && copy.links.length === 0) {
+    delete copy.links;
+  }
+
+  let td: string = JSON.stringify(copy);
 
   console.debug(`serializeTD() produced\n\`\`\`\n${td}\n\`\`\``);
 

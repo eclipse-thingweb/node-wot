@@ -136,6 +136,8 @@ export default class FujitsuServer implements ProtocolServer {
 
   private handle(data: any) {
 
+    console.log(`FujitsuServer for ${this.remote} received '${data}'`);
+
     let message = JSON.parse(data);
 
     if (message.type === "REQUEST") {
@@ -159,7 +161,7 @@ export default class FujitsuServer implements ProtocolServer {
           if (property) {
             let value;
             try {
-              value = ContentSerdes.get().contentToValue({ contentType: message.mediaType, body: Buffer.from(message.entity, "base64") }, <any>property);
+              value = ContentSerdes.get().contentToValue({ type: message.mediaType, body: Buffer.from(message.entity, "base64") }, <any>property);
             } catch(err) {
               console.warn(`FujitsuServer for ${this.remote} received invalid data for Property '${message.href}'`);
               // FIXME: no error message format defined in Fujitsu binding
@@ -176,7 +178,7 @@ export default class FujitsuServer implements ProtocolServer {
           if (action) {
             let input;
             try {
-              input = ContentSerdes.get().contentToValue({ contentType: message.mediaType, body: Buffer.from(message.entity, "base64") }, action.input);
+              input = ContentSerdes.get().contentToValue({ type: message.mediaType, body: Buffer.from(message.entity, "base64") }, action.input);
             } catch(err) {
               console.warn(`FujitsuServer for ${this.remote} received invalid data for Action '${message.href}'`);
               // FIXME: no error message format defined in Fujitsu binding
@@ -216,7 +218,7 @@ export default class FujitsuServer implements ProtocolServer {
       };
     
     if (content) {
-      response.mediaType = content.contentType;
+      response.mediaType = content.type;
       response.buffer = content.body.toString("base64");
     }
 

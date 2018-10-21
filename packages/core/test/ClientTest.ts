@@ -36,7 +36,7 @@ class TDClient implements ProtocolClient {
 
     public readResource(form: Form): Promise<Content> {
         // Note: this is not a "real" DataClient! Instead it just reports the same TD in any case
-        let c: Content = { contentType: ContentSerdes.TD, body: Buffer.from(JSON.stringify(myThingDesc)) };
+        let c: Content = { type: ContentSerdes.TD, body: Buffer.from(JSON.stringify(myThingDesc)) };
         return Promise.resolve(c);
     }
 

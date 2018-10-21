@@ -37,9 +37,9 @@ export default class MqttClient implements ProtocolClient {
     public subscribeResource(form: MqttForm, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): any {
 
         // get MQTT-based metadata
-        let contentType = form['mediaType'];
-        let retain = form['mqtt:retain']; // TODO: is this needed here?
-        let qos = form['mqtt:qos']; // TODO: is this needed here?
+        let contentType = form.contenttype;
+        let retain = form["mqtt:retain"]; // TODO: is this needed here?
+        let qos = form["mqtt:qos"]; // TODO: is this needed here?
         let requestUri = url.parse(form['href']);
         let topic = requestUri.pathname;
         let brokerUri : String = "mqtt://"+requestUri.host;
@@ -103,7 +103,7 @@ export default class MqttClient implements ProtocolClient {
                 this.client.publish(topic, content.body)
             }
             // there will bo no response
-            resolve({ contentType: ContentSerdes.DEFAULT, body: Buffer.from("") });
+            resolve({ type: ContentSerdes.DEFAULT, body: Buffer.from("") });
 
         });
     }

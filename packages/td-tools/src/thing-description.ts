@@ -16,8 +16,7 @@
 // global W3C WoT Scripting API definitions
 import * as WoT from "wot-typescript-definitions";
 
-export const DEFAULT_HTTP_CONTEXT: string = "http://www.w3.org/ns/td";
-export const DEFAULT_HTTPS_CONTEXT: string = "http://www.w3.org/ns/td";
+export const DEFAULT_CONTEXT: string = "http://www.w3.org/ns/td";
 export const DEFAULT_THING_TYPE: string = "Thing";
 
 /* TODOs / Questions
@@ -30,22 +29,22 @@ export default class Thing implements WoT.ThingFragment {
   name: string;
   description: string;
   security: Array<WoT.Security>;
-  base?: string;
+  base: string;
   properties: {
-    [key: string]: WoT.PropertyFragment
+    [key: string]: WoT.ThingProperty;
   };
   actions: {
-    [key: string]: WoT.ActionFragment;
+    [key: string]: WoT.ThingAction;
   }
   events: {
-    [key: string]: WoT.EventFragment;
+    [key: string]: WoT.ThingEvent;
   }
-  links: Array<WoT.WebLink>;
+  links: Array<WoT.Link>;
 
   [key: string]: any;
 
   constructor() {
-    this["@context"] = DEFAULT_HTTPS_CONTEXT;
+    this["@context"] = DEFAULT_CONTEXT;
     this["@type"] = DEFAULT_THING_TYPE;
     this.security = [];
     this.properties = {};
@@ -56,26 +55,30 @@ export default class Thing implements WoT.ThingFragment {
 }
 
 /** Basis from implementing the Thing Interaction descriptions for Property, Action, and Event */
-export abstract class InteractionFragment implements WoT.InteractionFragment {
-  label: string;
+export abstract class ThingInteraction implements WoT.InteractionFragment {
+  title: string;
   description: string;
+  
   forms: Array<Form>;
+
   [key: string]: any;
 }
 /** Implements the Thing Property description */
-export class PropertyFragment extends InteractionFragment implements WoT.PropertyFragment, WoT.BaseSchema {
+export class ThingProperty extends ThingInteraction implements WoT.PropertyFragment, WoT.BaseSchema {
   writable: boolean;
   observable: boolean;
   type: string;
 }
 /** Implements the Thing Action description */
-export class ActionFragment extends InteractionFragment implements WoT.ActionFragment {
+export class ThingAction extends ThingInteraction implements WoT.ActionFragment {
   input: WoT.DataSchema;
   output: WoT.DataSchema;
 }
 /** Implements the Thing Action description */
-export class EventFragment extends InteractionFragment implements WoT.EventFragment, WoT.BaseSchema {
-  type: string;
+export class ThingEvent extends ThingInteraction implements WoT.EventFragment {
+  subscription: WoT.DataSchema;
+  data: WoT.DataSchema;
+  cancellation: WoT.DataSchema;
 }
 
 /** Implements the Thing Security definitions */
@@ -88,13 +91,13 @@ export class Security implements WoT.SecurityScheme {
 /** Implements the Interaction Form description */
 export class Form implements WoT.Form {
   href: string;
-  subProtocol?: string;
-  mediaType?: string;
-  rel?: string;
+  subprotocol?: string;
+  op?: string | Array<string>;
+  contenttype?: string;
   security?: WoT.Security;
 
-  constructor(href?: string, mediaType?: string) {
-    if (href) this.href = href;
-    if (mediaType) this.mediaType = mediaType;
+  constructor(href: string, contenttype?: string) {
+    this.href = href;
+    if (contenttype) this.contenttype = contenttype;
   }
 }

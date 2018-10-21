@@ -60,10 +60,10 @@ class TDGeneratorTest {
     expect(ser[0].getPort()).to.equal(60604);
 
     expect(td.properties.prop1).to.have.property("forms");
-    expect(td.properties.prop1.forms[0]).to.have.property("mediaType").that.equals("application/json");
+    expect(td.properties.prop1.forms[0]).to.have.property("contenttype").that.equals("application/json");
     expect(td.properties.prop1.forms[0]).to.have.property("href").that.equals("http://localhost:" + ser[0].getPort() + "/TDGeneratorTest/properties/prop1");
     expect(td.actions.act1).to.have.property("forms");
-    expect(td.actions.act1.forms[0]).to.have.property("mediaType").that.equals("application/json");
+    expect(td.actions.act1.forms[0]).to.have.property("contenttype").that.equals("application/json");
     expect(td.actions.act1.forms[0]).to.have.property("href").that.equals("http://localhost:" + ser[0].getPort() + "/TDGeneratorTest/actions/act1");
   }
 }

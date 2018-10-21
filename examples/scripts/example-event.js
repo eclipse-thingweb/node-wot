@@ -34,7 +34,7 @@ try {
   .addEvent(
     "onchange",
     {
-      type: "integer"
+      data: { type: "integer" }
     });
   // make available via bindings
   thing.expose().then(() => {

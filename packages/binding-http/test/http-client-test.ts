@@ -116,7 +116,7 @@ class TestHttpServer implements ProtocolServer {
             req.on("end", () => {
                 let value;
                 try {
-                    value = ContentSerdes.get().contentToValue({ contentType: ContentSerdes.DEFAULT, body: Buffer.concat(body) }, this.testVector.schema);
+                    value = ContentSerdes.get().contentToValue({ type: ContentSerdes.DEFAULT, body: Buffer.concat(body) }, this.testVector.schema);
                 } catch (err) {
                     throw new Error("Cannot deserialize client payload");
                 }
@@ -161,7 +161,7 @@ class HttpClientTest {
             payload: "test"
         };
         httpServer.setTestVector(inputVector);
-        representation = await client.writeResource(inputVector.form, { contentType: ContentSerdes.DEFAULT, body: Buffer.from(inputVector.payload) });
+        representation = await client.writeResource(inputVector.form, { type: ContentSerdes.DEFAULT, body: Buffer.from(inputVector.payload) });
 
         // invoke with defaults
         inputVector = {
@@ -172,7 +172,7 @@ class HttpClientTest {
             payload: "test"
         };
         httpServer.setTestVector(inputVector);
-        representation = await client.invokeResource(inputVector.form, { contentType: ContentSerdes.DEFAULT, body: Buffer.from(inputVector.payload) });
+        representation = await client.invokeResource(inputVector.form, { type: ContentSerdes.DEFAULT, body: Buffer.from(inputVector.payload) });
 
         return httpServer.stop();
     }
@@ -208,7 +208,7 @@ class HttpClientTest {
             payload: "test"
         };
         httpServer.setTestVector(inputVector);
-        representation = await client.writeResource(inputVector.form, { contentType: ContentSerdes.DEFAULT, body: Buffer.from(inputVector.payload) });
+        representation = await client.writeResource(inputVector.form, { type: ContentSerdes.DEFAULT, body: Buffer.from(inputVector.payload) });
 
         // invoke with PUT instead of POST
         inputVector = {
@@ -220,7 +220,7 @@ class HttpClientTest {
             payload: "test"
         };
         httpServer.setTestVector(inputVector);
-        representation = await client.invokeResource(inputVector.form, { contentType: ContentSerdes.DEFAULT, body: Buffer.from(inputVector.payload) });
+        representation = await client.invokeResource(inputVector.form, { type: ContentSerdes.DEFAULT, body: Buffer.from(inputVector.payload) });
 
         // invoke with DELETE instead of POST
         inputVector = {

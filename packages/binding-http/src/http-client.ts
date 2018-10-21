@@ -115,7 +115,7 @@ export default class HttpClient implements ProtocolClient {
       let req = this.generateRequest(form, "PUT");
       let info = <any>req;
 
-      req.setHeader("Content-Type", content.contentType);
+      req.setHeader("Content-Type", content.type);
       req.setHeader("Content-Length", content.body.byteLength);
 
       console.log(`HttpClient sending ${info.method} with '${req.getHeader("Content-Type")}' to ${form.href}`);
@@ -146,7 +146,7 @@ export default class HttpClient implements ProtocolClient {
       let info = <any>req;
 
       if (content) {
-        req.setHeader("Content-Type", content.contentType);
+        req.setHeader("Content-Type", content.type);
         req.setHeader("Content-Length", content.body.byteLength);
       }
 
@@ -354,9 +354,9 @@ export default class HttpClient implements ProtocolClient {
     //console.dir(form);
 
     // apply form data
-    if (typeof form.mediaType === "string") {
-      console.debug("HttpClient got Form 'mediaType'", form.mediaType);
-      req.setHeader("Accept", form.mediaType);
+    if (options.method === "GET" && typeof form.contenttype === "string") {
+      console.debug("HttpClient got Form 'contenttype'", form.contenttype);
+      req.setHeader("Accept", form.contenttype);
     }
     if (Array.isArray(form["http:headers"])) {
       console.debug("HttpClient got Form 'headers'", form["http:headers"]);

@@ -13,111 +13,17 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
+import { Content } from "./protocol-interfaces";
+import JsonCodec from "./codecs/json-codec";
+import TextCodec from "./codecs/text-codec";
+import OctetstreamCodec from "./codecs/octetstream-codec";
+
 /** is a plugin for ContentSerdes for a specific format (such as JSON or EXI) */
 export interface ContentCodec {
   getMediaType(): string
   bytesToValue(bytes: Buffer, schema: WoT.DataSchema, parameters?: {[key: string]: string}): any
   valueToBytes(value: any, schema: WoT.DataSchema, parameters?: {[key: string]: string}): Buffer
 }
-
-export class Content {
-  public contentType: string;
-  public body: Buffer;
-
-  constructor(contentType: string, body: Buffer) {
-    this.contentType = contentType;
-    this.body = body;
-  }
-}
-
-import { OctetstreamCodec } from "./octetstream-codec";
-
-/** default implementation offerin Json de-/serialisation */
-class JsonCodec implements ContentCodec {
-
-  private subMediaType: string;
-
-  constructor(subMediaType?: string) {
-    if (!subMediaType) {
-      this.subMediaType = ContentSerdes.DEFAULT; // 'application/json' 
-    } else {
-      this.subMediaType = subMediaType;
-    }
-  }
-
-  getMediaType(): string {
-    return this.subMediaType;
-  }
-
-  bytesToValue(bytes: Buffer, schema: WoT.DataSchema, parameters: {[key: string]: string}): any {
-    //console.debug(`JsonCodec parsing '${bytes.toString()}'`);
-
-
-    let parsed: any;
-    try {
-      parsed = JSON.parse(bytes.toString());
-    } catch (err) {
-      if (err instanceof SyntaxError) {
-        if (bytes.byteLength == 0) {
-          // empty payload -> void/undefined
-          parsed = undefined;
-        } else {
-          // be relaxed about what is received -> string without quotes
-          parsed = bytes.toString();
-        }
-      } else {
-        throw err;
-      }
-    }
-
-    // TODO validate using schema
-
-    // remove legacy wrapping and use RFC 7159
-    // TODO remove once dropped from all PlugFest implementation
-    if (parsed && parsed.value !== undefined) {
-      console.warn(`JsonCodec removing { value: ... } wrapper`);
-      parsed = parsed.value;
-    }
-    return parsed;
-  }
-
-  valueToBytes(value: any, schema: WoT.DataSchema, parameters?: {[key: string]: string}): Buffer {
-    //console.debug("JsonCodec serializing", value);
-    let body = "";
-    if (value !== undefined) {
-      body = JSON.stringify(value);
-    }
-    return Buffer.from(body);
-  }
-}
-
-class TextCodec implements ContentCodec {
-  getMediaType(): string {
-    return 'text/plain'
-  }
-
-  bytesToValue(bytes: Buffer, schema: WoT.DataSchema, parameters: {[key: string]: string}): any {
-    //console.debug(`TextCodec parsing '${bytes.toString()}'`);
-    
-    let parsed: any;
-    parsed = bytes.toString(parameters.charset);
-
-    // TODO apply schema to convert string to real type
-
-    return parsed;
-  }
-
-  valueToBytes(value: any, schema: WoT.DataSchema, parameters?: {[key: string]: string}): Buffer {
-    //console.debug(`TextCodec serializing '${value}'`);
-    let body = "";
-    if (value !== undefined) {
-      body = value;
-    }
-
-    return Buffer.from(body, parameters.charset);
-  }
-}
-
 
 /**
  * is a singleton that is used to serialize and deserialize data
@@ -184,10 +90,10 @@ export class ContentSerdes {
 
   public contentToValue(content: Content, schema: WoT.DataSchema): any {
 
-    if (content.contentType === undefined) {
+    if (content.type === undefined) {
       if (content.body.byteLength > 0) {
         // default to application/json
-        content.contentType = ContentSerdes.DEFAULT;
+        content.type = ContentSerdes.DEFAULT;
       } else {
         // empty payload without media type -> void/undefined (note: e.g., empty payload with text/plain -> "")
         return;
@@ -195,12 +101,12 @@ export class ContentSerdes {
     }
 
     // split into media type and parameters
-    let mt = ContentSerdes.getMediaType(content.contentType);
-    let par = ContentSerdes.getMediaTypeParameters(content.contentType);
+    let mt = ContentSerdes.getMediaType(content.type);
+    let par = ContentSerdes.getMediaTypeParameters(content.type);
 
     // choose codec based on mediaType
     if (this.codecs.has(mt)) {
-      console.debug(`ContentSerdes deserializing from ${content.contentType}`);
+      console.debug(`ContentSerdes deserializing from ${content.type}`);
 
       let codec = this.codecs.get(mt)
 
@@ -235,7 +141,7 @@ export class ContentSerdes {
       bytes = Buffer.from(value);
     }
 
-    return { contentType: contentType, body: bytes };
+    return { type: contentType, body: bytes };
   }
 }
 

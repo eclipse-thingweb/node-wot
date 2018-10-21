@@ -34,28 +34,63 @@ function checkActionInvocation(name, expected, actual) {
 }
 
 let thing = WoT.produce({
-    id: "urn:dev:wot:org:w3:testthing",
+    id: "urn:dev:wot:org:w3:testthing:lyon2018",
     name: "TestThing"
 });
 
 console.info(thing.name + " produced");
 
 thing
-    .addProperty("bool", { "type": "boolean" }, false)
-    .addProperty("int", { "type": "integer" }, 42)
-    .addProperty("num", { "type": "number" }, 3.14)
+    .addProperty(
+        "bool",
+        {
+            title: "true/false",
+            type: "boolean"
+        },
+        false)
+    .addProperty(
+        "int",
+        {
+            title: "Integer number",
+            type: "integer"
+        },
+        42)
+    .addProperty(
+        "num",
+        {
+            title: "Floating point",
+            type: "number"
+        },
+        3.14)
     .addProperty("string", { "type": "string" }, "unset")
-    .addProperty("array", { "type": "array" }, [2, "unset"])
+    .addProperty(
+        "array",
+        {
+            title: "Tuple",
+            type: "array",
+            items: {}
+        },
+        [2, "unset"])
     .addProperty(
         "object",
         {
-            "type": "object",
-            "properties": {
-                id: { "type": "integer" },
-                name: { "type": "string" }
+            title: "ID-name",
+            description: "Object with ID and name",
+            type: "object",
+            properties: {
+                id: {
+                    title: "ID",
+                    description: "Internal identifier",
+                    type: "integer"
+                },
+                name: {
+                    title: "Name",
+                    description: "Public name",
+                    type: "string"
+                }
             }
         },
-        { "prop1": 123, "prop2" : "abc" });
+        { "id": 123, "name" : "abc" });
 
 // Property checks
 thing
@@ -100,13 +135,18 @@ thing
 thing
     .addAction(
         "void-void",
-        { },
+        {
+            title: "void-void Action",
+            description: "Action without input nor output"
+        },
         (input) => {
             checkActionInvocation("void-void", "undefined", typeof param);
         })
     .addAction(
         "void-int",
         {
+            title: "void-int Action",
+            description: "Action without input, but with integer output",
             input: { type: "integer" }
         },
         (input) => {
@@ -116,6 +156,8 @@ thing
     .addAction(
         "int-void",
         {
+            title: "int-void Action",
+            description: "Action with integer input, but without output",
             input: { type: "integer" }
         },
         (input) => {
@@ -126,6 +168,8 @@ thing
     .addAction(
         "int-int",
         {
+            title: "int-int Action",
+            description: "Action with integer input and output",
             input: { type: "integer" },
             output: { type: "integer" }
         },
@@ -138,6 +182,8 @@ thing
     .addAction(
         "int-string",
         {
+            title: "int-string Action",
+            description: "Action with integer input and string output",
             input: { type: "integer" },
             output: { type: "string" }
         },
@@ -162,8 +208,10 @@ thing
             }
         })
     .addAction(
-        "void-complex",
+        "void-obj",
         {
+            title: "void-obj Action",
+            description: "Action without input, but with object output",
             output: {
                 type: "object",
                 properties: {
@@ -182,8 +230,10 @@ thing
             return {"prop1": 123, "prop2" : "abc"};
         })
     .addAction(
-        "complex-void",
+        "obj-void",
         {
+            title: "obj-void Action",
+            description: "Action with object input, but wihtout output",
             input: {
                 type: "object",
                 properties: {
@@ -199,13 +249,25 @@ thing
 thing
     .addEvent(
         "on-bool",
-        { type: "boolean" })
+        {
+            title: "on-bool Event",
+            description: "Event with boolean data",
+            data: { type: "boolean" }
+        })
     .addEvent(
         "on-int",
-        { type: "integer" })
+        {
+            title: "on-int Event",
+            description: "Event with integer data",
+            data: { type: "integer" }
+        })
     .addEvent(
         "on-num",
-        { type: "number" });
+        {
+            title: "on-num Event",
+            description: "Event with number data",
+            data: { type: "number" }
+        });
 
 thing.expose().then(() => {
     console.info(thing.name + " ready");

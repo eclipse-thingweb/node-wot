@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-let thingDescription = '{ "@context": [ "https://w3c.github.io/wot/w3c-wot-td-context.jsonld", "https://w3c.github.io/wot/w3c-wot-common-context.jsonld" ], "@type": [ "Thing", "Sensor" ], "name": "mySensor", "geo:location": "testspace", "interaction": [ { "@type": [ "Property", "Temperature" ], "name": "prop1", "schema": { "type": "number" }, "saref:TemperatureUnit": "degree_Celsius" } ] }';
+let thingDescription = '{ "@context": "https://w3c.github.io/wot/w3c-wot-common-context.jsonld", "@type": "Sensor", "name": "mySensor", "geo:location": "testspace", "properties": { "prop1": { "@type": "Temperature", "type": "number", "saref:TemperatureUnit": "degree_Celsius" } } }';
 
 // try in case thingDescription or script is erroneous
 try {
