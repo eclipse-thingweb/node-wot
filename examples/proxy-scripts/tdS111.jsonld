@@ -2,8 +2,8 @@
     "@context": "http://www.w3.org/ns/td",
     "@type": ["Thing"],
     "id": "urn:dev:wot:com:siemens:festolive:s111",
-    "name": "LevelSwitchS111",
-    "base": "coap://192.168.0.105:5683/LevelSwitchS111/",
+    "name": "FloatSensorS111",
+    "base": "coap://192.168.0.111:5683/FloatSensorS111/",
     "properties": {
         "overflow101": {
             "type": "boolean",

@@ -3,7 +3,7 @@
     "@type": ["Thing"],
     "id": "urn:dev:wot:com:siemens:festolive:b101",
     "name": "myUltrasonicSensorB101",
-    "base": "coap://192.168.0.104:5683/UltrasonicSensorB101/",
+    "base": "coap://192.168.0.110:5683/UltrasonicSensorB101/",
     "properties": {
         "levelvalue": {
             "type": "number",

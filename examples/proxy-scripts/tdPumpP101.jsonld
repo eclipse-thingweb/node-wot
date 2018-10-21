@@ -3,7 +3,7 @@
     "@type": ["Thing"],
     "id": "urn:dev:wot:com:siemens:festolive:p101",
     "name": "Pump",
-    "base": "coap://192.168.0.106:5683/PumpP101/",
+    "base": "coap://192.168.0.101:5683/PumpP101/",
     "properties": {
         "status": {
             "type": "string",
