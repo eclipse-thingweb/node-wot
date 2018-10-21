@@ -39,19 +39,16 @@ export default class OracleServer implements ProtocolServer {
   public expose(thing: ExposedThing): Promise<void> {
 
     if (thing["iotcs:deviceModel"] === undefined) {
-      console.error(`OracleServer ${this.activationId} cannot expose '${thing.name}' without 'iotcs:deviceModel' field`);
       return new Promise<void>((resolve, reject) => {
         reject(`OracleServer cannot expose Things without 'iotcs:deviceModel' field`);
       });
     }
 
     return new Promise<void>((resolve, reject) => {
-
       if (this.server.isActivated()) {
-
         // select model based on TD entry
         this.getModel(thing["iotcs:deviceModel"]).then( model => {
-          this.registerDevice(model).then( id => {
+          this.registerDevice(thing, model).then( (id) => {
             this.startDevice(id, model, thing).then( () => {
               resolve();
             });
@@ -59,7 +56,6 @@ export default class OracleServer implements ProtocolServer {
         }).catch( err => {
           reject(err);
         });
-        
       }
     });
   }
@@ -69,26 +65,26 @@ export default class OracleServer implements ProtocolServer {
     return new Promise<void>( (resolve, reject) => {
 
       if (!this.server.isActivated()) {
-        
         this.server.activate([], (device: any, error: Error) => {
           if (error) {
             reject(error);
-          }
-
-          this.server = device;
-          console.dir(device);
-          
-          if (this.server.isActivated()) {
-            console.log(`OracleServer activated as ${this.activationId}`);
-            resolve();
           } else {
-            reject(new Error(`Could not activate`));
+            this.server = device;
+            console.dir(device);
+            
+            if (this.server.isActivated()) {
+              console.log(`OracleServer ${this.activationId} activated`);
+              resolve();
+            } else {
+              reject(new Error(`Could not activate`));
+            }
           }
         });
       } else {
         console.log(`OracleServer ${this.activationId} already activated`);
         resolve();
       }
+
     });
   }
 
@@ -98,9 +94,9 @@ export default class OracleServer implements ProtocolServer {
       // stop promise handles all errors from now on
       try {
         this.server.close();
-        resolve();  
+        resolve();
       } catch(err) {
-        reject();
+        reject(new Error(`Could not stop`));
       }
     });
   }
@@ -116,47 +112,59 @@ export default class OracleServer implements ProtocolServer {
     return new Promise<void>( (resolve, reject) => {
       if (!this.server.isActivated()) {
         reject(new Error(`OracleServer ${this.activationId} not activated`));
-      }
-      this.server.getDeviceModel(modelUrn, (model: any, error: Error) => {
-        if (error) {
+      } else {
+        this.server.getDeviceModel(modelUrn, (model: any, error: Error) => {
+          if (error) {
             reject(error);
-        }
-        console.info(`OracleServer ${this.activationId} found Device Model`, modelUrn);
-        console.dir(model);
-        resolve(model);
-      });
+          } else {
+            console.info(`OracleServer ${this.activationId} found Device Model`, modelUrn);
+            console.dir(model);
+            resolve(model);
+          }
+        });
+      }
     });
   }
   
   /** enrolls device and returns id */
-  private registerDevice(model: any): Promise<any> {
-    // device allowed to realm
-    var hardwareId = `${this.activationId}-${model["name"]}`;
+  private registerDevice(thing: ExposedThing, model: any): Promise<any> {
 
-    console.log(`OracleServer ${this.activationId} enrolling '${hardwareId}'`);
+    console.log(`OracleServer ${this.activationId} enrolling '${thing.id}'`);
 
     return new Promise<void>( (resolve, reject) => {
       if (!this.server.isActivated()) {
         reject(new Error("OracleServer not activated"));
-      }
-    
-      this.server.registerDevice(
-        hardwareId,
-        {
-          description: "node-wot connected device",
-          manufacturer: "Eclipse Thingweb"
-        },
-        [model.urn],
-        function (id: any, error: Error) {
-          if (error) {
+      } else {
+        this.server.registerDevice(
+          thing.id,
+          /*
+           * Possible metadata fields
+           *
+            lib.device.GatewayDevice.DeviceMetadata = {
+              MANUFACTURER: 'manufacturer',
+              MODEL_NUMBER: 'modelNumber',
+              SERIAL_NUMBER: 'serialNumber',
+              DEVICE_CLASS: 'deviceClass',
+              PROTOCOL: 'protocol',
+              PROTOCOL_DEVICE_CLASS: 'protocolDeviceClass',
+              PROTOCOL_DEVICE_ID: 'protocolDeviceId'
+            }
+          */
+          {
+            description: "node-wot connected device",
+            manufacturer: "Eclipse Thingweb"
+          },
+          [model.urn],
+          (id: any, error: Error) => {
+            if (error) {
               reject(error);
+            } else {
+              console.log(`OracleServer ${this.activationId} registered '${id}'`);
+              resolve(id);
+            }
           }
-          if (id) {
-            console.log(`OracleServer registered '${id}'`);
-            resolve(id);
-          }
-        }
-      );
+        );
+      }
     });
   }
 
@@ -170,8 +178,17 @@ export default class OracleServer implements ProtocolServer {
 
     return new Promise<void>( (resolve, reject) => {
 
-      // Property reads
-      var send = async () => {
+      let updateInterval;
+      if (thing["iotcs:updateInterval"] && (typeof thing["iotcs:updateInterval"] === "number")) {
+        updateInterval = thing["iotcs:updateInterval"];
+      } else {
+        console.info(`### Oracle uses default Property update interval of 5000 ms`);
+        console.warn(`### TD can provide "iotcs:updateInterval" to configure interval (in ms)`);
+        updateInterval = 5000;
+      }
+
+      // Property "reads" are value updates to the cloud
+      setInterval( async () => {
         try {
           let attributes: any = {};
 
@@ -184,12 +201,10 @@ export default class OracleServer implements ProtocolServer {
           console.dir(attributes);
 
           device.update(attributes);
-        } catch(err) {
+        } catch (err) {
           console.error("OracleServer read() error: " + err);
         }
-      };
-      // every 5 seconds...
-      setInterval(send, 5000);
+      }, updateInterval);
 
       // Property writes
       device.onChange = (tupples: any) => {
@@ -197,8 +212,9 @@ export default class OracleServer implements ProtocolServer {
           if (thing.properties[tupple.attribute.id] !== undefined) {
             console.info(`### Thing '${thing.name}' has Property '${tupple.attribute.id}' for writing '${tupple.newValue}'`);
             if (thing.properties[tupple.attribute.id].writable) {
-              thing.properties[tupple.attribute.id].write(tupple.newValue)
-                .catch( (err: any) => { console.error("Property write error: " + err) });
+              thing.properties[tupple.attribute.id]
+                .write(tupple.newValue)
+                .catch((err: any) => { console.error("Property write error: " + err) });
             }
           }
         });
@@ -211,7 +227,8 @@ export default class OracleServer implements ProtocolServer {
           console.info(`### Thing '${thing.name}' has Action '${action.name}'`);
           device[action.name].onExecute = (param: any) => {
             console.info(`### Oracle called Action '${action.name}'`);
-            thing.actions[action.name].invoke(param)
+            thing.actions[action.name]
+              .invoke(param)
               .catch( (err: any) => { console.error("Action invoke error: " + err) });
             // No action results supported by Oracle
           }
@@ -223,9 +240,9 @@ export default class OracleServer implements ProtocolServer {
       // FIXME: unclear how errors work -- why do they have attribute values?
       device.onError = (tupple: any) => {
         var show = {
-            newValues: tupple.newValues,
-            tryValues: tupple.tryValues,
-            errorResponse: tupple.errorResponse
+          newValues: tupple.newValues,
+          tryValues: tupple.tryValues,
+          errorResponse: tupple.errorResponse
         };
         console.error("### Oracle ERROR");
         console.dir(show);
