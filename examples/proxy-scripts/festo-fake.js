@@ -1,7 +1,8 @@
 
   let thing = WoT.produce({
     id: "urn:dev:wot:siemens:festofake",
-    name: "FestoFake"
+    name: "FestoFake",
+    "iotcs:deviceModel": "urn:com:siemens:wot:festo"
   }
 );
 
