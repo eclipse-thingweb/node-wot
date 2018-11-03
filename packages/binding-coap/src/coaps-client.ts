@@ -14,7 +14,7 @@
  ********************************************************************************/
 
 /**
- * CoAP client based on coap by mcollina
+ * CoAPS client based on node-coap-client by AlCalzone
  */
 
 const coaps = require("node-coap-client").CoapClient;
@@ -43,7 +43,6 @@ export default class CoapsClient implements ProtocolClient {
 
       this.generateRequest(form, "get").then( (res: any) => {
         console.log(`CoapsClient received ${res.code} from ${form.href}`);
-        console.debug(`CoapsClient received headers: ${JSON.stringify(res.format)}`);
 
         // FIXME node-coap-client does not support options
         let contentType; // = res.format[...]
@@ -60,7 +59,6 @@ export default class CoapsClient implements ProtocolClient {
 
       this.generateRequest(form, "put", content).then( (res: any) => {
         console.log(`CoapsClient received ${res.code} from ${form.href}`);
-        console.debug(`CoapsClient received headers: ${JSON.stringify(res.format)}`);
 
         resolve();
       })
@@ -73,7 +71,6 @@ export default class CoapsClient implements ProtocolClient {
 
       this.generateRequest(form, "post", content).then( (res: any) => {
         console.log(`CoapsClient received ${res.code} from ${form.href}`);
-        console.debug(`CoapsClient received headers: ${JSON.stringify(res.format)}`);
         
         // FIXME node-coap-client does not support options
         let contentType; // = res.format[...]
@@ -98,8 +95,19 @@ export default class CoapsClient implements ProtocolClient {
   }
 
   public subscribeResource(form: CoapForm, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): any {
-    error(new Error(`CoapClient does not implement subscribe`));
-    return null;
+
+    let requestUri = url.parse(form.href.replace(/$coaps/, "https"));
+    coaps.setSecurityParams(requestUri.hostname, this.authorization );
+
+    coaps.observe(
+      form.href,
+      "get",
+      next
+    )
+    .then(() => { /* observing was successfully set up */})
+    .catch((err: any) => { error(err); })
+
+    return new Subscription(() => { coaps.stopObserving(form.href); complete(); });
   }
 
   public start(): boolean {
@@ -158,8 +166,8 @@ export default class CoapsClient implements ProtocolClient {
 
   private generateRequest(form: CoapForm, dflt: string, content?: Content): any {
     
+    // url only works with http*
     let requestUri = url.parse(form.href.replace(/$coaps/, "https"));
-    
     coaps.setSecurityParams(requestUri.hostname, this.authorization );
 
     let method: string = dflt;
