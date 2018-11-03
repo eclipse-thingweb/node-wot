@@ -261,8 +261,8 @@ export default class HttpClient implements ProtocolClient {
 
     } else if (security.scheme === "apikey") {
       this.authorization = credentials.apikey;
-      if (security.in==="header" && security.pname!==undefined) {
-        this.authorizationHeader = security.pname;
+      if (security.in==="header" && security.name!==undefined) {
+        this.authorizationHeader = security.name;
       }
 
     } else {
