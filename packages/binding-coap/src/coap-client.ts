@@ -187,8 +187,8 @@ export default class CoapClient implements ProtocolClient {
 
     // apply form data
     if (typeof form.contenttype === "string") {
-      console.log("CoapClient got Form 'mediaType'", form.contenttype);
-      //req.setOption("Accept", form.mediaType);
+      console.log("CoapClient got Form 'contenttype'", form.contenttype);
+      req.setOption("Accept", form.contenttype);
     }
     if (Array.isArray(form["coap:options"])) {
       console.log("CoapClient got Form 'options'", form["coap:options"]);
