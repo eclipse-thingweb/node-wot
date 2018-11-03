@@ -87,6 +87,8 @@ sudo npm link wot-typescript-definitions
 * `sudo npm run link` does not work
    * try `npm run unlock` before calling `[sudo] npm run link`
    * try `npm link` in each package directory in this order: td-tools, core, binding-\*, cli, demo-servients
+* Build error about `lerna ERR! npm install stderr: npm ERR! code ETARGET`
+   * try `npm run unlock` before building
 
 ## No time for explanations - I want to start from something running!
 Run all the steps above including "Link Packages" and then run this:
