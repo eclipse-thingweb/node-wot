@@ -1,6 +1,6 @@
 {
     "servient": {
-        "_staticAddress": "plugfest.thingweb.io", 
+        "_staticAddress": "plugfest.thingweb.io",
         "scriptDir": ".",
         "scriptAction": true
     },
@@ -22,6 +22,10 @@
         "urn:dev:wot:org:eclipse:leshan": {
             "identity": "node-wot",
             "psk": "hello"
+        },
+        "urn:dev:wot:org:eclipse:cf-secure": {
+            "identity": "password",
+            "psk": "sesame"
         }
     }
 }

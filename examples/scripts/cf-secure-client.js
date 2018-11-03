@@ -13,20 +13,17 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-console.info("Ensure https://leshan.eclipse.org/#/security has the Client Endpoint 'node-wot-test' with Identity 'node-wot' and Key '68656c6c6f'");
-console.info("==========");
+WoT.fetch("file://./cf-secure.jsonld").then( async (td) => {
 
-WoT.fetch("file://./leshan.jsonld").then( async (td) => {
-
-	let leshan = WoT.consume(td);
+	let cf = WoT.consume(td);
 	console.info("=== TD ===");
 	console.info(td);
 	console.info("==========");
 
-	leshan.actions.register.invoke("</0/0>,</3/0>").then( (res) => {
-		console.info("Registered");
+	cf.properties.const.read().then( (res) => {
+		console.info("Received:", res);
 	}).catch( (err) => {
-		console.error("Registration error:", err.message);
+		console.error("Get root error:", err.message);
 	});
 
 }).catch( (err) => { console.error("Fetch error:", err.message); });

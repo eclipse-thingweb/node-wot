@@ -1,0 +1,17 @@
+{
+    "id": "urn:dev:wot:org:eclipse:cf-secure",
+    "name": "Cf-Secure",
+    "description": "Californium CoAPS example server (https://github.com/eclipse/californium/tree/master/demo-apps/cf-secure)",
+    "security": [{ "scheme": "psk"}],
+    "properties": {
+        "const": {
+            "description": "PSK secured resource",
+            "type": "string",
+            "forms": [
+                {
+                    "href": "coaps://localhost:5684/secure"
+                }
+            ]
+        }
+    }
+}
