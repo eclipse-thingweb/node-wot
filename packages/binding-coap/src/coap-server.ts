@@ -21,7 +21,7 @@ const coap = require('coap');
 import * as url from 'url';
 
 import * as TD from "@node-wot/td-tools";
-import { ProtocolServer, ContentSerdes, ExposedThing, Helpers, Content } from "@node-wot/core";
+import Servient, { ProtocolServer, ContentSerdes, ExposedThing, Helpers, Content } from "@node-wot/core";
 
 export default class CoapServer implements ProtocolServer {
 
@@ -35,6 +35,7 @@ export default class CoapServer implements ProtocolServer {
   private readonly address: string = undefined;
   private readonly server: any = coap.createServer((req: any, res: any) => { this.handleRequest(req, res); });
   private readonly things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
+  private servient: Servient = null;
 
   constructor(port?: number, address?: string) {
     if (port !== undefined) {
@@ -52,9 +53,12 @@ export default class CoapServer implements ProtocolServer {
     // TODO need hook from ContentSerdes for runtime data formats
   }
 
-  public start(): Promise<void> {
+  public start(servient: Servient): Promise<void> {
     console.info(`CoapServer starting on ${(this.address !== undefined ? this.address + ' ' : '')}port ${this.port}`);
     return new Promise<void>((resolve, reject) => {
+
+      // store servient to get credentials
+      this.servient = servient;
       
       // start promise handles all errors until successful start
       this.server.once('error', (err: Error) => { reject(err); });

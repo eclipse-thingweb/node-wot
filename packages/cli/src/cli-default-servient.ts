@@ -77,7 +77,7 @@ export default class DefaultServient extends Servient {
         if (!this.config.servient.clientOnly) {
 
             if (this.config.http !== undefined) {
-                let httpServer = (typeof this.config.http.port === "number") ? new HttpServer(this.config.http.port) : new HttpServer();
+                let httpServer = new HttpServer(this.config.http);
                 this.addServer(httpServer);
 
                 // re-use httpServer (same port)

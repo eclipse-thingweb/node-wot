@@ -1,0 +1,33 @@
+{
+    "servient": {
+        "staticAddress": "192.168.1.21", 
+        "scriptDir": ".",
+        "scriptAction": true
+    },
+    "http": {
+        "port": 8080,
+        "allowSelfSigned": true,
+        "serverKey": "privatekey.pem",
+        "serverCert": "certificate.pem",
+        "security": {
+            "scheme": "bearer"
+        }
+    },
+    "_coap": {
+        "port": 5683
+    },
+    "_mqtt" : {
+        "broker" : "mqtt://test.mosquitto.org",
+        "port": 1883 
+    },
+    "log": {
+        "level": "info"
+    },
+    "credentials": {
+        "urn:dev:wot:org:eclipse:thingweb:security-example": {
+            "username": "node-wot",
+            "password": "hello",
+            "token": "1/mZ1edKKACtPAb7zGlwSzvs72PvhAbGmB8K1ZrGxpcNM"
+        }
+    }
+}

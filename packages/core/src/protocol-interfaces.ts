@@ -16,6 +16,7 @@
 import * as WoT from "wot-typescript-definitions";
 import { Subscription } from "rxjs/Subscription";
 
+import Servient from "./servient";
 import ExposedThing from "./exposed-thing";
 
 export interface ProtocolClient {
@@ -53,7 +54,7 @@ export interface ProtocolClientFactory {
 export interface ProtocolServer {
   readonly scheme: string;
   expose(thing: ExposedThing): Promise<void>;
-  start(): Promise<void>;
+  start(servient: Servient): Promise<void>;
   stop(): Promise<void>;
   getPort(): number;
 }

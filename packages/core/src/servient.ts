@@ -235,15 +235,13 @@ export default class Servient {
     }
 
     public hasClientFor(scheme: string): boolean {
-        // TODO debug-level
-        console.log(`Servient checking for '${scheme}' scheme in ${this.clientFactories.size} ClientFactories`);
+        console.debug(`Servient checking for '${scheme}' scheme in ${this.clientFactories.size} ClientFactories`);
         return this.clientFactories.has(scheme);
     }
 
     public getClientFor(scheme: string): ProtocolClient {
         if (this.clientFactories.has(scheme)) {
-            // TODO debug-level
-            console.log(`Servient creating client for scheme '${scheme}'`);
+            console.debug(`Servient creating client for scheme '${scheme}'`);
             return this.clientFactories.get(scheme).getClient();
         } else {
             // FIXME returning null was bad - Error or Promise?
@@ -272,7 +270,7 @@ export default class Servient {
     // will return WoT object
     public start(): Promise<WoT.WoTFactory> {
         let serverStatus: Array<Promise<void>> = [];
-        this.servers.forEach((server) => serverStatus.push(server.start()));
+        this.servers.forEach((server) => serverStatus.push(server.start(this)));
         this.clientFactories.forEach((clientFactory) => clientFactory.init());
 
         return new Promise<WoT.WoTFactory>((resolve, reject) => {
