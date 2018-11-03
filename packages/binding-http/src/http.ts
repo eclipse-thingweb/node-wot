@@ -24,17 +24,22 @@ export * from './http-client'
 export * from './http-client-factory'
 export * from './https-client-factory'
 
-export class HttpConfig {
-    public proxy?: HttpProxyConfig;
-    public allowSelfSigned: boolean;
+export interface HttpConfig {
+    port?: number;
+    address?: string;
+    proxy?: HttpProxyConfig;
+    allowSelfSigned?: boolean;
+    serverKey?: string;
+    serverCert?: string;
+    security?: WoT.Security;
 }
 
-export class HttpProxyConfig {
-    public href: string;
-    public scheme?: string;
-    public token?: string;
-    public username?: string;
-    public password?: string;
+export interface HttpProxyConfig {
+    href: string;
+    scheme?: string;
+    token?: string;
+    username?: string;
+    password?: string;
 }
 
 export class HttpForm extends Form {
