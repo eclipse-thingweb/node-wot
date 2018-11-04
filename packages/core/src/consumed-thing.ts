@@ -137,7 +137,7 @@ class ConsumedThingProperty extends TD.ThingProperty implements WoT.ThingPropert
             } else {
                 console.log(`ConsumedThing '${this.getThing().name}' reading ${form.href}`);
                 client.readResource(form).then((content) => {
-                    if (!content.type) content.type = form.contenttype;
+                    if (!content.type) content.type = form.contentType;
                     try {
                         let value = ContentManager.contentToValue(content, <any>this);
                         resolve(value);
@@ -159,7 +159,7 @@ class ConsumedThingProperty extends TD.ThingProperty implements WoT.ThingPropert
                 reject(new Error(`ConsumedThing '${this.getThing().name}' did not get suitable client for ${form.href}`));
             } else {
                 console.log(`ConsumedThing '${this.getThing().name}' writing ${form.href} with '${value}'`);
-                let content = ContentManager.valueToContent(value, <any>this, form.contenttype);
+                let content = ContentManager.valueToContent(value, <any>this, form.contentType);
 
                 client.writeResource(form, content).then(() => {
                     resolve();
@@ -202,12 +202,12 @@ class ConsumedThingAction extends TD.ThingAction implements WoT.ThingAction {
                 let input;
                 
                 if (parameter!== undefined) {
-                    input = ContentManager.valueToContent(parameter, <any>this, form.contenttype);
+                    input = ContentManager.valueToContent(parameter, <any>this, form.contentType);
                 }
 
                 client.invokeResource(form, input).then((content) => {
                     // infer media type from form if not in response metadata
-                    if (!content.type) content.type = form.contenttype;
+                    if (!content.type) content.type = form.contentType;
                     try {
                         let value = ContentManager.contentToValue(content, this.output);
                         resolve(value);
@@ -246,7 +246,7 @@ class ConsumedThingEvent extends TD.ThingEvent implements Subscribable<any> {
 
             return client.subscribeResource(form,
                 (content) => {
-                    if (!content.type) content.type = form.contenttype;
+                    if (!content.type) content.type = form.contentType;
                     try {
                         let value = ContentManager.contentToValue(content, <any>this);
                         next(value);

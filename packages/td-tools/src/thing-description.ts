@@ -93,11 +93,11 @@ export class Form implements WoT.Form {
   href: string;
   subprotocol?: string;
   op?: string | Array<string>;
-  contenttype?: string;
+  contentType?: string;
   security?: WoT.Security;
 
-  constructor(href: string, contenttype?: string) {
+  constructor(href: string, contentType?: string) {
     this.href = href;
-    if (contenttype) this.contenttype = contenttype;
+    if (contentType) this.contentType = contentType;
   }
 }

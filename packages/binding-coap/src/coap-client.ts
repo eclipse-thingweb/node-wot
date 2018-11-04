@@ -63,7 +63,7 @@ export default class CoapClient implements ProtocolClient {
         
         // FIXME does not work with blockwise because of node-coap
         let contentType = res.headers["Content-Format"];
-        if (!contentType) contentType = form.contenttype;
+        if (!contentType) contentType = form.contentType;
         
         resolve({ type: contentType, body: res.payload });
       });
@@ -186,9 +186,9 @@ export default class CoapClient implements ProtocolClient {
     let req = this.agent.request(options);
 
     // apply form data
-    if (typeof form.contenttype === "string") {
-      console.log("CoapClient got Form 'contenttype'", form.contenttype);
-      req.setOption("Accept", form.contenttype);
+    if (typeof form.contentType === "string") {
+      console.log("CoapClient got Form 'contentType'", form.contentType);
+      req.setOption("Accept", form.contentType);
     }
     if (Array.isArray(form["coap:options"])) {
       console.log("CoapClient got Form 'options'", form["coap:options"]);

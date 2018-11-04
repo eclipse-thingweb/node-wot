@@ -354,9 +354,9 @@ export default class HttpClient implements ProtocolClient {
     //console.dir(form);
 
     // apply form data
-    if (options.method === "GET" && typeof form.contenttype === "string") {
-      console.debug("HttpClient got Form 'contenttype'", form.contenttype);
-      req.setHeader("Accept", form.contenttype);
+    if (options.method === "GET" && typeof form.contentType === "string") {
+      console.debug("HttpClient got Form 'contentType'", form.contentType);
+      req.setHeader("Accept", form.contentType);
     }
     if (Array.isArray(form["http:headers"])) {
       console.debug("HttpClient got Form 'headers'", form["http:headers"]);

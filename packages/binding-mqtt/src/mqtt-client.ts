@@ -37,7 +37,7 @@ export default class MqttClient implements ProtocolClient {
     public subscribeResource(form: MqttForm, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): any {
 
         // get MQTT-based metadata
-        let contentType = form.contenttype;
+        let contentType = form.contentType;
         let retain = form["mqtt:retain"]; // TODO: is this needed here?
         let qos = form["mqtt:qos"]; // TODO: is this needed here?
         let requestUri = url.parse(form['href']);

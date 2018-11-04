@@ -46,7 +46,7 @@ export default class CoapsClient implements ProtocolClient {
 
         // FIXME node-coap-client does not support options
         let contentType; // = res.format[...]
-        if (!contentType) contentType = form.contenttype;
+        if (!contentType) contentType = form.contentType;
         
         resolve({ type: contentType, body: res.payload });
       })
@@ -74,7 +74,7 @@ export default class CoapsClient implements ProtocolClient {
         
         // FIXME node-coap-client does not support options
         let contentType; // = res.format[...]
-        if (!contentType) contentType = form.contenttype;
+        if (!contentType) contentType = form.contentType;
 
         resolve({ type: contentType, body: res.payload });
       })
