@@ -14,8 +14,7 @@ Please also see the additional [notices](NOTICE.md) and [how to contribute](CONT
 
 ## Prerequisites
 All systems require:
-* [NodeJS](https://nodejs.org/) version 8+ (e.g., 8.11.3 LTS)
-* NodeJS version 10+ will not require certain polyfills, but is not LTS (long-term stable)
+* [NodeJS](https://nodejs.org/) version 10+ (e.g., 10.13.0 LTS)
 
 ### Linux
 Meet the [node-gyp](https://github.com/nodejs/node-gyp#installation) requirements:
@@ -84,8 +83,10 @@ sudo npm link wot-typescript-definitions
 * Build error around `node-aead-crypto`
    * node-gyp has been seen failing on MacOS
    * try node 10+, which does not require the crypto polyfill
+* Build error about `No matching version found for @node-wot/...` or something about `match`
+   * try `npm run unlock` from project root before building
 * `sudo npm run link` does not work
-   * try `npm run unlock` before calling `[sudo] npm run link`
+   * try `npm run unlock` from project root before calling `[sudo] npm run link`
    * try `npm link` in each package directory in this order: td-tools, core, binding-\*, cli, demo-servients
 
 ## No time for explanations - I want to start from something running!

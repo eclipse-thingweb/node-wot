@@ -1,3 +1,6 @@
+console.debug = () =>  {};
+console.log = () => {};
+
 var PumpP101, ValveV102;
 
 // fetch and consume NodeMCU Things
@@ -26,6 +29,7 @@ Promise.all(fetchArray).then( (tdArray) => {
 
   // regularly sync state to exposed Thing
   setInterval( () => {
+/*
     let readArray = [
       PumpP101.properties.status.read(),
       ValveV102.properties.status.read(),
@@ -35,7 +39,7 @@ Promise.all(fetchArray).then( (tdArray) => {
       LevelSensorB113.properties.minlevel101.read(),
       LevelSwitchS111.properties.overflow101.read() ];
 
-/*
+ *
  * Promise all is not good, because often a single NodeMCU fails and makes all fail
  *
     Promise.all(readArray).then((resArray) => {
@@ -66,46 +70,46 @@ Promise.all(fetchArray).then( (tdArray) => {
         console.info("+++ PumpStatus " + value);
         thing.properties.PumpStatus.write(value === "ON" ? true : false);
       })
-      .catch(err => { console.error("+++ PumpStatus read error: " + err); });
+      .catch(err => { console.error("--- PumpStatus read error: " + err); });
 
     ValveV102.properties.status.read()
       .then(value => {
         console.info("+++ ValveStatus " + value);
         thing.properties.ValveStatus.write(value === "OPEN" ? true : false);
       })
-      .catch(err => { console.error("+++ ValveStatus read error: " + err); });
+      .catch(err => { console.error("--- ValveStatus read error: " + err); });
 
     UltrasonicSensorB101.properties.levelvalue.read()
       .then(value => {
         console.info("+++ Tank102LevelValue " + value);
         thing.properties.Tank102LevelValue.write(value);
       })
-      .catch(err => { console.error("+++ Tank102LevelValue read error: " + err); });
+      .catch(err => { console.error("--- Tank102LevelValue read error: " + err); });
     FloatSwitchS112.properties.overflow102.read()
       .then(value => {
         console.info("+++ Tank102OverflowStatus " + value);
         thing.properties.Tank102OverflowStatus.write(value);
       })
-      .catch(err => { console.error("+++ Tank102OverflowStatus read error: " + err); });
+      .catch(err => { console.error("--- Tank102OverflowStatus read error: " + err); });
 
     LevelSensorB114.properties.maxlevel101.read()
       .then(value => {
         console.info("+++ Tank101MaximumLevelStatus " + value);
         thing.properties.Tank101MaximumLevelStatus.write(value);
       })
-      .catch(err => { console.error("+++ Tank101MaximumLevelStatus read error: " + err); });
+      .catch(err => { console.error("--- Tank101MaximumLevelStatus read error: " + err); });
     LevelSensorB113.properties.minlevel101.read()
       .then(value => {
         console.info("+++ Tank101MinimumLevelStatus " + value);
         thing.properties.Tank101MinimumLevelStatus.write(value);
       })
-      .catch(err => { console.error("+++ Tank101MinimumLevelStatus read error: " + err); });
+      .catch(err => { console.error("--- Tank101MinimumLevelStatus read error: " + err); });
     LevelSwitchS111.properties.overflow101.read()
       .then(value => {
         console.info("+++ Tank101OverflowStatus " + value);
         thing.properties.Tank101OverflowStatus.write(value);
       })
-      .catch(err => { console.error("+++ Tank101OverflowStatus read error: " + err); });
+      .catch(err => { console.error("--- Tank101OverflowStatus read error: " + err); });
 
   }, 5000);
 });
@@ -139,7 +143,7 @@ thing
         console.info(">>> Startung pump!");
         PumpP101.actions.on.invoke()
           .then(() => { resolve(); })
-          .catch((err) => { console.error("+++ StartPump invoke error: " + err); reject(err); });
+          .catch((err) => { console.error("--- StartPump invoke error: " + err); reject(err); });
         resolve();
       });
     })
@@ -148,7 +152,7 @@ thing
         console.info(">>> Stopping pump!");
         PumpP101.actions.off.invoke()
           .then(() => { resolve(); })
-          .catch((err) => { console.error("+++ StopPump invoke error: " + err); reject(err); });
+          .catch((err) => { console.error("--- StopPump invoke error: " + err); reject(err); });
       });
     })
   .addAction("OpenValve", {}, () => {
@@ -156,7 +160,7 @@ thing
         console.info(">>> Opening valve!");
         ValveV102.actions.open.invoke()
           .then(() => { resolve(); })
-          .catch((err) => { console.error("+++ OpenValve invoke error: " + err); reject(err); });
+          .catch((err) => { console.error("--- OpenValve invoke error: " + err); reject(err); });
       });
     })
   .addAction("CloseValve", {}, () => {
@@ -164,10 +168,11 @@ thing
         console.info(">>> Closing valve!");
         ValveV102.actions.close.invoke()
           .then(() => { resolve(); })
-          .catch((err) => { console.error("+++ CloseValve invoke error: " + err); reject(err); });
+          .catch((err) => { console.error("--- CloseValve invoke error: " + err); reject(err); });
       });
     });
 
 thing.expose()
   .then(() => { console.info(thing.name + " ready"); })
   .catch((err) => { console.error("Expose error: " + err); });
+
