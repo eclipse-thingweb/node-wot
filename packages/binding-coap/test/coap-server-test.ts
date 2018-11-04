@@ -32,7 +32,7 @@ class CoapServerTest {
     @test async "should start and stop a server"() {
         let coapServer = new CoapServer(56831);
 
-        await coapServer.start();
+        await coapServer.start(null);
         expect(coapServer.getPort()).to.eq(56831); // from test
         
         await coapServer.stop();
@@ -41,14 +41,14 @@ class CoapServerTest {
 
     @test.skip async "should cause EADDRINUSE error when already running"() {
         let coapServer1 = new CoapServer(0); // cannot use 0, since getPort() does not work
-        await coapServer1.start();
+        await coapServer1.start(null);
 
         expect(coapServer1.getPort()).to.be.above(0); // from server._port, not real socket
 
         let coapServer2 = new CoapServer(coapServer1.getPort());
 
         try {
-            await coapServer2.start(); // should fail, but does not...
+            await coapServer2.start(null); // should fail, but does not...
         } catch(err) {
             assert(true);
         }

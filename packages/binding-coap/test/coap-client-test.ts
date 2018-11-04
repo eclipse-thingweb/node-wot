@@ -41,7 +41,7 @@ class CoapClientTest {
 
         let coapServer = new CoapServer(56833);
 
-        await coapServer.start();
+        await coapServer.start(null);
         expect(coapServer.getPort()).to.equal(56833);
 
         /*
@@ -88,7 +88,7 @@ class CoapClientTest {
     @test "should re-use port"(done: Function) {
 
         let coapServer = new CoapServer(56834);
-        coapServer.start().then( () => {
+        coapServer.start(null).then( () => {
             let coapClient = new CoapClient(coapServer);
             coapClient.readResource({ href: "coap://localhost:56834/" }).then( (res) => {
                 done();
