@@ -39,12 +39,16 @@ export default class HttpServer implements ProtocolServer {
 
   private readonly port: number = 8080;
   private readonly address: string = undefined;
-  private readonly securityScheme: string;
-  private readonly server: https.Server = null;
+  private readonly securityScheme: string = "NoSec";
+  private readonly server: http.Server | https.Server = null;
   private readonly things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
   private servient: Servient = null;
 
   constructor(config: HttpConfig = {}) {
+    if (typeof config !== "object") {
+      throw new Error(`HttpServer requires config object (got ${typeof config})`);
+    }
+
     if (config.port !== undefined) {
       this.port = config.port;
     }
@@ -53,18 +57,19 @@ export default class HttpServer implements ProtocolServer {
     }
 
     // TLS
-    let options: any = {};
     if (config.serverKey && config.serverCert) {
+      let options: any = {};
       options.key = fs.readFileSync(config.serverKey);
       options.cert = fs.readFileSync(config.serverCert);
       this.scheme = "https";
+      this.server = https.createServer(options, (req, res) => { this.handleRequest(req, res) });
     } else {
       this.scheme = "http";
+      this.server = http.createServer((req, res) => { this.handleRequest(req, res) });
     }
 
     // Auth
     if (config.security) {
-
       if (this.scheme !== "https") {
         throw new Error(`HttpServer does not allow security without TLS (HTTPS)`);
       }
@@ -84,8 +89,6 @@ export default class HttpServer implements ProtocolServer {
           throw new Error(`HttpServer does not support security scheme '${config.security.scheme}`);
       }
     }
-
-    this.server = https.createServer(options, (req, res) => { this.handleRequest(req, res) });
   }
 
   public start(servient: Servient): Promise<void> {
@@ -125,7 +128,7 @@ export default class HttpServer implements ProtocolServer {
   }
 
   /** returns http.Server to be re-used by other HTTP-based bindings (e.g., WebSockets) */
-  public getServer(): https.Server {
+  public getServer(): http.Server | https.Server {
     return this.server;
   }
 
@@ -197,6 +200,8 @@ export default class HttpServer implements ProtocolServer {
   }
 
   private checkCredentials(id: string, req: http.IncomingMessage): boolean {
+
+    console.log(`HttpServer on port ${this.getPort()} checking credentials for '${id}'`);
 
     let creds = this.servient.getCredentials(id);
 
@@ -294,7 +299,7 @@ export default class HttpServer implements ProtocolServer {
 
         } else {
           // Thing Interaction - Access Control
-          if (!this.checkCredentials(thing.id, req)) {
+          if (this.securityScheme!=="NoSec" && !this.checkCredentials(thing.id, req)) {
             res.setHeader("WWW-Authenticate", `${this.securityScheme} realm="${thing.id}"`);
             res.writeHead(401);
             res.end();
@@ -411,7 +416,16 @@ export default class HttpServer implements ProtocolServer {
                 res.setHeader("Content-Type", ContentSerdes.DEFAULT);
                 res.writeHead(200);
                 let subscription = event.subscribe(
-                  (content) => {
+                  (data) => {
+                    let content;
+                    try {
+                      content = ContentSerdes.get().valueToContent(data, event.data);
+                    } catch(err) {
+                      console.warn(`HttpServer on port ${this.getPort()} cannot process data for Event '${segments[3]}: ${err.message}'`);
+                      res.writeHead(500);
+                      res.end("Invalid Event Data");
+                      return;
+                    }
                     // send event data
                     res.end(content.body);
                   },

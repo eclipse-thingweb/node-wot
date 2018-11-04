@@ -1,6 +1,5 @@
 {
     "servient": {
-        "staticAddress": "192.168.1.21", 
         "scriptDir": ".",
         "scriptAction": true
     },
@@ -10,7 +9,7 @@
         "serverKey": "privatekey.pem",
         "serverCert": "certificate.pem",
         "security": {
-            "scheme": "bearer"
+            "scheme": "basic"
         }
     },
     "_coap": {

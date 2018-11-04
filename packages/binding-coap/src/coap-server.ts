@@ -333,7 +333,17 @@ export default class CoapServer implements ProtocolServer {
                 // end of work-around
 
                 let subscription = event.subscribe(
-                  (content) => {
+                  (data) => {
+                    let content;
+                    try {
+                      content = ContentSerdes.get().valueToContent(data, event.data);
+                    } catch(err) {
+                      console.warn(`CoapServer on port ${this.getPort()} cannot process data for Event '${segments[3]}: ${err.message}'`);
+                      res.code = "5.00";
+                      res.end("Invalid Event Data");
+                      return;
+                    }
+                    
                     // send event data
                     console.log(`CoapServer on port ${this.getPort()} sends '${segments[3]}' notification to ${Helpers.toUriLiteral(req.rsinfo.address)}:${req.rsinfo.port}`);
                     res.setOption("Content-Format", content.type);

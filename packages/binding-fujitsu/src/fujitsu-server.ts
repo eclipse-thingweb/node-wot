@@ -21,7 +21,7 @@ import * as url from "url";
 import * as WebSocket from "ws";
 
 import * as TD from "@node-wot/td-tools";
-import { ProtocolServer, ExposedThing, ContentSerdes, Content } from "@node-wot/core";
+import { ProtocolServer, Servient, ExposedThing, ContentSerdes, Content } from "@node-wot/core";
 
 
 export default class FujitsuServer implements ProtocolServer {
@@ -46,7 +46,7 @@ export default class FujitsuServer implements ProtocolServer {
     this.remote = remoteURI;
   }
 
-  public start(): Promise<void> {
+  public start(servient: Servient): Promise<void> {
     console.info(`FujitsuServer starting for ${this.remote}`);
     return new Promise<void>((resolve, reject) => {
 

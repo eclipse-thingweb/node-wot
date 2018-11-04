@@ -33,7 +33,7 @@ class TDGeneratorTest {
   @test async "TD generation test"() {
 
     let servient: Servient = new Servient();
-    servient.addServer(new HttpServer(60604));
+    servient.addServer(new HttpServer({ port: 60604}));
 
     Helpers.setStaticAddress("localhost");
     
@@ -53,11 +53,10 @@ class TDGeneratorTest {
     let ser: Array<ProtocolServer> = servient.getServers();
 
     expect(ser).to.be.an('Array').with.length.above(0);
+    expect(ser[0].getPort()).to.equal(60604);
 
     expect(td.properties).to.have.property("prop1");
     expect(td.actions).to.have.property("act1");
-
-    expect(ser[0].getPort()).to.equal(60604);
 
     expect(td.properties.prop1).to.have.property("forms");
     expect(td.properties.prop1.forms[0]).to.have.property("contenttype").that.equals("application/json");

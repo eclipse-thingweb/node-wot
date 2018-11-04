@@ -22,7 +22,21 @@ import { expect, should, assert } from "chai";
 // should must be called to augment all variables
 should();
 
+import WebSocketServer from "../src/ws-server";
+
 @suite("WebSockets binding")
 class WebSocketsTest {
+
+  @test async "should start and stop own server"() {
+    let wsServer = new WebSocketServer({ port: 58080 });
+
+    await wsServer.start(null);
+    expect(wsServer.getPort()).to.eq(58080); // from test
+
+    console.log("Test stopping WebSocket server");
+
+    await wsServer.stop();
+    expect(wsServer.getPort()).to.eq(-1); // from getPort() when not listening
+  }
 
 }

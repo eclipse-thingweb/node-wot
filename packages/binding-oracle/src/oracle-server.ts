@@ -17,7 +17,7 @@
  * CoAP Server based on coap by mcollina
  */
 
-import { ProtocolServer, ExposedThing } from "@node-wot/core"
+import { ProtocolServer, Servient, ExposedThing } from "@node-wot/core"
 
 const dcl = require("iotcs-csl-js");
 
@@ -60,7 +60,7 @@ export default class OracleServer implements ProtocolServer {
     });
   }
 
-  public start(): Promise<void> {
+  public start(servient: Servient): Promise<void> {
     console.info(`OracleServer starting with ${this.activationId}`);
     return new Promise<void>( (resolve, reject) => {
 

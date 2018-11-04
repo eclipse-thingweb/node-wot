@@ -22,7 +22,7 @@ import * as mqtt from "mqtt";
 import * as url from "url";
 
 import * as TD from "@node-wot/td-tools";
-import { ProtocolServer, ExposedThing, ContentSerdes } from "@node-wot/core";
+import { ProtocolServer, Servient, ExposedThing, ContentSerdes } from "@node-wot/core";
 
 export default class MqttBrokerServer implements ProtocolServer {
 
@@ -125,17 +125,26 @@ export default class MqttBrokerServer implements ProtocolServer {
 
       for (let eventName in thing.events) {
         let topic = "/" + encodeURIComponent(name) + "/events/" + encodeURIComponent(eventName);
+        let event = thing.events[eventName];
         // FIXME store subscription and clean up on stop
-        let subscription = thing.events[eventName].subscribe(
-          (value) => {
+        let subscription = event.subscribe(
+          (data) => {
+            let content;
+            try {
+              content = ContentSerdes.get().valueToContent(data, event.data);
+            } catch(err) {
+              console.warn(`HttpServer on port ${this.getPort()} cannot process data for Event '${eventName}: ${err.message}'`);
+              subscription.unsubscribe();
+              return;
+            }
             // send event data
             console.log(`MqttBrokerServer at ${this.brokerURI} publishing to Event topic '${eventName}' `);
-            this.broker.publish(topic, value.body);
+            this.broker.publish(topic, content.body);
           }
         );
 
         let href = this.brokerURI + topic;
-        thing.events[eventName].forms.push(new TD.Form(href, ContentSerdes.DEFAULT));
+        event.forms.push(new TD.Form(href, ContentSerdes.DEFAULT));
         console.log(`MqttBrokerServer at ${this.brokerURI} assigns '${href}' to Event '${eventName}'`);
       }
 
@@ -143,7 +152,7 @@ export default class MqttBrokerServer implements ProtocolServer {
     });
   }
 
-  public start(): Promise<void> {
+  public start(servient: Servient): Promise<void> {
     return new Promise<void>((resolve, reject) => {
 
       if (this.brokerURI === undefined) {

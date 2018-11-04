@@ -379,17 +379,18 @@ class ExposedThingEvent extends TD.ThingEvent implements WoT.ThingEvent {
 
     /** WoT.ThingEvent interface: subscribe to this Event locally */
     public subscribe(next?: (value: any) => void, error?: (error: any) => void, complete?: () => void): Subscription {
-        return this.getState().subject.asObservable().subscribe(next, error, complete);
+        return this.getState().subject.asObservable().subscribe(
+            next,
+            error,
+            complete
+        );
     }
 
     // FIXME maybe move
     /** WoT.ThingEvent interface: emit a new Event instance */
     public emit(data?: any): void {
-        let content;
-        if (data!==undefined) {
-            content = ContentSerdes.get().valueToContent(data, <any>this);
-        }
-        this.getState().subject.next(content);
+        // TODO validate against this.data
+        this.getState().subject.next(data);
     }
 }
 
@@ -421,9 +422,9 @@ class ActionState {
 }
 
 class EventState {
-    public subject: Subject<Content>;
+    public subject: Subject<any>;
 
     constructor() {
-        this.subject = new Subject<Content>();
+        this.subject = new Subject<any>();
     }
 }

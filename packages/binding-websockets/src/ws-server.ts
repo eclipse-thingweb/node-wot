@@ -18,87 +18,111 @@
  */
 
 import * as http from "http";
+import * as https from "https";
 import * as url from "url";
+import * as fs from "fs";
 
 import * as WebSocket from "ws";
 import { AddressInfo } from "net";
 
 import * as TD from "@node-wot/td-tools";
-import { ProtocolServer, ContentSerdes, ExposedThing, Helpers } from "@node-wot/core";
-import { HttpServer } from "@node-wot/binding-http";
+import { ProtocolServer, Servient, ExposedThing, ContentSerdes, Helpers, Content } from "@node-wot/core";
+import { HttpServer, HttpConfig } from "@node-wot/binding-http";
 
 export default class WebSocketServer implements ProtocolServer {
 
-  public readonly scheme: string = "ws";
+  public readonly scheme: string;
   public readonly EVENT_DIR: string = "events";
   private readonly port: number = 8081;
+  private readonly address: string = undefined;
   private readonly ownServer: boolean = true;
-  private readonly httpServer: http.Server;
-  private running: boolean = false;
-  private failed: boolean = false;
+  private readonly httpServer: http.Server | https.Server;
 
   private readonly thingNames: Set<string> = new Set<string>();
   private readonly socketServers: { [key: string]: WebSocket.Server } = {};
 
-  constructor(portOrServer?: number | HttpServer) {
-    if (typeof portOrServer==="number") {
-      this.port = portOrServer;
-      this.httpServer = http.createServer();
-    } else if (typeof portOrServer==="object") {
+  constructor(serverOrConfig: HttpServer | HttpConfig = {} ) {
+    // FIXME instanceof did not work reliably
+    if (serverOrConfig instanceof HttpServer && (typeof serverOrConfig.getServer === "function")) {
       this.ownServer = false;
-      this.httpServer = portOrServer.getServer();
-      this.port = portOrServer.getPort();
+      this.httpServer = serverOrConfig.getServer();
+      this.port = serverOrConfig.getPort();
+      this.scheme = serverOrConfig.scheme === "https" ? "wss" : "ws";
+
+    } else if (typeof serverOrConfig === "object") {
+      let config: HttpConfig = <HttpConfig>serverOrConfig;
+      // HttpConfig
+      if (config.port !== undefined) {
+        this.port = config.port;
+      }
+      if (config.address !== undefined) {
+        this.address = config.address;
+      }
+  
+      // TLS
+      if (config.serverKey && config.serverCert) {
+        let options: any = {};
+        options.key = fs.readFileSync(config.serverKey);
+        options.cert = fs.readFileSync(config.serverCert);
+        this.scheme = "wss";
+        this.httpServer = https.createServer(options);
+      } else {
+        this.scheme = "ws";
+        this.httpServer = http.createServer();
+      }
     } else {
-      throw new Error(`WebSocketServer constructor argument must be number, http.Server, or undefined`);
+      throw new Error(`WebSocketServer constructor argument must be HttpServer, HttpConfig, or undefined`);
     }
   }
 
-  public start(): Promise<void> {
-    console.info(`WebSocketServer starting on port ${this.port}`);
+  public start(servient: Servient): Promise<void> {
+    console.info(`WebSocketServer starting on ${(this.address !== undefined ? this.address + ' ' : '')}port ${this.port}`);
     return new Promise<void>((resolve, reject) => {
 
-      if (this.ownServer) {
-        this.httpServer.once('error', (err: Error) => { reject(err); });
-        this.httpServer.once('listening', () => {
-          // once started, console "handles" errors
-          this.httpServer.on('error', (err: Error) => {
-            console.error(`WebSocketServer on port ${this.port} failed: ${err.message}`);
-            resolve();
-          });
-        });
-        this.httpServer.listen(this.port);
-      }
-
-      this.httpServer.on('upgrade', (request, socket, head) => {
+      // handle incoming WebScoket connections
+      this.httpServer.on("upgrade", (request, socket, head) => {
         const pathname = url.parse(request.url).pathname;
 
         let socketServer = this.socketServers[pathname];
 
         if (socketServer) {
           socketServer.handleUpgrade(request, socket, head, (ws) => {
-            socketServer.emit('connection', ws, request);
+            socketServer.emit("connection", ws, request);
           });
         } else {
           socket.destroy();
         }
       });
-      if (!this.ownServer) resolve();
+
+      if (this.ownServer) {
+        this.httpServer.once("error", (err: Error) => { reject(err); });
+        this.httpServer.once("listening", () => {
+          // once started, console "handles" errors
+          this.httpServer.on("error", (err: Error) => {
+            console.error(`WebSocketServer on port ${this.port} failed: ${err.message}`);
+          });
+          resolve();
+        });
+        this.httpServer.listen(this.port, this.address);
+      } else {
+        resolve();
+      }
     });
   }
 
   public stop(): Promise<void> {
     console.info(`WebSocketServer stopping on port ${this.port}`);
     return new Promise<void>((resolve, reject) => {
+      for (let path in this.socketServers) {
+        this.socketServers[path].close();
+      }
 
       // stop promise handles all errors from now on
       if (this.ownServer) {
+        console.log(`WebSocketServer stopping own HTTP server`);
         this.httpServer.once('error', (err: Error) => { reject(err); });
         this.httpServer.once('close', () => { resolve(); });
         this.httpServer.close();
-      } else {
-        for (let path in this.socketServers) {
-          this.socketServers[path].close();
-        }
       }
     });
   }
@@ -136,8 +160,17 @@ export default class WebSocketServer implements ProtocolServer {
         this.socketServers[path].on('connection', (ws, req) => {
           console.log(`WebSocketServer on port ${this.getPort()} received connection for '${path}' from ${Helpers.toUriLiteral(req.connection.remoteAddress)}:${req.connection.remotePort}`);
           let subscription = thing.events[eventName].subscribe(
-            (content) => {
-              switch (content.contentType) {
+            (data) => {
+              let content;
+              try {
+                content = ContentSerdes.get().valueToContent(data, thing.events[eventName].data);
+              } catch(err) {
+                console.warn(`HttpServer on port ${this.getPort()} cannot process data for Event '${eventName}: ${err.message}'`);
+                ws.close(-1, err.message)
+                return;
+              }
+
+              switch (content.type) {
                 case "application/json":
                 case "text/plain":
                   ws.send(content.body.toString());

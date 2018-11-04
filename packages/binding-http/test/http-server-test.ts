@@ -31,57 +31,59 @@ import { ExposedThing } from "@node-wot/core";
 class HttpServerTest {
 
   @test async "should start and stop a server"() {
-    let httpServer = new HttpServer(58080);
+    let httpServer = new HttpServer({ port: 58080 });
 
-    await httpServer.start();
+    await httpServer.start(null);
     expect(httpServer.getPort()).to.eq(58080); // from test
 
     await httpServer.stop();
     expect(httpServer.getPort()).to.eq(-1); // from getPort() when not listening
   }
 
-  @test async "should change resource from 'off' to 'on' and try to invoke and delete"() {
-    let httpServer = new HttpServer(0);
+  @test async "should change resource from 'off' to 'on' and try to invoke"() {
+    let httpServer = new HttpServer({ port: 0 });
 
-    await httpServer.start();
+    await httpServer.start(null);
 
     let testThing = new ExposedThing(null);
-    testThing.name = "test";
+    testThing.name = "Test";
     testThing.addProperty("test", { writable: true, type: "string" }, "off");
     testThing.properties.test.forms = [];
-    testThing.addAction("test", {}, (input) => { return new Promise<string>( (resolve, reject) => { resolve("TODO"); }); });
-    testThing.actions.test.forms = [];
+    testThing.addAction("try", { output: { type: "string" }}, (input) => { return new Promise<string>( (resolve, reject) => { resolve("TEST"); }); });
+    testThing.actions.try.forms = [];
 
     await httpServer.expose(testThing);
 
-    let uri = `http://localhost:${httpServer.getPort()}/test`;
+    let uri = `http://localhost:${httpServer.getPort()}/Test/`;
     let body;
 
-    body = await rp.get(uri+"/properties/test");
+    console.log("Testing", uri);
+
+    body = await rp.get(uri+"properties/test");
     expect(body).to.equal("\"off\"");
 
-    body = await rp.put(uri+"/properties/test", { body: "on" });
+    body = await rp.put(uri+"properties/test", { body: "on" });
     expect(body).to.equal("");
 
-    body = await rp.get(uri+"/properties/test");
+    body = await rp.get(uri+"properties/test");
     expect(body).to.equal("\"on\"");
 
-    body = await rp.post(uri+"/actions/test", { body: "toggle" });
-    expect(body).to.equal("\"TODO\"");
-    
+    body = await rp.post(uri+"actions/try", { body: "toggle" });
+    expect(body).to.equal("\"TEST\"");
+
     return httpServer.stop();
   }
 
   @test async "should cause EADDRINUSE error when already running"() {
-    let httpServer1 = new HttpServer(0);
+    let httpServer1 = new HttpServer({ port: 0 });
 
-    await httpServer1.start();
+    await httpServer1.start(null);
     expect(httpServer1.getPort()).to.be.above(0);
 
-    let httpServer2 = new HttpServer(httpServer1.getPort());
+    let httpServer2 = new HttpServer({ port: httpServer1.getPort() });
 
     try {
-      await httpServer2.start(); // should fail
+      await httpServer2.start(null); // should fail
     } catch (err) {
       console.log("HttpServer failed correctly on EADDRINUSE");
       assert(true);
