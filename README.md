@@ -66,8 +66,8 @@ sudo npm run link
 To evolve the Scripting API in development, you need to use a locally changed version of the [wot-typescript-definitions](https://www.npmjs.com/package/wot-typescript-definitions).
 Use npm link for this as well:
 ```
-git clone https://github.com/thingweb/wot-typescript-definitions.git
-cd wot-typescript-definitions
+git clone https://github.com/w3c/wot-scripting-api/
+cd wot-scripting-api/typescript/
 sudo npm link
 ```
 (On Windows omit `sudo`)
