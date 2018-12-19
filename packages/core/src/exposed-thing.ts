@@ -291,6 +291,10 @@ class ExposedThingProperty extends TD.ThingProperty implements WoT.ThingProperty
                             }
                             this.getState().value = customValue;
                             resolve();
+                        })
+                        .catch((customError) => {
+                            console.warn(`ExposedThing '${this.getThing().name}' write handler for Property '${this.getName()}' rejected the write with error '${customError}'`);
+                            reject(customError);
                         });
                     } else  {
                         console.warn(`ExposedThing '${this.getThing().name}' write handler for Property '${this.getName()}' does not return promise`);
