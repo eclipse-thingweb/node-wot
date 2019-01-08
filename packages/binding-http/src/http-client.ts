@@ -271,12 +271,12 @@ export default class HttpClient implements ProtocolClient {
       return false;
     }
 
-    if (security.proxyURI) {
+    if (security.proxy) {
       if (this.proxyOptions !== null) {
-        console.info(`HttpClient overriding client-side proxy with security proxyURI '${security.proxyURI}`);
+        console.info(`HttpClient overriding client-side proxy with security proxy '${security.proxy}`);
       }
 
-      this.proxyOptions = this.uriToOptions(security.proxyURI);
+      this.proxyOptions = this.uriToOptions(security.proxy);
 
       // TODO: Get back proxy configuration
       /*
