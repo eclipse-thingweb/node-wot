@@ -120,7 +120,6 @@ export default class DefaultServient extends Servient {
                     .addProperty(
                         "things",
                         {
-                            writable: true,
                             observable: false,
                             type: "string"
                         })

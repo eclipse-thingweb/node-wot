@@ -47,7 +47,7 @@ class HttpServerTest {
 
     let testThing = new ExposedThing(null);
     testThing.name = "Test";
-    testThing.addProperty("test", { writable: true, type: "string" }, "off");
+    testThing.addProperty("test", { type: "string" }, "off");
     testThing.properties.test.forms = [];
     testThing.addAction("try", { output: { type: "string" }}, (input) => { return new Promise<string>( (resolve, reject) => { resolve("TEST"); }); });
     testThing.actions.try.forms = [];

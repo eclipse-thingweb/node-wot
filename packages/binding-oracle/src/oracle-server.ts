@@ -211,7 +211,7 @@ export default class OracleServer implements ProtocolServer {
         tupples.forEach( (tupple: any) => {
           if (thing.properties[tupple.attribute.id] !== undefined) {
             console.info(`### Thing '${thing.name}' has Property '${tupple.attribute.id}' for writing '${tupple.newValue}'`);
-            if (thing.properties[tupple.attribute.id].writable) {
+            if (!thing.properties[tupple.attribute.id].readOnly) {
               thing.properties[tupple.attribute.id]
                 .write(tupple.newValue)
                 .catch((err: any) => { console.error("Property write error: " + err) });

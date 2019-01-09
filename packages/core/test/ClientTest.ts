@@ -163,7 +163,7 @@ let myThingDesc = {
     properties: {
         aProperty: {
             type: "integer",
-            writable: true,
+            readOnly: false,
             forms: [
                 { href: "testdata://host/athing/properties/aproperty", mediaType: "application/json" }
             ]

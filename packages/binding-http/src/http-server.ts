@@ -324,7 +324,7 @@ export default class HttpServer implements ProtocolServer {
                     res.end(err.message);
                   });
               } else if (req.method === "PUT") {
-                if (property.writable) {
+                if (!property.readOnly) {
                   // load payload
                   let body: Array<any> = [];
                   req.on("data", (data) => { body.push(data) });
@@ -352,7 +352,7 @@ export default class HttpServer implements ProtocolServer {
                   });
                 } else {
                   res.writeHead(400);
-                  res.end("Property Not Writable");
+                  res.end("Property readOnly");
                 }
               } else {
                 res.writeHead(405);

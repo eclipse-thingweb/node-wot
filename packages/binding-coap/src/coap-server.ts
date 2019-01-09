@@ -237,7 +237,7 @@ export default class CoapServer implements ProtocolServer {
               }
             // writeproperty
             } else if (req.method === "PUT") {
-              if (property.writable) {
+              if (!property.readOnly) {
                 let value;
                 try {
                   value = ContentSerdes.get().contentToValue({ type: contentType, body: req.payload }, <any>property);
@@ -259,7 +259,7 @@ export default class CoapServer implements ProtocolServer {
                   });
               } else {
                 res.code = "4.00";
-                res.end("Property Not Writable");
+                res.end("Property readOnly");
               }
             } else {
               res.code = "4.05";

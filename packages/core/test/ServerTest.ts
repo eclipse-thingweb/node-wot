@@ -116,13 +116,12 @@ class WoTServerTest {
     @test async "should be able to add a property with default value 0"() {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "ThingWith1" });
         let initp: WoT.PropertyFragment = {
-            writable: true,
             type: "number"
         };
         thing.addProperty("number", initp, 1);
 
         expect(thing.properties).to.have.property("number");
-        expect(thing.properties.number).to.have.property("writable").that.equals(true);
+        expect(thing.properties.number).to.have.property("readOnly").that.equals(false);
         expect(thing.properties.number).to.have.property("observable").that.equals(false);
 
         let value1 = await thing.properties.number.read();
@@ -133,13 +132,12 @@ class WoTServerTest {
     @test async "should be able to add a property with default value XYZ"() {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "ThingWithXYZ" });
         let initp: WoT.PropertyFragment = {
-            writable: true,
             type: "string"
         };
         thing.addProperty("string", initp, "XYZ");
         
         expect(thing.properties).to.have.property("string");
-        expect(thing.properties.string).to.have.property("writable").that.equals(true);
+        expect(thing.properties.string).to.have.property("readOnly").that.equals(false);
         expect(thing.properties.string).to.have.property("observable").that.equals(false);
 
         let value1 = await thing.properties.string.read();
@@ -149,13 +147,12 @@ class WoTServerTest {
     @test async "should be able to add a property without any default value"() {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "ThingWithNothing" });
         let initp: WoT.PropertyFragment = {
-            writable: true,
             type: "number"
         };
         thing.addProperty("null", initp);
         
         expect(thing.properties).to.have.property("null");
-        expect(thing.properties.null).to.have.property("writable").that.equals(true);
+        expect(thing.properties.null).to.have.property("readOnly").that.equals(false);
         expect(thing.properties.null).to.have.property("observable").that.equals(false);
 
         let value1 = await thing.properties.null.read();
@@ -165,7 +162,6 @@ class WoTServerTest {
     @test async "should be able to read and write Property locally"() {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "thing3" });
         let initp: WoT.PropertyFragment = {
-            writable: true,
             type: "number"
         };
         thing.addProperty("number", initp, 10);
@@ -181,7 +177,6 @@ class WoTServerTest {
     @test async "should be able to read Property with read handler (incrementing with lambda)"() {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "otherthingIncRead" });
         let initp: WoT.PropertyFragment = {
-            writable: true,
             type: "number"
         };
         let counter: number = 0;
@@ -202,7 +197,6 @@ class WoTServerTest {
     @test async "should be able to read Property with read handler (incrementing with function)"() {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "otherthingIncRead2" });
         let initp: WoT.PropertyFragment = {
-            writable: true,
             type: "number"
         };
         let counter: number = 0;
@@ -223,7 +217,6 @@ class WoTServerTest {
     @test async "should be able to read Property with read handler (incrementing with handler scope state)"() {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "otherthingIncRead3" });
         let initp: WoT.PropertyFragment = {
-            writable: true,
             type: "number"
         };
         thing.addProperty("number", initp).setPropertyReadHandler(
@@ -251,7 +244,6 @@ class WoTServerTest {
     @test async "should be able to write Property with write handler (summing)"() {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "otherthingReadWrite" });
         let initp: WoT.PropertyFragment = {
-            writable: true,
             type: "number"
         };
         thing.addProperty("number", initp, 2);
@@ -294,12 +286,10 @@ class WoTServerTest {
     @test async "should be able to write Property from any write handler (doubling)"() {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "otherthingWrite" });
         let initp: WoT.PropertyFragment = {
-            writable: true,
             type: "number"
         };
         thing.addProperty("number", initp);
         let initp2: WoT.PropertyFragment = {
-            writable: true,
             type: "number"
         };
         thing.addProperty("number2", initp2);

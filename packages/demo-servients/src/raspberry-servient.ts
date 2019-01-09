@@ -82,8 +82,7 @@ function main() {
             {
               type: "integer",
               minimum: 0,
-              maximum: 255,
-              writable: true
+              maximum: 255
             },
             100
           )
@@ -104,8 +103,7 @@ function main() {
                 r: { type: "integer", minimum: 0, maximum: 255 },
                 g: { type: "integer", minimum: 0, maximum: 255 },
                 b: { type: "integer", minimum: 0, maximum: 255 },
-              },
-              writable: true
+              }
             },
             { r: 0, g: 0, b: 0 }
           )

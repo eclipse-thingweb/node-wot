@@ -45,17 +45,17 @@ servient.start().then(async (WoT) => {
   console.info(thing.name + " produced");
 
   thing
-    .addProperty("PumpStatus", { type: "boolean", writable: false }, false)
-    .addProperty("ValveStatus", { type: "boolean", writable: false }, false)
+    .addProperty("PumpStatus", { type: "boolean", readOnly: true }, false)
+    .addProperty("ValveStatus", { type: "boolean", readOnly: true }, false)
 
     // upper tank (102)
-    .addProperty("Tank102LevelValue", { type: "number", writable: false }, 0.0)
-    .addProperty("Tank102OverflowStatus", { type: "boolean", writable: false }, false)
+    .addProperty("Tank102LevelValue", { type: "number", readOnly: true }, 0.0)
+    .addProperty("Tank102OverflowStatus", { type: "boolean", readOnly: true }, false)
 
     // lower tank (101)
-    .addProperty("Tank101MaximumLevelStatus", { type: "boolean", writable: false }, false)
-    .addProperty("Tank101MinimumLevelStatus", { type: "boolean", writable: false }, false)
-    .addProperty("Tank101OverflowStatus", { type: "boolean", writable: false }, false)
+    .addProperty("Tank101MaximumLevelStatus", { type: "boolean", readOnly: true }, false)
+    .addProperty("Tank101MinimumLevelStatus", { type: "boolean", readOnly: true }, false)
+    .addProperty("Tank101OverflowStatus", { type: "boolean", readOnly: true }, false)
     
     // actuators
     .addAction("StartPump", {}, () => {
