@@ -65,7 +65,7 @@ export abstract class ThingInteraction implements WoT.InteractionFragment {
 }
 /** Implements the Thing Property description */
 export class ThingProperty extends ThingInteraction implements WoT.PropertyFragment, WoT.BaseSchema {
-  writable: boolean;
+  // writable: boolean;
   observable: boolean;
   type: string;
 }

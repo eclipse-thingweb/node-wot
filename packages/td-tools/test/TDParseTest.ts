@@ -45,7 +45,6 @@ let tdSample2 = `{
 	"properties": {
 		"temperature": {
 			"type": "number",
-			"writable": true,
 			"observable": false,
 			"forms": [{
 				"href": "coap://mytemp.example.com:5683/temp",
@@ -63,7 +62,6 @@ let tdSample3 = `{
 	"properties": {
 		"temperature": {
 			"type": "number",
-			"writable": true,
 			"observable": false,
 			"forms": [{
 				"href": "temp",
@@ -72,7 +70,7 @@ let tdSample3 = `{
 		},
 		"temperature2": {
 			"type": "number",
-			"writable": false,
+			"readOnly": true,
 			"observable": false,
 			"forms": [{
 				"href": "./temp",
@@ -80,7 +78,8 @@ let tdSample3 = `{
 			}]
 		},
 		"humidity": {
-			"type": "number",
+            "type": "number",
+            "readOnly": false,
 			"forms": [{
 				"href": "/humid",
 				"contentType": "application/json"
@@ -120,7 +119,7 @@ let tdSampleLemonbeatBurlingame = `{
 			"@type": ["sensor:luminance"],
 			"sensor:unit": "sensor:Candela",
 			"type": "number",
-			"writable": false,
+			"readOnly": true,
 			"observable": true,
 			"forms": [{
 				"href" : "sensors/luminance", 
@@ -131,7 +130,7 @@ let tdSampleLemonbeatBurlingame = `{
 			"@type": ["sensor:humidity"],
 			"sensor:unit": "sensor:Percent",
 			type": "number",
-			"writable": false,
+			"readOnly": true,
 			"observable": true,
 			"forms": [{
 				"href" : "sensors/humidity", 
@@ -142,7 +141,7 @@ let tdSampleLemonbeatBurlingame = `{
 			"@type": ["sensor:temperature"],
 			"sensor:unit": "sensor:Celsius",
 			"type": "number",
-			"writable": false,
+			"readOnly": true,
 			"observable": true,
 			"forms": [{
 				"href" : "sensors/temperature", 
@@ -152,7 +151,7 @@ let tdSampleLemonbeatBurlingame = `{
     "status": {
 			"@type": ["actuator:onOffStatus"],
 			"type": "boolean",
-			"writable": false,
+			"readOnly": true,
 			"observable": true,
 			"forms": [{
 				"href" : "fan/status",
@@ -193,7 +192,7 @@ let tdSampleMetadata1 = `{
 			"schema": {
 				"type": "number"
 			},
-			"writable": false,
+			"readOnly": true,
 			"forms": [{
 				"href": "temp",
 				"contentType": "application/json"
@@ -209,7 +208,7 @@ let tdSimple1 = `{
   "name": "MyLampThing",
   "properties": {
       "status": {
-       "writable": false,
+        "readOnly": true,
        "observable": false,
        "type": "string",
        "forms": [{
@@ -240,7 +239,7 @@ let tdBroken1 = `{
   "name": "MyLampThing",
   "properties": {
       "status": {
-       "writable": false,
+       "readOnly": true,
        "observable": false,
        "type": "string",
        "form": [{
@@ -268,7 +267,7 @@ let tdBroken2 = `{
   "name": "MyLampThing",
   "properties": {
       "status": {
-       "writable": false,
+       "readOnly": true,
        "observable": false,
        "type": "string",
        "forms": [{
@@ -295,7 +294,7 @@ let tdBroken3 = `{
   "name": "MyLampThing",
   "properties": {
       "status": {
-       "writable": false,
+       "readOnly": true,
        "observable": false,
        "type": "string",
        "forms": [{
@@ -382,7 +381,7 @@ class TDParserTest {
     expect(thing).to.not.have.property("base");
 
     expect(thing.properties).to.have.property("temperature");
-    expect(thing.properties["temperature"]).to.have.property("writable").that.equals(false);
+    expect(thing.properties["temperature"]).to.have.property("readOnly").that.equals(false);
     expect(thing.properties["temperature"]).to.have.property("observable").that.equals(false);
 
     expect(thing.properties["temperature"]).to.have.property("forms").to.have.lengthOf(1);
@@ -400,7 +399,7 @@ class TDParserTest {
     expect(thing).to.not.have.property("base");
 
     expect(thing.properties).to.have.property("temperature");
-    expect(thing.properties["temperature"]).to.have.property("writable").that.equals(true);
+    expect(thing.properties["temperature"]).to.have.property("readOnly").that.equals(false);
     expect(thing.properties["temperature"]).to.have.property("observable").that.equals(false);
 
     expect(thing.properties["temperature"]).to.have.property("forms").to.have.lengthOf(1);
@@ -418,19 +417,19 @@ class TDParserTest {
     expect(thing).to.have.property("base").that.equals("coap://mytemp.example.com:5683/interactions/");
 
     expect(thing.properties).to.have.property("temperature");
-    expect(thing.properties["temperature"]).to.have.property("writable").that.equals(true);
+    expect(thing.properties["temperature"]).to.have.property("readOnly").that.equals(false);
     expect(thing.properties["temperature"]).to.have.property("observable").that.equals(false);
     expect(thing.properties["temperature"]).to.have.property("forms").to.have.lengthOf(1);
     expect(thing.properties["temperature"].forms[0]).to.have.property("contentType").that.equals("application/json");
 
     expect(thing.properties).to.have.property("temperature2");
-    expect(thing.properties["temperature2"]).to.have.property("writable").that.equals(false);
+    expect(thing.properties["temperature2"]).to.have.property("readOnly").that.equals(true);
     expect(thing.properties["temperature2"]).to.have.property("observable").that.equals(false);
     expect(thing.properties["temperature2"]).to.have.property("forms").to.have.lengthOf(1);
     expect(thing.properties["temperature2"].forms[0]).to.have.property("contentType").that.equals("application/json");
 
     expect(thing.properties).to.have.property("humidity");
-    expect(thing.properties["humidity"]).to.have.property("writable").that.equals(false);
+    expect(thing.properties["humidity"]).to.have.property("readOnly").that.equals(false);
     expect(thing.properties["humidity"]).to.have.property("observable").that.equals(false);
     expect(thing.properties["humidity"]).to.have.property("forms").to.have.lengthOf(1);
     expect(thing.properties["humidity"].forms[0]).to.have.property("contentType").that.equals("application/json");
@@ -492,7 +491,7 @@ class TDParserTest {
     expect(thing).to.have.property("reference").that.equals("myTempThing");
 
     expect(thing.properties).to.have.property("myTemp");
-    expect(thing.properties["myTemp"]).to.have.property("writable").that.equals(false);
+    expect(thing.properties["myTemp"]).to.have.property("readOnly").that.equals(true);
     expect(thing.properties["myTemp"]).to.have.property("observable").that.equals(false);
     expect(thing.properties["myTemp"]).to.have.property("forms").to.have.lengthOf(1);
     expect(thing.properties["myTemp"].forms[0]).to.have.property("contentType").that.equals("application/json");
@@ -538,7 +537,7 @@ class TDParserTest {
 
     // console.log(td["@context"]);
     expect(thing.properties).to.have.property("status");
-    expect(thing.properties["status"].writable).equals(false);
+    expect(thing.properties["status"].readOnly).equals(true);
     expect(thing.properties["status"].observable).equals(false);
   }
 

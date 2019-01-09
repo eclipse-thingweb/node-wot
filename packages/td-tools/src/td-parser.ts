@@ -55,10 +55,13 @@ export function parseTD(td: string, normalize?: boolean): Thing {
   if (thing.properties !== undefined && thing.properties instanceof Object) {
     for (let propName in thing.properties) {
       let prop: WoT.PropertyFragment = thing.properties[propName];
-      if (prop.writable === undefined || typeof prop.writable !== "boolean") {
-        prop.writable = false;
+      if (prop.readOnly === undefined || typeof prop.readOnly !== "boolean") {
+        prop.readOnly = false;
       }
-      if (prop.observable == undefined || typeof prop.writable !== "boolean") {
+      if (prop.writeOnly === undefined || typeof prop.writeOnly !== "boolean") {
+        prop.writeOnly = false;
+      }
+      if (prop.observable == undefined || typeof prop.observable !== "boolean") {
         prop.observable = false;
       }
     }

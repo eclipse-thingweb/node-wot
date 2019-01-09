@@ -17,7 +17,7 @@
     "@types/chai": "4.0.4",
     "@types/node": "10.9.4",
     "@types/request-promise": "4.1.41",
-    "wot-typescript-definitions": "0.6.0-SNAPSHOT.3",
+    "wot-typescript-definitions": "0.6.0-SNAPSHOT.4",
     "chai": "4.1.2",
     "mocha": "3.5.3",
     "mocha-typescript": "1.1.8",
