@@ -116,7 +116,13 @@ export default class CoapServer implements ProtocolServer {
           for (let propertyName in thing.properties) {
             let href = base + "/" + this.PROPERTY_DIR + "/" + encodeURIComponent(propertyName);
             let form = new TD.Form(href, type);
-            form.op = ["readproperty", "writeproperty"];
+            if (thing.properties[propertyName].readOnly) {
+              form.op = ["readproperty"];
+            } else if (thing.properties[propertyName].writeOnly) {
+              form.op = ["writeproperty"];
+            } else {
+              form.op = ["readproperty", "writeproperty"];
+            }
             thing.properties[propertyName].forms.push(form);
             console.log(`CoapServer on port ${this.getPort()} assigns '${href}' to Property '${propertyName}'`);
           }
