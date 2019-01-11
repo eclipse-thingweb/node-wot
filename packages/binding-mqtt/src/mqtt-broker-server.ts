@@ -160,14 +160,14 @@ export default class MqttBrokerServer implements ProtocolServer {
         resolve();
       } else {
         // try to connect to the broker without or with credentials
-        if (this.psw == undefined) {
+        if (this.psw === undefined) {
           console.info(`MqttBrokerServer trying to connect to broker at ${this.brokerURI}`);
           // TODO test if mqtt extracts port from passed URI (this.address)
           this.broker = mqtt.connect(this.brokerURI);
         } else {
           console.info(`MqttBrokerServer trying to connect to secured broker at ${this.brokerURI}`);
           // TODO test if mqtt extracts port from passed URI (this.address)
-          this.broker = mqtt.connect({ host: this.brokerURI }, { username: this.user, password: this.psw });
+          this.broker = mqtt.connect(this.brokerURI, { username: this.user, password: this.psw });
         }
 
         this.broker.on("connect", () => {
