@@ -88,13 +88,19 @@ export class Security implements WoT.SecurityScheme {
   proxyURI?: string;
 }
 
+export class ExpectedResponse implements WoT.ExpectedResponse {
+  contentType?: string;
+}
+
 /** Implements the Interaction Form description */
 export class Form implements WoT.Form {
   href: string;
   subprotocol?: string;
   op?: string | Array<string>;
   contentType?: string;
-  security?: WoT.Security;
+  security?: Array<string>; // WoT.Security;
+  scopes?: Array<string>;
+  response?: ExpectedResponse;
 
   constructor(href: string, contentType?: string) {
     this.href = href;
