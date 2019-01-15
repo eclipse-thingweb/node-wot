@@ -73,6 +73,8 @@ export class ThingProperty extends ThingInteraction implements WoT.PropertyFragm
 export class ThingAction extends ThingInteraction implements WoT.ActionFragment {
   input: WoT.DataSchema;
   output: WoT.DataSchema;
+  safe: boolean;
+  idempotent: boolean;
 }
 /** Implements the Thing Action description */
 export class ThingEvent extends ThingInteraction implements WoT.EventFragment {
