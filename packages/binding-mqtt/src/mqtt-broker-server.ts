@@ -34,6 +34,9 @@ export default class MqttBrokerServer implements ProtocolServer {
   private user: string = undefined; // in the case usesername is required to connect the broker
 
   private psw: string = undefined; // in the case password is required to connect the broker
+  
+  private clientId: string = undefined; // in the case clientId can be used to identify the device
+  
   private brokerURI: string = undefined;
 
   private readonly things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
@@ -164,10 +167,14 @@ export default class MqttBrokerServer implements ProtocolServer {
           console.info(`MqttBrokerServer trying to connect to broker at ${this.brokerURI}`);
           // TODO test if mqtt extracts port from passed URI (this.address)
           this.broker = mqtt.connect(this.brokerURI);
-        } else {
+        } else if (this.clientId === undefined) {
           console.info(`MqttBrokerServer trying to connect to secured broker at ${this.brokerURI}`);
           // TODO test if mqtt extracts port from passed URI (this.address)
           this.broker = mqtt.connect(this.brokerURI, { username: this.user, password: this.psw });
+        } else {
+          console.info(`MqttBrokerServer trying to connect to secured broker at ${this.brokerURI} with client ID ${this.clientId}`);
+          // TODO test if mqtt extracts port from passed URI (this.address)
+          this.broker = mqtt.connect(this.brokerURI, { username: this.user, password: this.psw, clientId: this.clientId });
         }
 
         this.broker.on("connect", () => {
