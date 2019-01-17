@@ -112,9 +112,16 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
             let client = this.getServient().getClientFor(schemes[srvIdx]);
             console.log(`ConsumedThing '${this.name}' got new client for '${schemes[srvIdx]}'`);
             
-            if (this.security && Array.isArray(this.security) && this.security.length>0 && this.security[0].scheme !== "nosec" ) {
+            if (this.security && this.securityDefinitions && Array.isArray(this.security) && this.security.length>0) {
                 console.log(`ConsumedThing '${this.name}' setting credentials for ${client}`);
-                client.setSecurity(this.security, this.getServient().getCredentials(this.id));
+                let scs : Array<WoT.Security>;
+                for(let s of this.security) {
+                    let ws = this.securityDefinitions[s + ""]; // String vs. string (fix wot-typescript-definitions?)
+                    if(ws && ws.scheme !== "nosec") {
+                        scs.push(ws);
+                    }
+                }
+                client.setSecurity(scs, this.getServient().getCredentials(this.id));
             }
             this.getClients().set(schemes[srvIdx], client);
             //let form = forms[srvIdx];

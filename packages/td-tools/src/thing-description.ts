@@ -23,13 +23,22 @@ export const DEFAULT_THING_TYPE: string = "Thing";
  ~ In Thing index structure could be read-only (sanitizing needs write access)
 */
 
+export class Versioning implements WoT.Versioning {
+  instance: string;
+}
+
 /** Implements the Thing Description as software object */
 export default class Thing implements WoT.ThingFragment {
   id: string;
   name: string;
   description: string;
-  security: Array<WoT.Security>;
+  descriptions: WoT.MultiLanguage;
+  securityDefinitions: {
+    [key: string]: WoT.Security;
+  };
+  security: Array<String>;
   base: string;
+
   properties: {
     [key: string]: WoT.ThingProperty;
   };
@@ -40,6 +49,7 @@ export default class Thing implements WoT.ThingFragment {
     [key: string]: WoT.ThingEvent;
   }
   links: Array<WoT.Link>;
+  forms: Array<WoT.Form>;
 
   [key: string]: any;
 

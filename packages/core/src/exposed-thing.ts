@@ -29,7 +29,8 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 
     //private restListeners: Map<string, ResourceListener> = new Map<string, ResourceListener>();
     
-    security: Array<WoT.Security>;
+    security: Array<String>;
+    securityDefinitions: { [key: string]: WoT.Security };
 
     base: string;
 

@@ -208,7 +208,10 @@ export default class HttpServer implements ProtocolServer {
       } // addresses
 
       if (this.scheme === "https") {
-        thing.security = [{ scheme: "basic" }];
+        thing.securityDefinitions = {
+          "basic_sc": {"scheme":"basic"}
+        };
+        thing.security = ["basic_sc"];
       }
 
     } // running

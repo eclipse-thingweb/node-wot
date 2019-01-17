@@ -17,7 +17,7 @@
     "@types/chai": "4.0.4",
     "@types/node": "10.9.4",
     "@types/ws": "5.1.2",
-    "wot-typescript-definitions": "0.6.0-SNAPSHOT.5",
+    "wot-typescript-definitions": "0.6.0-SNAPSHOT.6",
     "@node-wot/binding-http": "0.6.0-SNAPSHOT.4",
     "@node-wot/td-tools": "0.6.0-SNAPSHOT.4",
     "@node-wot/core": "0.6.0-SNAPSHOT.4",
