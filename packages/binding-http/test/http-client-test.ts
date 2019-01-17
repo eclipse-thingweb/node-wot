@@ -32,7 +32,7 @@ import HttpClient from "../src/http-client";
 import { endianness } from "os";
 
 interface TestVector {
-    op: string;
+    op: Array<string>;
     method?: string;
     schema?: any;
     payload?: any;
@@ -89,7 +89,8 @@ class TestHttpServer implements ProtocolServer {
     public setTestVector(vector: TestVector) {
         if (!vector.op) throw new Error("No vector op given");
         if (!vector.form["http:methodName"]) {
-            switch (vector.op) {
+            // TODO also check all array entries
+            switch (vector.op[0]) {
                 case "readproperty": vector.method = "GET"; break;
                 case "writeproperty": vector.method = "PUT"; break;
                 case "observeproperty": vector.method = "GET"; break;
@@ -144,7 +145,7 @@ class HttpClientTest {
 
         // read with defaults
         inputVector = {
-            op: "readproperty",
+            op: ["readproperty"],
             form: {
                 href: "http://localhost:60603/"
             }
@@ -154,7 +155,7 @@ class HttpClientTest {
 
         // write with defaults
         inputVector = {
-            op: "writeproperty",
+            op: ["writeproperty"],
             form: {
                 href: "http://localhost:60603/"
             },
@@ -165,7 +166,7 @@ class HttpClientTest {
 
         // invoke with defaults
         inputVector = {
-            op: "invokeaction",
+            op: ["invokeaction"],
             form: {
                 href: "http://localhost:60603/"
             },
@@ -189,7 +190,7 @@ class HttpClientTest {
 
         // read with POST instead of GET
         inputVector = {
-            op: "readproperty",
+            op: ["readproperty"],
             form: {
                 href: "http://localhost:60603/",
                 "http:methodName": "POST"
@@ -200,7 +201,7 @@ class HttpClientTest {
 
         // write with POST instead of PUT
         inputVector = {
-            op: "writeproperty",
+            op: ["writeproperty"],
             form: {
                 href: "http://localhost:60603/",
                 "http:methodName": "POST"
@@ -212,7 +213,7 @@ class HttpClientTest {
 
         // invoke with PUT instead of POST
         inputVector = {
-            op: "invokeaction",
+            op: ["invokeaction"],
             form: {
                 href: "http://localhost:60603/",
                 "http:methodName": "PUT"
@@ -224,7 +225,7 @@ class HttpClientTest {
 
         // invoke with DELETE instead of POST
         inputVector = {
-            op: "invokeaction",
+            op: ["invokeaction"],
             form: {
                 href: "http://localhost:60603/",
                 "http:methodName": "DELETE"
