@@ -43,7 +43,7 @@ export default class MqttBrokerServer implements ProtocolServer {
 
   private broker: any;
 
-  constructor(uri: string, user?: string, psw?: string) {
+  constructor(uri: string, user?: string, psw?: string, clientId?: string) 
     if (uri !== undefined) {
 
       //if there is a MQTT protocol identicator missing, add this
@@ -59,6 +59,9 @@ export default class MqttBrokerServer implements ProtocolServer {
     if (psw !== undefined) {
       this.psw = psw;
     }
+    if (clientId !== undefined) {
+      this.clientId = clientId;
+    }	
   }
 
   public expose(thing: ExposedThing): Promise<void> {
