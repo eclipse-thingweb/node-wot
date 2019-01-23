@@ -67,8 +67,12 @@ export default class Thing implements WoT.ThingFragment {
 /** Basis from implementing the Thing Interaction descriptions for Property, Action, and Event */
 export abstract class ThingInteraction implements WoT.InteractionFragment {
   title: string;
+  titles: WoT.MultiLanguage;
   description: string;
-  
+  descriptions: WoT.MultiLanguage;
+  scopes: Array<string>;
+  uriVariables: WoT.DataSchema;
+  security: Array<string>;
   forms: Array<Form>;
 
   [key: string]: any;
