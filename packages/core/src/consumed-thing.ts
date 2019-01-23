@@ -269,6 +269,14 @@ class ConsumedThingAction extends TD.ThingAction implements WoT.ThingAction {
                 client.invokeResource(form, input).then((content) => {
                     // infer media type from form if not in response metadata
                     if (!content.type) content.type = form.contentType;
+
+                    // check if returned media type is the same as expected media type (from TD)
+                    if(form.response) {
+                        if(content.type !== form.response.contentType) {
+                            reject(new Error(`Unexpected type in response`));
+                        }
+                    }
+                    
                     try {
                         let value = ContentManager.contentToValue(content, this.output);
                         resolve(value);
