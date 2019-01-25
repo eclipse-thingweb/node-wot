@@ -36,7 +36,7 @@ export function parseTD(td: string, normalize?: boolean): Thing {
     }
   } else if (thing["@context"] !== TD.DEFAULT_CONTEXT) {
     let semContext: string | any = thing["@context"];
-    thing["@context"] = [ semContext, TD.DEFAULT_CONTEXT ];
+    thing["@context"] = [semContext, TD.DEFAULT_CONTEXT];
   }
 
   if (thing["@type"] === undefined) {
@@ -49,7 +49,7 @@ export function parseTD(td: string, normalize?: boolean): Thing {
     }
   } else if (thing["@type"] !== TD.DEFAULT_THING_TYPE) {
     let semType: string = thing["@type"];
-    thing["@type"] = [ TD.DEFAULT_THING_TYPE, semType ];
+    thing["@type"] = [TD.DEFAULT_THING_TYPE, semType];
   }
 
   if (thing.properties !== undefined && thing.properties instanceof Object) {
@@ -140,16 +140,42 @@ export function serializeTD(thing: Thing): string {
   // clean-ups
   if (!copy.security || copy.security.length === 0) {
     copy.securityDefinitions = {
-      "nosec_sc": {"scheme":"nosec"}
+      "nosec_sc": { "scheme": "nosec" }
     };
     copy.security = ["nosec_sc"];
   }
-  
-  if (copy.properties && Object.keys(copy.properties).length === 0) {
+
+  if (!copy.properties || Object.keys(copy.properties).length === 0) {
     delete copy.properties;
+  } else {
+    // add mandatory fields (if missing): observable, writeOnly, and readOnly
+    for (let propName in copy.properties) {
+      let prop = copy.properties[propName];
+      if (prop.readOnly === undefined || typeof prop.readOnly !== "boolean") {
+        prop.readOnly = false;
+      }
+      if (prop.writeOnly === undefined || typeof prop.writeOnly !== "boolean") {
+        prop.writeOnly = false;
+      }
+      if (prop.observable == undefined || typeof prop.observable !== "boolean") {
+        prop.observable = false;
+      }
+    }
   }
-  if (copy.actions && Object.keys(copy.actions).length === 0) {
+
+  if (!copy.actions || Object.keys(copy.actions).length === 0) {
     delete copy.actions;
+  } else {
+    // add mandatory fields (if missing): idempotent and safe
+    for (let actName in copy.actions) {
+      let act = copy.actions[actName];
+      if (act.idempotent === undefined || typeof act.idempotent !== "boolean") {
+        act.idempotent = false;
+      }
+      if (act.safe === undefined || typeof act.safe !== "boolean") {
+        act.safe = false;
+      }
+    }
   }
   if (copy.events && Object.keys(copy.events).length === 0) {
     delete copy.events;
