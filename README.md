@@ -78,6 +78,14 @@ sudo npm link wot-typescript-definitions
 ```
 (On Windows omit `sudo`)
 
+#### Optimization
+
+To reduce the size of the installation from about 800 MByte down to about 200 MByte, you can run the following commands (currently only tested on Linux):
+- yarn init
+- yarn add [packages]
+- npm run build
+- lerna exec 'npm prune --production'
+
 ## Trouble shooting
 
 * Build error around `node-aead-crypto`
