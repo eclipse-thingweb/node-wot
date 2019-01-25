@@ -139,7 +139,10 @@ export function serializeTD(thing: Thing): string {
 
   // clean-ups
   if (!copy.security || copy.security.length === 0) {
-    copy.security = [{ scheme: "nosec" }];
+    copy.securityDefinitions = {
+      "nosec_sc": {"scheme":"nosec"}
+    };
+    copy.security = ["nosec_sc"];
   }
   
   if (copy.properties && Object.keys(copy.properties).length === 0) {
