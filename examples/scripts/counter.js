@@ -68,6 +68,6 @@ thing.addAction(
 	});
 
 // test setting metadata
-thing["support"] = "none";
+thing["support"] = "git://github.com/eclipse/thingweb.node-wot.git";
 
 thing.expose().then( () => { console.info(thing.name + " ready"); } );
