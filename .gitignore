@@ -1,3 +1,6 @@
+# Filesystem meta-data
+.DS_Store
+
 # Logs
 logs
 *.log

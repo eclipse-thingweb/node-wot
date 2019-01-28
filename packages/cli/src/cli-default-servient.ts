@@ -21,7 +21,8 @@ import { Servient, Helpers } from "@node-wot/core";
 import { HttpServer } from "@node-wot/binding-http";
 import { WebSocketServer } from "@node-wot/binding-websockets";
 import { CoapServer } from "@node-wot/binding-coap";
-import { MqttBrokerServer } from "@node-wot/binding-mqtt"; 
+import { MqttServer } from "@node-wot/binding-mqtt"; 
+import { ExternalBrokerProxy } from "@node-wot/binding-mqtt";
 import { FileClientFactory } from "@node-wot/binding-file";
 import { HttpClientFactory } from "@node-wot/binding-http";
 import { HttpsClientFactory } from "@node-wot/binding-http";
@@ -42,6 +43,12 @@ export default class DefaultServient extends Servient {
         },
         coap: {
             port: 5683
+        },
+        mqtt: {
+            broker: {
+                host: "test.mosquitto.org",
+                port: 1883
+            }
         }
     }
 
@@ -89,7 +96,7 @@ export default class DefaultServient extends Servient {
                 this.addServer(coapServer);
             }
             if (this.config.mqtt !== undefined) {
-                let mqttBrokerServer = new MqttBrokerServer(this.config.mqtt.broker, (typeof this.config.mqtt.username === "string") ? this.config.mqtt.username : undefined, (typeof this.config.mqtt.password === "number") ? this.config.mqtt.password : undefined);
+                let mqttBrokerServer = new MqttServer(new ExternalBrokerProxy(this.config.mqtt.broker));
                 this.addServer(mqttBrokerServer);
             }
         }

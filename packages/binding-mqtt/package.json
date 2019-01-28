@@ -16,26 +16,27 @@
   "devDependencies": {
     "@types/chai": "4.0.4",
     "@types/node": "10.9.4",
-    "@types/request-promise": "4.1.41",
-    "wot-typescript-definitions": "0.6.0-SNAPSHOT.7",
     "chai": "4.1.2",
     "mocha": "3.5.3",
     "mocha-typescript": "1.1.8",
-    "request": "2.87.0",
+    "mqtt-connection": "^4.0.0",
+    "mqtt-packet": "6.0.0",
     "request-promise": "4.2.2",
     "ts-node": "3.3.0",
     "typescript": "2.9.2",
-    "typescript-standard": "0.3.30"
+    "typescript-standard": "0.3.30",
+    "wot-typescript-definitions": "0.6.0-SNAPSHOT.7"
   },
   "dependencies": {
     "@node-wot/td-tools": "0.6.0-SNAPSHOT.4",
     "@node-wot/core": "0.6.0-SNAPSHOT.4",
     "rxjs": "5.4.3",
-    "mqtt": "2.18.0"
+    "mqtt": "file:./src/lib/mqttjs"
   },
   "scripts": {
     "build": "tsc",
-    "test": "mocha --compilers ts:ts-node/register",
+    "clean": "rm -rf dist/*",
+    "test": "mocha --compilers ts:ts-node/register --timeout 10000",
     "codestyle": "standard --pretty"
   }
 }

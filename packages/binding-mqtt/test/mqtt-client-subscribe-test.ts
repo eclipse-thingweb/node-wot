@@ -25,8 +25,10 @@ should();
 
 import { Servient } from "@node-wot/core";
 
-import MqttBrokerServer from "../dist/mqtt-broker-server";
-import MqttClientFactory from "../dist/mqtt-client-factory";
+import { default as MqttServer } from "../src/mqtt-server";
+import { default as MqttClient } from "../src/mqtt-client";
+import { default as MqttClientFactory } from "../src/mqtt-client-factory";
+import { ExternalBrokerProxy } from "../src/mqtt";
 
 
 
@@ -41,7 +43,7 @@ class MqttClientSubscribeTest {
 
             let servient = new Servient();
 
-            let brokerServer = new MqttBrokerServer("mqtt://test.mosquitto.org:1883");
+            let brokerServer = new MqttServer(new ExternalBrokerProxy({ host: "test.mosquitto.org", port: 1883}, null, false));
             servient.addServer(brokerServer);
             
             servient.addClientFactory(new MqttClientFactory());
@@ -51,7 +53,6 @@ class MqttClientSubscribeTest {
             servient.start().then( (WoT) => {
 
                 expect(brokerServer.getPort()).to.equal(1883);
-                expect(brokerServer.getAddress()).to.equal("test.mosquitto.org");
 
                 let thing = WoT.produce({ name: "TestWoTMQTT" });
 

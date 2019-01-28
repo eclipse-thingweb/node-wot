@@ -11,9 +11,13 @@
     "coap": {
         "port": 5683
     },
-    "_mqtt" : {
-        "broker" : "mqtt://test.mosquitto.org",
-        "port": 1883 
+    "mqtt": {
+        "broker": {
+            "host": "test.mosquitto.org",
+            "port": 1883
+        },
+        "protocol": "mqtt",
+        "protocolVersion": 4
     },
     "log": {
         "level": "info"

@@ -12,135 +12,243 @@
  * 
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
+//TODO When mqttjs from npm supports MQTT5, use the npm dependency instead.
+import * as mqtt from "mqtt";
+import { IPublishPacket, IClientPublishOptions, QoS, ISubscriptionMap, IClientOptions } from "mqtt";
 
-/**
- * Protocol test suite to test protocol implementations
- */
+import { Subscription } from "rxjs";
 
-import { ProtocolClient, Content, ContentSerdes } from '@node-wot/core';
-import { Form } from '@node-wot/td-tools';
-import * as mqtt from 'mqtt';
-import { MqttForm, MqttQoS } from './mqtt';
-import { IPublishPacket, QoS } from 'mqtt';
-import * as url from 'url';
-import { Subscription } from "rxjs/Subscription";
+import { ProtocolClient, Content } from "@node-wot/core";
+import { Form } from "@node-wot/td-tools";
+
+import { MqttForm, MqttQoS, MqttClientOptions } from "./mqtt";
 
 export default class MqttClient implements ProtocolClient {
-    private user:string = undefined;
 
-    private psw:string = undefined;
+    // Default values.
+    private clientOptions: MqttClientOptions = {
+        protocolVersion: 5,
+        qos: 1,
+        keepAlive: 60
+    };
+    private secure: boolean;
 
-    constructor(config: any = null, secure = false) {}
-
-    private client : any = undefined;
-
-    public subscribeResource(form: MqttForm, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): any {
-
-        // get MQTT-based metadata
-        let contentType = form.contentType;
-        let retain = form["mqtt:retain"]; // TODO: is this needed here?
-        let qos = form["mqtt:qos"]; // TODO: is this needed here?
-        let requestUri = url.parse(form['href']);
-        let topic = requestUri.pathname;
-        let brokerUri : String = "mqtt://"+requestUri.host;
-
-        if(this.client==undefined) {
-            this.client = mqtt.connect(brokerUri)
-        }
-
-        this.client.on('connect', () => this.client.subscribe(topic))
-        this.client.on('message', (receivedTopic : string, payload : string, packet: IPublishPacket) => {
-            console.log("Received MQTT message (topic, data): (" + receivedTopic + ", "+ payload + ")");
-            if (receivedTopic === topic) {
-                next({ contentType: contentType, body: Buffer.from(payload) });
-            }
-        })
-        this.client.on('error', (error :any)  => {
-            if (this.client) {
-                this.client.end();
-            }
-            this.client == undefined;
-            // TODO: error handling
-            error(error);
-        });
-
-
-        return new Subscription(()=>{this.client.end()});
-      }
-
-    
-    readResource = (form: MqttForm): Promise<Content> => {
-        return new Promise<Content>((resolve, reject) => {
-            throw new Error('Method not implemented.');
-
-        });
+    constructor(options?: MqttClientOptions, secure: boolean = false) {
+        Object.assign(this.clientOptions, options);
+        this.secure = secure;
     }
 
-    writeResource = (form: MqttForm, content: Content): Promise<void> => {
+    readResource(form: MqttForm): Promise<Content> {
+        /**
+         * Reading a resource in WoT-MQTT context means subscribing to the respective topic 
+         * and retrieving the retained message.
+         */
+        return new Promise<Content>((resolve, reject) => {
+            const topic = form["mqtt:topic"];
+            const retain = form["mqtt:retain"];
+
+            // Connect to MQTT Broker.
+            const { client, clientId } = this.connectToBroker(form.href);
+
+            // Subscribing to topic and waiting for retained message.
+            client
+                .on("connect", () => {
+                    client.subscribe(topic, { qos: this.mapQoS(this.clientOptions.qos) }, (err: Error, _: any) => {
+                        if (err) {
+                            this.logError(`Error on read resource: Could not subscribe with QoS ${this.clientOptions.qos}: ${err.message}`, topic, form.href);
+                            reject(err);
+                        }
+                    });
+                })
+                .on("message", (receivedTopic, payload, packet: IPublishPacket) => {
+                    if (receivedTopic === topic && retain === packet.retain && !packet.dup) {
+                        // Received one message successfully, now we can unsubscribe.
+                        client.end();
+                        resolve({ type: form.contentType, body: payload });
+                    }
+                })
+                .on("error", err => {
+                    this.logError(`Error on read resource: ${err.message}`, topic, form.href);
+                    if (client) { client.end(); }
+                    reject(err);
+                });
+        });
+    }
+    writeResource(form: MqttForm, content: Content): Promise<void> {
+        /**
+         * Writing a resource in WoT-MQTT context means publishing a retained message to the respective topic.
+         */
         return new Promise<void>((resolve, reject) => {
-            throw new Error('Method not implemented.');
+            // Extract MQTT meta-data from form.
+            const topic = form["mqtt:topic"];
 
+            // Connect to MQTT Broker.
+            const { client } = this.connectToBroker(form.href);
+
+            // Publish the property as retained message.
+            const options: IClientPublishOptions = { qos: this.mapQoS(this.clientOptions.qos), retain: true, dup: false };
+            client
+                .on("connect", () => {
+                    client.publish(topic, content.body, options, (err, _) => {
+                        if (err) {
+                            this.logError(`Error on write resource: Could not publish on topic with QoS ${this.clientOptions.qos}: ${err.message}`, topic, form.href);
+                            reject(err);
+                        } else {
+                            client.end();
+                            resolve();
+                        }
+                    });
+                })
+                .on("error", err => {
+                    this.logError(`Error on write resource: ${err.message}`, topic, form.href);
+                    if (client) { client.end(); }
+                    reject(err);
+                });
         });
     }
 
-    invokeResource = (form: MqttForm, content: Content): Promise<Content> => {
+    //TODO
+    invokeResource(form: MqttForm, content: Content): Promise<Content> {
+        /**
+         * Invoking a resource in WoT-MQTT context means publishing a message with payload 
+         * to the specified topic and listen on it for the result of the invokation.
+         */
         return new Promise<Content>((resolve, reject) => {
+            // Extract MQTT meta-data from form.
+            const topic = form["mqtt:topic"];
+            //TODO responseTopic
 
-
-            let requestUri = url.parse(form['href']);
-            let topic = requestUri.pathname;
-            let brokerUri : String = "mqtt://"+requestUri.host;
-            
-            if(this.client==undefined) {
-                this.client = mqtt.connect(brokerUri)
-            }
-
-            // if not input was provided, set up an own body otherwise take input as body
-            if (content == undefined){
-                this.client.publish(topic, JSON.stringify(Buffer.from("")))
-            }
-            else {
-                this.client.publish(topic, content.body)
-            }
-            // there will bo no response
-            resolve({ type: ContentSerdes.DEFAULT, body: Buffer.from("") });
-
+            const { client, clientId } = this.connectToBroker(form.href);
+            const options: IClientPublishOptions = { qos: this.mapQoS(this.clientOptions.qos), retain: false, dup: false };
+            client
+                .on("connect", () => client.publish(topic, content.body, options))
+                .on("message", (receivedTopic, payload, packet: IPublishPacket) => {
+                    if (receivedTopic === topic && !packet.retain && !packet.dup) {
+                        // Received response from broker.
+                        //TODO correlation data.
+                        client.end();
+                        resolve({ type: form.contentType, body: payload });
+                    }
+                })
+                .on("error", err => {
+                    if (client) { client.end(); }
+                    this.logError(`Error on invoke resource: ${err.message}`, topic, form.href);
+                    reject(err);
+                });
         });
     }
-    unlinkResource = (form: Form): Promise<void> => {
-        //TODO: Implement
-        throw new Error('Method not implemented.');
+
+    unlinkResource(form: Form): Promise<void> {
+        // Nothing to do.
+        return new Promise(resolve => resolve());
     }
-    start = (): boolean => {
+
+    subscribeResource(form: MqttForm, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): any {
+        // Extract MQTT meta-data from form.
+        let topic = form["mqtt:topic"];
+
+        const { client, clientId } = this.connectToBroker(form.href);
+        const subscriptionMap: ISubscriptionMap = {};
+        subscriptionMap.topic = { qos: this.mapQoS(this.clientOptions.qos) };
+        client
+            .on("connect", () => client.subscribe(subscriptionMap))
+            .on("message", (receivedTopic: string, payload: Buffer, packet: IPublishPacket) => {
+                // Filter for the topic we want to listen to.
+                if (receivedTopic != clientId && receivedTopic === topic && !packet.dup) {
+                    // Retain flag is necessary to differentiate property messages (accept only if retain == true) from event messages (retain ignored).
+                    if (typeof form["mqtt:retain"] !== "undefined" && typeof form["mqtt:retain"] !== null) {
+                        if (form["mqtt:retain"] === packet.retain) {
+                            next({ mediaType: form.contentType, body: payload });
+                        }
+                    } else {
+                        next({ mediaType: form.contentType, body: payload });
+                    }
+
+                }
+            })
+            .on("error", err => {
+                if (client) { client.end(); }
+                this.logError(`Error on subscribe resource: ${err.message}`, topic, form.href);
+                error(err);
+            });
+
+        return new Subscription(() => { client.end() });
+    }
+
+    start(): boolean {
         return true;
     }
-    stop = (): boolean => {
+
+    stop(): boolean {
         return true;
     }
-    
-    //setSecurity = (metadata: any, credentials?: any): boolean => {
-        //TODO: Implement
-      //  throw new Error('Method not implemented.');
-   // }
 
-
-
-    public setSecurity(metadata: Array<WoT.Security>, credentials?: any): boolean {
-
+    setSecurity(metadata: Array<WoT.Security>, credentials?: any): boolean {
         if (metadata === undefined || !Array.isArray(metadata) || metadata.length == 0) {
-          console.warn(`MqttClient received empty security metadata`);
-          return false;
-        }      
-        let security: WoT.Security = metadata[0];
-      
-        if (security.scheme === "basic") {
-            //this.authorization = "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString('base64');
-          //  this.user = mqtt.username;
+            console.warn(`[MqttClient] No security.`);
         }
-        return true;
-      }
 
-    private mapQoS = (qos: MqttQoS): QoS => {
+        if (credentials === undefined) {
+            throw new Error(`No credentials for Thing`);
+        }
+
+        let security: WoT.Security = metadata[0];
+
+        /**
+         * MQTTv3.1 provides only a username and password field for authentication purposes (sent in the CONNECT package).
+         * However, the Standard does not define the semantics of them and the password field can be used 
+         * to carry arbitrary payloads.
+         * The interpretation of those fields is up to the MQTT applications.
+         */
+        switch (security.scheme) {
+            case "basic":
+                this.clientOptions.username = credentials.username;
+                this.clientOptions.password = credentials.password;
+                break;
+            case "bearer":
+                this.clientOptions.password = credentials.token;
+                break;
+            case 'nosec':
+                break;
+            default:
+                this.logError(`Cannot set security scheme '${security.scheme}'`);
+                throw new Error(`[MqttClient] Cannot set security scheme '${security.scheme}'`);
+                console.dir(metadata);
+                return false;
+        }
+
+        this.logInfo(`Using security scheme '${security.scheme}'`);
+        return true;
+    }
+
+    private connectToBroker(brokerUrl: string) {
+        let { protocol, hostname, port, pathname } = new URL(brokerUrl);
+        protocol = protocol.replace(":", "");
+        
+        // Generate random client id with constant prefix.
+        const clientId = "_node-wot_" + Math.trunc(Math.random() * 1000).toString();
+
+        const clientOptions: IClientOptions = {};
+        Object.assign(clientOptions, { protocol, port, pathname });
+        // Does not include port.
+        clientOptions.host = hostname;
+        clientOptions.clientId = clientId;
+        Object.assign(clientOptions, { "username": this.clientOptions.username, "password": this.clientOptions.password });
+
+        // MQTTS
+        if (this.secure) {
+            const cert = this.clientOptions.cert;
+            const key = this.clientOptions.key;
+            Object.assign(clientOptions, { cert, key });
+        }
+
+        this.logInfo(`Connecting to broker '${brokerUrl}' with options '${JSON.stringify(clientOptions)}'.`);
+        const client = mqtt.connect(undefined, clientOptions);
+        return { client, clientId };
+    }
+
+    private mapQoS(qos: MqttQoS): QoS {
+        // Mapping between our definition of MQTT QoS and the one from mqtt.js.
         switch (qos) {
             case 2:
                 return qos = 2;
@@ -152,7 +260,12 @@ export default class MqttClient implements ProtocolClient {
         }
     }
 
-    private logError = (message: string): void => {
-        console.error(`[MqttClient]${message}`);
+    private logInfo = (message: string): void => {
+        console.log(`[MqttClient] ${message}`);
+    }
+    private logError = (message: string, topic: string = "", broker: string = ""): void => {
+        topic = topic === "" ? "" : `|topic:'${topic}'`;
+        broker = broker === "" ? "" : `|broker:'${broker}'`;
+        console.error(`[MqttClient${topic}${broker}] ${message}`);
     }
 }
