@@ -26,13 +26,13 @@ import Helpers from "./helpers";
 import { Content } from "./protocol-interfaces";
 
 export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
-
-    //private restListeners: Map<string, ResourceListener> = new Map<string, ResourceListener>();
-    
     security: Array<String>;
     securityDefinitions: { [key: string]: WoT.Security };
 
+    id: string;
+    name: string;
     base: string;
+    forms: Array<WoT.Form>;
 
     /** A map of interactable Thing Properties with read()/write()/subscribe() functions */
     properties: {

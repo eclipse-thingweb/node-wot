@@ -33,6 +33,8 @@ export default class HttpServer implements ProtocolServer {
 
   public readonly scheme: "http" | "https";
 
+  private readonly ALL_DIR = "all";
+  private readonly ALL_PROPERTIES = "properties";
   private readonly PROPERTY_DIR = "properties";
   private readonly ACTION_DIR = "actions";
   private readonly EVENT_DIR = "events";
@@ -162,6 +164,15 @@ export default class HttpServer implements ProtocolServer {
       for (let address of Helpers.getAddresses()) {
         for (let type of ContentSerdes.get().getOfferedMediaTypes()) {
           let base: string = this.scheme + "://" + address + ":" + this.getPort() + "/" + encodeURIComponent(name);
+
+          if(true) { // make reporting of all properties optional?
+            let href = base + "/" + this.ALL_DIR + "/" + encodeURIComponent(this.ALL_PROPERTIES);
+            let form = new TD.Form(href, type);
+            if(!thing.forms) {
+              thing.forms = [];
+            }
+            thing.forms.push(form);
+          }
 
           for (let propertyName in thing.properties) {
             let href = base + "/" + this.PROPERTY_DIR + "/" + encodeURIComponent(propertyName);
@@ -328,7 +339,45 @@ export default class HttpServer implements ProtocolServer {
             return;
           }
           
-          if (segments[2] === this.PROPERTY_DIR) {
+          if (segments[2] === this.ALL_DIR) {
+            if(this.ALL_PROPERTIES == segments[3]) {
+              if (req.method === "GET") {
+                let obj: {[k: string]: any} = {};
+                let promises = [];
+
+                for (let key in thing.properties) {
+                  let property = thing.properties[key].read();
+                  promises.push(property);
+                }
+
+                Promise.all(promises)
+                    .then((value) => {
+                      let index = 0;
+                      for (let key in thing.properties) {
+                        // TODO proper contentType handling
+                        // let property = thing.properties[key];
+                        // let content = ContentSerdes.get().valueToContent(value[index], <any>property);
+                        // obj[key] = content.body;
+                        obj[key] = value[index];
+                        index++;
+                      }
+                      // res.setHeader("Content-Type", content.type);
+                      res.writeHead(200);
+                      res.end(JSON.stringify(obj));
+                    })
+                    .catch(err => {
+                      console.error(`HttpServer on port ${this.getPort()} got internal error on read '${requestUri.pathname}': ${err.message}`);
+                      res.writeHead(500);
+                      res.end(err.message);
+                    });
+              } else {
+                res.writeHead(405);
+                res.end("Method Not Allowed");
+              }
+              // resource found and response sent
+              return;
+            }
+          } else if (segments[2] === this.PROPERTY_DIR) {
             // sub-path -> select Property
             let property = thing.properties[segments[3]];
             if (property) {

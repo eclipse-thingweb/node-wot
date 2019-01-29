@@ -177,7 +177,8 @@ export default class Servient {
 
         console.log(`Servient exposing '${thing.name}'`);
 
-        // initiatlizing forms fields
+        // initializing forms fields
+        thing.forms = [];
         for (let name in thing.properties) {
             thing.properties[name].forms = [];
         }
