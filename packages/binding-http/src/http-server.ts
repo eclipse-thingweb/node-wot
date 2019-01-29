@@ -41,6 +41,7 @@ export default class HttpServer implements ProtocolServer {
 
   private readonly OBSERVABLE_DIR = "observable";
 
+  private readonly OPTIONS_URI_VARIABLES ='uriVariables';
 
   private readonly port: number = 8080;
   private readonly address: string = undefined;
@@ -258,6 +259,35 @@ export default class HttpServer implements ProtocolServer {
     }
   }
 
+   private parseUrlParameters(url: string, uriVariables: { [key: string]: WoT.DataSchema }): {[k: string]: any} {
+    let params: {[k: string]: any} = {};
+    if (url == null || !uriVariables) {
+      return params;
+    }
+
+    var queryparams = url.split('?')[1]; 
+    if (queryparams == null) {
+      return params;
+    }
+    var queries = queryparams.split("&");
+
+    queries.forEach((indexQuery: string) => {
+        var indexPair = indexQuery.split("=");
+
+        var queryKey : string = decodeURIComponent(indexPair[0]);
+        var queryValue : string = decodeURIComponent(indexPair.length > 1 ? indexPair[1] : "");
+
+        if(uriVariables[queryKey].type === "integer" || uriVariables[queryKey].type === "number") {
+          // *cast* it to number
+          params[queryKey] = +queryValue;
+        } else {
+          params[queryKey] = queryValue;
+        }
+    });
+
+    return params;
+  }
+
   private handleRequest(req: http.IncomingMessage, res: http.ServerResponse) {
     
     let requestUri = url.parse(req.url);
@@ -381,6 +411,10 @@ export default class HttpServer implements ProtocolServer {
             // sub-path -> select Property
             let property = thing.properties[segments[3]];
             if (property) {
+
+              let params : {[k: string]: any} = this.parseUrlParameters(req.url, property.uriVariables);
+              let options: {[k: string]: any} = {};
+              options[this.OPTIONS_URI_VARIABLES] = params;
                
               if (req.method === "GET") {
 
@@ -413,7 +447,7 @@ export default class HttpServer implements ProtocolServer {
                   res.setTimeout(60*60*1000, () => subscription.unsubscribe());
 
                 } else {
-                  property.read()
+                  property.read(options)
                     .then((value) => {
                       let content = ContentSerdes.get().valueToContent(value, <any>property);
                       res.setHeader("Content-Type", content.type);
@@ -442,7 +476,7 @@ export default class HttpServer implements ProtocolServer {
                       res.end("Invalid Data");
                       return;
                     }
-                    property.write(value)
+                    property.write(value, options)
                       .then(() => {
                         res.writeHead(204);
                         res.end("Changed");
@@ -467,7 +501,7 @@ export default class HttpServer implements ProtocolServer {
 
           } else if (segments[2] === this.ACTION_DIR) {
             // sub-path -> select Action
-            let action = thing.actions[segments[3]];
+            let action : WoT.ThingAction = thing.actions[segments[3]];
             if (action) {
               if (req.method === "POST") {
                 // load payload
@@ -484,7 +518,12 @@ export default class HttpServer implements ProtocolServer {
                     res.end("Invalid Input Data");
                     return;
                   }
-                  action.invoke(input)
+                  
+                  let params : {[k: string]: any} = this.parseUrlParameters(req.url, action.uriVariables);
+                  let options: {[k: string]: any} = {};
+                  options[this.OPTIONS_URI_VARIABLES] = params;
+
+                  action.invoke(input, options)
                     .then((output) => {
                       if (output) {
                         let content = ContentSerdes.get().valueToContent(output, action.output);
