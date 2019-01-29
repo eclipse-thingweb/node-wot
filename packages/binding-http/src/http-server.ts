@@ -165,7 +165,7 @@ export default class HttpServer implements ProtocolServer {
         for (let type of ContentSerdes.get().getOfferedMediaTypes()) {
           let base: string = this.scheme + "://" + address + ":" + this.getPort() + "/" + encodeURIComponent(name);
 
-          if(thing.propertiesReadAll && thing.propertiesReadAll != null) {
+          if(true) { // make reporting of all properties optional?
             let href = base + "/" + this.ALL_DIR + "/" + encodeURIComponent(this.ALL_PROPERTIES);
             let form = new TD.Form(href, type);
             if(!thing.forms) {
@@ -342,17 +342,34 @@ export default class HttpServer implements ProtocolServer {
           if (segments[2] === this.ALL_DIR) {
             if(this.ALL_PROPERTIES == segments[3]) {
               if (req.method === "GET") {
-                // let value = "TODO";
-                // let schema: WoT.DataSchema = {"type": "string"};
-                // let content = ContentSerdes.get().valueToContent(value, schema);
-                // res.setHeader("Content-Type", content.type);
-                var obj: {[k: string]: any} = {};
-                for (let key in thing.properties) { 
-                  obj[key] = "Todo";
+                let obj: {[k: string]: any} = {};
+                let promises = [];
+
+                for (let key in thing.properties) {
+                  let property = thing.properties[key].read();
+                  promises.push(property);
                 }
 
-                res.writeHead(200);
-                res.end(JSON.stringify(obj)); // content.body);
+                Promise.all(promises)
+                    .then((value) => {
+                      let index = 0;
+                      for (let key in thing.properties) {
+                        // TODO proper contentType handling
+                        // let property = thing.properties[key];
+                        // let content = ContentSerdes.get().valueToContent(value[index], <any>property);
+                        // obj[key] = content.body;
+                        obj[key] = value[index];
+                        index++;
+                      }
+                      // res.setHeader("Content-Type", content.type);
+                      res.writeHead(200);
+                      res.end(JSON.stringify(obj));
+                    })
+                    .catch(err => {
+                      console.error(`HttpServer on port ${this.getPort()} got internal error on read '${requestUri.pathname}': ${err.message}`);
+                      res.writeHead(500);
+                      res.end(err.message);
+                    });
               } else {
                 res.writeHead(405);
                 res.end("Method Not Allowed");

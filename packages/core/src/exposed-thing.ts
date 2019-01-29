@@ -32,6 +32,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     id: string;
     name: string;
     base: string;
+    forms: Array<WoT.Form>;
 
     /** A map of interactable Thing Properties with read()/write()/subscribe() functions */
     properties: {
