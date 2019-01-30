@@ -147,6 +147,25 @@ export default class HttpServer implements ProtocolServer {
       return -1;
     }
   }
+
+
+  private updateInteractionNameWithUriVariablePattern(interactionName: string, uriVariables: {[key: string]: WoT.DataSchema;}) : string {
+    if(uriVariables && Object.keys(uriVariables).length > 0) {
+      let pattern = "{?"
+      let index = 0;
+      for(let key in uriVariables) {
+        if(index != 0) {
+          pattern += ",";
+        }
+        pattern += encodeURIComponent(key);
+        index++;
+      }
+      pattern += "}";
+      return encodeURIComponent(interactionName) + pattern;
+    } else {
+      return encodeURIComponent(interactionName);
+    }
+  }
   
   public expose(thing: ExposedThing): Promise<void> {
 
@@ -176,7 +195,8 @@ export default class HttpServer implements ProtocolServer {
           }
 
           for (let propertyName in thing.properties) {
-            let href = base + "/" + this.PROPERTY_DIR + "/" + encodeURIComponent(propertyName);
+            let propertyNamePattern = this.updateInteractionNameWithUriVariablePattern(propertyName, thing.properties[propertyName].uriVariables);
+            let href = base + "/" + this.PROPERTY_DIR + "/" + propertyNamePattern;
             let form = new TD.Form(href, type);
             if (thing.properties[propertyName].readOnly) {
               form.op = ["readproperty"];
@@ -201,7 +221,8 @@ export default class HttpServer implements ProtocolServer {
           }
           
           for (let actionName in thing.actions) {
-            let href = base + "/" + this.ACTION_DIR + "/" + encodeURIComponent(actionName);
+            let actionNamePattern = this.updateInteractionNameWithUriVariablePattern(actionName, thing.actions[actionName].uriVariables);
+            let href = base + "/" + this.ACTION_DIR + "/" + actionNamePattern;
             let form = new TD.Form(href, type);
             form.op = ["invokeaction"];
             thing.actions[actionName].forms.push(form);
@@ -209,7 +230,8 @@ export default class HttpServer implements ProtocolServer {
           }
           
           for (let eventName in thing.events) {
-            let href = base + "/" + this.EVENT_DIR + "/" + encodeURIComponent(eventName);
+            let eventNamePattern = this.updateInteractionNameWithUriVariablePattern(eventName, thing.events[eventName].uriVariables);
+            let href = base + "/" + this.EVENT_DIR + "/" + eventNamePattern;
             let form = new TD.Form(href, type);
             form.subprotocol = "longpoll";
             form.op = ["subscribeevent"];
