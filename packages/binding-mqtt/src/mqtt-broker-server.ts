@@ -43,7 +43,7 @@ export default class MqttBrokerServer implements ProtocolServer {
 
   private broker: any;
 
-  constructor(uri: string, user?: string, psw?: string, clientId?: string) 
+  constructor(uri: string, user?: string, psw?: string, clientId?: string) {
     if (uri !== undefined) {
 
       //if there is a MQTT protocol identicator missing, add this
