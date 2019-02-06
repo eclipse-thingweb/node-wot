@@ -34,13 +34,16 @@ export default class MqttBrokerServer implements ProtocolServer {
   private user: string = undefined; // in the case usesername is required to connect the broker
 
   private psw: string = undefined; // in the case password is required to connect the broker
+  
+  private clientId: string = undefined; // in the case clientId can be used to identify the device
+  
   private brokerURI: string = undefined;
 
   private readonly things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
 
   private broker: any;
 
-  constructor(uri: string, user?: string, psw?: string) {
+  constructor(uri: string, user?: string, psw?: string, clientId?: string) {
     if (uri !== undefined) {
 
       //if there is a MQTT protocol identicator missing, add this
@@ -56,6 +59,9 @@ export default class MqttBrokerServer implements ProtocolServer {
     if (psw !== undefined) {
       this.psw = psw;
     }
+    if (clientId !== undefined) {
+      this.clientId = clientId;
+    }	
   }
 
   public expose(thing: ExposedThing): Promise<void> {
@@ -164,10 +170,14 @@ export default class MqttBrokerServer implements ProtocolServer {
           console.info(`MqttBrokerServer trying to connect to broker at ${this.brokerURI}`);
           // TODO test if mqtt extracts port from passed URI (this.address)
           this.broker = mqtt.connect(this.brokerURI);
-        } else {
+        } else if (this.clientId === undefined) {
           console.info(`MqttBrokerServer trying to connect to secured broker at ${this.brokerURI}`);
           // TODO test if mqtt extracts port from passed URI (this.address)
           this.broker = mqtt.connect(this.brokerURI, { username: this.user, password: this.psw });
+        } else {
+          console.info(`MqttBrokerServer trying to connect to secured broker at ${this.brokerURI} with client ID ${this.clientId}`);
+          // TODO test if mqtt extracts port from passed URI (this.address)
+          this.broker = mqtt.connect(this.brokerURI, { username: this.user, password: this.psw, clientId: this.clientId });
         }
 
         this.broker.on("connect", () => {
