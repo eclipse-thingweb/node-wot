@@ -84,6 +84,7 @@ To reduce the size of the installation from about 800 MByte down to about 200 MB
 - yarn init
 - yarn add [packages]
 - npm run build
+- lerna init
 - lerna exec 'npm prune --production'
 
 ## Trouble shooting
