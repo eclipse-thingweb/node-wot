@@ -174,6 +174,43 @@ class WoTServerTest {
         expect(value1).to.equal(5);
     }
 
+    
+    @test async "should be able to read/readAll properties locally"() {
+        let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "thing3" });
+
+        let initNumber: WoT.PropertyFragment = {
+            type: "number"
+        };
+        thing.addProperty("number", initNumber, 10);
+
+        let initString: WoT.PropertyFragment = {
+            type: "string"
+        };
+        thing.addProperty("string", initString, "xyz");
+
+
+        let value0 = await thing.properties.number.read();
+        expect(value0).to.equal(10);
+        value0 = await thing.readProperty("number");
+        expect(value0).to.equal(10);
+
+
+        await thing.properties.number.write(5);
+        let value1 = await thing.properties.number.read();
+        expect(value1).to.equal(5);
+        value1 = await thing.readProperty("number");
+        expect(value1).to.equal(5);
+
+        // read all
+        let valueAll = await thing.readAllProperties();
+        expect(valueAll).to.have.property("number").that.equals(5);
+        expect(valueAll).to.have.property("string").that.equals("xyz");
+
+        // read subset
+        let valueSome = await thing.readMultipleProperties(["string"]);
+        expect(valueSome).to.have.property("string").that.equals("xyz");
+    }
+
     @test async "should be able to read Property with read handler (incrementing with lambda)"() {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "otherthingIncRead" });
         let initp: WoT.PropertyFragment = {

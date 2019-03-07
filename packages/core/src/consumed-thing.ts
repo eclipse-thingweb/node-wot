@@ -144,6 +144,67 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
             return { client: client, form: form }
         }
     }
+
+
+    readProperty(propertyName: string): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            // TODO pass expected form op to getClientFor()
+            let { client, form } = this.getClientFor(this.forms, "readproperty");
+            if (!client) {
+                reject(new Error(`ConsumedThing '${this.getThing().name}' did not get suitable client for ${form.href}`));
+            } else {
+                console.log(`ConsumedThing '${this.getThing().name}' reading ${form.href}`);
+                client.readResource(form).then((content) => {
+                    if (!content.type) content.type = form.contentType;
+                    try {
+                        let value = ContentManager.contentToValue(content, <any>this);
+                        resolve(value);
+                    } catch {
+                        reject(new Error(`Received invalid content from Thing`));
+                    }
+                })
+                .catch(err => { reject(err); });
+            }
+        });
+    }
+
+    _readProperties(propertyNames: string[]): Promise<object> {
+        return new Promise<object>((resolve, reject) => {
+            // collect all single promises into array
+            var promises : Promise<any>[] = [];
+            for (let propertyName of propertyNames) {
+                promises.push(this.readProperty(propertyName));
+            }
+            // wait for all promises to succeed and create response
+            Promise.all(promises)
+            .then((result) => {
+                let allProps : {
+                    [key: string]: any;
+                } = {};
+                let index = 0;
+                for (let propertyName of propertyNames) {
+                    allProps[propertyName] = result[index];
+                    index++;
+                }
+                resolve(allProps);
+            })
+            .catch(err => {
+                reject(new Error(`ConsumedThing '${this.name}', failed to read propertes: ` + propertyNames));
+            });
+        });
+    }
+
+    readAllProperties(): Promise<object> {
+        let propertyNames : string[] = [];
+        for (let propertyName in this.properties) {
+            propertyNames.push(propertyName);
+        }
+        return this._readProperties(propertyNames);
+    }
+    readMultipleProperties(propertyNames: string[]): Promise<object> {
+        return this._readProperties(propertyNames);
+    }
+
 }
 
 export interface ClientAndForm {

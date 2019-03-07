@@ -34,6 +34,11 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     base: string;
     forms: Array<WoT.Form>;
 
+    // next Style
+    _properties: {
+        [key: string]: ExposedThingProperty;
+    } = {};
+
     /** A map of interactable Thing Properties with read()/write()/subscribe() functions */
     properties: {
         [key: string]: WoT.ThingProperty
@@ -117,6 +122,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 
         let newProp = Helpers.extend(property, new ExposedThingProperty(name, this));
         this.properties[name] = newProp;
+        this._properties[name] = newProp;
 
         if (init !== undefined) {
             newProp.write(init);
@@ -154,6 +160,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         
         if (this.properties[propertyName]) {
             delete this.properties[propertyName];
+            delete this._properties[propertyName];
         } else {
             throw new Error(`ExposedThing '${this.name}' has no Property '${propertyName}'`);
         }
@@ -228,6 +235,67 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             throw new Error(`ExposedThing '${this.name}' has no Action '${actionName}'`);
         }
         return this;
+    }
+
+    readProperty(propertyName: string): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            let options = null; // TODO
+            if (this._properties[propertyName]) {
+                // call read handler (if any)
+                if (this._properties[propertyName].getState().readHandler != null) {
+                    console.log(`ExposedThing '${this.name}' calls registered readHandler for Property '${propertyName}'`);
+                    this._properties[propertyName].getState().readHandler(options).then((customValue) => {
+                        // update internal state in case writeHandler wants to get the value
+                        this._properties[propertyName].getState().value = customValue;
+                        resolve(customValue);
+                    });
+                } else {
+                    console.log(`ExposedThing '${this.name}' gets internal value '${this._properties[propertyName].getState().value}' for Property '${propertyName}'`);
+                    resolve(this._properties[propertyName].getState().value);
+                }
+            } else {
+                reject(new Error(`ExposedThing '${this.name}', no property found for '${propertyName}'`));
+            }
+
+        });
+    }
+
+
+    _readProperties(propertyNames: string[]): Promise<object> {
+        return new Promise<object>((resolve, reject) => {
+            // collect all single promises into array
+            var promises : Promise<any>[] = [];
+            for (let propertyName of propertyNames) {
+                promises.push(this.readProperty(propertyName));
+            }
+            // wait for all promises to succeed and create response
+            Promise.all(promises)
+            .then((result) => {
+                let allProps : {
+                    [key: string]: any;
+                } = {};
+                let index = 0;
+                for (let propertyName of propertyNames) {
+                    allProps[propertyName] = result[index];
+                    index++;
+                }
+                resolve(allProps);
+            })
+            .catch(err => {
+                reject(new Error(`ExposedThing '${this.name}', failedto read properties ` + propertyNames));
+            });
+        });
+    }
+
+    readAllProperties(): Promise<object> {
+        let propertyNames : string[] = [];
+        for (let propertyName in this.properties) {
+            propertyNames.push(propertyName);
+        }
+        return this._readProperties(propertyNames);
+    }
+    readMultipleProperties(propertyNames: string[]): Promise<object> {
+        return this._readProperties(propertyNames);
     }
 }
 
