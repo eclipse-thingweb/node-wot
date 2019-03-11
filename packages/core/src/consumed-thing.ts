@@ -149,11 +149,13 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     readProperty(propertyName: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             // TODO pass expected form op to getClientFor()
-            let { client, form } = this.getClientFor(this.forms, "readproperty");
+            let tp : WoT.ThingProperty  = this.properties[propertyName];
+            let { client, form } = this.getClientFor(tp.forms, "readproperty");
+            console.log("form: " + form)
             if (!client) {
-                reject(new Error(`ConsumedThing '${this.getThing().name}' did not get suitable client for ${form.href}`));
+                reject(new Error(`ConsumedThing '${this.name}' did not get suitable client for ${form.href}`));
             } else {
-                console.log(`ConsumedThing '${this.getThing().name}' reading ${form.href}`);
+                console.log(`ConsumedThing '${this.name}' reading ${form.href}`);
                 client.readResource(form).then((content) => {
                     if (!content.type) content.type = form.contentType;
                     try {
