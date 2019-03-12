@@ -231,6 +231,41 @@ class WoTServerTest {
         expect(await thing.properties.number.read()).to.equal(3);
     }
 
+    @test async "should be able to read Property with read handler (incrementing with lambda) new API"() {
+        let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "otherthingIncRead" });
+        let initp: WoT.PropertyFragment = {
+            type: "number"
+        };
+        let counter: number = 0;
+        thing.addProperty("number", initp).setPropertyReadHandler(
+            "number",
+            () => {
+                return new Promise((resolve, reject) => {
+                    resolve(++counter);
+                });
+            }
+        );
+
+        expect(await thing.readProperty("number")).to.equal(1);
+        expect(await thing.readProperty("number")).to.equal(2);
+        expect(await thing.readProperty("number")).to.equal(3);
+    }
+
+    @test async "should be able to read and write property / new API"() {
+        let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "otherthingIncRead" });
+        let initp: WoT.PropertyFragment = {
+            type: "number"
+        };
+        thing.addProperty("number", initp);
+
+        await thing.writeProperty("number", 1)
+        expect(await thing.readProperty("number")).to.equal(1);
+        expect(await thing.readProperty("number")).to.equal(1);
+
+        await thing.writeProperty("number", 3)
+        expect(await thing.readProperty("number")).to.equal(3);
+    }
+
     @test async "should be able to read Property with read handler (incrementing with function)"() {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "otherthingIncRead2" });
         let initp: WoT.PropertyFragment = {

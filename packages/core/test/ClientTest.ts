@@ -298,6 +298,47 @@ class WoTClientTest {
             .catch(err => { done(err) });
     }
 
+    @test "write a Property new api"(done: Function) {
+        //verify the value transmitted
+        WoTClientTest.clientFactory.setTrap(
+            (form: Form, content: Content) => {
+                expect(content.body.toString()).to.equal("23");
+            }
+        )
+
+        WoTClientTest.WoT.fetch("td://foo")
+            .then((td) => {
+                let thing = WoTClientTest.WoT.consume(td);
+                expect(thing).to.have.property("name").that.equals("aThing");
+                expect(thing).to.have.property("properties").that.has.property("aProperty");
+                return thing.writeProperty("aProperty", 23);
+            })
+            .then(() => done())
+            .catch(err => { done(err) });
+    }
+
+    @test "write multiple property new api"(done: Function) {
+        //verify the value transmitted
+        WoTClientTest.clientFactory.setTrap(
+            (form: Form, content: Content) => {
+                expect(content.body.toString()).to.equal("66");
+            }
+        )
+
+        WoTClientTest.WoT.fetch("td://foo")
+            .then((td) => {
+                let thing = WoTClientTest.WoT.consume(td);
+                expect(thing).to.have.property("name").that.equals("aThing");
+                expect(thing).to.have.property("properties").that.has.property("aProperty");
+
+                let valueMap: { [key: string]: any } = {};
+                valueMap["aProperty"] = 66;
+                return thing.writeMultipleProperties(valueMap);
+            })
+            .then(() => done())
+            .catch(err => { done(err) });
+    }
+
     // @test "observe a Property"(done: Function) {
     //     // let the client return 42
     //     WoTClientTest.clientFactory.setTrap(

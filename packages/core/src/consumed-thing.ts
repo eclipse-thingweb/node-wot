@@ -207,6 +207,43 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
         return this._readProperties(propertyNames);
     }
 
+
+    writeProperty(propertyName: string, value: any): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            // TODO pass expected form op to getClientFor()
+            let tp : WoT.ThingProperty  = this.properties[propertyName];
+            let { client, form } = this.getClientFor(tp.forms, "writeproperty");
+            if (!client) {
+                reject(new Error(`ConsumedThing '${this.name}' did not get suitable client for ${form.href}`));
+            } else {
+                console.log(`ConsumedThing '${this.name}' writing ${form.href} with '${value}'`);
+                let content = ContentManager.valueToContent(value, <any>this, form.contentType);
+
+                client.writeResource(form, content).then(() => {
+                    resolve();
+                })
+                .catch(err => { reject(err); });
+            }
+        });
+    }
+    writeMultipleProperties(valueMap: { [key: string]: any }): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            // collect all single promises into array
+            var promises : Promise<any>[] = [];
+            for (let propertyName in valueMap) {
+                promises.push(this.writeProperty(propertyName, valueMap[propertyName]));
+            }
+            // wait for all promises to succeed and create response
+            Promise.all(promises)
+            .then((result) => {
+                resolve();
+            })
+            .catch(err => {
+                reject(new Error(`ConsumedThing '${this.name}', failed to write multiple propertes: ` + valueMap));
+            });
+        });
+    }
+
 }
 
 export interface ClientAndForm {

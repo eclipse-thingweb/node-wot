@@ -282,7 +282,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                 resolve(allProps);
             })
             .catch(err => {
-                reject(new Error(`ExposedThing '${this.name}', failedto read properties ` + propertyNames));
+                reject(new Error(`ExposedThing '${this.name}', failed to read properties ` + propertyNames));
             });
         });
     }
@@ -296,6 +296,77 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     }
     readMultipleProperties(propertyNames: string[]): Promise<object> {
         return this._readProperties(propertyNames);
+    }
+
+    writeProperty(propertyName: string, value: any): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            let options = null; // TODO
+            // call write handler (if any)
+            if (this._properties[propertyName].getState().writeHandler != null) {
+                
+                // be generous when no promise is returned
+                let promiseOrValueOrNil = this._properties[propertyName].getState().writeHandler(value, options);
+                
+                if (promiseOrValueOrNil !== undefined) {
+                    if (typeof promiseOrValueOrNil.then === "function") {
+                        promiseOrValueOrNil.then((customValue) => {
+                            console.log(`ExposedThing '${this.name}' write handler for Property '${propertyName}' sets custom value '${customValue}'`);
+                            /** notify state change */
+                            // FIXME object comparison
+                            if (this._properties[propertyName].getState().value!==customValue) {
+                                this._properties[propertyName].getState().subject.next(customValue);
+                            }
+                            this._properties[propertyName].getState().value = customValue;
+                            resolve();
+                        })
+                        .catch((customError) => {
+                            console.warn(`ExposedThing '${this.name}' write handler for Property '${propertyName}' rejected the write with error '${customError}'`);
+                            reject(customError);
+                        });
+                    } else  {
+                        console.warn(`ExposedThing '${this.name}' write handler for Property '${propertyName}' does not return promise`);
+                        if (this._properties[propertyName].getState().value!==promiseOrValueOrNil) {
+                            this._properties[propertyName].getState().subject.next(<any>promiseOrValueOrNil);
+                        }
+                        this._properties[propertyName].getState().value = <any>promiseOrValueOrNil;
+                        resolve();
+                    }
+                } else {
+                    console.warn(`ExposedThing '${this.name}' write handler for Property '${propertyName}' does not return custom value, using direct value '${value}'`);
+                    
+                    if (this._properties[propertyName].getState().value!==value) {
+                        this._properties[propertyName].getState().subject.next(value);
+                    }
+                    this._properties[propertyName].getState().value = value;
+                    resolve();
+                }
+            } else {
+                console.log(`ExposedThing '${this.name}' directly sets Property '${propertyName}' to value '${value}'`);
+                /** notify state change */
+                if (this._properties[propertyName].getState().value!==value) {
+                    this._properties[propertyName].getState().subject.next(value);
+                }
+                this._properties[propertyName].getState().value = value;
+                resolve();
+            }
+        });
+    }
+    writeMultipleProperties(valueMap: { [key: string]: any }): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            // collect all single promises into array
+            var promises : Promise<void>[] = [];
+            for (let propertyName in valueMap) {
+                promises.push(this.writeProperty(propertyName, valueMap[propertyName]));
+            }
+            // wait for all promises to succeed and create response
+            Promise.all(promises)
+            .then((result) => {
+                resolve();
+            })
+            .catch(err => {
+                reject(new Error(`ExposedThing '${this.name}', failed to read properties ` + valueMap));
+            });
+        });
     }
 }
 
