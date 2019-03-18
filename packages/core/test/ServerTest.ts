@@ -483,6 +483,37 @@ class WoTServerTest {
             .then((result) => result.should.equal(42));
     }
 
+    @test "should be able to add an action and invoke it locally (based on WoT.ThingDescription) next API"() {
+        let thing: WoT.ExposedThing = WoTServerTest.WoT.produce(`{
+            "@context": ["https://w3c.github.io/wot/w3c-wot-td-context.jsonld"],
+            "@type": ["Thing"],
+            "name": "thing6b",
+            "actions": {
+                "action1" : {
+                    "input": { "type": "number" },
+                    "output": { "type": "number" }
+                }
+            }
+        }`);
+        
+        expect(thing).to.have.property("actions");
+        expect(thing.actions).to.have.property("action1");
+
+        thing.setActionHandler(
+            "action1",
+            (parameters: any) => {
+                return new Promise((resolve, reject) => {
+                    parameters.should.be.a("number");
+                    parameters.should.equal(23);
+                    resolve(42);
+                });
+            }
+        );
+
+        return thing.invokeAction("action1", 23)
+            .then((result) => result.should.equal(42));
+    }
+
     // TODO add Event and subscribe locally (based on addEvent)
     // TODO add Event and subscribe locally (based on WoT.ThingFragment)
     // TODO add Event and subscribe locally (based on WoT.ThingDescription)

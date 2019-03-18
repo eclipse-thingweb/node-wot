@@ -244,6 +244,45 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
         });
     }
 
+
+    public invokeAction(actionName: string, parameter?: any): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            let ta : WoT.ThingAction  = this.actions[actionName];
+            let { client, form } = this.getClientFor(ta.forms, "invokeaction");
+            if (!client) {
+                reject(new Error(`ConsumedThing '${this.name}' did not get suitable client for ${form.href}`));
+            } else {
+                console.log(`ConsumedThing '${this.name}' invoking ${form.href}${parameter!==undefined ? " with '"+parameter+"'" : ""}`);
+
+                let input;
+                
+                if (parameter!== undefined) {
+                    input = ContentManager.valueToContent(parameter, <any>this, form.contentType);
+                }
+
+                client.invokeResource(form, input).then((content) => {
+                    // infer media type from form if not in response metadata
+                    if (!content.type) content.type = form.contentType;
+
+                    // check if returned media type is the same as expected media type (from TD)
+                    if(form.response) {
+                        if(content.type !== form.response.contentType) {
+                            reject(new Error(`Unexpected type in response`));
+                        }
+                    }
+                    
+                    try {
+                        let value = ContentManager.contentToValue(content, this.output);
+                        resolve(value);
+                    } catch {
+                        reject(new Error(`Received invalid content from Thing`));
+                    }
+                })
+                .catch(err => { reject(err); });
+            }
+        });
+    }
+
 }
 
 export interface ClientAndForm {

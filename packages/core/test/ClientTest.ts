@@ -407,6 +407,30 @@ class WoTClientTest {
             .catch(err => { done(err) });
     }
 
+    @test "call an action (next API)"(done: Function) {
+        //an action
+        WoTClientTest.clientFactory.setTrap(
+            (form: Form, content: Content) => {
+                expect(content.body.toString()).to.equal("23");
+                return { contentType: "application/json", body: Buffer.from("42") };
+            }
+        )
+
+        WoTClientTest.WoT.fetch("td://foo")
+            .then((td) => {
+                let thing = WoTClientTest.WoT.consume(td);
+                expect(thing).to.have.property("name").that.equals("aThing");
+                expect(thing).to.have.property("actions").that.has.property("anAction");
+                return thing.invokeAction("anAction", 23);
+            })
+            .then((result) => {
+                expect(result).not.to.be.null;
+                expect(result).to.equal(42);
+                done();
+            })
+            .catch(err => { done(err) });
+    }
+
     @test "subscribe to event"(done: Function) {
         
         WoTClientTest.clientFactory.setTrap(
