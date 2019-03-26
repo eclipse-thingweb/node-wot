@@ -323,8 +323,8 @@ export default class HttpServer implements ProtocolServer {
     function respondUnallowedMethod(res: http.ServerResponse, allowed: string): void {
       // Always allow OPTIONS to handle CORS pre-flight requests
       if (!allowed.includes("OPTIONS")) { allowed += ", OPTIONS"}
-      if (req.method === "OPTIONS" && req.headers["origin"] && req.headers["access-control-request-methods"]) {
-        console.debug(`HttpServer on port ${this.getPort()} received an CORS preflight request from ${Helpers.toUriLiteral(req.socket.remoteAddress)}:${req.socket.remotePort}`);
+      if (req.method === "OPTIONS" && req.headers["origin"] && req.headers["access-control-request-method"]) {
+        console.debug(`HttpServer received an CORS preflight request from ${Helpers.toUriLiteral(req.socket.remoteAddress)}:${req.socket.remotePort}`);
         res.setHeader("Access-Control-Allow-Methods", allowed);
         res.setHeader("Access-Control-Allow-Headers", "content-type, authorization, *");
         res.writeHead(200);
