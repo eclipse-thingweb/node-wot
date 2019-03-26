@@ -319,11 +319,25 @@ export default class HttpServer implements ProtocolServer {
       console.log(`HttpServer on port ${this.getPort()} replied with '${res.statusCode}' to ${Helpers.toUriLiteral(req.socket.remoteAddress)}:${req.socket.remotePort}`);
     });
 
+    // Handle requests where the path is correct and the HTTP method is not allowed.
+    function respondUnallowedMethod(res: http.ServerResponse, allowed: string): void {
+      // Always allow OPTIONS to handle CORS pre-flight requests
+      if (!allowed.includes("OPTIONS")) { allowed += " OPTIONS"}
+      if (req.method === "OPTIONS" && req.headers["origin"] && req.headers["access-control-request-methods"]) {
+        console.debug(`HttpServer on port ${this.getPort()} received an CORS preflight request from ${Helpers.toUriLiteral(req.socket.remoteAddress)}:${req.socket.remotePort}`);
+        res.setHeader("Access-Control-Allow-Methods", allowed);
+        res.setHeader("Access-Control-Allow-Headers", "content-type, authorization, *");
+        res.writeHead(200);
+        res.end();
+      } else {
+        res.setHeader("Allow", allowed);
+        res.writeHead(405);
+        res.end("Method Not Allowed");
+      }
+    }
+
     // Set CORS headers
     res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Request-Method", "*");
-    res.setHeader("Access-Control-Allow-Methods", "OPTIONS, HEAD, GET, POST, PUT, DELETE, PATCH");
-    res.setHeader("Access-Control-Allow-Headers", "content-type, authorization, *");
 
     let contentTypeHeader: string | string[] = req.headers["content-type"];
     let contentType: string = Array.isArray(contentTypeHeader) ? contentTypeHeader[0] : contentTypeHeader;
@@ -358,8 +372,7 @@ export default class HttpServer implements ProtocolServer {
         }
         res.end(JSON.stringify(list));
       } else {
-        res.writeHead(405);
-        res.end("Method Not Allowed");
+        respondUnallowedMethod(res, "GET");
       }
       // resource found and response sent
       return;
@@ -376,8 +389,7 @@ export default class HttpServer implements ProtocolServer {
             res.writeHead(200);
             res.end(thing.getThingDescription());
           } else {
-            res.writeHead(405);
-            res.end("Method Not Allowed");
+            respondUnallowedMethod(res, "GET");
           }
           // resource found and response sent
           return;
@@ -423,8 +435,7 @@ export default class HttpServer implements ProtocolServer {
                       res.end(err.message);
                     });
               } else {
-                res.writeHead(405);
-                res.end("Method Not Allowed");
+                respondUnallowedMethod(res, "GET");
               }
               // resource found and response sent
               return;
@@ -514,8 +525,7 @@ export default class HttpServer implements ProtocolServer {
                   res.end("Property readOnly");
                 }
               } else {
-                res.writeHead(405);
-                res.end("Method Not Allowed");
+                respondUnallowedMethod(res, "GET, PUT");
               }
               // resource found and response sent
               return;
@@ -564,8 +574,7 @@ export default class HttpServer implements ProtocolServer {
                     });
                 });
               } else {
-                res.writeHead(405);
-                res.end("Method Not Allowed");
+                respondUnallowedMethod(res, "POST");
               }
               // resource found and response sent
               return;
@@ -602,8 +611,7 @@ export default class HttpServer implements ProtocolServer {
                 });
                 res.setTimeout(60*60*1000, () => subscription.unsubscribe());
               } else {
-                res.writeHead(405);
-                res.end("Method Not Allowed");
+                respondUnallowedMethod(res, "GET")
               }
               // resource found and response sent
               return;
