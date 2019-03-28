@@ -348,6 +348,18 @@ export default class HttpClient implements ProtocolClient {
       }
     }
 
+    if (typeof form["htv:methodName"] === "string") {
+      console.log("HttpClient got Form 'methodName'", form["htv:methodName"]);
+      switch (form["htv:methodName"]) {
+        case "GET": options.method = "GET"; break;
+        case "POST": options.method = "POST"; break;
+        case "PUT": options.method = "PUT"; break;
+        case "DELETE": options.method = "DELETE"; break;
+        case "PATCH": options.method = "PATCH"; break;
+        default: console.warn("HttpClient got invalid 'methodName', using default", options.method);
+      }
+    }
+
     let req = this.provider.request(options);
 
     console.debug(`HttpClient applying form`);
