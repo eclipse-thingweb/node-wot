@@ -377,7 +377,7 @@ export default class HttpClient implements ProtocolClient {
     if (statusCode < 200) {
       throw new Error(`HttpClient received ${statusCode} and cannot continue (not implemented, open GitHub Issue)`);
     } else if (statusCode < 300) {
-      resolve({ contentType: contentType, body: body });
+      resolve({ type: contentType, body: body });
     } else if (statusCode < 400) {
       throw new Error(`HttpClient received ${statusCode} and cannot continue (not implemented, open GitHub Issue)`);
     } else if (statusCode < 500) {
