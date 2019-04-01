@@ -236,7 +236,7 @@ export default class HttpClient implements ProtocolClient {
   }
 
   public stop(): boolean {
-    this.agent.destroy();
+    if (this.agent && this.agent.destroy) this.agent.destroy();  // When running in browser mode, Agent.destroy() might not exist.
     return true;
   }
 
@@ -377,7 +377,7 @@ export default class HttpClient implements ProtocolClient {
     if (statusCode < 200) {
       throw new Error(`HttpClient received ${statusCode} and cannot continue (not implemented, open GitHub Issue)`);
     } else if (statusCode < 300) {
-      resolve({ type: contentType, body: body });
+      resolve({ contentType: contentType, body: body });
     } else if (statusCode < 400) {
       throw new Error(`HttpClient received ${statusCode} and cannot continue (not implemented, open GitHub Issue)`);
     } else if (statusCode < 500) {
