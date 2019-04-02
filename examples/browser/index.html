@@ -3,13 +3,12 @@
   <head>
     <title>Browser Native node-wot tryout</title>
     <!-- Foundation CSS framework -->
-    <link rel='stylesheet' href='https://cdn.jsdelivr.net/foundation/5.0.2/css/foundation.min.css'>
-
+    <link rel='stylesheet' href='https://cdn.jsdelivr.net/foundation/5.5.3/css/foundation.min.css'>
     <!-- Font Awesome icons -->
     <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.0.3/css/font-awesome.css'>
 
     <!-- defer to not block rendering -->
-    <script src="https://cdn.jsdelivr.net/npm/@json-editor/json-editor@latest/dist/jsoneditor.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@json-editor/json-editor@latest/dist/jsoneditor.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@node-wot/browser-bundle@latest/dist/wot-bundle.min.js" defer></script>
     <script src="index.js" defer></script>
     
@@ -24,7 +23,7 @@
     <div id="topbar" class="row">
       <div class="medium-12 columns">
         <h1>Browsified node-wot</h1>
-        <input id="td_addr" type="url" value="http://localhost:8080/counter">
+        <input id="td_addr" type="url" value="http://plugfest.thingweb.io:8083/TestThing">
         <button id="fetch" type="button">Consume</button>
       </div>
     </div>
@@ -51,7 +50,7 @@
 
     <div class="row">
       <div class="medium-6 columns small-offset-3">
-        <div id="editor_holder" style="display: none;"></div>
+        <div id="editor_holder"></div>
       </div>
     </div>
   </body>

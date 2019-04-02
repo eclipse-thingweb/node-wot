@@ -6,11 +6,9 @@ W3C Web of Things implementation on NodeJS
 ### Table of Contents
 - [Licence](#licence)
 - [Prerequisites](#prerequisites)
-- [How to get the library](#howtoget)
-- [Start with an example](#example)
-- [How to use the library](#api)
-
-<a name="license"/>
+- [How to get the library](#How%20to%20get%20the%20library)
+- [Start with an example](#No%20time%20for%20explanations%20-%20show%20me%20a%20running%20example!)
+- [How to use the library](#How%20to%20use%20the%20library)
 
 ## License
 Dual-licensed under both
@@ -20,8 +18,6 @@ Dual-licensed under both
 
 Pick one of these two licenses that fits your needs.
 Please also see the additional [notices](NOTICE.md) and [how to contribute](CONTRIBUTING.md).
-
-<a name="prerequisites"/>
 
 ## Prerequisites
 ### To use with Node.js
@@ -56,8 +52,6 @@ Supported browsers include:
 * Safari 10 and later
 
 Using a browser with only ES5 support (eg. IE 11) might be possible if you add polyfills.
-
-<a name="howtoget"/>
 
 ## How to get the library
 ### As a Node.js dependency
@@ -148,8 +142,6 @@ var servient = new Wot.Core.Servient();
 var client = new Wot.Http.HttpClient();
 ```
 
-<a name="examples"/>
-
 ## No time for explanations - show me a running example!
 ### Using Node.js
 Run all the steps above including "Link Packages" and then run this:
@@ -175,15 +167,9 @@ node packages\cli\dist\cli.js examples\scripts\counter-client.js
 
 ### Using a browser
 An example of how to use node-wot as a browser-side library can be found under `examples/browser/index.html`.
-To run it, start a servient to simulate a WoT device:
-```
-node packages/cli/dist/cli.js examples/scripts/counter.js
-```
-Then open `examples/browser/index.html` in a modern browser, and consume `http://localhost:8080/counter` to interact with the servient using an example of node-wot based browser application.
+To run it, open `examples/browser/index.html` in a modern browser, and consume the test Thing available under `http://plugfest.thingweb.io:8083/TestThing` to interact with it.
 
 The JavaScript code that uses node-wot as a library to power this application can be found under: `examples/browser/index.js`
-
-<a name="api"/>
 
 ## How to use the library
 ### The API

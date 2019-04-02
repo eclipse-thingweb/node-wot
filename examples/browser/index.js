@@ -12,93 +12,95 @@
  * 
  **/ 
 
-
-var servient = new Wot.Core.Servient();
-servient.addClientFactory(new Wot.Http.HttpClientFactory());
-
 function get_td(addr) {
 	servient.start().then((thingFactory) => {
 		thingFactory.fetch(addr).then((td) => {
-			var thing = thingFactory.consume(td)
-
-			// Remove old editor and add new one
-			for (id of ["properties", "actions", "events"]) {
-				let placeholder = document.getElementById(id);
-				while (placeholder.firstChild){
-    				placeholder.removeChild(placeholder.firstChild);
-				}
-			}
-
-			for ( let property in thing.properties ) {
-				if (thing.properties.hasOwnProperty(property)) {
-					let item = document.createElement("li");
-					let link = document.createElement("a");
-					link.appendChild(document.createTextNode(property));
-					item.appendChild(link);
-					document.getElementById("properties").appendChild(item);
-
-					item.onclick = (click) => {
-						thing.properties[property].read()
-						.then(res => window.alert(property + ": " + res))
-						.catch(err => window.alert("error: " + err))
-					}
-					// Check if visible
-					let placeholder = document.getElementById("interactions")
-					if ( placeholder.style.display === "none") {
-						placeholder.style.display = "block"
-					}
-				}
-			};
-
-			for ( let action in thing.actions ) {
-				if (thing.actions.hasOwnProperty(action)) {
-					let item = document.createElement("li");
-					let button = document.createElement("button");
-					button.appendChild(document.createTextNode(action));
-					button.className = "button tiny secondary"
-					item.appendChild(button)
-					document.getElementById("actions").appendChild(item);
-
-					item.onclick = (click) => { 
-						showSchemaEditor(action, thing) 
-					}
-
-					// Check if visible
-					let placeholder = document.getElementById("interactions")
-					if ( placeholder.style.display === "none") {
-						placeholder.style.display = "block"
-					}
-				}
-			};
-
-			for ( let evnt in thing.events ) {
-				if (thing.events.hasOwnProperty(evnt)) {
-					let item = document.createElement("li");
-					let link = document.createElement("a");
-					link.appendChild(document.createTextNode(evnt));
-					link.href = thing.events[evnt].forms[0].href
-					item.appendChild(link);
-					document.getElementById("events").appendChild(item);
-
-					// Check if visible
-					let placeholder = document.getElementById("interactions")
-					if ( placeholder.style.display === "none") {
-						placeholder.style.display = "block"
-					}
-				}
-			};
-
+			var thing = thingFactory.consume(td);
+			removeInteractions();
+			showInteractions(thing);
 		}).catch((error) => {
 			window.alert("Could not fetch TD.\n" + error)
 		})
 	})
 }
 
+function showInteractions(thing) {
+	for ( let property in thing.properties ) {
+		if (thing.properties.hasOwnProperty(property)) {
+			let item = document.createElement("li");
+			let link = document.createElement("a");
+			link.appendChild(document.createTextNode(property));
+			item.appendChild(link);
+			document.getElementById("properties").appendChild(item);
+
+			item.onclick = (click) => {
+				thing.properties[property].read()
+				.then(res => window.alert(property + ": " + res))
+				.catch(err => window.alert("error: " + err))
+			}
+		}
+	};
+	for ( let action in thing.actions ) {
+		if (thing.actions.hasOwnProperty(action)) {
+			let item = document.createElement("li");
+			let button = document.createElement("button");
+			button.appendChild(document.createTextNode(action));
+			button.className = "button tiny secondary"
+			item.appendChild(button)
+			document.getElementById("actions").appendChild(item);
+
+			item.onclick = (click) => { 
+				showSchemaEditor(action, thing) 
+			}
+		}
+	};
+	let eventSubscriptions = {}
+	for ( let evnt in thing.events ) {
+		if (thing.events.hasOwnProperty(evnt)) {
+			let item = document.createElement("li");
+			let link = document.createElement("a");
+			link.appendChild(document.createTextNode(evnt));
+
+			let checkbox = document.createElement("div");
+			checkbox.className = "switch small"
+			checkbox.innerHTML = '<input id="' + evnt + '" type="checkbox">\n<label for="' + evnt + '"></label>'
+			item.appendChild(link);
+			item.appendChild(checkbox)
+			document.getElementById("events").appendChild(item);
+
+			checkbox.onclick = (click) => {
+				if (document.getElementById(evnt).checked && !eventSubscriptions[evnt]) {
+					eventSubscriptions[evnt] = thing.events[evnt].subscribe(
+						(response) => { window.alert("Event " + evnt + " detected\nMessage: " + response); },
+						(error) => { window.alert("Event " + evnt + " error\nMessage: " + error); }
+					)
+				} else if (!document.getElementById(evnt).checked && eventSubscriptions[evnt]) {
+					eventSubscriptions[evnt].unsubscribe();
+				}
+			}
+		}
+	};
+	// Check if visible
+	let placeholder = document.getElementById("interactions")
+	if ( placeholder.style.display === "none") {
+		placeholder.style.display = "block"
+	}
+}
+
+function removeInteractions() {
+	for (id of ["properties", "actions", "events"]) {
+		let placeholder = document.getElementById(id);
+		while (placeholder.firstChild){
+			placeholder.removeChild(placeholder.firstChild);
+		}
+	}
+}
+
 function showSchemaEditor(action, thing) {
 	// Remove old editor
-	let placeholder = document.getElementById('editor_holder');
-	hideSchemaEditor()
+	removeSchemaEditor()
 
+	let placeholder = document.getElementById('editor_holder');
 	let editor;
 	if (thing.actions[action] && thing.actions[action].input ) {  
 		thing.actions[action].input.title = action
@@ -120,24 +122,24 @@ function showSchemaEditor(action, thing) {
 		thing.actions[action].invoke(input)
 		.then((res) => { 
 			if (res) {
-				window.alert("Sucess! Received response: " + res)
+				window.alert("Success! Received response: " + res)
 			} else {
 				window.alert("Executed successfully.")
 			}
 		})
 		.catch((err) => { window.alert(err) })
-		hideSchemaEditor()
+		removeSchemaEditor()
 	};
-
-	// Show div
-	placeholder.style.display = "block"
 }
 
-function hideSchemaEditor() {
+function removeSchemaEditor() {
 	let placeholder = document.getElementById('editor_holder');
 	while (placeholder.firstChild){
     	placeholder.removeChild(placeholder.firstChild);
 	}
 }
 
+
+var servient = new Wot.Core.Servient();
+servient.addClientFactory(new Wot.Http.HttpClientFactory());
 document.getElementById("fetch").onclick = () => { get_td(document.getElementById("td_addr").value);  };
