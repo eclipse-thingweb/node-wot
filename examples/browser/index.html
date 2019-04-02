@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Browser Native node-wot tryout</title>
+    <!-- Foundation CSS framework -->
+    <link rel='stylesheet' href='https://cdn.jsdelivr.net/foundation/5.0.2/css/foundation.min.css'>
+
+    <!-- Font Awesome icons -->
+    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.0.3/css/font-awesome.css'>
+
+    <!-- defer to not block rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/@json-editor/json-editor@latest/dist/jsoneditor.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@node-wot/browser-bundle@latest/dist/wot-bundle.min.js" defer></script>
+    <script src="index.js" defer></script>
+    
+    <script>
+    // Set the default CSS theme and icon library globally
+    JSONEditor.defaults.theme = 'foundation5';
+    JSONEditor.defaults.iconlib = 'fontawesome4';
+    </script>
+
+  </head>
+  <body>
+    <div id="topbar" class="row">
+      <div class="medium-12 columns">
+        <h1>Browsified node-wot</h1>
+        <input id="td_addr" type="url" value="http://localhost:8080/counter">
+        <button id="fetch" type="button">Consume</button>
+      </div>
+    </div>
+    <div id="interactions" class="row" style="display: none;">
+      <div class="medium-4 columns">
+        <figure>
+          <figcaption><h4>Properties</h4></figcaption>
+          <ul id="properties" class="side-nav"></ul>
+        </figure>
+      </div>
+      <div class="medium-4 columns">
+        <figure>
+          <figcaption><h4>Actions</h4></figcaption>
+          <ul id="actions" class="side-nav"></ul>
+        </figure>
+      </div>
+      <div class="medium-4 columns">
+        <figure>
+          <figcaption><h4>Events</h4></figcaption>
+          <ul id="events" class="side-nav"></ul>
+        </figure>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="medium-6 columns small-offset-3">
+        <div id="editor_holder" style="display: none;"></div>
+      </div>
+    </div>
+  </body>
+</html>
