@@ -69,7 +69,7 @@ npm install @node-wot/binding-coap
 ```
 Alternatively you can add `@node-wot/<package-name>`as a dependency to your `package.json`.
 
-### Standalone installation
+### As a standalone application
 #### Clone and build
 Clone the repository:
 ```
@@ -134,7 +134,7 @@ To reduce the size of the installation from about 800 MByte down to about 200 MB
    * try `npm run unlock` from project root before calling `[sudo] npm run link`
    * try `npm link` in each package directory in this order: td-tools, core, binding-\*, cli, demo-servients
 
-### Importing in the Browser
+### As a browser library
 
 Node-wot can also be imported as browser-side library. To do so, include the following `script` tag in your html:
 ```html
