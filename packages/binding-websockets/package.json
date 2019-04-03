@@ -13,6 +13,7 @@
   ],
   "main": "dist/ws.js",
   "types": "dist/ws.d.ts",
+  "browser": "dist/ws-browser.js",
   "devDependencies": {
     "@types/chai": "4.0.4",
     "@types/node": "10.9.4",

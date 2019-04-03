@@ -13,6 +13,7 @@
   ],
   "main": "dist/http.js",
   "types": "dist/http.d.ts",
+  "browser": "dist/http-browser.js",
   "devDependencies": {
     "@types/basic-auth": "1.1.2",
     "@types/chai": "4.0.4",

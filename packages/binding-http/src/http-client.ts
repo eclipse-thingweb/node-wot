@@ -236,7 +236,7 @@ export default class HttpClient implements ProtocolClient {
   }
 
   public stop(): boolean {
-    this.agent.destroy();
+    if (this.agent && this.agent.destroy) this.agent.destroy();  // When running in browser mode, Agent.destroy() might not exist.
     return true;
   }
 

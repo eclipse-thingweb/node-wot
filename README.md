@@ -3,6 +3,13 @@ W3C Web of Things implementation on NodeJS
 
 [![Build Status](https://travis-ci.org/eclipse/thingweb.node-wot.svg?branch=master)](https://travis-ci.org/eclipse/thingweb.node-wot)
 
+### Table of Contents
+- [Licence](#licence)
+- [Prerequisites](#prerequisites)
+- [How to get the library](#How%20to%20get%20the%20library)
+- [Start with an example](#No%20time%20for%20explanations%20-%20show%20me%20a%20running%20example!)
+- [How to use the library](#How%20to%20use%20the%20library)
+
 ## License
 Dual-licensed under both
 
@@ -13,28 +20,51 @@ Pick one of these two licenses that fits your needs.
 Please also see the additional [notices](NOTICE.md) and [how to contribute](CONTRIBUTING.md).
 
 ## Prerequisites
+### To use with Node.js
 All systems require:
 * [NodeJS](https://nodejs.org/) version 10+ (e.g., 10.13.0 LTS)
 
-### Linux
+#### Linux
 Meet the [node-gyp](https://github.com/nodejs/node-gyp#installation) requirements:
 * Python 2.7 (v3.x.x is not supported)
 * make
 * A proper C/C++ compiler toolchain, like GCC
 
-### Windows
+#### Windows
 Install the Windows build tools through a CMD shell as administrator:
 ```
 npm install -g --production windows-build-tools
 ```
 
-### Mac OS
+#### Mac OS
 Meet the [node-gyp](https://github.com/nodejs/node-gyp#installation) requirements:
 ```
 xcode-select --install
 ```
 
-## How to get ready for coding
+### To use in a browser
+To use node-wot as a browser-side JavaScript Library, the browser needs to support ECMAScript 2015.
+Supported browsers include:
+
+* Microsoft Edge 15 and later
+* Firefox 54 and later
+* Chrome 58 and later
+* Safari 10 and later
+
+Using a browser with only ES5 support (eg. IE 11) might be possible if you add polyfills.
+
+## How to get the library
+### As a Node.js dependency
+
+If you want to use node-wot as a library in your Node.js application, you can use npm to install the node-wot packages that you need. To do so, `cd` inside you application folder, an run:
+```
+npm install @node-wot/core
+npm install @node-wot/binding-coap
+```
+Alternatively you can add `@node-wot/<package-name>`as a dependency to your `package.json`.
+
+### As a standalone application
+#### Clone and build
 Clone the repository:
 ```
 git clone https://github.com/eclipse/thingweb.node-wot
@@ -53,16 +83,16 @@ Use `tsc` to transcompile TS code to JS in dist directory for each package:
 npm run build
 ```
 
-### Optional
+#### Optional steps
 
-#### Link Packages
+###### Link Packages
 Make all packages available on your local machine (as symlinks). You can then use each paket in its local version via `npm link <module>` instead of `npm install <module>` (see also https://docs.npmjs.com/cli/link).
 ```
 sudo npm run link
 ```
 (On Windows omit `sudo`)
 
-#### Link Local wot-typescript-definitions
+##### Link Local wot-typescript-definitions
 To evolve the Scripting API in development, you need to use a locally changed version of the [wot-typescript-definitions](https://www.npmjs.com/package/wot-typescript-definitions).
 Use npm link for this as well:
 ```
@@ -78,7 +108,7 @@ sudo npm link wot-typescript-definitions
 ```
 (On Windows omit `sudo`)
 
-#### Optimization
+##### Optimization
 
 To reduce the size of the installation from about 800 MByte down to about 200 MByte, you can run the following commands (currently only tested on Linux):
 - yarn init
@@ -87,7 +117,7 @@ To reduce the size of the installation from about 800 MByte down to about 200 MB
 - lerna init
 - lerna exec 'npm prune --production'
 
-## Trouble shooting
+#### Trouble shooting
 
 * Build error around `node-aead-crypto`
    * node-gyp has been seen failing on MacOS
@@ -98,7 +128,22 @@ To reduce the size of the installation from about 800 MByte down to about 200 MB
    * try `npm run unlock` from project root before calling `[sudo] npm run link`
    * try `npm link` in each package directory in this order: td-tools, core, binding-\*, cli, demo-servients
 
-## No time for explanations - I want to start from something running!
+### As a browser library
+
+Node-wot can also be imported as browser-side library. To do so, include the following `script` tag in your html:
+```html
+<script src="https://cdn.jsdelivr.net/npm/@node-wot/browser-bundle@latest/dist/wot-bundle.min.js"></script>
+```
+
+In the browser, node wot only works in client mode with limited binding support. Supported bindings: HTTP / HTTPS / WebSockets
+You can access all node-wot functionality through the "Wot" global object:
+```javascript
+var servient = new Wot.Core.Servient(); 
+var client = new Wot.Http.HttpClient();
+```
+
+## No time for explanations - show me a running example!
+### Using Node.js
 Run all the steps above including "Link Packages" and then run this:
 
 ```
@@ -120,7 +165,14 @@ node packages\cli\dist\cli.js examples\scripts\counter-client.js
 * Modify the count via POST on http://localhost:8080/counter/actions/increment and http://localhost:8080/counter/actions/decrement
 * Application logic is in `examples/scripts/counter.js`
 
+### Using a browser
+An example of how to use node-wot as a browser-side library can be found under `examples/browser/index.html`.
+To run it, open `examples/browser/index.html` in a modern browser, and consume the test Thing available under `http://plugfest.thingweb.io:8083/TestThing` to interact with it.
+
+The JavaScript code that uses node-wot as a library to power this application can be found under: `examples/browser/index.js`
+
 ## How to use the library
+### The API
 
 This library implements the WoT Scripting API:
 
@@ -129,9 +181,9 @@ This library implements the WoT Scripting API:
 
 You can also see `examples/scripts` to have a feeling of how to script a Thing.
 
-<!--
-### Implemented/supported
+### Implemented/supported features
 
+<!--
 * [`WoT`](https://www.w3.org/TR/2017/WD-wot-scripting-api-20170914/#the-wot-object) object
   * `discover` :heavy_multiplication_x:
   * `consume` :heavy_check_mark:
@@ -186,6 +238,6 @@ Note: More protocols can be easily added by implementing `ProtocolClient`, `Prot
 
 Note: More mediaTyes can be easily added by implementing `ContentCodec` interface.
 
-## Logging
+### Logging
 
 We used to have a node-wot-logger package to allow fine-grained logging (by means of Winston). It turned out though that depending on the actual use-case other logging libraries might be better suited. Hence we do not want to prescribe which logging library to use. Having said that, we use console statements which can be easily overriden to use the prefered logging library if needed (see [here](https://gist.github.com/spmason/1670196)).
