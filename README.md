@@ -225,8 +225,8 @@ You can also see `examples/scripts` to have a feeling of how to script a Thing.
 * HTTPS :heavy_check_mark:
 * CoAP :heavy_check_mark:
 * CoAPS :heavy_check_mark:
-* Websocket :heavy_plus_sign: (server only)
-* MQTT :heavy_plus_sign: (in dev branch)
+* Websocket :heavy_check_mark:
+* MQTT :heavy_check_mark:
 
 Note: More protocols can be easily added by implementing `ProtocolClient`, `ProtocolClientFactory`, and `ProtocolServer` interface.
 
