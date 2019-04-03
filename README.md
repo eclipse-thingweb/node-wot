@@ -1,5 +1,7 @@
 # Eclipse Thingweb node-wot
-W3C Web of Things implementation on NodeJS
+W3C Web of Things implementation on NodeJS.
+
+Visit http://www.thingweb.io for a hands-on tutorial or additional information.
 
 [![Build Status](https://travis-ci.org/eclipse/thingweb.node-wot.svg?branch=master)](https://travis-ci.org/eclipse/thingweb.node-wot)
 
