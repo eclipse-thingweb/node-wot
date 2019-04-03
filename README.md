@@ -235,6 +235,7 @@ Note: More protocols can be easily added by implementing `ProtocolClient`, `Prot
 * JSON :heavy_check_mark:
 * Plain text :heavy_check_mark:
 * CBOR :heavy_multiplication_x:
+* EXI :heavy_multiplication_x:
 
 Note: More mediaTyes can be easily added by implementing `ContentCodec` interface.
 
