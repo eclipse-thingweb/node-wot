@@ -4,11 +4,11 @@ W3C Web of Things implementation on NodeJS
 [![Build Status](https://travis-ci.org/eclipse/thingweb.node-wot.svg?branch=master)](https://travis-ci.org/eclipse/thingweb.node-wot)
 
 ### Table of Contents
-- [Licence](#licence)
+- [Licence](#license)
 - [Prerequisites](#prerequisites)
-- [How to get the library](#How%20to%20get%20the%20library)
-- [Start with an example](#No%20time%20for%20explanations%20-%20show%20me%20a%20running%20example!)
-- [How to use the library](#How%20to%20use%20the%20library)
+- [How to get the library](#how-to-get-the-library)
+- [Start with an example](#no-time-for-explanations---show-me-a-running-example)
+- [How to use the library](#how-to-use-the-library)
 
 ## License
 Dual-licensed under both
