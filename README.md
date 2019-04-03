@@ -56,7 +56,7 @@ Using a browser with only ES5 support (eg. IE 11) might be possible if you add p
 ## How to get the library
 ### As a Node.js dependency
 
-If you want to use node-wot as a library in your Node.js application, you can use npm to install the node-wot packages that you need. To do so, `cd` inside you application folder, an run:
+If you want to use node-wot as a library in your Node.js application, you can use npm to install the node-wot packages that you need. To do so, `cd` inside you application folder, and run:
 ```
 npm install @node-wot/core
 npm install @node-wot/binding-coap
