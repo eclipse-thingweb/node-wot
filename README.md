@@ -6,7 +6,7 @@ Visit http://www.thingweb.io for a hands-on tutorial or additional information.
 [![Build Status](https://travis-ci.org/eclipse/thingweb.node-wot.svg?branch=master)](https://travis-ci.org/eclipse/thingweb.node-wot)
 
 ### Table of Contents
-- [Licence](#license)
+- [License](#license)
 - [Prerequisites](#prerequisites)
 - [How to get the library](#how-to-get-the-library)
 - [Start with an example](#no-time-for-explanations---show-me-a-running-example)
