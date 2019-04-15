@@ -79,8 +79,6 @@ try {
     .then(() => {
         console.info(thing.name + " ready");
         console.log(JSON.stringify(thing, null, 2));
-        
-        
     })
     .catch(err => console.error("Expose error: " + err));
 } catch (err) {

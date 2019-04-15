@@ -26,13 +26,13 @@ import Helpers from "./helpers";
 import { Content } from "./protocol-interfaces";
 
 export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
-
-    //private restListeners: Map<string, ResourceListener> = new Map<string, ResourceListener>();
-    
     security: Array<String>;
     securityDefinitions: { [key: string]: WoT.Security };
 
+    id: string;
+    name: string;
     base: string;
+    forms: Array<WoT.Form>;
 
     /** A map of interactable Thing Properties with read()/write()/subscribe() functions */
     properties: {
@@ -256,12 +256,12 @@ class ExposedThingProperty extends TD.ThingProperty implements WoT.ThingProperty
     }
 
     /** WoT.ThingProperty interface: read this Property locally (async) */
-    public read(): Promise<any> {
+    public read(options?: any): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             // call read handler (if any)
             if (this.getState().readHandler != null) {
                 console.log(`ExposedThing '${this.getThing().name}' calls registered readHandler for Property '${this.getName()}'`);
-                this.getState().readHandler().then((customValue) => {
+                this.getState().readHandler(options).then((customValue) => {
                     // update internal state in case writeHandler wants to get the value
                     this.getState().value = customValue;
                     resolve(customValue);
@@ -274,13 +274,13 @@ class ExposedThingProperty extends TD.ThingProperty implements WoT.ThingProperty
     }
 
     /** WoT.ThingProperty interface: write this Property locally (async) */
-    public write(value: any): Promise<void> {
+    public write(value: any, options?: any): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             // call write handler (if any)
             if (this.getState().writeHandler != null) {
                 
                 // be generous when no promise is returned
-                let promiseOrValueOrNil = this.getState().writeHandler(value);
+                let promiseOrValueOrNil = this.getState().writeHandler(value, options);
                 
                 if (promiseOrValueOrNil !== undefined) {
                     if (typeof promiseOrValueOrNil.then === "function") {
@@ -351,13 +351,13 @@ class ExposedThingAction extends TD.ThingAction implements WoT.ThingAction {
     }
 
     /** WoT.ThingAction interface: invoke this Action locally (async) */
-    public invoke(parameter?: any): Promise<any> {
+    public invoke(parameter?: any, options?: any): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             console.debug(`ExposedThing '${this.getThing().name}' has Action state of '${this.getName()}':`, this.getState());
 
             if (this.getState().handler != null) {
                 console.log(`ExposedThing '${this.getThing().name}' calls registered handler for Action '${this.getName()}'`);
-                resolve(this.getState().handler(parameter));
+                resolve(this.getState().handler(parameter, options));
             } else {
                 reject(new Error(`ExposedThing '${this.getThing().name}' has no handler for Action '${this.getName()}'`));
             }
