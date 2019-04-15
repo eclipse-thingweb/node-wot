@@ -134,8 +134,28 @@ export default class CoapClient implements ProtocolClient {
   }
 
   public subscribeResource(form: CoapForm, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): any {
-    error(new Error(`CoapClient does not implement subscribe`));
-    return null;
+    let req = this.generateRequest(form, "GET", true);
+
+    console.log(`CoapClient sending ${req.statusCode} to ${form.href}`);
+
+    req.on("response", (res: any) => {
+      console.log(`CoapClient received ${res.code} from ${form.href}`);
+      console.debug(`CoapClient received Content-Format: ${res.headers["Content-Format"]}`);
+
+      // FIXME does not work with blockwise because of node-coap
+      let contentType = res.headers["Content-Format"];
+      if (!contentType) contentType = form.contentType;
+
+      res.on('data', (data: any) => {
+        next({ type: contentType, body: res.payload });
+      });
+    });
+
+    req.on("error", (err: any) => error(err));
+
+    req.end();
+
+    return new Subscription( () => {} );
   }
 
   public start(): boolean {
@@ -166,7 +186,7 @@ export default class CoapClient implements ProtocolClient {
     return options;
   }
 
-  private generateRequest(form: CoapForm, dflt: string): any {
+  private generateRequest(form: CoapForm, dflt: string, observable: boolean = false): any {
 
     let options: CoapRequestConfig = this.uriToOptions(form.href);
 
@@ -182,6 +202,7 @@ export default class CoapClient implements ProtocolClient {
         default: console.warn("CoapClient got invalid 'methodCode', using default", options.method);
       }
     }
+    options.observe = observable;
 
     let req = this.agent.request(options);
 

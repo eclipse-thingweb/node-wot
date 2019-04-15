@@ -145,9 +145,13 @@ export function serializeTD(thing: Thing): string {
     copy.security = ["nosec_sc"];
   }
 
-  if (!copy.properties || Object.keys(copy.properties).length === 0) {
+  if (copy.forms && copy.forms.length === 0) {
+    delete copy.forms;
+  }
+
+  if (copy.properties && Object.keys(copy.properties).length === 0) {
     delete copy.properties;
-  } else {
+  } else if(copy.properties) {
     // add mandatory fields (if missing): observable, writeOnly, and readOnly
     for (let propName in copy.properties) {
       let prop = copy.properties[propName];
@@ -163,9 +167,9 @@ export function serializeTD(thing: Thing): string {
     }
   }
 
-  if (!copy.actions || Object.keys(copy.actions).length === 0) {
+  if (copy.actions && Object.keys(copy.actions).length === 0) {
     delete copy.actions;
-  } else {
+  } else if (copy.actions) {
     // add mandatory fields (if missing): idempotent and safe
     for (let actName in copy.actions) {
       let act = copy.actions[actName];

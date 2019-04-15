@@ -96,8 +96,8 @@ export default class DefaultServient extends Servient {
                 this.addServer(coapServer);
             }
             if (this.config.mqtt !== undefined) {
-                let mqttBrokerServer = new MqttServer(new ExternalBrokerProxy(this.config.mqtt.broker));
-                this.addServer(mqttBrokerServer);
+                let mqttServer = new MqttServer(new ExternalBrokerProxy(this.config.mqtt.broker));
+                this.addServer(mqttServer);
             }
         }
 

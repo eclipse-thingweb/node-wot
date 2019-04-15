@@ -71,7 +71,9 @@ export abstract class ThingInteraction implements WoT.InteractionFragment {
   description: string;
   descriptions: WoT.MultiLanguage;
   scopes: Array<string>;
-  uriVariables: WoT.DataSchema;
+  uriVariables: {
+    [key: string]: WoT.DataSchema;
+  }
   security: Array<string>;
   forms: Array<Form>;
 

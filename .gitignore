@@ -63,3 +63,4 @@ packages/*
 !packages/cli
 !packages/demo-servients
 !packages/integration-tests
+!packages/browser-bundle

@@ -33,12 +33,15 @@ export default class HttpServer implements ProtocolServer {
 
   public readonly scheme: "http" | "https";
 
+  private readonly ALL_DIR = "all";
+  private readonly ALL_PROPERTIES = "properties";
   private readonly PROPERTY_DIR = "properties";
   private readonly ACTION_DIR = "actions";
   private readonly EVENT_DIR = "events";
 
   private readonly OBSERVABLE_DIR = "observable";
 
+  private readonly OPTIONS_URI_VARIABLES ='uriVariables';
 
   private readonly port: number = 8080;
   private readonly address: string = undefined;
@@ -144,6 +147,25 @@ export default class HttpServer implements ProtocolServer {
       return -1;
     }
   }
+
+
+  private updateInteractionNameWithUriVariablePattern(interactionName: string, uriVariables: {[key: string]: WoT.DataSchema;}) : string {
+    if(uriVariables && Object.keys(uriVariables).length > 0) {
+      let pattern = "{?"
+      let index = 0;
+      for(let key in uriVariables) {
+        if(index != 0) {
+          pattern += ",";
+        }
+        pattern += encodeURIComponent(key);
+        index++;
+      }
+      pattern += "}";
+      return encodeURIComponent(interactionName) + pattern;
+    } else {
+      return encodeURIComponent(interactionName);
+    }
+  }
   
   public expose(thing: ExposedThing): Promise<void> {
 
@@ -163,8 +185,18 @@ export default class HttpServer implements ProtocolServer {
         for (let type of ContentSerdes.get().getOfferedMediaTypes()) {
           let base: string = this.scheme + "://" + address + ":" + this.getPort() + "/" + encodeURIComponent(name);
 
+          if(true) { // make reporting of all properties optional?
+            let href = base + "/" + this.ALL_DIR + "/" + encodeURIComponent(this.ALL_PROPERTIES);
+            let form = new TD.Form(href, type);
+            if(!thing.forms) {
+              thing.forms = [];
+            }
+            thing.forms.push(form);
+          }
+
           for (let propertyName in thing.properties) {
-            let href = base + "/" + this.PROPERTY_DIR + "/" + encodeURIComponent(propertyName);
+            let propertyNamePattern = this.updateInteractionNameWithUriVariablePattern(propertyName, thing.properties[propertyName].uriVariables);
+            let href = base + "/" + this.PROPERTY_DIR + "/" + propertyNamePattern;
             let form = new TD.Form(href, type);
             if (thing.properties[propertyName].readOnly) {
               form.op = ["readproperty"];
@@ -189,7 +221,8 @@ export default class HttpServer implements ProtocolServer {
           }
           
           for (let actionName in thing.actions) {
-            let href = base + "/" + this.ACTION_DIR + "/" + encodeURIComponent(actionName);
+            let actionNamePattern = this.updateInteractionNameWithUriVariablePattern(actionName, thing.actions[actionName].uriVariables);
+            let href = base + "/" + this.ACTION_DIR + "/" + actionNamePattern;
             let form = new TD.Form(href, type);
             form.op = ["invokeaction"];
             thing.actions[actionName].forms.push(form);
@@ -197,7 +230,8 @@ export default class HttpServer implements ProtocolServer {
           }
           
           for (let eventName in thing.events) {
-            let href = base + "/" + this.EVENT_DIR + "/" + encodeURIComponent(eventName);
+            let eventNamePattern = this.updateInteractionNameWithUriVariablePattern(eventName, thing.events[eventName].uriVariables);
+            let href = base + "/" + this.EVENT_DIR + "/" + eventNamePattern;
             let form = new TD.Form(href, type);
             form.subprotocol = "longpoll";
             form.op = ["subscribeevent"];
@@ -209,7 +243,7 @@ export default class HttpServer implements ProtocolServer {
 
       if (this.scheme === "https") {
         thing.securityDefinitions = {
-          "basic_sc": {"scheme":"basic"}
+          "basic_sc": {"scheme":"basic", "in":"header"}
         };
         thing.security = ["basic_sc"];
       }
@@ -247,6 +281,35 @@ export default class HttpServer implements ProtocolServer {
     }
   }
 
+   private parseUrlParameters(url: string, uriVariables: { [key: string]: WoT.DataSchema }): {[k: string]: any} {
+    let params: {[k: string]: any} = {};
+    if (url == null || !uriVariables) {
+      return params;
+    }
+
+    var queryparams = url.split('?')[1]; 
+    if (queryparams == null) {
+      return params;
+    }
+    var queries = queryparams.split("&");
+
+    queries.forEach((indexQuery: string) => {
+        var indexPair = indexQuery.split("=");
+
+        var queryKey : string = decodeURIComponent(indexPair[0]);
+        var queryValue : string = decodeURIComponent(indexPair.length > 1 ? indexPair[1] : "");
+
+        if(uriVariables[queryKey].type === "integer" || uriVariables[queryKey].type === "number") {
+          // *cast* it to number
+          params[queryKey] = +queryValue;
+        } else {
+          params[queryKey] = queryValue;
+        }
+    });
+
+    return params;
+  }
+
   private handleRequest(req: http.IncomingMessage, res: http.ServerResponse) {
     
     let requestUri = url.parse(req.url);
@@ -256,11 +319,25 @@ export default class HttpServer implements ProtocolServer {
       console.log(`HttpServer on port ${this.getPort()} replied with '${res.statusCode}' to ${Helpers.toUriLiteral(req.socket.remoteAddress)}:${req.socket.remotePort}`);
     });
 
+    // Handle requests where the path is correct and the HTTP method is not allowed.
+    function respondUnallowedMethod(res: http.ServerResponse, allowed: string): void {
+      // Always allow OPTIONS to handle CORS pre-flight requests
+      if (!allowed.includes("OPTIONS")) { allowed += ", OPTIONS"}
+      if (req.method === "OPTIONS" && req.headers["origin"] && req.headers["access-control-request-method"]) {
+        console.debug(`HttpServer received an CORS preflight request from ${Helpers.toUriLiteral(req.socket.remoteAddress)}:${req.socket.remotePort}`);
+        res.setHeader("Access-Control-Allow-Methods", allowed);
+        res.setHeader("Access-Control-Allow-Headers", "content-type, authorization, *");
+        res.writeHead(200);
+        res.end();
+      } else {
+        res.setHeader("Allow", allowed);
+        res.writeHead(405);
+        res.end("Method Not Allowed");
+      }
+    }
+
     // Set CORS headers
     res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Request-Method", "*");
-    res.setHeader("Access-Control-Allow-Methods", "OPTIONS, HEAD, GET, POST, PUT, DELETE, PATCH");
-    res.setHeader("Access-Control-Allow-Headers", "content-type, authorization, *");
 
     let contentTypeHeader: string | string[] = req.headers["content-type"];
     let contentType: string = Array.isArray(contentTypeHeader) ? contentTypeHeader[0] : contentTypeHeader;
@@ -295,8 +372,7 @@ export default class HttpServer implements ProtocolServer {
         }
         res.end(JSON.stringify(list));
       } else {
-        res.writeHead(405);
-        res.end("Method Not Allowed");
+        respondUnallowedMethod(res, "GET");
       }
       // resource found and response sent
       return;
@@ -313,8 +389,7 @@ export default class HttpServer implements ProtocolServer {
             res.writeHead(200);
             res.end(thing.getThingDescription());
           } else {
-            res.writeHead(405);
-            res.end("Method Not Allowed");
+            respondUnallowedMethod(res, "GET");
           }
           // resource found and response sent
           return;
@@ -328,10 +403,51 @@ export default class HttpServer implements ProtocolServer {
             return;
           }
           
-          if (segments[2] === this.PROPERTY_DIR) {
+          if (segments[2] === this.ALL_DIR) {
+            if(this.ALL_PROPERTIES == segments[3]) {
+              if (req.method === "GET") {
+                let obj: {[k: string]: any} = {};
+                let promises = [];
+
+                for (let key in thing.properties) {
+                  let property = thing.properties[key].read();
+                  promises.push(property);
+                }
+
+                Promise.all(promises)
+                    .then((value) => {
+                      let index = 0;
+                      for (let key in thing.properties) {
+                        // TODO proper contentType handling
+                        // let property = thing.properties[key];
+                        // let content = ContentSerdes.get().valueToContent(value[index], <any>property);
+                        // obj[key] = content.body;
+                        obj[key] = value[index];
+                        index++;
+                      }
+                      // res.setHeader("Content-Type", content.type);
+                      res.writeHead(200);
+                      res.end(JSON.stringify(obj));
+                    })
+                    .catch(err => {
+                      console.error(`HttpServer on port ${this.getPort()} got internal error on read '${requestUri.pathname}': ${err.message}`);
+                      res.writeHead(500);
+                      res.end(err.message);
+                    });
+              } else {
+                respondUnallowedMethod(res, "GET");
+              }
+              // resource found and response sent
+              return;
+            }
+          } else if (segments[2] === this.PROPERTY_DIR) {
             // sub-path -> select Property
             let property = thing.properties[segments[3]];
             if (property) {
+
+              let params : {[k: string]: any} = this.parseUrlParameters(req.url, property.uriVariables);
+              let options: {[k: string]: any} = {};
+              options[this.OPTIONS_URI_VARIABLES] = params;
                
               if (req.method === "GET") {
 
@@ -364,7 +480,7 @@ export default class HttpServer implements ProtocolServer {
                   res.setTimeout(60*60*1000, () => subscription.unsubscribe());
 
                 } else {
-                  property.read()
+                  property.read(options)
                     .then((value) => {
                       let content = ContentSerdes.get().valueToContent(value, <any>property);
                       res.setHeader("Content-Type", content.type);
@@ -393,7 +509,7 @@ export default class HttpServer implements ProtocolServer {
                       res.end("Invalid Data");
                       return;
                     }
-                    property.write(value)
+                    property.write(value, options)
                       .then(() => {
                         res.writeHead(204);
                         res.end("Changed");
@@ -409,8 +525,7 @@ export default class HttpServer implements ProtocolServer {
                   res.end("Property readOnly");
                 }
               } else {
-                res.writeHead(405);
-                res.end("Method Not Allowed");
+                respondUnallowedMethod(res, "GET, PUT");
               }
               // resource found and response sent
               return;
@@ -418,7 +533,7 @@ export default class HttpServer implements ProtocolServer {
 
           } else if (segments[2] === this.ACTION_DIR) {
             // sub-path -> select Action
-            let action = thing.actions[segments[3]];
+            let action : WoT.ThingAction = thing.actions[segments[3]];
             if (action) {
               if (req.method === "POST") {
                 // load payload
@@ -435,7 +550,12 @@ export default class HttpServer implements ProtocolServer {
                     res.end("Invalid Input Data");
                     return;
                   }
-                  action.invoke(input)
+                  
+                  let params : {[k: string]: any} = this.parseUrlParameters(req.url, action.uriVariables);
+                  let options: {[k: string]: any} = {};
+                  options[this.OPTIONS_URI_VARIABLES] = params;
+
+                  action.invoke(input, options)
                     .then((output) => {
                       if (output) {
                         let content = ContentSerdes.get().valueToContent(output, action.output);
@@ -454,8 +574,7 @@ export default class HttpServer implements ProtocolServer {
                     });
                 });
               } else {
-                res.writeHead(405);
-                res.end("Method Not Allowed");
+                respondUnallowedMethod(res, "POST");
               }
               // resource found and response sent
               return;
@@ -492,8 +611,7 @@ export default class HttpServer implements ProtocolServer {
                 });
                 res.setTimeout(60*60*1000, () => subscription.unsubscribe());
               } else {
-                res.writeHead(405);
-                res.end("Method Not Allowed");
+                respondUnallowedMethod(res, "GET")
               }
               // resource found and response sent
               return;
