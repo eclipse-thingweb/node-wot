@@ -11,11 +11,11 @@
     "coap": {
         "port": 5683
     },
-    "_mqtt" : {
+    "mqtt" : {
         "broker" : "mqtt://test.mosquitto.org",
         "username" : "username",
         "password" : "password",
-	"clientId" : "uniqueId",
+	    "clientId" : "uniqueId",
         "port": 1883 
     },
     "log": {

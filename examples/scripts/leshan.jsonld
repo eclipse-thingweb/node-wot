@@ -2,8 +2,10 @@
     "id": "urn:dev:wot:org:eclipse:leshan",
     "name": "LeshanServer",
     "description": "Leshan OMA LWM2M sandbox",
-    "security": [{ "scheme": "psk"}],
-    "base": "",
+    "security": ["psk_sec"],
+    "securityDefinitions": {
+        "psk_sec": { "scheme": "psk"}
+    },
     "properties": {
         "res": {
             "description": "Look-up Interface",

@@ -15,6 +15,7 @@
 
 let td = 
 `{
+    "@context": "https://www.w3.org/2019/td/v1",
     "name": "MQTT Counter",
     "id": "urn:dev:wot:mqtt:counter",
     "actions" : {
@@ -26,7 +27,9 @@ let td =
     }, 
     "events": {
         "temperature": {
-            "type": "integer",
+            "data": {
+                "type": "integer"
+            },
             "forms": [
                 {"href": "mqtt://test.mosquitto.org:1883/MQTT-Test/events/counterEvent",  "mqtt:qos":  0, "mqtt:retain" : false}
             ]
@@ -41,28 +44,23 @@ try {
     console.info("==========");
 
     source.events.temperature.subscribe(
-            x => {
-                console.info("value:", x);
-            },
-            e => console.error("onError: %s", e),
-            () => {
-                console.info("onCompleted");
-            }
+            response => console.info("value:", x),
+            error => console.error("Error: %s", e),
+            () => console.info("Completed")
         );
     console.info("Subscribed");
 
 
     setInterval( async () => {
-        source.actions.resetCounter.invoke().then( (res) => {
-
-        }).catch( (err) => {
+        source.actions.resetCounter.invoke()
+        .then( (res) => { } )
+        .catch( (err) => {
             console.error("ResetCounter error:", err.message);
         });
-
         console.info("Reset counter!",);
     }, 20000);
 
 
 } catch(err) {
     console.error("Script error: " + err);
-  }
+}
