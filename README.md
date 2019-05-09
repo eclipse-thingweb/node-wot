@@ -244,3 +244,23 @@ Note: More mediaTyes can be easily added by implementing `ContentCodec` interfac
 ### Logging
 
 We used to have a node-wot-logger package to allow fine-grained logging (by means of Winston). It turned out though that depending on the actual use-case other logging libraries might be better suited. Hence we do not want to prescribe which logging library to use. Having said that, we use console statements which can be easily overriden to use the prefered logging library if needed (see [here](https://gist.github.com/spmason/1670196)).
+
+### Install new/different versions of NodeJS
+
+Using NPM, you can install NodeJS independent from the usually outdated package managers such as apt. This is nicely done by n:
+```
+sudo npm cache clean -f
+sudo npm install -g n
+```
+To get the "stable" version:
+```
+sudo n stable
+```
+To get the "latest" version:
+```
+sudo n latest
+```
+Finally, make the node command available through:
+```
+sudo ln -sf /usr/local/n/versions/node/<VERSION>/bin/node /usr/bin/node
+```
