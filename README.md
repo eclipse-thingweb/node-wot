@@ -159,7 +159,7 @@ Without the "Link Packages" step, the `wot-servient` command is not available an
 # expose
 node packages\cli\dist\cli.js examples\scripts\counter.js
 # consume
-node packages\cli\dist\cli.js examples\scripts\counter-client.js
+node packages\cli\dist\cli.js --clientonly examples\scripts\counter-client.js
 ```
 
 * Go to http://localhost:8080/counter and you'll find a thing description
