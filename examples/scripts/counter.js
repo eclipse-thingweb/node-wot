@@ -14,6 +14,7 @@
  ********************************************************************************/
 
 const NAME_PROPERTY_COUNT = "count";
+const NAME_PROPERTY_LAST_CHANGE = "lastChange";
 const NAME_ACTION_INCREMENT = "increment";
 const NAME_ACTION_DECREMENT = "decrement";
 const NAME_ACTION_RESET = "reset";
@@ -33,9 +34,17 @@ thing.addProperty(
 		description: "current counter value",
 		"iot:Custom": "example annotation",
 		observable: true,
-		writable: true
+		readOnly: false
 	},
 	0);
+thing.addProperty(
+	NAME_PROPERTY_LAST_CHANGE,
+	{
+		type: "string",
+		description: "last change of counter value",
+		observable: true,
+	},
+	(new Date()).toUTCString());
 
 thing.addAction(
 	NAME_ACTION_INCREMENT,
@@ -45,6 +54,7 @@ thing.addAction(
 		return thing.properties[NAME_PROPERTY_COUNT].read().then( (count) => {
 			let value = count + 1;
 			thing.properties[NAME_PROPERTY_COUNT].write(value);
+			thing.properties[NAME_PROPERTY_LAST_CHANGE].write((new Date()).toUTCString());
 		});
 	});
 
@@ -56,6 +66,7 @@ thing.addAction(
 		return thing.properties[NAME_PROPERTY_COUNT].read().then( (count) => {
 			let value = count - 1;
 			thing.properties[NAME_PROPERTY_COUNT].write(value);
+			thing.properties[NAME_PROPERTY_LAST_CHANGE].write((new Date()).toUTCString());
 		});
 	});
 
@@ -65,9 +76,9 @@ thing.addAction(
 	() => {
 		console.log("Resetting");
 		thing.properties[NAME_PROPERTY_COUNT].write(0);
+		thing.properties[NAME_PROPERTY_LAST_CHANGE].write((new Date()).toUTCString());
 	});
 
-// test setting metadata
 thing["support"] = "git://github.com/eclipse/thingweb.node-wot.git";
 
 thing.expose().then( () => { console.info(thing.name + " ready"); } );

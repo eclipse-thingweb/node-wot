@@ -38,14 +38,14 @@ try {
     });
   // make available via bindings
   thing.expose().then(() => {
-    console.info(thing.name + "ready");
+    console.info(thing.name + " ready");
     setInterval( () => {
       ++counter;
       thing.events.onchange.emit(counter);
-      console.info("Emitted change", counter);
+      console.info("Emitted change ", counter);
     }, 5000);
-  }).catch((err) => { console.error("Expose error:", err) });
+  }).catch((err) => { console.error("Expose error: ", err) });
   
 } catch (err) {
-    console.error("Script error:", err);
+    console.error("Script error: ", err);
 }
