@@ -283,6 +283,104 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
         });
     }
 
+    public subscribeProperty(name: string, listener: WoT.WotListener): Promise<void> {
+        return new Promise<any>((resolve, reject) => {
+            let tp : WoT.ThingProperty  = this.properties[name];
+            let { client, form } = this.getClientFor(tp.forms, "observeproperty");
+            if (!client) {
+                reject(new Error(`ConsumedThing '${this.name}' did not get suitable client for ${form.href}`));
+            } else {
+                console.log(`ConsumedThing '${this.name}' subscribing to ${form.href}`);
+
+                return client.subscribeResource(form,
+                    (content) => {
+                        if (!content.type) content.type = form.contentType;
+                        try {
+                            let value = ContentManager.contentToValue(content, <any>this);
+                            // next(value);
+                            listener(value);
+                        } catch {
+                            // error(new Error(`Received invalid content from Thing`));
+                            listener("error");
+                        }
+                    },
+                    (err) => {
+                        // error(err);
+                        listener(err);
+                    },
+                    () => {
+                        // complete();
+                        listener("complete");
+                    }
+                );
+            }
+        });
+    }
+
+    
+    public unsubscribeProperty(name: string): Promise<void> {
+        return new Promise<any>((resolve, reject) => {
+            let tp : WoT.ThingProperty  = this.properties[name];
+            let { client, form } = this.getClientFor(tp.forms, "unobserveproperty");
+            if (!client) {
+                reject(new Error(`ConsumedThing '${this.name}' did not get suitable client for ${form.href}`));
+            } else {
+                console.log(`ConsumedThing '${this.name}' unsubscribing to ${form.href}`);
+
+                // XXX
+            }
+        });
+    }
+
+    public subscribeEvent(name: string, listener: WoT.WotListener): Promise<void> {
+        return new Promise<any>((resolve, reject) => {
+            let te : WoT.ThingEvent  = this.events[name];
+            let { client, form } = this.getClientFor(te.forms, "subscribeevent");
+            if (!client) {
+                reject(new Error(`ConsumedThing '${this.name}' did not get suitable client for ${form.href}`));
+            } else {
+                console.log(`ConsumedThing '${this.name}' subscribing to ${form.href}`);
+
+                return client.subscribeResource(form,
+                    (content) => {
+                        if (!content.type) content.type = form.contentType;
+                        try {
+                            let value = ContentManager.contentToValue(content, <any>this);
+                            // next(value);
+                            listener(value);
+                        } catch {
+                            // error(new Error(`Received invalid content from Thing`));
+                            listener(new Error(`Received invalid content from Thing`));
+                        }
+                    },
+                    (err) => {
+                        // error(err);
+                        listener(err);
+                    },
+                    () => {
+                        // complete();
+                        listener("complete");
+                    }
+                );
+            }
+        });
+    }
+
+    
+    public unsubscribeEvent(name: string): Promise<void> {
+        return new Promise<any>((resolve, reject) => {
+            let te : WoT.ThingEvent  = this.events[name];
+            let { client, form } = this.getClientFor(te.forms, "unsubscribeevent");
+            if (!client) {
+                reject(new Error(`ConsumedThing '${this.name}' did not get suitable client for ${form.href}`));
+            } else {
+                console.log(`ConsumedThing '${this.name}' unsubscribing to ${form.href}`);
+
+                // XXX
+            }
+        });
+    }
+
 }
 
 export interface ClientAndForm {

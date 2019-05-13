@@ -398,6 +398,30 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             }
         });
     }
+
+    public subscribeProperty(name: string, listener: WoT.WotListener): Promise<void> {
+        return new Promise<any>((resolve, reject) => {
+            reject(new Error(`TODO`));
+        });
+    }
+
+    public unsubscribeProperty(name: string): Promise<void> {
+        return new Promise<any>((resolve, reject) => {
+            reject(new Error(`TODO`));
+        });
+    }
+
+    public subscribeEvent(name: string, listener: WoT.WotListener): Promise<void> {
+        return new Promise<any>((resolve, reject) => {
+            reject(new Error(`TODO`));
+        });
+    }
+
+    public unsubscribeEvent(name: string): Promise<void> {
+        return new Promise<any>((resolve, reject) => {
+            reject(new Error(`TODO`));
+        });
+    }
 }
 
 class ExposedThingProperty extends TD.ThingProperty implements WoT.ThingProperty, WoT.BaseSchema {

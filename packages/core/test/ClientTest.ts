@@ -431,6 +431,67 @@ class WoTClientTest {
             .catch(err => { done(err) });
     }
 
+
+    @test "subscribe to property"(done: Function) {
+        
+        WoTClientTest.clientFactory.setTrap(
+            () => {
+                return { contentType: "application/json", body: Buffer.from("triggered") };
+            }
+        )
+
+        WoTClientTest.WoT.fetch("td://foo")
+            .then((td) => {
+                let thing = WoTClientTest.WoT.consume(td);
+                expect(thing).to.have.property("name").that.equals("aThing");
+                expect(thing).to.have.property("properties").that.has.property("aProperty");
+                thing.events.anEvent.subscribe(
+                    (x: any) => {
+                        expect(x).to.equal("triggered");
+                    },
+                    (e: any) => {
+                        done(e);
+                    },
+                    () => {
+                        done();
+                    }
+                );
+            })
+            .catch(err => { done(err) });
+    }
+
+    @test "subscribe to property (next API)"(done: Function) {
+        
+        WoTClientTest.clientFactory.setTrap(
+            () => {
+                return { contentType: "application/json", body: Buffer.from("12") };
+            }
+        )
+
+        WoTClientTest.WoT.fetch("td://foo")
+            .then((td) => {
+                let thing = WoTClientTest.WoT.consume(td);
+                expect(thing).to.have.property("name").that.equals("aThing");
+                expect(thing).to.have.property("properties").that.has.property("aProperty");
+
+                thing.subscribeProperty("aProperty",
+                    (data: any) => {
+                        // console.log("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX " + data);
+                        if(data == 12) {
+                            done();
+                        }
+                        // expect(data).to.equal(12);
+                        // expect(data).to.equal(undefined);
+                        // done();
+                    }
+                );
+
+                // thing.writeProperty("aProperty", 123);
+                // thing.properties["aProperty"].write(12);
+            })
+            .catch(err => { done(err) });
+    }
+
     @test "subscribe to event"(done: Function) {
         
         WoTClientTest.clientFactory.setTrap(
@@ -453,6 +514,32 @@ class WoTClientTest {
                     },
                     () => {
                         done();
+                    }
+                );
+            })
+            .catch(err => { done(err) });
+    }
+
+
+    @test "subscribe to event (next API)"(done: Function) {
+        
+        WoTClientTest.clientFactory.setTrap(
+            () => {
+                return { contentType: "application/json", body: Buffer.from("triggered") };
+            }
+        )
+
+        WoTClientTest.WoT.fetch("td://foo")
+            .then((td) => {
+                let thing = WoTClientTest.WoT.consume(td);
+                expect(thing).to.have.property("name").that.equals("aThing");
+                expect(thing).to.have.property("events").that.has.property("anEvent");
+
+                thing.subscribeEvent("anEvent",
+                    (data: any) => {
+                        if(data == "triggered") {
+                            done();
+                        }
                     }
                 );
             })
