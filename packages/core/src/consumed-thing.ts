@@ -191,7 +191,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                 resolve(allProps);
             })
             .catch(err => {
-                reject(new Error(`ConsumedThing '${this.name}', failed to read propertes: ` + propertyNames));
+                reject(new Error(`ConsumedThing '${this.name}', failed to read properties: ` + propertyNames));
             });
         });
     }
