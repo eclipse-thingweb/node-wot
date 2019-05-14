@@ -283,14 +283,14 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
         });
     }
 
-    public subscribeProperty(name: string, listener: WoT.WotListener): Promise<void> {
+    public observeProperty(name: string, listener: WoT.WotListener): Promise<void> {
         return new Promise<any>((resolve, reject) => {
             let tp : WoT.ThingProperty  = this.properties[name];
             let { client, form } = this.getClientFor(tp.forms, "observeproperty");
             if (!client) {
                 reject(new Error(`ConsumedThing '${this.name}' did not get suitable client for ${form.href}`));
             } else {
-                console.log(`ConsumedThing '${this.name}' subscribing to ${form.href}`);
+                console.log(`ConsumedThing '${this.name}' observing to ${form.href}`);
 
                 return client.subscribeResource(form,
                     (content) => {
@@ -318,14 +318,14 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     }
 
     
-    public unsubscribeProperty(name: string): Promise<void> {
+    public unobserveProperty(name: string): Promise<void> {
         return new Promise<any>((resolve, reject) => {
             let tp : WoT.ThingProperty  = this.properties[name];
             let { client, form } = this.getClientFor(tp.forms, "unobserveproperty");
             if (!client) {
                 reject(new Error(`ConsumedThing '${this.name}' did not get suitable client for ${form.href}`));
             } else {
-                console.log(`ConsumedThing '${this.name}' unsubscribing to ${form.href}`);
+                console.log(`ConsumedThing '${this.name}' unobserveing to ${form.href}`);
 
                 // XXX
             }

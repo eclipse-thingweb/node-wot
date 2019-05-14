@@ -460,7 +460,7 @@ class WoTClientTest {
             .catch(err => { done(err) });
     }
 
-    @test "subscribe to property (next API)"(done: Function) {
+    @test "observe property (next API)"(done: Function) {
         
         WoTClientTest.clientFactory.setTrap(
             () => {
@@ -474,7 +474,7 @@ class WoTClientTest {
                 expect(thing).to.have.property("name").that.equals("aThing");
                 expect(thing).to.have.property("properties").that.has.property("aProperty");
 
-                thing.subscribeProperty("aProperty",
+                thing.observeProperty("aProperty",
                     (data: any) => {
                         // console.log("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX " + data);
                         if(data == 12) {
