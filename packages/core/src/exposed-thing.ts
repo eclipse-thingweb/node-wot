@@ -401,25 +401,25 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 
     public observeProperty(name: string, listener: WoT.WotListener): Promise<void> {
         return new Promise<any>((resolve, reject) => {
-            reject(new Error(`TODO`));
+            reject(new Error(`TODO observeProperty`));
         });
     }
 
     public unobserveProperty(name: string): Promise<void> {
         return new Promise<any>((resolve, reject) => {
-            reject(new Error(`TODO`));
+            reject(new Error(`TODO unobserveProperty`));
         });
     }
 
     public subscribeEvent(name: string, listener: WoT.WotListener): Promise<void> {
         return new Promise<any>((resolve, reject) => {
-            reject(new Error(`TODO`));
+            reject(new Error(`TODO subscribeEvent`));
         });
     }
 
     public unsubscribeEvent(name: string): Promise<void> {
         return new Promise<any>((resolve, reject) => {
-            reject(new Error(`TODO`));
+            reject(new Error(`TODO unsubscribeEvent`));
         });
     }
 }
