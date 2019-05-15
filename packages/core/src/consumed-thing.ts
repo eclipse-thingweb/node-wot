@@ -27,6 +27,7 @@ import { default as ContentManager } from "./content-serdes"
 import { Subscribable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
 import { Form } from "@node-wot/td-tools";
+import UriTemplate = require('uritemplate');
 
 export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing {
 
@@ -158,31 +159,20 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
             updForm.scopes = form.scopes;
             updForm.response = form.response;
 
-            // TODO look more closely into RFC6570 syntax (https://tools.ietf.org/html/rfc6570)
-            let uritemplateStart = shref.indexOf("{?");
+            // see RFC6570 (https://tools.ietf.org/html/rfc6570) for URI Template syntax
+            let uritemplateStart = shref.lastIndexOf("{?");
             if (uritemplateStart > 0) {
                 // uri{?x,y} --> uri
                 // Note: update URI in any case given that variables might be optional
                 updForm.href = shref.substring(0, uritemplateStart);
 
                 if (parameter !== undefined && typeof parameter === 'object') {
-                    let sparams = shref.substring(uritemplateStart + 2, shref.length - 1);
-                    let params: string[] = sparams.split(",");
-                    // check parameters
-                    let uriAdds = "";
-                    let firstParameter = true;
-                    for (let p of params) {
-                        if (parameter[p]) {
-                            if (firstParameter) {
-                                firstParameter = false;
-                                uriAdds += "?" + p + "=" + parameter[p];
-                            } else {
-                                uriAdds += "&" + p + "=" + parameter[p];
-                            }
-                        }
+                    let templateText = shref.substring(uritemplateStart, shref.length);
+                    let ut = UriTemplate.parse(templateText);
+                    let utAddition = ut.expand(parameter);
+                    if(utAddition && utAddition.length > 0) {
+                        updForm.href += utAddition;
                     }
-
-                    updForm.href += uriAdds;
                 }
 
                 form = updForm;
