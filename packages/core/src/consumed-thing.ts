@@ -26,6 +26,8 @@ import { default as ContentManager } from "./content-serdes"
 
 import { Subscribable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
+import { Form } from "@node-wot/td-tools";
+import UriTemplate = require('uritemplate');
 
 export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing {
 
@@ -144,6 +146,27 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
             return { client: client, form: form }
         }
     }
+
+    // creates new form (if needed) for URI Variables
+    // http://192.168.178.24:8080/counter/actions/increment{?step} with '{'step' : 3}' --> http://192.168.178.24:8080/counter/actions/increment?step=3
+    // see RFC6570 (https://tools.ietf.org/html/rfc6570) for URI Template syntax
+    handleUriVariables(form: WoT.Form, parameter: any): WoT.Form {
+        let ut = UriTemplate.parse(form.href);
+        let updatedHref = ut.expand(parameter == undefined ? {} : parameter);
+        if(updatedHref != form.href) {
+            // "clone" form to avoid modifying original form
+            let updForm = new Form(updatedHref, form.contentType);
+            updForm.op = form.op;
+            updForm.security = form.security;
+            updForm.scopes = form.scopes;
+            updForm.response = form.response;
+
+            form = updForm;
+            console.log(`ConsumedThing '${this.name}' update form URI to ${form.href}`);
+        }
+        
+        return form;
+    }
 }
 
 export interface ClientAndForm {
@@ -174,6 +197,10 @@ class ConsumedThingProperty extends TD.ThingProperty implements WoT.ThingPropert
                 reject(new Error(`ConsumedThing '${this.getThing().name}' did not get suitable client for ${form.href}`));
             } else {
                 console.log(`ConsumedThing '${this.getThing().name}' reading ${form.href}`);
+                                
+                // uriVariables ?
+                form = this.getThing().handleUriVariables(form, undefined);
+
                 client.readResource(form).then((content) => {
                     if (!content.type) content.type = form.contentType;
                     try {
@@ -198,6 +225,9 @@ class ConsumedThingProperty extends TD.ThingProperty implements WoT.ThingPropert
             } else {
                 console.log(`ConsumedThing '${this.getThing().name}' writing ${form.href} with '${value}'`);
                 let content = ContentManager.valueToContent(value, <any>this, form.contentType);
+
+                // uriVariables ?
+                form = this.getThing().handleUriVariables(form, value);
 
                 client.writeResource(form, content).then(() => {
                     resolve();
@@ -261,10 +291,12 @@ class ConsumedThingAction extends TD.ThingAction implements WoT.ThingAction {
                 console.log(`ConsumedThing '${this.getThing().name}' invoking ${form.href}${parameter!==undefined ? " with '"+parameter+"'" : ""}`);
 
                 let input;
-                
                 if (parameter!== undefined) {
                     input = ContentManager.valueToContent(parameter, <any>this, form.contentType);
                 }
+				
+                // uriVariables ?
+                form = this.getThing().handleUriVariables(form, parameter);
 
                 client.invokeResource(form, input).then((content) => {
                     // infer media type from form if not in response metadata
