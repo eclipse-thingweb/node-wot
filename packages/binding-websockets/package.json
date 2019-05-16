@@ -18,10 +18,6 @@
     "@types/chai": "4.0.4",
     "@types/node": "10.9.4",
     "@types/ws": "5.1.2",
-    "wot-typescript-definitions": "0.6.0",
-    "@node-wot/binding-http": "0.6.2-SNAPSHOT.1",
-    "@node-wot/td-tools": "0.6.2-SNAPSHOT.1",
-    "@node-wot/core": "0.6.2-SNAPSHOT.1",
     "chai": "4.1.2",
     "mocha": "3.5.3",
     "mocha-typescript": "1.1.8",
@@ -30,6 +26,9 @@
     "typescript-standard": "0.3.30"
   },
   "dependencies": {
+    "@node-wot/td-tools": "0.6.2-SNAPSHOT.1",
+    "@node-wot/core": "0.6.2-SNAPSHOT.1",
+    "@node-wot/binding-http": "0.6.2-SNAPSHOT.1",
     "ws": "5.1.1"
   },
   "scripts": {
