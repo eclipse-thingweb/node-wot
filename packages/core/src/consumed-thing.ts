@@ -149,37 +149,26 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
 
     // creates new form (if needed) for URI Variables
     // http://192.168.178.24:8080/counter/actions/increment{?step} with '{'step' : 3}' --> http://192.168.178.24:8080/counter/actions/increment?step=3
+    // see RFC6570 (https://tools.ietf.org/html/rfc6570) for URI Template syntax
     handleUriVariables(form: WoT.Form, parameter: any): WoT.Form {
-        let shref = form.href.trim();
-        if (shref.endsWith("}")) {
+        if (parameter == undefined) {
+            parameter = {}; // needed for UriTemplate 
+        }
+
+        let ut = UriTemplate.parse(form.href);
+        let updatedHref = ut.expand(parameter);
+        if(updatedHref != form.href) {
             // "clone" form to avoid modifying original form
-            let updForm = new Form(form.href, form.contentType);
+            let updForm = new Form(updatedHref, form.contentType);
             updForm.op = form.op;
             updForm.security = form.security;
             updForm.scopes = form.scopes;
             updForm.response = form.response;
 
-            // see RFC6570 (https://tools.ietf.org/html/rfc6570) for URI Template syntax
-            let uritemplateStart = shref.lastIndexOf("{?");
-            if (uritemplateStart > 0) {
-                // uri{?x,y} --> uri
-                // Note: update URI in any case given that variables might be optional
-                updForm.href = shref.substring(0, uritemplateStart);
-
-                if (parameter !== undefined && typeof parameter === 'object') {
-                    let templateText = shref.substring(uritemplateStart, shref.length);
-                    let ut = UriTemplate.parse(templateText);
-                    let utAddition = ut.expand(parameter);
-                    if(utAddition && utAddition.length > 0) {
-                        updForm.href += utAddition;
-                    }
-                }
-
-                form = updForm;
-                console.log(`ConsumedThing '${this.name}' update form URI to ${form.href}`);
-            }
+            form = updForm;
+            console.log(`ConsumedThing '${this.name}' update form URI to ${form.href}`);
         }
-
+        
         return form;
     }
 }
