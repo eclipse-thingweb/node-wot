@@ -151,12 +151,8 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     // http://192.168.178.24:8080/counter/actions/increment{?step} with '{'step' : 3}' --> http://192.168.178.24:8080/counter/actions/increment?step=3
     // see RFC6570 (https://tools.ietf.org/html/rfc6570) for URI Template syntax
     handleUriVariables(form: WoT.Form, parameter: any): WoT.Form {
-        if (parameter == undefined) {
-            parameter = {}; // needed for UriTemplate 
-        }
-
         let ut = UriTemplate.parse(form.href);
-        let updatedHref = ut.expand(parameter);
+        let updatedHref = ut.expand(parameter == undefined ? {} : parameter);
         if(updatedHref != form.href) {
             // "clone" form to avoid modifying original form
             let updForm = new Form(updatedHref, form.contentType);
