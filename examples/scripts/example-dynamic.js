@@ -14,7 +14,7 @@
  ********************************************************************************/
 
 try {
-  var thing = WoT.produce({ name: "DynamicThing" });
+  var thing = WoT.produce({ title: "DynamicThing" });
   // manually add Interactions
   thing
     .addAction(

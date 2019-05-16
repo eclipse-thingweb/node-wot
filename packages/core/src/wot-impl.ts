@@ -42,7 +42,7 @@ export default class WoTImpl implements WoT.WoTFactory {
     }
 
     /** @inheritDoc */
-    fetch(uri: USVString): Promise<WoT.ThingDescription> {
+    fetch(uri: string): Promise<WoT.ThingDescription> {
         return new Promise<WoT.ThingDescription>((resolve, reject) => {
             let client = this.srv.getClientFor(Helpers.extractScheme(uri));
             console.info(`WoTImpl fetching TD from '${uri}' with ${client}`);
@@ -83,7 +83,7 @@ export default class WoTImpl implements WoT.WoTFactory {
 
         newThing.extendInteractions();
 
-        console.info(`WoTImpl consuming TD ${newThing.id ? "'" + newThing.id + "'" : "without id"} to instantiate ConsumedThing '${newThing.name}'`);
+        console.info(`WoTImpl consuming TD ${newThing.id ? "'" + newThing.id + "'" : "without id"} to instantiate ConsumedThing '${newThing.title}'`);
         return newThing;
     }
 
@@ -95,13 +95,13 @@ export default class WoTImpl implements WoT.WoTFactory {
         return arg.length !== undefined;
     }
     isWoTThingFragment(arg: any): arg is WoT.ThingFragment {
-        return arg.name !== undefined;
+        return arg.title !== undefined;
     }
 
     /**
      * create a new Thing
      *
-     * @param name name/identifier of the thing to be created
+     * @param title title/identifier of the thing to be created
      */
     produce(model: WoT.ThingModel): WoT.ExposedThing {
         
@@ -153,24 +153,24 @@ export default class WoTImpl implements WoT.WoTFactory {
         // augment Interaction descriptions with interactable functions
         newThing.extendInteractions();
 
-        console.info(`WoTImpl producing new ExposedThing '${newThing.name}'`);
+        console.info(`WoTImpl producing new ExposedThing '${newThing.title}'`);
 
         if (this.srv.addThing(newThing)) {
             return newThing;
         } else {
-            throw new Error("Thing already exists: " + newThing.name);
+            throw new Error("Thing already exists: " + newThing.title);
         }
     }
 
     /** @inheritDoc */
-    register(directory: USVString, thing: WoT.ExposedThing): Promise<void> {
+    register(directory: string, thing: WoT.ExposedThing): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             reject(new Error("WoT.register not implemented"));
         });
     }
 
     /** @inheritDoc */
-    unregister(directory: USVString, thing: WoT.ExposedThing): Promise<void> {
+    unregister(directory: string, thing: WoT.ExposedThing): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             reject(new Error("WoT.unregister not implemented"));
         });

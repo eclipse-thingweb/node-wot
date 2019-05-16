@@ -96,7 +96,7 @@ export default class FujitsuServer implements ProtocolServer {
 
   public expose(thing: ExposedThing): Promise<void> {
 
-    console.log(`FujitsuServer for ${this.remote} exposes '${thing.name}'`);
+    console.log(`FujitsuServer for ${this.remote} exposes '${thing.title}'`);
     this.things.set(thing.id, thing);
 
     // create a copy for Fujitsu-specific href handles

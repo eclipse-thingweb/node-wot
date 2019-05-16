@@ -65,7 +65,7 @@ class WoTServerTest {
 
     @test "should be able to add a Thing based on WoT.ThingFragment"() {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({
-            name: "myFragmentThing",
+            title: "myFragmentThing",
             support: "none",
             "test:custom": "test",
             properties: {
@@ -75,11 +75,11 @@ class WoTServerTest {
 
         expect(thing).to.exist;
         // round-trip
-        expect(JSON.parse(thing.getThingDescription()).name).to.equal("myFragmentThing");
+        expect(JSON.parse(thing.getThingDescription()).title).to.equal("myFragmentThing");
         expect(JSON.parse(thing.getThingDescription()).support).to.equal("none");
         expect(JSON.parse(thing.getThingDescription())["test:custom"]).to.equal("test");
         // direct access
-        expect(thing).to.have.property("name").that.equals("myFragmentThing");
+        expect(thing).to.have.property("title").that.equals("myFragmentThing");
         expect(thing).to.have.property("support").that.equals("none");
         expect(thing).to.have.property("test:custom").that.equals("test");
         expect(thing).to.have.property("properties");
@@ -90,7 +90,7 @@ class WoTServerTest {
         let desc = `{
             "@context": ["https://w3c.github.io/wot/w3c-wot-td-context.jsonld"],
             "@type": ["Thing"],
-            "name": "myDescriptionThing",
+            "title": "myDescriptionThing",
             "support": "none",
             "test:custom": "test",
             "properties": {
@@ -102,11 +102,11 @@ class WoTServerTest {
 
         expect(thing).to.exist;
         // round-trip
-        expect(JSON.parse(thing.getThingDescription()).name).to.equal("myDescriptionThing");
+        expect(JSON.parse(thing.getThingDescription()).title).to.equal("myDescriptionThing");
         expect(JSON.parse(thing.getThingDescription()).support).to.equal("none");
         expect(JSON.parse(thing.getThingDescription())["test:custom"]).to.equal("test");
         // direct access
-        expect(thing).to.have.property("name").that.equals("myDescriptionThing");
+        expect(thing).to.have.property("title").that.equals("myDescriptionThing");
         expect(thing).to.have.property("support").that.equals("none");
         expect(thing).to.have.property("test:custom").that.equals("test");
         expect(thing).to.have.property("properties");
@@ -114,7 +114,7 @@ class WoTServerTest {
     }
 
     @test async "should be able to add a property with default value 0"() {
-        let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "ThingWith1" });
+        let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ title: "ThingWith1" });
         let initp: WoT.PropertyFragment = {
             type: "number"
         };
@@ -130,7 +130,7 @@ class WoTServerTest {
 
 
     @test async "should be able to add a property with default value XYZ"() {
-        let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "ThingWithXYZ" });
+        let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ title: "ThingWithXYZ" });
         let initp: WoT.PropertyFragment = {
             type: "string"
         };
@@ -145,7 +145,7 @@ class WoTServerTest {
     }
 
     @test async "should be able to add a property without any default value"() {
-        let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "ThingWithNothing" });
+        let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ title: "ThingWithNothing" });
         let initp: WoT.PropertyFragment = {
             type: "number"
         };
@@ -160,7 +160,7 @@ class WoTServerTest {
     }
 
     @test async "should be able to read and write Property locally"() {
-        let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "thing3" });
+        let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ title: "thing3" });
         let initp: WoT.PropertyFragment = {
             type: "number"
         };
@@ -175,7 +175,7 @@ class WoTServerTest {
     }
 
     @test async "should be able to read Property with read handler (incrementing with lambda)"() {
-        let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "otherthingIncRead" });
+        let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ title: "otherthingIncRead" });
         let initp: WoT.PropertyFragment = {
             type: "number"
         };
@@ -195,7 +195,7 @@ class WoTServerTest {
     }
 
     @test async "should be able to read Property with read handler (incrementing with function)"() {
-        let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "otherthingIncRead2" });
+        let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ title: "otherthingIncRead2" });
         let initp: WoT.PropertyFragment = {
             type: "number"
         };
@@ -215,7 +215,7 @@ class WoTServerTest {
     }
 
     @test async "should be able to read Property with read handler (incrementing with handler scope state)"() {
-        let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "otherthingIncRead3" });
+        let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ title: "otherthingIncRead3" });
         let initp: WoT.PropertyFragment = {
             type: "number"
         };
@@ -242,7 +242,7 @@ class WoTServerTest {
     }
 
     @test async "should be able to write Property with write handler (summing)"() {
-        let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "otherthingReadWrite" });
+        let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ title: "otherthingReadWrite" });
         let initp: WoT.PropertyFragment = {
             type: "number"
         };
@@ -284,7 +284,7 @@ class WoTServerTest {
     }
 
     @test async "should be able to write Property from any write handler (doubling)"() {
-        let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "otherthingWrite" });
+        let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ title: "otherthingWrite" });
         let initp: WoT.PropertyFragment = {
             type: "number"
         };
@@ -326,7 +326,7 @@ class WoTServerTest {
 
     @test "should be able to add an action and invoke it locally (based on addAction())"() {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({
-            name: "thing6"
+            title: "thing6"
         });
         let inita: WoT.ActionFragment = {
             input: { type: "number" },
@@ -353,7 +353,7 @@ class WoTServerTest {
 
     @test "should be able to add an action and invoke it locally (based on WoT.ThingFragment)"() {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({
-            name: "thing6c",
+            title: "thing6c",
             actions: {
                 action1: {
                     input: { type: "number" },
@@ -384,7 +384,7 @@ class WoTServerTest {
         let thing: WoT.ExposedThing = WoTServerTest.WoT.produce(`{
             "@context": ["https://w3c.github.io/wot/w3c-wot-td-context.jsonld"],
             "@type": ["Thing"],
-            "name": "thing6b",
+            "title": "thing6b",
             "actions": {
                 "action1" : {
                     "input": { "type": "number" },

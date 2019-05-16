@@ -16,7 +16,7 @@
 let td = 
 `{
     "@context": "https://www.w3.org/2019/td/v1",
-    "name": "MQTT Counter",
+    "title": "MQTT Counter",
     "id": "urn:dev:wot:mqtt:counter",
     "actions" : {
         "resetCounter": {

@@ -97,21 +97,21 @@ export default class CoapServer implements ProtocolServer {
 
   public expose(thing: ExposedThing): Promise<void> {
 
-    let name = thing.name;
+    let title = thing.title;
 
-    if (this.things.has(name)) {
-      name = Helpers.generateUniqueName(name);
+    if (this.things.has(title)) {
+      title = Helpers.generateUniqueName(title);
     }
 
-    console.log(`CoapServer on port ${this.getPort()} exposes '${thing.name}' as unique '/${name}'`);
+    console.log(`CoapServer on port ${this.getPort()} exposes '${thing.title}' as unique '/${title}'`);
 
     if (this.getPort() !== -1) {
-      this.things.set(name, thing);
+      this.things.set(title, thing);
 
       // fill in binding data
       for (let address of Helpers.getAddresses()) {
         for (let type of ContentSerdes.get().getOfferedMediaTypes()) {
-          let base: string = this.scheme + "://" + address + ":" + this.getPort() + "/" + encodeURIComponent(name);
+          let base: string = this.scheme + "://" + address + ":" + this.getPort() + "/" + encodeURIComponent(title);
 
           for (let propertyName in thing.properties) {
             let href = base + "/" + this.PROPERTY_DIR + "/" + encodeURIComponent(propertyName);

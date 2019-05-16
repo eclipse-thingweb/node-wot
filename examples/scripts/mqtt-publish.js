@@ -16,7 +16,7 @@
 try {
   var counter  = 0;
   var thing = WoT.produce({ 
-      name: "MQTT-Test",
+      title: "MQTT-Test",
       description: "Tests a MQTT client that published counter values as an WoT event and subscribes the resetCounter topic as WoT action to reset the own counter."
   });
 
@@ -38,7 +38,7 @@ try {
       });
   
   thing.expose().then(() => {
-    console.info(thing.name + " ready");
+    console.info(thing.title + " ready");
     setInterval(() => {
         ++counter;
         thing.events.counterEvent.emit(counter);

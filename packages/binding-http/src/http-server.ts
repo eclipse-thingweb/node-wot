@@ -169,21 +169,21 @@ export default class HttpServer implements ProtocolServer {
   
   public expose(thing: ExposedThing): Promise<void> {
 
-    let name = thing.name;
+    let title = thing.title;
 
-    if (this.things.has(name)) {
-      name = Helpers.generateUniqueName(name);
+    if (this.things.has(title)) {
+      title = Helpers.generateUniqueName(title);
     }
 
     if (this.getPort() !== -1) {
 
-      console.log(`HttpServer on port ${this.getPort()} exposes '${thing.name}' as unique '/${name}'`);
-      this.things.set(name, thing);
+      console.log(`HttpServer on port ${this.getPort()} exposes '${thing.title}' as unique '/${title}'`);
+      this.things.set(title, thing);
 
       // fill in binding data
       for (let address of Helpers.getAddresses()) {
         for (let type of ContentSerdes.get().getOfferedMediaTypes()) {
-          let base: string = this.scheme + "://" + address + ":" + this.getPort() + "/" + encodeURIComponent(name);
+          let base: string = this.scheme + "://" + address + ":" + this.getPort() + "/" + encodeURIComponent(title);
 
           if(true) { // make reporting of all properties optional?
             let href = base + "/" + this.ALL_DIR + "/" + encodeURIComponent(this.ALL_PROPERTIES);

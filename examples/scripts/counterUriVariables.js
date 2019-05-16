@@ -19,12 +19,12 @@ const NAME_ACTION_DECREMENT = "decrement";
 const NAME_ACTION_RESET = "reset";
 
 let thing = WoT.produce({
-		name: "counter",
+		title: "counter",
 		description: "counter example Thing",
 		"@context": ["http://www.w3.org/ns/td", {"iot": "http://example.org/iot"}],
 	});
 
-console.log("Produced " + thing.name);
+console.log("Produced " + thing.title);
 
 thing.addProperty(
 	NAME_PROPERTY_COUNT,
@@ -94,4 +94,4 @@ thing.addAction(
 // test setting metadata
 thing["support"] = "git://github.com/eclipse/thingweb.node-wot.git";
 
-thing.expose().then( () => { console.info(thing.name + " ready"); } );
+thing.expose().then( () => { console.info(thing.title + " ready"); } );

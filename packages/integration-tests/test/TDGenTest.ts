@@ -39,7 +39,7 @@ class TDGeneratorTest {
     
     let myWoT = await servient.start();
 
-    let thing: WoT.ExposedThing = myWoT.produce({ name: "TDGeneratorTest" });
+    let thing: WoT.ExposedThing = myWoT.produce({ title: "TDGeneratorTest" });
 
     thing.addProperty("prop1", { type: "number" });
     thing.addAction("act1", { input: { type: "string" } }, () => { return new Promise<void>((resolve, reject) => { resolve(); }); });
@@ -48,7 +48,7 @@ class TDGeneratorTest {
 
     let td: TD.Thing = TD.parseTD(thing.getThingDescription());
 
-    expect(td).to.have.property("name").that.equals("TDGeneratorTest");
+    expect(td).to.have.property("title").that.equals("TDGeneratorTest");
 
     let ser: Array<ProtocolServer> = servient.getServers();
 

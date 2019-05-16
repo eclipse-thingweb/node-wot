@@ -1,6 +1,6 @@
 {
     "id": "urn:dev:wot:org:eclipse:leshan",
-    "name": "LeshanServer",
+    "title": "LeshanServer",
     "description": "Leshan OMA LWM2M sandbox",
     "security": ["psk_sec"],
     "securityDefinitions": {

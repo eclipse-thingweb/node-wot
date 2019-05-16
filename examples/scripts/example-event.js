@@ -17,7 +17,7 @@ try {
   // internal state, not exposed as Property
   var counter = 0;
 
-  var thing = WoT.produce({ name: "EventSource" });
+  var thing = WoT.produce({ title: "EventSource" });
   // manually add Interactions
   thing.addAction(
     "reset",
@@ -38,7 +38,7 @@ try {
     });
   // make available via bindings
   thing.expose().then(() => {
-    console.info(thing.name + " ready");
+    console.info(thing.title + " ready");
     setInterval( () => {
       ++counter;
       thing.events.onchange.emit(counter);

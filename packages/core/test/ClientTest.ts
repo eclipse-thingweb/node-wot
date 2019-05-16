@@ -158,7 +158,7 @@ let myThingDesc = {
     "@context": ["https://w3c.github.io/wot/w3c-wot-td-context.jsonld"],
     "@type": ["Thing"],
     id: "urn:dev:wot:test-thing",
-    name: "aThing",
+    title: "aThing",
     security: [{ scheme: "nosec" }],
     properties: {
         aProperty: {
@@ -220,7 +220,7 @@ class WoTClientTest {
         WoTClientTest.WoT.fetch("td://foo")
             .then((td) => {
                 let thing = WoTClientTest.WoT.consume(td);
-                expect(thing).to.have.property("name").that.equals("aThing");
+                expect(thing).to.have.property("title").that.equals("aThing");
                 expect(thing.properties).to.have.property("aProperty");
 
                 return thing.properties.aProperty.read();
@@ -244,7 +244,7 @@ class WoTClientTest {
         WoTClientTest.WoT.fetch("td://foo")
             .then((td) => {
                 let thing = WoTClientTest.WoT.consume(td);
-                expect(thing).to.have.property("name").that.equals("aThing");
+                expect(thing).to.have.property("title").that.equals("aThing");
                 expect(thing).to.have.property("properties").that.has.property("aProperty");
                 return thing.properties["aProperty"].write(23);
             })
@@ -308,7 +308,7 @@ class WoTClientTest {
         WoTClientTest.WoT.fetch("td://foo")
             .then((td) => {
                 let thing = WoTClientTest.WoT.consume(td);
-                expect(thing).to.have.property("name").that.equals("aThing");
+                expect(thing).to.have.property("title").that.equals("aThing");
                 expect(thing).to.have.property("actions").that.has.property("anAction");
                 return thing.actions.anAction.invoke(23);
             })
@@ -331,7 +331,7 @@ class WoTClientTest {
         WoTClientTest.WoT.fetch("td://foo")
             .then((td) => {
                 let thing = WoTClientTest.WoT.consume(td);
-                expect(thing).to.have.property("name").that.equals("aThing");
+                expect(thing).to.have.property("title").that.equals("aThing");
                 expect(thing).to.have.property("events").that.has.property("anEvent");
                 thing.events.anEvent.subscribe(
                     (x: any) => {

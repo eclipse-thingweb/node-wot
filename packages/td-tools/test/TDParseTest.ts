@@ -27,7 +27,7 @@ import * as TDParser from "../src/td-parser";
 
 /** sample TD json-ld string from the CP page*/
 let tdSample1 = `{
-	"name": "MyTemperatureThing",
+	"title": "MyTemperatureThing",
 	"properties": {
 		"temperature": {
 			"type": "number",
@@ -41,7 +41,7 @@ let tdSample1 = `{
 /** sample TD json-ld string from the CP page*/
 let tdSample2 = `{
 	"@type": ["Thing"],
-	"name": "MyTemperatureThing2",
+	"title": "MyTemperatureThing2",
 	"properties": {
 		"temperature": {
 			"type": "number",
@@ -57,7 +57,7 @@ let tdSample2 = `{
 let tdSample3 = `{
 	"@context": ["http://www.w3.org/ns/td"],
 	"@type": ["Thing"],
-	"name": "MyTemperatureThing3",
+	"title": "MyTemperatureThing3",
 	"base": "coap://mytemp.example.com:5683/interactions/",
 	"properties": {
 		"temperature": {
@@ -112,7 +112,7 @@ let tdSampleLemonbeatBurlingame = `{
 		}
 	],
 	"@type": ["Thing"],
-	"name": "LemonbeatThings",
+	"title": "LemonbeatThings",
 	"base": "http://192.168.1.176:8080/",
 	"properties": {
     "luminance": {
@@ -182,7 +182,7 @@ let tdSampleMetadata1 = `{
 	"@context": ["http://www.w3.org/ns/td"],
 	"@type": ["Thing"],
 	"reference": "myTempThing",
-	"name": "MyTemperatureThing3",
+	"title": "MyTemperatureThing3",
 	"base": "coap://mytemp.example.com:5683/interactions/",
 	"properties": {
 		"myTemp": {
@@ -205,7 +205,7 @@ let tdSampleMetadata1 = `{
 let tdSimple1 = `{
   "@context": "http://www.w3.org/ns/td",
   "id": "urn:dev:wot:com:example:servient:lamp",
-  "name": "MyLampThing",
+  "title": "MyLampThing",
   "properties": {
       "status": {
         "readOnly": true,
@@ -236,7 +236,7 @@ let tdSimple1 = `{
 let tdBroken1 = `{
   "@context": "http://www.w3.org/ns/td",
   "id": "urn:dev:wot:com:example:servient:lamp",
-  "name": "MyLampThing",
+  "title": "MyLampThing",
   "properties": {
       "status": {
        "readOnly": true,
@@ -264,7 +264,7 @@ let tdBroken1 = `{
 }`;
 let tdBroken2 = `{
   "id": "urn:dev:wot:com:example:servient:lamp",
-  "name": "MyLampThing",
+  "title": "MyLampThing",
   "properties": {
       "status": {
        "readOnly": true,
@@ -291,7 +291,7 @@ let tdBroken2 = `{
 }`;
 let tdBroken3 = `{
   "id": "urn:dev:wot:com:example:servient:lamp",
-  "name": "MyLampThing",
+  "title": "MyLampThing",
   "properties": {
       "status": {
        "readOnly": true,
@@ -322,7 +322,7 @@ let tdBroken3 = `{
 class TDParserTest {
     
   @test "should insert context"() {
-    let testTD = `{ "name": "NoContext" }`;
+    let testTD = `{ "title": "NoContext" }`;
     let thing: Thing = TDParser.parseTD(testTD);
 
     console.dir(thing);
@@ -332,7 +332,7 @@ class TDParserTest {
   }
     
   @test "should add context to single string"() {
-    let testTD = `{ "name": "OtherContext", "@context": "http://iot.schema.org/", "@type": "iot:Sensor" }`;
+    let testTD = `{ "title": "OtherContext", "@context": "http://iot.schema.org/", "@type": "iot:Sensor" }`;
     let thing: Thing = TDParser.parseTD(testTD);
 
     console.dir(thing);
@@ -347,7 +347,7 @@ class TDParserTest {
   }
     
   @test "should add context to array"() {
-    let testTD = `{ "name": "OtherContext", "@context": ["http://iot.schema.org/"], "@type": ["iot:Sensor"] }`;
+    let testTD = `{ "title": "OtherContext", "@context": ["http://iot.schema.org/"], "@type": ["iot:Sensor"] }`;
     let thing: Thing = TDParser.parseTD(testTD);
     
     console.dir(thing);
@@ -362,7 +362,7 @@ class TDParserTest {
   }
     
   @test "should add context to object"() {
-    let testTD = `{ "name": "OtherContext", "@context": { "iot": "http://iot.schema.org/" } }`;
+    let testTD = `{ "title": "OtherContext", "@context": { "iot": "http://iot.schema.org/" } }`;
     let thing: Thing = TDParser.parseTD(testTD);
 
     console.dir(thing);
@@ -377,7 +377,7 @@ class TDParserTest {
 
     expect(thing).to.have.property("@context").that.equals(DEFAULT_CONTEXT);
     expect(thing).to.have.property("@type").that.equals("Thing");
-    expect(thing).to.have.property("name").that.equals("MyTemperatureThing");
+    expect(thing).to.have.property("title").that.equals("MyTemperatureThing");
     expect(thing).to.not.have.property("base");
 
     expect(thing.properties).to.have.property("temperature");
@@ -395,7 +395,7 @@ class TDParserTest {
     expect(thing).to.have.property("@context").that.contains(DEFAULT_CONTEXT);
     expect(thing).to.have.property("@type").that.has.lengthOf(1);
     expect(thing).to.have.property("@type").that.contains("Thing");
-    expect(thing).to.have.property("name").that.equals("MyTemperatureThing2");
+    expect(thing).to.have.property("title").that.equals("MyTemperatureThing2");
     expect(thing).to.not.have.property("base");
 
     expect(thing.properties).to.have.property("temperature");
@@ -413,7 +413,7 @@ class TDParserTest {
 
     expect(thing).to.have.property("@context").that.has.lengthOf(1);
     expect(thing).to.have.property("@context").contains(DEFAULT_CONTEXT);
-    expect(thing).to.have.property("name").that.equals("MyTemperatureThing3");
+    expect(thing).to.have.property("title").that.equals("MyTemperatureThing3");
     expect(thing).to.have.property("base").that.equals("coap://mytemp.example.com:5683/interactions/");
 
     expect(thing.properties).to.have.property("temperature");
@@ -484,7 +484,7 @@ class TDParserTest {
 
     expect(thing).to.have.property("@context").that.has.lengthOf(1);
     expect(thing).to.have.property("@context").contains(DEFAULT_CONTEXT);
-    expect(thing).to.have.property("name").that.equals("MyTemperatureThing3");
+    expect(thing).to.have.property("title").that.equals("MyTemperatureThing3");
     expect(thing).to.have.property("base").that.equals("coap://mytemp.example.com:5683/interactions/");
 
     // thing metadata "reference": "myTempThing" in metadata
@@ -528,7 +528,7 @@ class TDParserTest {
     // simple elements
     expect(thing).to.have.property("@context").that.equals(DEFAULT_CONTEXT);
     expect(thing.id).equals("urn:dev:wot:com:example:servient:lamp");
-    expect(thing.name).equals("MyLampThing");
+    expect(thing.title).equals("MyLampThing");
 
     // interaction arrays
     expect(thing).to.have.property("properties");
