@@ -28,7 +28,8 @@
     "@node-wot/td-tools": "0.6.1",
     "uuid": "3.3.2",
     "rxjs": "5.4.3",
-    "uritemplate": "0.3.4"
+    "uritemplate": "0.3.4",
+    "@types/uritemplate": "0.3.4"
   },
   "scripts": {
     "build": "tsc",
