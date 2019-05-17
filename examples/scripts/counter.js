@@ -22,7 +22,7 @@ const NAME_ACTION_RESET = "reset";
 let thing = WoT.produce({
 		title: "counter",
 		description: "counter example Thing",
-		"@context": ["http://www.w3.org/ns/td", {"iot": "http://example.org/iot"}],
+		"@context": ["https://www.w3.org/2019/wot/td/v1", {"iot": "http://example.org/iot"}],
 	});
 
 console.log("Produced " + thing.title);

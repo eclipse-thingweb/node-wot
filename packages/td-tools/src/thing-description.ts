@@ -16,7 +16,7 @@
 // global W3C WoT Scripting API definitions
 import * as WoT from "wot-typescript-definitions";
 
-export const DEFAULT_CONTEXT: string = "http://www.w3.org/ns/td";
+export const DEFAULT_CONTEXT: string = "https://www.w3.org/2019/wot/td/v1";
 export const DEFAULT_THING_TYPE: string = "Thing";
 
 /* TODOs / Questions

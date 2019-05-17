@@ -55,7 +55,7 @@ let tdSample2 = `{
 }`;
 /** sample TD json-ld string from the CP page*/
 let tdSample3 = `{
-	"@context": ["http://www.w3.org/ns/td"],
+	"@context": ["https://www.w3.org/2019/wot/td/v1"],
 	"@type": ["Thing"],
 	"title": "MyTemperatureThing3",
 	"base": "coap://mytemp.example.com:5683/interactions/",
@@ -105,7 +105,7 @@ let tdSample3 = `{
 /** sample TD json-ld string from the CP page*/
 let tdSampleLemonbeatBurlingame = `{
 	"@context": [
-		"http://www.w3.org/ns/td",
+		"https://www.w3.org/2019/wot/td/v1",
 		{
 			"actuator": "http://example.org/actuator#",
 			"sensor": "http://example.org/sensors#"
@@ -179,7 +179,7 @@ let tdSampleLemonbeatBurlingame = `{
 
 /** sample metadata TD */
 let tdSampleMetadata1 = `{
-	"@context": ["http://www.w3.org/ns/td"],
+	"@context": ["https://www.w3.org/2019/wot/td/v1"],
 	"@type": ["Thing"],
 	"reference": "myTempThing",
 	"title": "MyTemperatureThing3",
@@ -203,7 +203,7 @@ let tdSampleMetadata1 = `{
 
 /** Simplified TD */
 let tdSimple1 = `{
-  "@context": "http://www.w3.org/ns/td",
+  "@context": "https://www.w3.org/2019/wot/td/v1",
   "id": "urn:dev:wot:com:example:servient:lamp",
   "title": "MyLampThing",
   "properties": {
@@ -234,7 +234,7 @@ let tdSimple1 = `{
 
 /** Broken TDs */
 let tdBroken1 = `{
-  "@context": "http://www.w3.org/ns/td",
+  "@context": "https://www.w3.org/2019/wot/td/v1",
   "id": "urn:dev:wot:com:example:servient:lamp",
   "title": "MyLampThing",
   "properties": {
