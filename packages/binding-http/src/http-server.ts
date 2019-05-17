@@ -188,6 +188,8 @@ export default class HttpServer implements ProtocolServer {
           if(true) { // make reporting of all properties optional?
             let href = base + "/" + this.ALL_DIR + "/" + encodeURIComponent(this.ALL_PROPERTIES);
             let form = new TD.Form(href, type);
+            // Note: currently no check is made about writable/readable
+            form.op = ["readallproperties", "readmultipleproperties", "writeallproperties", "writemultipleproperties"];
             if(!thing.forms) {
               thing.forms = [];
             }
