@@ -123,6 +123,12 @@ export function parseTD(td: string, normalize?: boolean): Thing {
 
           let href: string = url.resolve(base, form.href) // URL resolving
           href = href.replace('http:', scheme); // replace protocol back to origin
+
+          // url modul does not properly handle uriVariables: the curly braces {} are replaced by their %-escapes
+          // https://github.com/eclipse/thingweb.node-wot/issues/97
+          href = href.replace('%7B', "{");
+          href = href.replace('%7D', "}");
+
           form.href = href;
         }
       }
