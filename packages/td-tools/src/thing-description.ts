@@ -34,6 +34,9 @@ export default class Thing implements WoT.ThingFragment {
   titles: WoT.MultiLanguage;
   description: string;
   descriptions: WoT.MultiLanguage;
+  support: string;
+  modified: string;
+  created: string;
   version: VersionInfo;
   securityDefinitions: {
     [key: string]: WoT.Security;
