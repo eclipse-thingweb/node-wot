@@ -549,4 +549,122 @@ class TDParserTest {
 
   }
 
+  @test "uriVarables in combination with and without http base"() {
+    // see https://github.com/eclipse/thingweb.node-wot/issues/97
+
+    let tdTest = `{
+      "@context": "https://www.w3.org/2019/wot/td/v1",
+      "id": "urn:dev:wot:com:example:servient:urivarables",
+      "base": "coap://localhost:8080/uv/",
+      "title": "UriVarables",
+      "properties": {
+        "without": {
+          "readOnly": true,
+          "observable": false,
+          "type": "string",
+          "forms": [{
+            "href": "coap://localhost:8080/uv/without{?step}",
+            "contentType": "application/json"
+          }]
+        },
+        "with1": {
+          "readOnly": true,
+          "observable": false,
+          "type": "string",
+          "forms": [{
+            "href": "with1{?step}",
+            "contentType": "application/json"
+          }]
+        },
+        "with2": {
+          "readOnly": true,
+          "observable": false,
+          "type": "string",
+          "forms": [{
+            "href": "with2{?step,a}",
+            "contentType": "application/json"
+          }]
+        }
+      }
+    }`;
+
+
+    let thing: Thing = TDParser.parseTD(tdTest);
+
+    // simple elements
+    expect(thing).to.have.property("@context").that.equals(DEFAULT_CONTEXT);
+    expect(thing.id).equals("urn:dev:wot:com:example:servient:urivarables");
+    expect(thing.title).equals("UriVarables");
+
+    // interaction arrays
+    expect(thing).to.have.property("properties");
+
+    expect(thing.properties).to.have.property("without");
+    expect(thing.properties["without"].forms[0].href).equals("coap://localhost:8080/uv/" + "without{?step}");
+
+    expect(thing.properties).to.have.property("with1");
+    expect(thing.properties["with1"].forms[0].href).equals("coap://localhost:8080/uv/" + "with1{?step}");
+
+    expect(thing.properties).to.have.property("with2");
+    expect(thing.properties["with2"].forms[0].href).equals("coap://localhost:8080/uv/" + "with2{?step,a}");
+  }
+
+  @test "uriVarables in combination with and without coap base"() {
+    let tdTest = `{
+      "@context": "https://www.w3.org/2019/wot/td/v1",
+      "id": "urn:dev:wot:com:example:servient:urivarables",
+      "base": "http://localhost:8080/uv/",
+      "title": "UriVarables",
+      "properties": {
+        "without": {
+          "readOnly": true,
+          "observable": false,
+          "type": "string",
+          "forms": [{
+            "href": "http://localhost:8080/uv/without{?step}",
+            "contentType": "application/json"
+          }]
+        },
+        "with1": {
+          "readOnly": true,
+          "observable": false,
+          "type": "string",
+          "forms": [{
+            "href": "with1{?step}",
+            "contentType": "application/json"
+          }]
+        },
+        "with2": {
+          "readOnly": true,
+          "observable": false,
+          "type": "string",
+          "forms": [{
+            "href": "with2{?step,a}",
+            "contentType": "application/json"
+          }]
+        }
+      }
+    }`;
+
+
+    let thing: Thing = TDParser.parseTD(tdTest);
+
+    // simple elements
+    expect(thing).to.have.property("@context").that.equals(DEFAULT_CONTEXT);
+    expect(thing.id).equals("urn:dev:wot:com:example:servient:urivarables");
+    expect(thing.title).equals("UriVarables");
+
+    // interaction arrays
+    expect(thing).to.have.property("properties");
+
+    expect(thing.properties).to.have.property("without");
+    expect(thing.properties["without"].forms[0].href).equals("http://localhost:8080/uv/" + "without{?step}");
+
+    expect(thing.properties).to.have.property("with1");
+    expect(thing.properties["with1"].forms[0].href).equals("http://localhost:8080/uv/" + "with1{?step}");
+
+    expect(thing.properties).to.have.property("with2");
+    expect(thing.properties["with2"].forms[0].href).equals("http://localhost:8080/uv/" + "with2{?step,a}");
+  }
+
 }

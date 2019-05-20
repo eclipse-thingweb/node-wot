@@ -17,6 +17,7 @@ import Thing from "./thing-description";
 import * as TD from "./thing-description";
 
 const isAbsoluteUrl = require('is-absolute-url');
+let URLToolkit = require('url-toolkit');
 
 /** Parses a TD into a Thing object */
 export function parseTD(td: string, normalize?: boolean): Thing {
@@ -122,20 +123,10 @@ export function parseTD(td: string, normalize?: boolean): Thing {
     if (normalize === undefined || normalize === true) {
       console.log(`parseTD() normalizing 'base' into 'forms'`);
 
-      const url = require('url');
-      /* url modul works only for http --> so replace URI scheme with
-        http and after resolving replace again replace with original scheme */
-      let n: number = thing.base.indexOf(':');
-      let scheme: string = thing.base.substr(0, n + 1); // save origin protocol
-      let base: string = thing.base.replace(scheme, 'http:'); // replace protocol
-
       for (let form of allForms) {
         if (!form.href.match(/^([a-z0-9\+-\.]+\:).+/i)) {
           console.debug(`parseTDString() applying base '${thing.base}' to '${form.href}'`);
-
-          let href: string = url.resolve(base, form.href) // URL resolving
-          href = href.replace('http:', scheme); // replace protocol back to origin
-          form.href = href;
+          form.href = URLToolkit.buildAbsoluteURL(thing.base, form.href);
         }
       }
     }
