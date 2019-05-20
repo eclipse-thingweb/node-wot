@@ -28,7 +28,8 @@
   },
   "dependencies": {
     "wot-typescript-definitions": "0.6.2-SNAPSHOT.2",
-    "is-absolute-url": "2.1.0"
+    "is-absolute-url": "2.1.0",
+    "url-toolkit": "2.1.6"
   },
   "scripts": {
     "build": "tsc && webpack",

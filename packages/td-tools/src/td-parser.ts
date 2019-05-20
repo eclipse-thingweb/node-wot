@@ -17,6 +17,7 @@ import Thing from "./thing-description";
 import * as TD from "./thing-description";
 
 const isAbsoluteUrl = require('is-absolute-url');
+let URLToolkit = require('url-toolkit');
 
 /** Parses a TD into a Thing object */
 export function parseTD(td: string, normalize?: boolean): Thing {
@@ -110,26 +111,10 @@ export function parseTD(td: string, normalize?: boolean): Thing {
     if (normalize === undefined || normalize === true) {
       console.log(`parseTD() normalizing 'base' into 'forms'`);
 
-      const url = require('url');
-      /* url modul works only for http --> so replace URI scheme with
-        http and after resolving replace again replace with original scheme */
-      let n: number = thing.base.indexOf(':');
-      let scheme: string = thing.base.substr(0, n + 1); // save origin protocol
-      let base: string = thing.base.replace(scheme, 'http:'); // replace protocol
-
       for (let form of allForms) {
         if (!form.href.match(/^([a-z0-9\+-\.]+\:).+/i)) {
           console.debug(`parseTDString() applying base '${thing.base}' to '${form.href}'`);
-
-          let href: string = url.resolve(base, form.href) // URL resolving
-          href = href.replace('http:', scheme); // replace protocol back to origin
-
-          // url modul does not properly handle uriVariables: the curly braces {} are replaced by their %-escapes
-          // https://github.com/eclipse/thingweb.node-wot/issues/97
-          href = href.replace('%7B', "{");
-          href = href.replace('%7D', "}");
-
-          form.href = href;
+          form.href = URLToolkit.buildAbsoluteURL(thing.base, form.href);
         }
       }
     }
