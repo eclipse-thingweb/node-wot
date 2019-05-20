@@ -66,6 +66,18 @@ export function parseTD(td: string, normalize?: boolean): Thing {
       }
     }
   }
+  
+  if (thing.actions !== undefined && thing.actions instanceof Object) {
+    for (let actName in thing.actions) {
+      let act: WoT.ActionFragment = thing.actions[actName];
+      if (act.safe === undefined || typeof act.safe !== "boolean") {
+        act.safe = false;
+      }
+      if (act.idempotent === undefined || typeof act.idempotent !== "boolean") {
+        act.idempotent = false;
+      }
+    }
+  }
 
   // avoid errors due to 'undefined'
   if (typeof thing.properties !== 'object' || thing.properties === null) {
