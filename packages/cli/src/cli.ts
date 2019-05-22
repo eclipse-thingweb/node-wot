@@ -84,28 +84,29 @@ const runAllScripts = function(servient: DefaultServient) {
 }
 
 // main
-if (argv.length > 0) {
-    let argvCopy = argv.slice(0);
-    argvCopy.forEach( (arg) => {
-        if (flagArgConfigfile) {
-            flagArgConfigfile = false;
-            confFile = arg;
-            argv.shift();
+for( let i = 0; i < argv.length; i++){ 
+    if (flagArgConfigfile) {
+        flagArgConfigfile = false;
+        confFile = argv[i];
+        argv.splice(i, 1);
+        i--;
 
-        } else if (arg.match(/^(-c|--clientonly|\/c)$/i)) {
-            clientOnly = true;
-            argv.shift();
-        
-        } else if (arg.match(/^(-f|--configfile|\/f)$/i)) {
-            flagArgConfigfile = true;
-            argv.shift();
+    } else if (argv[i].match(/^(-c|--clientonly|\/c)$/i)) {
+        clientOnly = true;
+        argv.splice(i, 1);
+        i--;
+    
+    } else if (argv[i].match(/^(-f|--configfile|\/f)$/i)) {
+        flagArgConfigfile = true;
+        argv.splice(i, 1);
+        i--;
 
-        } else if (arg.match(/^(-v|--version|\/c)$/i)) {
-            console.log( require('@node-wot/core/package.json').version );
-            process.exit(0);
+    } else if (argv[i].match(/^(-v|--version|\/c)$/i)) {
+        console.log( require('@node-wot/core/package.json').version );
+        process.exit(0);
 
-        } else if (arg.match(/^(-h|--help|\/?|\/h)$/i)) {
-            console.log(`Usage: wot-servient [options] [SCRIPT]...
+    } else if (argv[i].match(/^(-h|--help|\/?|\/h)$/i)) {
+        console.log(`Usage: wot-servient [options] [SCRIPT]...
        wot-servient
        wot-servient examples/scripts/counter.js examples/scripts/example-event.js
        wot-servient -c counter-client.js
@@ -117,11 +118,11 @@ If one or more SCRIPT is given, these files are loaded instead of the directory.
 If the file 'wot-servient.conf.json' exists, that configuration is applied.
 
 Options:
-  -v, --version           display node-wot version
-  -c, --clientonly        do not start any servers
-                          (enables multiple instances without port conflicts)
-  -f, --configfile=file   load configuration from specified file
-  -h, --help              show this help
+  -v, --version            display node-wot version
+  -c, --clientonly         do not start any servers
+                           (enables multiple instances without port conflicts)
+  -f, --configfile <file>  load configuration from specified file
+  -h, --help               show this help
 
 wot-servient.conf.json syntax:
 {
@@ -162,9 +163,8 @@ wot-servient.conf.json fields:
   TOKEN      : string for providing a Bearer token
   USERNAME   : string for providing a Basic Auth username
   PASSWORD   : string for providing a Basic Auth password`);
-            process.exit(0);
-        }
-    });
+        process.exit(0);
+    }
 }
 
 readConf(confFile)
