@@ -98,6 +98,28 @@ export default class WoTImpl implements WoT.WoTFactory {
         return arg.title !== undefined;
     }
 
+
+    // Note: copy from td-parser.ts 
+    addDefaultLanguage(thing: any) {
+        // add @language : "en" if no @language set
+        if(Array.isArray(thing["@context"])) {
+          let arrayContext: Array<any> = thing["@context"];
+          let languageSet = false;
+          for (let arrayEntry of arrayContext) {
+            if(arrayEntry instanceof Object) {
+              if(arrayEntry["@language"] !== undefined) {
+                languageSet = true;
+              }
+            }
+          }
+          if(!languageSet) {
+            arrayContext.push({
+              "@language": TD.DEFAULT_CONTEXT_LANGUAGE
+            });
+          }
+        }
+      }
+
     /**
      * create a new Thing
      *
@@ -110,9 +132,11 @@ export default class WoTImpl implements WoT.WoTFactory {
         if (this.isWoTThingDescription(model)) {
             // FIXME should be constrained version of TD.parseTD() that omits instance-specific parts (but keeps "id")
             let template = JSON.parse(model);
+            this.addDefaultLanguage(template);
             newThing = Helpers.extend(template, new ExposedThing(this.srv));
 
         } else if (this.isWoTThingFragment(model)) {
+            this.addDefaultLanguage(model);
             let template = Helpers.extend(model, new TD.Thing());
             newThing = Helpers.extend(template, new ExposedThing(this.srv));
 

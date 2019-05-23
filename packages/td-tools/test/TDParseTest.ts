@@ -22,7 +22,7 @@ import { expect, should, assert } from "chai";
 // should must be called to augment all variables
 should();
 
-import Thing, { DEFAULT_CONTEXT, DEFAULT_THING_TYPE } from "../src/thing-description";
+import Thing, { DEFAULT_CONTEXT, DEFAULT_THING_TYPE, DEFAULT_CONTEXT_LANGUAGE } from "../src/thing-description";
 import * as TDParser from "../src/td-parser";
 
 /** sample TD json-ld string from the CP page*/
@@ -327,7 +327,28 @@ class TDParserTest {
 
     console.dir(thing);
 
-    expect(thing).to.have.property("@context").that.equals(DEFAULT_CONTEXT);
+    expect(thing).to.have.property("@context").that.has.length(2);
+    expect(thing["@context"][0]).to.equal(DEFAULT_CONTEXT);
+    expect(thing["@context"][1]).to.have.property("@language").that.equals(DEFAULT_CONTEXT_LANGUAGE); 
+    expect(thing).to.have.property("@type").that.equals(DEFAULT_THING_TYPE);
+  }
+
+  @test "should not ovverride existing @language in context"() {
+    let testTD = `{ "title": "NoContext",
+      "@context": ["https://www.w3.org/2019/wot/td/v1", {
+          "iot": "http://example.org/iot"
+        },
+        { "@language" : "de" }
+      ]
+    }`;
+    let thing: Thing = TDParser.parseTD(testTD);
+
+    console.dir(thing);
+
+    expect(thing).to.have.property("@context").that.has.length(3);
+    expect(thing["@context"][0]).to.equal(DEFAULT_CONTEXT);
+    expect(thing["@context"][1]).to.have.property("iot").that.equals("http://example.org/iot"); 
+    expect(thing["@context"][2]).to.have.property("@language").that.equals("de"); 
     expect(thing).to.have.property("@type").that.equals(DEFAULT_THING_TYPE);
   }
     
@@ -337,9 +358,10 @@ class TDParserTest {
 
     console.dir(thing);
 
-    expect(thing).to.have.property("@context").that.has.length(2);
+    expect(thing).to.have.property("@context").that.has.length(3);
     expect(thing["@context"][0]).to.equal("http://iot.schema.org/");
     expect(thing["@context"][1]).to.equal(DEFAULT_CONTEXT);
+    expect(thing["@context"][2]).to.have.property("@language").that.equals(DEFAULT_CONTEXT_LANGUAGE); 
 
     expect(thing).to.have.property("@type").that.has.length(2);
     expect(thing["@type"][0]).to.equal(DEFAULT_THING_TYPE);
@@ -352,9 +374,10 @@ class TDParserTest {
     
     console.dir(thing);
 
-    expect(thing).to.have.property("@context").that.has.length(2);
+    expect(thing).to.have.property("@context").that.has.length(3);
     expect(thing["@context"][0]).to.equal("http://iot.schema.org/");
     expect(thing["@context"][1]).to.equal(DEFAULT_CONTEXT);
+    expect(thing["@context"][2]).to.have.property("@language").that.equals(DEFAULT_CONTEXT_LANGUAGE); 
 
     expect(thing).to.have.property("@type").that.has.length(2);
     expect(thing["@type"][0]).to.equal(DEFAULT_THING_TYPE);
@@ -367,15 +390,18 @@ class TDParserTest {
 
     console.dir(thing);
 
-    expect(thing).to.have.property("@context").that.has.length(2);
+    expect(thing).to.have.property("@context").that.has.length(3);
     expect(thing["@context"][0]).to.have.property("iot");
     expect(thing["@context"][1]).to.equal(DEFAULT_CONTEXT);
+    expect(thing["@context"][2]).to.have.property("@language").that.equals(DEFAULT_CONTEXT_LANGUAGE); 
   }
 
   @test "should parse the example from spec"() {
     let thing: Thing = TDParser.parseTD(tdSample1);
 
-    expect(thing).to.have.property("@context").that.equals(DEFAULT_CONTEXT);
+    expect(thing).to.have.property("@context").that.has.length(2);
+    expect(thing["@context"][0]).to.equal(DEFAULT_CONTEXT);
+    expect(thing["@context"][1]).to.have.property("@language").that.equals(DEFAULT_CONTEXT_LANGUAGE); 
     expect(thing).to.have.property("@type").that.equals("Thing");
     expect(thing).to.have.property("title").that.equals("MyTemperatureThing");
     expect(thing).to.not.have.property("base");
@@ -411,8 +437,9 @@ class TDParserTest {
   @test "should parse TD with base field"() {
     let thing: Thing = TDParser.parseTD(tdSample3);
 
-    expect(thing).to.have.property("@context").that.has.lengthOf(1);
+    expect(thing).to.have.property("@context").that.has.lengthOf(2);
     expect(thing).to.have.property("@context").contains(DEFAULT_CONTEXT);
+    expect(thing["@context"][1]).to.have.property("@language").that.equals(DEFAULT_CONTEXT_LANGUAGE); 
     expect(thing).to.have.property("title").that.equals("MyTemperatureThing3");
     expect(thing).to.have.property("base").that.equals("coap://mytemp.example.com:5683/interactions/");
 
@@ -482,8 +509,9 @@ class TDParserTest {
     // parse TD
     let thing: Thing = TDParser.parseTD(tdSampleMetadata1);
 
-    expect(thing).to.have.property("@context").that.has.lengthOf(1);
+    expect(thing).to.have.property("@context").that.has.lengthOf(2);
     expect(thing).to.have.property("@context").contains(DEFAULT_CONTEXT);
+    expect(thing["@context"][1]).to.have.property("@language").that.equals(DEFAULT_CONTEXT_LANGUAGE); 
     expect(thing).to.have.property("title").that.equals("MyTemperatureThing3");
     expect(thing).to.have.property("base").that.equals("coap://mytemp.example.com:5683/interactions/");
 

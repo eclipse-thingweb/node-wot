@@ -28,7 +28,7 @@ export function parseTD(td: string, normalize?: boolean): Thing {
   // apply defaults as per WoT Thing Description spec
 
   if (thing["@context"] === undefined) {
-    thing["@context"] = TD.DEFAULT_CONTEXT;
+    thing["@context"] = [TD.DEFAULT_CONTEXT];
   } else if (Array.isArray(thing["@context"])) {
     let semContext: Array<string> = thing["@context"];
     if (semContext.indexOf(TD.DEFAULT_CONTEXT) === -1) {
@@ -39,6 +39,8 @@ export function parseTD(td: string, normalize?: boolean): Thing {
     let semContext: string | any = thing["@context"];
     thing["@context"] = [semContext, TD.DEFAULT_CONTEXT];
   }
+  // add @language : "en" if no @language set
+  addDefaultLanguage(thing);
 
   if (thing["@type"] === undefined) {
     thing["@type"] = TD.DEFAULT_THING_TYPE;
@@ -134,6 +136,28 @@ export function parseTD(td: string, normalize?: boolean): Thing {
 
   return thing;
 }
+
+
+function addDefaultLanguage(thing: Thing) {
+  // add @language : "en" if no @language set
+  if(Array.isArray(thing["@context"])) {
+    let arrayContext: Array<any> = thing["@context"];
+    let languageSet = false;
+    for (let arrayEntry of arrayContext) {
+      if(arrayEntry instanceof Object) {
+        if(arrayEntry["@language"] !== undefined) {
+          languageSet = true;
+        }
+      }
+    }
+    if(!languageSet) {
+      arrayContext.push({
+        "@language": TD.DEFAULT_CONTEXT_LANGUAGE
+      });
+    }
+  }
+}
+
 
 /** Serializes a Thing object into a TD */
 export function serializeTD(thing: Thing): string {
