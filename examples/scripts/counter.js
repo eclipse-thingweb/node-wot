@@ -18,6 +18,7 @@ const NAME_PROPERTY_LAST_CHANGE = "lastChange";
 const NAME_ACTION_INCREMENT = "increment";
 const NAME_ACTION_DECREMENT = "decrement";
 const NAME_ACTION_RESET = "reset";
+const NAME_EVENT_CHANGE = "change";
 
 let thing = WoT.produce({
 		title: "counter",
@@ -34,7 +35,7 @@ thing.addProperty(
 		description: "current counter value",
 		"iot:Custom": "example annotation",
 		observable: true,
-		readOnly: false
+		readOnly: true
 	},
 	0);
 thing.addProperty(
@@ -43,6 +44,7 @@ thing.addProperty(
 		type: "string",
 		description: "last change of counter value",
 		observable: true,
+		readOnly: true
 	},
 	(new Date()).toUTCString());
 
@@ -55,6 +57,7 @@ thing.addAction(
 			let value = count + 1;
 			thing.properties[NAME_PROPERTY_COUNT].write(value);
 			thing.properties[NAME_PROPERTY_LAST_CHANGE].write((new Date()).toUTCString());
+			thing.events[NAME_EVENT_CHANGE].emit();
 		});
 	});
 
@@ -67,6 +70,7 @@ thing.addAction(
 			let value = count - 1;
 			thing.properties[NAME_PROPERTY_COUNT].write(value);
 			thing.properties[NAME_PROPERTY_LAST_CHANGE].write((new Date()).toUTCString());
+			thing.events[NAME_EVENT_CHANGE].emit();
 		});
 	});
 
@@ -77,7 +81,12 @@ thing.addAction(
 		console.log("Resetting");
 		thing.properties[NAME_PROPERTY_COUNT].write(0);
 		thing.properties[NAME_PROPERTY_LAST_CHANGE].write((new Date()).toUTCString());
+		thing.events[NAME_EVENT_CHANGE].emit();
 	});
+	
+thing.addEvent(
+	NAME_EVENT_CHANGE,
+	{});
 
 thing["support"] = "git://github.com/eclipse/thingweb.node-wot.git";
 

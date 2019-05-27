@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Browser Counter Example</title>
+    <!-- Foundation CSS framework -->
+    <link rel='stylesheet' href='https://cdn.jsdelivr.net/foundation/5.5.3/css/foundation.min.css'>
+    <!-- Font Awesome icons -->
+    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.0.3/css/font-awesome.css'>
+
+    <!-- defer to not block rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/@json-editor/json-editor@latest/dist/jsoneditor.min.js"></script>
+    <script src="../../packages/browser-bundle/dist/wot-bundle.min.js" defer>
+	<!-- https://cdn.jsdelivr.net/npm/@node-wot/browser-bundle@latest/dist/wot-bundle.min.js -->
+	</script>
+    <script src="counter.js" defer></script>
+    
+    <script>
+    // Set the default CSS theme and icon library globally
+    JSONEditor.defaults.theme = 'foundation5';
+    JSONEditor.defaults.iconlib = 'fontawesome4';
+    </script>
+
+  </head>
+  <body>
+    <div id="topbar" class="row">
+      <div class="medium-12 columns">
+        <h1>Counter Client Example in the Browser</h1>
+		<input type="hidden" id="td_addr" type="url" value="http://localhost:8080/counter">
+		<!--
+        <button id="fetch" type="button">Consume</button>
+		-->
+      </div>
+    </div>
+    <div id="interactions" class="row" style="display: none;">
+      <div class="medium-4 columns">
+        <figure>
+          <figcaption><h4>Properties</h4></figcaption>
+          <dl id="properties" class="side-nav"></dl>
+        </figure>
+      </div>
+      <div class="medium-4 columns">
+        <figure>
+          <figcaption><h4>Actions</h4></figcaption>
+          <ul id="actions" class="side-nav"></ul>
+        </figure>
+      </div>
+      <div class="medium-4 columns">
+        <figure>
+          <figcaption><h4>Events</h4></figcaption>
+          <ul id="events" class="side-nav"></ul>
+        </figure>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="medium-6 columns small-offset-3">
+        <div id="editor_holder"></div>
+      </div>
+    </div>
+  </body>
+</html>
