@@ -27,7 +27,8 @@ import { AddressInfo } from "net";
 
 import * as TD from "@node-wot/td-tools";
 import Servient, { ProtocolServer, ContentSerdes, ExposedThing, Helpers } from "@node-wot/core";
-import { HttpConfig } from "./http";
+import { HttpConfig, HttpForm } from "./http";
+import { Form } from "@node-wot/td-tools";
 
 export default class HttpServer implements ProtocolServer {
 
@@ -202,8 +203,16 @@ export default class HttpServer implements ProtocolServer {
             let form = new TD.Form(href, type);
             if (thing.properties[propertyName].readOnly) {
               form.op = ["readproperty"];
+              let hform : HttpForm = form;
+              if(hform["htv:methodName"] === undefined) {
+                hform["htv:methodName"] = "GET";
+              }    
             } else if (thing.properties[propertyName].writeOnly) {
               form.op = ["writeproperty"];
+              let hform : HttpForm = form;
+              if(hform["htv:methodName"] === undefined) {
+                hform["htv:methodName"] = "PUT";
+              }
             } else {
               form.op = ["readproperty", "writeproperty"];
             }
@@ -227,6 +236,10 @@ export default class HttpServer implements ProtocolServer {
             let href = base + "/" + this.ACTION_DIR + "/" + actionNamePattern;
             let form = new TD.Form(href, type);
             form.op = ["invokeaction"];
+            let hform : HttpForm = form;
+            if(hform["htv:methodName"] === undefined) {
+              hform["htv:methodName"] = "POST";
+            }
             thing.actions[actionName].forms.push(form);
             console.log(`HttpServer on port ${this.getPort()} assigns '${href}' to Action '${actionName}'`);
           }
