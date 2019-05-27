@@ -18,7 +18,6 @@ function get_td(addr) {
 	servient.start().then((thingFactory) => {
 		thingFactory.fetch(addr).then((td) => {
 			var thing = thingFactory.consume(td);
-			removeInteractions();
 			showInteractions(thing);
 		}).catch((error) => {
 			window.alert("Could not fetch TD.\n" + error)
@@ -113,15 +112,6 @@ function showInteractions(thing) {
 	let placeholder = document.getElementById("interactions")
 	if ( placeholder.style.display === "none") {
 		placeholder.style.display = "block"
-	}
-}
-
-function removeInteractions() {
-	for (id of ["properties", "actions", "events"]) {
-		let placeholder = document.getElementById(id);
-		while (placeholder.firstChild){
-			placeholder.removeChild(placeholder.firstChild);
-		}
 	}
 }
 
