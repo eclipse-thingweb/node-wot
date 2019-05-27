@@ -43,11 +43,11 @@ export interface HttpProxyConfig {
 }
 
 export class HttpForm extends Form {
-    public "http:methodName"?: string; // "GET", "PUT", "POST", "DELETE"
-    public "http:headers"?: Array<HttpHeader> | HttpHeader;
+    public "htv:methodName"?: string; // "GET", "PUT", "POST", "DELETE"
+    public "htv:headers"?: Array<HttpHeader> | HttpHeader;
 }
 
 export class HttpHeader {
-    public "http:fieldName": number;
-    public "http:fieldValue": any;
+    public "htv:fieldName": number;
+    public "htv:fieldValue": any;
 }

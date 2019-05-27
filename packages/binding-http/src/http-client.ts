@@ -336,9 +336,9 @@ export default class HttpClient implements ProtocolClient {
 
     options.method = dflt;
 
-    if (typeof form["http:methodName"] === "string") {
-      console.log("HttpClient got Form 'methodName'", form["http:methodName"]);
-      switch (form["http:methodName"]) {
+    if (typeof form["htv:methodName"] === "string") {
+      console.log("HttpClient got Form 'methodName'", form["htv:methodName"]);
+      switch (form["htv:methodName"]) {
         case "GET": options.method = "GET"; break;
         case "POST": options.method = "POST"; break;
         case "PUT": options.method = "PUT"; break;
@@ -358,16 +358,16 @@ export default class HttpClient implements ProtocolClient {
       console.debug("HttpClient got Form 'contentType'", form.contentType);
       req.setHeader("Accept", form.contentType);
     }
-    if (Array.isArray(form["http:headers"])) {
-      console.debug("HttpClient got Form 'headers'", form["http:headers"]);
-      let headers = form["http:headers"] as Array<HttpHeader>;
+    if (Array.isArray(form["htv:headers"])) {
+      console.debug("HttpClient got Form 'headers'", form["htv:headers"]);
+      let headers = form["htv:headers"] as Array<HttpHeader>;
       for (let option of headers) {
-        req.setHeader(option["http:fieldName"], option["http:fieldValue"]);
+        req.setHeader(option["htv:fieldName"], option["htv:fieldValue"]);
       }
-    } else if (typeof form["http:headers"] === "object") {
-      console.warn("HttpClient got Form SINGLE-ENTRY 'headers'", form["http:headers"]);
-      let option = form["http:headers"] as HttpHeader;
-      req.setHeader(option["http:fieldName"], option["http:fieldValue"]);
+    } else if (typeof form["htv:headers"] === "object") {
+      console.warn("HttpClient got Form SINGLE-ENTRY 'headers'", form["htv:headers"]);
+      let option = form["htv:headers"] as HttpHeader;
+      req.setHeader(option["htv:fieldName"], option["htv:fieldValue"]);
     }
 
     return req;
