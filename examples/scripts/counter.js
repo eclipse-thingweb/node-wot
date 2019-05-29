@@ -46,7 +46,7 @@ thing.addProperty(
 		observable: true,
 		readOnly: true
 	},
-	(new Date()).toUTCString());
+	(new Date()).toISOString());
 
 thing.addAction(
 	NAME_ACTION_INCREMENT,
@@ -56,7 +56,7 @@ thing.addAction(
 		return thing.properties[NAME_PROPERTY_COUNT].read().then( (count) => {
 			let value = count + 1;
 			thing.properties[NAME_PROPERTY_COUNT].write(value);
-			thing.properties[NAME_PROPERTY_LAST_CHANGE].write((new Date()).toUTCString());
+			thing.properties[NAME_PROPERTY_LAST_CHANGE].write((new Date()).toISOString());
 			thing.events[NAME_EVENT_CHANGE].emit();
 		});
 	});
@@ -69,7 +69,7 @@ thing.addAction(
 		return thing.properties[NAME_PROPERTY_COUNT].read().then( (count) => {
 			let value = count - 1;
 			thing.properties[NAME_PROPERTY_COUNT].write(value);
-			thing.properties[NAME_PROPERTY_LAST_CHANGE].write((new Date()).toUTCString());
+			thing.properties[NAME_PROPERTY_LAST_CHANGE].write((new Date()).toISOString());
 			thing.events[NAME_EVENT_CHANGE].emit();
 		});
 	});
@@ -80,7 +80,7 @@ thing.addAction(
 	() => {
 		console.log("Resetting");
 		thing.properties[NAME_PROPERTY_COUNT].write(0);
-		thing.properties[NAME_PROPERTY_LAST_CHANGE].write((new Date()).toUTCString());
+		thing.properties[NAME_PROPERTY_LAST_CHANGE].write((new Date()).toISOString());
 		thing.events[NAME_EVENT_CHANGE].emit();
 	});
 	
