@@ -15,7 +15,7 @@
         "broker" : "mqtt://test.mosquitto.org",
         "_username" : "username",
         "_password" : "password",
-	    "_clientId" : "uniqueId",
+        "_clientId" : "uniqueId",
         "port": 1883 
     },
     "log": {
