@@ -440,7 +440,7 @@ export default class HttpServer implements ProtocolServer {
                         obj[key] = value[index];
                         index++;
                       }
-                      // res.setHeader("Content-Type", content.type);
+                      res.setHeader("Content-Type", ContentSerdes.DEFAULT);
                       res.writeHead(200);
                       res.end(JSON.stringify(obj));
                     })
