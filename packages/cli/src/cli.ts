@@ -136,6 +136,13 @@ wot-servient.conf.json syntax:
         "proxy": PROXY,
         "allowSelfSigned": ALLOW
     },
+    "mqtt" : {
+        "broker" : "BROKER-URL",
+        "username" : "USERNAME",
+        "password" : "PASSWORD",
+        "clientId" : "UNIQUEID",
+        "port": 1883 
+    },
     "credentials": {
         THING_ID1: {
             "token": TOKEN
@@ -160,6 +167,8 @@ wot-servient.conf.json fields:
                            corresponding credential fields as defined below
   ALLOW      : boolean whether self-signed certificates should be allowed
   THING_IDx  : string with TD "id" for which credentials should be configured
+  UNIQUEID   : unique id set by mqtt client while connecting to broker
+  BROKER-URL : URL to an MQTT broker that publisher and subscribers will use
   TOKEN      : string for providing a Bearer token
   USERNAME   : string for providing a Basic Auth username
   PASSWORD   : string for providing a Basic Auth password`);
