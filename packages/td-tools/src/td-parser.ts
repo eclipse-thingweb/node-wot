@@ -25,7 +25,7 @@ export function parseTD(td: string, normalize?: boolean): Thing {
 
   // remove a potential Byte Order Mark (BOM)
   // see https://github.com/eclipse/thingweb.node-wot/issues/109
-  let thing: Thing = JSON.parse(td.toString().replace(/^\uFEFF/, ''));
+  let thing: Thing = JSON.parse(td.replace(/^\uFEFF/, ''));
 
   // apply defaults as per WoT Thing Description spec
 
