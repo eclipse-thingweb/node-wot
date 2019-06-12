@@ -23,7 +23,9 @@ let URLToolkit = require('url-toolkit');
 export function parseTD(td: string, normalize?: boolean): Thing {
   console.debug(`parseTD() parsing\n\`\`\`\n${td}\n\`\`\``);
 
-  let thing: Thing = JSON.parse(td);
+  // remove a potential Byte Order Mark (BOM)
+  // see https://github.com/eclipse/thingweb.node-wot/issues/109
+  let thing: Thing = JSON.parse(td.toString().replace(/^\uFEFF/, ''));
 
   // apply defaults as per WoT Thing Description spec
 
