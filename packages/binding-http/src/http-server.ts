@@ -400,9 +400,36 @@ export default class HttpServer implements ProtocolServer {
         if (segments.length === 2 || segments[2] === "") {
           // Thing root -> send TD
           if (req.method === "GET") {
+            let td = thing.getThingDescription();
+
+            // look for language negotiation through the Accept-Language header field of HTTP (e.g., "de", "de-CH", "en-US,en;q=0.5")
+            // Note: "title" on thing level is mandatory term --> check whether "titles" exists for multi-languages
+            // Note: HTTP header names are case-insensitive and req.headers seems to contain them in lowercase
+            if(req.headers["accept-language"] && req.headers["accept-language"] != "*") {
+              if(thing.titles) {
+                let alparser = require('accept-language-parser');
+                let supportedLanguagesArray : string[] = []; // e.g., ['fr', 'en']
+
+                // collect supported languages by checking titles (given title is the only mandatory multi-lang term)
+                for(let lang in thing.titles) {
+                  supportedLanguagesArray.push(lang);
+                }
+  
+                // the loose option allows partial matching on supported languages (e.g., returns "de" for "de-CH")
+                let prefLang = alparser.pick(supportedLanguagesArray, req.headers["accept-language"], { loose: true });
+
+                if(prefLang) {
+                  // if a preferred language can be found use it
+                  console.log(`TD language negotiation through the Accept-Language header field of HTTP leads to "${prefLang}"`);
+                  let otd = JSON.parse(td);
+                  this.resetMultiLangThing(otd, prefLang);
+                  td = JSON.stringify(otd);
+                }
+              }
+            }
             res.setHeader("Content-Type", ContentSerdes.TD);
             res.writeHead(200);
-            res.end(thing.getThingDescription());
+            res.end(td);
           } else {
             respondUnallowedMethod(res, "GET");
           }
@@ -640,4 +667,88 @@ export default class HttpServer implements ProtocolServer {
     res.writeHead(404);
     res.end("Not Found");
   }
+
+  private resetMultiLangThing(thing: any, prefLang : string) {
+    // TODO can we reset "title" to another name given that title is used in URI creation?
+
+    // update/set @language in @context
+    if(thing["@context"] && Array.isArray(thing["@context"])) {
+      let arrayContext: Array<any> = thing["@context"];
+      let languageSet = false;
+      for (let arrayEntry of arrayContext) {
+        if(arrayEntry instanceof Object) {
+          if(arrayEntry["@language"] !== undefined) {
+            arrayEntry["@language"] = prefLang;
+            languageSet = true;
+          }
+        }
+      }
+      if(!languageSet) {
+        arrayContext.push({
+          "@language": prefLang
+        });
+      }
+    }
+
+    // use new language title
+    if(thing["titles"]) {
+      for (let titleLang in thing["titles"]) {
+        if(titleLang.startsWith(prefLang)) {
+          thing["title"] = thing["titles"][titleLang];
+        }
+      }
+    }
+
+    // use new language description
+    if(thing["descriptions"]) {
+      for (let titleLang in thing["descriptions"]) {
+        if(titleLang.startsWith(prefLang)) {
+          thing["description"] = thing["descriptions"][titleLang];
+        }
+      }
+    }
+
+    // remove any titles or descriptions and update title / description accordingly
+    delete thing["titles"];
+    delete thing["descriptions"];
+
+    // reset multi-language terms for interactions
+    this.resetMultiLangInteraction(thing.properties, prefLang);
+    this.resetMultiLangInteraction(thing.actions, prefLang);
+    this.resetMultiLangInteraction(thing.events, prefLang);
+  }
+
+  private resetMultiLangInteraction(interactions: any, prefLang : string) {
+    if(interactions) {
+      for (let interName in interactions) {
+        // unset any current title and/or description
+        delete interactions[interName]["title"];
+        delete interactions[interName]["description"];
+
+        // use new language title
+        if(interactions[interName]["titles"]) {
+          for (let titleLang in interactions[interName]["titles"]) {
+            if(titleLang.startsWith(prefLang)) {
+              interactions[interName]["title"] = interactions[interName]["titles"][titleLang];
+            }
+          }
+        }
+
+        // use new language description
+        if(interactions[interName]["descriptions"]) {
+          for (let descLang in interactions[interName]["descriptions"]) {
+            if(descLang.startsWith(prefLang)) {
+              interactions[interName]["description"] = interactions[interName]["descriptions"][descLang];
+            }
+          }
+        }
+
+        // unset any multilanguage titles and/or descriptions
+        delete interactions[interName]["titles"];
+        delete interactions[interName]["descriptions"];
+      }
+    }
+
+  }
+
 }
