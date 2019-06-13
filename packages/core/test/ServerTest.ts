@@ -411,6 +411,20 @@ class WoTServerTest {
             .then((result) => result.should.equal(42));
     }
 
+    @test "should not add (or modify) @language if present "() {
+        // see issue https://github.com/eclipse/thingweb.node-wot/issues/111
+        let thing: WoT.ExposedThing = WoTServerTest.WoT.produce(`{
+            "@context": ["https://w3c.github.io/wot/w3c-wot-td-context.jsonld", {"iot": "http://example.org/iot"}, {"@language" : "xx"}],
+            "@type": ["Thing"],
+            "title": "thing6b"
+        }`);
+        
+        expect(thing).to.have.property("@context").that.has.length(3);
+        expect(thing["@context"][0]).to.equal("https://w3c.github.io/wot/w3c-wot-td-context.jsonld");
+        expect(thing["@context"][1]).to.have.property("iot").that.equals("http://example.org/iot"); 
+        expect(thing["@context"][2]).to.have.property("@language").that.equals("xx"); 
+    }
+
     // TODO add Event and subscribe locally (based on addEvent)
     // TODO add Event and subscribe locally (based on WoT.ThingFragment)
     // TODO add Event and subscribe locally (based on WoT.ThingDescription)

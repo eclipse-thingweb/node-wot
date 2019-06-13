@@ -106,7 +106,7 @@ export default class WoTImpl implements WoT.WoTFactory {
           let arrayContext: Array<any> = thing["@context"];
           let languageSet = false;
           for (let arrayEntry of arrayContext) {
-            if(arrayEntry instanceof Object) {
+            if(typeof arrayEntry == "object") {
               if(arrayEntry["@language"] !== undefined) {
                 languageSet = true;
               }
