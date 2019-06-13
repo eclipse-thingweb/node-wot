@@ -32,6 +32,7 @@ function showInteractions(thing) {
 			let dtItem = document.createElement("dt");
 			counterProperties.push(dtItem);
 			let ddItem = document.createElement("dd");
+			ddItem.setAttribute('dir', 'auto'); // direction-independence, direction-heuristic
 			ddItem.appendChild(document.createTextNode("???"));
 			let link = document.createElement("a");
 			link.appendChild(document.createTextNode(property));
@@ -55,6 +56,7 @@ function showInteractions(thing) {
 	for ( let action in thing.actions ) {
 		if (thing.actions.hasOwnProperty(action)) {
 			let item = document.createElement("li");
+			item.setAttribute('dir', 'auto'); // direction-independence, direction-heuristic
 			let button = document.createElement("button");
 			button.appendChild(document.createTextNode(action));
 			button.className = "button tiny secondary"
@@ -83,6 +85,7 @@ function showInteractions(thing) {
 	for ( let evnt in thing.events ) {
 		if (thing.events.hasOwnProperty(evnt)) {
 			let item = document.createElement("li");
+			item.setAttribute('dir', 'auto'); // direction-independence, direction-heuristic
 			let link = document.createElement("a");
 			link.appendChild(document.createTextNode(evnt));
 
