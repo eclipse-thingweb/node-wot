@@ -35,10 +35,10 @@ function checkActionInvocation(name, expected, actual) {
 
 let thing = WoT.produce({
     id: "urn:dev:wot:org:w3:testthing:lyon2018",
-    name: "TestThing"
+    title: "TestThing"
 });
 
-console.info(thing.name + " produced");
+console.info(thing.title + " produced");
 
 thing
     .addProperty(
