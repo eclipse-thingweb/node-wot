@@ -57,9 +57,9 @@ thing.addProperty(
 	NAME_PROPERTY_LAST_CHANGE,
 	{
 		type: "string",
-		description: "increment value",
+		description: "last change of counter value",
 		descriptions: {
-			"en":" last change of counter value",
+			"en":"last change of counter value",
 			"de": "Letzte Änderung",
 			"it": "ultima modifica del valore"
 		},
