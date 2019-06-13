@@ -124,10 +124,10 @@ export default class FujitsuServer implements ProtocolServer {
       });
       this.websocket.send(message, (err) => {
         if (err) {
-          console.error(`FujitsuServer for ${this.remote} failed to register '${thing.name}' as '${thing.id}': ${err.message}`);
+          console.error(`FujitsuServer for ${this.remote} failed to register '${thing.title}' as '${thing.id}': ${err.message}`);
           reject(err);
         } else {
-          console.log(`FujitsuServer for ${this.remote} registered '${thing.name}' as '${thing.id}'`);
+          console.log(`FujitsuServer for ${this.remote} registered '${thing.title}' as '${thing.id}'`);
           resolve();
         }
       });

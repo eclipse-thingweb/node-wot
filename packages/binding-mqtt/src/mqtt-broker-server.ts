@@ -70,7 +70,7 @@ export default class MqttBrokerServer implements ProtocolServer {
       return;
     }
 
-    let name = thing.name;
+    let name = thing.title;
 
     if (this.things.has(name)) {
       let suffix = name.match(/.+_([0-9]+)$/);
@@ -81,7 +81,7 @@ export default class MqttBrokerServer implements ProtocolServer {
       }
     }
 
-    console.log(`MqttBrokerServer at ${this.brokerURI} exposes '${thing.name}' as unique '/${name}/*'`);
+    console.log(`MqttBrokerServer at ${this.brokerURI} exposes '${thing.title}' as unique '/${name}/*'`);
     return new Promise<void>((resolve, reject) => {
 
       // TODO clean-up on destroy and stop

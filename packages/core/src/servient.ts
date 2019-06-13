@@ -175,7 +175,7 @@ export default class Servient {
             return new Promise<void>((resolve) => { resolve(); });
         }
 
-        console.log(`Servient exposing '${thing.name}'`);
+        console.log(`Servient exposing '${thing.title}'`);
 
         // initializing forms fields
         thing.forms = [];
@@ -200,7 +200,7 @@ export default class Servient {
     public addThing(thing: ExposedThing): boolean {
 
         if (thing.id === undefined) {
-            console.warn(`Servient generating ID for '${thing.name}'`);
+            console.warn(`Servient generating ID for '${thing.title}'`);
             thing.id = "urn:uuid:" + require("uuid").v4();
         }
 
