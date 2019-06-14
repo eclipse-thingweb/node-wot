@@ -27,9 +27,9 @@ export default class CoapServer implements ProtocolServer {
 
   public readonly scheme: string = "coap";
 
-  private readonly PROPERTY_DIR = "pr";
-  private readonly ACTION_DIR = "ac";
-  private readonly EVENT_DIR = "ev";
+  private readonly PROPERTY_DIR = "properties";
+  private readonly ACTION_DIR = "actions";
+  private readonly EVENT_DIR = "events";
 
   private readonly port: number = 5683;
   private readonly address: string = undefined;
