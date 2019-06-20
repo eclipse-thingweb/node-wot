@@ -93,10 +93,10 @@ export default class HttpClient implements ProtocolClient {
       let req = this.generateRequest(form, "GET");
       let info = <any>req;
 
-      console.log(`HttpClient sending ${info.method} to ${form.href}`);
+      console.log(`HttpClient sending ${info.method} to ${info.path}`);
 
       req.on("response", (res: http.IncomingMessage) => {
-        console.log(`HttpClient received ${res.statusCode} from ${form.href}`);
+        console.log(`HttpClient received ${res.statusCode} from ${info.path}`);
         let contentType: string = this.getContentType(res);
         let body: Array<any> = [];
         res.on('data', (data) => { body.push(data) });
@@ -118,10 +118,10 @@ export default class HttpClient implements ProtocolClient {
       req.setHeader("Content-Type", content.type);
       req.setHeader("Content-Length", content.body.byteLength);
 
-      console.log(`HttpClient sending ${info.method} with '${req.getHeader("Content-Type")}' to ${form.href}`);
+      console.log(`HttpClient sending ${info.method} with '${req.getHeader("Content-Type")}' to ${info.path}`);
 
       req.on("response", (res: http.IncomingMessage) => {
-        console.log(`HttpClient received ${res.statusCode} from ${form.href}`);
+        console.log(`HttpClient received ${res.statusCode} from ${info.path}`);
         let contentType: string = this.getContentType(res);
         //console.log(`HttpClient received headers: ${JSON.stringify(res.headers)}`);
         // Although 204 without payload is expected, data must be read 
@@ -150,7 +150,7 @@ export default class HttpClient implements ProtocolClient {
         req.setHeader("Content-Length", content.body.byteLength);
       }
 
-      console.log(`HttpClient sending ${info.method} ${content ? "with '"+req.getHeader("Content-Type")+"' " : " "}to ${form.href}`);
+      console.log(`HttpClient sending ${info.method} ${content ? "with '"+req.getHeader("Content-Type")+"' " : " "}to ${info.path}`);
 
       req.on("response", (res: http.IncomingMessage) => {
         console.log(`HttpClient received ${res.statusCode} from ${form.href}`);
@@ -246,24 +246,34 @@ export default class HttpClient implements ProtocolClient {
       console.warn(`HttpClient without security`);
       return false;
     }
-    if (credentials === undefined) {
-      throw new Error(`No credentionals for Thing`);
-    }
 
+    // TODO support for multiple security schemes
     let security: WoT.Security = metadata[0];
 
     if (security.scheme === "basic") {
+      if (credentials === undefined || credentials.username === undefined || credentials.password === undefined) {
+        throw new Error(`No Basic credentionals for Thing`);
+      }
       this.authorization = "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString('base64');
 
     } else if (security.scheme === "bearer") {
-      // TODO get token from metadata.as (authorization server)
+      if (credentials === undefined || credentials.token === undefined) {
+        throw new Error(`No Bearer credentionals for Thing`);
+      }
+      // TODO check security.in and adjust
       this.authorization = "Bearer " + credentials.token;
 
     } else if (security.scheme === "apikey") {
+      if (credentials === undefined || credentials.apikey === undefined) {
+        throw new Error(`No API key credentionals for Thing`);
+      }
       this.authorization = credentials.apikey;
       if (security.in==="header" && security.name!==undefined) {
         this.authorizationHeader = security.name;
       }
+
+    } else if (security.scheme === "nosec") {
+      // nothing to do
 
     } else {
       console.error(`HttpClient cannot set security scheme '${security.scheme}'`);
@@ -278,16 +288,20 @@ export default class HttpClient implements ProtocolClient {
 
       this.proxyOptions = this.uriToOptions(security.proxy);
 
-      // TODO: Get back proxy configuration
-      /*
-      if (metadata.proxyauthorization == "Basic") {
+      // TODO support for different credentials at proxy and server (e.g., credentials.username vs credentials.proxy.username)
+      if (security.scheme == "basic") {
+        if (credentials === undefined || credentials.username === undefined || credentials.password === undefined) {
+          throw new Error(`No Basic credentionals for Thing`);
+        }
         this.proxyOptions.headers = {};
         this.proxyOptions.headers['Proxy-Authorization'] = "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString('base64');
-      } else if (metadata.proxyauthorization == "Bearer") {
+      } else if (security.scheme == "bearer") {
+        if (credentials === undefined || credentials.token === undefined) {
+          throw new Error(`No Bearer credentionals for Thing`);
+        }
         this.proxyOptions.headers = {};
         this.proxyOptions.headers['Proxy-Authorization'] = "Bearer " + credentials.token;
       }
-      */
     }
 
     console.log(`HttpClient using security scheme '${security.scheme}'`);

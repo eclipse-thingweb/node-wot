@@ -113,13 +113,15 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
             
             let client = this.getServient().getClientFor(schemes[srvIdx]);
             console.log(`ConsumedThing '${this.title}' got new client for '${schemes[srvIdx]}'`);
-            
+
+            // td-tools parser ensures this.security is an array
             if (this.security && this.securityDefinitions && Array.isArray(this.security) && this.security.length>0) {
                 console.log(`ConsumedThing '${this.title}' setting credentials for ${client}`);
                 let scs : Array<WoT.Security> = [];
-                for(let s of this.security) {
+                for (let s of this.security) {
                     let ws = this.securityDefinitions[s + ""]; // String vs. string (fix wot-typescript-definitions?)
-                    if(ws && ws.scheme !== "nosec") {
+                    // also push nosec in case of proxy
+                    if (ws) {
                         scs.push(ws);
                     }
                 }

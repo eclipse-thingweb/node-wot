@@ -98,6 +98,10 @@ export function parseTD(td: string, normalize?: boolean): Thing {
   if (thing.security === undefined) {
     console.warn(`parseTD() found no security metadata`);
   }
+  // wrap in array for later simplification
+  if (typeof thing.security === "string") {
+    thing.security = [thing.security];
+  }
 
   // collect all forms for normalization and use iterations also for checking
   let allForms: WoT.Form[] = [];
