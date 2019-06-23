@@ -42,7 +42,7 @@ export default class HttpClient implements ProtocolClient {
 
     // config proxy by client side (not from TD)
     if (config!==null && config.proxy && config.proxy.href) {
-      this.proxyOptions = this.uriToOptions(config.proxy.href);
+      this.proxyOptions = this.uriToOptions(config.proxy.href, true);
 
       if (config.proxy.scheme === "basic") {
         if (!config.proxy.hasOwnProperty("username") || !config.proxy.hasOwnProperty("password")) console.warn(`HttpClient client configured for basic proxy auth, but no username/password given`);
@@ -286,7 +286,7 @@ export default class HttpClient implements ProtocolClient {
         console.info(`HttpClient overriding client-side proxy with security proxy '${security.proxy}`);
       }
 
-      this.proxyOptions = this.uriToOptions(security.proxy);
+      this.proxyOptions = this.uriToOptions(security.proxy, true);
 
       // TODO support for different credentials at proxy and server (e.g., credentials.username vs credentials.proxy.username)
       if (security.scheme == "basic") {
@@ -308,12 +308,12 @@ export default class HttpClient implements ProtocolClient {
     return true;
   }
 
-  private uriToOptions(uri: string): https.RequestOptions {
+  private uriToOptions(uri: string, ignoreProxy=false): https.RequestOptions {
     let requestUri = url.parse(uri);
     let options: https.RequestOptions = {};
     options.agent = this.agent;
 
-    if (this.proxyOptions != null) {
+    if (this.proxyOptions != null && ignoreProxy === false) {
       options.hostname = this.proxyOptions.hostname;
       options.port = this.proxyOptions.port;
       options.path = uri;
