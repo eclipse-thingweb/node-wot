@@ -220,7 +220,10 @@ export default class HttpClient implements ProtocolClient {
           }
         });
       });
-      req.on("error", (err: any) => error(err));
+      req.on("error", (err: any) => {
+        if (error) error(err);
+        if (complete) complete();
+      });
 
       req.flushHeaders();
       req.end();

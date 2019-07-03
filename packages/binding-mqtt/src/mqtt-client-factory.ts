@@ -23,9 +23,12 @@ import MqttClient from "./mqtt-client";
 export default class MqttClientFactory implements ProtocolClientFactory {
     
     public readonly scheme: string = "mqtt";
+    private readonly clients: Array<ProtocolClient> = [];
 
     getClient = (): ProtocolClient => {
-        return new MqttClient();
+        let client = new MqttClient();
+        this.clients.push(client);
+        return client;
     }
 
     init(): boolean {
@@ -33,6 +36,8 @@ export default class MqttClientFactory implements ProtocolClientFactory {
     }
 
     destroy(): boolean {
+        console.log(`MqttClientFactory stopping all clients for '${this.scheme}'`);
+        this.clients.forEach((client) => client.stop())
         return true;
     }
 }
