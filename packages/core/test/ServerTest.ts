@@ -176,7 +176,7 @@ class WoTServerTest {
 
     
     @test async "should be able to read/readAll properties locally"() {
-        let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "thing3" });
+        let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ title: "thing3" });
 
         let initNumber: WoT.PropertyFragment = {
             type: "number"
@@ -232,7 +232,7 @@ class WoTServerTest {
     }
 
     @test async "should be able to read Property with read handler (incrementing with lambda) new API"() {
-        let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "otherthingIncRead" });
+        let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ title: "otherthingIncRead" });
         let initp: WoT.PropertyFragment = {
             type: "number"
         };
@@ -252,7 +252,7 @@ class WoTServerTest {
     }
 
     @test async "should be able to read and write property / new API"() {
-        let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ name: "otherthingIncRead" });
+        let thing: WoT.ExposedThing = WoTServerTest.WoT.produce({ title: "otherthingIncRead" });
         let initp: WoT.PropertyFragment = {
             type: "number"
         };

@@ -244,7 +244,7 @@ class WoTClientTest {
         WoTClientTest.WoT.fetch("td://foo")
             .then((td) => {
                 let thing = WoTClientTest.WoT.consume(td);
-                expect(thing).to.have.property("name").that.equals("aThing");
+                expect(thing).to.have.property("title").that.equals("aThing");
                 expect(thing.properties).to.have.property("aProperty");
                 return thing.readProperty("aProperty");
             })
@@ -267,7 +267,7 @@ class WoTClientTest {
         WoTClientTest.WoT.fetch("td://foo")
             .then((td) => {
                 let thing = WoTClientTest.WoT.consume(td);
-                expect(thing).to.have.property("name").that.equals("aThing");
+                expect(thing).to.have.property("title").that.equals("aThing");
                 expect(thing.properties).to.have.property("aProperty");
                 return thing.readAllProperties();
             })
@@ -309,7 +309,7 @@ class WoTClientTest {
         WoTClientTest.WoT.fetch("td://foo")
             .then((td) => {
                 let thing = WoTClientTest.WoT.consume(td);
-                expect(thing).to.have.property("name").that.equals("aThing");
+                expect(thing).to.have.property("title").that.equals("aThing");
                 expect(thing).to.have.property("properties").that.has.property("aProperty");
                 return thing.writeProperty("aProperty", 23);
             })
@@ -328,7 +328,7 @@ class WoTClientTest {
         WoTClientTest.WoT.fetch("td://foo")
             .then((td) => {
                 let thing = WoTClientTest.WoT.consume(td);
-                expect(thing).to.have.property("name").that.equals("aThing");
+                expect(thing).to.have.property("title").that.equals("aThing");
                 expect(thing).to.have.property("properties").that.has.property("aProperty");
 
                 let valueMap: { [key: string]: any } = {};
@@ -419,7 +419,7 @@ class WoTClientTest {
         WoTClientTest.WoT.fetch("td://foo")
             .then((td) => {
                 let thing = WoTClientTest.WoT.consume(td);
-                expect(thing).to.have.property("name").that.equals("aThing");
+                expect(thing).to.have.property("title").that.equals("aThing");
                 expect(thing).to.have.property("actions").that.has.property("anAction");
                 return thing.invokeAction("anAction", 23);
             })
@@ -443,7 +443,7 @@ class WoTClientTest {
         WoTClientTest.WoT.fetch("td://foo")
             .then((td) => {
                 let thing = WoTClientTest.WoT.consume(td);
-                expect(thing).to.have.property("name").that.equals("aThing");
+                expect(thing).to.have.property("title").that.equals("aThing");
                 expect(thing).to.have.property("properties").that.has.property("aProperty");
                 thing.events.anEvent.subscribe(
                     (x: any) => {
@@ -471,12 +471,11 @@ class WoTClientTest {
         WoTClientTest.WoT.fetch("td://foo")
             .then((td) => {
                 let thing = WoTClientTest.WoT.consume(td);
-                expect(thing).to.have.property("name").that.equals("aThing");
+                expect(thing).to.have.property("title").that.equals("aThing");
                 expect(thing).to.have.property("properties").that.has.property("aProperty");
 
                 thing.observeProperty("aProperty",
                     (data: any) => {
-                        // console.log("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX " + data);
                         if(data == 12) {
                             done();
                         }
@@ -532,7 +531,7 @@ class WoTClientTest {
         WoTClientTest.WoT.fetch("td://foo")
             .then((td) => {
                 let thing = WoTClientTest.WoT.consume(td);
-                expect(thing).to.have.property("name").that.equals("aThing");
+                expect(thing).to.have.property("title").that.equals("aThing");
                 expect(thing).to.have.property("events").that.has.property("anEvent");
 
                 thing.subscribeEvent("anEvent",

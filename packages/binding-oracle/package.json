@@ -1,6 +1,6 @@
 {
   "name": "@node-wot/binding-oracle",
-  "version": "0.6.3-SNAPSHOT.1",
+  "version": "0.7.0-SNAPSHOT.1",
   "description": "Oracle IoT Cloud Service protocol binding for node-wot",
   "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
   "license": "EPL-2.0 OR W3C-20150513",
@@ -20,7 +20,7 @@
     "typescript-standard": "0.3.30"
   },
   "dependencies": {
-    "@node-wot/core": "0.6.3-SNAPSHOT.1",
+    "@node-wot/core": "0.7.0-SNAPSHOT.1",
     "iotcs-csl-js": "18.3.2"
   },
   "scripts": {

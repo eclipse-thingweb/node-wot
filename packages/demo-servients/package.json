@@ -1,6 +1,6 @@
 {
   "name": "@node-wot/demo-servients",
-  "version": "0.6.3-SNAPSHOT.1",
+  "version": "0.7.0-SNAPSHOT.1",
   "private": true,
   "description": "W3C WoT demo Servient for the unpublished version of the monorepo",
   "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
@@ -15,18 +15,18 @@
   },
   "devDependencies": {
     "@types/node": "10.9.4",
-    "wot-typescript-definitions": "0.7.0-NEXT-SNAPSHOT.6",
+    "wot-typescript-definitions": "0.7.0-NEXT-SNAPSHOT.8",
     "ts-node": "3.3.0",
     "typescript": "2.9.2",
     "typescript-standard": "0.3.30"
   },
   "dependencies": {
-    "@node-wot/core": "0.6.3-SNAPSHOT.1",
-    "@node-wot/binding-coap": "0.6.3-SNAPSHOT.1",
-    "@node-wot/binding-file": "0.6.3-SNAPSHOT.1",
-    "@node-wot/binding-http": "0.6.3-SNAPSHOT.1",
-    "@node-wot/binding-oracle": "0.6.3-SNAPSHOT.1",
-    "@node-wot/binding-fujitsu": "0.6.3-SNAPSHOT.1",
+    "@node-wot/core": "0.7.0-SNAPSHOT.1",
+    "@node-wot/binding-coap": "0.7.0-SNAPSHOT.1",
+    "@node-wot/binding-file": "0.7.0-SNAPSHOT.1",
+    "@node-wot/binding-http": "0.7.0-SNAPSHOT.1",
+    "@node-wot/binding-oracle": "0.7.0-SNAPSHOT.1",
+    "@node-wot/binding-fujitsu": "0.7.0-SNAPSHOT.1",
     "rxjs": "5.4.3"
   },
   "scripts": {
