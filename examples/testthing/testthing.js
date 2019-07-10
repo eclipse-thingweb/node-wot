@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -35,10 +35,10 @@ function checkActionInvocation(name, expected, actual) {
 
 let thing = WoT.produce({
     id: "urn:dev:wot:org:w3:testthing:lyon2018",
-    name: "TestThing"
+    title: "TestThing"
 });
 
-console.info(thing.name + " produced");
+console.info(thing.title + " produced");
 
 thing
     .addProperty(

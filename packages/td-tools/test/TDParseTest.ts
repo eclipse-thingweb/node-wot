@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -22,12 +22,12 @@ import { expect, should, assert } from "chai";
 // should must be called to augment all variables
 should();
 
-import Thing, { DEFAULT_CONTEXT, DEFAULT_THING_TYPE } from "../src/thing-description";
+import Thing, { DEFAULT_CONTEXT, DEFAULT_THING_TYPE, DEFAULT_CONTEXT_LANGUAGE } from "../src/thing-description";
 import * as TDParser from "../src/td-parser";
 
 /** sample TD json-ld string from the CP page*/
 let tdSample1 = `{
-	"name": "MyTemperatureThing",
+	"title": "MyTemperatureThing",
 	"properties": {
 		"temperature": {
 			"type": "number",
@@ -41,7 +41,7 @@ let tdSample1 = `{
 /** sample TD json-ld string from the CP page*/
 let tdSample2 = `{
 	"@type": ["Thing"],
-	"name": "MyTemperatureThing2",
+	"title": "MyTemperatureThing2",
 	"properties": {
 		"temperature": {
 			"type": "number",
@@ -55,9 +55,9 @@ let tdSample2 = `{
 }`;
 /** sample TD json-ld string from the CP page*/
 let tdSample3 = `{
-	"@context": ["http://www.w3.org/ns/td"],
+	"@context": ["https://www.w3.org/2019/wot/td/v1"],
 	"@type": ["Thing"],
-	"name": "MyTemperatureThing3",
+	"title": "MyTemperatureThing3",
 	"base": "coap://mytemp.example.com:5683/interactions/",
 	"properties": {
 		"temperature": {
@@ -105,14 +105,14 @@ let tdSample3 = `{
 /** sample TD json-ld string from the CP page*/
 let tdSampleLemonbeatBurlingame = `{
 	"@context": [
-		"http://www.w3.org/ns/td",
+		"https://www.w3.org/2019/wot/td/v1",
 		{
 			"actuator": "http://example.org/actuator#",
 			"sensor": "http://example.org/sensors#"
 		}
 	],
 	"@type": ["Thing"],
-	"name": "LemonbeatThings",
+	"title": "LemonbeatThings",
 	"base": "http://192.168.1.176:8080/",
 	"properties": {
     "luminance": {
@@ -179,10 +179,10 @@ let tdSampleLemonbeatBurlingame = `{
 
 /** sample metadata TD */
 let tdSampleMetadata1 = `{
-	"@context": ["http://www.w3.org/ns/td"],
+	"@context": ["https://www.w3.org/2019/wot/td/v1"],
 	"@type": ["Thing"],
 	"reference": "myTempThing",
-	"name": "MyTemperatureThing3",
+	"title": "MyTemperatureThing3",
 	"base": "coap://mytemp.example.com:5683/interactions/",
 	"properties": {
 		"myTemp": {
@@ -203,9 +203,9 @@ let tdSampleMetadata1 = `{
 
 /** Simplified TD */
 let tdSimple1 = `{
-  "@context": "http://www.w3.org/ns/td",
+  "@context": "https://www.w3.org/2019/wot/td/v1",
   "id": "urn:dev:wot:com:example:servient:lamp",
-  "name": "MyLampThing",
+  "title": "MyLampThing",
   "properties": {
       "status": {
         "readOnly": true,
@@ -234,9 +234,9 @@ let tdSimple1 = `{
 
 /** Broken TDs */
 let tdBroken1 = `{
-  "@context": "http://www.w3.org/ns/td",
+  "@context": "https://www.w3.org/2019/wot/td/v1",
   "id": "urn:dev:wot:com:example:servient:lamp",
-  "name": "MyLampThing",
+  "title": "MyLampThing",
   "properties": {
       "status": {
        "readOnly": true,
@@ -264,7 +264,7 @@ let tdBroken1 = `{
 }`;
 let tdBroken2 = `{
   "id": "urn:dev:wot:com:example:servient:lamp",
-  "name": "MyLampThing",
+  "title": "MyLampThing",
   "properties": {
       "status": {
        "readOnly": true,
@@ -291,7 +291,7 @@ let tdBroken2 = `{
 }`;
 let tdBroken3 = `{
   "id": "urn:dev:wot:com:example:servient:lamp",
-  "name": "MyLampThing",
+  "title": "MyLampThing",
   "properties": {
       "status": {
        "readOnly": true,
@@ -322,24 +322,46 @@ let tdBroken3 = `{
 class TDParserTest {
     
   @test "should insert context"() {
-    let testTD = `{ "name": "NoContext" }`;
-    let thing: Thing = TDParser.parseTD(testTD);
-
-    console.dir(thing);
-
-    expect(thing).to.have.property("@context").that.equals(DEFAULT_CONTEXT);
-    expect(thing).to.have.property("@type").that.equals(DEFAULT_THING_TYPE);
-  }
-    
-  @test "should add context to single string"() {
-    let testTD = `{ "name": "OtherContext", "@context": "http://iot.schema.org/", "@type": "iot:Sensor" }`;
+    let testTD = `{ "title": "NoContext" }`;
     let thing: Thing = TDParser.parseTD(testTD);
 
     console.dir(thing);
 
     expect(thing).to.have.property("@context").that.has.length(2);
+    expect(thing["@context"][0]).to.equal(DEFAULT_CONTEXT);
+    expect(thing["@context"][1]).to.have.property("@language").that.equals(DEFAULT_CONTEXT_LANGUAGE); 
+    expect(thing).to.have.property("@type").that.equals(DEFAULT_THING_TYPE);
+  }
+
+  @test "should not ovverride existing @language in context"() {
+    let testTD = `{ "title": "NoContext",
+      "@context": ["https://www.w3.org/2019/wot/td/v1", {
+          "iot": "http://example.org/iot"
+        },
+        { "@language" : "de" }
+      ]
+    }`;
+    let thing: Thing = TDParser.parseTD(testTD);
+
+    console.dir(thing);
+
+    expect(thing).to.have.property("@context").that.has.length(3);
+    expect(thing["@context"][0]).to.equal(DEFAULT_CONTEXT);
+    expect(thing["@context"][1]).to.have.property("iot").that.equals("http://example.org/iot"); 
+    expect(thing["@context"][2]).to.have.property("@language").that.equals("de"); 
+    expect(thing).to.have.property("@type").that.equals(DEFAULT_THING_TYPE);
+  }
+    
+  @test "should add context to single string"() {
+    let testTD = `{ "title": "OtherContext", "@context": "http://iot.schema.org/", "@type": "iot:Sensor" }`;
+    let thing: Thing = TDParser.parseTD(testTD);
+
+    console.dir(thing);
+
+    expect(thing).to.have.property("@context").that.has.length(3);
     expect(thing["@context"][0]).to.equal("http://iot.schema.org/");
     expect(thing["@context"][1]).to.equal(DEFAULT_CONTEXT);
+    expect(thing["@context"][2]).to.have.property("@language").that.equals(DEFAULT_CONTEXT_LANGUAGE); 
 
     expect(thing).to.have.property("@type").that.has.length(2);
     expect(thing["@type"][0]).to.equal(DEFAULT_THING_TYPE);
@@ -347,14 +369,15 @@ class TDParserTest {
   }
     
   @test "should add context to array"() {
-    let testTD = `{ "name": "OtherContext", "@context": ["http://iot.schema.org/"], "@type": ["iot:Sensor"] }`;
+    let testTD = `{ "title": "OtherContext", "@context": ["http://iot.schema.org/"], "@type": ["iot:Sensor"] }`;
     let thing: Thing = TDParser.parseTD(testTD);
     
     console.dir(thing);
 
-    expect(thing).to.have.property("@context").that.has.length(2);
+    expect(thing).to.have.property("@context").that.has.length(3);
     expect(thing["@context"][0]).to.equal("http://iot.schema.org/");
     expect(thing["@context"][1]).to.equal(DEFAULT_CONTEXT);
+    expect(thing["@context"][2]).to.have.property("@language").that.equals(DEFAULT_CONTEXT_LANGUAGE); 
 
     expect(thing).to.have.property("@type").that.has.length(2);
     expect(thing["@type"][0]).to.equal(DEFAULT_THING_TYPE);
@@ -362,22 +385,25 @@ class TDParserTest {
   }
     
   @test "should add context to object"() {
-    let testTD = `{ "name": "OtherContext", "@context": { "iot": "http://iot.schema.org/" } }`;
+    let testTD = `{ "title": "OtherContext", "@context": { "iot": "http://iot.schema.org/" } }`;
     let thing: Thing = TDParser.parseTD(testTD);
 
     console.dir(thing);
 
-    expect(thing).to.have.property("@context").that.has.length(2);
+    expect(thing).to.have.property("@context").that.has.length(3);
     expect(thing["@context"][0]).to.have.property("iot");
     expect(thing["@context"][1]).to.equal(DEFAULT_CONTEXT);
+    expect(thing["@context"][2]).to.have.property("@language").that.equals(DEFAULT_CONTEXT_LANGUAGE); 
   }
 
   @test "should parse the example from spec"() {
     let thing: Thing = TDParser.parseTD(tdSample1);
 
-    expect(thing).to.have.property("@context").that.equals(DEFAULT_CONTEXT);
+    expect(thing).to.have.property("@context").that.has.length(2);
+    expect(thing["@context"][0]).to.equal(DEFAULT_CONTEXT);
+    expect(thing["@context"][1]).to.have.property("@language").that.equals(DEFAULT_CONTEXT_LANGUAGE); 
     expect(thing).to.have.property("@type").that.equals("Thing");
-    expect(thing).to.have.property("name").that.equals("MyTemperatureThing");
+    expect(thing).to.have.property("title").that.equals("MyTemperatureThing");
     expect(thing).to.not.have.property("base");
 
     expect(thing.properties).to.have.property("temperature");
@@ -395,7 +421,7 @@ class TDParserTest {
     expect(thing).to.have.property("@context").that.contains(DEFAULT_CONTEXT);
     expect(thing).to.have.property("@type").that.has.lengthOf(1);
     expect(thing).to.have.property("@type").that.contains("Thing");
-    expect(thing).to.have.property("name").that.equals("MyTemperatureThing2");
+    expect(thing).to.have.property("title").that.equals("MyTemperatureThing2");
     expect(thing).to.not.have.property("base");
 
     expect(thing.properties).to.have.property("temperature");
@@ -411,9 +437,10 @@ class TDParserTest {
   @test "should parse TD with base field"() {
     let thing: Thing = TDParser.parseTD(tdSample3);
 
-    expect(thing).to.have.property("@context").that.has.lengthOf(1);
+    expect(thing).to.have.property("@context").that.has.lengthOf(2);
     expect(thing).to.have.property("@context").contains(DEFAULT_CONTEXT);
-    expect(thing).to.have.property("name").that.equals("MyTemperatureThing3");
+    expect(thing["@context"][1]).to.have.property("@language").that.equals(DEFAULT_CONTEXT_LANGUAGE); 
+    expect(thing).to.have.property("title").that.equals("MyTemperatureThing3");
     expect(thing).to.have.property("base").that.equals("coap://mytemp.example.com:5683/interactions/");
 
     expect(thing.properties).to.have.property("temperature");
@@ -482,9 +509,10 @@ class TDParserTest {
     // parse TD
     let thing: Thing = TDParser.parseTD(tdSampleMetadata1);
 
-    expect(thing).to.have.property("@context").that.has.lengthOf(1);
+    expect(thing).to.have.property("@context").that.has.lengthOf(2);
     expect(thing).to.have.property("@context").contains(DEFAULT_CONTEXT);
-    expect(thing).to.have.property("name").that.equals("MyTemperatureThing3");
+    expect(thing["@context"][1]).to.have.property("@language").that.equals(DEFAULT_CONTEXT_LANGUAGE); 
+    expect(thing).to.have.property("title").that.equals("MyTemperatureThing3");
     expect(thing).to.have.property("base").that.equals("coap://mytemp.example.com:5683/interactions/");
 
     // thing metadata "reference": "myTempThing" in metadata
@@ -528,7 +556,7 @@ class TDParserTest {
     // simple elements
     expect(thing).to.have.property("@context").that.equals(DEFAULT_CONTEXT);
     expect(thing.id).equals("urn:dev:wot:com:example:servient:lamp");
-    expect(thing.name).equals("MyLampThing");
+    expect(thing.title).equals("MyLampThing");
 
     // interaction arrays
     expect(thing).to.have.property("properties");
@@ -547,6 +575,124 @@ class TDParserTest {
     assert.throws( () => { TDParser.parseTD(tdBroken2); }, Error, "Form of Action 'toggle' has no href field");
     assert.throws( () => { TDParser.parseTD(tdBroken3); }, Error, "Form of Event 'overheating' has relative URI while TD has no base field");
 
+  }
+
+  @test "uriVarables in combination with and without http base"() {
+    // see https://github.com/eclipse/thingweb.node-wot/issues/97
+
+    let tdTest = `{
+      "@context": "https://www.w3.org/2019/wot/td/v1",
+      "id": "urn:dev:wot:com:example:servient:urivarables",
+      "base": "coap://localhost:8080/uv/",
+      "title": "UriVarables",
+      "properties": {
+        "without": {
+          "readOnly": true,
+          "observable": false,
+          "type": "string",
+          "forms": [{
+            "href": "coap://localhost:8080/uv/without{?step}",
+            "contentType": "application/json"
+          }]
+        },
+        "with1": {
+          "readOnly": true,
+          "observable": false,
+          "type": "string",
+          "forms": [{
+            "href": "with1{?step}",
+            "contentType": "application/json"
+          }]
+        },
+        "with2": {
+          "readOnly": true,
+          "observable": false,
+          "type": "string",
+          "forms": [{
+            "href": "with2{?step,a}",
+            "contentType": "application/json"
+          }]
+        }
+      }
+    }`;
+
+
+    let thing: Thing = TDParser.parseTD(tdTest);
+
+    // simple elements
+    expect(thing).to.have.property("@context").that.equals(DEFAULT_CONTEXT);
+    expect(thing.id).equals("urn:dev:wot:com:example:servient:urivarables");
+    expect(thing.title).equals("UriVarables");
+
+    // interaction arrays
+    expect(thing).to.have.property("properties");
+
+    expect(thing.properties).to.have.property("without");
+    expect(thing.properties["without"].forms[0].href).equals("coap://localhost:8080/uv/" + "without{?step}");
+
+    expect(thing.properties).to.have.property("with1");
+    expect(thing.properties["with1"].forms[0].href).equals("coap://localhost:8080/uv/" + "with1{?step}");
+
+    expect(thing.properties).to.have.property("with2");
+    expect(thing.properties["with2"].forms[0].href).equals("coap://localhost:8080/uv/" + "with2{?step,a}");
+  }
+
+  @test "uriVarables in combination with and without coap base"() {
+    let tdTest = `{
+      "@context": "https://www.w3.org/2019/wot/td/v1",
+      "id": "urn:dev:wot:com:example:servient:urivarables",
+      "base": "http://localhost:8080/uv/",
+      "title": "UriVarables",
+      "properties": {
+        "without": {
+          "readOnly": true,
+          "observable": false,
+          "type": "string",
+          "forms": [{
+            "href": "http://localhost:8080/uv/without{?step}",
+            "contentType": "application/json"
+          }]
+        },
+        "with1": {
+          "readOnly": true,
+          "observable": false,
+          "type": "string",
+          "forms": [{
+            "href": "with1{?step}",
+            "contentType": "application/json"
+          }]
+        },
+        "with2": {
+          "readOnly": true,
+          "observable": false,
+          "type": "string",
+          "forms": [{
+            "href": "with2{?step,a}",
+            "contentType": "application/json"
+          }]
+        }
+      }
+    }`;
+
+
+    let thing: Thing = TDParser.parseTD(tdTest);
+
+    // simple elements
+    expect(thing).to.have.property("@context").that.equals(DEFAULT_CONTEXT);
+    expect(thing.id).equals("urn:dev:wot:com:example:servient:urivarables");
+    expect(thing.title).equals("UriVarables");
+
+    // interaction arrays
+    expect(thing).to.have.property("properties");
+
+    expect(thing.properties).to.have.property("without");
+    expect(thing.properties["without"].forms[0].href).equals("http://localhost:8080/uv/" + "without{?step}");
+
+    expect(thing.properties).to.have.property("with1");
+    expect(thing.properties["with1"].forms[0].href).equals("http://localhost:8080/uv/" + "with1{?step}");
+
+    expect(thing.properties).to.have.property("with2");
+    expect(thing.properties["with2"].forms[0].href).equals("http://localhost:8080/uv/" + "with2{?step,a}");
   }
 
 }

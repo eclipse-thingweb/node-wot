@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -13,30 +13,9 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-//Tested with https://github.com/mcollina/node-coap/blob/master/examples/observe_server.js
-
-let td = 
-`{
-    "name": "CoAP date server",
-    "id": "urn:dev:wot:coap:date",
-    "properties" : {
-        "mydate": {
-            "forms": [
-                {"href": "coap://localhost:5683"}
-            ]
-        }
-    }
-}`;
-
-let thing = WoT.consume(td);
-
-thing.properties.mydate.subscribe(
-	x => {
-		console.info("onNext: ", x);
-	},
-	e => console.log("onError: %s", e),
-	() => {
-		console.log("onCompleted");
-	}
-);
-console.info("Subscribed");
+export { default as WebSocketClient } from './ws-client'
+export { default as WebSocketClientFactory } from './ws-client-factory'
+export { default as WebSocketSecureClientFactory } from './wss-client-factory'
+export * from './ws-client'
+export * from './ws-client-factory'
+export * from './wss-client-factory'

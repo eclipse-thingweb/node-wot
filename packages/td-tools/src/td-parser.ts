@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -17,17 +17,20 @@ import Thing from "./thing-description";
 import * as TD from "./thing-description";
 
 const isAbsoluteUrl = require('is-absolute-url');
+let URLToolkit = require('url-toolkit');
 
 /** Parses a TD into a Thing object */
 export function parseTD(td: string, normalize?: boolean): Thing {
   console.debug(`parseTD() parsing\n\`\`\`\n${td}\n\`\`\``);
 
-  let thing: Thing = JSON.parse(td);
+  // remove a potential Byte Order Mark (BOM)
+  // see https://github.com/eclipse/thingweb.node-wot/issues/109
+  let thing: Thing = JSON.parse(td.replace(/^\uFEFF/, ''));
 
   // apply defaults as per WoT Thing Description spec
 
   if (thing["@context"] === undefined) {
-    thing["@context"] = TD.DEFAULT_CONTEXT;
+    thing["@context"] = [TD.DEFAULT_CONTEXT];
   } else if (Array.isArray(thing["@context"])) {
     let semContext: Array<string> = thing["@context"];
     if (semContext.indexOf(TD.DEFAULT_CONTEXT) === -1) {
@@ -38,6 +41,8 @@ export function parseTD(td: string, normalize?: boolean): Thing {
     let semContext: string | any = thing["@context"];
     thing["@context"] = [semContext, TD.DEFAULT_CONTEXT];
   }
+  // add @language : "en" if no @language set
+  addDefaultLanguage(thing);
 
   if (thing["@type"] === undefined) {
     thing["@type"] = TD.DEFAULT_THING_TYPE;
@@ -66,6 +71,18 @@ export function parseTD(td: string, normalize?: boolean): Thing {
       }
     }
   }
+  
+  if (thing.actions !== undefined && thing.actions instanceof Object) {
+    for (let actName in thing.actions) {
+      let act: WoT.ActionFragment = thing.actions[actName];
+      if (act.safe === undefined || typeof act.safe !== "boolean") {
+        act.safe = false;
+      }
+      if (act.idempotent === undefined || typeof act.idempotent !== "boolean") {
+        act.idempotent = false;
+      }
+    }
+  }
 
   // avoid errors due to 'undefined'
   if (typeof thing.properties !== 'object' || thing.properties === null) {
@@ -80,6 +97,10 @@ export function parseTD(td: string, normalize?: boolean): Thing {
 
   if (thing.security === undefined) {
     console.warn(`parseTD() found no security metadata`);
+  }
+  // wrap in array for later simplification
+  if (typeof thing.security === "string") {
+    thing.security = [thing.security];
   }
 
   // collect all forms for normalization and use iterations also for checking
@@ -110,20 +131,10 @@ export function parseTD(td: string, normalize?: boolean): Thing {
     if (normalize === undefined || normalize === true) {
       console.log(`parseTD() normalizing 'base' into 'forms'`);
 
-      const url = require('url');
-      /* url modul works only for http --> so replace URI scheme with
-        http and after resolving replace again replace with original scheme */
-      let n: number = thing.base.indexOf(':');
-      let scheme: string = thing.base.substr(0, n + 1); // save origin protocol
-      let base: string = thing.base.replace(scheme, 'http:'); // replace protocol
-
       for (let form of allForms) {
         if (!form.href.match(/^([a-z0-9\+-\.]+\:).+/i)) {
           console.debug(`parseTDString() applying base '${thing.base}' to '${form.href}'`);
-
-          let href: string = url.resolve(base, form.href) // URL resolving
-          href = href.replace('http:', scheme); // replace protocol back to origin
-          form.href = href;
+          form.href = URLToolkit.buildAbsoluteURL(thing.base, form.href);
         }
       }
     }
@@ -131,6 +142,28 @@ export function parseTD(td: string, normalize?: boolean): Thing {
 
   return thing;
 }
+
+
+function addDefaultLanguage(thing: Thing) {
+  // add @language : "en" if no @language set
+  if(Array.isArray(thing["@context"])) {
+    let arrayContext: Array<any> = thing["@context"];
+    let languageSet = false;
+    for (let arrayEntry of arrayContext) {
+      if(typeof arrayEntry == "object") {
+        if(arrayEntry["@language"] !== undefined) {
+          languageSet = true;
+        }
+      }
+    }
+    if(!languageSet) {
+      arrayContext.push({
+        "@language": TD.DEFAULT_CONTEXT_LANGUAGE
+      });
+    }
+  }
+}
+
 
 /** Serializes a Thing object into a TD */
 export function serializeTD(thing: Thing): string {

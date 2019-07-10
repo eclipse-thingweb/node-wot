@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -210,7 +210,7 @@ export default class OracleServer implements ProtocolServer {
       device.onChange = (tupples: any) => {
         tupples.forEach( (tupple: any) => {
           if (thing.properties[tupple.attribute.id] !== undefined) {
-            console.info(`### Thing '${thing.name}' has Property '${tupple.attribute.id}' for writing '${tupple.newValue}'`);
+            console.info(`### Thing '${thing.title}' has Property '${tupple.attribute.id}' for writing '${tupple.newValue}'`);
             if (!thing.properties[tupple.attribute.id].readOnly) {
               thing.properties[tupple.attribute.id]
                 .write(tupple.newValue)
@@ -224,7 +224,7 @@ export default class OracleServer implements ProtocolServer {
       // only wire Actions defined in Device Model
       for (let action of model.actions) {
         if (thing.actions[action.name] !== undefined) {
-          console.info(`### Thing '${thing.name}' has Action '${action.name}'`);
+          console.info(`### Thing '${thing.title}' has Action '${action.name}'`);
           device[action.name].onExecute = (param: any) => {
             console.info(`### Oracle called Action '${action.name}'`);
             thing.actions[action.name]
@@ -233,7 +233,7 @@ export default class OracleServer implements ProtocolServer {
             // No action results supported by Oracle
           }
         } else {
-          console.warn(`### Oracle Device Model Action '${action.name}' not available on Thing '${thing.name}'`);
+          console.warn(`### Oracle Device Model Action '${action.name}' not available on Thing '${thing.title}'`);
         }
       }
 

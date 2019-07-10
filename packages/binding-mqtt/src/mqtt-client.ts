@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -64,8 +64,7 @@ export default class MqttClient implements ProtocolClient {
             error(error);
         });
 
-
-        return new Subscription(()=>{this.client.end()});
+        return new Subscription(()=>{this.client.unsubscribe(topic)});
       }
 
     
@@ -107,14 +106,25 @@ export default class MqttClient implements ProtocolClient {
 
         });
     }
+
     unlinkResource = (form: Form): Promise<void> => {
-        //TODO: Implement
-        throw new Error('Method not implemented.');
+        let requestUri = url.parse(form['href']);
+        let topic = requestUri.pathname;
+
+        return new Promise<void>((resolve, reject) => {
+            if(this.client && this.client.connected) {
+                this.client.unsubscribe(topic);
+                console.log(`MqttClient unsubscribed from topic '${topic}'`);
+            }
+            resolve()
+        });
     }
+
     start = (): boolean => {
         return true;
     }
     stop = (): boolean => {
+        if(this.client) this.client.end();
         return true;
     }
     

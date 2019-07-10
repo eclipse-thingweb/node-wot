@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -42,7 +42,7 @@ export default class HttpClient implements ProtocolClient {
 
     // config proxy by client side (not from TD)
     if (config!==null && config.proxy && config.proxy.href) {
-      this.proxyOptions = this.uriToOptions(config.proxy.href);
+      this.proxyOptions = this.uriToOptions(config.proxy.href, true);
 
       if (config.proxy.scheme === "basic") {
         if (!config.proxy.hasOwnProperty("username") || !config.proxy.hasOwnProperty("password")) console.warn(`HttpClient client configured for basic proxy auth, but no username/password given`);
@@ -93,10 +93,10 @@ export default class HttpClient implements ProtocolClient {
       let req = this.generateRequest(form, "GET");
       let info = <any>req;
 
-      console.log(`HttpClient sending ${info.method} to ${form.href}`);
+      console.log(`HttpClient sending ${info.method} to ${info.path}`);
 
       req.on("response", (res: http.IncomingMessage) => {
-        console.log(`HttpClient received ${res.statusCode} from ${form.href}`);
+        console.log(`HttpClient received ${res.statusCode} from ${info.path}`);
         let contentType: string = this.getContentType(res);
         let body: Array<any> = [];
         res.on('data', (data) => { body.push(data) });
@@ -118,10 +118,10 @@ export default class HttpClient implements ProtocolClient {
       req.setHeader("Content-Type", content.type);
       req.setHeader("Content-Length", content.body.byteLength);
 
-      console.log(`HttpClient sending ${info.method} with '${req.getHeader("Content-Type")}' to ${form.href}`);
+      console.log(`HttpClient sending ${info.method} with '${req.getHeader("Content-Type")}' to ${info.path}`);
 
       req.on("response", (res: http.IncomingMessage) => {
-        console.log(`HttpClient received ${res.statusCode} from ${form.href}`);
+        console.log(`HttpClient received ${res.statusCode} from ${info.path}`);
         let contentType: string = this.getContentType(res);
         //console.log(`HttpClient received headers: ${JSON.stringify(res.headers)}`);
         // Although 204 without payload is expected, data must be read 
@@ -150,7 +150,7 @@ export default class HttpClient implements ProtocolClient {
         req.setHeader("Content-Length", content.body.byteLength);
       }
 
-      console.log(`HttpClient sending ${info.method} ${content ? "with '"+req.getHeader("Content-Type")+"' " : " "}to ${form.href}`);
+      console.log(`HttpClient sending ${info.method} ${content ? "with '"+req.getHeader("Content-Type")+"' " : " "}to ${info.path}`);
 
       req.on("response", (res: http.IncomingMessage) => {
         console.log(`HttpClient received ${res.statusCode} from ${form.href}`);
@@ -220,7 +220,10 @@ export default class HttpClient implements ProtocolClient {
           }
         });
       });
-      req.on("error", (err: any) => error(err));
+      req.on("error", (err: any) => {
+        if (error) error(err);
+        if (complete) complete();
+      });
 
       req.flushHeaders();
       req.end();
@@ -236,7 +239,7 @@ export default class HttpClient implements ProtocolClient {
   }
 
   public stop(): boolean {
-    this.agent.destroy();
+    if (this.agent && this.agent.destroy) this.agent.destroy();  // When running in browser mode, Agent.destroy() might not exist.
     return true;
   }
 
@@ -246,24 +249,34 @@ export default class HttpClient implements ProtocolClient {
       console.warn(`HttpClient without security`);
       return false;
     }
-    if (credentials === undefined) {
-      throw new Error(`No credentionals for Thing`);
-    }
 
+    // TODO support for multiple security schemes
     let security: WoT.Security = metadata[0];
 
     if (security.scheme === "basic") {
+      if (credentials === undefined || credentials.username === undefined || credentials.password === undefined) {
+        throw new Error(`No Basic credentionals for Thing`);
+      }
       this.authorization = "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString('base64');
 
     } else if (security.scheme === "bearer") {
-      // TODO get token from metadata.as (authorization server)
+      if (credentials === undefined || credentials.token === undefined) {
+        throw new Error(`No Bearer credentionals for Thing`);
+      }
+      // TODO check security.in and adjust
       this.authorization = "Bearer " + credentials.token;
 
     } else if (security.scheme === "apikey") {
+      if (credentials === undefined || credentials.apikey === undefined) {
+        throw new Error(`No API key credentionals for Thing`);
+      }
       this.authorization = credentials.apikey;
       if (security.in==="header" && security.name!==undefined) {
         this.authorizationHeader = security.name;
       }
+
+    } else if (security.scheme === "nosec") {
+      // nothing to do
 
     } else {
       console.error(`HttpClient cannot set security scheme '${security.scheme}'`);
@@ -276,30 +289,34 @@ export default class HttpClient implements ProtocolClient {
         console.info(`HttpClient overriding client-side proxy with security proxy '${security.proxy}`);
       }
 
-      this.proxyOptions = this.uriToOptions(security.proxy);
+      this.proxyOptions = this.uriToOptions(security.proxy, true);
 
-      // TODO: Get back proxy configuration
-      /*
-      if (metadata.proxyauthorization == "Basic") {
+      // TODO support for different credentials at proxy and server (e.g., credentials.username vs credentials.proxy.username)
+      if (security.scheme == "basic") {
+        if (credentials === undefined || credentials.username === undefined || credentials.password === undefined) {
+          throw new Error(`No Basic credentionals for Thing`);
+        }
         this.proxyOptions.headers = {};
         this.proxyOptions.headers['Proxy-Authorization'] = "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString('base64');
-      } else if (metadata.proxyauthorization == "Bearer") {
+      } else if (security.scheme == "bearer") {
+        if (credentials === undefined || credentials.token === undefined) {
+          throw new Error(`No Bearer credentionals for Thing`);
+        }
         this.proxyOptions.headers = {};
         this.proxyOptions.headers['Proxy-Authorization'] = "Bearer " + credentials.token;
       }
-      */
     }
 
     console.log(`HttpClient using security scheme '${security.scheme}'`);
     return true;
   }
 
-  private uriToOptions(uri: string): https.RequestOptions {
+  private uriToOptions(uri: string, ignoreProxy=false): https.RequestOptions {
     let requestUri = url.parse(uri);
     let options: https.RequestOptions = {};
     options.agent = this.agent;
 
-    if (this.proxyOptions != null) {
+    if (this.proxyOptions != null && ignoreProxy === false) {
       options.hostname = this.proxyOptions.hostname;
       options.port = this.proxyOptions.port;
       options.path = uri;
@@ -336,9 +353,9 @@ export default class HttpClient implements ProtocolClient {
 
     options.method = dflt;
 
-    if (typeof form["http:methodName"] === "string") {
-      console.log("HttpClient got Form 'methodName'", form["http:methodName"]);
-      switch (form["http:methodName"]) {
+    if (typeof form["htv:methodName"] === "string") {
+      console.log("HttpClient got Form 'methodName'", form["htv:methodName"]);
+      switch (form["htv:methodName"]) {
         case "GET": options.method = "GET"; break;
         case "POST": options.method = "POST"; break;
         case "PUT": options.method = "PUT"; break;
@@ -358,16 +375,16 @@ export default class HttpClient implements ProtocolClient {
       console.debug("HttpClient got Form 'contentType'", form.contentType);
       req.setHeader("Accept", form.contentType);
     }
-    if (Array.isArray(form["http:headers"])) {
-      console.debug("HttpClient got Form 'headers'", form["http:headers"]);
-      let headers = form["http:headers"] as Array<HttpHeader>;
+    if (Array.isArray(form["htv:headers"])) {
+      console.debug("HttpClient got Form 'headers'", form["htv:headers"]);
+      let headers = form["htv:headers"] as Array<HttpHeader>;
       for (let option of headers) {
-        req.setHeader(option["http:fieldName"], option["http:fieldValue"]);
+        req.setHeader(option["htv:fieldName"], option["htv:fieldValue"]);
       }
-    } else if (typeof form["http:headers"] === "object") {
-      console.warn("HttpClient got Form SINGLE-ENTRY 'headers'", form["http:headers"]);
-      let option = form["http:headers"] as HttpHeader;
-      req.setHeader(option["http:fieldName"], option["http:fieldValue"]);
+    } else if (typeof form["htv:headers"] === "object") {
+      console.warn("HttpClient got Form SINGLE-ENTRY 'headers'", form["htv:headers"]);
+      let option = form["htv:headers"] as HttpHeader;
+      req.setHeader(option["htv:fieldName"], option["htv:fieldValue"]);
     }
 
     return req;
@@ -377,7 +394,7 @@ export default class HttpClient implements ProtocolClient {
     if (statusCode < 200) {
       throw new Error(`HttpClient received ${statusCode} and cannot continue (not implemented, open GitHub Issue)`);
     } else if (statusCode < 300) {
-      resolve({ contentType: contentType, body: body });
+      resolve({ type: contentType, body: body });
     } else if (statusCode < 400) {
       throw new Error(`HttpClient received ${statusCode} and cannot continue (not implemented, open GitHub Issue)`);
     } else if (statusCode < 500) {

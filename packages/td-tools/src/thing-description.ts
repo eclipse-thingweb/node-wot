@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -16,23 +16,29 @@
 // global W3C WoT Scripting API definitions
 import * as WoT from "wot-typescript-definitions";
 
-export const DEFAULT_CONTEXT: string = "http://www.w3.org/ns/td";
+export const DEFAULT_CONTEXT: string = "https://www.w3.org/2019/wot/td/v1";
+export const DEFAULT_CONTEXT_LANGUAGE: string = "en";
 export const DEFAULT_THING_TYPE: string = "Thing";
 
 /* TODOs / Questions
  ~ In Thing index structure could be read-only (sanitizing needs write access)
 */
 
-export class Versioning implements WoT.Versioning {
+export class VersionInfo implements WoT.VersionInfo {
   instance: string;
 }
 
 /** Implements the Thing Description as software object */
 export default class Thing implements WoT.ThingFragment {
   id: string;
-  name: string;
+  title: string;
+  titles: WoT.MultiLanguage;
   description: string;
   descriptions: WoT.MultiLanguage;
+  support: string;
+  modified: string;
+  created: string;
+  version: VersionInfo;
   securityDefinitions: {
     [key: string]: WoT.Security;
   };

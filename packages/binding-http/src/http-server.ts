@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -27,7 +27,8 @@ import { AddressInfo } from "net";
 
 import * as TD from "@node-wot/td-tools";
 import Servient, { ProtocolServer, ContentSerdes, ExposedThing, Helpers } from "@node-wot/core";
-import { HttpConfig } from "./http";
+import { HttpConfig, HttpForm } from "./http";
+import { Form } from "@node-wot/td-tools";
 
 export default class HttpServer implements ProtocolServer {
 
@@ -169,25 +170,27 @@ export default class HttpServer implements ProtocolServer {
   
   public expose(thing: ExposedThing): Promise<void> {
 
-    let name = thing.name;
+    let title = thing.title;
 
-    if (this.things.has(name)) {
-      name = Helpers.generateUniqueName(name);
+    if (this.things.has(title)) {
+      title = Helpers.generateUniqueName(title);
     }
 
     if (this.getPort() !== -1) {
 
-      console.log(`HttpServer on port ${this.getPort()} exposes '${thing.name}' as unique '/${name}'`);
-      this.things.set(name, thing);
+      console.log(`HttpServer on port ${this.getPort()} exposes '${thing.title}' as unique '/${title}'`);
+      this.things.set(title, thing);
 
       // fill in binding data
       for (let address of Helpers.getAddresses()) {
         for (let type of ContentSerdes.get().getOfferedMediaTypes()) {
-          let base: string = this.scheme + "://" + address + ":" + this.getPort() + "/" + encodeURIComponent(name);
+          let base: string = this.scheme + "://" + address + ":" + this.getPort() + "/" + encodeURIComponent(title);
 
           if(true) { // make reporting of all properties optional?
             let href = base + "/" + this.ALL_DIR + "/" + encodeURIComponent(this.ALL_PROPERTIES);
             let form = new TD.Form(href, type);
+            // Note: currently no check is made about writable/readable
+            form.op = ["readallproperties", "readmultipleproperties", "writeallproperties", "writemultipleproperties"];
             if(!thing.forms) {
               thing.forms = [];
             }
@@ -200,8 +203,16 @@ export default class HttpServer implements ProtocolServer {
             let form = new TD.Form(href, type);
             if (thing.properties[propertyName].readOnly) {
               form.op = ["readproperty"];
+              let hform : HttpForm = form;
+              if(hform["htv:methodName"] === undefined) {
+                hform["htv:methodName"] = "GET";
+              }    
             } else if (thing.properties[propertyName].writeOnly) {
               form.op = ["writeproperty"];
+              let hform : HttpForm = form;
+              if(hform["htv:methodName"] === undefined) {
+                hform["htv:methodName"] = "PUT";
+              }
             } else {
               form.op = ["readproperty", "writeproperty"];
             }
@@ -225,6 +236,10 @@ export default class HttpServer implements ProtocolServer {
             let href = base + "/" + this.ACTION_DIR + "/" + actionNamePattern;
             let form = new TD.Form(href, type);
             form.op = ["invokeaction"];
+            let hform : HttpForm = form;
+            if(hform["htv:methodName"] === undefined) {
+              hform["htv:methodName"] = "POST";
+            }
             thing.actions[actionName].forms.push(form);
             console.log(`HttpServer on port ${this.getPort()} assigns '${href}' to Action '${actionName}'`);
           }
@@ -319,11 +334,25 @@ export default class HttpServer implements ProtocolServer {
       console.log(`HttpServer on port ${this.getPort()} replied with '${res.statusCode}' to ${Helpers.toUriLiteral(req.socket.remoteAddress)}:${req.socket.remotePort}`);
     });
 
+    // Handle requests where the path is correct and the HTTP method is not allowed.
+    function respondUnallowedMethod(res: http.ServerResponse, allowed: string): void {
+      // Always allow OPTIONS to handle CORS pre-flight requests
+      if (!allowed.includes("OPTIONS")) { allowed += ", OPTIONS"}
+      if (req.method === "OPTIONS" && req.headers["origin"] && req.headers["access-control-request-method"]) {
+        console.debug(`HttpServer received an CORS preflight request from ${Helpers.toUriLiteral(req.socket.remoteAddress)}:${req.socket.remotePort}`);
+        res.setHeader("Access-Control-Allow-Methods", allowed);
+        res.setHeader("Access-Control-Allow-Headers", "content-type, authorization, *");
+        res.writeHead(200);
+        res.end();
+      } else {
+        res.setHeader("Allow", allowed);
+        res.writeHead(405);
+        res.end("Method Not Allowed");
+      }
+    }
+
     // Set CORS headers
     res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Request-Method", "*");
-    res.setHeader("Access-Control-Allow-Methods", "OPTIONS, HEAD, GET, POST, PUT, DELETE, PATCH");
-    res.setHeader("Access-Control-Allow-Headers", "content-type, authorization, *");
 
     let contentTypeHeader: string | string[] = req.headers["content-type"];
     let contentType: string = Array.isArray(contentTypeHeader) ? contentTypeHeader[0] : contentTypeHeader;
@@ -353,13 +382,15 @@ export default class HttpServer implements ProtocolServer {
         for (let address of Helpers.getAddresses()) {
           // FIXME are Iterables really such a non-feature that I need array?
           for (let name of Array.from(this.things.keys())) {
-            list.push(this.scheme + "://" + Helpers.toUriLiteral(address) + ":" + this.getPort() + "/" + encodeURIComponent(name));
+            // FIXME the undefined check should NOT be necessary (however there seems to be null in it)
+            if(name) {
+              list.push(this.scheme + "://" + Helpers.toUriLiteral(address) + ":" + this.getPort() + "/" + encodeURIComponent(name));
+            }
           }
         }
         res.end(JSON.stringify(list));
       } else {
-        res.writeHead(405);
-        res.end("Method Not Allowed");
+        respondUnallowedMethod(res, "GET");
       }
       // resource found and response sent
       return;
@@ -372,12 +403,38 @@ export default class HttpServer implements ProtocolServer {
         if (segments.length === 2 || segments[2] === "") {
           // Thing root -> send TD
           if (req.method === "GET") {
+            let td = thing.getThingDescription();
+
+            // look for language negotiation through the Accept-Language header field of HTTP (e.g., "de", "de-CH", "en-US,en;q=0.5")
+            // Note: "title" on thing level is mandatory term --> check whether "titles" exists for multi-languages
+            // Note: HTTP header names are case-insensitive and req.headers seems to contain them in lowercase
+            if(req.headers["accept-language"] && req.headers["accept-language"] != "*") {
+              if(thing.titles) {
+                let alparser = require('accept-language-parser');
+                let supportedLanguagesArray : string[] = []; // e.g., ['fr', 'en']
+
+                // collect supported languages by checking titles (given title is the only mandatory multi-lang term)
+                for(let lang in thing.titles) {
+                  supportedLanguagesArray.push(lang);
+                }
+  
+                // the loose option allows partial matching on supported languages (e.g., returns "de" for "de-CH")
+                let prefLang = alparser.pick(supportedLanguagesArray, req.headers["accept-language"], { loose: true });
+
+                if(prefLang) {
+                  // if a preferred language can be found use it
+                  console.log(`TD language negotiation through the Accept-Language header field of HTTP leads to "${prefLang}"`);
+                  let otd = JSON.parse(td);
+                  this.resetMultiLangThing(otd, prefLang);
+                  td = JSON.stringify(otd);
+                }
+              }
+            }
             res.setHeader("Content-Type", ContentSerdes.TD);
             res.writeHead(200);
-            res.end(thing.getThingDescription());
+            res.end(td);
           } else {
-            res.writeHead(405);
-            res.end("Method Not Allowed");
+            respondUnallowedMethod(res, "GET");
           }
           // resource found and response sent
           return;
@@ -413,7 +470,7 @@ export default class HttpServer implements ProtocolServer {
                         obj[key] = value[index];
                         index++;
                       }
-                      // res.setHeader("Content-Type", content.type);
+                      res.setHeader("Content-Type", ContentSerdes.DEFAULT);
                       res.writeHead(200);
                       res.end(JSON.stringify(obj));
                     })
@@ -423,8 +480,7 @@ export default class HttpServer implements ProtocolServer {
                       res.end(err.message);
                     });
               } else {
-                res.writeHead(405);
-                res.end("Method Not Allowed");
+                respondUnallowedMethod(res, "GET");
               }
               // resource found and response sent
               return;
@@ -514,8 +570,7 @@ export default class HttpServer implements ProtocolServer {
                   res.end("Property readOnly");
                 }
               } else {
-                res.writeHead(405);
-                res.end("Method Not Allowed");
+                respondUnallowedMethod(res, "GET, PUT");
               }
               // resource found and response sent
               return;
@@ -564,8 +619,7 @@ export default class HttpServer implements ProtocolServer {
                     });
                 });
               } else {
-                res.writeHead(405);
-                res.end("Method Not Allowed");
+                respondUnallowedMethod(res, "POST");
               }
               // resource found and response sent
               return;
@@ -602,8 +656,7 @@ export default class HttpServer implements ProtocolServer {
                 });
                 res.setTimeout(60*60*1000, () => subscription.unsubscribe());
               } else {
-                res.writeHead(405);
-                res.end("Method Not Allowed");
+                respondUnallowedMethod(res, "GET")
               }
               // resource found and response sent
               return;
@@ -617,4 +670,88 @@ export default class HttpServer implements ProtocolServer {
     res.writeHead(404);
     res.end("Not Found");
   }
+
+  private resetMultiLangThing(thing: any, prefLang : string) {
+    // TODO can we reset "title" to another name given that title is used in URI creation?
+
+    // update/set @language in @context
+    if(thing["@context"] && Array.isArray(thing["@context"])) {
+      let arrayContext: Array<any> = thing["@context"];
+      let languageSet = false;
+      for (let arrayEntry of arrayContext) {
+        if(arrayEntry instanceof Object) {
+          if(arrayEntry["@language"] !== undefined) {
+            arrayEntry["@language"] = prefLang;
+            languageSet = true;
+          }
+        }
+      }
+      if(!languageSet) {
+        arrayContext.push({
+          "@language": prefLang
+        });
+      }
+    }
+
+    // use new language title
+    if(thing["titles"]) {
+      for (let titleLang in thing["titles"]) {
+        if(titleLang.startsWith(prefLang)) {
+          thing["title"] = thing["titles"][titleLang];
+        }
+      }
+    }
+
+    // use new language description
+    if(thing["descriptions"]) {
+      for (let titleLang in thing["descriptions"]) {
+        if(titleLang.startsWith(prefLang)) {
+          thing["description"] = thing["descriptions"][titleLang];
+        }
+      }
+    }
+
+    // remove any titles or descriptions and update title / description accordingly
+    delete thing["titles"];
+    delete thing["descriptions"];
+
+    // reset multi-language terms for interactions
+    this.resetMultiLangInteraction(thing.properties, prefLang);
+    this.resetMultiLangInteraction(thing.actions, prefLang);
+    this.resetMultiLangInteraction(thing.events, prefLang);
+  }
+
+  private resetMultiLangInteraction(interactions: any, prefLang : string) {
+    if(interactions) {
+      for (let interName in interactions) {
+        // unset any current title and/or description
+        delete interactions[interName]["title"];
+        delete interactions[interName]["description"];
+
+        // use new language title
+        if(interactions[interName]["titles"]) {
+          for (let titleLang in interactions[interName]["titles"]) {
+            if(titleLang.startsWith(prefLang)) {
+              interactions[interName]["title"] = interactions[interName]["titles"][titleLang];
+            }
+          }
+        }
+
+        // use new language description
+        if(interactions[interName]["descriptions"]) {
+          for (let descLang in interactions[interName]["descriptions"]) {
+            if(descLang.startsWith(prefLang)) {
+              interactions[interName]["description"] = interactions[interName]["descriptions"][descLang];
+            }
+          }
+        }
+
+        // unset any multilanguage titles and/or descriptions
+        delete interactions[interName]["titles"];
+        delete interactions[interName]["descriptions"];
+      }
+    }
+
+  }
+
 }

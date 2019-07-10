@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -23,9 +23,12 @@ import MqttClient from "./mqtt-client";
 export default class MqttClientFactory implements ProtocolClientFactory {
     
     public readonly scheme: string = "mqtt";
+    private readonly clients: Array<ProtocolClient> = [];
 
     getClient = (): ProtocolClient => {
-        return new MqttClient();
+        let client = new MqttClient();
+        this.clients.push(client);
+        return client;
     }
 
     init(): boolean {
@@ -33,6 +36,8 @@ export default class MqttClientFactory implements ProtocolClientFactory {
     }
 
     destroy(): boolean {
+        console.log(`MqttClientFactory stopping all clients for '${this.scheme}'`);
+        this.clients.forEach((client) => client.stop())
         return true;
     }
 }

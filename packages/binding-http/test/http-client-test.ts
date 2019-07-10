@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -88,7 +88,7 @@ class TestHttpServer implements ProtocolServer {
 
     public setTestVector(vector: TestVector) {
         if (!vector.op) throw new Error("No vector op given");
-        if (!vector.form["http:methodName"]) {
+        if (!vector.form["htv:methodName"]) {
             // TODO also check all array entries
             switch (vector.op[0]) {
                 case "readproperty": vector.method = "GET"; break;
@@ -99,7 +99,7 @@ class TestHttpServer implements ProtocolServer {
                 default: throw new Error("Unknown op " + vector.op);
             }
         } else {
-            vector.method = vector.form["http:methodName"];
+            vector.method = vector.form["htv:methodName"];
         }
         this.testVector = vector;
     }

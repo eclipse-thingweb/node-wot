@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /********************************************************************************
- * Copyright (c) 2018 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -84,28 +84,29 @@ const runAllScripts = function(servient: DefaultServient) {
 }
 
 // main
-if (argv.length > 0) {
-    let argvCopy = argv.slice(0);
-    argvCopy.forEach( (arg) => {
-        if (flagArgConfigfile) {
-            flagArgConfigfile = false;
-            confFile = arg;
-            argv.shift();
+for( let i = 0; i < argv.length; i++){ 
+    if (flagArgConfigfile) {
+        flagArgConfigfile = false;
+        confFile = argv[i];
+        argv.splice(i, 1);
+        i--;
 
-        } else if (arg.match(/^(-c|--clientonly|\/c)$/i)) {
-            clientOnly = true;
-            argv.shift();
-        
-        } else if (arg.match(/^(-f|--configfile|\/f)$/i)) {
-            flagArgConfigfile = true;
-            argv.shift();
+    } else if (argv[i].match(/^(-c|--clientonly|\/c)$/i)) {
+        clientOnly = true;
+        argv.splice(i, 1);
+        i--;
+    
+    } else if (argv[i].match(/^(-f|--configfile|\/f)$/i)) {
+        flagArgConfigfile = true;
+        argv.splice(i, 1);
+        i--;
 
-        } else if (arg.match(/^(-v|--version|\/c)$/i)) {
-            console.log( require('@node-wot/core/package.json').version );
-            process.exit(0);
+    } else if (argv[i].match(/^(-v|--version|\/c)$/i)) {
+        console.log( require('@node-wot/core/package.json').version );
+        process.exit(0);
 
-        } else if (arg.match(/^(-h|--help|\/?|\/h)$/i)) {
-            console.log(`Usage: wot-servient [options] [SCRIPT]...
+    } else if (argv[i].match(/^(-h|--help|\/?|\/h)$/i)) {
+        console.log(`Usage: wot-servient [options] [SCRIPT]...
        wot-servient
        wot-servient examples/scripts/counter.js examples/scripts/example-event.js
        wot-servient -c counter-client.js
@@ -117,11 +118,11 @@ If one or more SCRIPT is given, these files are loaded instead of the directory.
 If the file 'wot-servient.conf.json' exists, that configuration is applied.
 
 Options:
-  -v, --version           display node-wot version
-  -c, --clientonly        do not start any servers
-                          (enables multiple instances without port conflicts)
-  -f, --configfile=file   load configuration from specified file
-  -h, --help              show this help
+  -v, --version            display node-wot version
+  -c, --clientonly         do not start any servers
+                           (enables multiple instances without port conflicts)
+  -f, --configfile <file>  load configuration from specified file
+  -h, --help               show this help
 
 wot-servient.conf.json syntax:
 {
@@ -134,6 +135,13 @@ wot-servient.conf.json syntax:
         "port": HPORT,
         "proxy": PROXY,
         "allowSelfSigned": ALLOW
+    },
+    "mqtt" : {
+        "broker" : "BROKER-URL",
+        "username" : "USERNAME",
+        "password" : "PASSWORD",
+        "clientId" : "UNIQUEID",
+        "port": 1883 
     },
     "credentials": {
         THING_ID1: {
@@ -159,12 +167,13 @@ wot-servient.conf.json fields:
                            corresponding credential fields as defined below
   ALLOW      : boolean whether self-signed certificates should be allowed
   THING_IDx  : string with TD "id" for which credentials should be configured
+  UNIQUEID   : unique id set by mqtt client while connecting to broker
+  BROKER-URL : URL to an MQTT broker that publisher and subscribers will use
   TOKEN      : string for providing a Bearer token
   USERNAME   : string for providing a Basic Auth username
   PASSWORD   : string for providing a Basic Auth password`);
-            process.exit(0);
-        }
-    });
+        process.exit(0);
+    }
 }
 
 readConf(confFile)

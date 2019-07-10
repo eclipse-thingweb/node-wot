@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -27,9 +27,9 @@ export default class CoapServer implements ProtocolServer {
 
   public readonly scheme: string = "coap";
 
-  private readonly PROPERTY_DIR = "pr";
-  private readonly ACTION_DIR = "ac";
-  private readonly EVENT_DIR = "ev";
+  private readonly PROPERTY_DIR = "properties";
+  private readonly ACTION_DIR = "actions";
+  private readonly EVENT_DIR = "events";
 
   private readonly port: number = 5683;
   private readonly address: string = undefined;
@@ -97,21 +97,21 @@ export default class CoapServer implements ProtocolServer {
 
   public expose(thing: ExposedThing): Promise<void> {
 
-    let name = thing.name;
+    let title = thing.title;
 
-    if (this.things.has(name)) {
-      name = Helpers.generateUniqueName(name);
+    if (this.things.has(title)) {
+      title = Helpers.generateUniqueName(title);
     }
 
-    console.log(`CoapServer on port ${this.getPort()} exposes '${thing.name}' as unique '/${name}'`);
+    console.log(`CoapServer on port ${this.getPort()} exposes '${thing.title}' as unique '/${title}'`);
 
     if (this.getPort() !== -1) {
-      this.things.set(name, thing);
+      this.things.set(title, thing);
 
       // fill in binding data
       for (let address of Helpers.getAddresses()) {
         for (let type of ContentSerdes.get().getOfferedMediaTypes()) {
-          let base: string = this.scheme + "://" + address + ":" + this.getPort() + "/" + encodeURIComponent(name);
+          let base: string = this.scheme + "://" + address + ":" + this.getPort() + "/" + encodeURIComponent(title);
 
           for (let propertyName in thing.properties) {
             let href = base + "/" + this.PROPERTY_DIR + "/" + encodeURIComponent(propertyName);

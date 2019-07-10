@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -12,6 +12,12 @@
  * 
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
+
+
+ /**
+  * To test this client, run the Californium CoAPS example server 
+  * (https://github.com/eclipse/californium/tree/master/demo-apps/cf-secure)
+  */
 
 WoT.fetch("file://./cf-secure.jsonld").then( async (td) => {
 

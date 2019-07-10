@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -96,7 +96,7 @@ export default class FujitsuServer implements ProtocolServer {
 
   public expose(thing: ExposedThing): Promise<void> {
 
-    console.log(`FujitsuServer for ${this.remote} exposes '${thing.name}'`);
+    console.log(`FujitsuServer for ${this.remote} exposes '${thing.title}'`);
     this.things.set(thing.id, thing);
 
     // create a copy for Fujitsu-specific href handles
@@ -124,10 +124,10 @@ export default class FujitsuServer implements ProtocolServer {
       });
       this.websocket.send(message, (err) => {
         if (err) {
-          console.error(`FujitsuServer for ${this.remote} failed to register '${thing.name}' as '${thing.id}': ${err.message}`);
+          console.error(`FujitsuServer for ${this.remote} failed to register '${thing.title}' as '${thing.id}': ${err.message}`);
           reject(err);
         } else {
-          console.log(`FujitsuServer for ${this.remote} registered '${thing.name}' as '${thing.id}'`);
+          console.log(`FujitsuServer for ${this.remote} registered '${thing.title}' as '${thing.id}'`);
           resolve();
         }
       });

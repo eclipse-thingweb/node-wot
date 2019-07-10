@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -14,7 +14,7 @@
  ********************************************************************************/
 
 try {
-  var thing = WoT.produce({ name: "DynamicThing" });
+  var thing = WoT.produce({ title: "DynamicThing" });
   // manually add Interactions
   thing
     .addAction(

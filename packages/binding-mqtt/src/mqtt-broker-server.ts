@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -70,7 +70,7 @@ export default class MqttBrokerServer implements ProtocolServer {
       return;
     }
 
-    let name = thing.name;
+    let name = thing.title;
 
     if (this.things.has(name)) {
       let suffix = name.match(/.+_([0-9]+)$/);
@@ -81,18 +81,46 @@ export default class MqttBrokerServer implements ProtocolServer {
       }
     }
 
-    console.log(`MqttBrokerServer at ${this.brokerURI} exposes '${thing.name}' as unique '/${name}/*'`);
+    console.log(`MqttBrokerServer at ${this.brokerURI} exposes '${thing.title}' as unique '/${name}/*'`);
     return new Promise<void>((resolve, reject) => {
 
       // TODO clean-up on destroy and stop
       this.things.set(name, thing);
+
+      for (let propertyName in thing.properties) {
+        let topic = "/" + encodeURIComponent(name) + "/properties/" + encodeURIComponent(propertyName);
+        let property = thing.properties[propertyName];
+
+        let subscription = property.subscribe(
+          (data) => {
+            let content;
+            try {
+              content = ContentSerdes.get().valueToContent(data, property.data);
+            } catch(err) {
+              console.warn(`MqttServer cannot process data for Property '${propertyName}': ${err.message}`);
+              subscription.unsubscribe();
+              return;
+            }
+            console.log(`MqttBrokerServer at ${this.brokerURI} publishing to Property topic '${propertyName}' `);
+            this.broker.publish(topic, content.body);
+          }
+        );
+
+        let href = this.brokerURI + topic;
+        let form = new TD.Form(href, ContentSerdes.DEFAULT);
+        form.op = ["observeproperty", "unobserveproperty"];
+        thing.properties[propertyName].forms.push(form);
+        console.log(`MqttBrokerServer at ${this.brokerURI} assigns '${href}' to property '${propertyName}'`);
+      }
 
       for (let actionName in thing.actions) {
         let topic = "/" + encodeURIComponent(name) + "/actions/" + encodeURIComponent(actionName);
         this.broker.subscribe(topic);
 
         let href = this.brokerURI + topic;
-        thing.actions[actionName].forms.push(new TD.Form(href, ContentSerdes.DEFAULT));
+        let form = new TD.Form(href, ContentSerdes.DEFAULT);
+        form.op = ["invokeaction"];
+        thing.actions[actionName].forms.push(form);
         console.log(`MqttBrokerServer at ${this.brokerURI} assigns '${href}' to Action '${actionName}'`);
       }
 
@@ -150,7 +178,9 @@ export default class MqttBrokerServer implements ProtocolServer {
         );
 
         let href = this.brokerURI + topic;
-        event.forms.push(new TD.Form(href, ContentSerdes.DEFAULT));
+        let form = new TD.Form(href, ContentSerdes.DEFAULT);
+        form.op = ["subscribeevent", "unsubscribeevent"];
+        event.forms.push(form);
         console.log(`MqttBrokerServer at ${this.brokerURI} assigns '${href}' to Event '${eventName}'`);
       }
 

@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -19,12 +19,12 @@ const NAME_ACTION_DECREMENT = "decrement";
 const NAME_ACTION_RESET = "reset";
 
 let thing = WoT.produce({
-		name: "counter",
+		title: "counter",
 		description: "counter example Thing",
-		"@context": ["http://www.w3.org/ns/td", {"iot": "http://example.org/iot"}],
+		"@context": ["https://www.w3.org/2019/wot/td/v1", {"iot": "http://example.org/iot"}],
 	});
 
-console.log("Produced " + thing.name);
+console.log("Produced " + thing.title);
 
 thing.addProperty(
 	NAME_PROPERTY_COUNT,
@@ -33,7 +33,7 @@ thing.addProperty(
 		description: "current counter value",
 		"iot:Custom": "example annotation",
 		observable: true,
-		writable: true
+		readOnly: false
 	},
 	0);
 
@@ -94,4 +94,4 @@ thing.addAction(
 // test setting metadata
 thing["support"] = "git://github.com/eclipse/thingweb.node-wot.git";
 
-thing.expose().then( () => { console.info(thing.name + " ready"); } );
+thing.expose().then( () => { console.info(thing.title + " ready"); } );

@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -17,7 +17,7 @@ try {
   // internal state, not exposed as Property
   var counter = 0;
 
-  var thing = WoT.produce({ name: "EventSource" });
+  var thing = WoT.produce({ title: "EventSource" });
   // manually add Interactions
   thing.addAction(
     "reset",
@@ -38,14 +38,14 @@ try {
     });
   // make available via bindings
   thing.expose().then(() => {
-    console.info(thing.name + "ready");
+    console.info(thing.title + " ready");
     setInterval( () => {
       ++counter;
       thing.events.onchange.emit(counter);
-      console.info("Emitted change", counter);
+      console.info("Emitted change ", counter);
     }, 5000);
-  }).catch((err) => { console.error("Expose error:", err) });
+  }).catch((err) => { console.error("Expose error: ", err) });
   
 } catch (err) {
-    console.error("Script error:", err);
+    console.error("Script error: ", err);
 }

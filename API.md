@@ -31,8 +31,7 @@ thing.addProperty(
   {
     type: "integer",
     description: "current counter value",
-    observable: false,
-    writeable: true
+    observable: false
   },
 123);
 ```
@@ -49,8 +48,7 @@ thing.addProperty(
       r: { type: "integer", minimum: 0, maximum: 255 },
       g: { type: "integer", minimum: 0, maximum: 255 },
       b: { type: "integer", minimum: 0, maximum: 255 },
-    },
-    writable: true
+    }
   },
   { r: 0, g: 0, b: 0 } 
 )

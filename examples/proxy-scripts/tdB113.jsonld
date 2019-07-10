@@ -1,5 +1,5 @@
 {
-    "@context": "http://www.w3.org/ns/td",
+    "@context": "https://www.w3.org/2019/wot/td/v1",
     "@type": ["Thing"],
     "id": "urn:dev:wot:com:siemens:festolive:b113",
     "name": "LevelSensorB113",
