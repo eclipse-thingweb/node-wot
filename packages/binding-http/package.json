@@ -20,6 +20,7 @@
     "@types/node": "10.9.4",
     "@types/request-promise": "4.1.41",
     "chai": "4.1.2",
+    "chai-spies": "1.0.0",
     "mocha": "3.5.3",
     "mocha-typescript": "1.1.8",
     "request": "2.88.0",
