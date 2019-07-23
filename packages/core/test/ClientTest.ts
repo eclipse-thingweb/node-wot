@@ -193,7 +193,7 @@ class WoTClientTest {
 
     static servient: Servient;
     static clientFactory: TrapClientFactory;
-    static WoT: WoT.WoTFactory;
+    static WoT: WoT.WoT;
 
     static before() {
         this.servient = new Servient();
@@ -219,7 +219,9 @@ class WoTClientTest {
 
         WoTClientTest.WoT.fetch("td://foo")
             .then((td) => {
-                let thing = WoTClientTest.WoT.consume(td);
+                return WoTClientTest.WoT.consume(td);
+            })
+            .then((thing) => {
                 expect(thing).to.have.property("title").that.equals("aThing");
                 expect(thing.properties).to.have.property("aProperty");
 
@@ -243,7 +245,9 @@ class WoTClientTest {
 
         WoTClientTest.WoT.fetch("td://foo")
             .then((td) => {
-                let thing = WoTClientTest.WoT.consume(td);
+                return WoTClientTest.WoT.consume(td);
+            })
+            .then((thing) => {
                 expect(thing).to.have.property("title").that.equals("aThing");
                 expect(thing.properties).to.have.property("aProperty");
                 return thing.readProperty("aProperty");
@@ -266,7 +270,9 @@ class WoTClientTest {
 
         WoTClientTest.WoT.fetch("td://foo")
             .then((td) => {
-                let thing = WoTClientTest.WoT.consume(td);
+                return WoTClientTest.WoT.consume(td);
+            })
+            .then((thing) => {
                 expect(thing).to.have.property("title").that.equals("aThing");
                 expect(thing.properties).to.have.property("aProperty");
                 return thing.readAllProperties();
@@ -289,7 +295,9 @@ class WoTClientTest {
 
         WoTClientTest.WoT.fetch("td://foo")
             .then((td) => {
-                let thing = WoTClientTest.WoT.consume(td);
+                return WoTClientTest.WoT.consume(td);
+            })
+            .then((thing) => {
                 expect(thing).to.have.property("title").that.equals("aThing");
                 expect(thing).to.have.property("properties").that.has.property("aProperty");
                 return thing.properties["aProperty"].write(23);
@@ -308,7 +316,9 @@ class WoTClientTest {
 
         WoTClientTest.WoT.fetch("td://foo")
             .then((td) => {
-                let thing = WoTClientTest.WoT.consume(td);
+                return WoTClientTest.WoT.consume(td);
+            })
+            .then((thing) => {
                 expect(thing).to.have.property("title").that.equals("aThing");
                 expect(thing).to.have.property("properties").that.has.property("aProperty");
                 return thing.writeProperty("aProperty", 23);
@@ -327,7 +337,9 @@ class WoTClientTest {
 
         WoTClientTest.WoT.fetch("td://foo")
             .then((td) => {
-                let thing = WoTClientTest.WoT.consume(td);
+                return WoTClientTest.WoT.consume(td);
+            })
+            .then((thing) => {
                 expect(thing).to.have.property("title").that.equals("aThing");
                 expect(thing).to.have.property("properties").that.has.property("aProperty");
 
@@ -394,7 +406,9 @@ class WoTClientTest {
 
         WoTClientTest.WoT.fetch("td://foo")
             .then((td) => {
-                let thing = WoTClientTest.WoT.consume(td);
+                return WoTClientTest.WoT.consume(td);
+            })
+            .then((thing) => {
                 expect(thing).to.have.property("title").that.equals("aThing");
                 expect(thing).to.have.property("actions").that.has.property("anAction");
                 return thing.actions.anAction.invoke(23);
@@ -418,7 +432,9 @@ class WoTClientTest {
 
         WoTClientTest.WoT.fetch("td://foo")
             .then((td) => {
-                let thing = WoTClientTest.WoT.consume(td);
+                return WoTClientTest.WoT.consume(td);
+            })
+            .then((thing) => {
                 expect(thing).to.have.property("title").that.equals("aThing");
                 expect(thing).to.have.property("actions").that.has.property("anAction");
                 return thing.invokeAction("anAction", 23);
@@ -442,7 +458,9 @@ class WoTClientTest {
 
         WoTClientTest.WoT.fetch("td://foo")
             .then((td) => {
-                let thing = WoTClientTest.WoT.consume(td);
+                return WoTClientTest.WoT.consume(td);
+            })
+            .then((thing) => {
                 expect(thing).to.have.property("title").that.equals("aThing");
                 expect(thing).to.have.property("properties").that.has.property("aProperty");
                 thing.events.anEvent.subscribe(
@@ -470,7 +488,9 @@ class WoTClientTest {
 
         WoTClientTest.WoT.fetch("td://foo")
             .then((td) => {
-                let thing = WoTClientTest.WoT.consume(td);
+                return WoTClientTest.WoT.consume(td);
+            })
+            .then((thing) => {
                 expect(thing).to.have.property("title").that.equals("aThing");
                 expect(thing).to.have.property("properties").that.has.property("aProperty");
 
@@ -501,7 +521,9 @@ class WoTClientTest {
 
         WoTClientTest.WoT.fetch("td://foo")
             .then((td) => {
-                let thing = WoTClientTest.WoT.consume(td);
+                return WoTClientTest.WoT.consume(td);
+            })
+            .then((thing) => {
                 expect(thing).to.have.property("title").that.equals("aThing");
                 expect(thing).to.have.property("events").that.has.property("anEvent");
                 thing.events.anEvent.subscribe(
@@ -530,7 +552,9 @@ class WoTClientTest {
 
         WoTClientTest.WoT.fetch("td://foo")
             .then((td) => {
-                let thing = WoTClientTest.WoT.consume(td);
+                return WoTClientTest.WoT.consume(td);
+            })
+            .then((thing) => {
                 expect(thing).to.have.property("title").that.equals("aThing");
                 expect(thing).to.have.property("events").that.has.property("anEvent");
 

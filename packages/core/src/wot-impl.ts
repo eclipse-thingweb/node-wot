@@ -24,7 +24,7 @@ import ConsumedThing from "./consumed-thing";
 import Helpers from "./helpers";
 import { ContentSerdes } from "./content-serdes";
 
-export default class WoTImpl implements WoT.WoTFactory {
+export default class WoTImpl implements WoT.WoT {
     private srv: Servient;
 
     constructor(srv: Servient) {
@@ -32,16 +32,11 @@ export default class WoTImpl implements WoT.WoTFactory {
     }
 
     /** @inheritDoc */
-    discover(filter?: WoT.ThingFilter): Observable<WoT.ConsumedThing> {
-        return new Observable<ConsumedThing>(subscriber => {
-            //find things
-            //for each found thing
-            //subscriber.next(thing);
-            subscriber.complete();
-        });
+    discover(filter?: WoT.ThingFilter): WoT.ThingDiscovery {
+        return new ThingDiscoveryImpl(filter);
     }
 
-    /** @inheritDoc */
+    /** helper function */
     fetch(uri: string): Promise<WoT.ThingDescription> {
         return new Promise<WoT.ThingDescription>((resolve, reject) => {
             let client = this.srv.getClientFor(Helpers.extractScheme(uri));
@@ -70,21 +65,21 @@ export default class WoTImpl implements WoT.WoTFactory {
     }
 
     /** @inheritDoc */
-    consume(td: WoT.ThingDescription): WoT.ConsumedThing {
-        let thing: TD.Thing;
+    consume(td: WoT.ThingDescription): Promise<WoT.ConsumedThing> {
+        return new Promise<WoT.ConsumedThing>((resolve, reject) => {
+            try {
+                let thing: TD.Thing;
+                thing = TD.parseTD(td, true);
+                let newThing: ConsumedThing = Helpers.extend(thing, new ConsumedThing(this.srv));
+    
+                newThing.extendInteractions();
         
-        try {
-            thing = TD.parseTD(td, true);
-        } catch(err) {
-            throw new Error("Cannot consume TD because " + err.message);
-        }
-
-        let newThing: ConsumedThing = Helpers.extend(thing, new ConsumedThing(this.srv));
-
-        newThing.extendInteractions();
-
-        console.info(`WoTImpl consuming TD ${newThing.id ? "'" + newThing.id + "'" : "without id"} to instantiate ConsumedThing '${newThing.title}'`);
-        return newThing;
+                console.info(`WoTImpl consuming TD ${newThing.id ? "'" + newThing.id + "'" : "without id"} to instantiate ConsumedThing '${newThing.title}'`);
+                resolve(newThing);
+            } catch(err) {
+                reject(new Error("Cannot consume TD because " + err.message));
+            }
+        });
     }
 
     /**
@@ -125,78 +120,39 @@ export default class WoTImpl implements WoT.WoTFactory {
      *
      * @param title title/identifier of the thing to be created
      */
-    produce(model: WoT.ThingModel): WoT.ExposedThing {
+    produce(model: WoT.ThingModel): Promise<WoT.ExposedThing> {
+        return new Promise<WoT.ExposedThing>((resolve, reject) => {
+            try {
+                let newThing: ExposedThing;
+
+                if (this.isWoTThingDescription(model)) {
+                    // FIXME should be constrained version of TD.parseTD() that omits instance-specific parts (but keeps "id")
+                    let template = JSON.parse(model);
+                    this.addDefaultLanguage(template);
+                    newThing = Helpers.extend(template, new ExposedThing(this.srv));
         
-        let newThing: ExposedThing;
-
-        if (this.isWoTThingDescription(model)) {
-            // FIXME should be constrained version of TD.parseTD() that omits instance-specific parts (but keeps "id")
-            let template = JSON.parse(model);
-            this.addDefaultLanguage(template);
-            newThing = Helpers.extend(template, new ExposedThing(this.srv));
-
-        } else if (this.isWoTThingFragment(model)) {
-            this.addDefaultLanguage(model);
-            let template = Helpers.extend(model, new TD.Thing());
-            newThing = Helpers.extend(template, new ExposedThing(this.srv));
-
-        } else {
-            throw new Error("Invalid Thing model: " + model);
-        }
-
-        /*
-        // ensure TD context
-        if (typeof newThing["@context"]==="string") {
-            if (newThing["@context"]!==TD.DEFAULT_HTTPS_CONTEXT &&
-                newThing["@context"]!==TD.DEFAULT_HTTP_CONTEXT) {
-
-                // put TD context last with other context files
-                let newContext = [];
-                newContext.push(newThing["@context"]);
-                newContext.push(TD.DEFAULT_HTTPS_CONTEXT);
-                newThing["@context"] = newContext;
-            }
-        } else if (Array.isArray(newThing["@context"])) {
-            if (newThing["@context"].indexOf(TD.DEFAULT_HTTPS_CONTEXT)===-1 &&
-                newThing["@context"].indexOf(TD.DEFAULT_HTTP_CONTEXT)===-1) {
+                } else if (this.isWoTThingFragment(model)) {
+                    this.addDefaultLanguage(model);
+                    let template = Helpers.extend(model, new TD.Thing());
+                    newThing = Helpers.extend(template, new ExposedThing(this.srv));
+        
+                } else {
+                    throw new Error("Invalid Thing model: " + model);
+                }
+        
+                // augment Interaction descriptions with interactable functions
+                newThing.extendInteractions();
+        
+                console.info(`WoTImpl producing new ExposedThing '${newThing.title}'`);
                 
-                // put TD context last with other context files
-                newThing["@context"].push(TD.DEFAULT_HTTPS_CONTEXT);
+                if (this.srv.addThing(newThing)) {
+                    resolve(newThing);
+                } else {
+                    throw new Error("Thing already exists: " + newThing.title);
+                }
+            } catch(err) {
+                reject(new Error("Cannot produce ExposedThing because " + err.message));
             }
-        } else if (typeof newThing["@context"]==="object") {
-            // put TD context without prefix
-            let newContext = [];
-            newContext.push(TD.DEFAULT_HTTPS_CONTEXT);
-            newContext.push(newThing["@context"]);
-            newThing["@context"] = newContext;
-        } else {
-            console.error(`WoTImpl found illegal @context: ${newThing["@context"]}`);
-        }
-        */
-
-        // augment Interaction descriptions with interactable functions
-        newThing.extendInteractions();
-
-        console.info(`WoTImpl producing new ExposedThing '${newThing.title}'`);
-
-        if (this.srv.addThing(newThing)) {
-            return newThing;
-        } else {
-            throw new Error("Thing already exists: " + newThing.title);
-        }
-    }
-
-    /** @inheritDoc */
-    register(directory: string, thing: WoT.ExposedThing): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            reject(new Error("WoT.register not implemented"));
-        });
-    }
-
-    /** @inheritDoc */
-    unregister(directory: string, thing: WoT.ExposedThing): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            reject(new Error("WoT.unregister not implemented"));
         });
     }
 }
@@ -211,6 +167,33 @@ export enum DiscoveryMethod {
     /** for discovering Things in the device's network by using a supported multicast protocol  */
     "multicast"
 }
+
+export class ThingDiscoveryImpl implements WoT.ThingDiscovery {
+    filter?: WoT.ThingFilter;
+    active: boolean;
+    done: boolean;
+    error?: Error;
+    constructor(filter?: WoT.ThingFilter) {
+        this.filter = filter ? filter: null;
+        this.active = false;
+        this.done = false;
+        this.error = new Error("not implemented");
+    }
+
+    start(): void {
+        this.active = true;
+    }
+    next(): Promise<WoT.ThingDescription> {
+        return new Promise<WoT.ThingDescription>((resolve, reject) => {
+            reject(this.error); // not implemented
+        });
+    }
+    stop(): void {
+        this.active = false;
+        this.done = false;
+    }
+}
+
 
 /** Instantiation of the WoT.DataType declaration */
 export enum DataType {

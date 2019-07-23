@@ -81,9 +81,9 @@ export default class BridgeServient extends Servient {
     /**
      * start
      */
-    public start(): Promise<WoT.WoTFactory> {
+    public start(): Promise<WoT.WoT> {
 
-        return new Promise<WoT.WoTFactory>((resolve, reject) => {
+        return new Promise<WoT.WoT>((resolve, reject) => {
             super.start().then((myWoT) => {
                 console.info("BridgeServient started");
 

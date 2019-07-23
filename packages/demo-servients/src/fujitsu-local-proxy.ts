@@ -40,51 +40,51 @@ servient.start().then(async (WoT) => {
       id: "urn:dev:wot:siemens:festofake",
       name: "FestoFake"
     }
-  );
+  )
+    .then((thing) => {
+      console.info(thing.name + " produced");
 
-  console.info(thing.name + " produced");
-
-  thing
-    .addProperty("PumpStatus", { type: "boolean", readOnly: true }, false)
-    .addProperty("ValveStatus", { type: "boolean", readOnly: true }, false)
-
-    // upper tank (102)
-    .addProperty("Tank102LevelValue", { type: "number", readOnly: true }, 0.0)
-    .addProperty("Tank102OverflowStatus", { type: "boolean", readOnly: true }, false)
-
-    // lower tank (101)
-    .addProperty("Tank101MaximumLevelStatus", { type: "boolean", readOnly: true }, false)
-    .addProperty("Tank101MinimumLevelStatus", { type: "boolean", readOnly: true }, false)
-    .addProperty("Tank101OverflowStatus", { type: "boolean", readOnly: true }, false)
+      thing
+        .addProperty("PumpStatus", { type: "boolean", readOnly: true }, false)
+        .addProperty("ValveStatus", { type: "boolean", readOnly: true }, false)
     
-    // actuators
-    .addAction("StartPump", {}, () => {
-        return new Promise((resolve, reject) => {
-          console.warn(">>> Startung pump!");
-          resolve();
-        });
-      })
-    .addAction("StopPump", {}, () => {
-        return new Promise((resolve, reject) => {
-          console.warn(">>> Stopping pump!");
-          resolve();
-        });
-      })
-    .addAction("OpenValve", {}, () => {
-        return new Promise((resolve, reject) => {
-          console.warn(">>> Opening valve!");
-          resolve();
-        });
-      })
-    .addAction("CloseValve", {}, () => {
-        return new Promise((resolve, reject) => {
-          console.warn(">>> Closing valve!");
-          resolve();
-        });
-      });
-
-    thing.expose()
-      .then(() => { console.info(thing.name + " ready"); })
-      .catch((err) => { console.error("Expose error: " + err); });
-
+        // upper tank (102)
+        .addProperty("Tank102LevelValue", { type: "number", readOnly: true }, 0.0)
+        .addProperty("Tank102OverflowStatus", { type: "boolean", readOnly: true }, false)
+    
+        // lower tank (101)
+        .addProperty("Tank101MaximumLevelStatus", { type: "boolean", readOnly: true }, false)
+        .addProperty("Tank101MinimumLevelStatus", { type: "boolean", readOnly: true }, false)
+        .addProperty("Tank101OverflowStatus", { type: "boolean", readOnly: true }, false)
+        
+        // actuators
+        .addAction("StartPump", {}, () => {
+            return new Promise((resolve, reject) => {
+              console.warn(">>> Startung pump!");
+              resolve();
+            });
+          })
+        .addAction("StopPump", {}, () => {
+            return new Promise((resolve, reject) => {
+              console.warn(">>> Stopping pump!");
+              resolve();
+            });
+          })
+        .addAction("OpenValve", {}, () => {
+            return new Promise((resolve, reject) => {
+              console.warn(">>> Opening valve!");
+              resolve();
+            });
+          })
+        .addAction("CloseValve", {}, () => {
+            return new Promise((resolve, reject) => {
+              console.warn(">>> Closing valve!");
+              resolve();
+            });
+          });
+    
+        thing.expose()
+          .then(() => { console.info(thing.name + " ready"); })
+          .catch((err) => { console.error("Expose error: " + err); });
+    });
 }).catch( err => { console.error("Servient start error: " + err); });

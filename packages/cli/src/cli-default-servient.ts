@@ -105,74 +105,76 @@ export default class DefaultServient extends Servient {
     /**
      * start
      */
-    public start(): Promise<WoT.WoTFactory> {
+    public start(): Promise<WoT.WoT> {
 
-        return new Promise<WoT.WoTFactory>((resolve, reject) => {
+        return new Promise<WoT.WoT>((resolve, reject) => {
             super.start().then((myWoT) => {
                 console.info("DefaultServient started");
 
                 // TODO think about builder pattern that starts with produce() ends with expose(), which exposes/publishes the Thing
-                let thing = myWoT.produce(`{
+                myWoT.produce(`{
                     "name": "servient",
                     "description": "node-wot CLI Servient",
                     "system": "${process.arch}"
                 }`)
-                    .addProperty(
-                        "things",
-                        {
-                            observable: false,
-                            type: "string"
-                        })
-                    .addAction(
-                        "log",
-                        {
-                            input: { type: "string" },
-                            output: { type: "string" }
-                        },
-                        (msg: any) => {
-                            return new Promise((resolve, reject) => {
-                                console.info(msg);
-                                resolve(`logged '${msg}'`);
-                            });
-                        }
-                    )
-                    .addAction(
-                        "shutdown",
-                        {
-                            output: { type: "string" }
-                        },
-                        () => {
-                            return new Promise((resolve, reject) => {
-                                console.info("shutting down by remote");
-                                this.shutdown();
-                                resolve();
-                            });
-                        }
-                    );
-
-                if (this.config.servient.scriptAction) {
-                    thing
+                    .then((thing) => {
+                        thing
+                        .addProperty(
+                            "things",
+                            {
+                                observable: false,
+                                type: "string"
+                            })
                         .addAction(
-                            "runScript",
+                            "log",
                             {
                                 input: { type: "string" },
                                 output: { type: "string" }
                             },
-                            (script: string) => {
+                            (msg: any) => {
                                 return new Promise((resolve, reject) => {
-                                    console.log("runnig script", script);
-                                    this.runScript(script);
+                                    console.info(msg);
+                                    resolve(`logged '${msg}'`);
+                                });
+                            }
+                        )
+                        .addAction(
+                            "shutdown",
+                            {
+                                output: { type: "string" }
+                            },
+                            () => {
+                                return new Promise((resolve, reject) => {
+                                    console.info("shutting down by remote");
+                                    this.shutdown();
                                     resolve();
                                 });
                             }
                         );
-                }
 
-                thing.expose().then(() => {
-                        // pass on WoTFactory
-                        resolve(myWoT);
-                    }).catch((err) => reject(err));
+                    if (this.config.servient.scriptAction) {
+                        thing
+                            .addAction(
+                                "runScript",
+                                {
+                                    input: { type: "string" },
+                                    output: { type: "string" }
+                                },
+                                (script: string) => {
+                                    return new Promise((resolve, reject) => {
+                                        console.log("runnig script", script);
+                                        this.runScript(script);
+                                        resolve();
+                                    });
+                                }
+                            );
+                    }
 
+                    thing.expose().then(() => {
+                            // pass on WoTFactory
+                            resolve(myWoT);
+                        }).catch((err) => reject(err));
+                    });
             }).catch((err) => reject(err));
         });
     }
