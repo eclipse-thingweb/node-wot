@@ -32,7 +32,7 @@ import Servient from "../src/servient";
 class WoTRuntimeTest {
 
     static servient: Servient;
-    static WoT: WoT.WoTFactory;
+    static WoT: WoT.WoT;
 
     static before() {
         this.servient = new Servient();
