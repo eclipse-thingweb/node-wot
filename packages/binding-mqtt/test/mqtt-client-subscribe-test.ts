@@ -53,31 +53,34 @@ class MqttClientSubscribeTest {
                 expect(brokerServer.getPort()).to.equal(1883);
                 expect(brokerServer.getAddress()).to.equal("test.mosquitto.org");
 
-                let thing = WoT.produce({ name: "TestWoTMQTT" });
+                WoT.produce({ name: "TestWoTMQTT" })
+                    .then((thing) => {
+                        thing.addEvent("event1", { type: "number" });
 
-                thing.addEvent("event1", { type: "number" });
+                        thing.expose();
 
-                thing.expose();
+                        console.info("Exposed", thing.name);
 
-                console.info("Exposed", thing.name);
-
-                let client = WoT.consume(thing.getThingDescription());
-                let check = 0;
-                client.events.event1.subscribe(
-                    (x) => {
-                        expect(x).to.equal(++check);
-                        if (check===3) done();
-                    },
-                    (e) => { expect(true).to.equal(false); },
-                    () => {  }
-                );
-
-                var job = setInterval( () => {
-                    ++counter;
-                    thing.events.event1.emit(counter); // sends data to the topic /TestWoTMQTT/events/event1
-
-                    if (counter===3) clearInterval(job);
-                }, 100);
+                        WoT.consume(thing.getThingDescription())
+                            .then((client) => {
+                                let check = 0;
+                                client.events.event1.subscribe(
+                                    (x) => {
+                                        expect(x).to.equal(++check);
+                                        if (check === 3) done();
+                                    },
+                                    (e) => { expect(true).to.equal(false); },
+                                    () => { }
+                                );
+        
+                                var job = setInterval(() => {
+                                    ++counter;
+                                    thing.events.event1.emit(counter); // sends data to the topic /TestWoTMQTT/events/event1
+        
+                                    if (counter === 3) clearInterval(job);
+                                }, 100);
+                            });
+                    });
             });
 
         } catch (err) {
