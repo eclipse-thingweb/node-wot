@@ -64,14 +64,14 @@ class WoTServerTest {
     }
 
     @test "should be able to add a Thing based on WoT.ThingFragment"() {
-        WoTServerTest.WoT.produce({
+        WoTServerTest.WoT.produce(JSON.stringify({
             title: "myFragmentThing",
             support: "none",
             "test:custom": "test",
             properties: {
                 myProp: { }
             }
-        })
+        }))
         .then((thing) => {
             expect(thing).to.exist;
             // round-trip
@@ -99,7 +99,7 @@ class WoTServerTest {
                 }
             }
         }`;
-        WoTServerTest.WoT.produce(desc)
+        WoTServerTest.WoT.produce(JSON.stringify(desc))
             .then((thing) => {
                 expect(thing).to.exist;
                 // round-trip
@@ -116,7 +116,7 @@ class WoTServerTest {
     }
 
     @test async "should be able to add a property with default value 0"() {
-        WoTServerTest.WoT.produce({ title: "ThingWith1" })
+        WoTServerTest.WoT.produce(JSON.stringify({ title: "ThingWith1" }))
             .then((thing) => {
                 let initp: WoT.PropertyFragment = {
                     type: "number"
@@ -134,7 +134,7 @@ class WoTServerTest {
 
 
     @test async "should be able to add a property with default value XYZ"() {
-        WoTServerTest.WoT.produce({ title: "ThingWithXYZ" })
+        WoTServerTest.WoT.produce(JSON.stringify({ title: "ThingWithXYZ" }))
             .then((thing) => {
                 let initp: WoT.PropertyFragment = {
                     type: "string"
@@ -151,7 +151,7 @@ class WoTServerTest {
     }
 
     @test async "should be able to add a property without any default value"() {
-        WoTServerTest.WoT.produce({ title: "ThingWithNothing" })
+        WoTServerTest.WoT.produce(JSON.stringify({ title: "ThingWithNothing" }))
             .then((thing) => {
                 let initp: WoT.PropertyFragment = {
                     type: "number"
@@ -168,7 +168,7 @@ class WoTServerTest {
     }
 
     @test async "should be able to read and write Property locally"() {
-        WoTServerTest.WoT.produce({ title: "thing3" })
+        WoTServerTest.WoT.produce(JSON.stringify({ title: "thing3" }))
             .then((thing) => {
                 let initp: WoT.PropertyFragment = {
                     type: "number"
@@ -186,7 +186,7 @@ class WoTServerTest {
 
     
     @test async "should be able to read/readAll properties locally"() {
-        WoTServerTest.WoT.produce({ title: "thing3" })
+        WoTServerTest.WoT.produce(JSON.stringify({ title: "thing3" }))
             .then((thing) => {
                 let initNumber: WoT.PropertyFragment = {
                     type: "number"
@@ -223,7 +223,7 @@ class WoTServerTest {
     }
 
     @test async "should be able to read Property with read handler (incrementing with lambda)"() {
-        WoTServerTest.WoT.produce({ title: "otherthingIncRead" })
+        WoTServerTest.WoT.produce(JSON.stringify({ title: "otherthingIncRead" }))
             .then((thing) => {
                 let initp: WoT.PropertyFragment = {
                     type: "number"
@@ -245,7 +245,7 @@ class WoTServerTest {
     }
 
     @test async "should be able to read Property with read handler (incrementing with lambda) new API"() {
-        WoTServerTest.WoT.produce({ title: "otherthingIncRead" })
+        WoTServerTest.WoT.produce(JSON.stringify({ title: "otherthingIncRead" }))
             .then((thing) => {
                 let initp: WoT.PropertyFragment = {
                     type: "number"
@@ -267,7 +267,7 @@ class WoTServerTest {
     }
 
     @test async "should be able to read and write property / new API"() {
-        WoTServerTest.WoT.produce({ title: "otherthingIncRead" })
+        WoTServerTest.WoT.produce(JSON.stringify({ title: "otherthingIncRead" }))
             .then((thing) => {
                 let initp: WoT.PropertyFragment = {
                     type: "number"
@@ -284,7 +284,7 @@ class WoTServerTest {
     }
 
     @test async "should be able to read Property with read handler (incrementing with function)"() {
-        WoTServerTest.WoT.produce({ title: "otherthingIncRead2" })
+        WoTServerTest.WoT.produce(JSON.stringify({ title: "otherthingIncRead2" }))
             .then((thing) => {
                 let initp: WoT.PropertyFragment = {
                     type: "number"
@@ -306,7 +306,7 @@ class WoTServerTest {
     }
 
     @test async "should be able to read Property with read handler (incrementing with handler scope state)"() {
-        WoTServerTest.WoT.produce({ title: "otherthingIncRead3" })
+        WoTServerTest.WoT.produce(JSON.stringify({ title: "otherthingIncRead3" }))
             .then((thing) => {
                 let initp: WoT.PropertyFragment = {
                     type: "number"
@@ -335,7 +335,7 @@ class WoTServerTest {
     }
 
     @test async "should be able to write Property with write handler (summing)"() {
-        WoTServerTest.WoT.produce({ title: "otherthingReadWrite" })
+        WoTServerTest.WoT.produce(JSON.stringify({ title: "otherthingReadWrite" }))
             .then((thing) => {
                 let initp: WoT.PropertyFragment = {
                     type: "number"
@@ -379,7 +379,7 @@ class WoTServerTest {
     }
 
     @test async "should be able to write Property from any write handler (doubling)"() {
-        WoTServerTest.WoT.produce({ title: "otherthingWrite" })
+        WoTServerTest.WoT.produce(JSON.stringify({ title: "otherthingWrite" }))
             .then((thing) => {
                 let initp: WoT.PropertyFragment = {
                     type: "number"
@@ -422,9 +422,9 @@ class WoTServerTest {
     }
 
     @test "should be able to add an action and invoke it locally (based on addAction())"() {
-        WoTServerTest.WoT.produce({
+        WoTServerTest.WoT.produce(JSON.stringify({
             title: "thing6"
-        })
+        }))
             .then((thing) => {
                 let inita: WoT.ActionFragment = {
                     input: { type: "number" },
@@ -451,7 +451,7 @@ class WoTServerTest {
     }
 
     @test "should be able to add an action and invoke it locally (based on WoT.ThingFragment)"() {
-        WoTServerTest.WoT.produce({
+        WoTServerTest.WoT.produce(JSON.stringify({
             title: "thing6c",
             actions: {
                 action1: {
@@ -459,7 +459,7 @@ class WoTServerTest {
                     output: { type: "number" }
                 }
             }
-        })
+        }))
             .then((thing) => {
                 expect(thing).to.have.property("actions");
                 expect(thing.actions).to.have.property("action1");
