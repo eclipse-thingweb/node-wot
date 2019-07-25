@@ -31,6 +31,8 @@ import Servient from "../src/servient";
 import { Form } from "@node-wot/td-tools";
 import { ProtocolClient, ProtocolClientFactory, Content } from "../src/protocol-interfaces"
 import { ContentSerdes } from "../src/content-serdes";
+import ConsumedThing from "../src/consumed-thing";
+import ConsumedThingFaker from "../src/consumed-thing-faker";
 
 class TDClient implements ProtocolClient {
 
@@ -176,6 +178,39 @@ let myThingDesc = {
             forms: [
                 { "href": "testdata://host/athing/actions/anaction", "mediaType": "application/json" }
             ]
+        },
+        switchOn : {
+            input: {
+                "type": "object",
+                "properties": {
+                  "3311": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "5850": {
+                          "type": "number",
+                          "enum": [
+                            1
+                          ]
+                        }
+                      },
+                      "required": [
+                        "5850"
+                      ]
+                    },
+                    "minItems": 1,
+                    "maxItems": 1
+                  }
+                },
+                "required": [
+                  "3311"
+                ]
+              },
+            output: { "type": "integer" },
+            forms: [
+                { "href": "testdata://host/athing/actions/switchon", "mediaType": "application/json" }
+            ]
         }
     },
     events: {
@@ -311,6 +346,32 @@ class WoTClientTest {
                 expect(thing).to.have.property("title").that.equals("aThing");
                 expect(thing).to.have.property("actions").that.has.property("anAction");
                 return thing.actions.anAction.invoke(23);
+            })
+            .then((result) => {
+                expect(result).not.to.be.null;
+                expect(result).to.equal(42);
+                done();
+            })
+            .catch(err => { done(err) });
+    }
+
+    @test "call ikea-tradfri action with faked data"(done: Function) {
+        // https://github.com/glenndehaan/ikea-tradfri-coap-docs#payload
+
+        //an action
+        WoTClientTest.clientFactory.setTrap(
+            (form: Form, content: Content) => {
+                // switchOn has fixed possible data: {"3311":[{"5850":1}]}
+                expect(content.body.toString()).to.equal(`{"3311":[{"5850":1}]}`);
+                return { contentType: "application/json", body: Buffer.from("42") };
+            }
+        )
+
+        WoTClientTest.WoT.fetch("td://foo")
+            .then((td) => {
+                let thing = WoTClientTest.WoT.consume(td);
+                let ctf = new ConsumedThingFaker(thing);
+                return ctf.invokeAction("switchOn"); // input any value -> should be overriden anyway
             })
             .then((result) => {
                 expect(result).not.to.be.null;

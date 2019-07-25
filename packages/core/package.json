@@ -29,7 +29,8 @@
     "uuid": "3.3.2",
     "rxjs": "5.4.3",
     "uritemplate": "0.3.4",
-    "@types/uritemplate": "0.3.4"
+    "@types/uritemplate": "0.3.4",
+    "typescript-json-schema-faker": "0.0.8"
   },
   "scripts": {
     "build": "tsc",
