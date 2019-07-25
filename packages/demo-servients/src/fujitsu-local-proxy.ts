@@ -36,10 +36,10 @@ servient.start().then(async (WoT) => {
 
   console.info("FujitsuLocalProxy started");
 
-  let thing = WoT.produce({
+  let thing = WoT.produce(JSON.stringify({
       id: "urn:dev:wot:siemens:festofake",
       name: "FestoFake"
-    }
+    })
   )
     .then((thing) => {
       console.info(thing.name + " produced");

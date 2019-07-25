@@ -24,6 +24,8 @@ import { HttpServer } from "@node-wot/binding-http";
 import { CoapClientFactory } from "@node-wot/binding-coap";
 import { FileClientFactory } from "@node-wot/binding-file";
 import { ConsumedThing } from "wot-typescript-definitions";
+import { fstat } from "fs";
+var fs = require('fs');
 
 console.debug = () => { };
 console.log = () => { };
@@ -46,11 +48,11 @@ servient.start().then(async (WoT) => {
   var PumpP101: ConsumedThing, ValveV102: ConsumedThing;
 
   // exposed Thing toward Oracle IoT Cloud Service
-  WoT.produce({
+  WoT.produce(JSON.stringify({
     id: "urn:dev:wot:siemens:festolive",
     name: "FestoLive",
     "iotcs:deviceModel": "urn:com:siemens:wot:festo"
-  }
+  })
   )
     .then((thing) => {
       console.info(thing.name + " produced");
@@ -113,13 +115,13 @@ servient.start().then(async (WoT) => {
 
         // fetch and consume NodeMCU Things
         let fetchArray = [];
-        fetchArray.push(WoT.fetch("file://./tdPumpP101.jsonld"));
-        fetchArray.push(WoT.fetch("file://./tdValveV102.jsonld"));
-        fetchArray.push(WoT.fetch("file://./tdUltrasonicSensorB101.jsonld"));
-        fetchArray.push(WoT.fetch("file://./tdB114.jsonld"));
-        fetchArray.push(WoT.fetch("file://./tdB113.jsonld"));
-        fetchArray.push(WoT.fetch("file://./tdS111.jsonld"));
-        fetchArray.push(WoT.fetch("file://./tdS112.jsonld"));
+        fetchArray.push(fs.readFileSync("./tdPumpP101.jsonld"), 'utf8');
+        fetchArray.push(fs.readFileSync("./tdValveV102.jsonld"), 'utf8');
+        fetchArray.push(fs.readFileSync("./tdUltrasonicSensorB101.jsonld"), 'utf8');
+        fetchArray.push(fs.readFileSync("./tdB114.jsonld"), 'utf8');
+        fetchArray.push(fs.readFileSync("./tdB113.jsonld"), 'utf8');
+        fetchArray.push(fs.readFileSync("./tdS111.jsonld"), 'utf8');
+        fetchArray.push(fs.readFileSync("./tdS112.jsonld"), 'utf8');
         Promise.all(fetchArray).then((tdArray) => {
 
           // order must match order of jsonld files

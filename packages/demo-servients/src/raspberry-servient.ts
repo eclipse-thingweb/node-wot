@@ -73,7 +73,7 @@ function main() {
 
       let template: WoT.ThingFragment = { name: "Unicorn" };
 
-      myWoT.produce(template)
+      myWoT.produce(JSON.stringify(template))
         .then((thing) => {
           unicorn = thing;
 

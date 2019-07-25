@@ -28,6 +28,11 @@
 import * as url from "url";
 import * as os from "os";
 
+// imports for fetchTD
+import Servient from "./servient";
+import * as TD from "@node-wot/td-tools";
+import { ContentSerdes } from "./content-serdes";
+
 export default class Helpers {
 
   private static staticAddress: string = undefined;
@@ -107,6 +112,33 @@ export default class Helpers {
       return name + "_2";
     }
   }
+
+  public static fetchTD(srv: Servient , uri: string): Promise<WoT.ThingDescription> {
+    return new Promise<WoT.ThingDescription>((resolve, reject) => {
+        let client = srv.getClientFor(Helpers.extractScheme(uri));
+        console.info(`WoTImpl fetching TD from '${uri}' with ${client}`);
+        client.readResource(new TD.Form(uri, ContentSerdes.TD))
+            .then((content) => {
+                client.stop();
+
+                if (content.type !== ContentSerdes.TD &&
+                    content.type !== ContentSerdes.JSON_LD ) {
+                    console.warn(`WoTImpl received TD with media type '${content.type}' from ${uri}`);
+                }
+
+                let td = content.body.toString();
+
+                try {
+                    JSON.parse(td);
+                } catch(err) {
+                    console.warn(`WoTImpl fetched invalid JSON from '${uri}': ${err.message}`);
+                }
+
+                resolve(content.body.toString());
+            })
+            .catch((err) => { reject(err); });
+    });
+}
 
   /**
    *  helper function to extend class

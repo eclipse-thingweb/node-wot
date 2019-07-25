@@ -36,34 +36,6 @@ export default class WoTImpl implements WoT.WoT {
         return new ThingDiscoveryImpl(filter);
     }
 
-    /** helper function */
-    fetch(uri: string): Promise<WoT.ThingDescription> {
-        return new Promise<WoT.ThingDescription>((resolve, reject) => {
-            let client = this.srv.getClientFor(Helpers.extractScheme(uri));
-            console.info(`WoTImpl fetching TD from '${uri}' with ${client}`);
-            client.readResource(new TD.Form(uri, ContentSerdes.TD))
-                .then((content) => {
-                    client.stop();
-
-                    if (content.type !== ContentSerdes.TD &&
-                        content.type !== ContentSerdes.JSON_LD ) {
-                        console.warn(`WoTImpl received TD with media type '${content.type}' from ${uri}`);
-                    }
-
-                    let td = content.body.toString();
-
-                    try {
-                        JSON.parse(td);
-                    } catch(err) {
-                        console.warn(`WoTImpl fetched invalid JSON from '${uri}': ${err.message}`);
-                    }
-
-                    resolve(content.body.toString());
-                })
-                .catch((err) => { reject(err); });
-        });
-    }
-
     /** @inheritDoc */
     consume(td: WoT.ThingDescription): Promise<WoT.ConsumedThing> {
         return new Promise<WoT.ConsumedThing>((resolve, reject) => {
@@ -81,18 +53,6 @@ export default class WoTImpl implements WoT.WoT {
             }
         });
     }
-
-    /**
-     * Very hacky way to do an interface type check with Typescript
-     * https://stackoverflow.com/questions/14425568/interface-type-check-with-typescript
-     */
-    isWoTThingDescription(arg: any): arg is WoT.ThingDescription {
-        return arg.length !== undefined;
-    }
-    isWoTThingFragment(arg: any): arg is WoT.ThingFragment {
-        return arg.title !== undefined;
-    }
-
 
     // Note: copy from td-parser.ts 
     addDefaultLanguage(thing: any) {
@@ -120,25 +80,15 @@ export default class WoTImpl implements WoT.WoT {
      *
      * @param title title/identifier of the thing to be created
      */
-    produce(model: WoT.ThingModel): Promise<WoT.ExposedThing> {
+    produce(td: WoT.ThingDescription): Promise<WoT.ExposedThing> {
         return new Promise<WoT.ExposedThing>((resolve, reject) => {
             try {
                 let newThing: ExposedThing;
 
-                if (this.isWoTThingDescription(model)) {
-                    // FIXME should be constrained version of TD.parseTD() that omits instance-specific parts (but keeps "id")
-                    let template = JSON.parse(model);
-                    this.addDefaultLanguage(template);
-                    newThing = Helpers.extend(template, new ExposedThing(this.srv));
-        
-                } else if (this.isWoTThingFragment(model)) {
-                    this.addDefaultLanguage(model);
-                    let template = Helpers.extend(model, new TD.Thing());
-                    newThing = Helpers.extend(template, new ExposedThing(this.srv));
-        
-                } else {
-                    throw new Error("Invalid Thing model: " + model);
-                }
+                // FIXME should be constrained version of TD.parseTD() that omits instance-specific parts (but keeps "id")
+                let template = JSON.parse(td);
+                this.addDefaultLanguage(template);
+                newThing = Helpers.extend(template, new ExposedThing(this.srv));
         
                 // augment Interaction descriptions with interactable functions
                 newThing.extendInteractions();
