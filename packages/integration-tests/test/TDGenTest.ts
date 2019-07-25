@@ -39,7 +39,7 @@ class TDGeneratorTest {
     
     let myWoT = await servient.start();
 
-    myWoT.produce({ title: "TDGeneratorTest" })
+    myWoT.produce(`{ title: "TDGeneratorTest" }`)
       .then((thing) => {
         thing.addProperty("prop1", { type: "number" });
         thing.addAction("act1", { input: { type: "string" } }, () => { return new Promise<void>((resolve, reject) => { resolve(); }); });

@@ -53,13 +53,13 @@ class MqttClientSubscribeTest {
                 expect(brokerServer.getPort()).to.equal(1883);
                 expect(brokerServer.getAddress()).to.equal("test.mosquitto.org");
 
-                WoT.produce(`{ name: "TestWoTMQTT" }`)
+                WoT.produce(`{ title: "TestWoTMQTT" }`)
                     .then((thing) => {
                         thing.addEvent("event1", { type: "number" });
 
                         thing.expose();
 
-                        console.info("Exposed", thing.name);
+                        console.info("Exposed", thing.title);
 
                         WoT.consume(thing.getThingDescription())
                             .then((client) => {
