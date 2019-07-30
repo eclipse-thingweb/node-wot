@@ -41,7 +41,7 @@ export default class WoTImpl implements WoT.WoT {
         return new Promise<WoT.ConsumedThing>((resolve, reject) => {
             try {
                 let thing: TD.Thing;
-                thing = TD.parseTD(td, true);
+                thing = TD.parseTD(JSON.stringify(td), true);
                 let newThing: ConsumedThing = Helpers.extend(thing, new ConsumedThing(this.srv));
     
                 newThing.extendInteractions();
@@ -85,8 +85,8 @@ export default class WoTImpl implements WoT.WoT {
             try {
                 let newThing: ExposedThing;
 
-                // FIXME should be constrained version of TD.parseTD() that omits instance-specific parts (but keeps "id")
-                let template = JSON.parse(td);
+                // FIXME should be constrained version that omits instance-specific parts (but keeps "id")
+                let template = td;
                 this.addDefaultLanguage(template);
                 newThing = Helpers.extend(template, new ExposedThing(this.srv));
         

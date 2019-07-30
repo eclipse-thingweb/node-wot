@@ -17,8 +17,10 @@
 // global W3C WoT Scripting API definitions
 import * as WoT from "wot-typescript-definitions";
 
+import * as TD from "@node-wot/td-tools";
+
 // node-wot implementation of W3C WoT Servient 
-import { Servient } from "@node-wot/core";
+import { Servient, ExposedThing } from "@node-wot/core";
 import { HttpServer } from "@node-wot/binding-http";
 
 // exposed protocols
@@ -71,129 +73,131 @@ function main() {
 
     try {
 
-      let template: WoT.ThingFragment = { name: "Unicorn" };
+      let template: WoT.ThingDescription = { name: "Unicorn" };
 
-      myWoT.produce(JSON.stringify(template))
+      myWoT.produce(template)
         .then((thing) => {
-          unicorn = thing;
+          if(thing instanceof ExposedThing) {
+            let unicorn : ExposedThing = thing;
 
-          unicorn
-            .addProperty(
-                "brightness",
-                {
-                  type: "integer",
-                  minimum: 0,
-                  maximum: 255
-                },
-                100
-              )
-            .setPropertyWriteHandler(
-                "brightness",
-                (value : any) => {
-                  return new Promise((resolve, reject) => {
-                    setBrightness(value);
-                    resolve(value);
-                  });
-                }
-              )
-            .addProperty(
-                "color",
-                {
-                  type: "object",
-                  properties: {
-                    r: { type: "integer", minimum: 0, maximum: 255 },
-                    g: { type: "integer", minimum: 0, maximum: 255 },
-                    b: { type: "integer", minimum: 0, maximum: 255 },
-                  }
-                },
-                { r: 0, g: 0, b: 0 }
-              )
-            .setPropertyWriteHandler(
-                "color",
-                (value : any) => {
-                  return new Promise((resolve, reject) => {
-                    if (typeof value !== "object") {
-                      reject(new Error("color" + " requires application/json"));
-                    } else {
-                      setAll(value.r, value.g, value.b);
+            unicorn
+              .addProperty(
+                  "brightness",
+                  {
+                    type: "integer",
+                    minimum: 0,
+                    maximum: 255
+                  },
+                  100
+                )
+              .setPropertyWriteHandler(
+                  "brightness",
+                  (value : any) => {
+                    return new Promise((resolve, reject) => {
+                      setBrightness(value);
                       resolve(value);
-                    }
-                  });
-                }
-              )
-            .addAction(
-                "gradient",
-                {
-                  input: {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      properties: {
-                        r: { type: "integer", minimum: 0, maximum: 255 },
-                        g: { type: "integer", minimum: 0, maximum: 255 },
-                        b: { type: "integer", minimum: 0, maximum: 255 },
-                      }
-                    },
-                    "minItems": 2
+                    });
                   }
-                },
-                (input: Array<Color>) => {
-                  return new Promise((resolve, reject) => {
-                    if (input.length < 2) {
-                      return '{ "minItems": 2 }';
-                    }
-                    unicorn.invokeAction('cancel');
-          
-                    gradient = input;
-                    gradIndex = 0;
-                    gradNow = gradient[0];
-                    gradNext = gradient[1];
-                    gradVector = {
-                      r: (gradNext.r - gradNow.r) / 20,
-                      g: (gradNext.g - gradNow.g) / 20,
-                      b: (gradNext.b - gradNow.b) / 20
-                    };
-                    gradientTimer = setInterval(gradientStep, 50);
-                    resolve(true);
-                  });
-                }
-              )
-            .addAction(
-                "forceColor",
-                {
-                  input: {
+                );
+                unicorn.addProperty(
+                  "color",
+                  {
                     type: "object",
                     properties: {
                       r: { type: "integer", minimum: 0, maximum: 255 },
                       g: { type: "integer", minimum: 0, maximum: 255 },
-                      b: { type: "integer", minimum: 0, maximum: 255 }
+                      b: { type: "integer", minimum: 0, maximum: 255 },
                     }
+                  },
+                  { r: 0, g: 0, b: 0 }
+                )
+              .setPropertyWriteHandler(
+                  "color",
+                  (value : any) => {
+                    return new Promise((resolve, reject) => {
+                      if (typeof value !== "object") {
+                        reject(new Error("color" + " requires application/json"));
+                      } else {
+                        setAll(value.r, value.g, value.b);
+                        resolve(value);
+                      }
+                    });
                   }
-                },
-                (input: Color) => {
-                  return new Promise((resolve, reject) => {
-                      unicorn.invokeAction('cancel');
-                      unicorn.writeProperty('color', input);
-                      resolve();
-                  });
-                }
-              )
-            .addAction(
-                "cancel",
-                {},
-                () => {
-                  return new Promise((resolve, reject) => {
-                    if (gradientTimer) {
-                      console.info('>> canceling timer');
-                      clearInterval(gradientTimer);
-                      gradientTimer = null;
+                );
+                unicorn.addAction(
+                  "gradient",
+                  {
+                    input: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          r: { type: "integer", minimum: 0, maximum: 255 },
+                          g: { type: "integer", minimum: 0, maximum: 255 },
+                          b: { type: "integer", minimum: 0, maximum: 255 },
+                        }
+                      },
+                      "minItems": 2
                     }
-                    resolve();
-                  });
-                }
-              );
-          
-          unicorn.expose().then( () => { console.info(unicorn.name + " ready"); });
+                  },
+                  (input: Array<Color>) => {
+                    return new Promise((resolve, reject) => {
+                      if (input.length < 2) {
+                        return '{ "minItems": 2 }';
+                      }
+                      unicorn.invokeAction('cancel');
+            
+                      gradient = input;
+                      gradIndex = 0;
+                      gradNow = gradient[0];
+                      gradNext = gradient[1];
+                      gradVector = {
+                        r: (gradNext.r - gradNow.r) / 20,
+                        g: (gradNext.g - gradNow.g) / 20,
+                        b: (gradNext.b - gradNow.b) / 20
+                      };
+                      gradientTimer = setInterval(gradientStep, 50);
+                      resolve(true);
+                    });
+                  }
+                )
+              .addAction(
+                  "forceColor",
+                  {
+                    input: {
+                      type: "object",
+                      properties: {
+                        r: { type: "integer", minimum: 0, maximum: 255 },
+                        g: { type: "integer", minimum: 0, maximum: 255 },
+                        b: { type: "integer", minimum: 0, maximum: 255 }
+                      }
+                    }
+                  },
+                  (input: Color) => {
+                    return new Promise((resolve, reject) => {
+                        unicorn.invokeAction('cancel');
+                        unicorn.writeProperty('color', input);
+                        resolve();
+                    });
+                  }
+                )
+              .addAction(
+                  "cancel",
+                  {},
+                  () => {
+                    return new Promise((resolve, reject) => {
+                      if (gradientTimer) {
+                        console.info('>> canceling timer');
+                        clearInterval(gradientTimer);
+                        gradientTimer = null;
+                      }
+                      resolve();
+                    });
+                  }
+                );
+            
+            unicorn.expose().then( () => { console.info(unicorn.name + " ready"); });
+          }
         });
 
     } catch (err) {

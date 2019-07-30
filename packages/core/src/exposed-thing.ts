@@ -27,12 +27,12 @@ import { Content } from "./protocol-interfaces";
 
 export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     security: Array<String>;
-    securityDefinitions: { [key: string]: WoT.Security };
+    securityDefinitions: { [key: string]: TD.SecurityScheme };
 
     id: string;
     title: string;
     base: string;
-    forms: Array<WoT.Form>;
+    forms: Array<TD.Form>;
 
     // next Style
     _properties: {
@@ -47,17 +47,17 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 
     /** A map of interactable Thing Properties with read()/write()/subscribe() functions */
     properties: {
-        [key: string]: WoT.ThingProperty
+        [key: string]: TD.ThingProperty
     };
 
     /** A map of interactable Thing Actions with invoke() function */
     actions: {
-        [key: string]: WoT.ThingAction;
+        [key: string]: TD.ThingAction;
     }
 
     /** A map of interactable Thing Events with emit() function */
     events: {
-        [key: string]: WoT.ThingEvent;
+        [key: string]: TD.ThingEvent;
     }
 
     private getServient: () => Servient;
@@ -98,8 +98,12 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         this[name] = value;
     }
 
-    public getThingDescription(): WoT.ThingDescription {
-        return TD.serializeTD(this);
+    public getTD(): WoT.ThingDescription {
+        return JSON.parse(TD.serializeTD(this));
+    }
+
+    public emitEvent(name: string, data: any): void {
+        console.warn("not implemented");
     }
 
     /** @inheritDoc */
@@ -124,8 +128,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         });
     }
 
-    /** @inheritDoc */
-    addProperty(name: string, property: WoT.PropertyFragment, init?: any): WoT.ExposedThing {
+    addProperty(name: string, property: TD.ThingProperty, init?: any): ExposedThing {
 
         console.log(`ExposedThing '${this.title}' adding Property '${name}'`);
 
@@ -140,8 +143,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         return this;
     }
 
-    /** @inheritDoc */
-    addAction(name: string, action: WoT.ActionFragment, handler: WoT.ActionHandler): WoT.ExposedThing {
+    addAction(name: string, action: TD.ThingAction, handler: WoT.ActionHandler): ExposedThing {
 
         if (!handler) {
             throw new Error(`addAction() requires handler`);
@@ -157,8 +159,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         return this;
     }
 
-    /** @inheritDoc */
-    addEvent(name: string, event: WoT.EventFragment): WoT.ExposedThing {
+    addEvent(name: string, event: TD.ThingEvent): ExposedThing {
         let newEvent = Helpers.extend(event, new ExposedThingEvent(name, this));
         this.events[name] = newEvent;
         this._events[name] = newEvent.getState();
@@ -166,8 +167,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         return this;
     }
 
-    /** @inheritDoc */
-    removeProperty(propertyName: string): WoT.ExposedThing {
+    removeProperty(propertyName: string): ExposedThing {
         
         if (this.properties[propertyName]) {
             delete this.properties[propertyName];
@@ -179,8 +179,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         return this;
     }
 
-    /** @inheritDoc */
-    removeAction(actionName: string): WoT.ExposedThing {
+    removeAction(actionName: string): ExposedThing {
         
         if (this.actions[actionName]) {
             delete this.actions[actionName];
@@ -192,8 +191,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         return this;
     }
 
-    /** @inheritDoc */
-    removeEvent(eventName: string): WoT.ExposedThing {
+    removeEvent(eventName: string): ExposedThing {
         
         if (this.events[eventName]) {
             (<ExposedThingEvent>this.events[eventName]).getState().subject.complete();
@@ -424,7 +422,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     }
 }
 
-class ExposedThingProperty extends TD.ThingProperty implements WoT.ThingProperty, WoT.BaseSchema {
+class ExposedThingProperty extends TD.ThingProperty implements TD.ThingProperty, TD.BaseSchema {
 
     // functions for wrapping internal state
     getName: () => string;
@@ -525,7 +523,7 @@ class ExposedThingProperty extends TD.ThingProperty implements WoT.ThingProperty
     }
 }
 
-class ExposedThingAction extends TD.ThingAction implements WoT.ThingAction {
+class ExposedThingAction extends TD.ThingAction implements TD.ThingAction {
     // functions for wrapping internal state
     getName: () => string;
     getThing: () => ExposedThing;
@@ -558,7 +556,7 @@ class ExposedThingAction extends TD.ThingAction implements WoT.ThingAction {
     }
 }
 
-class ExposedThingEvent extends TD.ThingEvent implements WoT.ThingEvent {
+class ExposedThingEvent extends TD.ThingEvent implements TD.ThingEvent {
     // functions for wrapping internal state
     getName: () => string;
     getThing: () => ExposedThing;

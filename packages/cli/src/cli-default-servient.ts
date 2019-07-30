@@ -16,7 +16,7 @@
 // global W3C WoT Scripting API definitions
 import * as WoT from "wot-typescript-definitions";
 // node-wot implementation of W3C WoT Servient 
-import { Servient, Helpers } from "@node-wot/core";
+import { Servient, Helpers, ExposedThing } from "@node-wot/core";
 // protocols used
 import { HttpServer } from "@node-wot/binding-http";
 import { WebSocketServer } from "@node-wot/binding-websockets";
@@ -112,63 +112,69 @@ export default class DefaultServient extends Servient {
                 console.info("DefaultServient started");
 
                 // TODO think about builder pattern that starts with produce() ends with expose(), which exposes/publishes the Thing
-                myWoT.produce(`{
+                myWoT.produce({
                     "name": "servient",
                     "description": "node-wot CLI Servient",
                     "system": "${process.arch}"
-                }`)
+                })
                     .then((thing) => {
-                        thing
-                        .addProperty(
-                            "things",
-                            {
-                                observable: false,
-                                type: "string"
-                            })
-                        .addAction(
-                            "log",
-                            {
-                                input: { type: "string" },
-                                output: { type: "string" }
-                            },
-                            (msg: any) => {
-                                return new Promise((resolve, reject) => {
-                                    console.info(msg);
-                                    resolve(`logged '${msg}'`);
-                                });
-                            }
-                        )
-                        .addAction(
-                            "shutdown",
-                            {
-                                output: { type: "string" }
-                            },
-                            () => {
-                                return new Promise((resolve, reject) => {
-                                    console.info("shutting down by remote");
-                                    this.shutdown();
-                                    resolve();
-                                });
-                            }
-                        );
+                        if(thing instanceof ExposedThing) {
+                            let exposedThing : ExposedThing = thing;
 
-                    if (this.config.servient.scriptAction) {
-                        thing
+                            exposedThing
+                            .addProperty(
+                                "things",
+                                {
+                                    observable: false,
+                                    type: "string"
+                                });
+                            exposedThing
                             .addAction(
-                                "runScript",
+                                "log",
                                 {
                                     input: { type: "string" },
                                     output: { type: "string" }
                                 },
-                                (script: string) => {
+                                (msg: any) => {
                                     return new Promise((resolve, reject) => {
-                                        console.log("runnig script", script);
-                                        this.runScript(script);
+                                        console.info(msg);
+                                        resolve(`logged '${msg}'`);
+                                    });
+                                }
+                            );
+                            exposedThing
+                            .addAction(
+                                "shutdown",
+                                {
+                                    output: { type: "string" }
+                                },
+                                () => {
+                                    return new Promise((resolve, reject) => {
+                                        console.info("shutting down by remote");
+                                        this.shutdown();
                                         resolve();
                                     });
                                 }
                             );
-                    }
+
+                            if (this.config.servient.scriptAction) {
+                                exposedThing
+                                    .addAction(
+                                        "runScript",
+                                        {
+                                            input: { type: "string" },
+                                            output: { type: "string" }
+                                        },
+                                        (script: string) => {
+                                            return new Promise((resolve, reject) => {
+                                                console.log("runnig script", script);
+                                                this.runScript(script);
+                                                resolve();
+                                            });
+                                        }
+                                    );
+                            }
+                        }
 
                     thing.expose().then(() => {
                             // pass on WoTFactory

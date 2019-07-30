@@ -26,24 +26,23 @@ import { default as ContentManager } from "./content-serdes"
 
 import { Subscribable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
-import { Form } from "@node-wot/td-tools";
 import UriTemplate = require('uritemplate');
 
 export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing {
 
     /** A map of interactable Thing Properties with read()/write()/subscribe() functions */
     properties: {
-        [key: string]: WoT.ThingProperty
+        [key: string]: TD.ThingProperty
     };
 
     /** A map of interactable Thing Actions with invoke() function */
     actions: {
-        [key: string]: WoT.ThingAction;
+        [key: string]: TD.ThingAction;
     }
 
     /** A map of interactable Thing Events with subscribe() function */
     events: {
-        [key: string]: WoT.ThingEvent;
+        [key: string]: TD.ThingEvent;
     }
     
     private getServient: () => Servient;
@@ -57,6 +56,14 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
             clients: Map<string, ProtocolClient> = new Map<string, ProtocolClient>();
             getMap = () => { return this.clients };
         }).getMap;
+    }
+
+    getTD(): WoT.ThingDescription {
+        return JSON.parse(JSON.stringify(this));
+    }
+
+    public emitEvent(name: string, data: any): void {
+        console.warn("not implemented");
     }
 
     extendInteractions(): void {
@@ -117,7 +124,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
             // td-tools parser ensures this.security is an array
             if (this.security && this.securityDefinitions && Array.isArray(this.security) && this.security.length>0) {
                 console.log(`ConsumedThing '${this.title}' setting credentials for ${client}`);
-                let scs : Array<WoT.Security> = [];
+                let scs : Array<TD.SecurityScheme> = [];
                 for (let s of this.security) {
                     let ws = this.securityDefinitions[s + ""]; // String vs. string (fix wot-typescript-definitions?)
                     // also push nosec in case of proxy
@@ -152,7 +159,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     readProperty(propertyName: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             // TODO pass expected form op to getClientFor()
-            let tp : WoT.ThingProperty  = this.properties[propertyName];
+            let tp : TD.ThingProperty  = this.properties[propertyName];
             let { client, form } = this.getClientFor(tp.forms, "readproperty");
             console.log("form: " + form)
             if (!client) {
@@ -214,7 +221,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     writeProperty(propertyName: string, value: any): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             // TODO pass expected form op to getClientFor()
-            let tp : WoT.ThingProperty  = this.properties[propertyName];
+            let tp : TD.ThingProperty  = this.properties[propertyName];
             let { client, form } = this.getClientFor(tp.forms, "writeproperty");
             if (!client) {
                 reject(new Error(`ConsumedThing '${this.name}' did not get suitable client for ${form.href}`));
@@ -250,7 +257,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
 
     public invokeAction(actionName: string, parameter?: any): Promise<any> {
         return new Promise<any>((resolve, reject) => {
-            let ta : WoT.ThingAction  = this.actions[actionName];
+            let ta : TD.ThingAction  = this.actions[actionName];
             let { client, form } = this.getClientFor(ta.forms, "invokeaction");
             if (!client) {
                 reject(new Error(`ConsumedThing '${this.name}' did not get suitable client for ${form.href}`));
@@ -288,7 +295,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
 
     public observeProperty(name: string, listener: WoT.WotListener): Promise<void> {
         return new Promise<any>((resolve, reject) => {
-            let tp : WoT.ThingProperty  = this.properties[name];
+            let tp : TD.ThingProperty  = this.properties[name];
             let { client, form } = this.getClientFor(tp.forms, "observeproperty");
             if (!client) {
                 reject(new Error(`ConsumedThing '${this.name}' did not get suitable client for ${form.href}`));
@@ -323,7 +330,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     
     public unobserveProperty(name: string): Promise<void> {
         return new Promise<any>((resolve, reject) => {
-            let tp : WoT.ThingProperty  = this.properties[name];
+            let tp : TD.ThingProperty  = this.properties[name];
             let { client, form } = this.getClientFor(tp.forms, "unobserveproperty");
             if (!client) {
                 reject(new Error(`ConsumedThing '${this.name}' did not get suitable client for ${form.href}`));
@@ -337,7 +344,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
 
     public subscribeEvent(name: string, listener: WoT.WotListener): Promise<void> {
         return new Promise<any>((resolve, reject) => {
-            let te : WoT.ThingEvent  = this.events[name];
+            let te : TD.ThingEvent  = this.events[name];
             let { client, form } = this.getClientFor(te.forms, "subscribeevent");
             if (!client) {
                 reject(new Error(`ConsumedThing '${this.name}' did not get suitable client for ${form.href}`));
@@ -372,7 +379,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     
     public unsubscribeEvent(name: string): Promise<void> {
         return new Promise<any>((resolve, reject) => {
-            let te : WoT.ThingEvent  = this.events[name];
+            let te : TD.ThingEvent  = this.events[name];
             let { client, form } = this.getClientFor(te.forms, "unsubscribeevent");
             if (!client) {
                 reject(new Error(`ConsumedThing '${this.name}' did not get suitable client for ${form.href}`));
@@ -387,12 +394,12 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     // creates new form (if needed) for URI Variables
     // http://192.168.178.24:8080/counter/actions/increment{?step} with '{'step' : 3}' --> http://192.168.178.24:8080/counter/actions/increment?step=3
     // see RFC6570 (https://tools.ietf.org/html/rfc6570) for URI Template syntax
-    handleUriVariables(form: WoT.Form, parameter: any): WoT.Form {
+    handleUriVariables(form: TD.Form, parameter: any): TD.Form {
         let ut = UriTemplate.parse(form.href);
         let updatedHref = ut.expand(parameter == undefined ? {} : parameter);
         if(updatedHref != form.href) {
             // "clone" form to avoid modifying original form
-            let updForm = new Form(updatedHref, form.contentType);
+            let updForm = new TD.Form(updatedHref, form.contentType);
             updForm.op = form.op;
             updForm.security = form.security;
             updForm.scopes = form.scopes;
@@ -408,10 +415,10 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
 
 export interface ClientAndForm {
     client: ProtocolClient
-    form: WoT.Form
+    form: TD.Form
 }
 
-class ConsumedThingProperty extends TD.ThingProperty implements WoT.ThingProperty, WoT.BaseSchema {
+class ConsumedThingProperty extends TD.ThingProperty implements TD.ThingProperty, TD.BaseSchema {
 
     // functions for wrapping internal state
     private getName: () => string;
@@ -504,7 +511,7 @@ class ConsumedThingProperty extends TD.ThingProperty implements WoT.ThingPropert
     }
 }
 
-class ConsumedThingAction extends TD.ThingAction implements WoT.ThingAction {
+class ConsumedThingAction extends TD.ThingAction implements TD.ThingAction {
 
     // functions for wrapping internal state
     private getName: () => string;

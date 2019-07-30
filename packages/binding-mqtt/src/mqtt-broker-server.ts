@@ -91,14 +91,16 @@ export default class MqttBrokerServer implements ProtocolServer {
         let topic = "/" + encodeURIComponent(name) + "/properties/" + encodeURIComponent(propertyName);
         let property = thing.properties[propertyName];
 
-        let subscription = property.subscribe(
+        thing.subscribeEvent(propertyName,
+        // let subscription = property.subscribe(
           (data) => {
             let content;
             try {
               content = ContentSerdes.get().valueToContent(data, property.data);
             } catch(err) {
               console.warn(`MqttServer cannot process data for Property '${propertyName}': ${err.message}`);
-              subscription.unsubscribe();
+              // subscription.unsubscribe();
+              thing.unsubscribeEvent(propertyName);
               return;
             }
             console.log(`MqttBrokerServer at ${this.brokerURI} publishing to Property topic '${propertyName}' `);
@@ -137,7 +139,9 @@ export default class MqttBrokerServer implements ProtocolServer {
             if (segments[2] === "actions") {
               let action = thing.actions[segments[3]];
               if (action) {
-                action.invoke(JSON.parse(payload))
+                thing.invokeAction(segments[3], 
+                // action.invoke(
+                  JSON.parse(payload))
                   .then((output) => {
                     // MQTT cannot return results
                     if (output) {
@@ -160,15 +164,19 @@ export default class MqttBrokerServer implements ProtocolServer {
       for (let eventName in thing.events) {
         let topic = "/" + encodeURIComponent(name) + "/events/" + encodeURIComponent(eventName);
         let event = thing.events[eventName];
+
+        thing.subscribeEvent(eventName,
         // FIXME store subscription and clean up on stop
-        let subscription = event.subscribe(
+        // let subscription = event.subscribe(
+
           (data) => {
             let content;
             try {
               content = ContentSerdes.get().valueToContent(data, event.data);
             } catch(err) {
               console.warn(`HttpServer on port ${this.getPort()} cannot process data for Event '${eventName}: ${err.message}'`);
-              subscription.unsubscribe();
+              // subscription.unsubscribe();
+              thing.unsubscribeEvent(eventName);
               return;
             }
             // send event data

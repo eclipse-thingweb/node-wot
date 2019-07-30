@@ -122,19 +122,18 @@ export default class Helpers {
                 client.stop();
 
                 if (content.type !== ContentSerdes.TD &&
-                    content.type !== ContentSerdes.JSON_LD ) {
-                    console.warn(`WoTImpl received TD with media type '${content.type}' from ${uri}`);
+                  content.type !== ContentSerdes.JSON_LD ) {
+                  console.warn(`WoTImpl received TD with media type '${content.type}' from ${uri}`);
                 }
 
                 let td = content.body.toString();
 
                 try {
-                    JSON.parse(td);
+                  let jo : object = JSON.parse(td);
+                  resolve(jo);
                 } catch(err) {
-                    console.warn(`WoTImpl fetched invalid JSON from '${uri}': ${err.message}`);
+                  reject(new Error(`WoTImpl fetched invalid JSON from '${uri}': ${err.message}`));
                 }
-
-                resolve(content.body.toString());
             })
             .catch((err) => { reject(err); });
     });

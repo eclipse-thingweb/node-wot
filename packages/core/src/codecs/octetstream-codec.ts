@@ -14,6 +14,7 @@
  ********************************************************************************/
 
  import { ContentCodec } from "../content-serdes";
+ import * as TD from "@node-wot/td-tools";
 
 /**
  * Codec to produce and consume simple data items and deserialize and serialize
@@ -45,7 +46,7 @@ export default class OctetstreamCodec implements ContentCodec {
         return 'application/octet-stream'
     }
 
-    bytesToValue(bytes: Buffer, schema: WoT.DataSchema, parameters?: { [key: string]: string; }): any {
+    bytesToValue(bytes: Buffer, schema: TD.DataSchema, parameters?: { [key: string]: string; }): any {
         //console.debug(`OctetstreamCodec parsing '${bytes.toString()}'`);
 
         let bigendian = parameters.byteorder ? parameters.byteorder === "bigendian" : true;
@@ -125,7 +126,7 @@ export default class OctetstreamCodec implements ContentCodec {
         throw new Error("Unknown object type");
     }
 
-    valueToBytes(value: any, schema: WoT.DataSchema, parameters?: { [key: string]: string; }): Buffer {
+    valueToBytes(value: any, schema: TD.DataSchema, parameters?: { [key: string]: string; }): Buffer {
         //console.debug(`OctetstreamCodec serializing '${value}'`);
 
          if (parameters.length === null) {

@@ -19,6 +19,7 @@
 
 const coaps = require("node-coap-client").CoapClient;
 import * as url from "url";
+import * as TD from "@node-wot/td-tools";
 
 import { Subscription } from 'rxjs/Subscription';
 
@@ -118,14 +119,14 @@ export default class CoapsClient implements ProtocolClient {
     // FIXME coap does not provide proper API to close Agent
     return true;
   }
-  public setSecurity(metadata: Array<WoT.Security>, credentials?: any): boolean {
+  public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean {
 
     if (metadata === undefined || !Array.isArray(metadata) || metadata.length == 0) {
       console.warn(`CoapsClient received empty security metadata`);
       return false;
     }
 
-    let security: WoT.Security = metadata[0];
+    let security: TD.SecurityScheme = metadata[0];
 
     if (security.scheme === "psk") {
       this.authorization = { psk: { } };

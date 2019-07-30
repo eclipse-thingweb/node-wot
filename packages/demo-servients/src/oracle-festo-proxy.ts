@@ -14,7 +14,7 @@
  ********************************************************************************/
 
 // node-wot implementation of W3C WoT Servient 
-import { Servient } from "@node-wot/core";
+import { Servient, ExposedThing } from "@node-wot/core";
 
 // exposed protocols
 import { OracleServer } from "@node-wot/binding-oracle";
@@ -48,16 +48,18 @@ servient.start().then(async (WoT) => {
   var PumpP101: ConsumedThing, ValveV102: ConsumedThing;
 
   // exposed Thing toward Oracle IoT Cloud Service
-  WoT.produce(JSON.stringify({
+  WoT.produce({
     id: "urn:dev:wot:siemens:festolive",
     name: "FestoLive",
     "iotcs:deviceModel": "urn:com:siemens:wot:festo"
   })
-  )
     .then((thing) => {
+      if(thing instanceof ExposedThing) {
+        let exposedThing : ExposedThing = thing;
+
       console.info(thing.name + " produced");
 
-      thing
+      exposedThing
         // actuator state
         .addProperty("PumpStatus", { type: "boolean", readOnly: true }, false)
         .addProperty("ValveStatus", { type: "boolean", readOnly: true }, false)
@@ -75,7 +77,7 @@ servient.start().then(async (WoT) => {
         .addAction("StartPump", {}, () => {
           return new Promise((resolve, reject) => {
             console.info(">>> Startung pump!");
-            if (live) PumpP101.actions.on.invoke()
+            if (live) PumpP101.invokeAction("on")
               .then(() => { resolve(); })
               .catch((err) => { console.error("+++ StartPump invoke error: " + err); reject(err); });
             resolve();
@@ -84,7 +86,7 @@ servient.start().then(async (WoT) => {
         .addAction("StopPump", {}, () => {
           return new Promise((resolve, reject) => {
             console.info(">>> Stopping pump!");
-            if (live) PumpP101.actions.off.invoke()
+            if (live) PumpP101.invokeAction("off")
               .then(() => { resolve(); })
               .catch((err) => { console.error("+++ StopPump invoke error: " + err); reject(err); });
           });
@@ -92,7 +94,7 @@ servient.start().then(async (WoT) => {
         .addAction("OpenValve", {}, () => {
           return new Promise((resolve, reject) => {
             console.info(">>> Opening valve!");
-            if (live) ValveV102.actions.open.invoke()
+            if (live) ValveV102.invokeAction("open")
               .then(() => { resolve(); })
               .catch((err) => { console.error("+++ OpenValve invoke error: " + err); reject(err); });
           });
@@ -100,7 +102,7 @@ servient.start().then(async (WoT) => {
         .addAction("CloseValve", {}, () => {
           return new Promise((resolve, reject) => {
             console.info(">>> Closing valve!");
-            if (live) ValveV102.actions.close.invoke()
+            if (live) ValveV102.invokeAction("close")
               .then(() => { resolve(); })
               .catch((err) => { console.error("+++ CloseValve invoke error: " + err); reject(err); });
           });
@@ -145,13 +147,13 @@ servient.start().then(async (WoT) => {
                                       setInterval(() => {
 
                                         let readArray = [];
-                                        readArray.push(PumpP101.properties.status.read());
-                                        readArray.push(ValveV102.properties.status.read());
-                                        readArray.push(UltrasonicSensorB101.properties.levelvalue.read());
-                                        readArray.push(FloatSwitchS112.properties.overflow102.read());
-                                        readArray.push(LevelSensorB114.properties.maxlevel101.read());
-                                        readArray.push(LevelSensorB113.properties.minlevel101.read());
-                                        readArray.push(LevelSwitchS111.properties.overflow101.read());
+                                        readArray.push(PumpP101.readProperty("status"));
+                                        readArray.push(ValveV102.readProperty("status"));
+                                        readArray.push(UltrasonicSensorB101.readProperty("levelvalue"));
+                                        readArray.push(FloatSwitchS112.readProperty("overflow102"));
+                                        readArray.push(LevelSensorB114.readProperty("maxlevel101"));
+                                        readArray.push(LevelSensorB113.readProperty("minlevel101"));
+                                        readArray.push(LevelSwitchS111.readProperty("overflow101"));
                                         Promise.all(readArray).then((resArray) => {
 
                                           // order must match order of read interactions
@@ -159,19 +161,19 @@ servient.start().then(async (WoT) => {
 
                                           console.info("+++++++++++++++++++++++++++++++++++++++++++++");
                                           console.info("+++ PumpStatus  . . . . . . . " + pumpStatus);
-                                          thing.properties.PumpStatus.write(pumpStatus === "ON" ? true : false);
+                                          thing.writeProperty("PumpStatus", pumpStatus === "ON" ? true : false);
                                           console.info("+++ ValveStatus . . . . . . . " + valveStatus);
-                                          thing.properties.ValveStatus.write(valveStatus === "OPEN" ? true : false);
+                                          thing.writeProperty("ValveStatus", valveStatus === "OPEN" ? true : false);
                                           console.info("+++ Tank102LevelValue . . . . " + levelvalue102);
-                                          thing.properties.Tank102LevelValue.write(levelvalue102);
+                                          thing.writeProperty("Tank102LevelValue", levelvalue102);
                                           console.info("+++ Tank102OverflowStatus . . " + overflow102);
-                                          thing.properties.Tank102OverflowStatus.write(overflow102);
+                                          thing.writeProperty("Tank102OverflowStatus", overflow102);
                                           console.info("+++ Tank101MaximumLevelStatus " + maxlevel101);
-                                          thing.properties.Tank101MaximumLevelStatus.write(maxlevel101);
+                                          thing.writeProperty("Tank101MaximumLevelStatus", maxlevel101);
                                           console.info("+++ Tank101MinimumLevelStatus " + minlevel101);
-                                          thing.properties.Tank101MinimumLevelStatus.write(minlevel101);
+                                          thing.writeProperty("Tank101MinimumLevelStatus", minlevel101);
                                           console.info("+++ Tank101OverflowStatus . . " + overflow101);
-                                          thing.properties.Tank101OverflowStatus.write(overflow101);
+                                          thing.writeProperty("Tank101OverflowStatus", overflow101);
 
                                         }).catch(err => { console.error("+++ NodeMCU read error: " + err); });
 
@@ -201,6 +203,8 @@ servient.start().then(async (WoT) => {
         }, 5000);
 
       } // live?
+
+    }
 
     });
 }).catch((err) => { console.error("Servient start error: " + err); });

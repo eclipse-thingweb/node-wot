@@ -150,7 +150,7 @@ export default class HttpServer implements ProtocolServer {
   }
 
 
-  private updateInteractionNameWithUriVariablePattern(interactionName: string, uriVariables: {[key: string]: WoT.DataSchema;}) : string {
+  private updateInteractionNameWithUriVariablePattern(interactionName: string, uriVariables: {[key: string]: TD.DataSchema;}) : string {
     if(uriVariables && Object.keys(uriVariables).length > 0) {
       let pattern = "{?"
       let index = 0;
@@ -257,8 +257,9 @@ export default class HttpServer implements ProtocolServer {
       } // addresses
 
       if (this.scheme === "https") {
+        let securityBasic : TD.BasicSecurityScheme = {"scheme":"basic", "in":"header"};
         thing.securityDefinitions = {
-          "basic_sc": {"scheme":"basic", "in":"header"}
+          "basic_sc": securityBasic
         };
         thing.security = ["basic_sc"];
       }
@@ -296,7 +297,7 @@ export default class HttpServer implements ProtocolServer {
     }
   }
 
-   private parseUrlParameters(url: string, uriVariables: { [key: string]: WoT.DataSchema }): {[k: string]: any} {
+   private parseUrlParameters(url: string, uriVariables: { [key: string]: TD.DataSchema }): {[k: string]: any} {
     let params: {[k: string]: any} = {};
     if (url == null || !uriVariables) {
       return params;
@@ -501,7 +502,8 @@ export default class HttpServer implements ProtocolServer {
                   // FIXME must decide on Content-Type here, not on next()
                   res.setHeader("Content-Type", ContentSerdes.DEFAULT);
                   res.writeHead(200);
-                  let subscription = property.subscribe(
+                  thing.subscribeEvent(segments[3],
+                  // let subscription = property.subscribe(
                     (data) => {
                       let content;
                       try {
@@ -514,18 +516,23 @@ export default class HttpServer implements ProtocolServer {
                       }
                       // send event data
                       res.end(content.body);
-                    },
-                    () => res.end(),
-                    () => res.end()
-                  );
+                    }
+                    // ,
+                    // () => res.end(),
+                    // () => res.end()
+                  )
+                  .then(() => res.end())
+                  .catch(() => res.end());
                   res.on("finish", () => {
                     console.debug(`HttpServer on port ${this.getPort()} closed Event connection`);
-                    subscription.unsubscribe();
+                    // subscription.unsubscribe();
+                    thing.unsubscribeEvent(segments[3]);
                   });
-                  res.setTimeout(60*60*1000, () => subscription.unsubscribe());
+                  res.setTimeout(60*60*1000, () => thing.unsubscribeEvent(segments[3])); // subscription.unsubscribe());
 
                 } else {
-                  property.read(options)
+                  thing.readProperty(segments[3])
+                  // property.read(options)
                     .then((value) => {
                       let content = ContentSerdes.get().valueToContent(value, <any>property);
                       res.setHeader("Content-Type", content.type);
@@ -554,7 +561,8 @@ export default class HttpServer implements ProtocolServer {
                       res.end("Invalid Data");
                       return;
                     }
-                    property.write(value, options)
+                    thing.writeProperty(segments[3], value) // , options
+                    // property.write(value, options)
                       .then(() => {
                         res.writeHead(204);
                         res.end("Changed");
@@ -578,7 +586,7 @@ export default class HttpServer implements ProtocolServer {
 
           } else if (segments[2] === this.ACTION_DIR) {
             // sub-path -> select Action
-            let action : WoT.ThingAction = thing.actions[segments[3]];
+            let action : TD.ThingAction = thing.actions[segments[3]];
             if (action) {
               if (req.method === "POST") {
                 // load payload
@@ -600,7 +608,8 @@ export default class HttpServer implements ProtocolServer {
                   let options: {[k: string]: any} = {};
                   options[this.OPTIONS_URI_VARIABLES] = params;
 
-                  action.invoke(input, options)
+                  thing.invokeAction(segments[3], input) // options
+                  // action.invoke(input, options)
                     .then((output) => {
                       if (output) {
                         let content = ContentSerdes.get().valueToContent(output, action.output);
@@ -632,8 +641,9 @@ export default class HttpServer implements ProtocolServer {
               if (req.method === "GET") {
                 // FIXME must decide on Content-Type here, not on next()
                 res.setHeader("Content-Type", ContentSerdes.DEFAULT);
-                res.writeHead(200);
-                let subscription = event.subscribe(
+                res.writeHead(200);                 
+                thing.subscribeEvent(segments[3], 
+                // let subscription = event.subscribe(
                   (data) => {
                     let content;
                     try {
@@ -646,15 +656,19 @@ export default class HttpServer implements ProtocolServer {
                     }
                     // send event data
                     res.end(content.body);
-                  },
-                  () => res.end(),
-                  () => res.end()
-                );
+                  }
+                  // ,
+                  // () => res.end(),
+                  // () => res.end()
+                )
+                .then(() => res.end())
+                .catch(() => res.end());
                 res.on("finish", () => {
                   console.debug(`HttpServer on port ${this.getPort()} closed Event connection`);
-                  subscription.unsubscribe();
+                  // subscription.unsubscribe();
+                  thing.unsubscribeEvent(segments[3]);
                 });
-                res.setTimeout(60*60*1000, () => subscription.unsubscribe());
+                res.setTimeout(60*60*1000, () => thing.unsubscribeEvent(segments[3])); // subscription.unsubscribe());
               } else {
                 respondUnallowedMethod(res, "GET")
               }

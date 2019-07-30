@@ -59,7 +59,7 @@ export function parseTD(td: string, normalize?: boolean): Thing {
 
   if (thing.properties !== undefined && thing.properties instanceof Object) {
     for (let propName in thing.properties) {
-      let prop: WoT.PropertyFragment = thing.properties[propName];
+      let prop: TD.ThingProperty = thing.properties[propName];
       if (prop.readOnly === undefined || typeof prop.readOnly !== "boolean") {
         prop.readOnly = false;
       }
@@ -74,7 +74,7 @@ export function parseTD(td: string, normalize?: boolean): Thing {
   
   if (thing.actions !== undefined && thing.actions instanceof Object) {
     for (let actName in thing.actions) {
-      let act: WoT.ActionFragment = thing.actions[actName];
+      let act: TD.ThingAction = thing.actions[actName];
       if (act.safe === undefined || typeof act.safe !== "boolean") {
         act.safe = false;
       }
@@ -104,7 +104,7 @@ export function parseTD(td: string, normalize?: boolean): Thing {
   }
 
   // collect all forms for normalization and use iterations also for checking
-  let allForms: WoT.Form[] = [];
+  let allForms: TD.Form[] = [];
   let interactionPatterns: any = {
     properties: "Property",
     actions: "Action",

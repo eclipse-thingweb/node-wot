@@ -23,6 +23,7 @@ import * as url from "url";
 
 import { Subscription } from "rxjs/Subscription";
 
+import * as TD from "@node-wot/td-tools";
 // for Security definition
 import * as WoT from "wot-typescript-definitions";
 
@@ -243,7 +244,7 @@ export default class HttpClient implements ProtocolClient {
     return true;
   }
 
-  public setSecurity(metadata: Array<WoT.Security>, credentials?: any): boolean {
+  public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean {
 
     if (metadata === undefined || !Array.isArray(metadata) || metadata.length == 0) {
       console.warn(`HttpClient without security`);
@@ -251,7 +252,7 @@ export default class HttpClient implements ProtocolClient {
     }
 
     // TODO support for multiple security schemes
-    let security: WoT.Security = metadata[0];
+    let security: TD.SecurityScheme = metadata[0];
 
     if (security.scheme === "basic") {
       if (credentials === undefined || credentials.username === undefined || credentials.password === undefined) {
@@ -267,12 +268,13 @@ export default class HttpClient implements ProtocolClient {
       this.authorization = "Bearer " + credentials.token;
 
     } else if (security.scheme === "apikey") {
+      let securityAPIKey : TD.APIKeySecurityScheme = <TD.APIKeySecurityScheme>security;
       if (credentials === undefined || credentials.apikey === undefined) {
         throw new Error(`No API key credentionals for Thing`);
       }
       this.authorization = credentials.apikey;
-      if (security.in==="header" && security.name!==undefined) {
-        this.authorizationHeader = security.name;
+      if (securityAPIKey.in==="header" && securityAPIKey.name!==undefined) {
+        this.authorizationHeader = securityAPIKey.name;
       }
 
     } else if (security.scheme === "nosec") {

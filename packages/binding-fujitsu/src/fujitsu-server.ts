@@ -149,7 +149,8 @@ export default class FujitsuServer implements ProtocolServer {
         if (message.method === "GET") {
           let property = thing.properties[message.href];
           if (property) {
-            property.read()
+          //   property.read()
+            thing.readProperty(message.href)
               .then((value) => { 
                 let content = ContentSerdes.get().valueToContent(value, <any>property)
                 this.reply(message.requestID, message.deviceID, content);
@@ -184,7 +185,8 @@ export default class FujitsuServer implements ProtocolServer {
               // FIXME: no error message format defined in Fujitsu binding
               return;
             }
-            action.invoke(input)
+            thing.invokeAction(message.href)
+            // action.invoke(input)
               .then((output) => {
                 let content;
                 if (output) {
