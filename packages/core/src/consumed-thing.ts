@@ -350,27 +350,33 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                 reject(new Error(`ConsumedThing '${this.name}' did not get suitable client for ${form.href}`));
             } else {
                 console.log(`ConsumedThing '${this.name}' subscribing to ${form.href}`);
-
                 return client.subscribeResource(form,
                     (content) => {
                         if (!content.type) content.type = form.contentType;
                         try {
                             let value = ContentManager.contentToValue(content, <any>this);
                             // next(value);
+                            // listener(value);
                             listener(value);
+                            resolve(value);
                         } catch {
                             // error(new Error(`Received invalid content from Thing`));
                             listener(new Error(`Received invalid content from Thing`));
+                            // reject(new Error(`Received invalid content from Thing`));
                         }
                     },
                     (err) => {
                         // error(err);
-                        listener(err);
-                    },
-                    () => {
-                        // complete();
-                        listener("complete");
+                        reject(err);
+                        // listener(err);
                     }
+                    // ,
+                    // () => {
+                    //     // complete();
+                    //     // listener(ret);
+                    //     // resolve(ret);
+                    //     // listener(ret);
+                    // }
                 );
             }
         });

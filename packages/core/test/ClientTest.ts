@@ -224,9 +224,10 @@ class WoTClientTest {
             })
             .then((thing) => {
                 expect(thing).to.have.property("title").that.equals("aThing");
-                expect(thing.properties).to.have.property("aProperty");
+                expect(thing.getTD()).to.have.property("properties");
+                expect(thing.getTD()).to.have.property("properties").to.have.property("aProperty");
 
-                return thing.properties.aProperty.read();
+                return thing.readProperty("aProperty");
             })
             .then((value) => {
                 expect(value).not.to.be.null;
@@ -250,7 +251,8 @@ class WoTClientTest {
             })
             .then((thing) => {
                 expect(thing).to.have.property("title").that.equals("aThing");
-                expect(thing.properties).to.have.property("aProperty");
+                expect(thing.getTD()).to.have.property("properties");
+                expect(thing.getTD()).to.have.property("properties").to.have.property("aProperty");
                 return thing.readProperty("aProperty");
             })
             .then((value) => {
@@ -275,7 +277,8 @@ class WoTClientTest {
             })
             .then((thing) => {
                 expect(thing).to.have.property("title").that.equals("aThing");
-                expect(thing.properties).to.have.property("aProperty");
+                expect(thing.getTD()).to.have.property("properties");
+                expect(thing.getTD()).to.have.property("properties").to.have.property("aProperty");
                 return thing.readAllProperties();
             })
             .then((value) => {
@@ -301,7 +304,7 @@ class WoTClientTest {
             .then((thing) => {
                 expect(thing).to.have.property("title").that.equals("aThing");
                 expect(thing).to.have.property("properties").that.has.property("aProperty");
-                return thing.properties["aProperty"].write(23);
+                return thing.writeProperty("aProperty", 23);
             })
             .then(() => done())
             .catch(err => { done(err) });
@@ -412,7 +415,7 @@ class WoTClientTest {
             .then((thing) => {
                 expect(thing).to.have.property("title").that.equals("aThing");
                 expect(thing).to.have.property("actions").that.has.property("anAction");
-                return thing.actions.anAction.invoke(23);
+                return thing.invokeAction("anAction", 23);
             })
             .then((result) => {
                 expect(result).not.to.be.null;
@@ -464,17 +467,25 @@ class WoTClientTest {
             .then((thing) => {
                 expect(thing).to.have.property("title").that.equals("aThing");
                 expect(thing).to.have.property("properties").that.has.property("aProperty");
-                thing.events.anEvent.subscribe(
+                thing.subscribeEvent("anEvent", 
                     (x: any) => {
                         expect(x).to.equal("triggered");
-                    },
-                    (e: any) => {
-                        done(e);
-                    },
-                    () => {
-                        done();
                     }
-                );
+                    // ,
+                    // (e: any) => {
+                    //     done(e);
+                    // },
+                    // () => {
+                    //     done();
+                    // }
+                )
+                .then(() => {
+                        done();
+                    })
+                .catch((e: any) => {
+                        done(e);
+                    })
+                ;
             })
             .catch(err => { done(err) });
     }
@@ -527,17 +538,17 @@ class WoTClientTest {
             .then((thing) => {
                 expect(thing).to.have.property("title").that.equals("aThing");
                 expect(thing).to.have.property("events").that.has.property("anEvent");
-                thing.events.anEvent.subscribe(
+                thing.subscribeEvent("anEvent", 
                     (x: any) => {
                         expect(x).to.equal("triggered");
-                    },
-                    (e: any) => {
-                        done(e);
-                    },
-                    () => {
-                        done();
                     }
-                );
+                )
+                .then(() => {
+                    done();
+                })
+                .catch((e: any) => {
+                    done(e);
+                });
             })
             .catch(err => { done(err) });
     }
@@ -547,7 +558,7 @@ class WoTClientTest {
         
         WoTClientTest.clientFactory.setTrap(
             () => {
-                return { contentType: "application/json", body: Buffer.from("triggered") };
+                return { contentType: "application/json", body: Buffer.from("triggeredOOOO") };
             }
         )
 
@@ -561,11 +572,15 @@ class WoTClientTest {
 
                 thing.subscribeEvent("anEvent",
                     (data: any) => {
-                        if(data == "triggered") {
-                            done();
-                        }
+                        expect(data).to.equal("triggeredOOOO");
                     }
-                );
+                )
+                .then(() => {
+                    done();
+                })
+                .catch((e: any) => {
+                    done(e);
+                });
             })
             .catch(err => { done(err) });
     }
