@@ -114,7 +114,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             // let servient forward exposure to the servers
             this.getServient().expose(this).then( () => {
                 // inform TD observers
-                this.getSubjectTD().next(this.getThingDescription());
+                this.getSubjectTD().next(this.getTD());
                 resolve();
             })
             .catch( (err) => reject(err) );
