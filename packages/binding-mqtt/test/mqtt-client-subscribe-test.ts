@@ -23,7 +23,7 @@ import { expect, should, assert } from "chai";
 // should must be called to augment all variables
 should();
 
-import { Servient } from "@node-wot/core";
+import { Servient, ExposedThing } from "@node-wot/core";
 
 import MqttBrokerServer from "../dist/mqtt-broker-server";
 import MqttClientFactory from "../dist/mqtt-client-factory";
@@ -53,33 +53,38 @@ class MqttClientSubscribeTest {
                 expect(brokerServer.getPort()).to.equal(1883);
                 expect(brokerServer.getAddress()).to.equal("test.mosquitto.org");
 
-                WoT.produce(`{ title: "TestWoTMQTT" }`)
+                WoT.produce({ title: "TestWoTMQTT" })
                     .then((thing) => {
-                        thing.addEvent("event1", { type: "number" });
+                        if(thing instanceof ExposedThing) {
+                            let exposedThing : ExposedThing = thing;
+                            thing.addEvent("event1", { type: "number" });
 
-                        thing.expose();
-
-                        console.info("Exposed", thing.title);
-
-                        WoT.consume(thing.getThingDescription())
-                            .then((client) => {
-                                let check = 0;
-                                client.events.event1.subscribe(
-                                    (x) => {
-                                        expect(x).to.equal(++check);
-                                        if (check === 3) done();
-                                    },
-                                    (e) => { expect(true).to.equal(false); },
-                                    () => { }
-                                );
-        
-                                var job = setInterval(() => {
-                                    ++counter;
-                                    thing.events.event1.emit(counter); // sends data to the topic /TestWoTMQTT/events/event1
-        
-                                    if (counter === 3) clearInterval(job);
-                                }, 100);
-                            });
+                            thing.expose();
+    
+                            console.info("Exposed", thing.title);
+    
+                            WoT.consume(thing.getTD())
+                                .then((client) => {
+                                    let check = 0;
+                                    client.subscribeEvent("event1",
+                                        (x) => {
+                                            expect(x).to.equal(++check);
+                                            if (check === 3) done();
+                                        }
+                                    )
+                                    .then(() => { })
+                                    .catch((e) => { expect(true).to.equal(false); });
+            
+                                    var job = setInterval(() => {
+                                        ++counter;
+                                        thing.events.event1.emit(counter); // sends data to the topic /TestWoTMQTT/events/event1
+            
+                                        if (counter === 3) clearInterval(job);
+                                    }, 100);
+                                });
+                        } else {
+                            throw("no ExposedThing");
+                        }
                     });
             });
 
