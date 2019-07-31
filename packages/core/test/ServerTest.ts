@@ -256,29 +256,7 @@ class WoTServerTest {
         expect(await thing.readProperty("number")).to.equal(3); 
     }
 
-    @test async "should be able to read Property with read handler (incrementing with lambda) new API"() {
-        let thing = await WoTServerTest.WoT.produce({ title: "otherthingIncRead" });
-        let exposedThing : ExposedThing = <ExposedThing>thing;
-
-        let initp: TD.ThingProperty = {
-            type: "number"
-        };
-        let counter: number = 0;
-        await exposedThing.addProperty("number", initp).setPropertyReadHandler(
-            "number",
-            () => {
-                return new Promise((resolve, reject) => {
-                    resolve(++counter);
-                });
-            }
-        );
-
-        expect(await thing.readProperty("number")).to.equal(1);
-        expect(await thing.readProperty("number")).to.equal(2);
-        expect(await thing.readProperty("number")).to.equal(3);
-    }
-
-    @test async "should be able to read and write property / new API"() {
+    @test async "should be able to read and write property"() {
         let thing = await WoTServerTest.WoT.produce({ title: "otherthingIncRead" });
         let exposedThing : ExposedThing = <ExposedThing>thing;
 
@@ -495,36 +473,6 @@ class WoTServerTest {
             "@context": ["https://w3c.github.io/wot/w3c-wot-td-context.jsonld"],
             "@type": ["Thing"],
             "title": "thing6b",
-            "actions": {
-                "action1" : {
-                    "input": { "type": "number" },
-                    "output": { "type": "number" }
-                }
-            }
-        }`));
-
-        expect(thing).to.have.property("actions");
-        expect(thing).to.have.property("actions").to.have.property("action1");
-
-        thing.setActionHandler(
-            "action1",
-            (parameters: any) => {
-                return new Promise((resolve, reject) => {
-                    parameters.should.be.a("number");
-                    parameters.should.equal(23);
-                    resolve(42);
-                });
-            }
-        );
-
-        expect(await thing.invokeAction("action1", 23)).to.equal(42);
-    }
-    
-    @test async "should be able to add an action and invoke it locally (based on WoT.ThingDescription) next API"() {
-        let thing = await WoTServerTest.WoT.produce(JSON.parse(`{
-            "@context": ["https://w3c.github.io/wot/w3c-wot-td-context.jsonld"],
-            "@type": ["Thing"],
-            "name": "thing6b",
             "actions": {
                 "action1" : {
                     "input": { "type": "number" },
