@@ -26,9 +26,8 @@ import * as url from "url";
 import { AddressInfo } from "net";
 
 import * as TD from "@node-wot/td-tools";
-import Servient, { ProtocolServer, ContentSerdes, ExposedThing, Helpers } from "@node-wot/core";
+import Servient, { ProtocolServer, ContentSerdes, Helpers, ExposedThing } from "@node-wot/core";
 import { HttpConfig, HttpForm } from "./http";
-import { Form } from "@node-wot/td-tools";
 
 export default class HttpServer implements ProtocolServer {
 
@@ -398,7 +397,7 @@ export default class HttpServer implements ProtocolServer {
 
     } else {
       // path -> select Thing
-      let thing = this.things.get(segments[1]);
+      let thing : ExposedThing = this.things.get(segments[1]);
       if (thing) {
 
         if (segments.length === 2 || segments[2] === "") {
@@ -531,7 +530,7 @@ export default class HttpServer implements ProtocolServer {
                 } else {
                   thing.readProperty(segments[3])
                   // property.read(options)
-                    .then((value) => {
+                    .then((value:any) => {
                       let content = ContentSerdes.get().valueToContent(value, <any>property);
                       res.setHeader("Content-Type", content.type);
                       res.writeHead(200);
@@ -606,9 +605,9 @@ export default class HttpServer implements ProtocolServer {
                   let options: {[k: string]: any} = {};
                   options[this.OPTIONS_URI_VARIABLES] = params;
 
-                  thing.invokeAction(segments[3], input) // options
+                  thing.invokeAction(segments[3], input, options)
                   // action.invoke(input, options)
-                    .then((output) => {
+                    .then((output:any) => {
                       if (output) {
                         let content = ContentSerdes.get().valueToContent(output, action.output);
                         res.setHeader("Content-Type", content.type);

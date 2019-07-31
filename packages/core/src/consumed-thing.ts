@@ -269,7 +269,6 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                 if (parameter!== undefined) {
                     input = ContentManager.valueToContent(parameter, <any>this, form.contentType);
                 }
-                console.log(`ConsumedThing A '${client}'`);
 
                 client.invokeResource(form, input).then((content) => {
                     // infer media type from form if not in response metadata
@@ -283,7 +282,6 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                     }
                     
                     try {
-                        console.log(`ConsumedThing B`);
                         let value = ContentManager.contentToValue(content, this.output);
                         resolve(value);
                     } catch {
