@@ -105,6 +105,11 @@ export default class WoTImpl implements WoT.WoT {
             }
         });
     }
+
+    // Note: kept for fetching TDs in JavaScript
+    public fetch(uri: string): Promise<WoT.ThingDescription> {
+        return Helpers.fetchTD(this.srv, uri);
+    }
 }
 
 export enum DiscoveryMethod {

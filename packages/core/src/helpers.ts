@@ -113,7 +113,7 @@ export default class Helpers {
     }
   }
 
-  public static fetchTD(srv: Servient , uri: string): Promise<WoT.ThingDescription> {
+  public static fetchTD(srv: Servient, uri: string): Promise<WoT.ThingDescription> {
     return new Promise<WoT.ThingDescription>((resolve, reject) => {
         let client = srv.getClientFor(Helpers.extractScheme(uri));
         console.info(`WoTImpl fetching TD from '${uri}' with ${client}`);
@@ -137,7 +137,7 @@ export default class Helpers {
             })
             .catch((err) => { reject(err); });
     });
-}
+  }
 
   /**
    *  helper function to extend class

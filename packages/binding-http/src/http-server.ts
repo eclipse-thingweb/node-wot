@@ -425,15 +425,13 @@ export default class HttpServer implements ProtocolServer {
                 if(prefLang) {
                   // if a preferred language can be found use it
                   console.log(`TD language negotiation through the Accept-Language header field of HTTP leads to "${prefLang}"`);
-                  let otd = JSON.parse(td);
-                  this.resetMultiLangThing(otd, prefLang);
-                  td = JSON.stringify(otd);
+                  this.resetMultiLangThing(td, prefLang);
                 }
               }
             }
             res.setHeader("Content-Type", ContentSerdes.TD);
             res.writeHead(200);
-            res.end(td);
+            res.end(JSON.stringify(td));
           } else {
             respondUnallowedMethod(res, "GET");
           }

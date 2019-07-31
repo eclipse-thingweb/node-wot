@@ -34,16 +34,15 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     base: string;
     forms: Array<TD.Form>;
 
-    // next Style
-    _properties: {
-        [key: string]: PropertyState;
-    } = {};
-    _actions: {
-        [key: string]: ActionState;
-    } = {};
-    _events: {
-        [key: string]: EventState;
-    } = {};
+    // _properties: {
+    //     [key: string]: PropertyState;
+    // } = {};
+    // _actions: {
+    //     [key: string]: ActionState;
+    // } = {};
+    // _events: {
+    //     [key: string]: EventState;
+    // } = {};
 
     /** A map of interactable Thing Properties with read()/write()/subscribe() functions */
     properties: {
@@ -77,26 +76,26 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         for (let propertyName in this.properties) {
             let newProp = Helpers.extend(this.properties[propertyName], new ExposedThingProperty(propertyName, this));
             this.properties[propertyName] = newProp;
-            this._properties[propertyName] = newProp.getState();
+            // this._properties[propertyName] = newProp.getState();
         }
         for (let actionName in this.actions) {
             let newAction = Helpers.extend(this.actions[actionName], new ExposedThingAction(actionName, this));
             this.actions[actionName] = newAction;
-            this._actions[actionName] = newAction.getState();
+            // this._actions[actionName] = newAction.getState();
         }
         for (let eventName in this.events) {
             let newEvent = Helpers.extend(this.events[eventName], new ExposedThingEvent(eventName, this));
             this.events[eventName] = newEvent;
-            this._events[eventName] = newEvent.getState();
+            // this._events[eventName] = newEvent.getState();
         }
     }
 
-    // setter for ThingTemplate fields
-    public set(name: string, value: any): void {
-        // TODO setter only makes sense if we do something here
-        console.log(`ExposedThing '${this.title}' setting field '${name}' to '${value}'`);
-        this[name] = value;
-    }
+    // // setter for ThingTemplate fields
+    // public set(name: string, value: any): void {
+    //     // TODO setter only makes sense if we do something here
+    //     console.log(`ExposedThing '${this.title}' setting field '${name}' to '${value}'`);
+    //     this[name] = value;
+    // }
 
     public getTD(): WoT.ThingDescription {
         return JSON.parse(TD.serializeTD(this));
@@ -134,7 +133,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 
         let newProp = Helpers.extend(property, new ExposedThingProperty(name, this));
         this.properties[name] = newProp;
-        this._properties[name] = newProp.getState();
+        // this._properties[name] = newProp.getState();
 
         if (init !== undefined) {
             this.writeProperty(name, init);
@@ -155,7 +154,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         let newAction = Helpers.extend(action, new ExposedThingAction(name, this));
         newAction.getState().handler = handler.bind(newAction.getState().scope);
         this.actions[name] = newAction;
-        this._actions[name] = newAction.getState();
+        // this._actions[name] = newAction.getState();
 
         return this;
     }
@@ -163,7 +162,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     addEvent(name: string, event: TD.ThingEvent): ExposedThing {
         let newEvent = Helpers.extend(event, new ExposedThingEvent(name, this));
         this.events[name] = newEvent;
-        this._events[name] = newEvent.getState();
+        // this._events[name] = newEvent.getState();
 
         return this;
     }
@@ -172,7 +171,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         
         if (this.properties[propertyName]) {
             delete this.properties[propertyName];
-            delete this._properties[propertyName];
+            // delete this._properties[propertyName];
         } else {
             throw new Error(`ExposedThing '${this.title}' has no Property '${propertyName}'`);
         }
@@ -184,7 +183,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         
         if (this.actions[actionName]) {
             delete this.actions[actionName];
-            delete this._actions[actionName];
+            // delete this._actions[actionName];
         } else {
             throw new Error(`ExposedThing '${this.title}' has no Action '${actionName}'`);
         }
@@ -197,7 +196,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         if (this.events[eventName]) {
             (<ExposedThingEvent>this.events[eventName]).getState().subject.complete();
             delete this.events[eventName];
-            delete this._events[eventName];
+            // delete this._events[eventName];
         } else {
             throw new Error(`ExposedThing '${this.title}' has no Event '${eventName}'`);
         }
@@ -252,21 +251,27 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     readProperty(propertyName: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             let options = null; // TODO
-            if (this._properties[propertyName]) {
+            if (this.properties[propertyName]) {
                 // call read handler (if any)
-                if (this._properties[propertyName].readHandler != null) {
-                    console.log(`ExposedThing '${this.name}' calls registered readHandler for Property '${propertyName}'`);
-                    this._properties[propertyName].readHandler(options).then((customValue) => {
+                if (this.properties[propertyName].getState().readHandler != null) {
+                    console.log(`ExposedThing '${this.title}' calls registered readHandler for Property '${propertyName}'`);
+                    let ps : PropertyState = this.properties[propertyName].getState();
+                    ps.readHandler(options).then((customValue) => {
                         // update internal state in case writeHandler wants to get the value
-                        this._properties[propertyName].value = customValue;
+                        this.properties[propertyName].value = customValue;
                         resolve(customValue);
                     });
+                    // this.properties[propertyName].getState().readHandler(options).then((customValue) => {
+                    //     // update internal state in case writeHandler wants to get the value
+                    //     this.properties[propertyName].value = customValue;
+                    //     resolve(customValue);
+                    // });
                 } else {
-                    console.log(`ExposedThing '${this.name}' gets internal value '${this._properties[propertyName].value}' for Property '${propertyName}'`);
-                    resolve(this._properties[propertyName].value);
+                    console.log(`ExposedThing '${this.title}' gets internal value '${this.properties[propertyName].getState().value}' for Property '${propertyName}'`);
+                    resolve(this.properties[propertyName].getState().value);
                 }
             } else {
-                reject(new Error(`ExposedThing '${this.name}', no property found for '${propertyName}'`));
+                reject(new Error(`ExposedThing '${this.title}', no property found for '${propertyName}'`));
             }
 
         });
@@ -294,7 +299,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                 resolve(allProps);
             })
             .catch(err => {
-                reject(new Error(`ExposedThing '${this.name}', failed to read properties ` + propertyNames));
+                reject(new Error(`ExposedThing '${this.title}', failed to read properties ` + propertyNames));
             });
         });
     }
@@ -314,51 +319,52 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         return new Promise<void>((resolve, reject) => {
             let options = null; // TODO
             // call write handler (if any)
-            if (this._properties[propertyName].writeHandler != null) {
+            if (this.properties[propertyName].getState().writeHandler != null) {
                 
                 // be generous when no promise is returned
-                let promiseOrValueOrNil = this._properties[propertyName].writeHandler(value, options);
+                let ps : PropertyState = this.properties[propertyName].getState();
+                let promiseOrValueOrNil = ps.writeHandler(value, options);
                 
                 if (promiseOrValueOrNil !== undefined) {
                     if (typeof promiseOrValueOrNil.then === "function") {
                         promiseOrValueOrNil.then((customValue) => {
-                            console.log(`ExposedThing '${this.name}' write handler for Property '${propertyName}' sets custom value '${customValue}'`);
+                            console.log(`ExposedThing '${this.title}' write handler for Property '${propertyName}' sets custom value '${customValue}'`);
                             /** notify state change */
                             // FIXME object comparison
-                            if (this._properties[propertyName].value!==customValue) {
-                                this._properties[propertyName].subject.next(customValue);
+                            if (this.properties[propertyName].getState().value!==customValue) {
+                                this.properties[propertyName].getState().subject.next(customValue);
                             }
-                            this._properties[propertyName].value = customValue;
+                            this.properties[propertyName].getState().value = customValue;
                             resolve();
                         })
                         .catch((customError) => {
-                            console.warn(`ExposedThing '${this.name}' write handler for Property '${propertyName}' rejected the write with error '${customError}'`);
+                            console.warn(`ExposedThing '${this.title}' write handler for Property '${propertyName}' rejected the write with error '${customError}'`);
                             reject(customError);
                         });
                     } else  {
-                        console.warn(`ExposedThing '${this.name}' write handler for Property '${propertyName}' does not return promise`);
-                        if (this._properties[propertyName].value!==promiseOrValueOrNil) {
-                            this._properties[propertyName].subject.next(<any>promiseOrValueOrNil);
+                        console.warn(`ExposedThing '${this.title}' write handler for Property '${propertyName}' does not return promise`);
+                        if (this.properties[propertyName].getState().value!==promiseOrValueOrNil) {
+                            this.properties[propertyName].getState().subject.next(<any>promiseOrValueOrNil);
                         }
-                        this._properties[propertyName].value = <any>promiseOrValueOrNil;
+                        this.properties[propertyName].getState().value = <any>promiseOrValueOrNil;
                         resolve();
                     }
                 } else {
-                    console.warn(`ExposedThing '${this.name}' write handler for Property '${propertyName}' does not return custom value, using direct value '${value}'`);
+                    console.warn(`ExposedThing '${this.title}' write handler for Property '${propertyName}' does not return custom value, using direct value '${value}'`);
                     
-                    if (this._properties[propertyName].value!==value) {
-                        this._properties[propertyName].subject.next(value);
+                    if (this.properties[propertyName].getState().value!==value) {
+                        this.properties[propertyName].getState().subject.next(value);
                     }
-                    this._properties[propertyName].value = value;
+                    this.properties[propertyName].getState().value = value;
                     resolve();
                 }
             } else {
-                console.log(`ExposedThing '${this.name}' directly sets Property '${propertyName}' to value '${value}'`);
+                console.log(`ExposedThing '${this.title}' directly sets Property '${propertyName}' to value '${value}'`);
                 /** notify state change */
-                if (this._properties[propertyName].value!==value) {
-                    this._properties[propertyName].subject.next(value);
+                if (this.properties[propertyName].getState().value!==value) {
+                    this.properties[propertyName].getState().subject.next(value);
                 }
-                this._properties[propertyName].value = value;
+                this.properties[propertyName].getState().value = value;
                 resolve();
             }
         });
@@ -376,24 +382,24 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                 resolve();
             })
             .catch(err => {
-                reject(new Error(`ExposedThing '${this.name}', failed to read properties ` + valueMap));
+                reject(new Error(`ExposedThing '${this.title}', failed to read properties ` + valueMap));
             });
         });
     }
 
     public invokeAction(actionName: string, parameter?: any, options?: any): Promise<any> {
         return new Promise<any>((resolve, reject) => {
-            if (this._actions[actionName]) {
-                console.debug(`ExposedThing '${this.name}' has Action state of '${actionName}'`);
+            if (this.actions[actionName]) {
+                console.debug(`ExposedThing '${this.title}' has Action state of '${actionName}'`);
 
-                if (this._actions[actionName].handler != null) {
-                    console.log(`ExposedThing '${this.name}' calls registered handler for Action '${actionName}'`);
-                    resolve(this._actions[actionName].handler(parameter, options));
+                if (this.actions[actionName].getState().handler != null) {
+                    console.log(`ExposedThing '${this.title}' calls registered handler for Action '${actionName}'`);
+                    resolve(this.actions[actionName].getState().handler(parameter, options));
                 } else {
-                    reject(new Error(`ExposedThing '${this.name}' has no handler for Action '${actionName}'`));
+                    reject(new Error(`ExposedThing '${this.title}' has no handler for Action '${actionName}'`));
                 }
             } else {
-                reject(new Error(`ExposedThing '${this.name}', no action found for '${actionName}'`));
+                reject(new Error(`ExposedThing '${this.title}', no action found for '${actionName}'`));
             }
         });
     }
