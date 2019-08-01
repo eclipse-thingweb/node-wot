@@ -41,14 +41,15 @@ class TDGeneratorTest {
 
     let thing = await myWoT.produce({
       title: "TDGeneratorTest",
+      properties: {
+        prop1: { type: "number" }
+      },
       actions: {
         act1: { input: { type: "string" } }
       }
     });
-    let exposedThing = <ExposedThing>thing; // if(thing instanceof ExposedThing) fails?
-
-    await exposedThing.addProperty("prop1", { type: "number" });
-    await exposedThing.setActionHandler("act1", () => { return new Promise<void>((resolve, reject) => { resolve(); }); });
+    
+    await thing.setActionHandler("act1", () => { return new Promise<void>((resolve, reject) => { resolve(); }); });
 
     await thing.expose();
 

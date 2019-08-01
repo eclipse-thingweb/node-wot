@@ -48,6 +48,11 @@ class HttpServerTest {
     let testThing = new ExposedThing(null);
     testThing = Helpers.extend({
       title: "Test",
+      properties: {
+        test: {
+          type: "string"
+        }
+      },
       actions: {
         try: {
           output: { type: "string" }
@@ -55,7 +60,7 @@ class HttpServerTest {
       }
     }, testThing);
     testThing.extendInteractions();
-    testThing.addProperty("test", { type: "string" }, "off");
+    await testThing.writeProperty("test", "off")
     testThing.properties.test.forms = [];
     testThing.setActionHandler("try", (input) => { return new Promise<string>( (resolve, reject) => { resolve("TEST"); }); });
     testThing.actions.try.forms = [];

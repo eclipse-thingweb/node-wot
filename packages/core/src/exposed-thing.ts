@@ -107,20 +107,20 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         });
     }
 
-    addProperty(name: string, property: TD.ThingProperty, init?: any): ExposedThing {
+    // addProperty(name: string, property: TD.ThingProperty, init?: any): ExposedThing {
 
-        console.log(`ExposedThing '${this.title}' adding Property '${name}'`);
+    //     console.log(`ExposedThing '${this.title}' adding Property '${name}'`);
 
-        let newProp = Helpers.extend(property, new ExposedThingProperty(name, this));
-        this.properties[name] = newProp;
+    //     let newProp = Helpers.extend(property, new ExposedThingProperty(name, this));
+    //     this.properties[name] = newProp;
 
-        if (init !== undefined) {
-            this.writeProperty(name, init);
-            // newProp.write(init);
-        }
+    //     if (init !== undefined) {
+    //         this.writeProperty(name, init);
+    //         // newProp.write(init);
+    //     }
 
-        return this;
-    }
+    //     return this;
+    // }
 
     // addAction(name: string, action: TD.ThingAction, handler: WoT.ActionHandler): ExposedThing {
 
@@ -144,16 +144,16 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     //     return this;
     // }
 
-    removeProperty(propertyName: string): ExposedThing {
+    // removeProperty(propertyName: string): ExposedThing {
         
-        if (this.properties[propertyName]) {
-            delete this.properties[propertyName];
-        } else {
-            throw new Error(`ExposedThing '${this.title}' has no Property '${propertyName}'`);
-        }
+    //     if (this.properties[propertyName]) {
+    //         delete this.properties[propertyName];
+    //     } else {
+    //         throw new Error(`ExposedThing '${this.title}' has no Property '${propertyName}'`);
+    //     }
 
-        return this;
-    }
+    //     return this;
+    // }
 
     // removeAction(actionName: string): ExposedThing {
         

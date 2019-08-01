@@ -114,14 +114,16 @@ class WoTServerTest {
         expect(thing).to.have.property("properties").to.have.property("myProp");
     }
 
-    @test async "should be able to add a property with default value 0"() {
-        let thing = await WoTServerTest.WoT.produce({ title: "ThingWith1" });
-        let exposedThing : ExposedThing = <ExposedThing>thing; // XXX if(thing instanceof ExposedThing) { fails!?
-
-        let initp: TD.ThingProperty = {
-            type: "number"
-        };
-        exposedThing.addProperty("number", initp, 1);
+    @test async "should be able to add a property with value 1"() {
+        let thing = await WoTServerTest.WoT.produce({
+            title: "ThingWith1",
+            properties: {
+                number: {
+                    type: "number"
+                }
+            }
+        });
+        await thing.writeProperty("number", 1); // init
 
         expect(thing).to.have.property("properties").to.have.property("number");
         expect(thing).to.have.property("properties").to.have.property("number").to.have.property("readOnly").that.equals(false);
@@ -140,13 +142,15 @@ class WoTServerTest {
 
 
     @test async "should be able to add a property with default value XYZ"() {
-        let thing = await WoTServerTest.WoT.produce({ title: "ThingWithXYZ" });
-        let exposedThing : ExposedThing = <ExposedThing>thing;
-
-        let initp: TD.ThingProperty = {
-            type: "string"
-        };
-        exposedThing.addProperty("string", initp, "XYZ");
+        let thing = await WoTServerTest.WoT.produce({
+            title: "ThingWithXYZ",
+            properties: {
+                string: {
+                    type: "string"
+                }
+            }
+        });
+        await thing.writeProperty("string", "XYZ"); // init
         
         expect(thing).to.have.property("properties").to.have.property("string");
         expect(thing).to.have.property("properties").to.have.property("string").to.have.property("readOnly").that.equals(false);
@@ -164,13 +168,14 @@ class WoTServerTest {
     }
 
     @test async "should be able to add a property without any default value"() {
-        let thing = await WoTServerTest.WoT.produce({ title: "ThingWithNothing" });
-        let exposedThing : ExposedThing = <ExposedThing>thing;
-
-        let initp: TD.ThingProperty = {
-            type: "number"
-        };
-        exposedThing.addProperty("null", initp);
+        let thing = await WoTServerTest.WoT.produce({
+            title: "ThingWithNothing",
+            properties: {
+                null: {
+                    type: "number"
+                }
+            }
+        });
         
         expect(thing).to.have.property("properties").to.have.property("null");
         expect(thing).to.have.property("properties").to.have.property("null").to.have.property("readOnly").that.equals(false);
@@ -181,13 +186,15 @@ class WoTServerTest {
     }
 
     @test async "should be able to read and write Property locally"() {
-        let thing = await WoTServerTest.WoT.produce({ title: "thing3" });
-        let exposedThing : ExposedThing = <ExposedThing>thing;
-
-        let initp: TD.ThingProperty = {
-            type: "number"
-        };
-        exposedThing.addProperty("number", initp, 10);
+        let thing = await WoTServerTest.WoT.produce({
+            title: "thing3",
+            properties: {
+                number: {
+                    type: "number"
+                }
+            }
+        });
+        await thing.writeProperty("number", 10); // init
 
         let value0 = await thing.readProperty("number");
         expect(value0).to.equal(10);
@@ -200,18 +207,19 @@ class WoTServerTest {
 
     
     @test async "should be able to read/readAll properties locally"() {
-        let thing = await WoTServerTest.WoT.produce({ title: "thing3" });
-        let exposedThing : ExposedThing = <ExposedThing>thing;
-
-        let initNumber: TD.ThingProperty = {
-            type: "number"
-        };
-        exposedThing.addProperty("number", initNumber, 10);
-
-        let initString: TD.ThingProperty = {
-            type: "string"
-        };
-        exposedThing.addProperty("string", initString, "xyz");
+        let thing = await WoTServerTest.WoT.produce({
+            title: "thing3",
+            properties: {
+                number: {
+                    type: "number"
+                },
+                string: {
+                    type: "string"
+                }
+            }
+        });
+        await thing.writeProperty("number", 10); // init
+        await thing.writeProperty("string", "xyz"); // init
 
         let value0 = await thing.readProperty("number");
         expect(value0).to.equal(10);
@@ -235,16 +243,19 @@ class WoTServerTest {
     }
 
     @test async "should be able to read Property with read handler (incrementing with lambda)"() {
-        let thing = await WoTServerTest.WoT.produce({ title: "otherthingIncRead" });
-        let exposedThing : ExposedThing = <ExposedThing>thing;
-
+        let thing = await WoTServerTest.WoT.produce({
+            title: "otherthingIncRead",
+            properties: {
+                number: {
+                    type: "number"
+                }
+            }
+        });
         let initp: TD.ThingProperty = {
             type: "number"
         };
         let counter: number = 0;
-        await exposedThing.addProperty("number", initp).setPropertyReadHandler(
-            "number",
-            () => {
+        await thing.setPropertyReadHandler("number", () => {
                 return new Promise((resolve, reject) => {
                     resolve(++counter);
                 });
@@ -257,13 +268,14 @@ class WoTServerTest {
     }
 
     @test async "should be able to read and write property"() {
-        let thing = await WoTServerTest.WoT.produce({ title: "otherthingIncRead" });
-        let exposedThing : ExposedThing = <ExposedThing>thing;
-
-        let initp: TD.ThingProperty = {
-            type: "number"
-        };
-        exposedThing.addProperty("number", initp);
+        let thing = await WoTServerTest.WoT.produce({
+            title: "otherthingIncRead",
+            properties: {
+                number: {
+                    type: "number"
+                }
+            }
+        });
 
         await thing.writeProperty("number", 1)
         expect(await thing.readProperty("number")).to.equal(1);
@@ -274,14 +286,17 @@ class WoTServerTest {
     }
 
     @test async "should be able to read Property with read handler (incrementing with function)"() {
-        let thing = await WoTServerTest.WoT.produce({ title: "otherthingIncRead2" });
-        let exposedThing : ExposedThing = <ExposedThing>thing;
+        let thing = await WoTServerTest.WoT.produce({
+            title: "otherthingIncRead2",
+            properties: {
+                number: {
+                    type: "number"
+                }
+            }
+        });
 
-        let initp: TD.ThingProperty = {
-            type: "number"
-        };
         let counter: number = 0;
-        await exposedThing.addProperty("number", initp).setPropertyReadHandler(
+        await thing.setPropertyReadHandler(
             "number",
             function () {
                 return new Promise((resolve, reject) => {
@@ -296,13 +311,16 @@ class WoTServerTest {
     }
 
     @test async "should be able to read Property with read handler (incrementing with handler scope state)"() {
-        let thing = await WoTServerTest.WoT.produce({ title: "otherthingIncRead3" });
-        let exposedThing : ExposedThing = <ExposedThing>thing;
+        let thing = await WoTServerTest.WoT.produce({
+            title: "otherthingIncRead3",
+            properties: {
+                number: {
+                    type: "number"
+                }
+            }
+        });
 
-        let initp: TD.ThingProperty = {
-            type: "number"
-        };
-        await exposedThing.addProperty("number", initp).setPropertyReadHandler(
+        await thing.setPropertyReadHandler(
             "number",
             function () {
                 return new Promise((resolve, reject) => {
@@ -325,13 +343,15 @@ class WoTServerTest {
     }
 
     @test async "should be able to write Property with write handler (summing)"() {
-        let thing = await WoTServerTest.WoT.produce({ title: "otherthingReadWrite" });
-        let exposedThing : ExposedThing = <ExposedThing>thing;
-
-        let initp: TD.ThingProperty = {
-            type: "number"
-        };
-        exposedThing.addProperty("number", initp, 2);
+        let thing = await WoTServerTest.WoT.produce({
+            title: "otherthingReadWrite",
+            properties: {
+                number: {
+                    type: "number"
+                }
+            }
+        });
+        await thing.writeProperty("number", 2); // init
 
         let ov = await thing.readProperty("number");
 
@@ -370,17 +390,17 @@ class WoTServerTest {
     }
 
     @test async "should be able to write Property from any write handler (doubling)"() {
-        let thing = await WoTServerTest.WoT.produce({ title: "otherthingWrite" });
-        let exposedThing : ExposedThing = <ExposedThing>thing;
-
-        let initp: TD.ThingProperty = {
-            type: "number"
-        };
-        exposedThing.addProperty("number", initp);
-        let initp2: TD.ThingProperty = {
-            type: "number"
-        };
-        exposedThing.addProperty("number2", initp2);
+        let thing = await WoTServerTest.WoT.produce({
+            title: "otherthingWrite",
+            properties: {
+                number: {
+                    type: "number"
+                },
+                number2: {
+                    type: "number"
+                }
+            }
+        });
 
         let v : number = null;
 
@@ -422,7 +442,7 @@ class WoTServerTest {
                 }
             }
         });
-        
+
         await thing.setActionHandler("action1", (parameters: any) => {
             return new Promise((resolve, reject) => {
                 parameters.should.be.a("number");
