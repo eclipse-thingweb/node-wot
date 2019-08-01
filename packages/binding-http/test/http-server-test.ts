@@ -25,7 +25,7 @@ should();
 import * as rp from "request-promise";
 
 import HttpServer from "../src/http-server";
-import { ExposedThing } from "@node-wot/core";
+import { ExposedThing, Helpers } from "@node-wot/core";
 
 @suite("HTTP server implementation")
 class HttpServerTest {
@@ -46,10 +46,18 @@ class HttpServerTest {
     await httpServer.start(null);
 
     let testThing = new ExposedThing(null);
-    testThing.title = "Test";
+    testThing = Helpers.extend({
+      title: "Test",
+      actions: {
+        try: {
+          output: { type: "string" }
+        }
+      }
+    }, testThing);
+    testThing.extendInteractions();
     testThing.addProperty("test", { type: "string" }, "off");
     testThing.properties.test.forms = [];
-    testThing.addAction("try", { output: { type: "string" }}, (input) => { return new Promise<string>( (resolve, reject) => { resolve("TEST"); }); });
+    testThing.setActionHandler("try", (input) => { return new Promise<string>( (resolve, reject) => { resolve("TEST"); }); });
     testThing.actions.try.forms = [];
 
     await httpServer.expose(testThing);

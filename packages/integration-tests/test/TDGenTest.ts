@@ -39,11 +39,16 @@ class TDGeneratorTest {
     
     let myWoT = await servient.start();
 
-    let thing = await myWoT.produce({ title: "TDGeneratorTest" });
+    let thing = await myWoT.produce({
+      title: "TDGeneratorTest",
+      actions: {
+        act1: { input: { type: "string" } }
+      }
+    });
     let exposedThing = <ExposedThing>thing; // if(thing instanceof ExposedThing) fails?
 
     await exposedThing.addProperty("prop1", { type: "number" });
-    await exposedThing.addAction("act1", { input: { type: "string" } }, () => { return new Promise<void>((resolve, reject) => { resolve(); }); });
+    await exposedThing.setActionHandler("act1", () => { return new Promise<void>((resolve, reject) => { resolve(); }); });
 
     await thing.expose();
 

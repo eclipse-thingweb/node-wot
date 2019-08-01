@@ -412,27 +412,24 @@ class WoTServerTest {
         expect(await thing.readProperty("number2")).to.equal(26);
     }
 
-    @test async "should be able to add an action and invoke it locally (based on addAction())"() {
+    @test async "should be able to add an action and invoke it locally"() {
         let thing = await WoTServerTest.WoT.produce({
-            title: "thing6"
-        });
-        let exposedThing : ExposedThing = <ExposedThing>thing;
-
-        let inita: TD.ThingAction = {
-            input: { type: "number" },
-            output: { type: "number" }
-        };
-        await exposedThing.addAction(
-            "action1",
-            inita,
-            (parameters: any) => {
-                return new Promise((resolve, reject) => {
-                    parameters.should.be.a("number");
-                    parameters.should.equal(23);
-                    resolve(42);
-                });
+            title: "thing6",
+            actions: {
+                action1: {
+                    input: { type: "number" },
+                    output: { type: "number" }
+                }
             }
-        );
+        });
+        
+        await thing.setActionHandler("action1", (parameters: any) => {
+            return new Promise((resolve, reject) => {
+                parameters.should.be.a("number");
+                parameters.should.equal(23);
+                resolve(42);
+            });
+        });
 
         expect(thing).to.have.property("actions");
         expect(thing).to.have.property("actions").to.have.property("action1");
