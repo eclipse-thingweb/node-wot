@@ -25,15 +25,15 @@ WoT.fetch("coap://localhost:5683/counter").then( async (td) => {
 		let read1 = await thing.readProperty("count");
 		console.info("count value is", read1);
 		
-		// increment property #1
+		// increment property #1 (without step)
 		await thing.invokeAction("increment");
 		let inc1 = await thing.readProperty("count");
 		console.info("count value after increment #1 is", inc1);
 		
-		// increment property #2
-		await thing.invokeAction("increment");
+		// increment property #2 (with step)
+		await thing.invokeAction("increment", {'step' : 3});
 		let inc2 = await thing.readProperty("count");
-		console.info("count value after increment #2 is", inc2);
+		console.info("count value after increment #2 (with step 3) is", inc2);
 				
 		// decrement property
 		await thing.invokeAction("decrement");

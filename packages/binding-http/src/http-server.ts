@@ -41,7 +41,8 @@ export default class HttpServer implements ProtocolServer {
 
   private readonly OBSERVABLE_DIR = "observable";
 
-  private readonly OPTIONS_URI_VARIABLES ='uriVariables';
+  // private readonly OPTIONS_URI_VARIABLES ='uriVariables';
+  private readonly OPTIONS_BODY_VARIABLES ='body';
 
   private readonly port: number = 8080;
   private readonly address: string = undefined;
@@ -489,8 +490,6 @@ export default class HttpServer implements ProtocolServer {
             if (property) {
 
               let params : {[k: string]: any} = this.parseUrlParameters(req.url, property.uriVariables);
-              let options: {[k: string]: any} = {};
-              options[this.OPTIONS_URI_VARIABLES] = params;
                
               if (req.method === "GET") {
 
@@ -558,6 +557,10 @@ export default class HttpServer implements ProtocolServer {
                       res.end("Invalid Data");
                       return;
                     }
+                    if(!this.isEmpty(params)) {
+                      params[this.OPTIONS_BODY_VARIABLES] = value;
+                      value = params;
+                    }
                     thing.writeProperty(segments[3], value) // , options
                     // property.write(value, options)
                       .then(() => {
@@ -602,10 +605,12 @@ export default class HttpServer implements ProtocolServer {
                   }
                   
                   let params : {[k: string]: any} = this.parseUrlParameters(req.url, action.uriVariables);
-                  let options: {[k: string]: any} = {};
-                  options[this.OPTIONS_URI_VARIABLES] = params;
+                  if(!this.isEmpty(params)) {
+                    params[this.OPTIONS_BODY_VARIABLES] = input;
+                    input = params;
+                  }
 
-                  thing.invokeAction(segments[3], input, options)
+                  thing.invokeAction(segments[3], input)
                   // action.invoke(input, options)
                     .then((output:any) => {
                       if (output) {
@@ -681,6 +686,14 @@ export default class HttpServer implements ProtocolServer {
     res.writeHead(404);
     res.end("Not Found");
   }
+
+  private isEmpty(obj: any) {
+    for(var key in obj) {
+        if(obj.hasOwnProperty(key))
+            return false;
+    }
+    return true;
+}
 
   private resetMultiLangThing(thing: any, prefLang : string) {
     // TODO can we reset "title" to another name given that title is used in URI creation?

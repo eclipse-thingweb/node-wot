@@ -166,6 +166,10 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
             } else {
                 console.log(`ConsumedThing '${this.title}' reading ${form.href}`);
+
+                // uriVariables ?
+                form = this.handleUriVariables(form, undefined);
+
                 client.readResource(form).then((content) => {
                     if (!content.type) content.type = form.contentType;
                     try {
@@ -229,6 +233,9 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                 console.log(`ConsumedThing '${this.title}' writing ${form.href} with '${value}'`);
                 let content = ContentManager.valueToContent(value, <any>this, form.contentType);
 
+                // uriVariables ?
+                form = this.handleUriVariables(form, value);
+
                 client.writeResource(form, content).then(() => {
                     resolve();
                 })
@@ -269,6 +276,9 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                 if (parameter!== undefined) {
                     input = ContentManager.valueToContent(parameter, <any>this, form.contentType);
                 }
+
+                // uriVariables ?
+                form = this.handleUriVariables(form, parameter);
 
                 client.invokeResource(form, input).then((content) => {
                     // infer media type from form if not in response metadata

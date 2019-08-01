@@ -387,14 +387,16 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         });
     }
 
-    public invokeAction(actionName: string, parameter?: any, options?: any): Promise<any> {
+    public invokeAction(actionName: string, parameter?: any
+        // , options?: any
+        ): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             if (this.actions[actionName]) {
                 console.debug(`ExposedThing '${this.title}' has Action state of '${actionName}'`);
 
                 if (this.actions[actionName].getState().handler != null) {
                     console.log(`ExposedThing '${this.title}' calls registered handler for Action '${actionName}'`);
-                    resolve(this.actions[actionName].getState().handler(parameter, options));
+                    resolve(this.actions[actionName].getState().handler(parameter)); // , options
                 } else {
                     reject(new Error(`ExposedThing '${this.title}' has no handler for Action '${actionName}'`));
                 }

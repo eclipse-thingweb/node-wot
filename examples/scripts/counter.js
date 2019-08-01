@@ -35,10 +35,19 @@ WoT.produce({
 		},
 		actions: {
 			increment: {
+				description: "Incrementing counter value (with optional step parameter as uriVariable)",
+				uriVariables: {
+					step: { "type": "integer", "minimum": 1, "maximum": 250}
+				}
 			},
 			decrement: {
+				description: "Decrementing counter value (with optional step parameter as uriVariable)",
+				uriVariables: {
+					step: { "type": "integer", "minimum": 1, "maximum": 250}
+				}
 			},
 			reset: {
+				description: "Restting counter value ",
 			}
 		},
 		events: {
@@ -54,18 +63,30 @@ WoT.produce({
 		thing.writeProperty("lastChange", (new Date()).toISOString()); 
 		
 		// set action handlers
-		thing.setActionHandler("increment", () => {
+		thing.setActionHandler("increment", (parameter) => {
 			return thing.readProperty("count").then( (count) => {
-				let value = count + 1;
+				let step = 1;
+				if(parameter && typeof parameter === 'object') {
+					if('step' in parameter) {
+						step = parameter['step'];
+					}
+				}
+				let value = count + step;
 				console.log("Incrementing count from " + count + " to " + value);
 				thing.writeProperty("count", value);
 				thing.writeProperty("lastChange", (new Date()).toISOString());
 				thing.emitEvent("change", value);
 			});
 		});
-		thing.setActionHandler("decrement", () => {
+		thing.setActionHandler("decrement", (parameter) => {
 			return thing.readProperty("count").then( (count) => {
-				let value = count - 1;
+				let step = 1;
+				if(parameter && typeof parameter === 'object') {
+					if('step' in parameter) {
+						step = parameter['step'];
+					}
+				}
+				let value = count - step;
 				console.log("Decrementing count from " + count + " to " + value);
 				thing.writeProperty("count", value); 
 				thing.writeProperty("lastChange", (new Date()).toISOString()); 
