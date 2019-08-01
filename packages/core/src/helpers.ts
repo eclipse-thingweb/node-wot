@@ -35,6 +35,12 @@ import { ContentSerdes } from "./content-serdes";
 
 export default class Helpers {
 
+  private srv: Servient;
+
+  constructor(srv: Servient) {
+      this.srv = srv;
+  }
+
   private static staticAddress: string = undefined;
 
   public static extractScheme(uri: string) {
@@ -113,9 +119,9 @@ export default class Helpers {
     }
   }
 
-  public static fetchTD(srv: Servient, uri: string): Promise<WoT.ThingDescription> {
+  public fetch(uri: string): Promise<WoT.ThingDescription> {
     return new Promise<WoT.ThingDescription>((resolve, reject) => {
-        let client = srv.getClientFor(Helpers.extractScheme(uri));
+        let client = this.srv.getClientFor(Helpers.extractScheme(uri));
         console.info(`WoTImpl fetching TD from '${uri}' with ${client}`);
         client.readResource(new TD.Form(uri, ContentSerdes.TD))
             .then((content) => {

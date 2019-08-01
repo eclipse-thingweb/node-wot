@@ -195,9 +195,11 @@ class WoTClientTest {
     static servient: Servient;
     static clientFactory: TrapClientFactory;
     static WoT: WoT.WoT;
+    static WoTHelpers : Helpers;
 
     static before() {
         this.servient = new Servient();
+        this.WoTHelpers = new Helpers(this.servient);
         this.clientFactory = new TrapClientFactory();
         this.servient.addClientFactory(this.clientFactory);
         this.servient.addClientFactory(new TDClientFactory());
@@ -218,7 +220,7 @@ class WoTClientTest {
             }
         );
 
-        Helpers.fetchTD(WoTClientTest.servient, "td://foo")
+        WoTClientTest.WoTHelpers.fetch("td://foo")
             .then((td) => {
                 return WoTClientTest.WoT.consume(td);
             })
@@ -245,7 +247,7 @@ class WoTClientTest {
             }
         );
 
-        Helpers.fetchTD(WoTClientTest.servient, "td://foo")
+        WoTClientTest.WoTHelpers.fetch("td://foo")
             .then((td) => {
                 return WoTClientTest.WoT.consume(td);
             })
@@ -271,7 +273,7 @@ class WoTClientTest {
             }
         );
 
-        Helpers.fetchTD(WoTClientTest.servient, "td://foo")
+        WoTClientTest.WoTHelpers.fetch("td://foo")
             .then((td) => {
                 return WoTClientTest.WoT.consume(td);
             })
@@ -297,7 +299,7 @@ class WoTClientTest {
             }
         )
 
-        Helpers.fetchTD(WoTClientTest.servient, "td://foo")
+        WoTClientTest.WoTHelpers.fetch("td://foo")
             .then((td) => {
                 return WoTClientTest.WoT.consume(td);
             })
@@ -318,7 +320,7 @@ class WoTClientTest {
             }
         )
 
-        Helpers.fetchTD(WoTClientTest.servient, "td://foo")
+        WoTClientTest.WoTHelpers.fetch("td://foo")
             .then((td) => {
                 return WoTClientTest.WoT.consume(td);
             })
@@ -339,7 +341,7 @@ class WoTClientTest {
             }
         )
 
-        Helpers.fetchTD(WoTClientTest.servient, "td://foo")
+        WoTClientTest.WoTHelpers.fetch("td://foo")
             .then((td) => {
                 return WoTClientTest.WoT.consume(td);
             })
@@ -408,7 +410,7 @@ class WoTClientTest {
             }
         )
 
-        Helpers.fetchTD(WoTClientTest.servient, "td://foo")
+        WoTClientTest.WoTHelpers.fetch("td://foo")
             .then((td) => {
                 return WoTClientTest.WoT.consume(td);
             })
@@ -434,7 +436,7 @@ class WoTClientTest {
             }
         )
 
-        Helpers.fetchTD(WoTClientTest.servient, "td://foo")
+        WoTClientTest.WoTHelpers.fetch("td://foo")
             .then((td) => {
                 return WoTClientTest.WoT.consume(td);
             })
@@ -460,7 +462,7 @@ class WoTClientTest {
             }
         )
 
-        Helpers.fetchTD(WoTClientTest.servient, "td://foo")
+        WoTClientTest.WoTHelpers.fetch("td://foo")
             .then((td) => {
                 return WoTClientTest.WoT.consume(td);
             })
@@ -498,7 +500,7 @@ class WoTClientTest {
             }
         )
 
-        Helpers.fetchTD(WoTClientTest.servient, "td://foo")
+        WoTClientTest.WoTHelpers.fetch("td://foo")
             .then((td) => {
                 return WoTClientTest.WoT.consume(td);
             })
@@ -531,7 +533,7 @@ class WoTClientTest {
             }
         )
 
-        Helpers.fetchTD(WoTClientTest.servient, "td://foo")
+        WoTClientTest.WoTHelpers.fetch("td://foo")
             .then((td) => {
                 return WoTClientTest.WoT.consume(td);
             })
@@ -562,7 +564,7 @@ class WoTClientTest {
             }
         )
 
-        Helpers.fetchTD(WoTClientTest.servient, "td://foo")
+        WoTClientTest.WoTHelpers.fetch("td://foo")
             .then((td) => {
                 return WoTClientTest.WoT.consume(td);
             })

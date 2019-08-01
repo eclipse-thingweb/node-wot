@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-WoT.fetch("coap://localhost:5683/counter").then( async (td) => {
+WoTHelpers.fetch("coap://localhost:5683/counter").then( async (td) => {
 	// using await for serial execution (note 'async' in then() of fetch())
 	try {
 		let thing = await WoT.consume(td);

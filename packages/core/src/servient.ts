@@ -18,6 +18,7 @@ import * as vm from "vm";
 import * as WoT from "wot-typescript-definitions";
 
 import WoTImpl from "./wot-impl";
+import Helpers from "./helpers";
 import ExposedThing from "./exposed-thing";
 import { ProtocolClientFactory, ProtocolServer, ProtocolClient } from "./protocol-interfaces"
 import { default as ContentManager, ContentCodec } from "./content-serdes";
@@ -43,6 +44,7 @@ export default class Servient {
 
         let context = vm.createContext({
             "WoT": new WoTImpl(this),
+            "WoTHelpers": new Helpers(this),
             "console": console,
             // augmented scheduling functions that catch errors
             "setInterval": (handler: (...args: any[]) => void, ms: number, ...args: any[]) => {
@@ -102,6 +104,7 @@ export default class Servient {
 
         let context = vm.createContext({
             "WoT": new WoTImpl(this),
+            "WoTHelpers": new Helpers(this),
             "console": console,
             // augmented scheduling functions that catch errors
             "setInterval": (handler: (...args: any[]) => void, ms: number, ...args: any[]) => {
