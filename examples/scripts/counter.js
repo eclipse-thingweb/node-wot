@@ -12,16 +12,36 @@
  * 
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
+ 
+// Features
+// * basic properties, actions, events
+// * uriVariables
+// * multi-language
 
 WoT.produce({
 		title: "counter",
+		titles: {
+			"en": "counter",
+			"de": "zähler",
+			"it": "Contatore"
+		},
 		description: "counter example Thing",
+		descriptions: {
+			"en": "counter example Thing",
+			"de": "Zähler Beispiel Ding",
+			"it": "Contatore Esempio"
+		},
 		support: "git://github.com/eclipse/thingweb.node-wot.git",
 		"@context": ["https://www.w3.org/2019/wot/td/v1", {"iot": "http://example.org/iot"}],
 		properties: {
 			count: {
 				type: "integer",
 				description: "current counter value",
+				descriptions: {
+					"en": "current counter value",
+					"de": "Derzeitiger Zähler Stand",
+					"it": "valore attuale del contatore"
+				},
 				"iot:Custom": "example annotation",
 				observable: true,
 				readOnly: true
@@ -29,6 +49,11 @@ WoT.produce({
 			lastChange: {
 				type: "string",
 				description: "last change of counter value",
+				descriptions: {
+					"en":"last change of counter value",
+					"de": "Letzte Änderung",
+					"it": "ultima modifica del valore"
+				},
 				observable: true,
 				readOnly: true
 			}
@@ -36,22 +61,43 @@ WoT.produce({
 		actions: {
 			increment: {
 				description: "Incrementing counter value (with optional step parameter as uriVariable)",
+				descriptions: {
+					"en": "increment value",
+					"de": "Zähler erhöhen",
+					"it": "incrementare valore"
+				},
 				uriVariables: {
 					step: { "type": "integer", "minimum": 1, "maximum": 250}
 				}
 			},
 			decrement: {
 				description: "Decrementing counter value (with optional step parameter as uriVariable)",
+				descriptions: {
+					"en": "decrement value",
+					"de": "Zähler verringern",
+					"it": "decrementare valore"
+				},
 				uriVariables: {
 					step: { "type": "integer", "minimum": 1, "maximum": 250}
 				}
 			},
 			reset: {
-				description: "Restting counter value ",
+				description: "Resetting counter value",
+				descriptions: {
+					"en": "Resetting counter value",
+					"de": "Zähler resettieren",
+					"it": "resettare valore"
+				}
 			}
 		},
 		events: {
 			change: {
+				description: "change event",
+				descriptions: {
+					"en": "change event",
+					"de": "Änderungsnachricht",
+					"it": "resettare valore"
+				}
 			}
 		}
 	})
