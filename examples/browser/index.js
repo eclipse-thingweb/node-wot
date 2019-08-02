@@ -14,10 +14,12 @@
 
 function get_td(addr) {
 	servient.start().then((thingFactory) => {
-		thingFactory.fetch(addr).then((td) => {
-			var thing = thingFactory.consume(td);
-			removeInteractions();
-			showInteractions(thing);
+		helpers.fetch(addr).then((td) => {
+			thingFactory.consume(td)
+			.then((thing) => {
+				removeInteractions();
+				showInteractions(thing);
+			});
 		}).catch((error) => {
 			window.alert("Could not fetch TD.\n" + error)
 		})
@@ -34,7 +36,7 @@ function showInteractions(thing) {
 			document.getElementById("properties").appendChild(item);
 
 			item.onclick = (click) => {
-				thing.properties[property].read()
+				thing.readProperty(property)
 				.then(res => window.alert(property + ": " + res))
 				.catch(err => window.alert("error: " + err))
 			}
@@ -119,7 +121,7 @@ function showSchemaEditor(action, thing) {
 
 	button.onclick = () => { 
 		let input = editor ? editor.getValue() : "";
-		thing.actions[action].invoke(input)
+		thing.invokeAction(action, input)
 		.then((res) => { 
 			if (res) {
 				window.alert("Success! Received response: " + res)
@@ -142,4 +144,5 @@ function removeSchemaEditor() {
 
 var servient = new Wot.Core.Servient();
 servient.addClientFactory(new Wot.Http.HttpClientFactory());
+var helpers = new Wot.Core.Helpers(servient);
 document.getElementById("fetch").onclick = () => { get_td(document.getElementById("td_addr").value);  };

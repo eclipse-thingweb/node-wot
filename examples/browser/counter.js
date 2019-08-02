@@ -16,9 +16,11 @@ let counterProperties = [];
  
 function get_td(addr) {
 	servient.start().then((thingFactory) => {
-		thingFactory.fetch(addr).then((td) => {
-			var thing = thingFactory.consume(td);
-			showInteractions(thing);
+		helpers.fetch(addr).then((td) => {
+			thingFactory.consume(td)
+			.then((thing) => {
+				showInteractions(thing);
+			});
 		}).catch((error) => {
 			window.alert("Could not fetch TD.\n" + error)
 		})
@@ -41,7 +43,7 @@ function showInteractions(thing) {
 			document.getElementById("properties").appendChild(ddItem);
 
 			dtItem.onclick = (click) => {
-				thing.properties[property].read()
+				thing.readProperty(property)
 				.then(
 					res => { ddItem.textContent = res; }
 					// res => window.alert(property + ": " + res)
@@ -64,7 +66,7 @@ function showInteractions(thing) {
 			document.getElementById("actions").appendChild(item);
 
 			item.onclick = (click) => { 
-				thing.actions[action].invoke()
+				thing.invokeAction(action)
 					.then((res) => { 
 						button.style.background = 'rgb(0,255,0,0.2)';
 						setTimeout(function () {
@@ -126,6 +128,7 @@ function updateProperties() {
 
 var servient = new Wot.Core.Servient();
 servient.addClientFactory(new Wot.Http.HttpClientFactory());
+var helpers = new Wot.Core.Helpers(servient);
 window.onload = () => {
 	get_td(document.getElementById("td_addr").value);
 };
