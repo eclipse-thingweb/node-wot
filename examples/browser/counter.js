@@ -130,5 +130,10 @@ var servient = new Wot.Core.Servient();
 servient.addClientFactory(new Wot.Http.HttpClientFactory());
 var helpers = new Wot.Core.Helpers(servient);
 window.onload = () => {
+	// process passed URL
+	let $_GET = location.search.substr(1).split("&").reduce((o,i)=>(u=decodeURIComponent,[k,v]=i.split("="),o[u(k)]=v&&u(v),o),{});
+	if($_GET["url"]) {
+		document.getElementById("td_addr").value = $_GET["url"];
+	}
 	get_td(document.getElementById("td_addr").value);
 };
