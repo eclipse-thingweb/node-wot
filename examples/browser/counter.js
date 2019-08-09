@@ -29,6 +29,8 @@ function get_td(addr) {
 
 function showInteractions(thing) {
 	counterProperties = [];
+	// TODO thing.properties MUST NOT be an object anymore
+	// --> required to call thing.getTD() 
 	for ( let property in thing.properties ) {
 		if (thing.properties.hasOwnProperty(property)) {
 			let dtItem = document.createElement("dt");
@@ -98,17 +100,30 @@ function showInteractions(thing) {
 			item.appendChild(checkbox)
 			document.getElementById("events").appendChild(item);
 
+			eventSubscriptions[evnt] = false;
+
 			checkbox.onclick = (click) => {
-				if (document.getElementById(evnt).checked && !eventSubscriptions[evnt]) {
-					eventSubscriptions[evnt] = thing.events[evnt].subscribe(
-						(response) => {
-							// window.alert("Event " + evnt + " detected\nMessage: " + response);
-							updateProperties();
-						},
-						(error) => { window.alert("Event " + evnt + " error\nMessage: " + error); }
-					)
+				if (document.getElementById(evnt).checked && !eventSubscriptions[evnt] && eventSubscriptions[evnt]===false) {
+					console.log("Try subscribing for event: " + evnt);
+					eventSubscriptions[evnt] = true;
+					thing.subscribeEvent(evnt, function (data) {
+						console.log("Data:" + data);
+						updateProperties();
+					})
+					.then(()=> {
+						// OK
+					})
+					.catch((error) => {  window.alert("Event " + evnt + " error\nMessage: " + error); })
+					;
 				} else if (!document.getElementById(evnt).checked && eventSubscriptions[evnt]) {
-					eventSubscriptions[evnt].unsubscribe();
+					console.log("Try to unsubscribing for event: " + evnt);
+					eventSubscriptions[evnt] = false;
+					thing.unsubscribeEvent(evnt)
+					.then(()=> {
+						// OK
+					})
+					.catch((error) => {  window.alert("Event " + evnt + " error\nMessage: " + error); });
+					
 				}
 			}
 		}

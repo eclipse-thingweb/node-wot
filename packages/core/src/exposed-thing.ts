@@ -82,7 +82,14 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     }
 
     public emitEvent(name: string, data: any): void {
-        console.warn("not implemented");
+        if (this.properties[name] && this.properties[name].getState().listener) {
+            console.log(`ExposedThing '${this.title}' emits event for property '${name}'`);
+            this.properties[name].getState().listener(data);
+        }
+        if (this.events[name] && this.events[name].getState().listener) {
+            console.log(`ExposedThing '${this.title}' emits event for event '${name}'`);
+            this.events[name].getState().listener(data);
+        }
     }
 
     /** @inheritDoc */
@@ -377,25 +384,54 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 
     public observeProperty(name: string, listener: WoT.WotListener): Promise<void> {
         return new Promise<any>((resolve, reject) => {
-            reject(new Error(`TODO observeProperty`));
+            if (this.properties[name]) {
+                let next = this.properties[name].getState().listener = listener;
+                let error = null;
+                let complete = null;
+                this.properties[name].getState().subject.asObservable().subscribe(next, error, complete);
+                console.log(`ExposedThing '${this.title}' subscribes to property '${name}'`);
+            } else {
+                reject(new Error(`ExposedThing '${this.title}', no property found for '${name}'`));
+            }
         });
     }
 
     public unobserveProperty(name: string): Promise<void> {
         return new Promise<any>((resolve, reject) => {
-            reject(new Error(`TODO unobserveProperty`));
+            if (this.properties[name]) {
+                this.properties[name].getState().listener = undefined;
+                // this.properties[name].getState().subject.asObservable().unsubscribe(); // unsubscribe is not a function
+                console.log(`ExposedThing '${this.title}' unsubscribes from property '${name}'`);
+            } else {
+                reject(new Error(`ExposedThing '${this.title}', no property found for '${name}'`));
+            }
         });
     }
 
     public subscribeEvent(name: string, listener: WoT.WotListener): Promise<void> {
         return new Promise<any>((resolve, reject) => {
-            reject(new Error(`TODO subscribeEvent`));
+            if (this.events[name]) {
+                let next = this.events[name].getState().listener = listener;
+                let error = null;
+                let complete = null;
+                this.events[name].getState().subject.asObservable().subscribe(next, error, complete);
+                console.log(`ExposedThing '${this.title}' subscribes to event '${name}'`);
+            } else {
+                reject(new Error(`ExposedThing '${this.title}', no event found for '${name}'`));
+            }
         });
     }
 
     public unsubscribeEvent(name: string): Promise<void> {
         return new Promise<any>((resolve, reject) => {
-            reject(new Error(`TODO unsubscribeEvent`));
+            if (this.events[name]) {
+                this.events[name].getState().listener = undefined;
+                // this.events[name].getState().subject.asObservable().unsubscribe();  // unsubscribe is not a function
+                console.log(`ExposedThing '${this.title}' unsubscribes from event '${name}'`);
+            } else {
+                reject(new Error(`ExposedThing '${this.title}', no event found for '${name}'`));
+            }
+            // reject(new Error(`TODO unsubscribeEvent`));
         });
     }
 }
@@ -572,6 +608,7 @@ class ExposedThingEvent extends TD.ThingEvent implements TD.ThingEvent {
 class PropertyState {
     public value: any;
     public subject: Subject<Content>;
+    public listener: WoT.WotListener; // XXX should be multiple
     public scope: Object;
 
     public readHandler: WoT.PropertyReadHandler;
@@ -598,6 +635,7 @@ class ActionState {
 
 class EventState {
     public subject: Subject<any>;
+    public listener: WoT.WotListener; // XXX should be multiple
 
     constructor() {
         this.subject = new Subject<any>();
