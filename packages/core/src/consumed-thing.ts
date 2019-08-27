@@ -347,8 +347,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
             } else {
                 console.log(`ConsumedThing '${this.title}' unobserveing to ${form.href}`);
-
-                // XXX
+                client.unlinkResource(form);
             }
         });
     }
@@ -402,7 +401,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
             } else {
                 console.log(`ConsumedThing '${this.title}' unsubscribing to ${form.href}`);
-                // XXX
+                client.unlinkResource(form);
             }
         });
     }
