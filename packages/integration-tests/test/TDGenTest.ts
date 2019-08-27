@@ -53,7 +53,7 @@ class TDGeneratorTest {
 
     await thing.expose();
 
-    let td: TD.Thing = TD.parseTD(JSON.stringify(thing.getTD()));
+    let td: TD.Thing = TD.parseTD(JSON.stringify(thing.getThingDescription()));
 
     expect(td).to.have.property("title").that.equals("TDGeneratorTest");
 

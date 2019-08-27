@@ -77,9 +77,9 @@ class WoTServerTest {
 
         expect(thing).to.exist;
         // round-trip
-        expect(thing.getTD()).to.have.property("title").that.equals("myFragmentThing");
-        expect(thing.getTD()).to.have.property("support").that.equals("none");
-        expect(thing.getTD()).to.have.property("test:custom").that.equals("test");
+        expect(thing.getThingDescription()).to.have.property("title").that.equals("myFragmentThing");
+        expect(thing.getThingDescription()).to.have.property("support").that.equals("none");
+        expect(thing.getThingDescription()).to.have.property("test:custom").that.equals("test");
         // direct access
         expect(thing).to.have.property("title").that.equals("myFragmentThing");
         expect(thing).to.have.property("support").that.equals("none");
@@ -103,9 +103,9 @@ class WoTServerTest {
         let thing = await WoTServerTest.WoT.produce(JSON.parse(desc));
         expect(thing).to.exist;
         // round-trip
-        expect(thing.getTD()).to.have.property("title").to.equal("myDescriptionThing");
-        expect(thing.getTD()).to.have.property("support").to.equal("none");
-        expect(thing.getTD()).to.have.property("test:custom").that.equals("test");
+        expect(thing.getThingDescription()).to.have.property("title").to.equal("myDescriptionThing");
+        expect(thing.getThingDescription()).to.have.property("support").to.equal("none");
+        expect(thing.getThingDescription()).to.have.property("test:custom").that.equals("test");
         // direct access
         expect(thing).to.have.property("title").that.equals("myDescriptionThing");
         expect(thing).to.have.property("support").that.equals("none");

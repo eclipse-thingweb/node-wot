@@ -58,7 +58,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
         }).getMap;
     }
 
-    getTD(): WoT.ThingDescription {
+    getThingDescription(): WoT.ThingDescription {
         return JSON.parse(JSON.stringify(this));
     }
 
@@ -156,7 +156,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
         }
     }
 
-    readProperty(propertyName: string): Promise<any> {
+    readProperty(propertyName: string, options?: WoT.InteractionOptions): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             // TODO pass expected form op to getClientFor()
             let tp : TD.ThingProperty  = this.properties[propertyName];
@@ -184,8 +184,8 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
         });
     }
 
-    _readProperties(propertyNames: string[]): Promise<object> {
-        return new Promise<object>((resolve, reject) => {
+    _readProperties(propertyNames: string[]): Promise<WoT.PropertyValueMap> {
+        return new Promise<WoT.PropertyValueMap>((resolve, reject) => {
             // collect all single promises into array
             var promises : Promise<any>[] = [];
             for (let propertyName of propertyNames) {
@@ -210,19 +210,19 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
         });
     }
 
-    readAllProperties(): Promise<object> {
+    readAllProperties(options?: WoT.InteractionOptions): Promise<WoT.PropertyValueMap> {
         let propertyNames : string[] = [];
         for (let propertyName in this.properties) {
             propertyNames.push(propertyName);
         }
         return this._readProperties(propertyNames);
     }
-    readMultipleProperties(propertyNames: string[]): Promise<object> {
+    readMultipleProperties(propertyNames: string[], options?: WoT.InteractionOptions): Promise<WoT.PropertyValueMap> {
         return this._readProperties(propertyNames);
     }
 
 
-    writeProperty(propertyName: string, value: any): Promise<void> {
+    writeProperty(propertyName: string, value: any, options?: WoT.InteractionOptions): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             // TODO pass expected form op to getClientFor()
             let tp : TD.ThingProperty  = this.properties[propertyName];
@@ -243,12 +243,13 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
             }
         });
     }
-    writeMultipleProperties(valueMap: { [key: string]: any }): Promise<void> {
+    writeMultipleProperties(valueMap: WoT.PropertyValueMap, options?: WoT.InteractionOptions): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             // collect all single promises into array
             var promises : Promise<any>[] = [];
             for (let propertyName in valueMap) {
-                promises.push(this.writeProperty(propertyName, valueMap[propertyName]));
+                let oValueMap :  { [key: string]: any; } = valueMap;
+                promises.push(this.writeProperty(propertyName, oValueMap[propertyName]));
             }
             // wait for all promises to succeed and create response
             Promise.all(promises)
@@ -262,7 +263,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     }
 
 
-    public invokeAction(actionName: string, parameter?: any): Promise<any> {
+    public invokeAction(actionName: string, parameter?: any, options?: WoT.InteractionOptions): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             let ta : TD.ThingAction  = this.actions[actionName];
             let { client, form } = this.getClientFor(ta.forms, "invokeaction");
@@ -303,7 +304,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
         });
     }
 
-    public observeProperty(name: string, listener: WoT.WotListener): Promise<void> {
+    public observeProperty(name: string, listener: WoT.WotListener, options?: WoT.InteractionOptions): Promise<string> {
         return new Promise<any>((resolve, reject) => {
             let tp : TD.ThingProperty  = this.properties[name];
             let { client, form } = this.getClientFor(tp.forms, "observeproperty");
@@ -338,7 +339,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     }
 
     
-    public unobserveProperty(name: string): Promise<void> {
+    public unobserveProperty(subscriptionId: string): Promise<void> {
         return new Promise<any>((resolve, reject) => {
             let tp : TD.ThingProperty  = this.properties[name];
             let { client, form } = this.getClientFor(tp.forms, "unobserveproperty");
@@ -352,7 +353,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
         });
     }
 
-    public subscribeEvent(name: string, listener: WoT.WotListener): Promise<void> {
+    public subscribeEvent(name: string, listener: WoT.WotListener, options?: WoT.InteractionOptions): Promise<string> {
         return new Promise<any>((resolve, reject) => {
             let te : TD.ThingEvent  = this.events[name];
             let { client, form } = this.getClientFor(te.forms, "subscribeevent");
@@ -393,7 +394,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     }
 
     
-    public unsubscribeEvent(name: string): Promise<void> {
+    public unsubscribeEvent(subscriptionId: string): Promise<void> {
         return new Promise<any>((resolve, reject) => {
             let te : TD.ThingEvent  = this.events[name];
             let { client, form } = this.getClientFor(te.forms, "unsubscribeevent");

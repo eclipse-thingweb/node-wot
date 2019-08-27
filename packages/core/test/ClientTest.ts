@@ -226,8 +226,8 @@ class WoTClientTest {
             })
             .then((thing) => {
                 expect(thing).to.have.property("title").that.equals("aThing");
-                expect(thing.getTD()).to.have.property("properties");
-                expect(thing.getTD()).to.have.property("properties").to.have.property("aProperty");
+                expect(thing.getThingDescription()).to.have.property("properties");
+                expect(thing.getThingDescription()).to.have.property("properties").to.have.property("aProperty");
 
                 return thing.readProperty("aProperty");
             })
@@ -253,8 +253,8 @@ class WoTClientTest {
             })
             .then((thing) => {
                 expect(thing).to.have.property("title").that.equals("aThing");
-                expect(thing.getTD()).to.have.property("properties");
-                expect(thing.getTD()).to.have.property("properties").to.have.property("aProperty");
+                expect(thing.getThingDescription()).to.have.property("properties");
+                expect(thing.getThingDescription()).to.have.property("properties").to.have.property("aProperty");
                 return thing.readProperty("aProperty");
             })
             .then((value) => {
@@ -279,8 +279,8 @@ class WoTClientTest {
             })
             .then((thing) => {
                 expect(thing).to.have.property("title").that.equals("aThing");
-                expect(thing.getTD()).to.have.property("properties");
-                expect(thing.getTD()).to.have.property("properties").to.have.property("aProperty");
+                expect(thing.getThingDescription()).to.have.property("properties");
+                expect(thing.getThingDescription()).to.have.property("properties").to.have.property("aProperty");
                 return thing.readAllProperties();
             })
             .then((value) => {
