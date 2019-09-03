@@ -382,7 +382,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     }
 
     public observeProperty(name: string, listener: WoT.WotListener, options?: WoT.InteractionOptions): Promise<string> {
-        return new Promise<any>((resolve, reject) => {
+        return new Promise<string>((resolve, reject) => {
             if (this.properties[name]) {
                 let next = this.properties[name].getState().listener = listener;
                 let error = null;
@@ -396,7 +396,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     }
 
     public unobserveProperty(subscriptionId: string): Promise<void> {
-        return new Promise<any>((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
             if (this.properties[name]) {
                 this.properties[name].getState().listener = undefined;
                 // this.properties[name].getState().subject.asObservable().unsubscribe(); // unsubscribe is not a function
@@ -408,7 +408,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     }
 
     public subscribeEvent(name: string, listener: WoT.WotListener, options?: WoT.InteractionOptions): Promise<string> {
-        return new Promise<any>((resolve, reject) => {
+        return new Promise<string>((resolve, reject) => {
             if (this.events[name]) {
                 let next = this.events[name].getState().listener = listener;
                 let error = null;
@@ -422,7 +422,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     }
 
     public unsubscribeEvent(subscriptionId: string): Promise<void> {
-        return new Promise<any>((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
             if (this.events[name]) {
                 this.events[name].getState().listener = undefined;
                 // this.events[name].getState().subject.asObservable().unsubscribe();  // unsubscribe is not a function

@@ -305,7 +305,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     }
 
     public observeProperty(name: string, listener: WoT.WotListener, options?: WoT.InteractionOptions): Promise<string> {
-        return new Promise<any>((resolve, reject) => {
+        return new Promise<string>((resolve, reject) => {
             let tp : TD.ThingProperty  = this.properties[name];
             let { client, form } = this.getClientFor(tp.forms, "observeproperty");
             if (!client) {
@@ -340,7 +340,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
 
     
     public unobserveProperty(subscriptionId: string): Promise<void> {
-        return new Promise<any>((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
             let tp : TD.ThingProperty  = this.properties[name];
             let { client, form } = this.getClientFor(tp.forms, "unobserveproperty");
             if (!client) {
@@ -353,7 +353,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     }
 
     public subscribeEvent(name: string, listener: WoT.WotListener, options?: WoT.InteractionOptions): Promise<string> {
-        return new Promise<any>((resolve, reject) => {
+        return new Promise<string>((resolve, reject) => {
             let te : TD.ThingEvent  = this.events[name];
             let { client, form } = this.getClientFor(te.forms, "subscribeevent");
             if (!client) {
@@ -394,7 +394,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
 
     
     public unsubscribeEvent(subscriptionId: string): Promise<void> {
-        return new Promise<any>((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
             let te : TD.ThingEvent  = this.events[name];
             let { client, form } = this.getClientFor(te.forms, "unsubscribeevent");
             if (!client) {
