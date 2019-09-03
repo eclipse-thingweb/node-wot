@@ -82,10 +82,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     }
 
     public emitEvent(name: string, data: any): void {
-        if (this.events[name] && this.events[name].getState().listener) {
-            console.log(`ExposedThing '${this.title}' emits event for event '${name}'`);
-            this.events[name].getState().listener(data);
-        }
+        this.events[name].getState().subject.next(data);
     }
 
     /** @inheritDoc */
@@ -109,77 +106,6 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             resolve();
         });
     }
-
-    // addProperty(name: string, property: TD.ThingProperty, init?: any): ExposedThing {
-
-    //     console.log(`ExposedThing '${this.title}' adding Property '${name}'`);
-
-    //     let newProp = Helpers.extend(property, new ExposedThingProperty(name, this));
-    //     this.properties[name] = newProp;
-
-    //     if (init !== undefined) {
-    //         this.writeProperty(name, init);
-    //         // newProp.write(init);
-    //     }
-
-    //     return this;
-    // }
-
-    // addAction(name: string, action: TD.ThingAction, handler: WoT.ActionHandler): ExposedThing {
-
-    //     if (!handler) {
-    //         throw new Error(`addAction() requires handler`);
-    //     }
-
-    //     console.log(`ExposedThing '${this.title}' adding Action '${name}'`);
-
-    //     let newAction = Helpers.extend(action, new ExposedThingAction(name, this));
-    //     newAction.getState().handler = handler.bind(newAction.getState().scope);
-    //     this.actions[name] = newAction;
-
-    //     return this;
-    // }
-
-    // addEvent(name: string, event: TD.ThingEvent): ExposedThing {
-    //     let newEvent = Helpers.extend(event, new ExposedThingEvent(name, this));
-    //     this.events[name] = newEvent;
-
-    //     return this;
-    // }
-
-    // removeProperty(propertyName: string): ExposedThing {
-        
-    //     if (this.properties[propertyName]) {
-    //         delete this.properties[propertyName];
-    //     } else {
-    //         throw new Error(`ExposedThing '${this.title}' has no Property '${propertyName}'`);
-    //     }
-
-    //     return this;
-    // }
-
-    // removeAction(actionName: string): ExposedThing {
-        
-    //     if (this.actions[actionName]) {
-    //         delete this.actions[actionName];
-    //     } else {
-    //         throw new Error(`ExposedThing '${this.title}' has no Action '${actionName}'`);
-    //     }
-
-    //     return this;
-    // }
-
-    // removeEvent(eventName: string): ExposedThing {
-        
-    //     if (this.events[eventName]) {
-    //         (<ExposedThingEvent>this.events[eventName]).getState().subject.complete();
-    //         delete this.events[eventName];
-    //     } else {
-    //         throw new Error(`ExposedThing '${this.title}' has no Event '${eventName}'`);
-    //     }
-
-    //     return this;
-    // }
 
     /** @inheritDoc */
     setPropertyReadHandler(propertyName: string, handler: WoT.PropertyReadHandler): WoT.ExposedThing {
@@ -380,10 +306,11 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     public observeProperty(name: string, listener: WoT.WotListener, options?: WoT.InteractionOptions): Promise<string> {
         return new Promise<string>((resolve, reject) => {
             if (this.properties[name]) {
-                let next = this.properties[name].getState().listener = listener;
+                let next = listener;
                 let error = null;
                 let complete = null;
-                this.properties[name].getState().subject.asObservable().subscribe(next, error, complete);
+                let sub : Subject<Content> = this.properties[name].getState().subject;
+                sub.asObservable().subscribe(next, error, complete);
                 console.log(`ExposedThing '${this.title}' subscribes to property '${name}'`);
             } else {
                 reject(new Error(`ExposedThing '${this.title}', no property found for '${name}'`));
@@ -396,8 +323,8 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     public unobserveProperty(name: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             if (this.properties[name]) {
-                this.properties[name].getState().listener = undefined;
-                // this.properties[name].getState().subject.asObservable().unsubscribe(); // unsubscribe is not a function
+                let sub : Subject<Content> = this.properties[name].getState().subject;
+                // sub.unsubscribe();  // XXX causes loop issue (see browser counter example)
                 console.log(`ExposedThing '${this.title}' unsubscribes from property '${name}'`);
             } else {
                 reject(new Error(`ExposedThing '${this.title}', no property found for '${name}'`));
@@ -408,10 +335,11 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     public subscribeEvent(name: string, listener: WoT.WotListener, options?: WoT.InteractionOptions): Promise<string> {
         return new Promise<string>((resolve, reject) => {
             if (this.events[name]) {
-                let next = this.events[name].getState().listener = listener;
+                let next = listener;
                 let error = null;
                 let complete = null;
-                this.events[name].getState().subject.asObservable().subscribe(next, error, complete);
+                let sub : Subject<any> = this.events[name].getState().subject;
+                sub.asObservable().subscribe(next, error, complete); 
                 console.log(`ExposedThing '${this.title}' subscribes to event '${name}'`);
             } else {
                 reject(new Error(`ExposedThing '${this.title}', no event found for '${name}'`));
@@ -424,8 +352,8 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     public unsubscribeEvent(name: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             if (this.events[name]) {
-                this.events[name].getState().listener = undefined;
-                // this.events[name].getState().subject.asObservable().unsubscribe();  // unsubscribe is not a function
+                let sub : Subject<any> = this.events[name].getState().subject;
+                // sub.unsubscribe(); // XXX causes loop issue (see browser counter example)
                 console.log(`ExposedThing '${this.title}' unsubscribes from event '${name}'`);
             } else {
                 reject(new Error(`ExposedThing '${this.title}', no event found for '${name}'`));
@@ -607,7 +535,6 @@ class ExposedThingEvent extends TD.ThingEvent implements TD.ThingEvent {
 class PropertyState {
     public value: any;
     public subject: Subject<Content>;
-    public listener: WoT.WotListener; // XXX should be multiple
     public scope: Object;
 
     public readHandler: WoT.PropertyReadHandler;
@@ -634,7 +561,6 @@ class ActionState {
 
 class EventState {
     public subject: Subject<any>;
-    public listener: WoT.WotListener; // XXX should be multiple
 
     constructor() {
         this.subject = new Subject<any>();
