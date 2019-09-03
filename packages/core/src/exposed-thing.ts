@@ -82,10 +82,6 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     }
 
     public emitEvent(name: string, data: any): void {
-        if (this.properties[name] && this.properties[name].getState().listener) {
-            console.log(`ExposedThing '${this.title}' emits event for property '${name}'`);
-            this.properties[name].getState().listener(data);
-        }
         if (this.events[name] && this.events[name].getState().listener) {
             console.log(`ExposedThing '${this.title}' emits event for event '${name}'`);
             this.events[name].getState().listener(data);
