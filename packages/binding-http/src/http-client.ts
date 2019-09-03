@@ -94,7 +94,7 @@ export default class HttpClient implements ProtocolClient {
       let req = this.generateRequest(form, "GET");
       let info = <any>req;
 
-      console.log(`HttpClient sending ${info.method} to ${info.path}`);
+      console.log(`HttpClient (readResource) sending ${info.method} to ${info.path}`);
 
       req.on("response", (res: http.IncomingMessage) => {
         console.log(`HttpClient received ${res.statusCode} from ${info.path}`);
@@ -119,7 +119,7 @@ export default class HttpClient implements ProtocolClient {
       req.setHeader("Content-Type", content.type);
       req.setHeader("Content-Length", content.body.byteLength);
 
-      console.log(`HttpClient sending ${info.method} with '${req.getHeader("Content-Type")}' to ${info.path}`);
+      console.log(`HttpClient (writeResource) sending ${info.method} with '${req.getHeader("Content-Type")}' to ${info.path}`);
 
       req.on("response", (res: http.IncomingMessage) => {
         console.log(`HttpClient received ${res.statusCode} from ${info.path}`);
@@ -151,7 +151,7 @@ export default class HttpClient implements ProtocolClient {
         req.setHeader("Content-Length", content.body.byteLength);
       }
 
-      console.log(`HttpClient sending ${info.method} ${content ? "with '"+req.getHeader("Content-Type")+"' " : " "}to ${info.path}`);
+      console.log(`HttpClient (invokeResource) sending ${info.method} ${content ? "with '"+req.getHeader("Content-Type")+"' " : " "}to ${info.path}`);
 
       req.on("response", (res: http.IncomingMessage) => {
         console.log(`HttpClient received ${res.statusCode} from ${form.href}`);
@@ -177,7 +177,7 @@ export default class HttpClient implements ProtocolClient {
       let req = this.generateRequest(form, "DELETE");
       let info = <any>req;
 
-      console.log(`HttpClient sending ${info.method} to ${form.href}`);
+      console.log(`HttpClient (unlinkResource) sending ${info.method} to ${form.href}`);
 
       req.on("response", (res: http.IncomingMessage) => {
         console.log(`HttpClient received ${res.statusCode} from ${form.href}`);
@@ -207,7 +207,7 @@ export default class HttpClient implements ProtocolClient {
       // long timeout for long polling
       req.setTimeout(60*60*1000);
 
-      console.log(`HttpClient sending ${info.method} to ${form.href}`);
+      console.log(`HttpClient (subscribeResource) sending ${info.method} to ${form.href}`);
   
       req.on("response", (res: http.IncomingMessage) => {
         console.log(`HttpClient received ${res.statusCode} from ${form.href}`);
