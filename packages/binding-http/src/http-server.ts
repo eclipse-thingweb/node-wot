@@ -404,7 +404,7 @@ export default class HttpServer implements ProtocolServer {
         if (segments.length === 2 || segments[2] === "") {
           // Thing root -> send TD
           if (req.method === "GET") {
-            let td = thing.getTD();
+            let td = thing.getThingDescription();
 
             // look for language negotiation through the Accept-Language header field of HTTP (e.g., "de", "de-CH", "en-US,en;q=0.5")
             // Note: "title" on thing level is mandatory term --> check whether "titles" exists for multi-languages

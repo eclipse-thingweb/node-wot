@@ -206,7 +206,7 @@ export default class CoapServer implements ProtocolServer {
           if (req.method === "GET") {
             res.setOption("Content-Format", ContentSerdes.TD);
             res.code = "2.05";
-            res.end(JSON.stringify(thing.getTD()));
+            res.end(JSON.stringify(thing.getThingDescription()));
           } else {
             res.code = "4.05";
             res.end("Method Not Allowed");
