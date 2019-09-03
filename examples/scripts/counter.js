@@ -143,7 +143,7 @@ WoT.produce({
 			console.log("Resetting count");
 			thing.writeProperty("count", 0); 
 			thing.writeProperty("lastChange", (new Date()).toISOString());
-			thing.emitEvent("change");
+			thing.emitEvent("change", 0);
 		});
 		
 		// expose the thing
