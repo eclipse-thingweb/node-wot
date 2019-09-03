@@ -338,8 +338,9 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
         });
     }
 
-    
-    public unobserveProperty(subscriptionId: string): Promise<void> {
+    // XXX wait for outcome in https://github.com/w3c/wot-scripting-api/issues/183
+    // subscriptionId vs. name
+    public unobserveProperty(name: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             let tp : TD.ThingProperty  = this.properties[name];
             let { client, form } = this.getClientFor(tp.forms, "unobserveproperty");
@@ -392,8 +393,9 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
         });
     }
 
-    
-    public unsubscribeEvent(subscriptionId: string): Promise<void> {
+    // XXX wait for outcome in https://github.com/w3c/wot-scripting-api/issues/183
+    // subscriptionId vs. name    
+    public unsubscribeEvent(name: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             let te : TD.ThingEvent  = this.events[name];
             let { client, form } = this.getClientFor(te.forms, "unsubscribeevent");

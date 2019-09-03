@@ -395,7 +395,9 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         });
     }
 
-    public unobserveProperty(subscriptionId: string): Promise<void> {
+    // XXX wait for outcome in https://github.com/w3c/wot-scripting-api/issues/183
+    // subscriptionId vs. name
+    public unobserveProperty(name: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             if (this.properties[name]) {
                 this.properties[name].getState().listener = undefined;
@@ -421,7 +423,9 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         });
     }
 
-    public unsubscribeEvent(subscriptionId: string): Promise<void> {
+    // XXX wait for outcome in https://github.com/w3c/wot-scripting-api/issues/183
+    // subscriptionId vs. name
+    public unsubscribeEvent(name: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             if (this.events[name]) {
                 this.events[name].getState().listener = undefined;
