@@ -28,11 +28,10 @@ function get_td(addr) {
 }
 
 function showInteractions(thing) {
+	let td = thing.getThingDescription();
 	counterProperties = [];
-	// TODO thing.properties MUST NOT be an object anymore
-	// --> required to call thing.getTD() 
-	for ( let property in thing.properties ) {
-		if (thing.properties.hasOwnProperty(property)) {
+	for ( let property in td.properties ) {
+		if (td.properties.hasOwnProperty(property)) {
 			let dtItem = document.createElement("dt");
 			counterProperties.push(dtItem);
 			let ddItem = document.createElement("dd");
@@ -48,7 +47,6 @@ function showInteractions(thing) {
 				thing.readProperty(property)
 				.then(
 					res => { ddItem.textContent = res; }
-					// res => window.alert(property + ": " + res)
 				)
 				.catch(err => window.alert("error: " + err))
 			}
@@ -57,8 +55,8 @@ function showInteractions(thing) {
 			dtItem.click();
 		}
 	};
-	for ( let action in thing.actions ) {
-		if (thing.actions.hasOwnProperty(action)) {
+	for ( let action in td.actions ) {
+		if (td.actions.hasOwnProperty(action)) {
 			let item = document.createElement("li");
 			item.setAttribute('dir', 'auto'); // direction-independence, direction-heuristic
 			let button = document.createElement("button");
@@ -86,8 +84,8 @@ function showInteractions(thing) {
 		}
 	};
 	let eventSubscriptions = {}
-	for ( let evnt in thing.events ) {
-		if (thing.events.hasOwnProperty(evnt)) {
+	for ( let evnt in td.events ) {
+		if (td.events.hasOwnProperty(evnt)) {
 			let item = document.createElement("li");
 			item.setAttribute('dir', 'auto'); // direction-independence, direction-heuristic
 			let link = document.createElement("a");

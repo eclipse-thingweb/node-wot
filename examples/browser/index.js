@@ -27,8 +27,9 @@ function get_td(addr) {
 }
 
 function showInteractions(thing) {
-	for ( let property in thing.properties ) {
-		if (thing.properties.hasOwnProperty(property)) {
+	let td = thing.getThingDescription();
+	for ( let property in td.properties ) {
+		if (td.properties.hasOwnProperty(property)) {
 			let item = document.createElement("li");
 			let link = document.createElement("a");
 			link.appendChild(document.createTextNode(property));
@@ -42,8 +43,8 @@ function showInteractions(thing) {
 			}
 		}
 	};
-	for ( let action in thing.actions ) {
-		if (thing.actions.hasOwnProperty(action)) {
+	for ( let action in td.actions ) {
+		if (td.actions.hasOwnProperty(action)) {
 			let item = document.createElement("li");
 			let button = document.createElement("button");
 			button.appendChild(document.createTextNode(action));
@@ -57,8 +58,8 @@ function showInteractions(thing) {
 		}
 	};
 	let eventSubscriptions = {}
-	for ( let evnt in thing.events ) {
-		if (thing.events.hasOwnProperty(evnt)) {
+	for ( let evnt in td.events ) {
+		if (td.events.hasOwnProperty(evnt)) {
 			let item = document.createElement("li");
 			let link = document.createElement("a");
 			link.appendChild(document.createTextNode(evnt));
@@ -99,17 +100,18 @@ function removeInteractions() {
 }
 
 function showSchemaEditor(action, thing) {
+	let td = thing.getThingDescription();
 	// Remove old editor
 	removeSchemaEditor()
 
 	let placeholder = document.getElementById('editor_holder');
 	let editor;
-	if (thing.actions[action] && thing.actions[action].input ) {  
-		thing.actions[action].input.title = action
+	if (td.actions[action] && td.actions[action].input ) {  
+		td.actions[action].input.title = action
 		editor = new JSONEditor(
 			placeholder, 
 			{
-				schema: thing.actions[action].input,
+				schema: td.actions[action].input,
 				form_name_root: action
 			}
 		);
