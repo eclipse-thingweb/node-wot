@@ -176,12 +176,12 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     }
 
 
-    _readProperties(propertyNames: string[]): Promise<WoT.PropertyValueMap> {
+    _readProperties(propertyNames: string[], options?: WoT.InteractionOptions): Promise<WoT.PropertyValueMap> {
         return new Promise<object>((resolve, reject) => {
             // collect all single promises into array
             var promises : Promise<any>[] = [];
             for (let propertyName of propertyNames) {
-                promises.push(this.readProperty(propertyName));
+                promises.push(this.readProperty(propertyName, options));
             }
             // wait for all promises to succeed and create response
             Promise.all(promises)
@@ -207,10 +207,10 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         for (let propertyName in this.properties) {
             propertyNames.push(propertyName);
         }
-        return this._readProperties(propertyNames);
+        return this._readProperties(propertyNames, options);
     }
     readMultipleProperties(propertyNames: string[], options?: WoT.InteractionOptions): Promise<WoT.PropertyValueMap> {
-        return this._readProperties(propertyNames);
+        return this._readProperties(propertyNames, options);
     }
 
     writeProperty(propertyName: string, value: any, options?: WoT.InteractionOptions): Promise<void> {
@@ -273,7 +273,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             var promises : Promise<void>[] = [];
             for (let propertyName in valueMap) {
                 let oValueMap :  { [key: string]: any; } = valueMap;
-                promises.push(this.writeProperty(propertyName, oValueMap[propertyName]));
+                promises.push(this.writeProperty(propertyName, oValueMap[propertyName], options));
             }
             // wait for all promises to succeed and create response
             Promise.all(promises)
@@ -293,7 +293,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 
                 if (this.actions[actionName].getState().handler != null) {
                     console.log(`ExposedThing '${this.title}' calls registered handler for Action '${actionName}'`);
-                    resolve(this.actions[actionName].getState().handler(parameter)); // , options
+                    resolve(this.actions[actionName].getState().handler(parameter, options));
                 } else {
                     reject(new Error(`ExposedThing '${this.title}' has no handler for Action '${actionName}'`));
                 }

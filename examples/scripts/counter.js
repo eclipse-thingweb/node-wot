@@ -109,12 +109,13 @@ WoT.produce({
 		thing.writeProperty("lastChange", (new Date()).toISOString()); 
 		
 		// set action handlers
-		thing.setActionHandler("increment", (parameter) => {
+		thing.setActionHandler("increment", (params, options) => {
 			return thing.readProperty("count").then( (count) => {
 				let step = 1;
-				if(parameter && typeof parameter === 'object') {
-					if('step' in parameter) {
-						step = parameter['step'];
+				console.log(options)
+				if(options && typeof options === 'object' && 'uriVariables' in options) {
+					if('step' in options['uriVariables']) {
+						step = options['uriVariables']['step'];
 					}
 				}
 				let value = count + step;
@@ -124,12 +125,12 @@ WoT.produce({
 				thing.emitEvent("change", value);
 			});
 		});
-		thing.setActionHandler("decrement", (parameter) => {
+		thing.setActionHandler("decrement", (params, options) => {
 			return thing.readProperty("count").then( (count) => {
 				let step = 1;
-				if(parameter && typeof parameter === 'object') {
-					if('step' in parameter) {
-						step = parameter['step'];
+				if(options && typeof options === 'object' && 'uriVariables' in options) {
+					if('step' in options['uriVariables']) {
+						step = options['uriVariables']['step'];
 					}
 				}
 				let value = count - step;
