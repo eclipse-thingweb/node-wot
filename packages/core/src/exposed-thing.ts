@@ -303,8 +303,8 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         });
     }
 
-    public observeProperty(name: string, listener: WoT.WotListener, options?: WoT.InteractionOptions): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
+    public observeProperty(name: string, listener: WoT.WotListener, options?: WoT.InteractionOptions): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
             if (this.properties[name]) {
                 let next = listener;
                 let error = null;
@@ -318,8 +318,6 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         });
     }
 
-    // XXX wait for outcome in https://github.com/w3c/wot-scripting-api/issues/183
-    // subscriptionId vs. name
     public unobserveProperty(name: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             if (this.properties[name]) {
@@ -332,8 +330,8 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         });
     }
 
-    public subscribeEvent(name: string, listener: WoT.WotListener, options?: WoT.InteractionOptions): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
+    public subscribeEvent(name: string, listener: WoT.WotListener, options?: WoT.InteractionOptions): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
             if (this.events[name]) {
                 let next = listener;
                 let error = null;
@@ -347,8 +345,6 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         });
     }
 
-    // XXX wait for outcome in https://github.com/w3c/wot-scripting-api/issues/183
-    // subscriptionId vs. name
     public unsubscribeEvent(name: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             if (this.events[name]) {
@@ -358,7 +354,6 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             } else {
                 reject(new Error(`ExposedThing '${this.title}', no event found for '${name}'`));
             }
-            // reject(new Error(`TODO unsubscribeEvent`));
         });
     }
 }

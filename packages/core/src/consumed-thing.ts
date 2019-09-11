@@ -304,8 +304,8 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
         });
     }
 
-    public observeProperty(name: string, listener: WoT.WotListener, options?: WoT.InteractionOptions): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
+    public observeProperty(name: string, listener: WoT.WotListener, options?: WoT.InteractionOptions): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
             let tp : TD.ThingProperty  = this.properties[name];
             let { client, form } = this.getClientFor(tp.forms, "observeproperty");
             if (!client) {
@@ -318,28 +318,23 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                         if (!content.type) content.type = form.contentType;
                         try {
                             let value = ContentManager.contentToValue(content, <any>this);
-                            // next(value);
                             listener(value);
+                            resolve();
                         } catch {
-                            // error(new Error(`Received invalid content from Thing`));
-                            listener("error");
+                            reject(new Error(`Received invalid content from Thing`));
                         }
                     },
                     (err) => {
-                        // error(err);
-                        listener(err);
+                        reject(err);
                     },
                     () => {
-                        // complete();
-                        listener("complete");
+                        resolve();
                     }
                 );
             }
         });
     }
 
-    // XXX wait for outcome in https://github.com/w3c/wot-scripting-api/issues/183
-    // subscriptionId vs. name
     public unobserveProperty(name: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             let tp : TD.ThingProperty  = this.properties[name];
@@ -349,12 +344,13 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
             } else {
                 console.log(`ConsumedThing '${this.title}' unobserveing to ${form.href}`);
                 client.unlinkResource(form);
+                resolve();
             }
         });
     }
 
-    public subscribeEvent(name: string, listener: WoT.WotListener, options?: WoT.InteractionOptions): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
+    public subscribeEvent(name: string, listener: WoT.WotListener, options?: WoT.InteractionOptions): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
             let te : TD.ThingEvent  = this.events[name];
             let { client, form } = this.getClientFor(te.forms, "subscribeevent");
             if (!client) {
@@ -366,35 +362,23 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                         if (!content.type) content.type = form.contentType;
                         try {
                             let value = ContentManager.contentToValue(content, <any>this);
-                            // next(value);
-                            // listener(value);
                             listener(value);
-                            resolve(value);
+                            resolve();
                         } catch {
-                            // error(new Error(`Received invalid content from Thing`));
-                            listener(new Error(`Received invalid content from Thing`));
-                            // reject(new Error(`Received invalid content from Thing`));
+                            reject(new Error(`Received invalid content from Thing`));
                         }
                     },
                     (err) => {
-                        // error(err);
                         reject(err);
-                        // listener(err);
+                    },
+                    () => {
+                        resolve();
                     }
-                    // ,
-                    // () => {
-                    //     // complete();
-                    //     // listener(ret);
-                    //     // resolve(ret);
-                    //     // listener(ret);
-                    // }
                 );
             }
         });
     }
 
-    // XXX wait for outcome in https://github.com/w3c/wot-scripting-api/issues/183
-    // subscriptionId vs. name    
     public unsubscribeEvent(name: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             let te : TD.ThingEvent  = this.events[name];
@@ -404,6 +388,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
             } else {
                 console.log(`ConsumedThing '${this.title}' unsubscribing to ${form.href}`);
                 client.unlinkResource(form);
+                resolve();
             }
         });
     }

@@ -27,7 +27,7 @@
     "webpack-command": "^0.4.1"
   },
   "dependencies": {
-    "wot-typescript-definitions": "0.7.0-NEXT-SNAPSHOT.15",
+    "wot-typescript-definitions": "0.7.0-NEXT-SNAPSHOT.16",
     "is-absolute-url": "2.1.0",
     "url-toolkit": "2.1.6"
   },
