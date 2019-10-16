@@ -34,7 +34,7 @@ export default class Servient {
         let script;
 
         try {
-            script = new vm.Script(code);
+            script = new vm.Script(code,{filename : filename});
         } catch (err) {
             let scriptPosition = err.stack.match(/evalmachine\.<anonymous>\:([0-9]+)\n/)[1];
             console.error(`Servient found error in '${filename}' at line ${scriptPosition}\n    ${err}`);
@@ -77,7 +77,6 @@ export default class Servient {
             "clearImmediate": clearImmediate
         });
         let options = {
-            "filename": filename,
             "displayErrors": true
         };
         try {
@@ -93,7 +92,7 @@ export default class Servient {
         let script;
 
         try {
-            script = new vm.Script(code);
+            script = new vm.Script(code, { filename: filename});
         } catch (err) {
             let scriptPosition = err.stack.match(/evalmachine\.<anonymous>\:([0-9]+)\n/)[1];
             console.error(`Servient found error in privileged script '${filename}' at line ${scriptPosition}\n    ${err}`);
@@ -138,7 +137,6 @@ export default class Servient {
             "require": require
         });
         let options = {
-            "filename": filename,
             "displayErrors": true
         };
         try {

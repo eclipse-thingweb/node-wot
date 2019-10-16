@@ -60,6 +60,7 @@ const runScripts = function(servient: DefaultServient, scripts: Array<string>) {
             } else {
                 // limit printout to first line
                 console.info(`WoT-Servient running script '${data.substr(0, data.indexOf("\n")).replace("\r", "")}'... (${data.split(/\r\n|\r|\n/).length} lines)`);
+                fname = path.resolve(fname)
                 servient.runPrivilegedScript(data, fname);
             }
         });
@@ -79,7 +80,7 @@ const runAllScripts = function(servient: DefaultServient) {
         });
         console.info(`WoT-Servient using current directory with ${scripts.length} script${scripts.length>1 ? "s" : ""}`);
         
-        runScripts(servient, scripts.map(filename => path.join(baseDir, filename)));
+        runScripts(servient, scripts.map(filename => path.resolve(path.join(baseDir, filename))));
     });
 }
 
