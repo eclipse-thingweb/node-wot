@@ -203,22 +203,32 @@ export default class Servient {
     public addThing(thing: ExposedThing): boolean {
 
         if (thing.id === undefined) {
-            console.warn(`Servient generating ID for '${thing.title}'`);
             thing.id = "urn:uuid:" + require("uuid").v4();
+            console.warn(`Servient generating ID for '${thing.title}': '${thing.id}'`);
         }
 
         if (!this.things.has(thing.id)) {
             this.things.set(thing.id, thing);
+            console.log(`Servient reset ID '${thing.id}' with '${thing.title}'`);
             return true;
         } else {
             return false;
         }
     }
 
-    public getThing(name: string): ExposedThing {
+    public getThing(id: string): ExposedThing {
         if (this.things.has(name)) {
             return this.things.get(name);
         } else return null;
+    }
+
+    public getThings(): object {
+        console.log(`Servient getThings size == '${this.things.size}'`);
+        let ts : { [key: string]: object } = {};
+        this.things.forEach((thing, id) => {
+            ts[id] = thing.getThingDescription();
+        });
+        return ts;
     }
 
     public addServer(server: ProtocolServer): boolean {
