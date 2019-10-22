@@ -173,7 +173,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                 client.readResource(form).then((content) => {
                     if (!content.type) content.type = form.contentType;
                     try {
-                        let value = ContentManager.contentToValue(content, <any>this);
+                        let value = ContentManager.contentToValue(content, <any>tp);
                         resolve(value);
                     } catch {
                         reject(new Error(`Received invalid content from Thing`));
