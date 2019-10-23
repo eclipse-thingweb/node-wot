@@ -173,7 +173,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                 client.readResource(form).then((content) => {
                     if (!content.type) content.type = form.contentType;
                     try {
-                        let value = ContentManager.contentToValue(content, <any>this);
+                        let value = ContentManager.contentToValue(content, <any>tp);
                         resolve(value);
                     } catch {
                         reject(new Error(`Received invalid content from Thing`));
@@ -231,7 +231,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
             } else {
                 console.log(`ConsumedThing '${this.title}' writing ${form.href} with '${value}'`);
-                let content = ContentManager.valueToContent(value, <any>this, form.contentType);
+                let content = ContentManager.valueToContent(value, <any>tp, form.contentType);
 
                 // uriVariables ?
                 form = this.handleUriVariables(form, value);
@@ -293,7 +293,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                     }
                     
                     try {
-                        let value = ContentManager.contentToValue(content, this.output);
+                        let value = ContentManager.contentToValue(content, ta.output);
                         resolve(value);
                     } catch {
                         reject(new Error(`Received invalid content from Thing`));
@@ -317,7 +317,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                     (content) => {
                         if (!content.type) content.type = form.contentType;
                         try {
-                            let value = ContentManager.contentToValue(content, <any>this);
+                            let value = ContentManager.contentToValue(content, <any>tp);
                             listener(value);
                             resolve();
                         } catch {
@@ -361,7 +361,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                     (content) => {
                         if (!content.type) content.type = form.contentType;
                         try {
-                            let value = ContentManager.contentToValue(content, <any>this);
+                            let value = ContentManager.contentToValue(content, <any>te.data);
                             listener(value);
                             resolve();
                         } catch {
@@ -595,7 +595,7 @@ class ConsumedThingEvent extends TD.ThingEvent implements Subscribable<any> {
                 (content) => {
                     if (!content.type) content.type = form.contentType;
                     try {
-                        let value = ContentManager.contentToValue(content, <any>this);
+                        let value = ContentManager.contentToValue(content, <any>this.data);
                         next(value);
                     } catch {
                         error(new Error(`Received invalid content from Thing`));
