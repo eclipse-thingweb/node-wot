@@ -435,7 +435,7 @@ class ConsumedThingProperty extends TD.ThingProperty implements TD.ThingProperty
     }
 
     /** WoT.ThingProperty interface: read this Property of the remote Thing (async) */
-    public read(): Promise<any> {
+    /* public read(): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             // TODO pass expected form op to getClientFor()
             let { client, form } = this.getThing().getClientFor(this.forms, "readproperty");
@@ -459,10 +459,10 @@ class ConsumedThingProperty extends TD.ThingProperty implements TD.ThingProperty
                 .catch(err => { reject(err); });
             }
         });
-    }
+    } */
 
     /** WoT.ThingProperty interface: write this Property of the remote Thing (async) */
-    public write(value: any): Promise<void> {
+    /* public write(value: any): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             // TODO pass expected form op to getClientFor()
             let { client, form } = this.getThing().getClientFor(this.forms, "writeproperty");
@@ -481,10 +481,10 @@ class ConsumedThingProperty extends TD.ThingProperty implements TD.ThingProperty
                 .catch(err => { reject(err); });
             }
         });
-    }
+    } */
     
     /** WoT.ThingProperty interface: subscribe to changes of this Property of the remote Thing */
-    public subscribe(next?: (value: any) => void, error?: (error: any) => void, complete?: () => void): Subscription {
+    /* public subscribe(next?: (value: any) => void, error?: (error: any) => void, complete?: () => void): Subscription {
         // TODO pass expected form rel to getClientFor()
         let { client, form } = this.getThing().getClientFor(this.forms, "observeproperty");
         if (!client) {
@@ -510,7 +510,7 @@ class ConsumedThingProperty extends TD.ThingProperty implements TD.ThingProperty
                 }
             );
         }
-    }
+    } */
 }
 
 class ConsumedThingAction extends TD.ThingAction implements TD.ThingAction {
@@ -528,7 +528,7 @@ class ConsumedThingAction extends TD.ThingAction implements TD.ThingAction {
     }
 
     /** WoT.ThingAction interface: invoke this Action on the remote Thing (async) */
-    public invoke(parameter?: any): Promise<any> {
+    /* public invoke(parameter?: any): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             let { client, form } = this.getThing().getClientFor(this.forms, "invokeaction");
             if (!client) {
@@ -565,10 +565,12 @@ class ConsumedThingAction extends TD.ThingAction implements TD.ThingAction {
                 .catch(err => { reject(err); });
             }
         });
-    }
+    }*/
 }
 
-class ConsumedThingEvent extends TD.ThingEvent implements Subscribable<any> {
+class ConsumedThingEvent extends TD.ThingEvent
+// implements Subscribable<any>
+{
 
     // functions for wrapping internal state
     private getName: () => string;
@@ -583,7 +585,7 @@ class ConsumedThingEvent extends TD.ThingEvent implements Subscribable<any> {
     }
 
     /** WoT.ThingEvent interface: subscribe to this Event of the remote Thing */
-    public subscribe(next: (value: any) => void, error?: (error: any) => void, complete?: () => void): Subscription {
+    /* public subscribe(next: (value: any) => void, error?: (error: any) => void, complete?: () => void): Subscription {
 
         let { client, form } = this.getThing().getClientFor(this.forms, "subscribeevent");
         if (!client) {
@@ -609,5 +611,5 @@ class ConsumedThingEvent extends TD.ThingEvent implements Subscribable<any> {
                 }
             );
         }
-    }
+    } */
 }
