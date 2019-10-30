@@ -14,10 +14,12 @@
 
 function get_td(addr) {
 	servient.start().then((thingFactory) => {
-		thingFactory.fetch(addr).then((td) => {
-			var thing = thingFactory.consume(td);
-			removeInteractions();
-			showInteractions(thing);
+		helpers.fetch(addr).then((td) => {
+			thingFactory.consume(td)
+			.then((thing) => {
+				removeInteractions();
+				showInteractions(thing);
+			});
 		}).catch((error) => {
 			window.alert("Could not fetch TD.\n" + error)
 		})
@@ -25,8 +27,9 @@ function get_td(addr) {
 }
 
 function showInteractions(thing) {
-	for ( let property in thing.properties ) {
-		if (thing.properties.hasOwnProperty(property)) {
+	let td = thing.getThingDescription();
+	for ( let property in td.properties ) {
+		if (td.properties.hasOwnProperty(property)) {
 			let item = document.createElement("li");
 			let link = document.createElement("a");
 			link.appendChild(document.createTextNode(property));
@@ -34,14 +37,14 @@ function showInteractions(thing) {
 			document.getElementById("properties").appendChild(item);
 
 			item.onclick = (click) => {
-				thing.properties[property].read()
+				thing.readProperty(property)
 				.then(res => window.alert(property + ": " + res))
 				.catch(err => window.alert("error: " + err))
 			}
 		}
 	};
-	for ( let action in thing.actions ) {
-		if (thing.actions.hasOwnProperty(action)) {
+	for ( let action in td.actions ) {
+		if (td.actions.hasOwnProperty(action)) {
 			let item = document.createElement("li");
 			let button = document.createElement("button");
 			button.appendChild(document.createTextNode(action));
@@ -55,8 +58,8 @@ function showInteractions(thing) {
 		}
 	};
 	let eventSubscriptions = {}
-	for ( let evnt in thing.events ) {
-		if (thing.events.hasOwnProperty(evnt)) {
+	for ( let evnt in td.events ) {
+		if (td.events.hasOwnProperty(evnt)) {
 			let item = document.createElement("li");
 			let link = document.createElement("a");
 			link.appendChild(document.createTextNode(evnt));
@@ -97,17 +100,18 @@ function removeInteractions() {
 }
 
 function showSchemaEditor(action, thing) {
+	let td = thing.getThingDescription();
 	// Remove old editor
 	removeSchemaEditor()
 
 	let placeholder = document.getElementById('editor_holder');
 	let editor;
-	if (thing.actions[action] && thing.actions[action].input ) {  
-		thing.actions[action].input.title = action
+	if (td.actions[action] && td.actions[action].input ) {  
+		td.actions[action].input.title = action
 		editor = new JSONEditor(
 			placeholder, 
 			{
-				schema: thing.actions[action].input,
+				schema: td.actions[action].input,
 				form_name_root: action
 			}
 		);
@@ -119,7 +123,7 @@ function showSchemaEditor(action, thing) {
 
 	button.onclick = () => { 
 		let input = editor ? editor.getValue() : "";
-		thing.actions[action].invoke(input)
+		thing.invokeAction(action, input)
 		.then((res) => { 
 			if (res) {
 				window.alert("Success! Received response: " + res)
@@ -142,4 +146,5 @@ function removeSchemaEditor() {
 
 var servient = new Wot.Core.Servient();
 servient.addClientFactory(new Wot.Http.HttpClientFactory());
+var helpers = new Wot.Core.Helpers(servient);
 document.getElementById("fetch").onclick = () => { get_td(document.getElementById("td_addr").value);  };

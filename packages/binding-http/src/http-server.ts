@@ -26,9 +26,8 @@ import * as url from "url";
 import { AddressInfo } from "net";
 
 import * as TD from "@node-wot/td-tools";
-import Servient, { ProtocolServer, ContentSerdes, ExposedThing, Helpers } from "@node-wot/core";
+import Servient, { ProtocolServer, ContentSerdes, Helpers, ExposedThing } from "@node-wot/core";
 import { HttpConfig, HttpForm } from "./http";
-import { Form } from "@node-wot/td-tools";
 
 export default class HttpServer implements ProtocolServer {
 
@@ -42,7 +41,8 @@ export default class HttpServer implements ProtocolServer {
 
   private readonly OBSERVABLE_DIR = "observable";
 
-  private readonly OPTIONS_URI_VARIABLES ='uriVariables';
+  // private readonly OPTIONS_URI_VARIABLES ='uriVariables';
+  // private readonly OPTIONS_BODY_VARIABLES ='body';
 
   private readonly port: number = 8080;
   private readonly address: string = undefined;
@@ -150,7 +150,7 @@ export default class HttpServer implements ProtocolServer {
   }
 
 
-  private updateInteractionNameWithUriVariablePattern(interactionName: string, uriVariables: {[key: string]: WoT.DataSchema;}) : string {
+  private updateInteractionNameWithUriVariablePattern(interactionName: string, uriVariables: {[key: string]: TD.DataSchema;}) : string {
     if(uriVariables && Object.keys(uriVariables).length > 0) {
       let pattern = "{?"
       let index = 0;
@@ -257,8 +257,9 @@ export default class HttpServer implements ProtocolServer {
       } // addresses
 
       if (this.scheme === "https") {
+        let securityBasic : TD.BasicSecurityScheme = {"scheme":"basic", "in":"header"};
         thing.securityDefinitions = {
-          "basic_sc": {"scheme":"basic", "in":"header"}
+          "basic_sc": securityBasic
         };
         thing.security = ["basic_sc"];
       }
@@ -296,7 +297,7 @@ export default class HttpServer implements ProtocolServer {
     }
   }
 
-   private parseUrlParameters(url: string, uriVariables: { [key: string]: WoT.DataSchema }): {[k: string]: any} {
+   private parseUrlParameters(url: string, uriVariables: { [key: string]: TD.DataSchema }): {[k: string]: any} {
     let params: {[k: string]: any} = {};
     if (url == null || !uriVariables) {
       return params;
@@ -397,7 +398,7 @@ export default class HttpServer implements ProtocolServer {
 
     } else {
       // path -> select Thing
-      let thing = this.things.get(segments[1]);
+      let thing : ExposedThing = this.things.get(segments[1]);
       if (thing) {
 
         if (segments.length === 2 || segments[2] === "") {
@@ -424,15 +425,13 @@ export default class HttpServer implements ProtocolServer {
                 if(prefLang) {
                   // if a preferred language can be found use it
                   console.log(`TD language negotiation through the Accept-Language header field of HTTP leads to "${prefLang}"`);
-                  let otd = JSON.parse(td);
-                  this.resetMultiLangThing(otd, prefLang);
-                  td = JSON.stringify(otd);
+                  this.resetMultiLangThing(td, prefLang);
                 }
               }
             }
             res.setHeader("Content-Type", ContentSerdes.TD);
             res.writeHead(200);
-            res.end(td);
+            res.end(JSON.stringify(td));
           } else {
             respondUnallowedMethod(res, "GET");
           }
@@ -490,9 +489,11 @@ export default class HttpServer implements ProtocolServer {
             let property = thing.properties[segments[3]];
             if (property) {
 
-              let params : {[k: string]: any} = this.parseUrlParameters(req.url, property.uriVariables);
-              let options: {[k: string]: any} = {};
-              options[this.OPTIONS_URI_VARIABLES] = params;
+              let options : WoT.InteractionOptions;
+              let uriVariables : {[k: string]: any} = this.parseUrlParameters(req.url, property.uriVariables);
+              if(!this.isEmpty(uriVariables)) {
+                options = {uriVariables: uriVariables};
+              }
                
               if (req.method === "GET") {
 
@@ -501,7 +502,8 @@ export default class HttpServer implements ProtocolServer {
                   // FIXME must decide on Content-Type here, not on next()
                   res.setHeader("Content-Type", ContentSerdes.DEFAULT);
                   res.writeHead(200);
-                  let subscription = property.subscribe(
+                  thing.subscribeEvent(segments[3],
+                  // let subscription = property.subscribe(
                     (data) => {
                       let content;
                       try {
@@ -515,18 +517,21 @@ export default class HttpServer implements ProtocolServer {
                       // send event data
                       res.end(content.body);
                     },
-                    () => res.end(),
-                    () => res.end()
-                  );
+                    options
+                  )
+                  .then(() => res.end())
+                  .catch(() => res.end());
                   res.on("finish", () => {
                     console.debug(`HttpServer on port ${this.getPort()} closed Event connection`);
-                    subscription.unsubscribe();
+                    // subscription.unsubscribe();
+                    thing.unsubscribeEvent(segments[3]);
                   });
-                  res.setTimeout(60*60*1000, () => subscription.unsubscribe());
+                  res.setTimeout(60*60*1000, () => thing.unsubscribeEvent(segments[3])); // subscription.unsubscribe());
 
                 } else {
-                  property.read(options)
-                    .then((value) => {
+                  thing.readProperty(segments[3], options)
+                  // property.read(options)
+                    .then((value:any) => {
                       let content = ContentSerdes.get().valueToContent(value, <any>property);
                       res.setHeader("Content-Type", content.type);
                       res.writeHead(200);
@@ -554,7 +559,8 @@ export default class HttpServer implements ProtocolServer {
                       res.end("Invalid Data");
                       return;
                     }
-                    property.write(value, options)
+                    thing.writeProperty(segments[3], value, options)
+                    // property.write(value, options)
                       .then(() => {
                         res.writeHead(204);
                         res.end("Changed");
@@ -578,7 +584,7 @@ export default class HttpServer implements ProtocolServer {
 
           } else if (segments[2] === this.ACTION_DIR) {
             // sub-path -> select Action
-            let action : WoT.ThingAction = thing.actions[segments[3]];
+            let action : TD.ThingAction = thing.actions[segments[3]];
             if (action) {
               if (req.method === "POST") {
                 // load payload
@@ -596,12 +602,15 @@ export default class HttpServer implements ProtocolServer {
                     return;
                   }
                   
-                  let params : {[k: string]: any} = this.parseUrlParameters(req.url, action.uriVariables);
-                  let options: {[k: string]: any} = {};
-                  options[this.OPTIONS_URI_VARIABLES] = params;
+                  let options : WoT.InteractionOptions;
+                  let uriVariables : {[k: string]: any} = this.parseUrlParameters(req.url, action.uriVariables);
+                  if(!this.isEmpty(uriVariables)) {
+                    options = {uriVariables: uriVariables};
+                  }
 
-                  action.invoke(input, options)
-                    .then((output) => {
+                  thing.invokeAction(segments[3], input, options)
+                  // action.invoke(input, options)
+                    .then((output:any) => {
                       if (output) {
                         let content = ContentSerdes.get().valueToContent(output, action.output);
                         res.setHeader("Content-Type", content.type);
@@ -633,7 +642,15 @@ export default class HttpServer implements ProtocolServer {
                 // FIXME must decide on Content-Type here, not on next()
                 res.setHeader("Content-Type", ContentSerdes.DEFAULT);
                 res.writeHead(200);
-                let subscription = event.subscribe(
+                
+                let options : WoT.InteractionOptions;
+                let uriVariables : {[k: string]: any} = this.parseUrlParameters(req.url, event.uriVariables);
+                if(!this.isEmpty(uriVariables)) {
+                  options = {uriVariables: uriVariables};
+                }
+
+                thing.subscribeEvent(segments[3], 
+                // let subscription = event.subscribe(
                   (data) => {
                     let content;
                     try {
@@ -647,14 +664,16 @@ export default class HttpServer implements ProtocolServer {
                     // send event data
                     res.end(content.body);
                   },
-                  () => res.end(),
-                  () => res.end()
-                );
+                  options
+                )
+                .then(() => res.end())
+                .catch(() => res.end());
                 res.on("finish", () => {
                   console.debug(`HttpServer on port ${this.getPort()} closed Event connection`);
-                  subscription.unsubscribe();
+                  // subscription.unsubscribe();
+                  thing.unsubscribeEvent(segments[3]);
                 });
-                res.setTimeout(60*60*1000, () => subscription.unsubscribe());
+                res.setTimeout(60*60*1000, () => thing.unsubscribeEvent(segments[3])); // subscription.unsubscribe());
               } else {
                 respondUnallowedMethod(res, "GET")
               }
@@ -670,6 +689,14 @@ export default class HttpServer implements ProtocolServer {
     res.writeHead(404);
     res.end("Not Found");
   }
+
+  private isEmpty(obj: any) {
+    for(var key in obj) {
+        if(obj.hasOwnProperty(key))
+            return false;
+    }
+    return true;
+}
 
   private resetMultiLangThing(thing: any, prefLang : string) {
     // TODO can we reset "title" to another name given that title is used in URI creation?

@@ -14,8 +14,7 @@
  ********************************************************************************/
 
 // node-wot implementation of W3C WoT Servient 
-import { Servient } from "@node-wot/core";
-
+import { Servient, ExposedThing } from "@node-wot/core";
 // exposed protocols
 import { FujitsuServer } from "@node-wot/binding-fujitsu";
 import { HttpServer } from "@node-wot/binding-http";
@@ -23,6 +22,7 @@ import { HttpServer } from "@node-wot/binding-http";
 // consuming protocols
 import { CoapClientFactory } from "@node-wot/binding-coap";
 import { FileClientFactory } from "@node-wot/binding-file";
+import { TDRepository } from "../../td-tools/dist/td-tools";
 
 let servient = new Servient();
 
@@ -36,55 +36,62 @@ servient.start().then(async (WoT) => {
 
   console.info("FujitsuLocalProxy started");
 
-  let thing = WoT.produce({
+  WoT.produce({
       id: "urn:dev:wot:siemens:festofake",
-      name: "FestoFake"
+      title: "FestoFake"
     }
-  );
+  )
+    .then((thing) => {
+      if(thing instanceof ExposedThing) {
+        let exposedThing : ExposedThing = thing;
 
-  console.info(thing.name + " produced");
+        console.info(exposedThing.title + " produced");
 
-  thing
-    .addProperty("PumpStatus", { type: "boolean", readOnly: true }, false)
-    .addProperty("ValveStatus", { type: "boolean", readOnly: true }, false)
-
-    // upper tank (102)
-    .addProperty("Tank102LevelValue", { type: "number", readOnly: true }, 0.0)
-    .addProperty("Tank102OverflowStatus", { type: "boolean", readOnly: true }, false)
-
-    // lower tank (101)
-    .addProperty("Tank101MaximumLevelStatus", { type: "boolean", readOnly: true }, false)
-    .addProperty("Tank101MinimumLevelStatus", { type: "boolean", readOnly: true }, false)
-    .addProperty("Tank101OverflowStatus", { type: "boolean", readOnly: true }, false)
+        exposedThing.addProperty("PumpStatus", { type: "boolean", readOnly: true }, false);
+        exposedThing.addProperty("ValveStatus", { type: "boolean", readOnly: true }, false);
     
-    // actuators
-    .addAction("StartPump", {}, () => {
-        return new Promise((resolve, reject) => {
-          console.warn(">>> Startung pump!");
-          resolve();
-        });
-      })
-    .addAction("StopPump", {}, () => {
-        return new Promise((resolve, reject) => {
-          console.warn(">>> Stopping pump!");
-          resolve();
-        });
-      })
-    .addAction("OpenValve", {}, () => {
-        return new Promise((resolve, reject) => {
-          console.warn(">>> Opening valve!");
-          resolve();
-        });
-      })
-    .addAction("CloseValve", {}, () => {
-        return new Promise((resolve, reject) => {
-          console.warn(">>> Closing valve!");
-          resolve();
-        });
-      });
+        // upper tank (102)
+        exposedThing.addProperty("Tank102LevelValue", { type: "number", readOnly: true }, 0.0);
+        exposedThing.addProperty("Tank102OverflowStatus", { type: "boolean", readOnly: true }, false);
+    
+        // lower tank (101)
+        exposedThing.addProperty("Tank101MaximumLevelStatus", { type: "boolean", readOnly: true }, false);
+        exposedThing.addProperty("Tank101MinimumLevelStatus", { type: "boolean", readOnly: true }, false);
+        exposedThing.addProperty("Tank101OverflowStatus", { type: "boolean", readOnly: true }, false);
+        
+        // actuators
+        exposedThing.addAction("StartPump", {}, () => {
+            return new Promise((resolve, reject) => {
+              console.warn(">>> Startung pump!");
+              resolve();
+            });
+          });
+          exposedThing.addAction("StopPump", {}, () => {
+            return new Promise((resolve, reject) => {
+              console.warn(">>> Stopping pump!");
+              resolve();
+            });
+          });
+          exposedThing.addAction("OpenValve", {}, () => {
+            return new Promise((resolve, reject) => {
+              console.warn(">>> Opening valve!");
+              resolve();
+            });
+          });
+          exposedThing.addAction("CloseValve", {}, () => {
+            return new Promise((resolve, reject) => {
+              console.warn(">>> Closing valve!");
+              resolve();
+            });
+          });
 
-    thing.expose()
-      .then(() => { console.info(thing.name + " ready"); })
-      .catch((err) => { console.error("Expose error: " + err); });
+          exposedThing.expose()
+          .then(() => { console.info(exposedThing.name + " ready"); })
+          .catch((err) => { console.error("Expose error: " + err); });
+
+        }
+    
+    });
+
 
 }).catch( err => { console.error("Servient start error: " + err); });

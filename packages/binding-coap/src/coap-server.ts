@@ -206,7 +206,7 @@ export default class CoapServer implements ProtocolServer {
           if (req.method === "GET") {
             res.setOption("Content-Format", ContentSerdes.TD);
             res.code = "2.05";
-            res.end(thing.getThingDescription());
+            res.end(JSON.stringify(thing.getThingDescription()));
           } else {
             res.code = "4.05";
             res.end("Method Not Allowed");
@@ -221,7 +221,8 @@ export default class CoapServer implements ProtocolServer {
             if (req.method === "GET") {
               // readproperty
               if (req.headers['Observe'] === undefined) {
-                property.read()
+                thing.readProperty(segments[3])
+                // property.read()
                   .then((value) => {
                     let content = ContentSerdes.get().valueToContent(value, <any>property);
                     res.setOption("Content-Format", content.type);
@@ -253,7 +254,8 @@ export default class CoapServer implements ProtocolServer {
                   res.end("Invalid Data");
                   return;
                 }
-                property.write(value)
+                thing.writeProperty(segments[3], value)
+                // property.write(value)
                   .then(() => {
                     res.code = "2.04";
                     res.end("Changed");
@@ -290,7 +292,8 @@ export default class CoapServer implements ProtocolServer {
                 res.end("Invalid Input Data");
                 return;
               }
-              action.invoke(input)
+              thing.invokeAction(segments[3], input)
+              // action.invoke(input)
                 .then((output) => {
                   if (output) {
                     let content = ContentSerdes.get().valueToContent(output, action.output);
@@ -338,7 +341,8 @@ export default class CoapServer implements ProtocolServer {
                 res._packet.token = res._request.token;
                 // end of work-around
 
-                let subscription = event.subscribe(
+                let subscription = thing.subscribeEvent(segments[3],
+                // let subscription = event.subscribe(
                   (data) => {
                     let content;
                     try {
@@ -355,20 +359,31 @@ export default class CoapServer implements ProtocolServer {
                     res.setOption("Content-Format", content.type);
                     res.code = "2.05";
                     res.write(content.body);
-                  },
-                  () => {
+                  }
+                  // ,
+                  // () => {
+                  //   console.log(`CoapServer on port ${this.getPort()} failed '${segments[3]}' subscription`);
+                  //   res.code = "5.00";
+                  //   res.end();
+                  // },
+                  // () => {
+                  //   console.log(`CoapServer on port ${this.getPort()} completes '${segments[3]}' subscription`);
+                  //   res.end();
+                  // }
+                )
+                .then(() => {
+                    console.log(`CoapServer on port ${this.getPort()} completes '${segments[3]}' subscription`);
+                    res.end();
+                  })
+                .catch(() => {
                     console.log(`CoapServer on port ${this.getPort()} failed '${segments[3]}' subscription`);
                     res.code = "5.00";
                     res.end();
-                  },
-                  () => {
-                    console.log(`CoapServer on port ${this.getPort()} completes '${segments[3]}' subscription`);
-                    res.end();
-                  }
-                );
+                  });
                 res.on('finish', () => {
                   console.log(`CoapServer on port ${this.getPort()} ends '${segments[3]}' observation from ${Helpers.toUriLiteral(req.rsinfo.address)}:${req.rsinfo.port}`);
-                  subscription.unsubscribe();
+                  thing.unsubscribeEvent(segments[3]);
+                  // subscription.unsubscribe();
                 });
               } else if (req.headers['Observe'] > 0) {
                 console.log(`CoapServer on port ${this.getPort()} sends '${segments[3]}' response to ${Helpers.toUriLiteral(req.rsinfo.address)}:${req.rsinfo.port}`);

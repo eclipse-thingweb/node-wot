@@ -16,7 +16,7 @@
 // global W3C WoT Scripting API definitions
 import * as WoT from "wot-typescript-definitions";
 // node-wot implementation of W3C WoT Servient 
-import { Servient, Helpers } from "@node-wot/core";
+import { Servient, Helpers, ExposedThing } from "@node-wot/core";
 // protocols used
 import { HttpServer } from "@node-wot/binding-http";
 import { WebSocketServer } from "@node-wot/binding-websockets";
@@ -105,75 +105,74 @@ export default class DefaultServient extends Servient {
     /**
      * start
      */
-    public start(): Promise<WoT.WoTFactory> {
+    public start(): Promise<WoT.WoT> {
 
-        return new Promise<WoT.WoTFactory>((resolve, reject) => {
+        return new Promise<WoT.WoT>((resolve, reject) => {
             super.start().then((myWoT) => {
                 console.info("DefaultServient started");
 
                 // TODO think about builder pattern that starts with produce() ends with expose(), which exposes/publishes the Thing
-                let thing = myWoT.produce(`{
-                    "name": "servient",
+                myWoT.produce({
+                    "title": "servient",
                     "description": "node-wot CLI Servient",
-                    "system": "${process.arch}"
-                }`)
-                    .addProperty(
-                        "things",
-                        {
+                    properties: {
+                        things: {
+                            type: "object",
+                            description: "Get things",
                             observable: false,
-                            type: "string"
-                        })
-                    .addAction(
-                        "log",
-                        {
+                            readOnly: true
+                        }
+                    },
+                    actions: {
+                        log: {
+                            description: "Enable logging",
                             input: { type: "string" },
                             output: { type: "string" }
                         },
-                        (msg: any) => {
+                        shutdown: {
+                            description: "Stop servient",
+                            output: { type: "string" }
+                        },
+                        runScript: {
+                            description: "Run script",
+                            input: { type: "string" },
+                            output: { type: "string" }
+                        }
+                    }
+                })
+                    .then((thing) => {
+                        thing.setActionHandler("log", (msg) => {
                             return new Promise((resolve, reject) => {
                                 console.info(msg);
                                 resolve(`logged '${msg}'`);
                             });
-                        }
-                    )
-                    .addAction(
-                        "shutdown",
-                        {
-                            output: { type: "string" }
-                        },
-                        () => {
+                        });
+                        thing.setActionHandler("shutdown", () => {
                             return new Promise((resolve, reject) => {
                                 console.info("shutting down by remote");
                                 this.shutdown();
                                 resolve();
                             });
-                        }
-                    );
-
-                if (this.config.servient.scriptAction) {
-                    thing
-                        .addAction(
-                            "runScript",
-                            {
-                                input: { type: "string" },
-                                output: { type: "string" }
-                            },
-                            (script: string) => {
-                                return new Promise((resolve, reject) => {
-                                    console.log("runnig script", script);
-                                    this.runScript(script);
-                                    resolve();
-                                });
-                            }
-                        );
-                }
-
-                thing.expose().then(() => {
-                        // pass on WoTFactory
-                        resolve(myWoT);
-                    }).catch((err) => reject(err));
-
-            }).catch((err) => reject(err));
+                        });
+                        thing.setActionHandler("runScript", (script) => {
+                            return new Promise((resolve, reject) => {
+                                console.log("running script", script);
+                                this.runScript(script);
+                                resolve();
+                            });
+                        });
+                        thing.setPropertyReadHandler("things", () => {
+                            return new Promise((resolve, reject) => {
+                                console.log("returnings things");
+                                resolve(this.getThings());
+                            });
+                        });
+                        thing.expose().then(() => {
+                            // pass on WoTFactory
+                            resolve(myWoT);
+                        }).catch((err) => reject(err));
+                    });
+                }).catch((err) => reject(err));
         });
     }
 }

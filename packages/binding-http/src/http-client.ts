@@ -23,6 +23,7 @@ import * as url from "url";
 
 import { Subscription } from "rxjs/Subscription";
 
+import * as TD from "@node-wot/td-tools";
 // for Security definition
 import * as WoT from "wot-typescript-definitions";
 
@@ -93,7 +94,7 @@ export default class HttpClient implements ProtocolClient {
       let req = this.generateRequest(form, "GET");
       let info = <any>req;
 
-      console.log(`HttpClient sending ${info.method} to ${info.path}`);
+      console.log(`HttpClient (readResource) sending ${info.method} to ${info.path}`);
 
       req.on("response", (res: http.IncomingMessage) => {
         console.log(`HttpClient received ${res.statusCode} from ${info.path}`);
@@ -118,7 +119,7 @@ export default class HttpClient implements ProtocolClient {
       req.setHeader("Content-Type", content.type);
       req.setHeader("Content-Length", content.body.byteLength);
 
-      console.log(`HttpClient sending ${info.method} with '${req.getHeader("Content-Type")}' to ${info.path}`);
+      console.log(`HttpClient (writeResource) sending ${info.method} with '${req.getHeader("Content-Type")}' to ${info.path}`);
 
       req.on("response", (res: http.IncomingMessage) => {
         console.log(`HttpClient received ${res.statusCode} from ${info.path}`);
@@ -150,7 +151,7 @@ export default class HttpClient implements ProtocolClient {
         req.setHeader("Content-Length", content.body.byteLength);
       }
 
-      console.log(`HttpClient sending ${info.method} ${content ? "with '"+req.getHeader("Content-Type")+"' " : " "}to ${info.path}`);
+      console.log(`HttpClient (invokeResource) sending ${info.method} ${content ? "with '"+req.getHeader("Content-Type")+"' " : " "}to ${info.path}`);
 
       req.on("response", (res: http.IncomingMessage) => {
         console.log(`HttpClient received ${res.statusCode} from ${form.href}`);
@@ -176,7 +177,7 @@ export default class HttpClient implements ProtocolClient {
       let req = this.generateRequest(form, "DELETE");
       let info = <any>req;
 
-      console.log(`HttpClient sending ${info.method} to ${form.href}`);
+      console.log(`HttpClient (unlinkResource) sending ${info.method} to ${form.href}`);
 
       req.on("response", (res: http.IncomingMessage) => {
         console.log(`HttpClient received ${res.statusCode} from ${form.href}`);
@@ -206,7 +207,7 @@ export default class HttpClient implements ProtocolClient {
       // long timeout for long polling
       req.setTimeout(60*60*1000);
 
-      console.log(`HttpClient sending ${info.method} to ${form.href}`);
+      console.log(`HttpClient (subscribeResource) sending ${info.method} to ${form.href}`);
   
       req.on("response", (res: http.IncomingMessage) => {
         console.log(`HttpClient received ${res.statusCode} from ${form.href}`);
@@ -255,7 +256,7 @@ export default class HttpClient implements ProtocolClient {
     return true;
   }
 
-  public setSecurity(metadata: Array<WoT.Security>, credentials?: any): boolean {
+  public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean {
 
     if (metadata === undefined || !Array.isArray(metadata) || metadata.length == 0) {
       console.warn(`HttpClient without security`);
@@ -263,7 +264,7 @@ export default class HttpClient implements ProtocolClient {
     }
 
     // TODO support for multiple security schemes
-    let security: WoT.Security = metadata[0];
+    let security: TD.SecurityScheme = metadata[0];
 
     if (security.scheme === "basic") {
       if (credentials === undefined || credentials.username === undefined || credentials.password === undefined) {
@@ -279,12 +280,13 @@ export default class HttpClient implements ProtocolClient {
       this.authorization = "Bearer " + credentials.token;
 
     } else if (security.scheme === "apikey") {
+      let securityAPIKey : TD.APIKeySecurityScheme = <TD.APIKeySecurityScheme>security;
       if (credentials === undefined || credentials.apikey === undefined) {
         throw new Error(`No API key credentionals for Thing`);
       }
       this.authorization = credentials.apikey;
-      if (security.in==="header" && security.name!==undefined) {
-        this.authorizationHeader = security.name;
+      if (securityAPIKey.in==="header" && securityAPIKey.name!==undefined) {
+        this.authorizationHeader = securityAPIKey.name;
       }
 
     } else if (security.scheme === "nosec") {

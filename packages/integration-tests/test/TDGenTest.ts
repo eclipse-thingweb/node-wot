@@ -22,7 +22,7 @@ import { expect, should } from "chai";
 // should must be called to augment all variables
 should();
 
-import { Servient, ProtocolServer, Helpers } from "@node-wot/core";
+import { Servient, ProtocolServer, Helpers, ExposedThing } from "@node-wot/core";
 
 import * as TD from "@node-wot/td-tools";
 
@@ -39,14 +39,21 @@ class TDGeneratorTest {
     
     let myWoT = await servient.start();
 
-    let thing: WoT.ExposedThing = myWoT.produce({ title: "TDGeneratorTest" });
+    let thing = await myWoT.produce({
+      title: "TDGeneratorTest",
+      properties: {
+        prop1: { type: "number" }
+      },
+      actions: {
+        act1: { input: { type: "string" } }
+      }
+    });
+    
+    await thing.setActionHandler("act1", () => { return new Promise<void>((resolve, reject) => { resolve(); }); });
 
-    thing.addProperty("prop1", { type: "number" });
-    thing.addAction("act1", { input: { type: "string" } }, () => { return new Promise<void>((resolve, reject) => { resolve(); }); });
+    await thing.expose();
 
-    thing.expose();
-
-    let td: TD.Thing = TD.parseTD(thing.getThingDescription());
+    let td: TD.Thing = TD.parseTD(JSON.stringify(thing.getThingDescription()));
 
     expect(td).to.have.property("title").that.equals("TDGeneratorTest");
 

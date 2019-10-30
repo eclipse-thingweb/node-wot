@@ -32,12 +32,14 @@ class CoapClientTest {
 
     @test async "should apply form information"() {
 
-        let testThing = Helpers.extend({ name: "Test" }, new ExposedThing(null));
-        testThing.addProperty(
-            "test",
-            {},
-            "UNSET"
-        )
+        let testThing = Helpers.extend({
+            name: "Test",
+            properties: {
+                test: {}
+            }
+        }, new ExposedThing(null));
+        // testThing.extendInteractions();
+        // await testThing.writeProperty("test", "UNSET");
 
         let coapServer = new CoapServer(56833);
 

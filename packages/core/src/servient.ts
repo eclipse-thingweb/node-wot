@@ -18,6 +18,7 @@ import * as vm from "vm";
 import * as WoT from "wot-typescript-definitions";
 
 import WoTImpl from "./wot-impl";
+import Helpers from "./helpers";
 import ExposedThing from "./exposed-thing";
 import { ProtocolClientFactory, ProtocolServer, ProtocolClient } from "./protocol-interfaces"
 import { default as ContentManager, ContentCodec } from "./content-serdes";
@@ -43,6 +44,7 @@ export default class Servient {
 
         let context = vm.createContext({
             "WoT": new WoTImpl(this),
+            "WoTHelpers": new Helpers(this),
             "console": console,
             // augmented scheduling functions that catch errors
             "setInterval": (handler: (...args: any[]) => void, ms: number, ...args: any[]) => {
@@ -101,6 +103,7 @@ export default class Servient {
 
         let context = vm.createContext({
             "WoT": new WoTImpl(this),
+            "WoTHelpers": new Helpers(this),
             "console": console,
             // augmented scheduling functions that catch errors
             "setInterval": (handler: (...args: any[]) => void, ms: number, ...args: any[]) => {
@@ -198,22 +201,32 @@ export default class Servient {
     public addThing(thing: ExposedThing): boolean {
 
         if (thing.id === undefined) {
-            console.warn(`Servient generating ID for '${thing.title}'`);
             thing.id = "urn:uuid:" + require("uuid").v4();
+            console.warn(`Servient generating ID for '${thing.title}': '${thing.id}'`);
         }
 
         if (!this.things.has(thing.id)) {
             this.things.set(thing.id, thing);
+            console.log(`Servient reset ID '${thing.id}' with '${thing.title}'`);
             return true;
         } else {
             return false;
         }
     }
 
-    public getThing(name: string): ExposedThing {
+    public getThing(id: string): ExposedThing {
         if (this.things.has(name)) {
             return this.things.get(name);
         } else return null;
+    }
+
+    public getThings(): object {
+        console.log(`Servient getThings size == '${this.things.size}'`);
+        let ts : { [key: string]: object } = {};
+        this.things.forEach((thing, id) => {
+            ts[id] = thing.getThingDescription();
+        });
+        return ts;
     }
 
     public addServer(server: ProtocolServer): boolean {
@@ -267,12 +280,12 @@ export default class Servient {
     }
 
     // will return WoT object
-    public start(): Promise<WoT.WoTFactory> {
+    public start(): Promise<WoT.WoT> {
         let serverStatus: Array<Promise<void>> = [];
         this.servers.forEach((server) => serverStatus.push(server.start(this)));
         this.clientFactories.forEach((clientFactory) => clientFactory.init());
 
-        return new Promise<WoT.WoTFactory>((resolve, reject) => {
+        return new Promise<WoT.WoT>((resolve, reject) => {
             Promise.all(serverStatus)
                 .then(() => {
                     resolve(new WoTImpl(this));

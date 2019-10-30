@@ -28,7 +28,18 @@
 import * as url from "url";
 import * as os from "os";
 
+// imports for fetchTD
+import Servient from "./servient";
+import * as TD from "@node-wot/td-tools";
+import { ContentSerdes } from "./content-serdes";
+
 export default class Helpers {
+
+  private srv: Servient;
+
+  constructor(srv: Servient) {
+      this.srv = srv;
+  }
 
   private static staticAddress: string = undefined;
 
@@ -106,6 +117,32 @@ export default class Helpers {
     } else {
       return name + "_2";
     }
+  }
+
+  public fetch(uri: string): Promise<WoT.ThingDescription> {
+    return new Promise<WoT.ThingDescription>((resolve, reject) => {
+        let client = this.srv.getClientFor(Helpers.extractScheme(uri));
+        console.info(`WoTImpl fetching TD from '${uri}' with ${client}`);
+        client.readResource(new TD.Form(uri, ContentSerdes.TD))
+            .then((content) => {
+                client.stop();
+
+                if (content.type !== ContentSerdes.TD &&
+                  content.type !== ContentSerdes.JSON_LD ) {
+                  console.warn(`WoTImpl received TD with media type '${content.type}' from ${uri}`);
+                }
+
+                let td = content.body.toString();
+
+                try {
+                  let jo : object = JSON.parse(td);
+                  resolve(jo);
+                } catch(err) {
+                  reject(new Error(`WoTImpl fetched invalid JSON from '${uri}': ${err.message}`));
+                }
+            })
+            .catch((err) => { reject(err); });
+    });
   }
 
   /**

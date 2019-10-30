@@ -18,7 +18,7 @@
  */
 
 import { ProtocolClient, Content, ContentSerdes } from '@node-wot/core';
-import { Form } from '@node-wot/td-tools';
+import * as TD from '@node-wot/td-tools';
 import * as mqtt from 'mqtt';
 import { MqttForm, MqttQoS } from './mqtt';
 import { IPublishPacket, QoS } from 'mqtt';
@@ -107,7 +107,7 @@ export default class MqttClient implements ProtocolClient {
         });
     }
 
-    unlinkResource = (form: Form): Promise<void> => {
+    unlinkResource = (form: TD.Form): Promise<void> => {
         let requestUri = url.parse(form['href']);
         let topic = requestUri.pathname;
 
@@ -135,13 +135,13 @@ export default class MqttClient implements ProtocolClient {
 
 
 
-    public setSecurity(metadata: Array<WoT.Security>, credentials?: any): boolean {
+    public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean {
 
         if (metadata === undefined || !Array.isArray(metadata) || metadata.length == 0) {
           console.warn(`MqttClient received empty security metadata`);
           return false;
         }      
-        let security: WoT.Security = metadata[0];
+        let security: TD.SecurityScheme = metadata[0];
       
         if (security.scheme === "basic") {
             //this.authorization = "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString('base64');

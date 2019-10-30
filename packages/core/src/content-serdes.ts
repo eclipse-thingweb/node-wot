@@ -17,12 +17,13 @@ import { Content } from "./protocol-interfaces";
 import JsonCodec from "./codecs/json-codec";
 import TextCodec from "./codecs/text-codec";
 import OctetstreamCodec from "./codecs/octetstream-codec";
+import * as TD from "@node-wot/td-tools";
 
 /** is a plugin for ContentSerdes for a specific format (such as JSON or EXI) */
 export interface ContentCodec {
   getMediaType(): string
-  bytesToValue(bytes: Buffer, schema: WoT.DataSchema, parameters?: {[key: string]: string}): any
-  valueToBytes(value: any, schema: WoT.DataSchema, parameters?: {[key: string]: string}): Buffer
+  bytesToValue(bytes: Buffer, schema: TD.DataSchema, parameters?: {[key: string]: string}): any
+  valueToBytes(value: any, schema: TD.DataSchema, parameters?: {[key: string]: string}): Buffer
 }
 
 /**
@@ -88,7 +89,7 @@ export class ContentSerdes {
     return Array.from(ContentSerdes.get().offered);
   }
 
-  public contentToValue(content: Content, schema: WoT.DataSchema): any {
+  public contentToValue(content: Content, schema: TD.DataSchema): any {
 
     if (content.type === undefined) {
       if (content.body.byteLength > 0) {
@@ -121,7 +122,7 @@ export class ContentSerdes {
     }
   }
 
-  public valueToContent(value: any, schema: WoT.DataSchema, contentType = ContentSerdes.DEFAULT): Content {
+  public valueToContent(value: any, schema: TD.DataSchema, contentType = ContentSerdes.DEFAULT): Content {
 
     if (value === undefined) console.warn("ContentSerdes valueToContent got no value");
 

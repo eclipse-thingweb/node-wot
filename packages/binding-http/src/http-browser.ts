@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { Form } from "@node-wot/td-tools";
+import * as TD from "@node-wot/td-tools";
 
 export { default as HttpClient } from './http-client'
 export { default as HttpClientFactory } from './http-client-factory'
@@ -29,7 +29,7 @@ export interface HttpConfig {
     allowSelfSigned?: boolean;
     serverKey?: string;
     serverCert?: string;
-    security?: WoT.Security;
+    security?: TD.SecurityScheme;
 }
 
 export interface HttpProxyConfig {
@@ -40,7 +40,7 @@ export interface HttpProxyConfig {
     password?: string;
 }
 
-export class HttpForm extends Form {
+export class HttpForm extends TD.Form {
     public "http:methodName"?: string; // "GET", "PUT", "POST", "DELETE"
     public "http:headers"?: Array<HttpHeader> | HttpHeader;
 }

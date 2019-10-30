@@ -23,7 +23,7 @@ import * as url from "url";
 import { Subscription } from "rxjs/Subscription";
 
 // for Security definition
-import * as WoT from "wot-typescript-definitions";
+import * as TD from "@node-wot/td-tools";
 
 import { ProtocolClient, Content, ContentSerdes } from "@node-wot/core";
 import { CoapForm, CoapRequestConfig, CoapOption } from "./coap";
@@ -166,7 +166,7 @@ export default class CoapClient implements ProtocolClient {
     // FIXME coap does not provide proper API to close Agent
     return true;
   }
-  public setSecurity = (metadata: Array<WoT.Security>) => true;
+  public setSecurity = (metadata: Array<TD.SecurityScheme>) => true;
 
   private uriToOptions(uri: string): CoapRequestConfig {
     let requestUri = url.parse(uri);

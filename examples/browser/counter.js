@@ -16,9 +16,11 @@ let counterProperties = [];
  
 function get_td(addr) {
 	servient.start().then((thingFactory) => {
-		thingFactory.fetch(addr).then((td) => {
-			var thing = thingFactory.consume(td);
-			showInteractions(thing);
+		helpers.fetch(addr).then((td) => {
+			thingFactory.consume(td)
+			.then((thing) => {
+				showInteractions(thing);
+			});
 		}).catch((error) => {
 			window.alert("Could not fetch TD.\n" + error)
 		})
@@ -26,9 +28,10 @@ function get_td(addr) {
 }
 
 function showInteractions(thing) {
+	let td = thing.getThingDescription();
 	counterProperties = [];
-	for ( let property in thing.properties ) {
-		if (thing.properties.hasOwnProperty(property)) {
+	for ( let property in td.properties ) {
+		if (td.properties.hasOwnProperty(property)) {
 			let dtItem = document.createElement("dt");
 			counterProperties.push(dtItem);
 			let ddItem = document.createElement("dd");
@@ -41,10 +44,9 @@ function showInteractions(thing) {
 			document.getElementById("properties").appendChild(ddItem);
 
 			dtItem.onclick = (click) => {
-				thing.properties[property].read()
+				thing.readProperty(property)
 				.then(
 					res => { ddItem.textContent = res; }
-					// res => window.alert(property + ": " + res)
 				)
 				.catch(err => window.alert("error: " + err))
 			}
@@ -53,8 +55,8 @@ function showInteractions(thing) {
 			dtItem.click();
 		}
 	};
-	for ( let action in thing.actions ) {
-		if (thing.actions.hasOwnProperty(action)) {
+	for ( let action in td.actions ) {
+		if (td.actions.hasOwnProperty(action)) {
 			let item = document.createElement("li");
 			item.setAttribute('dir', 'auto'); // direction-independence, direction-heuristic
 			let button = document.createElement("button");
@@ -64,7 +66,7 @@ function showInteractions(thing) {
 			document.getElementById("actions").appendChild(item);
 
 			item.onclick = (click) => { 
-				thing.actions[action].invoke()
+				thing.invokeAction(action)
 					.then((res) => { 
 						button.style.background = 'rgb(0,255,0,0.2)';
 						setTimeout(function () {
@@ -82,8 +84,8 @@ function showInteractions(thing) {
 		}
 	};
 	let eventSubscriptions = {}
-	for ( let evnt in thing.events ) {
-		if (thing.events.hasOwnProperty(evnt)) {
+	for ( let evnt in td.events ) {
+		if (td.events.hasOwnProperty(evnt)) {
 			let item = document.createElement("li");
 			item.setAttribute('dir', 'auto'); // direction-independence, direction-heuristic
 			let link = document.createElement("a");
@@ -96,17 +98,30 @@ function showInteractions(thing) {
 			item.appendChild(checkbox)
 			document.getElementById("events").appendChild(item);
 
+			eventSubscriptions[evnt] = false;
+
 			checkbox.onclick = (click) => {
-				if (document.getElementById(evnt).checked && !eventSubscriptions[evnt]) {
-					eventSubscriptions[evnt] = thing.events[evnt].subscribe(
-						(response) => {
-							// window.alert("Event " + evnt + " detected\nMessage: " + response);
-							updateProperties();
-						},
-						(error) => { window.alert("Event " + evnt + " error\nMessage: " + error); }
-					)
+				if (document.getElementById(evnt).checked && !eventSubscriptions[evnt] && eventSubscriptions[evnt]===false) {
+					console.log("Try subscribing for event: " + evnt);
+					eventSubscriptions[evnt] = true;
+					thing.subscribeEvent(evnt, function (data) {
+						console.log("Data:" + data);
+						updateProperties();
+					})
+					.then(()=> {
+						// OK
+					})
+					.catch((error) => {  window.alert("Event " + evnt + " error\nMessage: " + error); })
+					;
 				} else if (!document.getElementById(evnt).checked && eventSubscriptions[evnt]) {
-					eventSubscriptions[evnt].unsubscribe();
+					console.log("Try to unsubscribing for event: " + evnt);
+					eventSubscriptions[evnt] = false;
+					thing.unsubscribeEvent(evnt)
+					.then(()=> {
+						// OK
+					})
+					.catch((error) => {  window.alert("Event " + evnt + " error\nMessage: " + error); });
+					
 				}
 			}
 		}
@@ -126,6 +141,12 @@ function updateProperties() {
 
 var servient = new Wot.Core.Servient();
 servient.addClientFactory(new Wot.Http.HttpClientFactory());
+var helpers = new Wot.Core.Helpers(servient);
 window.onload = () => {
+	// process passed URL
+	let $_GET = location.search.substr(1).split("&").reduce((o,i)=>(u=decodeURIComponent,[k,v]=i.split("="),o[u(k)]=v&&u(v),o),{});
+	if($_GET["url"]) {
+		document.getElementById("td_addr").value = $_GET["url"];
+	}
 	get_td(document.getElementById("td_addr").value);
 };
