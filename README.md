@@ -1,7 +1,7 @@
 # Eclipse Thingweb node-wot
 W3C Web of Things implementation on NodeJS.
 
-Visit http://www.thingweb.io for a hands-on tutorial or additional information.
+Visit http://www.thingweb.io for a [hands-on tutorial](http://www.thingweb.io/hands-on.html) or additional information.
 
 [![Build Status](https://travis-ci.org/eclipse/thingweb.node-wot.svg?branch=master)](https://travis-ci.org/eclipse/thingweb.node-wot)
 
@@ -64,6 +64,23 @@ npm install @node-wot/core
 npm install @node-wot/binding-coap
 ```
 Alternatively you can add `@node-wot/<package-name>`as a dependency to your `package.json`.
+
+#### As a dev dependency (debugging)
+
+If you want to develop applications for wot-runtime, you can use the command-line interface to run and debug your local scripts. First, install the CLI module as a dev-dependency:
+
+```
+npm install @node-wot/cli --save-dev
+```
+Then to start `.js` files in the current directory use the following command `wot-runtime` (or `node packages\cli\dist\cli.js`):
+
+For example, if you want to run a specific file or a list of files just append the file paths:
+```
+wot-runtime script1.js ./src/script2.js
+```
+Finally, to debug use the option `--inspect` or `--inspect-brk` if you want to hang until your debug client is connected. Then start [Chrome Dev Tools](chrome://inspect) or [vscode debugger](https://code.visualstudio.com/docs/nodejs/nodejs-debugging#_attaching-to-nodejs) or your preferred v8 inspector to debug your code.
+
+For further details check: `wot-runtime --help`
 
 ### As a standalone application
 #### Clone and build

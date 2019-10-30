@@ -216,8 +216,20 @@ export default class HttpClient implements ProtocolClient {
         res.on("data", (data) => { body.push(data) });
         res.on("end", () => {
           if (active) {
-            this.checkResponse(res.statusCode, contentType, Buffer.concat(body), next, error);
-            polling();
+            this.checkResponse(
+              res.statusCode,
+              contentType,
+              Buffer.concat(body),
+              (data: any) => { 
+                next(data);
+                polling();
+              },
+              (err: any) => {
+                if (error) error(err);
+                if (complete) complete();
+                active = false;
+              }
+            );
           }
         });
       });

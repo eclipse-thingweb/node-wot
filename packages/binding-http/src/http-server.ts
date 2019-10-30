@@ -119,7 +119,7 @@ export default class HttpServer implements ProtocolServer {
         });
         resolve();
       });
-      this.server.listen(this.port, this.address);
+      this.server.listen(+process.env.PORT || this.port, this.address);
     });
   }
 

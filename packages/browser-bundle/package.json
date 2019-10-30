@@ -4,7 +4,7 @@
   "description": "A node-wot bundle that can run in a web browser",
   "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
   "license": "EPL-2.0 OR W3C-20150513",
-  "repository": "https://github.com/thingweb/node-wot/tree/master/packages/browser-bundle",
+  "repository": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/browser-bundle",
   "publishConfig": {
     "access": "public"
   },

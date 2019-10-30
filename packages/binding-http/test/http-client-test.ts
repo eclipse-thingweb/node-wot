@@ -17,19 +17,22 @@
  * Protocol test suite to test protocol implementations
  */
 
-import { suite, test, slow, timeout, skip, only } from "mocha-typescript";
-import { expect, should, assert } from "chai";
-// should must be called to augment all variables
-should();
+import { suite, test } from "mocha-typescript";
+import { expect, should, use, spy } from "chai";
 
 import * as http from "http";
 import * as url from "url";
 import { AddressInfo } from "net";
 
-import { Content, ContentSerdes, ProtocolServer } from "@node-wot/core";
+import { ContentSerdes, ProtocolServer } from "@node-wot/core";
 
 import HttpClient from "../src/http-client";
-import { endianness } from "os";
+import { HttpForm } from "../src/http";
+
+// should must be called to augment all variables
+should();
+// Add spies
+use(require("chai-spies"));
 
 interface TestVector {
     op: Array<string>;
@@ -235,5 +238,57 @@ class HttpClientTest {
         representation = await client.invokeResource(inputVector.form);
 
         return httpServer.stop();
+    }
+
+    @test "should call error() and complete() on subscription with no connection"(done: any) {
+
+        let client = new HttpClient();
+
+        // Subscribe to an event
+        let form: HttpForm = {
+            op: ["subscribeevent"],
+            href: "http://404.localhost"
+        };
+
+        let errorSpy = spy();
+        let completeSpy = spy(function () {
+            errorSpy.should.have.been.called.once;
+            completeSpy.should.have.been.called.once;
+            done();
+        });
+        
+        client.subscribeResource(form, (data) => {}, errorSpy, completeSpy);
+
+        return;
+    }
+
+    @test "should call error() and complete() on subscription with wrong URL"(done: any) {
+
+        let client = new HttpClient();
+
+        // Subscribe to an event
+        let form: HttpForm = {
+            op: ["subscribeevent"],
+            href: "http://localhost:60604/"
+        };
+
+        let errorSpy = spy();
+        let completeSpy = spy(function () {
+            errorSpy.should.have.been.called.once;
+            completeSpy.should.have.been.called.once;
+            done();
+        });
+
+        let server = http.createServer((req, res) => { 
+            res.writeHead(404); 
+            res.end(); 
+        });
+
+        server.listen(60604, "0.0.0.0");
+        server.once('listening', () => {
+            client.subscribeResource(form, (data) => {}, errorSpy, completeSpy)
+        });
+
+        return;
     }
 }

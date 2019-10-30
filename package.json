@@ -5,7 +5,7 @@
   "license": "EPL-2.0 OR W3C-20150513",
   "repository": {
     "type": "git",
-    "url": "https://github.com/thingweb/node-wot.git"
+    "url": "https://github.com/eclipse/thingweb.node-wot.git"
   },
   "devDependencies": {
     "lerna": "^3.18.1",

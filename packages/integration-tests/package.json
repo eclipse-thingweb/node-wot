@@ -5,7 +5,7 @@
   "description": "Integration tests for node-wot (not published)",
   "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
   "license": "EPL-2.0 OR W3C-20150513",
-  "repository": "https://github.com/thingweb/node-wot/tree/master/packages/integration-tests",
+  "repository": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/integration-tests",
   "devDependencies": {
     "@types/chai": "4.0.4",
     "@types/node": "10.9.4",
