@@ -43,12 +43,12 @@ export default class WoTImpl implements WoT.WoT {
                 let thing: TD.Thing;
                 thing = TD.parseTD(JSON.stringify(td), true);
                 let newThing: ConsumedThing = Helpers.extend(thing, new ConsumedThing(this.srv));
-    
+
                 newThing.extendInteractions();
-        
+
                 console.info(`WoTImpl consuming TD ${newThing.id ? "'" + newThing.id + "'" : "without id"} to instantiate ConsumedThing '${newThing.title}'`);
                 resolve(newThing);
-            } catch(err) {
+            } catch (err) {
                 reject(new Error("Cannot consume TD because " + err.message));
             }
         });
@@ -57,23 +57,23 @@ export default class WoTImpl implements WoT.WoT {
     // Note: copy from td-parser.ts 
     addDefaultLanguage(thing: any) {
         // add @language : "en" if no @language set
-        if(Array.isArray(thing["@context"])) {
-          let arrayContext: Array<any> = thing["@context"];
-          let languageSet = false;
-          for (let arrayEntry of arrayContext) {
-            if(typeof arrayEntry == "object") {
-              if(arrayEntry["@language"] !== undefined) {
-                languageSet = true;
-              }
+        if (Array.isArray(thing["@context"])) {
+            let arrayContext: Array<any> = thing["@context"];
+            let languageSet = false;
+            for (let arrayEntry of arrayContext) {
+                if (typeof arrayEntry == "object") {
+                    if (arrayEntry["@language"] !== undefined) {
+                        languageSet = true;
+                    }
+                }
             }
-          }
-          if(!languageSet) {
-            arrayContext.push({
-              "@language": TD.DEFAULT_CONTEXT_LANGUAGE
-            });
-          }
+            if (!languageSet) {
+                arrayContext.push({
+                    "@language": TD.DEFAULT_CONTEXT_LANGUAGE
+                });
+            }
         }
-      }
+    }
 
     /**
      * create a new Thing
@@ -89,18 +89,18 @@ export default class WoTImpl implements WoT.WoT {
                 let template = td;
                 this.addDefaultLanguage(template);
                 newThing = Helpers.extend(template, new ExposedThing(this.srv));
-        
+
                 // augment Interaction descriptions with interactable functions
                 newThing.extendInteractions();
-        
+
                 console.info(`WoTImpl producing new ExposedThing '${newThing.title}'`);
-                
+
                 if (this.srv.addThing(newThing)) {
                     resolve(newThing);
                 } else {
                     throw new Error("Thing already exists: " + newThing.title);
                 }
-            } catch(err) {
+            } catch (err) {
                 reject(new Error("Cannot produce ExposedThing because " + err.message));
             }
         });
@@ -124,7 +124,7 @@ export class ThingDiscoveryImpl implements WoT.ThingDiscovery {
     done: boolean;
     error?: Error;
     constructor(filter?: WoT.ThingFilter) {
-        this.filter = filter ? filter: null;
+        this.filter = filter ? filter : null;
         this.active = false;
         this.done = false;
         this.error = new Error("not implemented");

@@ -91,12 +91,12 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 
         return new Promise<void>((resolve, reject) => {
             // let servient forward exposure to the servers
-            this.getServient().expose(this).then( () => {
+            this.getServient().expose(this).then(() => {
                 // inform TD observers
                 this.getSubjectTD().next(this.getThingDescription());
                 resolve();
             })
-            .catch( (err) => reject(err) );
+                .catch((err) => reject(err));
         });
     }
 
@@ -158,7 +158,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                 // call read handler (if any)
                 if (this.properties[propertyName].getState().readHandler != null) {
                     console.log(`ExposedThing '${this.title}' calls registered readHandler for Property '${propertyName}'`);
-                    let ps : PropertyState = this.properties[propertyName].getState();
+                    let ps: PropertyState = this.properties[propertyName].getState();
                     ps.readHandler(options).then((customValue) => {
                         // update internal state in case writeHandler wants to get the value
                         this.properties[propertyName].value = customValue;
@@ -179,31 +179,31 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     _readProperties(propertyNames: string[], options?: WoT.InteractionOptions): Promise<WoT.PropertyValueMap> {
         return new Promise<object>((resolve, reject) => {
             // collect all single promises into array
-            var promises : Promise<any>[] = [];
+            var promises: Promise<any>[] = [];
             for (let propertyName of propertyNames) {
                 promises.push(this.readProperty(propertyName, options));
             }
             // wait for all promises to succeed and create response
             Promise.all(promises)
-            .then((result) => {
-                let allProps : {
-                    [key: string]: any;
-                } = {};
-                let index = 0;
-                for (let propertyName of propertyNames) {
-                    allProps[propertyName] = result[index];
-                    index++;
-                }
-                resolve(allProps);
-            })
-            .catch(err => {
-                reject(new Error(`ExposedThing '${this.title}', failed to read properties ` + propertyNames));
-            });
+                .then((result) => {
+                    let allProps: {
+                        [key: string]: any;
+                    } = {};
+                    let index = 0;
+                    for (let propertyName of propertyNames) {
+                        allProps[propertyName] = result[index];
+                        index++;
+                    }
+                    resolve(allProps);
+                })
+                .catch(err => {
+                    reject(new Error(`ExposedThing '${this.title}', failed to read properties ` + propertyNames));
+                });
         });
     }
 
     readAllProperties(options?: WoT.InteractionOptions): Promise<WoT.PropertyValueMap> {
-        let propertyNames : string[] = [];
+        let propertyNames: string[] = [];
         for (let propertyName in this.properties) {
             propertyNames.push(propertyName);
         }
@@ -218,30 +218,30 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             let options = null; // TODO
             // call write handler (if any)
             if (this.properties[propertyName].getState().writeHandler != null) {
-                
+
                 // be generous when no promise is returned
-                let ps : PropertyState = this.properties[propertyName].getState();
+                let ps: PropertyState = this.properties[propertyName].getState();
                 let promiseOrValueOrNil = ps.writeHandler(value, options);
-                
+
                 if (promiseOrValueOrNil !== undefined) {
                     if (typeof promiseOrValueOrNil.then === "function") {
                         promiseOrValueOrNil.then((customValue) => {
                             console.log(`ExposedThing '${this.title}' write handler for Property '${propertyName}' sets custom value '${customValue}'`);
                             /** notify state change */
                             // FIXME object comparison
-                            if (this.properties[propertyName].getState().value!==customValue) {
+                            if (this.properties[propertyName].getState().value !== customValue) {
                                 this.properties[propertyName].getState().subject.next(customValue);
                             }
                             this.properties[propertyName].getState().value = customValue;
                             resolve();
                         })
-                        .catch((customError) => {
-                            console.warn(`ExposedThing '${this.title}' write handler for Property '${propertyName}' rejected the write with error '${customError}'`);
-                            reject(customError);
-                        });
-                    } else  {
+                            .catch((customError) => {
+                                console.warn(`ExposedThing '${this.title}' write handler for Property '${propertyName}' rejected the write with error '${customError}'`);
+                                reject(customError);
+                            });
+                    } else {
                         console.warn(`ExposedThing '${this.title}' write handler for Property '${propertyName}' does not return promise`);
-                        if (this.properties[propertyName].getState().value!==promiseOrValueOrNil) {
+                        if (this.properties[propertyName].getState().value !== promiseOrValueOrNil) {
                             this.properties[propertyName].getState().subject.next(<any>promiseOrValueOrNil);
                         }
                         this.properties[propertyName].getState().value = <any>promiseOrValueOrNil;
@@ -249,8 +249,8 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                     }
                 } else {
                     console.warn(`ExposedThing '${this.title}' write handler for Property '${propertyName}' does not return custom value, using direct value '${value}'`);
-                    
-                    if (this.properties[propertyName].getState().value!==value) {
+
+                    if (this.properties[propertyName].getState().value !== value) {
                         this.properties[propertyName].getState().subject.next(value);
                     }
                     this.properties[propertyName].getState().value = value;
@@ -259,7 +259,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             } else {
                 console.log(`ExposedThing '${this.title}' directly sets Property '${propertyName}' to value '${value}'`);
                 /** notify state change */
-                if (this.properties[propertyName].getState().value!==value) {
+                if (this.properties[propertyName].getState().value !== value) {
                     this.properties[propertyName].getState().subject.next(value);
                 }
                 this.properties[propertyName].getState().value = value;
@@ -270,19 +270,19 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     writeMultipleProperties(valueMap: WoT.PropertyValueMap, options?: WoT.InteractionOptions): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             // collect all single promises into array
-            var promises : Promise<void>[] = [];
+            var promises: Promise<void>[] = [];
             for (let propertyName in valueMap) {
-                let oValueMap :  { [key: string]: any; } = valueMap;
+                let oValueMap: { [key: string]: any; } = valueMap;
                 promises.push(this.writeProperty(propertyName, oValueMap[propertyName], options));
             }
             // wait for all promises to succeed and create response
             Promise.all(promises)
-            .then((result) => {
-                resolve();
-            })
-            .catch(err => {
-                reject(new Error(`ExposedThing '${this.title}', failed to read properties ` + valueMap));
-            });
+                .then((result) => {
+                    resolve();
+                })
+                .catch(err => {
+                    reject(new Error(`ExposedThing '${this.title}', failed to read properties ` + valueMap));
+                });
         });
     }
 
@@ -309,7 +309,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                 let next = listener;
                 let error = null;
                 let complete = null;
-                let sub : Subject<Content> = this.properties[name].getState().subject;
+                let sub: Subject<Content> = this.properties[name].getState().subject;
                 sub.asObservable().subscribe(next, error, complete);
                 console.log(`ExposedThing '${this.title}' subscribes to property '${name}'`);
             } else {
@@ -321,7 +321,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     public unobserveProperty(name: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             if (this.properties[name]) {
-                let sub : Subject<Content> = this.properties[name].getState().subject;
+                let sub: Subject<Content> = this.properties[name].getState().subject;
                 // sub.unsubscribe();  // XXX causes loop issue (see browser counter example)
                 console.log(`ExposedThing '${this.title}' unsubscribes from property '${name}'`);
             } else {
@@ -336,8 +336,8 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                 let next = listener;
                 let error = null;
                 let complete = null;
-                let sub : Subject<any> = this.events[name].getState().subject;
-                sub.asObservable().subscribe(next, error, complete); 
+                let sub: Subject<any> = this.events[name].getState().subject;
+                sub.asObservable().subscribe(next, error, complete);
                 console.log(`ExposedThing '${this.title}' subscribes to event '${name}'`);
             } else {
                 reject(new Error(`ExposedThing '${this.title}', no event found for '${name}'`));
@@ -348,7 +348,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     public unsubscribeEvent(name: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             if (this.events[name]) {
-                let sub : Subject<any> = this.events[name].getState().subject;
+                let sub: Subject<any> = this.events[name].getState().subject;
                 // sub.unsubscribe(); // XXX causes loop issue (see browser counter example)
                 console.log(`ExposedThing '${this.title}' unsubscribes from event '${name}'`);
             } else {
@@ -432,7 +432,7 @@ class PropertyState {
     constructor(value: any = null) {
         this.value = value;
         this.subject = new Subject<Content>();
-        this.scope = {};        
+        this.scope = {};
         this.writeHandler = null;
         this.readHandler = null;
     }
