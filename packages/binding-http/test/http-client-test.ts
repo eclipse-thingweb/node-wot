@@ -18,7 +18,7 @@
  */
 
 import { suite, test } from "mocha-typescript";
-import { expect, should, use, spy } from "chai";
+import { expect, should, use } from "chai";
 
 import * as http from "http";
 import * as url from "url";
@@ -32,7 +32,12 @@ import { HttpForm } from "../src/http";
 // should must be called to augment all variables
 should();
 // Add spies
-use(require("chai-spies"));
+const chai = require('chai')
+  , spies = require('chai-spies');
+
+chai.use(spies);
+
+// use(require("chai"));
 
 interface TestVector {
     op: Array<string>;
@@ -250,8 +255,8 @@ class HttpClientTest {
             href: "http://404.localhost"
         };
 
-        let errorSpy = spy();
-        let completeSpy = spy(function () {
+        let errorSpy = chai.spy();
+        let completeSpy = chai.spy(function () {
             errorSpy.should.have.been.called.once;
             completeSpy.should.have.been.called.once;
             done();
@@ -272,8 +277,8 @@ class HttpClientTest {
             href: "http://localhost:60604/"
         };
 
-        let errorSpy = spy();
-        let completeSpy = spy(function () {
+        let errorSpy = chai.spy();
+        let completeSpy = chai.spy(function () {
             errorSpy.should.have.been.called.once;
             completeSpy.should.have.been.called.once;
             done();
