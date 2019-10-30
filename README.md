@@ -65,18 +65,16 @@ npm install @node-wot/binding-coap
 ```
 Alternatively you can add `@node-wot/<package-name>`as a dependency to your `package.json`.
 
-#### As a dev dependency
+#### As a dev dependency (debugging)
 
 If you want to develop applications for wot-runtime, you can use the command-line interface to run and debug your local scripts. First, install the CLI module as a dev-dependency:
 
 ```
 npm install @node-wot/cli --save-dev
 ```
-Then to start all `.js` files in the current directory use the following command:
-```
-wot-runtime
-```
-If you want to run a specific file or a list of files just append the file paths to the previous command:
+Then to start `.js` files in the current directory use the following command `wot-runtime` (or `node packages\cli\dist\cli.js`):
+
+For example, if you want to run a specific file or a list of files just append the file paths:
 ```
 wot-runtime script1.js ./src/script2.js
 ```
