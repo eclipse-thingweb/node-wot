@@ -381,82 +381,6 @@ class ExposedThingProperty extends TD.ThingProperty implements TD.ThingProperty,
         this.writeOnly = false;
         this.observable = false;
     }
-
-    // /** WoT.ThingProperty interface: read this Property locally (async) */
-    // public read(options?: any): Promise<any> {
-    //     return new Promise<any>((resolve, reject) => {
-    //         // call read handler (if any)
-    //         if (this.getState().readHandler != null) {
-    //             console.log(`ExposedThing '${this.getThing().title}' calls registered readHandler for Property '${this.getName()}'`);
-    //             this.getState().readHandler(options).then((customValue) => {
-    //                 // update internal state in case writeHandler wants to get the value
-    //                 this.getState().value = customValue;
-    //                 resolve(customValue);
-    //             });
-    //         } else {
-    //             console.log(`ExposedThing '${this.getThing().title}' gets internal value '${this.getState().value}' for Property '${this.getName()}'`);
-    //             resolve(this.getState().value);
-    //         }
-    //     });
-    // }
-
-    // /** WoT.ThingProperty interface: write this Property locally (async) */
-    // public write(value: any, options?: any): Promise<void> {
-    //     return new Promise<void>((resolve, reject) => {
-    //         // call write handler (if any)
-    //         if (this.getState().writeHandler != null) {
-                
-    //             // be generous when no promise is returned
-    //             let promiseOrValueOrNil = this.getState().writeHandler(value, options);
-                
-    //             if (promiseOrValueOrNil !== undefined) {
-    //                 if (typeof promiseOrValueOrNil.then === "function") {
-    //                     promiseOrValueOrNil.then((customValue) => {
-    //                         console.log(`ExposedThing '${this.getThing().title}' write handler for Property '${this.getName()}' sets custom value '${customValue}'`);
-    //                         /** notify state change */
-    //                         // FIXME object comparison
-    //                         if (this.getState().value!==customValue) {
-    //                             this.getState().subject.next(customValue);
-    //                         }
-    //                         this.getState().value = customValue;
-    //                         resolve();
-    //                     })
-    //                     .catch((customError) => {
-    //                         console.warn(`ExposedThing '${this.getThing().title}' write handler for Property '${this.getName()}' rejected the write with error '${customError}'`);
-    //                         reject(customError);
-    //                     });
-    //                 } else  {
-    //                     console.warn(`ExposedThing '${this.getThing().title}' write handler for Property '${this.getName()}' does not return promise`);
-    //                     if (this.getState().value!==promiseOrValueOrNil) {
-    //                         this.getState().subject.next(<any>promiseOrValueOrNil);
-    //                     }
-    //                     this.getState().value = <any>promiseOrValueOrNil;
-    //                     resolve();
-    //                 }
-    //             } else {
-    //                 console.warn(`ExposedThing '${this.getThing().title}' write handler for Property '${this.getName()}' does not return custom value, using direct value '${value}'`);
-                    
-    //                 if (this.getState().value!==value) {
-    //                     this.getState().subject.next(value);
-    //                 }
-    //                 this.getState().value = value;
-    //                 resolve();
-    //             }
-    //         } else {
-    //             console.log(`ExposedThing '${this.getThing().title}' directly sets Property '${this.getName()}' to value '${value}'`);
-    //             /** notify state change */
-    //             if (this.getState().value!==value) {
-    //                 this.getState().subject.next(value);
-    //             }
-    //             this.getState().value = value;
-    //             resolve();
-    //         }
-    //     });
-    // }
-
-    // public subscribe(next?: (value: any) => void, error?: (error: any) => void, complete?: () => void): Subscription {
-    //     return this.getState().subject.asObservable().subscribe(next, error, complete);
-    // }
 }
 
 class ExposedThingAction extends TD.ThingAction implements TD.ThingAction {
@@ -476,20 +400,6 @@ class ExposedThingAction extends TD.ThingAction implements TD.ThingAction {
             getInternalState = () => { return this.state };
         }).getInternalState;
     }
-
-    // /** WoT.ThingAction interface: invoke this Action locally (async) */
-    // public invoke(parameter?: any, options?: any): Promise<any> {
-    //     return new Promise<any>((resolve, reject) => {
-    //         console.debug(`ExposedThing '${this.getThing().title}' has Action state of '${this.getName()}':`, this.getState());
-
-    //         if (this.getState().handler != null) {
-    //             console.log(`ExposedThing '${this.getThing().title}' calls registered handler for Action '${this.getName()}'`);
-    //             resolve(this.getState().handler(parameter, options));
-    //         } else {
-    //             reject(new Error(`ExposedThing '${this.getThing().title}' has no handler for Action '${this.getName()}'`));
-    //         }
-    //     });
-    // }
 }
 
 class ExposedThingEvent extends TD.ThingEvent implements TD.ThingEvent {
@@ -509,22 +419,6 @@ class ExposedThingEvent extends TD.ThingEvent implements TD.ThingEvent {
             getInternalState = () => { return this.state };
         }).getInternalState;
     }
-
-    // /** WoT.ThingEvent interface: subscribe to this Event locally */
-    // public subscribe(next?: (value: any) => void, error?: (error: any) => void, complete?: () => void): Subscription {
-    //     return this.getState().subject.asObservable().subscribe(
-    //         next,
-    //         error,
-    //         complete
-    //     );
-    // }
-
-    // // FIXME maybe move
-    // /** WoT.ThingEvent interface: emit a new Event instance */
-    // public emit(data?: any): void {
-    //     // TODO validate against this.data
-    //     this.getState().subject.next(data);
-    // }
 }
 
 class PropertyState {
