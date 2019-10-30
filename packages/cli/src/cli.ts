@@ -30,6 +30,13 @@ var clientOnly: boolean = false;
 var flagArgConfigfile = false;
 var confFile: string;
 
+interface DebugParams {
+    shouldBreak: boolean,
+    host: string,
+    port: Number
+}
+var debug: DebugParams;
+
 const readConf = function (filename: string): Promise<any> {
     return new Promise((resolve, reject) => {
         let open = filename ? filename : path.join(baseDir, defaultFile);
@@ -51,22 +58,59 @@ const readConf = function (filename: string): Promise<any> {
     });
 }
 
-const runScripts = function(servient: DefaultServient, scripts: Array<string>) {
-    scripts.forEach((fname) => {
-        console.info("WoT-Servient reading script", fname);
-        fs.readFile(fname, "utf8", (err, data) => {
-            if (err) {
-                console.error("WoT-Servient experienced error while reading script", err);
-            } else {
-                // limit printout to first line
-                console.info(`WoT-Servient running script '${data.substr(0, data.indexOf("\n")).replace("\r", "")}'... (${data.split(/\r\n|\r|\n/).length} lines)`);
-                servient.runPrivilegedScript(data, fname);
-            }
+const runScripts =async function(servient: DefaultServient, scripts: Array<string>,debug?: DebugParams) {
+    const launchScripts = (scripts : Array<string> ) => {
+        scripts.forEach((fname : string) => {
+            console.info("WoT-Servient reading script", fname);
+            fs.readFile(fname, "utf8", (err, data) => {
+                if (err) {
+                    console.error("WoT-Servient experienced error while reading script", err);
+                } else {
+                    // limit printout to first line
+                    console.info(`WoT-Servient running script '${data.substr(0, data.indexOf("\n")).replace("\r", "")}'... (${data.split(/\r\n|\r|\n/).length} lines)`);
+                    fname = path.resolve(fname)
+                    servient.runPrivilegedScript(data, fname);
+                }
+            });
         });
-    });
+    }
+    
+    const inspector = require('inspector');
+    if(debug  && debug.shouldBreak){
+        // Activate inspector only if is not already opened and wait for the debugger to attach
+        !inspector.url() && inspector.open(debug.port,debug.host, true)
+
+        // Set a breakpoint at the first line of of first script
+        // the breakpoint gives time to inspector clients to set their breakpoints
+        const session = new inspector.Session();
+        session.connect();
+        session.post("Debugger.enable", (error: any) => {
+            if(error){
+                console.warn("Cannot set breakpoint; reason: cannot enable debugger")
+                console.warn(error)
+            }
+           
+            session.post("Debugger.setBreakpointByUrl", {
+                lineNumber: 0,
+                url: "file:///" + path.resolve(scripts[0]).replace(/\\/g, '/')
+            }, (err: any) => {
+                if (err) {
+                    console.warn("Cannot set breakpoint")
+                    console.warn(error)
+                }
+                launchScripts(scripts)
+            })
+        });
+
+    }else{
+        // Activate inspector only if is not already opened and don't wait
+        debug && !inspector.url() && inspector.open(debug.port, debug.host, false);
+        launchScripts(scripts)
+    }
+    
 }
 
-const runAllScripts = function(servient: DefaultServient) {
+const runAllScripts = function(servient: DefaultServient,debug?: DebugParams) {
     fs.readdir(baseDir, (err, files) => {
         if (err) {
             console.warn("WoT-Servient experienced error while loading directory", err);
@@ -79,7 +123,7 @@ const runAllScripts = function(servient: DefaultServient) {
         });
         console.info(`WoT-Servient using current directory with ${scripts.length} script${scripts.length>1 ? "s" : ""}`);
         
-        runScripts(servient, scripts.map(filename => path.join(baseDir, filename)));
+        runScripts(servient, scripts.map(filename => path.resolve(path.join(baseDir, filename))),debug);
     });
 }
 
@@ -101,6 +145,17 @@ for( let i = 0; i < argv.length; i++){
         argv.splice(i, 1);
         i--;
 
+    } else if (argv[i].match(/^(-i|-ib|--inspect(-brk)?(=([a-z]*|[\d .]*):?(\d*))?|\/i|\/ib)$/i)) {
+        let matches = argv[i].match(/^(-i|-ib|--inspect(-brk)?(=([a-z]*|[\d .]*):?(\d*))?|\/i|\/ib)$/i)
+        debug = {
+            shouldBreak: matches[2] === "-brk" || matches[1] === "-ib" || matches[1] === "/ib",
+            host: matches[4] ? matches[4] : "127.0.0.1",     // default host
+            port: matches[5] ? parseInt(matches[5]) : 9229   // default port
+        }
+
+        argv.splice(i, 1);
+        i--;
+
     } else if (argv[i].match(/^(-v|--version|\/c)$/i)) {
         console.log( require('@node-wot/core/package.json').version );
         process.exit(0);
@@ -118,11 +173,13 @@ If one or more SCRIPT is given, these files are loaded instead of the directory.
 If the file 'wot-servient.conf.json' exists, that configuration is applied.
 
 Options:
-  -v, --version            display node-wot version
-  -c, --clientonly         do not start any servers
-                           (enables multiple instances without port conflicts)
-  -f, --configfile <file>  load configuration from specified file
-  -h, --help               show this help
+  -v,  --version                   display node-wot version
+  -i,  --inspect[=[host:]port]     activate inspector on host:port (default: 127.0.0.1:9229)
+  -ib, --inspect-brk[=[host:]port] activate inspector on host:port and break at start of user script
+  -c,  --clientonly                do not start any servers
+                                   (enables multiple instances without port conflicts)
+  -f,  --configfile <file>         load configuration from specified file
+  -h,  --help                      show this help
 
 wot-servient.conf.json syntax:
 {
@@ -194,9 +251,9 @@ readConf(confFile)
             .then(() => {
                 if (argv.length>0) {
                     console.info(`WoT-Servient loading ${argv.length} command line script${argv.length>1 ? "s" : ""}`);
-                    return runScripts(servient, argv);
+                    return runScripts(servient, argv, debug);
                 } else {
-                    return runAllScripts(servient);
+                    return runAllScripts(servient, debug);
                 }
             })
             .catch((err) => {
