@@ -9,6 +9,15 @@
             "program": "${workspaceRoot}/packages/cli/dist/cli.js",
             "args": ["--clientonly", "counter-client.js"],
             "cwd": "${workspaceRoot}/examples/scripts/"
+        },
+        {
+            "type": "node",
+            "request": "attach",
+            "name": "Attach to Remote",
+            "address": "localhost",
+            "port": 9229,
+            "localRoot": "${workspaceFolder}/examples/scripts/",
+            "remoteRoot": "${workspaceRoot}/examples/scripts/"
         }
     ]
 }
