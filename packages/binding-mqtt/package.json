@@ -30,7 +30,7 @@
     "@node-wot/td-tools": "0.7.0-SNAPSHOT.2",
     "@node-wot/core": "0.7.0-SNAPSHOT.2",
     "rxjs": "5.4.3",
-    "mqtt": "2.18.0"
+    "mqtt": "3.0.0"
   },
   "scripts": {
     "build": "tsc",

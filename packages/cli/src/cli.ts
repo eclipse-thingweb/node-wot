@@ -194,11 +194,11 @@ wot-servient.conf.json syntax:
         "allowSelfSigned": ALLOW
     },
     "mqtt" : {
-        "broker" : "BROKER-URL",
-        "username" : "USERNAME",
-        "password" : "PASSWORD",
-        "clientId" : "UNIQUEID",
-        "port": 1883 
+        "broker": BROKER-URL,
+        "username": BROKER-USERNAME,
+        "password": BROKER-PASSWORD,
+        "clientId": BROKER-UNIQUEID,
+        "protocolVersion": MQTT_VERSION
     },
     "credentials": {
         THING_ID1: {
@@ -215,20 +215,21 @@ wot-servient.conf.json fields:
   ---------------------------------------------------------------------------
   All entries in the config file structure are optional
   ---------------------------------------------------------------------------
-  CLIENTONLY : boolean setting if no servers shall be started (default=false)
-  STATIC     : string with hostname or IP literal for static address config
-  RUNSCRIPT  : boolean to activate the 'runScript' Action (default=false)
-  HPORT      : integer defining the HTTP listening port
-  PROXY      : object with "href" field for the proxy URI,
-                           "scheme" field for either "basic" or "bearer", and
-                           corresponding credential fields as defined below
-  ALLOW      : boolean whether self-signed certificates should be allowed
-  THING_IDx  : string with TD "id" for which credentials should be configured
-  UNIQUEID   : unique id set by mqtt client while connecting to broker
-  BROKER-URL : URL to an MQTT broker that publisher and subscribers will use
-  TOKEN      : string for providing a Bearer token
-  USERNAME   : string for providing a Basic Auth username
-  PASSWORD   : string for providing a Basic Auth password`);
+  CLIENTONLY      : boolean setting if no servers shall be started (default=false)
+  STATIC          : string with hostname or IP literal for static address config
+  RUNSCRIPT       : boolean to activate the 'runScript' Action (default=false)
+  HPORT           : integer defining the HTTP listening port
+  PROXY           : object with "href" field for the proxy URI,
+                                "scheme" field for either "basic" or "bearer", and
+                                corresponding credential fields as defined below
+  ALLOW           : boolean whether self-signed certificates should be allowed
+  BROKER-URL      : URL to an MQTT broker that publisher and subscribers will use
+  BROKER-UNIQUEID : unique id set by mqtt client while connecting to broker
+  MQTT_VERSION    : number indicating the MQTT protocol version to be used (3, 4, or 5)
+  THING_IDx       : string with TD "id" for which credentials should be configured
+  TOKEN           : string for providing a Bearer token
+  USERNAME        : string for providing a Basic Auth username
+  PASSWORD        : string for providing a Basic Auth password`);
         process.exit(0);
     }
 }
