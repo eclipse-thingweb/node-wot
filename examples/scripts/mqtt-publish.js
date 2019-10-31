@@ -13,39 +13,40 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-try {
-  var counter  = 0;
-  var thing = WoT.produce({ 
-      title: "MQTT-Test",
-      description: "Tests a MQTT client that published counter values as an WoT event and subscribes the resetCounter topic as WoT action to reset the own counter."
-  });
+var counter  = 0;
 
-  console.info("Setup MQTT broker address/port details in wot-servient.conf.json (also see sample in wot-servient.conf.json_mqtt)!");
+WoT.produce({ 
+	title: "MQTT-Test",
+	description: "Tests a MQTT client that published counter values as an WoT event and subscribes the resetCounter topic as WoT action to reset the own counter.",
+	actions: {
+		resetCounter: {
+			description: "Reset counter"
+		}
+	},
+	events: {
+		counterEvent: {
+			description: "Get counter"
+		}
+	}
+})
+.then((thing) => {
+	console.info("Setup MQTT broker address/port details in wot-servient.conf.json (also see sample in wot-servient.conf.json_mqtt)!");
 
-  thing
-    .addAction(
-      "resetCounter",
-      {},
-      () => {
-        console.log("Resetting counter");
-        counter = 0;
-        return;
-      })
-    .addEvent(
-      "counterEvent",
-      {
-        type: "integer" 
-      });
-  
-  thing.expose().then(() => {
-    console.info(thing.title + " ready");
-    setInterval(() => {
-        ++counter;
-        thing.events.counterEvent.emit(counter);
-        console.info("New count", counter);
-    }, 1000);
-  }).catch((err) => { console.error("Expose error:", err) });
-  
-} catch (err) {
-   console.error("Script error: " + err);
-}
+	thing.setActionHandler("resetCounter", () => {
+		console.log("Resetting counter");
+		counter = 0;
+	});
+
+	thing.expose().then(() => {
+		console.info(thing.title + " ready");
+		
+		setInterval(() => {
+			++counter;
+			thing.emitEvent("counterEvent", counter);
+			console.info("New count", counter);
+		}, 1000);
+	});
+})
+.catch((e) => {
+	console.log(e)
+});
