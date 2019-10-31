@@ -30,13 +30,6 @@ var clientOnly: boolean = false;
 var flagArgConfigfile = false;
 var confFile: string;
 
-interface DebugParams {
-    shouldBreak: boolean,
-    host: string,
-    port: Number
-}
-var debug: DebugParams;
-
 const readConf = function (filename: string): Promise<any> {
     return new Promise((resolve, reject) => {
         let open = filename ? filename : path.join(baseDir, defaultFile);
@@ -58,59 +51,22 @@ const readConf = function (filename: string): Promise<any> {
     });
 }
 
-const runScripts =async function(servient: DefaultServient, scripts: Array<string>,debug?: DebugParams) {
-    const launchScripts = (scripts : Array<string> ) => {
-        scripts.forEach((fname : string) => {
-            console.info("WoT-Servient reading script", fname);
-            fs.readFile(fname, "utf8", (err, data) => {
-                if (err) {
-                    console.error("WoT-Servient experienced error while reading script", err);
-                } else {
-                    // limit printout to first line
-                    console.info(`WoT-Servient running script '${data.substr(0, data.indexOf("\n")).replace("\r", "")}'... (${data.split(/\r\n|\r|\n/).length} lines)`);
-                    fname = path.resolve(fname)
-                    servient.runPrivilegedScript(data, fname);
-                }
-            });
-        });
-    }
-    
-    const inspector = require('inspector');
-    if(debug  && debug.shouldBreak){
-        // Activate inspector only if is not already opened and wait for the debugger to attach
-        !inspector.url() && inspector.open(debug.port,debug.host, true)
-
-        // Set a breakpoint at the first line of of first script
-        // the breakpoint gives time to inspector clients to set their breakpoints
-        const session = new inspector.Session();
-        session.connect();
-        session.post("Debugger.enable", (error: any) => {
-            if(error){
-                console.warn("Cannot set breakpoint; reason: cannot enable debugger")
-                console.warn(error)
+const runScripts = function(servient: DefaultServient, scripts: Array<string>) {
+    scripts.forEach((fname) => {
+        console.info("WoT-Servient reading script", fname);
+        fs.readFile(fname, "utf8", (err, data) => {
+            if (err) {
+                console.error("WoT-Servient experienced error while reading script", err);
+            } else {
+                // limit printout to first line
+                console.info(`WoT-Servient running script '${data.substr(0, data.indexOf("\n")).replace("\r", "")}'... (${data.split(/\r\n|\r|\n/).length} lines)`);
+                servient.runPrivilegedScript(data, fname);
             }
-           
-            session.post("Debugger.setBreakpointByUrl", {
-                lineNumber: 0,
-                url: "file:///" + path.resolve(scripts[0]).replace(/\\/g, '/')
-            }, (err: any) => {
-                if (err) {
-                    console.warn("Cannot set breakpoint")
-                    console.warn(error)
-                }
-                launchScripts(scripts)
-            })
         });
-
-    }else{
-        // Activate inspector only if is not already opened and don't wait
-        debug && !inspector.url() && inspector.open(debug.port, debug.host, false);
-        launchScripts(scripts)
-    }
-    
+    });
 }
 
-const runAllScripts = function(servient: DefaultServient,debug?: DebugParams) {
+const runAllScripts = function(servient: DefaultServient) {
     fs.readdir(baseDir, (err, files) => {
         if (err) {
             console.warn("WoT-Servient experienced error while loading directory", err);
@@ -123,7 +79,7 @@ const runAllScripts = function(servient: DefaultServient,debug?: DebugParams) {
         });
         console.info(`WoT-Servient using current directory with ${scripts.length} script${scripts.length>1 ? "s" : ""}`);
         
-        runScripts(servient, scripts.map(filename => path.resolve(path.join(baseDir, filename))),debug);
+        runScripts(servient, scripts.map(filename => path.join(baseDir, filename)));
     });
 }
 
@@ -145,17 +101,6 @@ for( let i = 0; i < argv.length; i++){
         argv.splice(i, 1);
         i--;
 
-    } else if (argv[i].match(/^(-i|-ib|--inspect(-brk)?(=([a-z]*|[\d .]*):?(\d*))?|\/i|\/ib)$/i)) {
-        let matches = argv[i].match(/^(-i|-ib|--inspect(-brk)?(=([a-z]*|[\d .]*):?(\d*))?|\/i|\/ib)$/i)
-        debug = {
-            shouldBreak: matches[2] === "-brk" || matches[1] === "-ib" || matches[1] === "/ib",
-            host: matches[4] ? matches[4] : "127.0.0.1",     // default host
-            port: matches[5] ? parseInt(matches[5]) : 9229   // default port
-        }
-
-        argv.splice(i, 1);
-        i--;
-
     } else if (argv[i].match(/^(-v|--version|\/c)$/i)) {
         console.log( require('@node-wot/core/package.json').version );
         process.exit(0);
@@ -173,13 +118,11 @@ If one or more SCRIPT is given, these files are loaded instead of the directory.
 If the file 'wot-servient.conf.json' exists, that configuration is applied.
 
 Options:
-  -v,  --version                   display node-wot version
-  -i,  --inspect[=[host:]port]     activate inspector on host:port (default: 127.0.0.1:9229)
-  -ib, --inspect-brk[=[host:]port] activate inspector on host:port and break at start of user script
-  -c,  --clientonly                do not start any servers
-                                   (enables multiple instances without port conflicts)
-  -f,  --configfile <file>         load configuration from specified file
-  -h,  --help                      show this help
+  -v, --version            display node-wot version
+  -c, --clientonly         do not start any servers
+                           (enables multiple instances without port conflicts)
+  -f, --configfile <file>  load configuration from specified file
+  -h, --help               show this help
 
 wot-servient.conf.json syntax:
 {
@@ -194,11 +137,11 @@ wot-servient.conf.json syntax:
         "allowSelfSigned": ALLOW
     },
     "mqtt" : {
-        "broker" : "BROKER-URL",
-        "username" : "USERNAME",
-        "password" : "PASSWORD",
-        "clientId" : "UNIQUEID",
-        "port": 1883 
+        "broker": BROKER-URL,
+        "username": BROKER-USERNAME,
+        "password": BROKER-PASSWORD,
+        "clientId": BROKER-UNIQUEID,
+        "protocolVersion": MQTT_VERSION
     },
     "credentials": {
         THING_ID1: {
@@ -215,20 +158,21 @@ wot-servient.conf.json fields:
   ---------------------------------------------------------------------------
   All entries in the config file structure are optional
   ---------------------------------------------------------------------------
-  CLIENTONLY : boolean setting if no servers shall be started (default=false)
-  STATIC     : string with hostname or IP literal for static address config
-  RUNSCRIPT  : boolean to activate the 'runScript' Action (default=false)
-  HPORT      : integer defining the HTTP listening port
-  PROXY      : object with "href" field for the proxy URI,
-                           "scheme" field for either "basic" or "bearer", and
-                           corresponding credential fields as defined below
-  ALLOW      : boolean whether self-signed certificates should be allowed
-  THING_IDx  : string with TD "id" for which credentials should be configured
-  UNIQUEID   : unique id set by mqtt client while connecting to broker
-  BROKER-URL : URL to an MQTT broker that publisher and subscribers will use
-  TOKEN      : string for providing a Bearer token
-  USERNAME   : string for providing a Basic Auth username
-  PASSWORD   : string for providing a Basic Auth password`);
+  CLIENTONLY      : boolean setting if no servers shall be started (default=false)
+  STATIC          : string with hostname or IP literal for static address config
+  RUNSCRIPT       : boolean to activate the 'runScript' Action (default=false)
+  HPORT           : integer defining the HTTP listening port
+  PROXY           : object with "href" field for the proxy URI,
+                                "scheme" field for either "basic" or "bearer", and
+                                corresponding credential fields as defined below
+  ALLOW           : boolean whether self-signed certificates should be allowed
+  BROKER-URL      : URL to an MQTT broker that publisher and subscribers will use
+  BROKER-UNIQUEID : unique id set by mqtt client while connecting to broker
+  MQTT_VERSION    : number indicating the MQTT protocol version to be used (3, 4, or 5)
+  THING_IDx       : string with TD "id" for which credentials should be configured
+  TOKEN           : string for providing a Bearer token
+  USERNAME        : string for providing a Basic Auth username
+  PASSWORD        : string for providing a Basic Auth password`);
         process.exit(0);
     }
 }
@@ -251,9 +195,9 @@ readConf(confFile)
             .then(() => {
                 if (argv.length>0) {
                     console.info(`WoT-Servient loading ${argv.length} command line script${argv.length>1 ? "s" : ""}`);
-                    return runScripts(servient, argv, debug);
+                    return runScripts(servient, argv);
                 } else {
-                    return runAllScripts(servient, debug);
+                    return runAllScripts(servient);
                 }
             })
             .catch((err) => {

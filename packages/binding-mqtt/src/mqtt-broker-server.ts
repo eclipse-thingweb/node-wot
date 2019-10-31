@@ -36,6 +36,8 @@ export default class MqttBrokerServer implements ProtocolServer {
   private psw: string = undefined; // in the case password is required to connect the broker
   
   private clientId: string = undefined; // in the case clientId can be used to identify the device
+
+  private protocolVersion: number = undefined;
   
   private brokerURI: string = undefined;
 
@@ -43,7 +45,17 @@ export default class MqttBrokerServer implements ProtocolServer {
 
   private broker: any;
 
-  constructor(uri: string, user?: string, psw?: string, clientId?: string) {
+  /*new MqttBrokerServer(this.config.mqtt.broker,
+                        (typeof this.config.mqtt.username === "string") ? this.config.mqtt.username : undefined,
+                        (typeof this.config.mqtt.password === "string") ? this.config.mqtt.password : undefined,
+                        (typeof this.config.mqtt.clientId === "string") ? this.config.mqtt.clientId : undefined);
+  /*
+
+  /*
+        "port": BROKER-PORT,
+        "version": MQTT_VERSION
+  */
+  constructor(uri: string, user?: string, psw?: string, clientId?: string, protocolVersion?: number) {
     if (uri !== undefined) {
 
       //if there is a MQTT protocol identicator missing, add this
@@ -61,7 +73,10 @@ export default class MqttBrokerServer implements ProtocolServer {
     }
     if (clientId !== undefined) {
       this.clientId = clientId;
-    }	
+    }
+    if (protocolVersion !== undefined) {
+      this.protocolVersion = protocolVersion;
+    }
   }
 
   public expose(thing: ExposedThing): Promise<void> {
@@ -212,10 +227,14 @@ export default class MqttBrokerServer implements ProtocolServer {
           console.info(`MqttBrokerServer trying to connect to secured broker at ${this.brokerURI}`);
           // TODO test if mqtt extracts port from passed URI (this.address)
           this.broker = mqtt.connect(this.brokerURI, { username: this.user, password: this.psw });
-        } else {
+        } else if (this.protocolVersion === undefined) {
           console.info(`MqttBrokerServer trying to connect to secured broker at ${this.brokerURI} with client ID ${this.clientId}`);
           // TODO test if mqtt extracts port from passed URI (this.address)
           this.broker = mqtt.connect(this.brokerURI, { username: this.user, password: this.psw, clientId: this.clientId });
+        } else {
+          console.info(`MqttBrokerServer trying to connect to secured broker at ${this.brokerURI} with client ID ${this.clientId}`);
+          // TODO test if mqtt extracts port from passed URI (this.address)
+          this.broker = mqtt.connect(this.brokerURI, { username: this.user, password: this.psw, clientId: this.clientId, protocolVersion: this.protocolVersion });
         }
 
         this.broker.on("connect", () => {

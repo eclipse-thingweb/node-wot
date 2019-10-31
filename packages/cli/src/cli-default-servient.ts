@@ -27,7 +27,7 @@ import { HttpClientFactory } from "@node-wot/binding-http";
 import { HttpsClientFactory } from "@node-wot/binding-http";
 import { CoapClientFactory } from "@node-wot/binding-coap";
 import { CoapsClientFactory } from "@node-wot/binding-coap";
-import { MqttClientFactory }  from "@node-wot/binding-mqtt";
+import { MqttClientFactory } from "@node-wot/binding-mqtt";
 
 export default class DefaultServient extends Servient {
 
@@ -89,7 +89,11 @@ export default class DefaultServient extends Servient {
                 this.addServer(coapServer);
             }
             if (this.config.mqtt !== undefined) {
-                let mqttBrokerServer = new MqttBrokerServer(this.config.mqtt.broker, (typeof this.config.mqtt.username === "string") ? this.config.mqtt.username : undefined, (typeof this.config.mqtt.password === "string") ? this.config.mqtt.password : undefined, (typeof this.config.mqtt.clientId === "string") ? this.config.mqtt.clientId : undefined);
+                let mqttBrokerServer = new MqttBrokerServer(this.config.mqtt.broker, 
+                    (typeof this.config.mqtt.username === "string") ? this.config.mqtt.username : undefined,
+                    (typeof this.config.mqtt.password === "string") ? this.config.mqtt.password : undefined,
+                    (typeof this.config.mqtt.clientId === "string") ? this.config.mqtt.clientId : undefined,
+                    (typeof this.config.mqtt.protocolVersion === "number") ? this.config.mqtt.protocolVersion : undefined);
                 this.addServer(mqttBrokerServer);
             }
         }
@@ -113,11 +117,11 @@ export default class DefaultServient extends Servient {
 
                 // TODO think about builder pattern that starts with produce() ends with expose(), which exposes/publishes the Thing
                 myWoT.produce({
-                    "title": "servient",
-                    "description": "node-wot CLI Servient",
+                    title: "servient",
+                    description: "node-wot CLI Servient",
                     properties: {
                         things: {
-                            type: "object",
+                            type: "string",
                             description: "Get things",
                             observable: false,
                             readOnly: true
@@ -140,39 +144,33 @@ export default class DefaultServient extends Servient {
                         }
                     }
                 })
-                    .then((thing) => {
-                        thing.setActionHandler("log", (msg) => {
-                            return new Promise((resolve, reject) => {
-                                console.info(msg);
-                                resolve(`logged '${msg}'`);
-                            });
+                .then((thing) => {
+                    thing.setActionHandler("log", (msg) => {
+                        return new Promise((resolve, reject) => {
+                            console.info(msg);
+                            resolve(`logged '${msg}'`);
                         });
-                        thing.setActionHandler("shutdown", () => {
-                            return new Promise((resolve, reject) => {
-                                console.info("shutting down by remote");
-                                this.shutdown();
-                                resolve();
-                            });
-                        });
-                        thing.setActionHandler("runScript", (script) => {
-                            return new Promise((resolve, reject) => {
-                                console.log("running script", script);
-                                this.runScript(script);
-                                resolve();
-                            });
-                        });
-                        thing.setPropertyReadHandler("things", () => {
-                            return new Promise((resolve, reject) => {
-                                console.log("returnings things");
-                                resolve(this.getThings());
-                            });
-                        });
-                        thing.expose().then(() => {
-                            // pass on WoTFactory
-                            resolve(myWoT);
-                        }).catch((err) => reject(err));
                     });
-                }).catch((err) => reject(err));
+                    thing.setActionHandler("shutdown", () => {
+                        return new Promise((resolve, reject) => {
+                            console.info("shutting down by remote");
+                            this.shutdown();
+                            resolve();
+                        });
+                    });
+                    thing.setActionHandler("runScript", (script) => {
+                        return new Promise((resolve, reject) => {
+                            console.log("running script", script);
+                            this.runScript(script);
+                            resolve();
+                        });
+                    });
+                    thing.expose().then(() => {
+                        // pass on WoTFactory
+                        resolve(myWoT);
+                    }).catch((err) => reject(err));
+                });
+            }).catch((err) => reject(err));
         });
     }
 }
