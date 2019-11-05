@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "wot-typescript-definitions": "0.7.0",
-    "is-absolute-url": "2.1.0",
+    "is-absolute-url": "3.0.3",
     "url-toolkit": "2.1.6"
   },
   "scripts": {
