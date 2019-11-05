@@ -27,7 +27,7 @@
   "dependencies": {
     "@node-wot/td-tools": "0.7.0-SNAPSHOT.3",
     "@node-wot/core": "0.7.0-SNAPSHOT.3",
-    "ws": "5.1.1"
+    "ws": "7.2.0"
   },
   "scripts": {
     "build": "tsc",
