@@ -26,41 +26,40 @@ let td =
         }
     }, 
     "events": {
-        "temperature": {
+        "counter": {
             "data": {
                 "type": "integer"
             },
             "forms": [
-                {"href": "mqtt://test.mosquitto.org:1883/MQTT-Test/events/counterEvent",  "mqtt:qos":  0, "mqtt:retain" : false}
+                {"href": "mqtt://test.mosquitto.org:1883/MQTT-Test/events/counterEvent",  "mqtt:qos":  0, "mqtt:retain" : false,
+				"contentType": "text/plain"}
             ]
         } 
     } 
 }`;
 
 try {
-    let source = WoT.consume(td);
-    console.info("=== TD ===");
-    console.info(td);
-    console.info("==========");
+    WoT.consume(JSON.parse(td)).then((source) => {
+		console.info("=== TD ===");
+		console.info(td);
+		console.info("==========");
 
-    source.events.temperature.subscribe(
-            response => console.info("value:", x),
-            error => console.error("Error: %s", e),
-            () => console.info("Completed")
-        );
-    console.info("Subscribed");
+		source.subscribeEvent("counter",
+				x => console.info("value:", x),
+				e => console.error("Error: %s", e),
+				() => console.info("Completed")
+			);
+		console.info("Subscribed");
 
-
-    setInterval( async () => {
-        source.actions.resetCounter.invoke()
-        .then( (res) => { } )
-        .catch( (err) => {
-            console.error("ResetCounter error:", err.message);
-        });
-        console.info("Reset counter!",);
-    }, 20000);
-
-
+		setInterval( async () => {
+			source.invokeAction("resetCounter")
+			.then( (res) => { } )
+			.catch( (err) => {
+				console.error("ResetCounter error:", err.message);
+			});
+			console.info("Reset counter!",);
+		}, 20000);
+	});
 } catch(err) {
     console.error("Script error: " + err);
 }

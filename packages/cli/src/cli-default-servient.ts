@@ -89,7 +89,11 @@ export default class DefaultServient extends Servient {
                 this.addServer(coapServer);
             }
             if (this.config.mqtt !== undefined) {
-                let mqttBrokerServer = new MqttBrokerServer(this.config.mqtt.broker, (typeof this.config.mqtt.username === "string") ? this.config.mqtt.username : undefined, (typeof this.config.mqtt.password === "string") ? this.config.mqtt.password : undefined, (typeof this.config.mqtt.clientId === "string") ? this.config.mqtt.clientId : undefined);
+                let mqttBrokerServer = new MqttBrokerServer(this.config.mqtt.broker, 
+                    (typeof this.config.mqtt.username === "string") ? this.config.mqtt.username : undefined,
+                    (typeof this.config.mqtt.password === "string") ? this.config.mqtt.password : undefined,
+                    (typeof this.config.mqtt.clientId === "string") ? this.config.mqtt.clientId : undefined,
+                    (typeof this.config.mqtt.protocolVersion === "number") ? this.config.mqtt.protocolVersion : undefined);
                 this.addServer(mqttBrokerServer);
             }
         }
