@@ -106,7 +106,7 @@ export default class MqttBrokerServer implements ProtocolServer {
         let topic = "/" + encodeURIComponent(name) + "/properties/" + encodeURIComponent(propertyName);
         let property = thing.properties[propertyName];
 
-        thing.subscribeEvent(propertyName,
+        thing.observeProperty(propertyName,
         // let subscription = property.subscribe(
           (data) => {
             let content;
@@ -115,7 +115,7 @@ export default class MqttBrokerServer implements ProtocolServer {
             } catch(err) {
               console.warn(`MqttServer cannot process data for Property '${propertyName}': ${err.message}`);
               // subscription.unsubscribe();
-              thing.unsubscribeEvent(propertyName);
+              thing.unobserveProperty(propertyName);
               return;
             }
             console.log(`MqttBrokerServer at ${this.brokerURI} publishing to Property topic '${propertyName}' `);
