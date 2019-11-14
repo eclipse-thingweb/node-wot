@@ -82,7 +82,9 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     }
 
     public emitEvent(name: string, data: any): void {
-        this.events[name].getState().subject.next(data);
+        if(this.events[name]) {
+            this.events[name].getState().subject.next(data);
+        }
     }
 
     /** @inheritDoc */
