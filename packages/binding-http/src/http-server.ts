@@ -450,34 +450,18 @@ export default class HttpServer implements ProtocolServer {
           if (segments[2] === this.ALL_DIR) {
             if(this.ALL_PROPERTIES == segments[3]) {
               if (req.method === "GET") {
-                let obj: {[k: string]: any} = {};
-                let promises = [];
-
-                for (let key in thing.properties) {
-                  let property = thing.properties[key].read();
-                  promises.push(property);
-                }
-
-                Promise.all(promises)
-                    .then((value) => {
-                      let index = 0;
-                      for (let key in thing.properties) {
-                        // TODO proper contentType handling
-                        // let property = thing.properties[key];
-                        // let content = ContentSerdes.get().valueToContent(value[index], <any>property);
-                        // obj[key] = content.body;
-                        obj[key] = value[index];
-                        index++;
-                      }
-                      res.setHeader("Content-Type", ContentSerdes.DEFAULT);
-                      res.writeHead(200);
-                      res.end(JSON.stringify(obj));
-                    })
-                    .catch(err => {
-                      console.error(`HttpServer on port ${this.getPort()} got internal error on read '${requestUri.pathname}': ${err.message}`);
-                      res.writeHead(500);
-                      res.end(err.message);
-                    });
+                thing.readAllProperties()
+                  .then((value:any) => {
+                    let content = ContentSerdes.get().valueToContent(value, undefined); // contentType handling? <any>property);
+                    res.setHeader("Content-Type", content.type);
+                    res.writeHead(200);
+                    res.end(content.body);
+                  })
+                  .catch(err => {
+                    console.error(`HttpServer on port ${this.getPort()} got internal error on read '${requestUri.pathname}': ${err.message}`);
+                    res.writeHead(500);
+                    res.end(err.message);
+                  });
               } else {
                 respondUnallowedMethod(res, "GET");
               }
