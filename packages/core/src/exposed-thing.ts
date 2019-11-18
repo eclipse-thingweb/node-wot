@@ -84,6 +84,9 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     public emitEvent(name: string, data: any): void {
         if(this.events[name]) {
             this.events[name].getState().subject.next(data);
+        } else {
+            // NotFoundError
+            throw new Error("NotFoundError for event '" + name + "'");
         }
     }
 
