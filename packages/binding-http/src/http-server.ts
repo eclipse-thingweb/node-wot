@@ -486,8 +486,7 @@ export default class HttpServer implements ProtocolServer {
                   // FIXME must decide on Content-Type here, not on next()
                   res.setHeader("Content-Type", ContentSerdes.DEFAULT);
                   res.writeHead(200);
-                  thing.subscribeEvent(segments[3],
-                  // let subscription = property.subscribe(
+                  thing.observeProperty(segments[3],
                     (data) => {
                       let content;
                       try {
@@ -506,11 +505,10 @@ export default class HttpServer implements ProtocolServer {
                   .then(() => res.end())
                   .catch(() => res.end());
                   res.on("finish", () => {
-                    console.debug(`HttpServer on port ${this.getPort()} closed Event connection`);
-                    // subscription.unsubscribe();
-                    thing.unsubscribeEvent(segments[3]);
+                    console.debug(`HttpServer on port ${this.getPort()} closed connection`);
+                    thing.unobserveProperty(segments[3]);
                   });
-                  res.setTimeout(60*60*1000, () => thing.unsubscribeEvent(segments[3])); // subscription.unsubscribe());
+                  res.setTimeout(60*60*1000, () => thing.unobserveProperty(segments[3]));
 
                 } else {
                   thing.readProperty(segments[3], options)
