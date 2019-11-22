@@ -117,8 +117,13 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         console.log(`ExposedThing '${this.title}' setting read handler for '${propertyName}'`);
 
         if (this.properties[propertyName]) {
-            // in case of function instead of lambda, the handler is bound to a scope shared with the writeHandler in PropertyState
-            this.properties[propertyName].getState().readHandler = handler.bind(this.properties[propertyName].getState().scope);
+            // setting read handler for writeOnly not allowed
+            if (this.properties[propertyName].writeOnly) {
+                throw new Error(`ExposedThing '${this.title}' cannot set read handler for property '${propertyName}' due to writeOnly flag`);
+            } else {
+                // in case of function instead of lambda, the handler is bound to a scope shared with the writeHandler in PropertyState
+                this.properties[propertyName].getState().readHandler = handler.bind(this.properties[propertyName].getState().scope);
+            }
         } else {
             throw new Error(`ExposedThing '${this.title}' has no Property '${propertyName}'`);
         }
