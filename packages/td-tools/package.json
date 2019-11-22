@@ -27,7 +27,7 @@
     "webpack-command": "^0.4.1"
   },
   "dependencies": {
-    "wot-typescript-definitions": "0.7.0",
+    "wot-typescript-definitions": "0.7.1-SNAPSHOT.1",
     "is-absolute-url": "3.0.3",
     "url-toolkit": "2.1.6"
   },
