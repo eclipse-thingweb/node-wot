@@ -170,9 +170,6 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                     console.log(`ExposedThing '${this.title}' calls registered readHandler for Property '${propertyName}'`);
                     let ps: PropertyState = this.properties[propertyName].getState();
                     ps.readHandler(options).then((customValue) => {
-                        // XXX is it needed to store value? see https://github.com/eclipse/thingweb.node-wot/issues/149
-                        // update internal state in case writeHandler wants to get the value
-                        // this.properties[propertyName].value = customValue;
                         resolve(customValue);
                     });
                 } else {
