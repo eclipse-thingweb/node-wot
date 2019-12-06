@@ -1,0 +1,148 @@
+{
+  "id": "urn:dev:wot:org:eclipse:netconf-example",
+  "title": "Netconf TestThing",
+  "@context": "https://www.w3.org/2019/wot/td/v1",
+  "@type": "Thing",
+  "security": [
+    "nosec_sc"
+  ],
+  "properties": {
+    "ipv6-running": {
+      "title": "IPv6",
+      "description": "Parameters for the IPv6 address family for running datastore.",
+      "type": "string",
+      "readOnly": false,
+      "writeOnly": false,
+      "observable": false,
+      "forms": [
+        {
+          "href": "netconf://172.17.0.2:830/my-ietf-ip:ipv6",
+          "contentType": "application/json",
+          "op": [
+            "readproperty",
+            "writeproperty"
+          ],
+	    "nc:target": "running",
+	    "NSs": ["urn:ietf:params:xml:ns:netconf:base:1.0", "urn:ietf:params:xml:ns:yang:my-ietf-ip"]
+        }
+      ]
+    },
+    "ipv6-candidate": {
+      "title": "IPv6",
+      "description": "Parameters for the IPv6 address family for candidate datastore.",
+      "type": "string",
+      "readOnly": false,
+      "writeOnly": false,
+      "observable": false,
+      "forms": [
+        {
+          "href": "netconf://172.17.0.2:830/my-ietf-ip:ipv6",
+          "contentType": "application/json",
+          "op": [
+            "readproperty",
+            "writeproperty"
+          ],
+	    "nc:target": "candidate",
+	    "NSs": ["urn:ietf:params:xml:ns:netconf:base:1.0", "urn:ietf:params:xml:ns:yang:my-ietf-ip"]
+        }
+      ]
+    },
+    "ipv6-address-running": {
+      "title": "IPv6-address",
+      "description": "The list of configured IPv6 addresses on the interface for running datastore.",
+      "type": "string",
+      "readOnly": false,
+      "writeOnly": false,
+      "observable": false,
+      "forms": [
+        {
+          "href": "netconf://172.17.0.2:830/my-ietf-ip:ipv6/address",
+          "contentType": "application/json",
+          "op": [
+            "readproperty",
+            "writeproperty"
+          ],
+	    "nc:target": "running",
+	    "NSs": ["urn:ietf:params:xml:ns:netconf:base:1.0", "urn:ietf:params:xml:ns:yang:my-ietf-ip"]
+        }
+      ]
+    },
+    "ipv6-address-candidate": {
+      "title": "IPv6-address",
+      "description": "The list of configured IPv6 addresses on the interface for candidate datastore.",
+      "type": "string",
+      "readOnly": false,
+      "writeOnly": false,
+      "observable": false,
+      "forms": [
+        {
+          "href": "netconf://172.17.0.2:830/my-ietf-ip:ipv6/address",
+          "contentType": "application/json",
+          "op": [
+            "readproperty",
+            "writeproperty"
+          ],
+	    "nc:target": "candidate",
+	    "NSs": ["urn:ietf:params:xml:ns:netconf:base:1.0", "urn:ietf:params:xml:ns:yang:my-ietf-ip"]
+        }
+      ]
+    },
+    "interface-running": {
+      "title": "Interface",
+      "description": "Interface configuration parameters for running datastore.",
+      "type": "string",
+      "readOnly": false,
+      "writeOnly": false,
+      "observable": false,
+      "forms": [
+        {
+          "href": "netconf://172.17.0.2:830/ietf-interfaces:interfaces/interface",
+          "contentType": "application/json",
+          "op": [
+            "readproperty",
+            "writeproperty"
+          ],
+	    "nc:target": "running",
+	    "NSs": ["urn:ietf:params:xml:ns:netconf:base:1.0", "urn:ietf:params:xml:ns:yang:ietf-interfaces", "urn:ietf:params:xml:ns:yang:iana-if-type"]
+        }
+      ]
+    },
+    "interface-candidate": {
+      "title": "Interface",
+      "description": "Interface configuration parameters for candidate datastore.",
+      "type": "string",
+      "readOnly": false,
+      "writeOnly": false,
+      "observable": false,
+      "forms": [
+        {
+          "href": "netconf://172.17.0.2:830/ietf-interfaces:interfaces/interface",
+          "contentType": "application/json",
+          "op": [
+            "readproperty",
+            "writeproperty"
+          ],
+	    "nc:target": "candidate",
+	    "NSs": ["urn:ietf:params:xml:ns:netconf:base:1.0", "urn:ietf:params:xml:ns:yang:ietf-interfaces", "urn:ietf:params:xml:ns:yang:iana-if-type"]
+        }
+      ]
+    }
+  },
+  "actions": {
+	  "commit": {
+		  "description": "Commit changes on candidate",
+		  "forms": [
+			  {
+				  "href": "netconf://172.17.0.2:830/",
+				  "method": "COMMIT",
+				  "NSs": ["urn:ietf:params:xml:ns:netconf:base:1.0"]
+			  }
+		  ]
+	  }
+  },
+  "securityDefinitions": {
+	  "nosec_sc": {
+		  "scheme": "nosec"
+	  }
+  }
+}

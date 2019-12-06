@@ -50,7 +50,7 @@ export class Client {
 				if (err) {
 					reject(err);	
 				} else {
-					console.log(`New NetConf router opened connection with host ${self.router.host}, port ${self.router.port}, username ${self.router.username}, password ${self.router.password}`);
+					console.log(`New NetConf router opened connection with host ${self.router.host}, port ${self.router.port}, username ${self.router.username}`);
 					resolve();
 				}
 			});
@@ -66,7 +66,7 @@ export class Client {
 			}
 			let obj_request = xpath2json.xpath2json(xpath_query, NSs);
 			let final_request: any = {};
-			final_request = METHOD_OBJ[method];
+			final_request = JSON.parse(JSON.stringify(METHOD_OBJ[method])); //clone the METHOD_OBJ
 			switch (method) {
 				default:
 				case "GET-CONFIG": {

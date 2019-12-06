@@ -25,6 +25,7 @@
     "@types/node-netconf": "npm:@types/netconf@^2.0.0",
     "@types/url-parse": "^1.4.3",
     "case-1.5.3": "npm:case@^1.5.3",
+    "node-netconf": "^1.1.1",
     "url-parse": "^1.4.7"
   },
   "scripts": {

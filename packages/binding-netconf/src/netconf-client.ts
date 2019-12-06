@@ -45,7 +45,7 @@ export default class NetconfClient implements ProtocolClient {
 		let xpath_query = url.pathname;
 		let method = form.method ? form.method : "GET-CONFIG"; //default method
 		let NSs = form.NSs || [];
-		let target = form.target || DEFAULT_TARGET;
+		let target = form["nc:target"] || DEFAULT_TARGET;
 
 		let contentType = "application/json";
 
@@ -83,7 +83,7 @@ export default class NetconfClient implements ProtocolClient {
 		let xpath_query = url.pathname;
 		let method = form.method ? form.method : "EDIT-CONFIG";
 		let NSs = form.NSs || [];
-		let target = form.target || DEFAULT_TARGET;
+		let target = form["nc:target"] || DEFAULT_TARGET;
 
 		let contentType = "application/json";
 		if(this.client.getRouter() === null) {
@@ -117,7 +117,7 @@ export default class NetconfClient implements ProtocolClient {
 		let xpath_query = url.pathname;
 		let method = form.method ? form.method : "RPC";
 		let NSs = form.NSs || [];
-		let target = form.target || DEFAULT_TARGET;
+		let target = form["nc:target"] || DEFAULT_TARGET;
 		let result: any;
 
 		if(this.client.getRouter() === null) {
@@ -169,7 +169,7 @@ export default class NetconfClient implements ProtocolClient {
 			console.warn(`NetconfClient without security`);
 			return false;
 		}
-		if(!(credentials.password) && !(credentials.privateKey)) {
+		if(!credentials || (!(credentials.password) && !(credentials.privateKey))) {
 			throw new Error(`Both password and privateKey missing inside credentials`);
 		}
 

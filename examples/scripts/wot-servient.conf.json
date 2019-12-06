@@ -1,34 +1,38 @@
 {
-    "servient": {
-        "_staticAddress": "plugfest.thingweb.io",
-        "scriptDir": ".",
-        "scriptAction": true
-    },
-    "http": {
-        "port": 8080,
-        "allowSelfSigned": true
-    },
-    "coap": {
-        "port": 5683
-    },
-    "mqtt" : {
-        "broker" : "mqtt://test.mosquitto.org",
-        "_username" : "username",
-        "_password" : "password",
-        "_clientId" : "uniqueId",
-        "protocolVersion": 5 
-    },
-    "log": {
-        "level": "info"
-    },
-    "credentials": {
-        "urn:dev:wot:org:eclipse:leshan": {
-            "identity": "node-wot",
-            "psk": "hello"
-        },
-        "urn:dev:wot:org:eclipse:cf-secure": {
-            "identity": "password",
-            "psk": "sesame"
-        }
-    }
+	"servient": {
+		"_staticAddress": "plugfest.thingweb.io",
+		"scriptDir": ".",
+		"scriptAction": true
+	},
+	"http": {
+		"port": 8080,
+		"allowSelfSigned": true
+	},
+	"coap": {
+		"port": 5683
+	},
+	"mqtt" : {
+		"broker" : "mqtt://test.mosquitto.org",
+		"_username" : "username",
+		"_password" : "password",
+		"_clientId" : "uniqueId",
+		"protocolVersion": 5
+	},
+	"log": {
+		"level": "info"
+	},
+	"credentials": {
+		"urn:dev:wot:org:eclipse:leshan": {
+			"identity": "node-wot",
+			"psk": "hello"
+		},
+		"urn:dev:wot:org:eclipse:cf-secure": {
+			"identity": "password",
+			"psk": "sesame"
+		},
+		"urn:dev:wot:org:eclipse:netconf-example": {
+			"username": "root",
+			"password": "root"
+		}
+	}
 }

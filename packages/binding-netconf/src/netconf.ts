@@ -21,7 +21,7 @@ export * from './netconf-client-factory';
 export class NetconfForm extends Form {
 	public "NSs"?: Array<string>;
 	public "method"?: string;
-	public "target"?: string;
+	public "nc:target"?: string;
 }
 
 
