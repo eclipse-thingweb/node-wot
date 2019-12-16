@@ -19,8 +19,8 @@ import { Form } from "@node-wot/td-tools";
 export * from './netconf';
 export * from './netconf-client-factory';
 export class NetconfForm extends Form {
-	public "NSs"?: Array<string>;
-	public "method"?: string;
+	public "nc:NSs"?: any;
+	public "nc:method"?: string;
 	public "nc:target"?: string;
 }
 

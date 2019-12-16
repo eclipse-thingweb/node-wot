@@ -24,14 +24,11 @@
     "wot-typescript-definitions": "0.7.1-SNAPSHOT.1"
   },
   "dependencies": {
-    "@node-wot/binding-file": "0.7.0-SNAPSHOT.4",
-    "@node-wot/binding-http": "0.7.0-SNAPSHOT.4",
-    "@node-wot/core": "0.7.0-SNAPSHOT.4",
     "fs": "0.0.1-security",
     "path": "^0.12.7"
   },
   "scripts": {
-    "install": "npm link @node-wot/binding-netconf",
+    "install": "npm link @node-wot/core; npm link @node-wot/binding-netconf; npm link @node-wot/binding-http; npm link @node-wot/binding-file",
     "installModules": "npm install",
     "build": "tsc",
     "start": "ts-node src/netconf-cli.ts",

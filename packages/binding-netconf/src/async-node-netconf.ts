@@ -58,7 +58,7 @@ export class Client {
 	}
 
 
-	rpc(xpath_query: string, method: string, NSs: Array<string>, target: string, payload?: any) {
+	rpc(xpath_query: string, method: string, NSs: any, target: string, payload?: any) {
 		let self = this;
 		return new Promise((resolve, reject) => {
 			if (payload) {

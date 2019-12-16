@@ -1,7 +1,12 @@
 {
   "id": "urn:dev:wot:org:eclipse:netconf-example",
   "title": "Netconf TestThing",
-  "@context": "https://www.w3.org/2019/wot/td/v1",
+  "@context": [
+    "https://www.w3.org/2019/wot/td/v1",
+    {
+      "nc": "http://netconf-example.com"
+    }
+  ],
   "@type": "Thing",
   "security": [
     "nosec_sc"
@@ -16,14 +21,16 @@
       "observable": false,
       "forms": [
         {
-          "href": "netconf://172.17.0.2:830/my-ietf-ip:ipv6",
+          "href": "netconf://172.17.0.2:830/ietf-ip:ipv6",
           "contentType": "application/json",
           "op": [
             "readproperty",
             "writeproperty"
           ],
-	    "nc:target": "running",
-	    "NSs": ["urn:ietf:params:xml:ns:netconf:base:1.0", "urn:ietf:params:xml:ns:yang:my-ietf-ip"]
+          "nc:target": "running",
+          "nc:NSs": {
+            "ietf-ip": "urn:ietf:params:xml:ns:yang:ietf-ip"
+          }
         }
       ]
     },
@@ -36,14 +43,16 @@
       "observable": false,
       "forms": [
         {
-          "href": "netconf://172.17.0.2:830/my-ietf-ip:ipv6",
+          "href": "netconf://172.17.0.2:830/ietf-ip:ipv6",
           "contentType": "application/json",
           "op": [
             "readproperty",
             "writeproperty"
           ],
-	    "nc:target": "candidate",
-	    "NSs": ["urn:ietf:params:xml:ns:netconf:base:1.0", "urn:ietf:params:xml:ns:yang:my-ietf-ip"]
+          "nc:target": "candidate",
+          "nc:NSs": {
+            "ietf-ip": "urn:ietf:params:xml:ns:yang:ietf-ip"
+          }
         }
       ]
     },
@@ -56,14 +65,16 @@
       "observable": false,
       "forms": [
         {
-          "href": "netconf://172.17.0.2:830/my-ietf-ip:ipv6/address",
+          "href": "netconf://172.17.0.2:830/ietf-ip:ipv6/address",
           "contentType": "application/json",
           "op": [
             "readproperty",
             "writeproperty"
           ],
-	    "nc:target": "running",
-	    "NSs": ["urn:ietf:params:xml:ns:netconf:base:1.0", "urn:ietf:params:xml:ns:yang:my-ietf-ip"]
+          "nc:target": "running",
+          "nc:NSs": {
+            "ietf-ip": "urn:ietf:params:xml:ns:yang:ietf-ip"
+          }
         }
       ]
     },
@@ -76,73 +87,110 @@
       "observable": false,
       "forms": [
         {
-          "href": "netconf://172.17.0.2:830/my-ietf-ip:ipv6/address",
+          "href": "netconf://172.17.0.2:830/ietf-ip:ipv6/address",
           "contentType": "application/json",
           "op": [
             "readproperty",
             "writeproperty"
           ],
-	    "nc:target": "candidate",
-	    "NSs": ["urn:ietf:params:xml:ns:netconf:base:1.0", "urn:ietf:params:xml:ns:yang:my-ietf-ip"]
+          "nc:target": "candidate",
+          "nc:NSs": {
+            "ietf-ip": "urn:ietf:params:xml:ns:yang:ietf-ip"
+          }
         }
       ]
     },
     "interface-running": {
       "title": "Interface",
       "description": "Interface configuration parameters for running datastore.",
-      "type": "string",
+      "type": "object",
       "readOnly": false,
       "writeOnly": false,
       "observable": false,
+      "properties": {
+        "type": {
+          "nc:container": true,
+          "type": "object",
+          "properties": {
+            "xmlns": {
+              "type": "string",
+              "nc:attribute": true,
+              "format": "urn"
+            },
+            "value": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "forms": [
         {
-          "href": "netconf://172.17.0.2:830/ietf-interfaces:interfaces/interface",
+          "href": "netconf://172.17.0.2:830/ietf-interfaces:interfaces/interface[name=interface100]",
           "contentType": "application/json",
           "op": [
             "readproperty",
             "writeproperty"
           ],
-	    "nc:target": "running",
-	    "NSs": ["urn:ietf:params:xml:ns:netconf:base:1.0", "urn:ietf:params:xml:ns:yang:ietf-interfaces", "urn:ietf:params:xml:ns:yang:iana-if-type"]
+          "nc:target": "candidate",
+          "nc:NSs": {
+            "ietf-interfaces": "urn:ietf:params:xml:ns:yang:ietf-interfaces"
+          }
         }
       ]
     },
     "interface-candidate": {
       "title": "Interface",
       "description": "Interface configuration parameters for candidate datastore.",
-      "type": "string",
+      "type": "object",
       "readOnly": false,
       "writeOnly": false,
       "observable": false,
+      "properties": {
+        "type": {
+          "nc:container": true,
+          "type": "object",
+          "properties": {
+            "xmlns": {
+              "type": "string",
+              "nc:attribute": true,
+              "format": "urn"
+            },
+            "value": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "forms": [
         {
-          "href": "netconf://172.17.0.2:830/ietf-interfaces:interfaces/interface",
+          "href": "netconf://172.17.0.2:830/ietf-interfaces:interfaces/interface[name=interface100]",
           "contentType": "application/json",
           "op": [
             "readproperty",
             "writeproperty"
           ],
-	    "nc:target": "candidate",
-	    "NSs": ["urn:ietf:params:xml:ns:netconf:base:1.0", "urn:ietf:params:xml:ns:yang:ietf-interfaces", "urn:ietf:params:xml:ns:yang:iana-if-type"]
+          "nc:target": "candidate",
+          "nc:NSs": {
+            "ietf-interfaces": "urn:ietf:params:xml:ns:yang:ietf-interfaces"
+          }
         }
       ]
     }
   },
   "actions": {
-	  "commit": {
-		  "description": "Commit changes on candidate",
-		  "forms": [
-			  {
-				  "href": "netconf://172.17.0.2:830/",
-				  "method": "COMMIT",
-				  "NSs": ["urn:ietf:params:xml:ns:netconf:base:1.0"]
-			  }
-		  ]
-	  }
+    "commit": {
+      "description": "Commit changes on candidate",
+      "forms": [
+        {
+          "href": "netconf://172.17.0.2:830/",
+          "method": "COMMIT"
+        }
+      ]
+    }
   },
   "securityDefinitions": {
-	  "nosec_sc": {
-		  "scheme": "nosec"
-	  }
+    "nosec_sc": {
+      "scheme": "nosec"
+    }
   }
 }
