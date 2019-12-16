@@ -119,7 +119,7 @@ export default class CoapClient implements ProtocolClient {
   public unlinkResource(form: CoapForm): Promise<any> {
     return new Promise<void>((resolve, reject) => {
 
-      let req = this.generateRequest(form, "DELETE");
+      let req = this.generateRequest(form, "GET", false);
 
       console.log(`CoapClient sending ${req.statusCode} to ${form.href}`);
 
