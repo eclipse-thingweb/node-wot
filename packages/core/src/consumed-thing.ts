@@ -170,7 +170,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                 // uriVariables ?
                 form = this.handleUriVariables(form, undefined);
 
-                client.readResource(form).then((content) => {
+                client.readResource(form, tp).then((content) => {
                     if (!content.type) content.type = form.contentType;
                     try {
                         let value = ContentManager.contentToValue(content, <any>tp);
@@ -236,7 +236,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                 // uriVariables ?
                 form = this.handleUriVariables(form, value);
 
-                client.writeResource(form, content).then(() => {
+                client.writeResource(form, content, tp).then(() => {
                     resolve();
                 })
                     .catch(err => { reject(err); });
@@ -280,8 +280,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
 
                 // uriVariables ?
                 form = this.handleUriVariables(form, parameter);
-
-                client.invokeResource(form, input).then((content) => {
+                client.invokeResource(form, input, ta.input, ta.output).then((content) => {
                     // infer media type from form if not in response metadata
                     if (!content.type) content.type = form.contentType;
 
@@ -329,7 +328,8 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                     },
                     () => {
                         resolve();
-                    }
+                    },
+                    tp
                 );
             }
         });
@@ -343,7 +343,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
             } else {
                 console.log(`ConsumedThing '${this.title}' unobserveing to ${form.href}`);
-                client.unlinkResource(form);
+                client.unlinkResource(form, tp);
                 resolve();
             }
         });
@@ -373,7 +373,8 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                     },
                     () => {
                         resolve();
-                    }
+                    },
+                    te.subscription
                 );
             }
         });
@@ -387,7 +388,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
             } else {
                 console.log(`ConsumedThing '${this.title}' unsubscribing to ${form.href}`);
-                client.unlinkResource(form);
+                client.unlinkResource(form, te.cancellation);
                 resolve();
             }
         });
