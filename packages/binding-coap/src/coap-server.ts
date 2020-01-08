@@ -236,11 +236,26 @@ export default class CoapServer implements ProtocolServer {
                   });
               // observeproperty
               } else {
-                // TODO
-                console.log(`CoapServer on port ${this.getPort()} rejects observe for '${segments[3]}' from ${Helpers.toUriLiteral(req.rsinfo.address)}:${req.rsinfo.port}`);
-                
-                // work-around to reply with error code and without Observe option
-                throw new Error("observeproperty not implemented yet");
+                var oInterval = setInterval(function() {
+                  thing.readProperty(segments[3])
+                  // property.read() periodically
+                    .then((value) => {
+                      let content = ContentSerdes.get().valueToContent(value, <any>property);
+                      res.setOption("Content-Format", content.type);
+                      res.code = "2.05";
+                      res.write(content.body);
+
+                      res.on('finish', function(err: Error) {
+                        clearInterval(oInterval);
+                        res.end();
+                      });
+                    })
+                    .catch(err => {
+                      console.error(`CoapServer on port ${this.getPort()} got internal error on read '${requestUri.pathname}': ${err.message}`);
+                      res.code = "5.00";
+                      res.end(err.message);
+                    });
+                }, 100);
               }
             // writeproperty
             } else if (req.method === "PUT") {
