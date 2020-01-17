@@ -206,7 +206,7 @@ export default class MqttBrokerServer implements ProtocolServer {
         event.forms.push(form);
         console.log(`MqttBrokerServer at ${this.brokerURI} assigns '${href}' to Event '${eventName}'`);
       }
-
+      this.broker.publish(name, JSON.stringify(thing.getThingDescription()),{retain:true,contentType:"application/td+json"});
       resolve();
     });
   }
