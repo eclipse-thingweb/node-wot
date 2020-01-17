@@ -106,28 +106,41 @@ export default class MqttBrokerServer implements ProtocolServer {
         let topic = "/" + encodeURIComponent(name) + "/properties/" + encodeURIComponent(propertyName);
         let property = thing.properties[propertyName];
 
-        thing.observeProperty(propertyName,
-        // let subscription = property.subscribe(
-          (data) => {
-            let content;
-            try {
-              content = ContentSerdes.get().valueToContent(data, property.data);
-            } catch(err) {
-              console.warn(`MqttServer cannot process data for Property '${propertyName}': ${err.message}`);
-              // subscription.unsubscribe();
-              thing.unobserveProperty(propertyName);
-              return;
+        if(!property.writeOnly ){
+          thing.observeProperty(propertyName,
+          // let subscription = property.subscribe(
+            (data) => {
+              let content;
+              try {
+                content = ContentSerdes.get().valueToContent(data, property.data);
+              } catch(err) {
+                console.warn(`MqttServer cannot process data for Property '${propertyName}': ${err.message}`);
+                // subscription.unsubscribe();
+                thing.unobserveProperty(propertyName);
+                return;
+              }
+              console.log(`MqttBrokerServer at ${this.brokerURI} publishing to Property topic '${propertyName}' `);
+              this.broker.publish(topic, content.body);
             }
-            console.log(`MqttBrokerServer at ${this.brokerURI} publishing to Property topic '${propertyName}' `);
-            this.broker.publish(topic, content.body);
-          }
-        );
+          );
 
-        let href = this.brokerURI + topic;
-        let form = new TD.Form(href, ContentSerdes.DEFAULT);
-        form.op = ["observeproperty", "unobserveproperty"];
-        thing.properties[propertyName].forms.push(form);
-        console.log(`MqttBrokerServer at ${this.brokerURI} assigns '${href}' to property '${propertyName}'`);
+          let href = this.brokerURI + topic;
+          let form = new TD.Form(href, ContentSerdes.DEFAULT);
+          form.op = ["observeproperty", "unobserveproperty"];
+          thing.properties[propertyName].forms.push(form);
+          console.log(`MqttBrokerServer at ${this.brokerURI} assigns '${href}' to property '${propertyName}'`);
+
+        }
+        if(!property.readOnly){
+
+          let href = this.brokerURI + topic +"/writeproperty";
+          this.broker.subscribe(topic + "/writeproperty");
+          let form = new TD.Form(href, ContentSerdes.DEFAULT);
+          form.op = ["writeproperty"];
+          thing.properties[propertyName].forms.push(form);
+          console.log(`MqttBrokerServer at ${this.brokerURI} assigns '${href}' to property '${propertyName}'`);
+
+        }
       }
 
       for (let actionName in thing.actions) {
@@ -148,6 +161,7 @@ export default class MqttBrokerServer implements ProtocolServer {
         let segments = receivedTopic.split("/");
 
         if (segments.length === 4 ) {
+          // connecting to the actions
           console.log(`MqttBrokerServer at ${this.brokerURI} received message for '${receivedTopic}'`);
           let thing = this.things.get(segments[1]);
           if (thing) {
@@ -171,6 +185,28 @@ export default class MqttBrokerServer implements ProtocolServer {
               } // Action exists?
             }
           } // Thing exists?
+        } else if(segments.length === 5 && segments[4] === "writeproperty" ){
+          //connecting to the writeable properties
+          let thing = this.things.get(segments[1]);
+          if (thing) {
+            if (segments[2] === "properties") {
+              let property = thing.properties[segments[3]];
+              if (property) {
+                if(!property.readOnly){
+                  thing.writeProperty(segments[3], JSON.parse(payload))
+                    .catch(err => {
+                      console.error(`MqttBrokerServer at ${this.brokerURI} got error on writing to property '${segments[3]}': ${err.message}`);
+                    });
+                  // topic found and message processed
+                  return;
+                } else {
+                  console.warn(`MqttBrokerServer at ${this.brokerURI} received message for readOnly property at '${receivedTopic}'`);
+                  return;
+                } //property is writeable? Not necessary since it didn't actually subscribe to this topic
+              } // Property exists?
+            }
+          }
+          return;
         }
         // topic not found
         console.warn(`MqttBrokerServer at ${this.brokerURI} received message for invalid topic '${receivedTopic}'`);
@@ -206,7 +242,7 @@ export default class MqttBrokerServer implements ProtocolServer {
         event.forms.push(form);
         console.log(`MqttBrokerServer at ${this.brokerURI} assigns '${href}' to Event '${eventName}'`);
       }
-      this.broker.publish(name, JSON.stringify(thing.getThingDescription()),{retain:true,contentType:"application/td+json"});
+      this.broker.publish("/"+name, JSON.stringify(thing.getThingDescription()),{retain:true,contentType:"application/td+json"});
       resolve();
     });
   }
