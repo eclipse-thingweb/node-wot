@@ -173,8 +173,12 @@ export default class OpcuaClient implements ProtocolClient {
 
 		let tmp_schema = <any>schema;
 		let dataType_string = this.dataTypetoString();
-		if (!tmp_schema[dataType_string] && ((tmp_schema.properties) && !(dataType_string in tmp_schema.properties))) {
-			throw new Error(`dataType field not specified for writeResource`);
+
+		if (!tmp_schema) {
+			throw new Error("Mandatory \"schema\" field missing in the TD");
+		}
+		if (!tmp_schema[dataType_string] || ((tmp_schema.properties) && !(dataType_string in tmp_schema.properties))) {
+			throw new Error(`opc:dataType field not specified for writeResource`);
 		}
 		let contentType = "application/json";
 		let dataType = tmp_schema[dataType_string] ? tmp_schema[dataType_string] : tmp_schema.properties[dataType_string];
@@ -273,7 +277,6 @@ export default class OpcuaClient implements ProtocolClient {
 					throw new Error(status);
 				}
 			} catch (err) {
-				console.log(err);
 				throw err;
 			}
 			return new Promise<Object>((resolve, reject) => {
@@ -304,7 +307,6 @@ export default class OpcuaClient implements ProtocolClient {
 		let url = new Url(form.href);
 		let endpointUrl = url.origin;
 		let contentType = "application/json";
-		let result: string;
 		let self = this;
 		this.checkConnection(endpointUrl).then(function () {
 			try {
@@ -349,13 +351,11 @@ export default class OpcuaClient implements ProtocolClient {
 				);
 
 				monitoredItem.on("changed", (dataValue: DataValue) => {
-					result = JSON.stringify(dataValue.value.toString());
-					next({ type: contentType, body: Buffer.from(result) });
+					next({ type: contentType, body: dataValue.value });
 					return new Subscription(() => { });
 				});
 			} catch (err) {
-				console.log(err);
-				error(new Error(`OpcuaClient does not implement subscribe`));
+				error(new Error(`Error while subscribing property`));
 			}
 
 
