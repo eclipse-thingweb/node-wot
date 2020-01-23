@@ -156,7 +156,16 @@ export default class MqttBrokerServer implements ProtocolServer {
               if (action) {
                 thing.invokeAction(segments[3], 
                 // action.invoke(
-                  JSON.parse(payload))
+                  function() {
+                    let value;
+                    try {
+                      value = ContentSerdes.get().contentToValue({ type: packet.properties.contentType, body: Buffer.from(payload) }, action.input);
+                      return value;
+                    } catch(err) {
+                      console.warn(`MqttBrokerServer at ${this.brokerURI} cannot process received message for '${segments[3]}': ${err.message}`);
+                      return;
+                    }
+                  })
                   .then((output) => {
                     // MQTT cannot return results
                     if (output) {
