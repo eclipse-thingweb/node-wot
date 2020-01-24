@@ -54,7 +54,7 @@ export default class NetconfClient implements ProtocolClient {
 				await this.client.initializeRouter(ip_address, port, this.credentials);
 				await this.client.openRouter();
 			} catch (err) {
-				console.log(err);
+				this.client.deleteRouter();
 				throw err;
 			}
 		}
@@ -64,7 +64,6 @@ export default class NetconfClient implements ProtocolClient {
 			result = await this.client.rpc(xpath_query, method, NSs, target);
 			result = JSON.stringify(result);
 		} catch (err) {
-			console.log(err);
 			throw err;
 		}
 
@@ -90,7 +89,7 @@ export default class NetconfClient implements ProtocolClient {
 				await this.client.initializeRouter(ip_address, port, this.credentials);
 				await this.client.openRouter();
 			} catch (err) {
-				console.log(err);
+				this.client.deleteRouter();
 				throw err;
 			}
 		}
@@ -103,7 +102,6 @@ export default class NetconfClient implements ProtocolClient {
 			result = await this.client.rpc(xpath_query, method, NSs, target, payload);
 			result = JSON.stringify(result);
 		} catch (err) {
-			console.log(err);
 			throw err;
 		}
 		return new Promise<any>((resolve, reject) => {
@@ -128,7 +126,7 @@ export default class NetconfClient implements ProtocolClient {
 				await this.client.initializeRouter(ip_address, port, this.credentials);
 				await this.client.openRouter();
 			} catch (err) {
-				console.log(err);
+				this.client.deleteRouter();
 				throw err;
 			}
 

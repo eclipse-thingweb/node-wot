@@ -20,6 +20,10 @@ export class Client {
 		return this.router;
 	}
 
+	deleteRouter() {
+		this.router = null;
+	}
+
 	async initializeRouter(host: string, port: number, credentials: any) {
 		if (this.router && this.router.connected) { //close the old one
 			this.closeRouter();
