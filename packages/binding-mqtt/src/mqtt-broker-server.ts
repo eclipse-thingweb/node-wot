@@ -120,13 +120,13 @@ export default class MqttBrokerServer implements ProtocolServer {
                 return;
               }
               console.log(`MqttBrokerServer at ${this.brokerURI} publishing to Property topic '${propertyName}' `);
-              this.broker.publish(topic, content.body);
+              this.broker.publish(topic, content.body,{retain:true});
             }
           );
 
           let href = this.brokerURI + topic;
           let form = new TD.Form(href, ContentSerdes.DEFAULT);
-          form.op = ["observeproperty", "unobserveproperty"];
+          form.op = ["readproperty","observeproperty", "unobserveproperty"];
           thing.properties[propertyName].forms.push(form);
           console.log(`MqttBrokerServer at ${this.brokerURI} assigns '${href}' to property '${propertyName}'`);
 
