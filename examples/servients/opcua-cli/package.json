@@ -25,7 +25,8 @@
   },
   "dependencies": {
     "fs": "0.0.1-security",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "xml-writer": "^1.7.0"
   },
   "scripts": {
     "install": "npm link @node-wot/core; npm link @node-wot/binding-opcua; npm link @node-wot/binding-http; npm link @node-wot/binding-file",

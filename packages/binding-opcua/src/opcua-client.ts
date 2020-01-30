@@ -71,10 +71,6 @@ export default class OpcuaClient implements ProtocolClient {
 		return "[OpcuaClient]";
 	}
 
-	public dataTypetoString() {
-		return "opc:dataType";
-	}
-
 	private async connect(endpointUrl: string, next?: () => void) {
 		let userIdentity: any;
 
@@ -121,7 +117,7 @@ export default class OpcuaClient implements ProtocolClient {
 
 	}
 
-	public async readResource(form: OpcuaForm, schema?: TD.BaseSchema): Promise<Content> {
+	public async readResource(form: OpcuaForm): Promise<Content> {
 		let url = new Url(form.href);
 		let endpointUrl = url.origin;
 		let method = form["opc:method"] ? form["opc:method"] : "READ";
@@ -164,26 +160,16 @@ export default class OpcuaClient implements ProtocolClient {
 		});
 	}
 
-	public async writeResource(form: OpcuaForm, content: Content, schema?: TD.BaseSchema): Promise<any> {
+	public async writeResource(form: OpcuaForm, content: Content): Promise<any> {
 
-		let payload: any = JSON.parse((content.body).toString());
+		let payload: any = content ? JSON.parse((content.body).toString()): {};
 		let url = new Url(form.href);
 		let endpointUrl = url.origin;
 		let method = form["opc:method"] ? form["opc:method"] : "WRITE";
-
-		let tmp_schema = <any>schema;
-		let dataType_string = this.dataTypetoString();
-
-		if (!tmp_schema) {
-			throw new Error("Mandatory \"schema\" field missing in the TD");
-		}
-		if (!tmp_schema[dataType_string] || ((tmp_schema.properties) && !(dataType_string in tmp_schema.properties))) {
-			throw new Error(`opc:dataType field not specified for writeResource`);
-		}
 		let contentType = "application/json";
-		let dataType = tmp_schema[dataType_string] ? tmp_schema[dataType_string] : tmp_schema.properties[dataType_string];
+
 		let res: Boolean = false;
-		dataType = this.getOPCUADataType(dataType);
+		let dataType = payload.dataType;
 
 		if (this.session === null) {
 			try {
@@ -236,9 +222,9 @@ export default class OpcuaClient implements ProtocolClient {
 
 	}
 
-	public async invokeResource(form: OpcuaForm, content: Content, input?: TD.DataSchema, output?: TD.DataSchema): Promise<any> {
+	public async invokeResource(form: OpcuaForm, content: Content): Promise<any> {
 
-		let payload: any = JSON.parse((content.body).toString());
+		let payload: any = content? JSON.parse((content.body).toString()): {};
 		let url = new Url(form.href);
 
 		let endpointUrl = url.origin;
@@ -268,7 +254,11 @@ export default class OpcuaClient implements ProtocolClient {
 		let req;
 		if (method === "CALL_METHOD") {
 			try {
-				req = this.makeInvokeRequest(objectId, nodeId, payload, input);
+				req = {
+					methodId: nodeId,
+					objectId: objectId,
+					inputArguments: payload.inputArguments
+				};
 				methodToCalls.push(req);
 				result = await this.session.call(methodToCalls);
 				var status = result[0].statusCode;
@@ -382,81 +372,6 @@ export default class OpcuaClient implements ProtocolClient {
 		this.credentials = credentials;
 	}
 
-
-
-	private getOPCUADataType(string_type: string) {
-		switch (string_type) {
-			default:
-				console.warn(`dataType "${string_type}" not found, using "Double" as default`)
-				return DataType.Double;
-			case "Null": return DataType.Null;
-			case "Boolean": return DataType.Boolean;
-			case "Sbyte": return DataType.SByte;
-			case "Byte": return DataType.Byte;
-			case "Int16": return DataType.Int16;
-			case "UInt16": return DataType.UInt16;
-			case "Int32": return DataType.Int32;
-			case "UInt32": return DataType.UInt32;
-			case "Int64": return DataType.Int64;
-			case "UInt64": return DataType.UInt64;
-			case "Float": return DataType.Float;
-			case "Double": return DataType.Double;
-			case "String": return DataType.String;
-			case "DateTime": return DataType.DateTime;
-			case "Guid": return DataType.Guid;
-			case "ByteString": return DataType.ByteString;
-			case "XmlElement": return DataType.XmlElement;
-			case "NodeId": return DataType.Guid;
-			case "ExpandedNodeId": return DataType.ExpandedNodeId;
-			case "StatusCode": return DataType.StatusCode;
-			case "QualifiedName": return DataType.QualifiedName;
-			case "LocalizedText": return DataType.LocalizedText;
-			case "ExtensionObject": return DataType.ExtensionObject;
-			case "DataValue": return DataType.DataValue;
-			case "Variant": return DataType.Variant;
-			case "DiagnosticInfo": return DataType.DiagnosticInfo;
-		}
-	}
-
-	private makeInvokeRequest(objectId: string, nodeId: string, payload: any, schema?: TD.DataSchema) {
-		let obj: any = {
-			methodId: nodeId,
-			objectId: objectId
-		};
-		let inputArguments: any[] = [];
-		let tmp_schema = <any>schema;
-		if (!tmp_schema) {
-			throw new Error("Mandatory \"input\" field missing in the TD");
-		}
-		if (tmp_schema.type === 'object' && !tmp_schema.properties) {
-			throw new Error("Mandatory  \"properties\" field missing in the \"input\"");
-		}
-		let properties = tmp_schema.properties;
-		let dataType_string = this.dataTypetoString();
-		if (properties) { //multiple inputs
-			for (let key in payload) {
-				let tmp_obj: any = {};
-				if (!(key in properties) || !(dataType_string in properties[key])) {
-					throw new Error(`dataType field not specified for parameter "${key}"`);
-				}
-				let tmp_dataType = properties[key][dataType_string];
-				tmp_obj.dataType = this.getOPCUADataType(tmp_dataType);
-				tmp_obj.value = payload[key];
-				inputArguments.push(tmp_obj);
-			}
-		} else { //single input
-			if (!(dataType_string in tmp_schema)) {
-				throw new Error(`dataType field not specified for input "${payload}"`);
-			}
-			let tmp_obj: any = {};
-			let tmp_dataType = tmp_schema[dataType_string];
-			tmp_obj.dataType = this.getOPCUADataType(tmp_dataType)
-			tmp_obj.value = payload;
-			inputArguments.push(tmp_obj);
-		}
-		obj.inputArguments = inputArguments;
-		return obj;
-	}
 
 	private extract_params(url: string): { ns: string; idtype: string; mns: string; midtype: string } {
 		let res: {
