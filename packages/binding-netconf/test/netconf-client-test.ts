@@ -29,7 +29,6 @@ chai.use(spies)
 import { ContentSerdes } from "@node-wot/core";
 
 import NetconfClient from "../src/netconf-client";
-import { BaseSchema } from "@node-wot/td-tools";
 import * as xpath2json from '../src/xpath2json';
 
 
@@ -57,7 +56,7 @@ describe('outer describe', function () {
         let inputVector = {
             "form": {
                 "href": "netconf://localhost:6060/ietf-ip:ipv6/address",
-                "contentType": "application/json",
+                "contentType": "application/netconf",
                 "op": [
                     "readproperty",
                 ],
@@ -81,7 +80,7 @@ describe('outer describe', function () {
         let inputVector = {
             form: {
                 "href": "netconf://localhost:6060/ietf-interfaces:interfaces/interface[name=interface100]",
-                "contentType": "application/json",
+                "contentType": "application/netconf",
                 "op": [
                     "writeproperty"
                 ],
@@ -95,7 +94,7 @@ describe('outer describe', function () {
 
         let payload = { type: { xmlns: "urn:ietf:params:xml:ns:yang:iana-if-type", value: "modem" } };
 
-        let schema = {
+        /*let schema = {
             "properties": {
                 "type": {
                     "nc:container": true,
@@ -112,10 +111,10 @@ describe('outer describe', function () {
                     }
                 }
             }
-        }
+        }*/
 
         try {
-            let res = await client.writeResource(inputVector.form, { type: ContentSerdes.DEFAULT, body: Buffer.from(JSON.stringify(payload)) }, <BaseSchema>schema);
+            let res = await client.writeResource(inputVector.form, { type: ContentSerdes.DEFAULT, body: Buffer.from(JSON.stringify(payload))});
         } catch (err) {
             expect(err.message).to.equal("connect ECONNREFUSED 127.0.0.1:6060");
         }
@@ -128,7 +127,7 @@ describe('outer describe', function () {
             form: {
                 "href": "netconf://localhost:6060/",
                 "method": "COMMIT",
-                "contentType": "application/json",
+                "contentType": "application/netconf",
                 "op": [
                     "invokeaction"
                 ],
@@ -142,7 +141,7 @@ describe('outer describe', function () {
         let payload = "commit";
 
         try {
-            let res = await client.invokeResource(inputVector.form, { type: ContentSerdes.DEFAULT, body: Buffer.from(JSON.stringify(payload)) }, null);
+            let res = await client.invokeResource(inputVector.form, { type: ContentSerdes.DEFAULT, body: Buffer.from(JSON.stringify(payload)) });
         } catch (err) {
             expect(err.message).to.equal("connect ECONNREFUSED 127.0.0.1:6060");
         }

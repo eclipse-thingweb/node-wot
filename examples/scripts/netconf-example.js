@@ -14,12 +14,12 @@ WoTHelpers.fetch("file://./netconf-thing.jsonld").then( async (td) => {
 		res = await cf.readProperty("interface-candidate");
 		pprint(res);
 
-		res = await cf.writeProperty("ipv6-candidate", { enabled: true });
+
+		/*res = await cf.writeProperty("ipv6-candidate", { enabled: true });
 		res = await cf.readProperty("ipv6-candidate");
 		pprint(res);
 
-		//res = await cf.writeProperty("ipv6-address-running", { ip: "2001:db8:0:0:0:ff00:42:8329", "prefix-length": 96});
-
+		res = await cf.writeProperty("ipv6-address-running", { ip: "2001:db8:0:0:0:ff00:42:8329", "prefix-length": 96});*/
 		res = await cf.invokeAction("commit"); //check that running is writable!
 
 

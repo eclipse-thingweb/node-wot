@@ -23,18 +23,18 @@ import ExposedThing from "./exposed-thing";
 export interface ProtocolClient {
 
   /** this client is requested to perform a "read" on the resource with the given URI */
-  readResource(form: TD.Form, schema?: TD.BaseSchema): Promise<Content>;
+  readResource(form: TD.Form): Promise<Content>;
 
   /** this cliet is requested to perform a "write" on the resource with the given URI  */
-  writeResource(form: TD.Form, content: Content, schema?: TD.BaseSchema): Promise<void>;
+  writeResource(form: TD.Form, content: Content): Promise<void>;
 
   /** this client is requested to perform an "invoke" on the resource with the given URI */
-  invokeResource(form: TD.Form, content: Content, input?: TD.DataSchema, output?: TD.DataSchema): Promise<Content>;
+  invokeResource(form: TD.Form, content: Content): Promise<Content>;
 
   /** this client is requested to perform an "unlink" on the resource with the given URI */
   unlinkResource(form: TD.Form, schema?: TD.BaseSchema): Promise<void>;
 
-  subscribeResource(form: TD.Form, next: ((content: Content) => void), error?: (error: any) => void, complete?: () => void, schema?: TD.BaseSchema): Subscription;
+  subscribeResource(form: TD.Form, next: ((content: Content) => void), error?: (error: any) => void, complete?: () => void): Subscription;
 
   /** start the client (ensure it is ready to send requests) */
   start(): boolean;

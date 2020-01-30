@@ -22,7 +22,7 @@
       "forms": [
         {
           "href": "netconf://172.17.0.2:830/ietf-ip:ipv6",
-          "contentType": "application/json",
+          "contentType": "application/netconf",
           "op": [
             "readproperty",
             "writeproperty"
@@ -44,7 +44,7 @@
       "forms": [
         {
           "href": "netconf://172.17.0.2:830/ietf-ip:ipv6",
-          "contentType": "application/json",
+          "contentType": "application/netconf",
           "op": [
             "readproperty",
             "writeproperty"
@@ -66,7 +66,7 @@
       "forms": [
         {
           "href": "netconf://172.17.0.2:830/ietf-ip:ipv6/address",
-          "contentType": "application/json",
+          "contentType": "application/netconf",
           "op": [
             "readproperty",
             "writeproperty"
@@ -88,7 +88,7 @@
       "forms": [
         {
           "href": "netconf://172.17.0.2:830/ietf-ip:ipv6/address",
-          "contentType": "application/json",
+          "contentType": "application/netconf",
           "op": [
             "readproperty",
             "writeproperty"
@@ -126,7 +126,7 @@
       "forms": [
         {
           "href": "netconf://172.17.0.2:830/ietf-interfaces:interfaces/interface[name=interface100]",
-          "contentType": "application/json",
+          "contentType": "application/netconf",
           "op": [
             "readproperty",
             "writeproperty"
@@ -164,7 +164,7 @@
       "forms": [
         {
           "href": "netconf://172.17.0.2:830/ietf-interfaces:interfaces/interface[name=interface100]",
-          "contentType": "application/json",
+          "contentType": "application/netconf",
           "op": [
             "readproperty",
             "writeproperty"
@@ -182,8 +182,9 @@
       "description": "Commit changes on candidate",
       "forms": [
         {
+          "contentType": "application/netconf",
           "href": "netconf://172.17.0.2:830/",
-          "method": "COMMIT"
+          "nc:method": "COMMIT"
         }
       ]
     }

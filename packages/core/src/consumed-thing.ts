@@ -170,7 +170,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                 // uriVariables ?
                 form = this.handleUriVariables(form, undefined);
 
-                client.readResource(form, tp).then((content) => {
+                client.readResource(form).then((content) => {
                     if (!content.type) content.type = form.contentType;
                     try {
                         let value = ContentManager.contentToValue(content, <any>tp);
@@ -236,7 +236,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                 // uriVariables ?
                 form = this.handleUriVariables(form, value);
 
-                client.writeResource(form, content, tp).then(() => {
+                client.writeResource(form, content).then(() => {
                     resolve();
                 })
                     .catch(err => { reject(err); });
@@ -281,7 +281,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                 // uriVariables ?
                 form = this.handleUriVariables(form, parameter);
 
-                client.invokeResource(form, input, ta.input, ta.output).then((content) => {
+                client.invokeResource(form, input).then((content) => {
                     // infer media type from form if not in response metadata
                     if (!content.type) content.type = form.contentType;
 
@@ -329,8 +329,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                     },
                     () => {
                         resolve();
-                    },
-                    tp
+                    }
                 );
             }
         });
@@ -374,8 +373,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                     },
                     () => {
                         resolve();
-                    },
-                    te.subscription
+                    }
                 );
             }
         });

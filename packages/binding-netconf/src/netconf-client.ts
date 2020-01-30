@@ -16,7 +16,7 @@
 /**
  * Netconf protocol binding
  */
-import { ProtocolClient, Content } from "@node-wot/core"
+import { ProtocolClient, Content, ContentSerdes } from "@node-wot/core"
 import { NetconfForm } from "./netconf";
 import * as TD from "@node-wot/td-tools";
 import * as AsyncNodeNetcon from './async-node-netconf';
@@ -38,7 +38,7 @@ export default class NetconfClient implements ProtocolClient {
 		return "[NetconfClient]";
 	}
 
-	public async readResource(form: NetconfForm, schema?: TD.BaseSchema): Promise<Content> {
+	public async readResource(form: NetconfForm): Promise<Content> {
 		let url = new Url(form.href);
 		let ip_address = url.hostname;
 		let port = parseInt(url.port);
@@ -72,9 +72,9 @@ export default class NetconfClient implements ProtocolClient {
 		});
 	}
 
-	public async writeResource(form: NetconfForm, content: Content, schema?: TD.BaseSchema): Promise<any> {
+	public async writeResource(form: NetconfForm, content: Content): Promise<any> {
 
-		let payload: any = JSON.parse((content.body).toString());
+		let payload: any = content ? JSON.parse((content.body).toString()): {};
 		let url = new Url(form.href);
 		let ip_address = url.hostname;
 		let port = parseInt(url.port);
@@ -94,10 +94,9 @@ export default class NetconfClient implements ProtocolClient {
 			}
 		}
 		let result: any;
-		let tmp_schema = <any>schema;
-		let tmp_obj = this.getPayloadNamespaces(tmp_schema, payload, NSs, false);
-		payload = tmp_obj.payload;
-		NSs = tmp_obj.NSs;
+
+		NSs = {...NSs, ...payload.NSs};
+		payload = payload.payload
 		try {
 			result = await this.client.rpc(xpath_query, method, NSs, target, payload);
 			result = JSON.stringify(result);
@@ -109,9 +108,9 @@ export default class NetconfClient implements ProtocolClient {
 		});
 	}
 
-	public async invokeResource(form: NetconfForm, content: Content, input?: TD.DataSchema, output?: TD.DataSchema): Promise<any> {
+	public async invokeResource(form: NetconfForm, content: Content): Promise<any> {
 
-		let payload: any = JSON.parse((content.body).toString());
+		let payload: any = content ? JSON.parse((content.body).toString()): {};
 		let url = new Url(form.href);
 		let ip_address = url.hostname;
 		let port = parseInt(url.port);
@@ -132,10 +131,8 @@ export default class NetconfClient implements ProtocolClient {
 
 		}
 		try {
-			let tmp_schema = <any>input;
-			let tmp_obj = this.getPayloadNamespaces(tmp_schema, payload, NSs, false);
-			payload = tmp_obj.payload;
-			NSs = tmp_obj.NSs;
+			NSs = {...NSs, ...payload.NSs};
+			payload = payload.payload;
 			result = await this.client.rpc(xpath_query, method, NSs, target, payload);
 			result = JSON.stringify(result);
 		} catch (err) {
@@ -182,67 +179,5 @@ export default class NetconfClient implements ProtocolClient {
 		return true;
 	}
 
-	private getPayloadNamespaces(schema: any, payload: any, NSs: any, hasNamespace: boolean) {
-
-
-		if (hasNamespace) { //expect to have xmlns
-			let properties = schema.properties;
-			if (!properties) {
-				throw new Error(`Missing "properties" field in TD`);
-			}
-			let ns_found = false;
-			let alias_ns = '';
-			let value;
-			for (let key in properties) {
-
-				let el = properties[key];
-				if (!(payload[key])) {
-					throw new Error(`Payload is missing '${key}' field specified in TD`);
-				}
-				if (el["nc:attribute"] === true && payload[key]) { //if (el.format && el.format === 'urn')
-					let ns = payload[key];
-					alias_ns = ns.split(':')[ns.split(':').length - 1];
-					NSs[alias_ns] = payload[key];
-					ns_found = true;
-				} else if (payload[key]) {
-					value = payload[key];
-				}
-
-			}
-			if (!ns_found) {
-				throw new Error(`Namespace not found in the payload`);
-			} else { //change the payload in order to be parsed by the xpath2json library
-				payload = alias_ns + '\\' + ':' + value;
-			}
-			return { payload, NSs }; //return objects
-		}
-
-		if (schema.type && schema.type === 'object' && schema.properties) { //nested object, go down
-			let tmp_hasNamespace = false;
-			let tmp_obj: any;
-			if (schema.properties && schema["nc:container"]) { //check the root level
-				tmp_obj = this.getPayloadNamespaces(schema, payload, NSs, true); //root case				
-			} else {
-				tmp_obj = this.getPayloadNamespaces(schema.properties, payload, NSs, false);
-			}
-
-			payload = tmp_obj.payload;
-			NSs = { ...NSs, ...tmp_obj.NSs };
-		}
-
-		//once here schema is properties
-		for (let key in schema) {
-			if ((schema[key].type && schema[key].type === 'object') || hasNamespace) { //go down only if it a nested object or it has a namespace
-				let tmp_hasNamespace = false;
-				if (schema[key].properties && schema[key]["nc:container"]) {
-					tmp_hasNamespace = true;
-				}
-				let tmp_obj = this.getPayloadNamespaces(schema[key], payload[key], NSs, tmp_hasNamespace);
-				payload[key] = tmp_obj.payload;
-				NSs = { ...NSs, ...tmp_obj.NSs };
-			}
-		}
-
-		return { payload, NSs }; //return objects
-	}
+	
 }
