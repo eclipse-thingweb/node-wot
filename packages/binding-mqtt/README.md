@@ -45,22 +45,25 @@ Start the script by the command `wot-servient -c mqtt-subscribe.js` or `node ../
 
 ## Sample Thing Description for MQTT Clients
 
+An MQTT client frequently publishes counter data on the topic /MQTT-Test/events/counterEvent to the MQTT broker running behind the address test.mosquitto.org:1883.
+
 ```
 {
-    "name": "MQTT Counter",
+    "@context": "https://www.w3.org/2019/wot/td/v1",
+    "title": "MQTT-Test",
     "id": "urn:dev:wot:mqtt:counter",
     "actions" : {
         "resetCounter": {
             "forms": [
-                {"href": "mqtt://test.mosquitto.org:1883/Test/actions/resetCounter",  "mqtt:qos":  0, "mqtt:retain" : false}
+                {"href": "mqtt://test.mosquitto.org:1883/MQTT-Test/actions/resetCounter"}
             ]
         }
     }, 
     "events": {
-        "temperature": {
+        "counterEvent": {
             "type": "integer",
             "forms": [
-                {"href": "mqtt://test.mosquitto.org:1883/Test/events/event1",  "mqtt:qos":  0, "mqtt:retain" : false}
+                {"href": "mqtt://test.mosquitto.org:1883/MQTT-Test/events/counterEvent"}
             ]
         } 
     } 
