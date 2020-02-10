@@ -1,24 +1,168 @@
 # Eclipse Thingweb node-wot MQTT Binding
 
-W3C Web of Things MQTT binding implementation on NodeJS
 
-## License
+## Getting Started
 
-Dual-licensed under both
 
-* [Eclipse Public License v. 2.0](http://www.eclipse.org/legal/epl-2.0)
-* [W3C Software Notice and Document License (2015-05-13)](https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document)
+In the following examples it is shown how to use the MQTT binding of node-wot.
 
-Pick one of these two licenses that fits your needs.
-Please also see the additional [notices](NOTICE.md) and [how to contribute](CONTRIBUTING.md).
+### Prerequisites
+* `npm install @node-wot/core`
+* `npm install @node-wot/binding-mqtt`
 
-## Prerequisites
+### MQTT Client Example I 
 
-Setup node-wot as described at the [node-wot main page](./../../README.md).
+An MQTT client frequently publishes counter data on the topic /MQTT-Test/events/counterEvent to the MQTT broker running behind the address test.mosquitto.org:1883. In addition, the client subscribes the resetCounter topic as WoT action to reset the own counter.
 
-## Run Samples
+```
+Servient = require("@node-wot/core").Servient
+MqttBrokerServer = require("@node-wot/binding-mqtt").MqttBrokerServer
 
-There are sample implementations provided in the [example/scripting folder](./examples/scripts):
+// create Servient add MQTT binding
+let servient = new Servient();
+servient.addServer(new MqttBrokerServer("mqtt://test.mosquitto.org"));
+
+servient.start().then((WoT) => {
+
+	var counter  = 0;
+
+	WoT.produce({ 
+		title: "MQTT-Test",
+		actions: {
+			resetCounter: {
+				description: "Reset counter"
+			}
+		},
+		events: {
+			counterEvent: {
+				description: "Get counter"
+			}
+		}
+	})
+	.then((thing) => {
+
+		thing.setActionHandler("resetCounter", () => {
+			console.log("Resetting counter");
+			counter = 0;
+		});
+
+		thing.expose().then(() => {
+			console.info(thing.title + " ready");
+			
+			setInterval(() => {
+				++counter;
+				thing.emitEvent("counterEvent", counter);
+				console.info("New count", counter);
+			}, 1000);
+		});
+	})
+	.catch((e) => {
+		console.log(e)
+	});
+});
+```
+
+#### Sample Thing Description for MQTT Clients
+
+The corresponding Thing Description of the previous example is shown here:
+
+```
+{
+    "@context": "https://www.w3.org/2019/wot/td/v1",
+    "title": "MQTT-Test",
+    "id": "urn:dev:wot:mqtt:counter",
+    "actions" : {
+        "resetCounter": {
+            "forms": [
+                {"href": "mqtt://test.mosquitto.org:1883/MQTT-Test/actions/resetCounter"}
+            ]
+        }
+    }, 
+    "events": {
+        "counterEvent": {
+            "type": "integer",
+            "forms": [
+                {"href": "mqtt://test.mosquitto.org:1883/MQTT-Test/events/counterEvent"}
+            ]
+        } 
+    } 
+}
+```
+
+### MQTT Client Example II 
+This example takes the Thing Description of the previous example and subscribe to the counter event and reset the counter every 20s.
+
+```
+Servient = require("@node-wot/core").Servient
+MqttClientFactory = require("@node-wot/binding-mqtt").MqttClientFactory
+
+Helpers = require("@node-wot/core").Helpers
+
+// create Servient and add MQTT binding
+let servient = new Servient();
+servient.addClientFactory(new MqttClientFactory(null));
+
+// Thing Description can be also fetched
+let td =
+    `{
+    "@context": "https://www.w3.org/2019/td/v1",
+    "title": "MQTT-Test",
+    "id": "urn:dev:wot:mqtt:counter",
+    "actions" : {
+        "resetCounter": {
+            "forms": [
+                {"href": "mqtt://test.mosquitto.org:1883/MQTT-Test/actions/resetCounter"}
+            ]
+        }
+    }, 
+    "events": {
+        "counter": {
+            "data": {
+                "type": "integer"
+            },
+            "forms": [
+                {"href": "mqtt://test.mosquitto.org:1883/MQTT-Test/events/counterEvent"}
+            ]
+        } 
+    } 
+}`;
+
+try {
+    servient.start().then((WoT) => {
+        WoT.consume(JSON.parse(td)).then((source) => {
+            console.info("=== TD ===");
+            console.info(td);
+            console.info("==========");
+
+            source.subscribeEvent("counter",
+                x => console.info("value:", x),
+                e => console.error("Error: %s", e),
+                () => console.info("Completed")
+            );
+            console.info("Subscribed");
+
+            setInterval(async () => {
+                source.invokeAction("resetCounter")
+                    .then((res) => { })
+                    .catch((err) => {
+                        console.error("ResetCounter error:", err.message);
+                    });
+                console.info("Reset counter!");
+            }, 20000);
+        });
+    });
+} catch (err) {
+    console.error("Script error:", err);
+}
+
+```
+
+
+### More Examples
+
+There are sample implementations provided in the [example/scripting folder](https://github.com/eclipse/thingweb.node-wot/tree/master/examples/scripts).
+
+Please setup node-wot as described at the [node-wot main page](https://github.com/eclipse/thingweb.node-wot#as-a-standalone-application).
 
 * example-mqtt-publish.js: Shows when node-wot act as a MQTT Client that publish data (latest counter value) to a broker. In the same time the client setup an action (reset counter) that can be initated by another MQTT client by sending a publication message to this action based topic. Please note to provide MQTT broker details (host, port, [username], [password], [clientId]) in the wot-servient.conf.json:
 
@@ -43,26 +187,4 @@ Start the script by the command `wot-servient mqtt-publish.js` or `node ../../pa
 Start the script by the command `wot-servient -c mqtt-subscribe.js` or `node ../../packages/cli/dist/cli.js -c mqtt-subscribe.js`.
 
 
-## Sample Thing Description for MQTT Clients
 
-```
-{
-    "name": "MQTT Counter",
-    "id": "urn:dev:wot:mqtt:counter",
-    "actions" : {
-        "resetCounter": {
-            "forms": [
-                {"href": "mqtt://test.mosquitto.org:1883/Test/actions/resetCounter",  "mqtt:qos":  0, "mqtt:retain" : false}
-            ]
-        }
-    }, 
-    "events": {
-        "temperature": {
-            "type": "integer",
-            "forms": [
-                {"href": "mqtt://test.mosquitto.org:1883/Test/events/event1",  "mqtt:qos":  0, "mqtt:retain" : false}
-            ]
-        } 
-    } 
-}
-```
