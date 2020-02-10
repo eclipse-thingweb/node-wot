@@ -8,9 +8,9 @@
     "url": "https://github.com/eclipse/thingweb.node-wot.git"
   },
   "devDependencies": {
-    "lerna": "^3.18.1",
+    "lerna": "^3.20.2",
     "lerna-run": "0.0.2",
-    "rimraf": "2.6.2"
+    "rimraf": "3.0.2"
   },
   "dependencies": {},
   "scripts": {
