@@ -18,7 +18,7 @@ Setup node-wot as described at the [node-wot main page](./../../README.md).
 
 ## Run Samples
 
-There are sample implementations provided in the [example/scripting folder](./examples/scripts):
+There are sample implementations provided in the [example/scripting folder](https://github.com/eclipse/thingweb.node-wot/tree/master/examples/scripts):
 
 * example-mqtt-publish.js: Shows when node-wot act as a MQTT Client that publish data (latest counter value) to a broker. In the same time the client setup an action (reset counter) that can be initated by another MQTT client by sending a publication message to this action based topic. Please note to provide MQTT broker details (host, port, [username], [password], [clientId]) in the wot-servient.conf.json:
 
