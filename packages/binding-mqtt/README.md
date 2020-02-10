@@ -186,5 +186,8 @@ Start the script by the command `wot-servient mqtt-publish.js` or `node ../../pa
 
 Start the script by the command `wot-servient -c mqtt-subscribe.js` or `node ../../packages/cli/dist/cli.js -c mqtt-subscribe.js`.
 
+### More Details
+
+see https://github.com/eclipse/thingweb.node-wot/
 
 
