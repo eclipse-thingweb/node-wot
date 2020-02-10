@@ -21,7 +21,7 @@ let td =
     "actions" : {
         "resetCounter": {
             "forms": [
-                {"href": "mqtt://test.mosquitto.org:1883/MQTT-Test/actions/resetCounter",  "mqtt:qos":  0, "mqtt:retain" : false}
+                {"href": "mqtt://test.mosquitto.org:1883/MQTT-Test/actions/resetCounter"}
             ]
         }
     }, 
@@ -31,8 +31,7 @@ let td =
                 "type": "integer"
             },
             "forms": [
-                {"href": "mqtt://test.mosquitto.org:1883/MQTT-Test/events/counterEvent",  "mqtt:qos":  0, "mqtt:retain" : false,
-				"contentType": "text/plain"}
+                {"href": "mqtt://test.mosquitto.org:1883/MQTT-Test/events/counterEvent"}
             ]
         } 
     } 
