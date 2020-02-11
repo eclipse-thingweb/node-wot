@@ -201,7 +201,7 @@ class HttpClientTest {
             op: ["readproperty"],
             form: {
                 href: "http://localhost:60603/",
-                "http:methodName": "POST"
+                "htv:methodName": "POST"
             }
         };
         httpServer.setTestVector(inputVector);
@@ -212,7 +212,7 @@ class HttpClientTest {
             op: ["writeproperty"],
             form: {
                 href: "http://localhost:60603/",
-                "http:methodName": "POST"
+                "htv:methodName": "POST"
             },
             payload: "test"
         };
@@ -224,7 +224,7 @@ class HttpClientTest {
             op: ["invokeaction"],
             form: {
                 href: "http://localhost:60603/",
-                "http:methodName": "PUT"
+                "htv:methodName": "PUT"
             },
             payload: "test"
         };
@@ -236,7 +236,7 @@ class HttpClientTest {
             op: ["invokeaction"],
             form: {
                 href: "http://localhost:60603/",
-                "http:methodName": "DELETE"
+                "htv:methodName": "DELETE"
             }
         };
         httpServer.setTestVector(inputVector);

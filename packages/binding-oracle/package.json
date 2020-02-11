@@ -11,14 +11,14 @@
   "main": "dist/oracle.js",
   "types": "dist/oracle.d.ts",
   "devDependencies": {
-    "@types/chai": "4.0.4",
-    "@types/node": "10.9.4",
-    "chai": "4.1.2",
+    "@types/chai": "4.2.8",
+    "@types/node": "13.7.0",
+    "chai": "4.2.0",
     "mocha": "3.5.3",
     "mocha-typescript": "1.1.8",
-    "ts-node": "3.3.0",
-    "typescript": "2.5.2",
-    "typescript-standard": "0.3.30"
+    "ts-node": "8.6.2",
+    "typescript": "3.7.5",
+    "typescript-standard": "0.3.36"
   },
   "dependencies": {
     "@node-wot/core": "0.7.0-SNAPSHOT.6",

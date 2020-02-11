@@ -40,6 +40,47 @@ export default class TextCodec implements ContentCodec {
       body = value;
     }
 
-    return Buffer.from(body, parameters.charset);
+    // type BufferEncoding = "ascii" | "utf8" | "utf-8" | "utf16le" | "ucs2" | "ucs-2" | "base64" | "latin1" | "binary" | "hex";
+    let be : BufferEncoding = undefined;
+    if(parameters && parameters.charset) {
+      switch (parameters.charset) {
+        case "ascii":
+          be = "ascii";
+          break;
+        case "utf8":
+          be = "utf8";
+          break;
+        case "utf-8":
+          be = "utf-8";
+          break;
+        case "utf16le":
+          be = "utf16le";
+          break;
+        case "ucs2":
+          be = "ucs2";
+          break;
+        case "ucs-2":
+          be = "ucs-2";
+          break;
+        case "base64":
+          be = "base64";
+          break;
+        case "latin1":
+          be = "latin1";
+          break;
+        case "binary":
+          be = "binary";
+          break;
+        case "hex":
+          be = "hex";
+          break;
+      }
+    }
+
+    if(be) {
+      return Buffer.from(body, be);
+    } else {
+      return Buffer.from(body);
+    }
   }
 }
