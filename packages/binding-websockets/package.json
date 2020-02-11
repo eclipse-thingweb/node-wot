@@ -29,7 +29,7 @@
     "@node-wot/td-tools": "0.7.0-SNAPSHOT.6",
     "@node-wot/core": "0.7.0-SNAPSHOT.6",
     "@node-wot/binding-http": "0.7.0-SNAPSHOT.6",
-    "ws": "7.2.0"
+    "ws": "7.2.1"
   },
   "scripts": {
     "build": "tsc",
