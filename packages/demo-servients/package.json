@@ -28,7 +28,7 @@
     "@node-wot/binding-http": "0.7.0-SNAPSHOT.6",
     "@node-wot/binding-oracle": "0.7.0-SNAPSHOT.6",
     "@node-wot/binding-fujitsu": "0.7.0-SNAPSHOT.6",
-    "rxjs": "5.4.3"
+    "rxjs": "5.5.11"
   },
   "scripts": {
     "build": "tsc",
