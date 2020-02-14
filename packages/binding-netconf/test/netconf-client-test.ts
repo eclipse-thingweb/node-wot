@@ -149,7 +149,7 @@ describe('outer describe', function () {
     })
 
     it("should properly add leaves to XPATH", async function () {
-        let xpath_query = '/ietf-interfaces:interfaces/interface';
+        let xpath_query = '/ietf-interfaces:interfaces/interface/interface';  //the binding automatically adds again the leaf. addLeaves then removes it
         let payload = { name: "interface100" };
         let valid_xpath_query = '/ietf-interfaces:interfaces/interface[name="interface100"]';
         xpath_query = xpath2json.addLeaves(xpath_query, payload);
