@@ -18,13 +18,17 @@
  */
 import { ProtocolClientFactory, ProtocolClient } from "@node-wot/core";
 import NetconfClient from './netconf-client';
+import { ContentSerdes } from "@node-wot/core";
+import NetconfCodec from "./codecs/netconf-codec";
 
 export default class NetconfClientFactory implements ProtocolClientFactory {
   public readonly scheme: string = "netconf";
+  public contentSerdes: ContentSerdes = ContentSerdes.get();
   constructor() { 
   }
 
   public getClient(): ProtocolClient {
+    this.contentSerdes.addCodec(new NetconfCodec()); // add custom codec for NetConf
     console.log(`NetconfClientFactory creating client for '${this.scheme}'`);
     return new NetconfClient();
   }

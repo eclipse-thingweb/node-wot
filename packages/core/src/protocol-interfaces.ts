@@ -32,7 +32,7 @@ export interface ProtocolClient {
   invokeResource(form: TD.Form, content: Content): Promise<Content>;
 
   /** this client is requested to perform an "unlink" on the resource with the given URI */
-  unlinkResource(form: TD.Form, schema?: TD.BaseSchema): Promise<void>;
+  unlinkResource(form: TD.Form): Promise<void>;
 
   subscribeResource(form: TD.Form, next: ((content: Content) => void), error?: (error: any) => void, complete?: () => void): Subscription;
 

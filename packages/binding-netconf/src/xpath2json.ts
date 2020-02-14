@@ -68,7 +68,7 @@ export function xpath2json(xpath: string, NSs: any) {
 		}
 
 		if (sub.match(reg)) { //handle elements with values for leaves
-			var values = sub.match(reg);
+			let values = sub.match(reg);
 			sub = sub.replace(/\[[^\]]*\]/g, '');
 			if (!tmp_obj[sub]) { //create the parent
 				tmp_obj[sub] = {};
@@ -128,11 +128,14 @@ export function addLeaves(xpath: string, payload: any) {
 	}
 
 	let json_string = json2xpath(payload, 0, []);
-	var json_xpath = json_string[0] !== '[' ? '/': ''; //let's check if the first argument is a leaf
-	for(var i = 0; i < json_string.length; i++) {
-		json_xpath += json_string[i];
+	let json_xpath = json_string.join('');
+	//remove the leaf from the xpath, since it has been added by the codec again
+	//remove only if it is not the only one element in the xpath
+	if (xpath.split('/').length > 2) { // there is also the '' element in the array to consider
+		let last_el = xpath.split('/').splice(-1, 1);
+		xpath = xpath.replace('/' + last_el[0], '');
 	}
 
-	return xpath+json_xpath;
+	return xpath + json_xpath;
 
 }

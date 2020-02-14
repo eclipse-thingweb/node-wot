@@ -36,6 +36,7 @@ export default class JsonCodec implements ContentCodec {
   bytesToValue(bytes: Buffer, schema: TD.DataSchema, parameters: { [key: string]: string }): any {
     //console.debug(`JsonCodec parsing '${bytes.toString()}'`);
 
+
     let parsed: any;
     try {
       parsed = JSON.parse(bytes.toString());
@@ -65,7 +66,6 @@ export default class JsonCodec implements ContentCodec {
   }
 
   valueToBytes(value: any, schema: TD.DataSchema, parameters?: { [key: string]: string }): Buffer {
-
     //console.debug("JsonCodec serializing", value);
     let body = "";
     if (value !== undefined) {

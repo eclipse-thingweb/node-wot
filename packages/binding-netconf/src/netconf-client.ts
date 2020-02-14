@@ -47,7 +47,7 @@ export default class NetconfClient implements ProtocolClient {
 		let NSs = form["nc:NSs"] || {};
 		let target = form["nc:target"] || DEFAULT_TARGET;
 
-		let contentType = "application/json";
+		let contentType = 'application/yang-data+xml';
 
 		if (this.client.getRouter() === null) {
 			try {
@@ -83,7 +83,7 @@ export default class NetconfClient implements ProtocolClient {
 		let NSs = form["nc:NSs"] || {};
 		let target = form["nc:target"] || DEFAULT_TARGET;
 
-		let contentType = "application/json";
+		let contentType = 'application/yang-data+xml';
 		if (this.client.getRouter() === null) {
 			try {
 				await this.client.initializeRouter(ip_address, port, this.credentials);
@@ -140,7 +140,7 @@ export default class NetconfClient implements ProtocolClient {
 			throw err;
 		}
 
-		let contentType = "application/json";
+		let contentType = 'application/yang-data+xml';
 		return new Promise<Object>((resolve, reject) => {
 			resolve({ type: contentType, body: result });
 		});

@@ -82,12 +82,12 @@ The optional attribute *nc:method* specifies which NETCONF RPC should be used in
 * writepropery is mapped to a NETCONF RPC with  `EDIT-CONFIG` method
 * invokeaction is mapped to the generic RPC call, and hence, the method must be set explicitly (e.g., `COMMIT`, or whatever RPC is defined in YANG).
  
-## New DataSchema Fields for the NETCONF Binding
+## New DataSchema Fields for the NETCONF Binding and new ContentSerdes
  
 NETCONF uses XML on the wire, which requires additional translations from the JSON model used at WoT application level.
-To enable support for XML attributes (e.g., `<node myattrib="demo">myvalue</node>`), the DataSchema information has to be extended with the following terms, and the schema also be passed down to the binding.
+To enable support for XML attributes (e.g., `<node myattrib="demo">myvalue</node>`), the DataSchema information has to be extended with the following terms, and a new ContentSerdes is needed.
  
-### nc:container and nc:attribute
+### xml:container and xml:attribute
  
 The field `nc:container` is used in combination with `nc:attribute` to indicate whether the object is a structure or a node with attributes (`"nc:container": true`), and whether the given property is an attribute `"nc:attribute": true`) or the value, resp.
 The concrete use case is to assign a namespace passed as attribute (`xmlns`) to the value inside the XML node.
@@ -95,35 +95,33 @@ Here, the object should contain two properties, one for specifying the namespace
  
 For example, assume the YANG leaf **type** modeled as a Property with the following **href**:
  
-``netconf://172.17.0.2:830/ietf-interfaces:interfaces/interface[name=interface100]``
+``netconf://172.17.0.2:830/ietf-interfaces:interfaces/interface[name=interface100]/type``
  
 According to the YANG model, the value for **type** requires a value that is qualified by a namespace.
 In XML, it is given through the `xmlns` attribute of the `type` node.
-Using the JSON model of TD, it looks like this, where the `xmlns` key will be used as attribute name and the `value` key ignored, as it is the value going into the XML node on the wire:
+Using the JSON model of TD, it looks like the following, where the `xmlns` key will be used as attribute name and the `value` key ignored, as it is the value going into the XML node on the wire:
  
 ```json
-"type": {
-   "type": "object",
-   "nc:container": true,
-   "properties":{
-      "xmlns":{
-        "type": "string",
-        "format": "urn",
-        "nc:attribute": true
-      },
-      "value":{
-        "type":"string"
-      }
-   }
+"type": "object",
+"nc:container": true,
+"properties":{
+  "xmlns":{
+    "type": "string",
+    "format": "urn",
+    "nc:attribute": true
+  },
+  "value":{
+    "type":"string"
+  }
 }
 ```
  
-Please note that, in order to make this work and for reading the Schema from inside the Binding, the `protocol.interface.ts` in the `thingweb.node-wot/packages/core` directory should be enhanced in order to pass the Affordance Schema to the Binding.
+Please note that, in order to make this binding work, each href should always contain a leaf that refers to a property of the YANG module.
  
 ## TODO
  
 - [ ] Subscriptions implementation (EVENTS)
-- [ ] TEST
+- [x] TEST
 - [ ] (NETCONF Server Protocol Binding ?)
  
 ## Acknowledgments
