@@ -123,6 +123,3 @@ Please note that, in order to make this binding work, each href should always co
 - [ ] Subscriptions implementation (EVENTS)
 - [x] TEST
 - [ ] (NETCONF Server Protocol Binding ?)
- 
-## Acknowledgments
-A really thanks to [Matthias Kovatsch](https://github.com/mkovatsc) for his constant and precious help for this Binding.

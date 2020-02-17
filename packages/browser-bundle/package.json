@@ -19,7 +19,8 @@
     "browserify": "16.2.3",
     "tinyify": "2.5.0"
   },
-  "dependencies": {},
+  "dependencies": {
+  },
   "scripts": {
     "build": "browserify index.js --plugin tinyify -o dist/wot-bundle.min.js"
   }
