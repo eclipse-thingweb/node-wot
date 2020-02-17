@@ -13,31 +13,30 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { ContentSerdes, ContentCodec } from "../content-serdes";
+import { ContentSerdes, ContentCodec } from "@node-wot/core";
 import * as TD from "@node-wot/td-tools";
-import { DataType } from "node-opcua-client";
+import { DataType, Variant, assert } from "node-opcua-client";
+import { BinaryStream } from "node-opcua-binary-stream";
 
 /** default implementation offering JSON de-/serialisation */
 export default class OpcuaCodec implements ContentCodec {
   getMediaType(): string {
-    return 'application/opcua'
+    return 'application/x.opcua-binary'
   }
 
   bytesToValue(bytes: Buffer, schema: TD.DataSchema, parameters: { [key: string]: string }): any {
     //console.debug(`JsonCodec parsing '${bytes.toString()}'`);
-
-
     let parsed: any;
     try {
       parsed = JSON.parse(bytes.toString());
+      parsed = parsed.value;
     } catch (err) {
       if (err instanceof SyntaxError) {
         if (bytes.byteLength == 0) {
           // empty payload -> void/undefined
           parsed = undefined;
         } else {
-          // be relaxed about what is received -> string without quotes
-          parsed = bytes.toString();
+          parsed = (<any>bytes).value; //Variant instance then
         }
       } else {
         throw err;

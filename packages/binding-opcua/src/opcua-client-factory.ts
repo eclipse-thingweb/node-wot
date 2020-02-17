@@ -17,14 +17,18 @@
  * Opcua protocol binding
  */
 import { ProtocolClientFactory, ProtocolClient } from "@node-wot/core";
-import OpcuaClient from './opcua-client';
+import { ContentSerdes } from "@node-wot/core";
 import { OpcuaConfig } from "./opcua";
+import OpcuaClient from './opcua-client';
+import OpcuaCodec from "./codecs/opcua-codec";
 
 export default class OpcuaClientFactory implements ProtocolClientFactory {
   public readonly scheme: string = "opc.tcp";
   private config: OpcuaConfig = null;
+  public contentSerdes: ContentSerdes = ContentSerdes.get();
   constructor(config: OpcuaConfig = null) {
     this.config = config;
+    this.contentSerdes.addCodec(new OpcuaCodec());
   }
 
   public getClient(): ProtocolClient {

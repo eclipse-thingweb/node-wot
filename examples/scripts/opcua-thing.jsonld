@@ -23,7 +23,7 @@
          "forms":[
             {
                "href":"opc.tcp://localhost:5050/ns=1;b=9998FFAA",
-               "contentType":"application/opcua"
+               "contentType":"application/x.opcua-binary"
             }
          ]
       },
@@ -38,7 +38,7 @@
          "forms":[
             {
                "href":"opc.tcp://localhost:5050/ns=1;b=9999FFAA",
-               "contentType":"application/opcua",
+               "contentType":"application/x.opcua-binary",
                "op":[
                   "readproperty",
                   "writeproperty"
@@ -79,7 +79,7 @@
          "forms":[
             {
                "href":"opc.tcp://localhost:5050/ns=1;b=9990FFAA;mns=1;mb=9997FFAA",
-               "contentType":"application/opcua",
+               "contentType":"application/x.opcua-binary",
                "opc:method":"CALL_METHOD"
             }
          ]
@@ -100,7 +100,7 @@
          "forms":[
             {
                "href":"opc.tcp://localhost:5050/ns=1;b=9990FFAA;mns=1;ms=squareFunction",
-               "contentType":"application/opcua",
+               "contentType":"application/x.opcua-binary",
                "opc:method":"CALL_METHOD"
             }
          ]

@@ -21,12 +21,9 @@ import { expect, should, assert } from "chai";
 // should must be called to augment all variables
 should();
 
-import { ContentSerdes } from "@node-wot/core";
 
 import OpcuaClient from "../src/opcua-client";
 import { OpcuaServer } from './opcua-server';
-import { BaseSchema, DataSchema } from "@node-wot/td-tools";
-
 
 
 
@@ -93,7 +90,7 @@ describe('OPCUA client test', function () {
         let schema = {
             "opc:dataType": "Double"
         }
-        let res = await client.writeResource(inputVector.form, { type: ContentSerdes.DEFAULT, body: Buffer.from(inputVector.payload) }, <BaseSchema>schema);
+        let res = await client.writeResource(inputVector.form, { type: 'application/x.opcua-binary', body: Buffer.from(inputVector.payload) });
         expect(res).to.equal(undefined);
         return;
     })
@@ -115,12 +112,12 @@ describe('OPCUA client test', function () {
         }
 
         try {
-            let res = await client.writeResource(inputVector.form, { type: ContentSerdes.DEFAULT, body: Buffer.from(inputVector.payload) }, null);
+            let res = await client.writeResource(inputVector.form, { type: 'application/x.opcua-binary', body: Buffer.from(inputVector.payload)});
         } catch(err) {
             expect(err.message).to.equal("Mandatory \"schema\" field missing in the TD");
         }
         try {
-            let res = await client.writeResource(inputVector.form, { type: ContentSerdes.DEFAULT, body: Buffer.from(inputVector.payload) }, <BaseSchema>schema);
+            let res = await client.writeResource(inputVector.form, { type: 'application/x.opcua-binary', body: Buffer.from(inputVector.payload)});
         } catch(err) {
             expect(err.message).to.equal("opc:dataType field not specified for writeResource");
         }
@@ -138,16 +135,12 @@ describe('OPCUA client test', function () {
                 href: "opc.tcp://localhost:5050/ns=1;b=9990FFAA;mns=1;mb=9997FFAA",
                 "opc:method": "CALL_METHOD"
             },
-            payload: JSON.stringify({ a: 10, c: 2 })
+            payload: JSON.stringify({
+                inputArguments: [ { dataType: 11, value: 10 }, { dataType: 11, value: 2 } ]
+            })
         };
-        let schema = {
-            type: 'object',
-            properties: {
-                a: { type: 'number', 'opc:dataType': 'Double' },
-                c: { type: 'number', 'opc:dataType': 'Double' }
-            }
-        }
-        let res = await client.invokeResource(inputVector.form, { type: ContentSerdes.DEFAULT, body: Buffer.from(inputVector.payload) }, <DataSchema>schema);
+
+        let res = await client.invokeResource(inputVector.form, { type: 'application/x.opcua-binary', body: Buffer.from(inputVector.payload) });
         let val = res.body.value;
         expect(val).to.equal(5);
 
@@ -173,40 +166,8 @@ describe('OPCUA client test', function () {
                 c: { type: 'number', 'opc:dataType': 'Double' }
             }
         }
-        let res = await client.invokeResource(inputVector.form, { type: ContentSerdes.DEFAULT, body: Buffer.from(inputVector.payload) }, <DataSchema>schema);
+        let res = await client.invokeResource(inputVector.form, { type: 'application/x.opcua-binary', body: Buffer.from(inputVector.payload) });
         expect(res).to.equal(undefined);
-        return;
-    })
-
-    it("should fail to invoke an action because of missing schema information", async function () {
-
-        // invoke with defaults
-        let inputVector = {
-            op: ["invokeAction"],
-            form: {
-                href: "opc.tcp://localhost:5050/ns=1;b=9990FFAA;mns=1;mb=9997FFAA",
-                "opc:method": "CALL_METHOD"
-            },
-            payload: JSON.stringify({ a: 10, c: 2 })
-        };
-        let schema = {
-            type: 'object',
-            wrong_properties_field: {
-                a: { type: 'number', 'opc:dataType': 'Double' },
-                c: { type: 'number', 'opc:dataType': 'Double' }
-            }
-        }
-
-        try {
-            let res = await client.invokeResource(inputVector.form, { type: ContentSerdes.DEFAULT, body: Buffer.from(inputVector.payload) }, null);
-        } catch(err) {
-            expect(err.message).to.equal("Mandatory \"input\" field missing in the TD");
-        }
-        try {
-            let res = await client.invokeResource(inputVector.form, { type: ContentSerdes.DEFAULT, body: Buffer.from(inputVector.payload) }, <DataSchema>schema);
-        } catch(err) {
-            expect(err.message).to.equal("Mandatory  \"properties\" field missing in the \"input\"");
-        }
         return;
     })
 

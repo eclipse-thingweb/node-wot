@@ -122,7 +122,7 @@ export default class OpcuaClient implements ProtocolClient {
 		let endpointUrl = url.origin;
 		let method = form["opc:method"] ? form["opc:method"] : "READ";
 
-		let contentType = "application/json";
+		let contentType = "application/x.opcua-binary";
 
 		if (this.session === null) {
 			try {
@@ -166,7 +166,7 @@ export default class OpcuaClient implements ProtocolClient {
 		let url = new Url(form.href);
 		let endpointUrl = url.origin;
 		let method = form["opc:method"] ? form["opc:method"] : "WRITE";
-		let contentType = "application/json";
+		let contentType = "application/x.opcua-binary";
 
 		let res: Boolean = false;
 		let dataType = payload.dataType;
@@ -231,7 +231,7 @@ export default class OpcuaClient implements ProtocolClient {
 		let method = form["opc:method"] ? form["opc:method"] : "CALL_METHOD";
 
 
-		let contentType = "application/json";
+		let contentType = "application/x.opcua-binary";
 		if (this.session === null) {
 			try {
 				await this.connect(endpointUrl);
@@ -296,7 +296,7 @@ export default class OpcuaClient implements ProtocolClient {
 
 		let url = new Url(form.href);
 		let endpointUrl = url.origin;
-		let contentType = "application/json";
+		let contentType = "application/x.opcua-binary";
 		let self = this;
 		this.checkConnection(endpointUrl).then(function () {
 			try {

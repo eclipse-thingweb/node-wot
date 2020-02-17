@@ -64,7 +64,7 @@ To enable support for a proper Datatype translation, the DataSchema information 
 ### opc:DataType
 
 Among all the possible OPC UA Datatypes, at the moment all the ones supported by (node-wot)[https://github.com/node-opcua/node-opcua/blob/master/packages/node-opcua-variant/source/DataType_enum.ts] can be used. 
-The binding needs to read the Dataschema in order to take the proper OPC UA Datatype and adjust the OPC UA request accordingly. For this reason, in order to make this work and for reading the Schema from inside the Binding, the `protocol.interface.ts` in the `thingweb.node-wot/packages/core` directory should be enhanced in order to pass the Affordance Schema to the Binding.
+The binding uses a new custom ContentSerdes in order to handle the proper OPC UA Datatype and adjust the OPC UA request accordingly. Please note that this binding does not directly handle OPC UA raw bytes but instead an intermediate format to be passed to another NodeJS library ([node-opcua](https://github.com/node-opcua)) that is in charge of making the raw conversion. In this sense, the new ContentSerdes strongly depends on the Nodejs library used behind.
 
 ## Additional tools
 
@@ -73,7 +73,7 @@ A basic OPC UA server crawler and a basic OPC UA -> TD translator can be found [
 ## TODO
  
 - [ ] Subscriptions implementation (EVENTS) with Sub/Pub protocol
-- [ ] TEST
+- [x] TEST
 - [ ] (OPC UA Server Protocol Binding ?)
  
 ## Acknowledgments

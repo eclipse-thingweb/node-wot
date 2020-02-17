@@ -17,7 +17,6 @@ import { Content } from "./protocol-interfaces";
 import JsonCodec from "./codecs/json-codec";
 import TextCodec from "./codecs/text-codec";
 import OctetstreamCodec from "./codecs/octetstream-codec";
-import OpcuaCodec from "./codecs/opcua-codec";
 import * as TD from "@node-wot/td-tools";
 
 /** is a plugin for ContentSerdes for a specific format (such as JSON or EXI) */
@@ -49,7 +48,6 @@ export class ContentSerdes {
       this.instance.addCodec(new JsonCodec("application/senml+json"));
       this.instance.addCodec(new TextCodec());
       this.instance.addCodec(new OctetstreamCodec());
-      this.instance.addCodec(new OpcuaCodec());
     }
     return this.instance;
   }
