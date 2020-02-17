@@ -76,6 +76,3 @@ A basic OPC UA server crawler and a basic OPC UA -> TD translator can be found [
 - [x] TEST
 - [ ] (OPC UA Server Protocol Binding ?)
  
-## Acknowledgments
-
-Many thanks to [Matthias Kovatsch](https://github.com/mkovatsc) for his constant and precious help for this Binding.
