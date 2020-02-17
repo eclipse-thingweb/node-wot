@@ -58,11 +58,32 @@ Helpers = require("@node-wot/core").Helpers
 
 // create Servient add HTTP binding
 let servient = new Servient();
-servient.addServer(new HttpServer());
+// add username & password credentials if desired
+servient.addCredentials({
+    /*"urn:dev:wot:org:eclipse:thingweb:my-counter": {
+        username: "node-wot",
+        password: "hello"
+        // token: "1/mZ1edKKACtPAb7zGlwSzvs72PvhAbGmB8K1ZrGxpcNM"
+    }*/ 
+});
+let httpConfig = {
+    // Port (default 8080)
+    /* port: 8081, */
+    // ### HTTPS Security
+    /* allowSelfSigned: true,
+    serverKey: "privatekey.pem",
+    serverCert: "certificate.pem",*/
+    // Basic Security (username & password)
+    /*security: {
+          scheme: "basic"
+    }*/
+};
+servient.addServer(new HttpServer(httpConfig));
 
 servient.start().then((WoT) => {
     WoT.produce({
         "@context": "https://www.w3.org/2019/wot/td/v1",
+        id: "urn:dev:wot:org:eclipse:thingweb:my-counter",
         title: "MyCounter",
         properties: {
 			count: {
