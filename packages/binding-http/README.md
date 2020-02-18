@@ -56,34 +56,70 @@ HttpServer = require("@node-wot/binding-http").HttpServer
 
 Helpers = require("@node-wot/core").Helpers
 
-// create Servient add HTTP binding
+// create Servient add HTTP binding with port configuration
 let servient = new Servient();
-// add username & password credentials if desired
+servient.addServer(new HttpServer({
+    port: 8081 // (default 8080)
+}));
+
+servient.start().then((WoT) => {
+    WoT.produce({
+        "@context": "https://www.w3.org/2019/wot/td/v1",
+        title: "MyCounter",
+        properties: {
+			count: {
+				type: "integer"
+            }
+        }
+    }).then((thing) => {
+        console.log("Produced " + thing.title);
+        thing.writeProperty("count", 0)
+
+        thing.expose().then(() => {
+            console.info(thing.title + " ready");
+            console.info("TD : " + JSON.stringify(thing.getThingDescription()));
+            thing.readProperty("count").then((c) => {
+                console.log("cound is " + c);
+            });
+        });
+    });
+});
+```
+
+The *secure* server example shows how to add credentials and how to setup HTTPS.
+
+`node example-server-secure.js`
+
+```
+// example-server-secure.js
+Servient = require("@node-wot/core").Servient
+HttpServer = require("@node-wot/binding-http").HttpServer
+
+Helpers = require("@node-wot/core").Helpers
+
+// create secure Servient with username & password credentials 
+let servient = new Servient();
 servient.addCredentials({
-    /*"urn:dev:wot:org:eclipse:thingweb:my-counter": {
+    "urn:dev:wot:org:eclipse:thingweb:my-example-secure": {
         username: "node-wot",
         password: "hello"
         // token: "1/mZ1edKKACtPAb7zGlwSzvs72PvhAbGmB8K1ZrGxpcNM"
-    }*/ 
+    }
 });
 let httpConfig = {
-    // Port (default 8080)
-    /* port: 8081, */
-    // ### HTTPS Security
-    /* allowSelfSigned: true,
+    allowSelfSigned: true,
     serverKey: "privatekey.pem",
-    serverCert: "certificate.pem",*/
-    // Basic Security (username & password)
-    /*security: {
-          scheme: "basic"
-    }*/
-};
+    serverCert: "certificate.pem",
+    security: {
+          scheme: "basic" // (username & password)
+    }};
+// add HTTPS binding with configuration
 servient.addServer(new HttpServer(httpConfig));
 
 servient.start().then((WoT) => {
     WoT.produce({
         "@context": "https://www.w3.org/2019/wot/td/v1",
-        id: "urn:dev:wot:org:eclipse:thingweb:my-counter",
+        id: "urn:dev:wot:org:eclipse:thingweb:my-example-secure",
         title: "MyCounter",
         properties: {
 			count: {
