@@ -40,6 +40,10 @@
             "identity": "password",
             "psk": "sesame"
         },
+		"urn:dev:wot:org:eclipse:netconf-example": {
+			"username": "root",
+			"password": "root"
+		},
 		"urn:dev:wot:org:eclipse:opcua-example-certificate": {
 			"clientCertificate": "~/certificates/client_cert.pem",
 			"clientPrivateKey": "~/certificates/client_private_key.pem",
