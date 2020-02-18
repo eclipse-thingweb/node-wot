@@ -1,38 +1,57 @@
 {
-	"servient": {
-		"_staticAddress": "plugfest.thingweb.io",
-		"scriptDir": ".",
-		"scriptAction": true
+    "servient": {
+        "_staticAddress": "plugfest.thingweb.io",
+        "scriptDir": ".",
+        "scriptAction": true
+    },
+    "http": {
+        "port": 8080,
+        "allowSelfSigned": true
+    },
+    "coap": {
+        "port": 5683
+    },
+    "mqtt" : {
+        "broker" : "mqtt://test.mosquitto.org",
+        "_username" : "username",
+        "_password" : "password",
+        "_clientId" : "uniqueId",
+        "protocolVersion": 5 
+    },
+	"opcua": {
+		"subscriptionOptions": {
+			"requestedPublishingInterval": 1000,
+			"requestedLifetimeCount": 100,
+			"requestedMaxKeepAliveCount": 10,
+			"maxNotificationsPerPublish": 100,
+			"publishingEnabled": true,
+			"priority": 10
+		}
 	},
-	"http": {
-		"port": 8080,
-		"allowSelfSigned": true
-	},
-	"coap": {
-		"port": 5683
-	},
-	"mqtt" : {
-		"broker" : "mqtt://test.mosquitto.org",
-		"_username" : "username",
-		"_password" : "password",
-		"_clientId" : "uniqueId",
-		"protocolVersion": 5
-	},
-	"log": {
-		"level": "info"
-	},
-	"credentials": {
-		"urn:dev:wot:org:eclipse:leshan": {
-			"identity": "node-wot",
-			"psk": "hello"
-		},
-		"urn:dev:wot:org:eclipse:cf-secure": {
-			"identity": "password",
-			"psk": "sesame"
-		},
+    "log": {
+        "level": "info"
+    },
+    "credentials": {
+        "urn:dev:wot:org:eclipse:leshan": {
+            "identity": "node-wot",
+            "psk": "hello"
+        },
+        "urn:dev:wot:org:eclipse:cf-secure": {
+            "identity": "password",
+            "psk": "sesame"
+        },
 		"urn:dev:wot:org:eclipse:netconf-example": {
 			"username": "root",
 			"password": "root"
+		},
+		"urn:dev:wot:org:eclipse:opcua-example-certificate": {
+			"clientCertificate": "~/certificates/client_cert.pem",
+			"clientPrivateKey": "~/certificates/client_private_key.pem",
+			"serverCertificate": "~/certificates/server_cert.pem"
+		},
+		"urn:dev:wot:org:eclipse:opcua-example-password": {
+			"username": "root",
+			"password": "root"
 		}
-	}
+    }
 }
