@@ -14,10 +14,16 @@ export class OpcuaServer {
 
 	async start() {
 		// Let's create an instance of OPCUAServer
-		await this.server.initialize();
-		this.construct_my_address_space(this.server);
-		await this.server.start();
-		const endpointUrl = this.server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+		try {
+
+			await this.server.initialize();
+			this.construct_my_address_space(this.server);
+			await this.server.start();
+			const endpointUrl = this.server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+			console.log('OPCUA server started');
+		} catch (err) {
+			throw new Error(err);
+		}
 	}
 
 	async stop() {
