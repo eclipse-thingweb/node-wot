@@ -38,7 +38,7 @@ describe('OPCUA client test', function () {
     let client: OpcuaClient = new OpcuaClient();
 
     before(async function () {
-
+        this.timeout(10000)
         try {
             await server.start()
         } catch (err) {
@@ -61,7 +61,7 @@ describe('OPCUA client test', function () {
         expect(val).to.equal(1);
 
         return;
-    }).timeout(5000)
+    })
 
     it("should fail to read a property because of a wrong node", async function () {
 

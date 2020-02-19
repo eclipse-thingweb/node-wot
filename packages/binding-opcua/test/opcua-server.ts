@@ -15,7 +15,6 @@ export class OpcuaServer {
 	async start() {
 		// Let's create an instance of OPCUAServer
 		try {
-
 			await this.server.initialize();
 			this.construct_my_address_space(this.server);
 			await this.server.start();
