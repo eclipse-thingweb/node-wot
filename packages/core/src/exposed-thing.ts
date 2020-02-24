@@ -134,14 +134,11 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     setPropertyWriteHandler(propertyName: string, handler: WoT.PropertyWriteHandler): WoT.ExposedThing {
         console.log(`ExposedThing '${this.title}' setting write handler for '${propertyName}'`);
         if (this.properties[propertyName]) {
-
-            // setting write handler for readOnly not allowed
-            if (this.properties[propertyName].readOnly) {
-                throw new Error(`ExposedThing '${this.title}' cannot set write handler for property '${propertyName}' due to readOnly flag`);
-            } else {
-                // in case of function instead of lambda, the handler is bound to a scope shared with the readHandler in PropertyState
-                this.properties[propertyName].getState().writeHandler = handler.bind(this.properties[propertyName].getState().scope);
-            }
+            // Note: setting write handler allowed for readOnly also (see https://github.com/eclipse/thingweb.node-wot/issues/165)
+            // The reason is that it may make sense to define its own "reject"
+            // 
+            // in case of function instead of lambda, the handler is bound to a scope shared with the readHandler in PropertyState
+            this.properties[propertyName].getState().writeHandler = handler.bind(this.properties[propertyName].getState().scope);
         } else {
             throw new Error(`ExposedThing '${this.title}' has no Property '${propertyName}'`);
         }
