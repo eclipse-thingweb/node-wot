@@ -61,5 +61,4 @@ packages/*
 !packages/binding-netconf
 !packages/cli
 !packages/demo-servients
-!packages/integration-tests
 !packages/browser-bundle
