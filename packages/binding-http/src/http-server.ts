@@ -387,7 +387,7 @@ export default class HttpServer implements ProtocolServer {
     }
 
     // route request
-    let segments = requestUri.pathname.split("/");
+    let segments = decodeURI(requestUri.pathname).split("/");
 
     if (segments[1] === "") {
       // no path -> list all Things

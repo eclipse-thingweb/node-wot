@@ -140,6 +140,25 @@ class WoTServerTest {
         }
     }
 
+    @test async "should be able to add a thing with spaces in title and property "() {
+        let thing = await WoTServerTest.WoT.produce({
+            title: "The Machine",
+            properties: {
+                "my number": {
+                    type: "number"
+                }
+            }
+        });
+        await thing.writeProperty("my number", 1);
+
+        expect(thing).to.have.property("properties").to.have.property("my number");
+        expect(thing).to.have.property("properties").to.have.property("my number").to.have.property("readOnly").that.equals(false);
+        expect(thing).to.have.property("properties").to.have.property("my number").to.have.property("observable").that.equals(false);
+
+        let value1 = await thing.readProperty("my number");
+        expect(value1).to.equal(1);
+    }
+
 
     @test async "should be able to add a property with default value XYZ"() {
         let thing = await WoTServerTest.WoT.produce({
