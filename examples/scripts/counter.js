@@ -18,7 +18,7 @@
 // * uriVariables
 // * multi-language
 
-WoT.produce({
+	WoT.produce({
 		title: "counter",
 		titles: {
 			"en": "counter",
@@ -102,7 +102,7 @@ WoT.produce({
 		}
 	})
 	.then((thing) => {
-		console.log("Produced " + thing.title);
+		console.log("Produced " + thing.getThingDescription().title);
 		
 		// init property values
 		thing.writeProperty("count", 0); 
@@ -114,7 +114,7 @@ WoT.produce({
 				let step = 1;
 				console.log(options)
 				if(options && typeof options === 'object' && 'uriVariables' in options) {
-					if('step' in options['uriVariables']) {
+					if('step' in options['uriVariables'] && options['uriVariables'] instanceof Array) {
 						step = options['uriVariables']['step'];
 					}
 				}
@@ -129,7 +129,7 @@ WoT.produce({
 			return thing.readProperty("count").then( (count) => {
 				let step = 1;
 				if(options && typeof options === 'object' && 'uriVariables' in options) {
-					if('step' in options['uriVariables']) {
+					if('step' in options['uriVariables'] && options['uriVariables'] instanceof Array) {
 						step = options['uriVariables']['step'];
 					}
 				}
@@ -141,14 +141,17 @@ WoT.produce({
 			});
 		});
 		thing.setActionHandler("reset", () => {
-			console.log("Resetting count");
-			thing.writeProperty("count", 0); 
-			thing.writeProperty("lastChange", (new Date()).toISOString());
-			thing.emitEvent("change", 0);
+			return new Promise<any>((resolve, reject) => {
+				console.log("Resetting count");
+				thing.writeProperty("count", 0); 
+				thing.writeProperty("lastChange", (new Date()).toISOString());
+				thing.emitEvent("change", 0);
+				resolve();
+			});
 		});
 		
 		// expose the thing
-		thing.expose().then( () => { console.info(thing.title + " ready"); } );
+		thing.expose().then( () => { console.info(thing.getThingDescription().title + " ready"); } );
 	})
 	.catch((e) => {
 		console.log(e)
