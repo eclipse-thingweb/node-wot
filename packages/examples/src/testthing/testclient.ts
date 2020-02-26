@@ -13,12 +13,23 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-"use strict"
+import { Servient, Helpers, ConsumedThing } from "@node-wot/core";
+import { HttpServer } from "@node-wot/binding-http";
+import { CoapServer } from "@node-wot/binding-coap";
+
+let servient = new Servient();
+servient.addServer(new HttpServer({}));
+servient.addServer(new CoapServer());
+let WoTHelpers = new Helpers(servient);
+
+servient.start().then((WoT) => {
+    // -->  BEGIN CODE for scripts
 
     console.log = () => {};
-	console.debug = () => {};
+    console.debug = () => {};
 
-    async function testPropertyRead(thing, name) {
+    // remove : WoT.ConsumedThing and : string
+    async function testPropertyRead(thing: WoT.ConsumedThing, name: string) {
         try {
             let res = await thing.readProperty(name);
             console.info("PASS "+name+" READ:", res);
@@ -26,7 +37,8 @@
             console.error("FAIL "+name+" READ:", err.message);
         }
     }
-    async function testPropertyWrite(thing, name, value, shouldFail) {
+    // remove :xyz
+    async function testPropertyWrite(thing: WoT.ConsumedThing, name: string, value: any, shouldFail: boolean) {
         let displayValue = JSON.stringify(value);
         try {
             await thing.writeProperty(name, value);
@@ -89,3 +101,6 @@
         }
 
     }).catch( (err) => { console.error("Fetch error:", err); });
+
+// <--  END CODE for scripts 
+});

@@ -13,9 +13,20 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-"use strict"
+import { Servient, Helpers } from "@node-wot/core";
+import { HttpServer } from "@node-wot/binding-http";
+import { CoapServer } from "@node-wot/binding-coap";
 
-    function checkPropertyWrite(expected, actual) {
+// create Servient add HTTP/CoAP binding
+let servient = new Servient();
+servient.addServer(new HttpServer({}));
+servient.addServer(new CoapServer());
+
+servient.start().then((WoT) => {
+// -->  BEGIN CODE for scripts
+
+    // remove :any
+    function checkPropertyWrite(expected: any, actual: any) {
         let output = "Property " + expected + " written with " + actual;
         if (expected === actual) {
             console.info("PASS: " + output);
@@ -23,8 +34,8 @@
             throw new Error("FAIL: " + output);
         }
     }
-
-    function checkActionInvocation(name, expected, actual) {
+    // remove :any
+    function checkActionInvocation(name: any, expected: any, actual: any) {
         let output = "Action " + name + " invoked with " + actual;
         if (expected === actual) {
             console.info("PASS: " + output);
@@ -289,3 +300,5 @@
     .catch((e) => {
         console.log(e)
     });
+// <--  END CODE for scripts 
+});
