@@ -2,8 +2,10 @@
     "@context": "https://www.w3.org/2019/wot/td/v1",
     "@type": ["Thing"],
     "id": "urn:dev:wot:com:siemens:festolive:s111",
-    "name": "FloatSensorS111",
+    "title": "FloatSensorS111",
     "base": "coap://192.168.0.111:5683/FloatSensorS111/",
+    "securityDefinitions": { "nosec_sc": { "scheme": "nosec" }},
+    "security": "nosec_sc",
     "properties": {
         "overflow101": {
             "type": "boolean",

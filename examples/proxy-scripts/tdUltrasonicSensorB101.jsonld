@@ -2,8 +2,10 @@
     "@context": "https://www.w3.org/2019/wot/td/v1",
     "@type": ["Thing"],
     "id": "urn:dev:wot:com:siemens:festolive:b101",
-    "name": "myUltrasonicSensorB101",
+    "title": "myUltrasonicSensorB101",
     "base": "coap://192.168.0.110:5683/UltrasonicSensorB101/",
+    "securityDefinitions": { "nosec_sc": { "scheme": "nosec" }},
+    "security": "nosec_sc",
     "properties": {
         "levelvalue": {
             "type": "number",
