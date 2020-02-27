@@ -1,65 +1,96 @@
-
-  let thing = WoT.produce({
+WoT.produce({
+    title: "FestoFake",
     id: "urn:dev:wot:siemens:festofake",
-    name: "FestoFake",
-    "iotcs:deviceModel": "urn:com:siemens:wot:festo"
-  }
-);
-
-console.info(thing.name + " produced");
-
-thing
-  .addProperty("PumpStatus", { type: "boolean", writable: false }, false)
-  .addProperty("ValveStatus", { type: "boolean", writable: false }, false)
-
-  // upper tank (102)
-  .addProperty("Tank102LevelValue", { type: "number", writable: false }, 0.0)
-  .addProperty("Tank102OverflowStatus", { type: "boolean", writable: false }, false)
-
-  // lower tank (101)
-  .addProperty("Tank101MaximumLevelStatus", { type: "boolean", writable: false }, false)
-  .addProperty("Tank101MinimumLevelStatus", { type: "boolean", writable: false }, false)
-  .addProperty("Tank101OverflowStatus", { type: "boolean", writable: false }, false)
-  
-  // actuators
-  .addAction("StartPump", {}, () => {
-      return new Promise((resolve, reject) => {
-        console.warn(">>> Startung pump!");
-        resolve();
-      });
-    })
-  .addAction("StopPump", {}, () => {
-      return new Promise((resolve, reject) => {
-        console.warn(">>> Stopping pump!");
-        resolve();
-      });
-    })
-  .addAction("OpenValve", {}, () => {
-      return new Promise((resolve, reject) => {
-        console.warn(">>> Opening valve!");
-        resolve();
-      });
-    })
-  .addAction("CloseValve", {}, () => {
-      return new Promise((resolve, reject) => {
-        console.warn(">>> Closing valve!");
-        resolve();
-      });
+    "iotcs:deviceModel": "urn:com:siemens:wot:festo",
+    properties: {
+        PumpStatus: {
+            type: "boolean",
+            readOnly: true
+        },
+        ValveStatus: {
+            type: "boolean",
+            readOnly: true
+        },
+        Tank102LevelValue: {
+            type: "number",
+            readOnly: true
+        },
+        Tank102OverflowStatus: {
+            type: "boolean",
+            readOnly: true
+        },
+        Tank101MaximumLevelStatus: {
+            type: "boolean",
+            readOnly: true
+        },
+        Tank101MinimumLevelStatus: {
+            type: "boolean",
+            readOnly: true
+        },
+        Tank101OverflowStatus: {
+            type: "boolean",
+            readOnly: true
+        }
+    },
+    actions: {
+        StartPump: {},
+        StopPump: {},
+        OpenValve: {},
+        CloseValve: {}
+    }
+})
+    .then((thing) => {
+    console.log("Produced " + thing.getThingDescription().title);
+    // init property values
+    thing.writeProperty("PumpStatus", false);
+    thing.writeProperty("ValveStatus", false);
+    // upper tank (102)
+    thing.writeProperty("Tank102LevelValue", 0.0);
+    thing.writeProperty("Tank102OverflowStatus", false);
+    // lower tank (101)
+    thing.writeProperty("Tank101MaximumLevelStatus", false);
+    thing.writeProperty("Tank101MinimumLevelStatus", false);
+    thing.writeProperty("Tank101OverflowStatus", false);
+    // set action handlers
+    thing.setActionHandler("StartPump", () => {
+        return new Promise((resolve, reject) => {
+            console.warn(">>> Startung pump!");
+            resolve();
+        });
     });
-
-thing.expose()
-  .then(() => {
-    console.info(thing.name + " ready");
-    setInterval( () => {
-      thing.properties.PumpStatus.write(Math.random()<0.5 ? true : false);
-      thing.properties.ValveStatus.write(Math.random()<0.5 ? true : false);
-      let level102 = Math.random() * 150;
-      thing.properties.Tank102LevelValue.write(level102);
-      thing.properties.Tank102OverflowStatus.write(level102 > 140);
-      let level101 = 150 - level102;
-      thing.properties.Tank101MaximumLevelStatus.write(level101 > 100);
-      thing.properties.Tank101MinimumLevelStatus.write(level101 > 10);
-      thing.properties.Tank101OverflowStatus.write(level101 > 140);
-    }, 5000);
-  })
-  .catch((err) => { console.error("Expose error: " + err); });
+    thing.setActionHandler("StopPump", () => {
+        return new Promise((resolve, reject) => {
+            console.warn(">>> Stopping pump!");
+            resolve();
+        });
+    });
+    thing.setActionHandler("OpenValve", () => {
+        return new Promise((resolve, reject) => {
+            console.warn(">>> Opening valve!");
+            resolve();
+        });
+    });
+    thing.setActionHandler("CloseValve", () => {
+        return new Promise((resolve, reject) => {
+            console.warn(">>> Closing valve!");
+            resolve();
+        });
+    });
+    thing.expose().then(() => {
+        console.info(thing.getThingDescription().title + " ready");
+        setInterval(() => {
+            thing.writeProperty("PumpStatus", Math.random() < 0.5 ? true : false);
+            thing.writeProperty("ValveStatus", Math.random() < 0.5 ? true : false);
+            let level102 = Math.random() * 150;
+            thing.writeProperty("Tank102LevelValue", level102);
+            thing.writeProperty("Tank102OverflowStatus", level102 > 140);
+            let level101 = 150 - level102;
+            thing.writeProperty("Tank101MaximumLevelStatus", level101 > 100);
+            thing.writeProperty("Tank101MinimumLevelStatus", level101 > 10);
+            thing.writeProperty("Tank101OverflowStatus", level101 > 140);
+        }, 5000);
+    });
+})
+    .catch((e) => {
+    console.log(e);
+});
