@@ -2,8 +2,10 @@
     "@context": "https://www.w3.org/2019/wot/td/v1",
     "@type": ["Thing"],
     "id": "urn:dev:wot:com:siemens:festolive:b113",
-    "name": "LevelSensorB113",
+    "title": "LevelSensorB113",
     "base": "coap://192.168.0.113:5683/B113/",
+    "securityDefinitions": { "nosec_sc": { "scheme": "nosec" }},
+    "security": "nosec_sc",
     "properties": {
         "minlevel101": {
             "type": "boolean",

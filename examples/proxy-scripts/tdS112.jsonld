@@ -2,8 +2,10 @@
     "@context": "https://www.w3.org/2019/wot/td/v1",
     "@type": ["Thing"],
     "id": "urn:dev:wot:com:siemens:festolive:s112",
-    "name": "FloatSwitchS112",
+    "title": "FloatSwitchS112",
     "base": "coap://192.168.0.112:5683/FloatSwitchS112/",
+    "securityDefinitions": { "nosec_sc": { "scheme": "nosec" }},
+    "security": "nosec_sc",
     "properties": {
         "overflow102": {
             "type": "boolean",
