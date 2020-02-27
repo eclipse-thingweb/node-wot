@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -13,292 +13,281 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { Servient, Helpers } from "@node-wot/core";
-import { HttpServer } from "@node-wot/binding-http";
-import { CoapServer } from "@node-wot/binding-coap";
+import "wot-typescript-definitions"
 
-// create Servient add HTTP/CoAP binding
-let servient = new Servient();
-servient.addServer(new HttpServer({}));
-servient.addServer(new CoapServer());
+let WoT:WoT.WoT;
 
-servient.start().then((WoT) => {
-// -->  BEGIN CODE for scripts
-
-    // remove :any
-    function checkPropertyWrite(expected: any, actual: any) {
-        let output = "Property " + expected + " written with " + actual;
-        if (expected === actual) {
-            console.info("PASS: " + output);
-        } else {
-            throw new Error("FAIL: " + output);
-        }
+function checkPropertyWrite(expected: any, actual: any) {
+    let output = "Property " + expected + " written with " + actual;
+    if (expected === actual) {
+        console.info("PASS: " + output);
+    } else {
+        throw new Error("FAIL: " + output);
     }
-    // remove :any
-    function checkActionInvocation(name: any, expected: any, actual: any) {
-        let output = "Action " + name + " invoked with " + actual;
-        if (expected === actual) {
-            console.info("PASS: " + output);
-        } else {
-            throw new Error("FAIL: " + output);
-        }
-    }
+}
 
-    WoT.produce({
-        title: "TestThing",
-        properties: {
-            bool: {
-                title: "true/false",
-                type: "boolean"
-            },
-            int : {
-                title: "Integer number",
-                type: "integer"
-            },
-            num: {
-                title: "Floating point",
-                type: "number"
-            },
-            string: {
-                type: "string"
-            },
-            array: {
-                title: "Tuple",
-                type: "array",
-                items: {}
-            },
-            object: {
-                title: "ID-name",
-                description: "Object with ID and name",
+function checkActionInvocation(name: any, expected: any, actual: any) {
+    let output = "Action " + name + " invoked with " + actual;
+    if (expected === actual) {
+        console.info("PASS: " + output);
+    } else {
+        throw new Error("FAIL: " + output);
+    }
+}
+
+WoT.produce({
+    title: "TestThing",
+    properties: {
+        bool: {
+            title: "true/false",
+            type: "boolean"
+        },
+        int : {
+            title: "Integer number",
+            type: "integer"
+        },
+        num: {
+            title: "Floating point",
+            type: "number"
+        },
+        string: {
+            type: "string"
+        },
+        array: {
+            title: "Tuple",
+            type: "array",
+            items: {}
+        },
+        object: {
+            title: "ID-name",
+            description: "Object with ID and name",
+            type: "object",
+            properties: {
+                id: {
+                    title: "ID",
+                    description: "Internal identifier",
+                    type: "integer"
+                },
+                name: {
+                    title: "Name",
+                    description: "Public name",
+                    type: "string"
+                }
+            }
+        }
+    },
+    actions: {
+        "void-void": {
+            title: "void-void Action",
+            description: "Action without input nor output"
+        },
+        "void-int": {
+            title: "void-void Action",
+            description: "Action without input nor output"
+        },
+        "int-void": {
+            title: "int-void Action",
+            description: "Action with integer input, but without output",
+            input: { type: "integer" }
+        },
+        "int-int": {
+            title: "int-int Action",
+            description: "Action with integer input and output",
+            input: { type: "integer" },
+            output: { type: "integer" }
+        },
+        "int-string": {
+            title: "int-string Action",
+            description: "Action with integer input and string output",
+            input: { type: "integer" },
+            output: { type: "string" }
+        },
+        "void-obj": {
+            title: "void-obj Action",
+            description: "Action without input, but with object output",
+            output: {
                 type: "object",
                 properties: {
-                    id: {
-                        title: "ID",
-                        description: "Internal identifier",
+                    prop1: {
                         type: "integer"
                     },
-                    name: {
-                        title: "Name",
-                        description: "Public name",
+                    prop2: {
                         type: "string"
                     }
-                }
+                },
+                required: [ "prop1", "prop2" ]
             }
         },
-        actions: {
-            "void-void": {
-                title: "void-void Action",
-                description: "Action without input nor output"
-            },
-            "void-int": {
-                title: "void-void Action",
-                description: "Action without input nor output"
-            },
-            "int-void": {
-                title: "int-void Action",
-                description: "Action with integer input, but without output",
-                input: { type: "integer" }
-            },
-            "int-int": {
-                title: "int-int Action",
-                description: "Action with integer input and output",
-                input: { type: "integer" },
-                output: { type: "integer" }
-            },
-            "int-string": {
-                title: "int-string Action",
-                description: "Action with integer input and string output",
-                input: { type: "integer" },
-                output: { type: "string" }
-            },
-            "void-obj": {
-                title: "void-obj Action",
-                description: "Action without input, but with object output",
-                output: {
-                    type: "object",
-                    properties: {
-                        prop1: {
-                            type: "integer"
-                        },
-                        prop2: {
-                            type: "string"
-                        }
-                    },
-                    required: [ "prop1", "prop2" ]
-                }
-            },
-            "obj-void": {
-                title: "obj-void Action",
-                description: "Action with object input, but wihtout output",
-                input: {
-                    type: "object",
-                    properties: {
-                        prop1: { type: "integer" },
-                        prop2: { type: "string" }
-                    },
-                    required: [ "prop1", "prop2" ]
-                }
-            }
-        },
-        events: {
-            "on-bool": {
-                title: "on-bool Event",
-                description: "Event with boolean data",
-                data: { type: "boolean" }
-            },
-            "on-int": {
-                title: "on-int Event",
-                description: "Event with integer data",
-                data: { type: "integer" }
-            },
-            "on-num": {
-                title: "on-num Event",
-                description: "Event with number data",
-                data: { type: "number" }
+        "obj-void": {
+            title: "obj-void Action",
+            description: "Action with object input, but wihtout output",
+            input: {
+                type: "object",
+                properties: {
+                    prop1: { type: "integer" },
+                    prop2: { type: "string" }
+                },
+                required: [ "prop1", "prop2" ]
             }
         }
-    })
-    .then((thing) => {
-        console.log("Produced " + thing.getThingDescription().title);
+    },
+    events: {
+        "on-bool": {
+            title: "on-bool Event",
+            description: "Event with boolean data",
+            data: { type: "boolean" }
+        },
+        "on-int": {
+            title: "on-int Event",
+            description: "Event with integer data",
+            data: { type: "integer" }
+        },
+        "on-num": {
+            title: "on-num Event",
+            description: "Event with number data",
+            data: { type: "number" }
+        }
+    }
+})
+.then((thing) => {
+    console.log("Produced " + thing.getThingDescription().title);
 
-        // init property values
-        thing.writeProperty("bool", false);
-        thing.writeProperty("int", 42);
-        thing.writeProperty("num", 3.14);
-        thing.writeProperty("string", "unset");
-        thing.writeProperty("array", [2, "unset"]);
-        thing.writeProperty("object", { "id": 123, "name" : "abc" });
+    // init property values
+    thing.writeProperty("bool", false);
+    thing.writeProperty("int", 42);
+    thing.writeProperty("num", 3.14);
+    thing.writeProperty("string", "unset");
+    thing.writeProperty("array", [2, "unset"]);
+    thing.writeProperty("object", { "id": 123, "name" : "abc" });
 
-        // set property handlers
-        thing
-        .setPropertyWriteHandler("bool", (value) => {
-            return new Promise((resolve, reject) => {
-                checkPropertyWrite("boolean", typeof value);
-                resolve();
-            });
-        })
-        .setPropertyWriteHandler("int", (value) => {
-            return new Promise((resolve, reject) => {
-                if (value === Math.floor(value)) {
-                    checkPropertyWrite("integer", "integer");
-                } else {
-                    checkPropertyWrite("integer", typeof value);
-                }
-                resolve();
-            });
-        })
-        .setPropertyWriteHandler("num", (value) => {
-            return new Promise((resolve, reject) => {
-                checkPropertyWrite("number", typeof value);
-                resolve();
-            });
-        })
-        .setPropertyWriteHandler("string", (value) => {
-            return new Promise((resolve, reject) => {
-                checkPropertyWrite("string", typeof value);
-                resolve();
-            });
-        })
-        .setPropertyWriteHandler("array", (value) => {
-            return new Promise((resolve, reject) => {
-                if (Array.isArray(value)) {
-                    checkPropertyWrite("array", "array");
-                } else {
-                    checkPropertyWrite("array", typeof value);
-                }
-                resolve();
-            });
-        })
-        .setPropertyWriteHandler("object", (value) => {
-            return new Promise((resolve, reject) => {
-                if (Array.isArray(value)) {
-                    checkPropertyWrite("object", "array");
-                } else {
-                    checkPropertyWrite("object", typeof value);
-                }
-                resolve();
-            });
+    // set property handlers
+    thing
+    .setPropertyWriteHandler("bool", (value) => {
+        return new Promise((resolve, reject) => {
+            checkPropertyWrite("boolean", typeof value);
+            resolve();
         });
-
-        // set action handlers
-        thing
-        .setActionHandler("void-void", (parameters) => {
-            return new Promise((resolve, reject) => {
-                checkActionInvocation("void-void", "undefined", typeof parameters);
-                resolve();
-            });
-        })
-        .setActionHandler("void-int", (parameters) => {
-            return new Promise((resolve, reject) => {
-                checkActionInvocation("void-int", "undefined", typeof parameters);
-                resolve(0);
-            });
-        })
-        .setActionHandler("int-void", (parameters) => {
-            return new Promise((resolve, reject) => {
-                if (parameters === Math.floor(parameters)) {
-                    checkActionInvocation("int-void", "integer", "integer");
-                } else {
-                    checkActionInvocation("int-void", "integer", typeof parameters);
-                }
-                resolve();
-            });
-        })
-        .setActionHandler("int-int", (parameters) => {
-            return new Promise((resolve, reject) => {
-                let inputtype = typeof parameters;
-                if (parameters === Math.floor(parameters)) {
-                    checkActionInvocation("int-int", "integer", "integer");
-                } else {
-                    checkActionInvocation("int-int", "integer", typeof parameters);
-                }
-                resolve(parameters+1);
-            });
-        })
-        .setActionHandler("int-string", (parameters) => {
-            return new Promise((resolve, reject) => {
-                let inputtype = typeof parameters;
-                if (parameters === Math.floor(parameters)) {
-                    checkActionInvocation("int-string", "integer", "integer");
-                } else {
-                    checkActionInvocation("int-string", "integer", typeof parameters);
-                }
-                
-                if (inputtype=="number") {
-                    resolve(new String(parameters)
-                                    .replace(/0/g,"zero-")
-                                    .replace(/1/g,"one-")
-                                    .replace(/2/g,"two-")
-                                    .replace(/3/g,"three-")
-                                    .replace(/4/g,"four-")
-                                    .replace(/5/g,"five-")
-                                    .replace(/6/g,"six-")
-                                    .replace(/7/g,"seven-")
-                                    .replace(/8/g,"eight-")
-                                    .replace(/9/g,"nine-"));
-                } else {
-                    reject("ERROR");
-                }
-            });
-        })
-        .setActionHandler("void-obj", (parameters) => {
-            return new Promise((resolve, reject) => {
-                checkActionInvocation("void-complex", "undefined", typeof parameters);
-                resolve({"prop1": 123, "prop2" : "abc"});
-            });
-        })
-        .setActionHandler("obj-void", (parameters) => {
-            return new Promise((resolve, reject) => {
-                checkActionInvocation("complex-void", "object", typeof parameters);
-                resolve();
-            });
-        });
-
-        // expose the thing
-        thing.expose().then( () => { console.info(thing.getThingDescription().title + " ready"); } );
     })
-    .catch((e) => {
-        console.log(e)
+    .setPropertyWriteHandler("int", (value) => {
+        return new Promise((resolve, reject) => {
+            if (value === Math.floor(value)) {
+                checkPropertyWrite("integer", "integer");
+            } else {
+                checkPropertyWrite("integer", typeof value);
+            }
+            resolve();
+        });
+    })
+    .setPropertyWriteHandler("num", (value) => {
+        return new Promise((resolve, reject) => {
+            checkPropertyWrite("number", typeof value);
+            resolve();
+        });
+    })
+    .setPropertyWriteHandler("string", (value) => {
+        return new Promise((resolve, reject) => {
+            checkPropertyWrite("string", typeof value);
+            resolve();
+        });
+    })
+    .setPropertyWriteHandler("array", (value) => {
+        return new Promise((resolve, reject) => {
+            if (Array.isArray(value)) {
+                checkPropertyWrite("array", "array");
+            } else {
+                checkPropertyWrite("array", typeof value);
+            }
+            resolve();
+        });
+    })
+    .setPropertyWriteHandler("object", (value) => {
+        return new Promise((resolve, reject) => {
+            if (Array.isArray(value)) {
+                checkPropertyWrite("object", "array");
+            } else {
+                checkPropertyWrite("object", typeof value);
+            }
+            resolve();
+        });
     });
-// <--  END CODE for scripts 
+
+    // set action handlers
+    thing
+    .setActionHandler("void-void", (parameters) => {
+        return new Promise((resolve, reject) => {
+            checkActionInvocation("void-void", "undefined", typeof parameters);
+            resolve();
+        });
+    })
+    .setActionHandler("void-int", (parameters) => {
+        return new Promise((resolve, reject) => {
+            checkActionInvocation("void-int", "undefined", typeof parameters);
+            resolve(0);
+        });
+    })
+    .setActionHandler("int-void", (parameters) => {
+        return new Promise((resolve, reject) => {
+            if (parameters === Math.floor(parameters)) {
+                checkActionInvocation("int-void", "integer", "integer");
+            } else {
+                checkActionInvocation("int-void", "integer", typeof parameters);
+            }
+            resolve();
+        });
+    })
+    .setActionHandler("int-int", (parameters) => {
+        return new Promise((resolve, reject) => {
+            let inputtype = typeof parameters;
+            if (parameters === Math.floor(parameters)) {
+                checkActionInvocation("int-int", "integer", "integer");
+            } else {
+                checkActionInvocation("int-int", "integer", typeof parameters);
+            }
+            resolve(parameters+1);
+        });
+    })
+    .setActionHandler("int-string", (parameters) => {
+        return new Promise((resolve, reject) => {
+            let inputtype = typeof parameters;
+            if (parameters === Math.floor(parameters)) {
+                checkActionInvocation("int-string", "integer", "integer");
+            } else {
+                checkActionInvocation("int-string", "integer", typeof parameters);
+            }
+            
+            if (inputtype=="number") {
+                resolve(new String(parameters)
+                                .replace(/0/g,"zero-")
+                                .replace(/1/g,"one-")
+                                .replace(/2/g,"two-")
+                                .replace(/3/g,"three-")
+                                .replace(/4/g,"four-")
+                                .replace(/5/g,"five-")
+                                .replace(/6/g,"six-")
+                                .replace(/7/g,"seven-")
+                                .replace(/8/g,"eight-")
+                                .replace(/9/g,"nine-"));
+            } else {
+                reject("ERROR");
+            }
+        });
+    })
+    .setActionHandler("void-obj", (parameters) => {
+        return new Promise((resolve, reject) => {
+            checkActionInvocation("void-complex", "undefined", typeof parameters);
+            resolve({"prop1": 123, "prop2" : "abc"});
+        });
+    })
+    .setActionHandler("obj-void", (parameters) => {
+        return new Promise((resolve, reject) => {
+            checkActionInvocation("complex-void", "object", typeof parameters);
+            resolve();
+        });
+    });
+
+    // expose the thing
+    thing.expose().then( () => { console.info(thing.getThingDescription().title + " ready"); } );
+})
+.catch((e) => {
+    console.log(e)
 });
