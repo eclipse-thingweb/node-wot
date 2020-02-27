@@ -70,11 +70,11 @@ servient.start().then((WoT) => {
             }
         }
     }).then((thing) => {
-        console.log("Produced " + thing.title);
+        console.log("Produced " + thing.getThingDescription().title);
         thing.writeProperty("count", 0)
 
         thing.expose().then(() => {
-            console.info(thing.title + " ready");
+            console.info(thing.getThingDescription().title + " ready");
             console.info("TD : " + JSON.stringify(thing.getThingDescription()));
             thing.readProperty("count").then((c) => {
                 console.log("cound is " + c);
