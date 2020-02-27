@@ -60,6 +60,5 @@ packages/*
 !packages/binding-opcua
 !packages/binding-netconf
 !packages/cli
-!packages/demo-servients
 !packages/browser-bundle
 !packages/examples

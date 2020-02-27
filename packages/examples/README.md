@@ -1,10 +1,18 @@
 # node-wot Examples
 
-The idea of this package is to use TypeScript to work on the examples which offers support in being up-to-date with the current API.
+## Demo Serviants
+
+Demo serviants examples are located in `src\demo-servients`.
+
+## Script Examples 
+
+Script examples are located in `src\scripts`.
+
+The idea of this folder is to use TypeScript to work on the examples which offers support in being up-to-date with the current API.
 
 see https://github.com/eclipse/thingweb.node-wot/issues/171.
 
-## Workflow
+### Workflow
 
 1. Run `npm run build`
 2. Remove the following 3/4 lines in JS files of folder `dist/` 
@@ -16,3 +24,8 @@ let WoTHelpers;
 ```
 
 3. Copy the file(s) to `<node-wot>/examples/`
+
+
+## Test Thing 
+
+Test thing and client is located in `src\testthing`.
