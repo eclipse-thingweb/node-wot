@@ -14,14 +14,14 @@
  ********************************************************************************/
 
 // global W3C WoT Scripting API definitions
-import _, { WoTFactory } from "wot-typescript-definitions";
+import * as WoT from "wot-typescript-definitions";
 // node-wot implementation of W3C WoT Servient 
-import Servient from "@node-wot/core";
+import { Servient, Helpers } from "@node-wot/core";
 // protocols used
 import { CoapServer } from "@node-wot/binding-coap";
 import { CoapClientFactory } from "@node-wot/binding-coap";
 
-export default class MyServient extends Servient {
+export default class CoapServient extends Servient {
 
     private static readonly defaultServientConf = {
         servient: {
@@ -33,13 +33,13 @@ export default class MyServient extends Servient {
         }
     }
 
-    public readonly config : any = MyServient.defaultServientConf;
+    public readonly config : any = CoapServient.defaultServientConf;
 
     public constructor(config? : any) {
         super();
 
         Object.assign(this.config, config);
-        console.info("MyServient configured with", this.config);
+        console.info("CoapServient configured with", this.config);
         
         let coapServer = (typeof this.config.coap.port === "number") ? new CoapServer(this.config.coap.port) : new CoapServer();
         this.addServer(coapServer);
@@ -52,64 +52,67 @@ export default class MyServient extends Servient {
     /**
      * start
      */
-    public start(): Promise<WoTFactory> {
+    public start(): Promise<WoT.WoT> {
 
-        return new Promise<WoTFactory>( (resolve, reject) => {
-            super.start().then( WoT => {
-                console.info("MyServient started");
+        return new Promise<WoT.WoT>( (resolve, reject) => {
+            super.start().then(WoT => {
+                console.info("CoapServient started");
     
-                let thing = WoT.produce({ name: "servient" });
-    
-                thing
-                    .addAction({
-                        name: "log",
-                        inputSchema: `{ type: "string" }`,
-                        outputSchema: `{ type: "string" }`
-                    }).setActionHandler(
-                        "log",
-                        (msg: any) => {
-                            return new Promise((resolve, reject) => {
-                                console.info(msg);
-                                resolve(`logged '${msg}'`);
-                            });
-                        }
-                    )
-
-                    .addAction({
-                        name: "shutdown",
-                        outputSchema: `{ type: "string" }`
-                    }).setActionHandler(
-                        "shutdown",
-                        () => {
-                            return new Promise((resolve, reject) => {
-                                console.info("shutting down by remote");
-                                this.shutdown();
-                                resolve();
-                            });
-                        }
-                    );
-
-                if (this.config.servient.scriptAction) {
-                    thing
-                        .addAction({
-                            name: "runScript",
-                            inputSchema: `{ type: "string" }`,
-                            outputSchema: `{ type: "string" }`
-                        }).setActionHandler(
-                            "runScript",
-                            (script: string) => {
-                                return new Promise((resolve, reject) => {
-                                    console.log("runnig script", script);
-                                    resolve(this.runScript(script));
-                                });
+                WoT.produce({
+                    title: "servient",
+                    actions: {
+                        log: {
+                            input: {
+                                type: "string"
+                            },
+                            output: {
+                                type: "string"
                             }
-                        );
-                }
+                        },
+                        shutdown: {
+                            output: {
+                                type: "string"
+                            }
+                        },
+                        runScript: {
+                            input: {
+                                type: "string"
+                            },
+                            output: {
+                                type: "string"
+                            }
+                        }
+                    }
+                })
+                .then((thing) => {
+                    console.log("Produced " + thing.getThingDescription().title);
 
-                // pass WoTFactory on
-                resolve(WoT);
-
-            }).catch( err => reject(err));
+                    thing.setActionHandler("log", (msg) => {
+                        return new Promise((resolve, reject) => {
+                            console.info(msg);
+                            resolve(`logged '${msg}'`);
+                        });
+                    });
+                    thing.setActionHandler("shutdown", () => {
+                        return new Promise((resolve, reject) => {
+                            console.info("shutting down by remote");
+                            this.shutdown();
+                            resolve();
+                        });
+                    });
+                    thing.setActionHandler("runScript", (script) => {
+                        return new Promise((resolve, reject) => {
+                            console.log("runnig script", script);
+                            this.runScript(script);
+                            resolve();
+                        });
+                    });
+                    thing.expose().then(() => {
+                        // pass on WoTFactory
+                        resolve(WoT);
+                    }).catch((err) => reject(err));
+                })
+            }).catch(err => reject(err));
         });
     }
 }
