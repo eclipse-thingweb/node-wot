@@ -6,9 +6,13 @@ Demo serviants examples are located in `src\demo-servients`.
 
 ## Script Examples 
 
-Script examples are located in `src\scripts`.
+Script examples are located in
 
-The idea of this folder is to use TypeScript to work on the examples which offers support in being up-to-date with the current API.
+* `src\scripts`
+* `src\proxy-scripts`
+* `src\testthing`
+
+The idea of these folders is to use TypeScript to work on the examples which offers support in being up-to-date with the current API.
 
 see https://github.com/eclipse/thingweb.node-wot/issues/171.
 
@@ -23,7 +27,10 @@ let WoT;
 let WoTHelpers;
 ```
 
-3. Copy the file(s) to `<node-wot>/examples/`
+3. Copy the according JS file(s) to
+* `<node-wot>/examples/scripts`
+* `<node-wot>/examples/proxy-scripts`
+* `<node-wot>/examples/testthing`
 
 
 ## Test Thing 
