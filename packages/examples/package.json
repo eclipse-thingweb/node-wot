@@ -1,6 +1,6 @@
 {
   "name": "@node-wot/examples",
-  "version": "0.7.0-SNAPSHOT.6",
+  "version": "0.7.0-SNAPSHOT.7",
   "private": true,
   "description": "Examples for node-wot (not published)",
   "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
@@ -14,13 +14,13 @@
     "typescript-standard": "0.3.36"
   },
   "dependencies": {
-    "@node-wot/td-tools": "0.7.0-SNAPSHOT.6",
-    "@node-wot/core": "0.7.0-SNAPSHOT.6",
-    "@node-wot/binding-coap": "0.7.0-SNAPSHOT.6",
-    "@node-wot/binding-file": "0.7.0-SNAPSHOT.6",
-    "@node-wot/binding-http": "0.7.0-SNAPSHOT.6",
-	"@node-wot/binding-oracle": "0.7.0-SNAPSHOT.6",
-    "@node-wot/binding-fujitsu": "0.7.0-SNAPSHOT.6",
+    "@node-wot/td-tools": "0.7.0-SNAPSHOT.7",
+    "@node-wot/core": "0.7.0-SNAPSHOT.7",
+    "@node-wot/binding-coap": "0.7.0-SNAPSHOT.7",
+    "@node-wot/binding-file": "0.7.0-SNAPSHOT.7",
+    "@node-wot/binding-http": "0.7.0-SNAPSHOT.7",
+	"@node-wot/binding-oracle": "0.7.0-SNAPSHOT.7",
+    "@node-wot/binding-fujitsu": "0.7.0-SNAPSHOT.7",
     "rxjs": "5.5.11"
   },
   "scripts": {
