@@ -1,6 +1,6 @@
 {
   "name": "@node-wot/opcua-cli",
-  "version": "0.7.0-SNAPSHOT.5",
+  "version": "0.7.0-SNAPSHOT.6",
   "description": "servient command line interface",
   "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
   "license": "EPL-2.0 OR W3C-20150513",
@@ -24,13 +24,14 @@
     "wot-typescript-definitions": "0.7.1-SNAPSHOT.1"
   },
   "dependencies": {
+    "@node-wot/core": "0.7.0-SNAPSHOT.6",
+    "@node-wot/binding-http": "0.7.0-SNAPSHOT.6",
+    "@node-wot/binding-file": "0.7.0-SNAPSHOT.6",
+    "@node-wot/binding-opcua": "0.7.0-SNAPSHOT.6",
     "fs": "0.0.1-security",
-    "path": "^0.12.7",
-    "xml-writer": "^1.7.0"
+    "path": "^0.12.7"
   },
   "scripts": {
-    "install": "npm link @node-wot/core; npm link @node-wot/binding-opcua; npm link @node-wot/binding-http; npm link @node-wot/binding-file",
-    "installModules": "npm install",
     "build": "tsc",
     "start": "ts-node src/opcua-cli.ts",
     "codestyle": "standard --pretty"
