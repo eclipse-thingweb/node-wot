@@ -1,0 +1,20 @@
+{
+    "@context": "https://www.w3.org/2019/wot/td/v1",
+    "@type": ["Thing"],
+    "id": "urn:dev:wot:com:siemens:festolive:b114",
+    "title": "LevelSensorB114",
+    "base": "coap://192.168.0.113:5683/B114/",
+    "securityDefinitions": { "nosec_sc": { "scheme": "nosec" }},
+    "security": "nosec_sc",
+    "properties": {
+        "maxlevel101": {
+            "type": "boolean",
+            "writable": false,
+            "observable": false,
+            "forms": [{
+                "href": "tank101MaxLevelStatus",
+                "mediaType": "application/json"
+            }]
+        }
+    }
+}

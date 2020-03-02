@@ -1,18 +1,11 @@
 {
-  "name": "@node-wot/demo-servients",
+  "name": "@node-wot/examples",
   "version": "0.7.0-SNAPSHOT.6",
   "private": true,
-  "description": "W3C WoT demo Servient for the unpublished version of the monorepo",
+  "description": "Examples for node-wot (not published)",
   "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
   "license": "EPL-2.0 OR W3C-20150513",
-  "repository": "https://github.com/eclipse/thingweb.node-wot/tree/master/examples/servients",
-  "files": [
-    "dist/"
-  ],
-  "main": "dist/raspberry-servient.js",
-  "bin": {
-    "bridge-servient": "dist/bridge-cli.js"
-  },
+  "repository": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/examples",
   "devDependencies": {
     "@types/node": "13.7.0",
     "wot-typescript-definitions": "0.7.1-SNAPSHOT.1",
@@ -26,12 +19,11 @@
     "@node-wot/binding-coap": "0.7.0-SNAPSHOT.6",
     "@node-wot/binding-file": "0.7.0-SNAPSHOT.6",
     "@node-wot/binding-http": "0.7.0-SNAPSHOT.6",
-    "@node-wot/binding-oracle": "0.7.0-SNAPSHOT.6",
+	"@node-wot/binding-oracle": "0.7.0-SNAPSHOT.6",
     "@node-wot/binding-fujitsu": "0.7.0-SNAPSHOT.6",
     "rxjs": "5.5.11"
   },
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/raspberry-servient.js"
+    "build": "tsc"
   }
 }

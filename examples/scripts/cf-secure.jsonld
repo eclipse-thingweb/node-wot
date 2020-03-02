@@ -1,5 +1,5 @@
 {
-    "@context ": "https://www.w3.org/2019/td/v1",
+    "@context": "https://www.w3.org/2019/wot/td/v1",
     "id": "urn:dev:wot:org:eclipse:cf-secure",
     "title": "Cf-Secure",
     "description": "Californium CoAPS example server (https://github.com/eclipse/californium/tree/master/demo-apps/cf-secure)",
