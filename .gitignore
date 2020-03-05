@@ -59,6 +59,7 @@ packages/*
 !packages/binding-fujitsu
 !packages/binding-opcua
 !packages/binding-netconf
+!packages/binding-modbus
 !packages/cli
 !packages/demo-servients
 !packages/browser-bundle
