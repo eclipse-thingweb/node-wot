@@ -1,10 +1,12 @@
 
-import { ModbusForm } from './modbus'
+import { ModbusForm, ModbusFunction, ModbusFunctionName } from './modbus'
 import ModbusRTU from 'modbus-serial'
 
 import { ProtocolClient, Content, ContentSerdes } from '@node-wot/core'
 
 const DEFAULT_PORT = 805
+const DEFAULT_TIMEOUT = 1000
+const DEFAULT_POLLING = 2000
 
 export default class ModbusClient implements ProtocolClient {
   private _client: ModbusRTU;
@@ -34,6 +36,7 @@ export default class ModbusClient implements ProtocolClient {
     })
   }
   unlinkResource(form: ModbusForm): Promise<void> {
+    form = this.fillDefaultForm(form, 'r', 0)
     const id = `${form.href}/${form['modbus:unitID']}#${form['modbus:function']}?${form['modbus:range'][0]}&${form['modbus:range'][1]}`
 
 
@@ -44,7 +47,8 @@ export default class ModbusClient implements ProtocolClient {
   }
   public subscribeResource(form: ModbusForm,
     next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): any {
-    this.fillDefaultRange(form)
+    form = this.fillDefaultForm(form, 'r', 0)
+
     const id = `${form.href}/${form['modbus:unitID']}#${form['modbus:function']}?${form['modbus:range'][0]}&${form['modbus:range'][1]}`
 
     if (this._subscriptions.has(id)) {
@@ -66,9 +70,10 @@ export default class ModbusClient implements ProtocolClient {
   private async modbusRead(form: ModbusForm) {
     let parsed = new URL(form.href);
     const port = parsed.port ? parseInt(parsed.port, 10) : DEFAULT_PORT
-    this.fillDefaultRange(form)
+    form = this.fillDefaultForm(form, 'r', 0)
 
     await this._client.connectTCP(parsed.hostname, { port: port });
+
     this._client.setID(form['modbus:unitID']);
     this._client.setTimeout(form['modbus:timeout'])
 
@@ -82,7 +87,6 @@ export default class ModbusClient implements ProtocolClient {
         data = await this._client.readDiscreteInputs(form['modbus:range'][0], form['modbus:range'][1])
         break;
       case 3:
-        console.log(form['modbus:range'][0], form['modbus:range'][1])
         data = await this._client.readHoldingRegisters(form['modbus:range'][0], form['modbus:range'][1])
         break;
       case 4:
@@ -103,7 +107,7 @@ export default class ModbusClient implements ProtocolClient {
   private async modbusWrite(form: ModbusForm, content: Content) {
     let parsed = new URL(form.href);
     const port = parsed.port ? parseInt(parsed.port, 10) : DEFAULT_PORT
-    this.fillDefaultRange(form)
+    form = this.fillDefaultForm(form, 'w', content.body.byteLength)
 
     await this._client.connectTCP(parsed.hostname, { port: port });
     this._client.setID(form['modbus:unitID']);
@@ -134,7 +138,6 @@ export default class ModbusClient implements ProtocolClient {
           data.push(content.body.readInt16BE(index))
           index++;
         }
-
         await this._client.writeRegisters(form['modbus:range'][0], data)
         break;
       default:
@@ -143,12 +146,48 @@ export default class ModbusClient implements ProtocolClient {
 
     this._client.close(() => { return; })
   }
-  private fillDefaultRange(form: ModbusForm) {
+  private fillDefaultForm(form: ModbusForm, mode: 'r' | 'w', contentLength: number): ModbusForm {
+    const result: ModbusForm = { ...form }
+
+    // fill default range
     if (!form['modbus:range']) {
-      form['modbus:range'] = [0, 1]
+      result['modbus:range'] = [0, 1]
     } else if (!form['modbus:range'][1]) {
-      form['modbus:range'][1] = 1
+      result['modbus:range'] = [form['modbus:range'][0], 1]
     }
+
+    // Convert string function to enums
+    if (typeof (form['modbus:function']) === 'string') {
+      result['modbus:function'] = ModbusFunction[form['modbus:function']]
+    }
+
+    if (form['modbus:entity']) {
+      switch (form['modbus:entity']) {
+        case 'Coil':
+          result['modbus:function'] = mode === 'r' ? ModbusFunction.readCoil :
+            contentLength > 1 ? ModbusFunction.writeMultipleCoils : ModbusFunction.writeSingleCoil;
+          break;
+        case 'HoldingRegister':
+          // the content length must be divided by 2 (holding registers are 16bit)
+          result['modbus:function'] = mode === 'r' ? ModbusFunction.readMultipleHoldingRegisters :
+            contentLength / 2 > 1 ? ModbusFunction.writeMultipleHoldingRegisters :
+              ModbusFunction.writeSingleHoldingRegister;
+          break;
+        case 'InputRegister':
+          result['modbus:function'] = ModbusFunction.readInputRegister
+          break;
+        case 'DiscreteInput':
+          result['modbus:function'] = ModbusFunction.readDiscreteInput
+          break;
+        default:
+          throw new Error('Unknown modbus entity: ' + form['modbus:entity']);
+      }
+    }
+
+    result['modbus:pollingTime'] = form['modbus:pollingTime'] ? form['modbus:pollingTime'] : DEFAULT_POLLING
+    result['modbus:timeout'] = form['modbus:timeout'] ? form['modbus:timeout'] : DEFAULT_TIMEOUT
+
+    return result
   }
 }
 
@@ -158,13 +197,14 @@ class Subscription {
   constructor(form: ModbusForm, client: ModbusClient,
     next: ((value: any) => void), error?: (error: any) => void, complete?: () => void) {
     if (!complete) { complete = () => { return; } }
-
     this.interval = setInterval(async () => {
       try {
         const result = await client.readResource(form)
         next(result)
       } catch (e) {
         if (error) { error(e); }
+        console.log(e);
+
         clearInterval(this.interval)
       }
     }, form['modbus:pollingTime'])

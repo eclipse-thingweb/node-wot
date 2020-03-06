@@ -25,6 +25,57 @@ describe('Modbus client test', () => {
     after(() => {
         testServer.stop()
     });
+    it('use entity alias for coil', () => {
+        const form: ModbusForm = {
+            href: "modbus://127.0.0.1:8502",
+            "modbus:entity": "Coil",
+            "modbus:range": [0, 1],
+            "modbus:unitID": 1
+        }
+
+        client["fillDefaultForm"](form,"r",0)["modbus:function"].should.be.equal(1,"Wrong default read Coil")
+        
+        client["fillDefaultForm"](form, "w", 1)["modbus:function"].should.be.equal(5, "Wrong write Coil")
+        client["fillDefaultForm"](form, "w", 2)["modbus:function"].should.be.equal(15, "Wrong write multiple Coil")
+    });
+
+    it('use entity alias for holding registries', () => {
+        const form: ModbusForm = {
+            href: "modbus://127.0.0.1:8502",
+            "modbus:entity": "HoldingRegister",
+            "modbus:range": [0, 1],
+            "modbus:unitID": 1
+        }
+
+        client["fillDefaultForm"](form, "r", 0)["modbus:function"].should.be.equal(3, "Wrong read Holding register")
+        client["fillDefaultForm"](form, "w", 2)["modbus:function"].should.be.equal(6, "Wrong write Holding register")
+        client["fillDefaultForm"](form, "w", 4)["modbus:function"].should.be.equal(16, "Wrong write multiple Holding register")
+    });
+
+    it('use entity alias for other entities', () => {
+        const form: ModbusForm = {
+            href: "modbus://127.0.0.1:8502",
+            "modbus:entity": "DiscreteInput",
+            "modbus:range": [0, 1],
+            "modbus:unitID": 1
+        }
+
+        client["fillDefaultForm"](form, "r", 0)["modbus:function"].should.be.equal(2, "Wrong read Discrete input")
+        form["modbus:entity"] = "InputRegister"
+        client["fillDefaultForm"](form, "r", 0)["modbus:function"].should.be.equal(4, "Wrong read Input register")
+    });
+
+    it('should convert function names', () => {
+        const form: ModbusForm = {
+            href: "modbus://127.0.0.1:8502",
+            "modbus:function": "readCoil",
+            "modbus:range": [0, 1],
+            "modbus:unitID": 1
+        }
+
+        client["fillDefaultForm"](form, "r", 0)["modbus:function"].should.be.equal(1, "Wrong substitution")
+    });
+
 
     describe('read resource', () => {
         it('should read a resource using read coil function', async () => {
