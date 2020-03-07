@@ -3,6 +3,7 @@ import { ModbusForm, ModbusFunction, ModbusFunctionName } from './modbus'
 import ModbusRTU from 'modbus-serial'
 
 import { ProtocolClient, Content, ContentSerdes } from '@node-wot/core'
+import {SecurityScheme} from '@node-wot/td-tools'
 
 const DEFAULT_PORT = 805
 const DEFAULT_TIMEOUT = 1000
@@ -63,7 +64,7 @@ export default class ModbusClient implements ProtocolClient {
   stop(): boolean {
     return true;
   }
-  setSecurity(metadata: import('../../td-tools/dist/thing-description').SecurityScheme[], credentials?: any): boolean {
+  setSecurity(metadata: SecurityScheme[], credentials?: any): boolean {
     return false;
   }
 
