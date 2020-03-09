@@ -3,6 +3,8 @@ W3C Web of Things implementation on NodeJS.
 
 Visit http://www.thingweb.io for a [hands-on tutorial](http://www.thingweb.io/hands-on.html) or additional information.
 
+Useful labels: <span style="background-color:purple"><a href="https://github.com/eclipse/thingweb.node-wot/issues?q=+label%3Aquestion+">question</a></span>
+
 [![Build Status](https://travis-ci.org/eclipse/thingweb.node-wot.svg?branch=master)](https://travis-ci.org/eclipse/thingweb.node-wot)
 
 ### Table of Contents
