@@ -16,10 +16,20 @@
 import { ContentSerdes, ContentCodec } from "../content-serdes";
 import * as TD from "@node-wot/td-tools";
 
-/** default implementation offering JSON de-/serialisation */
 export default class TextCodec implements ContentCodec {
+
+  private subMediaType: string;
+
+  constructor(subMediaType?: string) {
+    if (!subMediaType) {
+      this.subMediaType = 'text/plain'; 
+    } else {
+      this.subMediaType = subMediaType;
+    }
+  }
+
   getMediaType(): string {
-    return 'text/plain'
+    return this.subMediaType;
   }
 
   bytesToValue(bytes: Buffer, schema: TD.DataSchema, parameters: {[key: string]: string}): any {

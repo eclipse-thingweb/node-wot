@@ -168,7 +168,7 @@ export default class HttpServer implements ProtocolServer {
     }
   }
   
-  public expose(thing: ExposedThing): Promise<void> {
+  public expose(thing: ExposedThing, tdTemplate?: WoT.ThingDescription): Promise<void> {
 
     let title = thing.title;
 
@@ -216,6 +216,16 @@ export default class HttpServer implements ProtocolServer {
             let propertyNamePattern = this.updateInteractionNameWithUriVariablePattern(propertyName, thing.properties[propertyName].uriVariables);
             let href = base + "/" + this.PROPERTY_DIR + "/" + propertyNamePattern;
             let form = new TD.Form(href, type);
+            
+            if(tdTemplate && tdTemplate.properties[propertyName] && tdTemplate.properties[propertyName].forms) {
+              for (let formTemplate of tdTemplate.properties[propertyName].forms) {
+                // TODO match HTTP only?
+                if(formTemplate.contentType) {
+                  form.contentType = formTemplate.contentType;
+                }
+              }
+            }
+
             if (thing.properties[propertyName].readOnly) {
               form.op = ["readproperty"];
               let hform : HttpForm = form;
@@ -529,7 +539,27 @@ export default class HttpServer implements ProtocolServer {
                   thing.readProperty(segments[3], options)
                   // property.read(options)
                     .then((value:any) => {
-                      let content = ContentSerdes.get().valueToContent(value, <any>property);
+                      // try to find contentType (How to do this better)
+                      // Should readProperty() return an encapsulated value container with value&contenType
+                      // as sketched in https://github.com/w3c/wot-scripting-api/issues/201#issuecomment-573702999
+                      let contentType;
+                      let td : WoT.ThingDescription = thing.getThingDescription();
+                      if(td.properties && td.properties[segments[3]] && td.properties[segments[3]].forms && Array.isArray(td.properties[segments[3]].forms)) {
+                        for(let form of td.properties[segments[3]].forms) {
+                          if(form.href && form.href.startsWith("http") && form.contentType) {
+                            contentType = form.contentType;
+                          }
+                        }
+                      }
+
+                      let content;
+                      if(contentType) {
+                        content = ContentSerdes.get().valueToContent(value, <any>property, contentType);
+                      } else {
+                        content = ContentSerdes.get().valueToContent(value, <any>property);
+                        contentType = undefined;
+                      }
+
                       res.setHeader("Content-Type", content.type);
                       res.writeHead(200);
                       res.end(content.body);

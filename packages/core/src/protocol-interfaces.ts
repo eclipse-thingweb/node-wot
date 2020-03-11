@@ -54,7 +54,7 @@ export interface ProtocolClientFactory {
 
 export interface ProtocolServer {
   readonly scheme: string;
-  expose(thing: ExposedThing): Promise<void>;
+  expose(thing: ExposedThing, tdTemplate?: WoT.ThingDescription): Promise<void>;
   start(servient: Servient): Promise<void>;
   stop(): Promise<void>;
   getPort(): number;

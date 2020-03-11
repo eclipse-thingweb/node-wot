@@ -50,6 +50,14 @@ WoT.produce({
 			observable: true,
 			readOnly: true
 		},
+		countAsImage: {
+			description: "current counter value as SVG image",
+			forms: [{
+				contentType: "image/svg+xml"
+			}],
+			observable: false,
+			readOnly: true
+		},
 		lastChange: {
 			type: "string",
 			description: "last change of counter value",
@@ -110,7 +118,17 @@ WoT.produce({
 	
 	// init property values
 	thing.writeProperty("count", 0); 
-	thing.writeProperty("lastChange", (new Date()).toISOString()); 
+	thing.writeProperty("lastChange", (new Date()).toISOString());
+	thing.setPropertyReadHandler("countAsImage", () => {
+		return thing.readProperty("count").then((count) => {
+			return new Promise((resolve, reject) => {
+				resolve("<svg xmlns='http://www.w3.org/2000/svg' height='30' width='200'>" +
+					"<text x='0' y='15' fill='black'>" + count + "</text>" +
+					"</svg>");
+			});
+		});
+	}
+);
 	
 	// set action handlers
 	thing.setActionHandler("increment", (params, options) => {

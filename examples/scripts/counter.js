@@ -17,7 +17,6 @@
 // * basic properties, actions, events
 // * uriVariables
 // * multi-language
-
 WoT.produce({
     title: "counter",
     titles: {
@@ -44,6 +43,14 @@ WoT.produce({
             },
             "iot:Custom": "example annotation",
             observable: true,
+            readOnly: true
+        },
+        countAsImage: {
+            description: "current counter value as SVG image",
+            forms: [{
+                    contentType: "image/svg+xml"
+                }],
+            observable: false,
             readOnly: true
         },
         lastChange: {
@@ -101,45 +108,54 @@ WoT.produce({
         }
     }
 })
-    .then(function (thing) {
+    .then((thing) => {
     console.log("Produced " + thing.getThingDescription().title);
     // init property values
     thing.writeProperty("count", 0);
     thing.writeProperty("lastChange", (new Date()).toISOString());
+    thing.setPropertyReadHandler("countAsImage", () => {
+        return thing.readProperty("count").then((count) => {
+            return new Promise((resolve, reject) => {
+                resolve("<svg xmlns='http://www.w3.org/2000/svg' height='30' width='200'>" +
+                    "<text x='0' y='15' fill='black'>" + count + "</text>" +
+                    "</svg>");
+            });
+        });
+    });
     // set action handlers
-    thing.setActionHandler("increment", function (params, options) {
-        return thing.readProperty("count").then(function (count) {
-            var step = 1;
+    thing.setActionHandler("increment", (params, options) => {
+        return thing.readProperty("count").then((count) => {
+            let step = 1;
             console.log(options);
             if (options && typeof options === 'object' && 'uriVariables' in options) {
                 if ('step' in options['uriVariables'] && options['uriVariables'] instanceof Array) {
                     step = options['uriVariables']['step'];
                 }
             }
-            var value = count + step;
+            let value = count + step;
             console.log("Incrementing count from " + count + " to " + value);
             thing.writeProperty("count", value);
             thing.writeProperty("lastChange", (new Date()).toISOString());
             thing.emitEvent("change", value);
         });
     });
-    thing.setActionHandler("decrement", function (params, options) {
-        return thing.readProperty("count").then(function (count) {
-            var step = 1;
+    thing.setActionHandler("decrement", (params, options) => {
+        return thing.readProperty("count").then((count) => {
+            let step = 1;
             if (options && typeof options === 'object' && 'uriVariables' in options) {
                 if ('step' in options['uriVariables'] && options['uriVariables'] instanceof Array) {
                     step = options['uriVariables']['step'];
                 }
             }
-            var value = count - step;
+            let value = count - step;
             console.log("Decrementing count from " + count + " to " + value);
             thing.writeProperty("count", value);
             thing.writeProperty("lastChange", (new Date()).toISOString());
             thing.emitEvent("change", value);
         });
     });
-    thing.setActionHandler("reset", function () {
-        return new Promise(function (resolve, reject) {
+    thing.setActionHandler("reset", () => {
+        return new Promise((resolve, reject) => {
             console.log("Resetting count");
             thing.writeProperty("count", 0);
             thing.writeProperty("lastChange", (new Date()).toISOString());
@@ -148,8 +164,8 @@ WoT.produce({
         });
     });
     // expose the thing
-    thing.expose().then(function () { console.info(thing.getThingDescription().title + " ready"); });
+    thing.expose().then(() => { console.info(thing.getThingDescription().title + " ready"); });
 })
-    .catch(function (e) {
+    .catch((e) => {
     console.log(e);
 });
