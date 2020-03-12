@@ -16,6 +16,7 @@
 import { Content } from "./protocol-interfaces";
 import JsonCodec from "./codecs/json-codec";
 import TextCodec from "./codecs/text-codec";
+import Base64Codec from "./codecs/base64-codec";
 import OctetstreamCodec from "./codecs/octetstream-codec";
 import * as TD from "@node-wot/td-tools";
 
@@ -48,6 +49,9 @@ export class ContentSerdes {
       this.instance.addCodec(new JsonCodec("application/senml+json"));
       this.instance.addCodec(new TextCodec());
       this.instance.addCodec(new TextCodec("image/svg+xml"));
+      this.instance.addCodec(new Base64Codec("image/png"));
+      this.instance.addCodec(new Base64Codec("image/gif"));
+      this.instance.addCodec(new Base64Codec("image/jpeg"));
       this.instance.addCodec(new OctetstreamCodec());
     }
     return this.instance;

@@ -58,6 +58,14 @@ WoT.produce({
 			observable: false,
 			readOnly: true
 		},
+		redDotImage: {
+			description: "Red dot image as PNG",
+			forms: [{
+				contentType: "image/png"
+			}],
+			observable: false,
+			readOnly: true
+		},
 		lastChange: {
 			type: "string",
 			description: "last change of counter value",
@@ -117,7 +125,7 @@ WoT.produce({
 	console.log("Produced " + thing.getThingDescription().title);
 	
 	// init property values
-	thing.writeProperty("count", 0); 
+	thing.writeProperty("count", 0);
 	thing.writeProperty("lastChange", (new Date()).toISOString());
 	thing.setPropertyReadHandler("countAsImage", () => {
 		return thing.readProperty("count").then((count) => {
@@ -127,8 +135,13 @@ WoT.produce({
 					"</svg>");
 			});
 		});
-	}
-);
+	});
+	thing.setPropertyReadHandler("redDotImage", () => {
+		return new Promise((resolve, reject) => {
+			// data:image/png;base64,
+			resolve("iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==");
+		});
+	});
 	
 	// set action handlers
 	thing.setActionHandler("increment", (params, options) => {
