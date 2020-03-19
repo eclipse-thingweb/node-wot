@@ -107,7 +107,7 @@ npm run build
 #### Optional steps
 
 ###### Link Packages
-Make all packages available on your local machine (as symlinks). You can then use each paket in its local version via `npm link <module>` instead of `npm install <module>` (see also https://docs.npmjs.com/cli/link).
+Make all packages available on your local machine (as symlinks). You can then use each package in its local version via `npm link <module>` instead of `npm install <module>` (see also https://docs.npmjs.com/cli/link).
 ```
 sudo npm run link
 ```
