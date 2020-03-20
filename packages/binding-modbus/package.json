@@ -1,0 +1,28 @@
+{
+  "name": "@node-wot/binding-modbus",
+  "version": "0.7.0-SNAPSHOT.7",
+  "private": true,
+  "description": "Modbus client protocol binding for node-wot",
+  "author": "Siemens AG",
+  "license": "EPL-2.0 OR W3C-20150513",
+  "files": [
+    "dist/"
+  ],
+  "main": "dist/modbus.js",
+  "typings": "dist/modbus.d.ts",
+  "devDependencies": {
+    "@types/node": "10.9.4",
+    "ts-node": "3.3.0",
+    "typescript": "2.9.2",
+    "typescript-standard": "0.3.30"
+  },
+  "dependencies": {
+    "@node-wot/core": "0.7.0-SNAPSHOT.7",
+    "@node-wot/td-tools": "0.7.0-SNAPSHOT.7",
+    "modbus-serial": "^7.3.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "codestyle": "standard --pretty"
+  }
+}
