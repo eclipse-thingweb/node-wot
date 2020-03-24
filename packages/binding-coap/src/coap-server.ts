@@ -131,6 +131,7 @@ export default class CoapServer implements ProtocolServer {
           for (let actionName in thing.actions) {
             let href = base + "/" + this.ACTION_DIR + "/" + encodeURIComponent(actionName);
             let form = new TD.Form(href, type);
+            ProtocolHelpers.updateActionFormWithTemplate(form, tdTemplate, actionName);
             form.op = "invokeaction";
             thing.actions[actionName].forms.push(form);
             console.log(`CoapServer on port ${this.getPort()} assigns '${href}' to Action '${actionName}'`);
@@ -139,6 +140,7 @@ export default class CoapServer implements ProtocolServer {
           for (let eventName in thing.events) {
             let href = base + "/" + this.EVENT_DIR + "/" + encodeURIComponent(eventName);
             let form = new TD.Form(href, type);
+            ProtocolHelpers.updateEventFormWithTemplate(form, tdTemplate, eventName);
             form.op = "subscribeevent";
             thing.events[eventName].forms.push(form);
             console.log(`CoapServer on port ${this.getPort()} assigns '${href}' to Event '${eventName}'`);
@@ -314,7 +316,8 @@ export default class CoapServer implements ProtocolServer {
               // action.invoke(input)
                 .then((output) => {
                   if (output) {
-                    let content = ContentSerdes.get().valueToContent(output, action.output);
+                    let contentType = ProtocolHelpers.getActionContentType(thing.getThingDescription(), segments[3], "coap");
+                    let content = ContentSerdes.get().valueToContent(output, action.output, contentType);
                     res.setOption("Content-Format", content.type);
                     res.code = "2.05";
                     res.end(content.body);
@@ -364,7 +367,8 @@ export default class CoapServer implements ProtocolServer {
                   (data) => {
                     let content;
                     try {
-                      content = ContentSerdes.get().valueToContent(data, event.data);
+                      let contentType = ProtocolHelpers.getEventContentType(thing.getThingDescription(), segments[3], "coap");
+                      content = ContentSerdes.get().valueToContent(data, event.data, contentType);
                     } catch(err) {
                       console.warn(`CoapServer on port ${this.getPort()} cannot process data for Event '${segments[3]}: ${err.message}'`);
                       res.code = "5.00";

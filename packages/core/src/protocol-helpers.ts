@@ -35,12 +35,72 @@ export default class ProtocolHelpers {
     }
   }
 
+  public static updateActionFormWithTemplate(form: TD.Form, tdTemplate: WoT.ThingDescription, actionName: string) {
+    if (form && tdTemplate && tdTemplate.actions && tdTemplate.actions[actionName] && tdTemplate.actions[actionName].forms) {
+      for (let formTemplate of tdTemplate.actions[actionName].forms) {
+        // 1. Try to find match with correct href scheme
+        if (formTemplate.href) {
+          // TODO match for example http only?
+        }
+
+        // 2. Use any form
+        if (formTemplate.contentType) {
+          form.contentType = formTemplate.contentType;
+          return; // abort loop
+        }
+      }
+    }
+  }
+
+  public static updateEventFormWithTemplate(form: TD.Form, tdTemplate: WoT.ThingDescription, eventName: string) {
+    if (form && tdTemplate && tdTemplate.events && tdTemplate.events[eventName] && tdTemplate.events[eventName].forms) {
+      for (let formTemplate of tdTemplate.events[eventName].forms) {
+        // 1. Try to find match with correct href scheme
+        if (formTemplate.href) {
+          // TODO match for example http only?
+        }
+
+        // 2. Use any form
+        if (formTemplate.contentType) {
+          form.contentType = formTemplate.contentType;
+          return; // abort loop
+        }
+      }
+    }
+  }
+
   public static getPropertyContentType(td: WoT.ThingDescription, propertyName: string, uriScheme: string): string {
     // try to find contentType (How to do this better)
     // Should interaction methods like readProperty() return an encapsulated value container with value&contenType
     // as sketched in https://github.com/w3c/wot-scripting-api/issues/201#issuecomment-573702999
     if (td && propertyName && uriScheme && td.properties && td.properties[propertyName] && td.properties[propertyName].forms && Array.isArray(td.properties[propertyName].forms)) {
       for (let form of td.properties[propertyName].forms) {
+        if (form.href && form.href.startsWith(uriScheme) && form.contentType) {
+          return form.contentType; // abort loop
+        }
+      }
+    }
+
+    return undefined; // not found
+  }
+
+  public static getActionContentType(td: WoT.ThingDescription, actionName: string, uriScheme: string): string {
+    // try to find contentType
+    if (td && actionName && uriScheme && td.actions && td.actions[actionName] && td.actions[actionName].forms && Array.isArray(td.actions[actionName].forms)) {
+      for (let form of td.actions[actionName].forms) {
+        if (form.href && form.href.startsWith(uriScheme) && form.contentType) {
+          return form.contentType; // abort loop
+        }
+      }
+    }
+
+    return undefined; // not found
+  }
+
+  public static getEventContentType(td: WoT.ThingDescription, eventName: string, uriScheme: string): string {
+    // try to find contentType
+    if (td && eventName && uriScheme && td.events && td.events[eventName] && td.events[eventName].forms && Array.isArray(td.events[eventName].forms)) {
+      for (let form of td.events[eventName].forms) {
         if (form.href && form.href.startsWith(uriScheme) && form.contentType) {
           return form.contentType; // abort loop
         }
