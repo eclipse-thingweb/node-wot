@@ -13,10 +13,14 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
+// This is an example Thing script. 
+// It has a count property that can be incremented or decremented via actions and its changes are reported via events.
+// It also has two properties that return an image. The SVG property is also influenced by the increment and decrement actions.
 // Features
 // * basic properties, actions, events
 // * uriVariables
 // * multi-language
+// * image contentTypes for properties (Note: the contentType applies to all forms of the property)
 WoT.produce({
     title: "counter",
     titles: {
