@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -178,6 +178,9 @@ export default class Servient {
 
         console.log(`Servient exposing '${thing.title}'`);
 
+        // What is a good way to to convey forms information like contentType et cetera for interactions
+        let tdTemplate: WoT.ThingDescription = JSON.parse(JSON.stringify(thing));
+
         // initializing forms fields
         thing.forms = [];
         for (let name in thing.properties) {
@@ -191,7 +194,7 @@ export default class Servient {
         }
 
         let serverPromises: Promise<void>[] = [];
-        this.servers.forEach( (server) => { serverPromises.push(server.expose(thing)); });
+        this.servers.forEach( (server) => { serverPromises.push(server.expose(thing, tdTemplate)); });
 
         return new Promise<void>((resolve, reject) => {
             Promise.all(serverPromises).then( () => resolve() ).catch( (err) => reject(err) );

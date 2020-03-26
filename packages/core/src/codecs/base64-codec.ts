@@ -13,25 +13,32 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-/** Exports of this module */
+import { ContentSerdes, ContentCodec } from "../content-serdes";
+import * as TD from "@node-wot/td-tools";
 
-// Servient is also the default export
-import { default as Servient } from "./servient";
+export default class Base64Codec implements ContentCodec {
 
-export default Servient;
-export { Servient };
+  private subMediaType: string;
 
-// ContentSerdes
-export * from "./content-serdes";
+  constructor(subMediaType: string) {
+    this.subMediaType = subMediaType;
+  }
 
-// Protocols & Content
-export * from "./protocol-interfaces";
-export { Content } from "./protocol-interfaces";
+  getMediaType(): string {
+    return this.subMediaType;
+  }
 
-// Scripting API objects
-export { default as ConsumedThing } from "./consumed-thing";
-export { default as ExposedThing } from "./exposed-thing";
+  bytesToValue(bytes: Buffer, schema: TD.DataSchema, parameters: {[key: string]: string}): any {
+    let parsed: any;
+    parsed = bytes.toString("ascii");
+    return parsed;
+  }
 
-// Helper Implementations
-export { default as Helpers } from "./helpers";
-export { default as ProtocolHelpers } from "./protocol-helpers";
+  valueToBytes(value: any, schema: TD.DataSchema, parameters?: {[key: string]: string}): Buffer {
+    let body = "";
+    if (value !== undefined) {
+      body = value;
+    }
+    return Buffer.from(body, "base64");
+  }
+}
