@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -112,5 +112,15 @@ class HttpServerTest {
       await httpServer1.stop();
       await httpServer2.stop();
     });
+  }
+
+  // https://github.com/eclipse/thingweb.node-wot/issues/181
+  @test async "should start and stop a server with no security"() {
+    let httpServer = new HttpServer({ port: 58080, security: {scheme: "nosec"}});
+
+    await httpServer.start(null);
+    expect(httpServer.getPort()).to.eq(58080); // port test
+    expect(httpServer.getHttpSecurityScheme()).to.eq("NoSec"); // HTTP security scheme test (nosec -> NoSec)
+    await httpServer.stop();
   }
 }

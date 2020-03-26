@@ -46,7 +46,7 @@ export default class HttpServer implements ProtocolServer {
 
   private readonly port: number = 8080;
   private readonly address: string = undefined;
-  private readonly securityScheme: string = "NoSec";
+  private readonly httpSecurityScheme: string = "NoSec"; // HTTP header compatible string
   private readonly server: http.Server | https.Server = null;
   private readonly things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
   private servient: Servient = null;
@@ -77,20 +77,19 @@ export default class HttpServer implements ProtocolServer {
 
     // Auth
     if (config.security) {
-      if (this.scheme !== "https") {
-        throw new Error(`HttpServer does not allow security without TLS (HTTPS)`);
-      }
-
       // storing HTTP header compatible string
       switch (config.security.scheme) {
+        case "nosec":
+          this.httpSecurityScheme = "NoSec";
+          break;
         case "basic":
-          this.securityScheme = "Basic";
+          this.httpSecurityScheme = "Basic";
           break;
         case "digest":
-          this.securityScheme = "Digest";
+          this.httpSecurityScheme = "Digest";
           break;
         case "bearer":
-          this.securityScheme = "Bearer";
+          this.httpSecurityScheme = "Bearer";
           break;
         default:
           throw new Error(`HttpServer does not support security scheme '${config.security.scheme}`);
@@ -147,6 +146,10 @@ export default class HttpServer implements ProtocolServer {
       // includes address() typeof "string" case, which is only for unix sockets
       return -1;
     }
+  }
+
+  public getHttpSecurityScheme(): string {
+    return this.httpSecurityScheme;
   }
 
 
@@ -295,7 +298,9 @@ export default class HttpServer implements ProtocolServer {
 
     let creds = this.servient.getCredentials(id);
 
-    switch (this.securityScheme) {
+    switch (this.httpSecurityScheme) {
+      case "NoSec":
+        return true;
       case "Basic":
         let basic = bauth(req);
         return (creds !== undefined) &&
@@ -458,8 +463,8 @@ export default class HttpServer implements ProtocolServer {
 
         } else {
           // Thing Interaction - Access Control
-          if (this.securityScheme!=="NoSec" && !this.checkCredentials(thing.id, req)) {
-            res.setHeader("WWW-Authenticate", `${this.securityScheme} realm="${thing.id}"`);
+          if (this.httpSecurityScheme!=="NoSec" && !this.checkCredentials(thing.id, req)) {
+            res.setHeader("WWW-Authenticate", `${this.httpSecurityScheme} realm="${thing.id}"`);
             res.writeHead(401);
             res.end();
             return;
