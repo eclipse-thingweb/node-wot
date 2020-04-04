@@ -119,11 +119,11 @@ export default class CoapsClient implements ProtocolClient {
     // FIXME coap does not provide proper API to close Agent
     return true;
   }
-  public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean {
+  public initSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): Promise<boolean> {
 
     if (metadata === undefined || !Array.isArray(metadata) || metadata.length == 0) {
       console.warn(`CoapsClient received empty security metadata`);
-      return false;
+      return Promise.resolve(false);
     }
 
     let security: TD.SecurityScheme = metadata[0];
@@ -134,12 +134,12 @@ export default class CoapsClient implements ProtocolClient {
 
     } else if (security.scheme === "apikey") {
       console.error(`CoapsClient cannot use Apikey: Not implemented`);
-      return false;
+      return Promise.resolve(false);
 
     } else {
       console.error(`CoapsClient cannot set security scheme '${security.scheme}'`);
       console.dir(metadata);
-      return false;
+      return Promise.resolve(false);
     }
 
     // TODO: node-coap-client does not support proxy / options in general :o
@@ -162,7 +162,7 @@ export default class CoapsClient implements ProtocolClient {
     */
 
     console.log(`CoapsClient using security scheme '${security.scheme}'`);
-    return true;
+    return Promise.resolve(true);
   }
 
   private generateRequest(form: CoapForm, dflt: string, content?: Content): any {

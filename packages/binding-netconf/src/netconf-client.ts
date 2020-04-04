@@ -165,18 +165,18 @@ export default class NetconfClient implements ProtocolClient {
 		return true;
 	}
 
-	public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean {
+	public initSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): Promise<boolean> {
 
 		if (metadata === undefined || !Array.isArray(metadata) || metadata.length == 0) {
 			console.warn(`NetconfClient without security`);
-			return false;
+			return Promise.resolve(false);
 		}
 		if (!credentials || (!(credentials.password) && !(credentials.privateKey))) {
 			throw new Error(`Both password and privateKey missing inside credentials`);
 		}
 
 		this.credentials = credentials;
-		return true;
+		return Promise.resolve(true);
 	}
 
 	

@@ -42,7 +42,7 @@ export interface ProtocolClient {
   stop(): boolean;
 
   /** apply TD security metadata */
-  setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean;
+  initSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): Promise<boolean>;
 }
 
 export interface ProtocolClientFactory {

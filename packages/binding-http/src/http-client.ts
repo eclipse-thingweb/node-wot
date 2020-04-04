@@ -256,7 +256,7 @@ export default class HttpClient implements ProtocolClient {
     return true;
   }
 
-  public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean {
+  public async initSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): Promise<boolean> {
 
     if (metadata === undefined || !Array.isArray(metadata) || metadata.length == 0) {
       console.warn(`HttpClient without security`);

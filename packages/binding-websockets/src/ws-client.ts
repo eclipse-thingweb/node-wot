@@ -67,12 +67,12 @@ export default class WebSocketClient implements ProtocolClient {
     return true;
   }
 
-  public setSecurity(metadata: any, credentials?: any): boolean {
+  public initSecurity(metadata: any, credentials?: any): Promise<boolean> {
 
     if (Array.isArray(metadata)) {
       metadata = metadata[0];
     }
 
-    return true;
+    return Promise.resolve(true);
   }
 }

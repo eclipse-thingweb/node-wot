@@ -166,7 +166,7 @@ export default class CoapClient implements ProtocolClient {
     // FIXME coap does not provide proper API to close Agent
     return true;
   }
-  public setSecurity = (metadata: Array<TD.SecurityScheme>) => true;
+  public async initSecurity(metadata: Array<TD.SecurityScheme>){ return Promise.resolve(true) }
 
   private uriToOptions(uri: string): CoapRequestConfig {
     let requestUri = url.parse(uri);

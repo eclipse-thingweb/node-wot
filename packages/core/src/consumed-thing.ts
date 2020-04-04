@@ -82,7 +82,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     }
 
     // utility for Property, Action, and Event
-    getClientFor(forms: Array<TD.Form>, op: string): ClientAndForm {
+    async getClientFor(forms: Array<TD.Form>, op: string): Promise<ClientAndForm> {
         if (forms.length === 0) {
             throw new Error(`ConsumedThing '${this.title}' has no links for this interaction`);
         }
@@ -132,7 +132,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                         scs.push(ws);
                     }
                 }
-                client.setSecurity(scs, this.getServient().getCredentials(this.id));
+                await client.initSecurity(scs, this.getServient().getCredentials(this.id));
             }
             this.getClients().set(schemes[srvIdx], client);
             //let form = forms[srvIdx];
@@ -157,10 +157,10 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     }
 
     readProperty(propertyName: string, options?: WoT.InteractionOptions): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
+        return new Promise<any>(async (resolve, reject) => {
             // TODO pass expected form op to getClientFor()
             let tp: TD.ThingProperty = this.properties[propertyName];
-            let { client, form } = this.getClientFor(tp.forms, "readproperty");
+            let { client, form } = await this.getClientFor(tp.forms, "readproperty");
             console.log("form: " + form)
             if (!client) {
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
@@ -223,10 +223,10 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
 
 
     writeProperty(propertyName: string, value: any, options?: WoT.InteractionOptions): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
+        return new Promise<void>(async (resolve, reject) => {
             // TODO pass expected form op to getClientFor()
             let tp: TD.ThingProperty = this.properties[propertyName];
-            let { client, form } = this.getClientFor(tp.forms, "writeproperty");
+            let { client, form } = await this.getClientFor(tp.forms, "writeproperty");
             if (!client) {
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
             } else {
@@ -264,9 +264,9 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
 
 
     public invokeAction(actionName: string, parameter?: any, options?: WoT.InteractionOptions): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
+        return new Promise<any>(async (resolve, reject) => {
             let ta: TD.ThingAction = this.actions[actionName];
-            let { client, form } = this.getClientFor(ta.forms, "invokeaction");
+            let { client, form } = await this.getClientFor(ta.forms, "invokeaction");
             if (!client) {
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
             } else {
@@ -305,9 +305,9 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     }
 
     public observeProperty(name: string, listener: WoT.WotListener, options?: WoT.InteractionOptions): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
+        return new Promise<void>(async (resolve, reject) => {
             let tp: TD.ThingProperty = this.properties[name];
-            let { client, form } = this.getClientFor(tp.forms, "observeproperty");
+            let { client, form } = await this.getClientFor(tp.forms, "observeproperty");
             if (!client) {
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
             } else {
@@ -336,9 +336,9 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     }
 
     public unobserveProperty(name: string): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
+        return new Promise<void>(async (resolve, reject) => {
             let tp: TD.ThingProperty = this.properties[name];
-            let { client, form } = this.getClientFor(tp.forms, "unobserveproperty");
+            let { client, form } = await this.getClientFor(tp.forms, "unobserveproperty");
             if (!client) {
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
             } else {
@@ -350,9 +350,9 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     }
 
     public subscribeEvent(name: string, listener: WoT.WotListener, options?: WoT.InteractionOptions): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
+        return new Promise<void>(async (resolve, reject) => {
             let te: TD.ThingEvent = this.events[name];
-            let { client, form } = this.getClientFor(te.forms, "subscribeevent");
+            let { client, form } = await this.getClientFor(te.forms, "subscribeevent");
             if (!client) {
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
             } else {
@@ -380,9 +380,9 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     }
 
     public unsubscribeEvent(name: string): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
+        return new Promise<void>(async (resolve, reject) => {
             let te: TD.ThingEvent = this.events[name];
-            let { client, form } = this.getClientFor(te.forms, "unsubscribeevent");
+            let { client, form } = await this.getClientFor(te.forms, "unsubscribeevent");
             if (!client) {
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
             } else {

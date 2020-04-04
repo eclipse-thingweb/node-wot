@@ -360,11 +360,11 @@ export default class OpcuaClient implements ProtocolClient {
 		return true;
 	}
 
-	public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean {
+	public initSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): Promise<boolean> {
 
 		if (metadata === undefined || !Array.isArray(metadata) || metadata.length == 0) {
 			console.warn(`OpcuaClient without security`);
-			return false;
+			return Promise.resolve(false);
 		}
 		if (!credentials || (!(credentials.password) && !(credentials.privateKey))) {
 			console.warn(`Both password and certificate missing inside credentials`);
