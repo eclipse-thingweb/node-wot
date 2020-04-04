@@ -29,6 +29,8 @@ import * as WoT from "wot-typescript-definitions";
 
 import { ProtocolClient, Content } from "@node-wot/core";
 import { HttpForm, HttpHeader, HttpConfig } from "./http";
+import { Buffer } from "buffer";
+import OAuthManager from "./oauth-manager";
 
 export default class HttpClient implements ProtocolClient {
 
@@ -38,8 +40,9 @@ export default class HttpClient implements ProtocolClient {
   private authorization: string = null;
   private authorizationHeader: string = "Authorization";
   private allowSelfSigned: boolean = false;
+  private oauth: OAuthManager;
 
-  constructor(config: HttpConfig = null, secure = false) {
+  constructor(config: HttpConfig = null, secure = false,oauthManager: OAuthManager = new OAuthManager()) {
 
     // config proxy by client side (not from TD)
     if (config!==null && config.proxy && config.proxy.href) {
@@ -71,6 +74,7 @@ export default class HttpClient implements ProtocolClient {
     // using one client impl for both HTTP and HTTPS
     this.agent = secure ? new https.Agent() : new http.Agent();
     this.provider = secure ? https : http;
+    this.oauth = oauthManager;
   }
 
   private getContentType(res: http.IncomingMessage): string {
@@ -287,6 +291,19 @@ export default class HttpClient implements ProtocolClient {
       this.authorization = credentials.apikey;
       if (securityAPIKey.in==="header" && securityAPIKey.name!==undefined) {
         this.authorizationHeader = securityAPIKey.name;
+      }
+
+    } else if(security.scheme === "oauth2"){
+      let securityOAuth: TD.OAuth2SecurityScheme = <TD.OAuth2SecurityScheme>security;
+      
+      if (securityOAuth.flow === "client_credentials"){
+        const token = await this.oauth.handleClientCredential(securityOAuth,credentials)
+        this.authorization = token.tokenType[0].toUpperCase() + token.tokenType.slice(1) + " " + token.accessToken
+        console.log(this.authorization);
+      }else if (securityOAuth.flow === "password"){
+        const token = await this.oauth.handleResourceOwnerCredential(securityOAuth,credentials)
+        this.authorization = token.tokenType[0].toUpperCase() + token.tokenType.slice(1) + " " + token.accessToken
+        console.log(this.authorization);
       }
 
     } else if (security.scheme === "nosec") {
