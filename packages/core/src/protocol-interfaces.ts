@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -54,7 +54,7 @@ export interface ProtocolClientFactory {
 
 export interface ProtocolServer {
   readonly scheme: string;
-  expose(thing: ExposedThing): Promise<void>;
+  expose(thing: ExposedThing, tdTemplate?: WoT.ThingDescription): Promise<void>;
   start(servient: Servient): Promise<void>;
   stop(): Promise<void>;
   getPort(): number;
