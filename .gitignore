@@ -59,6 +59,9 @@ packages/*
 !packages/binding-fujitsu
 !packages/binding-opcua
 !packages/binding-netconf
+!packages/binding-wotfirestore
 !packages/cli
 !packages/browser-bundle
 !packages/examples
+!packages/wot-agent
+!packages/wot-console

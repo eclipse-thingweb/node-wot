@@ -29,7 +29,8 @@
     "@node-wot/binding-file": "0.7.0-SNAPSHOT.7",
     "@node-wot/binding-http": "0.7.0-SNAPSHOT.7",
     "@node-wot/binding-websockets": "0.7.0-SNAPSHOT.7",
-    "@node-wot/binding-mqtt": "0.7.0-SNAPSHOT.7"
+    "@node-wot/binding-mqtt": "0.7.0-SNAPSHOT.7",
+    "@node-wot-ht/binding-wotfirestore": "0.7.0-SNAPSHOT.7"
   },
   "scripts": {
     "build": "tsc",
