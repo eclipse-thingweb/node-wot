@@ -43,12 +43,13 @@ export const initFirestore = async (fbConfig, fstore): Promise<any> => {
 export const writeDataToFirestore = (
   firestore,
   topic: string,
-  content: Content
+  content: Content,
+  reqId = null
 ): Promise<any> => {
   return new Promise((resolve, reject) => {
     console.debug('    writeDataToFirestore topic:', topic, ' value:', content)
     const ref = firestore.collection('things').doc(encodeURIComponent(topic))
-    let data = { updatedTime: Date.now() }
+    let data = { updatedTime: Date.now(), reqId }
     if (content) {
       data['content'] = JSON.stringify(content)
     }
@@ -112,23 +113,29 @@ export const subscribeFromFirestore = async (
   firestore,
   firestoreObservers,
   topic: string,
-  callback: (err: string | null, content?: Content) => void
+  callback: (err: string | null, content?: Content, reqId?: string) => void
 ) => {
   console.debug('    subscribeFromFirestore topic:', topic)
   let firstFlg = true
   const ref = firestore.collection('things').doc(encodeURIComponent(topic))
   //  const doc = await ref.get()
   //  if (!doc.exists) firstFlg = false
+  let reqId
   const observer = ref.onSnapshot(
     doc => {
       //console.log(`Received doc snapshot: `, doc)
+      const data = doc.data()
+      // reqIdが含まれる場合は戻り値である可能性があるため最初の取得かどうかによらず値を返す
+      if (data && data.reqId) {
+        firstFlg = false
+        reqId = data.reqId
+      }
       if (firstFlg) {
         firstFlg = false
         console.log('ignore because first calling: ' + topic)
         return
       }
 
-      const data = doc.data()
       let content: Content = null
       if (data && data.content) {
         let obj: any = JSON.parse(data.content)
@@ -144,11 +151,11 @@ export const subscribeFromFirestore = async (
         }
         content = obj
       }
-      callback(null, content)
+      callback(null, content, reqId)
     },
     err => {
       console.log(`Encountered error: ${err}`)
-      callback(err)
+      callback(err, null, reqId)
     }
   )
   firestoreObservers[topic] = observer

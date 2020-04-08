@@ -16,6 +16,7 @@
     "@node-wot/td-tools": "0.7.0-SNAPSHOT.7",
     "buffer": "^5.5.0",
     "firebase": "^7.11.0",
+    "uuid": "^7.0.3",
     "wot-typescript-definitions": "0.7.1-SNAPSHOT.1"
   },
   "devDependencies": {

@@ -21,6 +21,7 @@
 
 import { ProtocolClient, Content } from '@node-wot/core'
 import { WoTFirestoreForm, WoTFirestoreConfig } from './wotfirestore'
+import { v4 as uuidv4 } from 'uuid'
 
 import 'firebase/auth'
 import 'firebase/firestore'
@@ -153,18 +154,24 @@ export default class WoTFirestoreClient implements ProtocolClient {
             encodeURIComponent(pointerInfo.name) +
             '/actionResults/' +
             encodeURIComponent(pointerInfo.resource)
-
+          const reqId = uuidv4()
+          let timeoutId
           subscribeFromFirestore(
             this.firestore,
             this.firestoreObservers,
             actionResultTopic,
-            (err, content) => {
+            (err, content, resId) => {
               console.log('return action and unsubscribe')
+              if (reqId !== resId) {
+                // reqIdが一致しないため無視
+                return
+              }
               unsubscribeFromFirestore(
                 this.firestoreObservers,
                 actionResultTopic
               )
               console.log('@@@@@ finish unsubscribe')
+              clearTimeout(timeoutId)
               if (err) {
                 reject(err)
                 return
@@ -172,9 +179,19 @@ export default class WoTFirestoreClient implements ProtocolClient {
               resolve(content)
             }
           )
+          timeoutId = setTimeout(() => {
+            console.log('timeout and unsubscribe')
+            unsubscribeFromFirestore(this.firestoreObservers, actionResultTopic)
+            reject(new Error(`timeout error topic: ${pointerInfo.topic}`))
+          }, 10 * 1000) // timeout判定
           // if not input was provided, set up an own body otherwise take input as body
           if (content !== undefined) {
-            writeDataToFirestore(this.firestore, pointerInfo.topic, content)
+            writeDataToFirestore(
+              this.firestore,
+              pointerInfo.topic,
+              content,
+              reqId
+            )
               .then(() => {
                 // nothing todo
               })
@@ -183,10 +200,15 @@ export default class WoTFirestoreClient implements ProtocolClient {
                 reject(err)
               })
           } else {
-            writeDataToFirestore(this.firestore, pointerInfo.topic, {
-              body: undefined,
-              type: ''
-            })
+            writeDataToFirestore(
+              this.firestore,
+              pointerInfo.topic,
+              {
+                body: undefined,
+                type: ''
+              },
+              reqId
+            )
               .then(() => {
                 // nothing todo
               })

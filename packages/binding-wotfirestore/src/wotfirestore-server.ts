@@ -301,7 +301,7 @@ export default class WoTFirestoreServer implements ProtocolServer {
           this.firestore,
           this.firestoreObservers,
           topic,
-          (err, content: Content) => {
+          (err, content: Content, reqId: string) => {
             if (err) {
               console.error('[error] receive action :', err)
               return
@@ -347,7 +347,8 @@ export default class WoTFirestoreServer implements ProtocolServer {
                     writeDataToFirestore(
                       this.firestore,
                       actionResultTopic,
-                      outContent
+                      outContent,
+                      reqId
                     )
                       .then(value => {})
                       .catch(err => {})
