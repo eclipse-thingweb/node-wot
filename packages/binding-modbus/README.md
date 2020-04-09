@@ -75,3 +75,4 @@ This procedure guarantees that the __requests__ are all combined into a single _
   * Allow for some space between registers on read operations, as reading surplus registers might perform better than issuing two transactions
   * Impose some limit to the overall number of registers. The MODBUS protocol has such a limit and devices may define even lower values
 * When a connection times out, re-connection does not work (see `connectionTimeout` in modbus-client.ts)
+* When a Modbus device is not reachable, scripts using binding-modbus stop working - corresponding error handling is necessary
