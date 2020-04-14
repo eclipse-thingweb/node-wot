@@ -106,8 +106,8 @@ class HttpServerTest {
 
     let uri = `http://localhost:${httpServer1.getPort()}/`;
 
-    rp.get(uri).then(async body => {
-      expect(body).to.equal("One");
+    return rp.get(uri).then(async body => {
+      expect(body).to.equal("[]");
 
       await httpServer1.stop();
       await httpServer2.stop();
