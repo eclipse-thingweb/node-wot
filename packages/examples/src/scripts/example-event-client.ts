@@ -13,29 +13,33 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-try {
-  var thing = WoT.produce({ title: "DynamicThing" });
-  // manually add Interactions
-  thing
-    .addAction(
-      "addProperty",
-      {},
-      () => {
-        console.log("Adding Property");
-        thing.addProperty("dynProperty", { type: "string" }, "available");
-        return new Promise((resolve, reject) => { resolve(); });
-      })
-    .addAction(
-      "remProperty",
-      {},
-      () => {
-        console.log("Removing Property");
-        thing.removeProperty("dynProperty");
-        return new Promise((resolve, reject) => { resolve(); });
-      });
-  
-  thing.expose();
-  
-} catch (err) {
-   console.log("Script error: " + err);
-}
+import "wot-typescript-definitions"
+import { Helpers } from "@node-wot/core";
+
+let WoT:WoT.WoT;
+let WoTHelpers: Helpers;
+
+WoTHelpers.fetch("http://localhost:8080/EventSource").then( async (td) => {
+    try {
+		let source = await WoT.consume(td);
+		console.info("=== TD ===");
+		console.info(td);
+		console.info("==========");
+
+		source.subscribeEvent("onchange", 
+			(x: any) => {
+				console.info("onNext:", x);
+			}
+		)
+		.then(() => {
+			console.log("onCompleted"); 
+		})
+		.catch((e: any) => {
+			console.log("onError: %s", e)
+		});
+
+		console.info("Subscribed");
+	} catch(err) {
+        console.error("Script error:", err);
+    }
+}).catch( (err) => { console.error("Fetch error:", err); });

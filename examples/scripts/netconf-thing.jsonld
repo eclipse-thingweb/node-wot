@@ -1,4 +1,5 @@
 {
+  "@context": "https://www.w3.org/2019/wot/td/v1",
   "id": "urn:dev:wot:org:eclipse:netconf-example",
   "title": "Netconf TestThing",
   "@context": [

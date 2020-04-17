@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -34,3 +34,4 @@ export { default as ExposedThing } from "./exposed-thing";
 
 // Helper Implementations
 export { default as Helpers } from "./helpers";
+export { default as ProtocolHelpers } from "./protocol-helpers";

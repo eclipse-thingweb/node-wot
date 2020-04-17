@@ -61,5 +61,5 @@ packages/*
 !packages/binding-netconf
 !packages/binding-modbus
 !packages/cli
-!packages/demo-servients
 !packages/browser-bundle
+!packages/examples

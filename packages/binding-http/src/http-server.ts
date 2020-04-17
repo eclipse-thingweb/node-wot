@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -26,7 +26,7 @@ import * as url from "url";
 import { AddressInfo } from "net";
 
 import * as TD from "@node-wot/td-tools";
-import Servient, { ProtocolServer, ContentSerdes, Helpers, ExposedThing } from "@node-wot/core";
+import Servient, { ProtocolServer, ContentSerdes, Helpers, ExposedThing, ProtocolHelpers } from "@node-wot/core";
 import { HttpConfig, HttpForm } from "./http";
 
 export default class HttpServer implements ProtocolServer {
@@ -46,7 +46,7 @@ export default class HttpServer implements ProtocolServer {
 
   private readonly port: number = 8080;
   private readonly address: string = undefined;
-  private readonly securityScheme: string = "NoSec";
+  private readonly httpSecurityScheme: string = "NoSec"; // HTTP header compatible string
   private readonly server: http.Server | https.Server = null;
   private readonly things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
   private servient: Servient = null;
@@ -77,20 +77,19 @@ export default class HttpServer implements ProtocolServer {
 
     // Auth
     if (config.security) {
-      if (this.scheme !== "https") {
-        throw new Error(`HttpServer does not allow security without TLS (HTTPS)`);
-      }
-
       // storing HTTP header compatible string
       switch (config.security.scheme) {
+        case "nosec":
+          this.httpSecurityScheme = "NoSec";
+          break;
         case "basic":
-          this.securityScheme = "Basic";
+          this.httpSecurityScheme = "Basic";
           break;
         case "digest":
-          this.securityScheme = "Digest";
+          this.httpSecurityScheme = "Digest";
           break;
         case "bearer":
-          this.securityScheme = "Bearer";
+          this.httpSecurityScheme = "Bearer";
           break;
         default:
           throw new Error(`HttpServer does not support security scheme '${config.security.scheme}`);
@@ -149,6 +148,10 @@ export default class HttpServer implements ProtocolServer {
     }
   }
 
+  public getHttpSecurityScheme(): string {
+    return this.httpSecurityScheme;
+  }
+
 
   private updateInteractionNameWithUriVariablePattern(interactionName: string, uriVariables: {[key: string]: TD.DataSchema;}) : string {
     if(uriVariables && Object.keys(uriVariables).length > 0) {
@@ -168,7 +171,7 @@ export default class HttpServer implements ProtocolServer {
     }
   }
   
-  public expose(thing: ExposedThing): Promise<void> {
+  public expose(thing: ExposedThing, tdTemplate?: WoT.ThingDescription): Promise<void> {
 
     let title = thing.title;
 
@@ -216,6 +219,7 @@ export default class HttpServer implements ProtocolServer {
             let propertyNamePattern = this.updateInteractionNameWithUriVariablePattern(propertyName, thing.properties[propertyName].uriVariables);
             let href = base + "/" + this.PROPERTY_DIR + "/" + propertyNamePattern;
             let form = new TD.Form(href, type);
+            ProtocolHelpers.updatePropertyFormWithTemplate(form, tdTemplate, propertyName);
             if (thing.properties[propertyName].readOnly) {
               form.op = ["readproperty"];
               let hform : HttpForm = form;
@@ -250,6 +254,7 @@ export default class HttpServer implements ProtocolServer {
             let actionNamePattern = this.updateInteractionNameWithUriVariablePattern(actionName, thing.actions[actionName].uriVariables);
             let href = base + "/" + this.ACTION_DIR + "/" + actionNamePattern;
             let form = new TD.Form(href, type);
+            ProtocolHelpers.updateActionFormWithTemplate(form, tdTemplate, actionName);
             form.op = ["invokeaction"];
             let hform : HttpForm = form;
             if(hform["htv:methodName"] === undefined) {
@@ -263,6 +268,7 @@ export default class HttpServer implements ProtocolServer {
             let eventNamePattern = this.updateInteractionNameWithUriVariablePattern(eventName, thing.events[eventName].uriVariables);
             let href = base + "/" + this.EVENT_DIR + "/" + eventNamePattern;
             let form = new TD.Form(href, type);
+            ProtocolHelpers.updateEventFormWithTemplate(form, tdTemplate, eventName);
             form.subprotocol = "longpoll";
             form.op = ["subscribeevent"];
             thing.events[eventName].forms.push(form);
@@ -292,7 +298,9 @@ export default class HttpServer implements ProtocolServer {
 
     let creds = this.servient.getCredentials(id);
 
-    switch (this.securityScheme) {
+    switch (this.httpSecurityScheme) {
+      case "NoSec":
+        return true;
       case "Basic":
         let basic = bauth(req);
         return (creds !== undefined) &&
@@ -455,8 +463,8 @@ export default class HttpServer implements ProtocolServer {
 
         } else {
           // Thing Interaction - Access Control
-          if (this.securityScheme!=="NoSec" && !this.checkCredentials(thing.id, req)) {
-            res.setHeader("WWW-Authenticate", `${this.securityScheme} realm="${thing.id}"`);
+          if (this.httpSecurityScheme!=="NoSec" && !this.checkCredentials(thing.id, req)) {
+            res.setHeader("WWW-Authenticate", `${this.httpSecurityScheme} realm="${thing.id}"`);
             res.writeHead(401);
             res.end();
             return;
@@ -505,7 +513,8 @@ export default class HttpServer implements ProtocolServer {
                     (data) => {
                       let content;
                       try {
-                        content = ContentSerdes.get().valueToContent(data, property.data);
+                        let contentType = ProtocolHelpers.getPropertyContentType(thing.getThingDescription(), segments[3], "http");
+                        content = ContentSerdes.get().valueToContent(data, property.data, contentType);
                       } catch(err) {
                         console.warn(`HttpServer on port ${this.getPort()} cannot process data for Event '${segments[3]}: ${err.message}'`);
                         res.writeHead(500);
@@ -529,7 +538,8 @@ export default class HttpServer implements ProtocolServer {
                   thing.readProperty(segments[3], options)
                   // property.read(options)
                     .then((value:any) => {
-                      let content = ContentSerdes.get().valueToContent(value, <any>property);
+                      let contentType = ProtocolHelpers.getPropertyContentType(thing.getThingDescription(), segments[3], "http");
+                      let content = ContentSerdes.get().valueToContent(value, <any>property, contentType);
                       res.setHeader("Content-Type", content.type);
                       res.writeHead(200);
                       res.end(content.body);
@@ -609,7 +619,8 @@ export default class HttpServer implements ProtocolServer {
                   // action.invoke(input, options)
                     .then((output:any) => {
                       if (output) {
-                        let content = ContentSerdes.get().valueToContent(output, action.output);
+                        let contentType = ProtocolHelpers.getActionContentType(thing.getThingDescription(), segments[3], "http");
+                        let content = ContentSerdes.get().valueToContent(output, action.output, contentType);
                         res.setHeader("Content-Type", content.type);
                         res.writeHead(200);
                         res.end(content.body);
@@ -651,7 +662,8 @@ export default class HttpServer implements ProtocolServer {
                   (data) => {
                     let content;
                     try {
-                      content = ContentSerdes.get().valueToContent(data, event.data);
+                      let contentType = ProtocolHelpers.getEventContentType(thing.getThingDescription(), segments[3], "http");
+                      content = ContentSerdes.get().valueToContent(data, event.data, contentType);
                     } catch(err) {
                       console.warn(`HttpServer on port ${this.getPort()} cannot process data for Event '${segments[3]}: ${err.message}'`);
                       res.writeHead(500);
