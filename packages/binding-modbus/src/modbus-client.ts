@@ -198,7 +198,7 @@ class Subscription {
   constructor(form: ModbusForm, client: ModbusClient,
     next: ((value: any) => void), error?: (error: any) => void, complete?: () => void) {
     if (!complete) { complete = () => { return; } }
-    this.interval = setInterval(async () => {
+    this.interval = global.setInterval(async () => {
       try {
         const result = await client.readResource(form)
         next(result)
