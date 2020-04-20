@@ -358,11 +358,13 @@ export default class HttpServer implements ProtocolServer {
         var queryKey : string = decodeURIComponent(indexPair[0]);
         var queryValue : string = decodeURIComponent(indexPair.length > 1 ? indexPair[1] : "");
 
-        if(uriVariables[queryKey].type === "integer" || uriVariables[queryKey].type === "number") {
-          // *cast* it to number
-          params[queryKey] = +queryValue;
-        } else {
-          params[queryKey] = queryValue;
+        if(uriVariables[queryKey]) {
+          if(uriVariables[queryKey].type === "integer" || uriVariables[queryKey].type === "number") {
+            // *cast* it to number
+            params[queryKey] = +queryValue;
+          } else {
+            params[queryKey] = queryValue;
+          }
         }
     });
 
