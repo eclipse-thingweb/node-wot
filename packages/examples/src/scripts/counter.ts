@@ -60,7 +60,10 @@ WoT.produce({
 				contentType: "image/svg+xml"
 			}],
 			observable: false,
-			readOnly: true
+			readOnly: true,
+			uriVariables: {
+                fill: { "type": "string" }
+            }
 		},
 		redDotImage: {
 			description: "Red dot image as PNG",
@@ -131,11 +134,19 @@ WoT.produce({
 	// init property values
 	thing.writeProperty("count", 0);
 	thing.writeProperty("lastChange", (new Date()).toISOString());
-	thing.setPropertyReadHandler("countAsImage", () => {
+	thing.setPropertyReadHandler("countAsImage", (options) => {
 		return thing.readProperty("count").then((count) => {
 			return new Promise((resolve, reject) => {
+				let fill = "black";
+				if(options && typeof options === 'object' && 'uriVariables' in options) {
+					console.log("options = " + JSON.stringify(options))
+					if('fill' in options['uriVariables']) {
+						let uriVariables : any = options['uriVariables'];
+						fill = uriVariables['fill'];
+					}
+				}
 				resolve("<svg xmlns='http://www.w3.org/2000/svg' height='30' width='200'>" +
-					"<text x='0' y='15' fill='black'>" + count + "</text>" +
+					"<text x='0' y='15' fill='" + fill + "'>" + count + "</text>" +
 					"</svg>");
 			});
 		});
@@ -151,8 +162,8 @@ WoT.produce({
 	thing.setActionHandler("increment", (params, options) => {
 		return thing.readProperty("count").then( (count) => {
 			let step = 1;
-			console.log(options)
 			if(options && typeof options === 'object' && 'uriVariables' in options) {
+				console.log("options = " + JSON.stringify(options))
 				if('step' in options['uriVariables']) {
 					let uriVariables : any = options['uriVariables'];
 					step = uriVariables['step'];
@@ -169,6 +180,7 @@ WoT.produce({
 		return thing.readProperty("count").then( (count) => {
 			let step = 1;
 			if(options && typeof options === 'object' && 'uriVariables' in options) {
+				console.log("options = " + JSON.stringify(options))
 				if('step' in options['uriVariables']) {
 					let uriVariables : any = options['uriVariables'];
 					step = uriVariables['step'];
