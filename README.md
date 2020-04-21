@@ -41,6 +41,7 @@ Install the Windows build tools through a CMD shell as administrator:
 ```
 npm install -g --production windows-build-tools
 ```
+> WSL: Windows Services for Linux should follow Linux instructions.
 
 #### Mac OS
 Meet the [node-gyp](https://github.com/nodejs/node-gyp#installation) requirements:
@@ -150,6 +151,8 @@ To reduce the size of the installation from about 800 MByte down to about 200 MB
 * `sudo npm run link` does not work
    * try `npm run unlock` from project root before calling `[sudo] npm run link`
    * try `npm link` in each package directory in this order: td-tools, core, binding-\*, cli, demo-servients
+* Build error around `prebuild: npm run bootstrap`
+   * This has been seen failing on WSL.  Try using Node 12.13.0
 
 ### As a browser library
 
