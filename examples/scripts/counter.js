@@ -146,12 +146,13 @@ WoT.produce({
             let step = 1;
             console.log(options);
             if (options && typeof options === 'object' && 'uriVariables' in options) {
-                if ('step' in options['uriVariables'] && options['uriVariables'] instanceof Array) {
-                    step = options['uriVariables']['step'];
+                if ('step' in options['uriVariables']) {
+                    let uriVariables = options['uriVariables'];
+                    step = uriVariables['step'];
                 }
             }
             let value = count + step;
-            console.log("Incrementing count from " + count + " to " + value);
+            console.log("Incrementing count from " + count + " to " + value + " (with step " + step + ")");
             thing.writeProperty("count", value);
             thing.writeProperty("lastChange", (new Date()).toISOString());
             thing.emitEvent("change", value);
@@ -161,12 +162,13 @@ WoT.produce({
         return thing.readProperty("count").then((count) => {
             let step = 1;
             if (options && typeof options === 'object' && 'uriVariables' in options) {
-                if ('step' in options['uriVariables'] && options['uriVariables'] instanceof Array) {
-                    step = options['uriVariables']['step'];
+                if ('step' in options['uriVariables']) {
+                    let uriVariables = options['uriVariables'];
+                    step = uriVariables['step'];
                 }
             }
             let value = count - step;
-            console.log("Decrementing count from " + count + " to " + value);
+            console.log("Decrementing count from " + count + " to " + value + " (with step " + step + ")");
             thing.writeProperty("count", value);
             thing.writeProperty("lastChange", (new Date()).toISOString());
             thing.emitEvent("change", value);
