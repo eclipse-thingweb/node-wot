@@ -11,8 +11,8 @@ chai.use(chaiAsPromised);
 
 describe('Modbus client test', () => {
     let client: ModbusClient;
-    let testServer:ModbusServer
-    
+    let testServer: ModbusServer
+
     before(async () => {
         client = new ModbusClient();
         testServer = new ModbusServer(1);
@@ -33,10 +33,10 @@ describe('Modbus client test', () => {
             "modbus:unitID": 1
         }
 
-        client["fillDefaultForm"](form,"r",0)["modbus:function"].should.be.equal(1,"Wrong default read Coil")
-        
-        client["fillDefaultForm"](form, "w", 1)["modbus:function"].should.be.equal(5, "Wrong write Coil")
-        client["fillDefaultForm"](form, "w", 2)["modbus:function"].should.be.equal(15, "Wrong write multiple Coil")
+        client["validateAndFillDefaultForm"](form, "r", 0)["modbus:function"].should.be.equal(1, "Wrong default read Coil")
+
+        client["validateAndFillDefaultForm"](form, "w", 1)["modbus:function"].should.be.equal(5, "Wrong write Coil")
+        client["validateAndFillDefaultForm"](form, "w", 2)["modbus:function"].should.be.equal(15, "Wrong write multiple Coil")
     });
 
     it('use entity alias for holding registries', () => {
@@ -47,9 +47,9 @@ describe('Modbus client test', () => {
             "modbus:unitID": 1
         }
 
-        client["fillDefaultForm"](form, "r", 0)["modbus:function"].should.be.equal(3, "Wrong read Holding register")
-        client["fillDefaultForm"](form, "w", 2)["modbus:function"].should.be.equal(6, "Wrong write Holding register")
-        client["fillDefaultForm"](form, "w", 4)["modbus:function"].should.be.equal(16, "Wrong write multiple Holding register")
+        client["validateAndFillDefaultForm"](form, "r", 0)["modbus:function"].should.be.equal(3, "Wrong read Holding register")
+        client["validateAndFillDefaultForm"](form, "w", 2)["modbus:function"].should.be.equal(6, "Wrong write Holding register")
+        client["validateAndFillDefaultForm"](form, "w", 4)["modbus:function"].should.be.equal(16, "Wrong write multiple Holding register")
     });
 
     it('use entity alias for other entities', () => {
@@ -60,9 +60,9 @@ describe('Modbus client test', () => {
             "modbus:unitID": 1
         }
 
-        client["fillDefaultForm"](form, "r", 0)["modbus:function"].should.be.equal(2, "Wrong read Discrete input")
+        client["validateAndFillDefaultForm"](form, "r", 0)["modbus:function"].should.be.equal(2, "Wrong read Discrete input")
         form["modbus:entity"] = "InputRegister"
-        client["fillDefaultForm"](form, "r", 0)["modbus:function"].should.be.equal(4, "Wrong read Input register")
+        client["validateAndFillDefaultForm"](form, "r", 0)["modbus:function"].should.be.equal(4, "Wrong read Input register")
     });
 
     it('should convert function names', () => {
@@ -73,7 +73,21 @@ describe('Modbus client test', () => {
             "modbus:unitID": 1
         }
 
-        client["fillDefaultForm"](form, "r", 0)["modbus:function"].should.be.equal(1, "Wrong substitution")
+        client["validateAndFillDefaultForm"](form, "r", 0)["modbus:function"].should.be.equal(1, "Wrong substitution")
+    });
+
+    it('should override form values with URL', () => {
+        const form: ModbusForm = {
+            href: "modbus://127.0.0.1:8502/2?offset=2&length=5",
+            "modbus:function": "readCoil",
+            "modbus:range": [0, 1],
+            "modbus:unitID": 1
+        }
+
+        client["overrideFormFromURLPath"](form)
+        form["modbus:unitID"].should.be.equal(2, "Form value not overridden")
+        form["modbus:range"][0].should.be.equal(2, "Form value not overridden")
+        form["modbus:range"][1].should.be.equal(5, "Form value not overridden")
     });
 
 
@@ -209,7 +223,7 @@ describe('Modbus client test', () => {
 
             const promise = client.readResource(form)
 
-            return promise.should.eventually.rejectedWith("Undefined function number: 255")
+            return promise.should.eventually.rejectedWith("Undefined function number or name: 255")
         });
     });
 
@@ -223,8 +237,8 @@ describe('Modbus client test', () => {
                 "modbus:unitID": 1
             }
 
-            await client.writeResource(form,{type:"",body:Buffer.from([1])})
-            testServer.registers[0].should.be.equal(true,"wrong coil value")
+            await client.writeResource(form, { type: "", body: Buffer.from([1]) })
+            testServer.registers[0].should.be.equal(true, "wrong coil value")
         });
         it('should write a resource using multiple write coil function', async () => {
 
@@ -235,8 +249,8 @@ describe('Modbus client test', () => {
                 "modbus:unitID": 1
             }
 
-            await client.writeResource(form, { type: "", body: Buffer.from([1,0,1]) })
-            testServer.registers.should.be.deep.equal([true,false,true], "wrong coil value")
+            await client.writeResource(form, { type: "", body: Buffer.from([1, 0, 1]) })
+            testServer.registers.should.be.deep.equal([true, false, true], "wrong coil value")
         });
 
         it('should write a resource using write register function', async () => {
@@ -248,7 +262,7 @@ describe('Modbus client test', () => {
                 "modbus:unitID": 1
             }
 
-            await client.writeResource(form, { type: "", body: Buffer.from([1,1]) })
+            await client.writeResource(form, { type: "", body: Buffer.from([1, 1]) })
             testServer.registers[0].should.be.equal(257, "wrong register value")
         });
 
@@ -261,11 +275,11 @@ describe('Modbus client test', () => {
                 "modbus:unitID": 1
             }
 
-            await client.writeResource(form, { type: "", body: Buffer.from([1,2,1, 1]) }) //writes 0x0101 and 0x0100
-            testServer.registers.should.be.deep.equal([258,257], "wrong register value")
+            await client.writeResource(form, { type: "", body: Buffer.from([1, 2, 1, 1]) }) //writes 0x0101 and 0x0100
+            testServer.registers.should.be.deep.equal([258, 257], "wrong register value")
         });
     });
-    
+
     describe('subscribe resource', () => {
         it('should poll data', (done) => {
             testServer.setRegisters([1])
@@ -277,7 +291,7 @@ describe('Modbus client test', () => {
                 "modbus:pollingTime": 250
             }
 
-            client.subscribeResource(form,value=>{
+            client.subscribeResource(form, value => {
                 value.body.should.deep.equal(Buffer.from([1]), "Wrong data")
                 client.unlinkResource(form);
                 done()
@@ -296,7 +310,7 @@ describe('Modbus client test', () => {
             let count = 0;
             client.subscribeResource(form, value => {
                 count++
-                if(count > 1){
+                if (count > 1) {
                     done()
                     client.unlinkResource(form);
                 }

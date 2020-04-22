@@ -1,13 +1,17 @@
 {
   "name": "@node-wot/binding-modbus",
-  "version": "0.7.0-SNAPSHOT.6",
+  "version": "0.7.0-SNAPSHOT.7",
   "description": "Modbus TCP client protocol binding for node-wot",
   "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
+  "contributors": [
+    "Siemens AG"
+  ],
   "license": "EPL-2.0 OR W3C-20150513",
   "repository": "https://github.com/thingweb/node-wot/tree/master/packages/binding-modbus",
   "publishConfig": {
     "access": "public"
   },
+  "private": true,
   "files": [
     "dist/"
   ],

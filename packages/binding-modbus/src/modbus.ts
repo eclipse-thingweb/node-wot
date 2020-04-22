@@ -1,5 +1,9 @@
 import { Form } from '@node-wot/td-tools';
 export { default as ModbusClientFactory } from './modbus-client-factory';
+export { default as ModbusClient } from './modbus-client';
+export * from './modbus-client';
+export * from './modbus-client-factory';
+
 export class ModbusForm extends Form {
   /**
    * The modbus function issued in the request.
@@ -12,7 +16,7 @@ export class ModbusForm extends Form {
    * is 'Coil', the low level modbus function will be mapped to 1 when
    * reading and to 5 when writing.
    */
-  public 'modbus:entity'?: 'Coil' | 'InputRegister' | 'HoldingRegister' | 'DiscreteInput'
+  public 'modbus:entity'?: ModbusEntity
   /**
    * Physical address of the unit connected to the bus.
    */
@@ -44,6 +48,7 @@ export class ModbusForm extends Form {
 export type ModbusFunctionName = 'readCoil' | 'readDiscreteInput' | 'readMultipleHoldingRegisters' |
   'writeSingleCoil' | 'writeSingleHoldingRegister' | 'writeMultipleCoils' | 'writeMultipleHoldingRegisters';
 
+export type ModbusEntity = 'Coil' | 'InputRegister' | 'HoldingRegister' | 'DiscreteInput'
 export enum ModbusFunction {
   'readCoil' = 1,
   'readDiscreteInput' = 2,

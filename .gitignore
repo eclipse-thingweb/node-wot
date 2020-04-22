@@ -55,6 +55,7 @@ packages/*
 !packages/binding-coap
 !packages/binding-websockets
 !packages/binding-mqtt
+!packages/binding-modbus
 !packages/binding-oracle
 !packages/binding-fujitsu
 !packages/binding-opcua
