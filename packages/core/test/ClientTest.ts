@@ -65,7 +65,7 @@ class TDClient implements ProtocolClient {
         return true;
     }
 
-    public setSecurity = (metadata: any) => false;
+    public initSecurity = async (metadata: any) => Promise.resolve(false);
 
     public toString(): string {
         return "TDClient";
@@ -130,7 +130,7 @@ class TrapClient implements ProtocolClient {
         return true;
     }
 
-    public setSecurity = (metadata: any) => false;
+    public initSecurity = async (metadata: any) => Promise.resolve(false);
 }
 
 class TrapClientFactory implements ProtocolClientFactory {
