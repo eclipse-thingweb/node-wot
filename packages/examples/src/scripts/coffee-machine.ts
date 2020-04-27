@@ -12,35 +12,6 @@
  * 
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
- 
-// Dictionary containing all available descriptions
-// Separated out here in order to keep TD clean as much
-const descriptions = {
-    thing: 
-`A smart coffee machine with a range of capabilities.
-The full desciptions is available at URL`,  // TODO: paste url here.
-    resources:
-`Current level of all available resources given as an integer percentage for each particular resource.
-The data is obtained from the machine's sensors but can be set manually in case the sensors are broken.`,
-    resourceLevel:
-`Current level of a particular resource. Requires resource id variable as uriVariables.
-The property can also be overriden, which also requires resource id.`,
-    availableDrinks:
-`The list of currently available drinks.`,
-    servedCounter:
-`The total number of served beverages.`,
-    maintenanceNeeded:
-`Shows whether a maintenance is needed. The property is observable.`,
-    schedules:
-`The list of scheduled tasks.`,
-    makeDrink:
-`Make a drink from available list of beverages. Brews one medium americano if no uriVariables are specifed.`,
-    setSchedule:
-`Create a scheduled task. Accepts drink id, size, quantity, time and mode as body of a request.
-Assumes one medium americano if not specified.`,
-    outOfResource:
-`Out of resource event. Emitted when the resource level is not sufficient for a desired drink.`,
-};
 
 import 'wot-typescript-definitions'
 
@@ -52,13 +23,13 @@ let WoT:WoT.WoT;
 // TODO: paste url here.
 
 
-/* This is a temprory explanatory part, which will be extended and moved into a tutorial under the URL above.
+/* This is a temporary explanatory part, which will be extended and moved into a tutorial under the URL above.
 The coffee machine has following capabilities (affordances):
 
 - Property Affordances:
-    1. resources - readOnly object of available resources;
-    2. resourceLevel - read/write level of a particular resource, uses UriVariables;
-    3. availableDrinks - readOnly array of available drinks;
+    1. allAvailableResources - readOnly object of available resources;
+    2. availableResourceLevel - read/write level of a particular resource, uses UriVariables;
+    3. possibleDrinks - readOnly array of possible drinks;
     4. servedCounter - read/write integer of served drinks in total;
     5. maintenanceNeeded - observable boolean showing if maintenance is needed;
     6. schedules - readOnly array of scheduled tasks.
@@ -76,18 +47,17 @@ and afterwards sets the servedCounter and maintenanceNeeded to 0 and false, resp
 
 WoT.produce({
     title: 'Smart Coffee Machine',
-    description: descriptions.thing,
+    description: `A smart coffee machine with a range of capabilities.
+The full description is available at URL`,  // TODO: paste url here
     support: 'git://github.com/eclipse/thingweb.node-wot.git',
     '@context': [
         'https://www.w3.org/2019/wot/td/v1',
-        {
-            'iot': 'http://example.org/iot',
-        },
     ],
     properties: {
-        resources: {
+        allAvailableResources: {
             type: 'object',
-            description: descriptions.resources,
+            description: `Current level of all available resources given as an integer percentage for each particular resource.
+The data is obtained from the machine's sensors but can be set manually via the availableResourceLevel property in case the sensors are broken.`,
             readOnly: true,
             properties: {
                 water: {
@@ -112,9 +82,10 @@ WoT.produce({
                 },
             },
         },
-        resourceLevel: {
+        availableResourceLevel: {
             type: 'number',
-            desciption: descriptions.resourceLevel,
+            description: `Current level of a particular resource. Requires resource id variable as uriVariables.
+The property can also be overridden, which also requires resource id as uriVariables.`,
             uriVariables: {
                 id: {
                     type: 'string', 
@@ -122,9 +93,9 @@ WoT.produce({
                 },
             },
         },
-        availableDrinks: {
+        possibleDrinks: {
             type: 'array',
-            description: descriptions.availableDrinks,
+            description: `The list of possible drinks in general. Doesn't depend on the available resources.`,
             readOnly: true,
             items: {
                 type: 'string',
@@ -132,37 +103,43 @@ WoT.produce({
         },
         servedCounter: {
             type: 'integer',
-            description: descriptions.servedCounter,
+            description: `The total number of served beverages.`,
+            minimum: 0,
         },
         maintenanceNeeded: {
             type: 'boolean',
-            description: descriptions.maintenanceNeeded,
+            description: `Shows whether a maintenance is needed. The property is observable. Automatically set to true when the servedCounter property exceeds 1000.`,
             observable: true,
         },
         schedules: {
             type: 'array',
-            desciption: descriptions.schedules,
+            description: `The list of scheduled tasks.`,
             readOnly: true,
             items: {
                 type: 'object',
                 properties: {
                     drinkId: {
                         type: 'string',
+                        description: `Defines what drink to make, drinkId is one of possibleDrinks property values, e.g. latte.`,
                     },
                     size: {
                         type: 'string',
+                        description: `Defines the size of a drink, s = small, m = medium, l = large.`,
                         enum: ['s', 'm', 'l'],
                     },
                     quantity: {
                         type: 'integer',
+                        description: `Defines how many drinks to make, ranging from 1 to 5.`,
                         minimum: 1,
-                        maximim: 5
+                        maximum: 5,
                     },
                     time: {
                         type: 'string',
+                        description: `Defines the time of the scheduled task in 24h format, e.g. 10:00 or 21:00.`,
                     },
                     mode: {
                         type: 'string',
+                        description: `Defines the mode of the scheduled task, e.g. once or everyday. All the possible values are given in the enum field of this Thing Description.`,
                         enum: ['once', 'everyday', 'everyMo', 'everyTu', 'everyWe', 'everyTh', 'everyFr', 'everySat', 'everySun'],
                     },
                 },
@@ -171,24 +148,29 @@ WoT.produce({
     },
     actions: {
         makeDrink: {
-            desciption: descriptions.makeDrink,
+            description: `Make a drink from available list of beverages. Accepts drink id, size and quantity as uriVariables.
+Brews one medium americano if no uriVariables are specified.`,
             uriVariables:
             {
                 drinkId: {
                     type: 'string',
+                    description: `Defines what drink to make, drinkId is one of possibleDrinks property values, e.g. latte.`,
                 },
                 size: {
                     type: 'string',
+                    description: `Defines the size of a drink, s = small, m = medium, l = large.`,
                     enum: ['s', 'm', 'l'],
                 },
                 quantity: {
                     type: 'integer',
+                    description: `Defines how many drinks to make, ranging from 1 to 5.`,
                     minimum: 1,
-                    maximim: 5,
+                    maximum: 5,
                 },
             },
             output: {
                 type: 'object',
+                description: `Returns true/false and a message when all invoked promises are resolved (asynchronous).`,
                 properties: {
                     result: {
                         type: 'boolean',
@@ -200,27 +182,33 @@ WoT.produce({
             },
         },
         setSchedule: {
-            desciption: descriptions.setSchedule,
+            description: `Add a scheduled task to the schedules property. Accepts drink id, size, quantity, time and mode as body of a request.
+Assumes one medium americano if not specified, but time and mode are mandatory fields.`,
             input: {
                 type: 'object',
                 properties: {
                     drinkId: {
                         type: 'string',
+                        description: `Defines what drink to make, drinkId is one of possibleDrinks property values, e.g. latte.`,
                     },
                     size: {
                         type: 'string',
+                        description: `Defines the size of a drink, s = small, m = medium, l = large.`,
                         enum: ['s', 'm', 'l'],
                     },
                     quantity: {
                         type: 'integer',
+                        description: `Defines how many drinks to make, ranging from 1 to 5.`,
                         minimum: 1,
-                        maximim: 5
+                        maximum: 5
                     },
                     time: {
                         type: 'string',
+                        description: `Defines the time of the scheduled task in 24h format, e.g. 10:00 or 21:00.`,
                     },
                     mode: {
                         type: 'string',
+                        description: `Defines the mode of the scheduled task, e.g. once or everyday. All the possible values are given in the enum field of this Thing Description.`,
                         enum: ['once', 'everyday', 'everyMo', 'everyTu', 'everyWe', 'everyTh', 'everyFr', 'everySat', 'everySun'],
                     },
                 },
@@ -228,6 +216,7 @@ WoT.produce({
             },
             output: {
                 type: 'object',
+                description: `Returns true/false and a message when all invoked promises are resolved (asynchronous).`,
                 properties: {
                     result: {
                         type: 'boolean',
@@ -241,7 +230,7 @@ WoT.produce({
     },
     events: {
         outOfResource: {
-            desciption: descriptions.outOfResource,
+            description: `Out of resource event. Emitted when the available resource level is not sufficient for a desired drink.`,
             data: {
                 type: 'string',
             },
@@ -249,23 +238,26 @@ WoT.produce({
     },
 }).then( (thing) => {
     // Initialize the property values
-    thing.writeProperty('resources', {
+    thing.writeProperty('allAvailableResources', {
         water: readFromSensor('water'),
         milk: readFromSensor('milk'),
         chocolate: readFromSensor('chocolate'),
         coffeeBeans: readFromSensor('coffeeBeans'),
     });
-    thing.writeProperty('availableDrinks', ['espresso', 'americano', 'cappuchino', 'latte', 'hotChocolate', 'hotWater']);
+    thing.writeProperty('possibleDrinks', ['espresso', 'americano', 'cappuccino', 'latte', 'hotChocolate', 'hotWater']);
     thing.writeProperty('maintenanceNeeded', false);
     thing.writeProperty('schedules', []);
 
     // Observe the value of maintenanceNeeded property
     thing.observeProperty('maintenanceNeeded', (data) => {
+        
+        // Notify a "maintainer" when the value has changed
+        // (the notify function here simply logs a message to the console)
         notify('admin@coffeeMachine.com', `maintenanceNeeded property has changed: ${data}`);
     });
 
     // Override a write handler for servedCounter property,
-    // raising maintenanceNeeded flag when needed
+    // raising maintenanceNeeded flag when the value exceeds 1000 drinks
     thing.setPropertyWriteHandler('servedCounter', (val) => {
         return new Promise((resolve, reject) => {
             resolve(val);
@@ -278,16 +270,18 @@ WoT.produce({
     // Now initialize the servedCounter property
     thing.writeProperty('servedCounter', readFromSensor('servedCounter'));
 
-    // Override write and read handlers for resourceLevel property,
+    // Override a write handler for availableResourceLevel property,
     // utilizing the uriVariables properly
-    thing.setPropertyWriteHandler('resourceLevel', (val, options) => {
+    thing.setPropertyWriteHandler('availableResourceLevel', (val, options) => {
+
+        // Check if uriVariables are provided
         if (options && typeof options === 'object' && 'uriVariables' in options) {
             const uriVariables: any = options['uriVariables'];
             if ('id' in uriVariables) {
-                return thing.readProperty('resources').then((resources) => {
+                return thing.readProperty('allAvailableResources').then((resources) => {
                     const id = uriVariables['id'];
                     resources[id] = val;
-                    return thing.writeProperty('resources', resources);
+                    return thing.writeProperty('allAvailableResources', resources);
                 });
             }
         }
@@ -296,11 +290,15 @@ WoT.produce({
         });
     });
 
-    thing.setPropertyReadHandler('resourceLevel', (options) => {
+    // Override a read handler for availableResourceLevel property,
+    // utilizing the uriVariables properly
+    thing.setPropertyReadHandler('availableResourceLevel', (options) => {
+
+        // Check if uriVariables are provided
         if (options && typeof options === 'object' && 'uriVariables' in options) {
             const uriVariables: any = options['uriVariables'];
             if ('id' in uriVariables) {
-                return thing.readProperty('resources').then((resources) => {
+                return thing.readProperty('allAvailableResources').then((resources) => {
                     const id = uriVariables['id'];
                     return new Promise((resolve, reject) => {
                         resolve(resources[id]);
@@ -338,7 +336,7 @@ WoT.produce({
                 'chocolate': 0,
                 'coffeeBeans': 2,
             },
-            'cappuchino': {
+            'cappuccino': {
                 'water': 1,
                 'milk': 1,
                 'chocolate': 0,
@@ -364,7 +362,7 @@ WoT.produce({
             },
         }
 
-        // Check for uriVariables
+        // Check if uriVariables are provided
         if (options && typeof options === 'object' && 'uriVariables' in options) {
             const uriVariables: any = options['uriVariables'];
             drinkId = ('drinkId' in uriVariables) ? uriVariables['drinkId'] : drinkId;
@@ -372,8 +370,8 @@ WoT.produce({
             quantity = ('quantity' in uriVariables) ? uriVariables['quantity'] : quantity;
         }
 
-        // Read the current level of resources
-        return thing.readProperty('resources').then((resources) => {
+        // Read the current level of allAvailableResources
+        return thing.readProperty('allAvailableResources').then((resources) => {
             
             // Calculate the new level of resources
             let newResources = Object.assign({}, resources);
@@ -382,7 +380,7 @@ WoT.produce({
             newResources['chocolate'] -= Math.ceil(quantity * sizeQuantifiers[size] * drinkRecipes[drinkId]['chocolate']);
             newResources['coffeeBeans'] -= Math.ceil(quantity * sizeQuantifiers[size] * drinkRecipes[drinkId]['coffeeBeans']);
 
-            // Check if sufficient amount of resources are available
+            // Check if the amount of available resources is sufficient to make a drink
             for (let resource in newResources) {
                 if (newResources[resource] <= 0) {
                     return new Promise((resolve, reject) => {
@@ -392,8 +390,8 @@ WoT.produce({
                 }
             }
 
-            // Now store the new level of resources
-            return thing.writeProperty('resources', newResources).then(() => {
+            // Now store the new level of allAvailableResources
+            return thing.writeProperty('allAvailableResources', newResources).then(() => {
                 return thing.readProperty('servedCounter').then((counter) => {
                     return new Promise((resolve, reject) => {
                         thing.writeProperty('servedCounter', counter + quantity);
@@ -409,13 +407,13 @@ WoT.produce({
     // Set up a handler for setSchedule action
     thing.setActionHandler('setSchedule', (params, options) => {
 
-        // Check for uriVariables
+        // Check if uriVariables are provided
         if (params && typeof params === 'object' && 'time' in params && 'mode' in params) {
 
             // Use default values if not provided
-            let drinkId = ('drinkId' in params) ? params['drinkId'] : 'americano';
-            let size = ('size' in params) ? params['size'] : 'm';
-            let quantity = ('quantity' in params) ? params['quantity'] : 1;
+            params['drinkId'] = ('drinkId' in params) ? params['drinkId'] : 'americano';
+            params['size'] = ('size' in params) ? params['size'] : 'm';
+            params['quantity'] = ('quantity' in params) ? params['quantity'] : 1;
 
             // Now read the schedules property, add a new schedule to it and then rewrite the schedules property
             return thing.readProperty('schedules').then((schedules) => {
@@ -435,6 +433,9 @@ WoT.produce({
 
     // Set up a handler for outOfResource event
     thing.subscribeEvent('outOfResource', (data) => {
+
+        // Notify an "admin" when the event is emitted
+        // (the notify function here simply logs a message to the console)
         notify('admin@coffeeMachine.com', `outOfResource event: ${data}`);
     });
 
