@@ -32,7 +32,7 @@ let td = {
             "forms": [
                 {
                     "href": "http://localhost:3000/resource",
-                    "htv:method" : "GET"
+                    "htv:methodName" : "GET"
                 }
             ]
         }
