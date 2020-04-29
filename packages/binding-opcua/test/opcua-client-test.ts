@@ -225,7 +225,7 @@ describe('OPCUA client test', function () {
 			"username": "user",
 			"password": "test"
 		}
-        client.setSecurity(metadata, credentials);
+        await client.initSecurity(metadata, credentials);
         return;
     })
 
