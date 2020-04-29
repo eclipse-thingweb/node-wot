@@ -322,9 +322,9 @@ export default class HttpClient implements ProtocolClient {
     } else if (statusCode < 400) {
       throw new Error(`HttpClient received ${statusCode} and cannot continue (not implemented, open GitHub Issue)`);
     } else if (statusCode < 500) {
-      throw new Error(`Client error: ${response.text()}`);
+      throw new Error(`Client error: ${response.statusText}`);
     } else {
-      throw new Error(`Server error: ${response.text()}`);
+      throw new Error(`Server error: ${response.statusText}`);
     }
   }
 
