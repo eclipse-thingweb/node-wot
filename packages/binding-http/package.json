@@ -20,6 +20,7 @@
     "@types/express": "^4.17.3",
     "@types/express-oauth-server": "^2.0.2",
     "@types/node": "13.7.0",
+    "@types/node-fetch": "^2.5.6",
     "@types/request-promise": "4.1.45",
     "chai": "4.2.0",
     "chai-spies": "1.0.0",
@@ -38,6 +39,7 @@
     "accept-language-parser": "1.5.0",
     "basic-auth": "2.0.1",
     "client-oauth2": "^4.2.5",
+    "node-fetch": "^2.6.0",
     "rxjs": "5.5.11",
     "wot-typescript-definitions": "0.7.1-SNAPSHOT.1"
   },

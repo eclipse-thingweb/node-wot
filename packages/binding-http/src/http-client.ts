@@ -19,7 +19,6 @@
 
 import * as http from "http";
 import * as https from "https";
-import * as url from "url";
 
 import { Subscription } from "rxjs/Subscription";
 
@@ -28,15 +27,17 @@ import * as TD from "@node-wot/td-tools";
 import * as WoT from "wot-typescript-definitions";
 
 import { ProtocolClient, Content } from "@node-wot/core";
-import { HttpForm, HttpHeader, HttpConfig } from "./http";
+import { HttpForm, HttpHeader, HttpConfig, HTTPMethodName } from "./http";
+import fetch, { Request,RequestInit,Response } from 'node-fetch';
 import { Buffer } from "buffer";
 import OAuthManager from "./oauth-manager";
+import { parse } from "url";
 
 export default class HttpClient implements ProtocolClient {
 
   private readonly agent: http.Agent;
   private readonly provider: any;
-  private proxyOptions: http.RequestOptions = null;
+  private proxyRequest: Request = null;
   private authorization: string = null;
   private authorizationHeader: string = "Authorization";
   private allowSelfSigned: boolean = false;
@@ -46,23 +47,21 @@ export default class HttpClient implements ProtocolClient {
 
     // config proxy by client side (not from TD)
     if (config!==null && config.proxy && config.proxy.href) {
-      this.proxyOptions = this.uriToOptions(config.proxy.href, true);
-
+      this.proxyRequest = new Request(HttpClient.fixLocalhostName(config.proxy.href))
+      
       if (config.proxy.scheme === "basic") {
         if (!config.proxy.hasOwnProperty("username") || !config.proxy.hasOwnProperty("password")) console.warn(`HttpClient client configured for basic proxy auth, but no username/password given`);
-        this.proxyOptions.headers = {};
-        this.proxyOptions.headers['Proxy-Authorization'] = "Basic " + Buffer.from(config.proxy.username + ":" + config.proxy.password).toString('base64');
+        this.proxyRequest.headers.append('proxy-authorization', "Basic " + Buffer.from(config.proxy.username + ":" + config.proxy.password).toString('base64'));
       } else if (config.proxy.scheme === "bearer") {
         if (!config.proxy.hasOwnProperty("token")) console.warn(`HttpClient client configured for bearer proxy auth, but no token given`);
-        this.proxyOptions.headers = {};
-        this.proxyOptions.headers['Proxy-Authorization'] = "Bearer " + config.proxy.token;
+        this.proxyRequest.headers.append('proxy-authorization', "Bearer " + config.proxy.token);
       }
       // security for hop to proxy
-      if (this.proxyOptions.protocol === "https") {
+      if (this.proxyRequest.protocol === "https") {
         secure = true;
       }
       
-      console.info(`HttpClient using ${secure ? "secure " : ""}proxy ${this.proxyOptions.hostname}:${this.proxyOptions.port}`);
+      console.info(`HttpClient using ${secure ? "secure " : ""}proxy ${this.proxyRequest.hostname}:${this.proxyRequest.port}`);
     }
 
     // config certificate checks
@@ -72,179 +71,117 @@ export default class HttpClient implements ProtocolClient {
     }
 
     // using one client impl for both HTTP and HTTPS
-    this.agent = secure ? new https.Agent() : new http.Agent();
+    this.agent = secure ? new https.Agent({
+      rejectUnauthorized : !this.allowSelfSigned
+    }) : new http.Agent();
+
     this.provider = secure ? https : http;
     this.oauth = oauthManager;
-  }
-
-  private getContentType(res: http.IncomingMessage): string {
-    let header: string | string[] = res.headers['content-type']; // note: node http uses lower case here
-    if (Array.isArray(header)) {
-      // this should never be the case as only cookie headers are returned as array
-      // but anyways...
-      return (header.length > 0) ? header[0] : "";
-    } else {
-      return header;
-    }
   }
 
   public toString(): string {
     return `[HttpClient]`;
   }
 
-  public readResource(form: HttpForm): Promise<Content> {
-    return new Promise<Content>((resolve, reject) => {
+  public async readResource(form: HttpForm): Promise<Content> {
+    const request = this.generateFetchRequest(form, "GET")
+    console.info(`HttpClient (readResource) sending ${request.method} to ${request.url}`);
 
-      let req = this.generateRequest(form, "GET");
-      let info = <any>req;
-
-      console.log(`HttpClient (readResource) sending ${info.method} to ${info.path}`);
-
-      req.on("response", (res: http.IncomingMessage) => {
-        console.log(`HttpClient received ${res.statusCode} from ${info.path}`);
-        let contentType: string = this.getContentType(res);
-        let body: Array<any> = [];
-        res.on('data', (data) => { body.push(data) });
-        res.on('end', () => {
-          this.checkResponse(res.statusCode, contentType, Buffer.concat(body), resolve, reject);
-        });
-      });
-      req.on("error", (err: any) => reject(err));
-      req.end();
-    });
+    const result = await fetch(request)
+    
+    this.checkFetchResponse(result)
+    
+    const buffer = await result.buffer()
+    
+    console.debug(`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
+    console.debug(`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
+    
+    return { type: result.headers.get("content-type"), body: buffer };
   }
 
-  public writeResource(form: HttpForm, content: Content): Promise<any> {
-    return new Promise<void>((resolve, reject) => {
+  public async writeResource(form: HttpForm, content: Content): Promise<any> {
+    const request = this.generateFetchRequest(form, "PUT",{
+      headers : [["content-type",content.type]],
+      body: content.body
+    })
 
-      let req = this.generateRequest(form, "PUT");
-      let info = <any>req;
-
-      req.setHeader("Content-Type", content.type);
-      req.setHeader("Content-Length", content.body.byteLength);
-
-      console.log(`HttpClient (writeResource) sending ${info.method} with '${req.getHeader("Content-Type")}' to ${info.path}`);
-
-      req.on("response", (res: http.IncomingMessage) => {
-        console.log(`HttpClient received ${res.statusCode} from ${info.path}`);
-        let contentType: string = this.getContentType(res);
-        //console.log(`HttpClient received headers: ${JSON.stringify(res.headers)}`);
-        // Although 204 without payload is expected, data must be read 
-        // to complete request (http blocks socket otherwise)
-        // TODO might have response on write for future HATEOAS concept
-        let body: Array<any> = [];
-        res.on('data', (data) => { body.push(data) });
-        res.on('end', () => {
-          this.checkResponse(res.statusCode, contentType, Buffer.concat(body), resolve, reject);
-        });
-      });
-      req.on('error', (err: any) => reject(err));
-      req.write(content.body);
-      req.end();
-    });
+    console.log(`HttpClient (writeResource) sending ${request.method} with '${request.headers.get("Content-Type")}' to ${request.url}`);
+    
+    const result = await fetch(request)
+    console.info(`HttpClient received ${result.status} from ${result.url}`);
+    
+    this.checkFetchResponse(result)
+    
+    console.log(`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
+    return;
   }
 
-  public invokeResource(form: HttpForm, content?: Content): Promise<Content> {
-    return new Promise<Content>((resolve, reject) => {
+  public async invokeResource(form: HttpForm, content?: Content): Promise<Content> {
+    const headers = content ? [["content-type", content.type]] : []
 
-      let req = this.generateRequest(form, "POST");
-      let info = <any>req;
+    const request = this.generateFetchRequest(form, "POST",{
+      headers : headers,
+      body : content?.body
+    })
 
-      if (content) {
-        req.setHeader("Content-Type", content.type);
-        req.setHeader("Content-Length", content.body.byteLength);
-      }
+    console.info(`HttpClient (invokeResource) sending ${request.method} ${content ? "with '" + request.headers.get("Content-Type") + "' " : " "}to ${request.url}`);
 
-      console.log(`HttpClient (invokeResource) sending ${info.method} ${content ? "with '"+req.getHeader("Content-Type")+"' " : " "}to ${info.path}`);
+    const result = await fetch(request, { body: content?.body })
 
-      req.on("response", (res: http.IncomingMessage) => {
-        console.log(`HttpClient received ${res.statusCode} from ${form.href}`);
-        let contentType: string = this.getContentType(res);
-        console.debug(`HttpClient received Content-Type: ${contentType}`);
-        let body: Array<any> = [];
-        res.on('data', (data) => { body.push(data) });
-        res.on('end', () => {
-          this.checkResponse(res.statusCode, contentType, Buffer.concat(body), resolve, reject);
-        });
-      });
-      req.on("error", (err: any) => reject(err));
-      if (content) {
-        req.write(content.body);
-      }
-      req.end();
-    });
+    console.info(`HttpClient received ${result.status} from ${request.url}`);
+    console.debug(`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
+    
+    const buffer = await result.buffer()
+
+    return { type: result.headers.get("content-type"), body: buffer };
   }
 
-  public unlinkResource(form: HttpForm): Promise<any> {
-    return new Promise<void>((resolve, reject) => {
-      
-      let req = this.generateRequest(form, "DELETE");
-      let info = <any>req;
+  public async unlinkResource(form: HttpForm): Promise<any> {
+    const request = this.generateFetchRequest(form, "DELETE")
+    console.info(`HttpClient (unlinkResource) sending ${request.method} to ${request.url}`);
 
-      console.log(`HttpClient (unlinkResource) sending ${info.method} to ${form.href}`);
+    const result = await fetch(request)
 
-      req.on("response", (res: http.IncomingMessage) => {
-        console.log(`HttpClient received ${res.statusCode} from ${form.href}`);
-        let contentType: string = this.getContentType(res);
-        //console.log(`HttpClient received headers: ${JSON.stringify(res.headers)}`);
-        // Although 204 without payload is expected, data must be read
-        //  to complete request (http blocks socket otherwise)
-        // TODO might have response on unlink for future HATEOAS concept
-        let body: Array<any> = [];
-        res.on('data', (data) => { body.push(data) });
-        res.on('end', () => {
-          this.checkResponse(res.statusCode, contentType, Buffer.concat(body), resolve, reject);
-        });
-      });
-      req.on('error', (err: any) => reject(err));
-      req.end();
-    });
+    // TODO might have response on unlink for future HATEOAS concept
+    this.checkFetchResponse(result)
+
+    const buffer = await result.buffer()
+    
+    console.debug(`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
+    console.debug(`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
+
+    return { type: result.headers.get("content-type"), body: buffer };
   }
 
   public subscribeResource(form: HttpForm, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): any {
 
     let active = true;
-    let polling = () => {
-      let req = this.generateRequest(form, "GET");
-      let info = <any>req;
-      
-      // long timeout for long polling
-      req.setTimeout(60*60*1000);
+    let polling = async () => {
+      try {
+        // long timeout for long polling
+        const request = this.generateFetchRequest(form, "GET", { timeout: 60 * 60 * 1000 })
+        console.info(`HttpClient (subscribeResource) sending ${request.method} to ${request.url}`);
 
-      console.log(`HttpClient (subscribeResource) sending ${info.method} to ${form.href}`);
-  
-      req.on("response", (res: http.IncomingMessage) => {
-        console.log(`HttpClient received ${res.statusCode} from ${form.href}`);
-        let contentType: string = this.getContentType(res);
-        let body: Array<any> = [];
-        res.on("data", (data) => { body.push(data) });
-        res.on("end", () => {
-          if (active) {
-            this.checkResponse(
-              res.statusCode,
-              contentType,
-              Buffer.concat(body),
-              (data: any) => { 
-                next(data);
-                polling();
-              },
-              (err: any) => {
-                if (error) error(err);
-                if (complete) complete();
-                active = false;
-              }
-            );
-          }
-        });
-      });
-      req.on("error", (err: any) => {
-        if (error) error(err);
-        if (complete) complete();
-      });
+        const result = await fetch(request)
 
-      req.flushHeaders();
-      req.end();
-    };
+        this.checkFetchResponse(result)
+
+        const buffer = await result.buffer()
+        console.info(`HttpClient received ${result.status} from ${request.url}`);
+
+        console.debug(`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
+        console.debug(`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
+
+        if (active) {
+          next({ type: result.headers.get("content-type"), body: buffer })
+          polling()
+        }
+      } catch (e) {
+        error && error(e)
+        complete && complete()
+        active = false
+      }
+    }
 
     polling();
 
@@ -316,25 +253,23 @@ export default class HttpClient implements ProtocolClient {
     }
 
     if (security.proxy) {
-      if (this.proxyOptions !== null) {
+      if (this.proxyRequest !== null) {
         console.info(`HttpClient overriding client-side proxy with security proxy '${security.proxy}`);
       }
 
-      this.proxyOptions = this.uriToOptions(security.proxy, true);
+      this.proxyRequest = new Request(HttpClient.fixLocalhostName(security.proxy))
 
       // TODO support for different credentials at proxy and server (e.g., credentials.username vs credentials.proxy.username)
       if (security.scheme == "basic") {
         if (credentials === undefined || credentials.username === undefined || credentials.password === undefined) {
           throw new Error(`No Basic credentionals for Thing`);
         }
-        this.proxyOptions.headers = {};
-        this.proxyOptions.headers['Proxy-Authorization'] = "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString('base64');
+        this.proxyRequest.headers.append('proxy-authorization', "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString('base64'));
       } else if (security.scheme == "bearer") {
         if (credentials === undefined || credentials.token === undefined) {
           throw new Error(`No Bearer credentionals for Thing`);
         }
-        this.proxyOptions.headers = {};
-        this.proxyOptions.headers['Proxy-Authorization'] = "Bearer " + credentials.token;
+        this.proxyRequest.headers.append('proxy-authorization', "Bearer " + credentials.token);
       }
     }
 
@@ -342,96 +277,75 @@ export default class HttpClient implements ProtocolClient {
     return true;
   }
 
-  private uriToOptions(uri: string, ignoreProxy=false): https.RequestOptions {
-    let requestUri = url.parse(uri);
-    let options: https.RequestOptions = {};
-    options.agent = this.agent;
+  private generateFetchRequest(form: HttpForm, defaultMethod: HTTPMethodName, additionalOptions: RequestInit={}){
+    let requestInit : RequestInit = additionalOptions
+   
+    let url = HttpClient.fixLocalhostName(form.href)
 
-    if (this.proxyOptions != null && ignoreProxy === false) {
-      options.hostname = this.proxyOptions.hostname;
-      options.port = this.proxyOptions.port;
-      options.path = uri;
-      options.headers = {};
-      // copy header fields for Proxy-Auth etc.
-      for (let hf in this.proxyOptions.headers) options.headers[hf] = this.proxyOptions.headers[hf];
-      options.headers["Host"] = requestUri.hostname;
-
-    } else {
-      options.hostname = requestUri.hostname;
-      // NodeJS cannot resolve localhost when not connected to any network...
-      if (options.hostname==="localhost") {
-        console.warn("LOCALHOST FIX");
-        options.hostname = "127.0.0.1";
-      }
-      options.port = parseInt(requestUri.port, 10);
-      options.path = requestUri.path;
-      options.headers = {};
-    }
-
-    if (this.authorization !== null) {
-      options.headers[this.authorizationHeader] = this.authorization;
-    }
-
-    if (this.allowSelfSigned === true) {
-      options.rejectUnauthorized = false;
-    }
-
-    return options;
-  }
-  private generateRequest(form: HttpForm, dflt: string): http.ClientRequest {
-
-    let options: http.RequestOptions = this.uriToOptions(form.href);
-
-    options.method = dflt;
-
-    if (typeof form["htv:methodName"] === "string") {
-      console.log("HttpClient got Form 'methodName'", form["htv:methodName"]);
-      switch (form["htv:methodName"]) {
-        case "GET": options.method = "GET"; break;
-        case "POST": options.method = "POST"; break;
-        case "PUT": options.method = "PUT"; break;
-        case "DELETE": options.method = "DELETE"; break;
-        case "PATCH": options.method = "PATCH"; break;
-        default: console.warn("HttpClient got invalid 'methodName', using default", options.method);
-      }
-    }
-
-    let req = this.provider.request(options);
-
-    console.debug(`HttpClient applying form`);
-    //console.dir(form);
-
-    // apply form data
-    if (options.method === "GET" && typeof form.contentType === "string") {
-      console.debug("HttpClient got Form 'contentType'", form.contentType);
-      req.setHeader("Accept", form.contentType);
-    }
+    requestInit.method = form["htv:methodName"] ? form["htv:methodName"] : defaultMethod;
+    
+    requestInit.headers = requestInit.headers ?? []
+    requestInit.headers = requestInit.headers as string[][]
+    
     if (Array.isArray(form["htv:headers"])) {
       console.debug("HttpClient got Form 'headers'", form["htv:headers"]);
+      
       let headers = form["htv:headers"] as Array<HttpHeader>;
       for (let option of headers) {
-        req.setHeader(option["htv:fieldName"], option["htv:fieldValue"]);
+        requestInit.headers.push([option["htv:fieldName"], option["htv:fieldValue"]]);
       }
     } else if (typeof form["htv:headers"] === "object") {
-      console.warn("HttpClient got Form SINGLE-ENTRY 'headers'", form["htv:headers"]);
+      console.debug("HttpClient got Form SINGLE-ENTRY 'headers'", form["htv:headers"]);
+      
       let option = form["htv:headers"] as HttpHeader;
-      req.setHeader(option["htv:fieldName"], option["htv:fieldValue"]);
+      requestInit.headers.push([option["htv:fieldName"], option["htv:fieldValue"]]);
     }
 
-    return req;
+    // Authorization headers cannot be overridden by the user
+    if(this.authorization){
+      requestInit.headers.push([this.authorizationHeader, this.authorization])
+    }
+    
+    requestInit.agent = this.agent
+
+    let request = this.proxyRequest ? new Request(this.proxyRequest, requestInit) : new Request(url, requestInit);
+    
+    if(this.proxyRequest){
+      const parsedBaseURL = parse(url)
+      request.url = request.url + parsedBaseURL.path
+      
+      console.debug("HttpClient proxy request URL:",request.url)
+
+      request.headers.append("host", parsedBaseURL.hostname)
+    }
+
+    return  request;
   }
 
-  private checkResponse(statusCode: number, contentType: string, body: Buffer, resolve: Function, reject: Function) {
+  private checkFetchResponse(response:Response){
+    const statusCode = response.status
+
     if (statusCode < 200) {
       throw new Error(`HttpClient received ${statusCode} and cannot continue (not implemented, open GitHub Issue)`);
-    } else if (statusCode < 300) {
-      resolve({ type: contentType, body: body });
+    }else if (statusCode < 300) {
+        return // No error
     } else if (statusCode < 400) {
       throw new Error(`HttpClient received ${statusCode} and cannot continue (not implemented, open GitHub Issue)`);
     } else if (statusCode < 500) {
-      reject(new Error(`Client error: ${body.toString()}`));
+      throw new Error(`Client error: ${response.text()}`);
     } else {
-      reject(new Error(`Server error: ${body.toString()}`));
+      throw new Error(`Server error: ${response.text()}`);
     }
+  }
+
+  private static fixLocalhostName(url:string) {
+    const localhostPresent = /^(https?:)?(\/\/)?(?:[^@\n]+@)?(www\.)?(localhost)/gm
+    
+    if (localhostPresent.test(url)) {
+      console.warn("LOCALHOST FIX");
+      return url.replace(localhostPresent, "$1$2127.0.0.1")
+    }
+    
+    return url
   }
 }
