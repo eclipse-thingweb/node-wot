@@ -4,6 +4,7 @@ import { request,RequestOptions } from 'https';
 import { OutgoingHttpHeaders } from 'http';
 import { parse } from 'url';
 import { Buffer } from 'buffer';
+import { OAuthCredential } from './credential';
 
 function createRequestFunction(rejectUnauthorized:boolean) {
     //TODO: Does not work inside a browser
@@ -46,7 +47,7 @@ function createRequestFunction(rejectUnauthorized:boolean) {
 export default class OAuthManager{
     private tokenStore:Map<string,ClientOAuth2.Token> = new Map()
     constructor() {}
-    async handleClientCredential(securityScheme:OAuth2SecurityScheme,credentials:any){ 
+    async handleClientCredential(securityScheme:OAuth2SecurityScheme,credentials:any):Promise<OAuthCredential>{ 
         
         const clientFlow: ClientOAuth2 = new ClientOAuth2({
             clientId: credentials.clientId,
@@ -61,25 +62,20 @@ export default class OAuthManager{
                 //  client_secret: credentials.clientSecret
             }
         },createRequestFunction(false))
-
-        return clientFlow.credentials.getToken().then((token:ClientOAuth2.Token) =>{
-            this.tokenStore.set(token.accessToken,token)
-            return token
-        })
+        const token = await clientFlow.credentials.getToken()
+        return new OAuthCredential(token,clientFlow.credentials.getToken.bind(clientFlow.credentials))
     }
 
-    async handleResourceOwnerCredential(securityScheme:OAuth2SecurityScheme,credentials:any){ 
+    async handleResourceOwnerCredential(securityScheme: OAuth2SecurityScheme, credentials: any):Promise<OAuthCredential>{ 
         const clientFlow: ClientOAuth2 = new ClientOAuth2({
             clientId: credentials.clientId,
             clientSecret: credentials.clientSecret,
             accessTokenUri: securityScheme.token,
             scopes: securityScheme.scopes,
         },createRequestFunction(false))
+        const token = await clientFlow.owner.getToken(credentials.username, credentials.password)
 
-        return clientFlow.owner.getToken(credentials.username, credentials.password).then((token:ClientOAuth2.Token) =>{
-            this.tokenStore.set(token.accessToken,token)
-            return token
-        })
+        return new OAuthCredential(token)
     }
     
     async refreshToken(token:string){

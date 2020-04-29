@@ -32,6 +32,7 @@ import fetch, { Request,RequestInit,Response } from 'node-fetch';
 import { Buffer } from "buffer";
 import OAuthManager from "./oauth-manager";
 import { parse } from "url";
+import { BasicCredential, Credential, BearerCredential, BasicKeyCredential, OAuthCredential } from "./credential";
 
 export default class HttpClient implements ProtocolClient {
 
@@ -42,6 +43,8 @@ export default class HttpClient implements ProtocolClient {
   private authorizationHeader: string = "Authorization";
   private allowSelfSigned: boolean = false;
   private oauth: OAuthManager;
+
+  private credential:Credential = null;
 
   constructor(config: HttpConfig = null, secure = false,oauthManager: OAuthManager = new OAuthManager()) {
 
@@ -206,47 +209,32 @@ export default class HttpClient implements ProtocolClient {
 
     // TODO support for multiple security schemes
     let security: TD.SecurityScheme = metadata[0];
-
-    if (security.scheme === "basic") {
-      if (credentials === undefined || credentials.username === undefined || credentials.password === undefined) {
-        throw new Error(`No Basic credentionals for Thing`);
-      }
-      this.authorization = "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString('base64');
-
-    } else if (security.scheme === "bearer") {
-      if (credentials === undefined || credentials.token === undefined) {
-        throw new Error(`No Bearer credentionals for Thing`);
-      }
+    switch (security.scheme) {
+      case "basic":
+        this.credential = new BasicCredential(credentials)
+        break;
+      case "bearer":
       // TODO check security.in and adjust
-      this.authorization = "Bearer " + credentials.token;
+        this.credential = new BearerCredential(credentials?.token)
+        break;
+      case "apikey":
+        let securityAPIKey: TD.APIKeySecurityScheme = <TD.APIKeySecurityScheme>security;
 
-    } else if (security.scheme === "apikey") {
-      let securityAPIKey : TD.APIKeySecurityScheme = <TD.APIKeySecurityScheme>security;
-      if (credentials === undefined || credentials.apikey === undefined) {
-        throw new Error(`No API key credentionals for Thing`);
-      }
-      this.authorization = credentials.apikey;
-      if (securityAPIKey.in==="header" && securityAPIKey.name!==undefined) {
-        this.authorizationHeader = securityAPIKey.name;
-      }
-
-    } else if(security.scheme === "oauth2"){
+        this.credential = new BasicKeyCredential(credentials?.apiKey, securityAPIKey)
+        break;
+      case "oauth2":
       let securityOAuth: TD.OAuth2SecurityScheme = <TD.OAuth2SecurityScheme>security;
       
-      if (securityOAuth.flow === "client_credentials"){
-        const token = await this.oauth.handleClientCredential(securityOAuth,credentials)
-        this.authorization = token.tokenType[0].toUpperCase() + token.tokenType.slice(1) + " " + token.accessToken
-        console.log(this.authorization);
-      }else if (securityOAuth.flow === "password"){
-        const token = await this.oauth.handleResourceOwnerCredential(securityOAuth,credentials)
-        this.authorization = token.tokenType[0].toUpperCase() + token.tokenType.slice(1) + " " + token.accessToken
-        console.log(this.authorization);
+        if (securityOAuth.flow === "client_credentials") {
+          this.credential = await this.oauth.handleClientCredential(securityOAuth, credentials)
+        } else if (securityOAuth.flow === "password") {
+          this.credential = await this.oauth.handleResourceOwnerCredential(securityOAuth, credentials)
       }
 
-    } else if (security.scheme === "nosec") {
-      // nothing to do
-
-    } else {
+        break;
+      case "nosec":
+        break;
+      default:
       console.error(`HttpClient cannot set security scheme '${security.scheme}'`);
       console.dir(metadata);
       return false;
@@ -301,15 +289,17 @@ export default class HttpClient implements ProtocolClient {
       requestInit.headers.push([option["htv:fieldName"], option["htv:fieldValue"]]);
     }
 
-    // Authorization headers cannot be overridden by the user
-    if(this.authorization){
-      requestInit.headers.push([this.authorizationHeader, this.authorization])
-    }
+    
     
     requestInit.agent = this.agent
 
     let request = this.proxyRequest ? new Request(this.proxyRequest, requestInit) : new Request(url, requestInit);
     
+    // Sign the request using client credentials
+    if (this.credential) {
+      request = this.credential.sign(request)
+    }
+
     if(this.proxyRequest){
       const parsedBaseURL = parse(url)
       request.url = request.url + parsedBaseURL.path
