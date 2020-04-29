@@ -90,7 +90,7 @@ export default class HttpClient implements ProtocolClient {
     const request = this.generateFetchRequest(form, "GET")
     console.info(`HttpClient (readResource) sending ${request.method} to ${request.url}`);
 
-    const result = await fetch(request)
+    let result = await this.fetch(request)
     
     this.checkFetchResponse(result)
     
@@ -110,9 +110,10 @@ export default class HttpClient implements ProtocolClient {
 
     console.log(`HttpClient (writeResource) sending ${request.method} with '${request.headers.get("Content-Type")}' to ${request.url}`);
     
-    const result = await fetch(request)
+    let result = await this.fetch(request)
+
     console.info(`HttpClient received ${result.status} from ${result.url}`);
-    
+
     this.checkFetchResponse(result)
     
     console.log(`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
@@ -129,7 +130,7 @@ export default class HttpClient implements ProtocolClient {
 
     console.info(`HttpClient (invokeResource) sending ${request.method} ${content ? "with '" + request.headers.get("Content-Type") + "' " : " "}to ${request.url}`);
 
-    const result = await fetch(request, { body: content?.body })
+    let result = await this.fetch(request)
 
     console.info(`HttpClient received ${result.status} from ${request.url}`);
     console.debug(`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
@@ -143,7 +144,7 @@ export default class HttpClient implements ProtocolClient {
     const request = this.generateFetchRequest(form, "DELETE")
     console.info(`HttpClient (unlinkResource) sending ${request.method} to ${request.url}`);
 
-    const result = await fetch(request)
+    const result = await this.fetch(request)
 
     // TODO might have response on unlink for future HATEOAS concept
     this.checkFetchResponse(result)
@@ -165,7 +166,7 @@ export default class HttpClient implements ProtocolClient {
         const request = this.generateFetchRequest(form, "GET", { timeout: 60 * 60 * 1000 })
         console.info(`HttpClient (subscribeResource) sending ${request.method} to ${request.url}`);
 
-        const result = await fetch(request)
+        const result = await this.fetch(request)
 
         this.checkFetchResponse(result)
 
@@ -214,7 +215,7 @@ export default class HttpClient implements ProtocolClient {
         this.credential = new BasicCredential(credentials)
         break;
       case "bearer":
-      // TODO check security.in and adjust
+        // TODO check security.in and adjust
         this.credential = new BearerCredential(credentials?.token)
         break;
       case "apikey":
@@ -223,21 +224,21 @@ export default class HttpClient implements ProtocolClient {
         this.credential = new BasicKeyCredential(credentials?.apiKey, securityAPIKey)
         break;
       case "oauth2":
-      let securityOAuth: TD.OAuth2SecurityScheme = <TD.OAuth2SecurityScheme>security;
-      
+        let securityOAuth: TD.OAuth2SecurityScheme = <TD.OAuth2SecurityScheme>security;
+
         if (securityOAuth.flow === "client_credentials") {
           this.credential = await this.oauth.handleClientCredential(securityOAuth, credentials)
         } else if (securityOAuth.flow === "password") {
           this.credential = await this.oauth.handleResourceOwnerCredential(securityOAuth, credentials)
-      }
+        }
 
         break;
       case "nosec":
         break;
       default:
-      console.error(`HttpClient cannot set security scheme '${security.scheme}'`);
-      console.dir(metadata);
-      return false;
+        console.error(`HttpClient cannot set security scheme '${security.scheme}'`);
+        console.dir(metadata);
+        return false;
     }
 
     if (security.proxy) {
@@ -312,6 +313,17 @@ export default class HttpClient implements ProtocolClient {
     return  request;
   }
 
+  private async fetch(request:Request,content?:Content){
+    let result = await fetch(request, { body: content?.body })
+    
+    if (HttpClient.isOAuthTokenExpired(result,this.credential)) {
+      this.credential = await (this.credential as OAuthCredential).refreshToken()
+      return await fetch(this.credential.sign(request))
+    }
+
+    return result;
+  }
+
   private checkFetchResponse(response:Response){
     const statusCode = response.status
 
@@ -326,6 +338,10 @@ export default class HttpClient implements ProtocolClient {
     } else {
       throw new Error(`Server error: ${response.statusText}`);
     }
+  }
+
+  private static isOAuthTokenExpired(result:Response,credential:Credential){
+    return result.status === 401 && credential instanceof OAuthCredential
   }
 
   private static fixLocalhostName(url:string) {

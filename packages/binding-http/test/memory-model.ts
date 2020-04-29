@@ -7,7 +7,7 @@ export default class InMemoryModel{
      *
      */
     constructor() {
-        this.clients = [{ clientId: 'thom', clientSecret: 'nightworld', redirectUris: [''], grants:["client_credentials","password"] }];
+        this.clients = [{ clientId: 'thom', clientSecret: 'nightworld', redirectUris: [''], grants: ["client_credentials", "password","refresh_token"] }];
         this.tokens = [];
         this.users = [{ id: '123', username: 'thomseddon', password: 'nightworld' }];
         
@@ -90,6 +90,10 @@ export default class InMemoryModel{
 
     saveAuthorizationCode(){
 
+    }
+
+    revokeToken(token:any):boolean{
+        return true;
     }
 
     expireAllTokens(){

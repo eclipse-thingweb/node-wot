@@ -88,7 +88,25 @@ class HttpClientOAuthTest {
         })
 
     }
+    @test async "should refresh token with resource owener flow"() {
+        const scheme: OAuth2SecurityScheme = {
+            scheme: "oauth2",
+            flow: "password",
+            token: "https://localhost:3000/token",
+            scopes: ["test"]
+        }
+
+        HttpClientOAuthTest.model.expireAllTokens()
+        await this.client.initSecurity([scheme], { clientId: "thom", clientSecret: "nightworld", username: 'thomseddon', password: 'nightworld' })
+        await sleep(1000)
+        return this.client.readResource({
+            href: "https://localhost:3000/resource"
+        })
+
+    }
 }
+
+
 
 function sleep(ms:number) {
     return new Promise(resolve => setTimeout(resolve, ms));
