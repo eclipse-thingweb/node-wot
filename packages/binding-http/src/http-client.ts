@@ -54,10 +54,10 @@ export default class HttpClient implements ProtocolClient {
       
       if (config.proxy.scheme === "basic") {
         if (!config.proxy.hasOwnProperty("username") || !config.proxy.hasOwnProperty("password")) console.warn(`HttpClient client configured for basic proxy auth, but no username/password given`);
-        this.proxyRequest.headers.append('proxy-authorization', "Basic " + Buffer.from(config.proxy.username + ":" + config.proxy.password).toString('base64'));
+        this.proxyRequest.headers.set('proxy-authorization', "Basic " + Buffer.from(config.proxy.username + ":" + config.proxy.password).toString('base64'));
       } else if (config.proxy.scheme === "bearer") {
         if (!config.proxy.hasOwnProperty("token")) console.warn(`HttpClient client configured for bearer proxy auth, but no token given`);
-        this.proxyRequest.headers.append('proxy-authorization', "Bearer " + config.proxy.token);
+        this.proxyRequest.headers.set('proxy-authorization', "Bearer " + config.proxy.token);
       }
       // security for hop to proxy
       if (this.proxyRequest.protocol === "https") {
@@ -252,12 +252,12 @@ export default class HttpClient implements ProtocolClient {
         if (credentials === undefined || credentials.username === undefined || credentials.password === undefined) {
           throw new Error(`No Basic credentionals for Thing`);
         }
-        this.proxyRequest.headers.append('proxy-authorization', "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString('base64'));
+        this.proxyRequest.headers.set('proxy-authorization', "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString('base64'));
       } else if (security.scheme == "bearer") {
         if (credentials === undefined || credentials.token === undefined) {
           throw new Error(`No Bearer credentionals for Thing`);
         }
-        this.proxyRequest.headers.append('proxy-authorization', "Bearer " + credentials.token);
+        this.proxyRequest.headers.set('proxy-authorization', "Bearer " + credentials.token);
       }
     }
 
@@ -306,7 +306,7 @@ export default class HttpClient implements ProtocolClient {
       
       console.debug("HttpClient proxy request URL:",request.url)
 
-      request.headers.append("host", parsedBaseURL.hostname)
+      request.headers.set("host", parsedBaseURL.hostname)
     }
 
     return  request;
