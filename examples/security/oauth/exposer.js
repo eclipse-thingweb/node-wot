@@ -15,7 +15,7 @@
 
 let td = {
     "@context": "https://www.w3.org/2019/wot/td/v1",
-    "title": "OAuth test",
+    "title": "OAuth",
     "id": "urn:dev:wot:oauth:test",
     "securityDefinitions": {
         "oauth2_sc": {
@@ -23,21 +23,26 @@ let td = {
             "flow": "client_credentials",
             "authorization": "https://example.com/authorization",
             "token": "https://localhost:3000/token",
-            "scopes": ["limited", "special"]
+            "scopes": [
+                "limited",
+                "special"
+            ]
         }
     },
-    "security": ["oauth2_sc"],
-    "actions" : {
+    "security": [
+        "oauth2_sc"
+    ],
+    "actions": {
         "sayOk": {
             "forms": [
                 {
                     "href": "http://localhost:3000/resource",
-                    "htv:methodName" : "GET"
+                    "htv:methodName": "GET"
                 }
             ]
         }
     }
-};
+}
 try {
     WoT.produce(td).then((thing) => {
         thing.expose()

@@ -1,0 +1,11 @@
+{
+    "servient": {
+        "clientOnly": true
+    },
+    "credentials": {
+        "urn:dev:wot:oauth:test": {
+            "clientId" : "node-wot",
+            "clientSecret": "isgreat!"
+        }
+    }
+}
