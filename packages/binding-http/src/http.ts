@@ -36,7 +36,7 @@ export interface HttpConfig {
 
 export interface HttpProxyConfig {
     href: string;
-    scheme?: string;
+    scheme?: "basic" | "bearer";
     token?: string;
     username?: string;
     password?: string;
