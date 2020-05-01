@@ -24,7 +24,7 @@ import Servient, {
   ContentSerdes,
   ExposedThing,
   Helpers,
-  Content
+  Content,
 } from '@node-wot/core'
 import { WoTFirestoreConfig, WoTFirestoreForm } from './wotfirestore'
 import WoTFirestoreCodec from './codecs/wotfirestore-codec'
@@ -39,7 +39,7 @@ import {
   subscribeFromFirestore,
   unsubscribeFromFirestore,
   readMetaDataFromFirestore,
-  writeMetaDataToFirestore
+  writeMetaDataToFirestore,
 } from './wotfirestore-handler'
 
 export default class WoTFirestoreServer implements ProtocolServer {
@@ -75,14 +75,14 @@ export default class WoTFirestoreServer implements ProtocolServer {
     console.info(`WoT Firestore start`)
     return new Promise<void>((resolve, reject) => {
       initFirestore(this.fbConfig, null)
-        .then(firestore => {
+        .then((firestore) => {
           console.log('firebase auth success')
           this.firestore = firestore
           // store servient to get credentials
           this.servient = servient
           resolve()
         })
-        .catch(err => {
+        .catch((err) => {
           console.error('firebase auth error:', err)
           reject(err)
         })
@@ -173,7 +173,7 @@ export default class WoTFirestoreServer implements ProtocolServer {
         thing.observeProperty(
           propertyName,
           //let subscription = property.subscribe(
-          data => {
+          (data) => {
             console.debug(
               `***** property ${propertyName} changed in server:`,
               data
@@ -199,7 +199,7 @@ export default class WoTFirestoreServer implements ProtocolServer {
                 .then(() => {
                   console.debug('write:', content)
                 })
-                .catch(err => {
+                .catch((err) => {
                   console.error('write err:', err)
                 })
             }
@@ -208,11 +208,11 @@ export default class WoTFirestoreServer implements ProtocolServer {
         if (!name) {
           name = 'no_name'
         }
-        thing.readProperty(propertyName).then(data => {
+        thing.readProperty(propertyName).then((data) => {
           console.debug(`***** write initial property ${propertyName}:`, data)
           let content: Content = {
             type: this.DEFAULT_CONTENT_TYPE,
-            body: undefined
+            body: undefined,
           }
           if (data !== null || data !== undefined) {
             content = ContentSerdes.get().valueToContent(
@@ -328,7 +328,7 @@ export default class WoTFirestoreServer implements ProtocolServer {
                 console.debug('invoke:', action)
                 thing
                   .invokeAction(actionName, params)
-                  .then(output => {
+                  .then((output) => {
                     console.debug('invoke then:', output)
                     // Firestore cannot return results
                     console.warn(
@@ -350,10 +350,10 @@ export default class WoTFirestoreServer implements ProtocolServer {
                       outContent,
                       reqId
                     )
-                      .then(value => {})
-                      .catch(err => {})
+                      .then((value) => {})
+                      .catch((err) => {})
                   })
-                  .catch(err => {
+                  .catch((err) => {
                     console.error(
                       `WoTFirestoreServer at ${this.getHostName()} got error on invoking '${actionName}': ${
                         err.message
@@ -400,7 +400,7 @@ export default class WoTFirestoreServer implements ProtocolServer {
         thing.subscribeEvent(
           eventName,
           //let subscription = event.subscribe(
-          data => {
+          (data) => {
             console.log('*** event.subscribe:', data)
             console.log('*** eventName:', eventName)
             let content: Content
@@ -424,8 +424,8 @@ export default class WoTFirestoreServer implements ProtocolServer {
               `WoTFirestoreServer at ${this.getHostName()} publishing to Event topic '${eventName}' `
             )
             writeDataToFirestore(this.firestore, topic, content)
-              .then(value => {})
-              .catch(err => {
+              .then((value) => {})
+              .catch((err) => {
                 console.error('error:', err)
               })
           }

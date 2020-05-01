@@ -26,7 +26,7 @@ export const initFirestore = async (fbConfig, fstore): Promise<any> => {
         const firestore = firebase.firestore()
         resolve(firestore)
       })
-      .catch(function(error) {
+      .catch(function (error) {
         reject(`firebase auth error: ${error}`)
       })
   })
@@ -47,7 +47,13 @@ export const writeDataToFirestore = (
   reqId = null
 ): Promise<any> => {
   return new Promise((resolve, reject) => {
-    console.debug('    writeDataToFirestore topic:', topic, ' value:', content)
+    console.debug(
+      '    writeDataToFirestore topic:',
+      topic,
+      ' value:',
+      content,
+      reqId
+    )
     const ref = firestore.collection('things').doc(encodeURIComponent(topic))
     let data = { updatedTime: Date.now(), reqId }
     if (content) {
@@ -55,10 +61,10 @@ export const writeDataToFirestore = (
     }
     ref
       .set(data)
-      .then(value => {
+      .then((value) => {
         resolve(value)
       })
-      .catch(err => {
+      .catch((err) => {
         console.error('*********** write error:', err)
         console.error('*********** data:', data)
         console.error('*** topic:', topic)
@@ -76,7 +82,7 @@ export const readDataFromFirestore = (
     const ref = firestore.collection('things').doc(encodeURIComponent(topic))
     ref
       .get()
-      .then(doc => {
+      .then((doc) => {
         if (doc.exists) {
           const data = doc.data()
           let content: Content = null
@@ -91,7 +97,7 @@ export const readDataFromFirestore = (
               body:
                 obj && obj.body && obj.body.type === 'Buffer'
                   ? Buffer.from(obj.body.data)
-                  : Buffer.from('')
+                  : Buffer.from(''),
             }
           }
           resolve(content)
@@ -100,7 +106,7 @@ export const readDataFromFirestore = (
           console.log('no contents')
         }
       })
-      .catch(err => {
+      .catch((err) => {
         console.log('error:', err)
         reject(err)
       })
@@ -122,13 +128,20 @@ export const subscribeFromFirestore = async (
   //  if (!doc.exists) firstFlg = false
   let reqId
   const observer = ref.onSnapshot(
-    doc => {
+    (doc) => {
       //console.log(`Received doc snapshot: `, doc)
       const data = doc.data()
-      // reqIdが含まれる場合は戻り値である可能性があるため最初の取得かどうかによらず値を返す
+      // reqIdが含まれており、TopicにactionResultsが含まれている場合、戻り値であるため最初の取得かどうかによらず値を返す
+      let dividedTopic = topic.split('/')
       if (data && data.reqId) {
-        firstFlg = false
         reqId = data.reqId
+        if (
+          dividedTopic &&
+          dividedTopic.length > 2 &&
+          dividedTopic[2] === 'actionResults'
+        ) {
+          firstFlg = false
+        }
       }
       if (firstFlg) {
         firstFlg = false
@@ -147,13 +160,13 @@ export const subscribeFromFirestore = async (
           body:
             obj && obj.body && obj.body.type === 'Buffer'
               ? Buffer.from(obj.body.data)
-              : Buffer.from('')
+              : Buffer.from(''),
         }
         content = obj
       }
       callback(null, content, reqId)
     },
-    err => {
+    (err) => {
       console.log(`Encountered error: ${err}`)
       callback(err, null, reqId)
     }
@@ -189,10 +202,10 @@ export const writeMetaDataToFirestore = (
     }
     ref
       .set(data)
-      .then(value => {
+      .then((value) => {
         resolve(value)
       })
-      .catch(err => {
+      .catch((err) => {
         console.error('*********** write error:', err)
         console.error('*********** data:', data)
         console.error('***', hostName, data['content'], data['contentType'])
@@ -210,7 +223,7 @@ export const readMetaDataFromFirestore = (
     const ref = firestore.collection('hostsMetaData').doc(hostName)
     ref
       .get()
-      .then(doc => {
+      .then((doc) => {
         if (doc.exists) {
           const data = doc.data()
           const content: Object = JSON.parse(data)
@@ -220,7 +233,7 @@ export const readMetaDataFromFirestore = (
           console.log('no contents')
         }
       })
-      .catch(err => {
+      .catch((err) => {
         console.log('error:', err)
         reject(err)
       })

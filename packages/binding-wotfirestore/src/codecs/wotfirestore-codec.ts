@@ -56,18 +56,7 @@ export default class WoTFirestoreCodec {
     console.log('++++++++++++++++++++++++++ valueToByte', value, schema)
     let body = ''
     if (value) {
-      //TODO: typeがない場合にどうするのか？Actionの実行に用いるParameterはTypeが特定できない問題あり(以下仮)
       if (schema && (schema.type === 'object' || schema.type === 'array')) {
-        body = JSON.stringify(value)
-      } else if (
-        schema &&
-        //@ts-ignore
-        schema.input &&
-        //@ts-ignore
-        (schema.input.type === 'object' ||
-          //@ts-ignore
-          schema.input.type === 'array')
-      ) {
         body = JSON.stringify(value)
       } else {
         body = String(value)
