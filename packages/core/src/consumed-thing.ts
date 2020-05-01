@@ -275,7 +275,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                 let input;
 
                 if (parameter !== undefined) {
-                    input = ContentManager.valueToContent(parameter, <any>ta, form.contentType);
+                    input = ContentManager.valueToContent(parameter, <any>ta.input, form.contentType);
                 }
 
                 // uriVariables ?
