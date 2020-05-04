@@ -13,42 +13,18 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
+// This is an example of Web of Things producer ("server" mode) Thing script.
+// It considers a fictional smart coffee machine in order to demonstrate the capabilities of Web of Things.
+// An accompanying tutorial is available at http://thingweb.io/smart-coffee-machine.html.
+
 import 'wot-typescript-definitions'
 
 let WoT:WoT.WoT;
 
-// This is an example of Web of Things producer ("server" mode) Thing script.
-// It considers a fictional smart coffee machine in order to demonstrate the capabilities
-// of Web of Things. The full description and an accompanying tutorial is available at
-// TODO: paste url here.
-
-
-/* This is a temporary explanatory part, which will be extended and moved into a tutorial under the URL above.
-The coffee machine has following capabilities (affordances):
-
-- Property Affordances:
-    1. allAvailableResources - readOnly object of available resources;
-    2. availableResourceLevel - read/write level of a particular resource, uses UriVariables;
-    3. possibleDrinks - readOnly array of possible drinks;
-    4. servedCounter - read/write integer of served drinks in total;
-    5. maintenanceNeeded - observable boolean showing if maintenance is needed;
-    6. schedules - readOnly array of scheduled tasks.
-
-The idea behind servedCounter and maintenanceNeeded is that, every time servedCounter exceeds 1000 the maintenanceNeeded flag is set to true.
-And since this value is observable a "maintainer" gets notified, who then comes and performs the maintenance of the machine,
-and afterwards sets the servedCounter and maintenanceNeeded to 0 and false, respectively.
-
-- Action Affordances:
-    1. makeDrink - an action of making a drink. Uses uriVariables (drinkId, size, quantity) and output (object);
-    2. setSchedule - an action of adding a scheduled task to the schedules property. Uses input (object) and output (object).
-
-- Event Affordances:
-    1. outOfResource - an out of resource event. */
-
 WoT.produce({
     title: 'Smart Coffee Machine',
     description: `A smart coffee machine with a range of capabilities.
-The full description is available at URL`,  // TODO: paste url here
+A complementary tutorial is available at http://thingweb.io/smart-coffee-machine.html.`,
     support: 'git://github.com/eclipse/thingweb.node-wot.git',
     '@context': [
         'https://www.w3.org/2019/wot/td/v1',
@@ -253,7 +229,7 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
         
         // Notify a "maintainer" when the value has changed
         // (the notify function here simply logs a message to the console)
-        notify('admin@coffeeMachine.com', `maintenanceNeeded property has changed: ${data}`);
+        notify('admin@coffeeMachine.com', `maintenanceNeeded property has changed, new value is: ${data}`);
     });
 
     // Override a write handler for servedCounter property,
@@ -286,7 +262,7 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
             }
         }
         return new Promise((resolve, reject) => {
-            reject('Please specify id variable as uriVariables.');
+            resolve('Please specify id variable as uriVariables.');
         });
     });
 
@@ -307,7 +283,7 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
             }
         }
         return new Promise((resolve, reject) => {
-            reject('Please specify id variable as uriVariables.');
+            resolve('Please specify id variable as uriVariables.');
         });
     });
 
@@ -385,7 +361,7 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
                 if (newResources[resource] <= 0) {
                     return new Promise((resolve, reject) => {
                         thing.emitEvent('outOfResource', `Low level of ${resource}: ${resources[resource]}%`);
-                        reject({result: false, message: `${resource} level is not sufficient`});
+                        resolve({result: false, message: `${resource} level is not sufficient`});
                     });
                 }
             }
@@ -427,7 +403,7 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
 
         }
         return new Promise((resolve, reject) => {
-            reject({result: false, message: `Please provide all the required parameters: time and mode.`});
+            resolve({result: false, message: `Please provide all the required parameters: time and mode.`});
         });
     });
 
