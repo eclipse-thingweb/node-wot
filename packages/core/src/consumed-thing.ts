@@ -231,7 +231,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
             } else {
                 console.log(`ConsumedThing '${this.title}' writing ${form.href} with '${value}'`);
-                let content = ContentManager.valueToContent(value, <any>tp, form.contentType);
+                let content = ContentManager.valueToContent(value, <any>tp.input, form.contentType);
 
                 // uriVariables ?
                 form = this.handleUriVariables(form, value);
