@@ -13,6 +13,9 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
+/**
+ * oAuth server logic. See https://oauth2-server.readthedocs.io/en/latest/model/overview.html
+ */
 module.exports =  class InMemoryModel{
     /**
      *

@@ -12,7 +12,11 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-export default class InMemoryModel{
+
+ /**
+ * oAuth server logic. See https://oauth2-server.readthedocs.io/en/latest/model/overview.html
+ */
+ export default class InMemoryModel{
     clients: { clientId: string; clientSecret: string; redirectUris: string[];grants:string[] }[];
     tokens: any[];
     users: { id: string; username: string; password: string; }[];
