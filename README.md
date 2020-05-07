@@ -259,7 +259,9 @@ Note: More protocols can be easily added by implementing `ProtocolClient`, `Prot
 #### MediaType Support
 
 * JSON :heavy_check_mark:
-* Plain text :heavy_check_mark:
+* Text (HTML, CSS, XML, SVG) :heavy_check_mark:
+* Base64 (PNG, JPEG, GIF) :heavy_check_mark:
+* Octet stream :heavy_check_mark:
 * CBOR :heavy_multiplication_x:
 * EXI :heavy_multiplication_x:
 

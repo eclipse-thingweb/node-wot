@@ -37,7 +37,7 @@ WoTHelpers.fetch("coap://localhost:5683/counter").then( async (td) => {
 		console.info("count value after increment #1 is", inc1);
 		
 		// increment property #2 (with step)
-		await thing.invokeAction("increment", {'step' : 3});
+		await thing.invokeAction("increment", undefined, {uriVariables: {'step' : 3}});
 		let inc2 = await thing.readProperty("count");
 		console.info("count value after increment #2 (with step 3) is", inc2);
 				

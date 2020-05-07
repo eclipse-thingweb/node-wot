@@ -45,13 +45,21 @@ export class ContentSerdes {
   public static get(): ContentSerdes {
     if (!this.instance) {
       this.instance = new ContentSerdes();
+      // JSON
       this.instance.addCodec(new JsonCodec(), true);
       this.instance.addCodec(new JsonCodec("application/senml+json"));
+      // Text
       this.instance.addCodec(new TextCodec());
+      this.instance.addCodec(new TextCodec("text/html"));
+      this.instance.addCodec(new TextCodec("text/css"));
+      this.instance.addCodec(new TextCodec("application/xml"));
+      this.instance.addCodec(new TextCodec("application/xhtml+xml"));
       this.instance.addCodec(new TextCodec("image/svg+xml"));
+      // Base64
       this.instance.addCodec(new Base64Codec("image/png"));
       this.instance.addCodec(new Base64Codec("image/gif"));
       this.instance.addCodec(new Base64Codec("image/jpeg"));
+      // OctetStream
       this.instance.addCodec(new OctetstreamCodec());
     }
     return this.instance;
