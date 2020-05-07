@@ -175,10 +175,14 @@ When both `serverKey` and `serverCert` are defined the server is started in `htt
 The http protocol binding supports a set of security protocols that can be enabled via servient configuration. As shown in the example section here is a configuration for a basic secure scheme:
 ```js
 {
-    serverKey: "privatekey.pem",
-    serverCert: "certificate.pem",
-    security: {
-          scheme: "basic" // (username & password)
+    http: {
+        port: 8080,
+        allowSelfSigned: true,
+        serverKey: "privatekey.pem",
+        serverCert: "certificate.pem",
+        security: {
+            scheme: "basic" // (username & password)
+        }
     }
     credentials: {
         "urn:dev:wot:org:eclipse:thingweb:my-example-secure": {
@@ -190,7 +194,12 @@ The http protocol binding supports a set of security protocols that can be enabl
 The above configuration file, is setting up a https server with basic secure scheme. To interact with `urn:dev:wot:org:eclipse:thingweb:my-example-secure` (i.e. read a property) username and password must be provided and should be equal to *node-wot* and *hello*. Consequently, on the client side, the same credentials should be provided:
 ```js
 {
-    clientOnly: true,
+    servient: {
+        clientOnly: true,
+    },
+    http:{
+        allowSelfSigned: true
+    },
     credentials: {
         "urn:dev:wot:org:eclipse:thingweb:my-example-secure": {
         username: "node-wot",
@@ -202,7 +211,7 @@ The above configuration file, is setting up a https server with basic secure sch
 ### oAuth2.0
 Currently this binding supports only oAuth2.0 `client credential` and `Resource owner credential` flows. Other flows may be implemented in future like `code` flow. Futhermore, the oAuth2.0 protocol is only implemented for the client side.
 
-An example of a WoT oAuth2.0 enabled client can be found [here](../../examples/security/oauth).
+An example of a WoT oAuth2.0 enabled client can be found [here](../examples/security/oauth).
 
 ## Feature matrix
 

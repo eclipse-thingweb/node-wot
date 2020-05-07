@@ -12,13 +12,20 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
+import "wot-typescript-definitions"
+import { Helpers } from "@node-wot/core";
+
+let WoT: WoT.WoT;
+let WoTHelpers: Helpers;
 
 WoTHelpers.fetch("http://localhost:8080/OAuth").then(td => {
-    td.actions.sayOk.forms[0].href = "https://localhost:3000/resource";
-    td.actions.sayOk.forms[0]["htv:methodName"] = "GET";
-    WoT.consume(td).then(async (thing) => {
-        const result = await thing.invokeAction("sayOk");
-        console.log("oAuth token was", result);
-    });
-});
+    //Call oAuth server instead of the servient.
+    td.actions.sayOk.forms[0].href ="https://localhost:3000/resource"
+    td.actions.sayOk.forms[0]["htv:methodName"] ="GET"
+
+    WoT.consume(td).then(async thing => {
+        const result = await thing.invokeAction("sayOk")
+        console.log("oAuth token was",result)
+    })
+})
 

@@ -1,0 +1,14 @@
+{
+    "servient": {
+        "clientOnly": true,
+    },
+    "http":{
+        "allowSelfSigned": true
+    },
+    "credentials": {
+        "urn:dev:wot:oauth:test": {
+            "clientId" : "node-wot",
+            "clientSecret": "isgreat!"
+        }
+    }
+}
