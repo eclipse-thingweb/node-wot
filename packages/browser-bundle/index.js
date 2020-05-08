@@ -2,7 +2,7 @@
 
 var Wot = {};
 Wot.Core = require("@node-wot/core");
-Wot.Http = require("@node-wot/binding-http");
+Wot.Http = require("@node-wot/binding-http/dist/http-browser");
 Wot.WebSocket = require("@node-wot/binding-websockets");
 
 if (typeof window !== "undefined") {
