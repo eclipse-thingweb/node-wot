@@ -22,7 +22,7 @@ import 'wot-typescript-definitions'
 let WoT:WoT.WoT;
 
 WoT.produce({
-    title: 'Smart Coffee Machine',
+    title: 'Smart-Coffee-Machine',
     description: `A smart coffee machine with a range of capabilities.
 A complementary tutorial is available at http://thingweb.io/smart-coffee-machine.html.`,
     support: 'git://github.com/eclipse/thingweb.node-wot.git',
