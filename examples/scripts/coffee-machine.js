@@ -16,7 +16,7 @@
 // It considers a fictional smart coffee machine in order to demonstrate the capabilities of Web of Things.
 // An accompanying tutorial is available at http://thingweb.io/smart-coffee-machine.html.
 WoT.produce({
-    title: 'Smart Coffee Machine',
+    title: 'Smart-Coffee-Machine',
     description: `A smart coffee machine with a range of capabilities.
 A complementary tutorial is available at http://thingweb.io/smart-coffee-machine.html.`,
     support: 'git://github.com/eclipse/thingweb.node-wot.git',
