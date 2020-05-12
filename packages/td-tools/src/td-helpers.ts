@@ -23,7 +23,6 @@
 
 
 import ThingDescription from './thing-description';
-import * as TD from './thing-description';
 
 /**
  * Find interaction by name
