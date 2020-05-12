@@ -87,5 +87,5 @@ export default class FileClient implements ProtocolClient {
     return true;
   }
 
-  public initSecurity = (metadata : any) => Promise.resolve(false);
+  public setSecurity = (metadata : any) => false;
 }
