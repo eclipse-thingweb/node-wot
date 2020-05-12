@@ -62,7 +62,7 @@ function createRequestFunction(rejectUnauthorized:boolean) {
 export default class OAuthManager{
     private tokenStore:Map<string,ClientOAuth2.Token> = new Map()
     constructor() {}
-    async handleClientCredential(securityScheme:OAuth2SecurityScheme,credentials:any):Promise<OAuthCredential>{ 
+    handleClientCredential(securityScheme:OAuth2SecurityScheme,credentials:any):OAuthCredential{ 
         
         const clientFlow: ClientOAuth2 = new ClientOAuth2({
             clientId: credentials.clientId,
@@ -77,29 +77,19 @@ export default class OAuthManager{
                 //  client_secret: credentials.clientSecret
             }
         },createRequestFunction(false))
-        const token = await clientFlow.credentials.getToken()
+        const token = clientFlow.credentials.getToken()
         return new OAuthCredential(token,clientFlow.credentials.getToken.bind(clientFlow.credentials))
     }
 
-    async handleResourceOwnerCredential(securityScheme: OAuth2SecurityScheme, credentials: any):Promise<OAuthCredential>{ 
+    handleResourceOwnerCredential(securityScheme: OAuth2SecurityScheme, credentials: any):OAuthCredential{ 
         const clientFlow: ClientOAuth2 = new ClientOAuth2({
             clientId: credentials.clientId,
             clientSecret: credentials.clientSecret,
             accessTokenUri: securityScheme.token,
             scopes: securityScheme.scopes,
         },createRequestFunction(false))
-        const token = await clientFlow.owner.getToken(credentials.username, credentials.password)
+        const token = clientFlow.owner.getToken(credentials.username, credentials.password)
 
         return new OAuthCredential(token)
-    }
-    
-    async refreshToken(token:string){
-        const storedToken = this.tokenStore.get(token)
-        
-        if(!storedToken){
-            throw new Error("Token not found");
-        }
-
-        return storedToken.refresh()
     }
 }

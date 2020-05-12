@@ -87,7 +87,7 @@ export default class HttpClient implements ProtocolClient {
   }
 
   public async readResource(form: HttpForm): Promise<Content> {
-    const request = this.generateFetchRequest(form, "GET")
+    const request = await this.generateFetchRequest(form, "GET")
     console.info(`HttpClient (readResource) sending ${request.method} to ${request.url}`);
 
     let result = await this.fetch(request)
@@ -103,7 +103,7 @@ export default class HttpClient implements ProtocolClient {
   }
 
   public async writeResource(form: HttpForm, content: Content): Promise<any> {
-    const request = this.generateFetchRequest(form, "PUT",{
+    const request = await this.generateFetchRequest(form, "PUT",{
       headers : [["content-type",content.type]],
       body: content.body
     })
@@ -123,7 +123,7 @@ export default class HttpClient implements ProtocolClient {
   public async invokeResource(form: HttpForm, content?: Content): Promise<Content> {
     const headers = content ? [["content-type", content.type]] : []
 
-    const request = this.generateFetchRequest(form, "POST",{
+    const request = await this.generateFetchRequest(form, "POST",{
       headers : headers,
       body : content?.body
     })
@@ -141,7 +141,7 @@ export default class HttpClient implements ProtocolClient {
   }
 
   public async unlinkResource(form: HttpForm): Promise<any> {
-    const request = this.generateFetchRequest(form, "DELETE")
+    const request = await this.generateFetchRequest(form, "DELETE")
     console.info(`HttpClient (unlinkResource) sending ${request.method} to ${request.url}`);
 
     const result = await this.fetch(request)
@@ -163,7 +163,7 @@ export default class HttpClient implements ProtocolClient {
     let polling = async () => {
       try {
         // long timeout for long polling
-        const request = this.generateFetchRequest(form, "GET", { timeout: 60 * 60 * 1000 })
+        const request = await this.generateFetchRequest(form, "GET", { timeout: 60 * 60 * 1000 })
         console.info(`HttpClient (subscribeResource) sending ${request.method} to ${request.url}`);
 
         const result = await this.fetch(request)
@@ -227,9 +227,9 @@ export default class HttpClient implements ProtocolClient {
         let securityOAuth: TD.OAuth2SecurityScheme = <TD.OAuth2SecurityScheme>security;
 
         if (securityOAuth.flow === "client_credentials") {
-          this.credential = await this.oauth.handleClientCredential(securityOAuth, credentials)
+          this.credential = this.oauth.handleClientCredential(securityOAuth, credentials)
         } else if (securityOAuth.flow === "password") {
-          this.credential = await this.oauth.handleResourceOwnerCredential(securityOAuth, credentials)
+          this.credential = this.oauth.handleResourceOwnerCredential(securityOAuth, credentials)
         }
 
         break;
@@ -266,7 +266,7 @@ export default class HttpClient implements ProtocolClient {
     return true;
   }
 
-  private generateFetchRequest(form: HttpForm, defaultMethod: HTTPMethodName, additionalOptions: RequestInit={}){
+  private async generateFetchRequest(form: HttpForm, defaultMethod: HTTPMethodName, additionalOptions: RequestInit={}){
     let requestInit : RequestInit = additionalOptions
    
     let url = HttpClient.fixLocalhostName(form.href)
@@ -298,7 +298,7 @@ export default class HttpClient implements ProtocolClient {
     
     // Sign the request using client credentials
     if (this.credential) {
-      request = this.credential.sign(request)
+      request = await this.credential.sign(request)
     }
 
     if(this.proxyRequest){
@@ -318,7 +318,7 @@ export default class HttpClient implements ProtocolClient {
     
     if (HttpClient.isOAuthTokenExpired(result,this.credential)) {
       this.credential = await (this.credential as OAuthCredential).refreshToken()
-      return await fetch(this.credential.sign(request))
+      return await fetch( await this.credential.sign(request))
     }
 
     return result;

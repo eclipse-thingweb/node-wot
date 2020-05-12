@@ -68,7 +68,7 @@ class HttpClientOAuthTest {
             token: "https://localhost:3000/token",
             scopes: ["test"]
         }
-        await this.client.initSecurity([scheme], { clientId: "thom", clientSecret:"nightworld"})
+        this.client.setSecurity([scheme], { clientId: "thom", clientSecret:"nightworld"})
         return this.client.readResource({
             href: "https://localhost:3000/resource"
         })
@@ -81,7 +81,7 @@ class HttpClientOAuthTest {
             token: "https://localhost:3000/token",
             scopes: ["test"]
         }
-        await this.client.initSecurity([scheme], { clientId: "thom", clientSecret: "nightworld", username: 'thomseddon', password: 'nightworld'})
+        this.client.setSecurity([scheme], { clientId: "thom", clientSecret: "nightworld", username: 'thomseddon', password: 'nightworld'})
         return this.client.readResource({
             href: "https://localhost:3000/resource"
         })
@@ -95,7 +95,7 @@ class HttpClientOAuthTest {
             scopes: ["test"]
         }
         HttpClientOAuthTest.model.expireAllTokens()
-        await this.client.initSecurity([scheme], { clientId: "thom", clientSecret:"nightworld"})
+        await this.client.setSecurity([scheme], { clientId: "thom", clientSecret:"nightworld"})
         await sleep(1000)
         return this.client.readResource({
             href: "https://localhost:3000/resource"
@@ -111,7 +111,7 @@ class HttpClientOAuthTest {
         }
 
         HttpClientOAuthTest.model.expireAllTokens()
-        await this.client.initSecurity([scheme], { clientId: "thom", clientSecret: "nightworld", username: 'thomseddon', password: 'nightworld' })
+        this.client.setSecurity([scheme], { clientId: "thom", clientSecret: "nightworld", username: 'thomseddon', password: 'nightworld' })
         await sleep(1000)
         return this.client.readResource({
             href: "https://localhost:3000/resource"

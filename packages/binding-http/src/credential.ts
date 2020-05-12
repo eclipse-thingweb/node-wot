@@ -19,7 +19,7 @@ import { Request} from 'node-fetch';
 
 
 export abstract class Credential{
-    abstract sign(request:Request):Request
+    abstract async sign(request:Request):Promise<Request>
 }
 
 export class BasicCredential extends Credential{
@@ -38,7 +38,7 @@ export class BasicCredential extends Credential{
         this.username = username;
         this.password = password;
     }
-    sign(request:Request){
+    async sign(request:Request){
         let result = request.clone()
         result.headers.set("authorization",Buffer.from(this.username + ":" + this.password).toString('base64'))
         return result
@@ -55,7 +55,7 @@ export class BearerCredential extends Credential{
 
         this.token = token;
     }
-    sign(request: Request) {
+    async sign(request: Request) {
         let result = request.clone()
         result.headers.set("authorization", "Bearer " + this.token)
         return result
@@ -75,7 +75,7 @@ export class BasicKeyCredential extends Credential{
         this.apiKey= apiKey;
         this.options = options;
     }
-    sign(request: Request) {
+    async sign(request: Request) {
         const result = request.clone()
         
         let headerName = "authorization"
@@ -91,20 +91,26 @@ export class BasicKeyCredential extends Credential{
 
 
 export class OAuthCredential extends Credential {
-    private readonly token: Token;
+    private token: Token | Promise<Token> ;
     private readonly refresh: () => Promise<Token> ;
    
     /**
      * 
-     * @param token oAuth2 token instance
+     * @param tokenRequest oAuth2 token instance
      * @param refresh use a custom refresh function
      */
-    constructor(token:Token,refresh?:() => Promise<Token>) {
+    constructor(token: Token | Promise<Token>,refresh?:() => Promise<Token>) {
         super();
         this.token = token;
         this.refresh = refresh;
+        this.token = token
     }
-    sign(request: Request) {
+    async sign(request: Request) {
+        if (this.token instanceof Promise){
+            const tokenRequest = this.token as Promise<Token>
+            this.token = await tokenRequest
+        }
+       
         let tempRequest = {url:request.url,headers:{}}
         
         tempRequest = this.token.sign(tempRequest)
@@ -116,6 +122,10 @@ export class OAuthCredential extends Credential {
     }
 
     async refreshToken() {
+        if(this.token instanceof Promise){
+            throw new Error("Uninitialized token. You have to call sing before refresh");
+        }
+
         let newToken 
         if (this.refresh){
             newToken = await this.refresh()
