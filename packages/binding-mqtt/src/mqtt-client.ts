@@ -135,11 +135,11 @@ export default class MqttClient implements ProtocolClient {
 
 
 
-    public initSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): Promise<boolean> {
+    public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean {
 
         if (metadata === undefined || !Array.isArray(metadata) || metadata.length == 0) {
           console.warn(`MqttClient received empty security metadata`);
-          return Promise.resolve(false);
+          return false;
         }      
         let security: TD.SecurityScheme = metadata[0];
       
@@ -147,7 +147,7 @@ export default class MqttClient implements ProtocolClient {
             //this.authorization = "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString('base64');
           //  this.user = mqtt.username;
         }
-        Promise.resolve(true);
+        true;
       }
 
     private mapQoS = (qos: MqttQoS): QoS => {
