@@ -81,86 +81,108 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
         }
     }
 
+
+    findForm(forms: Array<TD.Form>, op: string, schemes: string[], idx: number): TD.Form {
+        let form = null;
+
+        // find right operation and corresponding scheme in the array form
+        for (let f of forms) {
+            if (f.op != undefined)
+                if (f.op.indexOf(op) != -1 && f.href.indexOf(schemes[idx] + ":") != -1) {
+                    form = f;
+                    break;
+                }
+        }
+
+        // if there no op was defined use default assignment
+        if (form == null) {
+            form = forms[idx];
+        }
+
+        return form;
+    }
+
+    ensureClientSecurity(client: ProtocolClient) {
+        // td-tools parser ensures this.security is an array
+        if (this.security && this.securityDefinitions && Array.isArray(this.security) && this.security.length > 0) {
+            console.log(`ConsumedThing '${this.title}' setting credentials for ${client}`);
+            let scs: Array<TD.SecurityScheme> = [];
+            for (let s of this.security) {
+                let ws = this.securityDefinitions[s + ""]; // String vs. string (fix wot-typescript-definitions?)
+                // also push nosec in case of proxy
+                if (ws) {
+                    scs.push(ws);
+                }
+            }
+            client.setSecurity(scs, this.getServient().getCredentials(this.id));
+        }
+    }
+
     // utility for Property, Action, and Event
-    getClientFor(forms: Array<TD.Form>, op: string): ClientAndForm {
+    getClientFor(forms: Array<TD.Form>, op: string, options?: WoT.InteractionOptions): ClientAndForm {
         if (forms.length === 0) {
             throw new Error(`ConsumedThing '${this.title}' has no links for this interaction`);
         }
 
-        let schemes = forms.map(link => Helpers.extractScheme(link.href))
-        let cacheIdx = schemes.findIndex(scheme => this.getClients().has(scheme))
+        let form: TD.Form;
+        let client: ProtocolClient;
 
-        if (cacheIdx !== -1) {
-            // from cache
-            console.debug(`ConsumedThing '${this.title}' chose cached client for '${schemes[cacheIdx]}'`);
-            let client = this.getClients().get(schemes[cacheIdx]);
-            let form = forms[cacheIdx];
+        if (options && options.formIndex) {
+            // pick provided formIndex (if possible)
+            console.debug(`ConsumedThing '${this.title}' asked to use formIndex '${options.formIndex}'`);
 
-            // find right operation and corresponding scheme in the array form
-            for (let f of forms) {
-                if (f.op != undefined)
-                    if (f.op.indexOf(op) != -1 && f.href.indexOf(schemes[cacheIdx] + ":") != -1) {
-                        form = f;
-                        break;
+            if (options.formIndex >= 0 && options.formIndex < forms.length) {
+                form = forms[options.formIndex];
+                let scheme = Helpers.extractScheme(form.href);
+
+                if (this.getServient().hasClientFor(scheme)) {
+                    console.log(`ConsumedThing '${this.title}' got client for '${scheme}'`);
+                    client = this.getServient().getClientFor(scheme);
+
+                    if (!this.getClients().get(scheme)) {
+                        // new client
+                        this.ensureClientSecurity(client);
+                        this.getClients().set(scheme, client);
                     }
-            }
-
-            // if there no op was defined use default assignment
-            if (form == null) {
-                form = forms[cacheIdx];
-            }
-
-            return { client: client, form: form };
-        } else {
-            // new client
-            console.debug(`ConsumedThing '${this.title}' has no client in cache (${cacheIdx})`);
-            let srvIdx = schemes.findIndex(scheme => this.getServient().hasClientFor(scheme));
-
-            if (srvIdx === -1) throw new Error(`ConsumedThing '${this.title}' missing ClientFactory for '${schemes}'`);
-
-            let client = this.getServient().getClientFor(schemes[srvIdx]);
-            console.log(`ConsumedThing '${this.title}' got new client for '${schemes[srvIdx]}'`);
-
-            // td-tools parser ensures this.security is an array
-            if (this.security && this.securityDefinitions && Array.isArray(this.security) && this.security.length > 0) {
-                console.log(`ConsumedThing '${this.title}' setting credentials for ${client}`);
-                let scs: Array<TD.SecurityScheme> = [];
-                for (let s of this.security) {
-                    let ws = this.securityDefinitions[s + ""]; // String vs. string (fix wot-typescript-definitions?)
-                    // also push nosec in case of proxy
-                    if (ws) {
-                        scs.push(ws);
-                    }
+                } else {
+                    throw new Error(`ConsumedThing '${this.title}' missing ClientFactory for '${scheme}'`);
                 }
-                client.setSecurity(scs, this.getServient().getCredentials(this.id));
+            } else {
+                throw new Error(`ConsumedThing '${this.title}' missing formIndex '${options.formIndex}'`);
             }
-            this.getClients().set(schemes[srvIdx], client);
-            //let form = forms[srvIdx];
-            let form = null;
+        } else {
+            let schemes = forms.map(link => Helpers.extractScheme(link.href))
+            let cacheIdx = schemes.findIndex(scheme => this.getClients().has(scheme))
 
-            // find right operation and corresponding scheme in the array form
-            for (let f of forms) {
-                if (f.op != undefined)
-                    if (f.op.indexOf(op) != -1 && f.href.indexOf(schemes[srvIdx] + ":") != -1) {
-                        form = f;
-                        break;
-                    }
+            if (cacheIdx !== -1) {
+                // from cache
+                console.debug(`ConsumedThing '${this.title}' chose cached client for '${schemes[cacheIdx]}'`);
+                client = this.getClients().get(schemes[cacheIdx]);
+                form = this.findForm(forms, op, schemes, cacheIdx);
+            } else {
+                // new client
+                console.debug(`ConsumedThing '${this.title}' has no client in cache (${cacheIdx})`);
+                let srvIdx = schemes.findIndex(scheme => this.getServient().hasClientFor(scheme));
+
+                if (srvIdx === -1) throw new Error(`ConsumedThing '${this.title}' missing ClientFactory for '${schemes}'`);
+
+                client = this.getServient().getClientFor(schemes[srvIdx]);
+                console.log(`ConsumedThing '${this.title}' got new client for '${schemes[srvIdx]}'`);
+
+                this.ensureClientSecurity(client);
+                this.getClients().set(schemes[srvIdx], client);
+
+                form = this.findForm(forms, op, schemes, srvIdx);
             }
-
-            // if there no op was defined use default assignment
-            if (form == null) {
-                form = forms[srvIdx];
-            }
-
-            return { client: client, form: form }
         }
+        return { client: client, form: form }
     }
 
     readProperty(propertyName: string, options?: WoT.InteractionOptions): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             // TODO pass expected form op to getClientFor()
             let tp: TD.ThingProperty = this.properties[propertyName];
-            let { client, form } = this.getClientFor(tp.forms, "readproperty");
+            let { client, form } = this.getClientFor(tp.forms, "readproperty", options);
             console.log("form: " + form)
             if (!client) {
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
@@ -226,7 +248,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
         return new Promise<void>((resolve, reject) => {
             // TODO pass expected form op to getClientFor()
             let tp: TD.ThingProperty = this.properties[propertyName];
-            let { client, form } = this.getClientFor(tp.forms, "writeproperty");
+            let { client, form } = this.getClientFor(tp.forms, "writeproperty", options);
             if (!client) {
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
             } else {
@@ -266,7 +288,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     public invokeAction(actionName: string, parameter?: any, options?: WoT.InteractionOptions): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             let ta: TD.ThingAction = this.actions[actionName];
-            let { client, form } = this.getClientFor(ta.forms, "invokeaction");
+            let { client, form } = this.getClientFor(ta.forms, "invokeaction", options);
             if (!client) {
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
             } else {
@@ -307,7 +329,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     public observeProperty(name: string, listener: WoT.WotListener, options?: WoT.InteractionOptions): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             let tp: TD.ThingProperty = this.properties[name];
-            let { client, form } = this.getClientFor(tp.forms, "observeproperty");
+            let { client, form } = this.getClientFor(tp.forms, "observeproperty", options);
             if (!client) {
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
             } else {
@@ -338,10 +360,10 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
         });
     }
 
-    public unobserveProperty(name: string): Promise<void> {
+    public unobserveProperty(name: string, options?: WoT.InteractionOptions): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             let tp: TD.ThingProperty = this.properties[name];
-            let { client, form } = this.getClientFor(tp.forms, "unobserveproperty");
+            let { client, form } = this.getClientFor(tp.forms, "unobserveproperty", options);
             if (!client) {
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
             } else {
@@ -355,7 +377,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     public subscribeEvent(name: string, listener: WoT.WotListener, options?: WoT.InteractionOptions): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             let te: TD.ThingEvent = this.events[name];
-            let { client, form } = this.getClientFor(te.forms, "subscribeevent");
+            let { client, form } = this.getClientFor(te.forms, "subscribeevent", options);
             if (!client) {
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
             } else {
@@ -386,10 +408,10 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
         });
     }
 
-    public unsubscribeEvent(name: string): Promise<void> {
+    public unsubscribeEvent(name: string, options?: WoT.InteractionOptions): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             let te: TD.ThingEvent = this.events[name];
-            let { client, form } = this.getClientFor(te.forms, "unsubscribeevent");
+            let { client, form } = this.getClientFor(te.forms, "unsubscribeevent", options);
             if (!client) {
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
             } else {
