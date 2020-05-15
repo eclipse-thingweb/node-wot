@@ -40,7 +40,7 @@ export default class ModbusClient implements ProtocolClient {
     })
   }
   unlinkResource(form: ModbusForm): Promise<void> {
-    form = this.validateAndFillDefaultForm(form, 'r', 0)
+    form = this.validateAndFillDefaultForm(form, 0)
     const id = `${form.href}/${form['modbus:unitID']}#${form['modbus:function']}?${form['modbus:range'][0]}&${form['modbus:range'][1]}`
 
 
@@ -51,7 +51,7 @@ export default class ModbusClient implements ProtocolClient {
   }
   public subscribeResource(form: ModbusForm,
     next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): any {
-    form = this.validateAndFillDefaultForm(form, 'r', 0)
+    form = this.validateAndFillDefaultForm(form, 0)
 
     const id = `${form.href}/${form['modbus:unitID']}#${form['modbus:function']}?${form['modbus:range'][0]}&${form['modbus:range'][1]}`
 
@@ -77,21 +77,16 @@ export default class ModbusClient implements ProtocolClient {
     let parsed = new URL(form.href);
     const port = parsed.port ? parseInt(parsed.port, 10) : DEFAULT_PORT
 
-    form = this.validateAndFillDefaultForm(form, "w", content?.body.byteLength)
+    form = this.validateAndFillDefaultForm(form, content?.body.byteLength)
 
     let host = parsed.hostname;
     let hostAndPort = host + ":" + port;
 
     this.overrideFormFromURLPath(form);
 
-    // TODO: validate content length
-    /*
-    let mpy = form === "in" || regType === "hold" ? 2 : 1;
-    
-    if (content && content.body.length != mpy * length) {
-      throw new Error("Content length does not match register / coil count, got " + content.body.length + " bytes for "
-        + length + " registers / coils");
-    }*/
+    if(content){
+      this.validateContentLength(form,content)
+    }
 
     // find or create connection
     let connection = this._connections.get(hostAndPort);
@@ -120,8 +115,19 @@ export default class ModbusClient implements ProtocolClient {
     input["modbus:range"][0] = parseInt(query.get("offset")) || input["modbus:range"][0];
     input["modbus:range"][1] = parseInt(query.get("length")) || input["modbus:range"][1];
   }
-  private validateAndFillDefaultForm(form: ModbusForm, mode: 'r' | 'w', contentLength = 0): ModbusForm {
+
+  private validateContentLength(form:ModbusForm,content:Content){
+    
+    const mpy = form["modbus:entity"] === "InputRegister" || form["modbus:entity"] ===  "HoldingRegister" ? 2 : 1;
+    const length = form["modbus:range"][1] - form["modbus:range"][0]
+    if (content && content.body.length != mpy * length) {
+      throw new Error("Content length does not match register / coil count, got " + content.body.length + " bytes for "
+        + length + ` ${mpy === 2? "registers" : "coils"}`);
+    }
+  }
+  private validateAndFillDefaultForm(form: ModbusForm, contentLength = 0): ModbusForm {
     const result: ModbusForm = { ...form }
+    const mode = contentLength > 0 ? "w" : "r";
 
     if (!form["modbus:function"] && !form["modbus:entity"]) {
       throw new Error("Malformed form: modbus:function or modbus:entity must be defined");
@@ -173,7 +179,7 @@ export default class ModbusClient implements ProtocolClient {
       result['modbus:range'] = [form['modbus:range'][0], 1]
     } else if (!form['modbus:range'][1] && contentLength > 0) {
       const regSize = result["modbus:entity"] === 'InputRegister' || result["modbus:entity"] === 'HoldingRegister' ? 2 : 1
-      result['modbus:range'] = [form['modbus:range'][0], contentLength]
+      result['modbus:range'] = [form['modbus:range'][0], contentLength/regSize]
     }
 
     result['modbus:pollingTime'] = form['modbus:pollingTime'] ? form['modbus:pollingTime'] : DEFAULT_POLLING
@@ -410,7 +416,8 @@ class ModbusConnection {
         break;      
       case 16: // writing values to multiple registers
         let values = new Array<number>();
-        for (let i = 0; i < transaction.length; i++) {
+        // transaction length contains the total number of register to be written
+        for (let i = 0; i < transaction.length*2; i++) {
           values.push(transaction.content.readUInt16BE(i));
           i++
         }
