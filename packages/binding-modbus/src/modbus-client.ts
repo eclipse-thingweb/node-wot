@@ -14,13 +14,11 @@ const DEFAULT_TIMEOUT = 1000
 const DEFAULT_POLLING = 2000
 
 export default class ModbusClient implements ProtocolClient {
-  private _client: ModbusRTU;
   private _connections: Map<string, ModbusConnection>;
 
   private _subscriptions: Map<string, Subscription> = new Map();
 
   constructor() {
-    this._client = new ModbusRTU()
     this._connections = new Map()
   }
   readResource(form: ModbusForm): Promise<Content> {
@@ -32,7 +30,7 @@ export default class ModbusClient implements ProtocolClient {
   invokeResource(form: ModbusForm, content: Content): Promise<Content> {
     return new Promise(async (resolve, reject) => {
       try {
-        await this.modbusWrite(form, content)
+        await this.performOperation(form, content)
 
         // As mqtt there is no response
         resolve({ type: ContentSerdes.DEFAULT, body: Buffer.from('') });
@@ -71,86 +69,6 @@ export default class ModbusClient implements ProtocolClient {
   }
   setSecurity(metadata: SecurityScheme[], credentials?: any): boolean {
     return false;
-  }
-
-  private async modbusRead(form: ModbusForm) {
-    let parsed = new URL(form.href);
-    const port = parsed.port ? parseInt(parsed.port, 10) : DEFAULT_PORT
-    form = this.validateAndFillDefaultForm(form, 'r', 0)
-
-    await this._client.connectTCP(parsed.hostname, { port: port });
-
-    this._client.setID(form['modbus:unitID']);
-    this._client.setTimeout(form['modbus:timeout'])
-
-    let data: any;
-
-    switch (form['modbus:function']) {
-      case 1:
-        data = await this._client.readCoils(form['modbus:range'][0], form['modbus:range'][1])
-        break;
-      case 2:
-        data = await this._client.readDiscreteInputs(form['modbus:range'][0], form['modbus:range'][1])
-        break;
-      case 3:
-        data = await this._client.readHoldingRegisters(form['modbus:range'][0], form['modbus:range'][1])
-        break;
-      case 4:
-        data = await this._client.readInputRegisters(form['modbus:range'][0], form['modbus:range'][1])
-        break;
-      default:
-        throw new Error('Undefined function number: ' + form['modbus:function'])
-    }
-
-    this._client.close(() => { return; })
-
-    return {
-      type: 'application/octet-stream',
-      body: data.buffer
-    }
-  }
-
-  private async modbusWrite(form: ModbusForm, content: Content) {
-    let parsed = new URL(form.href);
-    const port = parsed.port ? parseInt(parsed.port, 10) : DEFAULT_PORT
-    form = this.validateAndFillDefaultForm(form, 'w', content.body.byteLength)
-
-    await this._client.connectTCP(parsed.hostname, { port: port });
-    this._client.setID(form['modbus:unitID']);
-    this._client.setTimeout(form['modbus:timeout'])
-
-    let data: any;
-
-    switch (form['modbus:function']) {
-      case 5:
-        data = content.body.readUInt8(0) ? true : false;
-        await this._client.writeCoil(form['modbus:range'][0], data)
-        break;
-      case 15:
-        data = []
-        content.body.forEach(num => {
-          data.push(num)
-        })
-
-        await this._client.writeCoils(form['modbus:range'][0], data)
-        break;
-      case 6:
-        data = content.body.readInt16BE(0)
-        await this._client.writeRegister(form['modbus:range'][0], data)
-        break;
-      case 16:
-        data = []
-        for (let index = 0; index < content.body.length; index++) {
-          data.push(content.body.readInt16BE(index))
-          index++;
-        }
-        await this._client.writeRegisters(form['modbus:range'][0], data)
-        break;
-      default:
-        throw new Error('Undefined function number: ' + form['modbus:function']);
-    }
-
-    this._client.close(() => { return; })
   }
 
   private async performOperation(form: ModbusForm, content?: Content): Promise<Content | void> {
