@@ -287,7 +287,7 @@ class ModbusConnection {
     }
 
     // create and append a new transaction
-    let transaction = new ModbusTransaction(this, op.unitId, op.registerType, op.base, op.length, op.content);
+    let transaction = new ModbusTransaction(this, op.unitId, op.registerType,op.function, op.base, op.length, op.content);
     transaction.inform(op);
     this.queue.push(transaction);
   }
@@ -302,6 +302,7 @@ class ModbusConnection {
    */
   async trigger() {
     console.debug("ModbusConnection:trigger");
+    
     if (!this.connecting && !this.connected) {
       console.info("Trying to connect to", this.host);
       this.connecting = true;
@@ -346,7 +347,7 @@ class ModbusConnection {
     this.timer = null;
   }
 
-  readModbus(transaction: ModbusTransaction): Promise<ReadCoilResult | ReadRegisterResult> {
+  async readModbus(transaction: ModbusTransaction): Promise<ReadCoilResult | ReadRegisterResult> {
     console.debug("Invoking read transaction");
     // reset connection idle timer
     if (this.timer) {
@@ -355,19 +356,24 @@ class ModbusConnection {
 
     this.timer = global.setTimeout(() => this.modbusstop(), connectionTimeout);
 
-    const regtype: ModbusEntity = transaction.registerType;
+    const regType: ModbusEntity = transaction.registerType;
     this.client.setID(transaction.unitId);
 
-    if (regtype === "InputRegister") return this.client.readInputRegisters(transaction.base, transaction.length);
-    if (regtype === "Coil") return this.client.readCoils(transaction.base, transaction.length);
-    if (regtype === "HoldingRegister") return this.client.readHoldingRegisters(transaction.base, transaction.length);
-    if (regtype === "DiscreteInput") return this.client.readDiscreteInputs(transaction.base, transaction.length);
-
-    //no match
-    return Promise.reject("cannot read unknown register type " + regtype);
+    switch (regType) {
+      case "InputRegister":
+        return this.client.readInputRegisters(transaction.base, transaction.length);
+      case "Coil":
+        return this.client.readCoils(transaction.base, transaction.length);
+      case "HoldingRegister":
+        return this.client.readHoldingRegisters(transaction.base, transaction.length);
+      case "DiscreteInput":
+        return this.client.readDiscreteInputs(transaction.base, transaction.length);
+      default:
+        throw new Error("cannot read unknown register type " + regType);
+    }
   }
 
-  writeModbus(transaction: ModbusTransaction): Promise<void> {
+  async writeModbus(transaction: ModbusTransaction): Promise<void> {
     console.debug("Invoking write transaction");
     // reset connection idle timer
     if (this.timer) {
@@ -376,62 +382,52 @@ class ModbusConnection {
 
     this.timer = global.setTimeout(() => this.modbusstop(), connectionTimeout);
 
-    const regtype: ModbusEntity = transaction.registerType;
+    const modFunc: ModbusFunction = transaction.function;
     this.client.setID(transaction.unitId);
 
-    if (regtype === "Coil") {
-      if (transaction.length === 1) {
-        //writing a single value to a single coil
-        let value = transaction.content.readUInt8(0) != 0;
-        return this.client.writeCoil(transaction.base, value).then((result: any) => {
-          if (result.address == transaction.base && result.state === value)
-            return Promise.resolve()
-          else
-            return Promise.reject(`writing ${value} to ${transaction.base} failed, state is ${result.state}`)
-        })
-      } else {
-        let value = new Array<boolean>();
-        transaction.content.forEach(v => value.push(v != 0));
-        return this.client.writeCoils(transaction.base, value).then((result: any) => {
-          if (result.address == transaction.base && result.length === transaction.length)
-            return Promise.resolve()
-          else
-            return Promise.reject(`writing ${value} to ${transaction.base} failed`)
-        })
-      }
-    }
-
-    if (regtype === "HoldingRegister") {
-      if (transaction.length === 1) {
-        // writing a single value to a single register
+    switch (modFunc) {
+      case 5: // write single coil
+        const coil = transaction.content.readUInt8(0) != 0;
+        const result = await this.client.writeCoil(transaction.base, coil)
+        
+        if (result.address !== transaction.base && result.state !== coil)
+          throw new Error(`writing ${coil} to ${transaction.base} failed, state is ${result.state}`);
+        
+        break;
+      case 15: // write multiple coils
+        const coils = new Array<boolean>();
+        transaction.content.forEach(v => coils.push(v != 0));
+        const coilsResult = await this.client.writeCoils(transaction.base, coils)
+        if (coilsResult.address !== transaction.base && coilsResult.length !== transaction.length)
+          throw new Error(`writing ${coils} to ${transaction.base} failed`);
+        break;
+      case 6: // writing a single value to a single register
         let value = transaction.content.readUInt16BE(0);
-        return this.client.writeRegister(transaction.base, value).then((result: any) => {
-          if (result.address == transaction.base && result.value === value)
-            return Promise.resolve()
-          else
-            return Promise.reject(`writing ${value} to ${transaction.base} failed, state is ${result.value}`)
-        })
-      } else {
-        // writing values to multiple registers
+        const resultRegister = await this.client.writeRegister(transaction.base, value)
+
+        if(resultRegister.address !== transaction.base && resultRegister.value !== value)
+          throw new Error(`writing ${value} to ${transaction.base} failed, state is ${result.value}`);
+        break;      
+      case 16: // writing values to multiple registers
         let values = new Array<number>();
         for (let i = 0; i < transaction.length; i++) {
           values.push(transaction.content.readUInt16BE(i));
           i++
         }
-        return this.client.writeRegisters(transaction.base, values).then((result: any) => {
-          if (result.address == transaction.base) {
-            console.warn(`short write to registers ${transaction.base} + ${transaction.length}, wrote ${values} to ${result.address} + ${result.length} `)
-            return Promise.resolve()
-          } else
-            return Promise.reject(`writing ${values} to registers ${transaction.base} + ${transaction.length} failed, wrote to ${result.address}`)
-        })
-      }
-    }
+        const registers = await this.client.writeRegisters(transaction.base, values)
 
-    //no match
-    return Promise.reject("cannot write register type " + regtype)
+        if (registers.address == transaction.base && transaction.length/2 > registers.length) {
+          console.warn(`short write to registers ${transaction.base} + ${transaction.length}, wrote ${values} to ${registers.address} + ${registers.length} `)
+        } else if (registers.address !== transaction.base){
+          throw new Error(`writing ${values} to registers ${transaction.base} + ${transaction.length} failed, wrote to ${registers.address}`)
+        }
+        break;
+      default:
+        throw new Error("cannot read unknown function type " + modFunc);
+    }
   }
 }
+
 
 
 /**
@@ -441,15 +437,17 @@ class ModbusTransaction {
   connection: ModbusConnection
   unitId: number
   registerType: ModbusEntity
+  function: ModbusFunction
   base: number
   length: number
   content?: Buffer
   operations: Array<PropertyOperation>    // operations to be completed when this transaction completes
 
-  constructor(connection: ModbusConnection, unitId: number, registerType: ModbusEntity, base: number, length: number, content?: Buffer) {
+  constructor(connection: ModbusConnection, unitId: number, registerType: ModbusEntity,func:ModbusFunction, base: number, length: number, content?: Buffer) {
     this.connection = connection;
     this.unitId = unitId;
     this.registerType = registerType;
+    this.function = func
     this.base = base;
     this.length = length;
     this.content = content;
@@ -522,6 +520,7 @@ class PropertyOperation {
   registerType: ModbusEntity
   base: number
   length: number
+  function: ModbusFunction
   content?: Buffer
   transaction: ModbusTransaction      // transaction used to execute this operation
   resolve: (value?: Content | PromiseLike<Content>) => void
@@ -532,6 +531,7 @@ class PropertyOperation {
     this.registerType = form["modbus:entity"];
     this.base = form["modbus:range"][0];
     this.length = form["modbus:range"][1];
+    this.function = form["modbus:function"] as ModbusFunction;
     this.content = content;
     this.transaction = null;
   }
