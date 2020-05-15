@@ -108,9 +108,7 @@ export default class ModbusClient implements ProtocolClient {
     connection.enqueue(operation);
 
     // return a promise to execute the operation
-    return new Promise<Content | void>((resolve, reject) => {
-      operation.execute(resolve, reject);
-    });
+    return operation.execute()
   }
 
   private overrideFormFromURLPath(input: ModbusForm) {
@@ -228,7 +226,7 @@ class ModbusConnection {
   connecting: boolean
   connected: boolean
   timer: NodeJS.Timer                 // connection idle timer
-  transaction: ModbusTransaction      // transaction currently in progress or null
+  currentTransaction: ModbusTransaction      // transaction currently in progress or null
   queue: Array<ModbusTransaction>     // queue of further transactions
 
   constructor(host: string, port: number) {
@@ -238,7 +236,7 @@ class ModbusConnection {
     this.connecting = false;
     this.connected = false;
     this.timer = null;
-    this.transaction = null;
+    this.currentTransaction = null;
     this.queue = new Array<ModbusTransaction>();
   }
 
@@ -302,38 +300,34 @@ class ModbusConnection {
    * start the next transaction.
    * Retrigger after success or failure.
    */
-  trigger() {
+  async trigger() {
     console.debug("ModbusConnection:trigger");
     if (!this.connecting && !this.connected) {
       console.info("Trying to connect to", this.host);
       this.connecting = true;
-      this.client.connectTCP(this.host, { port: this.port })
-        .then(() => {
-          this.connecting = false;
-          this.connected = true;
-          console.info("Modbus connected to " + this.host);
-          this.trigger();
-        })
-        .catch((reason: any) => {
-          console.warn("Cannot connect to", this.host, "reason", reason, " retry in 10s");
-          this.connecting = false;
-          setTimeout(() => this.trigger(), 10000);
-        });
-    } else if (this.connected && this.transaction == null && this.queue.length > 0) {
+      try {
+        await this.client.connectTCP(this.host, { port: this.port })
+        this.connecting = false;
+        this.connected = true;
+        console.debug("[binding-modbus]","Modbus connected to " + this.host);
+        this.trigger();
+      } catch (error) {
+        console.warn("Cannot connect to", this.host, "reason", error, " retry in 10s");
+        this.connecting = false;
+        setTimeout(() => this.trigger(), 10000); 
+      }
+    } else if (this.connected && this.currentTransaction == null && this.queue.length > 0) {
       // take next transaction from queue and execute
-      this.transaction = this.queue.shift();
-      new Promise<void>((resolve, reject) => {
-        this.transaction.execute(resolve, reject);
-      })
-        .then(() => {
-          this.transaction = null;
-          this.trigger();
-        })
-        .catch((reason: any) => {
-          console.warn("MODBUS transaction failed:", reason);
-          this.transaction = null;
-          this.trigger();
-        });
+      this.currentTransaction = this.queue.shift();
+      try {
+        await this.currentTransaction.execute()
+        this.currentTransaction = null;
+        this.trigger();
+      } catch (error) {
+        console.warn("MODBUS transaction failed:", error);
+        this.currentTransaction = null;
+        this.trigger();
+      }
     }
   }
 
@@ -490,40 +484,32 @@ class ModbusTransaction {
    * @param resolve 
    * @param reject 
    */
-  execute(resolve: () => void, reject: (reason?: any) => void): void {
+  async execute(): Promise<void> {
     if (!this.content) {
-      console.log("Trigger MODBUS read operation on", this.base, "len", this.length);
-      // perform read transaction
-      this.connection.readModbus(this)
-        .then(result => {
-          console.log("Got result from MODBUS read operation on", this.base, "len", this.length);
-          // inform all operations and the invoker
-          this.operations.forEach(op => op.done(this.base, result.buffer, result.data));
-          resolve();
-        })
-        .catch((reason: any) => {
-          console.warn("MODBUS read operation failed on", this.base, "len", this.length, reason);
-          // inform all operations and the invoker
-          this.operations.forEach(op => op.failed(reason));
-          reject(reason);
-        });
+      // Read transaction
+      console.debug("Trigger MODBUS read operation on", this.base, "len", this.length);
+      try {
+        const result = await this.connection.readModbus(this)
+        console.debug("[binding-modbus]", "Got result from MODBUS read operation on", this.base, "len", this.length);
+        this.operations.forEach(op => op.done(this.base, result.buffer, result.data));
+      } catch (error) {
+        console.warn("[binding-modbus]","MODBUS read operation failed on", this.base, "len", this.length, error);
+        // inform all operations and the invoker
+        this.operations.forEach(op => op.failed(error));
+        throw error;
+      }
+      
     } else {
-      console.log("Trigger MODBUS write operation on", this.base, "len", this.length);
-      // perform write transaction
-      this.connection.writeModbus(this)
-        .then(() => {
-          console.log("Got result from MODBUS read operation on", this.base, "len", this.length);
-          // inform all operations and the invoker
-          this.operations.forEach(op => op.done());
-          resolve();
-        })
-        .catch((reason: any) => {
-          console.warn("MODBUS write operation failed on", this.base, "len", this.length, reason);
-          // inform all operations and the invoker
-          this.operations.forEach(op => op.failed(reason));
-          reject(reason);
-        });
-
+      console.log("[binding-modbus]","Trigger MODBUS write operation on", this.base, "len", this.length);
+      try {
+        await this.connection.writeModbus(this)
+        this.operations.forEach(op => op.done());
+      } catch (error) {
+        console.warn("[binding-modbus]","MODBUS write operation failed on", this.base, "len", this.length, error);
+        // inform all operations and the invoker
+        this.operations.forEach(op => op.failed(error));
+        throw error;
+      }
     }
   }
 }
@@ -553,23 +539,18 @@ class PropertyOperation {
   /**
    * Trigger execution of this operation.
    * 
-   * The resolve/reject functions of the Promise made by this operation are catched and stored
-   * with the PropertyOperation object, so that these Promises can later be fulfilled by the
-   * associated ModbusTransaction.
-   * 
-   * @param resolve 
-   * @param reject 
    */
-  execute(resolve: (value?: Content | PromiseLike<Content>) => void, reject: (reason?: any) => void): void {
-    this.resolve = resolve;
-    this.reject = reject;
+  async execute(): Promise<Content | PromiseLike<Content>> {
+    return new Promise((resolve: (value?: Content | PromiseLike<Content>) => void, reject: (reason?: any) => void)=>{
+      this.resolve = resolve;
+      this.reject = reject;
 
-    if (this.transaction == null) {
-      reject("No transaction for this operation");
-    } else {
-      // deferred trigger, invoked later when the caller of this method has completed
-      setImmediate(() => this.transaction.trigger());
-    }
+      if (this.transaction == null) {
+        reject("No transaction for this operation");
+      } else {
+        this.transaction.trigger();
+      }
+    })
   }
 
   /**
