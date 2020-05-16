@@ -18,12 +18,12 @@ describe('Modbus client test', () => {
         console.debug = ()=>{}
         console.warn = ()=>{}
 
-        client = new ModbusClient();
         testServer = new ModbusServer(1);
         await testServer.start()
     });
 
     beforeEach(() => {
+        client = new ModbusClient();
         testServer.clear()
     });
     afterEach(() => {
@@ -97,7 +97,23 @@ describe('Modbus client test', () => {
         form["modbus:range"][1].should.be.equal(5, "Form value not overridden")
     });
 
+    describe('misc', () => {
+        it('multiple operations', async () => {
+            testServer.setRegisters([1])
 
+            const form: ModbusForm = {
+                href: "modbus://127.0.0.1:8502",
+                "modbus:function": 1,
+                "modbus:range": [0, 1],
+                "modbus:unitID": 1
+            }
+
+            let result = await client.readResource(form)
+            result.body.should.deep.equal(Buffer.from([1]), "Wrong data")
+            result = await client.readResource(form)
+            result.body.should.deep.equal(Buffer.from([1]), "Wrong data")
+        });
+    });
     describe('read resource', () => {
         it('should read a resource using read coil function', async () => {
 
