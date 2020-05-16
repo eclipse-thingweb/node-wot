@@ -92,7 +92,7 @@ export class ModbusConnection {
 
     async connect(){
         if (!this.connecting && !this.connected) {
-            console.info("Trying to connect to", this.host);
+            console.debug("[binding-modbus]","Trying to connect to", this.host);
             this.connecting = true;
 
             for (let retry = 0; retry < this.config.maxRetries; retry++) {
@@ -103,7 +103,7 @@ export class ModbusConnection {
                     console.debug("[binding-modbus]", "Modbus connected to " + this.host);
                     return
                 } catch (error) {
-                    console.warn("Cannot connect to", this.host, "reason", error, ` retry in ${this.config.connectionRetryTime}ms`);
+                    console.warn("[binding-modbus]","Cannot connect to", this.host, "reason", error, ` retry in ${this.config.connectionRetryTime}ms`);
                     this.connecting = false;
                     if (retry >= this.config.maxRetries - 1) {
                         throw new Error("Max connection retries");
@@ -123,7 +123,7 @@ export class ModbusConnection {
      * Retrigger after success or failure.
      */
     async trigger() {
-        console.debug("ModbusConnection:trigger");
+        console.debug("[binding-modbus]","ModbusConnection:trigger");
         if (!this.connecting && !this.connected){
             // connection may be closed due to operation timeout
             // try to reconnect again
@@ -131,7 +131,7 @@ export class ModbusConnection {
                 await this.connect()
                 this.trigger()
             } catch (error) {
-                console.warn("[binding-modbus]","can not reconnect to modbus server")
+                console.warn("[binding-modbus]","cannot reconnect to modbus server")
                 // inform all the operations that the connection cannot be recovered
                 this.queue.forEach( transaction =>{
                     transaction.operations.forEach( op =>{
@@ -147,7 +147,7 @@ export class ModbusConnection {
                 this.currentTransaction = null;
                 this.trigger();
             } catch (error) {
-                console.warn("MODBUS transaction failed:", error);
+                console.warn("[binding-modbus]","transaction failed:", error);
                 this.currentTransaction = null;
                 this.trigger();
             }
@@ -158,14 +158,14 @@ export class ModbusConnection {
         this.modbusstop();
     }
     private modbusstop() {
-        console.log("Closing unused connection");
+        console.debug("[binding-modbus]","Closing unused connection");
         this.client.close((err: string) => {
             if (!err) {
-                console.debug("Modbus: session closed");
+                console.debug("[binding-modbus]","session closed");
                 this.connecting = false;
                 this.connected = false;
             } else {
-                console.error("Modbus: cannot close session " + err);
+                console.error("[binding-modbus]","cannot close session " + err);
             }
         });
         clearInterval(this.timer)
@@ -173,7 +173,7 @@ export class ModbusConnection {
     }
 
     async readModbus(transaction: ModbusTransaction): Promise<ReadCoilResult | ReadRegisterResult> {
-        console.debug("Invoking read transaction");
+        console.debug("[binding-modbus]","Invoking read transaction");
         // reset connection idle timer
         if (this.timer) {
             clearTimeout(this.timer);
@@ -199,7 +199,7 @@ export class ModbusConnection {
     }
 
     async writeModbus(transaction: ModbusTransaction): Promise<void> {
-        console.debug("Invoking write transaction");
+        console.debug("[binding-modbus]","Invoking write transaction");
         // reset connection idle timer
         if (this.timer) {
             clearTimeout(this.timer);
@@ -295,7 +295,7 @@ class ModbusTransaction {
      * @see ModbusConnection.trigger()
      */
     trigger() {
-        console.debug("ModbusTransaction:trigger");
+        console.debug("[binding-modbus]","ModbusTransaction:trigger");
         this.connection.trigger();
     }
 
@@ -309,25 +309,25 @@ class ModbusTransaction {
     async execute(): Promise<void> {
         if (!this.content) {
             // Read transaction
-            console.debug("Trigger MODBUS read operation on", this.base, "len", this.length);
+            console.debug("[binding-modbus]","Trigger read operation on", this.base, "len", this.length);
             try {
                 const result = await this.connection.readModbus(this)
-                console.debug("[binding-modbus]", "Got result from MODBUS read operation on", this.base, "len", this.length);
+                console.debug("[binding-modbus]", "Got result from read operation on", this.base, "len", this.length);
                 this.operations.forEach(op => op.done(this.base, result.buffer));
             } catch (error) {
-                console.warn("[binding-modbus]", "MODBUS read operation failed on", this.base, "len", this.length, error);
+                console.warn("[binding-modbus]", "read operation failed on", this.base, "len", this.length, error);
                 // inform all operations and the invoker
                 this.operations.forEach(op => op.failed(error));
                 throw error;
             }
 
         } else {
-            console.log("[binding-modbus]", "Trigger MODBUS write operation on", this.base, "len", this.length);
+            console.debug("[binding-modbus]", "Trigger write operation on", this.base, "len", this.length);
             try {
                 await this.connection.writeModbus(this)
                 this.operations.forEach(op => op.done());
             } catch (error) {
-                console.warn("[binding-modbus]", "MODBUS write operation failed on", this.base, "len", this.length, error);
+                console.warn("[binding-modbus]", "write operation failed on", this.base, "len", this.length, error);
                 // inform all operations and the invoker
                 this.operations.forEach(op => op.failed(error));
                 throw error;
@@ -385,7 +385,7 @@ export class PropertyOperation {
      * @param data Result data of the transaction as array (on read)
      */
     done(base?: number, buffer?: Buffer) {
-        console.debug("Operation done");
+        console.debug("[binding-modbus]","Operation done");
 
         if (base == null || base == undefined) {
             // resolve write operation
@@ -423,7 +423,7 @@ export class PropertyOperation {
      * @param reason Reason of failure
      */
     failed(reason: string) {
-        console.warn("Operation failed:", reason);
+        console.warn("[binding-modbus]","Operation failed:", reason);
         // reject the Promise given to the invoking script
         this.reject(reason);
     }

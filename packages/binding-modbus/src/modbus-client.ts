@@ -94,7 +94,7 @@ export default class ModbusClient implements ProtocolClient {
     let connection = this._connections.get(hostAndPort);
 
     if (!connection) {
-      console.info("Creating new ModbusConnection for ", hostAndPort);
+      console.debug("[binding-modbus]","Creating new ModbusConnection for ", hostAndPort);
       this._connections.set(hostAndPort, new ModbusConnection(host, port));
       connection = this._connections.get(hostAndPort);
     }
@@ -203,8 +203,6 @@ class Subscription {
         next(result)
       } catch (e) {
         if (error) { error(e); }
-        console.log(e);
-
         clearInterval(this.interval)
       }
     }, form['modbus:pollingTime'])

@@ -14,6 +14,10 @@ describe('Modbus client test', () => {
     let testServer: ModbusServer
 
     before(async () => {
+        //Turn off logging to have a clean test log
+        console.debug = ()=>{}
+        console.warn = ()=>{}
+
         client = new ModbusClient();
         testServer = new ModbusServer(1);
         await testServer.start()
