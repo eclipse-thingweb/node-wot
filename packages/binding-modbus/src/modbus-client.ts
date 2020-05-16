@@ -64,7 +64,7 @@ export default class ModbusClient implements ProtocolClient {
     return true;
   }
   stop(): boolean {
-    this._connections.forEach(connection =>{
+    this._connections.forEach(connection => {
       connection.close()
     })
     return true;
@@ -79,22 +79,22 @@ export default class ModbusClient implements ProtocolClient {
     let parsed = new URL(form.href);
     const port = parsed.port ? parseInt(parsed.port, 10) : DEFAULT_PORT
 
-    form = this.validateAndFillDefaultForm(form, content?.body.byteLength)
+    form = this.validateAndFillDefaultForm(form, content ?.body.byteLength)
 
     let host = parsed.hostname;
-    let hostAndPort = host + ":" + port;
+    let hostAndPort = host + ':' + port;
 
     this.overrideFormFromURLPath(form);
 
-    if(content){
-      this.validateContentLength(form,content)
+    if (content) {
+      this.validateContentLength(form, content)
     }
 
     // find or create connection
     let connection = this._connections.get(hostAndPort);
 
     if (!connection) {
-      console.debug("[binding-modbus]","Creating new ModbusConnection for ", hostAndPort);
+      console.debug('[binding-modbus]', 'Creating new ModbusConnection for ', hostAndPort);
       this._connections.set(hostAndPort, new ModbusConnection(host, port));
       connection = this._connections.get(hostAndPort);
     }
@@ -113,26 +113,26 @@ export default class ModbusClient implements ProtocolClient {
     let pathComp = parsed.pathname.split('/')
     let query = parsed.searchParams
 
-    input["modbus:unitID"] = parseInt(pathComp[1]) || input["modbus:unitID"];
-    input["modbus:range"][0] = parseInt(query.get("offset")) || input["modbus:range"][0];
-    input["modbus:range"][1] = parseInt(query.get("length")) || input["modbus:range"][1];
+    input['modbus:unitID'] = parseInt(pathComp[1], 10) || input['modbus:unitID'];
+    input['modbus:range'][0] = parseInt(query.get('offset'), 10) || input['modbus:range'][0];
+    input['modbus:range'][1] = parseInt(query.get('length'), 10) || input['modbus:range'][1];
   }
 
-  private validateContentLength(form:ModbusForm,content:Content){
-    
-    const mpy = form["modbus:entity"] === "InputRegister" || form["modbus:entity"] ===  "HoldingRegister" ? 2 : 1;
-    const length = form["modbus:range"][1] - form["modbus:range"][0]
-    if (content && content.body.length != mpy * length) {
-      throw new Error("Content length does not match register / coil count, got " + content.body.length + " bytes for "
-        + length + ` ${mpy === 2? "registers" : "coils"}`);
+  private validateContentLength(form: ModbusForm, content: Content) {
+
+    const mpy = form['modbus:entity'] === 'InputRegister' || form['modbus:entity'] === 'HoldingRegister' ? 2 : 1;
+    const length = form['modbus:range'][1] - form['modbus:range'][0]
+    if (content && content.body.length !== mpy * length) {
+      throw new Error('Content length does not match register / coil count, got ' + content.body.length + ' bytes for '
+        + length + ` ${mpy === 2 ? 'registers' : 'coils'}`);
     }
   }
   private validateAndFillDefaultForm(form: ModbusForm, contentLength = 0): ModbusForm {
     const result: ModbusForm = { ...form }
-    const mode = contentLength > 0 ? "w" : "r";
+    const mode = contentLength > 0 ? 'w' : 'r';
 
-    if (!form["modbus:function"] && !form["modbus:entity"]) {
-      throw new Error("Malformed form: modbus:function or modbus:entity must be defined");
+    if (!form['modbus:function'] && !form['modbus:entity']) {
+      throw new Error('Malformed form: modbus:function or modbus:entity must be defined');
     }
 
 
@@ -143,7 +143,7 @@ export default class ModbusClient implements ProtocolClient {
       }
 
       // Check if the function is a valid modbus function code
-      if (!Object.keys(ModbusFunction).includes(result["modbus:function"].toString())) {
+      if (!Object.keys(ModbusFunction).includes(result['modbus:function'].toString())) {
         throw new Error('Undefined function number or name: ' + form['modbus:function']);;
       }
     }
@@ -170,8 +170,8 @@ export default class ModbusClient implements ProtocolClient {
           throw new Error('Unknown modbus entity: ' + form['modbus:entity']);
       }
     } else {
-      //'modbus:entity' undefined but modbus:function defined
-      result["modbus:entity"] = modbusFunctionToEntity(result["modbus:function"] as ModbusFunction)
+      // 'modbus:entity' undefined but modbus:function defined
+      result['modbus:entity'] = modbusFunctionToEntity(result['modbus:function'] as ModbusFunction)
     }
 
     // fill default range
@@ -180,8 +180,9 @@ export default class ModbusClient implements ProtocolClient {
     } else if (!form['modbus:range'][1] && contentLength === 0) {
       result['modbus:range'] = [form['modbus:range'][0], 1]
     } else if (!form['modbus:range'][1] && contentLength > 0) {
-      const regSize = result["modbus:entity"] === 'InputRegister' || result["modbus:entity"] === 'HoldingRegister' ? 2 : 1
-      result['modbus:range'] = [form['modbus:range'][0], contentLength/regSize]
+      const regSize = result['modbus:entity'] === 'InputRegister' ||
+        result['modbus:entity'] === 'HoldingRegister' ? 2 : 1;
+      result['modbus:range'] = [form['modbus:range'][0], contentLength / regSize]
     }
 
     result['modbus:pollingTime'] = form['modbus:pollingTime'] ? form['modbus:pollingTime'] : DEFAULT_POLLING
