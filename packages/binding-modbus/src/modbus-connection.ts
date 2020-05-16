@@ -2,7 +2,6 @@ import ModbusRTU from "modbus-serial"
 import { ReadCoilResult, ReadRegisterResult } from "modbus-serial/ModbusRTU"
 import { ModbusEntity, ModbusFunction, ModbusForm } from "./modbus"
 import { Content } from "@node-wot/core"
-import { runInThisContext } from "vm"
 
 const configDefaults = {
     operationTimeout : 2000,
@@ -314,7 +313,7 @@ class ModbusTransaction {
             try {
                 const result = await this.connection.readModbus(this)
                 console.debug("[binding-modbus]", "Got result from MODBUS read operation on", this.base, "len", this.length);
-                this.operations.forEach(op => op.done(this.base, result.buffer, result.data));
+                this.operations.forEach(op => op.done(this.base, result.buffer));
             } catch (error) {
                 console.warn("[binding-modbus]", "MODBUS read operation failed on", this.base, "len", this.length, error);
                 // inform all operations and the invoker
@@ -385,7 +384,7 @@ export class PropertyOperation {
      * @param buffer Result data of the transaction as Buffer (on read)
      * @param data Result data of the transaction as array (on read)
      */
-    done(base?: number, buffer?: Buffer, data?: boolean[] | number[]) {
+    done(base?: number, buffer?: Buffer) {
         console.debug("Operation done");
 
         if (base == null || base == undefined) {

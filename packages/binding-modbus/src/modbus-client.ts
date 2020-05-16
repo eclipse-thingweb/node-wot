@@ -1,13 +1,11 @@
 /**
  * Modbus master based on modbus-serial
  */
-import { ModbusForm, ModbusFunction, ModbusFunctionName, ModbusEntity } from './modbus'
-import ModbusRTU from 'modbus-serial'
+import { ModbusForm, ModbusFunction } from './modbus'
 
 import { ProtocolClient, Content, ContentSerdes } from '@node-wot/core'
 import { SecurityScheme } from '@node-wot/td-tools'
 import { modbusFunctionToEntity } from './utils'
-import { ReadCoilResult, ReadRegisterResult } from 'modbus-serial/ModbusRTU'
 import { ModbusConnection, PropertyOperation } from './modbus-connection'
 
 const DEFAULT_PORT = 805
