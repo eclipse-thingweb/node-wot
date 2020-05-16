@@ -30,7 +30,7 @@ describe('Modbus connection', () => {
     })
 
     it('should throw for unknown host', () => {
-        const connection = new ModbusConnection("127.0.0.2", 8503,{connectionRetryTime:10,maxRetries:1})
+        const connection = new ModbusConnection("127.0.0.2", 8503,{connectionTimeout:200,connectionRetryTime:10,maxRetries:1})
         return connection.connect().should.eventually.be.rejected
     }).timeout(5000);
 
@@ -42,7 +42,7 @@ describe('Modbus connection', () => {
                 "modbus:range": [0,1],
                 "modbus:unitID": 1
             }
-            const connection = new ModbusConnection("127.0.0.2", 8503, { connectionRetryTime: 10, maxRetries: 1 })
+            const connection = new ModbusConnection("127.0.0.2", 8503, {connectionTimeout: 200, connectionRetryTime: 10, maxRetries: 1 })
             const op = new PropertyOperation(form)
             connection.enqueue(op);
 
