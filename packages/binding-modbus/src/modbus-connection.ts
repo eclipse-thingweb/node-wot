@@ -21,10 +21,10 @@ export class ModbusConnection {
   timer: NodeJS.Timer                 // connection idle timer
   currentTransaction: ModbusTransaction      // transaction currently in progress or null
   queue: Array<ModbusTransaction>     // queue of further transactions
-  config: { operationTimeout?: number; connectionRetryTime?: number; maxRetries?: number }
+  config: { connectionTimeout?: number, operationTimeout?: number; connectionRetryTime?: number; maxRetries?: number }
 
   constructor(host: string, port: number, config: {
-    operationTimeout?: number; connectionRetryTime?: number; maxRetries?: number
+    connectionTimeout?: number, operationTimeout?: number; connectionRetryTime?: number; maxRetries?: number
   } = configDefaults) {
     this.host = host;
     this.port = port;
@@ -98,6 +98,7 @@ export class ModbusConnection {
 
       for (let retry = 0; retry < this.config.maxRetries; retry++) {
         try {
+          this.client.setTimeout(this.config.connectionTimeout)
           await this.client.connectTCP(this.host, { port: this.port })
           this.connecting = false;
           this.connected = true;
