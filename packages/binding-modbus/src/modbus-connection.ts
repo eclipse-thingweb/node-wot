@@ -2,6 +2,13 @@ import ModbusRTU from "modbus-serial"
 import { ReadCoilResult, ReadRegisterResult } from "modbus-serial/ModbusRTU"
 import { ModbusEntity, ModbusFunction, ModbusForm } from "./modbus"
 import { Content } from "@node-wot/core"
+import { runInThisContext } from "vm"
+
+const configDefaults = {
+    operationTimeout : 2000,
+    connectionRetryTime: 10000,
+    maxRetries: 5
+}
 
 /**
  * ModbusConnection represents a client connected to a specific host and port
@@ -15,9 +22,11 @@ export class ModbusConnection {
     timer: NodeJS.Timer                 // connection idle timer
     currentTransaction: ModbusTransaction      // transaction currently in progress or null
     queue: Array<ModbusTransaction>     // queue of further transactions
-    connectionTimeout: number
+    config: { operationTimeout?: number; connectionRetryTime?: number; maxRetries?: number }
 
-    constructor(host: string, port: number,connectionTimeout=2000) {
+    constructor(host: string, port: number, config: { 
+        operationTimeout?: number; connectionRetryTime?: number; maxRetries?: number 
+    } =configDefaults) {
         this.host = host;
         this.port = port;
         this.client = new ModbusRTU(); //new ModbusClient();
@@ -26,7 +35,8 @@ export class ModbusConnection {
         this.timer = null;
         this.currentTransaction = null;
         this.queue = new Array<ModbusTransaction>();
-        this.connectionTimeout = connectionTimeout
+
+        this.config = Object.assign(configDefaults,config)
     }
 
     /**
@@ -81,6 +91,30 @@ export class ModbusConnection {
         this.queue.push(transaction);
     }
 
+    async connect(){
+        if (!this.connecting && !this.connected) {
+            console.info("Trying to connect to", this.host);
+            this.connecting = true;
+
+            for (let retry = 0; retry < this.config.maxRetries; retry++) {
+                try {
+                    await this.client.connectTCP(this.host, { port: this.port })
+                    this.connecting = false;
+                    this.connected = true;
+                    console.debug("[binding-modbus]", "Modbus connected to " + this.host);
+                    return
+                } catch (error) {
+                    console.warn("Cannot connect to", this.host, "reason", error, ` retry in ${this.config.connectionRetryTime}ms`);
+                    this.connecting = false;
+                    if (retry >= this.config.maxRetries - 1) {
+                        throw new Error("Max connection retries");
+                    }
+                    await new Promise(r => setTimeout(r, this.config.connectionRetryTime));
+                }   
+            }
+        }
+    }
+
     /**
      * Trigger work on this connection.
      * 
@@ -91,22 +125,22 @@ export class ModbusConnection {
      */
     async trigger() {
         console.debug("ModbusConnection:trigger");
-
-        if (!this.connecting && !this.connected) {
-            console.info("Trying to connect to", this.host);
-            this.connecting = true;
+        if (!this.connecting && !this.connected){
+            // connection may be closed due to operation timeout
+            // try to reconnect again
             try {
-                await this.client.connectTCP(this.host, { port: this.port })
-                this.connecting = false;
-                this.connected = true;
-                console.debug("[binding-modbus]", "Modbus connected to " + this.host);
-                this.trigger();
+                await this.connect()
+                this.trigger()
             } catch (error) {
-                console.warn("Cannot connect to", this.host, "reason", error, " retry in 10s");
-                this.connecting = false;
-                setTimeout(() => this.trigger(), 10000);
+                console.warn("[binding-modbus]","can not reconnect to modbus server")
+                // inform all the operations that the connection cannot be recovered
+                this.queue.forEach( transaction =>{
+                    transaction.operations.forEach( op =>{
+                        op.failed(error)
+                    })
+                })
             }
-        } else if (this.connected && this.currentTransaction == null && this.queue.length > 0) {
+        }else if (this.connected && this.currentTransaction == null && this.queue.length > 0) {
             // take next transaction from queue and execute
             this.currentTransaction = this.queue.shift();
             try {
@@ -121,6 +155,9 @@ export class ModbusConnection {
         }
     }
 
+    public close(){
+        this.modbusstop();
+    }
     private modbusstop() {
         console.log("Closing unused connection");
         this.client.close((err: string) => {
@@ -132,7 +169,7 @@ export class ModbusConnection {
                 console.error("Modbus: cannot close session " + err);
             }
         });
-
+        clearInterval(this.timer)
         this.timer = null;
     }
 
@@ -143,7 +180,7 @@ export class ModbusConnection {
             clearTimeout(this.timer);
         }
 
-        this.timer = global.setTimeout(() => this.modbusstop(), this.connectionTimeout);
+        this.timer = global.setTimeout(() => this.modbusstop(), this.config.operationTimeout);
 
         const regType: ModbusEntity = transaction.registerType;
         this.client.setID(transaction.unitId);
@@ -169,7 +206,7 @@ export class ModbusConnection {
             clearTimeout(this.timer);
         }
 
-        this.timer = global.setTimeout(() => this.modbusstop(), this.connectionTimeout);
+        this.timer = global.setTimeout(() => this.modbusstop(), this.config.operationTimeout);
 
         const modFunc: ModbusFunction = transaction.function;
         this.client.setID(transaction.unitId);

@@ -66,6 +66,9 @@ export default class ModbusClient implements ProtocolClient {
     return true;
   }
   stop(): boolean {
+    this._connections.forEach(connection =>{
+      connection.close()
+    })
     return true;
   }
   setSecurity(metadata: SecurityScheme[], credentials?: any): boolean {

@@ -22,6 +22,9 @@ describe('Modbus client test', () => {
     beforeEach(() => {
         testServer.clear()
     });
+    afterEach(() => {
+        client.stop()
+    });
     after(() => {
         testServer.stop()
     });

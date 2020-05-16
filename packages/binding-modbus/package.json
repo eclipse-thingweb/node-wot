@@ -38,7 +38,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "mocha --require ts-node/register test/modbus-client-test.ts",
+    "test": "mocha --require ts-node/register test/*",
     "codestyle": "standard --pretty"
   }
 }
