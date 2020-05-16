@@ -97,6 +97,8 @@ export default class ModbusClient implements ProtocolClient {
       console.debug('[binding-modbus]', 'Creating new ModbusConnection for ', hostAndPort);
       this._connections.set(hostAndPort, new ModbusConnection(host, port));
       connection = this._connections.get(hostAndPort);
+    }else {
+      console.debug('[binding-modbus]', 'Reusing ModbusConnection for ', hostAndPort);
     }
     // create operation
     let operation = new PropertyOperation(form, content ? content.body : undefined);
