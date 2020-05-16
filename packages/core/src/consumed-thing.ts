@@ -168,7 +168,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                 console.log(`ConsumedThing '${this.title}' reading ${form.href}`);
 
                 // uriVariables ?
-                form = this.handleUriVariables(form, undefined);
+                form = this.handleUriVariables(form, options);
 
                 client.readResource(form).then((content) => {
                     if (!content.type) content.type = form.contentType;
@@ -231,10 +231,10 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
             } else {
                 console.log(`ConsumedThing '${this.title}' writing ${form.href} with '${value}'`);
-                let content = ContentManager.valueToContent(value, <any>tp, form.contentType);
+                let content = ContentManager.valueToContent(value, <any>tp.input, form.contentType);
 
                 // uriVariables ?
-                form = this.handleUriVariables(form, value);
+                form = this.handleUriVariables(form, options);
 
                 client.writeResource(form, content).then(() => {
                     resolve();
@@ -279,7 +279,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                 }
 
                 // uriVariables ?
-                form = this.handleUriVariables(form, parameter);
+                form = this.handleUriVariables(form, options);
 
                 client.invokeResource(form, input).then((content) => {
                     // infer media type from form if not in response metadata
@@ -312,6 +312,9 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
             } else {
                 console.log(`ConsumedThing '${this.title}' observing to ${form.href}`);
+
+                // uriVariables ?
+                form = this.handleUriVariables(form, options);
 
                 return client.subscribeResource(form,
                     (content) => {
@@ -357,6 +360,10 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
             } else {
                 console.log(`ConsumedThing '${this.title}' subscribing to ${form.href}`);
+                
+                // uriVariables ?
+                form = this.handleUriVariables(form, options);
+
                 return client.subscribeResource(form,
                     (content) => {
                         if (!content.type) content.type = form.contentType;
@@ -394,11 +401,11 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     }
 
     // creates new form (if needed) for URI Variables
-    // http://192.168.178.24:8080/counter/actions/increment{?step} with '{'step' : 3}' --> http://192.168.178.24:8080/counter/actions/increment?step=3
+    // http://192.168.178.24:8080/counter/actions/increment{?step} with options {uriVariables: {'step' : 3}} --> http://192.168.178.24:8080/counter/actions/increment?step=3
     // see RFC6570 (https://tools.ietf.org/html/rfc6570) for URI Template syntax
-    handleUriVariables(form: TD.Form, parameter: any): TD.Form {
+    handleUriVariables(form: TD.Form, options?: WoT.InteractionOptions): TD.Form {
         let ut = UriTemplate.parse(form.href);
-        let updatedHref = ut.expand(parameter == undefined ? {} : parameter);
+        let updatedHref = ut.expand(options == undefined || options.uriVariables == undefined ? {} : options.uriVariables);
         if (updatedHref != form.href) {
             // "clone" form to avoid modifying original form
             let updForm = new TD.Form(updatedHref, form.contentType);

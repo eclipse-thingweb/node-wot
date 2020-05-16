@@ -64,3 +64,6 @@ packages/*
 !packages/cli
 !packages/browser-bundle
 !packages/examples
+
+# JetBrains IDEs
+.idea/
