@@ -46,7 +46,7 @@ export default class HttpClient implements ProtocolClient {
 
   private credential:Credential = null;
 
-  constructor(config: HttpConfig = null, secure = false,oauthManager: OAuthManager = new OAuthManager()) {
+  constructor(config: HttpConfig = null, secure = false, oauthManager: OAuthManager = new OAuthManager()) {
 
     // config proxy by client side (not from TD)
     if (config!==null && config.proxy && config.proxy.href) {

@@ -36,7 +36,7 @@ export default class HttpClientFactory implements ProtocolClientFactory {
     // HTTP over HTTPS proxy requires HttpsClient
     if (this.config && this.config.proxy && this.config.proxy.href && this.config.proxy.href.startsWith("https:")) {
       console.warn(`HttpClientFactory creating client for 'https' due to secure proxy configuration`);
-      return new HttpClient(this.config, true,this.oAuthManager);
+      return new HttpClient(this.config, true, this.oAuthManager);
     } else {
       console.log(`HttpClientFactory creating client for '${this.scheme}'`);
       return new HttpClient(this.config);
