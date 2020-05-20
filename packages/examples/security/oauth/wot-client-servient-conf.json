@@ -1,6 +1,6 @@
 {
     "servient": {
-        "clientOnly": true,
+        "clientOnly": true
     },
     "http":{
         "allowSelfSigned": true
