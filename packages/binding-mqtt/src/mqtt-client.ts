@@ -147,7 +147,7 @@ export default class MqttClient implements ProtocolClient {
             //this.authorization = "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString('base64');
           //  this.user = mqtt.username;
         }
-        true;
+        return true;
       }
 
     private mapQoS = (qos: MqttQoS): QoS => {
