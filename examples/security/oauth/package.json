@@ -1,0 +1,17 @@
+{
+  "name": "oauth-test",
+  "version": "1.0.0",
+  "description": "Simple project setup to test oauth functionalities",
+  "main": "index.js",
+  "scripts": {
+    "server": "node server.js",
+    "start:exposer": "node ../../../packages/cli/dist/cli.js exposer.js",
+    "start:consumer": "node ../../../packages/cli/dist/cli.js -f ./wot-client-servient-conf.json consumer.js"
+  },
+  "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
+  "license": "EPL-2.0 OR W3C-20150513",
+  "devDependencies": {
+    "@types/express-oauth-server": "^2.0.2",
+    "express-oauth-server": "^2.0.0"
+  }
+}
