@@ -36,16 +36,18 @@ export interface HttpConfig {
 
 export interface HttpProxyConfig {
     href: string;
-    scheme?: string;
+    scheme?: "basic" | "bearer";
     token?: string;
     username?: string;
     password?: string;
 }
 
 export class HttpForm extends TD.Form {
-    public "htv:methodName"?: string; // "GET", "PUT", "POST", "DELETE"
+    public "htv:methodName"?: HTTPMethodName;
     public "htv:headers"?: Array<HttpHeader> | HttpHeader;
 }
+
+export type HTTPMethodName = "GET" | "PUT" | "POST" | "DELETE" | "PATCH";
 
 export class HttpHeader {
     public "htv:fieldName": number;
