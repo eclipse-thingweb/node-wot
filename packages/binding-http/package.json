@@ -40,7 +40,8 @@
     "basic-auth": "2.0.1",
     "client-oauth2": "^4.2.5",
     "node-fetch": "^2.6.0",
-    "rxjs": "5.5.11"
+    "rxjs": "5.5.11",
+    "accept-language-parser": "1.5.0"
   },
   "scripts": {
     "build": "tsc",
