@@ -344,7 +344,6 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                         try {
                             let value = ContentManager.contentToValue(content, <any>tp);
                             listener(value);
-                            resolve();
                         } catch {
                             reject(new Error(`Received invalid content from Thing`));
                         }
@@ -392,7 +391,6 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                         try {
                             let value = ContentManager.contentToValue(content, <any>te.data);
                             listener(value);
-                            resolve();
                         } catch {
                             reject(new Error(`Received invalid content from Thing`));
                         }
