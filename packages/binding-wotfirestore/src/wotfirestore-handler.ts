@@ -9,7 +9,7 @@ import { Buffer } from 'buffer'
  * fstoreがnullの場合でのみ初期化処理を実施する。
  */
 export const initFirestore = async (fbConfig, fstore): Promise<any> => {
-  return new Promise<any>((resolve, reject) => {
+  return new Promise<any>(async (resolve, reject) => {
     if (fstore != null) {
       resolve(fstore)
       return
@@ -19,16 +19,40 @@ export const initFirestore = async (fbConfig, fstore): Promise<any> => {
       firebase.initializeApp(fbConfig.firebaseConfig)
     }
     // Sign In
-    firebase
-      .auth()
-      .signInWithEmailAndPassword(fbConfig.user.email, fbConfig.user.password)
-      .then(() => {
-        const firestore = firebase.firestore()
-        resolve(firestore)
+    const getCurrentUser = () => {
+      return new Promise<any>((res, rej) => {
+        firebase.auth().onAuthStateChanged((user) => {
+          res(user)
+        })
       })
-      .catch(function (error) {
-        reject(`firebase auth error: ${error}`)
-      })
+    }
+    let currentUser = await getCurrentUser()
+    if (!currentUser) {
+      if (
+        !fbConfig ||
+        !fbConfig.user ||
+        !fbConfig.user.email ||
+        !fbConfig.user.password
+      ) {
+        reject('firebase auth error: cannot find email/password')
+        return
+      }
+      firebase
+        .auth()
+        .signInWithEmailAndPassword(fbConfig.user.email, fbConfig.user.password)
+        .then(() => {
+          const firestore = firebase.firestore()
+          resolve(firestore)
+          return
+        })
+        .catch(function (error) {
+          reject(`firebase auth error: ${error}`)
+          return
+        })
+    } else {
+      resolve(firebase.firestore())
+      return
+    }
   })
 }
 

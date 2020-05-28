@@ -71,7 +71,7 @@ export default class WoTFirestoreServer implements ProtocolServer {
     this.fbConfig = config
   }
 
-  public async start(servient: Servient): Promise<void> {
+  public start(servient: Servient): Promise<void> {
     console.info(`WoT Firestore start`)
     return new Promise<void>((resolve, reject) => {
       initFirestore(this.fbConfig, null)

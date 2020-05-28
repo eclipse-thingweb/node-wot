@@ -41,7 +41,11 @@ export default class WoTFirestoreCodec {
       } else if (schema.type === 'number' || schema.type === 'integer') {
         parsed = Number(parsed)
       } else if (schema.type === 'object' || schema.type === 'array') {
-        parsed = JSON.parse(parsed)
+        if (parsed === '') {
+          parsed = null
+        } else {
+          parsed = JSON.parse(parsed)
+        }
       }
     }
     console.log('++++++++++++++++++++++++++ bytesToValue', parsed, schema)
@@ -55,7 +59,7 @@ export default class WoTFirestoreCodec {
   ): Buffer {
     console.log('++++++++++++++++++++++++++ valueToByte', value, schema)
     let body = ''
-    if (value) {
+    if (value !== null && value !== undefined) {
       if (schema && (schema.type === 'object' || schema.type === 'array')) {
         body = JSON.stringify(value)
       } else {
