@@ -143,22 +143,11 @@ export default class HttpClient implements ProtocolClient {
   }
 
   public async unlinkResource(form: HttpForm): Promise<any> {
-    const request = await this.generateFetchRequest(form, "DELETE")
-    console.info(`HttpClient (unlinkResource) sending ${request.method} to ${request.url}`);
+    console.info(`HttpClient (unlinkResource) ${form.href}`);
 
     this.activeSubscriptions.delete(form.href)
 
-    const result = await this.fetch(request)
-
-    // TODO might have response on unlink for future HATEOAS concept
-    this.checkFetchResponse(result)
-
-    const buffer = await result.buffer()
-    
-    console.debug(`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
-    console.debug(`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
-
-    return { type: result.headers.get("content-type"), body: buffer };
+    return {};
   }
 
   public subscribeResource(form: HttpForm, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): any {
