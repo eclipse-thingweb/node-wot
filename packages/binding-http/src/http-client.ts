@@ -172,6 +172,8 @@ export default class HttpClient implements ProtocolClient {
         if (this.activeSubscriptions.has(form.href)) {
           next({ type: result.headers.get("content-type"), body: buffer })
           polling()
+        } {
+          complete && complete()
         }
       } catch (e) {
         error && error(e)
