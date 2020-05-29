@@ -168,6 +168,14 @@ let myThingDesc = {
             forms: [
                 { href: "testdata://host/athing/properties/aproperty", mediaType: "application/json" }
             ]
+        },
+        aPropertyToObserve: {
+            type: "integer",
+            readOnly: false,
+            observable: true,
+            forms: [
+                { href: "testdata://host/athing/properties/apropertytoobserve", mediaType: "application/json", op: ["readproperty", "observeproperty"] }
+            ]
         }
     },
     actions: {
@@ -492,7 +500,8 @@ class WoTClientTest {
             .catch(err => { done(err) });
     }
 
-    @test "observe property (next API)"(done: Function) {
+
+    @test "observe property"(done: Function) {
         
         WoTClientTest.clientFactory.setTrap(
             () => {
@@ -506,21 +515,36 @@ class WoTClientTest {
             })
             .then((thing) => {
                 expect(thing).to.have.property("title").that.equals("aThing");
-                expect(thing).to.have.property("properties").that.has.property("aProperty");
+                expect(thing).to.have.property("properties").that.has.property("aPropertyToObserve");
 
-                thing.observeProperty("aProperty",
+                thing.observeProperty("aPropertyToObserve",
                     (data: any) => {
                         if(data == 12) {
                             done();
                         }
-                        // expect(data).to.equal(12);
-                        // expect(data).to.equal(undefined);
-                        // done();
                     }
                 );
+            })
+            .catch(err => { done(err) });
+    }
 
-                // thing.writeProperty("aProperty", 123);
-                // thing.properties["aProperty"].write(12);
+
+    @test "observe property should fail"(done: Function) {
+
+        WoTClientTest.WoTHelpers.fetch("td://foo")
+            .then((td) => {
+                return WoTClientTest.WoT.consume(td);
+            })
+            .then((thing) => {
+                expect(thing).to.have.property("title").that.equals("aThing");
+                expect(thing).to.have.property("properties").that.has.property("aProperty");
+
+                thing.observeProperty("aProperty",
+                    (data: any) => {
+                        done(new Error("property is not observable"))
+                    }
+                )
+                .catch(err => { done() });
             })
             .catch(err => { done(err) });
     }

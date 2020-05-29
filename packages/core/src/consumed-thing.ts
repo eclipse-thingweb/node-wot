@@ -28,6 +28,12 @@ import { Subscribable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
 import UriTemplate = require('uritemplate');
 
+enum Affordance {
+    PropertyAffordance,
+    ActionAffordance,
+    EventAffordance
+}
+
 export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing {
 
     /** A map of interactable Thing Properties with read()/write()/subscribe() functions */
@@ -82,21 +88,38 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     }
 
 
-    findForm(forms: Array<TD.Form>, op: string, schemes: string[], idx: number): TD.Form {
+    findForm(forms: Array<TD.Form>, op: string, affordance: Affordance, schemes: string[], idx: number): TD.Form {
         let form = null;
 
         // find right operation and corresponding scheme in the array form
         for (let f of forms) {
-            if (f.op != undefined)
-                if (f.op.indexOf(op) != -1 && f.href.indexOf(schemes[idx] + ":") != -1) {
+            let fop: string | Array<string>;
+            if (f.op != undefined) {
+                fop = f.op;
+            } else {
+                // default "op" values
+                // see https://w3c.github.io/wot-thing-description/#sec-default-values
+                switch (affordance) {
+                    case Affordance.PropertyAffordance:
+                        fop = ["readproperty", "writeproperty"];
+                        break;
+                    case Affordance.ActionAffordance:
+                        fop = "invokeaction";
+                        break;
+                    case Affordance.EventAffordance:
+                        fop = "subscribeevent";
+                        break;
+                }
+            }
+            if (fop != undefined)
+                if (fop.indexOf(op) != -1 && f.href.indexOf(schemes[idx] + ":") != -1) {
                     form = f;
                     break;
                 }
         }
 
-        // if there no op was defined use default assignment
         if (form == null) {
-            form = forms[idx];
+            // no according form found 
         }
 
         return form;
@@ -119,7 +142,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     }
 
     // utility for Property, Action, and Event
-    getClientFor(forms: Array<TD.Form>, op: string, options?: WoT.InteractionOptions): ClientAndForm {
+    getClientFor(forms: Array<TD.Form>, op: string, affordance: Affordance, options?: WoT.InteractionOptions): ClientAndForm {
         if (forms.length === 0) {
             throw new Error(`ConsumedThing '${this.title}' has no links for this interaction`);
         }
@@ -158,7 +181,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                 // from cache
                 console.debug(`ConsumedThing '${this.title}' chose cached client for '${schemes[cacheIdx]}'`);
                 client = this.getClients().get(schemes[cacheIdx]);
-                form = this.findForm(forms, op, schemes, cacheIdx);
+                form = this.findForm(forms, op, affordance, schemes, cacheIdx);
             } else {
                 // new client
                 console.debug(`ConsumedThing '${this.title}' has no client in cache (${cacheIdx})`);
@@ -172,7 +195,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                 this.ensureClientSecurity(client);
                 this.getClients().set(schemes[srvIdx], client);
 
-                form = this.findForm(forms, op, schemes, srvIdx);
+                form = this.findForm(forms, op, affordance, schemes, srvIdx);
             }
         }
         return { client: client, form: form }
@@ -182,10 +205,11 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
         return new Promise<any>((resolve, reject) => {
             // TODO pass expected form op to getClientFor()
             let tp: TD.ThingProperty = this.properties[propertyName];
-            let { client, form } = this.getClientFor(tp.forms, "readproperty", options);
-            console.log("form: " + form)
+            let { client, form } = this.getClientFor(tp.forms, "readproperty", Affordance.PropertyAffordance, options);
             if (!client) {
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
+            } else if (!form) {
+                reject(new Error(`ConsumedThing '${this.title}' did not get suitable form`));
             } else {
                 console.log(`ConsumedThing '${this.title}' reading ${form.href}`);
 
@@ -235,6 +259,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     readAllProperties(options?: WoT.InteractionOptions): Promise<WoT.PropertyValueMap> {
         let propertyNames: string[] = [];
         for (let propertyName in this.properties) {
+            // TODO how to check whether property has "op": "readproperty"
             propertyNames.push(propertyName);
         }
         return this._readProperties(propertyNames);
@@ -248,9 +273,11 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
         return new Promise<void>((resolve, reject) => {
             // TODO pass expected form op to getClientFor()
             let tp: TD.ThingProperty = this.properties[propertyName];
-            let { client, form } = this.getClientFor(tp.forms, "writeproperty", options);
+            let { client, form } = this.getClientFor(tp.forms, "writeproperty", Affordance.PropertyAffordance, options);
             if (!client) {
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
+            } else if (!form) {
+                reject(new Error(`ConsumedThing '${this.title}' did not get suitable form`));
             } else {
                 console.log(`ConsumedThing '${this.title}' writing ${form.href} with '${value}'`);
                 let content = ContentManager.valueToContent(value, <any>tp.input, form.contentType);
@@ -288,9 +315,11 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     public invokeAction(actionName: string, parameter?: any, options?: WoT.InteractionOptions): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             let ta: TD.ThingAction = this.actions[actionName];
-            let { client, form } = this.getClientFor(ta.forms, "invokeaction", options);
+            let { client, form } = this.getClientFor(ta.forms, "invokeaction", Affordance.ActionAffordance, options);
             if (!client) {
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
+            } else if (!form) {
+                reject(new Error(`ConsumedThing '${this.title}' did not get suitable form`));
             } else {
                 console.log(`ConsumedThing '${this.title}' invoking ${form.href}${parameter !== undefined ? " with '" + parameter + "'" : ""}`);
 
@@ -329,9 +358,11 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     public observeProperty(name: string, listener: WoT.WotListener, options?: WoT.InteractionOptions): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             let tp: TD.ThingProperty = this.properties[name];
-            let { client, form } = this.getClientFor(tp.forms, "observeproperty", options);
+            let { client, form } = this.getClientFor(tp.forms, "observeproperty", Affordance.PropertyAffordance, options);
             if (!client) {
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
+            } else if (!form) {
+                reject(new Error(`ConsumedThing '${this.title}' did not get suitable form`));
             } else {
                 console.log(`ConsumedThing '${this.title}' observing to ${form.href}`);
 
@@ -363,9 +394,11 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     public unobserveProperty(name: string, options?: WoT.InteractionOptions): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             let tp: TD.ThingProperty = this.properties[name];
-            let { client, form } = this.getClientFor(tp.forms, "unobserveproperty", options);
+            let { client, form } = this.getClientFor(tp.forms, "unobserveproperty", Affordance.PropertyAffordance, options);
             if (!client) {
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
+            } else if (!form) {
+                reject(new Error(`ConsumedThing '${this.title}' did not get suitable form`));
             } else {
                 console.log(`ConsumedThing '${this.title}' unobserveing to ${form.href}`);
                 client.unlinkResource(form);
@@ -377,9 +410,11 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     public subscribeEvent(name: string, listener: WoT.WotListener, options?: WoT.InteractionOptions): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             let te: TD.ThingEvent = this.events[name];
-            let { client, form } = this.getClientFor(te.forms, "subscribeevent", options);
+            let { client, form } = this.getClientFor(te.forms, "subscribeevent", Affordance.EventAffordance, options);
             if (!client) {
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
+            } else if (!form) {
+                reject(new Error(`ConsumedThing '${this.title}' did not get suitable form`));
             } else {
                 console.log(`ConsumedThing '${this.title}' subscribing to ${form.href}`);
                 
@@ -411,9 +446,11 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     public unsubscribeEvent(name: string, options?: WoT.InteractionOptions): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             let te: TD.ThingEvent = this.events[name];
-            let { client, form } = this.getClientFor(te.forms, "unsubscribeevent", options);
+            let { client, form } = this.getClientFor(te.forms, "unsubscribeevent", Affordance.EventAffordance, options);
             if (!client) {
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
+            } else if (!form) {
+                reject(new Error(`ConsumedThing '${this.title}' did not get suitable form`));
             } else {
                 console.log(`ConsumedThing '${this.title}' unsubscribing to ${form.href}`);
                 client.unlinkResource(form);
