@@ -205,7 +205,7 @@ class HttpClientTest {
             }
         };
         httpServer.setTestVector(inputVector);
-        let representation = await client.readResource(inputVector.form);
+        let representation = await client.readResource(inputVector.form as HttpForm);
 
         // write with POST instead of PUT
         inputVector = {
@@ -217,7 +217,7 @@ class HttpClientTest {
             payload: "test"
         };
         httpServer.setTestVector(inputVector);
-        representation = await client.writeResource(inputVector.form, { type: ContentSerdes.DEFAULT, body: Buffer.from(inputVector.payload) });
+        representation = await client.writeResource(inputVector.form as HttpForm, { type: ContentSerdes.DEFAULT, body: Buffer.from(inputVector.payload) });
 
         // invoke with PUT instead of POST
         inputVector = {
@@ -229,7 +229,7 @@ class HttpClientTest {
             payload: "test"
         };
         httpServer.setTestVector(inputVector);
-        representation = await client.invokeResource(inputVector.form, { type: ContentSerdes.DEFAULT, body: Buffer.from(inputVector.payload) });
+        representation = await client.invokeResource(inputVector.form as HttpForm, { type: ContentSerdes.DEFAULT, body: Buffer.from(inputVector.payload) });
 
         // invoke with DELETE instead of POST
         inputVector = {
@@ -240,7 +240,7 @@ class HttpClientTest {
             }
         };
         httpServer.setTestVector(inputVector);
-        representation = await client.invokeResource(inputVector.form);
+        representation = await client.invokeResource(inputVector.form as HttpForm);
 
         return httpServer.stop();
     }

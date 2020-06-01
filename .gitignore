@@ -65,3 +65,6 @@ packages/*
 !packages/examples
 !packages/wot-agent
 !packages/wot-console
+
+# JetBrains IDEs
+.idea/

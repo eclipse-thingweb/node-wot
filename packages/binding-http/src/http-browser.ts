@@ -49,3 +49,18 @@ export class HttpHeader {
     public "http:fieldName": number;
     public "http:fieldValue": any;
 }
+
+import {Headers,Response} from "node-fetch"
+
+Headers.prototype.raw = function () {
+    const result: { [key: string]: [string] } = {}
+    for (let h in this.entries()) {
+        // @ts-ignore
+        result[h[0]] = h[1].split(",")
+    }
+    return result
+}
+
+Response.prototype.buffer = async function () {
+    return Buffer.from( await this.arrayBuffer())
+}

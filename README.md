@@ -1,9 +1,11 @@
 # Eclipse Thingweb node-wot
 W3C Web of Things implementation on NodeJS.
 
-Visit http://www.thingweb.io for a [hands-on tutorial](http://www.thingweb.io/hands-on.html) or additional information.
+Visit http://www.thingweb.io for a practical [node-wot API usage](http://www.thingweb.io/smart-coffee-machine.html), [hands-on tutorials](http://www.thingweb.io/hands-on.html) or additional information.
 
-Useful labels: <span style="background-color:purple"><a href="https://github.com/eclipse/thingweb.node-wot/issues?q=+label%3Aquestion+">question</a></span>
+Useful labels:
+<a href="https://github.com/eclipse/thingweb.node-wot/issues?q=label%3Aquestion+">question</a> |
+<a href="https://github.com/eclipse/thingweb.node-wot/issues?q=label%3A%22good+first+issue%22+">good first issue</a>
 
 [![Build Status](https://travis-ci.org/eclipse/thingweb.node-wot.svg?branch=master)](https://travis-ci.org/eclipse/thingweb.node-wot)
 
@@ -39,6 +41,7 @@ Install the Windows build tools through a CMD shell as administrator:
 ```
 npm install -g --production windows-build-tools
 ```
+> WSL: Windows Services for Linux should follow Linux instructions.
 
 #### Mac OS
 Meet the [node-gyp](https://github.com/nodejs/node-gyp#installation) requirements:
@@ -107,7 +110,7 @@ npm run build
 #### Optional steps
 
 ###### Link Packages
-Make all packages available on your local machine (as symlinks). You can then use each paket in its local version via `npm link <module>` instead of `npm install <module>` (see also https://docs.npmjs.com/cli/link).
+Make all packages available on your local machine (as symlinks). You can then use each package in its local version via `npm link <module>` instead of `npm install <module>` (see also https://docs.npmjs.com/cli/link).
 ```
 sudo npm run link
 ```
@@ -148,6 +151,8 @@ To reduce the size of the installation from about 800 MByte down to about 200 MB
 * `sudo npm run link` does not work
    * try `npm run unlock` from project root before calling `[sudo] npm run link`
    * try `npm link` in each package directory in this order: td-tools, core, binding-\*, cli, demo-servients
+* Build error around `prebuild: npm run bootstrap`
+   * This has been seen failing on WSL.  Try using Node 12.13.0
 
 ### As a browser library
 
@@ -242,19 +247,24 @@ You can also see `examples/scripts` to have a feeling of how to script a Thing.
 
 #### Protocol Support
 
-* HTTP :heavy_check_mark:
-* HTTPS :heavy_check_mark:
-* CoAP :heavy_check_mark:
-* CoAPS :heavy_check_mark:
+* [HTTP](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-http/README.md) :heavy_check_mark:
+* [HTTPS](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-http/README.md) :heavy_check_mark:
+* [CoAP](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-coap/README.md) :heavy_check_mark:
+* [CoAPS](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-coap/README.md) :heavy_check_mark:
 * Websocket :heavy_check_mark:
-* MQTT :heavy_check_mark:
+* [MQTT](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-mqtt/README.md) :heavy_check_mark:
+* [OPC-UA](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-opcua/README.md) :heavy_plus_sign: (Client only)
+* [NETCONF](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-netconf/README.md) :heavy_plus_sign: (Client only)
+* Modbus :heavy_multiplication_x: (wip)
 
 Note: More protocols can be easily added by implementing `ProtocolClient`, `ProtocolClientFactory`, and `ProtocolServer` interface.
 
 #### MediaType Support
 
 * JSON :heavy_check_mark:
-* Plain text :heavy_check_mark:
+* Text (HTML, CSS, XML, SVG) :heavy_check_mark:
+* Base64 (PNG, JPEG, GIF) :heavy_check_mark:
+* Octet stream :heavy_check_mark:
 * CBOR :heavy_multiplication_x:
 * EXI :heavy_multiplication_x:
 

@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -21,7 +21,7 @@ const coap = require('coap');
 import * as url from 'url';
 
 import * as TD from "@node-wot/td-tools";
-import Servient, { ProtocolServer, ContentSerdes, ExposedThing, Helpers, Content } from "@node-wot/core";
+import Servient, { ProtocolServer, ContentSerdes, ExposedThing, Helpers, ProtocolHelpers } from "@node-wot/core";
 
 export default class CoapServer implements ProtocolServer {
 
@@ -95,7 +95,7 @@ export default class CoapServer implements ProtocolServer {
     }
   }
 
-  public expose(thing: ExposedThing): Promise<void> {
+  public expose(thing: ExposedThing, tdTemplate?: WoT.ThingDescription): Promise<void> {
 
     let title = thing.title;
 
@@ -116,6 +116,7 @@ export default class CoapServer implements ProtocolServer {
           for (let propertyName in thing.properties) {
             let href = base + "/" + this.PROPERTY_DIR + "/" + encodeURIComponent(propertyName);
             let form = new TD.Form(href, type);
+            ProtocolHelpers.updatePropertyFormWithTemplate(form, tdTemplate, propertyName);
             if (thing.properties[propertyName].readOnly) {
               form.op = ["readproperty"];
             } else if (thing.properties[propertyName].writeOnly) {
@@ -130,6 +131,7 @@ export default class CoapServer implements ProtocolServer {
           for (let actionName in thing.actions) {
             let href = base + "/" + this.ACTION_DIR + "/" + encodeURIComponent(actionName);
             let form = new TD.Form(href, type);
+            ProtocolHelpers.updateActionFormWithTemplate(form, tdTemplate, actionName);
             form.op = "invokeaction";
             thing.actions[actionName].forms.push(form);
             console.log(`CoapServer on port ${this.getPort()} assigns '${href}' to Action '${actionName}'`);
@@ -138,6 +140,7 @@ export default class CoapServer implements ProtocolServer {
           for (let eventName in thing.events) {
             let href = base + "/" + this.EVENT_DIR + "/" + encodeURIComponent(eventName);
             let form = new TD.Form(href, type);
+            ProtocolHelpers.updateEventFormWithTemplate(form, tdTemplate, eventName);
             form.op = "subscribeevent";
             thing.events[eventName].forms.push(form);
             console.log(`CoapServer on port ${this.getPort()} assigns '${href}' to Event '${eventName}'`);
@@ -224,7 +227,8 @@ export default class CoapServer implements ProtocolServer {
                 thing.readProperty(segments[3])
                 // property.read()
                   .then((value) => {
-                    let content = ContentSerdes.get().valueToContent(value, <any>property);
+                    let contentType = ProtocolHelpers.getPropertyContentType(thing.getThingDescription(), segments[3], "coap");
+                    let content = ContentSerdes.get().valueToContent(value, <any>property, contentType);
                     res.setOption("Content-Format", content.type);
                     res.code = "2.05";
                     res.end(content.body);
@@ -240,7 +244,8 @@ export default class CoapServer implements ProtocolServer {
                   thing.readProperty(segments[3])
                   // property.read() periodically
                     .then((value) => {
-                      let content = ContentSerdes.get().valueToContent(value, <any>property);
+                      let contentType = ProtocolHelpers.getPropertyContentType(thing.getThingDescription(), segments[3], "coap");
+                      let content = ContentSerdes.get().valueToContent(value, <any>property, contentType);
                       res.setOption("Content-Format", content.type);
                       res.code = "2.05";
                       res.write(content.body);
@@ -311,7 +316,8 @@ export default class CoapServer implements ProtocolServer {
               // action.invoke(input)
                 .then((output) => {
                   if (output) {
-                    let content = ContentSerdes.get().valueToContent(output, action.output);
+                    let contentType = ProtocolHelpers.getActionContentType(thing.getThingDescription(), segments[3], "coap");
+                    let content = ContentSerdes.get().valueToContent(output, action.output, contentType);
                     res.setOption("Content-Format", content.type);
                     res.code = "2.05";
                     res.end(content.body);
@@ -361,7 +367,8 @@ export default class CoapServer implements ProtocolServer {
                   (data) => {
                     let content;
                     try {
-                      content = ContentSerdes.get().valueToContent(data, event.data);
+                      let contentType = ProtocolHelpers.getEventContentType(thing.getThingDescription(), segments[3], "coap");
+                      content = ContentSerdes.get().valueToContent(data, event.data, contentType);
                     } catch(err) {
                       console.warn(`CoapServer on port ${this.getPort()} cannot process data for Event '${segments[3]}: ${err.message}'`);
                       res.code = "5.00";

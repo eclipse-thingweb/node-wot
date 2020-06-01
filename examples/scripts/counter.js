@@ -13,11 +13,14 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
+// This is an example Thing script. 
+// It has a count property that can be incremented or decremented via actions and its changes are reported via events.
+// It also has two properties that return an image. The SVG property is also influenced by the increment and decrement actions.
 // Features
 // * basic properties, actions, events
 // * uriVariables
 // * multi-language
-
+// * image contentTypes for properties (Note: the contentType applies to all forms of the property)
 WoT.produce({
     title: "counter",
     titles: {
@@ -44,6 +47,25 @@ WoT.produce({
             },
             "iot:Custom": "example annotation",
             observable: true,
+            readOnly: true
+        },
+        countAsImage: {
+            description: "current counter value as SVG image",
+            forms: [{
+                    contentType: "image/svg+xml"
+                }],
+            observable: false,
+            readOnly: true,
+            uriVariables: {
+                fill: { "type": "string" }
+            }
+        },
+        redDotImage: {
+            description: "Red dot image as PNG",
+            forms: [{
+                    contentType: "image/png"
+                }],
+            observable: false,
             readOnly: true
         },
         lastChange: {
@@ -101,45 +123,71 @@ WoT.produce({
         }
     }
 })
-    .then(function (thing) {
+    .then((thing) => {
     console.log("Produced " + thing.getThingDescription().title);
     // init property values
     thing.writeProperty("count", 0);
     thing.writeProperty("lastChange", (new Date()).toISOString());
+    thing.setPropertyReadHandler("countAsImage", (options) => {
+        return thing.readProperty("count").then((count) => {
+            return new Promise((resolve, reject) => {
+                let fill = "black";
+                if (options && typeof options === 'object' && 'uriVariables' in options) {
+                    console.log("options = " + JSON.stringify(options));
+                    if ('fill' in options['uriVariables']) {
+                        let uriVariables = options['uriVariables'];
+                        fill = uriVariables['fill'];
+                    }
+                }
+                resolve("<svg xmlns='http://www.w3.org/2000/svg' height='30' width='200'>" +
+                    "<text x='0' y='15' fill='" + fill + "'>" + count + "</text>" +
+                    "</svg>");
+            });
+        });
+    });
+    thing.setPropertyReadHandler("redDotImage", () => {
+        return new Promise((resolve, reject) => {
+            // data:image/png;base64,
+            resolve("iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==");
+        });
+    });
     // set action handlers
-    thing.setActionHandler("increment", function (params, options) {
-        return thing.readProperty("count").then(function (count) {
-            var step = 1;
-            console.log(options);
+    thing.setActionHandler("increment", (params, options) => {
+        return thing.readProperty("count").then((count) => {
+            let step = 1;
             if (options && typeof options === 'object' && 'uriVariables' in options) {
-                if ('step' in options['uriVariables'] && options['uriVariables'] instanceof Array) {
-                    step = options['uriVariables']['step'];
+                console.log("options = " + JSON.stringify(options));
+                if ('step' in options['uriVariables']) {
+                    let uriVariables = options['uriVariables'];
+                    step = uriVariables['step'];
                 }
             }
-            var value = count + step;
-            console.log("Incrementing count from " + count + " to " + value);
+            let value = count + step;
+            console.log("Incrementing count from " + count + " to " + value + " (with step " + step + ")");
             thing.writeProperty("count", value);
             thing.writeProperty("lastChange", (new Date()).toISOString());
             thing.emitEvent("change", value);
         });
     });
-    thing.setActionHandler("decrement", function (params, options) {
-        return thing.readProperty("count").then(function (count) {
-            var step = 1;
+    thing.setActionHandler("decrement", (params, options) => {
+        return thing.readProperty("count").then((count) => {
+            let step = 1;
             if (options && typeof options === 'object' && 'uriVariables' in options) {
-                if ('step' in options['uriVariables'] && options['uriVariables'] instanceof Array) {
-                    step = options['uriVariables']['step'];
+                console.log("options = " + JSON.stringify(options));
+                if ('step' in options['uriVariables']) {
+                    let uriVariables = options['uriVariables'];
+                    step = uriVariables['step'];
                 }
             }
-            var value = count - step;
-            console.log("Decrementing count from " + count + " to " + value);
+            let value = count - step;
+            console.log("Decrementing count from " + count + " to " + value + " (with step " + step + ")");
             thing.writeProperty("count", value);
             thing.writeProperty("lastChange", (new Date()).toISOString());
             thing.emitEvent("change", value);
         });
     });
-    thing.setActionHandler("reset", function () {
-        return new Promise(function (resolve, reject) {
+    thing.setActionHandler("reset", () => {
+        return new Promise((resolve, reject) => {
             console.log("Resetting count");
             thing.writeProperty("count", 0);
             thing.writeProperty("lastChange", (new Date()).toISOString());
@@ -148,8 +196,8 @@ WoT.produce({
         });
     });
     // expose the thing
-    thing.expose().then(function () { console.info(thing.getThingDescription().title + " ready"); });
+    thing.expose().then(() => { console.info(thing.getThingDescription().title + " ready"); });
 })
-    .catch(function (e) {
+    .catch((e) => {
     console.log(e);
 });

@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -106,11 +106,68 @@ class HttpServerTest {
 
     let uri = `http://localhost:${httpServer1.getPort()}/`;
 
-    rp.get(uri).then(async body => {
-      expect(body).to.equal("One");
+    return rp.get(uri).then(async body => {
+      expect(body).to.equal("[]");
 
       await httpServer1.stop();
       await httpServer2.stop();
     });
+  }
+
+  // https://github.com/eclipse/thingweb.node-wot/issues/181
+  @test async "should start and stop a server with no security"() {
+    let httpServer = new HttpServer({ port: 58080, security: {scheme: "nosec"}});
+
+    await httpServer.start(null);
+    expect(httpServer.getPort()).to.eq(58080); // port test
+    expect(httpServer.getHttpSecurityScheme()).to.eq("NoSec"); // HTTP security scheme test (nosec -> NoSec)
+    await httpServer.stop();
+  }
+
+  // https://github.com/eclipse/thingweb.node-wot/issues/181
+  @test async "should not override a valid security scheme"() {
+    let httpServer = new HttpServer({
+      port: 58081, 
+      serverKey : "./test/server.key",
+      serverCert: "./test/server.cert",
+      security: {
+        scheme: "bearer"
+      }
+    });
+    await httpServer.start(null);
+    let testThing = new ExposedThing(null);
+    testThing.securityDefinitions = {
+      "bearer" : {
+        scheme:"bearer"
+      }
+    }
+    httpServer.expose(testThing,{});
+    await httpServer.stop()
+
+    expect(testThing.securityDefinitions["bearer"]).not.to.be.undefined;
+  }
+
+  @test async "should not accept an unsupported scheme"() {
+    console.log("START SHOULD")
+    let httpServer = new HttpServer({
+      port: 58081, 
+      serverKey: "./test/server.key",
+      serverCert: "./test/server.cert",
+      security: {
+        scheme: "bearer"
+      }
+    });
+    await httpServer.start(null);
+    
+    let testThing = new ExposedThing(null);
+    testThing.securityDefinitions = {
+      "oauth2" : {
+        scheme:"oauth2"
+      }
+    }
+
+    expect(() => { httpServer.expose(testThing, {});}).throw()
+    await httpServer.stop();
+
   }
 }
