@@ -46,6 +46,8 @@ export default class HttpClient implements ProtocolClient {
 
   private credential:Credential = null;
 
+  private activeSubscriptions = new Set();
+
   constructor(config: HttpConfig = null, secure = false, oauthManager: OAuthManager = new OAuthManager()) {
 
     // config proxy by client side (not from TD)
@@ -141,25 +143,16 @@ export default class HttpClient implements ProtocolClient {
   }
 
   public async unlinkResource(form: HttpForm): Promise<any> {
-    const request = await this.generateFetchRequest(form, "DELETE")
-    console.info(`HttpClient (unlinkResource) sending ${request.method} to ${request.url}`);
+    console.info(`HttpClient (unlinkResource) ${form.href}`);
 
-    const result = await this.fetch(request)
+    this.activeSubscriptions.delete(form.href)
 
-    // TODO might have response on unlink for future HATEOAS concept
-    this.checkFetchResponse(result)
-
-    const buffer = await result.buffer()
-    
-    console.debug(`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
-    console.debug(`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
-
-    return { type: result.headers.get("content-type"), body: buffer };
+    return {};
   }
 
   public subscribeResource(form: HttpForm, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): any {
 
-    let active = true;
+    this.activeSubscriptions.add(form.href);
     let polling = async () => {
       try {
         // long timeout for long polling
@@ -176,20 +169,22 @@ export default class HttpClient implements ProtocolClient {
         console.debug(`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
         console.debug(`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
 
-        if (active) {
+        if (this.activeSubscriptions.has(form.href)) {
           next({ type: result.headers.get("content-type"), body: buffer })
           polling()
+        } {
+          complete && complete()
         }
       } catch (e) {
         error && error(e)
         complete && complete()
-        active = false
+        this.activeSubscriptions.delete(form.href)
       }
     }
 
     polling();
 
-    return new Subscription( () => { active = false; } );
+    return new Subscription( () => { } );
   }
 
   public start(): boolean {
