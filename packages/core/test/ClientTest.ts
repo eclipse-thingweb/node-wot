@@ -174,7 +174,7 @@ let myThingDesc = {
             readOnly: false,
             observable: true,
             forms: [
-                { href: "testdata://host/athing/properties/apropertytoobserve", mediaType: "application/json", op: ["readproperty", "observeproperty"] }
+                { href: "testdata://host/athing/properties/apropertytoobserve", mediaType: "application/json", op: ["observeproperty"] }
             ]
         }
     },
@@ -294,6 +294,7 @@ class WoTClientTest {
             .then((value) => {
                 expect(value).not.to.be.null;
                 expect(value).to.have.property("aProperty").that.equals(42);
+                expect(value).to.have.not.property("aPropertyToObserve"); // observe only
                 done();
             })
             .catch(err => { done(err); });

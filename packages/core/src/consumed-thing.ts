@@ -118,10 +118,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                 }
         }
 
-        if (form == null) {
-            // no according form found 
-        }
-
+        // Note: form can be null if no appropriate op can be found
         return form;
     }
 
@@ -259,8 +256,12 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     readAllProperties(options?: WoT.InteractionOptions): Promise<WoT.PropertyValueMap> {
         let propertyNames: string[] = [];
         for (let propertyName in this.properties) {
-            // TODO how to check whether property has "op": "readproperty"
-            propertyNames.push(propertyName);
+            // collect attributes that are "readable" only
+            let tp: TD.ThingProperty = this.properties[propertyName];
+            let { client, form } = this.getClientFor(tp.forms, "readproperty", Affordance.PropertyAffordance, options);
+            if (form) {
+                propertyNames.push(propertyName);
+            }
         }
         return this._readProperties(propertyNames);
     }
