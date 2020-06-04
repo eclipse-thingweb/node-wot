@@ -23,11 +23,25 @@ let WoT:WoT.WoT;
 
 WoT.produce({
     title: 'Smart-Coffee-Machine',
+    id: 'urn:dev:wot:example:coffee-machine',
     description: `A smart coffee machine with a range of capabilities.
 A complementary tutorial is available at http://www.thingweb.io/smart-coffee-machine.html.`,
     support: 'git://github.com/eclipse/thingweb.node-wot.git',
     '@context': [
         'https://www.w3.org/2019/wot/td/v1',
+    ],
+    securityDefinitions: {
+        oauth2_sc: {
+            scheme: 'oauth2',
+            flow: 'client_credentials',
+            token: 'https://127.0.0.1:3000/token',
+            scopes: [
+                'limited',
+            ],
+        },
+    },
+    security: [
+        'oauth2_sc',
     ],
     properties: {
         allAvailableResources: {
