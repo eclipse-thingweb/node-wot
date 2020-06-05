@@ -26,6 +26,7 @@ const defaultFile = "wot-servient.conf.json";
 const baseDir = ".";
 
 var clientOnly: boolean = false;
+var sanitizeCode: boolean = false;
 
 var flagArgConfigfile = false;
 var confFile: string;
@@ -58,6 +59,15 @@ const readConf = function (filename: string): Promise<any> {
     });
 }
 
+const sanitizeScript = function(input: string): string {
+    let s = input.replace(/^Object\.defineProperty\(exports, "__esModule", { value: true }\);$/m, '')
+        .replace(/^require\("wot-typescript-definitions"\);$/m, '')
+        .replace(/^let WoT;$/m, '')
+        .replace(/^let WoTHelpers;$/m, '')
+        .replace(/^exports.* = .*;$/gm, '');
+    return s;
+}
+
 const runScripts =async function(servient: DefaultServient, scripts: Array<string>,debug?: DebugParams) {
     const launchScripts = (scripts : Array<string> ) => {
         scripts.forEach((fname : string) => {
@@ -69,12 +79,18 @@ const runScripts =async function(servient: DefaultServient, scripts: Array<strin
                     // limit printout to first line
                     console.info(`WoT-Servient running script '${data.substr(0, data.indexOf("\n")).replace("\r", "")}'... (${data.split(/\r\n|\r|\n/).length} lines)`);
                     fname = path.resolve(fname)
-                    servient.runPrivilegedScript(data, fname);
+                    let code;
+                    if (sanitizeCode === true) {
+                        code = sanitizeScript(data);
+                    } else {
+                        code = data;
+                    }
+                    servient.runPrivilegedScript(code, fname);
                 }
             });
         });
     }
-    
+
     const inspector = require('inspector');
     if(debug  && debug.shouldBreak){
         // Activate inspector only if is not already opened and wait for the debugger to attach
@@ -89,7 +105,7 @@ const runScripts =async function(servient: DefaultServient, scripts: Array<strin
                 console.warn("Cannot set breakpoint; reason: cannot enable debugger")
                 console.warn(error)
             }
-           
+
             session.post("Debugger.setBreakpointByUrl", {
                 lineNumber: 0,
                 url: "file:///" + path.resolve(scripts[0]).replace(/\\/g, '/')
@@ -107,7 +123,7 @@ const runScripts =async function(servient: DefaultServient, scripts: Array<strin
         debug && !inspector.url() && inspector.open(debug.port, debug.host, false);
         launchScripts(scripts)
     }
-    
+
 }
 
 const runAllScripts = function(servient: DefaultServient,debug?: DebugParams) {
@@ -122,7 +138,7 @@ const runAllScripts = function(servient: DefaultServient,debug?: DebugParams) {
             return (file.substr(0, 1) !== "." && file.slice(-3) === ".js");
         });
         console.info(`WoT-Servient using current directory with ${scripts.length} script${scripts.length>1 ? "s" : ""}`);
-        
+
         runScripts(servient, scripts.map(filename => path.resolve(path.join(baseDir, filename))),debug);
     });
 }
@@ -139,7 +155,12 @@ for( let i = 0; i < argv.length; i++){
         clientOnly = true;
         argv.splice(i, 1);
         i--;
-    
+
+    } else if (argv[i].match(/^(-s|--sanitize|\/s)$/i)) {
+        sanitizeCode = true;
+        argv.splice(i, 1);
+        i--;
+
     } else if (argv[i].match(/^(-f|--configfile|\/f)$/i)) {
         flagArgConfigfile = true;
         argv.splice(i, 1);
@@ -179,6 +200,7 @@ Options:
   -c,  --clientonly                do not start any servers
                                    (enables multiple instances without port conflicts)
   -f,  --configfile <file>         load configuration from specified file
+  -s,  --sanitize                  remove some lines from (transpiled) code to make it runnable
   -h,  --help                      show this help
 
 wot-servient.conf.json syntax:
