@@ -15,7 +15,7 @@
 
 // This is an example of Web of Things producer ("server" mode) Thing script.
 // It considers a fictional smart coffee machine in order to demonstrate the capabilities of Web of Things.
-// An accompanying tutorial is available at http://thingweb.io/smart-coffee-machine.html.
+// An accompanying tutorial is available at http://www.thingweb.io/smart-coffee-machine.html.
 
 import 'wot-typescript-definitions'
 
@@ -24,7 +24,7 @@ let WoT:WoT.WoT;
 WoT.produce({
     title: 'Smart-Coffee-Machine',
     description: `A smart coffee machine with a range of capabilities.
-A complementary tutorial is available at http://thingweb.io/smart-coffee-machine.html.`,
+A complementary tutorial is available at http://www.thingweb.io/smart-coffee-machine.html.`,
     support: 'git://github.com/eclipse/thingweb.node-wot.git',
     '@context': [
         'https://www.w3.org/2019/wot/td/v1',
