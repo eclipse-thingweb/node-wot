@@ -35,13 +35,15 @@
     "typescript-standard": "0.3.36"
   },
   "dependencies": {
-    "@node-wot/td-tools": "0.7.1",
     "@node-wot/core": "0.7.1",
+    "@node-wot/td-tools": "0.7.1",
+    "@types/eventsource": "^1.1.2",
+    "accept-language-parser": "1.5.0",
     "basic-auth": "2.0.1",
     "client-oauth2": "^4.2.5",
+    "eventsource": "^1.0.7",
     "node-fetch": "^2.6.0",
-    "rxjs": "5.5.11",
-    "accept-language-parser": "1.5.0"
+    "rxjs": "5.5.11"
   },
   "scripts": {
     "build": "tsc",
