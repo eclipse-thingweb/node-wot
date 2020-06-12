@@ -27,7 +27,9 @@ import { AddressInfo } from "net";
 
 import * as TD from "@node-wot/td-tools";
 import Servient, { ProtocolServer, ContentSerdes, Helpers, ExposedThing, ProtocolHelpers } from "@node-wot/core";
-import { HttpConfig, HttpForm } from "./http";
+import { HttpConfig, HttpForm, OAuth2ServerConfig } from "./http";
+import createValidator, { Validator } from "./oauth-token-validation";
+import { OAuth2SecurityScheme } from "@node-wot/td-tools";
 
 export default class HttpServer implements ProtocolServer {
 
@@ -47,9 +49,11 @@ export default class HttpServer implements ProtocolServer {
   private readonly port: number = 8080;
   private readonly address: string = undefined;
   private readonly httpSecurityScheme: string = "NoSec"; // HTTP header compatible string
+  private readonly validOAuthClients: RegExp = /.*/g; 
   private readonly server: http.Server | https.Server = null;
   private readonly things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
   private servient: Servient = null;
+  private oAuthValidator: Validator;
 
   constructor(config: HttpConfig = {}) {
     if (typeof config !== "object") {
@@ -90,6 +94,12 @@ export default class HttpServer implements ProtocolServer {
           break;
         case "bearer":
           this.httpSecurityScheme = "Bearer";
+          break;
+        case "oauth":
+          this.httpSecurityScheme = "OAuth";
+          const oAuthConfig = config.security as OAuth2ServerConfig
+          this.validOAuthClients = new RegExp(oAuthConfig.allowedClients ?? ".*");
+          this.oAuthValidator= createValidator(oAuthConfig.method)
           break;
         default:
           throw new Error(`HttpServer does not support security scheme '${config.security.scheme}`);
@@ -288,7 +298,7 @@ export default class HttpServer implements ProtocolServer {
     });
   }
 
-  private checkCredentials(id: string, req: http.IncomingMessage): boolean {
+  private async checkCredentials(id: string, req: http.IncomingMessage): Promise<boolean> {
 
     console.log(`HttpServer on port ${this.getPort()} checking credentials for '${id}'`);
 
@@ -304,6 +314,13 @@ export default class HttpServer implements ProtocolServer {
                (basic.name === creds.username && basic.pass === creds.password);
       case "Digest":
         return false;
+      case "OAuth":
+        const thing = this.things.get(id)
+        const oAuthScheme = thing.securityDefinitions[thing.security[0] as string] as OAuth2SecurityScheme
+        
+        //TODO: Support security schemes defined at affordance level
+        const scopes = oAuthScheme.scopes ?? []
+        return this.oAuthValidator.validate(req, scopes, this.validOAuthClients);
       case "Bearer":
         if (req.headers["authorization"]===undefined) return false;
         // TODO proper token evaluation
@@ -371,7 +388,7 @@ export default class HttpServer implements ProtocolServer {
     return params;
   }
 
-  private handleRequest(req: http.IncomingMessage, res: http.ServerResponse) {
+  private async handleRequest(req: http.IncomingMessage, res: http.ServerResponse) {
     
     let requestUri = url.parse(req.url);
 
@@ -485,7 +502,7 @@ export default class HttpServer implements ProtocolServer {
 
         } else {
           // Thing Interaction - Access Control
-          if (this.httpSecurityScheme!=="NoSec" && !this.checkCredentials(thing.id, req)) {
+          if (this.httpSecurityScheme!=="NoSec" && ! await this.checkCredentials(thing.id, req)) {
             res.setHeader("WWW-Authenticate", `${this.httpSecurityScheme} realm="${thing.id}"`);
             res.writeHead(401);
             res.end();
