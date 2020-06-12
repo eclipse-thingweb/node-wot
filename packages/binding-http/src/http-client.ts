@@ -193,6 +193,7 @@ export default class HttpClient implements ProtocolClient {
         console.info(`HttpClient (subscribeResource) Server-Sent Event connection is opened to ${form.href}`);
       }
       eventSource.onmessage = function (event) {
+        console.info(`HttpClient received ${JSON.stringify(event)} from ${form.href}`)
         let output = { type: form.contentType, body: JSON.stringify(event) };
         next(output);
       }
