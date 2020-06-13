@@ -57,8 +57,10 @@ WoTHelpers.fetch("http://127.0.0.1:8080/Smart-Coffee-Machine").then(async (td) =
         // See how it has been added to the schedules property
         let schedules = await thing.readProperty('schedules');
         log('schedules value: ', schedules);
-        // It's also possible to set a client-side handler for events
+        // Let's set up a handler for outOfResource event
         thing.subscribeEvent('outOfResource', (data) => {
+            // Here we are simply logging the message when the event is emitted
+            // But, of course, could have a much more sophisticated handler
             log('outOfResource event:', data);
         });
     }

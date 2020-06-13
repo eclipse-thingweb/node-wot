@@ -376,12 +376,6 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
             resolve({ result: false, message: `Please provide all the required parameters: time and mode.` });
         });
     });
-    // Set up a handler for outOfResource event
-    thing.subscribeEvent('outOfResource', (data) => {
-        // Notify an "admin" when the event is emitted
-        // (the notify function here simply logs a message to the console)
-        notify('admin@coffeeMachine.com', `outOfResource event: ${data}`);
-    });
     // Finally expose the thing
     thing.expose().then(() => { console.info(`${thing.getThingDescription().title} ready`); });
     console.log(`Produced ${thing.getThingDescription().title}`);
