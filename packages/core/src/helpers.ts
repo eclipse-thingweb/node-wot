@@ -122,7 +122,7 @@ export default class Helpers {
   public fetch(uri: string): Promise<WoT.ThingDescription> {
     return new Promise<WoT.ThingDescription>((resolve, reject) => {
         let client = this.srv.getClientFor(Helpers.extractScheme(uri));
-      console.info("[core]",`WoTImpl fetching TD from '${uri}' with ${client}`);
+      console.debug("[core]",`WoTImpl fetching TD from '${uri}' with ${client}`);
         client.readResource(new TD.Form(uri, ContentSerdes.TD))
             .then((content) => {
                 client.stop();

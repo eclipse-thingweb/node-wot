@@ -66,7 +66,7 @@ export default class HttpClient implements ProtocolClient {
         secure = true;
       }
       
-      console.info("[binding-http]",`HttpClient using ${secure ? "secure " : ""}proxy ${this.proxyRequest.hostname}:${this.proxyRequest.port}`);
+      console.debug("[binding-http]",`HttpClient using ${secure ? "secure " : ""}proxy ${this.proxyRequest.hostname}:${this.proxyRequest.port}`);
     }
 
     // config certificate checks
@@ -90,7 +90,7 @@ export default class HttpClient implements ProtocolClient {
 
   public async readResource(form: HttpForm): Promise<Content> {
     const request = await this.generateFetchRequest(form, "GET")
-    console.info("[binding-http]",`HttpClient (readResource) sending ${request.method} to ${request.url}`);
+    console.debug("[binding-http]",`HttpClient (readResource) sending ${request.method} to ${request.url}`);
 
     let result = await this.fetch(request)
     
@@ -114,7 +114,7 @@ export default class HttpClient implements ProtocolClient {
     
     let result = await this.fetch(request)
 
-    console.info("[binding-http]",`HttpClient received ${result.status} from ${result.url}`);
+    console.debug("[binding-http]",`HttpClient received ${result.status} from ${result.url}`);
 
     this.checkFetchResponse(result)
     
@@ -130,11 +130,11 @@ export default class HttpClient implements ProtocolClient {
       body : content?.body
     })
 
-    console.info("[binding-http]",`HttpClient (invokeResource) sending ${request.method} ${content ? "with '" + request.headers.get("Content-Type") + "' " : " "}to ${request.url}`);
+    console.debug("[binding-http]",`HttpClient (invokeResource) sending ${request.method} ${content ? "with '" + request.headers.get("Content-Type") + "' " : " "}to ${request.url}`);
 
     let result = await this.fetch(request)
 
-    console.info("[binding-http]",`HttpClient received ${result.status} from ${request.url}`);
+    console.debug("[binding-http]",`HttpClient received ${result.status} from ${request.url}`);
     console.debug("[binding-http]",`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
     
     const buffer = await result.buffer()
@@ -143,7 +143,7 @@ export default class HttpClient implements ProtocolClient {
   }
 
   public async unlinkResource(form: HttpForm): Promise<any> {
-    console.info("[binding-http]",`HttpClient (unlinkResource) ${form.href}`);
+    console.debug("[binding-http]",`HttpClient (unlinkResource) ${form.href}`);
 
     this.activeSubscriptions.delete(form.href)
 
@@ -157,14 +157,14 @@ export default class HttpClient implements ProtocolClient {
       try {
         // long timeout for long polling
         const request = await this.generateFetchRequest(form, "GET", { timeout: 60 * 60 * 1000 })
-        console.info("[binding-http]",`HttpClient (subscribeResource) sending ${request.method} to ${request.url}`);
+        console.debug("[binding-http]",`HttpClient (subscribeResource) sending ${request.method} to ${request.url}`);
 
         const result = await this.fetch(request)
 
         this.checkFetchResponse(result)
 
         const buffer = await result.buffer()
-        console.info("[binding-http]",`HttpClient received ${result.status} from ${request.url}`);
+        console.debug("[binding-http]",`HttpClient received ${result.status} from ${request.url}`);
 
         console.debug("[binding-http]",`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
         console.debug("[binding-http]",`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
@@ -238,7 +238,7 @@ export default class HttpClient implements ProtocolClient {
 
     if (security.proxy) {
       if (this.proxyRequest !== null) {
-        console.info("[binding-http]",`HttpClient overriding client-side proxy with security proxy '${security.proxy}`);
+        console.debug("[binding-http]",`HttpClient overriding client-side proxy with security proxy '${security.proxy}`);
       }
 
       this.proxyRequest = new Request(HttpClient.fixLocalhostName(security.proxy))

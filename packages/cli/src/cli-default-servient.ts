@@ -67,7 +67,7 @@ export default class DefaultServient extends Servient {
         if(this.config.credentials) delete this.config.credentials;
 
         // display
-        console.info("[cli]","DefaultServient configured with");
+        console.debug("[cli]","DefaultServient configured with");
         console.dir(this.config);
 
         // apply config
@@ -113,7 +113,7 @@ export default class DefaultServient extends Servient {
 
         return new Promise<WoT.WoT>((resolve, reject) => {
             super.start().then((myWoT) => {
-                console.info("[cli]","DefaultServient started");
+                console.debug("[cli]","DefaultServient started");
 
                 // TODO think about builder pattern that starts with produce() ends with expose(), which exposes/publishes the Thing
                 myWoT.produce({
@@ -147,13 +147,13 @@ export default class DefaultServient extends Servient {
                     .then((thing) => {
                         thing.setActionHandler("log", (msg) => {
                             return new Promise((resolve, reject) => {
-                                console.info("[cli]",msg);
+                                console.debug("[cli]",msg);
                                 resolve(`logged '${msg}'`);
                             });
                         });
                         thing.setActionHandler("shutdown", () => {
                             return new Promise((resolve, reject) => {
-                                console.info("[cli]","shutting down by remote");
+                                console.debug("[cli]","shutting down by remote");
                                 this.shutdown();
                                 resolve();
                             });

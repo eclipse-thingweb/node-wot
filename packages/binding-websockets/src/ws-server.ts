@@ -76,7 +76,7 @@ export default class WebSocketServer implements ProtocolServer {
   }
 
   public start(servient: Servient): Promise<void> {
-    console.info("[binding-ws]",`WebSocketServer starting on ${(this.address !== undefined ? this.address + ' ' : '')}port ${this.port}`);
+    console.debug("[binding-ws]",`WebSocketServer starting on ${(this.address !== undefined ? this.address + ' ' : '')}port ${this.port}`);
     return new Promise<void>((resolve, reject) => {
 
       // handle incoming WebScoket connections
@@ -111,7 +111,7 @@ export default class WebSocketServer implements ProtocolServer {
   }
 
   public stop(): Promise<void> {
-    console.info("[binding-ws]",`WebSocketServer stopping on port ${this.port}`);
+    console.debug("[binding-ws]",`WebSocketServer stopping on port ${this.port}`);
     return new Promise<void>((resolve, reject) => {
       for (let path in this.socketServers) {
         this.socketServers[path].close();

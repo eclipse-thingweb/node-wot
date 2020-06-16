@@ -265,19 +265,19 @@ export default class MqttBrokerServer implements ProtocolServer {
       } else {
         // try to connect to the broker without or with credentials
         if (this.psw === undefined) {
-          console.info("[binding-mqtt]",`MqttBrokerServer trying to connect to broker at ${this.brokerURI}`);
+          console.debug("[binding-mqtt]",`MqttBrokerServer trying to connect to broker at ${this.brokerURI}`);
           // TODO test if mqtt extracts port from passed URI (this.address)
           this.broker = mqtt.connect(this.brokerURI);
         } else if (this.clientId === undefined) {
-          console.info("[binding-mqtt]",`MqttBrokerServer trying to connect to secured broker at ${this.brokerURI}`);
+          console.debug("[binding-mqtt]",`MqttBrokerServer trying to connect to secured broker at ${this.brokerURI}`);
           // TODO test if mqtt extracts port from passed URI (this.address)
           this.broker = mqtt.connect(this.brokerURI, { username: this.user, password: this.psw });
         } else if (this.protocolVersion === undefined) {
-          console.info("[binding-mqtt]",`MqttBrokerServer trying to connect to secured broker at ${this.brokerURI} with client ID ${this.clientId}`);
+          console.debug("[binding-mqtt]",`MqttBrokerServer trying to connect to secured broker at ${this.brokerURI} with client ID ${this.clientId}`);
           // TODO test if mqtt extracts port from passed URI (this.address)
           this.broker = mqtt.connect(this.brokerURI, { username: this.user, password: this.psw, clientId: this.clientId });
         } else {
-          console.info("[binding-mqtt]",`MqttBrokerServer trying to connect to secured broker at ${this.brokerURI} with client ID ${this.clientId}`);
+          console.debug("[binding-mqtt]",`MqttBrokerServer trying to connect to secured broker at ${this.brokerURI} with client ID ${this.clientId}`);
           // TODO test if mqtt extracts port from passed URI (this.address)
           this.broker = mqtt.connect(this.brokerURI, { username: this.user, password: this.psw, clientId: this.clientId, protocolVersion: this.protocolVersion });
         }

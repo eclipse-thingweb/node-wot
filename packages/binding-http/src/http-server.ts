@@ -98,14 +98,14 @@ export default class HttpServer implements ProtocolServer {
   }
 
   public start(servient: Servient): Promise<void> {
-    console.info("[binding-http]",`HttpServer starting on ${(this.address !== undefined ? this.address + ' ' : '')}port ${this.port}`);
+    console.debug("[binding-http]",`HttpServer starting on ${(this.address !== undefined ? this.address + ' ' : '')}port ${this.port}`);
     return new Promise<void>((resolve, reject) => {
 
       // store servient to get credentials
       this.servient = servient;
 
       // long timeout for long polling
-      this.server.setTimeout(60 * 60 * 1000, () => { console.info("[binding-http]",`HttpServer on port ${this.getPort()} timed out connection`); });
+      this.server.setTimeout(60 * 60 * 1000, () => { console.debug("[binding-http]",`HttpServer on port ${this.getPort()} timed out connection`); });
       // no keep-alive because NodeJS HTTP clients do not properly use same socket due to pooling
       this.server.keepAliveTimeout = 0;
 
@@ -123,7 +123,7 @@ export default class HttpServer implements ProtocolServer {
   }
 
   public stop(): Promise<void> {
-    console.info("[binding-http]",`HttpServer stopping on port ${this.getPort()}`);
+    console.debug("[binding-http]",`HttpServer stopping on port ${this.getPort()}`);
     return new Promise<void>((resolve, reject) => {
 
       // stop promise handles all errors from now on
