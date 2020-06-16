@@ -33,7 +33,7 @@ export default class CoapClientFactory implements ProtocolClientFactory {
   }
 
   public getClient(): ProtocolClient {
-    console.log(`CoapClientFactory creating client for '${this.scheme}'`);
+    console.log("[binding-coap]",`CoapClientFactory creating client for '${this.scheme}'`);
     return new CoapClient(this.server);
   }
 

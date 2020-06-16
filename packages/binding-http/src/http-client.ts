@@ -55,10 +55,10 @@ export default class HttpClient implements ProtocolClient {
       this.proxyRequest = new Request(HttpClient.fixLocalhostName(config.proxy.href))
       
       if (config.proxy.scheme === "basic") {
-        if (!config.proxy.hasOwnProperty("username") || !config.proxy.hasOwnProperty("password")) console.warn(`HttpClient client configured for basic proxy auth, but no username/password given`);
+        if (!config.proxy.hasOwnProperty("username") || !config.proxy.hasOwnProperty("password")) console.warn("[binding-http]",`HttpClient client configured for basic proxy auth, but no username/password given`);
         this.proxyRequest.headers.set('proxy-authorization', "Basic " + Buffer.from(config.proxy.username + ":" + config.proxy.password).toString('base64'));
       } else if (config.proxy.scheme === "bearer") {
-        if (!config.proxy.hasOwnProperty("token")) console.warn(`HttpClient client configured for bearer proxy auth, but no token given`);
+        if (!config.proxy.hasOwnProperty("token")) console.warn("[binding-http]",`HttpClient client configured for bearer proxy auth, but no token given`);
         this.proxyRequest.headers.set('proxy-authorization', "Bearer " + config.proxy.token);
       }
       // security for hop to proxy
@@ -66,13 +66,13 @@ export default class HttpClient implements ProtocolClient {
         secure = true;
       }
       
-      console.info(`HttpClient using ${secure ? "secure " : ""}proxy ${this.proxyRequest.hostname}:${this.proxyRequest.port}`);
+      console.info("[binding-http]",`HttpClient using ${secure ? "secure " : ""}proxy ${this.proxyRequest.hostname}:${this.proxyRequest.port}`);
     }
 
     // config certificate checks
     if (config!==null && config.allowSelfSigned!==undefined) {
       this.allowSelfSigned = config.allowSelfSigned;
-      console.warn(`HttpClient allowing self-signed/untrusted certificates -- USE FOR TESTING ONLY`);
+      console.warn("[binding-http]",`HttpClient allowing self-signed/untrusted certificates -- USE FOR TESTING ONLY`);
     }
 
     // using one client impl for both HTTP and HTTPS
@@ -90,7 +90,7 @@ export default class HttpClient implements ProtocolClient {
 
   public async readResource(form: HttpForm): Promise<Content> {
     const request = await this.generateFetchRequest(form, "GET")
-    console.info(`HttpClient (readResource) sending ${request.method} to ${request.url}`);
+    console.info("[binding-http]",`HttpClient (readResource) sending ${request.method} to ${request.url}`);
 
     let result = await this.fetch(request)
     
@@ -98,8 +98,8 @@ export default class HttpClient implements ProtocolClient {
     
     const buffer = await result.buffer()
     
-    console.debug(`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
-    console.debug(`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
+    console.debug("[binding-http]",`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
+    console.debug("[binding-http]",`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
     
     return { type: result.headers.get("content-type"), body: buffer };
   }
@@ -110,15 +110,15 @@ export default class HttpClient implements ProtocolClient {
       body: content.body
     })
 
-    console.log(`HttpClient (writeResource) sending ${request.method} with '${request.headers.get("Content-Type")}' to ${request.url}`);
+    console.log("[binding-http]",`HttpClient (writeResource) sending ${request.method} with '${request.headers.get("Content-Type")}' to ${request.url}`);
     
     let result = await this.fetch(request)
 
-    console.info(`HttpClient received ${result.status} from ${result.url}`);
+    console.info("[binding-http]",`HttpClient received ${result.status} from ${result.url}`);
 
     this.checkFetchResponse(result)
     
-    console.log(`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
+    console.log("[binding-http]",`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
     return;
   }
 
@@ -130,12 +130,12 @@ export default class HttpClient implements ProtocolClient {
       body : content?.body
     })
 
-    console.info(`HttpClient (invokeResource) sending ${request.method} ${content ? "with '" + request.headers.get("Content-Type") + "' " : " "}to ${request.url}`);
+    console.info("[binding-http]",`HttpClient (invokeResource) sending ${request.method} ${content ? "with '" + request.headers.get("Content-Type") + "' " : " "}to ${request.url}`);
 
     let result = await this.fetch(request)
 
-    console.info(`HttpClient received ${result.status} from ${request.url}`);
-    console.debug(`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
+    console.info("[binding-http]",`HttpClient received ${result.status} from ${request.url}`);
+    console.debug("[binding-http]",`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
     
     const buffer = await result.buffer()
 
@@ -143,7 +143,7 @@ export default class HttpClient implements ProtocolClient {
   }
 
   public async unlinkResource(form: HttpForm): Promise<any> {
-    console.info(`HttpClient (unlinkResource) ${form.href}`);
+    console.info("[binding-http]",`HttpClient (unlinkResource) ${form.href}`);
 
     this.activeSubscriptions.delete(form.href)
 
@@ -157,17 +157,17 @@ export default class HttpClient implements ProtocolClient {
       try {
         // long timeout for long polling
         const request = await this.generateFetchRequest(form, "GET", { timeout: 60 * 60 * 1000 })
-        console.info(`HttpClient (subscribeResource) sending ${request.method} to ${request.url}`);
+        console.info("[binding-http]",`HttpClient (subscribeResource) sending ${request.method} to ${request.url}`);
 
         const result = await this.fetch(request)
 
         this.checkFetchResponse(result)
 
         const buffer = await result.buffer()
-        console.info(`HttpClient received ${result.status} from ${request.url}`);
+        console.info("[binding-http]",`HttpClient received ${result.status} from ${request.url}`);
 
-        console.debug(`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
-        console.debug(`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
+        console.debug("[binding-http]",`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
+        console.debug("[binding-http]",`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
 
         if (this.activeSubscriptions.has(form.href)) {
           next({ type: result.headers.get("content-type"), body: buffer })
@@ -199,7 +199,7 @@ export default class HttpClient implements ProtocolClient {
   public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean {
 
     if (metadata === undefined || !Array.isArray(metadata) || metadata.length == 0) {
-      console.warn(`HttpClient without security`);
+      console.warn("[binding-http]",`HttpClient without security`);
       return false;
     }
 
@@ -231,14 +231,14 @@ export default class HttpClient implements ProtocolClient {
       case "nosec":
         break;
       default:
-        console.error(`HttpClient cannot set security scheme '${security.scheme}'`);
+        console.error("[binding-http]",`HttpClient cannot set security scheme '${security.scheme}'`);
         console.dir(metadata);
         return false;
     }
 
     if (security.proxy) {
       if (this.proxyRequest !== null) {
-        console.info(`HttpClient overriding client-side proxy with security proxy '${security.proxy}`);
+        console.info("[binding-http]",`HttpClient overriding client-side proxy with security proxy '${security.proxy}`);
       }
 
       this.proxyRequest = new Request(HttpClient.fixLocalhostName(security.proxy))
@@ -257,7 +257,7 @@ export default class HttpClient implements ProtocolClient {
       }
     }
 
-    console.log(`HttpClient using security scheme '${security.scheme}'`);
+    console.log("[binding-http]",`HttpClient using security scheme '${security.scheme}'`);
     return true;
   }
 
@@ -272,14 +272,14 @@ export default class HttpClient implements ProtocolClient {
     requestInit.headers = requestInit.headers as string[][]
     
     if (Array.isArray(form["htv:headers"])) {
-      console.debug("HttpClient got Form 'headers'", form["htv:headers"]);
+      console.debug("[binding-http]","HttpClient got Form 'headers'", form["htv:headers"]);
       
       let headers = form["htv:headers"] as Array<HttpHeader>;
       for (let option of headers) {
         requestInit.headers.push([option["htv:fieldName"], option["htv:fieldValue"]]);
       }
     } else if (typeof form["htv:headers"] === "object") {
-      console.debug("HttpClient got Form SINGLE-ENTRY 'headers'", form["htv:headers"]);
+      console.debug("[binding-http]","HttpClient got Form SINGLE-ENTRY 'headers'", form["htv:headers"]);
       
       let option = form["htv:headers"] as HttpHeader;
       requestInit.headers.push([option["htv:fieldName"], option["htv:fieldValue"]]);
@@ -300,7 +300,7 @@ export default class HttpClient implements ProtocolClient {
       const parsedBaseURL = parse(url)
       request.url = request.url + parsedBaseURL.path
       
-      console.debug("HttpClient proxy request URL:",request.url)
+      console.debug("[binding-http]","HttpClient proxy request URL:",request.url)
 
       request.headers.set("host", parsedBaseURL.hostname)
     }
@@ -343,7 +343,7 @@ export default class HttpClient implements ProtocolClient {
     const localhostPresent = /^(https?:)?(\/\/)?(?:[^@\n]+@)?(www\.)?(localhost)/gm
     
     if (localhostPresent.test(url)) {
-      console.warn("LOCALHOST FIX");
+      console.warn("[binding-http]","LOCALHOST FIX");
       return url.replace(localhostPresent, "$1$2127.0.0.1")
     }
     

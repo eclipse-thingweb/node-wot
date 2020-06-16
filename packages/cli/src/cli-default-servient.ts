@@ -67,7 +67,7 @@ export default class DefaultServient extends Servient {
         if(this.config.credentials) delete this.config.credentials;
 
         // display
-        console.info("DefaultServient configured with");
+        console.info("[cli]","DefaultServient configured with");
         console.dir(this.config);
 
         // apply config
@@ -113,7 +113,7 @@ export default class DefaultServient extends Servient {
 
         return new Promise<WoT.WoT>((resolve, reject) => {
             super.start().then((myWoT) => {
-                console.info("DefaultServient started");
+                console.info("[cli]","DefaultServient started");
 
                 // TODO think about builder pattern that starts with produce() ends with expose(), which exposes/publishes the Thing
                 myWoT.produce({
@@ -147,27 +147,27 @@ export default class DefaultServient extends Servient {
                     .then((thing) => {
                         thing.setActionHandler("log", (msg) => {
                             return new Promise((resolve, reject) => {
-                                console.info(msg);
+                                console.info("[cli]",msg);
                                 resolve(`logged '${msg}'`);
                             });
                         });
                         thing.setActionHandler("shutdown", () => {
                             return new Promise((resolve, reject) => {
-                                console.info("shutting down by remote");
+                                console.info("[cli]","shutting down by remote");
                                 this.shutdown();
                                 resolve();
                             });
                         });
                         thing.setActionHandler("runScript", (script) => {
                             return new Promise((resolve, reject) => {
-                                console.log("running script", script);
+                                console.log("[cli]","running script", script);
                                 this.runScript(script);
                                 resolve();
                             });
                         });
                         thing.setPropertyReadHandler("things", () => {
                             return new Promise((resolve, reject) => {
-                                console.log("returnings things");
+                                console.log("[cli]","returnings things");
                                 resolve(this.getThings());
                             });
                         });

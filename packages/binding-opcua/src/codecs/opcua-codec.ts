@@ -48,7 +48,7 @@ export default class OpcuaCodec implements ContentCodec {
     // remove legacy wrapping and use RFC 7159
     // TODO remove once dropped from all PlugFest implementation
     if (parsed && parsed.value !== undefined) {
-      console.warn(`JsonCodec removing { value: ... } wrapper`);
+      console.warn("[binding-opcua]",`JsonCodec removing { value: ... } wrapper`);
       parsed = parsed.value;
     }
     return parsed;
@@ -87,7 +87,7 @@ export default class OpcuaCodec implements ContentCodec {
   private getOPCUADataType(string_type: string) {
     switch (string_type) {
       default:
-        console.warn(`dataType "${string_type}" not found, using "Double" as default`)
+        console.warn("[binding-opcua]",`dataType "${string_type}" not found, using "Double" as default`)
         return DataType.Double;
       case "Null": return DataType.Null;
       case "Boolean": return DataType.Boolean;

@@ -21,7 +21,7 @@ let URLToolkit = require('url-toolkit');
 
 /** Parses a TD into a Thing object */
 export function parseTD(td: string, normalize?: boolean): Thing {
-  console.debug(`parseTD() parsing\n\`\`\`\n${td}\n\`\`\``);
+  console.debug("[td-tools]",`parseTD() parsing\n\`\`\`\n${td}\n\`\`\``);
 
   // remove a potential Byte Order Mark (BOM)
   // see https://github.com/eclipse/thingweb.node-wot/issues/109
@@ -96,7 +96,7 @@ export function parseTD(td: string, normalize?: boolean): Thing {
   }
 
   if (thing.security === undefined) {
-    console.warn(`parseTD() found no security metadata`);
+    console.warn("[td-tools]",`parseTD() found no security metadata`);
   }
   // wrap in array for later simplification
   if (typeof thing.security === "string") {
@@ -129,11 +129,11 @@ export function parseTD(td: string, normalize?: boolean): Thing {
 
   if (thing.hasOwnProperty("base")) {
     if (normalize === undefined || normalize === true) {
-      console.log(`parseTD() normalizing 'base' into 'forms'`);
+      console.log("[td-tools]",`parseTD() normalizing 'base' into 'forms'`);
 
       for (let form of allForms) {
         if (!form.href.match(/^([a-z0-9\+-\.]+\:).+/i)) {
-          console.debug(`parseTDString() applying base '${thing.base}' to '${form.href}'`);
+          console.debug("[td-tools]",`parseTDString() applying base '${thing.base}' to '${form.href}'`);
           form.href = URLToolkit.buildAbsoluteURL(thing.base, form.href);
         }
       }
@@ -224,7 +224,7 @@ export function serializeTD(thing: Thing): string {
 
   let td: string = JSON.stringify(copy);
 
-  console.debug(`serializeTD() produced\n\`\`\`\n${td}\n\`\`\``);
+  console.debug("[td-tools]",`serializeTD() produced\n\`\`\`\n${td}\n\`\`\``);
 
   return td;
 }

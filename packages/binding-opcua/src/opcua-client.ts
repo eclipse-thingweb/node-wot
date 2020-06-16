@@ -128,7 +128,7 @@ export default class OpcuaClient implements ProtocolClient {
 			try {
 				await this.connect(endpointUrl);
 			} catch (err) {
-				console.log(err);
+				console.log("[binding-opcua]",err);
 				throw err;
 			}
 		}
@@ -151,7 +151,7 @@ export default class OpcuaClient implements ProtocolClient {
 			result = await this.session.read(nodeToRead);
 			result = JSON.stringify(result);
 		} catch (err) {
-			console.log(err);
+			console.log("[binding-opcua]",err);
 			throw err;
 		}
 
@@ -175,7 +175,7 @@ export default class OpcuaClient implements ProtocolClient {
 			try {
 				await this.connect(endpointUrl);
 			} catch (err) {
-				console.log(err);
+				console.log("[binding-opcua]",err);
 				throw err;
 			}
 		}
@@ -207,7 +207,7 @@ export default class OpcuaClient implements ProtocolClient {
 				res = true;
 			}
 		} catch (err) {
-			console.log(err);
+			console.log("[binding-opcua]",err);
 			throw err;
 		}
 
@@ -236,7 +236,7 @@ export default class OpcuaClient implements ProtocolClient {
 			try {
 				await this.connect(endpointUrl);
 			} catch (err) {
-				console.log(err);
+				console.log("[binding-opcua]",err);
 				throw err;
 			}
 		}
@@ -263,7 +263,7 @@ export default class OpcuaClient implements ProtocolClient {
 				result = await this.session.call(methodToCalls);
 				var status = result[0].statusCode;
 				if (status._value !== 0 || status._name !== 'Good') {
-					console.log(status);
+					console.log("[binding-opcua]",status);
 					throw new Error(status);
 				}
 			} catch (err) {
@@ -286,7 +286,7 @@ export default class OpcuaClient implements ProtocolClient {
 			try {
 				await this.connect(endpointUrl);
 			} catch (err) {
-				console.log(err);
+				console.log("[binding-opcua]",err);
 				throw err;
 			}
 		}
@@ -363,11 +363,11 @@ export default class OpcuaClient implements ProtocolClient {
 	public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean {
 
 		if (metadata === undefined || !Array.isArray(metadata) || metadata.length == 0) {
-			console.warn(`OpcuaClient without security`);
+			console.warn("[binding-opcua]",`OpcuaClient without security`);
 			return false;
 		}
 		if (!credentials || (!(credentials.password) && !(credentials.privateKey))) {
-			console.warn(`Both password and certificate missing inside credentials`);
+			console.warn("[binding-opcua]",`Both password and certificate missing inside credentials`);
 		}
 		this.credentials = credentials;
 	}

@@ -51,7 +51,7 @@ export default class Helpers {
       throw new Error(`Protocol in url "${uri}" must be valid`)
     }
     let scheme = parsed.protocol.slice(0, -1);
-    console.debug(`Helpers found scheme '${scheme}'`);
+    console.debug("[core]",`Helpers found scheme '${scheme}'`);
     return scheme;
   }
 
@@ -65,7 +65,7 @@ export default class Helpers {
     if (Helpers.staticAddress!==undefined) {
       addresses.push(Helpers.staticAddress);
       
-      console.debug(`AddressHelper uses static ${addresses}`);
+      console.debug("[core]",`AddressHelper uses static ${addresses}`);
       return addresses;
     } else {
 
@@ -73,7 +73,7 @@ export default class Helpers {
 
       for (let iface in interfaces) {
         interfaces[iface].forEach((entry: any) => {
-          console.debug(`AddressHelper found ${entry.address}`);
+          console.debug("[core]",`AddressHelper found ${entry.address}`);
           if (entry.internal === false) {
             if (entry.family === "IPv4") {
               addresses.push(entry.address);
@@ -89,7 +89,7 @@ export default class Helpers {
         addresses.push('localhost');
       }
 
-      console.debug(`AddressHelper identified ${addresses}`);
+      console.debug("[core]",`AddressHelper identified ${addresses}`);
 
       return addresses;
     }
@@ -100,7 +100,7 @@ export default class Helpers {
     // Due to crash logged with:
     // TypeError: Cannot read property 'indexOf' of undefined at Function.Helpers.toUriLiteral 
     if (!address) {
-      console.error(`AddressHelper received invalid address '${address}'`);
+      console.error("[core]",`AddressHelper received invalid address '${address}'`);
       return "{invalid address}";
     }
 
@@ -122,14 +122,14 @@ export default class Helpers {
   public fetch(uri: string): Promise<WoT.ThingDescription> {
     return new Promise<WoT.ThingDescription>((resolve, reject) => {
         let client = this.srv.getClientFor(Helpers.extractScheme(uri));
-        console.info(`WoTImpl fetching TD from '${uri}' with ${client}`);
+      console.info("[core]",`WoTImpl fetching TD from '${uri}' with ${client}`);
         client.readResource(new TD.Form(uri, ContentSerdes.TD))
             .then((content) => {
                 client.stop();
 
                 if (content.type !== ContentSerdes.TD &&
                   content.type !== ContentSerdes.JSON_LD ) {
-                  console.warn(`WoTImpl received TD with media type '${content.type}' from ${uri}`);
+                  console.warn("[core]",`WoTImpl received TD with media type '${content.type}' from ${uri}`);
                 }
 
                 let td = content.body.toString();

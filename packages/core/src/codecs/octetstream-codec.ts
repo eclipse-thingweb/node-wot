@@ -94,7 +94,7 @@ export default class OctetstreamCodec implements ContentCodec {
 
                         // warn about numbers being too big to be represented as safe integers
                         if (!Number.isSafeInteger(result)) {
-                            console.warn("Result is not a safe integer");
+                            console.warn("[core]","Result is not a safe integer");
                         }
 
                         return result;
@@ -153,7 +153,7 @@ export default class OctetstreamCodec implements ContentCodec {
 
                 // warn about numbers being too big to be represented as safe integers
                 if (!Number.isSafeInteger(value)) {
-                    console.warn("Value is not a safe integer");
+                    console.warn("[core]","Value is not a safe integer");
                 }
 
                 // throw error on overflow

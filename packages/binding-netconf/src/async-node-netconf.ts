@@ -54,7 +54,7 @@ export class Client {
 				if (err) {
 					reject(err);	
 				} else {
-					console.log(`New NetConf router opened connection with host ${self.router.host}, port ${self.router.port}, username ${self.router.username}`);
+					console.log("[binding-netconf]",`New NetConf router opened connection with host ${self.router.host}, port ${self.router.port}, username ${self.router.username}`);
 					resolve();
 				}
 			});

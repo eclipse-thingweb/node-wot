@@ -92,7 +92,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 
     /** @inheritDoc */
     expose(): Promise<void> {
-        console.log(`ExposedThing '${this.title}' exposing all Interactions and TD`);
+        console.log("[core]",`ExposedThing '${this.title}' exposing all Interactions and TD`);
 
         return new Promise<void>((resolve, reject) => {
             // let servient forward exposure to the servers
@@ -114,7 +114,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 
     /** @inheritDoc */
     setPropertyReadHandler(propertyName: string, handler: WoT.PropertyReadHandler): WoT.ExposedThing {
-        console.log(`ExposedThing '${this.title}' setting read handler for '${propertyName}'`);
+        console.log("[core]",`ExposedThing '${this.title}' setting read handler for '${propertyName}'`);
 
         if (this.properties[propertyName]) {
             // setting read handler for writeOnly not allowed
@@ -132,7 +132,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 
     /** @inheritDoc */
     setPropertyWriteHandler(propertyName: string, handler: WoT.PropertyWriteHandler): WoT.ExposedThing {
-        console.log(`ExposedThing '${this.title}' setting write handler for '${propertyName}'`);
+        console.log("[core]",`ExposedThing '${this.title}' setting write handler for '${propertyName}'`);
         if (this.properties[propertyName]) {
             // Note: setting write handler allowed for readOnly also (see https://github.com/eclipse/thingweb.node-wot/issues/165)
             // The reason is that it may make sense to define its own "reject"
@@ -147,7 +147,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 
     /** @inheritDoc */
     setActionHandler(actionName: string, handler: WoT.ActionHandler): WoT.ExposedThing {
-        console.log(`ExposedThing '${this.title}' setting action Handler for '${actionName}'`);
+        console.log("[core]",`ExposedThing '${this.title}' setting action Handler for '${actionName}'`);
 
         if (this.actions[actionName]) {
             // in case of function instead of lambda, the handler is bound to a clean scope of the ActionState
@@ -163,13 +163,13 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             if (this.properties[propertyName]) {
                 // call read handler (if any)
                 if (this.properties[propertyName].getState().readHandler != null) {
-                    console.log(`ExposedThing '${this.title}' calls registered readHandler for Property '${propertyName}'`);
+                    console.log("[core]",`ExposedThing '${this.title}' calls registered readHandler for Property '${propertyName}'`);
                     let ps: PropertyState = this.properties[propertyName].getState();
                     ps.readHandler(options).then((customValue) => {
                         resolve(customValue);
                     });
                 } else {
-                    console.log(`ExposedThing '${this.title}' gets internal value '${this.properties[propertyName].getState().value}' for Property '${propertyName}'`);
+                    console.log("[core]",`ExposedThing '${this.title}' gets internal value '${this.properties[propertyName].getState().value}' for Property '${propertyName}'`);
                     resolve(this.properties[propertyName].getState().value);
                 }
             } else {
@@ -229,7 +229,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                 if (promiseOrValueOrNil !== undefined) {
                     if (typeof promiseOrValueOrNil.then === "function") {
                         promiseOrValueOrNil.then((customValue) => {
-                            console.log(`ExposedThing '${this.title}' write handler for Property '${propertyName}' sets custom value '${customValue}'`);
+                            console.log("[core]",`ExposedThing '${this.title}' write handler for Property '${propertyName}' sets custom value '${customValue}'`);
                             /** notify state change */
                             // FIXME object comparison
                             if (this.properties[propertyName].getState().value !== customValue) {
@@ -239,11 +239,11 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                             resolve();
                         })
                             .catch((customError) => {
-                                console.warn(`ExposedThing '${this.title}' write handler for Property '${propertyName}' rejected the write with error '${customError}'`);
+                                console.warn("[core]",`ExposedThing '${this.title}' write handler for Property '${propertyName}' rejected the write with error '${customError}'`);
                                 reject(customError);
                             });
                     } else {
-                        console.warn(`ExposedThing '${this.title}' write handler for Property '${propertyName}' does not return promise`);
+                        console.warn("[core]",`ExposedThing '${this.title}' write handler for Property '${propertyName}' does not return promise`);
                         if (this.properties[propertyName].getState().value !== promiseOrValueOrNil) {
                             this.properties[propertyName].getState().subject.next(<any>promiseOrValueOrNil);
                         }
@@ -251,7 +251,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                         resolve();
                     }
                 } else {
-                    console.warn(`ExposedThing '${this.title}' write handler for Property '${propertyName}' does not return custom value, using direct value '${value}'`);
+                    console.warn("[core]",`ExposedThing '${this.title}' write handler for Property '${propertyName}' does not return custom value, using direct value '${value}'`);
 
                     if (this.properties[propertyName].getState().value !== value) {
                         this.properties[propertyName].getState().subject.next(value);
@@ -260,7 +260,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                     resolve();
                 }
             } else {
-                console.log(`ExposedThing '${this.title}' directly sets Property '${propertyName}' to value '${value}'`);
+                console.log("[core]",`ExposedThing '${this.title}' directly sets Property '${propertyName}' to value '${value}'`);
                 /** notify state change */
                 if (this.properties[propertyName].getState().value !== value) {
                     this.properties[propertyName].getState().subject.next(value);
@@ -292,10 +292,10 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     public invokeAction(actionName: string, parameter?: any, options?: WoT.InteractionOptions): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             if (this.actions[actionName]) {
-                console.debug(`ExposedThing '${this.title}' has Action state of '${actionName}'`);
+                console.debug("[core]",`ExposedThing '${this.title}' has Action state of '${actionName}'`);
 
                 if (this.actions[actionName].getState().handler != null) {
-                    console.log(`ExposedThing '${this.title}' calls registered handler for Action '${actionName}'`);
+                    console.log("[core]",`ExposedThing '${this.title}' calls registered handler for Action '${actionName}'`);
                     resolve(this.actions[actionName].getState().handler(parameter, options));
                 } else {
                     reject(new Error(`ExposedThing '${this.title}' has no handler for Action '${actionName}'`));
@@ -314,7 +314,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                 let complete = null;
                 let sub: Subject<Content> = this.properties[name].getState().subject;
                 sub.asObservable().subscribe(next, error, complete);
-                console.log(`ExposedThing '${this.title}' subscribes to property '${name}'`);
+                console.log("[core]",`ExposedThing '${this.title}' subscribes to property '${name}'`);
             } else {
                 reject(new Error(`ExposedThing '${this.title}', no property found for '${name}'`));
             }
@@ -326,7 +326,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             if (this.properties[name]) {
                 let sub: Subject<Content> = this.properties[name].getState().subject;
                 // sub.unsubscribe();  // XXX causes loop issue (see browser counter example)
-                console.log(`ExposedThing '${this.title}' unsubscribes from property '${name}'`);
+                console.log("[core]",`ExposedThing '${this.title}' unsubscribes from property '${name}'`);
             } else {
                 reject(new Error(`ExposedThing '${this.title}', no property found for '${name}'`));
             }
@@ -341,7 +341,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                 let complete = null;
                 let sub: Subject<any> = this.events[name].getState().subject;
                 sub.asObservable().subscribe(next, error, complete);
-                console.log(`ExposedThing '${this.title}' subscribes to event '${name}'`);
+                console.log("[core]",`ExposedThing '${this.title}' subscribes to event '${name}'`);
             } else {
                 reject(new Error(`ExposedThing '${this.title}', no event found for '${name}'`));
             }
@@ -353,7 +353,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             if (this.events[name]) {
                 let sub: Subject<any> = this.events[name].getState().subject;
                 // sub.unsubscribe(); // XXX causes loop issue (see browser counter example)
-                console.log(`ExposedThing '${this.title}' unsubscribes from event '${name}'`);
+                console.log("[core]",`ExposedThing '${this.title}' unsubscribes from event '${name}'`);
             } else {
                 reject(new Error(`ExposedThing '${this.title}', no event found for '${name}'`));
             }

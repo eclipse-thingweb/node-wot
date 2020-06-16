@@ -32,7 +32,7 @@ export default class OpcuaClientFactory implements ProtocolClientFactory {
   }
 
   public getClient(): ProtocolClient {
-    console.log(`OpcuaClientFactory creating client for '${this.scheme}'`);
+    console.log("[binding-opcua]",`OpcuaClientFactory creating client for '${this.scheme}'`);
     return new OpcuaClient(this.config);
   }
 
