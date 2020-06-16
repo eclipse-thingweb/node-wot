@@ -93,7 +93,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
 
         // find right operation and corresponding scheme in the array form
         for (let f of forms) {
-            let fop: string | Array<string>;
+            let fop: string | Array<string> = "";
             if (f.op != undefined) {
                 fop = f.op;
             } else {
@@ -111,11 +111,10 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                         break;
                 }
             }
-            if (fop != undefined)
-                if (fop.indexOf(op) != -1 && f.href.indexOf(schemes[idx] + ":") != -1) {
-                    form = f;
-                    break;
-                }
+            if (fop.indexOf(op) != -1 && f.href.indexOf(schemes[idx] + ":") != -1) {
+                form = f;
+                break;
+            }
         }
 
         // Note: form can be null if no appropriate op can be found
