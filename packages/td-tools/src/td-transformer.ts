@@ -22,7 +22,7 @@ export function transformTDV1StringToV2String(td1: string): Object {
   let td2 = JSON.parse(td1);
 
   // TODO the actual modifications
-  console.log("[td-tools]",'NO TD MODIFICATIONS DONE YET!!!!!');
+  console.debug("[td-tools]",'NO TD MODIFICATIONS DONE YET!!!!!');
 
   return td2;
 }

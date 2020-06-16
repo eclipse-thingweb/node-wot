@@ -96,7 +96,7 @@ export default class MqttBrokerServer implements ProtocolServer {
       }
     }
 
-    console.log("[binding-mqtt]",`MqttBrokerServer at ${this.brokerURI} exposes '${thing.title}' as unique '/${name}/*'`);
+    console.debug("[binding-mqtt]",`MqttBrokerServer at ${this.brokerURI} exposes '${thing.title}' as unique '/${name}/*'`);
     return new Promise<void>((resolve, reject) => {
 
       // TODO clean-up on destroy and stop
@@ -119,7 +119,7 @@ export default class MqttBrokerServer implements ProtocolServer {
                 thing.unobserveProperty(propertyName);
                 return;
               }
-              console.log("[binding-mqtt]",`MqttBrokerServer at ${this.brokerURI} publishing to Property topic '${propertyName}' `);
+              console.debug("[binding-mqtt]",`MqttBrokerServer at ${this.brokerURI} publishing to Property topic '${propertyName}' `);
               this.broker.publish(topic, content.body,{retain:true});
             }
           );
@@ -128,7 +128,7 @@ export default class MqttBrokerServer implements ProtocolServer {
           let form = new TD.Form(href, ContentSerdes.DEFAULT);
           form.op = ["readproperty","observeproperty", "unobserveproperty"];
           thing.properties[propertyName].forms.push(form);
-          console.log("[binding-mqtt]",`MqttBrokerServer at ${this.brokerURI} assigns '${href}' to property '${propertyName}'`);
+          console.debug("[binding-mqtt]",`MqttBrokerServer at ${this.brokerURI} assigns '${href}' to property '${propertyName}'`);
 
         }
         if(!property.readOnly){
@@ -138,7 +138,7 @@ export default class MqttBrokerServer implements ProtocolServer {
           let form = new TD.Form(href, ContentSerdes.DEFAULT);
           form.op = ["writeproperty"];
           thing.properties[propertyName].forms.push(form);
-          console.log("[binding-mqtt]",`MqttBrokerServer at ${this.brokerURI} assigns '${href}' to property '${propertyName}'`);
+          console.debug("[binding-mqtt]",`MqttBrokerServer at ${this.brokerURI} assigns '${href}' to property '${propertyName}'`);
 
         }
       }
@@ -151,7 +151,7 @@ export default class MqttBrokerServer implements ProtocolServer {
         let form = new TD.Form(href, ContentSerdes.DEFAULT);
         form.op = ["invokeaction"];
         thing.actions[actionName].forms.push(form);
-        console.log("[binding-mqtt]",`MqttBrokerServer at ${this.brokerURI} assigns '${href}' to Action '${actionName}'`);
+        console.debug("[binding-mqtt]",`MqttBrokerServer at ${this.brokerURI} assigns '${href}' to Action '${actionName}'`);
       }
 
       // connect incoming messages to Thing
@@ -162,7 +162,7 @@ export default class MqttBrokerServer implements ProtocolServer {
 
         if (segments.length === 4 ) {
           // connecting to the actions
-          console.log("[binding-mqtt]",`MqttBrokerServer at ${this.brokerURI} received message for '${receivedTopic}'`);
+          console.debug("[binding-mqtt]",`MqttBrokerServer at ${this.brokerURI} received message for '${receivedTopic}'`);
           let thing = this.things.get(segments[1]);
           if (thing) {
             if (segments[2] === "actions") {
@@ -240,7 +240,7 @@ export default class MqttBrokerServer implements ProtocolServer {
               return;
             }
             // send event data
-            console.log("[binding-mqtt]",`MqttBrokerServer at ${this.brokerURI} publishing to Event topic '${eventName}' `);
+            console.debug("[binding-mqtt]",`MqttBrokerServer at ${this.brokerURI} publishing to Event topic '${eventName}' `);
             this.broker.publish(topic, content.body);
           }
         );
@@ -249,7 +249,7 @@ export default class MqttBrokerServer implements ProtocolServer {
         let form = new TD.Form(href, ContentSerdes.DEFAULT);
         form.op = ["subscribeevent", "unsubscribeevent"];
         event.forms.push(form);
-        console.log("[binding-mqtt]",`MqttBrokerServer at ${this.brokerURI} assigns '${href}' to Event '${eventName}'`);
+        console.debug("[binding-mqtt]",`MqttBrokerServer at ${this.brokerURI} assigns '${href}' to Event '${eventName}'`);
       }
       this.broker.publish("/"+name, JSON.stringify(thing.getThingDescription()),{retain:true,contentType:"application/td+json"});
       resolve();
@@ -283,7 +283,7 @@ export default class MqttBrokerServer implements ProtocolServer {
         }
 
         this.broker.on("connect", () => {
-          console.log("[binding-mqtt]",`MqttBrokerServer connected to broker at ${this.brokerURI}`);
+          console.debug("[binding-mqtt]",`MqttBrokerServer connected to broker at ${this.brokerURI}`);
 
           let parsed = url.parse(this.brokerURI);
           this.address = parsed.hostname;

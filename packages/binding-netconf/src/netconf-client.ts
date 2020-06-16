@@ -136,7 +136,7 @@ export default class NetconfClient implements ProtocolClient {
 			result = await this.client.rpc(xpath_query, method, NSs, target, payload);
 			result = JSON.stringify(result);
 		} catch (err) {
-			console.log("[binding-netconf]",err);
+			console.debug("[binding-netconf]",err);
 			throw err;
 		}
 

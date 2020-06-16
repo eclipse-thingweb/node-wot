@@ -25,7 +25,7 @@ export default class FileClientFactory implements ProtocolClientFactory {
   constructor(proxy? : string) { }
 
   public getClient(): ProtocolClient {
-    console.log("[binding-file]",`FileClientFactory creating client for '${this.scheme}'`);
+    console.debug("[binding-file]",`FileClientFactory creating client for '${this.scheme}'`);
     return new FileClient();
   }
 

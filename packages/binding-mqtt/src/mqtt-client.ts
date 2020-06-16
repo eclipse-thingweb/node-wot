@@ -50,7 +50,7 @@ export default class MqttClient implements ProtocolClient {
 
         this.client.on('connect', () => this.client.subscribe(topic))
         this.client.on('message', (receivedTopic : string, payload : string, packet: IPublishPacket) => {
-            console.log("[binding-mqtt]","Received MQTT message (topic, data): (" + receivedTopic + ", "+ payload + ")");
+            console.debug("[binding-mqtt]","Received MQTT message (topic, data): (" + receivedTopic + ", "+ payload + ")");
             if (receivedTopic === topic) {
                 next({ contentType: contentType, body: Buffer.from(payload) });
             }
@@ -114,7 +114,7 @@ export default class MqttClient implements ProtocolClient {
         return new Promise<void>((resolve, reject) => {
             if(this.client && this.client.connected) {
                 this.client.unsubscribe(topic);
-                console.log("[binding-mqtt]",`MqttClient unsubscribed from topic '${topic}'`);
+                console.debug("[binding-mqtt]",`MqttClient unsubscribed from topic '${topic}'`);
             }
             resolve()
         });

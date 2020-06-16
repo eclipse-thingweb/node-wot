@@ -43,7 +43,7 @@ export default class CoapsClient implements ProtocolClient {
     return new Promise<Content>((resolve, reject) => {
 
       this.generateRequest(form, "get").then( (res: any) => {
-        console.log("[binding-coap]",`CoapsClient received ${res.code} from ${form.href}`);
+        console.debug("[binding-coap]",`CoapsClient received ${res.code} from ${form.href}`);
 
         // FIXME node-coap-client does not support options
         let contentType; // = res.format[...]
@@ -59,7 +59,7 @@ export default class CoapsClient implements ProtocolClient {
     return new Promise<void>((resolve, reject) => {
 
       this.generateRequest(form, "put", content).then( (res: any) => {
-        console.log("[binding-coap]",`CoapsClient received ${res.code} from ${form.href}`);
+        console.debug("[binding-coap]",`CoapsClient received ${res.code} from ${form.href}`);
 
         resolve();
       })
@@ -71,7 +71,7 @@ export default class CoapsClient implements ProtocolClient {
     return new Promise<Content>((resolve, reject) => {
 
       this.generateRequest(form, "post", content).then( (res: any) => {
-        console.log("[binding-coap]",`CoapsClient received ${res.code} from ${form.href}`);
+        console.debug("[binding-coap]",`CoapsClient received ${res.code} from ${form.href}`);
         
         // FIXME node-coap-client does not support options
         let contentType; // = res.format[...]
@@ -87,7 +87,7 @@ export default class CoapsClient implements ProtocolClient {
     return new Promise<void>((resolve, reject) => {
 
       this.generateRequest(form, "delete").then( (res: any) => {
-        console.log("[binding-coap]",`CoapsClient received ${res.code} from ${form.href}`);
+        console.debug("[binding-coap]",`CoapsClient received ${res.code} from ${form.href}`);
         console.debug("[binding-coap]",`CoapsClient received headers: ${JSON.stringify(res.format)}`);
         resolve();
       })
@@ -161,7 +161,7 @@ export default class CoapsClient implements ProtocolClient {
     }
     */
 
-    console.log("[binding-coap]",`CoapsClient using security scheme '${security.scheme}'`);
+    console.debug("[binding-coap]",`CoapsClient using security scheme '${security.scheme}'`);
     return true;
   }
 
@@ -174,7 +174,7 @@ export default class CoapsClient implements ProtocolClient {
     let method: string = dflt;
 
     if (typeof form["coap:methodCode"] === "number") {
-      console.log("[binding-coap]","CoapsClient got Form 'methodCode'", form["coap:methodCode"]);
+      console.debug("[binding-coap]","CoapsClient got Form 'methodCode'", form["coap:methodCode"]);
       switch (form["coap:methodCode"]) {
         case 1: method = "get"; break;
         case 2: method = "post"; break;
@@ -184,7 +184,7 @@ export default class CoapsClient implements ProtocolClient {
       }
     }
 
-    console.log("[binding-coap]",`CoapsClient sending ${method} to ${form.href}`);
+    console.debug("[binding-coap]",`CoapsClient sending ${method} to ${form.href}`);
     let req = coaps.request(
         form.href /* string */,
         method /* "get" | "post" | "put" | "delete" */,

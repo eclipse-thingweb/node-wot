@@ -168,7 +168,7 @@ export default class NetconfCodec {
 
 function mapJsonToArray(obj: any) {
 	if (typeof obj === 'object') {
-		console.log("[binding-netconf]",obj)
+		console.debug("[binding-netconf]",obj)
 		for (let k in obj) {
 			if (obj.hasOwnProperty(k)) {
 				//recursive call to scan property
@@ -177,7 +177,7 @@ function mapJsonToArray(obj: any) {
 		}
 	} else {
 		//not an Object so obj[k] here is a value
-		console.log("[binding-netconf]",obj)
+		console.debug("[binding-netconf]",obj)
 	};
 
 }

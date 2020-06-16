@@ -73,7 +73,7 @@ export default class OracleServer implements ProtocolServer {
             console.dir(device);
             
             if (this.server.isActivated()) {
-              console.log("[binding-oracle]",`OracleServer ${this.activationId} activated`);
+              console.debug("[binding-oracle]",`OracleServer ${this.activationId} activated`);
               resolve();
             } else {
               reject(new Error(`Could not activate`));
@@ -81,7 +81,7 @@ export default class OracleServer implements ProtocolServer {
           }
         });
       } else {
-        console.log("[binding-oracle]",`OracleServer ${this.activationId} already activated`);
+        console.debug("[binding-oracle]",`OracleServer ${this.activationId} already activated`);
         resolve();
       }
 
@@ -129,7 +129,7 @@ export default class OracleServer implements ProtocolServer {
   /** enrolls device and returns id */
   private registerDevice(thing: ExposedThing, model: any): Promise<any> {
 
-    console.log("[binding-oracle]",`OracleServer ${this.activationId} enrolling '${thing.id}'`);
+    console.debug("[binding-oracle]",`OracleServer ${this.activationId} enrolling '${thing.id}'`);
 
     return new Promise<void>( (resolve, reject) => {
       if (!this.server.isActivated()) {
@@ -159,7 +159,7 @@ export default class OracleServer implements ProtocolServer {
             if (error) {
               reject(error);
             } else {
-              console.log("[binding-oracle]",`OracleServer ${this.activationId} registered '${id}'`);
+              console.debug("[binding-oracle]",`OracleServer ${this.activationId} registered '${id}'`);
               resolve(id);
             }
           }

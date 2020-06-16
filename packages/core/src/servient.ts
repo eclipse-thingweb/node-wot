@@ -176,7 +176,7 @@ export default class Servient {
             return new Promise<void>((resolve) => { resolve(); });
         }
 
-        console.log("[core]",`Servient exposing '${thing.title}'`);
+        console.debug("[core]",`Servient exposing '${thing.title}'`);
 
         // What is a good way to to convey forms information like contentType et cetera for interactions
         let tdTemplate: WoT.ThingDescription = JSON.parse(JSON.stringify(thing));
@@ -210,7 +210,7 @@ export default class Servient {
 
         if (!this.things.has(thing.id)) {
             this.things.set(thing.id, thing);
-            console.log("[core]",`Servient reset ID '${thing.id}' with '${thing.title}'`);
+            console.debug("[core]",`Servient reset ID '${thing.id}' with '${thing.title}'`);
             return true;
         } else {
             return false;
@@ -224,7 +224,7 @@ export default class Servient {
     }
 
     public getThings(): object {
-        console.log("[core]",`Servient getThings size == '${this.things.size}'`);
+        console.debug("[core]",`Servient getThings size == '${this.things.size}'`);
         let ts : { [key: string]: object } = {};
         this.things.forEach((thing, id) => {
             ts[id] = thing.getThingDescription();
@@ -272,13 +272,13 @@ export default class Servient {
     public addCredentials(credentials: any) {
         if (typeof credentials === "object") {
             for (let i in credentials) {
-                console.log("[core]",`Servient storing credentials for '${i}'`);
+                console.debug("[core]",`Servient storing credentials for '${i}'`);
                 this.credentialStore.set(i, credentials[i]);
             }
         }
     }
     public getCredentials(identifier: string): any {
-        console.log("[core]",`Servient looking up credentials for '${identifier}'`);
+        console.debug("[core]",`Servient looking up credentials for '${identifier}'`);
         return this.credentialStore.get(identifier);
     }
 

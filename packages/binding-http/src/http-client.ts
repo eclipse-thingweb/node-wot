@@ -110,7 +110,7 @@ export default class HttpClient implements ProtocolClient {
       body: content.body
     })
 
-    console.log("[binding-http]",`HttpClient (writeResource) sending ${request.method} with '${request.headers.get("Content-Type")}' to ${request.url}`);
+    console.debug("[binding-http]",`HttpClient (writeResource) sending ${request.method} with '${request.headers.get("Content-Type")}' to ${request.url}`);
     
     let result = await this.fetch(request)
 
@@ -118,7 +118,7 @@ export default class HttpClient implements ProtocolClient {
 
     this.checkFetchResponse(result)
     
-    console.log("[binding-http]",`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
+    console.debug("[binding-http]",`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
     return;
   }
 
@@ -257,7 +257,7 @@ export default class HttpClient implements ProtocolClient {
       }
     }
 
-    console.log("[binding-http]",`HttpClient using security scheme '${security.scheme}'`);
+    console.debug("[binding-http]",`HttpClient using security scheme '${security.scheme}'`);
     return true;
   }
 

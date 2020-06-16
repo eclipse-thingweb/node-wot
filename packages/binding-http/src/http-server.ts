@@ -181,7 +181,7 @@ export default class HttpServer implements ProtocolServer {
 
     if (this.getPort() !== -1) {
 
-      console.log("[binding-http]",`HttpServer on port ${this.getPort()} exposes '${thing.title}' as unique '/${title}'`);
+      console.debug("[binding-http]",`HttpServer on port ${this.getPort()} exposes '${thing.title}' as unique '/${title}'`);
       this.things.set(title, thing);
 
       // fill in binding data
@@ -237,7 +237,7 @@ export default class HttpServer implements ProtocolServer {
             }
 
             thing.properties[propertyName].forms.push(form);
-            console.log("[binding-http]",`HttpServer on port ${this.getPort()} assigns '${href}' to Property '${propertyName}'`);
+            console.debug("[binding-http]",`HttpServer on port ${this.getPort()} assigns '${href}' to Property '${propertyName}'`);
 
             // if property is observable add an additional form with a observable href
             if (thing.properties[propertyName].observable) {
@@ -246,7 +246,7 @@ export default class HttpServer implements ProtocolServer {
               form.op = ["observeproperty"];
               form.subprotocol = "longpoll";
               thing.properties[propertyName].forms.push(form);
-              console.log("[binding-http]",`HttpServer on port ${this.getPort()} assigns '${href}' to observable Property '${propertyName}'`);
+              console.debug("[binding-http]",`HttpServer on port ${this.getPort()} assigns '${href}' to observable Property '${propertyName}'`);
             }
           }
           
@@ -261,7 +261,7 @@ export default class HttpServer implements ProtocolServer {
               hform["htv:methodName"] = "POST";
             }
             thing.actions[actionName].forms.push(form);
-            console.log("[binding-http]",`HttpServer on port ${this.getPort()} assigns '${href}' to Action '${actionName}'`);
+            console.debug("[binding-http]",`HttpServer on port ${this.getPort()} assigns '${href}' to Action '${actionName}'`);
           }
           
           for (let eventName in thing.events) {
@@ -272,7 +272,7 @@ export default class HttpServer implements ProtocolServer {
             form.subprotocol = "longpoll";
             form.op = ["subscribeevent"];
             thing.events[eventName].forms.push(form);
-            console.log("[binding-http]",`HttpServer on port ${this.getPort()} assigns '${href}' to Event '${eventName}'`);
+            console.debug("[binding-http]",`HttpServer on port ${this.getPort()} assigns '${href}' to Event '${eventName}'`);
           }
         } // media types
       } // addresses
@@ -290,7 +290,7 @@ export default class HttpServer implements ProtocolServer {
 
   private checkCredentials(id: string, req: http.IncomingMessage): boolean {
 
-    console.log("[binding-http]",`HttpServer on port ${this.getPort()} checking credentials for '${id}'`);
+    console.debug("[binding-http]",`HttpServer on port ${this.getPort()} checking credentials for '${id}'`);
 
     let creds = this.servient.getCredentials(id);
 
@@ -375,9 +375,9 @@ export default class HttpServer implements ProtocolServer {
     
     let requestUri = url.parse(req.url);
 
-    console.log("[binding-http]",`HttpServer on port ${this.getPort()} received '${req.method} ${requestUri.pathname}' from ${Helpers.toUriLiteral(req.socket.remoteAddress)}:${req.socket.remotePort}`);
+    console.debug("[binding-http]",`HttpServer on port ${this.getPort()} received '${req.method} ${requestUri.pathname}' from ${Helpers.toUriLiteral(req.socket.remoteAddress)}:${req.socket.remotePort}`);
     res.on("finish", () => {
-      console.log("[binding-http]",`HttpServer on port ${this.getPort()} replied with '${res.statusCode}' to ${Helpers.toUriLiteral(req.socket.remoteAddress)}:${req.socket.remotePort}`);
+      console.debug("[binding-http]",`HttpServer on port ${this.getPort()} replied with '${res.statusCode}' to ${Helpers.toUriLiteral(req.socket.remoteAddress)}:${req.socket.remotePort}`);
     });
 
     // Handle requests where the path is correct and the HTTP method is not allowed.
@@ -469,7 +469,7 @@ export default class HttpServer implements ProtocolServer {
 
                 if(prefLang) {
                   // if a preferred language can be found use it
-                  console.log("[binding-http]",`TD language negotiation through the Accept-Language header field of HTTP leads to "${prefLang}"`);
+                  console.debug("[binding-http]",`TD language negotiation through the Accept-Language header field of HTTP leads to "${prefLang}"`);
                   this.resetMultiLangThing(td, prefLang);
                 }
               }

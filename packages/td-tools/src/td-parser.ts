@@ -129,7 +129,7 @@ export function parseTD(td: string, normalize?: boolean): Thing {
 
   if (thing.hasOwnProperty("base")) {
     if (normalize === undefined || normalize === true) {
-      console.log("[td-tools]",`parseTD() normalizing 'base' into 'forms'`);
+      console.debug("[td-tools]",`parseTD() normalizing 'base' into 'forms'`);
 
       for (let form of allForms) {
         if (!form.href.match(/^([a-z0-9\+-\.]+\:).+/i)) {

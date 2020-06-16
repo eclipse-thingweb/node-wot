@@ -160,14 +160,14 @@ export default class DefaultServient extends Servient {
                         });
                         thing.setActionHandler("runScript", (script) => {
                             return new Promise((resolve, reject) => {
-                                console.log("[cli]","running script", script);
+                                console.debug("[cli]","running script", script);
                                 this.runScript(script);
                                 resolve();
                             });
                         });
                         thing.setPropertyReadHandler("things", () => {
                             return new Promise((resolve, reject) => {
-                                console.log("[cli]","returnings things");
+                                console.debug("[cli]","returnings things");
                                 resolve(this.getThings());
                             });
                         });

@@ -119,7 +119,7 @@ export default class WebSocketServer implements ProtocolServer {
 
       // stop promise handles all errors from now on
       if (this.ownServer) {
-        console.log("[binding-ws]",`WebSocketServer stopping own HTTP server`);
+        console.debug("[binding-ws]",`WebSocketServer stopping own HTTP server`);
         this.httpServer.once('error', (err: Error) => { reject(err); });
         this.httpServer.once('close', () => { resolve(); });
         this.httpServer.close();
@@ -146,7 +146,7 @@ export default class WebSocketServer implements ProtocolServer {
 
     if (this.getPort() !== -1) {
 
-      console.log("[binding-ws]",`WebSocketServer on port ${this.getPort()} exposes '${thing.title}' as unique '/${title}/*'`);
+      console.debug("[binding-ws]",`WebSocketServer on port ${this.getPort()} exposes '${thing.title}' as unique '/${title}/*'`);
 
       // TODO clean-up on destroy
       this.thingNames.add(title);
@@ -158,7 +158,7 @@ export default class WebSocketServer implements ProtocolServer {
         console.debug("[binding-ws]",`WebSocketServer on port ${this.getPort()} adding socketServer for '${path}'`);
         this.socketServers[path] = new WebSocket.Server({ noServer: true });
         this.socketServers[path].on('connection', (ws, req) => {
-          console.log("[binding-ws]",`WebSocketServer on port ${this.getPort()} received connection for '${path}' from ${Helpers.toUriLiteral(req.connection.remoteAddress)}:${req.connection.remotePort}`);
+          console.debug("[binding-ws]",`WebSocketServer on port ${this.getPort()} received connection for '${path}' from ${Helpers.toUriLiteral(req.connection.remoteAddress)}:${req.connection.remotePort}`);
           thing.subscribeEvent(eventName,
           // let subscription = thing.events[eventName].subscribe(
             (data) => {
@@ -190,7 +190,7 @@ export default class WebSocketServer implements ProtocolServer {
           ws.on("close", () => {
             thing.unsubscribeEvent(eventName)
             // subscription.unsubscribe();
-            console.log("[binding-ws]",`WebSocketServer on port ${this.getPort()} closed connection for '${path}' from ${Helpers.toUriLiteral(req.connection.remoteAddress)}:${req.connection.remotePort}`);
+            console.debug("[binding-ws]",`WebSocketServer on port ${this.getPort()} closed connection for '${path}' from ${Helpers.toUriLiteral(req.connection.remoteAddress)}:${req.connection.remotePort}`);
           });
         });
 
@@ -199,7 +199,7 @@ export default class WebSocketServer implements ProtocolServer {
             let form = new TD.Form(href, ContentSerdes.DEFAULT);
             form.op = "subscribeevent";
             thing.events[eventName].forms.push(form);
-          console.log("[binding-ws]",`WebSocketServer on port ${this.getPort()} assigns '${href}' to Event '${eventName}'`);
+          console.debug("[binding-ws]",`WebSocketServer on port ${this.getPort()} assigns '${href}' to Event '${eventName}'`);
         }
       }
     }

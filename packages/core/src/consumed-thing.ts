@@ -124,7 +124,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     ensureClientSecurity(client: ProtocolClient) {
         // td-tools parser ensures this.security is an array
         if (this.security && this.securityDefinitions && Array.isArray(this.security) && this.security.length > 0) {
-            console.log("[core]",`ConsumedThing '${this.title}' setting credentials for ${client}`);
+            console.debug("[core]",`ConsumedThing '${this.title}' setting credentials for ${client}`);
             let scs: Array<TD.SecurityScheme> = [];
             for (let s of this.security) {
                 let ws = this.securityDefinitions[s + ""]; // String vs. string (fix wot-typescript-definitions?)
@@ -155,7 +155,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                 let scheme = Helpers.extractScheme(form.href);
 
                 if (this.getServient().hasClientFor(scheme)) {
-                    console.log("[core]",`ConsumedThing '${this.title}' got client for '${scheme}'`);
+                    console.debug("[core]",`ConsumedThing '${this.title}' got client for '${scheme}'`);
                     client = this.getServient().getClientFor(scheme);
 
                     if (!this.getClients().get(scheme)) {
@@ -186,7 +186,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                 if (srvIdx === -1) throw new Error(`ConsumedThing '${this.title}' missing ClientFactory for '${schemes}'`);
 
                 client = this.getServient().getClientFor(schemes[srvIdx]);
-                console.log("[core]",`ConsumedThing '${this.title}' got new client for '${schemes[srvIdx]}'`);
+                console.debug("[core]",`ConsumedThing '${this.title}' got new client for '${schemes[srvIdx]}'`);
 
                 this.ensureClientSecurity(client);
                 this.getClients().set(schemes[srvIdx], client);
@@ -207,7 +207,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
             } else if (!form) {
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable form`));
             } else {
-                console.log("[core]",`ConsumedThing '${this.title}' reading ${form.href}`);
+                console.debug("[core]",`ConsumedThing '${this.title}' reading ${form.href}`);
 
                 // uriVariables ?
                 form = this.handleUriVariables(form, options);
@@ -279,7 +279,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
             } else if (!form) {
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable form`));
             } else {
-                console.log("[core]",`ConsumedThing '${this.title}' writing ${form.href} with '${value}'`);
+                console.debug("[core]",`ConsumedThing '${this.title}' writing ${form.href} with '${value}'`);
                 let content = ContentManager.valueToContent(value, <any>tp.input, form.contentType);
 
                 // uriVariables ?
@@ -321,7 +321,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
             } else if (!form) {
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable form`));
             } else {
-                console.log("[core]",`ConsumedThing '${this.title}' invoking ${form.href}${parameter !== undefined ? " with '" + parameter + "'" : ""}`);
+                console.debug("[core]",`ConsumedThing '${this.title}' invoking ${form.href}${parameter !== undefined ? " with '" + parameter + "'" : ""}`);
 
                 let input;
 
@@ -364,7 +364,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
             } else if (!form) {
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable form`));
             } else {
-                console.log("[core]",`ConsumedThing '${this.title}' observing to ${form.href}`);
+                console.debug("[core]",`ConsumedThing '${this.title}' observing to ${form.href}`);
 
                 // uriVariables ?
                 form = this.handleUriVariables(form, options);
@@ -400,7 +400,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
             } else if (!form) {
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable form`));
             } else {
-                console.log("[core]",`ConsumedThing '${this.title}' unobserveing to ${form.href}`);
+                console.debug("[core]",`ConsumedThing '${this.title}' unobserveing to ${form.href}`);
                 client.unlinkResource(form);
                 resolve();
             }
@@ -416,7 +416,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
             } else if (!form) {
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable form`));
             } else {
-                console.log("[core]",`ConsumedThing '${this.title}' subscribing to ${form.href}`);
+                console.debug("[core]",`ConsumedThing '${this.title}' subscribing to ${form.href}`);
                 
                 // uriVariables ?
                 form = this.handleUriVariables(form, options);
@@ -452,7 +452,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
             } else if (!form) {
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable form`));
             } else {
-                console.log("[core]",`ConsumedThing '${this.title}' unsubscribing to ${form.href}`);
+                console.debug("[core]",`ConsumedThing '${this.title}' unsubscribing to ${form.href}`);
                 client.unlinkResource(form);
                 resolve();
             }
@@ -474,7 +474,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
             updForm.response = form.response;
 
             form = updForm;
-            console.log("[core]",`ConsumedThing '${this.title}' update form URI to ${form.href}`);
+            console.debug("[core]",`ConsumedThing '${this.title}' update form URI to ${form.href}`);
         }
 
         return form;

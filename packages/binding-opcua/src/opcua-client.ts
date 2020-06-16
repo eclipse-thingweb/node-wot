@@ -106,7 +106,7 @@ export default class OpcuaClient implements ProtocolClient {
 		/*this.client.on('connection_lost', () => { //FIXME, NOT WORKING because of framework?
 		});
 		this.session.on('closed', () => {
-			console.log('Client connection has been reestablished')
+			console.debug('Client connection has been reestablished')
 			//this.session.close();
 			this.client.disconnect();
 			this.session = null;
@@ -128,7 +128,7 @@ export default class OpcuaClient implements ProtocolClient {
 			try {
 				await this.connect(endpointUrl);
 			} catch (err) {
-				console.log("[binding-opcua]",err);
+				console.debug("[binding-opcua]",err);
 				throw err;
 			}
 		}
@@ -151,7 +151,7 @@ export default class OpcuaClient implements ProtocolClient {
 			result = await this.session.read(nodeToRead);
 			result = JSON.stringify(result);
 		} catch (err) {
-			console.log("[binding-opcua]",err);
+			console.debug("[binding-opcua]",err);
 			throw err;
 		}
 
@@ -175,7 +175,7 @@ export default class OpcuaClient implements ProtocolClient {
 			try {
 				await this.connect(endpointUrl);
 			} catch (err) {
-				console.log("[binding-opcua]",err);
+				console.debug("[binding-opcua]",err);
 				throw err;
 			}
 		}
@@ -207,7 +207,7 @@ export default class OpcuaClient implements ProtocolClient {
 				res = true;
 			}
 		} catch (err) {
-			console.log("[binding-opcua]",err);
+			console.debug("[binding-opcua]",err);
 			throw err;
 		}
 
@@ -236,7 +236,7 @@ export default class OpcuaClient implements ProtocolClient {
 			try {
 				await this.connect(endpointUrl);
 			} catch (err) {
-				console.log("[binding-opcua]",err);
+				console.debug("[binding-opcua]",err);
 				throw err;
 			}
 		}
@@ -263,7 +263,7 @@ export default class OpcuaClient implements ProtocolClient {
 				result = await this.session.call(methodToCalls);
 				var status = result[0].statusCode;
 				if (status._value !== 0 || status._name !== 'Good') {
-					console.log("[binding-opcua]",status);
+					console.debug("[binding-opcua]",status);
 					throw new Error(status);
 				}
 			} catch (err) {
@@ -286,7 +286,7 @@ export default class OpcuaClient implements ProtocolClient {
 			try {
 				await this.connect(endpointUrl);
 			} catch (err) {
-				console.log("[binding-opcua]",err);
+				console.debug("[binding-opcua]",err);
 				throw err;
 			}
 		}

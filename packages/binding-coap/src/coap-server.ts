@@ -103,7 +103,7 @@ export default class CoapServer implements ProtocolServer {
       title = Helpers.generateUniqueName(title);
     }
 
-    console.log("[binding-coap]",`CoapServer on port ${this.getPort()} exposes '${thing.title}' as unique '/${title}'`);
+    console.debug("[binding-coap]",`CoapServer on port ${this.getPort()} exposes '${thing.title}' as unique '/${title}'`);
 
     if (this.getPort() !== -1) {
       this.things.set(title, thing);
@@ -125,7 +125,7 @@ export default class CoapServer implements ProtocolServer {
               form.op = ["readproperty", "writeproperty"];
             }
             thing.properties[propertyName].forms.push(form);
-            console.log("[binding-coap]",`CoapServer on port ${this.getPort()} assigns '${href}' to Property '${propertyName}'`);
+            console.debug("[binding-coap]",`CoapServer on port ${this.getPort()} assigns '${href}' to Property '${propertyName}'`);
           }
           
           for (let actionName in thing.actions) {
@@ -134,7 +134,7 @@ export default class CoapServer implements ProtocolServer {
             ProtocolHelpers.updateActionFormWithTemplate(form, tdTemplate, actionName);
             form.op = "invokeaction";
             thing.actions[actionName].forms.push(form);
-            console.log("[binding-coap]",`CoapServer on port ${this.getPort()} assigns '${href}' to Action '${actionName}'`);
+            console.debug("[binding-coap]",`CoapServer on port ${this.getPort()} assigns '${href}' to Action '${actionName}'`);
           }
           
           for (let eventName in thing.events) {
@@ -143,7 +143,7 @@ export default class CoapServer implements ProtocolServer {
             ProtocolHelpers.updateEventFormWithTemplate(form, tdTemplate, eventName);
             form.op = "subscribeevent";
             thing.events[eventName].forms.push(form);
-            console.log("[binding-coap]",`CoapServer on port ${this.getPort()} assigns '${href}' to Event '${eventName}'`);
+            console.debug("[binding-coap]",`CoapServer on port ${this.getPort()} assigns '${href}' to Event '${eventName}'`);
           }
         } // media types
       } // addresses
@@ -157,9 +157,9 @@ export default class CoapServer implements ProtocolServer {
 
   private handleRequest(req: any, res: any) {
     
-    console.log("[binding-coap]",`CoapServer on port ${this.getPort()} received '${req.method}(${req._packet.messageId}) ${req.url}' from ${Helpers.toUriLiteral(req.rsinfo.address)}:${req.rsinfo.port}`);
+    console.debug("[binding-coap]",`CoapServer on port ${this.getPort()} received '${req.method}(${req._packet.messageId}) ${req.url}' from ${Helpers.toUriLiteral(req.rsinfo.address)}:${req.rsinfo.port}`);
     res.on('finish', () => {
-      console.log("[binding-coap]",`CoapServer replied with '${res.code}' to ${Helpers.toUriLiteral(req.rsinfo.address)}:${req.rsinfo.port}`);
+      console.debug("[binding-coap]",`CoapServer replied with '${res.code}' to ${Helpers.toUriLiteral(req.rsinfo.address)}:${req.rsinfo.port}`);
     });
 
     let requestUri = url.parse(req.url);
@@ -377,7 +377,7 @@ export default class CoapServer implements ProtocolServer {
                     }
                     
                     // send event data
-                    console.log("[binding-coap]",`CoapServer on port ${this.getPort()} sends '${segments[3]}' notification to ${Helpers.toUriLiteral(req.rsinfo.address)}:${req.rsinfo.port}`);
+                    console.debug("[binding-coap]",`CoapServer on port ${this.getPort()} sends '${segments[3]}' notification to ${Helpers.toUriLiteral(req.rsinfo.address)}:${req.rsinfo.port}`);
                     res.setOption("Content-Format", content.type);
                     res.code = "2.05";
                     res.write(content.body);
@@ -394,26 +394,26 @@ export default class CoapServer implements ProtocolServer {
                   // }
                 )
                 .then(() => {
-                  console.log("[binding-coap]",`CoapServer on port ${this.getPort()} completes '${segments[3]}' subscription`);
+                  console.debug("[binding-coap]",`CoapServer on port ${this.getPort()} completes '${segments[3]}' subscription`);
                     res.end();
                   })
                 .catch(() => {
-                  console.log("[binding-coap]",`CoapServer on port ${this.getPort()} failed '${segments[3]}' subscription`);
+                  console.debug("[binding-coap]",`CoapServer on port ${this.getPort()} failed '${segments[3]}' subscription`);
                     res.code = "5.00";
                     res.end();
                   });
                 res.on('finish', () => {
-                  console.log("[binding-coap]",`CoapServer on port ${this.getPort()} ends '${segments[3]}' observation from ${Helpers.toUriLiteral(req.rsinfo.address)}:${req.rsinfo.port}`);
+                  console.debug("[binding-coap]",`CoapServer on port ${this.getPort()} ends '${segments[3]}' observation from ${Helpers.toUriLiteral(req.rsinfo.address)}:${req.rsinfo.port}`);
                   thing.unsubscribeEvent(segments[3]);
                   // subscription.unsubscribe();
                 });
               } else if (req.headers['Observe'] > 0) {
-                console.log("[binding-coap]",`CoapServer on port ${this.getPort()} sends '${segments[3]}' response to ${Helpers.toUriLiteral(req.rsinfo.address)}:${req.rsinfo.port}`);
+                console.debug("[binding-coap]",`CoapServer on port ${this.getPort()} sends '${segments[3]}' response to ${Helpers.toUriLiteral(req.rsinfo.address)}:${req.rsinfo.port}`);
                 // node-coap does not support GET cancellation
                 res.code = "5.01";
                 res.end("node-coap issue: no GET cancellation, send RST");
               } else {
-                console.log("[binding-coap]",`CoapServer on port ${this.getPort()} rejects '${segments[3]}' read from ${Helpers.toUriLiteral(req.rsinfo.address)}:${req.rsinfo.port}`);
+                console.debug("[binding-coap]",`CoapServer on port ${this.getPort()} rejects '${segments[3]}' read from ${Helpers.toUriLiteral(req.rsinfo.address)}:${req.rsinfo.port}`);
                 res.code = "4.00";
                 res.end("No Observe Option");
               }

@@ -38,7 +38,7 @@ export default class HttpClientFactory implements ProtocolClientFactory {
       console.warn("[binding-http]",`HttpClientFactory creating client for 'https' due to secure proxy configuration`);
       return new HttpClient(this.config, true, this.oAuthManager);
     } else {
-      console.log("[binding-http]",`HttpClientFactory creating client for '${this.scheme}'`);
+      console.debug("[binding-http]",`HttpClientFactory creating client for '${this.scheme}'`);
       return new HttpClient(this.config);
     }
   }

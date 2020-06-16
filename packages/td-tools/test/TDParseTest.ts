@@ -563,7 +563,7 @@ class TDParserTest {
     expect(thing).to.have.property("actions");
     expect(thing).to.have.property("events");
 
-    // console.log(td["@context"]);
+    // console.debug(td["@context"]);
     expect(thing.properties).to.have.property("status");
     expect(thing.properties["status"].readOnly).equals(true);
     expect(thing.properties["status"].observable).equals(false);

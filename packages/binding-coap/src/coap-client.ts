@@ -55,10 +55,10 @@ export default class CoapClient implements ProtocolClient {
 
       let req = this.generateRequest(form, "GET");
 
-      console.log("[binding-coap]",`CoapClient sending ${req.statusCode} to ${form.href}`);
+      console.debug("[binding-coap]",`CoapClient sending ${req.statusCode} to ${form.href}`);
 
       req.on("response", (res: any) => {
-        console.log("[binding-coap]",`CoapClient received ${res.code} from ${form.href}`);
+        console.debug("[binding-coap]",`CoapClient received ${res.code} from ${form.href}`);
         console.debug("[binding-coap]",`CoapClient received Content-Format: ${res.headers["Content-Format"]}`);
         
         // FIXME does not work with blockwise because of node-coap
@@ -79,10 +79,10 @@ export default class CoapClient implements ProtocolClient {
 
       // TODO set Content-FOrmat
 
-      console.log("[binding-coap]",`CoapClient sending ${req.statusCode} to ${form.href}`);
+      console.debug("[binding-coap]",`CoapClient sending ${req.statusCode} to ${form.href}`);
 
       req.on("response", (res: any) => {
-        console.log("[binding-coap]",`CoapClient received ${res.code} from ${form.href}`);
+        console.debug("[binding-coap]",`CoapClient received ${res.code} from ${form.href}`);
         console.debug("[binding-coap]",`CoapClient received headers: ${JSON.stringify(res.headers)}`);
         resolve();
       });
@@ -98,10 +98,10 @@ export default class CoapClient implements ProtocolClient {
 
       let req = this.generateRequest(form, "POST");
 
-      console.log("[binding-coap]",`CoapClient sending ${req.statusCode} to ${form.href}`);
+      console.debug("[binding-coap]",`CoapClient sending ${req.statusCode} to ${form.href}`);
 
       req.on("response", (res: any) => {
-        console.log("[binding-coap]",`CoapClient received ${res.code} from ${form.href}`);
+        console.debug("[binding-coap]",`CoapClient received ${res.code} from ${form.href}`);
         console.debug("[binding-coap]",`CoapClient received Content-Format: ${res.headers["Content-Format"]}`);
         console.debug("[binding-coap]",`CoapClient received headers: ${JSON.stringify(res.headers)}`);
         let contentType = res.headers["Content-Format"];
@@ -121,10 +121,10 @@ export default class CoapClient implements ProtocolClient {
 
       let req = this.generateRequest(form, "GET", false);
 
-      console.log("[binding-coap]",`CoapClient sending ${req.statusCode} to ${form.href}`);
+      console.debug("[binding-coap]",`CoapClient sending ${req.statusCode} to ${form.href}`);
 
       req.on("response", (res: any) => {
-        console.log("[binding-coap]",`CoapClient received ${res.code} from ${form.href}`);
+        console.debug("[binding-coap]",`CoapClient received ${res.code} from ${form.href}`);
         console.debug("[binding-coap]",`CoapClient received headers: ${JSON.stringify(res.headers)}`);
         resolve();
       });
@@ -136,10 +136,10 @@ export default class CoapClient implements ProtocolClient {
   public subscribeResource(form: CoapForm, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): any {
     let req = this.generateRequest(form, "GET", true);
 
-    console.log("[binding-coap]",`CoapClient sending ${req.statusCode} to ${form.href}`);
+    console.debug("[binding-coap]",`CoapClient sending ${req.statusCode} to ${form.href}`);
 
     req.on("response", (res: any) => {
-      console.log("[binding-coap]",`CoapClient received ${res.code} from ${form.href}`);
+      console.debug("[binding-coap]",`CoapClient received ${res.code} from ${form.href}`);
       console.debug("[binding-coap]",`CoapClient received Content-Format: ${res.headers["Content-Format"]}`);
 
       // FIXME does not work with blockwise because of node-coap
@@ -193,7 +193,7 @@ export default class CoapClient implements ProtocolClient {
     options.method = dflt;
 
     if (typeof form["coap:methodCode"] === "number") {
-      console.log("[binding-coap]","CoapClient got Form 'methodCode'", form["coap:methodCode"]);
+      console.debug("[binding-coap]","CoapClient got Form 'methodCode'", form["coap:methodCode"]);
       switch (form["coap:methodCode"]) {
         case 1: options.method = "GET"; break;
         case 2: options.method = "POST"; break;
@@ -208,11 +208,11 @@ export default class CoapClient implements ProtocolClient {
 
     // apply form data
     if (typeof form.contentType === "string") {
-      console.log("[binding-coap]","CoapClient got Form 'contentType'", form.contentType);
+      console.debug("[binding-coap]","CoapClient got Form 'contentType'", form.contentType);
       req.setOption("Accept", form.contentType);
     }
     if (Array.isArray(form["coap:options"])) {
-      console.log("[binding-coap]","CoapClient got Form 'options'", form["coap:options"]);
+      console.debug("[binding-coap]","CoapClient got Form 'options'", form["coap:options"]);
       let options = form["coap:options"] as Array<CoapOption>;
       for (let option of options) {
         req.setOption(option["coap:optionCode"], option["coap:optionValue"]);
