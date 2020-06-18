@@ -58,7 +58,7 @@ BROKER-UNIQUEID is a string indicating an optional MQTT broker unique ID
 
 MQTT_VERSION is a number indicating the MQTT protocol version to be used (3, 4, or 5)
 
-LEVEL is a string or number to set the logging level: `{ error: 0, warn: 1, info: 2, log: 3, debug: 4 }`
+LEVEL is a string or number to set the logging level: `{ error: 0, warn: 1, info: 2, debug: 3 }` (default `info`)
 
 THING_IDx is a TD @id for which credentials should be configured
 

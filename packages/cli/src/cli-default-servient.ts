@@ -42,10 +42,15 @@ export default class DefaultServient extends Servient {
         },
         coap: {
             port: 5683
+        },
+        log: {
+            level: "info"
         }
     }
 
     public readonly config: any;
+    // current log level
+    public logLevel: string;
 
     public constructor(clientOnly: boolean, config?: any) {
         super();
@@ -59,6 +64,9 @@ export default class DefaultServient extends Servient {
             if (!this.config.servient) { this.config.servient = {}; }
             this.config.servient.clientOnly = true;
         }
+
+        // set log level before any output
+        this.setLogLevel(this.config.log.level);
         
         // load credentials from config
         this.addCredentials(this.config.credentials);
@@ -128,9 +136,9 @@ export default class DefaultServient extends Servient {
                         }
                     },
                     actions: {
-                        log: {
-                            description: "Enable logging",
-                            input: { type: "string" },
+                        setLogLevel: {
+                            description: "Set log level",
+                            input: { oneOf: [{type: "string"}, {type: "number"}] },
                             output: { type: "string" }
                         },
                         shutdown: {
@@ -145,10 +153,10 @@ export default class DefaultServient extends Servient {
                     }
                 })
                     .then((thing) => {
-                        thing.setActionHandler("log", (msg) => {
+                        thing.setActionHandler("setLogLevel", (level) => {
                             return new Promise((resolve, reject) => {
-                                console.info(msg);
-                                resolve(`logged '${msg}'`);
+                                this.setLogLevel(level);
+                                resolve(`Log level set to '${this.logLevel}'`);
                             });
                         });
                         thing.setActionHandler("shutdown", () => {
@@ -178,5 +186,51 @@ export default class DefaultServient extends Servient {
                     });
                 }).catch((err) => reject(err));
         });
+    }
+
+    // Save default loggers (needed when changing log levels)
+    private readonly loggers: any = {
+        "warn": console.warn,
+        "info": console.info,
+        "debug": console.debug
+    }
+
+    private setLogLevel(logLevel: string|number): void {
+        if (logLevel == "error" || logLevel == 0) {
+            console.warn = () => {};
+            console.info = () => {};
+            console.debug = () => {};
+ 
+            this.logLevel = "error";
+
+        } else if (logLevel == "warn" || logLevel == "warning" || logLevel == 1) {
+            console.warn = this.loggers.warn;
+            console.info = () => {};
+            console.debug = () => {};
+
+            this.logLevel = "warn";
+
+        } else if (logLevel == "info" || logLevel == 2) {
+            console.warn = this.loggers.warn;
+            console.info = this.loggers.info;
+            console.debug = () => {};
+
+            this.logLevel = "info";
+        
+        } else if (logLevel == "debug" || logLevel == 3) {
+            console.warn = this.loggers.warn;
+            console.info = this.loggers.info;
+            console.debug = this.loggers.debug;
+
+            this.logLevel = "debug";
+
+        } else {
+            // Fallback to default ("info")
+            console.warn = this.loggers.warn;
+            console.info = this.loggers.info;
+            console.debug = () => {};
+
+            this.logLevel = "info";
+        }
     }
 }
