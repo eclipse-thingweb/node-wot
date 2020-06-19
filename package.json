@@ -18,6 +18,8 @@
     "prebuild": "npm run bootstrap",
     "build": "lerna run build",
     "pretest": "npm run build",
+    "start": "cd packages/cli && npm run start",
+    "debug": "cd packages/cli && npm run debug",
     "test": "lerna run test",
     "prelink": "npm run unlock",
     "link": "lerna-run npm link",
