@@ -113,7 +113,7 @@ export default class DefaultServient extends Servient {
 
         return new Promise<WoT.WoT>((resolve, reject) => {
             super.start().then((myWoT) => {
-                console.debug("[cli/default-servient]","DefaultServient started");
+                console.info("[cli/default-servient]","DefaultServient started");
 
                 // TODO think about builder pattern that starts with produce() ends with expose(), which exposes/publishes the Thing
                 myWoT.produce({
