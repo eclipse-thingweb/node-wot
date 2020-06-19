@@ -46,7 +46,7 @@ export default class WoTImpl implements WoT.WoT {
 
                 newThing.extendInteractions();
 
-                console.debug("[core]",`WoTImpl consuming TD ${newThing.id ? "'" + newThing.id + "'" : "without id"} to instantiate ConsumedThing '${newThing.title}'`);
+                console.debug("[core/wot-impl]",`WoTImpl consuming TD ${newThing.id ? "'" + newThing.id + "'" : "without id"} to instantiate ConsumedThing '${newThing.title}'`);
                 resolve(newThing);
             } catch (err) {
                 reject(new Error("Cannot consume TD because " + err.message));
@@ -93,7 +93,7 @@ export default class WoTImpl implements WoT.WoT {
                 // augment Interaction descriptions with interactable functions
                 newThing.extendInteractions();
 
-                console.debug("[core]",`WoTImpl producing new ExposedThing '${newThing.title}'`);
+                console.debug("[core/servient]",`WoTImpl producing new ExposedThing '${newThing.title}'`);
 
                 if (this.srv.addThing(newThing)) {
                     resolve(newThing);

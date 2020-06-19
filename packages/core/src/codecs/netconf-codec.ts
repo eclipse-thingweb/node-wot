@@ -47,7 +47,7 @@ export default class NetconfCodec implements ContentCodec {
     // remove legacy wrapping and use RFC 7159
     // TODO remove once dropped from all PlugFest implementation
     if (parsed && parsed.value !== undefined) {
-	  console.warn("[core]",`NetconfCodec removing { value: ... } wrapper`);
+	  console.warn("[core/netconf-codec]",`NetconfCodec removing { value: ... } wrapper`);
       parsed = parsed.value;
     }
     return parsed;
