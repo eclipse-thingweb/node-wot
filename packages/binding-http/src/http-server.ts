@@ -298,11 +298,11 @@ export default class HttpServer implements ProtocolServer {
     });
   }
 
-  private async checkCredentials(id: string, req: http.IncomingMessage): Promise<boolean> {
+  private async checkCredentials(thing: ExposedThing, req: http.IncomingMessage): Promise<boolean> {
 
-    console.log(`HttpServer on port ${this.getPort()} checking credentials for '${id}'`);
+    console.log(`HttpServer on port ${this.getPort()} checking credentials for '${thing.id}'`);
 
-    let creds = this.servient.getCredentials(id);
+    let creds = this.servient.getCredentials(thing.id);
 
     switch (this.httpSecurityScheme) {
       case "NoSec":
@@ -315,7 +315,6 @@ export default class HttpServer implements ProtocolServer {
       case "Digest":
         return false;
       case "OAuth":
-        const thing = this.things.get(id)
         const oAuthScheme = thing.securityDefinitions[thing.security[0] as string] as OAuth2SecurityScheme
         
         //TODO: Support security schemes defined at affordance level
@@ -502,7 +501,7 @@ export default class HttpServer implements ProtocolServer {
 
         } else {
           // Thing Interaction - Access Control
-          if (this.httpSecurityScheme!=="NoSec" && ! await this.checkCredentials(thing.id, req)) {
+          if (this.httpSecurityScheme!=="NoSec" && ! await this.checkCredentials(thing, req)) {
             res.setHeader("WWW-Authenticate", `${this.httpSecurityScheme} realm="${thing.id}"`);
             res.writeHead(401);
             res.end();
