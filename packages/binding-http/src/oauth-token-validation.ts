@@ -49,7 +49,7 @@ interface TokenInformation {
 }
 
 export default function (method?:Method) {
-    if(!method || method?.name){
+    if(!method || !method?.name){
         throw new Error("Undefined oauth token validation method")
     } 
 
@@ -76,7 +76,11 @@ export class EndpointValidator extends Validator{
     async validate(tokenRequest: http.IncomingMessage,scopes:Array<string>,clients:RegExp): Promise<boolean> {
         const token = extractTokenFromRequest(tokenRequest)
         const request = new Request(this.config.endpoint,{
-            body:`token=${token}`
+            method: "POST",
+            body:`token=${token}`,
+            headers:{
+                "content-type":"application/x-www-form-urlencoded"
+            }
         });
         
         if(this.config.credentials){
@@ -84,8 +88,24 @@ export class EndpointValidator extends Validator{
         }
         
         const response = await fetch(request);
+        
+        if(response.status != 200){
+            throw new Error("Introspection endpoint error: "+response.statusText);
+        }
+        
+        let contentType = response.headers.get("content-type")
+        contentType = response.headers.get("content-type")?.split(";")[0]
+
+        if(contentType !== "application/json"){
+            throw new Error("Introspection response is not a json file. Content-Type: " + response.headers.get("content-type"));
+        }
+
         const validationResult = await response.json() as TokenInformation
 
+        if(validationResult.active === undefined){
+            throw new Error("Malformed token introspection response: active is undefined");
+            
+        }
         // Endpoint validation
         if(!validationResult.active){
             return false
@@ -117,7 +137,7 @@ function extractTokenFromRequest(request: http.IncomingMessage) {
     const url = new URL(request.url)
     const queryToken = url.searchParams.get("access_token")
 
-    if(!!headerToken && !!queryToken ){
+    if(!headerToken && !queryToken ){
         throw new Error("Invalid request: only one authentication method is allowed");
     }
 

@@ -319,7 +319,18 @@ export default class HttpServer implements ProtocolServer {
         
         //TODO: Support security schemes defined at affordance level
         const scopes = oAuthScheme.scopes ?? []
-        return this.oAuthValidator.validate(req, scopes, this.validOAuthClients);
+        let valid = false
+        
+        try {
+          valid = await this.oAuthValidator.validate(req, scopes, this.validOAuthClients);
+        } catch (error) {
+          // TODO: should we answer differently to the client if something went wrong?
+          console.error("OAuth authorization error; sending unauthorized response error")
+          console.error("this was possibly caused by a misconfiguration of the server")
+          console.error(error)
+        }
+
+        return valid
       case "Bearer":
         if (req.headers["authorization"]===undefined) return false;
         // TODO proper token evaluation
