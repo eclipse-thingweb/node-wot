@@ -66,7 +66,11 @@ export default class DefaultServient extends Servient {
         }
 
         // set log level before any output
-        this.setLogLevel(this.config.log.level);
+        if (this.config.log !== undefined) {
+            this.setLogLevel(this.config.log.level);
+        } else {
+            this.setLogLevel(DefaultServient.defaultConfig.log.level);
+        }
         
         // load credentials from config
         this.addCredentials(this.config.credentials);
