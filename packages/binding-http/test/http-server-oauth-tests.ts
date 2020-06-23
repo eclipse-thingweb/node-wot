@@ -14,37 +14,130 @@
  ********************************************************************************/
 import { suite, test, slow, timeout, skip, only, describe } from "mocha-typescript";
 import { expect, should, assert } from "chai";
-import * as express from 'express';
 import { HttpServer, OAuth2ServerConfig } from "../src/http";
 import { IntrospectionEndpoint, EndpointValidator } from "../src/oauth-token-validation";
+import { IncomingMessage } from "http";
+import Servient, { Helpers, ExposedThing } from "@node-wot/core";
+import fetch from "node-fetch";
 
 
 should()
 @suite("OAuth server token validation tests")
 class OAuthServerTests{
+    private server:HttpServer;
+    async before(){
+        console.debug = () =>{}
+        console.warn = () =>{}
+        console.info = () =>{}
 
-    static before(){
-        var app: express.Express = express();
-        app.use((req)=>{
-
-            return 
-        })
-    }
-
-    @test async "should configure oauth"(){
         const method: IntrospectionEndpoint = {
             name: "introspection_endpoint",
             endpoint: "http://localhost:4242"
         }
         const authConfig: OAuth2ServerConfig = {
-            scheme:"oauth",
+            scheme: "oauth",
             method: method,
         }
-        const server = new HttpServer({
-            security : authConfig
+        this.server = new HttpServer({
+            security: authConfig
         })
 
-        server["httpSecurityScheme"].should.be.equal("OAuth")
-        server["oAuthValidator"].should.be.instanceOf(EndpointValidator)
+
+        await this.server.start(new MockServient());
+
+        let testThing = new ExposedThing(null);
+        testThing = Helpers.extend({
+            title: "TestOAuth",
+            id: "test",
+            securityDefinitions: {
+                oauth2_sc: {
+                    scheme: "oauth2",
+                    flow: "code",
+                    authorization: "https://example.com/authorization",
+                    token: "https://example.com/token",
+                    scopes: ["limited", "special"]
+                }
+            },
+            security: ["oauth2_sc"],
+            properties: {
+                test: {
+                    type: "string"
+                }
+            }
+        }, testThing);
+        testThing.extendInteractions();
+        await testThing.writeProperty("test", "off")
+        testThing.properties.test.forms = [];
+
+        await this.server.expose(testThing)
+    }
+
+    async after(){
+        await this.server.stop()
+    }
+    @test async "should configure oauth"(){
+
+        this.server["httpSecurityScheme"].should.be.equal("OAuth")
+        this.server["oAuthValidator"].should.be.instanceOf(EndpointValidator)
+    }
+
+    @test async "should call oauth validation"() {
+        
+        let called = false;
+        
+        this.server["oAuthValidator"].validate = async (token,scopes,clients) => {
+            called = true;
+            return true
+        }
+
+        await fetch("http://localhost:8080/TestOAuth/TestOAuth")
+
+        called.should.be.true
+
+    }
+
+    @test async "should send unauthorized if oauth validation fails"() {
+        
+        let called = false;
+        
+        this.server["oAuthValidator"].validate = async (token,scopes,clients) => {
+            called = true;
+            return false
+        }
+
+        const response = await fetch("http://localhost:8080/TestOAuth/TestOAuth")
+
+        called.should.be.true
+
+        response.status.should.be.equal(401)
+
+    }
+
+    @test async "should send error if oauth validation throws"() {
+        
+        let called = false;
+        
+        this.server["oAuthValidator"].validate = async (token,scopes,clients) => {
+            called = true
+            throw new Error("errore");
+        }
+
+        const response = await fetch("http://localhost:8080/TestOAuth/TestOAuth")
+
+        called.should.be.true
+
+        response.status.should.be.equal(401)
+
+    }
+}
+
+
+class MockServient extends Servient {
+    constructor() {
+        super()
+    }
+
+    getCredentials(){
+
     }
 }
