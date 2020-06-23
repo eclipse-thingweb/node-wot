@@ -38,7 +38,7 @@ export default class Servient {
             script = new vm.Script(code,{filename : filename});
         } catch (err) {
             let scriptPosition = err.stack.match(/evalmachine\.<anonymous>\:([0-9]+)\n/)[1];
-            console.error(`Servient found error in '${filename}' at line ${scriptPosition}\n    ${err}`);
+            console.error("[core/servient]",`Servient found error in '${filename}' at line ${scriptPosition}\n    ${err}`);
             return;
         }
 
@@ -97,7 +97,7 @@ export default class Servient {
             script = new vm.Script(code, { filename: filename});
         } catch (err) {
             let scriptPosition = err.stack.match(/evalmachine\.<anonymous>\:([0-9]+)\n/)[1];
-            console.error(`Servient found error in privileged script '${filename}' at line ${scriptPosition}\n    ${err}`);
+            console.error("[core/servient]",`Servient found error in privileged script '${filename}' at line ${scriptPosition}\n    ${err}`);
             return;
         }
 
@@ -161,7 +161,7 @@ export default class Servient {
         } else {
             message = `that threw ${typeof error} instead of Error\n    ${error}`;
         }
-        console.error(`Servient caught ${description} ${message}`);
+        console.error("[core/servient]",`Servient caught ${description} ${message}`);
     }
 
     /** add a new codec to support a mediatype; offered mediatypes are listed in TDs */
@@ -172,11 +172,11 @@ export default class Servient {
     public expose(thing: ExposedThing): Promise<void> {
 
         if (this.servers.length === 0) {
-            console.warn(`Servient has no servers to expose Things`);
+            console.warn("[core/servient]",`Servient has no servers to expose Things`);
             return new Promise<void>((resolve) => { resolve(); });
         }
 
-        console.log(`Servient exposing '${thing.title}'`);
+        console.debug("[core/servient]",`Servient exposing '${thing.title}'`);
 
         // What is a good way to to convey forms information like contentType et cetera for interactions
         let tdTemplate: WoT.ThingDescription = JSON.parse(JSON.stringify(thing));
@@ -205,12 +205,12 @@ export default class Servient {
 
         if (thing.id === undefined) {
             thing.id = "urn:uuid:" + require("uuid").v4();
-            console.warn(`Servient generating ID for '${thing.title}': '${thing.id}'`);
+            console.warn("[core/servient]",`Servient generating ID for '${thing.title}': '${thing.id}'`);
         }
 
         if (!this.things.has(thing.id)) {
             this.things.set(thing.id, thing);
-            console.log(`Servient reset ID '${thing.id}' with '${thing.title}'`);
+            console.debug("[core/servient]",`Servient reset ID '${thing.id}' with '${thing.title}'`);
             return true;
         } else {
             return false;
@@ -224,7 +224,7 @@ export default class Servient {
     }
 
     public getThings(): object {
-        console.log(`Servient getThings size == '${this.things.size}'`);
+        console.debug("[core/servient]",`Servient getThings size == '${this.things.size}'`);
         let ts : { [key: string]: object } = {};
         this.things.forEach((thing, id) => {
             ts[id] = thing.getThingDescription();
@@ -250,13 +250,13 @@ export default class Servient {
     }
 
     public hasClientFor(scheme: string): boolean {
-        console.debug(`Servient checking for '${scheme}' scheme in ${this.clientFactories.size} ClientFactories`);
+        console.debug("[core/servient]",`Servient checking for '${scheme}' scheme in ${this.clientFactories.size} ClientFactories`);
         return this.clientFactories.has(scheme);
     }
 
     public getClientFor(scheme: string): ProtocolClient {
         if (this.clientFactories.has(scheme)) {
-            console.debug(`Servient creating client for scheme '${scheme}'`);
+            console.debug("[core/servient]",`Servient creating client for scheme '${scheme}'`);
             return this.clientFactories.get(scheme).getClient();
         } else {
             // FIXME returning null was bad - Error or Promise?
@@ -272,13 +272,13 @@ export default class Servient {
     public addCredentials(credentials: any) {
         if (typeof credentials === "object") {
             for (let i in credentials) {
-                console.log(`Servient storing credentials for '${i}'`);
+                console.debug("[core/servient]",`Servient storing credentials for '${i}'`);
                 this.credentialStore.set(i, credentials[i]);
             }
         }
     }
     public getCredentials(identifier: string): any {
-        console.log(`Servient looking up credentials for '${identifier}'`);
+        console.debug("[core/servient]",`Servient looking up credentials for '${identifier}'`);
         return this.credentialStore.get(identifier);
     }
 

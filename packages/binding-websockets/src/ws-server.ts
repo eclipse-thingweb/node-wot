@@ -76,7 +76,7 @@ export default class WebSocketServer implements ProtocolServer {
   }
 
   public start(servient: Servient): Promise<void> {
-    console.info(`WebSocketServer starting on ${(this.address !== undefined ? this.address + ' ' : '')}port ${this.port}`);
+    console.debug("[binding-websockets]",`WebSocketServer starting on ${(this.address !== undefined ? this.address + ' ' : '')}port ${this.port}`);
     return new Promise<void>((resolve, reject) => {
 
       // handle incoming WebScoket connections
@@ -99,7 +99,7 @@ export default class WebSocketServer implements ProtocolServer {
         this.httpServer.once("listening", () => {
           // once started, console "handles" errors
           this.httpServer.on("error", (err: Error) => {
-            console.error(`WebSocketServer on port ${this.port} failed: ${err.message}`);
+            console.error("[binding-websockets]",`WebSocketServer on port ${this.port} failed: ${err.message}`);
           });
           resolve();
         });
@@ -111,7 +111,7 @@ export default class WebSocketServer implements ProtocolServer {
   }
 
   public stop(): Promise<void> {
-    console.info(`WebSocketServer stopping on port ${this.port}`);
+    console.debug("[binding-websockets]",`WebSocketServer stopping on port ${this.port}`);
     return new Promise<void>((resolve, reject) => {
       for (let path in this.socketServers) {
         this.socketServers[path].close();
@@ -119,7 +119,7 @@ export default class WebSocketServer implements ProtocolServer {
 
       // stop promise handles all errors from now on
       if (this.ownServer) {
-        console.log(`WebSocketServer stopping own HTTP server`);
+        console.debug("[binding-websockets]",`WebSocketServer stopping own HTTP server`);
         this.httpServer.once('error', (err: Error) => { reject(err); });
         this.httpServer.once('close', () => { resolve(); });
         this.httpServer.close();
@@ -146,7 +146,7 @@ export default class WebSocketServer implements ProtocolServer {
 
     if (this.getPort() !== -1) {
 
-      console.log(`WebSocketServer on port ${this.getPort()} exposes '${thing.title}' as unique '/${title}/*'`);
+      console.debug("[binding-websockets]",`WebSocketServer on port ${this.getPort()} exposes '${thing.title}' as unique '/${title}/*'`);
 
       // TODO clean-up on destroy
       this.thingNames.add(title);
@@ -155,10 +155,10 @@ export default class WebSocketServer implements ProtocolServer {
       for (let eventName in thing.events) {
         let path = "/" + encodeURIComponent(title) + "/" + this.EVENT_DIR + "/" + encodeURIComponent(eventName);
         
-        console.debug(`WebSocketServer on port ${this.getPort()} adding socketServer for '${path}'`);
+        console.debug("[binding-websockets]",`WebSocketServer on port ${this.getPort()} adding socketServer for '${path}'`);
         this.socketServers[path] = new WebSocket.Server({ noServer: true });
         this.socketServers[path].on('connection', (ws, req) => {
-          console.log(`WebSocketServer on port ${this.getPort()} received connection for '${path}' from ${Helpers.toUriLiteral(req.connection.remoteAddress)}:${req.connection.remotePort}`);
+          console.debug("[binding-websockets]",`WebSocketServer on port ${this.getPort()} received connection for '${path}' from ${Helpers.toUriLiteral(req.connection.remoteAddress)}:${req.connection.remotePort}`);
           thing.subscribeEvent(eventName,
           // let subscription = thing.events[eventName].subscribe(
             (data) => {
@@ -166,7 +166,7 @@ export default class WebSocketServer implements ProtocolServer {
               try {
                 content = ContentSerdes.get().valueToContent(data, thing.events[eventName].data);
               } catch(err) {
-                console.warn(`HttpServer on port ${this.getPort()} cannot process data for Event '${eventName}: ${err.message}'`);
+                console.warn("[binding-websockets]",`HttpServer on port ${this.getPort()} cannot process data for Event '${eventName}: ${err.message}'`);
                 ws.close(-1, err.message)
                 return;
               }
@@ -190,7 +190,7 @@ export default class WebSocketServer implements ProtocolServer {
           ws.on("close", () => {
             thing.unsubscribeEvent(eventName)
             // subscription.unsubscribe();
-            console.log(`WebSocketServer on port ${this.getPort()} closed connection for '${path}' from ${Helpers.toUriLiteral(req.connection.remoteAddress)}:${req.connection.remotePort}`);
+            console.debug("[binding-websockets]",`WebSocketServer on port ${this.getPort()} closed connection for '${path}' from ${Helpers.toUriLiteral(req.connection.remoteAddress)}:${req.connection.remotePort}`);
           });
         });
 
@@ -199,7 +199,7 @@ export default class WebSocketServer implements ProtocolServer {
             let form = new TD.Form(href, ContentSerdes.DEFAULT);
             form.op = "subscribeevent";
             thing.events[eventName].forms.push(form);
-            console.log(`WebSocketServer on port ${this.getPort()} assigns '${href}' to Event '${eventName}'`);
+          console.debug("[binding-websockets]",`WebSocketServer on port ${this.getPort()} assigns '${href}' to Event '${eventName}'`);
         }
       }
     }

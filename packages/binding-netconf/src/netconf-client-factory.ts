@@ -29,7 +29,7 @@ export default class NetconfClientFactory implements ProtocolClientFactory {
 
   public getClient(): ProtocolClient {
     this.contentSerdes.addCodec(new NetconfCodec()); // add custom codec for NetConf
-    console.log(`NetconfClientFactory creating client for '${this.scheme}'`);
+    console.debug("[binding-netconf]",`NetconfClientFactory creating client for '${this.scheme}'`);
     return new NetconfClient();
   }
 

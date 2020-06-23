@@ -36,7 +36,7 @@ export default class MqttClientFactory implements ProtocolClientFactory {
     }
 
     destroy(): boolean {
-        console.log(`MqttClientFactory stopping all clients for '${this.scheme}'`);
+        console.debug("[binding-mqtt]",`MqttClientFactory stopping all clients for '${this.scheme}'`);
         this.clients.forEach((client) => client.stop())
         return true;
     }

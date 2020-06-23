@@ -136,7 +136,7 @@ export default class NetconfClient implements ProtocolClient {
 			result = await this.client.rpc(xpath_query, method, NSs, target, payload);
 			result = JSON.stringify(result);
 		} catch (err) {
-			console.log(err);
+			console.debug("[binding-netconf]",err);
 			throw err;
 		}
 
@@ -168,7 +168,7 @@ export default class NetconfClient implements ProtocolClient {
 	public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean {
 
 		if (metadata === undefined || !Array.isArray(metadata) || metadata.length == 0) {
-			console.warn(`NetconfClient without security`);
+			console.warn("[binding-netconf]",`NetconfClient without security`);
 			return false;
 		}
 		if (!credentials || (!(credentials.password) && !(credentials.privateKey))) {
