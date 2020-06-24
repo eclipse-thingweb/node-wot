@@ -134,7 +134,7 @@ export class EndpointValidator extends Validator{
 
 function extractTokenFromRequest(request: http.IncomingMessage) {
     const headerToken = request.headers.authorization;
-    const url = new URL(request.url)
+    const url = new URL(request.url, `http://${request.headers.host}`)
     const queryToken = url.searchParams.get("access_token")
 
     if(!headerToken && !queryToken ){
