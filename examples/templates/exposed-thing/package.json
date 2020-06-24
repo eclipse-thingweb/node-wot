@@ -19,7 +19,7 @@
     "@node-wot/binding-http": "0.7.0-SNAPSHOT.3",
     "@node-wot/core": "0.7.0-SNAPSHOT.3",
     "request": "2.88.0",
-	"ajv": "^6.10.2"
+    "ajv": "^6.10.2"
   },
   "optionalDependencies": {},
   "scripts": {

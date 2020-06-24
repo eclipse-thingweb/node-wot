@@ -25,7 +25,7 @@ let td = `{
                 {"href": "mqtt://test.mosquitto.org:1883/MQTT-Test/actions/resetCounter"}
             ]
         }
-    }, 
+    },
     "events": {
         "counter": {
             "data": {
@@ -34,8 +34,8 @@ let td = `{
             "forms": [
                 {"href": "mqtt://test.mosquitto.org:1883/MQTT-Test/events/counterEvent"}
             ]
-        } 
-    } 
+        }
+    }
 }`;
 try {
     WoT.consume(JSON.parse(td)).then((source) => {

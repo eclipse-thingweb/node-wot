@@ -6,7 +6,7 @@
         "author": "the thingweb community",
         "license_w3c":[
             "/********************************************************************************",
-			" * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation",
+            " * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation",
             " *",
             " * See the NOTICE file(s) distributed with this work for additional",
             " * information regarding copyright ownership.",
@@ -37,5 +37,5 @@
     "src/**/*.js" : true,
     "test/**/*.js" : true
   }
-  
+
 }

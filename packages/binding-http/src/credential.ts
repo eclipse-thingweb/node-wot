@@ -26,11 +26,11 @@ export class BasicCredential extends Credential{
     private readonly username: string;
     private readonly password: string;
     /**
-     *
-     */
+    *
+    */
     constructor({ username, password }: { username: string; password: string; }) {
         super();
-        if (username === undefined || password === undefined || 
+        if (username === undefined || password === undefined ||
                 username === null || password === null) {
             throw new Error(`No Basic credentials for Thing`);
         }
@@ -65,7 +65,7 @@ export class BearerCredential extends Credential{
 export class BasicKeyCredential extends Credential{
     private readonly apiKey: string;
     private readonly options: APIKeySecurityScheme;
-    
+
     constructor(apiKey:string,options:APIKeySecurityScheme){
         super();
         if (apiKey === undefined || apiKey === null) {
@@ -77,13 +77,13 @@ export class BasicKeyCredential extends Credential{
     }
     async sign(request: Request) {
         const result = request.clone()
-        
+
         let headerName = "authorization"
         if (this.options.in === "header" && this.options.name !== undefined) {
             headerName = this.options.name;
         }
         result.headers.append(headerName, this.apiKey)
-        
+
         return result
     }
 }
@@ -93,12 +93,12 @@ export class BasicKeyCredential extends Credential{
 export class OAuthCredential extends Credential {
     private token: Token | Promise<Token> ;
     private readonly refresh: () => Promise<Token> ;
-   
+
     /**
-     * 
-     * @param tokenRequest oAuth2 token instance
-     * @param refresh use a custom refresh function
-     */
+    *
+    * @param tokenRequest oAuth2 token instance
+    * @param refresh use a custom refresh function
+    */
     constructor(token: Token | Promise<Token>,refresh?:() => Promise<Token>) {
         super();
         this.token = token;
@@ -110,14 +110,14 @@ export class OAuthCredential extends Credential {
             const tokenRequest = this.token as Promise<Token>
             this.token = await tokenRequest
         }
-       
+
         let tempRequest = {url:request.url,headers:{}}
-        
+
         tempRequest = this.token.sign(tempRequest)
-        
+
         const mergeHeaders = new Request(request,tempRequest)
         const useNewURL = new Request(tempRequest.url,mergeHeaders)
-        
+
         return useNewURL
     }
 
@@ -126,7 +126,7 @@ export class OAuthCredential extends Credential {
             throw new Error("Uninitialized token. You have to call sing before refresh");
         }
 
-        let newToken 
+        let newToken
         if (this.refresh){
             newToken = await this.refresh()
         }else{

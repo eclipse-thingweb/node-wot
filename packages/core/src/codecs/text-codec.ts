@@ -1,15 +1,15 @@
 /********************************************************************************
  * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
- * 
+ *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
- * 
+ *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0, or the W3C Software Notice and
  * Document License (2015-05-13) which is available at
  * https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document.
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
@@ -22,9 +22,9 @@ export default class TextCodec implements ContentCodec {
 
   constructor(subMediaType?: string) {
     if (!subMediaType) {
-      this.subMediaType = 'text/plain'; 
+    this.subMediaType = 'text/plain';
     } else {
-      this.subMediaType = subMediaType;
+    this.subMediaType = subMediaType;
     }
   }
 
@@ -34,7 +34,7 @@ export default class TextCodec implements ContentCodec {
 
   bytesToValue(bytes: Buffer, schema: TD.DataSchema, parameters: {[key: string]: string}): any {
     //console.debug(`TextCodec parsing '${bytes.toString()}'`);
-    
+
     let parsed: any;
     parsed = bytes.toString(parameters.charset);
 
@@ -47,50 +47,50 @@ export default class TextCodec implements ContentCodec {
     //console.debug(`TextCodec serializing '${value}'`);
     let body = "";
     if (value !== undefined) {
-      body = value;
+    body = value;
     }
 
     // type BufferEncoding = "ascii" | "utf8" | "utf-8" | "utf16le" | "ucs2" | "ucs-2" | "base64" | "latin1" | "binary" | "hex";
     let be : BufferEncoding = undefined;
     if(parameters && parameters.charset) {
-      switch (parameters.charset) {
+    switch (parameters.charset) {
         case "ascii":
-          be = "ascii";
-          break;
+        be = "ascii";
+        break;
         case "utf8":
-          be = "utf8";
-          break;
+        be = "utf8";
+        break;
         case "utf-8":
-          be = "utf-8";
-          break;
+        be = "utf-8";
+        break;
         case "utf16le":
-          be = "utf16le";
-          break;
+        be = "utf16le";
+        break;
         case "ucs2":
-          be = "ucs2";
-          break;
+        be = "ucs2";
+        break;
         case "ucs-2":
-          be = "ucs-2";
-          break;
+        be = "ucs-2";
+        break;
         case "base64":
-          be = "base64";
-          break;
+        be = "base64";
+        break;
         case "latin1":
-          be = "latin1";
-          break;
+        be = "latin1";
+        break;
         case "binary":
-          be = "binary";
-          break;
+        be = "binary";
+        break;
         case "hex":
-          be = "hex";
-          break;
-      }
+        be = "hex";
+        break;
+    }
     }
 
     if(be) {
-      return Buffer.from(body, be);
+    return Buffer.from(body, be);
     } else {
-      return Buffer.from(body);
+    return Buffer.from(body);
     }
   }
 }

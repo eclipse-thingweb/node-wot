@@ -1,27 +1,27 @@
 /********************************************************************************
  * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
- * 
+ *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
- * 
+ *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0, or the W3C Software Notice and
  * Document License (2015-05-13) which is available at
  * https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document.
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
 // global W3C WoT Scripting API definitions
 import * as WoT from "wot-typescript-definitions";
-// node-wot implementation of W3C WoT Servient 
+// node-wot implementation of W3C WoT Servient
 import { Servient, Helpers, ExposedThing } from "@node-wot/core";
 // protocols used
 import { HttpServer } from "@node-wot/binding-http";
 import { WebSocketServer } from "@node-wot/binding-websockets";
 import { CoapServer } from "@node-wot/binding-coap";
-import { MqttBrokerServer } from "@node-wot/binding-mqtt"; 
+import { MqttBrokerServer } from "@node-wot/binding-mqtt";
 import { FileClientFactory } from "@node-wot/binding-file";
 import { HttpClientFactory } from "@node-wot/binding-http";
 import { HttpsClientFactory } from "@node-wot/binding-http";
@@ -71,7 +71,7 @@ export default class DefaultServient extends Servient {
         } else {
             this.setLogLevel(DefaultServient.defaultConfig.log.level);
         }
-        
+
         // load credentials from config
         this.addCredentials(this.config.credentials);
 
@@ -101,7 +101,7 @@ export default class DefaultServient extends Servient {
                 this.addServer(coapServer);
             }
             if (this.config.mqtt !== undefined) {
-                let mqttBrokerServer = new MqttBrokerServer(this.config.mqtt.broker, 
+                let mqttBrokerServer = new MqttBrokerServer(this.config.mqtt.broker,
                     (typeof this.config.mqtt.username === "string") ? this.config.mqtt.username : undefined,
                     (typeof this.config.mqtt.password === "string") ? this.config.mqtt.password : undefined,
                     (typeof this.config.mqtt.clientId === "string") ? this.config.mqtt.clientId : undefined,
@@ -119,8 +119,8 @@ export default class DefaultServient extends Servient {
     }
 
     /**
-     * start
-     */
+    * start
+    */
     public start(): Promise<WoT.WoT> {
 
         return new Promise<WoT.WoT>((resolve, reject) => {
@@ -204,7 +204,7 @@ export default class DefaultServient extends Servient {
             console.warn = () => {};
             console.info = () => {};
             console.debug = () => {};
- 
+
             this.logLevel = "error";
 
         } else if (logLevel == "warn" || logLevel == "warning" || logLevel == 1) {
@@ -220,7 +220,7 @@ export default class DefaultServient extends Servient {
             console.debug = () => {};
 
             this.logLevel = "info";
-        
+
         } else if (logLevel == "debug" || logLevel == 3) {
             console.warn = this.loggers.warn;
             console.info = this.loggers.info;

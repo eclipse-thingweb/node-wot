@@ -1,22 +1,22 @@
 /********************************************************************************
  * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
- * 
+ *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
- * 
+ *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0, or the W3C Software Notice and
  * Document License (2015-05-13) which is available at
  * https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document.
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
 /**
  * Basic test suite to demonstrate test setup
  * uncomment the @skip to see failing tests
- * 
+ *
  * h0ru5: there is currently some problem with VSC failing to recognize experimentalDecorators option, it is present in both tsconfigs
  */
 
@@ -405,7 +405,7 @@ class WoTClientTest {
     //         })
     //         .then((value) => {
     //             expect(value).not.to.be.null;
-    //             // done(); 
+    //             // done();
     //         })
     //         .catch(err => { throw err });
     // }
@@ -464,7 +464,7 @@ class WoTClientTest {
 
 
     @test "subscribe to property"(done: Function) {
-        
+
         WoTClientTest.clientFactory.setTrap(
             () => {
                 return { contentType: "application/json", body: Buffer.from("triggered") };
@@ -478,7 +478,7 @@ class WoTClientTest {
             .then((thing) => {
                 expect(thing).to.have.property("title").that.equals("aThing");
                 expect(thing).to.have.property("properties").that.has.property("aProperty");
-                thing.subscribeEvent("anEvent", 
+                thing.subscribeEvent("anEvent",
                     (x: any) => {
                         expect(x).to.equal("triggered");
                     }
@@ -503,7 +503,7 @@ class WoTClientTest {
 
 
     @test "observe property"(done: Function) {
-        
+
         WoTClientTest.clientFactory.setTrap(
             () => {
                 return { contentType: "application/json", body: Buffer.from("12") };
@@ -551,7 +551,7 @@ class WoTClientTest {
     }
 
     @test "subscribe to event"(done: Function) {
-        
+
         WoTClientTest.clientFactory.setTrap(
             () => {
                 return { contentType: "application/json", body: Buffer.from("triggered") };
@@ -565,7 +565,7 @@ class WoTClientTest {
             .then((thing) => {
                 expect(thing).to.have.property("title").that.equals("aThing");
                 expect(thing).to.have.property("events").that.has.property("anEvent");
-                thing.subscribeEvent("anEvent", 
+                thing.subscribeEvent("anEvent",
                     (x: any) => {
                         expect(x).to.equal("triggered");
                     }
@@ -582,7 +582,7 @@ class WoTClientTest {
 
 
     @test "subscribe to event (next API)"(done: Function) {
-        
+
         WoTClientTest.clientFactory.setTrap(
             () => {
                 return { contentType: "application/json", body: Buffer.from("triggeredOOOO") };

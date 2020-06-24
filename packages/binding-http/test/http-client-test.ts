@@ -1,15 +1,15 @@
 /********************************************************************************
  * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
- * 
+ *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
- * 
+ *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0, or the W3C Software Notice and
  * Document License (2015-05-13) which is available at
  * https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document.
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
@@ -244,7 +244,7 @@ class HttpClientTest {
 
         return httpServer.stop();
     }
-    
+
     @test "should register to sse server and get server sent event"(done: any) {
         //create sse server
         const express = require('express')
@@ -307,7 +307,7 @@ class HttpClientTest {
             completeSpy.should.have.been.called.once;
             done();
         });
-        
+
         client.subscribeResource(form, (data) => {}, errorSpy, completeSpy);
 
         return;
@@ -330,9 +330,9 @@ class HttpClientTest {
             done();
         });
 
-        let server = http.createServer((req, res) => { 
-            res.writeHead(404); 
-            res.end(); 
+        let server = http.createServer((req, res) => {
+            res.writeHead(404);
+            res.end();
         });
 
         server.listen(60604, "0.0.0.0");

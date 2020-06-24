@@ -1,15 +1,15 @@
 /********************************************************************************
  * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
- * 
+ *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
- * 
+ *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0, or the W3C Software Notice and
  * Document License (2015-05-13) which is available at
  * https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document.
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
@@ -32,10 +32,10 @@ WoTHelpers.fetch("http://127.0.0.1:8080/Smart-Coffee-Machine").then(async (td) =
         // Read property allAvailableResources
         let allAvailableResources = await thing.readProperty('allAvailableResources');
         log('allAvailableResources value is:', allAvailableResources);
-        
+
         // Now let's change water level to 80
         await thing.writeProperty('availableResourceLevel', 80, {'uriVariables': {'id': 'water'}});
-        
+
         // And see that the water level has changed
         let waterLevel = await thing.readProperty('availableResourceLevel', {'uriVariables': {'id': 'water'}});
         log('waterLevel value after change is:', waterLevel);
@@ -55,7 +55,7 @@ WoTHelpers.fetch("http://127.0.0.1:8080/Smart-Coffee-Machine").then(async (td) =
             log('Enjoy your drink!', makeCoffee);
         } else {
             log('Failed making your drink:', makeCoffee);
-        } 
+        }
 
         // See how allAvailableResources property value has changed
         allAvailableResources = await thing.readProperty('allAvailableResources');
@@ -70,7 +70,7 @@ WoTHelpers.fetch("http://127.0.0.1:8080/Smart-Coffee-Machine").then(async (td) =
             'mode': 'everyday'
         });
         log(scheduledTask['message'], scheduledTask);
-        
+
         // See how it has been added to the schedules property
         let schedules = await thing.readProperty('schedules');
         log('schedules value: ', schedules);

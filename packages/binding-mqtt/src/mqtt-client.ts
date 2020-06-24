@@ -1,15 +1,15 @@
 /********************************************************************************
  * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
- * 
+ *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
- * 
+ *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0, or the W3C Software Notice and
  * Document License (2015-05-13) which is available at
  * https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document.
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
@@ -65,9 +65,9 @@ export default class MqttClient implements ProtocolClient {
         });
 
         return new Subscription(()=>{this.client.unsubscribe(topic)});
-      }
+    }
 
-    
+
     readResource = (form: MqttForm): Promise<Content> => {
         return new Promise<Content>((resolve, reject) => {
             throw new Error('Method not implemented.');
@@ -89,7 +89,7 @@ export default class MqttClient implements ProtocolClient {
             let requestUri = url.parse(form['href']);
             let topic = requestUri.pathname;
             let brokerUri : String = "mqtt://"+requestUri.host;
-            
+
             if(this.client==undefined) {
                 this.client = mqtt.connect(brokerUri)
             }
@@ -127,11 +127,11 @@ export default class MqttClient implements ProtocolClient {
         if(this.client) this.client.end();
         return true;
     }
-    
+
     //setSecurity = (metadata: any, credentials?: any): boolean => {
         //TODO: Implement
-      //  throw new Error('Method not implemented.');
-   // }
+    //  throw new Error('Method not implemented.');
+    // }
 
 
 
@@ -139,16 +139,16 @@ export default class MqttClient implements ProtocolClient {
 
         if (metadata === undefined || !Array.isArray(metadata) || metadata.length == 0) {
             console.warn("[binding-mqtt]",`MqttClient received empty security metadata`);
-          return false;
-        }      
+        return false;
+        }
         let security: TD.SecurityScheme = metadata[0];
-      
+
         if (security.scheme === "basic") {
             //this.authorization = "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString('base64');
-          //  this.user = mqtt.username;
+        //  this.user = mqtt.username;
         }
         return true;
-      }
+    }
 
     private mapQoS = (qos: MqttQoS): QoS => {
         switch (qos) {

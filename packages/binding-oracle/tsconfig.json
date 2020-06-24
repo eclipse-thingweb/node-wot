@@ -1,10 +1,10 @@
 {
-	"extends": "../../tsconfig.json",
-	"compilerOptions": {
-		"outDir": "dist",
-		"alwaysStrict": false
-	},
-	"include": [
-		"src/**/*"
-	]
+    "extends": "../../tsconfig.json",
+    "compilerOptions": {
+        "outDir": "dist",
+        "alwaysStrict": false
+    },
+    "include": [
+        "src/**/*"
+    ]
 }

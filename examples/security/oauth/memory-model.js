@@ -18,13 +18,13 @@
  */
 module.exports =  class InMemoryModel{
     /**
-     *
-     */
+    *
+    */
     constructor() {
         this.clients = [{ clientId: 'node-wot', clientSecret: 'isgreat!', redirectUris: [''], grants:["client_credentials","password"] }];
         this.tokens = [];
         this.users = [{ id: '123', username: 'thomseddon', password: 'nightworld' }];
-        
+
     }
 
     dump() {
@@ -34,8 +34,8 @@ module.exports =  class InMemoryModel{
     }
 
     /*
-     * Get access token.
-     */
+    * Get access token.
+    */
 
     getAccessToken  (bearerToken) {
         var tokens = this.tokens.filter(function (token) {
@@ -46,8 +46,8 @@ module.exports =  class InMemoryModel{
     }
 
     /**
-     * Get refresh token.
-     */
+    * Get refresh token.
+    */
 
     getRefreshToken  (bearerToken) {
         var tokens = this.tokens.filter(function (token) {
@@ -58,8 +58,8 @@ module.exports =  class InMemoryModel{
     };
 
     /**
-     * Get client.
-     */
+    * Get client.
+    */
 
     getClient  (clientId, clientSecret) {
         var clients = this.clients.filter(function (client) {
@@ -70,8 +70,8 @@ module.exports =  class InMemoryModel{
     };
 
     /**
-     * Save token.
-     */
+    * Save token.
+    */
 
     saveToken  (token, client, user) {
         let { accessToken, accessTokenExpiresAt, refreshTokenExpiresAt, refreshToken} = token;
@@ -87,8 +87,8 @@ module.exports =  class InMemoryModel{
     };
 
     /*
-     * Get user.
-     */
+    * Get user.
+    */
 
     getUser  (username, password) {
         var users = this.users.filter(function (user) {

@@ -21,13 +21,13 @@
     tokens: any[];
     users: { id: string; username: string; password: string; }[];
     /**
-     *
-     */
+    *
+    */
     constructor() {
         this.clients = [{ clientId: 'thom', clientSecret: 'nightworld', redirectUris: [''], grants: ["client_credentials", "password","refresh_token"] }];
         this.tokens = [];
         this.users = [{ id: '123', username: 'thomseddon', password: 'nightworld' }];
-        
+
     }
 
     dump() {
@@ -37,8 +37,8 @@
     }
 
     /*
-     * Get access token.
-     */
+    * Get access token.
+    */
 
     getAccessToken  (bearerToken:string) {
         var tokens = this.tokens.filter(function (token) {
@@ -49,8 +49,8 @@
     }
 
     /**
-     * Get refresh token.
-     */
+    * Get refresh token.
+    */
 
     getRefreshToken  (bearerToken:string) {
         var tokens = this.tokens.filter(function (token) {
@@ -61,8 +61,8 @@
     };
 
     /**
-     * Get client.
-     */
+    * Get client.
+    */
 
     getClient  (clientId:string, clientSecret:string) {
         var clients = this.clients.filter(function (client) {
@@ -73,8 +73,8 @@
     };
 
     /**
-     * Save token.
-     */
+    * Save token.
+    */
 
     saveToken  (token:any, client:any, user:any) {
         let { accessToken, accessTokenExpiresAt, refreshTokenExpiresAt, refreshToken} = token;
@@ -90,8 +90,8 @@
     };
 
     /*
-     * Get user.
-     */
+    * Get user.
+    */
 
     getUser  (username:string, password:string) {
         var users = this.users.filter(function (user) {

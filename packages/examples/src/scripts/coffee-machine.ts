@@ -1,15 +1,15 @@
 /********************************************************************************
  * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
- * 
+ *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
- * 
+ *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0, or the W3C Software Notice and
  * Document License (2015-05-13) which is available at
  * https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document.
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
@@ -64,7 +64,7 @@ The data is obtained from the machine's sensors but can be set manually via the 
 The property can also be overridden, which also requires resource id as uriVariables.`,
             uriVariables: {
                 id: {
-                    type: 'string', 
+                    type: 'string',
                     enum: ['water', 'milk', 'chocolate', 'coffeeBeans'],
                 },
             },
@@ -226,7 +226,7 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
 
     // Observe the value of maintenanceNeeded property
     thing.observeProperty('maintenanceNeeded', (data) => {
-        
+
         // Notify a "maintainer" when the value has changed
         // (the notify function here simply logs a message to the console)
         notify('admin@coffeeMachine.com', `maintenanceNeeded property has changed, new value is: ${data}`);
@@ -294,10 +294,10 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
         let drinkId = 'americano';
         let size = 'm';
         let quantity = 1;
-        
+
         // Size quantifiers
         const sizeQuantifiers: any = {'s': 0.1, 'm': 0.2, 'l': 0.3};
-        
+
         // Drink recipes showing the amount of a resource consumed for a particular drink
         const drinkRecipes: any = {
             'espresso': {
@@ -348,7 +348,7 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
 
         // Read the current level of allAvailableResources
         return thing.readProperty('allAvailableResources').then((resources) => {
-            
+
             // Calculate the new level of resources
             let newResources = Object.assign({}, resources);
             newResources['water'] -= Math.ceil(quantity * sizeQuantifiers[size] * drinkRecipes[drinkId]['water']);
@@ -408,7 +408,7 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
     });
 
     // Finally expose the thing
-    thing.expose().then( () => { console.info(`${thing.getThingDescription().title} ready`); } ); 
+    thing.expose().then( () => { console.info(`${thing.getThingDescription().title} ready`); } );
     console.log(`Produced ${thing.getThingDescription().title}`);
 }).catch(e => {
     console.log(e);

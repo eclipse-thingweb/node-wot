@@ -1,15 +1,15 @@
 /********************************************************************************
  * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
- * 
+ *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
- * 
+ *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0, or the W3C Software Notice and
  * Document License (2015-05-13) which is available at
  * https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document.
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
@@ -47,17 +47,17 @@ class HttpServerTest {
 
     let testThing = new ExposedThing(null);
     testThing = Helpers.extend({
-      title: "Test",
-      properties: {
+    title: "Test",
+    properties: {
         test: {
-          type: "string"
+        type: "string"
         }
-      },
-      actions: {
+    },
+    actions: {
         try: {
-          output: { type: "string" }
+        output: { type: "string" }
         }
-      }
+    }
     }, testThing);
     testThing.extendInteractions();
     await testThing.writeProperty("test", "off")
@@ -96,10 +96,10 @@ class HttpServerTest {
     let httpServer2 = new HttpServer({ port: httpServer1.getPort() });
 
     try {
-      await httpServer2.start(null); // should fail
+    await httpServer2.start(null); // should fail
     } catch (err) {
-      console.log("HttpServer failed correctly on EADDRINUSE");
-      assert(true);
+    console.log("HttpServer failed correctly on EADDRINUSE");
+    assert(true);
     };
 
     expect(httpServer2.getPort()).to.eq(-1);
@@ -107,10 +107,10 @@ class HttpServerTest {
     let uri = `http://localhost:${httpServer1.getPort()}/`;
 
     return rp.get(uri).then(async body => {
-      expect(body).to.equal("[]");
+    expect(body).to.equal("[]");
 
-      await httpServer1.stop();
-      await httpServer2.stop();
+    await httpServer1.stop();
+    await httpServer2.stop();
     });
   }
 
@@ -127,19 +127,19 @@ class HttpServerTest {
   // https://github.com/eclipse/thingweb.node-wot/issues/181
   @test async "should not override a valid security scheme"() {
     let httpServer = new HttpServer({
-      port: 58081, 
-      serverKey : "./test/server.key",
-      serverCert: "./test/server.cert",
-      security: {
+    port: 58081,
+    serverKey : "./test/server.key",
+    serverCert: "./test/server.cert",
+    security: {
         scheme: "bearer"
-      }
+    }
     });
     await httpServer.start(null);
     let testThing = new ExposedThing(null);
     testThing.securityDefinitions = {
-      "bearer" : {
+    "bearer" : {
         scheme:"bearer"
-      }
+    }
     }
     httpServer.expose(testThing,{});
     await httpServer.stop()
@@ -150,20 +150,20 @@ class HttpServerTest {
   @test async "should not accept an unsupported scheme"() {
     console.log("START SHOULD")
     let httpServer = new HttpServer({
-      port: 58081, 
-      serverKey: "./test/server.key",
-      serverCert: "./test/server.cert",
-      security: {
+    port: 58081,
+    serverKey: "./test/server.key",
+    serverCert: "./test/server.cert",
+    security: {
         scheme: "bearer"
-      }
+    }
     });
     await httpServer.start(null);
-    
+
     let testThing = new ExposedThing(null);
     testThing.securityDefinitions = {
-      "oauth2" : {
+    "oauth2" : {
         scheme:"oauth2"
-      }
+    }
     }
 
     expect(() => { httpServer.expose(testThing, {});}).throw()

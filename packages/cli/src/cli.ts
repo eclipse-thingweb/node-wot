@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 /********************************************************************************
  * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
- * 
+ *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
- * 
+ *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0, or the W3C Software Notice and
  * Document License (2015-05-13) which is available at
  * https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document.
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
@@ -74,7 +74,7 @@ const runScripts =async function(servient: DefaultServient, scripts: Array<strin
             });
         });
     }
-    
+
     const inspector = require('inspector');
     if(debug  && debug.shouldBreak){
         // Activate inspector only if is not already opened and wait for the debugger to attach
@@ -89,7 +89,7 @@ const runScripts =async function(servient: DefaultServient, scripts: Array<strin
                 console.warn("[cli]","Cannot set breakpoint; reason: cannot enable debugger")
                 console.warn(error)
             }
-           
+
             session.post("Debugger.setBreakpointByUrl", {
                 lineNumber: 0,
                 url: "file:///" + path.resolve(scripts[0]).replace(/\\/g, '/')
@@ -107,7 +107,7 @@ const runScripts =async function(servient: DefaultServient, scripts: Array<strin
         debug && !inspector.url() && inspector.open(debug.port, debug.host, false);
         launchScripts(scripts)
     }
-    
+
 }
 
 const runAllScripts = function(servient: DefaultServient,debug?: DebugParams) {
@@ -122,13 +122,13 @@ const runAllScripts = function(servient: DefaultServient,debug?: DebugParams) {
             return (file.substr(0, 1) !== "." && file.slice(-3) === ".js");
         });
         console.info("[cli]",`WoT-Servient using current directory with ${scripts.length} script${scripts.length>1 ? "s" : ""}`);
-        
+
         runScripts(servient, scripts.map(filename => path.resolve(path.join(baseDir, filename))),debug);
     });
 }
 
 // main
-for( let i = 0; i < argv.length; i++){ 
+for( let i = 0; i < argv.length; i++){
     if (flagArgConfigfile) {
         flagArgConfigfile = false;
         confFile = argv[i];
@@ -139,7 +139,7 @@ for( let i = 0; i < argv.length; i++){
         clientOnly = true;
         argv.splice(i, 1);
         i--;
-    
+
     } else if (argv[i].match(/^(-f|--configfile|\/f)$/i)) {
         flagArgConfigfile = true;
         argv.splice(i, 1);
@@ -162,10 +162,10 @@ for( let i = 0; i < argv.length; i++){
 
     } else if (argv[i].match(/^(-h|--help|\/?|\/h)$/i)) {
         console.log(`Usage: wot-servient [options] [SCRIPT]...
-       wot-servient
-       wot-servient examples/scripts/counter.js examples/scripts/example-event.js
-       wot-servient -c counter-client.js
-       wot-servient -f ~/mywot.conf.json examples/testthing/testthing.js
+        wot-servient
+        wot-servient examples/scripts/counter.js examples/scripts/example-event.js
+        wot-servient -c counter-client.js
+        wot-servient -f ~/mywot.conf.json examples/testthing/testthing.js
 
 Run a WoT Servient in the current directory.
 If no SCRIPT is given, all .js files in the current directory are loaded.
@@ -177,7 +177,7 @@ Options:
   -i,  --inspect[=[host:]port]     activate inspector on host:port (default: 127.0.0.1:9229)
   -ib, --inspect-brk[=[host:]port] activate inspector on host:port and break at start of user script
   -c,  --clientonly                do not start any servers
-                                   (enables multiple instances without port conflicts)
+                                    (enables multiple instances without port conflicts)
   -f,  --configfile <file>         load configuration from specified file
   -h,  --help                      show this help
 

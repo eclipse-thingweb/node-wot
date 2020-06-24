@@ -62,8 +62,8 @@ function createRequestFunction(rejectUnauthorized:boolean) {
 export default class OAuthManager{
     private tokenStore:Map<string,ClientOAuth2.Token> = new Map()
     constructor() {}
-    handleClientCredential(securityScheme:OAuth2SecurityScheme,credentials:any):OAuthCredential{ 
-        
+    handleClientCredential(securityScheme:OAuth2SecurityScheme,credentials:any):OAuthCredential{
+
         const clientFlow: ClientOAuth2 = new ClientOAuth2({
             clientId: credentials.clientId,
             clientSecret: credentials.clientSecret,
@@ -81,7 +81,7 @@ export default class OAuthManager{
         return new OAuthCredential(token,clientFlow.credentials.getToken.bind(clientFlow.credentials))
     }
 
-    handleResourceOwnerCredential(securityScheme: OAuth2SecurityScheme, credentials: any):OAuthCredential{ 
+    handleResourceOwnerCredential(securityScheme: OAuth2SecurityScheme, credentials: any):OAuthCredential{
         const clientFlow: ClientOAuth2 = new ClientOAuth2({
             clientId: credentials.clientId,
             clientSecret: credentials.clientSecret,

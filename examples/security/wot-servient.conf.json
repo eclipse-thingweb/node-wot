@@ -17,7 +17,7 @@
     },
     "_mqtt" : {
         "broker" : "mqtt://test.mosquitto.org",
-        "port": 1883 
+        "port": 1883
     },
     "log": {
         "level": "info"

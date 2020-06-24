@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 /********************************************************************************
  * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
- * 
+ *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
- * 
+ *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0, or the W3C Software Notice and
  * Document License (2015-05-13) which is available at
  * https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document.
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
@@ -19,7 +19,7 @@ import * as WoT from "wot-typescript-definitions";
 
 import * as TD from "@node-wot/td-tools";
 
-// node-wot implementation of W3C WoT Servient 
+// node-wot implementation of W3C WoT Servient
 import { Servient, ExposedThing } from "@node-wot/core";
 import { HttpServer } from "@node-wot/binding-http";
 
@@ -68,140 +68,140 @@ function main() {
 
   // get WoT object for privileged script
   servient.start().then( (myWoT) => {
-  
+
     console.info("RaspberryServient started");
 
     try {
 
-      let template: WoT.ThingDescription = { name: "Unicorn" };
+    let template: WoT.ThingDescription = { name: "Unicorn" };
 
-      myWoT.produce(template)
+    myWoT.produce(template)
         .then((thing) => {
-          if(thing instanceof ExposedThing) {
+        if(thing instanceof ExposedThing) {
             let unicorn : ExposedThing = thing;
 
             unicorn
-              .addProperty(
-                  "brightness",
-                  {
+            .addProperty(
+                "brightness",
+                {
                     type: "integer",
                     minimum: 0,
                     maximum: 255
-                  },
-                  100
+                },
+                100
                 )
-              .setPropertyWriteHandler(
-                  "brightness",
-                  (value : any) => {
+            .setPropertyWriteHandler(
+                "brightness",
+                (value : any) => {
                     return new Promise((resolve, reject) => {
-                      setBrightness(value);
-                      resolve(value);
+                    setBrightness(value);
+                    resolve(value);
                     });
-                  }
+                }
                 );
                 unicorn.addProperty(
-                  "color",
-                  {
+                "color",
+                {
                     type: "object",
                     properties: {
-                      r: { type: "integer", minimum: 0, maximum: 255 },
-                      g: { type: "integer", minimum: 0, maximum: 255 },
-                      b: { type: "integer", minimum: 0, maximum: 255 },
+                    r: { type: "integer", minimum: 0, maximum: 255 },
+                    g: { type: "integer", minimum: 0, maximum: 255 },
+                    b: { type: "integer", minimum: 0, maximum: 255 },
                     }
-                  },
-                  { r: 0, g: 0, b: 0 }
+                },
+                { r: 0, g: 0, b: 0 }
                 )
-              .setPropertyWriteHandler(
-                  "color",
-                  (value : any) => {
+            .setPropertyWriteHandler(
+                "color",
+                (value : any) => {
                     return new Promise((resolve, reject) => {
-                      if (typeof value !== "object") {
+                    if (typeof value !== "object") {
                         reject(new Error("color" + " requires application/json"));
-                      } else {
+                    } else {
                         setAll(value.r, value.g, value.b);
                         resolve(value);
-                      }
+                    }
                     });
-                  }
+                }
                 );
                 unicorn.addAction(
-                  "gradient",
-                  {
+                "gradient",
+                {
                     input: {
-                      type: "array",
-                      items: {
+                    type: "array",
+                    items: {
                         type: "object",
                         properties: {
-                          r: { type: "integer", minimum: 0, maximum: 255 },
-                          g: { type: "integer", minimum: 0, maximum: 255 },
-                          b: { type: "integer", minimum: 0, maximum: 255 },
+                        r: { type: "integer", minimum: 0, maximum: 255 },
+                        g: { type: "integer", minimum: 0, maximum: 255 },
+                        b: { type: "integer", minimum: 0, maximum: 255 },
                         }
-                      },
-                      "minItems": 2
+                    },
+                    "minItems": 2
                     }
-                  },
-                  (input: Array<Color>) => {
+                },
+                (input: Array<Color>) => {
                     return new Promise((resolve, reject) => {
-                      if (input.length < 2) {
+                    if (input.length < 2) {
                         return '{ "minItems": 2 }';
-                      }
-                      unicorn.invokeAction('cancel');
-            
-                      gradient = input;
-                      gradIndex = 0;
-                      gradNow = gradient[0];
-                      gradNext = gradient[1];
-                      gradVector = {
+                    }
+                    unicorn.invokeAction('cancel');
+
+                    gradient = input;
+                    gradIndex = 0;
+                    gradNow = gradient[0];
+                    gradNext = gradient[1];
+                    gradVector = {
                         r: (gradNext.r - gradNow.r) / 20,
                         g: (gradNext.g - gradNow.g) / 20,
                         b: (gradNext.b - gradNow.b) / 20
-                      };
-                      gradientTimer = setInterval(gradientStep, 50);
-                      resolve(true);
+                    };
+                    gradientTimer = setInterval(gradientStep, 50);
+                    resolve(true);
                     });
-                  }
+                }
                 )
-              .addAction(
-                  "forceColor",
-                  {
+            .addAction(
+                "forceColor",
+                {
                     input: {
-                      type: "object",
-                      properties: {
+                    type: "object",
+                    properties: {
                         r: { type: "integer", minimum: 0, maximum: 255 },
                         g: { type: "integer", minimum: 0, maximum: 255 },
                         b: { type: "integer", minimum: 0, maximum: 255 }
-                      }
                     }
-                  },
-                  (input: Color) => {
+                    }
+                },
+                (input: Color) => {
                     return new Promise((resolve, reject) => {
                         unicorn.invokeAction('cancel');
                         unicorn.writeProperty('color', input);
                         resolve();
                     });
-                  }
+                }
                 )
-              .addAction(
-                  "cancel",
-                  {},
-                  () => {
+            .addAction(
+                "cancel",
+                {},
+                () => {
                     return new Promise((resolve, reject) => {
-                      if (gradientTimer) {
+                    if (gradientTimer) {
                         console.info('>> canceling timer');
                         clearInterval(gradientTimer);
                         gradientTimer = null;
-                      }
-                      resolve();
+                    }
+                    resolve();
                     });
-                  }
+                }
                 );
-            
+
             unicorn.expose().then( () => { console.info(unicorn.name + " ready"); });
-          }
+        }
         });
 
     } catch (err) {
-      console.error("Unicorn setup error: " + err);
+    console.error("Unicorn setup error: " + err);
     }
 
   }).catch( (err) => {
@@ -228,9 +228,9 @@ function gradientStep() {
     gradNext = gradient[gradIndex];
     console.debug('> step new index ' + gradIndex);
     gradVector = {
-      r: (gradNext.r - gradNow.r) / 20,
-      g: (gradNext.g - gradNow.g) / 20,
-      b: (gradNext.b - gradNow.b) / 20
+    r: (gradNext.r - gradNow.r) / 20,
+    g: (gradNext.g - gradNow.g) / 20,
+    b: (gradNext.b - gradNow.b) / 20
     };
   }
 }
@@ -273,4 +273,3 @@ function setAll(r: number, g: number, b: number) {
   all.push(3);
   client.write(Buffer.from(all));
 }
-

@@ -26,7 +26,7 @@ const model = new Memory()
 
 app.oauth = new OAuthServer({
     model: model,
-    accessTokenLifetime: 1 
+    accessTokenLifetime: 1
 });
 
 app.use(bodyParser.json());
@@ -43,4 +43,4 @@ https.createServer({
     cert: fs.readFileSync('../certificate.pem')
 }, app).listen(3000, "localhost", () => {
     console.log("listening")
-})  
+})

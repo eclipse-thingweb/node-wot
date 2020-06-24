@@ -1,15 +1,15 @@
 /********************************************************************************
  * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
- * 
+ *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
- * 
+ *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0, or the W3C Software Notice and
  * Document License (2015-05-13) which is available at
  * https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document.
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
@@ -45,54 +45,54 @@ export function transformTDV2StringToV1String(td2: string): Object {
   // split interaction into property, action & event
   if (td1['interactions'] != null && Array.isArray(td1['interactions'])) {
     for (let inter of td1['interactions']) {
-      // TODO sanitize @type (remove Property, Action & Event)? Keep it for now. Does not hurt!
+    // TODO sanitize @type (remove Property, Action & Event)? Keep it for now. Does not hurt!
 
-      if (inter['@type'] != null && Array.isArray(inter['@type'])) {
+    if (inter['@type'] != null && Array.isArray(inter['@type'])) {
         if (inter['@type'].indexOf('Property') >= 0) {
-          if (td1['properties'] == null) {
+        if (td1['properties'] == null) {
             td1['properties'] = []; // new Array();
-          }
-          td1['properties'].push(inter);
+        }
+        td1['properties'].push(inter);
 
-          // outputData.valueType --> valueType
-          if (inter['outputData'] != null && inter['outputData']['valueType'] != null) {
+        // outputData.valueType --> valueType
+        if (inter['outputData'] != null && inter['outputData']['valueType'] != null) {
             inter['valueType'] = inter['outputData']['valueType'];
             delete inter['outputData']; // remove outputData field
-          }
+        }
 
-          // links.href --> hrefs
-          // links.mediaType --> encodings
-          fixLinksV2toHrefsEncodingsV1(td1, inter);
+        // links.href --> hrefs
+        // links.mediaType --> encodings
+        fixLinksV2toHrefsEncodingsV1(td1, inter);
         }
         if (inter['@type'].indexOf('Action') >= 0) {
-          if (td1['actions'] == null) {
+        if (td1['actions'] == null) {
             td1['actions'] = []; // new Array();
-          }
-          td1['actions'].push(inter);
+        }
+        td1['actions'].push(inter);
 
-          // inputData and outputData did not change for Action
+        // inputData and outputData did not change for Action
 
-          // links.href --> hrefs
-          // links.mediaType --> encodings
-          fixLinksV2toHrefsEncodingsV1(td1, inter);
+        // links.href --> hrefs
+        // links.mediaType --> encodings
+        fixLinksV2toHrefsEncodingsV1(td1, inter);
         }
         if (inter['@type'].indexOf('Event') >= 0) {
-          if (td1['events'] == null) {
+        if (td1['events'] == null) {
             td1['events'] = []; // new Array();
-          }
-          td1['events'].push(inter);
+        }
+        td1['events'].push(inter);
 
-          // outputData.valueType --> valueType
-          if (inter['outputData'] != null && inter['outputData']['valueType'] != null) {
+        // outputData.valueType --> valueType
+        if (inter['outputData'] != null && inter['outputData']['valueType'] != null) {
             inter['valueType'] = inter['outputData']['valueType'];
             delete inter['outputData']; // remove outputData field
-          }
-
-          // links.href --> hrefs
-          // links.mediaType --> encodings
-          fixLinksV2toHrefsEncodingsV1(td1, inter);
         }
-      }
+
+        // links.href --> hrefs
+        // links.mediaType --> encodings
+        fixLinksV2toHrefsEncodingsV1(td1, inter);
+        }
+    }
     }
     delete td1['interactions']; // remove interactions field
   }
@@ -107,18 +107,18 @@ export function transformTDV2StringToV1String(td2: string): Object {
 function fixLinksV2toHrefsEncodingsV1(td1: any, inter: any) {
   if (inter['links'] != null && Array.isArray(inter['links'])) {
     for (let link of inter['links']) {
-      // hrefs
-      if (inter['hrefs'] == null) {
+    // hrefs
+    if (inter['hrefs'] == null) {
         inter['hrefs'] = []; // new Array();
-      }
-      inter['hrefs'].push(link['href']);
-      // encodings
-      if (td1['encodings'] == null) {
+    }
+    inter['hrefs'].push(link['href']);
+    // encodings
+    if (td1['encodings'] == null) {
         td1['encodings'] = []; // new Array();
-      }
-      if (td1['encodings'].indexOf(link['mediaType']) < 0) {
+    }
+    if (td1['encodings'].indexOf(link['mediaType']) < 0) {
         td1['encodings'].push(link['mediaType']);
-      }
+    }
     }
     delete inter['links']; // remove links field
   }
@@ -139,7 +139,7 @@ export function transformTDV3StringToV1String(td3: string): Object {
   // * "outputData" not nested anymore
   // * "inputData" not nested anymore
 
-   // create object from original TD and re-arrange data
+    // create object from original TD and re-arrange data
   let td1 = JSON.parse(td3);
 
   // base to uris
@@ -152,65 +152,65 @@ export function transformTDV3StringToV1String(td3: string): Object {
   // split interaction into property, action & event
   if (td1['interaction'] != null && Array.isArray(td1['interaction'])) {
     for (let inter of td1['interaction']) {
-      // TODO sanitize @type (remove Property, Action & Event)? Keep it for now. Does not hurt!
+    // TODO sanitize @type (remove Property, Action & Event)? Keep it for now. Does not hurt!
 
-      if (inter['@type'] != null && Array.isArray(inter['@type'])) {
+    if (inter['@type'] != null && Array.isArray(inter['@type'])) {
         if (inter['@type'].indexOf('Property') >= 0) {
-          if (td1['properties'] == null) {
+        if (td1['properties'] == null) {
             td1['properties'] = []; // new Array();
-          }
-          td1['properties'].push(inter);
+        }
+        td1['properties'].push(inter);
 
-          // outputData --> valueType
-          if (inter['outputData'] != null) {
+        // outputData --> valueType
+        if (inter['outputData'] != null) {
             inter['valueType'] = inter['outputData'];
             delete inter['outputData']; // remove outputData field
-          }
+        }
 
-          // link.href --> hrefs
-          // link.mediaType --> encodings
-          fixLinksV3toHrefsEncodingsV1(td1, inter);
+        // link.href --> hrefs
+        // link.mediaType --> encodings
+        fixLinksV3toHrefsEncodingsV1(td1, inter);
         }
         if (inter['@type'].indexOf('Action') >= 0) {
-          if (td1['actions'] == null) {
+        if (td1['actions'] == null) {
             td1['actions'] = []; // new Array();
-          }
-          td1['actions'].push(inter);
+        }
+        td1['actions'].push(inter);
 
-          // inputData and outputData needs to be nested for Action
-          // outputData --> outputData.valueType
-          if (inter['outputData'] != null && inter['outputData']['type'] != null) {
+        // inputData and outputData needs to be nested for Action
+        // outputData --> outputData.valueType
+        if (inter['outputData'] != null && inter['outputData']['type'] != null) {
             inter['outputData']['valueType'] = {};
             inter['outputData']['valueType']['type']  = inter['outputData']['type'];
             delete inter['outputData']['type']; // remove type field
-          }
-          if (inter['inputData'] != null && inter['inputData']['type'] != null) {
+        }
+        if (inter['inputData'] != null && inter['inputData']['type'] != null) {
             inter['inputData']['valueType'] = {};
             inter['inputData']['valueType']['type']  = inter['inputData']['type'];
             delete inter['inputData']['type']; // remove type field
-          }
+        }
 
-          // link.href --> hrefs
-          // link.mediaType --> encodings
-          fixLinksV3toHrefsEncodingsV1(td1, inter);
+        // link.href --> hrefs
+        // link.mediaType --> encodings
+        fixLinksV3toHrefsEncodingsV1(td1, inter);
         }
         if (inter['@type'].indexOf('Event') >= 0) {
-          if (td1['events'] == null) {
+        if (td1['events'] == null) {
             td1['events'] = []; // new Array();
-          }
-          td1['events'].push(inter);
+        }
+        td1['events'].push(inter);
 
-          // outputData --> valueType
-          if (inter['outputData'] != null) {
+        // outputData --> valueType
+        if (inter['outputData'] != null) {
             inter['valueType'] = inter['outputData'];
             delete inter['outputData']; // remove outputData field
-          }
-
-          // link.href --> hrefs
-          // link.mediaType --> encodings
-          fixLinksV3toHrefsEncodingsV1(td1, inter);
         }
-      }
+
+        // link.href --> hrefs
+        // link.mediaType --> encodings
+        fixLinksV3toHrefsEncodingsV1(td1, inter);
+        }
+    }
     }
     delete td1['interaction']; // remove interaction field
   }
@@ -231,18 +231,18 @@ export function transformTDV3ObjToV1Obj(td3: Object): any {
 function fixLinksV3toHrefsEncodingsV1(td1: any, inter: any) {
   if (inter['link'] != null && Array.isArray(inter['link'])) {
     for (let link of inter['link']) {
-      // hrefs
-      if (inter['hrefs'] == null) {
+    // hrefs
+    if (inter['hrefs'] == null) {
         inter['hrefs'] = []; // new Array();
-      }
-      inter['hrefs'].push(link['href']);
-      // encodings
-      if (td1['encodings'] == null) {
+    }
+    inter['hrefs'].push(link['href']);
+    // encodings
+    if (td1['encodings'] == null) {
         td1['encodings'] = []; // new Array();
-      }
-      if (td1['encodings'].indexOf(link['mediaType']) < 0) {
+    }
+    if (td1['encodings'].indexOf(link['mediaType']) < 0) {
         td1['encodings'].push(link['mediaType']);
-      }
+    }
     }
     delete inter['links']; // remove links field
   }

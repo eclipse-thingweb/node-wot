@@ -1,15 +1,15 @@
 /********************************************************************************
  * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
- * 
+ *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
- * 
+ *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0, or the W3C Software Notice and
  * Document License (2015-05-13) which is available at
  * https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document.
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
@@ -34,8 +34,8 @@ export function parseTD(td: string, normalize?: boolean): Thing {
   } else if (Array.isArray(thing["@context"])) {
     let semContext: Array<string> = thing["@context"];
     if (semContext.indexOf(TD.DEFAULT_CONTEXT) === -1) {
-      // insert last
-      semContext.push(TD.DEFAULT_CONTEXT);
+    // insert last
+    semContext.push(TD.DEFAULT_CONTEXT);
     }
   } else if (thing["@context"] !== TD.DEFAULT_CONTEXT) {
     let semContext: string | any = thing["@context"];
@@ -49,8 +49,8 @@ export function parseTD(td: string, normalize?: boolean): Thing {
   } else if (Array.isArray(thing["@type"])) {
     let semTypes: Array<string> = thing["@type"];
     if (semTypes.indexOf(TD.DEFAULT_THING_TYPE) === -1) {
-      // insert first
-      semTypes.unshift(TD.DEFAULT_THING_TYPE);
+    // insert first
+    semTypes.unshift(TD.DEFAULT_THING_TYPE);
     }
   } else if (thing["@type"] !== TD.DEFAULT_THING_TYPE) {
     let semType: string = thing["@type"];
@@ -59,28 +59,28 @@ export function parseTD(td: string, normalize?: boolean): Thing {
 
   if (thing.properties !== undefined && thing.properties instanceof Object) {
     for (let propName in thing.properties) {
-      let prop: TD.ThingProperty = thing.properties[propName];
-      if (prop.readOnly === undefined || typeof prop.readOnly !== "boolean") {
+    let prop: TD.ThingProperty = thing.properties[propName];
+    if (prop.readOnly === undefined || typeof prop.readOnly !== "boolean") {
         prop.readOnly = false;
-      }
-      if (prop.writeOnly === undefined || typeof prop.writeOnly !== "boolean") {
+    }
+    if (prop.writeOnly === undefined || typeof prop.writeOnly !== "boolean") {
         prop.writeOnly = false;
-      }
-      if (prop.observable == undefined || typeof prop.observable !== "boolean") {
+    }
+    if (prop.observable == undefined || typeof prop.observable !== "boolean") {
         prop.observable = false;
-      }
+    }
     }
   }
-  
+
   if (thing.actions !== undefined && thing.actions instanceof Object) {
     for (let actName in thing.actions) {
-      let act: TD.ThingAction = thing.actions[actName];
-      if (act.safe === undefined || typeof act.safe !== "boolean") {
+    let act: TD.ThingAction = thing.actions[actName];
+    if (act.safe === undefined || typeof act.safe !== "boolean") {
         act.safe = false;
-      }
-      if (act.idempotent === undefined || typeof act.idempotent !== "boolean") {
+    }
+    if (act.idempotent === undefined || typeof act.idempotent !== "boolean") {
         act.idempotent = false;
-      }
+    }
     }
   }
 
@@ -112,31 +112,31 @@ export function parseTD(td: string, normalize?: boolean): Thing {
   }
   for (let pattern in interactionPatterns) {
     for (let interaction in thing[pattern]) {
-      // ensure forms mandatory forms field
-      if (!thing[pattern][interaction].hasOwnProperty("forms")) throw new Error(`${interactionPatterns[pattern]} '${interaction}' has no forms field`);
-      // ensure array structure internally
-      if (!Array.isArray(thing[pattern][interaction].forms)) thing[pattern][interaction].forms = [thing[pattern][interaction].forms];
-      for (let form of thing[pattern][interaction].forms) {
+    // ensure forms mandatory forms field
+    if (!thing[pattern][interaction].hasOwnProperty("forms")) throw new Error(`${interactionPatterns[pattern]} '${interaction}' has no forms field`);
+    // ensure array structure internally
+    if (!Array.isArray(thing[pattern][interaction].forms)) thing[pattern][interaction].forms = [thing[pattern][interaction].forms];
+    for (let form of thing[pattern][interaction].forms) {
         // ensure mandatory href field
         if (!form.hasOwnProperty("href")) throw new Error(`Form of ${interactionPatterns[pattern]} '${interaction}' has no href field`);
         // check if base field required
         if (!isAbsoluteUrl(form.href) && !thing.hasOwnProperty("base")) throw new Error(`Form of ${interactionPatterns[pattern]} '${interaction}' has relative URI while TD has no base field`);
         // add
         allForms.push(form);
-      }
+    }
     }
   }
 
   if (thing.hasOwnProperty("base")) {
     if (normalize === undefined || normalize === true) {
-      console.debug("[td-tools/td-parser]",`parseTD() normalizing 'base' into 'forms'`);
+    console.debug("[td-tools/td-parser]",`parseTD() normalizing 'base' into 'forms'`);
 
-      for (let form of allForms) {
+    for (let form of allForms) {
         if (!form.href.match(/^([a-z0-9\+-\.]+\:).+/i)) {
-          console.debug("[td-tools/td-parser]",`parseTDString() applying base '${thing.base}' to '${form.href}'`);
-          form.href = URLToolkit.buildAbsoluteURL(thing.base, form.href);
+        console.debug("[td-tools/td-parser]",`parseTDString() applying base '${thing.base}' to '${form.href}'`);
+        form.href = URLToolkit.buildAbsoluteURL(thing.base, form.href);
         }
-      }
+    }
     }
   }
 
@@ -150,16 +150,16 @@ function addDefaultLanguage(thing: Thing) {
     let arrayContext: Array<any> = thing["@context"];
     let languageSet = false;
     for (let arrayEntry of arrayContext) {
-      if(typeof arrayEntry == "object") {
+    if(typeof arrayEntry == "object") {
         if(arrayEntry["@language"] !== undefined) {
-          languageSet = true;
+        languageSet = true;
         }
-      }
+    }
     }
     if(!languageSet) {
-      arrayContext.push({
+    arrayContext.push({
         "@language": TD.DEFAULT_CONTEXT_LANGUAGE
-      });
+    });
     }
   }
 }
@@ -173,7 +173,7 @@ export function serializeTD(thing: Thing): string {
   // clean-ups
   if (!copy.security || copy.security.length === 0) {
     copy.securityDefinitions = {
-      "nosec_sc": { "scheme": "nosec" }
+    "nosec_sc": { "scheme": "nosec" }
     };
     copy.security = ["nosec_sc"];
   }
@@ -187,16 +187,16 @@ export function serializeTD(thing: Thing): string {
   } else if(copy.properties) {
     // add mandatory fields (if missing): observable, writeOnly, and readOnly
     for (let propName in copy.properties) {
-      let prop = copy.properties[propName];
-      if (prop.readOnly === undefined || typeof prop.readOnly !== "boolean") {
+    let prop = copy.properties[propName];
+    if (prop.readOnly === undefined || typeof prop.readOnly !== "boolean") {
         prop.readOnly = false;
-      }
-      if (prop.writeOnly === undefined || typeof prop.writeOnly !== "boolean") {
+    }
+    if (prop.writeOnly === undefined || typeof prop.writeOnly !== "boolean") {
         prop.writeOnly = false;
-      }
-      if (prop.observable == undefined || typeof prop.observable !== "boolean") {
+    }
+    if (prop.observable == undefined || typeof prop.observable !== "boolean") {
         prop.observable = false;
-      }
+    }
     }
   }
 
@@ -205,13 +205,13 @@ export function serializeTD(thing: Thing): string {
   } else if (copy.actions) {
     // add mandatory fields (if missing): idempotent and safe
     for (let actName in copy.actions) {
-      let act = copy.actions[actName];
-      if (act.idempotent === undefined || typeof act.idempotent !== "boolean") {
+    let act = copy.actions[actName];
+    if (act.idempotent === undefined || typeof act.idempotent !== "boolean") {
         act.idempotent = false;
-      }
-      if (act.safe === undefined || typeof act.safe !== "boolean") {
+    }
+    if (act.safe === undefined || typeof act.safe !== "boolean") {
         act.safe = false;
-      }
+    }
     }
   }
   if (copy.events && Object.keys(copy.events).length === 0) {

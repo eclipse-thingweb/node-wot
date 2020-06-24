@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 /********************************************************************************
  * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
- * 
+ *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
- * 
+ *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0, or the W3C Software Notice and
  * Document License (2015-05-13) which is available at
  * https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document.
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
@@ -111,10 +111,10 @@ if (argv.length > 0) {
 
         } else if (arg.match(/^(-h|--help|\/?|\/h)$/i)) {
             console.log(`Usage: bridge-servient [options] [SCRIPT]...
-       bridge-servient
-       bridge-servient examples/scripts/counter.js examples/scripts/example-event.js
-       bridge-servient -f ~/mybridge.conf.json testthing.js
-       bridge-servient -p myOracleSecret
+        bridge-servient
+        bridge-servient examples/scripts/counter.js examples/scripts/example-event.js
+        bridge-servient -f ~/mybridge.conf.json testthing.js
+        bridge-servient -p myOracleSecret
 
 Run a WoT Servient in the current directory.
 If no SCRIPT is given, all .js files in the current directory are loaded.
@@ -157,8 +157,8 @@ bridge-servient.conf.json fields:
   ---------------------------------------------------------------------------
   HPORT      : integer defining the HTTP listening port
   PROXY      : object with "href" field for the proxy URI,
-                           "scheme" field for either "basic" or "bearer", and
-                           corresponding credential fields as defined below
+                            "scheme" field for either "basic" or "bearer", and
+                            corresponding credential fields as defined below
   ALLOW      : boolean whether self-signed certificates should be allowed
   FREMOTE    : URI for the Fujitsu remote proxy
   OSTORE     : file name of the Oracle IoT CS trust store

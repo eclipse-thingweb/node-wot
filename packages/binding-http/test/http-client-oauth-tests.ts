@@ -27,23 +27,23 @@ import Memory from "./memory-model";
 
 @suite("HTTP oauth client implementation")
 class HttpClientOAuthTest {
-    
+
     private client:HttpClient;
     static model:any;
     static before(){
         var app:any = express();
         HttpClientOAuthTest.model = new Memory()
-        
+
         app.oauth = new OAuthServer({
             model: HttpClientOAuthTest.model,
             accessTokenLifetime: 1 // One minute; less is not possible
         });
-        
+
         app.use(bodyParser.json());
         app.use("/resource", app.oauth.authenticate());
         app.use("/token",bodyParser.urlencoded({ extended: false }));
         app.use("/token",app.oauth.token());
-        
+
         app.use("/resource",(req:any, res:any) => {
             res.send('Ok!')
         })
@@ -54,8 +54,8 @@ class HttpClientOAuthTest {
         }, app).listen(3000,"localhost",()=>{
             console.log("listening")
         })
-        
-    }   
+
+    }
 
     before(){
         this.client = new HttpClient({ allowSelfSigned: true},true)
@@ -87,7 +87,7 @@ class HttpClientOAuthTest {
         })
 
     }
-   @test async "should refresh token"(){
+    @test async "should refresh token"(){
         const scheme:OAuth2SecurityScheme = {
             scheme: "oauth2",
             flow:"client_credentials",

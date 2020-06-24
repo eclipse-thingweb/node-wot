@@ -22,7 +22,7 @@
         {
             "name": "Debug default servient",
             "request": "launch",
-            
+
             "runtimeArgs": [
                 "run-script",
                 "debug"

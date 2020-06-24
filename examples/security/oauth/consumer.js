@@ -21,4 +21,3 @@ WoTHelpers.fetch("http://localhost:8080/OAuth").then(td => {
         console.log("oAuth token was", result);
     });
 });
-

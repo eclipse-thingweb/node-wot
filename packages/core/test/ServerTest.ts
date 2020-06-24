@@ -1,22 +1,22 @@
 /********************************************************************************
  * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
- * 
+ *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
- * 
+ *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0, or the W3C Software Notice and
  * Document License (2015-05-13) which is available at
  * https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document.
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
 /**
  * Basic test suite to demonstrate test setup
  * uncomment the @skip to see failing tests
- * 
+ *
  * h0ru5: there is currently some problem with VSC failing to recognize experimentalDecorators option, it is present in both tsconfigs
  */
 
@@ -35,7 +35,7 @@ import ExposedThing from "../src/exposed-thing";
 class TestProtocolServer implements ProtocolServer {
 
     public readonly scheme: string = "test";
-    
+
     expose(thing: ExposedThing): Promise<void> {
         return new Promise<void>((resolve, reject) => {});
     }
@@ -170,7 +170,7 @@ class WoTServerTest {
             }
         });
         await thing.writeProperty("string", "XYZ"); // init
-        
+
         expect(thing).to.have.property("properties").to.have.property("string");
         expect(thing).to.have.property("properties").to.have.property("string").to.have.property("readOnly").that.equals(false);
         expect(thing).to.have.property("properties").to.have.property("string").to.have.property("observable").that.equals(false);
@@ -195,7 +195,7 @@ class WoTServerTest {
                 }
             }
         });
-        
+
         expect(thing).to.have.property("properties").to.have.property("null");
         expect(thing).to.have.property("properties").to.have.property("null").to.have.property("readOnly").that.equals(false);
         expect(thing).to.have.property("properties").to.have.property("null").to.have.property("observable").that.equals(false);
@@ -224,7 +224,7 @@ class WoTServerTest {
 
     }
 
-    
+
     @test async "should be able to read/readAll properties locally"() {
         let thing = await WoTServerTest.WoT.produce({
             title: "thing3",
@@ -283,7 +283,7 @@ class WoTServerTest {
 
         expect(await thing.readProperty("number")).to.equal(1);
         expect(await thing.readProperty("number")).to.equal(2);
-        expect(await thing.readProperty("number")).to.equal(3); 
+        expect(await thing.readProperty("number")).to.equal(3);
     }
 
     @test async "should be able to read and write property"() {

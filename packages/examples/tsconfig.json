@@ -1,14 +1,14 @@
 {
-	"extends": "../../tsconfig.json",
-	"compilerOptions": {
-		"outDir": "dist",
-		"target": "ES2018",
-		"alwaysStrict": false,
-		"noImplicitUseStrict": true,
-		"sourceMap": false,
-		"removeComments": false
-	},
-	"include": [
-		"src/**/*"
-	]
+    "extends": "../../tsconfig.json",
+    "compilerOptions": {
+        "outDir": "dist",
+        "target": "ES2018",
+        "alwaysStrict": false,
+        "noImplicitUseStrict": true,
+        "sourceMap": false,
+        "removeComments": false
+    },
+    "include": [
+        "src/**/*"
+    ]
 }
