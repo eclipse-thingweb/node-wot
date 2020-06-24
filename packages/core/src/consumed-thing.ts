@@ -321,7 +321,10 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                         reject(new Error(`Received invalid content from Thing`));
                     }
                 })
-                    .catch(err => { reject(err); });
+                    .catch(err => { 
+                        console.log();
+                        
+                        reject(err); });
             }
         });
     }

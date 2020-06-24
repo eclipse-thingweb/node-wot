@@ -39,17 +39,14 @@ let td = {
     ],
     "actions": {
         "sayOk": {
-            "forms": [
-                {
-                    "href": "https://localhost:3000/resource",
-                    "htv:methodName": "GET"
-                }
-            ]
+            "description": "A simple action protected with oauth",
+            "idempotent": true
         }
     }
 }
 try {
     WoT.produce(td).then((thing) => {
+        thing.setActionHandler("sayOk",async ()=> "Ok!" )
         thing.expose()
     });
 }

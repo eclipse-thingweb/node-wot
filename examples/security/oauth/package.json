@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "server": "node server.js",
-    "start:exposer": "node ../../../packages/cli/dist/cli.js exposer.js",
+    "start:exposer": "node ../../../packages/cli/dist/cli.js -f ./wot-server-servient-conf.json exposer.js",
     "start:consumer": "node ../../../packages/cli/dist/cli.js -f ./wot-client-servient-conf.json consumer.js"
   },
   "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",

@@ -6,8 +6,9 @@
   "scripts": {
     "build": "tsc",
     "server": "node server.js",
-    "start:exposer": "node ../../../../cli/dist/cli.js ../../../dist/security/oauth/exposer.js",
-    "start:consumer": "node ../../../../cli/dist/cli.js -f ./wot-client-servient-conf.json ../../../dist/security/oauth/consumer.js"
+    "start:exposer": "node ../../../../cli/dist/cli.js -f ./wot-server-servient-conf.json ../../../dist/security/oauth/exposer.js",
+    "start:consumer": "node ../../../../cli/dist/cli.js -f ./wot-client-servient-conf.json ../../../dist/security/oauth/consumer.js",
+    "debug:consumer": "node --inspect-brk ../../../../cli/dist/cli.js -f ./wot-client-servient-conf.json ../../../dist/security/oauth/consumer.js"
   },
   "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
   "license": "EPL-2.0 OR W3C-20150513",
