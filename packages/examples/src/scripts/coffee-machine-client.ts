@@ -15,7 +15,7 @@
 
 // This is an example of Web of Things consumer ("client" mode) Thing script.
 // It considers a fictional smart coffee machine in order to demonstrate the capabilities of Web of Things.
-// An accompanying tutorial is available at http://thingweb.io/smart-coffee-machine.html.
+// An accompanying tutorial is available at http://www.thingweb.io/smart-coffee-machine.html.
 
 import "wot-typescript-definitions"
 import { Helpers } from "@node-wot/core"
@@ -75,8 +75,10 @@ WoTHelpers.fetch("http://127.0.0.1:8080/Smart-Coffee-Machine").then(async (td) =
         let schedules = await thing.readProperty('schedules');
         log('schedules value: ', schedules);
 
-        // It's also possible to set a client-side handler for events
+        // Let's set up a handler for outOfResource event
         thing.subscribeEvent('outOfResource', (data) => {
+            // Here we are simply logging the message when the event is emitted
+            // But, of course, could have a much more sophisticated handler
             log('outOfResource event:', data);
         });
 

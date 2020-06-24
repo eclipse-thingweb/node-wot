@@ -274,6 +274,12 @@ Note: More mediaTyes can be easily added by implementing `ContentCodec` interfac
 
 We used to have a node-wot-logger package to allow fine-grained logging (by means of Winston). It turned out though that depending on the actual use-case other logging libraries might be better suited. Hence we do not want to prescribe which logging library to use. Having said that, we use console statements which can be easily overriden to use the prefered logging library if needed (see [here](https://gist.github.com/spmason/1670196)).
 
+The logs in the library follows those best practice rules (see [here](https://github.com/eclipse/thingweb.node-wot/issues/229)):
+1. Tag log messages with the package as following: `console.debug("[package-name]", "log message)`. This is useful to identify which package generated the log.
+2. Avoid to use `info` and `log` in packages other than the cli package.
+
+Please follows these rules if you are going to contribute to node-wot library.
+
 ### Install new/different versions of NodeJS
 
 Using NPM, you can install NodeJS independent from the usually outdated package managers such as apt. This is nicely done by n:

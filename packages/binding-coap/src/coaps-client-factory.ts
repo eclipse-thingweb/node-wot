@@ -28,7 +28,7 @@ export default class CoapsClientFactory implements ProtocolClientFactory {
   constructor(proxy? : string) { }
 
   public getClient(): ProtocolClient {
-    console.log(`CoapsClientFactory creating client for '${this.scheme}'`);
+    console.debug("[binding-coap]",`CoapsClientFactory creating client for '${this.scheme}'`);
     return new CoapsClient();
   }
 

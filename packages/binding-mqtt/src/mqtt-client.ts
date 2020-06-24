@@ -50,7 +50,7 @@ export default class MqttClient implements ProtocolClient {
 
         this.client.on('connect', () => this.client.subscribe(topic))
         this.client.on('message', (receivedTopic : string, payload : string, packet: IPublishPacket) => {
-            console.log("Received MQTT message (topic, data): (" + receivedTopic + ", "+ payload + ")");
+            console.debug("[binding-mqtt]","Received MQTT message (topic, data): (" + receivedTopic + ", "+ payload + ")");
             if (receivedTopic === topic) {
                 next({ contentType: contentType, body: Buffer.from(payload) });
             }
@@ -114,7 +114,7 @@ export default class MqttClient implements ProtocolClient {
         return new Promise<void>((resolve, reject) => {
             if(this.client && this.client.connected) {
                 this.client.unsubscribe(topic);
-                console.log(`MqttClient unsubscribed from topic '${topic}'`);
+                console.debug("[binding-mqtt]",`MqttClient unsubscribed from topic '${topic}'`);
             }
             resolve()
         });
@@ -138,7 +138,7 @@ export default class MqttClient implements ProtocolClient {
     public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean {
 
         if (metadata === undefined || !Array.isArray(metadata) || metadata.length == 0) {
-          console.warn(`MqttClient received empty security metadata`);
+            console.warn("[binding-mqtt]",`MqttClient received empty security metadata`);
           return false;
         }      
         let security: TD.SecurityScheme = metadata[0];
@@ -163,6 +163,6 @@ export default class MqttClient implements ProtocolClient {
     }
 
     private logError = (message: string): void => {
-        console.error(`[MqttClient]${message}`);
+        console.error("[binding-mqtt]",`[MqttClient]${message}`);
     }
 }

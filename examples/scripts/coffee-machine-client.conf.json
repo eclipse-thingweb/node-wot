@@ -1,0 +1,11 @@
+{
+    "http": {
+        "allowSelfSigned": true
+    },
+    "credentials": {
+        "urn:dev:wot:example:coffee-machine": {
+            "clientId" : "node-wot",
+            "clientSecret": "isgreat!"
+        }
+    }
+}

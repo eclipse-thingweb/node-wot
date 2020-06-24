@@ -30,7 +30,7 @@ export default class WebSocketClientFactory implements ProtocolClientFactory {
   }
 
   public getClient(): ProtocolClient {
-    console.log(`HttpClientFactory creating client for '${this.scheme}'`);
+    console.debug("[binding-websockets]",`HttpClientFactory creating client for '${this.scheme}'`);
     return new WebSocketClient();
   }
 

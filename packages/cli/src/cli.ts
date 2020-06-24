@@ -51,7 +51,7 @@ const readConf = function (filename: string): Promise<any> {
                 } catch (err) {
                     reject(err);
                 }
-                console.info(`WoT-Servient using config file '${open}'`);
+                console.info("[cli]",`WoT-Servient using config file '${open}'`);
                 resolve(config);
             }
         });
@@ -61,13 +61,13 @@ const readConf = function (filename: string): Promise<any> {
 const runScripts =async function(servient: DefaultServient, scripts: Array<string>,debug?: DebugParams) {
     const launchScripts = (scripts : Array<string> ) => {
         scripts.forEach((fname : string) => {
-            console.info("WoT-Servient reading script", fname);
+            console.info("[cli]","WoT-Servient reading script", fname);
             fs.readFile(fname, "utf8", (err, data) => {
                 if (err) {
-                    console.error("WoT-Servient experienced error while reading script", err);
+                    console.error("[cli]","WoT-Servient experienced error while reading script", err);
                 } else {
                     // limit printout to first line
-                    console.info(`WoT-Servient running script '${data.substr(0, data.indexOf("\n")).replace("\r", "")}'... (${data.split(/\r\n|\r|\n/).length} lines)`);
+                    console.info("[cli]",`WoT-Servient running script '${data.substr(0, data.indexOf("\n")).replace("\r", "")}'... (${data.split(/\r\n|\r|\n/).length} lines)`);
                     fname = path.resolve(fname)
                     servient.runPrivilegedScript(data, fname);
                 }
@@ -86,7 +86,7 @@ const runScripts =async function(servient: DefaultServient, scripts: Array<strin
         session.connect();
         session.post("Debugger.enable", (error: any) => {
             if(error){
-                console.warn("Cannot set breakpoint; reason: cannot enable debugger")
+                console.warn("[cli]","Cannot set breakpoint; reason: cannot enable debugger")
                 console.warn(error)
             }
            
@@ -95,8 +95,8 @@ const runScripts =async function(servient: DefaultServient, scripts: Array<strin
                 url: "file:///" + path.resolve(scripts[0]).replace(/\\/g, '/')
             }, (err: any) => {
                 if (err) {
-                    console.warn("Cannot set breakpoint")
-                    console.warn(error)
+                    console.warn("[cli]","Cannot set breakpoint")
+                    console.warn("[cli]",error)
                 }
                 launchScripts(scripts)
             })
@@ -113,7 +113,7 @@ const runScripts =async function(servient: DefaultServient, scripts: Array<strin
 const runAllScripts = function(servient: DefaultServient,debug?: DebugParams) {
     fs.readdir(baseDir, (err, files) => {
         if (err) {
-            console.warn("WoT-Servient experienced error while loading directory", err);
+            console.warn("[cli]","WoT-Servient experienced error while loading directory", err);
             return;
         }
 
@@ -121,7 +121,7 @@ const runAllScripts = function(servient: DefaultServient,debug?: DebugParams) {
         let scripts = files.filter( (file) => {
             return (file.substr(0, 1) !== "." && file.slice(-3) === ".js");
         });
-        console.info(`WoT-Servient using current directory with ${scripts.length} script${scripts.length>1 ? "s" : ""}`);
+        console.info("[cli]",`WoT-Servient using current directory with ${scripts.length} script${scripts.length>1 ? "s" : ""}`);
         
         runScripts(servient, scripts.map(filename => path.resolve(path.join(baseDir, filename))),debug);
     });
@@ -240,10 +240,10 @@ readConf(confFile)
     })
     .catch((err) => {
         if (err.code === "ENOENT" && !confFile) {
-            console.warn(`WoT-Servient using defaults as '${defaultFile}' does not exist`);
+            console.warn("[cli]",`WoT-Servient using defaults as '${defaultFile}' does not exist`);
             return new DefaultServient(clientOnly);
         } else {
-            console.error("WoT-Servient config file error:", err.message);
+            console.error("[cli]","WoT-Servient config file error:", err.message);
             process.exit(err.errno);
         }
     })
@@ -251,14 +251,14 @@ readConf(confFile)
         servient.start()
             .then(() => {
                 if (argv.length>0) {
-                    console.info(`WoT-Servient loading ${argv.length} command line script${argv.length>1 ? "s" : ""}`);
+                    console.info("[cli]",`WoT-Servient loading ${argv.length} command line script${argv.length>1 ? "s" : ""}`);
                     return runScripts(servient, argv, debug);
                 } else {
                     return runAllScripts(servient, debug);
                 }
             })
             .catch((err) => {
-                console.error("WoT-Servient cannot start:", err.message);
+                console.error("[cli]","WoT-Servient cannot start:", err.message);
             });
     })
-    .catch((err) => console.error("WoT-Servient main error:", err.message));
+    .catch((err) => console.error("[cli]","WoT-Servient main error:", err.message));
