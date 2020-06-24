@@ -3,6 +3,8 @@ import * as express from 'express';
 import { should } from "chai";
 import create, { IntrospectionEndpoint, Validator, EndpointValidator } from '../src/oauth-token-validation'
 import * as http from "http";
+import * as https from "https";
+import * as fs from 'fs';
 import { assert } from 'console';
 
 
@@ -275,6 +277,47 @@ describe('OAuth2.0 Validator tests', () => {
             } catch (error) {
                 assert(true)
             }
+        }
+
+        @test async "should connect using https"() {
+
+            //Initialize test
+
+            var introspectEndpoint: express.Express = express();
+            introspectEndpoint.use(express.urlencoded())
+            
+            introspectEndpoint.use((req, res) =>{
+                // No validation just testing https connection
+                return res.status(200).json({
+                    active: true,
+                    scope: "1 2",
+                    client_id: "coolClient"
+                }).end() 
+            })
+
+            https.createServer({
+                key: fs.readFileSync('./test/server.key'),
+                cert: fs.readFileSync('./test/server.cert')
+            }, introspectEndpoint).listen(7778, "localhost")  
+
+            const config: IntrospectionEndpoint = {
+                name: "introspection_endpoint",
+                endpoint: "https://localhost:7778",
+                allowSelfSigned: true
+            }
+            this.validator = create(config)
+
+            var req = {
+                headers: {
+                    'authorization': 'Bearer active'
+                },
+                url: "http://test"
+            };
+
+            //test
+            const valid = await this.validator.validate(req as http.IncomingMessage, ["1"], /.*/g)
+            valid.should.be.true
+           
         }
 
 

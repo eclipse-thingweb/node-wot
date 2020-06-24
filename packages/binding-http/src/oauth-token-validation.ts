@@ -15,6 +15,7 @@
 import fetch, { Request } from "node-fetch";
 import { BasicCredential } from "./credential";
 import * as http from "http";
+import {Agent as SecureAgent} from "https"
 
 export interface Method {
     name: string
@@ -22,6 +23,8 @@ export interface Method {
 
 export interface IntrospectionEndpoint extends Method {
     endpoint:string;
+    allowSelfSigned?:boolean;
+
     credentials?: {username:string, password:string}
 }
 /**
@@ -68,10 +71,14 @@ export abstract class Validator{
 
 export class EndpointValidator extends Validator{
     private config: IntrospectionEndpoint;
-    
+    private agent: http.Agent
     constructor(config:IntrospectionEndpoint) {
         super();
         this.config = config
+        let endpoint = config.endpoint
+        this.agent = endpoint.startsWith("https") ? new SecureAgent({
+            rejectUnauthorized: !config.allowSelfSigned
+        }) : new http.Agent();
     }
     async validate(tokenRequest: http.IncomingMessage,scopes:Array<string>,clients:RegExp): Promise<boolean> {
         const token = extractTokenFromRequest(tokenRequest)
@@ -80,7 +87,8 @@ export class EndpointValidator extends Validator{
             body:`token=${token}`,
             headers:{
                 "content-type":"application/x-www-form-urlencoded"
-            }
+            },
+            agent: this.agent
         });
         
         if(this.config.credentials){
