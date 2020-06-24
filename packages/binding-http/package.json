@@ -48,7 +48,6 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "mocha --compilers ts:ts-node/register",
-    "codestyle": "standard --pretty"
+    "test": "mocha --compilers ts:ts-node/register"
   }
 }

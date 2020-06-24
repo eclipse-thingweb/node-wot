@@ -33,7 +33,6 @@
   },
   "scripts": {
     "build": "tsc",
-    "start": "ts-node src/opcua-cli.ts",
-    "codestyle": "standard --pretty"
+    "start": "ts-node src/opcua-cli.ts"
   }
 }

@@ -23,7 +23,6 @@
     "@node-wot/core": "0.7.1"
   },
   "scripts": {
-    "build": "tsc",
-    "codestyle": "standard --pretty"
+    "build": "tsc"
   }
 }
