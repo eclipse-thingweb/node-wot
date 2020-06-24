@@ -30,7 +30,6 @@
     "ws": "7.2.1"
   },
   "scripts": {
-    "build": "tsc",
-    "codestyle": "standard --pretty"
+    "build": "tsc"
   }
 }

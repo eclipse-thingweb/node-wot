@@ -25,7 +25,6 @@
     "iotcs-csl-js": "19.1.5"
   },
   "scripts": {
-    "build": "tsc",
-    "codestyle": "standard --pretty"
+    "build": "tsc"
   }
 }

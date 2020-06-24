@@ -39,7 +39,6 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "mocha --require ts-node/register test/opcua-client-test.ts",
-    "codestyle": "standard --pretty"
+    "test": "mocha --require ts-node/register test/opcua-client-test.ts"
   }
 }
