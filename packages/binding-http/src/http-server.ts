@@ -95,7 +95,7 @@ export default class HttpServer implements ProtocolServer {
         case "bearer":
           this.httpSecurityScheme = "Bearer";
           break;
-        case "oauth":
+        case "oauth2":
           this.httpSecurityScheme = "OAuth";
           const oAuthConfig = config.security as OAuth2ServerConfig
           this.validOAuthClients = new RegExp(oAuthConfig.allowedClients ?? ".*");
@@ -347,7 +347,12 @@ export default class HttpServer implements ProtocolServer {
   private fillSecurityScheme(thing: ExposedThing){
     if (thing.securityDefinitions) {
       const secCandidate = Object.keys(thing.securityDefinitions).find(key => {
-        return thing.securityDefinitions[key].scheme === this.httpSecurityScheme.toLowerCase()
+        let scheme = thing.securityDefinitions[key].scheme
+        // HTTP Authentication Scheme for OAuth does not contain the version number
+        // see https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml
+        // remove version number for oauth2 schemes
+        scheme = scheme === "oauth2" ? scheme.split("2")[0] : scheme
+        return scheme === this.httpSecurityScheme.toLowerCase()
       })
 
       if (!secCandidate) {
