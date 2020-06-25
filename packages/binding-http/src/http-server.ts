@@ -98,7 +98,7 @@ export default class HttpServer implements ProtocolServer {
   }
 
   public start(servient: Servient): Promise<void> {
-    console.debug("[binding-http]",`HttpServer starting on ${(this.address !== undefined ? this.address + ' ' : '')}port ${this.port}`);
+    console.info("[binding-http]",`HttpServer starting on ${(this.address !== undefined ? this.address + ' ' : '')}port ${this.port}`);
     return new Promise<void>((resolve, reject) => {
 
       // store servient to get credentials

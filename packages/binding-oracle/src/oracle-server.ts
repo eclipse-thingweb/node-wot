@@ -61,7 +61,7 @@ export default class OracleServer implements ProtocolServer {
   }
 
   public start(servient: Servient): Promise<void> {
-    console.debug("[binding-oracle]",`OracleServer starting with ${this.activationId}`);
+    console.info("[binding-oracle]",`OracleServer starting with ${this.activationId}`);
     return new Promise<void>( (resolve, reject) => {
 
       if (!this.server.isActivated()) {

@@ -47,7 +47,7 @@ export default class FujitsuServer implements ProtocolServer {
   }
 
   public start(servient: Servient): Promise<void> {
-    console.debug("[binding-fujitsu]",`FujitsuServer starting for ${this.remote}`);
+    console.info("[binding-fujitsu]",`FujitsuServer starting for ${this.remote}`);
     return new Promise<void>((resolve, reject) => {
 
       this.websocket = new WebSocket(this.remote);
