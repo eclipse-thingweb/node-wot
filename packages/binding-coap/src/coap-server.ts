@@ -54,7 +54,7 @@ export default class CoapServer implements ProtocolServer {
   }
 
   public start(servient: Servient): Promise<void> {
-    console.debug("[binding-coap]",`CoapServer starting on ${(this.address !== undefined ? this.address + ' ' : '')}port ${this.port}`);
+    console.info("[binding-coap]",`CoapServer starting on ${(this.address !== undefined ? this.address + ' ' : '')}port ${this.port}`);
     return new Promise<void>((resolve, reject) => {
 
       // store servient to get credentials
