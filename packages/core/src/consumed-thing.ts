@@ -280,7 +280,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                 reject(new Error(`ConsumedThing '${this.title}' did not get suitable form`));
             } else {
                 console.debug("[core/consumed-thing]",`ConsumedThing '${this.title}' writing ${form.href} with '${value}'`);
-                let content = ContentManager.valueToContent(value, <any>tp.input, form.contentType);
+                let content = ContentManager.valueToContent(value, <any>tp, form.contentType);
 
                 // uriVariables ?
                 form = this.handleUriVariables(form, options);
@@ -326,7 +326,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
                 let input;
 
                 if (parameter !== undefined) {
-                    input = ContentManager.valueToContent(parameter, <any>ta, form.contentType);
+                    input = ContentManager.valueToContent(parameter, <any>ta.input, form.contentType);
                 }
 
                 // uriVariables ?
