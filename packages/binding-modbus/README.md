@@ -179,5 +179,5 @@ Polls the 8th holding register of the unit 1 every second.
     * Not only append or prepend requests to transactions, but also combine transactions which become neighboured later on
     * Impose some limit to the overall number of registers. The MODBUS protocol has such a limit and devices may define even lower values 
 - [ ] When a connection times out, re-connection does not work (see `connectionTimeout` in modbus-client.ts)
-- [ ] When a Modbus device is not reachable, scripts using binding-modbus stop working - corresponding error handling is necessary
+- [x] When a Modbus device is not reachable, scripts using binding-modbus stop working - corresponding error handling is necessary
 
