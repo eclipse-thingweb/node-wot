@@ -73,7 +73,7 @@ export default class CoapServer implements ProtocolServer {
   }
 
   public stop(): Promise<void> {
-    console.debug("[binding-coap]",`CoapServer stopping on port ${this.getPort()}`);
+    console.info("[binding-coap]",`CoapServer stopping on port ${this.getPort()}`);
     return new Promise<void>((resolve, reject) => {
       // stop promise handles all errors from now on
       this.server.once('error', (err: Error) => { reject(err); });

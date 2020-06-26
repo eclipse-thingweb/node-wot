@@ -299,7 +299,7 @@ export default class MqttBrokerServer implements ProtocolServer {
         }
 
         this.broker.on("connect", () => {
-          console.debug("[binding-mqtt]",`MqttBrokerServer connected to broker at ${this.brokerURI}`);
+          console.info("[binding-mqtt]",`MqttBrokerServer connected to broker at ${this.brokerURI}`);
 
           let parsed = url.parse(this.brokerURI);
           this.address = parsed.hostname;
