@@ -28,12 +28,8 @@ export default class ModbusServient extends Servient {
 
     private static readonly defaultConfig = {
         servient: {
-            clientOnly: false,
+            clientOnly: true,
             scriptAction: false
-        },
-        http: {
-            port: 8080,
-            selfSigned: false
         }
     }
 
@@ -125,7 +121,7 @@ export default class ModbusServient extends Servient {
                         });
                         thing.expose().then(() => {
                             // pass on WoTFactory
-                            resolve(myWoT);
+                            resolve(myWoT as WoT.WoT);
                         }).catch((err) => reject(err));
                     });
                 }).catch((err) => reject(err));

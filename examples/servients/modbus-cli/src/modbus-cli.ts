@@ -21,7 +21,7 @@ import fs = require("fs");
 import * as path from "path";
 
 const argv = process.argv.slice(2); // remove "node" and executable
-const defaultFile = "wot-servient.conf.json";
+const defaultFile = "wot-modbus-servient.conf.json";
 const baseDir = ".";
 
 var clientOnly: boolean = true;
