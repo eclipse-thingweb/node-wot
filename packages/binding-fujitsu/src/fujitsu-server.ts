@@ -69,7 +69,7 @@ export default class FujitsuServer implements ProtocolServer {
   }
 
   public stop(): Promise<void> {
-    console.debug("[binding-fujitsu]",`WebSocketServer stopping for ${this.remote}`);
+    console.info("[binding-fujitsu]",`WebSocketServer stopping for ${this.remote}`);
     return new Promise<void>((resolve, reject) => {
 
       // stop promise handles all errors from now on

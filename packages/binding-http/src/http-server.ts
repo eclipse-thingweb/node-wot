@@ -123,7 +123,7 @@ export default class HttpServer implements ProtocolServer {
   }
 
   public stop(): Promise<void> {
-    console.debug("[binding-http]",`HttpServer stopping on port ${this.getPort()}`);
+    console.info("[binding-http]",`HttpServer stopping on port ${this.getPort()}`);
     return new Promise<void>((resolve, reject) => {
 
       // stop promise handles all errors from now on
