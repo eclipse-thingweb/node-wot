@@ -14,11 +14,11 @@
  ********************************************************************************/
 // This is an example of Web of Things producer ("server" mode) Thing script.
 // It considers a fictional smart coffee machine in order to demonstrate the capabilities of Web of Things.
-// An accompanying tutorial is available at http://thingweb.io/smart-coffee-machine.html.
+// An accompanying tutorial is available at http://www.thingweb.io/smart-coffee-machine.html.
 WoT.produce({
-    title: 'Smart Coffee Machine',
+    title: 'Smart-Coffee-Machine',
     description: `A smart coffee machine with a range of capabilities.
-A complementary tutorial is available at http://thingweb.io/smart-coffee-machine.html.`,
+A complementary tutorial is available at http://www.thingweb.io/smart-coffee-machine.html.`,
     support: 'git://github.com/eclipse/thingweb.node-wot.git',
     '@context': [
         'https://www.w3.org/2019/wot/td/v1',
@@ -375,12 +375,6 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
         return new Promise((resolve, reject) => {
             resolve({ result: false, message: `Please provide all the required parameters: time and mode.` });
         });
-    });
-    // Set up a handler for outOfResource event
-    thing.subscribeEvent('outOfResource', (data) => {
-        // Notify an "admin" when the event is emitted
-        // (the notify function here simply logs a message to the console)
-        notify('admin@coffeeMachine.com', `outOfResource event: ${data}`);
     });
     // Finally expose the thing
     thing.expose().then(() => { console.info(`${thing.getThingDescription().title} ready`); });

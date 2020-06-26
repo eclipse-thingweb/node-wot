@@ -205,7 +205,7 @@ class HttpClientTest {
             }
         };
         httpServer.setTestVector(inputVector);
-        let representation = await client.readResource(inputVector.form);
+        let representation = await client.readResource(inputVector.form as HttpForm);
 
         // write with POST instead of PUT
         inputVector = {
@@ -217,7 +217,7 @@ class HttpClientTest {
             payload: "test"
         };
         httpServer.setTestVector(inputVector);
-        representation = await client.writeResource(inputVector.form, { type: ContentSerdes.DEFAULT, body: Buffer.from(inputVector.payload) });
+        representation = await client.writeResource(inputVector.form as HttpForm, { type: ContentSerdes.DEFAULT, body: Buffer.from(inputVector.payload) });
 
         // invoke with PUT instead of POST
         inputVector = {
@@ -229,7 +229,7 @@ class HttpClientTest {
             payload: "test"
         };
         httpServer.setTestVector(inputVector);
-        representation = await client.invokeResource(inputVector.form, { type: ContentSerdes.DEFAULT, body: Buffer.from(inputVector.payload) });
+        representation = await client.invokeResource(inputVector.form as HttpForm, { type: ContentSerdes.DEFAULT, body: Buffer.from(inputVector.payload) });
 
         // invoke with DELETE instead of POST
         inputVector = {
@@ -240,9 +240,55 @@ class HttpClientTest {
             }
         };
         httpServer.setTestVector(inputVector);
-        representation = await client.invokeResource(inputVector.form);
+        representation = await client.invokeResource(inputVector.form as HttpForm);
 
         return httpServer.stop();
+    }
+    
+    @test "should register to sse server and get server sent event"(done: any) {
+        //create sse server
+        const express = require('express')
+        const serveStatic = require('serve-static')
+        const SseStream = require('ssestream')
+
+        const app = express()
+        app.use(serveStatic(__dirname))
+        app.get('/sse', function (req: any, res: any) {
+            console.log('new connection')
+
+            const sseStream = new SseStream(req)
+            sseStream.pipe(res)
+            const pusher = setInterval(() => {
+                sseStream.write({
+                    data: "Test event"
+                })
+            }, 300)
+
+            res.on('close', () => {
+                console.log('lost connection')
+                clearInterval(pusher)
+                sseStream.unpipe(res)
+            })
+        })
+
+        app.listen(60603, (err: any) => {
+            if (err) throw err
+            console.log('server ready on http://localhost:60603')
+        })
+        console.log('client created')
+        let client = new HttpClient();
+
+        // Subscribe to a resource with sse
+        let form: HttpForm = {
+            op: ["observeproperty"],
+            subprotocol: "sse",
+            contentType: "application/json",
+            href: "http://localhost:60603/sse"
+        };
+
+        client.subscribeResource(form, (data) => {
+            done();
+        });
     }
 
     @test "should call error() and complete() on subscription with no connection"(done: any) {

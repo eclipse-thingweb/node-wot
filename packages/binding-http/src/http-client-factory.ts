@@ -20,11 +20,13 @@
 import { ProtocolClientFactory, ProtocolClient } from "@node-wot/core";
 import { HttpConfig } from "./http";
 import HttpClient from './http-client';
+import OAuthManager from "./oauth-manager";
 
 export default class HttpClientFactory implements ProtocolClientFactory {
 
   public readonly scheme: string = "http";
   private config: HttpConfig = null;
+  private oAuthManager: OAuthManager = new OAuthManager();
 
   constructor(config: HttpConfig = null) {
     this.config = config;
@@ -33,10 +35,10 @@ export default class HttpClientFactory implements ProtocolClientFactory {
   public getClient(): ProtocolClient {
     // HTTP over HTTPS proxy requires HttpsClient
     if (this.config && this.config.proxy && this.config.proxy.href && this.config.proxy.href.startsWith("https:")) {
-      console.warn(`HttpClientFactory creating client for 'https' due to secure proxy configuration`);
-      return new HttpClient(this.config, true);
+      console.warn("[binding-http]",`HttpClientFactory creating client for 'https' due to secure proxy configuration`);
+      return new HttpClient(this.config, true, this.oAuthManager);
     } else {
-      console.log(`HttpClientFactory creating client for '${this.scheme}'`);
+      console.debug("[binding-http]",`HttpClientFactory creating client for '${this.scheme}'`);
       return new HttpClient(this.config);
     }
   }

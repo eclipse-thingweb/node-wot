@@ -47,18 +47,18 @@ export default class FujitsuServer implements ProtocolServer {
   }
 
   public start(servient: Servient): Promise<void> {
-    console.info(`FujitsuServer starting for ${this.remote}`);
+    console.info("[binding-fujitsu]",`FujitsuServer starting for ${this.remote}`);
     return new Promise<void>((resolve, reject) => {
 
       this.websocket = new WebSocket(this.remote);
       
       this.websocket.once("error", (err: Error) => { reject(err); });
       this.websocket.once("open", () => {
-        console.log(`FujitsuServer for ${this.remote} connected`);
+        console.debug("[binding-fujitsu]",`FujitsuServer for ${this.remote} connected`);
         this.websocket.ping();
         // once started, console "handles" errors
         this.websocket.on("error", (err: Error) => {
-          console.error(`FujitsuServer for ${this.remote} failed: ${err.message}`);
+          console.error("[binding-fujitsu]",`FujitsuServer for ${this.remote} failed: ${err.message}`);
         });
         resolve();
       });
@@ -69,7 +69,7 @@ export default class FujitsuServer implements ProtocolServer {
   }
 
   public stop(): Promise<void> {
-    console.info(`WebSocketServer stopping for ${this.remote}`);
+    console.debug("[binding-fujitsu]",`WebSocketServer stopping for ${this.remote}`);
     return new Promise<void>((resolve, reject) => {
 
       // stop promise handles all errors from now on
@@ -96,7 +96,7 @@ export default class FujitsuServer implements ProtocolServer {
 
   public expose(thing: ExposedThing): Promise<void> {
 
-    console.log(`FujitsuServer for ${this.remote} exposes '${thing.title}'`);
+    console.debug("[binding-fujitsu]",`FujitsuServer for ${this.remote} exposes '${thing.title}'`);
     this.things.set(thing.id, thing);
 
     // create a copy for Fujitsu-specific href handles
@@ -104,15 +104,15 @@ export default class FujitsuServer implements ProtocolServer {
 
     for (let propertyName in thingCopy.properties) {
       thingCopy.properties[propertyName].forms = [new TD.Form(propertyName, ContentSerdes.DEFAULT)];
-      console.log(`FujitsuServer for ${this.remote} assigns '${propertyName}' to Property '${propertyName}'`);
+      console.debug("[binding-fujitsu]",`FujitsuServer for ${this.remote} assigns '${propertyName}' to Property '${propertyName}'`);
     }
     for (let actionName in thingCopy.actions) {
       thingCopy.actions[actionName].forms = [new TD.Form(actionName, ContentSerdes.DEFAULT)];
-      console.log(`FujitsuServer for ${this.remote} assigns '${actionName}' to Action '${actionName}'`);
+      console.debug("[binding-fujitsu]",`FujitsuServer for ${this.remote} assigns '${actionName}' to Action '${actionName}'`);
     }
     for (let eventName in thingCopy.events) {
       thingCopy.events[eventName].forms = [new TD.Form(eventName, ContentSerdes.DEFAULT)];
-      console.log(`FujitsuServer for ${this.remote} assigns '${eventName}' to Action '${eventName}'`);
+      console.debug("[binding-fujitsu]",`FujitsuServer for ${this.remote} assigns '${eventName}' to Action '${eventName}'`);
     }
 
     return new Promise<void>((resolve, reject) => {
@@ -124,10 +124,10 @@ export default class FujitsuServer implements ProtocolServer {
       });
       this.websocket.send(message, (err) => {
         if (err) {
-          console.error(`FujitsuServer for ${this.remote} failed to register '${thing.title}' as '${thing.id}': ${err.message}`);
+          console.error("[binding-fujitsu]",`FujitsuServer for ${this.remote} failed to register '${thing.title}' as '${thing.id}': ${err.message}`);
           reject(err);
         } else {
-          console.log(`FujitsuServer for ${this.remote} registered '${thing.title}' as '${thing.id}'`);
+          console.debug("[binding-fujitsu]",`FujitsuServer for ${this.remote} registered '${thing.title}' as '${thing.id}'`);
           resolve();
         }
       });
@@ -136,7 +136,7 @@ export default class FujitsuServer implements ProtocolServer {
 
   private handle(data: any) {
 
-    console.log(`FujitsuServer for ${this.remote} received '${data}'`);
+    console.debug("[binding-fujitsu]",`FujitsuServer for ${this.remote} received '${data}'`);
 
     let message = JSON.parse(data);
 
@@ -155,7 +155,7 @@ export default class FujitsuServer implements ProtocolServer {
                 let content = ContentSerdes.get().valueToContent(value, <any>property)
                 this.reply(message.requestID, message.deviceID, content);
               })
-              .catch((err: Error) => { console.error(`FujitsuServer for ${this.remote} cannot read '${message.href}' of Thing '${thing.id}': ${err.message}`); });
+              .catch((err: Error) => { console.error("[binding-fujitsu]",`FujitsuServer for ${this.remote} cannot read '${message.href}' of Thing '${thing.id}': ${err.message}`); });
           }
         } else if (message.method === "PUT") {
           let property = thing.properties[message.href];
@@ -164,7 +164,7 @@ export default class FujitsuServer implements ProtocolServer {
             try {
               value = ContentSerdes.get().contentToValue({ type: message.mediaType, body: Buffer.from(message.entity, "base64") }, <any>property);
             } catch(err) {
-              console.warn(`FujitsuServer for ${this.remote} received invalid data for Property '${message.href}'`);
+              console.warn("[binding-fujitsu]",`FujitsuServer for ${this.remote} received invalid data for Property '${message.href}'`);
               // FIXME: no error message format defined in Fujitsu binding
               return;
             }
@@ -172,7 +172,7 @@ export default class FujitsuServer implements ProtocolServer {
               .then(() => {
                 this.reply(message.requestID, message.deviceID);
               })
-              .catch((err: Error) => { console.error(`FujitsuServer for ${this.remote} cannot write '${message.href}' of Thing '${thing.id}': ${err.message}`); });
+              .catch((err: Error) => { console.error("[binding-fujitsu]",`FujitsuServer for ${this.remote} cannot write '${message.href}' of Thing '${thing.id}': ${err.message}`); });
           }
         } else if (message.method === "POST") {
           let action = thing.actions[message.href];
@@ -181,7 +181,7 @@ export default class FujitsuServer implements ProtocolServer {
             try {
               input = ContentSerdes.get().contentToValue({ type: message.mediaType, body: Buffer.from(message.entity, "base64") }, action.input);
             } catch(err) {
-              console.warn(`FujitsuServer for ${this.remote} received invalid data for Action '${message.href}'`);
+              console.warn("[binding-fujitsu]",`FujitsuServer for ${this.remote} received invalid data for Action '${message.href}'`);
               // FIXME: no error message format defined in Fujitsu binding
               return;
             }
@@ -194,22 +194,22 @@ export default class FujitsuServer implements ProtocolServer {
                 }
                 this.reply(message.requestID, message.deviceID, content);
               })
-              .catch((err: Error) => { console.error(`FujitsuServer for ${this.remote} cannot invoke '${message.href}' of Thing '${thing.id}': ${err.message}`); });
+              .catch((err: Error) => { console.error("[binding-fujitsu]",`FujitsuServer for ${this.remote} cannot invoke '${message.href}' of Thing '${thing.id}': ${err.message}`); });
           }
         } else {
-          console.warn(`FujitsuServer for ${this.remote} received invalid method '${message.method}'`);
+          console.warn("[binding-fujitsu]",`FujitsuServer for ${this.remote} received invalid method '${message.method}'`);
           this.replyClientError(message.requestID, message.deviceID, "Method Not Allowed");
           return;
         }
 
       } else {
-        console.warn(`FujitsuServer for ${this.remote} received invalid Thing ID '${decodeURIComponent(message.deviceID)}'`);
+        console.warn("[binding-fujitsu]",`FujitsuServer for ${this.remote} received invalid Thing ID '${decodeURIComponent(message.deviceID)}'`);
         this.replyClientError(message.requestID, message.deviceID, "Not Found");
         return;
       } // thing exists?
 
     } else {
-      console.warn(`FujitsuServer for ${this.remote} received invalid message type '${message.type}'`);
+      console.warn("[binding-fujitsu]",`FujitsuServer for ${this.remote} received invalid message type '${message.type}'`);
     } // request?
 
     // FIXME: no error message format defined in Fujitsu binding
@@ -231,9 +231,9 @@ export default class FujitsuServer implements ProtocolServer {
 
     this.websocket.send(JSON.stringify(response), (err) => {
       if (err) {
-        console.error(`FujitsuServer for ${this.remote} failed to reply to '${requestID}' for '${thingID}': ${err.message}`);
+        console.error("[binding-fujitsu]",`FujitsuServer for ${this.remote} failed to reply to '${requestID}' for '${thingID}': ${err.message}`);
       } else {
-        console.log(`FujitsuServer for ${this.remote} replied to '${requestID}' ${content ? "with payload" : ""}`);
+        console.debug("[binding-fujitsu]",`FujitsuServer for ${this.remote} replied to '${requestID}' ${content ? "with payload" : ""}`);
       }
     });
   }
@@ -258,9 +258,9 @@ export default class FujitsuServer implements ProtocolServer {
 
     this.websocket.send(JSON.stringify(response), (err) => {
       if (err) {
-        console.error(`FujitsuServer for ${this.remote} failed to error '${requestID}' for '${thingID}': ${err.message}`);
+        console.error("[binding-fujitsu]",`FujitsuServer for ${this.remote} failed to error '${requestID}' for '${thingID}': ${err.message}`);
       } else {
-        console.log(`FujitsuServer for ${this.remote} errored '${requestID}' ${diagnosticMessage ? "with message" : ""}`);
+        console.debug("[binding-fujitsu]",`FujitsuServer for ${this.remote} errored '${requestID}' ${diagnosticMessage ? "with message" : ""}`);
       }
     });
   }

@@ -128,8 +128,8 @@ class HttpServerTest {
   @test async "should not override a valid security scheme"() {
     let httpServer = new HttpServer({
       port: 58081, 
-      serverKey : "./server.key",
-      serverCert: "./server.cert",
+      serverKey : "./test/server.key",
+      serverCert: "./test/server.cert",
       security: {
         scheme: "bearer"
       }
@@ -151,8 +151,8 @@ class HttpServerTest {
     console.log("START SHOULD")
     let httpServer = new HttpServer({
       port: 58081, 
-      serverKey : "./server.key",
-      serverCert: "./server.cert",
+      serverKey: "./test/server.key",
+      serverCert: "./test/server.cert",
       security: {
         scheme: "bearer"
       }

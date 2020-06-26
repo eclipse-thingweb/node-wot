@@ -1,7 +1,7 @@
 # Eclipse Thingweb node-wot
 W3C Web of Things implementation on NodeJS.
 
-Visit http://www.thingweb.io for a [hands-on tutorial](http://www.thingweb.io/hands-on.html) or additional information.
+Visit http://www.thingweb.io for a practical [node-wot API usage](http://www.thingweb.io/smart-coffee-machine.html), [hands-on tutorials](http://www.thingweb.io/hands-on.html) or additional information.
 
 Useful labels:
 <a href="https://github.com/eclipse/thingweb.node-wot/issues?q=label%3Aquestion+">question</a> |
@@ -247,12 +247,15 @@ You can also see `examples/scripts` to have a feeling of how to script a Thing.
 
 #### Protocol Support
 
-* HTTP :heavy_check_mark:
-* HTTPS :heavy_check_mark:
-* CoAP :heavy_check_mark:
-* CoAPS :heavy_check_mark:
+* [HTTP](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-http/README.md) :heavy_check_mark:
+* [HTTPS](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-http/README.md) :heavy_check_mark:
+* [CoAP](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-coap/README.md) :heavy_check_mark:
+* [CoAPS](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-coap/README.md) :heavy_check_mark:
 * Websocket :heavy_check_mark:
-* MQTT :heavy_check_mark:
+* [MQTT](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-mqtt/README.md) :heavy_check_mark:
+* [OPC-UA](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-opcua/README.md) :heavy_plus_sign: (Client only)
+* [NETCONF](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-netconf/README.md) :heavy_plus_sign: (Client only)
+* Modbus :heavy_multiplication_x: (wip)
 
 Note: More protocols can be easily added by implementing `ProtocolClient`, `ProtocolClientFactory`, and `ProtocolServer` interface.
 
@@ -270,6 +273,12 @@ Note: More mediaTyes can be easily added by implementing `ContentCodec` interfac
 ### Logging
 
 We used to have a node-wot-logger package to allow fine-grained logging (by means of Winston). It turned out though that depending on the actual use-case other logging libraries might be better suited. Hence we do not want to prescribe which logging library to use. Having said that, we use console statements which can be easily overriden to use the prefered logging library if needed (see [here](https://gist.github.com/spmason/1670196)).
+
+The logs in the library follows those best practice rules (see [here](https://github.com/eclipse/thingweb.node-wot/issues/229)):
+1. Tag log messages with the package as following: `console.debug("[package-name]", "log message)`. This is useful to identify which package generated the log.
+2. Avoid to use `info` and `log` in packages other than the cli package.
+
+Please follows these rules if you are going to contribute to node-wot library.
 
 ### Install new/different versions of NodeJS
 

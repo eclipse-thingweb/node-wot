@@ -1,16 +1,12 @@
 {
+	"extends": "../../tsconfig.json",
 	"compilerOptions": {
-		"target": "es2018",
-		"lib" : ["es2018"],
-		"module": "commonjs",
 		"outDir": "dist",
+		"target": "ES2018",
+		"alwaysStrict": false,
 		"noImplicitUseStrict": true,
 		"sourceMap": false,
-		"noImplicitAny": true,
-		"noLib": false,
-		"preserveConstEnums": true,
-		"experimentalDecorators": true,
-		"declaration": true
+		"removeComments": false
 	},
 	"include": [
 		"src/**/*"

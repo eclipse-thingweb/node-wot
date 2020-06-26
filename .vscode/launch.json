@@ -18,6 +18,21 @@
             "port": 9229,
             "localRoot": "${workspaceFolder}/examples/scripts/",
             "remoteRoot": "${workspaceRoot}/examples/scripts/"
+        },
+        {
+            "name": "Debug default servient",
+            "request": "launch",
+            
+            "runtimeArgs": [
+                "run-script",
+                "debug"
+            ],
+            "port": 9229,
+            "runtimeExecutable": "npm",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node"
         }
     ]
 }
