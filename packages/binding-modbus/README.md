@@ -23,7 +23,7 @@ npm run server
 cd ../../scripts
 node ../servients/modbus-cli/dist/modbus-cli.js modbus-example.js
 ```
-**Rember** to correctly initialize your dev environment  as described inside the [repository readme](../../README.md), before to start the example application.
+**Rember** to correctly initialize your dev environment as described inside the [repository readme](../../README.md), before to start the example application. In particular, the optional step `sudo npm run link` must be executed.
  
 ## New Form Fields for the Modbus Binding
 **Note**: for further details pleas refer to the [documentation](./src/modbus.ts) 
