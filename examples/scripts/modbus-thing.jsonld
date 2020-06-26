@@ -21,7 +21,7 @@
       "observable": false,
       "forms": [
         {
-          "href": "modbus://127.0.0.1:60000",
+          "href": "modbus+tcp://127.0.0.1:60000",
           "contentType": "application/octet-stream;length=1",
           "op": [
             "writeproperty"
@@ -31,7 +31,7 @@
           "modbus:unitID": 1
         },
         {
-          "href": "modbus://127.0.0.1:60000",
+          "href": "modbus+tcp://127.0.0.1:60000",
           "contentType": "application/octet-stream;length=1",
           "op": [
             "readproperty"
@@ -51,7 +51,7 @@
       "observable": false,
       "forms": [
         {
-          "href": "modbus://127.0.0.1:60000",
+          "href": "modbus+tcp://127.0.0.1:60000",
           "contentType": "application/octet-stream;length=2",
           "op": [
             "writeproperty"
@@ -61,7 +61,7 @@
           "modbus:unitID": 1
         },
         {
-          "href": "modbus://127.0.0.1:60000",
+          "href": "modbus+tcp://127.0.0.1:60000",
           "contentType": "application/octet-stream;length=2",
           "op": [
             "readproperty"
