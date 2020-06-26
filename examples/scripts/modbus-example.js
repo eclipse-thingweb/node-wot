@@ -14,6 +14,8 @@ WoTHelpers.fetch("file://./modbus-thing.jsonld").then( async (td) => {
 
 	} catch(err) {
 		console.error("Application error:", err.message);
+		console.error(err);
+		
 	}
 
 
