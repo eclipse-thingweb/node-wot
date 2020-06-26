@@ -123,7 +123,7 @@ export default class ModbusClient implements ProtocolClient {
   private validateContentLength(form: ModbusForm, content: Content) {
 
     const mpy = form['modbus:entity'] === 'InputRegister' || form['modbus:entity'] === 'HoldingRegister' ? 2 : 1;
-    const length = form['modbus:range'][1] - form['modbus:range'][0]
+    const length = form['modbus:range'][1]
     if (content && content.body.length !== mpy * length) {
       throw new Error('Content length does not match register / coil count, got ' + content.body.length + ' bytes for '
         + length + ` ${mpy === 2 ? 'registers' : 'coils'}`);
