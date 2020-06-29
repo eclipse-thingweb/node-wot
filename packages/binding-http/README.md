@@ -231,7 +231,7 @@ An example of a WoT oAuth2.0 enabled client can be found [here](../examples/secu
 | unsubscribeevent | ? | ? | 
 | SUBPROTOCOLS | | | | | | | | | | | 
 | longpoll | Y | Y | 
-| sse | N | N | 
+| sse | Y | Y | 
 | websub | N | N |  
 | SEC. SCHEMES | | | | | | | | | | | 
 | basic | Y | Y |
