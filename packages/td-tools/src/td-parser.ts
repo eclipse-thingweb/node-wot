@@ -224,7 +224,5 @@ export function serializeTD(thing: Thing): string {
 
   let td: string = JSON.stringify(copy);
 
-  console.debug("[td-tools/td-parser]",`serializeTD() produced\n\`\`\`\n${td}\n\`\`\``);
-
   return td;
 }
