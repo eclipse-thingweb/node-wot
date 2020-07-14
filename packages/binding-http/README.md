@@ -71,8 +71,8 @@ servient.start().then((WoT) => {
         "@context": "https://www.w3.org/2019/wot/td/v1",
         title: "MyCounter",
         properties: {
-			count: {
-				type: "integer"
+            count: {
+                type: "integer"
             }
         }
     }).then((thing) => {
@@ -126,8 +126,8 @@ servient.start().then((WoT) => {
         id: "urn:dev:wot:org:eclipse:thingweb:my-example-secure",
         title: "MyCounter",
         properties: {
-			count: {
-				type: "integer"
+            count: {
+                type: "integer"
             }
         }
     }).then((thing) => {
@@ -186,8 +186,9 @@ The http protocol binding supports a set of security protocols that can be enabl
     }
     credentials: {
         "urn:dev:wot:org:eclipse:thingweb:my-example-secure": {
-        username: "node-wot",
-        password: "hello"
+            username: "node-wot",
+            password: "hello"
+        }
     }
 }
 ```
@@ -202,8 +203,9 @@ The above configuration file, is setting up a https server with basic secure sch
     },
     credentials: {
         "urn:dev:wot:org:eclipse:thingweb:my-example-secure": {
-        username: "node-wot",
-        password: "hello"
+            username: "node-wot",
+            password: "hello"
+        }
     }
 }
 ```
