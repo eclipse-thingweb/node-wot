@@ -215,9 +215,8 @@ An example of a WoT oAuth2.0 enabled client can be found [here](../examples/secu
 
 ## Feature matrix
 
-| | HTTP Producer | HTTP Consumer | 
-|:-----------------------:|:-------------:|:-------------:|:-------------:|:-------------:|:-------------:|:-------------:|:-------------------:|:-------------------:|:--------------:|:---------------:| 
-| OPERATIONS | | | | | | | | | | | 
+|Operation | HTTP Producer | HTTP Consumer | 
+| :---        |    :----:   |  :---: |
 | readproperty | Y | Y | 
 | writeproperty | Y | Y |
 | observeproperty | Y | Y | 
@@ -229,11 +228,15 @@ An example of a WoT oAuth2.0 enabled client can be found [here](../examples/secu
 | invokeaction | Y | Y | 
 | subscribeevent | Y | Y |  
 | unsubscribeevent | ? | ? | 
-| SUBPROTOCOLS | | | | | | | | | | | 
+
+| SubProtocols | HTTP Producer | HTTP Consumer | 
+| :---        |    :----:   |  :---: | 
 | longpoll | Y | Y | 
 | sse | Y | Y | 
-| websub | N | N |  
-| SEC. SCHEMES | | | | | | | | | | | 
+| websub | N | N | 
+
+| Sec. Schemes | HTTP Producer | HTTP Consumer | 
+| :---        |    :----:   |  :---: |
 | basic | Y | Y |
 | digest | N | N |
 | apikey | N | Y |  
