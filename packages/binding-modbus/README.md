@@ -23,10 +23,10 @@ npm run server
 cd ../../scripts
 node ../servients/modbus-cli/dist/modbus-cli.js modbus-example.js
 ```
-**Rember** to correctly initialize your dev environment as described inside the [repository readme](../../README.md), before to start the example application. In particular, the optional step `sudo npm run link` must be executed.
+**Rember** to correctly initialize your dev environment as described inside the [repository readme](https://github.com/eclipse/thingweb.node-wot/blob/master/README.md), before to start the example application. In particular, the optional step `sudo npm run link` must be executed.
  
 ## New Form Fields for the Modbus Binding
-**Note**: for further details pleas refer to the [documentation](./src/modbus.ts) 
+**Note**: for further details please refer to the [documentation](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-modbus/src/modbus.ts).
  
 ### modbus:function
 Specifies which modbus function should be issue in the requested command. The list of the available function is the following:
