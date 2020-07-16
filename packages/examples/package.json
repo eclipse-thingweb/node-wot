@@ -1,6 +1,6 @@
 {
   "name": "@node-wot/examples",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "private": true,
   "description": "Examples for node-wot (not published)",
   "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
@@ -16,13 +16,13 @@
     "express-oauth-server": "^2.0.0"
   },
   "dependencies": {
-    "@node-wot/td-tools": "0.7.1",
-    "@node-wot/core": "0.7.1",
-    "@node-wot/binding-coap": "0.7.1",
-    "@node-wot/binding-file": "0.7.1",
-    "@node-wot/binding-http": "0.7.1",
-	"@node-wot/binding-oracle": "0.7.1",
-    "@node-wot/binding-fujitsu": "0.7.1",
+    "@node-wot/td-tools": "0.7.2",
+    "@node-wot/core": "0.7.2",
+    "@node-wot/binding-coap": "0.7.2",
+    "@node-wot/binding-file": "0.7.2",
+    "@node-wot/binding-http": "0.7.2",
+	"@node-wot/binding-oracle": "0.7.2",
+    "@node-wot/binding-fujitsu": "0.7.2",
     "rxjs": "5.5.11"
   },
   "scripts": {

@@ -55,10 +55,12 @@ packages/*
 !packages/binding-coap
 !packages/binding-websockets
 !packages/binding-mqtt
+!packages/binding-modbus
 !packages/binding-oracle
 !packages/binding-fujitsu
 !packages/binding-opcua
 !packages/binding-netconf
+!packages/binding-modbus
 !packages/cli
 !packages/browser-bundle
 !packages/examples

@@ -1,0 +1,38 @@
+{
+  "name": "@node-wot/modbus-cli",
+  "version": "0.7.0-SNAPSHOT.5",
+  "description": "modbus test servient command line interface",
+  "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
+  "license": "EPL-2.0 OR W3C-20150513",
+  "repository": "https://github.com/thingweb/node-wot/tree/master/examples/servients/modbus-cli",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist/"
+  ],
+  "main": "dist/modbus-cli.js",
+  "types": "dist/modbus-cli.d.ts",
+  "bin": {
+    "modbus-servient": "dist/modbus-cli.js"
+  },
+  "devDependencies": {
+    "@types/node": "^10.9.4",
+    "ts-node": "3.3.0",
+    "typescript-standard": "0.3.30",
+    "wot-typescript-definitions": "0.7.1-SNAPSHOT.1"
+  },
+  "dependencies": {
+    "fs": "0.0.1-security",
+    "modbus-serial": "^7.8.1",
+    "path": "^0.12.7",
+    "typescript": "^3.8.3"
+  },
+  "scripts": {
+    "postinstall": "npm link @node-wot/core && npm link @node-wot/binding-modbus &&  npm link @node-wot/binding-file && npm link @node-wot/binding-http",
+    "build": "tsc",
+    "start": "ts-node src/modbus-cli.ts",
+    "codestyle": "standard --pretty",
+    "server": "ts-node src/test-modbus-server.ts"
+  }
+}
