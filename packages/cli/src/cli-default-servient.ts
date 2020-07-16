@@ -59,7 +59,6 @@ export default class DefaultServient extends Servient {
         this.config = (typeof config === "object") ?
             mergeConfigs(DefaultServient.defaultConfig, config) :
             DefaultServient.defaultConfig;
-        if (!this.config.servient) this.config.servient = DefaultServient.defaultConfig.servient;
 
         // apply flags
         if (clientOnly) {
