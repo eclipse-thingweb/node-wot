@@ -64,22 +64,29 @@ Using a browser with only ES5 support (eg. IE 11) might be possible if you add p
 ### As a Node.js dependency
 
 If you want to use node-wot as a library in your Node.js application, you can use npm to install the node-wot packages that you need. To do so, `cd` inside you application folder, and run:
-```
-npm install @node-wot/core
-npm install @node-wot/binding-coap
-```
-Alternatively you can add `@node-wot/<package-name>`as a dependency to your `package.json`.
-
-#### As a dev dependency (debugging)
-
-If you want to develop applications for node-wot, you can use the command-line interface to run and debug your local scripts. First, install the CLI module as a dev-dependency:
 
 ```
-npm install @node-wot/cli --save-dev
+npm i @node-wot/core @node-wot/binding-coap @node-wot/cli --save
 ```
-Then to start `.js` files in the current directory use the following command `wot-servient` (or `node packages\cli\dist\cli.js`):
 
-For example, if you want to run a specific file or a list of files just append the file paths:
+This requires that you have already initiated a project with `npm init`.
+Now, add the following script to your `package.json` so that you can later execute your scripts using the
+`npm run start` command:
+
+```
+"scripts": {
+   "start": "wot-servient"
+}
+```
+
+In case you do not want to create a Node.js project, you can alternatively install node-wot globally:
+
+```
+npm i @node-wot/core @node-wot/binding-coap @node-wot/cli -g
+```
+
+
+To run specific `.js` files in the current directory, use the command `wot-servient` (if you have the CLI globally installed) or `node ./node_modules/@node-wot/cli/dist/cli.js`(if it is locally installed) and append the file paths:
 ```
 wot-servient script1.js ./src/script2.js
 ```
