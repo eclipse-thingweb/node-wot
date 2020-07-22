@@ -218,11 +218,12 @@ export default class Servient {
     }
 
     public getThing(id: string): ExposedThing {
-        if (this.things.has(name)) {
-            return this.things.get(name);
+        if (this.things.has(id)) {
+            return this.things.get(id);
         } else return null;
     }
 
+    // FIXME should be getThingDescriptions (breaking change)
     public getThings(): object {
         console.debug("[core/servient]",`Servient getThings size == '${this.things.size}'`);
         let ts : { [key: string]: object } = {};
