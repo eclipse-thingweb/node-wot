@@ -19,6 +19,11 @@ import * as express from 'express';
 import { HttpClient } from "../src/http";
 import * as https from 'https'
 import { BasicSecurityScheme } from "@node-wot/td-tools";
+import * as chai from 'chai';
+import * as chaiAsPromised from "chai-as-promised";
+
+chai.should();
+chai.use(chaiAsPromised)
 
 @suite("HTTP auth basic client implementation")
 class HttpClientBasicTest {
@@ -81,6 +86,16 @@ class HttpClientBasicTest {
         return this.client.readResource({
             href: "https://localhost:3001"
         })
+
+    }
+    @test async "should fail to authorize client with basic"() {
+        const scheme: BasicSecurityScheme = {
+            scheme : "basic",
+            in: "header"
+        }
+
+        this.client.setSecurity([scheme], {"username": "other","password": "other" })
+        return this.client.readResource({href: "https://localhost:3001"}).should.be.rejected
 
     }
 
