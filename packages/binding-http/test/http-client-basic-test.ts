@@ -21,6 +21,7 @@ import * as https from 'https'
 import { BasicSecurityScheme } from "@node-wot/td-tools";
 import * as chai from 'chai';
 import * as chaiAsPromised from "chai-as-promised";
+import { promisify } from "util";
 
 chai.should();
 chai.use(chaiAsPromised)
@@ -73,7 +74,7 @@ class HttpClientBasicTest {
     }
 
     static after() {
-      HttpClientBasicTest.server.close()   
+        return promisify(HttpClientBasicTest.server.close)
     }
 
     @test async "should authorize client with basic"() {

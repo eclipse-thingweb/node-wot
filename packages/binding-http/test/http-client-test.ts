@@ -271,7 +271,7 @@ class HttpClientTest {
             })
         })
 
-        app.listen(60603, (err: any) => {
+        const server = app.listen(60603, (err: any) => {
             if (err) throw err
             console.log('server ready on http://localhost:60603')
         })
@@ -288,6 +288,7 @@ class HttpClientTest {
 
         client.subscribeResource(form, (data) => {
             done();
+            server.close()
         });
     }
 
@@ -323,17 +324,20 @@ class HttpClientTest {
             href: "http://localhost:60604/"
         };
 
+        let server = http.createServer((req, res) => {
+            res.writeHead(404);
+            res.end();
+        });
+
         let errorSpy = chai.spy();
         let completeSpy = chai.spy(function () {
             errorSpy.should.have.been.called.once;
             completeSpy.should.have.been.called.once;
             done();
+            server.close()
         });
 
-        let server = http.createServer((req, res) => { 
-            res.writeHead(404); 
-            res.end(); 
-        });
+        
 
         server.listen(60604, "0.0.0.0");
         server.once('listening', () => {
