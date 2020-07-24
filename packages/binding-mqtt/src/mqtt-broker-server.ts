@@ -34,11 +34,11 @@ export default class MqttBrokerServer implements ProtocolServer {
   private user: string = undefined; // in the case usesername is required to connect the broker
 
   private psw: string = undefined; // in the case password is required to connect the broker
-  
+
   private clientId: string = undefined; // in the case clientId can be used to identify the device
 
   private protocolVersion: number = undefined;
-  
+
   private brokerURI: string = undefined;
 
   private readonly things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
@@ -155,10 +155,16 @@ export default class MqttBrokerServer implements ProtocolServer {
       }
 
       // connect incoming messages to Thing
-      this.broker.on("message", (receivedTopic: string, payload: string, packet: IPublishPacket) => {
+      this.broker.on("message", (receivedTopic: string, rawPayload: Buffer | string, packet: IPublishPacket) => {
 
         // route request
         let segments = receivedTopic.split("/");
+        let payload: Buffer;
+        if (rawPayload instanceof Buffer) {
+            payload = rawPayload;
+        } else if (typeof rawPayload === "string") {
+            payload = Buffer.from(rawPayload);
+        }
 
         if (segments.length === 4 ) {
           // connecting to the actions
@@ -167,32 +173,42 @@ export default class MqttBrokerServer implements ProtocolServer {
           if (thing) {
             if (segments[2] === "actions") {
               let action = thing.actions[segments[3]];
+              let value;
               if (action) {
-                thing.invokeAction(segments[3], 
-                // action.invoke(
-                  function() {
-                    let value;
-                    try {
-                      value = ContentSerdes.get().contentToValue({ type: packet.properties.contentType, body: Buffer.from(payload) }, action.input);
-                      return value;
-                    } catch(err) {
-                      console.warn("[binding-mqtt]",`MqttBrokerServer at ${this.brokerURI} cannot process received message for '${segments[3]}': ${err.message}`);
-                      return;
-                    }
-                  })
-                  .then((output) => {
-                    // MQTT cannot return results
-                    if (output) {
-                      console.warn("[binding-mqtt]",`MqttBrokerServer at ${this.brokerURI} cannot return output '${segments[3]}'`); 
-                    }
-                  })
-                  .catch(err => {
-                    console.error("[binding-mqtt]",`MqttBrokerServer at ${this.brokerURI} got error on invoking '${segments[3]}': ${err.message}`);
-                  });
-                // topic found and message processed
-                return;
-              } // Action exists?
-            }
+                /*
+                 * Currently, this branch will never be taken. The main reason for that is in the mqtt library we use:
+                 * https://github.com/mqttjs/MQTT.js/pull/1103
+                 * For further discussion see https://github.com/eclipse/thingweb.node-wot/pull/253
+                 */
+                if ('properties' in packet && 'contentType' in packet.properties) {
+                  try {
+                    value = ContentSerdes.get().contentToValue({ type: packet.properties.contentType, body: payload }, action.input);
+                  } catch(err) {
+                    console.warn(`MqttBrokerServer at ${this.brokerURI} cannot process received message for '${segments[3]}': ${err.message}`);
+                  }
+                } else {
+                  try {
+                    value = JSON.parse(payload.toString());
+                  } catch(err) {
+                    console.warn(`MqttBrokerServer at ${this.brokerURI}, packet has no Content Type and does not parse as JSON, relaying raw (string) payload.`);
+                    value = payload.toString();
+                  }
+                }
+              }
+              thing.invokeAction(segments[3], value)
+              .then((output) => {
+                // MQTT cannot return results
+                if (output) {
+                  console.warn(`MqttBrokerServer at ${this.brokerURI} cannot return output '${segments[3]}'`);
+                }
+              })
+              .catch(err => {
+                console.error(`MqttBrokerServer at ${this.brokerURI} got error on invoking '${segments[3]}': ${err.message}`);
+              });
+
+              // topic found and message processed
+              return;
+            } // Action exists?
           } // Thing exists?
         } else if(segments.length === 5 && segments[4] === "writeproperty" ){
           //connecting to the writeable properties
@@ -202,7 +218,7 @@ export default class MqttBrokerServer implements ProtocolServer {
               let property = thing.properties[segments[3]];
               if (property) {
                 if(!property.readOnly){
-                  thing.writeProperty(segments[3], JSON.parse(payload))
+                  thing.writeProperty(segments[3], JSON.parse(payload.toString()))
                     .catch(err => {
                       console.error("[binding-mqtt]",`MqttBrokerServer at ${this.brokerURI} got error on writing to property '${segments[3]}': ${err.message}`);
                     });
@@ -283,7 +299,7 @@ export default class MqttBrokerServer implements ProtocolServer {
         }
 
         this.broker.on("connect", () => {
-          console.debug("[binding-mqtt]",`MqttBrokerServer connected to broker at ${this.brokerURI}`);
+          console.info("[binding-mqtt]",`MqttBrokerServer connected to broker at ${this.brokerURI}`);
 
           let parsed = url.parse(this.brokerURI);
           this.address = parsed.hostname;

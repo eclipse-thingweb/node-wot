@@ -138,6 +138,8 @@ export default class HttpClient implements ProtocolClient {
     console.debug("[binding-http]",`HttpClient received ${result.status} from ${request.url}`);
     console.debug("[binding-http]",`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
     
+    this.checkFetchResponse(result)
+    
     const buffer = await result.buffer()
 
     return { type: result.headers.get("content-type"), body: buffer };

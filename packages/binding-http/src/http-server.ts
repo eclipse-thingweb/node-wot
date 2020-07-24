@@ -108,7 +108,7 @@ export default class HttpServer implements ProtocolServer {
   }
 
   public start(servient: Servient): Promise<void> {
-    console.debug("[binding-http]",`HttpServer starting on ${(this.address !== undefined ? this.address + ' ' : '')}port ${this.port}`);
+    console.info("[binding-http]",`HttpServer starting on ${(this.address !== undefined ? this.address + ' ' : '')}port ${this.port}`);
     return new Promise<void>((resolve, reject) => {
 
       // store servient to get credentials
@@ -133,7 +133,7 @@ export default class HttpServer implements ProtocolServer {
   }
 
   public stop(): Promise<void> {
-    console.debug("[binding-http]",`HttpServer stopping on port ${this.getPort()}`);
+    console.info("[binding-http]",`HttpServer stopping on port ${this.getPort()}`);
     return new Promise<void>((resolve, reject) => {
 
       // stop promise handles all errors from now on
@@ -300,7 +300,7 @@ export default class HttpServer implements ProtocolServer {
 
   private async checkCredentials(thing: ExposedThing, req: http.IncomingMessage): Promise<boolean> {
 
-    console.debug("[binding-http]",`HttpServer on port ${this.getPort()} checking credentials for '${id}'`);
+    console.debug("[binding-http]",`HttpServer on port ${this.getPort()} checking credentials for '${thing.id}'`);
 
     let creds = this.servient.getCredentials(thing.id);
 

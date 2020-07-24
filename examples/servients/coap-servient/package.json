@@ -23,7 +23,7 @@
     "typescript": "2.9.2"
   },
   "dependencies": {
-    "@node-wot/core": "0.7.1",
-    "@node-wot/binding-coap": "0.7.1"
+    "@node-wot/core": "0.7.2",
+    "@node-wot/binding-coap": "0.7.2"
   }
 }

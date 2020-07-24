@@ -71,8 +71,8 @@ servient.start().then((WoT) => {
         "@context": "https://www.w3.org/2019/wot/td/v1",
         title: "MyCounter",
         properties: {
-			count: {
-				type: "integer"
+            count: {
+                type: "integer"
             }
         }
     }).then((thing) => {
@@ -126,8 +126,8 @@ servient.start().then((WoT) => {
         id: "urn:dev:wot:org:eclipse:thingweb:my-example-secure",
         title: "MyCounter",
         properties: {
-			count: {
-				type: "integer"
+            count: {
+                type: "integer"
             }
         }
     }).then((thing) => {
@@ -186,8 +186,9 @@ The http protocol binding supports a set of security protocols that can be enabl
     }
     credentials: {
         "urn:dev:wot:org:eclipse:thingweb:my-example-secure": {
-        username: "node-wot",
-        password: "hello"
+            username: "node-wot",
+            password: "hello"
+        }
     }
 }
 ```
@@ -202,8 +203,9 @@ The above configuration file, is setting up a https server with basic secure sch
     },
     credentials: {
         "urn:dev:wot:org:eclipse:thingweb:my-example-secure": {
-        username: "node-wot",
-        password: "hello"
+            username: "node-wot",
+            password: "hello"
+        }
     }
 }
 ```
@@ -215,9 +217,8 @@ An example of a WoT oAuth2.0 enabled client can be found [here](../examples/secu
 
 ## Feature matrix
 
-| | HTTP Producer | HTTP Consumer | 
-|:-----------------------:|:-------------:|:-------------:|:-------------:|:-------------:|:-------------:|:-------------:|:-------------------:|:-------------------:|:--------------:|:---------------:| 
-| OPERATIONS | | | | | | | | | | | 
+|Operation | HTTP Producer | HTTP Consumer | 
+| :---        |    :----:   |  :---: |
 | readproperty | Y | Y | 
 | writeproperty | Y | Y |
 | observeproperty | Y | Y | 
@@ -229,11 +230,15 @@ An example of a WoT oAuth2.0 enabled client can be found [here](../examples/secu
 | invokeaction | Y | Y | 
 | subscribeevent | Y | Y |  
 | unsubscribeevent | ? | ? | 
-| SUBPROTOCOLS | | | | | | | | | | | 
+
+| SubProtocols | HTTP Producer | HTTP Consumer | 
+| :---        |    :----:   |  :---: | 
 | longpoll | Y | Y | 
-| sse | N | N | 
-| websub | N | N |  
-| SEC. SCHEMES | | | | | | | | | | | 
+| sse | Y | Y | 
+| websub | N | N | 
+
+| Sec. Schemes | HTTP Producer | HTTP Consumer | 
+| :---        |    :----:   |  :---: |
 | basic | Y | Y |
 | digest | N | N |
 | apikey | N | Y |  

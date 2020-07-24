@@ -40,7 +40,7 @@ export class BasicCredential extends Credential{
     }
     async sign(request:Request){
         let result = request.clone()
-        result.headers.set("authorization",Buffer.from(this.username + ":" + this.password).toString('base64'))
+        result.headers.set("authorization","Basic "+Buffer.from(this.username + ":" + this.password).toString('base64'))
         return result
     }
 }

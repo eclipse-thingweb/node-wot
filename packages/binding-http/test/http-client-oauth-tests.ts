@@ -15,21 +15,23 @@
 
 const OAuthServer = require("express-oauth-server")
 var bodyParser = require('body-parser');
-var https = require('https');
+import * as https from 'https'
 
 var fs = require('fs')
 import { suite, test } from "mocha-typescript";
 import * as express from 'express';
-import { HttpClient } from "../src/http";
+import { HttpClient, HttpsClientFactory, HttpServer } from "../src/http";
 import { OAuth2SecurityScheme } from "@node-wot/td-tools";
 
 import Memory from "./memory-model";
+import { promisify } from 'util';
 
 @suite("HTTP oauth client implementation")
 class HttpClientOAuthTest {
     
     private client:HttpClient;
     static model:any;
+    static server:https.Server
     static before(){
         var app:any = express();
         HttpClientOAuthTest.model = new Memory()
@@ -48,17 +50,24 @@ class HttpClientOAuthTest {
             res.send('Ok!')
         })
 
-        https.createServer({
-            key: fs.readFileSync('./test/server.key'),
-            cert: fs.readFileSync('./test/server.cert')
-        }, app).listen(3000,"localhost",()=>{
-            console.log("listening")
+        return new Promise((resolve)=>{
+            HttpClientOAuthTest.server = https.createServer({
+                key: fs.readFileSync('./test/server.key'),
+                cert: fs.readFileSync('./test/server.cert')
+            }, app).listen(3000, "localhost", resolve)
         })
-        
     }   
+
+    static after(){
+        return promisify(HttpClientOAuthTest.server.close)
+    }
 
     before(){
         this.client = new HttpClient({ allowSelfSigned: true},true)
+    }
+
+    after(){
+        this.client.stop()
     }
 
     @test async "should authorize client with client_credentials flow"(){

@@ -33,6 +33,254 @@
                 "<node_internals>/**"
             ],
             "type": "node"
+        },
+        {
+            "args": [
+                "-u",
+                "tdd",
+                "--compilers",
+                "ts:ts-node/register",
+                "--timeout",
+                "999999",
+                "--colors",
+                "${workspaceFolder}/packages/binding-http/test"
+            ],
+            "internalConsoleOptions": "openOnSessionStart",
+            "cwd": "${workspaceFolder}/packages/binding-http/",
+            "name": "HTTP Tests",
+            "program": "${workspaceFolder}/packages/binding-http/node_modules/mocha/bin/_mocha",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node"
+        },
+        {
+            "args": [
+                "-u",
+                "tdd",
+                "--compilers",
+                "ts:ts-node/register",
+                "--timeout",
+                "999999",
+                "--colors",
+                "${file}"
+            ],
+            "internalConsoleOptions": "openOnSessionStart",
+            "cwd": "${workspaceFolder}/packages/binding-http/",
+            "name": "HTTP Test current File",
+            "program": "${workspaceFolder}/packages/binding-http/node_modules/mocha/bin/_mocha",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node"
+        },
+        {
+            "args": [
+                "-u",
+                "tdd",
+                "--compilers",
+                "ts:ts-node/register",
+                "--timeout",
+                "999999",
+                "--colors",
+                "${workspaceFolder}/packages/binding-coap/test"
+            ],
+            "internalConsoleOptions": "openOnSessionStart",
+            "cwd": "${workspaceFolder}/packages/binding-coap/",
+            "name": "COAP Tests",
+            "program": "${workspaceFolder}/packages/binding-coap/node_modules/mocha/bin/_mocha",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node"
+        },
+        {
+            "args": [
+                "-u",
+                "tdd",
+                "--compilers",
+                "ts:ts-node/register",
+                "--timeout",
+                "999999",
+                "--colors",
+                "${file}"
+            ],
+            "internalConsoleOptions": "openOnSessionStart",
+            "cwd": "${workspaceFolder}/packages/binding-coap/",
+            "name": "COAP Test current File",
+            "program": "${workspaceFolder}/packages/binding-coap/node_modules/mocha/bin/_mocha",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node"
+        },
+        {
+            "args": [
+                "-u",
+                "tdd",
+                "--compilers",
+                "ts:ts-node/register",
+                "--timeout",
+                "999999",
+                "--colors",
+                "${workspaceFolder}/packages/binding-mqtt/test"
+            ],
+            "internalConsoleOptions": "openOnSessionStart",
+            "cwd": "${workspaceFolder}/packages/binding-mqtt/",
+            "name": "MQTT Tests",
+            "program": "${workspaceFolder}/packages/binding-mqtt/node_modules/mocha/bin/_mocha",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node"
+        },
+        {
+            "args": [
+                "--require", 
+                "ts-node/register",
+                "--timeout",
+                "999999",
+                "--colors",
+                "${workspaceFolder}/packages/binding-netconf/test/netconf-client-test.ts"
+            ],
+            "internalConsoleOptions": "openOnSessionStart",
+            "cwd": "${workspaceFolder}/packages/binding-netconf/",
+            "name": "NetConf Tests",
+            "program": "${workspaceFolder}/packages/binding-netconf/node_modules/mocha/bin/_mocha",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node"
+        },
+        {
+            "args": [
+                "--require", 
+                "ts-node/register",
+                "--timeout",
+                "999999",
+                "--colors",
+                "${workspaceFolder}/packages/binding-opcua/test/opcua-client-test.ts"
+            ],
+            "internalConsoleOptions": "openOnSessionStart",
+            "cwd": "${workspaceFolder}/packages/binding-opcua/",
+            "name": "Opcua Tests",
+            "program": "${workspaceFolder}/packages/binding-opcua/node_modules/mocha/bin/_mocha",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node"
+        },
+        {
+            "args": [
+                "-u",
+                "tdd",
+                "--compilers",
+                "ts:ts-node/register",
+                "--timeout",
+                "999999",
+                "--colors",
+                "${workspaceFolder}/packages/binding-websockets/test"
+            ],
+            "internalConsoleOptions": "openOnSessionStart",
+            "cwd": "${workspaceFolder}/packages/binding-websockets/",
+            "name": "Websockets Tests",
+            "program": "${workspaceFolder}/packages/binding-websockets/node_modules/mocha/bin/_mocha",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node"
+        },
+        {
+            "args": [
+                "-u",
+                "tdd",
+                "--compilers",
+                "ts:ts-node/register",
+                "--timeout",
+                "999999",
+                "--colors",
+                "${workspaceFolder}/packages/core/test"
+            ],
+            "internalConsoleOptions": "openOnSessionStart",
+            "cwd": "${workspaceFolder}/packages/core/",
+            "name": "Core Tests",
+            "program": "${workspaceFolder}/packages/core/node_modules/mocha/bin/_mocha",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node"
+        },
+        {
+            "args": [
+                "-u",
+                "tdd",
+                "--compilers",
+                "ts:ts-node/register",
+                "--timeout",
+                "999999",
+                "--colors",
+                "${file}"
+            ],
+            "internalConsoleOptions": "openOnSessionStart",
+            "cwd": "${workspaceFolder}/packages/core/",
+            "name": "Core Test File",
+            "program": "${workspaceFolder}/packages/core/node_modules/mocha/bin/_mocha",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node"
+        },
+        {
+            "args": [
+                "-u",
+                "tdd",
+                "--compilers",
+                "ts:ts-node/register",
+                "--timeout",
+                "999999",
+                "--colors",
+                "${workspaceFolder}/packages/td-tools/test"
+            ],
+            "internalConsoleOptions": "openOnSessionStart",
+            "cwd": "${workspaceFolder}/packages/td-tools/",
+            "name": "TDtools Tests",
+            "program": "${workspaceFolder}/packages/td-tools/node_modules/mocha/bin/_mocha",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node"
+        },
+        {
+            "args": [
+                "-u",
+                "tdd",
+                "--compilers",
+                "ts:ts-node/register",
+                "--timeout",
+                "999999",
+                "--colors",
+                "${file}"
+            ],
+            "internalConsoleOptions": "openOnSessionStart",
+            "cwd": "${workspaceFolder}/packages/td-tools/",
+            "name": "TDtools Test File",
+            "program": "${workspaceFolder}/packages/td-tools/node_modules/mocha/bin/_mocha",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node"
         }
     ]
 }

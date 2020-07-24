@@ -1,0 +1,42 @@
+{
+  "name": "@node-wot/binding-modbus",
+  "version": "0.7.2",
+  "description": "Modbus TCP client protocol binding for node-wot",
+  "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
+  "contributors": [
+    "Siemens AG"
+  ],
+  "license": "EPL-2.0 OR W3C-20150513",
+  "repository": "https://github.com/thingweb/node-wot/tree/master/packages/binding-modbus",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist/"
+  ],
+  "main": "dist/modbus.js",
+  "types": "dist/modbus.d.ts",
+  "devDependencies": {
+    "@types/chai": "^4.2.7",
+    "@types/chai-as-promised": "^7.1.2",
+    "@types/mocha": "^5.2.7",
+    "@types/node": "^10.9.4",
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "chai-spies": "^1.0.0",
+    "mocha": "^7.0.0",
+    "ts-node": "^8.6.2",
+    "typescript": "^3.6.3",
+    "typescript-standard": "^0.3.36"
+  },
+  "dependencies": {
+    "@node-wot/core": "0.7.2",
+    "@node-wot/td-tools": "0.7.2",
+    "modbus-serial": "^7.8.1",
+    "wot-typescript-definitions": "0.7.3"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "mocha --require ts-node/register test/*"
+  }
+}
