@@ -63,33 +63,74 @@ Using a browser with only ES5 support (eg. IE 11) might be possible if you add p
 ## How to get the library
 ### As a Node.js dependency
 
+You can install node-wot in the following ways:
+
+1. As a normal dependency (i.e., like loadsh). In this case, you are embedding a servient inside your application.
+2. As a CLI to run scripts. In this case, your application is running inside
+the default servient.
+
+#### Normal Dependency
+
 If you want to use node-wot as a library in your Node.js application, you can use npm to install the node-wot packages that you need. To do so, `cd` inside you application folder, and run:
 
 ```
-npm i @node-wot/core @node-wot/binding-coap @node-wot/cli --save
+npm i @node-wot/core @node-wot/binding-coap --save
 ```
 
-This requires that you have already initiated a project with `npm init`.
-Now, add the following script to your `package.json` so that you can later execute your scripts using the
-`npm run start` command:
+Now, you can implement your node-wot entry point, e.g., `main.js` as follows:
 
+```JavaScript
+// Required steps to create a servient
+const Servient = require('@node-wot/core').Servient
+const HttpServer = require('@node-wot/binding-http').HttpServer
+
+const servient = new Servient()
+const servient.addServer(new HttpServer(servientConfig.http))
+const WoT = await this.servient.start()
+
+//Then from here on use WoT object to consume/produce Things
+//i.e. WoT.produce({.....})
 ```
-"scripts": {
-   "start": "wot-servient"
+
+You can then start the application by running `node main.js`.
+
+#### CLI Tool
+You can alternatively install the node-wot CLI, either globally (`npm i @node-wot/cli -g`) or as
+a (dev) dependency (`npm i @node-wot/cli --save` or `npm i @node-wot/cli --save-dev`).
+
+Then, you don't need to specify any further node-wot dependencies and can implement your application
+(e.g., `main.js`) without explicitly requiring node-wot dependencies:
+
+```JavaScript
+//No need to require node-wot componets
+// WoT runtime is provided as global object
+
+WoT.produce({/*.....*/})
+```
+
+If the CLI is globally installed, you don't need to set up a Node.js project.
+If you do so, anyway, you can specify the entry point as follows:
+
+```JavaScript
+"scripts":{
+   "start": "wot-servient main.js"
 }
 ```
 
-In case you do not want to create a Node.js project, you can alternatively install node-wot globally:
+There are several ways to start the application:  
+   a. Execute `npm start`.  
+   b. Execute  `./node_modules/.bin/wot-servient main.js`.  
+   c. Execute `node ./node_modules/@node-wot/cli/dist/cli.js main.js`.  
+   d. If you have installed `@node-wot/cli` globally you should even start the application right
+   away using this command `wot-servient main.js`. However, in the current implementation, the
+   import of local dependencies is not supported in this case.
 
-```
-npm i @node-wot/core @node-wot/binding-coap @node-wot/cli -g
-```
 
-
-To run specific `.js` files in the current directory, use the command `wot-servient` (if you have the CLI globally installed) or `node ./node_modules/@node-wot/cli/dist/cli.js`(if it is locally installed) and append the file paths:
+wot-servient can execute multiple files at once, for example as follows:
 ```
 wot-servient script1.js ./src/script2.js
 ```
+
 Finally, to debug use the option `--inspect` or `--inspect-brk` if you want to hang until your debug client is connected. Then start [Chrome Dev Tools](chrome://inspect) or [vscode debugger](https://code.visualstudio.com/docs/nodejs/nodejs-debugging#_attaching-to-nodejs) or your preferred v8 inspector to debug your code.
 
 For further details check: `wot-servient --help`
