@@ -121,7 +121,7 @@ There are several ways to start the application:
    a. Execute `npm start`.  
    b. Execute  `./node_modules/.bin/wot-servient main.js`.  
    c. Execute `node ./node_modules/@node-wot/cli/dist/cli.js main.js`.  
-   d. If you have installed `@node-wot/cli` globally you should even start the application right
+   d. If you have installed `@node-wot/cli` globally you can even start the application right
    away using this command `wot-servient main.js`. However, in the current implementation, the
    import of local dependencies is not supported in this case.
 
