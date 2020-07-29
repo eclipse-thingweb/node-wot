@@ -35,7 +35,7 @@ describe('OAuth2.0 Validator tests', () => {
             const tokens = ["active","notActive"];
 
             var introspectEndpoint: express.Express = express();
-            introspectEndpoint.use(express.urlencoded())
+            introspectEndpoint.use(express.urlencoded({extended: true}))
             
             introspectEndpoint.use("/invalid",(req,res)=>{
                 return res.status(400).end()
@@ -284,7 +284,7 @@ describe('OAuth2.0 Validator tests', () => {
             //Initialize test
 
             var introspectEndpoint: express.Express = express();
-            introspectEndpoint.use(express.urlencoded())
+            introspectEndpoint.use(express.urlencoded({extended:true}))
             
             introspectEndpoint.use((req, res) =>{
                 // No validation just testing https connection
