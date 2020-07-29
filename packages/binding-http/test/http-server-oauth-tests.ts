@@ -35,7 +35,7 @@ class OAuthServerTests{
             endpoint: "http://localhost:4242"
         }
         const authConfig: OAuth2ServerConfig = {
-            scheme: "oauth",
+            scheme: "oauth2",
             method: method,
         }
         this.server = new HttpServer({
@@ -119,7 +119,7 @@ class OAuthServerTests{
         
         this.server["oAuthValidator"].validate = async (token,scopes,clients) => {
             called = true
-            throw new Error("errore");
+            return false
         }
 
         const response = await fetch("http://localhost:8080/TestOAuth/TestOAuth")
