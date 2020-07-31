@@ -2,7 +2,10 @@ FROM node:12.16.1-alpine3.11
 
 RUN apk add --no-cache \
 	gcc \
+    g++ \
 	make \
+    linux-headers \
+    udev \
     python2
 
 ARG BUILD_ENV=development
