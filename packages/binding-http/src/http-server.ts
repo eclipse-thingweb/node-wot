@@ -189,30 +189,34 @@ export default class HttpServer implements ProtocolServer {
         for (let type of ContentSerdes.get().getOfferedMediaTypes()) {
           let base: string = this.scheme + "://" + address + ":" + this.getPort() + "/" + encodeURIComponent(title);
 
-          if(true) { // make reporting of all properties optional?
-            let href = base + "/" + this.ALL_DIR + "/" + encodeURIComponent(this.ALL_PROPERTIES);
-            let form = new TD.Form(href, type);
-            // check for readOnly/writeOnly for op field
+          if (true) { // make reporting of all properties optional?
+            // check for readOnly/writeOnly for op field and whether there are any properties at all
             let allReadOnly = true;
             let allWriteOnly = true;
+            let anyProperties = false;
             for (let propertyName in thing.properties) {
+              anyProperties = true;
               if (!thing.properties[propertyName].readOnly) {
                 allReadOnly = false;
               } else if (!thing.properties[propertyName].writeOnly) {
                 allWriteOnly = false;
               }
             }
-            if(allReadOnly) {
-              form.op = ["readallproperties", "readmultipleproperties"];
-            } else if(allWriteOnly) {
-              form.op = ["writeallproperties", "writemultipleproperties"];
-            } else {
-              form.op = ["readallproperties", "readmultipleproperties", "writeallproperties", "writemultipleproperties"];
+            if (anyProperties) {
+              let href = base + "/" + this.ALL_DIR + "/" + encodeURIComponent(this.ALL_PROPERTIES);
+              let form = new TD.Form(href, type);
+              if (allReadOnly) {
+                form.op = ["readallproperties", "readmultipleproperties"];
+              } else if (allWriteOnly) {
+                form.op = ["writeallproperties", "writemultipleproperties"];
+              } else {
+                form.op = ["readallproperties", "readmultipleproperties", "writeallproperties", "writemultipleproperties"];
+              }
+              if (!thing.forms) {
+                thing.forms = [];
+              }
+              thing.forms.push(form);
             }
-            if(!thing.forms) {
-              thing.forms = [];
-            }
-            thing.forms.push(form);
           }
 
           for (let propertyName in thing.properties) {
