@@ -21,8 +21,13 @@ import { default as Servient } from "./servient";
 export default Servient;
 export { Servient };
 
-// ContentSerdes
+// ContentSerdes + built-in codecs
 export * from "./content-serdes";
+export { default as JsonCodec } from "./codecs/json-codec";
+export { default as TextCodec } from "./codecs/text-codec";
+export { default as Base64Codec } from "./codecs/base64-codec";
+export { default as NetconfOctetstreamCodecCodec } from "./codecs/octetstream-codec";
+export { default as NetconfCodec } from "./codecs/netconf-codec";
 
 // Protocols & Content
 export * from "./protocol-interfaces";
