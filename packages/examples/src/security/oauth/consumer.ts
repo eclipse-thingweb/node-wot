@@ -18,14 +18,15 @@ import { Helpers } from "@node-wot/core";
 let WoT: WoT.WoT;
 let WoTHelpers: Helpers;
 
-WoTHelpers.fetch("http://localhost:8080/OAuth").then(td => {
-    //Call oAuth server instead of the servient.
-    td.actions.sayOk.forms[0].href ="https://localhost:3000/resource"
-    td.actions.sayOk.forms[0]["htv:methodName"] ="GET"
+WoTHelpers.fetch("https://localhost:8080/OAuth").then(td => {
 
     WoT.consume(td).then(async thing => {
-        const result = await thing.invokeAction("sayOk")
-        console.log("oAuth token was",result)
+        try {
+            const result = await thing.invokeAction("sayOk")
+            console.log("oAuth token was", result)   
+        } catch (error) {
+            console.log("It seems that I couldn't access the resource")
+        }
     })
 })
 
