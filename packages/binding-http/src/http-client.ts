@@ -49,6 +49,8 @@ export default class HttpClient implements ProtocolClient {
 
   private activeSubscriptions = new Set();
 
+  private activeEventSources = new Map <string, EventSource>();
+
   constructor(config: HttpConfig = null, secure = false, oauthManager: OAuthManager = new OAuthManager()) {
 
     // config proxy by client side (not from TD)
@@ -149,6 +151,10 @@ export default class HttpClient implements ProtocolClient {
     console.debug("[binding-http]",`HttpClient (unlinkResource) ${form.href}`);
 
     this.activeSubscriptions.delete(form.href)
+    
+    if(this.activeEventSources.has(form.href)){
+      this.activeEventSources.get(form.href).close()
+    }
 
     return {};
   }
@@ -191,6 +197,8 @@ export default class HttpClient implements ProtocolClient {
       //server sent events
       let _this = this;
       const eventSource = new EventSource(form.href);
+      this.activeEventSources.set(form.href,eventSource);
+      
       eventSource.onopen = function (event) {
         console.info(`HttpClient (subscribeResource) Server-Sent Event connection is opened to ${form.href}`);
       }
