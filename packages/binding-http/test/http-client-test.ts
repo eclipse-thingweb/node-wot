@@ -287,8 +287,8 @@ class HttpClientTest {
         };
 
         client.subscribeResource(form, (data) => {
-            done();
-            server.close()
+            client.unlinkResource(form);
+            server.close(done)
         });
     }
 

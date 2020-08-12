@@ -33,7 +33,7 @@ import { Buffer } from "buffer";
 import OAuthManager from "./oauth-manager";
 import { parse } from "url";
 import { BasicCredential, Credential, BearerCredential, BasicKeyCredential, OAuthCredential } from "./credential";
-import * as EventSource from 'eventsource';
+import { LongPollingSubscription, SSESubscription, InternalSubscription } from "./subscription-protocols";
 
 export default class HttpClient implements ProtocolClient {
 
@@ -47,7 +47,7 @@ export default class HttpClient implements ProtocolClient {
 
   private credential: Credential = null;
 
-  private activeSubscriptions = new Set();
+  private activeSubscriptions = new Map<string,InternalSubscription>();
 
   constructor(config: HttpConfig = null, secure = false, oauthManager: OAuthManager = new OAuthManager()) {
 
@@ -147,64 +147,30 @@ export default class HttpClient implements ProtocolClient {
 
   public async unlinkResource(form: HttpForm): Promise<any> {
     console.debug("[binding-http]",`HttpClient (unlinkResource) ${form.href}`);
-
-    this.activeSubscriptions.delete(form.href)
+    const internalSub = this.activeSubscriptions.get(form.href);
+    
+    if(internalSub){
+      this.activeSubscriptions.get(form.href).close()
+    }else{
+      console.warn("[binding-http]", `HttpClient cannot unlink ${form.href} no subscription found`)
+    }
 
     return {};
   }
 
   public subscribeResource(form: HttpForm, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): any {
 
-    this.activeSubscriptions.add(form.href);
+    let internalSubscription;
     if (form.subprotocol == undefined || form.subprotocol == "longpoll") {
       //longpoll or subprotocol is not defined default is longpoll
-      let polling = async () => {
-        try {
-          // long timeout for long polling
-          const request = await this.generateFetchRequest(form, "GET", { timeout: 60 * 60 * 1000 })
-          console.debug("[binding-http]",`HttpClient (subscribeResource) sending ${request.method} to ${request.url}`);
-
-          const result = await this.fetch(request)
-
-          this.checkFetchResponse(result)
-
-          const buffer = await result.buffer()
-          console.debug("[binding-http]",`HttpClient received ${result.status} from ${request.url}`);
-
-          console.debug("[binding-http]",`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
-          console.debug("[binding-http]",`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
-
-          if (this.activeSubscriptions.has(form.href)) {
-            next({ type: result.headers.get("content-type"), body: buffer })
-            polling()
-          } {
-            complete && complete()
-          }
-        } catch (e) {
-          error && error(e)
-          complete && complete()
-          this.activeSubscriptions.delete(form.href)
-        }
-      }
-      polling();
+      internalSubscription = new LongPollingSubscription(form,this)
     } else if (form.subprotocol == "sse") {
       //server sent events
-      let _this = this;
-      const eventSource = new EventSource(form.href);
-      eventSource.onopen = function (event) {
-        console.info(`HttpClient (subscribeResource) Server-Sent Event connection is opened to ${form.href}`);
-      }
-      eventSource.onmessage = function (event) {
-        console.info(`HttpClient received ${JSON.stringify(event)} from ${form.href}`)
-        let output = { type: form.contentType, body: JSON.stringify(event) };
-        next(output);
-      }
-      eventSource.onerror = function (event) {
-        error(event.toString());
-        complete && complete()
-        _this.activeSubscriptions.delete(form.href)
-      }
+      internalSubscription = new SSESubscription(form)
     }
+
+    internalSubscription.open(next, error, complete);
+    this.activeSubscriptions.set(form.href,internalSubscription);
     return new Subscription(() => { });
   }
 
