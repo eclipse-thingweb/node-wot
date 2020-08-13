@@ -34,23 +34,29 @@ export default class FileClient implements ProtocolClient {
       let filepath = form.href.split('//');
       let resource = fs.readFileSync(filepath[1], 'utf8');
       let extension = path.extname(filepath[1]);
-      console.debug("[binding-file]",`FileClient found '${extension}' extension`);
-      let contentType = "application/octet-stream";
-      switch (extension) {
-        case ".txt":
-        case ".log":
-        case ".ini":
-        case ".cfg":
-          contentType = "text/plain";
-          break;
-        case ".json":
-          contentType = "application/json";
-          break;
-        case ".jsonld":
-          contentType = "application/ld+json";
-          break;
-        default:
-          console.warn("[binding-file]",`FileClient cannot determine media type of '${form.href}'`);
+      console.debug("[binding-file]", `FileClient found '${extension}' extension`);
+      let contentType;
+      if (form.contentType) {
+        contentType = form.contentType;
+      } else {
+        // *guess* contentType based on file extension
+        contentType = "application/octet-stream";
+        switch (extension) {
+          case ".txt":
+          case ".log":
+          case ".ini":
+          case ".cfg":
+            contentType = "text/plain";
+            break;
+          case ".json":
+            contentType = "application/json";
+            break;
+          case ".jsonld":
+            contentType = "application/ld+json";
+            break;
+          default:
+            console.warn("[binding-file]", `FileClient cannot determine media type of '${form.href}'`);
+        }
       }
       resolve({ type: contentType, body: Buffer.from(resource) });
     });
