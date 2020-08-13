@@ -124,6 +124,14 @@ export default class CoapServer implements ProtocolServer {
             } else {
               form.op = ["readproperty", "writeproperty"];
             }
+            if (thing.properties[propertyName].observable) {
+              if(!form.op) {
+                form.op = [];
+              }
+              form.op.push("observeproperty");
+              form.op.push("unobserveproperty");
+            }
+
             thing.properties[propertyName].forms.push(form);
             console.debug("[binding-coap]",`CoapServer on port ${this.getPort()} assigns '${href}' to Property '${propertyName}'`);
           }
@@ -141,7 +149,7 @@ export default class CoapServer implements ProtocolServer {
             let href = base + "/" + this.EVENT_DIR + "/" + encodeURIComponent(eventName);
             let form = new TD.Form(href, type);
             ProtocolHelpers.updateEventFormWithTemplate(form, tdTemplate, eventName);
-            form.op = "subscribeevent";
+            form.op = ["subscribeevent", "unsubscribeevent"];
             thing.events[eventName].forms.push(form);
             console.debug("[binding-coap]",`CoapServer on port ${this.getPort()} assigns '${href}' to Event '${eventName}'`);
           }
