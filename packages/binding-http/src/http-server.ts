@@ -257,7 +257,7 @@ export default class HttpServer implements ProtocolServer {
             if (thing.properties[propertyName].observable) {
               let href = base + "/" + this.PROPERTY_DIR + "/" + encodeURIComponent(propertyName) + "/" + this.OBSERVABLE_DIR;
               let form = new TD.Form(href, type);
-              form.op = ["observeproperty"];
+              form.op = ["observeproperty", "unobserveproperty"];
               form.subprotocol = "longpoll";
               thing.properties[propertyName].forms.push(form);
               console.debug("[binding-http]",`HttpServer on port ${this.getPort()} assigns '${href}' to observable Property '${propertyName}'`);
@@ -284,7 +284,7 @@ export default class HttpServer implements ProtocolServer {
             let form = new TD.Form(href, type);
             ProtocolHelpers.updateEventFormWithTemplate(form, tdTemplate, eventName);
             form.subprotocol = "longpoll";
-            form.op = ["subscribeevent"];
+            form.op = ["subscribeevent", "unsubscribeevent"];
             thing.events[eventName].forms.push(form);
             console.debug("[binding-http]",`HttpServer on port ${this.getPort()} assigns '${href}' to Event '${eventName}'`);
           }
