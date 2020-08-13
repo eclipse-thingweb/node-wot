@@ -27,7 +27,7 @@ export default class Servient {
     private servers: Array<ProtocolServer> = [];
     private clientFactories: Map<string, ProtocolClientFactory> = new Map<string, ProtocolClientFactory>();
     private things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
-    private credentialStore: Map<string, any> = new Map<string, any>();
+    private credentialStore: Map<string, Array<any>> = new Map<string, Array<any>>();
 
     /** runs the script in a new sandbox */
     public runScript(code: string, filename = 'script') {
@@ -274,12 +274,34 @@ export default class Servient {
         if (typeof credentials === "object") {
             for (let i in credentials) {
                 console.debug("[core/servient]",`Servient storing credentials for '${i}'`);
-                this.credentialStore.set(i, credentials[i]);
+                let currentCredentials : Array<any> = this.credentialStore.get(i);
+                if(!currentCredentials) {
+                    currentCredentials = [];
+                    this.credentialStore.set(i, currentCredentials);
+                }
+                currentCredentials.push(credentials[i]);
             }
         }
     }
+
+    /**
+     * @deprecated use retrieveCredentials() instead which may return multiple credentials
+     * 
+     * @param identifier id
+     */
     public getCredentials(identifier: string): any {
-        console.debug("[core/servient]",`Servient looking up credentials for '${identifier}'`);
+        console.debug("[core/servient]", `Servient looking up credentials for '${identifier}' (@deprecated)`);
+        let currentCredentials: Array<any> = this.credentialStore.get(identifier);
+        if (currentCredentials && currentCredentials.length > 0) {
+            // return first
+            return currentCredentials[0];
+        } else {
+            return undefined;
+        }
+    }
+
+    public retrieveCredentials(identifier: string): Array<any> {
+        console.debug("[core/servient]", `Servient looking up credentials for '${identifier}'`);
         return this.credentialStore.get(identifier);
     }
 
