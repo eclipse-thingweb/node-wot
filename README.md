@@ -318,6 +318,19 @@ Note: More protocols can be easily added by implementing `ProtocolClient`, `Prot
 
 Note: More mediaTyes can be easily added by implementing `ContentCodec` interface.
 
+```JavaScript
+const ContentSerdes = require('@node-wot/core').ContentSerdes
+const JsonCodec = require('@node-wot/core').JsonCodec
+
+// e.g., assign built-in codec for *new* contentType 
+let cs = ContentSerdes.get();
+cs.addCodec(new JsonCodec("application/calendar+json"));
+
+// e.g., assign *own* MyCodec implementation (implementing ContentCodec interface)
+cs.addCodec(new MyCodec("application/myType"));
+
+```
+
 ### Logging
 
 We used to have a node-wot-logger package to allow fine-grained logging (by means of Winston). It turned out though that depending on the actual use-case other logging libraries might be better suited. Hence we do not want to prescribe which logging library to use. Having said that, we use console statements which can be easily overriden to use the prefered logging library if needed (see [here](https://gist.github.com/spmason/1670196)).
