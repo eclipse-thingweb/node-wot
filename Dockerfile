@@ -6,7 +6,7 @@ RUN apk add --no-cache \
 	make \
     linux-headers \
     udev \
-    python2
+    python3
 
 ARG BUILD_ENV=development
 
