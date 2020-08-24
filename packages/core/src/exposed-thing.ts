@@ -146,6 +146,17 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     }
 
     /** @inheritDoc */
+    setPropertyObserveHandler(name: string, handler: WoT.PropertyReadHandler): WoT.ExposedThing {        
+        throw new Error("setPropertyObserveHandler not supported");
+    }
+
+    /** @inheritDoc */
+    setPropertyUnobserveHandler(name: string, handler: WoT.PropertyReadHandler): WoT.ExposedThing {        
+        throw new Error("setPropertyUnobserveHandler not supported");
+    }
+
+
+    /** @inheritDoc */
     setActionHandler(actionName: string, handler: WoT.ActionHandler): WoT.ExposedThing {
         console.debug("[core/exposed-thing]",`ExposedThing '${this.title}' setting action Handler for '${actionName}'`);
 
@@ -156,6 +167,23 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             throw new Error(`ExposedThing '${this.title}' has no Action '${actionName}'`);
         }
         return this;
+    }
+
+    
+    /** @inheritDoc */
+    setEventSubscribeHandler(name: string, handler: WoT.EventSubscriptionHandler): WoT.ExposedThing {        
+        throw new Error("setEventSubscribeHandler not supported");
+    }
+
+        
+    /** @inheritDoc */
+    setEventUnsubscribeHandler(name: string, handler: WoT.EventSubscriptionHandler): WoT.ExposedThing {        
+        throw new Error("setEventUnsubscribeHandler not supported");
+    }
+
+    /** @inheritDoc */
+    setEventHandler(name: string, handler: WoT.EventListenerHandler): WoT.ExposedThing {        
+        throw new Error("setEventHandler not supported");
     }
 
     readProperty(propertyName: string, options?: WoT.InteractionOptions): Promise<any> {
@@ -180,7 +208,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     }
 
 
-    _readProperties(propertyNames: string[], options?: WoT.InteractionOptions): Promise<WoT.PropertyValueMap> {
+    _readProperties(propertyNames: string[], options?: WoT.InteractionOptions): Promise<WoT.PropertyMap> {
         return new Promise<object>((resolve, reject) => {
             // collect all single promises into array
             var promises: Promise<any>[] = [];
@@ -206,14 +234,14 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         });
     }
 
-    readAllProperties(options?: WoT.InteractionOptions): Promise<WoT.PropertyValueMap> {
+    readAllProperties(options?: WoT.InteractionOptions): Promise<WoT.PropertyMap> {
         let propertyNames: string[] = [];
         for (let propertyName in this.properties) {
             propertyNames.push(propertyName);
         }
         return this._readProperties(propertyNames, options);
     }
-    readMultipleProperties(propertyNames: string[], options?: WoT.InteractionOptions): Promise<WoT.PropertyValueMap> {
+    readMultipleProperties(propertyNames: string[], options?: WoT.InteractionOptions): Promise<WoT.PropertyMap> {
         return this._readProperties(propertyNames, options);
     }
 
@@ -270,7 +298,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             }
         });
     }
-    writeMultipleProperties(valueMap: WoT.PropertyValueMap, options?: WoT.InteractionOptions): Promise<void> {
+    writeMultipleProperties(valueMap: WoT.PropertyMap, options?: WoT.InteractionOptions): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             // collect all single promises into array
             var promises: Promise<void>[] = [];
