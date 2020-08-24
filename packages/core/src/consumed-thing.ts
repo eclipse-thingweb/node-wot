@@ -230,8 +230,8 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
         });
     }
 
-    _readProperties(propertyNames: string[]): Promise<WoT.PropertyValueMap> {
-        return new Promise<WoT.PropertyValueMap>((resolve, reject) => {
+    _readProperties(propertyNames: string[]): Promise<WoT.PropertyMap> {
+        return new Promise<WoT.PropertyMap>((resolve, reject) => {
             // collect all single promises into array
             var promises: Promise<any>[] = [];
             for (let propertyName of propertyNames) {
@@ -256,7 +256,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
         });
     }
 
-    readAllProperties(options?: WoT.InteractionOptions): Promise<WoT.PropertyValueMap> {
+    readAllProperties(options?: WoT.InteractionOptions): Promise<WoT.PropertyMap> {
         let propertyNames: string[] = [];
         for (let propertyName in this.properties) {
             // collect attributes that are "readable" only
@@ -268,7 +268,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
         }
         return this._readProperties(propertyNames);
     }
-    readMultipleProperties(propertyNames: string[], options?: WoT.InteractionOptions): Promise<WoT.PropertyValueMap> {
+    readMultipleProperties(propertyNames: string[], options?: WoT.InteractionOptions): Promise<WoT.PropertyMap> {
         return this._readProperties(propertyNames);
     }
 
@@ -300,7 +300,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
             }
         });
     }
-    writeMultipleProperties(valueMap: WoT.PropertyValueMap, options?: WoT.InteractionOptions): Promise<void> {
+    writeMultipleProperties(valueMap: WoT.PropertyMap, options?: WoT.InteractionOptions): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             // collect all single promises into array
             var promises: Promise<any>[] = [];
