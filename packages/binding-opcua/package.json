@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "@node-wot/core": "0.8.0",
+	"rxjs": "5.5.11",
     "@types/url-parse": "^1.4.3",
     "case-1.5.3": "npm:case@^1.5.3",
     "node-opcua-client": "^2.1.8",
