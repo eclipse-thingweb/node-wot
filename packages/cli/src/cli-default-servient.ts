@@ -154,10 +154,14 @@ export default class DefaultServient extends Servient {
                     }
                 })
                     .then((thing) => {
-                        thing.setActionHandler("setLogLevel", (level) => {
+                        thing.setActionHandler("setLogLevel", (response) => {
                             return new Promise((resolve, reject) => {
-                                this.setLogLevel(level);
-                                resolve(`Log level set to '${this.logLevel}'`);
+                                this.parseData(response).then((level) => {
+                                    this.setLogLevel(level);
+                                    resolve(`Log level set to '${this.logLevel}'`);
+                                }).catch((err) => {
+                                    console.error("[cli/default-servient]","error: " + err);
+                                });                                
                             });
                         });
                         thing.setActionHandler("shutdown", () => {
@@ -167,11 +171,15 @@ export default class DefaultServient extends Servient {
                                 resolve();
                             });
                         });
-                        thing.setActionHandler("runScript", (script) => {
+                        thing.setActionHandler("runScript", (response) => {
                             return new Promise((resolve, reject) => {
-                                console.debug("[cli/default-servient]","running script", script);
-                                this.runScript(script);
-                                resolve();
+                                this.parseData(response).then((script) => {
+                                    console.debug("[cli/default-servient]","running script", script);
+                                    this.runScript(script);
+                                    resolve();
+                                }).catch((err) => {
+                                    console.error("[cli/default-servient]","error: " + err);
+                                }); 
                             });
                         });
                         thing.setPropertyReadHandler("things", () => {
@@ -187,6 +195,17 @@ export default class DefaultServient extends Servient {
                     });
                 }).catch((err) => reject(err));
         });
+    }
+
+    private async parseData(response: WoT.InteractionOutput) {
+        let value = undefined;
+        try {
+            value = await response.value();
+        } catch (err) {
+            // if response.value() fails, try low-level stream read
+            console.debug("[cli/default-servient]", "parseData low-level stream not implemented");
+        }
+        return value;
     }
 
     // Save default loggers (needed when changing log levels)
