@@ -14,8 +14,10 @@
  ********************************************************************************/
 
 import "wot-typescript-definitions"
+import { Helpers } from "@node-wot/core";
 
 let WoT:WoT.WoT;
+let WoTHelpers: Helpers;
 
 // This is an example Thing script. 
 // It has a count property that can be incremented or decremented via actions and its changes are reported via events.
@@ -160,7 +162,8 @@ WoT.produce({
 	
 	// set action handlers
 	thing.setActionHandler("increment", (params, options) => {
-		return thing.readProperty("count").then( (count) => {
+		return thing.readProperty("count").then(async (count) => {
+			let countp = await Helpers.parseInteractionOutput(count);
 			let step = 1;
 			if(options && typeof options === 'object' && 'uriVariables' in options) {
 				console.log("options = " + JSON.stringify(options))
@@ -169,15 +172,16 @@ WoT.produce({
 					step = uriVariables['step'];
 				}
 			}
-			let value = count + step;
-			console.log("Incrementing count from " + count + " to " + value + " (with step " + step + ")");
+			let value = countp + step;
+			console.log("Incrementing count from " + countp + " to " + value + " (with step " + step + ")");
 			thing.writeProperty("count", value);
 			thing.writeProperty("lastChange", (new Date()).toISOString());
 			thing.emitEvent("change", value);
 		});
 	});
 	thing.setActionHandler("decrement", (params, options) => {
-		return thing.readProperty("count").then( (count) => {
+		return thing.readProperty("count").then(async (count) => {
+			let countp = await Helpers.parseInteractionOutput(count);
 			let step = 1;
 			if(options && typeof options === 'object' && 'uriVariables' in options) {
 				console.log("options = " + JSON.stringify(options))
@@ -186,8 +190,8 @@ WoT.produce({
 					step = uriVariables['step'];
 				}
 			}
-			let value = count - step;
-			console.log("Decrementing count from " + count + " to " + value + " (with step " + step + ")");
+			let value = countp - step;
+			console.log("Decrementing count from " + countp + " to " + value + " (with step " + step + ")");
 			thing.writeProperty("count", value); 
 			thing.writeProperty("lastChange", (new Date()).toISOString()); 
 			thing.emitEvent("change", value);

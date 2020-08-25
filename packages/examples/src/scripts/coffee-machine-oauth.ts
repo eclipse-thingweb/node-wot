@@ -18,6 +18,7 @@
 // An accompanying tutorial is available at http://www.thingweb.io/smart-coffee-machine.html.
 
 import 'wot-typescript-definitions'
+import { Helpers } from '@node-wot/core';
 
 let WoT:WoT.WoT;
 
@@ -249,9 +250,10 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
     // Override a write handler for servedCounter property,
     // raising maintenanceNeeded flag when the value exceeds 1000 drinks
     thing.setPropertyWriteHandler('servedCounter', (val) => {
-        return new Promise((resolve, reject) => {
-            resolve(val);
-            if (val > 1000) {
+        return new Promise(async (resolve, reject) => {
+            let valp = await Helpers.parseInteractionOutput(val);
+            resolve(valp);
+            if (valp > 1000) {
                 thing.writeProperty('maintenanceNeeded', true);
             }
         });
@@ -268,10 +270,11 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
         if (options && typeof options === 'object' && 'uriVariables' in options) {
             const uriVariables: any = options['uriVariables'];
             if ('id' in uriVariables) {
-                return thing.readProperty('allAvailableResources').then((resources) => {
+                return thing.readProperty('allAvailableResources').then(async (resources) => {
+                    let resourcesp = await Helpers.parseInteractionOutput(resources);
                     const id = uriVariables['id'];
-                    resources[id] = val;
-                    return thing.writeProperty('allAvailableResources', resources);
+                    resourcesp[id] = val;
+                    return thing.writeProperty('allAvailableResources', resourcesp);
                 });
             }
         }
@@ -288,10 +291,11 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
         if (options && typeof options === 'object' && 'uriVariables' in options) {
             const uriVariables: any = options['uriVariables'];
             if ('id' in uriVariables) {
-                return thing.readProperty('allAvailableResources').then((resources) => {
+                return thing.readProperty('allAvailableResources').then(async (resources) => {
+                    let resourcesp = await Helpers.parseInteractionOutput(resources);
                     const id = uriVariables['id'];
                     return new Promise((resolve, reject) => {
-                        resolve(resources[id]);
+                        resolve(resourcesp[id]);
                     });
                 });
             }
@@ -361,10 +365,10 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
         }
 
         // Read the current level of allAvailableResources
-        return thing.readProperty('allAvailableResources').then((resources) => {
-            
+        return thing.readProperty('allAvailableResources').then(async (resources) => {
+            let resourcesp = await Helpers.parseInteractionOutput(resources);
             // Calculate the new level of resources
-            let newResources = Object.assign({}, resources);
+            let newResources = Object.assign({}, resourcesp);
             newResources['water'] -= Math.ceil(quantity * sizeQuantifiers[size] * drinkRecipes[drinkId]['water']);
             newResources['milk'] -= Math.ceil(quantity * sizeQuantifiers[size] * drinkRecipes[drinkId]['milk']);
             newResources['chocolate'] -= Math.ceil(quantity * sizeQuantifiers[size] * drinkRecipes[drinkId]['chocolate']);
@@ -374,7 +378,7 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
             for (let resource in newResources) {
                 if (newResources[resource] <= 0) {
                     return new Promise((resolve, reject) => {
-                        thing.emitEvent('outOfResource', `Low level of ${resource}: ${resources[resource]}%`);
+                        thing.emitEvent('outOfResource', `Low level of ${resource}: ${resourcesp[resource]}%`);
                         resolve({result: false, message: `${resource} level is not sufficient`});
                     });
                 }
@@ -382,9 +386,10 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
 
             // Now store the new level of allAvailableResources
             return thing.writeProperty('allAvailableResources', newResources).then(() => {
-                return thing.readProperty('servedCounter').then((counter) => {
+                return thing.readProperty('servedCounter').then(async (counter) => {
+                    let counterp = await Helpers.parseInteractionOutput(counter);
                     return new Promise((resolve, reject) => {
-                        thing.writeProperty('servedCounter', counter + quantity);
+                        thing.writeProperty('servedCounter', counterp + quantity);
 
                         // Finally deliver the drink
                         resolve({result: true, message: `Your ${drinkId} is in progress!`});
@@ -395,19 +400,20 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
     });
 
     // Set up a handler for setSchedule action
-    thing.setActionHandler('setSchedule', (params, options) => {
-
+    thing.setActionHandler('setSchedule', async (params, options) => {
+        let paramsp = await Helpers.parseInteractionOutput(params);
         // Check if uriVariables are provided
-        if (params && typeof params === 'object' && 'time' in params && 'mode' in params) {
+        if (paramsp && typeof paramsp === 'object' && 'time' in paramsp && 'mode' in paramsp) {
 
             // Use default values if not provided
-            params['drinkId'] = ('drinkId' in params) ? params['drinkId'] : 'americano';
-            params['size'] = ('size' in params) ? params['size'] : 'm';
-            params['quantity'] = ('quantity' in params) ? params['quantity'] : 1;
+            paramsp['drinkId'] = ('drinkId' in paramsp) ? paramsp['drinkId'] : 'americano';
+            paramsp['size'] = ('size' in paramsp) ? paramsp['size'] : 'm';
+            paramsp['quantity'] = ('quantity' in paramsp) ? paramsp['quantity'] : 1;
 
             // Now read the schedules property, add a new schedule to it and then rewrite the schedules property
-            return thing.readProperty('schedules').then((schedules) => {
-                schedules.push(params);
+            return thing.readProperty('schedules').then(async (schedules) => {
+                let schedulesp = await Helpers.parseInteractionOutput(schedules);
+                schedulesp.push(paramsp);
                 return thing.writeProperty('schedules', schedules).then(() => {
                     return new Promise((resolve, reject) => {
                         resolve({result: true, message: `Your schedule has been set!`});

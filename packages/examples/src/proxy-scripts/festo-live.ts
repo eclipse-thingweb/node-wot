@@ -39,16 +39,18 @@ Promise.all(fetchArray).then(async (tdArray) => {
   setInterval( () => {
 
     PumpP101.readProperty("status")
-      .then(value => {
-        console.info("+++ PumpStatus " + value);
-        thingExposed.writeProperty("PumpStatus", value === "ON" ? true : false);
+      .then(async value => {
+        let valuep = await Helpers.parseInteractionOutput(value);
+        console.info("+++ PumpStatus " + valuep);
+        thingExposed.writeProperty("PumpStatus", valuep === "ON" ? true : false);
       })
       .catch(err => { console.error("--- PumpStatus read error: " + err); });
 
     ValveV102.readProperty("status")
-      .then(value => {
-        console.info("+++ ValveStatus " + value);
-        thingExposed.writeProperty("ValveStatus", value === "OPEN" ? true : false);
+      .then(async value => {
+        let valuep = await Helpers.parseInteractionOutput(value);
+        console.info("+++ ValveStatus " + valuep);
+        thingExposed.writeProperty("ValveStatus", valuep === "OPEN" ? true : false);
       })
       .catch(err => { console.error("--- ValveStatus read error: " + err); });
 

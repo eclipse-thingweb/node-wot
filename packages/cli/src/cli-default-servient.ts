@@ -154,14 +154,10 @@ export default class DefaultServient extends Servient {
                     }
                 })
                     .then((thing) => {
-                        thing.setActionHandler("setLogLevel", (response) => {
-                            return new Promise((resolve, reject) => {
-                                this.parseData(response).then((level) => {
-                                    this.setLogLevel(level);
-                                    resolve(`Log level set to '${this.logLevel}'`);
-                                }).catch((err) => {
-                                    console.error("[cli/default-servient]","error: " + err);
-                                });                                
+                        thing.setActionHandler("setLogLevel", (level) => {
+                            return new Promise(async (resolve, reject) => {
+                                this.setLogLevel(await Helpers.parseInteractionOutput(level));
+                                resolve(`Log level set to '${this.logLevel}'`);                                
                             });
                         });
                         thing.setActionHandler("shutdown", () => {
@@ -171,15 +167,12 @@ export default class DefaultServient extends Servient {
                                 resolve();
                             });
                         });
-                        thing.setActionHandler("runScript", (response) => {
-                            return new Promise((resolve, reject) => {
-                                this.parseData(response).then((script) => {
-                                    console.debug("[cli/default-servient]","running script", script);
-                                    this.runScript(script);
-                                    resolve();
-                                }).catch((err) => {
-                                    console.error("[cli/default-servient]","error: " + err);
-                                }); 
+                        thing.setActionHandler("runScript", (script) => {
+                            return new Promise(async (resolve, reject) => {
+                                let scriptv = await Helpers.parseInteractionOutput(script);
+                                console.debug("[cli/default-servient]","running script", scriptv);
+                                this.runScript(scriptv);
+                                resolve();
                             });
                         });
                         thing.setPropertyReadHandler("things", () => {
@@ -195,17 +188,6 @@ export default class DefaultServient extends Servient {
                     });
                 }).catch((err) => reject(err));
         });
-    }
-
-    private async parseData(response: WoT.InteractionOutput) {
-        let value = undefined;
-        try {
-            value = await response.value();
-        } catch (err) {
-            // if response.value() fails, try low-level stream read
-            console.debug("[cli/default-servient]", "parseData low-level stream not implemented");
-        }
-        return value;
     }
 
     // Save default loggers (needed when changing log levels)

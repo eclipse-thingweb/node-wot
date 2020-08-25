@@ -51,10 +51,11 @@ WoTHelpers.fetch("http://127.0.0.1:8080/Smart-Coffee-Machine").then(async (td) =
 
         // Now let's make 3 cups of latte!
         let makeCoffee = await thing.invokeAction('makeDrink', undefined, {'uriVariables': {'drinkId': 'latte', 'size': 'l', 'quantity': 3}});
-        if (makeCoffee['result']) {
-            log('Enjoy your drink!', makeCoffee);
+        let makeCoffeep = await Helpers.parseInteractionOutput(makeCoffee);
+        if (makeCoffeep['result']) {
+            log('Enjoy your drink!', makeCoffeep);
         } else {
-            log('Failed making your drink:', makeCoffee);
+            log('Failed making your drink:', makeCoffeep);
         } 
 
         // See how allAvailableResources property value has changed
@@ -69,7 +70,8 @@ WoTHelpers.fetch("http://127.0.0.1:8080/Smart-Coffee-Machine").then(async (td) =
             'time': '10:00',
             'mode': 'everyday'
         });
-        log(scheduledTask['message'], scheduledTask);
+        let scheduledTaskp = await Helpers.parseInteractionOutput(scheduledTask);
+        log(scheduledTaskp['message'], scheduledTaskp);
         
         // See how it has been added to the schedules property
         let schedules = await thing.readProperty('schedules');

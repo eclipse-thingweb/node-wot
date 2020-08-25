@@ -160,4 +160,15 @@ export default class Helpers {
     }
     return result;
   }
+
+  public static async parseInteractionOutput(response: WoT.InteractionOutput) {
+    let value = undefined;
+    try {
+      value = await response.value();
+    } catch (err) {
+      // TODO if response.value() fails, try low-level stream read
+      console.error("[core/helpers]", "parseInteractionOutput low-level stream not implemented");
+    }
+    return value;
+  }
 }

@@ -14,8 +14,10 @@
  ********************************************************************************/
 
 import "wot-typescript-definitions"
+import { Helpers } from "@node-wot/core";
 
 let WoT:WoT.WoT;
+let WoTHelpers: Helpers;
 
 function checkPropertyWrite(expected: any, actual: any) {
     let output = "Property " + expected + " written with " + actual;
@@ -168,12 +170,13 @@ WoT.produce({
             resolve();
         });
     })
-    .setPropertyWriteHandler("int", (value) => {
+    .setPropertyWriteHandler("int", async (value) => {
+        let valuep = await Helpers.parseInteractionOutput(value);
         return new Promise((resolve, reject) => {
-            if (value === Math.floor(value)) {
+            if (valuep === Math.floor(valuep)) {
                 checkPropertyWrite("integer", "integer");
             } else {
-                checkPropertyWrite("integer", typeof value);
+                checkPropertyWrite("integer", typeof valuep);
             }
             resolve();
         });
@@ -225,38 +228,41 @@ WoT.produce({
             resolve(0);
         });
     })
-    .setActionHandler("int-void", (parameters) => {
+    .setActionHandler("int-void", async (parameters) => {
+        let parametersp = await Helpers.parseInteractionOutput(parameters);
         return new Promise((resolve, reject) => {
-            if (parameters === Math.floor(parameters)) {
+            if (parametersp === Math.floor(parametersp)) {
                 checkActionInvocation("int-void", "integer", "integer");
             } else {
-                checkActionInvocation("int-void", "integer", typeof parameters);
+                checkActionInvocation("int-void", "integer", typeof parametersp);
             }
             resolve();
         });
     })
-    .setActionHandler("int-int", (parameters) => {
+    .setActionHandler("int-int", async (parameters) => {
+        let parametersp = await Helpers.parseInteractionOutput(parameters);
         return new Promise((resolve, reject) => {
-            let inputtype = typeof parameters;
-            if (parameters === Math.floor(parameters)) {
+            let inputtype = typeof parametersp;
+            if (parametersp === Math.floor(parametersp)) {
                 checkActionInvocation("int-int", "integer", "integer");
             } else {
-                checkActionInvocation("int-int", "integer", typeof parameters);
+                checkActionInvocation("int-int", "integer", typeof parametersp);
             }
-            resolve(parameters+1);
+            resolve(parametersp+1);
         });
     })
-    .setActionHandler("int-string", (parameters) => {
+    .setActionHandler("int-string", async (parameters) => {
+        let parametersp = await Helpers.parseInteractionOutput(parameters);
         return new Promise((resolve, reject) => {
-            let inputtype = typeof parameters;
-            if (parameters === Math.floor(parameters)) {
+            let inputtype = typeof parametersp;
+            if (parametersp === Math.floor(parametersp)) {
                 checkActionInvocation("int-string", "integer", "integer");
             } else {
-                checkActionInvocation("int-string", "integer", typeof parameters);
+                checkActionInvocation("int-string", "integer", typeof parametersp);
             }
             
             if (inputtype=="number") {
-                resolve(new String(parameters)
+                resolve(new String(parametersp)
                                 .replace(/0/g,"zero-")
                                 .replace(/1/g,"one-")
                                 .replace(/2/g,"two-")

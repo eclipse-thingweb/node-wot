@@ -14,7 +14,7 @@
  ********************************************************************************/
 
 // node-wot implementation of W3C WoT Servient 
-import { Servient, ExposedThing } from "@node-wot/core";
+import { Servient, ExposedThing, Helpers } from "@node-wot/core";
 
 // exposed protocols
 import { OracleServer } from "@node-wot/binding-oracle";
@@ -154,16 +154,16 @@ servient.start().then(async (WoT) => {
                                         readArray.push(LevelSensorB114.readProperty("maxlevel101"));
                                         readArray.push(LevelSensorB113.readProperty("minlevel101"));
                                         readArray.push(LevelSwitchS111.readProperty("overflow101"));
-                                        Promise.all(readArray).then((resArray) => {
+                                        Promise.all(readArray).then(async (resArray) => {
 
                                           // order must match order of read interactions
                                           let [pumpStatus, valveStatus, levelvalue102, overflow102, maxlevel101, minlevel101, overflow101] = resArray;
 
                                           console.info("+++++++++++++++++++++++++++++++++++++++++++++");
                                           console.info("+++ PumpStatus  . . . . . . . " + pumpStatus);
-                                          thing.writeProperty("PumpStatus", pumpStatus === "ON" ? true : false);
+                                          thing.writeProperty("PumpStatus", await Helpers.parseInteractionOutput(pumpStatus) === "ON" ? true : false);
                                           console.info("+++ ValveStatus . . . . . . . " + valveStatus);
-                                          thing.writeProperty("ValveStatus", valveStatus === "OPEN" ? true : false);
+                                          thing.writeProperty("ValveStatus", await Helpers.parseInteractionOutput(pumpStatus) === "OPEN" ? true : false);
                                           console.info("+++ Tank102LevelValue . . . . " + levelvalue102);
                                           thing.writeProperty("Tank102LevelValue", levelvalue102);
                                           console.info("+++ Tank102OverflowStatus . . " + overflow102);
