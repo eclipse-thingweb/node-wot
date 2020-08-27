@@ -29,6 +29,8 @@ export default class Servient {
     private things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
     private credentialStore: Map<string, Array<any>> = new Map<string, Array<any>>();
 
+    private uncaughtListeners:Array<(...args:any)=>void> = []
+
     /** runs the script in a new sandbox */
     public runScript(code: string, filename = 'script') {
 
@@ -41,11 +43,13 @@ export default class Servient {
             sandbox: context
         })
 
-        process.prependListener('uncaughtException', (err) => {
+        let listener = (err:Error) => {
             this.logScriptError(`Asynchronous script error '${filename}'`, err)
             //TODO: clean up script resources
-            //should we exit here ?
-        })
+            process.exit(1)
+        }
+        process.prependListener('uncaughtException',listener)
+        this.uncaughtListeners.push(listener)
 
         try {
             vm.run(code, filename)
@@ -69,11 +73,13 @@ export default class Servient {
             }
         })
         
-        process.prependListener('uncaughtException', (err) => {
+        let listener = (err: Error) => {
             this.logScriptError(`Asynchronous script error '${filename}'`, err)
             //TODO: clean up script resources
-            //should we exit here ?
-        })
+            process.exit(1)
+        }
+        process.prependListener('uncaughtException', listener)
+        this.uncaughtListeners.push(listener)
 
         try {
             vm.run(code,filename)
@@ -258,5 +264,9 @@ export default class Servient {
     public shutdown(): void {
         this.clientFactories.forEach((clientFactory) => clientFactory.destroy());
         this.servers.forEach((server) => server.stop());
+
+        this.uncaughtListeners.forEach(listener =>{
+            process.removeListener("uncaughtException",listener);
+        })
     }
 }
