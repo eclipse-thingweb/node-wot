@@ -35,6 +35,7 @@ class WoTRuntimeTest {
     static WoT: WoT.WoT;
 
     static before() {
+        console.error = () => {}
         this.servient = new Servient();
         console.log("before starting test suite");
     }
@@ -69,6 +70,10 @@ class WoTRuntimeTest {
     }
 
     @test "should catch bad asynchronous errors"() {
+        // Mocha does not like string errors: https://github.com/trufflesuite/ganache-cli/issues/658
+        // so here I am removing its listeners for uncaughtException. 
+        // WARNING:  Remove this line as soon the issue is resolved.
+        process.removeAllListeners("uncaughtException")
 
         let failThenScript = `setTimeout( () => { throw "Bad asynchronous error in Servient sandbox"; }, 1);`;
 
