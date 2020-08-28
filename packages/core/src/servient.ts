@@ -59,7 +59,7 @@ export default class Servient {
     }
 
     /** runs the script in privileged context (dangerous) - means here: scripts can require */
-    public runPrivilegedScript(code: string, filename = 'script') {
+    public runPrivilegedScript(code: string, filename = 'script',options:ScriptOptions={}) {
     
         let context = {
             "WoT": new WoTImpl(this),
@@ -70,7 +70,8 @@ export default class Servient {
             sandbox:context,
             require: {
                 external: true
-            }
+            },
+            argv: options.argv
         })
         
         let listener = (err: Error) => {
@@ -269,4 +270,8 @@ export default class Servient {
             process.removeListener("uncaughtException",listener);
         })
     }
+}
+
+export interface ScriptOptions {
+    argv?:Array<string>;
 }

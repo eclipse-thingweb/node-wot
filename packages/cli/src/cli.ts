@@ -28,6 +28,8 @@ const baseDir = ".";
 var clientOnly: boolean = false;
 
 var flagArgConfigfile = false;
+var flagScriptArgs = false;
+var scriptArgs:Array<string> = [];
 var confFile: string;
 
 interface DebugParams {
@@ -69,7 +71,7 @@ const runScripts =async function(servient: DefaultServient, scripts: Array<strin
                     // limit printout to first line
                     console.info("[cli]",`WoT-Servient running script '${data.substr(0, data.indexOf("\n")).replace("\r", "")}'... (${data.split(/\r\n|\r|\n/).length} lines)`);
                     fname = path.resolve(fname)
-                    servient.runPrivilegedScript(data, fname);
+                    servient.runPrivilegedScript(data, fname,{argv:scriptArgs});
                 }
             });
         });
@@ -135,6 +137,15 @@ for( let i = 0; i < argv.length; i++){
         argv.splice(i, 1);
         i--;
 
+    } else if (flagScriptArgs){ 
+        scriptArgs.push(argv[i])
+        argv.splice(i, 1);
+        i--;
+    }else if (argv[i] === "--") {
+        // next args are script args
+        flagScriptArgs = true;
+        argv.splice(i, 1);
+        i--;
     } else if (argv[i].match(/^(-c|--clientonly|\/c)$/i)) {
         clientOnly = true;
         argv.splice(i, 1);
@@ -161,11 +172,12 @@ for( let i = 0; i < argv.length; i++){
         process.exit(0);
 
     } else if (argv[i].match(/^(-h|--help|\/?|\/h)$/i)) {
-        console.log(`Usage: wot-servient [options] [SCRIPT]...
+        console.log(`Usage: wot-servient [options] [SCRIPT]... -- [ARGS]...
        wot-servient
        wot-servient examples/scripts/counter.js examples/scripts/example-event.js
        wot-servient -c counter-client.js
        wot-servient -f ~/mywot.conf.json examples/testthing/testthing.js
+       wot-servient examples/testthing/testthing.js -- script_arg1 script_arg2
 
 Run a WoT Servient in the current directory.
 If no SCRIPT is given, all .js files in the current directory are loaded.
