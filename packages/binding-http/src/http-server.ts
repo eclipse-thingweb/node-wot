@@ -183,8 +183,8 @@ export default class HttpServer implements ProtocolServer {
   
   public expose(thing: ExposedThing, tdTemplate?: WoT.ThingDescription): Promise<void> {
 
-    let slugify = require('slugify')
-    let urlPath = slugify(thing.title, {lower: true})
+    let slugify = require('slugify');
+    let urlPath = slugify(thing.title, {lower: true});
 
     if (this.things.has(urlPath)) {
       urlPath = Helpers.generateUniqueName(urlPath);
