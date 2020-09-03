@@ -136,6 +136,7 @@ class HttpServerTest {
     });
     await httpServer.start(null);
     let testThing = new ExposedThing(null);
+    testThing.title = "Test";
     testThing.securityDefinitions = {
       "bearer" : {
         scheme:"bearer"
@@ -160,6 +161,7 @@ class HttpServerTest {
     await httpServer.start(null);
     
     let testThing = new ExposedThing(null);
+    testThing.title = "Test";
     testThing.securityDefinitions = {
       "oauth2" : {
         scheme:"oauth2"
