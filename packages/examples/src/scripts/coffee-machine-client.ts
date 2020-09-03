@@ -23,7 +23,7 @@ import { Helpers } from "@node-wot/core"
 let WoT:WoT.WoT;
 let WoTHelpers: Helpers;
 
-WoTHelpers.fetch("http://127.0.0.1:8080/Smart-Coffee-Machine").then(async (td) => {
+WoTHelpers.fetch("http://127.0.0.1:8080/smart-coffee-machine").then(async (td) => {
 
     try {
         let thing = await WoT.consume(td);

@@ -10,7 +10,7 @@ In the following examples it is shown how to use the CoAP binding of node-wot.
 
 ### Client Example
 
-The client example tries to connect to a TestThing via CoAP and reads a property `string`. The ThingDescription is located under the follwing CoAP uri coap://plugfest.thingweb.io:5683/TestThing.
+The client example tries to connect to a TestThing via CoAP and reads a property `string`. The ThingDescription is located under the follwing CoAP uri coap://plugfest.thingweb.io:5683/testthing.
 
 `node example-client.js`
 
@@ -26,7 +26,7 @@ let servient = new Servient();
 servient.addClientFactory(new CoapClientFactory(null));
 
 let wotHelper = new Helpers(servient);
-wotHelper.fetch("coap://plugfest.thingweb.io:5683/TestThing").then(async (td) => {
+wotHelper.fetch("coap://plugfest.thingweb.io:5683/testthing").then(async (td) => {
     // using await for serial execution (note 'async' in then() of fetch())
     try {
         servient.start().then((WoT) => {

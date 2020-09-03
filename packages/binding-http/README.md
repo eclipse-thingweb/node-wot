@@ -14,7 +14,7 @@ In the following examples it is shown how to use the HTTP binding of node-wot.
 
 ### Client Example
 
-The client example tries to connect to a TestThing via HTTP and reads a property `string`. The ThingDescription is located under the follwing uri http://plugfest.thingweb.io:8083/TestThing.
+The client example tries to connect to a TestThing via HTTP and reads a property `string`. The ThingDescription is located under the follwing uri http://plugfest.thingweb.io:8083/testthing.
 
 `node example-client.js`
 
@@ -30,7 +30,7 @@ let servient = new Servient();
 servient.addClientFactory(new HttpClientFactory(null));
 
 let wotHelper = new Helpers(servient);
-wotHelper.fetch("http://plugfest.thingweb.io:8083/TestThing").then(async (td) => {
+wotHelper.fetch("http://plugfest.thingweb.io:8083/testthing").then(async (td) => {
     // using await for serial execution (note 'async' in then() of fetch())
     try {
         servient.start().then((WoT) => {
