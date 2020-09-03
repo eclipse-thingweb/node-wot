@@ -67,7 +67,7 @@ class HttpServerTest {
 
     await httpServer.expose(testThing);
 
-    let uri = `http://localhost:${httpServer.getPort()}/Test/`;
+    let uri = `http://localhost:${httpServer.getPort()}/test/`;
     let body;
 
     console.log("Testing", uri);

@@ -90,7 +90,7 @@ class OAuthServerTests{
             return true
         }
 
-        await fetch("http://localhost:8080/TestOAuth/TestOAuth")
+        await fetch("http://localhost:8080/testoauth/TestOAuth")
 
         called.should.be.true
 
@@ -105,7 +105,7 @@ class OAuthServerTests{
             return false
         }
 
-        const response = await fetch("http://localhost:8080/TestOAuth/TestOAuth")
+        const response = await fetch("http://localhost:8080/testoauth/TestOAuth")
 
         called.should.be.true
 
@@ -122,7 +122,7 @@ class OAuthServerTests{
             return false
         }
 
-        const response = await fetch("http://localhost:8080/TestOAuth/TestOAuth")
+        const response = await fetch("http://localhost:8080/testoauth/TestOAuth")
 
         called.should.be.true
 
