@@ -138,22 +138,23 @@ export default class WebSocketServer implements ProtocolServer {
 
   public expose(thing: ExposedThing): Promise<void> {
 
-    let title = thing.title;
+    let slugify = require('slugify');
+    let urlPath = slugify(thing.title, {lower: true});
 
-    if (this.thingNames.has(title)) {
-      title = Helpers.generateUniqueName(title);
+    if (this.thingNames.has(urlPath)) {
+      urlPath = Helpers.generateUniqueName(urlPath);
     }
 
     if (this.getPort() !== -1) {
 
-      console.debug("[binding-websockets]",`WebSocketServer on port ${this.getPort()} exposes '${thing.title}' as unique '/${title}/*'`);
+      console.debug("[binding-websockets]",`WebSocketServer on port ${this.getPort()} exposes '${thing.title}' as unique '/${urlPath}/*'`);
 
       // TODO clean-up on destroy
-      this.thingNames.add(title);
+      this.thingNames.add(urlPath);
     
       // TODO more efficient routing to ExposedThing without ResourceListeners in each server
       for (let eventName in thing.events) {
-        let path = "/" + encodeURIComponent(title) + "/" + this.EVENT_DIR + "/" + encodeURIComponent(eventName);
+        let path = "/" + encodeURIComponent(urlPath) + "/" + this.EVENT_DIR + "/" + encodeURIComponent(eventName);
         
         console.debug("[binding-websockets]",`WebSocketServer on port ${this.getPort()} adding socketServer for '${path}'`);
         this.socketServers[path] = new WebSocket.Server({ noServer: true });
