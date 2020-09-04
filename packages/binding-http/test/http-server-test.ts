@@ -204,4 +204,51 @@ class HttpServerTest {
     expect(httpServer.getPort()).to.eq(1337); // WOT PORT from test
     await httpServer.stop();
   }
+
+  @test async "should allow HttpServer baseUri to specify url prefix for proxied/gateswayed/buildpack etc "() {
+
+    let theHostname = "wot.w3c.loopback.site:8080";
+    let theBasePath= '/things'
+    let theBaseUri = `http://${theHostname}${theBasePath}`;
+    let httpServer = new HttpServer({
+      baseUri: theBaseUri
+    });
+
+    await httpServer.start(null);
+
+    let testThing = new ExposedThing(null);
+    testThing = Helpers.extend({
+      title: "Smart Coffee Machine",
+      properties: {
+        maintenanceNeeded: {
+          type: "string"
+        }
+      },
+      actions: {
+        makeDrink: {
+          output: {type: "string"}
+        }
+      }
+    }, testThing);
+    testThing.extendInteractions();
+    testThing.properties.maintenanceNeeded.forms = [];
+    testThing.actions.makeDrink.forms = [];
+
+    const td = testThing.getThingDescription()
+
+    await httpServer.expose(testThing);
+
+    let uri = 'http://localhost:8080/smart-coffee-machine' //theBase.concat('/')
+    let body;
+
+    body = await rp.get(uri);
+    //console.debug(JSON.stringify(JSON.parse(body),undefined,2))
+
+    var expected_url = `${theBaseUri}/smart-coffee-machine/actions/makeDrink`
+
+    expect(body).to.include(expected_url);
+    console.log(`Found URL ${expected_url} in TD`)
+
+  }
+
 }
