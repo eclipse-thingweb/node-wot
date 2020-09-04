@@ -3,7 +3,7 @@
     "@type": ["Thing"],
     "id": "urn:dev:wot:com:siemens:festolive:b114",
     "title": "LevelSensorB114",
-    "base": "coap://192.168.0.113:5683/B114/",
+    "base": "coap://192.168.0.113:5683/b114/",
     "securityDefinitions": { "nosec_sc": { "scheme": "nosec" }},
     "security": "nosec_sc",
     "properties": {
