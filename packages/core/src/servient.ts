@@ -52,7 +52,7 @@ export default class Servient {
         this.uncaughtListeners.push(listener)
 
         try {
-            vm.run(code, filename)
+            return vm.run(code, filename)
         } catch (err) {
             this.logScriptError(`Servient found error in privileged script '${filename}'`, err)
         }
@@ -83,7 +83,7 @@ export default class Servient {
         this.uncaughtListeners.push(listener)
 
         try {
-            vm.run(code,filename)
+            return vm.run(code,filename)
         } catch (err) {
             this.logScriptError(`Servient found error in privileged script '${filename}'`,err)
         }
