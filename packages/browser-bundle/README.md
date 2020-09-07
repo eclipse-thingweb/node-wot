@@ -28,7 +28,7 @@ Install browser-bundle in your project by running
 
 ## Example and live demo
 An example of how to use node-wot as a browser-side library can be found under `https://github.com/eclipse/thingweb.node-wot/blob/master/examples/browser/index.html`.
-To run it live, open [`examples/browser/index.html`](http://plugfest.thingweb.io/webui/) in a modern browser, and consume the test Thing available under `http://plugfest.thingweb.io:8083/TestThing` to interact with it.
+To run it live, open [`examples/browser/index.html`](http://plugfest.thingweb.io/webui/) in a modern browser, and consume the test Thing available under `http://plugfest.thingweb.io:8083/testthing` to interact with it.
 
 
 ## More Information

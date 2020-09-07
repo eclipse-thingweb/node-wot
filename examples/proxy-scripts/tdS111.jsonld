@@ -3,7 +3,7 @@
     "@type": ["Thing"],
     "id": "urn:dev:wot:com:siemens:festolive:s111",
     "title": "FloatSensorS111",
-    "base": "coap://192.168.0.111:5683/FloatSensorS111/",
+    "base": "coap://192.168.0.111:5683/floatsensors111/",
     "securityDefinitions": { "nosec_sc": { "scheme": "nosec" }},
     "security": "nosec_sc",
     "properties": {

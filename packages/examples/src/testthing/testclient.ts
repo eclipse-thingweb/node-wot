@@ -44,7 +44,7 @@ async function testPropertyWrite(thing: WoT.ConsumedThing, name: string, value: 
 }
 
 
-WoTHelpers.fetch("http://localhost:8080/TestThing").then( async (td) => {
+WoTHelpers.fetch("http://localhost:8080/testthing").then( async (td) => {
     // using await for serial execution (note 'async' in then() of fetch())
     try {
         let thing = await WoT.consume(td);

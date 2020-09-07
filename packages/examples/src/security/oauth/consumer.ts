@@ -18,7 +18,7 @@ import { Helpers } from "@node-wot/core";
 let WoT: WoT.WoT;
 let WoTHelpers: Helpers;
 
-WoTHelpers.fetch("https://localhost:8080/OAuth").then(td => {
+WoTHelpers.fetch("https://localhost:8080/oauth").then(td => {
 
     WoT.consume(td).then(async thing => {
         try {

@@ -29,7 +29,8 @@
     "@node-wot/core": "0.7.2",
     "rxjs": "5.5.11",
     "coap": "0.23.1",
-    "node-coap-client": "1.0.2"
+    "node-coap-client": "1.0.2",
+    "slugify": "^1.4.5"
   },
   "scripts": {
     "build": "tsc",

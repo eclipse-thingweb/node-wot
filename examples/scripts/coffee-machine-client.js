@@ -15,7 +15,7 @@
 // This is an example of Web of Things consumer ("client" mode) Thing script.
 // It considers a fictional smart coffee machine in order to demonstrate the capabilities of Web of Things.
 // An accompanying tutorial is available at http://www.thingweb.io/smart-coffee-machine.html.
-WoTHelpers.fetch("http://127.0.0.1:8080/Smart-Coffee-Machine").then(async (td) => {
+WoTHelpers.fetch("http://127.0.0.1:8080/smart-coffee-machine").then(async (td) => {
     try {
         let thing = await WoT.consume(td);
         log('Thing Description:', td);

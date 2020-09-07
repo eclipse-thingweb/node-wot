@@ -241,7 +241,7 @@ node packages\cli\dist\cli.js --clientonly examples\scripts\counter-client.js
 
 ### Using a browser
 An example of how to use node-wot as a browser-side library can be found under `examples/browser/index.html`.
-To run it, open [`examples/browser/index.html`](http://plugfest.thingweb.io/webui/) in a modern browser, and consume the test Thing available under `http://plugfest.thingweb.io:8083/TestThing` to interact with it.
+To run it, open [`examples/browser/index.html`](http://plugfest.thingweb.io/webui/) in a modern browser, and consume the test Thing available under `http://plugfest.thingweb.io:8083/testthing` to interact with it.
 
 The JavaScript code that uses node-wot as a library to power this application can be found under: `examples/browser/index.js`
 

@@ -67,7 +67,7 @@ class HttpServerTest {
 
     await httpServer.expose(testThing);
 
-    let uri = `http://localhost:${httpServer.getPort()}/Test/`;
+    let uri = `http://localhost:${httpServer.getPort()}/test/`;
     let body;
 
     console.log("Testing", uri);
@@ -136,6 +136,7 @@ class HttpServerTest {
     });
     await httpServer.start(null);
     let testThing = new ExposedThing(null);
+    testThing.title = "Test";
     testThing.securityDefinitions = {
       "bearer" : {
         scheme:"bearer"
@@ -160,6 +161,7 @@ class HttpServerTest {
     await httpServer.start(null);
     
     let testThing = new ExposedThing(null);
+    testThing.title = "Test";
     testThing.securityDefinitions = {
       "oauth2" : {
         scheme:"oauth2"
