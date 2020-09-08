@@ -255,7 +255,14 @@ wot-servient.conf.json fields:
   THING_IDx       : string with TD "id" for which credentials should be configured
   TOKEN           : string for providing a Bearer token
   USERNAME        : string for providing a Basic Auth username
-  PASSWORD        : string for providing a Basic Auth password`);
+  PASSWORD        : string for providing a Basic Auth password
+  ---------------------------------------------------------------------------
+ 
+Environment variables must be provided in a .env file in the current working directory. 
+
+Example:
+VAR1=Value1
+VAR2=Value2`);
         process.exit(0);
     }
 }
