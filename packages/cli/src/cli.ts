@@ -19,6 +19,7 @@ import DefaultServient from "./cli-default-servient";
 
 // tools
 import fs = require("fs");
+import * as dotenv from 'dotenv';
 import * as path from "path";
 
 const argv = process.argv.slice(2); // remove "node" and executable
@@ -60,7 +61,20 @@ const readConf = function (filename: string): Promise<any> {
     });
 }
 
+const loadEnvVariables = function () {
+    const env = dotenv.config();
+
+    //ignore file not found but throw otherwise
+    if (env.error && (env.error as any).code && (env.error as any).code != "ENOENT") {
+        throw env.error;
+    }
+    return env;
+}
+
 const runScripts =async function(servient: DefaultServient, scripts: Array<string>,debug?: DebugParams) {
+    
+    const env = loadEnvVariables();
+
     const launchScripts = (scripts : Array<string> ) => {
         scripts.forEach((fname : string) => {
             console.info("[cli]","WoT-Servient reading script", fname);
@@ -71,7 +85,7 @@ const runScripts =async function(servient: DefaultServient, scripts: Array<strin
                     // limit printout to first line
                     console.info("[cli]",`WoT-Servient running script '${data.substr(0, data.indexOf("\n")).replace("\r", "")}'... (${data.split(/\r\n|\r|\n/).length} lines)`);
                     fname = path.resolve(fname)
-                    servient.runPrivilegedScript(data, fname,{argv:scriptArgs});
+                    servient.runPrivilegedScript(data, fname,{argv:scriptArgs, env: env.parsed});
                 }
             });
         });
@@ -241,7 +255,14 @@ wot-servient.conf.json fields:
   THING_IDx       : string with TD "id" for which credentials should be configured
   TOKEN           : string for providing a Bearer token
   USERNAME        : string for providing a Basic Auth username
-  PASSWORD        : string for providing a Basic Auth password`);
+  PASSWORD        : string for providing a Basic Auth password
+  ---------------------------------------------------------------------------
+ 
+Environment variables must be provided in a .env file in the current working directory. 
+
+Example:
+VAR1=Value1
+VAR2=Value2`);
         process.exit(0);
     }
 }

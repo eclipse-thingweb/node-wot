@@ -71,7 +71,8 @@ export default class Servient {
             require: {
                 external: true
             },
-            argv: options.argv
+            argv: options.argv,
+            env: options.env
         })
         
         let listener = (err: Error) => {
@@ -274,4 +275,5 @@ export default class Servient {
 
 export interface ScriptOptions {
     argv?:Array<string>;
+    env?:Object;
 }
