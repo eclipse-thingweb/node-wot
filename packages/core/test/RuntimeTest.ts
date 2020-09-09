@@ -62,6 +62,18 @@ class WoTRuntimeTest {
         assert.equal(test,'myArg')
     }
 
+    @test "should use the compiler function"() {
+
+        let envScript = `this is not js`;
+
+        const test = WoTRuntimeTest.servient.runPrivilegedScript(envScript, undefined, { 
+            compiler: ()=>{
+                return "module.exports = 'ok'"
+            }
+        })
+        assert.equal(test,'ok')
+    }
+
     @test "should catch synchronous errors"() {
 
         let failNowScript = `throw new Error("Synchronous error in Servient sandbox");`;
