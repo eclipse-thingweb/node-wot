@@ -32,7 +32,8 @@
     "@node-wot/binding-file": "0.7.2",
     "@node-wot/binding-http": "0.7.2",
     "@node-wot/binding-websockets": "0.7.2",
-    "@node-wot/binding-mqtt": "0.7.2"
+    "@node-wot/binding-mqtt": "0.7.2",
+    "dotenv": "^8.2.0"
   },
   "scripts": {
     "build": "tsc",

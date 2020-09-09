@@ -72,7 +72,8 @@ export default class Servient {
                 external: true
             },
             argv: options.argv,
-            compiler: options.compiler
+            compiler: options.compiler,
+            env: options.env
         })
         
         let listener = (err: Error) => {
@@ -276,4 +277,5 @@ export default class Servient {
 export interface ScriptOptions {
     argv?:Array<string>;
     compiler?: CompilerFunction;
+    env?:Object;
 }
