@@ -63,6 +63,16 @@ export default class HttpServer implements ProtocolServer {
     if (config.port !== undefined) {
       this.port = config.port;
     }
+
+    const environmentObj = ['WOT_PORT', 'PORT' ]
+        .map(envVar => { return { key: envVar, value: process.env[envVar] } })
+        .find( envObj => envObj.value != null )
+
+    if ( environmentObj ) {
+      console.info("[binding-http]", `HttpServer Port Overridden to ${environmentObj.value} by Environment Variable ${environmentObj.key}`)
+      this.port = +environmentObj.value
+    }
+
     if (config.address !== undefined) {
       this.address = config.address;
     }
@@ -128,7 +138,7 @@ export default class HttpServer implements ProtocolServer {
         });
         resolve();
       });
-      this.server.listen(+process.env.PORT || this.port, this.address);
+      this.server.listen(this.port, this.address);
     });
   }
 
