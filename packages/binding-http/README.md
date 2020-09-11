@@ -160,6 +160,17 @@ The protocol binding can be configured using his constructor or trough servient 
 ```
 When both `serverKey` and `serverCert` are defined the server is started in `https` mode. Examples of `serverKey` and `serverCert` can be found [here](../../examples/security). Moreover, when a security schema is provided the servient must be also configured with valid credentials both client and server side. See [Security](#Security) for further details.
 
+### Environment Variable Overrides
+HttpServer will check the environment variables `WOT_PORT`, then `PORT`.  If either are set, they will override the port the HttpServer will bind to.  
+
+You'll see log entries indicating this:
+
+`[binding-http] HttpServer Port Overridden to 1337 by Environment Variable WOT_PORT`
+
+These are useful on Heroku, Dokku, buildpack deployment, or Docker, etc.
+
+> `WOT_PORT` takes higher precedence than `PORT`
+
 ### HttpProxyConfig
 ```ts
 {
