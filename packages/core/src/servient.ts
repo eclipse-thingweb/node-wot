@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import {NodeVM} from "vm2";
+import {NodeVM, CompilerFunction} from "vm2";
 
 import * as WoT from "wot-typescript-definitions";
 
@@ -72,6 +72,7 @@ export default class Servient {
                 external: true
             },
             argv: options.argv,
+            compiler: options.compiler,
             env: options.env
         })
         
@@ -275,5 +276,6 @@ export default class Servient {
 
 export interface ScriptOptions {
     argv?:Array<string>;
+    compiler?: CompilerFunction;
     env?:Object;
 }

@@ -29,6 +29,8 @@ const baseDir = ".";
 var clientOnly: boolean = false;
 
 var flagArgConfigfile = false;
+var flagArgCompilerModule = false;
+var compilerModule:string;
 var flagScriptArgs = false;
 var scriptArgs:Array<string> = [];
 var confFile: string;
@@ -61,6 +63,21 @@ const readConf = function (filename: string): Promise<any> {
     });
 }
 
+const loadCompilerFunction = function (compilerModule: string | undefined){
+    if (compilerModule) {
+       
+        const compilerMod = require(compilerModule);   
+        
+        if(!compilerMod.create){ throw new Error("No create function defined for "+ compilerModule);}
+
+        const compilerObject = compilerMod.create()
+
+        if (!compilerObject.compile) { throw new Error("No compile function defined for create return object"); }
+        return compilerObject.compile
+    }
+    return undefined
+}
+
 const loadEnvVariables = function () {
     const env = dotenv.config();
 
@@ -76,6 +93,7 @@ const runScripts =async function(servient: DefaultServient, scripts: Array<strin
     const env = loadEnvVariables();
 
     const launchScripts = (scripts : Array<string> ) => {
+        const compile = loadCompilerFunction(compilerModule);
         scripts.forEach((fname : string) => {
             console.info("[cli]","WoT-Servient reading script", fname);
             fs.readFile(fname, "utf8", (err, data) => {
@@ -84,8 +102,13 @@ const runScripts =async function(servient: DefaultServient, scripts: Array<strin
                 } else {
                     // limit printout to first line
                     console.info("[cli]",`WoT-Servient running script '${data.substr(0, data.indexOf("\n")).replace("\r", "")}'... (${data.split(/\r\n|\r|\n/).length} lines)`);
+
                     fname = path.resolve(fname)
-                    servient.runPrivilegedScript(data, fname,{argv:scriptArgs, env: env.parsed});
+                    servient.runPrivilegedScript(data, fname,{
+                        argv: scriptArgs,
+                        env: env.parsed,
+                        compiler: compile
+                        });
                 }
             });
         });
@@ -155,7 +178,12 @@ for( let i = 0; i < argv.length; i++){
         scriptArgs.push(argv[i])
         argv.splice(i, 1);
         i--;
-    }else if (argv[i] === "--") {
+    } else if (flagArgCompilerModule) {
+        flagArgCompilerModule = false;
+        compilerModule = argv[i]
+        argv.splice(i, 1);
+        i--;
+    } else if (argv[i] === "--") {
         // next args are script args
         flagScriptArgs = true;
         argv.splice(i, 1);
@@ -165,6 +193,10 @@ for( let i = 0; i < argv.length; i++){
         argv.splice(i, 1);
         i--;
     
+    } else if (argv[i].match(/^(-cp|--compiler|\/cp)$/i)) {
+        flagArgCompilerModule = true;
+        argv.splice(i, 1);
+        i--;
     } else if (argv[i].match(/^(-f|--configfile|\/f)$/i)) {
         flagArgConfigfile = true;
         argv.splice(i, 1);
@@ -204,6 +236,9 @@ Options:
   -ib, --inspect-brk[=[host:]port] activate inspector on host:port and break at start of user script
   -c,  --clientonly                do not start any servers
                                    (enables multiple instances without port conflicts)
+  -cp,  --compiler <module>        load module as a compiler 
+                                   (The module must export a create function which returns
+                                    an object with a compile method)
   -f,  --configfile <file>         load configuration from specified file
   -h,  --help                      show this help
 

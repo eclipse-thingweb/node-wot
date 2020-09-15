@@ -23,6 +23,9 @@
     "typescript": "3.7.5",
     "typescript-standard": "0.3.36"
   },
+  "optionalDependencies": {
+    "ts-node": "^8.6.2"
+  },
   "dependencies": {
     "@node-wot/core": "0.7.2",
     "@node-wot/binding-coap": "0.7.2",

@@ -62,6 +62,18 @@ class WoTRuntimeTest {
         assert.equal(test,'myArg')
     }
 
+    @test "should use the compiler function"() {
+
+        let envScript = `this is not js`;
+
+        const test = WoTRuntimeTest.servient.runPrivilegedScript(envScript, undefined, { 
+            compiler: ()=>{
+                return "module.exports = 'ok'"
+            }
+        })
+        assert.equal(test,'ok')
+    }
+
     @test "should provide env variables"() {
 
         let envScript = `module.exports = process.env.MY_VAR`;
@@ -69,6 +81,7 @@ class WoTRuntimeTest {
         const test = WoTRuntimeTest.servient.runPrivilegedScript(envScript, undefined, { env:{'MY_VAR':'test'} })
         assert.equal(test, 'test')
     }
+    
     @test "should hide system env variables"() {
 
         let envScript = `module.exports = process.env.OS`;
