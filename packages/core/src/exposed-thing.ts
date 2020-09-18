@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -161,6 +161,10 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     readProperty(propertyName: string, options?: WoT.InteractionOptions): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             if (this.properties[propertyName]) {
+                if(this.properties[propertyName].writeOnly && this.properties[propertyName].writeOnly === true) {
+                    reject(new Error(`ExposedThing '${this.title}', property '${propertyName}' is writeOnly`));
+                }
+
                 // call read handler (if any)
                 if (this.properties[propertyName].getState().readHandler != null) {
                     console.debug("[core/exposed-thing]",`ExposedThing '${this.title}' calls registered readHandler for Property '${propertyName}'`);
@@ -175,7 +179,6 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             } else {
                 reject(new Error(`ExposedThing '${this.title}', no property found for '${propertyName}'`));
             }
-
         });
     }
 
@@ -219,40 +222,54 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 
     writeProperty(propertyName: string, value: any, options?: WoT.InteractionOptions): Promise<void> {
         return new Promise<void>((resolve, reject) => {
-            // call write handler (if any)
-            if (this.properties[propertyName].getState().writeHandler != null) {
+            if (this.properties[propertyName]) {
+                if (this.properties[propertyName].readOnly && this.properties[propertyName].readOnly === true) {
+                    reject(new Error(`ExposedThing '${this.title}', property '${propertyName}' is readOnly`));
+                }
 
-                // be generous when no promise is returned
-                let ps: PropertyState = this.properties[propertyName].getState();
-                let promiseOrValueOrNil = ps.writeHandler(value, options);
+                // call write handler (if any)
+                if (this.properties[propertyName].getState().writeHandler != null) {
 
-                if (promiseOrValueOrNil !== undefined) {
-                    if (typeof promiseOrValueOrNil.then === "function") {
-                        promiseOrValueOrNil.then((customValue) => {
-                            console.debug("[core/exposed-thing]",`ExposedThing '${this.title}' write handler for Property '${propertyName}' sets custom value '${customValue}'`);
-                            /** notify state change */
-                            // FIXME object comparison
-                            if (this.properties[propertyName].getState().value !== customValue) {
-                                this.properties[propertyName].getState().subject.next(customValue);
+                    // be generous when no promise is returned
+                    let ps: PropertyState = this.properties[propertyName].getState();
+                    let promiseOrValueOrNil = ps.writeHandler(value, options);
+
+                    if (promiseOrValueOrNil !== undefined) {
+                        if (typeof promiseOrValueOrNil.then === "function") {
+                            promiseOrValueOrNil.then((customValue) => {
+                                console.debug("[core/exposed-thing]", `ExposedThing '${this.title}' write handler for Property '${propertyName}' sets custom value '${customValue}'`);
+                                /** notify state change */
+                                // FIXME object comparison
+                                if (this.properties[propertyName].getState().value !== customValue) {
+                                    this.properties[propertyName].getState().subject.next(customValue);
+                                }
+                                this.properties[propertyName].getState().value = customValue;
+                                resolve();
+                            })
+                                .catch((customError) => {
+                                    console.warn("[core/exposed-thing]", `ExposedThing '${this.title}' write handler for Property '${propertyName}' rejected the write with error '${customError}'`);
+                                    reject(customError);
+                                });
+                        } else {
+                            console.warn("[core/exposed-thing]", `ExposedThing '${this.title}' write handler for Property '${propertyName}' does not return promise`);
+                            if (this.properties[propertyName].getState().value !== promiseOrValueOrNil) {
+                                this.properties[propertyName].getState().subject.next(<any>promiseOrValueOrNil);
                             }
-                            this.properties[propertyName].getState().value = customValue;
+                            this.properties[propertyName].getState().value = <any>promiseOrValueOrNil;
                             resolve();
-                        })
-                            .catch((customError) => {
-                                console.warn("[core/exposed-thing]",`ExposedThing '${this.title}' write handler for Property '${propertyName}' rejected the write with error '${customError}'`);
-                                reject(customError);
-                            });
-                    } else {
-                        console.warn("[core/exposed-thing]",`ExposedThing '${this.title}' write handler for Property '${propertyName}' does not return promise`);
-                        if (this.properties[propertyName].getState().value !== promiseOrValueOrNil) {
-                            this.properties[propertyName].getState().subject.next(<any>promiseOrValueOrNil);
                         }
-                        this.properties[propertyName].getState().value = <any>promiseOrValueOrNil;
+                    } else {
+                        console.warn("[core/exposed-thing]", `ExposedThing '${this.title}' write handler for Property '${propertyName}' does not return custom value, using direct value '${value}'`);
+
+                        if (this.properties[propertyName].getState().value !== value) {
+                            this.properties[propertyName].getState().subject.next(value);
+                        }
+                        this.properties[propertyName].getState().value = value;
                         resolve();
                     }
                 } else {
-                    console.warn("[core/exposed-thing]",`ExposedThing '${this.title}' write handler for Property '${propertyName}' does not return custom value, using direct value '${value}'`);
-
+                    console.debug("[core/exposed-thing]", `ExposedThing '${this.title}' directly sets Property '${propertyName}' to value '${value}'`);
+                    /** notify state change */
                     if (this.properties[propertyName].getState().value !== value) {
                         this.properties[propertyName].getState().subject.next(value);
                     }
@@ -260,13 +277,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                     resolve();
                 }
             } else {
-                console.debug("[core/exposed-thing]",`ExposedThing '${this.title}' directly sets Property '${propertyName}' to value '${value}'`);
-                /** notify state change */
-                if (this.properties[propertyName].getState().value !== value) {
-                    this.properties[propertyName].getState().subject.next(value);
-                }
-                this.properties[propertyName].getState().value = value;
-                resolve();
+                reject(new Error(`ExposedThing '${this.title}', no property found for '${propertyName}'`));
             }
         });
     }

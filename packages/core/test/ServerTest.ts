@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -22,6 +22,7 @@
 
 import { suite, test, slow, timeout, skip, only } from "mocha-typescript";
 import { expect, should } from "chai";
+import { fail } from "assert";
 // should must be called to augment all variables
 should();
 
@@ -132,11 +133,69 @@ class WoTServerTest {
         let value1 = await thing.readProperty("number");
         expect(value1).to.equal(1);
 
+        let readUnknownPossible = false;
         try {
             await thing.readProperty("numberUnknwon")
-            throw("unknown property should throw error");
+            readUnknownPossible = true;
         } catch(e) {
             // as expected
+        }
+        if (readUnknownPossible) {
+            fail("unknown property should throw error");
+        }
+    }
+
+    @test async "should not be able to read property with writeOnly"() {
+        let thing = await WoTServerTest.WoT.produce({
+            title: "ThingWithWriteOnly",
+            properties: {
+                numberWriteOnly: {
+                    type: "number",
+                    writeOnly: true
+                }
+            }
+        });
+        await thing.writeProperty("numberWriteOnly", 1);
+
+        let readingPossible = false;
+        try {
+            await thing.readProperty("numberWriteOnly");
+            readingPossible = true;
+        } catch (e) {
+            // as expected
+        }
+        if (readingPossible) {
+            fail("reading property 'numberWriteOnly' should throw error")
+        }
+    }
+
+    @test async "should not be able to write property with readOnly"() {
+        let thing = await WoTServerTest.WoT.produce({
+            title: "ThingWithReadOnly",
+            properties: {
+                numberReadOnly: {
+                    type: "number",
+                    readOnly: true
+                }
+            }
+        });
+        thing.setPropertyReadHandler("numberReadOnly", () => {
+            return new Promise((resolve, reject) => {
+                resolve(213);
+            });
+        })
+        let val = await thing.readProperty("numberReadOnly");
+        expect(val === 213);
+        
+        let readingPossible = false;
+        try {
+            await thing.writeProperty("numberReadOnly", 1);
+            readingPossible = true;
+        } catch (e) {
+            // as expected
+        }
+        if (readingPossible) {
+            fail("writing property 'numberReadOnly' should throw error")
         }
     }
 
@@ -175,11 +234,16 @@ class WoTServerTest {
         expect(thing).to.have.property("properties").to.have.property("string").to.have.property("readOnly").that.equals(false);
         expect(thing).to.have.property("properties").to.have.property("string").to.have.property("observable").that.equals(false);
 
+        let expectUnknownProperty = false;
         try {
             expect(thing).to.have.property("properties").to.have.property("number");
-            throw ("no property number");
+            expectUnknownProperty = true;
+            
         } catch(e) {
             // no property "number"
+        }
+        if (expectUnknownProperty) {
+            fail("no property number");
         }
 
         let value1 = await thing.readProperty("string");
