@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Smart Coffee Machine</title>
+    <!-- Foundation CSS framework -->
+    <link rel='stylesheet' href='https://cdn.jsdelivr.net/foundation/5.5.3/css/foundation.min.css'>
+    <!-- Font Awesome icons -->
+    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.0.3/css/font-awesome.css'>
+
+    <!-- defer to not block rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/@json-editor/json-editor@latest/dist/jsoneditor.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@node-wot/browser-bundle@latest/dist/wot-bundle.min.js" defer></script>
+    <script src="coffee-machine.js" defer></script>
+    
+    <style>
+      h1 {
+        margin-top: 1rem;
+      }
+      .row {
+        margin-top: 2rem;
+      }
+      #properties pre {
+        white-space: pre-wrap;
+        font-size: 14px;
+      }
+      .property-value {
+        font-weight: bold;
+      }
+    </style>
+
+  </head>
+  <body>
+    <h1 class="text-center">Smart Coffee Machine</h1>
+    <div class="row">
+      <div class="medium-6 column text-center">
+        <img src="images/coffee-161112.svg" alt="Coffee machine picture" width="280" height="271">
+      </div>
+      <div class="medium-6 column">
+        <p>This is a simulated smart coffee machine with a range of capabilities. It is exposed as a virtual Thing
+          to demonstrate the capabilities of Web of Things and, particularly, the <a href="https://github.com/eclipse/thingweb.node-wot">node-wot</a> runtime environment. 
+        </p>
+        <p>More details on the coffee machine usage can be found at
+          <a href="http://www.thingweb.io/smart-coffee-machine.html" target="_blank">http://www.thingweb.io/smart-coffee-machine.html</a>.
+        </p>
+        <p>
+          The Thing Description for the coffee machine is available at
+          <a href="http://plugfest.thingweb.io:8083/smart-coffee-machine" target="_blank">http://plugfest.thingweb.io:8083/smart-coffee-machine</a>.
+        </p>
+      </div>
+    </div>
+    <div class="row" id="properties">
+      <div class="column">
+        <h4>Property Live Monitor</h4>
+        <table>
+          <thead>
+            <tr>
+              <th width="350">Name</th>
+              <th width="650">Value</th>
+            </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </body>
+</html>
