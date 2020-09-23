@@ -28,7 +28,7 @@ Useful labels:
 - [How to use the library](#how-to-use-the-library)
   * [The API](#the-api)
   * [Logging](#logging)
-  * [Install new/different versions of NodeJS](#install-new-different-versions-of-nodejs)
+  * [Install new/different versions of NodeJS](#install-newdifferent-versions-of-nodejs)
   
 
 ## License
