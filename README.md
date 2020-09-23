@@ -310,7 +310,7 @@ The JavaScript code that uses node-wot as a library to power this application ca
 This library implements the WoT Scripting API:
 
 * [Editors Draft](w3c.github.io/wot-scripting-api/) in [master](https://github.com/eclipse/thingweb.node-wot)
-* [Working Draft](https://www.w3.org/TR/wot-scripting-api/) corresponding to node-wot release versions ([v0.3.0](https://github.com/thingweb/node-wot/releases/tag/v0.3.0) for FPWD, [v0.4.0](https://github.com/thingweb/node-wot/releases/tag/v0.4.0) for WD-2018-04-05, [v0.5.0](https://github.com/eclipse/thingweb.node-wot/releases/tag/v0.5.0) for WD-2018-10-??)
+* [Working Draft](https://www.w3.org/TR/wot-scripting-api/) corresponding to node-wot [release versions](https://github.com/eclipse/thingweb.node-wot/releases)
 
 You can also see `examples/scripts` to have a feeling of how to script a Thing.
 
