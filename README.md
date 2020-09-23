@@ -12,7 +12,7 @@ Useful labels:
 ### Table of Contents
 <!-- https://ecotrust-canada.github.io/markdown-toc/ -->
 - [License](#license)
-- [Implemented/supported features](#implemented-supported-features)
+- [Implemented/supported features](#implementedsupported-features)
   * [Protocol Support](#protocol-support)
   * [MediaType Support](#mediatype-support)
 - [Prerequisites](#prerequisites)
