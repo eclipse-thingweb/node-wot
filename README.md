@@ -10,11 +10,26 @@ Useful labels:
 [![Build Status](https://travis-ci.org/eclipse/thingweb.node-wot.svg?branch=master)](https://travis-ci.org/eclipse/thingweb.node-wot)
 
 ### Table of Contents
+<!-- https://ecotrust-canada.github.io/markdown-toc/ -->
 - [License](#license)
+- [Implemented/supported features](#implemented-supported-features)
+  * [Protocol Support](#protocol-support)
+  * [MediaType Support](#mediatype-support)
 - [Prerequisites](#prerequisites)
+  * [To use with Node.js](#to-use-with-nodejs)
+  * [To use in a browser](#to-use-in-a-browser)
 - [How to get the library](#how-to-get-the-library)
-- [Start with an example](#no-time-for-explanations---show-me-a-running-example)
+  * [As a Node.js dependency](#as-a-nodejs-dependency)
+  * [As a standalone application](#as-a-standalone-application)
+  * [As a browser library](#as-a-browser-library)
+- [No time for explanations - show me a running example!](#no-time-for-explanations---show-me-a-running-example-)
+  * [Using Node.js](#using-nodejs)
+  * [Using a browser](#using-a-browser)
 - [How to use the library](#how-to-use-the-library)
+  * [The API](#the-api)
+  * [Logging](#logging)
+  * [Install new/different versions of NodeJS](#install-new-different-versions-of-nodejs)
+  
 
 ## License
 Dual-licensed under both
