@@ -25,6 +25,50 @@ Dual-licensed under both
 Pick one of these two licenses that fits your needs.
 Please also see the additional [notices](NOTICE.md) and [how to contribute](CONTRIBUTING.md).
 
+
+## Implemented/supported features
+
+### Protocol Support
+
+* [HTTP](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-http/README.md) :heavy_check_mark:
+* [HTTPS](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-http/README.md) :heavy_check_mark:
+* [CoAP](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-coap/README.md) :heavy_check_mark:
+* [CoAPS](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-coap/README.md) :heavy_check_mark:
+* [MQTT](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-mqtt/README.md) :heavy_check_mark:
+* [Websocket](https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-websockets) :heavy_plus_sign: (Server only)
+* [OPC-UA](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-opcua/README.md) :heavy_plus_sign: (Client only)
+* [NETCONF](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-netconf/README.md) :heavy_plus_sign: (Client only)
+* [Modbus](https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-modbus) :heavy_plus_sign: (Client only)
+
+Note: More protocols can be easily added by implementing `ProtocolClient`, `ProtocolClientFactory`, and `ProtocolServer` interface.
+
+### MediaType Support
+
+* JSON :heavy_check_mark:
+* Text (HTML, CSS, XML, SVG) :heavy_check_mark:
+* Base64 (PNG, JPEG, GIF) :heavy_check_mark:
+* Octet stream :heavy_check_mark:
+* CBOR :timer_clock:
+* EXI :timer_clock:
+
+Note: More mediaTyes can be easily added by implementing `ContentCodec` interface.
+
+```JavaScript
+const ContentSerdes = require('@node-wot/core').ContentSerdes
+const JsonCodec = require('@node-wot/core').JsonCodec
+
+// e.g., assign built-in codec for *new* contentType 
+let cs = ContentSerdes.get();
+cs.addCodec(new JsonCodec("application/calendar+json"));
+
+// e.g., assign *own* MyCodec implementation (implementing ContentCodec interface)
+cs.addCodec(new MyCodec("application/myType"));
+
+```
+
+
+
+
 ## Prerequisites
 ### To use with Node.js
 All systems require:
@@ -255,81 +299,6 @@ This library implements the WoT Scripting API:
 
 You can also see `examples/scripts` to have a feeling of how to script a Thing.
 
-### Implemented/supported features
-
-<!--
-* [`WoT`](https://www.w3.org/TR/2017/WD-wot-scripting-api-20170914/#the-wot-object) object
-  * `discover` :heavy_multiplication_x:
-  * `consume` :heavy_check_mark:
-  * `expose` :heavy_check_mark:
-  
-* [`ConsumedThing`](https://www.w3.org/TR/2017/WD-wot-scripting-api-20170914/#the-consumedthing-interface) interface
-  * `invokeAction` :heavy_check_mark:
-  * `setProperty` :heavy_check_mark:
-  * `getProperty` :heavy_check_mark:
-  
-  * `addListener` :heavy_multiplication_x:
-  * `removeListener` :heavy_multiplication_x:
-  * `removeAllListeners` :heavy_multiplication_x:
-  * `observe` :heavy_multiplication_x:
-
-* [`ExposedThing`](https://www.w3.org/TR/2017/WD-wot-scripting-api-20170914/#the-exposedthing-interface) interface
-  * `addProperty` :heavy_check_mark:
-  * `removeProperty` :heavy_check_mark:
-  * `addAction` :heavy_check_mark:
-  * `removeAction` :heavy_check_mark:
-  * `addEvent` :heavy_check_mark:
-  * `removeEvent` :heavy_check_mark:
-  
-  * `onRetrieveProperty` :heavy_check_mark:
-  * `onUpdateProperty` :heavy_check_mark:
-  * `onInvokeAction` :heavy_check_mark:
-  * `onObserve` :heavy_multiplication_x:
-  
-  * `register` :heavy_multiplication_x:
-  * `unregister` :heavy_multiplication_x:
-  * `start` :heavy_multiplication_x:
-  * `stop` :heavy_multiplication_x:
-  * `emitEvent` :heavy_multiplication_x:
--->
-
-#### Protocol Support
-
-* [HTTP](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-http/README.md) :heavy_check_mark:
-* [HTTPS](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-http/README.md) :heavy_check_mark:
-* [CoAP](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-coap/README.md) :heavy_check_mark:
-* [CoAPS](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-coap/README.md) :heavy_check_mark:
-* [MQTT](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-mqtt/README.md) :heavy_check_mark:
-* [Websocket](https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-websockets) :heavy_plus_sign: (Server only)
-* [OPC-UA](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-opcua/README.md) :heavy_plus_sign: (Client only)
-* [NETCONF](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-netconf/README.md) :heavy_plus_sign: (Client only)
-* [Modbus](https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-modbus) :heavy_plus_sign: (Client only)
-
-Note: More protocols can be easily added by implementing `ProtocolClient`, `ProtocolClientFactory`, and `ProtocolServer` interface.
-
-#### MediaType Support
-
-* JSON :heavy_check_mark:
-* Text (HTML, CSS, XML, SVG) :heavy_check_mark:
-* Base64 (PNG, JPEG, GIF) :heavy_check_mark:
-* Octet stream :heavy_check_mark:
-* CBOR :heavy_multiplication_x:
-* EXI :heavy_multiplication_x:
-
-Note: More mediaTyes can be easily added by implementing `ContentCodec` interface.
-
-```JavaScript
-const ContentSerdes = require('@node-wot/core').ContentSerdes
-const JsonCodec = require('@node-wot/core').JsonCodec
-
-// e.g., assign built-in codec for *new* contentType 
-let cs = ContentSerdes.get();
-cs.addCodec(new JsonCodec("application/calendar+json"));
-
-// e.g., assign *own* MyCodec implementation (implementing ContentCodec interface)
-cs.addCodec(new MyCodec("application/myType"));
-
-```
 
 ### Logging
 
