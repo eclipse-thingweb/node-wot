@@ -23,7 +23,7 @@ let WoT:WoT.WoT;
 
 WoT.produce({
     title: 'Smart-Coffee-Machine',
-    id: 'urn:dev:wot:example:coffee-machine',
+    id: 'urn:dev:wot:example:smart-coffee-machine',
     description: `A smart coffee machine with a range of capabilities.
 A complementary tutorial is available at http://www.thingweb.io/smart-coffee-machine.html.`,
     support: 'git://github.com/eclipse/thingweb.node-wot.git',
