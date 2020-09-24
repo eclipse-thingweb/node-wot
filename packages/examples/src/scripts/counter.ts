@@ -15,7 +15,7 @@
 
 import "wot-typescript-definitions"
 
-let WoT:WoT.WoT;
+let WoT: WoT.WoT;
 
 // This is an example Thing script. 
 // It has a count property that can be incremented or decremented via actions and its changes are reported via events.
@@ -25,6 +25,9 @@ let WoT:WoT.WoT;
 // * uriVariables
 // * multi-language
 // * image contentTypes for properties (Note: the contentType applies to all forms of the property)
+
+let count: number;
+let lastChange: string;
 
 WoT.produce({
 	title: "counter",
@@ -40,7 +43,7 @@ WoT.produce({
 		"it": "Contatore Esempio"
 	},
 	support: "git://github.com/eclipse/thingweb.node-wot.git",
-	"@context": ["https://www.w3.org/2019/wot/td/v1", {"iot": "http://example.org/iot"}],
+	"@context": ["https://www.w3.org/2019/wot/td/v1", { "iot": "http://example.org/iot" }],
 	properties: {
 		count: {
 			type: "integer",
@@ -62,8 +65,8 @@ WoT.produce({
 			observable: false,
 			readOnly: true,
 			uriVariables: {
-                fill: { "type": "string" }
-            }
+				fill: { "type": "string" }
+			}
 		},
 		redDotImage: {
 			description: "Red dot image as PNG",
@@ -77,7 +80,7 @@ WoT.produce({
 			type: "string",
 			description: "last change of counter value",
 			descriptions: {
-				"en":"last change of counter value",
+				"en": "last change of counter value",
 				"de": "Letzte Änderung",
 				"it": "ultima modifica del valore"
 			},
@@ -94,7 +97,7 @@ WoT.produce({
 				"it": "incrementare valore"
 			},
 			uriVariables: {
-				step: { "type": "integer", "minimum": 1, "maximum": 250}
+				step: { "type": "integer", "minimum": 1, "maximum": 250 }
 			}
 		},
 		decrement: {
@@ -105,7 +108,7 @@ WoT.produce({
 				"it": "decrementare valore"
 			},
 			uriVariables: {
-				step: { "type": "integer", "minimum": 1, "maximum": 250}
+				step: { "type": "integer", "minimum": 1, "maximum": 250 }
 			}
 		},
 		reset: {
@@ -128,20 +131,31 @@ WoT.produce({
 		}
 	}
 })
-.then((thing) => {
-	console.log("Produced " + thing.getThingDescription().title);
-	
-	// init property values
-	thing.writeProperty("count", 0);
-	thing.writeProperty("lastChange", (new Date()).toISOString());
-	thing.setPropertyReadHandler("countAsImage", (options) => {
-		return thing.readProperty("count").then((count) => {
+	.then((thing) => {
+		console.log("Produced " + thing.getThingDescription().title);
+
+		// init property values
+		count = 0;
+		lastChange = (new Date()).toISOString();
+
+		// set property handlers
+		thing.setPropertyReadHandler("count", () => {
+			return new Promise((resolve, reject) => {
+				resolve(count);
+			});
+		});
+		thing.setPropertyReadHandler("lastChange", () => {
+			return new Promise((resolve, reject) => {
+				resolve(lastChange);
+			});
+		});
+		thing.setPropertyReadHandler("countAsImage", (options) => {
 			return new Promise((resolve, reject) => {
 				let fill = "black";
-				if(options && typeof options === 'object' && 'uriVariables' in options) {
+				if (options && typeof options === 'object' && 'uriVariables' in options) {
 					console.log("options = " + JSON.stringify(options))
-					if('fill' in options['uriVariables']) {
-						let uriVariables : any = options['uriVariables'];
+					if ('fill' in options['uriVariables']) {
+						let uriVariables: any = options['uriVariables'];
 						fill = uriVariables['fill'];
 					}
 				}
@@ -150,62 +164,63 @@ WoT.produce({
 					"</svg>");
 			});
 		});
-	});
-	thing.setPropertyReadHandler("redDotImage", () => {
-		return new Promise((resolve, reject) => {
-			// data:image/png;base64,
-			resolve("iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==");
+		thing.setPropertyReadHandler("redDotImage", () => {
+			return new Promise((resolve, reject) => {
+				// data:image/png;base64,
+				resolve("iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==");
+			});
 		});
-	});
-	
-	// set action handlers
-	thing.setActionHandler("increment", (params, options) => {
-		return thing.readProperty("count").then( (count) => {
-			let step = 1;
-			if(options && typeof options === 'object' && 'uriVariables' in options) {
-				console.log("options = " + JSON.stringify(options))
-				if('step' in options['uriVariables']) {
-					let uriVariables : any = options['uriVariables'];
-					step = uriVariables['step'];
+
+		// set action handlers
+		thing.setActionHandler("increment", (params, options) => {
+			return new Promise((resolve, reject) => {
+				let step = 1;
+				if (options && typeof options === 'object' && 'uriVariables' in options) {
+					console.log("options = " + JSON.stringify(options))
+					if ('step' in options['uriVariables']) {
+						let uriVariables: any = options['uriVariables'];
+						step = uriVariables['step'];
+					}
 				}
-			}
-			let value = count + step;
-			console.log("Incrementing count from " + count + " to " + value + " (with step " + step + ")");
-			thing.writeProperty("count", value);
-			thing.writeProperty("lastChange", (new Date()).toISOString());
-			thing.emitEvent("change", value);
+				let newValue = count + step;
+				console.log("Incrementing count from " + count + " to " + newValue + " (with step " + step + ")");
+				count = newValue;
+				lastChange = (new Date()).toISOString();
+				thing.emitEvent("change", count);
+				resolve();
+			});
 		});
-	});
-	thing.setActionHandler("decrement", (params, options) => {
-		return thing.readProperty("count").then( (count) => {
-			let step = 1;
-			if(options && typeof options === 'object' && 'uriVariables' in options) {
-				console.log("options = " + JSON.stringify(options))
-				if('step' in options['uriVariables']) {
-					let uriVariables : any = options['uriVariables'];
-					step = uriVariables['step'];
+		thing.setActionHandler("decrement", (params, options) => {
+			return new Promise((resolve, reject) => {
+				let step = 1;
+				if (options && typeof options === 'object' && 'uriVariables' in options) {
+					console.log("options = " + JSON.stringify(options))
+					if ('step' in options['uriVariables']) {
+						let uriVariables: any = options['uriVariables'];
+						step = uriVariables['step'];
+					}
 				}
-			}
-			let value = count - step;
-			console.log("Decrementing count from " + count + " to " + value + " (with step " + step + ")");
-			thing.writeProperty("count", value); 
-			thing.writeProperty("lastChange", (new Date()).toISOString()); 
-			thing.emitEvent("change", value);
+				let newValue = count - step;
+				console.log("Decrementing count from " + count + " to " + newValue + " (with step " + step + ")");
+				count = newValue;
+				lastChange = (new Date()).toISOString();
+				thing.emitEvent("change", count);
+				resolve();
+			});
 		});
-	});
-	thing.setActionHandler("reset", () => {
-		return new Promise<any>((resolve, reject) => {
-			console.log("Resetting count");
-			thing.writeProperty("count", 0); 
-			thing.writeProperty("lastChange", (new Date()).toISOString());
-			thing.emitEvent("change", 0);
-			resolve();
+		thing.setActionHandler("reset", () => {
+			return new Promise<any>((resolve, reject) => {
+				console.log("Resetting count");
+				count = 0;
+				lastChange = (new Date()).toISOString();
+				thing.emitEvent("change", count);
+				resolve();
+			});
 		});
+
+		// expose the thing
+		thing.expose().then(() => { console.info(thing.getThingDescription().title + " ready"); });
+	})
+	.catch((e) => {
+		console.log(e)
 	});
-	
-	// expose the thing
-	thing.expose().then( () => { console.info(thing.getThingDescription().title + " ready"); } );
-})
-.catch((e) => {
-	console.log(e)
-});
