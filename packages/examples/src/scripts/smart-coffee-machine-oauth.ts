@@ -263,41 +263,38 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
     // Override a write handler for availableResourceLevel property,
     // utilizing the uriVariables properly
     thing.setPropertyWriteHandler('availableResourceLevel', (val, options) => {
-
-        // Check if uriVariables are provided
-        if (options && typeof options === 'object' && 'uriVariables' in options) {
-            const uriVariables: any = options['uriVariables'];
-            if ('id' in uriVariables) {
-                return thing.readProperty('allAvailableResources').then((resources) => {
-                    const id = uriVariables['id'];
-                    resources[id] = val;
-                    return thing.writeProperty('allAvailableResources', resources);
-                });
-            }
-        }
         return new Promise((resolve, reject) => {
-            resolve('Please specify id variable as uriVariables.');
+            // Check if uriVariables are provided
+            if (options && typeof options === 'object' && 'uriVariables' in options) {
+                const uriVariables: any = options['uriVariables'];
+                if ('id' in uriVariables) {
+                    return thing.readProperty('allAvailableResources').then((resources) => {
+                        const id = uriVariables['id'];
+                        resources[id] = val;
+                        thing.writeProperty('allAvailableResources', resources);
+                        resolve();
+                    });
+                }
+            }
+            reject('Please specify id variable as uriVariables.');
         });
     });
 
     // Override a read handler for availableResourceLevel property,
     // utilizing the uriVariables properly
     thing.setPropertyReadHandler('availableResourceLevel', (options) => {
-
-        // Check if uriVariables are provided
-        if (options && typeof options === 'object' && 'uriVariables' in options) {
-            const uriVariables: any = options['uriVariables'];
-            if ('id' in uriVariables) {
-                return thing.readProperty('allAvailableResources').then((resources) => {
-                    const id = uriVariables['id'];
-                    return new Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
+            // Check if uriVariables are provided
+            if (options && typeof options === 'object' && 'uriVariables' in options) {
+                const uriVariables: any = options['uriVariables'];
+                if ('id' in uriVariables) {
+                    return thing.readProperty('allAvailableResources').then((resources) => {
+                        const id = uriVariables['id'];
                         resolve(resources[id]);
                     });
-                });
+                }
             }
-        }
-        return new Promise((resolve, reject) => {
-            resolve('Please specify id variable as uriVariables.');
+            reject('Please specify id variable as uriVariables.');
         });
     });
 
