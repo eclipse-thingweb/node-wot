@@ -22,7 +22,7 @@ Useful labels:
   * [As a Node.js dependency](#as-a-nodejs-dependency)
   * [As a standalone application](#as-a-standalone-application)
   * [As a browser library](#as-a-browser-library)
-- [No time for explanations - show me a running example!](#no-time-for-explanations---show-me-a-running-example-)
+- [No time for explanations - show me a running example!](#no-time-for-explanations---show-me-a-running-example)
   * [Using Node.js](#using-nodejs)
   * [Using a browser](#using-a-browser)
 - [How to use the library](#how-to-use-the-library)
