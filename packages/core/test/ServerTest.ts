@@ -612,48 +612,6 @@ class WoTServerTest {
         expect(thing).to.have.property("@context").to.deep.include({"@language": "xx"});
     }
 
-    @test async "should reject reading property without uriVariables when they are mandatory"() {
-        let thing = await WoTServerTest.WoT.produce({
-            title: "UriVariablesThing",
-            properties: {
-                uriProp: {
-                    type: 'number',
-                    uriVariables: {
-                        id: {
-                            type: 'string', 
-                            enum: ['water', 'milk', 'chocolate', 'coffeeBeans']
-                        }
-                    }
-                }
-            }
-        });
-
-        thing.setPropertyReadHandler('uriProp', (options) => {
-            return new Promise((resolve, reject) => {
-                // Check if uriVariables are provided
-                if (options && typeof options === 'object' && 'uriVariables' in options) {
-                    const uriVariables: any = options['uriVariables'];
-                    if ('id' in uriVariables) {
-                        return resolve(100);
-                    }
-                }
-                return reject('Please specify id variable as uriVariables.');
-            });
-        });
-
-        let readingPossible = false;
-        try {
-            await thing.readProperty("uriProp");
-            readingPossible = true;
-        } catch (e) {
-            // as expected
-        }
-
-        if (readingPossible) {
-            fail("reading property 'uriProp' without uriVariables should throw error")
-        }
-    }
-
     // TODO add Event and subscribe locally (based on addEvent)
     // TODO add Event and subscribe locally (based on WoT.ThingFragment)
     // TODO add Event and subscribe locally (based on WoT.ThingDescription)
