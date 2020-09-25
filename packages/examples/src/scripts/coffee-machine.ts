@@ -17,10 +17,7 @@
 // It considers a fictional smart coffee machine in order to demonstrate the capabilities of Web of Things.
 // An accompanying tutorial is available at http://www.thingweb.io/smart-coffee-machine.html.
 
-import 'wot-typescript-definitions'
 import { Helpers } from "@node-wot/core"
-
-let WoT:WoT.WoT;
 let WoTHelpers: Helpers;
 
 WoT.produce({

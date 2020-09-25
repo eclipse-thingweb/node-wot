@@ -118,9 +118,9 @@ export default class DefaultServient extends Servient {
     /**
      * start
      */
-    public start(): Promise<WoT.WoT> {
+    public start(): Promise<typeof WoT> {
 
-        return new Promise<WoT.WoT>((resolve, reject) => {
+        return new Promise<typeof WoT>((resolve, reject) => {
             super.start().then((myWoT) => {
                 console.info("[cli/default-servient]","DefaultServient started");
 

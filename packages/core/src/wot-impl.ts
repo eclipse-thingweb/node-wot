@@ -24,9 +24,9 @@ import ConsumedThing from "./consumed-thing";
 import Helpers from "./helpers";
 import { ContentSerdes } from "./content-serdes";
 
-export default class WoTImpl implements WoT.WoT {
+export default class WoTImpl {
     private srv: Servient;
-
+    DiscoveryMethod:typeof WoT.DiscoveryMethod;
     constructor(srv: Servient) {
         this.srv = srv;
     }

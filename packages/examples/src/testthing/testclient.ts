@@ -13,10 +13,8 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import "wot-typescript-definitions"
-import { Helpers } from "@node-wot/core";
 
-let WoT:WoT.WoT;
+import { Helpers } from "@node-wot/core";
 let WoTHelpers: Helpers;
 
 console.log = () => {};

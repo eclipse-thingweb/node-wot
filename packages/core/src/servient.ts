@@ -306,12 +306,12 @@ export default class Servient {
     }
 
     // will return WoT object
-    public start(): Promise<WoT.WoT> {
+    public start(): Promise<typeof WoT> {
         let serverStatus: Array<Promise<void>> = [];
         this.servers.forEach((server) => serverStatus.push(server.start(this)));
         this.clientFactories.forEach((clientFactory) => clientFactory.init());
 
-        return new Promise<WoT.WoT>((resolve, reject) => {
+        return new Promise<typeof WoT>((resolve, reject) => {
             Promise.all(serverStatus)
                 .then(() => {
                     resolve(new WoTImpl(this));

@@ -19,8 +19,6 @@
 
 import "wot-typescript-definitions"
 import { Helpers } from "@node-wot/core"
-
-let WoT:WoT.WoT;
 let WoTHelpers: Helpers;
 
 WoTHelpers.fetch("http://127.0.0.1:8080/Smart-Coffee-Machine").then(async (td) => {
