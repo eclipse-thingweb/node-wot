@@ -22,6 +22,6 @@
   "dependencies": {
   },
   "scripts": {
-    "build": "browserify index.js --plugin tinyify --external coffee-script -o dist/wot-bundle.min.js"
+    "build": "browserify -r vm:vm2 index.js --plugin tinyify --external coffee-script -o dist/wot-bundle.min.js"
   }
 }
