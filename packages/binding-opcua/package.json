@@ -35,7 +35,7 @@
     "node-opcua-client": "^2.1.8",
     "typescript": "3.6.3",
     "url-parse": "^1.4.7",
-    "wot-typescript-definitions": "0.8.0-SNAPSHOT.4",
+    "wot-typescript-definitions": "0.8.0-SNAPSHOT.5",
     "xml-writer": "^1.7.0"
   },
   "scripts": {

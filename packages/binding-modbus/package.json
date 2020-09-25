@@ -33,7 +33,7 @@
     "@node-wot/core": "0.8.0",
     "@node-wot/td-tools": "0.8.0",
     "modbus-serial": "^7.8.1",
-    "wot-typescript-definitions": "0.8.0-SNAPSHOT.4"
+    "wot-typescript-definitions": "0.8.0-SNAPSHOT.5"
   },
   "scripts": {
     "build": "tsc",

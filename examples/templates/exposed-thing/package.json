@@ -11,7 +11,7 @@
   "license": "MIT",
   "devDependencies": {
     "typescript": "3.3.1",
-    "wot-typescript-definitions": "0.8.0-SNAPSHOT.4",
+    "wot-typescript-definitions": "0.8.0-SNAPSHOT.5",
     "@types/node": "11.9.4",
     "tslint": "5.12.1"
   },
