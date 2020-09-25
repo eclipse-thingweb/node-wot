@@ -272,11 +272,11 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
                         const id = uriVariables['id'];
                         resources[id] = val;
                         thing.writeProperty('allAvailableResources', resources);
-                        resolve();
+                        return resolve();
                     });
                 }
             }
-            reject('Please specify id variable as uriVariables.');
+            return reject('Please specify id variable as uriVariables.');
         });
     });
 
@@ -290,11 +290,11 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
                 if ('id' in uriVariables) {
                     return thing.readProperty('allAvailableResources').then((resources) => {
                         const id = uriVariables['id'];
-                        resolve(resources[id]);
+                        return resolve(resources[id]);
                     });
                 }
             }
-            reject('Please specify id variable as uriVariables.');
+            return reject('Please specify id variable as uriVariables.');
         });
     });
 
