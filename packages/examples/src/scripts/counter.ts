@@ -138,84 +138,60 @@ WoT.produce({
 		count = 0;
 		lastChange = (new Date()).toISOString();
 
-		// set property handlers
-		thing.setPropertyReadHandler("count", () => {
-			return new Promise((resolve, reject) => {
-				resolve(count);
-			});
-		});
-		thing.setPropertyReadHandler("lastChange", () => {
-			return new Promise((resolve, reject) => {
-				resolve(lastChange);
-			});
-		});
-		thing.setPropertyReadHandler("countAsImage", (options) => {
-			return new Promise((resolve, reject) => {
-				let fill = "black";
-				if (options && typeof options === 'object' && 'uriVariables' in options) {
-					console.log("options = " + JSON.stringify(options))
-					if ('fill' in options['uriVariables']) {
-						let uriVariables: any = options['uriVariables'];
-						fill = uriVariables['fill'];
-					}
+		// set property handlers (using async-await)
+		thing.setPropertyReadHandler("count", async () => count);
+		thing.setPropertyReadHandler("lastChange", async () => lastChange);
+		thing.setPropertyReadHandler("countAsImage", async (options) => {
+			let fill = "black";
+			if (options && typeof options === 'object' && 'uriVariables' in options) {
+				console.log("options = " + JSON.stringify(options))
+				if ('fill' in options['uriVariables']) {
+					let uriVariables: any = options['uriVariables'];
+					fill = uriVariables['fill'];
 				}
-				resolve("<svg xmlns='http://www.w3.org/2000/svg' height='30' width='200'>" +
-					"<text x='0' y='15' fill='" + fill + "'>" + count + "</text>" +
-					"</svg>");
-			});
+			}
+			return "<svg xmlns='http://www.w3.org/2000/svg' height='30' width='200'>" +
+				"<text x='0' y='15' fill='" + fill + "'>" + count + "</text>" +
+				"</svg>";
 		});
-		thing.setPropertyReadHandler("redDotImage", () => {
-			return new Promise((resolve, reject) => {
-				// data:image/png;base64,
-				resolve("iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==");
-			});
-		});
+		thing.setPropertyReadHandler("redDotImage", async () => "iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==");
 
-		// set action handlers
-		thing.setActionHandler("increment", (params, options) => {
-			return new Promise((resolve, reject) => {
-				let step = 1;
-				if (options && typeof options === 'object' && 'uriVariables' in options) {
-					console.log("options = " + JSON.stringify(options))
-					if ('step' in options['uriVariables']) {
-						let uriVariables: any = options['uriVariables'];
-						step = uriVariables['step'];
-					}
+		// set action handlers (using async-await)
+		thing.setActionHandler("increment", async (params, options) => {
+			let step = 1;
+			if (options && typeof options === 'object' && 'uriVariables' in options) {
+				console.log("options = " + JSON.stringify(options))
+				if ('step' in options['uriVariables']) {
+					let uriVariables: any = options['uriVariables'];
+					step = uriVariables['step'];
 				}
-				let newValue = count + step;
-				console.log("Incrementing count from " + count + " to " + newValue + " (with step " + step + ")");
-				count = newValue;
-				lastChange = (new Date()).toISOString();
-				thing.emitEvent("change", count);
-				resolve();
-			});
+			}
+			let newValue = count + step;
+			console.log("Incrementing count from " + count + " to " + newValue + " (with step " + step + ")");
+			count = newValue;
+			lastChange = (new Date()).toISOString();
+			thing.emitEvent("change", count);
 		});
-		thing.setActionHandler("decrement", (params, options) => {
-			return new Promise((resolve, reject) => {
-				let step = 1;
-				if (options && typeof options === 'object' && 'uriVariables' in options) {
-					console.log("options = " + JSON.stringify(options))
-					if ('step' in options['uriVariables']) {
-						let uriVariables: any = options['uriVariables'];
-						step = uriVariables['step'];
-					}
+		thing.setActionHandler("decrement", async (params, options) => {
+			let step = 1;
+			if (options && typeof options === 'object' && 'uriVariables' in options) {
+				console.log("options = " + JSON.stringify(options))
+				if ('step' in options['uriVariables']) {
+					let uriVariables: any = options['uriVariables'];
+					step = uriVariables['step'];
 				}
-				let newValue = count - step;
-				console.log("Decrementing count from " + count + " to " + newValue + " (with step " + step + ")");
-				count = newValue;
-				lastChange = (new Date()).toISOString();
-				thing.emitEvent("change", count);
-				resolve();
-			});
+			}
+			let newValue = count - step;
+			console.log("Decrementing count from " + count + " to " + newValue + " (with step " + step + ")");
+			count = newValue;
+			lastChange = (new Date()).toISOString();
+			thing.emitEvent("change", count);
 		});
-		thing.setActionHandler("reset", () => {
-			return new Promise<any>((resolve, reject) => {
-				console.log("Resetting count");
-				count = 0;
-				lastChange = (new Date()).toISOString();
-				thing.emitEvent("change", count);
-				resolve();
-			});
+		thing.setActionHandler("decrement", async (params, options) => {
+			console.log("Resetting count");
+			count = 0;
+			lastChange = (new Date()).toISOString();
+			thing.emitEvent("change", count);
 		});
 
 		// expose the thing
