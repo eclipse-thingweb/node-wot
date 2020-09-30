@@ -69,7 +69,8 @@ export default class Servient {
         const vm = new NodeVM({
             sandbox:context,
             require: {
-                external: true
+                external: true,
+                builtin: ["*"]
             },
             argv: options.argv,
             compiler: options.compiler,

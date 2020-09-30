@@ -90,6 +90,14 @@ class WoTRuntimeTest {
         assert.equal(test, undefined)
     }
 
+    @test "should require node builtin module"() {
+        const fs = require("fs")
+        let envScript = `module.exports = require("fs")`;
+
+        const test = WoTRuntimeTest.servient.runPrivilegedScript(envScript)
+        assert.equal(test, fs)
+    }
+
     @test "should catch synchronous errors"() {
 
         let failNowScript = `throw new Error("Synchronous error in Servient sandbox");`;
