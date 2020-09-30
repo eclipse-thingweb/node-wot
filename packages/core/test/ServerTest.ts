@@ -612,6 +612,94 @@ class WoTServerTest {
         expect(thing).to.have.property("@context").to.deep.include({"@language": "xx"});
     }
 
+    @test async "should reject if property read handler fails"() {
+        let thing = await WoTServerTest.WoT.produce({
+            title: "Thing",
+            properties: {
+                uriProp: {
+                    type: 'number'
+                }
+            }
+        });
+
+        thing.setPropertyReadHandler('uriProp', (options) => {
+            return new Promise((resolve, reject) => {
+                // Note: test reject
+                return reject('Fail expected');
+            });
+        });
+
+        let readingPossible = false;
+        try {
+            await thing.readProperty("uriProp");
+            readingPossible = true;
+        } catch (e) {
+            // as expected
+        }
+
+        if (readingPossible) {
+            fail("reading property 'uriProp' should throw error")
+        }
+    }
+
+    @test async "should reject if property write handler fails"() {
+        let thing = await WoTServerTest.WoT.produce({
+            title: "Thing",
+            properties: {
+                uriProp: {
+                    type: 'number'
+                }
+            }
+        });
+
+        thing.setPropertyWriteHandler('uriProp', (options) => {
+            return new Promise((resolve, reject) => {
+                // Note: test reject
+                return reject('Fail expected');
+            });
+        });
+
+        let writingPossible = false;
+        try {
+            await thing.writeProperty("uriProp", 123);
+            writingPossible = true;
+        } catch (e) {
+            // as expected
+        }
+
+        if (writingPossible) {
+            fail("writing property 'uriProp' should throw error")
+        }
+    }
+
+    @test async "should reject if action handler fails"() {
+        let thing = await WoTServerTest.WoT.produce({
+            title: "Thing",
+            actions: {
+                toggle: {}
+            }
+        });
+
+        thing.setActionHandler('toggle', (options) => {
+            return new Promise((resolve, reject) => {
+                // Note: test reject
+                return reject('Fail expected');
+            });
+        });
+
+        let actionPossible = false;
+        try {
+            await thing.invokeAction("toggle");
+            actionPossible = true;
+        } catch (e) {
+            // as expected
+        }
+
+        if (actionPossible) {
+            fail("invoking action 'toggle' should throw error")
+        }
+    }
+
     // TODO add Event and subscribe locally (based on addEvent)
     // TODO add Event and subscribe locally (based on WoT.ThingFragment)
     // TODO add Event and subscribe locally (based on WoT.ThingDescription)
