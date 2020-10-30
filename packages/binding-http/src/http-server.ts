@@ -226,9 +226,10 @@ export default class HttpServer implements ProtocolServer {
           this.fillSecurityScheme(thing)
         }
 
-      return new Promise<void>((resolve, reject) => {
-        resolve();
-      });
+        return new Promise<void>((resolve, reject) => {
+          resolve();
+        });
+      }
     }
   }
 

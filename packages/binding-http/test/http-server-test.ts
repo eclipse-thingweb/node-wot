@@ -203,6 +203,8 @@ class HttpServerTest {
     await httpServer.start(null);
     expect(httpServer.getPort()).to.eq(1337); // WOT PORT from test
     await httpServer.stop();
+    delete process.env.PORT
+    delete process.env.WOT_PORT
   }
 
   @test async "should allow HttpServer baseUri to specify url prefix for proxied/gateswayed/buildpack etc "() {
@@ -211,7 +213,8 @@ class HttpServerTest {
     let theBasePath= '/things'
     let theBaseUri = `http://${theHostname}${theBasePath}`;
     let httpServer = new HttpServer({
-      baseUri: theBaseUri
+      baseUri: theBaseUri,
+      port: 8080
     });
 
     await httpServer.start(null);
