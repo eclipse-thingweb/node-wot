@@ -149,13 +149,14 @@ servient.start().then((WoT) => {
 The protocol binding can be configured using his constructor or trough servient config file. The `HTTPConfig` object contains a set of useful parameters: 
 ```ts
 {
-    port?: number;                  // HTTP server port
-    address?: string;               // HTTP server address
+    port?: number;                  // TCP Port to listen on
+    address?: string;               // IP address or hostname of local interface to bind to
     proxy?: HttpProxyConfig;        // proxy configuration
     allowSelfSigned?: boolean;      // Accept self signed certificates
     serverKey?: string;             // HTTPs server secret key file
     serverCert?: string;            // HTTPs server certificate file
     security?: TD.SecurityScheme;   // Security scheme of the server
+    baseUri?: string                // A Base URI to be used in the TD in cases where the client will access a different URL than the actual machine serving the thing.  [See Using BaseUri below]
 }
 ```
 When both `serverKey` and `serverCert` are defined the server is started in `https` mode. Examples of `serverKey` and `serverCert` can be found [here](../../examples/security). Moreover, when a security schema is provided the servient must be also configured with valid credentials both client and server side. See [Security](#Security) for further details.
@@ -224,7 +225,54 @@ The above configuration file, is setting up a https server with basic secure sch
 ### oAuth2.0
 Currently this binding supports only oAuth2.0 `client credential` and `Resource owner credential` flows. Other flows may be implemented in future like `code` flow. Futhermore, the oAuth2.0 protocol is only implemented for the client side.
 
-An example of a WoT oAuth2.0 enabled client can be found [here](../examples/security/oauth).
+An example of a WoT oAuth2.0 enabled client can be found [here](../examples/src/security/oauth/README.md).
+
+
+### Using baseUri
+
+Assume the example [WoT coffee machine](../examples/src/scripts/coffee-machine.ts) is in the W3C's office kitchen connected to the W3C's private network.  It allows you to start the coffee machine before you leave home so it will be ready when you get to work.
+
+Inside the W3C's private network the coffee machine can found at:
+<br/>`https://internal-host:8080/smart-coffee-machine`
+
+From your home, it can be addressed via an Internet accessible domain name: 
+<br/>`https://coffee.w3.org/things/smart-coffee-machine`
+
+
+
+__HttpServer Configuration__
+
+```js
+servient.addServer(new HttpServer({
+    port: 8080, // (default 8080)
+    baseUri: 'https://coffee.w3.org/things'
+}));
+```
+
+__External Gateway Configuration__
+
+The DNS name`coffee.w3.org` resolves to an elastic IP on a gateway using nginx, which has this rule configured. 
+
+```
+location /things/ {
+    proxy_pass https://internal-host:8080/smart-coffee-machine
+}
+```
+
+The exposed thing on the internal server will product form URLs such as:
+
+```json 
+ "actions": {
+    "makeDrink": {
+      "forms": [
+        {
+          "href": "https://wot.w3.org/things/smart-coffee-machine/actions/makeDrink"
+```
+__baseUrt vs address__
+
+> `baseUri` tells the producer to prefix URLs which may include hostnames, network interfaces, and URI prefixes which are not local to the machine exposing the Thing.
+> `address` tells the HttpServer a specific ocal network interface to bind its TCP listener. 
+
 
 ## Feature matrix
 

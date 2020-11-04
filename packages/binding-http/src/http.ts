@@ -28,6 +28,7 @@ export * from './https-client-factory'
 export interface HttpConfig {
     port?: number;
     address?: string;
+    baseUri?: string;
     proxy?: HttpProxyConfig;
     allowSelfSigned?: boolean;
     serverKey?: string;
