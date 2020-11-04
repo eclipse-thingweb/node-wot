@@ -27,7 +27,7 @@ import { OpcuaServer } from './opcua-server';
 
 
 
-describe('OPCUA client test', function () {
+describe.skip('OPCUA client test', function () {
     let server: OpcuaServer;
     try {
         server = new OpcuaServer();
