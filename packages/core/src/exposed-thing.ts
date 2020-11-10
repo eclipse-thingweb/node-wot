@@ -161,9 +161,10 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     readProperty(propertyName: string, options?: WoT.InteractionOptions): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             if (this.properties[propertyName]) {
-                if(this.properties[propertyName].writeOnly && this.properties[propertyName].writeOnly === true) {
+                // writeOnly check skipped so far, see https://github.com/eclipse/thingweb.node-wot/issues/333#issuecomment-724583234
+                /* if(this.properties[propertyName].writeOnly && this.properties[propertyName].writeOnly === true) {
                     reject(new Error(`ExposedThing '${this.title}', property '${propertyName}' is writeOnly`));
-                }
+                } */
 
                 let ps: PropertyState = this.properties[propertyName].getState();
                 // call read handler (if any)
@@ -227,9 +228,10 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     writeProperty(propertyName: string, value: any, options?: WoT.InteractionOptions): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             if (this.properties[propertyName]) {
-                if (this.properties[propertyName].readOnly && this.properties[propertyName].readOnly === true) {
+                // readOnly check skipped so far, see https://github.com/eclipse/thingweb.node-wot/issues/333#issuecomment-724583234
+                /* if (this.properties[propertyName].readOnly && this.properties[propertyName].readOnly === true) {
                     reject(new Error(`ExposedThing '${this.title}', property '${propertyName}' is readOnly`));
-                }
+                } */
 
                 let ps: PropertyState = this.properties[propertyName].getState();
 

@@ -145,7 +145,8 @@ class WoTServerTest {
         }
     }
 
-    @test async "should not be able to read property with writeOnly"() {
+    // skipped so far, see https://github.com/eclipse/thingweb.node-wot/issues/333#issuecomment-724583234
+    @test.skip async "should not be able to read property with writeOnly"() {
         let thing = await WoTServerTest.WoT.produce({
             title: "ThingWithWriteOnly",
             properties: {
@@ -169,7 +170,8 @@ class WoTServerTest {
         }
     }
 
-    @test async "should not be able to write property with readOnly"() {
+    // skipped so far, see https://github.com/eclipse/thingweb.node-wot/issues/333#issuecomment-724583234
+    @test.skip async "should not be able to write property with readOnly"() {
         let thing = await WoTServerTest.WoT.produce({
             title: "ThingWithReadOnly",
             properties: {
