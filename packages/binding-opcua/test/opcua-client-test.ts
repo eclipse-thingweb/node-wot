@@ -27,7 +27,7 @@ import { OpcuaServer } from './opcua-server';
 
 
 
-describe.skip('OPCUA client test', function () {
+describe('OPCUA client test', function () {
     let server: OpcuaServer;
     try {
         server = new OpcuaServer();
@@ -138,7 +138,7 @@ describe.skip('OPCUA client test', function () {
         let inputVector = {
             op: ["invokeAction"],
             form: {
-                href: "opc.tcp://localhost:5050/ns=1;b=9990FFAA;mns=1;mb=9997FFAA",
+                href: "opc.tcp://localhost:5050/ns=1;s=device;mns=1;ms=method",
                 "opc:method": "CALL_METHOD"
             },
             payload: JSON.stringify({
