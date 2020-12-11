@@ -325,7 +325,7 @@ class WoTClientTest {
         //verify the value transmitted
         WoTClientTest.clientFactory.setTrap(
             (form: Form, content: Content) => {
-                expect(content.body.toString()).to.equal("23");
+                expect(content.body.toString()).to.equal("1234");
             }
         )
 
