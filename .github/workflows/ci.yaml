@@ -20,11 +20,11 @@ jobs:
         with:
             node-version: ${{ matrix.node-version }}
       
-      - name: Use lerna
-        run: npm install -g lerna
+      - name: Install
+        run: npm install
       
-      - name: Bootstrap
-        run: lerna bootstrap --no-ci
+      - name: Build
+        run: npm run build
       
       - name: Test
-        run: lerna run test --no-bail --stream
+        run: npm run test
