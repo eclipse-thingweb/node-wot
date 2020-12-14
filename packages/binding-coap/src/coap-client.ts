@@ -19,6 +19,7 @@
 
 let coap = require("coap");
 import * as url from "url";
+import * as net from "net";
 
 import { Subscription } from "rxjs/Subscription";
 
@@ -170,9 +171,10 @@ export default class CoapClient implements ProtocolClient {
 
   private uriToOptions(uri: string): CoapRequestConfig {
     let requestUri = url.parse(uri);
+    let hostname = net.isIPv6(requestUri.hostname) ? "[" + requestUri.hostname + "]" : requestUri.hostname;
     let options: CoapRequestConfig = {
       agent: this.agent,
-      hostname: requestUri.hostname,
+      hostname: hostname,
       port: parseInt(requestUri.port, 10),
       pathname: requestUri.pathname,
       query: requestUri.query,
