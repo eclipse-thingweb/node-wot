@@ -258,6 +258,13 @@ To reduce the size of the installation from about 800 MByte down to about 200 MB
 * `sudo npm run link` does not work
    * try `npm run unlock` from project root before calling `[sudo] npm run link`
    * try `npm link` in each package directory in this order: td-tools, core, binding-\*, cli, demo-servients
+* Error mesage for `npm link @node-wot/<module>` 
+  `ELOOP: too many symbolic links encountered, stat '/usr/lib/node_modules/@node-wot/<module>`
+   1. Run `npm run link` in `thingweb.node-wot` again
+   2. Remove `node_modules` in the targeted project
+   3. Remove all `@node-wot/<module>` dependencies in your `package.json`
+   4. Run `npm i` again
+   5. Install the packages with `npm link @node-wot/<module>`
 * Build error around `prebuild: npm run bootstrap`
    * This has been seen failing on WSL.  Try using Node 12.13.0
 
