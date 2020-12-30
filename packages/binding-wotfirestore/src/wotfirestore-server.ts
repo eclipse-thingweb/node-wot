@@ -71,33 +71,21 @@ export default class WoTFirestoreServer implements ProtocolServer {
     this.fbConfig = config
   }
 
-  public start(servient: Servient): Promise<void> {
+  public async start(servient: Servient): Promise<void> {
     console.info(`WoT Firestore start`)
-    return new Promise<void>((resolve, reject) => {
-      initFirestore(this.fbConfig, null)
-        .then((firestore) => {
-          console.log('firebase auth success')
-          this.firestore = firestore
-          // store servient to get credentials
-          this.servient = servient
-          resolve()
-        })
-        .catch((err) => {
-          console.error('firebase auth error:', err)
-          reject(err)
-        })
-    })
+    const firestore = await initFirestore(this.fbConfig, null)
+    console.log('firebase auth success')
+    this.firestore = firestore
+    // store servient to get credentials
+    this.servient = servient
   }
 
-  public stop(): Promise<void> {
+  public async stop(): Promise<void> {
     console.info(`WoT Firestore stop`)
-    return new Promise<void>((resolve, reject) => {
-      for (const key in this.firestoreObservers) {
-        console.info('unsubscribe: ', key)
-        this.firestoreObservers[key]()
-      }
-      resolve()
-    })
+    for (const key in this.firestoreObservers) {
+      console.info('unsubscribe: ', key)
+      this.firestoreObservers[key]()
+    }
   }
 
   public getHostName(): string {
@@ -108,7 +96,7 @@ export default class WoTFirestoreServer implements ProtocolServer {
     return -1
   }
 
-  public expose(thing: ExposedThing): Promise<void> {
+  public async expose(thing: ExposedThing): Promise<void> {
     if (this.firestore === undefined) {
       return
     }
@@ -128,7 +116,6 @@ export default class WoTFirestoreServer implements ProtocolServer {
       `WoTFirestoreServer exposes '${thing.title}' as unique '/${name}/*'`
     )
     // console.log('************** thing:', thing)
-    return new Promise<void>(async (resolve, reject) => {
       // TODO clean-up on destroy and stop
       this.things.set(name, thing)
 
@@ -173,7 +160,7 @@ export default class WoTFirestoreServer implements ProtocolServer {
         thing.observeProperty(
           propertyName,
           //let subscription = property.subscribe(
-          (data) => {
+          async (data) => {
             console.debug(
               `***** property ${propertyName} changed in server:`,
               data
@@ -195,34 +182,31 @@ export default class WoTFirestoreServer implements ProtocolServer {
             console.debug(`***** write property ${propertyName}:`, content)
 
             if (content && content.body) {
-              writeDataToFirestore(this.firestore, topic, content)
-                .then(() => {
-                  console.debug('write:', content)
-                })
-                .catch((err) => {
-                  console.error('write err:', err)
-                })
+              console.debug('write:', content)
+              await writeDataToFirestore(this.firestore, topic, content)
+              .catch((err) => {
+                console.error('write err:', err)
+              })
             }
           }
         )
         if (!name) {
           name = 'no_name'
         }
-        thing.readProperty(propertyName).then((data) => {
-          console.debug(`***** write initial property ${propertyName}:`, data)
-          let content: Content = {
-            type: this.DEFAULT_CONTENT_TYPE,
-            body: undefined,
-          }
-          if (data !== null || data !== undefined) {
-            content = ContentSerdes.get().valueToContent(
-              data,
-              <any>property,
-              this.DEFAULT_CONTENT_TYPE
-            )
-          }
-          writeDataToFirestore(this.firestore, topic, content)
-        })
+        const data = await thing.readProperty(propertyName)
+        console.debug(`***** write initial property ${propertyName}:`, data)
+        let content: Content = {
+          type: this.DEFAULT_CONTENT_TYPE,
+          body: undefined,
+        }
+        if (data !== null || data !== undefined) {
+          content = ContentSerdes.get().valueToContent(
+            data,
+            <any>property,
+            this.DEFAULT_CONTENT_TYPE
+          )
+        }
+        await writeDataToFirestore(this.firestore, topic, content)
 
         let href = this.WOTFIRESTORE_HREF_BASE + topic
         let form = new TD.Form(href, this.DEFAULT_CONTENT_TYPE)
@@ -257,25 +241,7 @@ export default class WoTFirestoreServer implements ProtocolServer {
                 propertyData,
                 typeof propertyData
               )
-
-              /*if (content.body) {
-                propertyData = content.body.toString(
-                  'utf-8',
-                  0,
-                  content.body.length
-                )*/
               thing.writeProperty(propertyName, propertyData)
-              /*writeDataToFirestore(
-                  this.firestore,
-                  propertyReceiveTopic.replace(
-                    '/propertyReceives/',
-                    '/properties/'
-                  ),
-                  content
-                )
-                  .then(value => {})
-                  .catch(err => {})
-              }*/
             }
           )
         }
@@ -301,7 +267,7 @@ export default class WoTFirestoreServer implements ProtocolServer {
           this.firestore,
           this.firestoreObservers,
           topic,
-          (err, content: Content, reqId: string) => {
+          async (err, content: Content, reqId: string) => {
             if (err) {
               console.error('[error] receive action :', err)
               return
@@ -314,11 +280,6 @@ export default class WoTFirestoreServer implements ProtocolServer {
               let body = content.body
               let params = undefined
               if (body) {
-                //TODO
-                /*body = JSON.parse(
-                  content.body.toString('utf-8', 0, content.body.length)
-                )
-                params = body['content']*/
                 params = ContentSerdes.get().contentToValue(
                   content,
                   action.input
@@ -326,33 +287,8 @@ export default class WoTFirestoreServer implements ProtocolServer {
               }
               if (action) {
                 console.debug('invoke:', action)
-                thing
+                let output = await thing
                   .invokeAction(actionName, params)
-                  .then((output) => {
-                    console.debug('invoke then:', output)
-                    // Firestore cannot return results
-                    console.warn(
-                      `WoTFirestoreServer at ${this.getHostName()} cannot return output '${actionName}'`
-                    )
-                    // TODO: Actionの結果であるoutputの型をどのように求めるか？
-                    if (!output) {
-                      output = ''
-                    }
-                    let outContent: Content = ContentSerdes.get().valueToContent(
-                      output,
-                      action.output,
-                      this.DEFAULT_CONTENT_TYPE
-                    )
-
-                    writeDataToFirestore(
-                      this.firestore,
-                      actionResultTopic,
-                      outContent,
-                      reqId
-                    )
-                      .then((value) => {})
-                      .catch((err) => {})
-                  })
                   .catch((err) => {
                     console.error(
                       `WoTFirestoreServer at ${this.getHostName()} got error on invoking '${actionName}': ${
@@ -368,6 +304,28 @@ export default class WoTFirestoreServer implements ProtocolServer {
                       .then(value => {})
                       .catch(err => {})*/
                   })
+
+                console.debug('invoke then:', output)
+                // Firestore cannot return results
+                console.warn(
+                  `WoTFirestoreServer at ${this.getHostName()} cannot return output '${actionName}'`
+                )
+                // TODO: Actionの結果であるoutputの型をどのように求めるか？
+                if (!output) {
+                  output = ''
+                }
+                let outContent: Content = ContentSerdes.get().valueToContent(
+                  output,
+                  action.output,
+                  this.DEFAULT_CONTENT_TYPE
+                )
+
+                await writeDataToFirestore(
+                  this.firestore,
+                  actionResultTopic,
+                  outContent,
+                  reqId
+                ).catch((err) => {})
                 // topic found and message processed
                 return
               }
@@ -400,7 +358,7 @@ export default class WoTFirestoreServer implements ProtocolServer {
         thing.subscribeEvent(
           eventName,
           //let subscription = event.subscribe(
-          (data) => {
+          async (data) => {
             console.log('*** event.subscribe:', data)
             console.log('*** eventName:', eventName)
             let content: Content
@@ -423,8 +381,7 @@ export default class WoTFirestoreServer implements ProtocolServer {
             console.log(
               `WoTFirestoreServer at ${this.getHostName()} publishing to Event topic '${eventName}' `
             )
-            writeDataToFirestore(this.firestore, topic, content)
-              .then((value) => {})
+            const value = await writeDataToFirestore(this.firestore, topic, content)
               .catch((err) => {
                 console.error('error:', err)
               })
@@ -446,13 +403,10 @@ export default class WoTFirestoreServer implements ProtocolServer {
         null,
         'application/td+json'
       )
-      writeDataToFirestore(
+      await writeDataToFirestore(
         this.firestore,
         `${this.getHostName()}/${name}`,
         tdContent
       )
-
-      resolve()
-    })
   }
 }

@@ -68,3 +68,7 @@ packages/*
 
 # JetBrains IDEs
 .idea/
+
+# hidetak
+hidetak-tools/
+packages/binding-wotfirestore/tmp/

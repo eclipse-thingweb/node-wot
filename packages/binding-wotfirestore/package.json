@@ -1,6 +1,6 @@
 {
-  "name": "@node-wot-ht/binding-wotfirestore",
-  "version": "0.7.0-SNAPSHOT.7",
+  "name": "@hidetak/binding-wotfirestore",
+  "version": "0.0.1",
   "description": "",
   "main": "dist/wotfirestore.js",
   "scripts": {
@@ -10,7 +10,7 @@
     "codestyle": "standard --pretty"
   },
   "author": "hidetak",
-  "license": "EPL-2.0 OR W3C-20150513",
+  "license": "EPL-2.0",
   "dependencies": {
     "@node-wot/core": "0.7.1",
     "@node-wot/td-tools": "0.7.1",

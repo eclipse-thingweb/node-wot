@@ -15,6 +15,7 @@
 
 import * as TD from '@node-wot/td-tools'
 import { Buffer } from 'buffer'
+//import { TextDecoder } from "util"
 
 const textDecoder = new TextDecoder('utf-8')
 
@@ -37,6 +38,9 @@ export default class WoTFirestoreCodec {
       }
       if (!schema) return parsed
       if (schema.type === 'boolean') {
+        if (parsed === 'true' || parsed === 'false') {
+          parsed = JSON.parse(parsed)
+        }
         parsed = Boolean(parsed)
       } else if (schema.type === 'number' || schema.type === 'integer') {
         parsed = Number(parsed)

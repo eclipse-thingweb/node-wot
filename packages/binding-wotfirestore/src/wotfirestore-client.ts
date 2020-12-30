@@ -83,164 +83,115 @@ export default class WoTFirestoreClient implements ProtocolClient {
     return ret
   }
 
-  public readResource(form: WoTFirestoreForm): Promise<Content> {
+  public async readResource(form: WoTFirestoreForm): Promise<Content> {
     console.log('************************** readResource form:', form)
-    return new Promise<Content>((resolve, reject) => {
-      initFirestore(this.fbConfig, this.firestore)
-        .then(firestore => {
-          this.firestore = firestore
-          const pointerInfo = this.makePointerInfo(form)
-          readDataFromFirestore(this.firestore, pointerInfo.topic)
-            .then(content => {
-              resolve(content)
-            })
-            .catch(err => {
-              reject(err)
-            })
-        })
-        .catch(err => {
-          console.error(err)
-          reject(err)
-        })
-    })
+    const firestore = await initFirestore(this.fbConfig, this.firestore)
+    this.firestore = firestore
+    const pointerInfo = this.makePointerInfo(form)
+    const content = await readDataFromFirestore(
+      this.firestore,
+      pointerInfo.topic
+    )
+    return content
   }
 
-  public writeResource(form: WoTFirestoreForm, content: Content): Promise<any> {
+  public async writeResource(
+    form: WoTFirestoreForm,
+    content: Content
+  ): Promise<any> {
     console.log('************************** writeResource form:', form)
     console.log('************************** writeResource content:', content)
     const pointerInfo = this.makePointerInfo(form)
-    return new Promise<any>((resolve, reject) => {
-      initFirestore(this.fbConfig, this.firestore)
-        .then(firestore => {
-          this.firestore = firestore
-          console.log('************** write pointer info', pointerInfo)
-          let splittedTopic = pointerInfo.topic.split('/')
-          if (splittedTopic && splittedTopic[2] === 'properties') {
-            splittedTopic[2] = 'propertyReceives'
-            pointerInfo.topic = splittedTopic.join('/')
-            console.log('************** converted pointer info', pointerInfo)
-          }
-          writeDataToFirestore(this.firestore, pointerInfo.topic, content)
-            .then(value => {
-              resolve(content)
-            })
-            .catch(err => {
-              reject(err)
-            })
-        })
-        .catch(err => {
-          console.error(err)
-          reject(err)
-        })
-    })
+    const firestore = await initFirestore(this.fbConfig, this.firestore)
+    this.firestore = firestore
+    console.log('************** write pointer info', pointerInfo)
+    let splittedTopic = pointerInfo.topic.split('/')
+    if (splittedTopic && splittedTopic[2] === 'properties') {
+      splittedTopic[2] = 'propertyReceives'
+      pointerInfo.topic = splittedTopic.join('/')
+      console.log('************** converted pointer info', pointerInfo)
+    }
+    const value = await writeDataToFirestore(
+      this.firestore,
+      pointerInfo.topic,
+      content
+    )
+    return value
   }
 
-  public invokeResource(
+  public async invokeResource(
     form: WoTFirestoreForm,
     content?: Content
   ): Promise<Content> {
     console.log('************************** invokeResource form:', form)
     console.log('************************** invokeResource content:', content)
-    return new Promise<Content>((resolve, reject) => {
-      initFirestore(this.fbConfig, this.firestore)
-        .then(firestore => {
-          this.firestore = firestore
-          // Firestoreの該当箇所にActionの内容を記述する
-          const pointerInfo = this.makePointerInfo(form)
-          // subscrbe for results
-          const actionResultTopic =
-            pointerInfo.hostName +
-            '/' +
-            encodeURIComponent(pointerInfo.name) +
-            '/actionResults/' +
-            encodeURIComponent(pointerInfo.resource)
-          const reqId = uuidv4()
-          let timeoutId
-          subscribeFromFirestore(
-            this.firestore,
-            this.firestoreObservers,
-            actionResultTopic,
-            (err, content, resId) => {
-              console.log('return action and unsubscribe')
-              if (reqId !== resId) {
-                // reqIdが一致しないため無視
-                return
-              }
-              unsubscribeFromFirestore(
-                this.firestoreObservers,
-                actionResultTopic
-              )
-              console.log('@@@@@ finish unsubscribe')
-              clearTimeout(timeoutId)
-              if (err) {
-                reject(err)
-                return
-              }
-              resolve(content)
-            }
-          )
-          timeoutId = setTimeout(() => {
-            console.log('timeout and unsubscribe')
-            unsubscribeFromFirestore(this.firestoreObservers, actionResultTopic)
-            reject(new Error(`timeout error topic: ${pointerInfo.topic}`))
-          }, 10 * 1000) // timeout判定
-          // if not input was provided, set up an own body otherwise take input as body
-          if (content !== undefined) {
-            writeDataToFirestore(
-              this.firestore,
-              pointerInfo.topic,
-              content,
-              reqId
-            )
-              .then(() => {
-                // nothing todo
-              })
-              .catch(err => {
-                console.error('error:', err)
-                reject(err)
-              })
-          } else {
-            writeDataToFirestore(
-              this.firestore,
-              pointerInfo.topic,
-              {
-                body: undefined,
-                type: ''
-              },
-              reqId
-            )
-              .then(() => {
-                // nothing todo
-              })
-              .catch(err => {
-                console.error('error:', err)
-                reject(err)
-              })
+    const firestore = await initFirestore(this.fbConfig, this.firestore)
+    this.firestore = firestore
+    // Firestoreの該当箇所にActionの内容を記述する
+    const pointerInfo = this.makePointerInfo(form)
+    // subscrbe for results
+    const actionResultTopic =
+      pointerInfo.hostName +
+      '/' +
+      encodeURIComponent(pointerInfo.name) +
+      '/actionResults/' +
+      encodeURIComponent(pointerInfo.resource)
+    const reqId = uuidv4()
+    let timeoutId
+    const retContent: Content = await new Promise((resolve, reject) => {
+      subscribeFromFirestore(
+        this.firestore,
+        this.firestoreObservers,
+        actionResultTopic,
+        (err, content, resId) => {
+          console.log('return action and unsubscribe')
+          console.log('reqId', reqId)
+          console.log('resId', resId)
+          if (reqId !== resId) {
+            // reqIdが一致しないため無視
+            return
           }
-        })
-        .catch(err => {
-          console.error(err)
-          reject(err)
-        })
-      // there will bo no response
+          unsubscribeFromFirestore(this.firestoreObservers, actionResultTopic)
+          console.log('@@@@@ finish unsubscribe')
+          clearTimeout(timeoutId)
+          if (err) {
+            reject(err)
+          } else {
+            resolve(content)
+          }
+        }
+      )
+      timeoutId = setTimeout(() => {
+        console.log('timeout and unsubscribe')
+        unsubscribeFromFirestore(this.firestoreObservers, actionResultTopic)
+        reject(new Error(`timeout error topic: ${pointerInfo.topic}`))
+      }, 10 * 1000) // timeout判定
+      // if not input was provided, set up an own body otherwise take input as body
+      if (content !== undefined) {
+        // アクション実行(結果は上記のCallbackに返る)
+        writeDataToFirestore(this.firestore, pointerInfo.topic, content, reqId)
+      } else {
+        // アクション実行(結果は上記のCallbackに返る)
+        writeDataToFirestore(
+          this.firestore,
+          pointerInfo.topic,
+          {
+            body: undefined,
+            type: ''
+          },
+          reqId
+        )
+      }
     })
+    return retContent
   }
 
-  public unlinkResource(form: WoTFirestoreForm): Promise<any> {
+  public async unlinkResource(form: WoTFirestoreForm): Promise<any> {
     console.log('************************** unlinkResource form:', form)
-    return new Promise<any>((resolve, reject) => {
-      initFirestore(this.fbConfig, this.firestore)
-        .then(firestore => {
-          this.firestore = firestore
-          const pointerInfo = this.makePointerInfo(form)
-          unsubscribeFromFirestore(this.firestoreObservers, pointerInfo.topic)
-          resolve()
-        })
-        .catch(err => {
-          console.error(err)
-          reject(err)
-        })
-    })
+    const firestore = await initFirestore(this.fbConfig, this.firestore)
+    this.firestore = firestore
+    const pointerInfo = this.makePointerInfo(form)
+    unsubscribeFromFirestore(this.firestoreObservers, pointerInfo.topic)
   }
 
   public subscribeResource(
@@ -252,7 +203,7 @@ export default class WoTFirestoreClient implements ProtocolClient {
     const pointerInfo = this.makePointerInfo(form)
     // subscrbe for results
     initFirestore(this.fbConfig, this.firestore)
-      .then(firestore => {
+      .then((firestore) => {
         this.firestore = firestore
         subscribeFromFirestore(
           this.firestore,
@@ -267,7 +218,7 @@ export default class WoTFirestoreClient implements ProtocolClient {
           }
         )
       })
-      .catch(err => {
+      .catch((err) => {
         console.error(err)
         error(err)
       })
@@ -286,6 +237,8 @@ export default class WoTFirestoreClient implements ProtocolClient {
     metadata: Array<TD.SecurityScheme>,
     credentials?: any
   ): boolean {
+    console.log('***** metadata', metadata)
+    console.log('***** credentials', credentials)
     /*    if (
       metadata === undefined ||
       !Array.isArray(metadata) ||

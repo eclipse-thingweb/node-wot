@@ -9,51 +9,44 @@ import { Buffer } from 'buffer'
  * fstoreがnullの場合でのみ初期化処理を実施する。
  */
 export const initFirestore = async (fbConfig, fstore): Promise<any> => {
-  return new Promise<any>(async (resolve, reject) => {
-    if (fstore != null) {
-      resolve(fstore)
-      return
+  if (fstore != null) {
+    return fstore
+  }
+  if (!firebase.apps.length) {
+    // 初期化されていない場合のみ初期化する
+    firebase.initializeApp(fbConfig.firebaseConfig)
+  }
+  // Sign In
+  const currentUser = await new Promise<any>((res, rej) => {
+    firebase.auth().onAuthStateChanged((user) => {
+      res(user)
+    })
+  })
+  if (!currentUser) {
+    if (
+      !fbConfig ||
+      !fbConfig.user ||
+      !fbConfig.user.email ||
+      !fbConfig.user.password
+    ) {
+      throw new Error('firebase auth error: cannot find email/password')
     }
-    if (!firebase.apps.length) {
-      // 初期化されていない場合のみ初期化する
-      firebase.initializeApp(fbConfig.firebaseConfig)
-    }
-    // Sign In
-    const getCurrentUser = () => {
-      return new Promise<any>((res, rej) => {
-        firebase.auth().onAuthStateChanged((user) => {
-          res(user)
-        })
-      })
-    }
-    let currentUser = await getCurrentUser()
-    if (!currentUser) {
-      if (
-        !fbConfig ||
-        !fbConfig.user ||
-        !fbConfig.user.email ||
-        !fbConfig.user.password
-      ) {
-        reject('firebase auth error: cannot find email/password')
-        return
-      }
+    const firestore = await new Promise((resolve, reject) => {
       firebase
         .auth()
         .signInWithEmailAndPassword(fbConfig.user.email, fbConfig.user.password)
         .then(() => {
           const firestore = firebase.firestore()
           resolve(firestore)
-          return
         })
         .catch(function (error) {
           reject(`firebase auth error: ${error}`)
-          return
         })
-    } else {
-      resolve(firebase.firestore())
-      return
-    }
-  })
+      })
+    return firestore
+  } else {
+    return firebase.firestore()
+  }
 }
 
 /**
@@ -137,8 +130,6 @@ export const readDataFromFirestore = (
   })
 }
 
-//let firstFlgForSubscribe = {}
-
 export const subscribeFromFirestore = async (
   firestore,
   firestoreObservers,
@@ -177,7 +168,8 @@ export const subscribeFromFirestore = async (
       if (data && data.content) {
         let obj: any = JSON.parse(data.content)
         if (!obj) {
-          throw new Error(`invalid ${topic} content:${content}`)
+          callback(`invalid ${topic} content:${content}`, null, reqId)
+          return
         }
         content = {
           type: null, // tdのデータタイプをセットすると動作しないためnullにする
