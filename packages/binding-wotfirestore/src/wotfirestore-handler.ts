@@ -42,21 +42,13 @@ export const initFirestore = async (fbConfig, fstore): Promise<any> => {
         .catch(function (error) {
           reject(`firebase auth error: ${error}`)
         })
-      })
+    })
     return firestore
   } else {
     return firebase.firestore()
   }
 }
 
-/**
- *
- * @param type td | properties | actions | events
- * @param thingName
- * @param topic
- * @param content
- * @param contentType
- */
 export const writeDataToFirestore = (
   firestore,
   topic: string,
@@ -65,7 +57,7 @@ export const writeDataToFirestore = (
 ): Promise<any> => {
   return new Promise((resolve, reject) => {
     console.debug(
-      '    writeDataToFirestore topic:',
+      '[debug] writeDataToFirestore topic:',
       topic,
       ' value:',
       content,
@@ -82,9 +74,14 @@ export const writeDataToFirestore = (
         resolve(value)
       })
       .catch((err) => {
-        console.error('*********** write error:', err)
-        console.error('*********** data:', data)
-        console.error('*** topic:', topic)
+        console.error(
+          '[error] failed to write data to firestore: ',
+          err,
+          ' topic: ',
+          topic,
+          ' data: ',
+          data
+        )
         reject(err)
       })
   })
@@ -95,7 +92,7 @@ export const readDataFromFirestore = (
   topic: string
 ): Promise<Content> => {
   return new Promise<Content>((resolve, reject) => {
-    console.debug('    readDataToFirestore topic:', topic)
+    console.debug('[debug] readDataFromFirestore topic:', topic)
     const ref = firestore.collection('things').doc(encodeURIComponent(topic))
     ref
       .get()
@@ -103,7 +100,7 @@ export const readDataFromFirestore = (
         if (doc.exists) {
           const data = doc.data()
           let content: Content = null
-          console.debug('    readDataToFirestore gotten data:', data)
+          console.debug('[debug] readDataToFirestore gotten data:', data)
           if (data && data.content) {
             let obj: any = JSON.parse(data.content)
             if (!obj) {
@@ -114,17 +111,25 @@ export const readDataFromFirestore = (
               body:
                 obj && obj.body && obj.body.type === 'Buffer'
                   ? Buffer.from(obj.body.data)
-                  : Buffer.from(''),
+                  : Buffer.from('')
             }
           }
           resolve(content)
         } else {
           reject('no contents')
-          console.log('no contents')
+          console.debug(
+            '[debug] read data from firestore but no contents topic:',
+            topic
+          )
         }
       })
       .catch((err) => {
-        console.log('error:', err)
+        console.error(
+          '[error] failed read data from firestore: ',
+          err,
+          ' topic: ',
+          topic
+        )
         reject(err)
       })
   })
@@ -136,15 +141,12 @@ export const subscribeFromFirestore = async (
   topic: string,
   callback: (err: string | null, content?: Content, reqId?: string) => void
 ) => {
-  console.debug('    subscribeFromFirestore topic:', topic)
+  console.debug('[debug] subscribeFromFirestore topic:', topic)
   let firstFlg = true
   const ref = firestore.collection('things').doc(encodeURIComponent(topic))
-  //  const doc = await ref.get()
-  //  if (!doc.exists) firstFlg = false
   let reqId
   const observer = ref.onSnapshot(
     (doc) => {
-      //console.log(`Received doc snapshot: `, doc)
       const data = doc.data()
       // reqIdが含まれており、TopicにactionResultsが含まれている場合、戻り値であるため最初の取得かどうかによらず値を返す
       let dividedTopic = topic.split('/')
@@ -160,7 +162,7 @@ export const subscribeFromFirestore = async (
       }
       if (firstFlg) {
         firstFlg = false
-        console.log('ignore because first calling: ' + topic)
+        console.debug('[debug] ignore because first calling: ' + topic)
         return
       }
 
@@ -168,7 +170,7 @@ export const subscribeFromFirestore = async (
       if (data && data.content) {
         let obj: any = JSON.parse(data.content)
         if (!obj) {
-          callback(`invalid ${topic} content:${content}`, null, reqId)
+          callback(`invalid ${topic} content: ${content}`, null, reqId)
           return
         }
         content = {
@@ -176,14 +178,19 @@ export const subscribeFromFirestore = async (
           body:
             obj && obj.body && obj.body.type === 'Buffer'
               ? Buffer.from(obj.body.data)
-              : Buffer.from(''),
+              : Buffer.from('')
         }
         content = obj
       }
       callback(null, content, reqId)
     },
     (err) => {
-      console.log(`Encountered error: ${err}`)
+      console.error(
+        '[error] failed to subscribe data from firestore: ',
+        err,
+        ' topic: ',
+        topic
+      )
       callback(err, null, reqId)
     }
   )
@@ -206,9 +213,9 @@ export const writeMetaDataToFirestore = (
 ): Promise<any> => {
   return new Promise((resolve, reject) => {
     console.debug(
-      '    writeMetaDataToFirestore hostName:',
+      '[debug] writeMetaDataToFirestore hostName: ',
       hostName,
-      ' value:',
+      ' value: ',
       content
     )
     const ref = firestore.collection('hostsMetaData').doc(hostName)
@@ -222,9 +229,14 @@ export const writeMetaDataToFirestore = (
         resolve(value)
       })
       .catch((err) => {
-        console.error('*********** write error:', err)
-        console.error('*********** data:', data)
-        console.error('***', hostName, data['content'], data['contentType'])
+        console.error(
+          '[error] failed to write meta data: ',
+          err,
+          ' data: ',
+          data,
+          ' hostName: ',
+          hostName
+        )
         reject(err)
       })
   })
@@ -235,7 +247,7 @@ export const readMetaDataFromFirestore = (
   hostName: string
 ): Promise<Object> => {
   return new Promise<Object>((resolve, reject) => {
-    console.debug('    readDataToFirestore hostName:', hostName)
+    console.debug('[debug] readMetaDataFromFirestore hostName:', hostName)
     const ref = firestore.collection('hostsMetaData').doc(hostName)
     ref
       .get()
@@ -245,12 +257,17 @@ export const readMetaDataFromFirestore = (
           const content: Object = JSON.parse(data)
           resolve(content['body'])
         } else {
+          console.debug('[debug] read meta data from firestore but no contents')
           reject('no contents')
-          console.log('no contents')
         }
       })
       .catch((err) => {
-        console.log('error:', err)
+        console.error(
+          '[error] failed to read meta data: ',
+          err,
+          ' hostName: ',
+          hostName
+        )
         reject(err)
       })
   })
