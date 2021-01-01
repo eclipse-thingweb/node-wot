@@ -185,12 +185,28 @@ export default class WoTFirestoreServer implements ProtocolServer {
 
       let href = this.WOTFIRESTORE_HREF_BASE + topic
       let form = new TD.Form(href, this.DEFAULT_CONTENT_TYPE)
-      form.op = ['observeproperty', 'unobserveproperty']
-
+      if (thing.properties[propertyName].readOnly) {
+        form.op = ['readproperty']
+      } else if (thing.properties[propertyName].writeOnly) {
+        form.op = ['writeproperty']
+      } else {
+        form.op = ['readproperty', 'writeproperty']
+      }
       thing.properties[propertyName].forms.push(form)
       console.debug(
         `[debug] WoTFirestoreServer at ${this.WOTFIRESTORE_HREF_BASE} assigns '${href}' to property '${propertyName}'`
       )
+
+      if (thing.properties[propertyName].observable) {
+        let href = this.WOTFIRESTORE_HREF_BASE + topic
+        let form = new TD.Form(href, this.DEFAULT_CONTENT_TYPE)
+        form.op = ['observeproperty', 'unobserveproperty']
+        thing.properties[propertyName].forms.push(form)
+        console.debug(
+          '[binding-http]',
+          `HttpServer on port ${this.getPort()} assigns '${href}' to observable Property '${propertyName}'`
+        )
+      }
       if (thing.properties[propertyName].readOnly === false) {
         subscribeFromFirestore(
           this.firestore,
