@@ -8,7 +8,7 @@ The `-h` option explains the functionality and also how node-wot can be configur
 * `wot-servient -h` *or*
 * `node packages\cli\dist\cli.js`
 
-The `-h` help options shows the the following output:
+The `-h` help options shows the following output:
 
 ```
 Usage: wot-servient [options] [SCRIPT]...
@@ -50,6 +50,9 @@ wot-servient.conf.json syntax:
         "clientId": BROKER-UNIQUEID,
         "protocolVersion": MQTT_VERSION
     },
+    "log": {
+        "level": LEVEL
+    },
     "credentials": {
         THING_ID1: {
             "token": TOKEN
@@ -77,15 +80,31 @@ wot-servient.conf.json fields:
   BROKER-URL      : URL to an MQTT broker that publisher and subscribers will use
   BROKER-UNIQUEID : unique id set by mqtt client while connecting to broker
   MQTT_VERSION    : number indicating the MQTT protocol version to be used (3, 4, or 5)
+  LEVEL           : string or number setting the log level: { error: 0, warn: 1, info: 2, debug: 3 } (default info)
   THING_IDx       : string with TD "id" for which credentials should be configured
   TOKEN           : string for providing a Bearer token
   USERNAME        : string for providing a Basic Auth username
   PASSWORD        : string for providing a Basic Auth password
+  ---------------------------------------------------------------------------
+ 
+Environment variables must be provided in a .env file in the current working directory. 
+
+Example:
+VAR1=Value1
+VAR2=Value2
 
 ```
 
 ### Prerequisites
 See instructions [how to build node-wot as a standalone application](https://github.com/eclipse/thingweb.node-wot/#as-a-standalone-application).
+
+### Environment variables
+If your scripts needs to access environment variables those must be supplied in a particular file. Node-wot cli uses [dotenv](https://github.com/motdotla/dotenv) library to load `.env` files located at the current working directory. For example, providing the following `.env` file will fill variables `PORT` and `ADDRESS` in scripts `process.env` field:
+
+```
+PORT=4242
+ADDRESS=http://hello.com
+```  
 
 ### Examples
 

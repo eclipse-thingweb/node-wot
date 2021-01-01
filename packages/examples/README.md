@@ -1,8 +1,8 @@
 # node-wot Examples
 
-## Demo Serviants
+## Demo Servients
 
-Demo serviants examples are located in `src\demo-servients`.
+Demo servients examples are located in `src\demo-servients`.
 
 ## Script Examples 
 

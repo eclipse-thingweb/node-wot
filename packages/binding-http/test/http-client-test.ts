@@ -244,6 +244,53 @@ class HttpClientTest {
 
         return httpServer.stop();
     }
+    
+    @test "should register to sse server and get server sent event"(done: any) {
+        //create sse server
+        const express = require('express')
+        const serveStatic = require('serve-static')
+        const SseStream = require('ssestream')
+
+        const app = express()
+        app.use(serveStatic(__dirname))
+        app.get('/sse', function (req: any, res: any) {
+            console.log('new connection')
+
+            const sseStream = new SseStream(req)
+            sseStream.pipe(res)
+            const pusher = setInterval(() => {
+                sseStream.write({
+                    data: "Test event"
+                })
+            }, 300)
+
+            res.on('close', () => {
+                console.log('lost connection')
+                clearInterval(pusher)
+                sseStream.unpipe(res)
+            })
+        })
+
+        const server = app.listen(60603, (err: any) => {
+            if (err) throw err
+            console.log('server ready on http://localhost:60603')
+        })
+        console.log('client created')
+        let client = new HttpClient();
+
+        // Subscribe to a resource with sse
+        let form: HttpForm = {
+            op: ["observeproperty"],
+            subprotocol: "sse",
+            contentType: "application/json",
+            href: "http://localhost:60603/sse"
+        };
+
+        client.subscribeResource(form, (data) => {
+            client.unlinkResource(form);
+            server.close(done)
+        });
+    }
 
     @test "should call error() and complete() on subscription with no connection"(done: any) {
 
@@ -277,17 +324,20 @@ class HttpClientTest {
             href: "http://localhost:60604/"
         };
 
+        let server = http.createServer((req, res) => {
+            res.writeHead(404);
+            res.end();
+        });
+
         let errorSpy = chai.spy();
         let completeSpy = chai.spy(function () {
             errorSpy.should.have.been.called.once;
             completeSpy.should.have.been.called.once;
             done();
+            server.close()
         });
 
-        let server = http.createServer((req, res) => { 
-            res.writeHead(404); 
-            res.end(); 
-        });
+        
 
         server.listen(60604, "0.0.0.0");
         server.once('listening', () => {

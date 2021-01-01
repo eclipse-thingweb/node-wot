@@ -21,7 +21,7 @@ module.exports =  class InMemoryModel{
      *
      */
     constructor() {
-        this.clients = [{ clientId: 'node-wot', clientSecret: 'isgreat!', redirectUris: [''], grants:["client_credentials","password"] }];
+        this.clients = [{ clientId: 'node-wot', clientSecret: 'isgreat!', redirectUris: [''], grants:["client_credentials","limited"] }];
         this.tokens = [];
         this.users = [{ id: '123', username: 'thomseddon', password: 'nightworld' }];
         

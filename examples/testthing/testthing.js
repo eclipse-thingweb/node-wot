@@ -14,7 +14,7 @@
  ********************************************************************************/
 
 function checkPropertyWrite(expected, actual) {
-    var output = "Property " + expected + " written with " + actual;
+    let output = "Property " + expected + " written with " + actual;
     if (expected === actual) {
         console.info("PASS: " + output);
     }
@@ -23,7 +23,7 @@ function checkPropertyWrite(expected, actual) {
     }
 }
 function checkActionInvocation(name, expected, actual) {
-    var output = "Action " + name + " invoked with " + actual;
+    let output = "Action " + name + " invoked with " + actual;
     if (expected === actual) {
         console.info("PASS: " + output);
     }
@@ -31,6 +31,12 @@ function checkActionInvocation(name, expected, actual) {
         throw new Error("FAIL: " + output);
     }
 }
+let bool = false;
+let int = 42;
+let num = 3.14;
+let string = "unset";
+let array = [2, "unset"];
+let object = { "id": 123, "name": "abc" };
 WoT.produce({
     title: "TestThing",
     properties: {
@@ -145,84 +151,120 @@ WoT.produce({
         }
     }
 })
-    .then(function (thing) {
+    .then((thing) => {
     console.log("Produced " + thing.getThingDescription().title);
     // init property values
-    thing.writeProperty("bool", false);
-    thing.writeProperty("int", 42);
-    thing.writeProperty("num", 3.14);
-    thing.writeProperty("string", "unset");
-    thing.writeProperty("array", [2, "unset"]);
-    thing.writeProperty("object", { "id": 123, "name": "abc" });
+    thing.writeProperty("bool", bool);
+    thing.writeProperty("int", int);
+    thing.writeProperty("num", num);
+    thing.writeProperty("string", string);
+    thing.writeProperty("array", array);
+    thing.writeProperty("object", object);
     // set property handlers
     thing
-        .setPropertyWriteHandler("bool", function (value) {
-        return new Promise(function (resolve, reject) {
+        .setPropertyWriteHandler("bool", (value) => {
+        return new Promise((resolve, reject) => {
             checkPropertyWrite("boolean", typeof value);
+            bool = value;
             resolve();
         });
     })
-        .setPropertyWriteHandler("int", function (value) {
-        return new Promise(function (resolve, reject) {
+        .setPropertyReadHandler("bool", () => {
+        return new Promise((resolve, reject) => {
+            resolve(bool);
+        });
+    })
+        .setPropertyWriteHandler("int", (value) => {
+        return new Promise((resolve, reject) => {
             if (value === Math.floor(value)) {
                 checkPropertyWrite("integer", "integer");
             }
             else {
                 checkPropertyWrite("integer", typeof value);
             }
+            int = value;
             resolve();
         });
     })
-        .setPropertyWriteHandler("num", function (value) {
-        return new Promise(function (resolve, reject) {
+        .setPropertyReadHandler("int", () => {
+        return new Promise((resolve, reject) => {
+            resolve(int);
+        });
+    })
+        .setPropertyWriteHandler("num", (value) => {
+        return new Promise((resolve, reject) => {
             checkPropertyWrite("number", typeof value);
+            num = value;
             resolve();
         });
     })
-        .setPropertyWriteHandler("string", function (value) {
-        return new Promise(function (resolve, reject) {
+        .setPropertyReadHandler("num", () => {
+        return new Promise((resolve, reject) => {
+            resolve(num);
+        });
+    })
+        .setPropertyWriteHandler("string", (value) => {
+        return new Promise((resolve, reject) => {
             checkPropertyWrite("string", typeof value);
+            string = value;
             resolve();
         });
     })
-        .setPropertyWriteHandler("array", function (value) {
-        return new Promise(function (resolve, reject) {
+        .setPropertyReadHandler("string", () => {
+        return new Promise((resolve, reject) => {
+            resolve(string);
+        });
+    })
+        .setPropertyWriteHandler("array", (value) => {
+        return new Promise((resolve, reject) => {
             if (Array.isArray(value)) {
                 checkPropertyWrite("array", "array");
             }
             else {
                 checkPropertyWrite("array", typeof value);
             }
+            array = value;
             resolve();
         });
     })
-        .setPropertyWriteHandler("object", function (value) {
-        return new Promise(function (resolve, reject) {
+        .setPropertyReadHandler("array", () => {
+        return new Promise((resolve, reject) => {
+            resolve(array);
+        });
+    })
+        .setPropertyWriteHandler("object", (value) => {
+        return new Promise((resolve, reject) => {
             if (Array.isArray(value)) {
                 checkPropertyWrite("object", "array");
             }
             else {
                 checkPropertyWrite("object", typeof value);
             }
+            object = value;
             resolve();
+        });
+    })
+        .setPropertyReadHandler("object", () => {
+        return new Promise((resolve, reject) => {
+            resolve(object);
         });
     });
     // set action handlers
     thing
-        .setActionHandler("void-void", function (parameters) {
-        return new Promise(function (resolve, reject) {
+        .setActionHandler("void-void", (parameters) => {
+        return new Promise((resolve, reject) => {
             checkActionInvocation("void-void", "undefined", typeof parameters);
             resolve();
         });
     })
-        .setActionHandler("void-int", function (parameters) {
-        return new Promise(function (resolve, reject) {
+        .setActionHandler("void-int", (parameters) => {
+        return new Promise((resolve, reject) => {
             checkActionInvocation("void-int", "undefined", typeof parameters);
             resolve(0);
         });
     })
-        .setActionHandler("int-void", function (parameters) {
-        return new Promise(function (resolve, reject) {
+        .setActionHandler("int-void", (parameters) => {
+        return new Promise((resolve, reject) => {
             if (parameters === Math.floor(parameters)) {
                 checkActionInvocation("int-void", "integer", "integer");
             }
@@ -232,9 +274,9 @@ WoT.produce({
             resolve();
         });
     })
-        .setActionHandler("int-int", function (parameters) {
-        return new Promise(function (resolve, reject) {
-            var inputtype = typeof parameters;
+        .setActionHandler("int-int", (parameters) => {
+        return new Promise((resolve, reject) => {
+            let inputtype = typeof parameters;
             if (parameters === Math.floor(parameters)) {
                 checkActionInvocation("int-int", "integer", "integer");
             }
@@ -244,9 +286,9 @@ WoT.produce({
             resolve(parameters + 1);
         });
     })
-        .setActionHandler("int-string", function (parameters) {
-        return new Promise(function (resolve, reject) {
-            var inputtype = typeof parameters;
+        .setActionHandler("int-string", (parameters) => {
+        return new Promise((resolve, reject) => {
+            let inputtype = typeof parameters;
             if (parameters === Math.floor(parameters)) {
                 checkActionInvocation("int-string", "integer", "integer");
             }
@@ -271,21 +313,21 @@ WoT.produce({
             }
         });
     })
-        .setActionHandler("void-obj", function (parameters) {
-        return new Promise(function (resolve, reject) {
+        .setActionHandler("void-obj", (parameters) => {
+        return new Promise((resolve, reject) => {
             checkActionInvocation("void-complex", "undefined", typeof parameters);
             resolve({ "prop1": 123, "prop2": "abc" });
         });
     })
-        .setActionHandler("obj-void", function (parameters) {
-        return new Promise(function (resolve, reject) {
+        .setActionHandler("obj-void", (parameters) => {
+        return new Promise((resolve, reject) => {
             checkActionInvocation("complex-void", "object", typeof parameters);
             resolve();
         });
     });
     // expose the thing
-    thing.expose().then(function () { console.info(thing.getThingDescription().title + " ready"); });
+    thing.expose().then(() => { console.info(thing.getThingDescription().title + " ready"); });
 })
-    .catch(function (e) {
+    .catch((e) => {
     console.log(e);
 });

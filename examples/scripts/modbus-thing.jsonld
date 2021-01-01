@@ -1,0 +1,84 @@
+{
+  "id": "urn:dev:wot:org:eclipse:modbus-example",
+  "title": "Modbus TestThing",
+  "@context": [
+    "https://www.w3.org/2019/wot/td/v1",
+    {
+      "modbus": "http://modbus-example.com"
+    }
+  ],
+  "@type": "Thing",
+  "security": [
+    "nosec_sc"
+  ],
+  "properties": {
+    "coilProp": {
+      "title": "coilProp",
+      "description": "A coil state",
+      "type": "boolean",
+      "readOnly": false,
+      "writeOnly": false,
+      "observable": false,
+      "forms": [
+        {
+          "href": "modbus+tcp://127.0.0.1:60000",
+          "contentType": "application/octet-stream;length=1",
+          "op": [
+            "writeproperty"
+          ],
+          "modbus:function": 5,
+          "modbus:range": [0, 1],
+          "modbus:unitID": 1
+        },
+        {
+          "href": "modbus+tcp://127.0.0.1:60000",
+          "contentType": "application/octet-stream;length=1",
+          "op": [
+            "readproperty"
+          ],
+          "modbus:function": 1,
+          "modbus:range": [0, 1],
+          "modbus:unitID": 1
+        }
+      ]
+    },
+    "registerProp": {
+      "title": "registryProp",
+      "description": "An holding register state",
+      "type": "integer",
+      "readOnly": false,
+      "writeOnly": false,
+      "observable": false,
+      "forms": [
+        {
+          "href": "modbus+tcp://127.0.0.1:60000",
+          "contentType": "application/octet-stream;length=2",
+          "op": [
+            "writeproperty"
+          ],
+          "modbus:function": 6,
+          "modbus:range": [8],
+          "modbus:unitID": 1
+        },
+        {
+          "href": "modbus+tcp://127.0.0.1:60000",
+          "contentType": "application/octet-stream;length=2",
+          "op": [
+            "readproperty"
+          ],
+          "modbus:function": 3,
+          "modbus:range": [8],
+          "modbus:unitID": 1
+        }
+      ]
+    }
+  },
+  "actions": {
+    
+  },
+  "securityDefinitions": {
+    "nosec_sc": {
+      "scheme": "nosec"
+    }
+  }
+}

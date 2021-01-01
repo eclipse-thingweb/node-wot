@@ -18,41 +18,15 @@ import { Helpers } from "@node-wot/core";
 let WoT: WoT.WoT;
 let WoTHelpers: Helpers;
 
-let td = {
-    "@context": "https://www.w3.org/2019/wot/td/v1",
-    "title": "OAuth",
-    "id": "urn:dev:wot:oauth:test",
-    "securityDefinitions": {
-        "oauth2_sc": {
-            "scheme": "oauth2",
-            "flow": "client_credentials",
-            "authorization": "https://example.com/authorization",
-            "token": "https://localhost:3000/token",
-            "scopes": [
-                "limited",
-                "special"
-            ]
+WoTHelpers.fetch("https://localhost:8080/oauth").then(td => {
+
+    WoT.consume(td).then(async thing => {
+        try {
+            const result = await thing.invokeAction("sayOk")
+            console.log("oAuth token was", result)   
+        } catch (error) {
+            console.log("It seems that I couldn't access the resource")
         }
-    },
-    "security": [
-        "oauth2_sc"
-    ],
-    "actions": {
-        "sayOk": {
-            "forms": [
-                {
-                    "href": "https://localhost:3000/resource",
-                    "htv:methodName": "GET"
-                }
-            ]
-        }
-    }
-}
-try {
-    WoT.produce(td).then((thing) => {
-        thing.expose()
-    });
-}
-catch (err) {
-    console.error("Script error: " + err);
-}
+    })
+})
+

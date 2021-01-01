@@ -28,11 +28,12 @@ import * as WoT from "wot-typescript-definitions";
 
 import { ProtocolClient, Content } from "@node-wot/core";
 import { HttpForm, HttpHeader, HttpConfig, HTTPMethodName } from "./http";
-import fetch, { Request,RequestInit,Response } from 'node-fetch';
+import fetch, { Request, RequestInit, Response } from 'node-fetch';
 import { Buffer } from "buffer";
 import OAuthManager from "./oauth-manager";
 import { parse } from "url";
 import { BasicCredential, Credential, BearerCredential, BasicKeyCredential, OAuthCredential } from "./credential";
+import { LongPollingSubscription, SSESubscription, InternalSubscription } from "./subscription-protocols";
 
 export default class HttpClient implements ProtocolClient {
 
@@ -44,19 +45,21 @@ export default class HttpClient implements ProtocolClient {
   private allowSelfSigned: boolean = false;
   private oauth: OAuthManager;
 
-  private credential:Credential = null;
+  private credential: Credential = null;
+
+  private activeSubscriptions = new Map<string,InternalSubscription>();
 
   constructor(config: HttpConfig = null, secure = false, oauthManager: OAuthManager = new OAuthManager()) {
 
     // config proxy by client side (not from TD)
-    if (config!==null && config.proxy && config.proxy.href) {
+    if (config !== null && config.proxy && config.proxy.href) {
       this.proxyRequest = new Request(HttpClient.fixLocalhostName(config.proxy.href))
-      
+
       if (config.proxy.scheme === "basic") {
-        if (!config.proxy.hasOwnProperty("username") || !config.proxy.hasOwnProperty("password")) console.warn(`HttpClient client configured for basic proxy auth, but no username/password given`);
+        if (!config.proxy.hasOwnProperty("username") || !config.proxy.hasOwnProperty("password")) console.warn("[binding-http]",`HttpClient client configured for basic proxy auth, but no username/password given`);
         this.proxyRequest.headers.set('proxy-authorization', "Basic " + Buffer.from(config.proxy.username + ":" + config.proxy.password).toString('base64'));
       } else if (config.proxy.scheme === "bearer") {
-        if (!config.proxy.hasOwnProperty("token")) console.warn(`HttpClient client configured for bearer proxy auth, but no token given`);
+        if (!config.proxy.hasOwnProperty("token")) console.warn("[binding-http]",`HttpClient client configured for bearer proxy auth, but no token given`);
         this.proxyRequest.headers.set('proxy-authorization', "Bearer " + config.proxy.token);
       }
       // security for hop to proxy
@@ -64,18 +67,18 @@ export default class HttpClient implements ProtocolClient {
         secure = true;
       }
       
-      console.info(`HttpClient using ${secure ? "secure " : ""}proxy ${this.proxyRequest.hostname}:${this.proxyRequest.port}`);
+      console.debug("[binding-http]",`HttpClient using ${secure ? "secure " : ""}proxy ${this.proxyRequest.hostname}:${this.proxyRequest.port}`);
     }
 
     // config certificate checks
-    if (config!==null && config.allowSelfSigned!==undefined) {
+    if (config !== null && config.allowSelfSigned !== undefined) {
       this.allowSelfSigned = config.allowSelfSigned;
-      console.warn(`HttpClient allowing self-signed/untrusted certificates -- USE FOR TESTING ONLY`);
+      console.warn("[binding-http]",`HttpClient allowing self-signed/untrusted certificates -- USE FOR TESTING ONLY`);
     }
 
     // using one client impl for both HTTP and HTTPS
     this.agent = secure ? new https.Agent({
-      rejectUnauthorized : !this.allowSelfSigned
+      rejectUnauthorized: !this.allowSelfSigned
     }) : new http.Agent();
 
     this.provider = secure ? https : http;
@@ -88,7 +91,7 @@ export default class HttpClient implements ProtocolClient {
 
   public async readResource(form: HttpForm): Promise<Content> {
     const request = await this.generateFetchRequest(form, "GET")
-    console.info(`HttpClient (readResource) sending ${request.method} to ${request.url}`);
+    console.debug("[binding-http]",`HttpClient (readResource) sending ${request.method} to ${request.url}`);
 
     let result = await this.fetch(request)
     
@@ -96,44 +99,46 @@ export default class HttpClient implements ProtocolClient {
     
     const buffer = await result.buffer()
     
-    console.debug(`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
-    console.debug(`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
+    console.debug("[binding-http]",`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
+    console.debug("[binding-http]",`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
     
     return { type: result.headers.get("content-type"), body: buffer };
   }
 
   public async writeResource(form: HttpForm, content: Content): Promise<any> {
-    const request = await this.generateFetchRequest(form, "PUT",{
-      headers : [["content-type",content.type]],
+    const request = await this.generateFetchRequest(form, "PUT", {
+      headers: [["content-type", content.type]],
       body: content.body
     })
 
-    console.log(`HttpClient (writeResource) sending ${request.method} with '${request.headers.get("Content-Type")}' to ${request.url}`);
+    console.debug("[binding-http]",`HttpClient (writeResource) sending ${request.method} with '${request.headers.get("Content-Type")}' to ${request.url}`);
     
     let result = await this.fetch(request)
 
-    console.info(`HttpClient received ${result.status} from ${result.url}`);
+    console.debug("[binding-http]",`HttpClient received ${result.status} from ${result.url}`);
 
     this.checkFetchResponse(result)
     
-    console.log(`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
+    console.debug("[binding-http]",`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
     return;
   }
 
   public async invokeResource(form: HttpForm, content?: Content): Promise<Content> {
     const headers = content ? [["content-type", content.type]] : []
 
-    const request = await this.generateFetchRequest(form, "POST",{
-      headers : headers,
-      body : content?.body
+    const request = await this.generateFetchRequest(form, "POST", {
+      headers: headers,
+      body: content?.body
     })
 
-    console.info(`HttpClient (invokeResource) sending ${request.method} ${content ? "with '" + request.headers.get("Content-Type") + "' " : " "}to ${request.url}`);
+    console.debug("[binding-http]",`HttpClient (invokeResource) sending ${request.method} ${content ? "with '" + request.headers.get("Content-Type") + "' " : " "}to ${request.url}`);
 
     let result = await this.fetch(request)
 
-    console.info(`HttpClient received ${result.status} from ${request.url}`);
-    console.debug(`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
+    console.debug("[binding-http]",`HttpClient received ${result.status} from ${request.url}`);
+    console.debug("[binding-http]",`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
+    
+    this.checkFetchResponse(result)
     
     const buffer = await result.buffer()
 
@@ -141,55 +146,32 @@ export default class HttpClient implements ProtocolClient {
   }
 
   public async unlinkResource(form: HttpForm): Promise<any> {
-    const request = await this.generateFetchRequest(form, "DELETE")
-    console.info(`HttpClient (unlinkResource) sending ${request.method} to ${request.url}`);
-
-    const result = await this.fetch(request)
-
-    // TODO might have response on unlink for future HATEOAS concept
-    this.checkFetchResponse(result)
-
-    const buffer = await result.buffer()
+    console.debug("[binding-http]",`HttpClient (unlinkResource) ${form.href}`);
+    const internalSub = this.activeSubscriptions.get(form.href);
     
-    console.debug(`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
-    console.debug(`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
+    if(internalSub){
+      this.activeSubscriptions.get(form.href).close()
+    }else{
+      console.warn("[binding-http]", `HttpClient cannot unlink ${form.href} no subscription found`)
+    }
 
-    return { type: result.headers.get("content-type"), body: buffer };
+    return {};
   }
 
   public subscribeResource(form: HttpForm, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): any {
 
-    let active = true;
-    let polling = async () => {
-      try {
-        // long timeout for long polling
-        const request = await this.generateFetchRequest(form, "GET", { timeout: 60 * 60 * 1000 })
-        console.info(`HttpClient (subscribeResource) sending ${request.method} to ${request.url}`);
-
-        const result = await this.fetch(request)
-
-        this.checkFetchResponse(result)
-
-        const buffer = await result.buffer()
-        console.info(`HttpClient received ${result.status} from ${request.url}`);
-
-        console.debug(`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
-        console.debug(`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
-
-        if (active) {
-          next({ type: result.headers.get("content-type"), body: buffer })
-          polling()
-        }
-      } catch (e) {
-        error && error(e)
-        complete && complete()
-        active = false
-      }
+    let internalSubscription;
+    if (form.subprotocol == undefined || form.subprotocol == "longpoll") {
+      //longpoll or subprotocol is not defined default is longpoll
+      internalSubscription = new LongPollingSubscription(form,this)
+    } else if (form.subprotocol == "sse") {
+      //server sent events
+      internalSubscription = new SSESubscription(form)
     }
 
-    polling();
-
-    return new Subscription( () => { active = false; } );
+    internalSubscription.open(next, error, complete);
+    this.activeSubscriptions.set(form.href,internalSubscription);
+    return new Subscription(() => { });
   }
 
   public start(): boolean {
@@ -204,7 +186,7 @@ export default class HttpClient implements ProtocolClient {
   public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean {
 
     if (metadata === undefined || !Array.isArray(metadata) || metadata.length == 0) {
-      console.warn(`HttpClient without security`);
+      console.warn("[binding-http]",`HttpClient without security`);
       return false;
     }
 
@@ -236,14 +218,14 @@ export default class HttpClient implements ProtocolClient {
       case "nosec":
         break;
       default:
-        console.error(`HttpClient cannot set security scheme '${security.scheme}'`);
+        console.error("[binding-http]",`HttpClient cannot set security scheme '${security.scheme}'`);
         console.dir(metadata);
         return false;
     }
 
     if (security.proxy) {
       if (this.proxyRequest !== null) {
-        console.info(`HttpClient overriding client-side proxy with security proxy '${security.proxy}`);
+        console.debug("[binding-http]",`HttpClient overriding client-side proxy with security proxy '${security.proxy}`);
       }
 
       this.proxyRequest = new Request(HttpClient.fixLocalhostName(security.proxy))
@@ -262,75 +244,75 @@ export default class HttpClient implements ProtocolClient {
       }
     }
 
-    console.log(`HttpClient using security scheme '${security.scheme}'`);
+    console.debug("[binding-http]",`HttpClient using security scheme '${security.scheme}'`);
     return true;
   }
 
-  private async generateFetchRequest(form: HttpForm, defaultMethod: HTTPMethodName, additionalOptions: RequestInit={}){
-    let requestInit : RequestInit = additionalOptions
-   
+  private async generateFetchRequest(form: HttpForm, defaultMethod: HTTPMethodName, additionalOptions: RequestInit = {}) {
+    let requestInit: RequestInit = additionalOptions
+
     let url = HttpClient.fixLocalhostName(form.href)
 
     requestInit.method = form["htv:methodName"] ? form["htv:methodName"] : defaultMethod;
-    
+
     requestInit.headers = requestInit.headers ?? []
     requestInit.headers = requestInit.headers as string[][]
-    
+
     if (Array.isArray(form["htv:headers"])) {
-      console.debug("HttpClient got Form 'headers'", form["htv:headers"]);
+      console.debug("[binding-http]","HttpClient got Form 'headers'", form["htv:headers"]);
       
       let headers = form["htv:headers"] as Array<HttpHeader>;
       for (let option of headers) {
         requestInit.headers.push([option["htv:fieldName"], option["htv:fieldValue"]]);
       }
     } else if (typeof form["htv:headers"] === "object") {
-      console.debug("HttpClient got Form SINGLE-ENTRY 'headers'", form["htv:headers"]);
+      console.debug("[binding-http]","HttpClient got Form SINGLE-ENTRY 'headers'", form["htv:headers"]);
       
       let option = form["htv:headers"] as HttpHeader;
       requestInit.headers.push([option["htv:fieldName"], option["htv:fieldValue"]]);
     }
 
-    
-    
+
+
     requestInit.agent = this.agent
 
     let request = this.proxyRequest ? new Request(this.proxyRequest, requestInit) : new Request(url, requestInit);
-    
+
     // Sign the request using client credentials
     if (this.credential) {
       request = await this.credential.sign(request)
     }
 
-    if(this.proxyRequest){
+    if (this.proxyRequest) {
       const parsedBaseURL = parse(url)
       request.url = request.url + parsedBaseURL.path
       
-      console.debug("HttpClient proxy request URL:",request.url)
+      console.debug("[binding-http]","HttpClient proxy request URL:",request.url)
 
       request.headers.set("host", parsedBaseURL.hostname)
     }
 
-    return  request;
+    return request;
   }
 
-  private async fetch(request:Request,content?:Content){
+  private async fetch(request: Request, content?: Content) {
     let result = await fetch(request, { body: content?.body })
-    
-    if (HttpClient.isOAuthTokenExpired(result,this.credential)) {
+
+    if (HttpClient.isOAuthTokenExpired(result, this.credential)) {
       this.credential = await (this.credential as OAuthCredential).refreshToken()
-      return await fetch( await this.credential.sign(request))
+      return await fetch(await this.credential.sign(request))
     }
 
     return result;
   }
 
-  private checkFetchResponse(response:Response){
+  private checkFetchResponse(response: Response) {
     const statusCode = response.status
 
     if (statusCode < 200) {
       throw new Error(`HttpClient received ${statusCode} and cannot continue (not implemented, open GitHub Issue)`);
-    }else if (statusCode < 300) {
-        return // No error
+    } else if (statusCode < 300) {
+      return // No error
     } else if (statusCode < 400) {
       throw new Error(`HttpClient received ${statusCode} and cannot continue (not implemented, open GitHub Issue)`);
     } else if (statusCode < 500) {
@@ -340,15 +322,15 @@ export default class HttpClient implements ProtocolClient {
     }
   }
 
-  private static isOAuthTokenExpired(result:Response,credential:Credential){
+  private static isOAuthTokenExpired(result: Response, credential: Credential) {
     return result.status === 401 && credential instanceof OAuthCredential
   }
 
-  private static fixLocalhostName(url:string) {
+  private static fixLocalhostName(url: string) {
     const localhostPresent = /^(https?:)?(\/\/)?(?:[^@\n]+@)?(www\.)?(localhost)/gm
-    
+
     if (localhostPresent.test(url)) {
-      console.warn("LOCALHOST FIX");
+      console.warn("[binding-http]","LOCALHOST FIX");
       return url.replace(localhostPresent, "$1$2127.0.0.1")
     }
     

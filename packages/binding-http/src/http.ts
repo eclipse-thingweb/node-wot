@@ -14,6 +14,7 @@
  ********************************************************************************/
 
 import * as TD from "@node-wot/td-tools";
+import { Method } from "./oauth-token-validation";
 
 export { default as HttpServer } from './http-server'
 export { default as HttpClient } from './http-client'
@@ -27,11 +28,20 @@ export * from './https-client-factory'
 export interface HttpConfig {
     port?: number;
     address?: string;
+    baseUri?: string;
     proxy?: HttpProxyConfig;
     allowSelfSigned?: boolean;
     serverKey?: string;
     serverCert?: string;
     security?: TD.SecurityScheme;
+}
+
+export interface OAuth2ServerConfig extends TD.SecurityScheme{
+    method: Method;
+    /**
+     * Regex to select the valid clients ids. Default: .*
+     */
+    allowedClients?:string; 
 }
 
 export interface HttpProxyConfig {

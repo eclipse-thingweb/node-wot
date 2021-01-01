@@ -1,6 +1,6 @@
 {
   "name": "@node-wot/cli",
-  "version": "0.7.1",
+  "version": "0.7.4",
   "description": "servient command line interface",
   "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
   "license": "EPL-2.0 OR W3C-20150513",
@@ -23,18 +23,21 @@
     "typescript": "3.7.5",
     "typescript-standard": "0.3.36"
   },
+  "optionalDependencies": {
+    "ts-node": "^8.6.2"
+  },
   "dependencies": {
-    "@node-wot/core": "0.7.1",
-    "@node-wot/binding-coap": "0.7.1",
-    "@node-wot/binding-file": "0.7.1",
-    "@node-wot/binding-http": "0.7.1",
-    "@node-wot/binding-websockets": "0.7.1",
-    "@node-wot/binding-mqtt": "0.7.1",
-    "@node-wot-ht/binding-wotfirestore": "0.7.0-SNAPSHOT.7"
+    "@node-wot/core": "0.7.4",
+    "@node-wot/binding-coap": "0.7.4",
+    "@node-wot/binding-file": "0.7.4",
+    "@node-wot/binding-http": "0.7.4",
+    "@node-wot/binding-websockets": "0.7.4",
+    "@node-wot/binding-mqtt": "0.7.4",
+    "dotenv": "^8.2.0"
   },
   "scripts": {
     "build": "tsc",
     "start": "ts-node src/cli.ts",
-    "codestyle": "standard --pretty"
+    "debug": "node -r ts-node/register --inspect-brk=9229 src/cli.ts"
   }
 }

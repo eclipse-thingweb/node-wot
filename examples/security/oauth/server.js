@@ -12,7 +12,9 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-
+/**
+ * A simple oAuth test server
+ */
 const OAuthServer = require('express-oauth-server')
 const bodyParser = require('body-parser');
 const https = require('https');
@@ -25,16 +27,44 @@ var app = express();
 const model = new Memory()
 
 app.oauth = new OAuthServer({
-    model: model,
-    accessTokenLifetime: 1 
+    model: model
 });
 
 app.use(bodyParser.json());
-app.use("/resource", app.oauth.authenticate());
+app.use("/introspect", bodyParser.urlencoded({ extended: false }));
+app.use("/introspect", (req, res, next) => {
+    if (req.method !== "POST" || !req.is("application/x-www-form-urlencoded")) {
+        return res.status(400).end()
+    }
+
+    // rewrite body authenticate method is not compliant to https://tools.ietf.org/html/rfc7662
+    const token = req.body.token
+    delete req.body.token
+    req.body.access_token = token
+    console.log("Body changed,")
+    next()
+})
+
+app.use("/introspect", async (req, res, next) => {
+    return app.oauth.authenticate()(req, res, next)
+
+
+});
+app.use("/introspect", (req, res) => {
+    const token = res.locals.oauth.token
+    console.log("Token was", token ? "Ok" : "not Ok")
+    res.json({
+        active: !!token,
+        scope: token.client.grants.join(" "),
+        client_id: token.client.clientId
+    }).end()
+})
+
 app.use("/token", bodyParser.urlencoded({ extended: false }));
 app.use("/token", app.oauth.token());
 
 app.use("/resource", (req, res) => {
+    console.log("qui?")
     res.send('Ok!')
 })
 

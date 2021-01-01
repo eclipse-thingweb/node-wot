@@ -3,7 +3,7 @@
     "@type": ["Thing"],
     "id": "urn:dev:wot:com:siemens:festolive:p101",
     "title": "Pump",
-    "base": "coap://192.168.0.101:5683/PumpP101/",
+    "base": "coap://192.168.0.101:5683/pumpp101/",
     "securityDefinitions": { "nosec_sc": { "scheme": "nosec" }},
     "security": "nosec_sc",
     "properties": {

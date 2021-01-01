@@ -28,6 +28,12 @@ import { Subscribable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
 import UriTemplate = require('uritemplate');
 
+enum Affordance {
+    PropertyAffordance,
+    ActionAffordance,
+    EventAffordance
+}
+
 export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing {
 
     /** A map of interactable Thing Properties with read()/write()/subscribe() functions */
@@ -63,7 +69,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     }
 
     public emitEvent(name: string, data: any): void {
-        console.warn("not implemented");
+        console.warn("[core/consumed-thing]","not implemented");
     }
 
     extendInteractions(): void {
@@ -82,30 +88,43 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     }
 
 
-    findForm(forms: Array<TD.Form>, op: string, schemes: string[], idx: number): TD.Form {
+    findForm(forms: Array<TD.Form>, op: string, affordance: Affordance, schemes: string[], idx: number): TD.Form {
         let form = null;
 
         // find right operation and corresponding scheme in the array form
         for (let f of forms) {
-            if (f.op != undefined)
-                if (f.op.indexOf(op) != -1 && f.href.indexOf(schemes[idx] + ":") != -1) {
-                    form = f;
-                    break;
+            let fop: string | Array<string> = "";
+            if (f.op != undefined) {
+                fop = f.op;
+            } else {
+                // default "op" values
+                // see https://w3c.github.io/wot-thing-description/#sec-default-values
+                switch (affordance) {
+                    case Affordance.PropertyAffordance:
+                        fop = ["readproperty", "writeproperty"];
+                        break;
+                    case Affordance.ActionAffordance:
+                        fop = "invokeaction";
+                        break;
+                    case Affordance.EventAffordance:
+                        fop = "subscribeevent";
+                        break;
                 }
+            }
+            if (fop.indexOf(op) != -1 && f.href.indexOf(schemes[idx] + ":") != -1) {
+                form = f;
+                break;
+            }
         }
 
-        // if there no op was defined use default assignment
-        if (form == null) {
-            form = forms[idx];
-        }
-
+        // Note: form can be null if no appropriate op can be found
         return form;
     }
 
     ensureClientSecurity(client: ProtocolClient) {
         // td-tools parser ensures this.security is an array
         if (this.security && this.securityDefinitions && Array.isArray(this.security) && this.security.length > 0) {
-            console.log(`ConsumedThing '${this.title}' setting credentials for ${client}`);
+            console.debug("[core/consumed-thing]",`ConsumedThing '${this.title}' setting credentials for ${client}`);
             let scs: Array<TD.SecurityScheme> = [];
             for (let s of this.security) {
                 let ws = this.securityDefinitions[s + ""]; // String vs. string (fix wot-typescript-definitions?)
@@ -119,7 +138,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     }
 
     // utility for Property, Action, and Event
-    getClientFor(forms: Array<TD.Form>, op: string, options?: WoT.InteractionOptions): ClientAndForm {
+    getClientFor(forms: Array<TD.Form>, op: string, affordance: Affordance, options?: WoT.InteractionOptions): ClientAndForm {
         if (forms.length === 0) {
             throw new Error(`ConsumedThing '${this.title}' has no links for this interaction`);
         }
@@ -129,14 +148,14 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
 
         if (options && options.formIndex) {
             // pick provided formIndex (if possible)
-            console.debug(`ConsumedThing '${this.title}' asked to use formIndex '${options.formIndex}'`);
+            console.debug("[core/consumed-thing]",`ConsumedThing '${this.title}' asked to use formIndex '${options.formIndex}'`);
 
             if (options.formIndex >= 0 && options.formIndex < forms.length) {
                 form = forms[options.formIndex];
                 let scheme = Helpers.extractScheme(form.href);
 
                 if (this.getServient().hasClientFor(scheme)) {
-                    console.log(`ConsumedThing '${this.title}' got client for '${scheme}'`);
+                    console.debug("[core/consumed-thing]",`ConsumedThing '${this.title}' got client for '${scheme}'`);
                     client = this.getServient().getClientFor(scheme);
 
                     if (!this.getClients().get(scheme)) {
@@ -156,23 +175,23 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
 
             if (cacheIdx !== -1) {
                 // from cache
-                console.debug(`ConsumedThing '${this.title}' chose cached client for '${schemes[cacheIdx]}'`);
+                console.debug("[core/consumed-thing]",`ConsumedThing '${this.title}' chose cached client for '${schemes[cacheIdx]}'`);
                 client = this.getClients().get(schemes[cacheIdx]);
-                form = this.findForm(forms, op, schemes, cacheIdx);
+                form = this.findForm(forms, op, affordance, schemes, cacheIdx);
             } else {
                 // new client
-                console.debug(`ConsumedThing '${this.title}' has no client in cache (${cacheIdx})`);
+                console.debug("[core/consumed-thing]",`ConsumedThing '${this.title}' has no client in cache (${cacheIdx})`);
                 let srvIdx = schemes.findIndex(scheme => this.getServient().hasClientFor(scheme));
 
                 if (srvIdx === -1) throw new Error(`ConsumedThing '${this.title}' missing ClientFactory for '${schemes}'`);
 
                 client = this.getServient().getClientFor(schemes[srvIdx]);
-                console.log(`ConsumedThing '${this.title}' got new client for '${schemes[srvIdx]}'`);
+                console.debug("[core/consumed-thing]",`ConsumedThing '${this.title}' got new client for '${schemes[srvIdx]}'`);
 
                 this.ensureClientSecurity(client);
                 this.getClients().set(schemes[srvIdx], client);
 
-                form = this.findForm(forms, op, schemes, srvIdx);
+                form = this.findForm(forms, op, affordance, schemes, srvIdx);
             }
         }
         return { client: client, form: form }
@@ -182,26 +201,31 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
         return new Promise<any>((resolve, reject) => {
             // TODO pass expected form op to getClientFor()
             let tp: TD.ThingProperty = this.properties[propertyName];
-            let { client, form } = this.getClientFor(tp.forms, "readproperty", options);
-            console.log("form: " + form)
-            if (!client) {
-                reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
+            if (!tp) {
+                reject(new Error(`ConsumedThing '${this.title}' does not have property ${propertyName}`));
             } else {
-                console.log(`ConsumedThing '${this.title}' reading ${form.href}`);
+                let { client, form } = this.getClientFor(tp.forms, "readproperty", Affordance.PropertyAffordance, options);
+                if (!client) {
+                    reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
+                } else if (!form) {
+                    reject(new Error(`ConsumedThing '${this.title}' did not get suitable form`));
+                } else {
+                    console.debug("[core/consumed-thing]",`ConsumedThing '${this.title}' reading ${form.href}`);
 
-                // uriVariables ?
-                form = this.handleUriVariables(form, options);
+                    // uriVariables ?
+                    form = this.handleUriVariables(form, options);
 
-                client.readResource(form).then((content) => {
-                    if (!content.type) content.type = form.contentType;
-                    try {
-                        let value = ContentManager.contentToValue(content, <any>tp);
-                        resolve(value);
-                    } catch {
-                        reject(new Error(`Received invalid content from Thing`));
-                    }
-                })
-                    .catch(err => { reject(err); });
+                    client.readResource(form).then((content) => {
+                        if (!content.type) content.type = form.contentType;
+                        try {
+                            let value = ContentManager.contentToValue(content, <any>tp);
+                            resolve(value);
+                        } catch {
+                            reject(new Error(`Received invalid content from Thing`));
+                        }
+                    })
+                        .catch(err => { reject(err); });
+                }
             }
         });
     }
@@ -235,7 +259,12 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     readAllProperties(options?: WoT.InteractionOptions): Promise<WoT.PropertyValueMap> {
         let propertyNames: string[] = [];
         for (let propertyName in this.properties) {
-            propertyNames.push(propertyName);
+            // collect attributes that are "readable" only
+            let tp: TD.ThingProperty = this.properties[propertyName];
+            let { client, form } = this.getClientFor(tp.forms, "readproperty", Affordance.PropertyAffordance, options);
+            if (form) {
+                propertyNames.push(propertyName);
+            }
         }
         return this._readProperties(propertyNames);
     }
@@ -248,20 +277,26 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
         return new Promise<void>((resolve, reject) => {
             // TODO pass expected form op to getClientFor()
             let tp: TD.ThingProperty = this.properties[propertyName];
-            let { client, form } = this.getClientFor(tp.forms, "writeproperty", options);
-            if (!client) {
-                reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
+            if (!tp) {
+                reject(new Error(`ConsumedThing '${this.title}' does not have property ${propertyName}`));
             } else {
-                console.log(`ConsumedThing '${this.title}' writing ${form.href} with '${value}'`);
-                let content = ContentManager.valueToContent(value, <any>tp.input, form.contentType);
+                let { client, form } = this.getClientFor(tp.forms, "writeproperty", Affordance.PropertyAffordance, options);
+                if (!client) {
+                    reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
+                } else if (!form) {
+                    reject(new Error(`ConsumedThing '${this.title}' did not get suitable form`));
+                } else {
+                    console.debug("[core/consumed-thing]",`ConsumedThing '${this.title}' writing ${form.href} with '${value}'`);
+                    let content = ContentManager.valueToContent(value, <any>tp, form.contentType);
 
-                // uriVariables ?
-                form = this.handleUriVariables(form, options);
+                    // uriVariables ?
+                    form = this.handleUriVariables(form, options);
 
-                client.writeResource(form, content).then(() => {
-                    resolve();
-                })
-                    .catch(err => { reject(err); });
+                    client.writeResource(form, content).then(() => {
+                        resolve();
+                    })
+                        .catch(err => { reject(err); });
+                }
             }
         });
     }
@@ -288,40 +323,46 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     public invokeAction(actionName: string, parameter?: any, options?: WoT.InteractionOptions): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             let ta: TD.ThingAction = this.actions[actionName];
-            let { client, form } = this.getClientFor(ta.forms, "invokeaction", options);
-            if (!client) {
-                reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
+            if (!ta) {
+                reject(new Error(`ConsumedThing '${this.title}' does not have action ${actionName}`));
             } else {
-                console.log(`ConsumedThing '${this.title}' invoking ${form.href}${parameter !== undefined ? " with '" + parameter + "'" : ""}`);
+                let { client, form } = this.getClientFor(ta.forms, "invokeaction", Affordance.ActionAffordance, options);
+                if (!client) {
+                    reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
+                } else if (!form) {
+                    reject(new Error(`ConsumedThing '${this.title}' did not get suitable form`));
+                } else {
+                    console.debug("[core/consumed-thing]",`ConsumedThing '${this.title}' invoking ${form.href}${parameter !== undefined ? " with '" + parameter + "'" : ""}`);
 
-                let input;
+                    let input;
 
-                if (parameter !== undefined) {
-                    input = ContentManager.valueToContent(parameter, <any>ta.input, form.contentType);
-                }
+                    if (parameter !== undefined) {
+                        input = ContentManager.valueToContent(parameter, <any>ta.input, form.contentType);
+                    }
 
-                // uriVariables ?
-                form = this.handleUriVariables(form, options);
+                    // uriVariables ?
+                    form = this.handleUriVariables(form, options);
 
-                client.invokeResource(form, input).then((content) => {
-                    // infer media type from form if not in response metadata
-                    if (!content.type) content.type = form.contentType;
+                    client.invokeResource(form, input).then((content) => {
+                        // infer media type from form if not in response metadata
+                        if (!content.type) content.type = form.contentType;
 
-                    // check if returned media type is the same as expected media type (from TD)
-                    if (form.response) {
-                        if (content.type !== form.response.contentType) {
-                            reject(new Error(`Unexpected type in response`));
+                        // check if returned media type is the same as expected media type (from TD)
+                        if (form.response) {
+                            if (content.type !== form.response.contentType) {
+                                reject(new Error(`Unexpected type in response`));
+                            }
                         }
-                    }
 
-                    try {
-                        let value = ContentManager.contentToValue(content, ta.output);
-                        resolve(value);
-                    } catch {
-                        reject(new Error(`Received invalid content from Thing`));
-                    }
-                })
-                    .catch(err => { reject(err); });
+                        try {
+                            let value = ContentManager.contentToValue(content, ta.output);
+                            resolve(value);
+                        } catch {
+                            reject(new Error(`Received invalid content from Thing`));
+                        }
+                    })
+                        .catch(err => { reject(err); });
+                }
             }
         });
     }
@@ -329,33 +370,39 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     public observeProperty(name: string, listener: WoT.WotListener, options?: WoT.InteractionOptions): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             let tp: TD.ThingProperty = this.properties[name];
-            let { client, form } = this.getClientFor(tp.forms, "observeproperty", options);
-            if (!client) {
-                reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
+            if (!tp) {
+                reject(new Error(`ConsumedThing '${this.title}' does not have property ${name}`));
             } else {
-                console.log(`ConsumedThing '${this.title}' observing to ${form.href}`);
+                let { client, form } = this.getClientFor(tp.forms, "observeproperty", Affordance.PropertyAffordance, options);
+                if (!client) {
+                    reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
+                } else if (!form) {
+                    reject(new Error(`ConsumedThing '${this.title}' did not get suitable form`));
+                } else {
+                    console.debug("[core/consumed-thing]",`ConsumedThing '${this.title}' observing to ${form.href}`);
 
-                // uriVariables ?
-                form = this.handleUriVariables(form, options);
+                    // uriVariables ?
+                    form = this.handleUriVariables(form, options);
 
-                return client.subscribeResource(form,
-                    (content) => {
-                        if (!content.type) content.type = form.contentType;
-                        try {
-                            let value = ContentManager.contentToValue(content, <any>tp);
-                            listener(value);
+                    return client.subscribeResource(form,
+                        (content) => {
+                            if (!content.type) content.type = form.contentType;
+                            try {
+                                let value = ContentManager.contentToValue(content, <any>tp);
+                                listener(value);
+                                resolve();
+                            } catch {
+                                reject(new Error(`Received invalid content from Thing`));
+                            }
+                        },
+                        (err) => {
+                            reject(err);
+                        },
+                        () => {
                             resolve();
-                        } catch {
-                            reject(new Error(`Received invalid content from Thing`));
                         }
-                    },
-                    (err) => {
-                        reject(err);
-                    },
-                    () => {
-                        resolve();
-                    }
-                );
+                    );
+                }
             }
         });
     }
@@ -363,13 +410,19 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     public unobserveProperty(name: string, options?: WoT.InteractionOptions): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             let tp: TD.ThingProperty = this.properties[name];
-            let { client, form } = this.getClientFor(tp.forms, "unobserveproperty", options);
-            if (!client) {
-                reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
+            if (!tp) {
+                reject(new Error(`ConsumedThing '${this.title}' does not have property ${name}`));
             } else {
-                console.log(`ConsumedThing '${this.title}' unobserveing to ${form.href}`);
-                client.unlinkResource(form);
-                resolve();
+                let { client, form } = this.getClientFor(tp.forms, "unobserveproperty", Affordance.PropertyAffordance, options);
+                if (!client) {
+                    reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
+                } else if (!form) {
+                    reject(new Error(`ConsumedThing '${this.title}' did not get suitable form`));
+                } else {
+                    console.debug("[core/consumed-thing]",`ConsumedThing '${this.title}' unobserveing to ${form.href}`);
+                    client.unlinkResource(form);
+                    resolve();
+                }
             }
         });
     }
@@ -377,33 +430,39 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     public subscribeEvent(name: string, listener: WoT.WotListener, options?: WoT.InteractionOptions): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             let te: TD.ThingEvent = this.events[name];
-            let { client, form } = this.getClientFor(te.forms, "subscribeevent", options);
-            if (!client) {
-                reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
+            if (!te) {
+                reject(new Error(`ConsumedThing '${this.title}' does not have event ${name}`));
             } else {
-                console.log(`ConsumedThing '${this.title}' subscribing to ${form.href}`);
-                
-                // uriVariables ?
-                form = this.handleUriVariables(form, options);
+                let { client, form } = this.getClientFor(te.forms, "subscribeevent", Affordance.EventAffordance, options);
+                if (!client) {
+                    reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
+                } else if (!form) {
+                    reject(new Error(`ConsumedThing '${this.title}' did not get suitable form`));
+                } else {
+                    console.debug("[core/consumed-thing]",`ConsumedThing '${this.title}' subscribing to ${form.href}`);
+                    
+                    // uriVariables ?
+                    form = this.handleUriVariables(form, options);
 
-                return client.subscribeResource(form,
-                    (content) => {
-                        if (!content.type) content.type = form.contentType;
-                        try {
-                            let value = ContentManager.contentToValue(content, <any>te.data);
-                            listener(value);
+                    return client.subscribeResource(form,
+                        (content) => {
+                            if (!content.type) content.type = form.contentType;
+                            try {
+                                let value = ContentManager.contentToValue(content, <any>te.data);
+                                listener(value);
+                                resolve();
+                            } catch {
+                                reject(new Error(`Received invalid content from Thing`));
+                            }
+                        },
+                        (err) => {
+                            reject(err);
+                        },
+                        () => {
                             resolve();
-                        } catch {
-                            reject(new Error(`Received invalid content from Thing`));
                         }
-                    },
-                    (err) => {
-                        reject(err);
-                    },
-                    () => {
-                        resolve();
-                    }
-                );
+                    );
+                }
             }
         });
     }
@@ -411,13 +470,19 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     public unsubscribeEvent(name: string, options?: WoT.InteractionOptions): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             let te: TD.ThingEvent = this.events[name];
-            let { client, form } = this.getClientFor(te.forms, "unsubscribeevent", options);
-            if (!client) {
-                reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
+            if (!te) {
+                reject(new Error(`ConsumedThing '${this.title}' does not have event ${name}`));
             } else {
-                console.log(`ConsumedThing '${this.title}' unsubscribing to ${form.href}`);
-                client.unlinkResource(form);
-                resolve();
+                let { client, form } = this.getClientFor(te.forms, "unsubscribeevent", Affordance.EventAffordance, options);
+                if (!client) {
+                    reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
+                } else if (!form) {
+                    reject(new Error(`ConsumedThing '${this.title}' did not get suitable form`));
+                } else {
+                    console.debug("[core/consumed-thing]",`ConsumedThing '${this.title}' unsubscribing to ${form.href}`);
+                    client.unlinkResource(form);
+                    resolve();
+                }
             }
         });
     }
@@ -437,7 +502,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
             updForm.response = form.response;
 
             form = updForm;
-            console.log(`ConsumedThing '${this.title}' update form URI to ${form.href}`);
+            console.debug("[core/consumed-thing]",`ConsumedThing '${this.title}' update form URI to ${form.href}`);
         }
 
         return form;

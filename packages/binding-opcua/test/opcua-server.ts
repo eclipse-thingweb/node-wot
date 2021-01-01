@@ -39,8 +39,8 @@ export class OpcuaServer {
 
 		// OBJECTS
 		const device = namespace.addObject({
+			nodeId: "ns=1;s=device",
 			organizedBy: addressSpace.rootFolder.objects,
-			nodeId: "ns=1;b=9990FFAA", // some opaque NodeId in namespace 4
 			browseName: "WotDevice",
 			targetName: {
 				namespaceIndex: 1,
@@ -67,8 +67,8 @@ export class OpcuaServer {
 
 
 		namespace.addVariable({
-			nodeId: "ns=1;b=9999FFAA",
 			browseName: "RandomValue",
+			nodeId: "ns=1;b=9998FF00", // some opaque NodeId in namespace 4
 			dataType: "Double",
 			value: {
 				get: function () {
@@ -82,9 +82,8 @@ export class OpcuaServer {
 		});
 
 		const method = namespace.addMethod(device, { //invoke action
-
+			nodeId:"ns=1;s=method",
 			browseName: "DivideFunction",
-			nodeId: "ns=1;b=9997FFAA",
 			inputArguments: [
 				{
 					name: "a",

@@ -59,7 +59,7 @@ export default class JsonCodec implements ContentCodec {
     // remove legacy wrapping and use RFC 7159
     // TODO remove once dropped from all PlugFest implementation
     if (parsed && parsed.value !== undefined) {
-      console.warn(`JsonCodec removing { value: ... } wrapper`);
+      console.warn("[core/json-codec]",`JsonCodec removing { value: ... } wrapper`);
       parsed = parsed.value;
     }
     return parsed;
