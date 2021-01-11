@@ -19,3 +19,12 @@ export * from './thing-description'
 export * from './td-parser'
 export * from './td-helpers'
 export * from './td-transformer'
+
+
+import Thing from './thing-description'
+type DeepPartial<T> = {
+    [P in keyof T]?: T[P] extends Array<infer I>
+    ? Array<DeepPartial<I>>
+    : DeepPartial<T[P]>
+};
+export type ThingModel = DeepPartial<Thing>;

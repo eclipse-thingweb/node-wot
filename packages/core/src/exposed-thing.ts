@@ -52,7 +52,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     private getServient: () => Servient;
     private getSubjectTD: () => Subject<any>;
 
-    constructor(servient: Servient) {
+    constructor(servient: Servient, thingModel: TD.ThingModel = {}) {
         super();
 
         this.getServient = () => { return servient; };
@@ -60,6 +60,12 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             subjectTDChange: Subject<any> = new Subject<any>();
             getSubject = () => { return this.subjectTDChange };
         }).getSubject;
+
+        // Deep clone the Thing Model 
+        // without functions or methods
+        let clonedModel = JSON.parse(JSON.stringify(thingModel))
+        Object.assign(this, clonedModel);
+        this.extendInteractions();
     }
 
     extendInteractions(): void {

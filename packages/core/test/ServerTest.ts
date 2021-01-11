@@ -49,7 +49,7 @@ class TestProtocolServer implements ProtocolServer {
 class WoTServerTest {
 
     static servient: Servient;
-    static WoT: WoT.WoT;
+    static WoT: typeof WoT;
     static server: TestProtocolServer;
 
     static before() {
