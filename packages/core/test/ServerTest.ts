@@ -186,7 +186,7 @@ class WoTServerTest {
                 resolve(213);
             });
         })
-        let val = await thing.readProperty("numberReadOnly");
+        let val = await (await thing.readProperty("numberReadOnly")).value();
         expect(val === 213);
         
         let readingPossible = false;
