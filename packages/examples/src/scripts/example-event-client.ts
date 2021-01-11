@@ -16,7 +16,7 @@
 import { Helpers } from "@node-wot/core";
 let WoTHelpers: Helpers;
 
-WoTHelpers.fetch("http://localhost:8080/EventSource").then( async (td) => {
+WoTHelpers.fetch("http://localhost:8080/eventsource").then( async (td) => {
     try {
 		let source = await WoT.consume(td);
 		console.info("=== TD ===");

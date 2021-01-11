@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -201,15 +201,24 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     readProperty(propertyName: string, options?: WoT.InteractionOptions): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             if (this.properties[propertyName]) {
+                // writeOnly check skipped so far, see https://github.com/eclipse/thingweb.node-wot/issues/333#issuecomment-724583234
+                /* if(this.properties[propertyName].writeOnly && this.properties[propertyName].writeOnly === true) {
+                    reject(new Error(`ExposedThing '${this.title}', property '${propertyName}' is writeOnly`));
+                } */
+
                 let ps: PropertyState = this.properties[propertyName].getState();
                 // call read handler (if any)
-                if (this.properties[propertyName].getState().readHandler != null) {
-                    console.debug("[core/exposed-thing]", `ExposedThing '${this.title}' calls registered readHandler for Property '${propertyName}'`);
-                    ps.readHandler(options).then((customValue) => {
-                        resolve(customValue);
-                    });
+                if (ps.readHandler != null) {
+                    console.debug("[core/exposed-thing]",`ExposedThing '${this.title}' calls registered readHandler for Property '${propertyName}'`);
+                    ps.readHandler(options)
+                        .then((customValue) => {
+                            resolve(customValue);
+                        })
+                        .catch((err) => {
+                            reject(err);
+                        });
                 } else {
-                    console.debug("[core/exposed-thing]", `ExposedThing '${this.title}' gets internal value '${ps.value}' for Property '${propertyName}'`);
+                    console.debug("[core/exposed-thing]",`ExposedThing '${this.title}' gets internal value '${ps.value}' for Property '${propertyName}'`);
                     resolve(ps.value);
                 }
             } else {
@@ -259,8 +268,14 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     writeProperty(propertyName: string, value: any, options?: WoT.InteractionOptions): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             if (this.properties[propertyName]) {
-                // call write handler (if any)
+                // readOnly check skipped so far, see https://github.com/eclipse/thingweb.node-wot/issues/333#issuecomment-724583234
+                /* if (this.properties[propertyName].readOnly && this.properties[propertyName].readOnly === true) {
+                    reject(new Error(`ExposedThing '${this.title}', property '${propertyName}' is readOnly`));
+                } */
+
                 let ps: PropertyState = this.properties[propertyName].getState();
+
+                // call write handler (if any)
                 if (ps.writeHandler != null) {
                     // be generous when no promise is returned
                     let promiseOrValueOrNil = ps.writeHandler(value, options);
@@ -268,7 +283,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                         if (typeof promiseOrValueOrNil.then === "function") {
                             promiseOrValueOrNil.then((customValue) => {
                                 console.debug("[core/exposed-thing]", `ExposedThing '${this.title}' write handler for Property '${propertyName}' sets custom value '${customValue}'`);
-                                /** notify state change */
+                                // notify state change
                                 // FIXME object comparison
                                 if (ps.value !== customValue) {
                                     for (let listener of ps.listeners) {
@@ -340,10 +355,11 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     public invokeAction(actionName: string, parameter?: any, options?: WoT.InteractionOptions): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             if (this.actions[actionName]) {
-                console.debug("[core/exposed-thing]", `ExposedThing '${this.title}' has Action state of '${actionName}'`);
+                console.debug("[core/exposed-thing]",`ExposedThing '${this.title}' has Action state of '${actionName}'`);
+
                 let as: ActionState = this.actions[actionName].getState();
                 if (as.handler != null) {
-                    console.debug("[core/exposed-thing]", `ExposedThing '${this.title}' calls registered handler for Action '${actionName}'`);
+                    console.debug("[core/exposed-thing]",`ExposedThing '${this.title}' calls registered handler for Action '${actionName}'`);
                     resolve(as.handler(parameter, options));
                 } else {
                     reject(new Error(`ExposedThing '${this.title}' has no handler for Action '${actionName}'`));

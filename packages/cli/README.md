@@ -85,11 +85,26 @@ wot-servient.conf.json fields:
   TOKEN           : string for providing a Bearer token
   USERNAME        : string for providing a Basic Auth username
   PASSWORD        : string for providing a Basic Auth password
+  ---------------------------------------------------------------------------
+ 
+Environment variables must be provided in a .env file in the current working directory. 
+
+Example:
+VAR1=Value1
+VAR2=Value2
 
 ```
 
 ### Prerequisites
 See instructions [how to build node-wot as a standalone application](https://github.com/eclipse/thingweb.node-wot/#as-a-standalone-application).
+
+### Environment variables
+If your scripts needs to access environment variables those must be supplied in a particular file. Node-wot cli uses [dotenv](https://github.com/motdotla/dotenv) library to load `.env` files located at the current working directory. For example, providing the following `.env` file will fill variables `PORT` and `ADDRESS` in scripts `process.env` field:
+
+```
+PORT=4242
+ADDRESS=http://hello.com
+```  
 
 ### Examples
 

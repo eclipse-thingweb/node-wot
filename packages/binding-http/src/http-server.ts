@@ -48,6 +48,7 @@ export default class HttpServer implements ProtocolServer {
 
   private readonly port: number = 8080;
   private readonly address: string = undefined;
+  private readonly baseUri: string = undefined;
   private readonly httpSecurityScheme: string = "NoSec"; // HTTP header compatible string
   private readonly validOAuthClients: RegExp = /.*/g; 
   private readonly server: http.Server | https.Server = null;
@@ -63,8 +64,21 @@ export default class HttpServer implements ProtocolServer {
     if (config.port !== undefined) {
       this.port = config.port;
     }
+
+    const environmentObj = ['WOT_PORT', 'PORT' ]
+        .map(envVar => { return { key: envVar, value: process.env[envVar] } })
+        .find( envObj => envObj.value != null )
+
+    if ( environmentObj ) {
+      console.info("[binding-http]", `HttpServer Port Overridden to ${environmentObj.value} by Environment Variable ${environmentObj.key}`)
+      this.port = +environmentObj.value
+    }
+
     if (config.address !== undefined) {
       this.address = config.address;
+    }
+    if (config.baseUri !== undefined) {
+      this.baseUri = config.baseUri;
     }
 
     // TLS
@@ -128,7 +142,7 @@ export default class HttpServer implements ProtocolServer {
         });
         resolve();
       });
-      this.server.listen(+process.env.PORT || this.port, this.address);
+      this.server.listen(this.port, this.address);
     });
   }
 
@@ -183,124 +197,134 @@ export default class HttpServer implements ProtocolServer {
   
   public expose(thing: ExposedThing, tdTemplate?: WoT.ThingDescription): Promise<void> {
 
-    let title = thing.title;
+    let slugify = require('slugify');
+    let urlPath = slugify(thing.title, {lower: true});
 
-    if (this.things.has(title)) {
-      title = Helpers.generateUniqueName(title);
+    if (this.things.has(urlPath)) {
+      urlPath = Helpers.generateUniqueName(urlPath);
     }
 
     if (this.getPort() !== -1) {
 
-      console.debug("[binding-http]",`HttpServer on port ${this.getPort()} exposes '${thing.title}' as unique '/${title}'`);
-      this.things.set(title, thing);
+      console.debug("[binding-http]",`HttpServer on port ${this.getPort()} exposes '${thing.title}' as unique '/${urlPath}'`);
+      this.things.set(urlPath, thing);
 
-      // fill in binding data
-      for (let address of Helpers.getAddresses()) {
-        for (let type of ContentSerdes.get().getOfferedMediaTypes()) {
-          let base: string = this.scheme + "://" + address + ":" + this.getPort() + "/" + encodeURIComponent(title);
+      if (this.baseUri !== undefined) {
+        let base: string = this.baseUri.concat("/", encodeURIComponent(urlPath))
+        console.info("[binding-http]", "HttpServer TD hrefs using baseUri " + this.baseUri)
+        this.addEndpoint(thing, tdTemplate, base )
+      } else {
+        // fill in binding data
+        for (let address of Helpers.getAddresses()) {
+          let base: string = this.scheme + "://" + address + ":" + this.getPort() + "/" + encodeURIComponent(urlPath);
 
-          if (true) { // make reporting of all properties optional?
-            // check for readOnly/writeOnly for op field and whether there are any properties at all
-            let allReadOnly = true;
-            let allWriteOnly = true;
-            let anyProperties = false;
-            for (let propertyName in thing.properties) {
-              anyProperties = true;
-              if (!thing.properties[propertyName].readOnly) {
-                allReadOnly = false;
-              } else if (!thing.properties[propertyName].writeOnly) {
-                allWriteOnly = false;
-              }
-            }
-            if (anyProperties) {
-              let href = base + "/" + this.ALL_DIR + "/" + encodeURIComponent(this.ALL_PROPERTIES);
-              let form = new TD.Form(href, type);
-              if (allReadOnly) {
-                form.op = ["readallproperties", "readmultipleproperties"];
-              } else if (allWriteOnly) {
-                form.op = ["writeallproperties", "writemultipleproperties"];
-              } else {
-                form.op = ["readallproperties", "readmultipleproperties", "writeallproperties", "writemultipleproperties"];
-              }
-              if (!thing.forms) {
-                thing.forms = [];
-              }
-              thing.forms.push(form);
-            }
+          this.addEndpoint(thing, tdTemplate, base)
+          // media types
+        } // addresses
+
+        if (this.scheme === "https") {
+          this.fillSecurityScheme(thing)
+        }
+
+        return new Promise<void>((resolve, reject) => {
+          resolve();
+        });
+      }
+    }
+  }
+
+  public addEndpoint(thing: ExposedThing, tdTemplate: WoT.ThingDescription, base: string) {
+      for (let type of ContentSerdes.get().getOfferedMediaTypes()) {
+
+        let allReadOnly = true;
+        let allWriteOnly = true;
+        let anyProperties = false;
+        for (let propertyName in thing.properties) {
+          anyProperties = true;
+          if (!thing.properties[propertyName].readOnly) {
+            allReadOnly = false;
+          } else if (!thing.properties[propertyName].writeOnly) {
+            allWriteOnly = false;
           }
-
-          for (let propertyName in thing.properties) {
-            let propertyNamePattern = this.updateInteractionNameWithUriVariablePattern(propertyName, thing.properties[propertyName].uriVariables);
-            let href = base + "/" + this.PROPERTY_DIR + "/" + propertyNamePattern;
-            let form = new TD.Form(href, type);
-            ProtocolHelpers.updatePropertyFormWithTemplate(form, tdTemplate, propertyName);
-            if (thing.properties[propertyName].readOnly) {
-              form.op = ["readproperty"];
-              let hform : HttpForm = form;
-              if(hform["htv:methodName"] === undefined) {
-                hform["htv:methodName"] = "GET";
-              }    
-            } else if (thing.properties[propertyName].writeOnly) {
-              form.op = ["writeproperty"];
-              let hform : HttpForm = form;
-              if(hform["htv:methodName"] === undefined) {
-                hform["htv:methodName"] = "PUT";
-              }
-            } else {
-              form.op = ["readproperty", "writeproperty"];
-            }
-
-            thing.properties[propertyName].forms.push(form);
-            console.debug("[binding-http]",`HttpServer on port ${this.getPort()} assigns '${href}' to Property '${propertyName}'`);
-
-            // if property is observable add an additional form with a observable href
-            if (thing.properties[propertyName].observable) {
-              let href = base + "/" + this.PROPERTY_DIR + "/" + encodeURIComponent(propertyName) + "/" + this.OBSERVABLE_DIR;
-              let form = new TD.Form(href, type);
-              form.op = ["observeproperty", "unobserveproperty"];
-              form.subprotocol = "longpoll";
-              thing.properties[propertyName].forms.push(form);
-              console.debug("[binding-http]",`HttpServer on port ${this.getPort()} assigns '${href}' to observable Property '${propertyName}'`);
-            }
+        }
+        if (anyProperties) {
+          let href = base + "/" + this.ALL_DIR + "/" + encodeURIComponent(this.ALL_PROPERTIES);
+          let form = new TD.Form(href, type);
+          if (allReadOnly) {
+            form.op = ["readallproperties", "readmultipleproperties"];
+          } else if (allWriteOnly) {
+            form.op = ["writeallproperties", "writemultipleproperties"];
+          } else {
+            form.op = ["readallproperties", "readmultipleproperties", "writeallproperties", "writemultipleproperties"];
           }
-          
-          for (let actionName in thing.actions) {
-            let actionNamePattern = this.updateInteractionNameWithUriVariablePattern(actionName, thing.actions[actionName].uriVariables);
-            let href = base + "/" + this.ACTION_DIR + "/" + actionNamePattern;
-            let form = new TD.Form(href, type);
-            ProtocolHelpers.updateActionFormWithTemplate(form, tdTemplate, actionName);
-            form.op = ["invokeaction"];
+          if (!thing.forms) {
+            thing.forms = [];
+          }
+          thing.forms.push(form);
+        }
+
+        for (let propertyName in thing.properties) {
+          let propertyNamePattern = this.updateInteractionNameWithUriVariablePattern(propertyName, thing.properties[propertyName].uriVariables);
+          let href = base + "/" + this.PROPERTY_DIR + "/" + propertyNamePattern;
+          let form = new TD.Form(href, type);
+          ProtocolHelpers.updatePropertyFormWithTemplate(form, tdTemplate, propertyName);
+          if (thing.properties[propertyName].readOnly) {
+            form.op = ["readproperty"];
             let hform : HttpForm = form;
             if(hform["htv:methodName"] === undefined) {
-              hform["htv:methodName"] = "POST";
+              hform["htv:methodName"] = "GET";
             }
-            thing.actions[actionName].forms.push(form);
-            console.debug("[binding-http]",`HttpServer on port ${this.getPort()} assigns '${href}' to Action '${actionName}'`);
+          } else if (thing.properties[propertyName].writeOnly) {
+            form.op = ["writeproperty"];
+            let hform : HttpForm = form;
+            if(hform["htv:methodName"] === undefined) {
+              hform["htv:methodName"] = "PUT";
+            }
+          } else {
+            form.op = ["readproperty", "writeproperty"];
           }
-          
-          for (let eventName in thing.events) {
-            let eventNamePattern = this.updateInteractionNameWithUriVariablePattern(eventName, thing.events[eventName].uriVariables);
-            let href = base + "/" + this.EVENT_DIR + "/" + eventNamePattern;
+
+          thing.properties[propertyName].forms.push(form);
+          console.debug("[binding-http]",`HttpServer on port ${this.getPort()} assigns '${href}' to Property '${propertyName}'`);
+
+          // if property is observable add an additional form with a observable href
+          if (thing.properties[propertyName].observable) {
+            let href = base + "/" + this.PROPERTY_DIR + "/" + encodeURIComponent(propertyName) + "/" + this.OBSERVABLE_DIR;
             let form = new TD.Form(href, type);
-            ProtocolHelpers.updateEventFormWithTemplate(form, tdTemplate, eventName);
+            form.op = ["observeproperty", "unobserveproperty"];
             form.subprotocol = "longpoll";
-            form.op = ["subscribeevent", "unsubscribeevent"];
-            thing.events[eventName].forms.push(form);
-            console.debug("[binding-http]",`HttpServer on port ${this.getPort()} assigns '${href}' to Event '${eventName}'`);
+            thing.properties[propertyName].forms.push(form);
+            console.debug("[binding-http]",`HttpServer on port ${this.getPort()} assigns '${href}' to observable Property '${propertyName}'`);
           }
-        } // media types
-      } // addresses
+        }
 
-      if (this.scheme === "https") {
-        this.fillSecurityScheme(thing)
+        for (let actionName in thing.actions) {
+          let actionNamePattern = this.updateInteractionNameWithUriVariablePattern(actionName, thing.actions[actionName].uriVariables);
+          let href = base + "/" + this.ACTION_DIR + "/" + actionNamePattern;
+          let form = new TD.Form(href, type);
+          ProtocolHelpers.updateActionFormWithTemplate(form, tdTemplate, actionName);
+          form.op = ["invokeaction"];
+          let hform : HttpForm = form;
+          if(hform["htv:methodName"] === undefined) {
+            hform["htv:methodName"] = "POST";
+          }
+          thing.actions[actionName].forms.push(form);
+          console.debug("[binding-http]",`HttpServer on port ${this.getPort()} assigns '${href}' to Action '${actionName}'`);
+        }
+
+        for (let eventName in thing.events) {
+          let eventNamePattern = this.updateInteractionNameWithUriVariablePattern(eventName, thing.events[eventName].uriVariables);
+          let href = base + "/" + this.EVENT_DIR + "/" + eventNamePattern;
+          let form = new TD.Form(href, type);
+          ProtocolHelpers.updateEventFormWithTemplate(form, tdTemplate, eventName);
+          form.subprotocol = "longpoll";
+          form.op = ["subscribeevent", "unsubscribeevent"];
+          thing.events[eventName].forms.push(form);
+          console.debug("[binding-http]",`HttpServer on port ${this.getPort()} assigns '${href}' to Event '${eventName}'`);
+        }
       }
+    }
 
-    } // running
-
-    return new Promise<void>((resolve, reject) => {
-      resolve();
-    });
-  }
 
   private async checkCredentials(thing: ExposedThing, req: http.IncomingMessage): Promise<boolean> {
 

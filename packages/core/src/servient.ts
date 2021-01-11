@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import * as vm from "vm";
+import {NodeVM, CompilerFunction} from "vm2";
 
 import * as WoT from "wot-typescript-definitions";
 
@@ -29,123 +29,66 @@ export default class Servient {
     private things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
     private credentialStore: Map<string, Array<any>> = new Map<string, Array<any>>();
 
+    private uncaughtListeners:Array<(...args:any)=>void> = []
+
     /** runs the script in a new sandbox */
     public runScript(code: string, filename = 'script') {
-        
-        let script;
 
-        try {
-            script = new vm.Script(code,{filename : filename});
-        } catch (err) {
-            let scriptPosition = err.stack.match(/evalmachine\.<anonymous>\:([0-9]+)\n/)[1];
-            console.error("[core/servient]",`Servient found error in '${filename}' at line ${scriptPosition}\n    ${err}`);
-            return;
-        }
-
-        let context = vm.createContext({
+        let context = {
             "WoT": new WoTImpl(this),
-            "WoTHelpers": new Helpers(this),
-            "console": console,
-            // augmented scheduling functions that catch errors
-            "setInterval": (handler: (...args: any[]) => void, ms: number, ...args: any[]) => {
-                return setInterval( () => {
-                    try {
-                        handler(args);
-                    } catch(err) {
-                        this.logScriptError(`async error in setInterval() in '${filename}'`, err);
-                    }
-                }, ms);
-            },
-            "clearInterval": clearInterval,
-            "setTimeout": (handler: (...args: any[]) => void, ms: number, ...args: any[]) => {
-                return setTimeout( () => {
-                    try {
-                        handler(args);
-                    } catch(err) {
-                        this.logScriptError(`async error in setTimeout() in '${filename}'`, err);
-                    }
-                }, ms);
-            },
-            "clearTimeout": clearTimeout,
-            "setImmediate": (handler: (...args: any[]) => void, ...args: any[]) => {
-                return setImmediate( () => {
-                    try {
-                        handler(args);
-                    } catch(err) {
-                        this.logScriptError(`async error in setImmediate() in '${filename}'`, err);
-                    }
-                });
-            },
-            "clearImmediate": clearImmediate
-        });
-        let options = {
-            "displayErrors": true
+            "WoTHelpers": new Helpers(this)
         };
+
+        const vm = new NodeVM({
+            sandbox: context
+        })
+
+        let listener = (err:Error) => {
+            this.logScriptError(`Asynchronous script error '${filename}'`, err)
+            //TODO: clean up script resources
+            process.exit(1)
+        }
+        process.prependListener('uncaughtException',listener)
+        this.uncaughtListeners.push(listener)
+
         try {
-            script.runInContext(context, options);
+            return vm.run(code, filename)
         } catch (err) {
-            this.logScriptError(`error in '${filename}'`, err);
+            this.logScriptError(`Servient found error in privileged script '${filename}'`, err)
         }
     }
 
     /** runs the script in privileged context (dangerous) - means here: scripts can require */
-    public runPrivilegedScript(code: string, filename = 'script') {
-        
-        let script;
-
-        try {
-            script = new vm.Script(code, { filename: filename});
-        } catch (err) {
-            let scriptPosition = err.stack.match(/evalmachine\.<anonymous>\:([0-9]+)\n/)[1];
-            console.error("[core/servient]",`Servient found error in privileged script '${filename}' at line ${scriptPosition}\n    ${err}`);
-            return;
-        }
-
-        let context = vm.createContext({
+    public runPrivilegedScript(code: string, filename = 'script',options:ScriptOptions={}) {
+    
+        let context = {
             "WoT": new WoTImpl(this),
-            "WoTHelpers": new Helpers(this),
-            "console": console,
-            // augmented scheduling functions that catch errors
-            "setInterval": (handler: (...args: any[]) => void, ms: number, ...args: any[]) => {
-                return setInterval( () => {
-                    try {
-                        handler(args);
-                    } catch(err) {
-                        this.logScriptError(`async error in setInterval() in privileged '${filename}'`, err);
-                    }
-                }, ms);
-            },
-            "clearInterval": clearInterval,
-            "setTimeout": (handler: (...args: any[]) => void, ms: number, ...args: any[]) => {
-                return setTimeout( () => {
-                    try {
-                        handler(args);
-                    } catch(err) {
-                        this.logScriptError(`async error in setTimeout() in privileged '${filename}'`, err);
-                    }
-                }, ms);
-            },
-            "clearTimeout": clearTimeout,
-            "setImmediate": (handler: (...args: any[]) => void, ...args: any[]) => {
-                return setImmediate( () => {
-                    try {
-                        handler(args);
-                    } catch(err) {
-                        this.logScriptError(`async error in setImmediate() in privileged '${filename}'`, err);
-                    }
-                });
-            },
-            "clearImmediate": clearImmediate,
-            // privileged items
-            "require": require
-        });
-        let options = {
-            "displayErrors": true
+            "WoTHelpers": new Helpers(this)
         };
+
+        const vm = new NodeVM({
+            sandbox:context,
+            require: {
+                external: true,
+                builtin: ["*"]
+            },
+            argv: options.argv,
+            compiler: options.compiler,
+            env: options.env
+        })
+        
+        let listener = (err: Error) => {
+            this.logScriptError(`Asynchronous script error '${filename}'`, err)
+            //TODO: clean up script resources
+            process.exit(1)
+        }
+        process.prependListener('uncaughtException', listener)
+        this.uncaughtListeners.push(listener)
+
         try {
-            script.runInContext(context, options);
+            return vm.run(code,filename)
         } catch (err) {
-            this.logScriptError(`error in privileged '${filename}'`, err);
+            this.logScriptError(`Servient found error in privileged script '${filename}'`,err)
         }
     }
 
@@ -325,5 +268,15 @@ export default class Servient {
     public shutdown(): void {
         this.clientFactories.forEach((clientFactory) => clientFactory.destroy());
         this.servers.forEach((server) => server.stop());
+
+        this.uncaughtListeners.forEach(listener =>{
+            process.removeListener("uncaughtException",listener);
+        })
     }
+}
+
+export interface ScriptOptions {
+    argv?:Array<string>;
+    compiler?: CompilerFunction;
+    env?:Object;
 }

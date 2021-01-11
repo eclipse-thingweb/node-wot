@@ -85,19 +85,19 @@ export default class DefaultServient extends Servient {
         }
         if (!this.config.servient.clientOnly) {
 
-            if (this.config.http !== undefined) {
+            if (this.config.http) {
                 let httpServer = new HttpServer(this.config.http);
                 this.addServer(httpServer);
 
                 // re-use httpServer (same port)
                 this.addServer(new WebSocketServer(httpServer));
             }
-            if (this.config.coap !== undefined) {
+            if (this.config.coap) {
                 // var to reuse below in CoapClient
                 var coapServer = (typeof this.config.coap.port === "number") ? new CoapServer(this.config.coap.port) : new CoapServer();
                 this.addServer(coapServer);
             }
-            if (this.config.mqtt !== undefined) {
+            if (this.config.mqtt) {
                 let mqttBrokerServer = new MqttBrokerServer(this.config.mqtt.broker, 
                     (typeof this.config.mqtt.username === "string") ? this.config.mqtt.username : undefined,
                     (typeof this.config.mqtt.password === "string") ? this.config.mqtt.password : undefined,

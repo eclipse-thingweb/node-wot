@@ -3,7 +3,7 @@
     "@type": ["Thing"],
     "id": "urn:dev:wot:com:siemens:festolive:b101",
     "title": "myUltrasonicSensorB101",
-    "base": "coap://192.168.0.110:5683/UltrasonicSensorB101/",
+    "base": "coap://192.168.0.110:5683/ultrasonicsensorb101/",
     "securityDefinitions": { "nosec_sc": { "scheme": "nosec" }},
     "security": "nosec_sc",
     "properties": {

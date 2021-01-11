@@ -19,6 +19,7 @@
 
 let coap = require("coap");
 import * as url from "url";
+import * as net from "net";
 
 import { Subscription } from "rxjs/Subscription";
 
@@ -32,11 +33,13 @@ import CoapServer from "./coap-server";
 export default class CoapClient implements ProtocolClient {
 
   // FIXME coap Agent closes socket when no messages in flight -> new socket with every request
-  private readonly agent: any;
+  private agent: any;
+  private readonly agentOptions: any;
 
   constructor(server?: CoapServer) {
     // if server is passed, feed its socket into the CoAP agent for socket re-use
     this.agent = new coap.Agent(server ? { socket: server.getSocket() } : undefined);
+    this.agentOptions = server ? { socket: server.getSocket() } : {};
     
     // WoT-specific content formats
     coap.registerFormat(ContentSerdes.JSON_LD, 2100);
@@ -170,10 +173,14 @@ export default class CoapClient implements ProtocolClient {
 
   private uriToOptions(uri: string): CoapRequestConfig {
     let requestUri = url.parse(uri);
+    let agentOptions = this.agentOptions;
+    agentOptions.type = net.isIPv6(requestUri.hostname) ? "udp6" : "udp4";
+    this.agent = new coap.Agent(agentOptions);
+
     let options: CoapRequestConfig = {
       agent: this.agent,
       hostname: requestUri.hostname,
-      port: parseInt(requestUri.port, 10),
+      port: requestUri.port? parseInt(requestUri.port, 10) : 5683,
       pathname: requestUri.pathname,
       query: requestUri.query,
       observe: false,

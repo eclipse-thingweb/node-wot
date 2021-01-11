@@ -40,7 +40,7 @@ async function testPropertyWrite(thing, name, value, shouldFail) {
             console.info("PASS " + name + " WRITE (" + displayValue + "):", err.message);
     }
 }
-WoTHelpers.fetch("http://localhost:8080/TestThing").then(async (td) => {
+WoTHelpers.fetch("http://localhost:8080/testthing").then(async (td) => {
     // using await for serial execution (note 'async' in then() of fetch())
     try {
         let thing = await WoT.consume(td);

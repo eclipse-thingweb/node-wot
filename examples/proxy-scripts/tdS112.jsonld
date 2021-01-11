@@ -3,7 +3,7 @@
     "@type": ["Thing"],
     "id": "urn:dev:wot:com:siemens:festolive:s112",
     "title": "FloatSwitchS112",
-    "base": "coap://192.168.0.112:5683/FloatSwitchS112/",
+    "base": "coap://192.168.0.112:5683/floatswitchs112/",
     "securityDefinitions": { "nosec_sc": { "scheme": "nosec" }},
     "security": "nosec_sc",
     "properties": {

@@ -3,7 +3,7 @@
         "allowSelfSigned": true
     },
     "credentials": {
-        "urn:dev:wot:example:coffee-machine": {
+        "urn:dev:wot:example:smart-coffee-machine": {
             "clientId" : "node-wot",
             "clientSecret": "isgreat!"
         }

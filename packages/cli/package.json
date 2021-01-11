@@ -23,13 +23,17 @@
     "typescript": "3.7.5",
     "typescript-standard": "0.3.36"
   },
+  "optionalDependencies": {
+    "ts-node": "^8.6.2"
+  },
   "dependencies": {
     "@node-wot/core": "0.8.0",
     "@node-wot/binding-coap": "0.8.0",
     "@node-wot/binding-file": "0.8.0",
     "@node-wot/binding-http": "0.8.0",
     "@node-wot/binding-websockets": "0.8.0",
-    "@node-wot/binding-mqtt": "0.8.0"
+    "@node-wot/binding-mqtt": "0.8.0",
+    "dotenv": "^8.2.0"
   },
   "scripts": {
     "build": "tsc",
