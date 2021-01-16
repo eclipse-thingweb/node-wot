@@ -27,7 +27,7 @@ import { Content } from "./protocol-interfaces";
 
 export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     security: Array<String>;
-    securityDefinitions: { [key: string]: TD.SecurityScheme };
+    securityDefinitions: { [key: string]: TD.SecurityType };
 
     id: string;
     title: string;
