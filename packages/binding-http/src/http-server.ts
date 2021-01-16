@@ -379,6 +379,7 @@ export default class HttpServer implements ProtocolServer {
         // HTTP Authentication Scheme for OAuth does not contain the version number
         // see https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml
         // remove version number for oauth2 schemes
+        //@ts-ignore
         scheme = scheme === "oauth2" ? scheme.split("2")[0] : scheme
         return scheme === this.httpSecurityScheme.toLowerCase()
       })
