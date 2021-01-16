@@ -44,9 +44,8 @@ class OAuthServerTests{
 
 
         await this.server.start(new MockServient());
-
-        let testThing = new ExposedThing(null);
-        testThing = Helpers.extend({
+        
+        let testThing = new ExposedThing(null, {
             title: "TestOAuth",
             id: "test",
             securityDefinitions: {
@@ -64,7 +63,7 @@ class OAuthServerTests{
                     type: "string"
                 }
             }
-        }, testThing);
+        });
         testThing.extendInteractions();
         await testThing.writeProperty("test", "off")
         testThing.properties.test.forms = [];

@@ -44,22 +44,22 @@ class HttpServerTest {
     let httpServer = new HttpServer({ port: 0 });
 
     await httpServer.start(null);
-
-    let testThing = new ExposedThing(null);
-    testThing = Helpers.extend({
-      title: "Test",
-      properties: {
-        test: {
-          type: "string"
+    
+    let testThing = new ExposedThing(null, {
+        title: "Test",
+        properties: {
+          test: {
+            title : "test"
+          }
+        },
+        actions: {
+          try: {
+            output: { type: "string" }
+          }
         }
-      },
-      actions: {
-        try: {
-          output: { type: "string" }
-        }
-      }
-    }, testThing);
-    testThing.extendInteractions();
+      });
+    
+    
     await testThing.writeProperty("test", "off")
     testThing.properties.test.forms = [];
     testThing.setActionHandler("try", (input) => { return new Promise<string>( (resolve, reject) => { resolve("TEST"); }); });
@@ -219,8 +219,7 @@ class HttpServerTest {
 
     await httpServer.start(null);
 
-    let testThing = new ExposedThing(null);
-    testThing = Helpers.extend({
+    let testThing = new ExposedThing(null, {
       title: "Smart Coffee Machine",
       properties: {
         maintenanceNeeded: {
@@ -229,11 +228,10 @@ class HttpServerTest {
       },
       actions: {
         makeDrink: {
-          output: {type: "string"}
+          output: { type: "string" }
         }
       }
-    }, testThing);
-    testThing.extendInteractions();
+    });
     testThing.properties.maintenanceNeeded.forms = [];
     testThing.actions.makeDrink.forms = [];
 
