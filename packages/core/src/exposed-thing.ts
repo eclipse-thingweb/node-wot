@@ -247,9 +247,9 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                                 // notify state change
                                 // FIXME object comparison
                                 if (ps.value !== customValue) {
+                                    ps.value = customValue;
                                     ps.subject.next(customValue);
                                 }
-                                ps.value = customValue;
                                 resolve();
                             })
                                 .catch((customError) => {
@@ -259,27 +259,26 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                         } else {
                             console.warn("[core/exposed-thing]", `ExposedThing '${this.title}' write handler for Property '${propertyName}' does not return promise`);
                             if (ps.value !== promiseOrValueOrNil) {
+                                ps.value = <any>promiseOrValueOrNil;
                                 ps.subject.next(<any>promiseOrValueOrNil);
                             }
-                            ps.value = <any>promiseOrValueOrNil;
                             resolve();
                         }
                     } else {
                         console.warn("[core/exposed-thing]", `ExposedThing '${this.title}' write handler for Property '${propertyName}' does not return custom value, using direct value '${value}'`);
-
                         if (ps.value !== value) {
+                            ps.value = value;
                             ps.subject.next(value);
                         }
-                        ps.value = value;
                         resolve();
                     }
                 } else {
                     console.debug("[core/exposed-thing]", `ExposedThing '${this.title}' directly sets Property '${propertyName}' to value '${value}'`);
-                    // notify state change
+                    // write and notify state change
                     if (ps.value !== value) {
+                        ps.value = value;
                         ps.subject.next(value);
                     }
-                    ps.value = value;
                     resolve();
                 }
             } else {
