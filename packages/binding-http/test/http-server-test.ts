@@ -44,19 +44,19 @@ class HttpServerTest {
     let httpServer = new HttpServer({ port: 0 });
 
     await httpServer.start(null);
-    
+
     let testThing = new ExposedThing(null, {
-        title: "Test",
-        properties: {
-          test: {
-            title : "test"
-          }
-        },
-        actions: {
-          try: {
-            output: { type: "string" }
-          }
+      title: "Test",
+      properties: {
+        test: {
+          type: "string"
         }
+      },
+      actions: {
+        try: {
+          output: { type: "string" }
+        }
+      }
       });
     
     

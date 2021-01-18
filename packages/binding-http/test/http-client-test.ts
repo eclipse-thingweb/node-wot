@@ -268,6 +268,7 @@ class HttpClientTest {
                 console.log('lost connection')
                 clearInterval(pusher)
                 sseStream.unpipe(res)
+                done();
             })
         })
 
@@ -288,7 +289,7 @@ class HttpClientTest {
 
         client.subscribeResource(form, (data) => {
             client.unlinkResource(form);
-            server.close(done)
+            server.close()
         });
     }
 
