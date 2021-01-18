@@ -29,7 +29,8 @@
     "@node-wot/td-tools": "0.8.0",
     "@node-wot/core": "0.8.0",
     "@node-wot/binding-http": "0.8.0",
-    "ws": "7.2.1"
+    "ws": "7.2.1",
+    "slugify": "^1.4.5"
   },
   "scripts": {
     "build": "tsc",

@@ -30,8 +30,8 @@ export default class DefaultServient extends Servient {
     /**
      * start
      */
-    public start(): Promise<WoT.WoT> {
-        return new Promise<WoT.WoT>((resolve, reject) => {
+    public start(): Promise<typeof WoT> {
+        return new Promise<typeof WoT>((resolve, reject) => {
             return super.start()
         });
     }

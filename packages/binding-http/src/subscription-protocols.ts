@@ -49,7 +49,7 @@ export class LongPollingSubscription implements InternalSubscription{
                 console.debug("[binding-http]", `HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
                 console.debug("[binding-http]", `HttpClient received Content-Type: ${result.headers.get("content-type")}`);
 
-                if (!closed) {
+                if (!this.closed) {
                     next({ type: result.headers.get("content-type"), body: buffer })
                     polling()
                 } {

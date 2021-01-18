@@ -202,7 +202,7 @@ class WoTClientTest {
 
     static servient: Servient;
     static clientFactory: TrapClientFactory;
-    static WoT: WoT.WoT;
+    static WoT: typeof WoT;
     static WoTHelpers : Helpers;
 
     static before() {

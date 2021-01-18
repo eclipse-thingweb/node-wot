@@ -13,10 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import "wot-typescript-definitions"
 import { Helpers } from "@node-wot/core";
-
-let WoT:WoT.WoT;
 let WoTHelpers: Helpers;
 
 console.info("Ensure https://leshan.eclipse.org/#/security has the Client Endpoint 'node-wot-test' with Identity 'node-wot' and Key '68656c6c6f'");

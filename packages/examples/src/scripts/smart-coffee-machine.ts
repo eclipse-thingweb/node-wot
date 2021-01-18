@@ -17,32 +17,16 @@
 // It considers a fictional smart coffee machine in order to demonstrate the capabilities of Web of Things.
 // An accompanying tutorial is available at http://www.thingweb.io/smart-coffee-machine.html.
 
-import 'wot-typescript-definitions'
-import { Helpers } from '@node-wot/core';
-
-let WoT:WoT.WoT;
+import { Helpers } from "@node-wot/core"
+let WoTHelpers: Helpers;
 
 WoT.produce({
     title: 'Smart-Coffee-Machine',
-    id: 'urn:dev:wot:example:coffee-machine',
     description: `A smart coffee machine with a range of capabilities.
 A complementary tutorial is available at http://www.thingweb.io/smart-coffee-machine.html.`,
     support: 'git://github.com/eclipse/thingweb.node-wot.git',
     '@context': [
         'https://www.w3.org/2019/wot/td/v1',
-    ],
-    securityDefinitions: {
-        oauth2_sc: {
-            scheme: 'oauth2',
-            flow: 'client_credentials',
-            token: 'https://127.0.0.1:3000/token',
-            scopes: [
-                'limited',
-            ],
-        },
-    },
-    security: [
-        'oauth2_sc',
     ],
     properties: {
         allAvailableResources: {
@@ -249,9 +233,9 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
 
     // Override a write handler for servedCounter property,
     // raising maintenanceNeeded flag when the value exceeds 1000 drinks
-    thing.setPropertyWriteHandler('servedCounter', (val) => {
-        return new Promise(async (resolve, reject) => {
-            let valp = await Helpers.parseInteractionOutput(val);
+    thing.setPropertyWriteHandler('servedCounter', async (val) => {
+        let valp = await Helpers.parseInteractionOutput(val);
+        return new Promise((resolve, reject) => {
             resolve(valp);
             if (valp > 1000) {
                 thing.writeProperty('maintenanceNeeded', true);
@@ -265,43 +249,44 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
     // Override a write handler for availableResourceLevel property,
     // utilizing the uriVariables properly
     thing.setPropertyWriteHandler('availableResourceLevel', (val, options) => {
-
-        // Check if uriVariables are provided
-        if (options && typeof options === 'object' && 'uriVariables' in options) {
-            const uriVariables: any = options['uriVariables'];
-            if ('id' in uriVariables) {
-                return thing.readProperty('allAvailableResources').then(async (resources) => {
-                    let resourcesp = await Helpers.parseInteractionOutput(resources);
-                    const id = uriVariables['id'];
-                    resourcesp[id] = val;
-                    return thing.writeProperty('allAvailableResources', resourcesp);
-                });
-            }
-        }
         return new Promise((resolve, reject) => {
-            resolve('Please specify id variable as uriVariables.');
+            return reject('TODO update code');
+            /*
+            // Check if uriVariables are provided
+            if (options && typeof options === 'object' && 'uriVariables' in options) {
+                const uriVariables: any = options['uriVariables'];
+                if ('id' in uriVariables) {
+                    return thing.readProperty('allAvailableResources').then((resources) => {
+                        const id = uriVariables['id'];
+                        resources[id] = val;
+                        thing.writeProperty('allAvailableResources', resources);
+                        return resolve();
+                    });
+                }
+            }
+            return reject('Please specify id variable as uriVariables.');
+            */
         });
     });
 
     // Override a read handler for availableResourceLevel property,
     // utilizing the uriVariables properly
     thing.setPropertyReadHandler('availableResourceLevel', (options) => {
-
-        // Check if uriVariables are provided
-        if (options && typeof options === 'object' && 'uriVariables' in options) {
-            const uriVariables: any = options['uriVariables'];
-            if ('id' in uriVariables) {
-                return thing.readProperty('allAvailableResources').then(async (resources) => {
-                    let resourcesp = await Helpers.parseInteractionOutput(resources);
-                    const id = uriVariables['id'];
-                    return new Promise((resolve, reject) => {
-                        resolve(resourcesp[id]);
-                    });
-                });
-            }
-        }
         return new Promise((resolve, reject) => {
-            resolve('Please specify id variable as uriVariables.');
+            return reject('TODO update code');
+            /*
+            // Check if uriVariables are provided
+            if (options && typeof options === 'object' && 'uriVariables' in options) {
+                const uriVariables: any = options['uriVariables'];
+                if ('id' in uriVariables) {
+                    return thing.readProperty('allAvailableResources').then((resources) => {
+                        const id = uriVariables['id'];
+                        return resolve(resources[id]);
+                    });
+                }
+            }
+            return reject('Please specify id variable as uriVariables.');
+            */
         });
     });
 
@@ -402,6 +387,7 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
     // Set up a handler for setSchedule action
     thing.setActionHandler('setSchedule', async (params, options) => {
         let paramsp = await Helpers.parseInteractionOutput(params);
+
         // Check if uriVariables are provided
         if (paramsp && typeof paramsp === 'object' && 'time' in paramsp && 'mode' in paramsp) {
 
@@ -414,7 +400,7 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
             return thing.readProperty('schedules').then(async (schedules) => {
                 let schedulesp = await Helpers.parseInteractionOutput(schedules);
                 schedulesp.push(paramsp);
-                return thing.writeProperty('schedules', schedules).then(() => {
+                return thing.writeProperty('schedules', schedulesp).then(() => {
                     return new Promise((resolve, reject) => {
                         resolve({result: true, message: `Your schedule has been set!`});
                     });

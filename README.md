@@ -10,11 +10,26 @@ Useful labels:
 [![Build Status](https://travis-ci.org/eclipse/thingweb.node-wot.svg?branch=master)](https://travis-ci.org/eclipse/thingweb.node-wot)
 
 ### Table of Contents
+<!-- https://ecotrust-canada.github.io/markdown-toc/ -->
 - [License](#license)
+- [Implemented/supported features](#implementedsupported-features)
+  * [Protocol Support](#protocol-support)
+  * [MediaType Support](#mediatype-support)
 - [Prerequisites](#prerequisites)
+  * [To use with Node.js](#to-use-with-nodejs)
+  * [To use in a browser](#to-use-in-a-browser)
 - [How to get the library](#how-to-get-the-library)
-- [Start with an example](#no-time-for-explanations---show-me-a-running-example)
+  * [As a Node.js dependency](#as-a-nodejs-dependency)
+  * [As a standalone application](#as-a-standalone-application)
+  * [As a browser library](#as-a-browser-library)
+- [No time for explanations - show me a running example!](#no-time-for-explanations---show-me-a-running-example)
+  * [Using Node.js](#using-nodejs)
+  * [Using a browser](#using-a-browser)
 - [How to use the library](#how-to-use-the-library)
+  * [The API](#the-api)
+  * [Logging](#logging)
+  * [Install new/different versions of NodeJS](#install-newdifferent-versions-of-nodejs)
+  
 
 ## License
 Dual-licensed under both
@@ -24,6 +39,50 @@ Dual-licensed under both
 
 Pick one of these two licenses that fits your needs.
 Please also see the additional [notices](NOTICE.md) and [how to contribute](CONTRIBUTING.md).
+
+
+## Implemented/supported features
+
+### Protocol Support
+
+* [HTTP](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-http/README.md) :heavy_check_mark:
+* [HTTPS](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-http/README.md) :heavy_check_mark:
+* [CoAP](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-coap/README.md) :heavy_check_mark:
+* [CoAPS](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-coap/README.md) :heavy_check_mark:
+* [MQTT](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-mqtt/README.md) :heavy_check_mark:
+* [Websocket](https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-websockets) :heavy_plus_sign: (Server only)
+* [OPC-UA](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-opcua/README.md) :heavy_plus_sign: (Client only)
+* [NETCONF](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-netconf/README.md) :heavy_plus_sign: (Client only)
+* [Modbus](https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-modbus) :heavy_plus_sign: (Client only)
+
+Note: More protocols can be easily added by implementing `ProtocolClient`, `ProtocolClientFactory`, and `ProtocolServer` interface.
+
+### MediaType Support
+
+* JSON :heavy_check_mark:
+* Text (HTML, CSS, XML, SVG) :heavy_check_mark:
+* Base64 (PNG, JPEG, GIF) :heavy_check_mark:
+* Octet stream :heavy_check_mark:
+* CBOR :timer_clock:
+* EXI :timer_clock:
+
+Note: More mediaTyes can be easily added by implementing `ContentCodec` interface.
+
+```JavaScript
+const ContentSerdes = require('@node-wot/core').ContentSerdes
+const JsonCodec = require('@node-wot/core').JsonCodec
+
+// e.g., assign built-in codec for *new* contentType 
+let cs = ContentSerdes.get();
+cs.addCodec(new JsonCodec("application/calendar+json"));
+
+// e.g., assign *own* MyCodec implementation (implementing ContentCodec interface)
+cs.addCodec(new MyCodec("application/myType"));
+
+```
+
+
+
 
 ## Prerequisites
 ### To use with Node.js
@@ -199,6 +258,13 @@ To reduce the size of the installation from about 800 MByte down to about 200 MB
 * `sudo npm run link` does not work
    * try `npm run unlock` from project root before calling `[sudo] npm run link`
    * try `npm link` in each package directory in this order: td-tools, core, binding-\*, cli, demo-servients
+* Error mesage for `npm link @node-wot/<module>` 
+  `ELOOP: too many symbolic links encountered, stat '/usr/lib/node_modules/@node-wot/<module>`
+   1. Run `npm run link` in `thingweb.node-wot` again
+   2. Remove `node_modules` in the targeted project
+   3. Remove all `@node-wot/<module>` dependencies in your `package.json`
+   4. Run `npm i` again
+   5. Install the packages with `npm link @node-wot/<module>`
 * Build error around `prebuild: npm run bootstrap`
    * This has been seen failing on WSL.  Try using Node 12.13.0
 
@@ -241,7 +307,7 @@ node packages\cli\dist\cli.js --clientonly examples\scripts\counter-client.js
 
 ### Using a browser
 An example of how to use node-wot as a browser-side library can be found under `examples/browser/index.html`.
-To run it, open [`examples/browser/index.html`](http://plugfest.thingweb.io/webui/) in a modern browser, and consume the test Thing available under `http://plugfest.thingweb.io:8083/TestThing` to interact with it.
+To run it, open [`examples/browser/index.html`](http://plugfest.thingweb.io/webui/) in a modern browser, and consume the test Thing available under `http://plugfest.thingweb.io:8083/testthing` to interact with it.
 
 The JavaScript code that uses node-wot as a library to power this application can be found under: `examples/browser/index.js`
 
@@ -251,85 +317,10 @@ The JavaScript code that uses node-wot as a library to power this application ca
 This library implements the WoT Scripting API:
 
 * [Editors Draft](w3c.github.io/wot-scripting-api/) in [master](https://github.com/eclipse/thingweb.node-wot)
-* [Working Draft](https://www.w3.org/TR/wot-scripting-api/) corresponding to node-wot release versions ([v0.3.0](https://github.com/thingweb/node-wot/releases/tag/v0.3.0) for FPWD, [v0.4.0](https://github.com/thingweb/node-wot/releases/tag/v0.4.0) for WD-2018-04-05, [v0.5.0](https://github.com/eclipse/thingweb.node-wot/releases/tag/v0.5.0) for WD-2018-10-??)
+* [Working Draft](https://www.w3.org/TR/wot-scripting-api/) corresponding to node-wot [release versions](https://github.com/eclipse/thingweb.node-wot/releases)
 
 You can also see `examples/scripts` to have a feeling of how to script a Thing.
 
-### Implemented/supported features
-
-<!--
-* [`WoT`](https://www.w3.org/TR/2017/WD-wot-scripting-api-20170914/#the-wot-object) object
-  * `discover` :heavy_multiplication_x:
-  * `consume` :heavy_check_mark:
-  * `expose` :heavy_check_mark:
-  
-* [`ConsumedThing`](https://www.w3.org/TR/2017/WD-wot-scripting-api-20170914/#the-consumedthing-interface) interface
-  * `invokeAction` :heavy_check_mark:
-  * `setProperty` :heavy_check_mark:
-  * `getProperty` :heavy_check_mark:
-  
-  * `addListener` :heavy_multiplication_x:
-  * `removeListener` :heavy_multiplication_x:
-  * `removeAllListeners` :heavy_multiplication_x:
-  * `observe` :heavy_multiplication_x:
-
-* [`ExposedThing`](https://www.w3.org/TR/2017/WD-wot-scripting-api-20170914/#the-exposedthing-interface) interface
-  * `addProperty` :heavy_check_mark:
-  * `removeProperty` :heavy_check_mark:
-  * `addAction` :heavy_check_mark:
-  * `removeAction` :heavy_check_mark:
-  * `addEvent` :heavy_check_mark:
-  * `removeEvent` :heavy_check_mark:
-  
-  * `onRetrieveProperty` :heavy_check_mark:
-  * `onUpdateProperty` :heavy_check_mark:
-  * `onInvokeAction` :heavy_check_mark:
-  * `onObserve` :heavy_multiplication_x:
-  
-  * `register` :heavy_multiplication_x:
-  * `unregister` :heavy_multiplication_x:
-  * `start` :heavy_multiplication_x:
-  * `stop` :heavy_multiplication_x:
-  * `emitEvent` :heavy_multiplication_x:
--->
-
-#### Protocol Support
-
-* [HTTP](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-http/README.md) :heavy_check_mark:
-* [HTTPS](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-http/README.md) :heavy_check_mark:
-* [CoAP](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-coap/README.md) :heavy_check_mark:
-* [CoAPS](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-coap/README.md) :heavy_check_mark:
-* [MQTT](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-mqtt/README.md) :heavy_check_mark:
-* [Websocket](https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-websockets) :heavy_plus_sign: (Server only)
-* [OPC-UA](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-opcua/README.md) :heavy_plus_sign: (Client only)
-* [NETCONF](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-netconf/README.md) :heavy_plus_sign: (Client only)
-* [Modbus](https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-modbus) :heavy_plus_sign: (Client only)
-
-Note: More protocols can be easily added by implementing `ProtocolClient`, `ProtocolClientFactory`, and `ProtocolServer` interface.
-
-#### MediaType Support
-
-* JSON :heavy_check_mark:
-* Text (HTML, CSS, XML, SVG) :heavy_check_mark:
-* Base64 (PNG, JPEG, GIF) :heavy_check_mark:
-* Octet stream :heavy_check_mark:
-* CBOR :heavy_multiplication_x:
-* EXI :heavy_multiplication_x:
-
-Note: More mediaTyes can be easily added by implementing `ContentCodec` interface.
-
-```JavaScript
-const ContentSerdes = require('@node-wot/core').ContentSerdes
-const JsonCodec = require('@node-wot/core').JsonCodec
-
-// e.g., assign built-in codec for *new* contentType 
-let cs = ContentSerdes.get();
-cs.addCodec(new JsonCodec("application/calendar+json"));
-
-// e.g., assign *own* MyCodec implementation (implementing ContentCodec interface)
-cs.addCodec(new MyCodec("application/myType"));
-
-```
 
 ### Logging
 

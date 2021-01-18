@@ -47,7 +47,8 @@
     "client-oauth2": "^4.2.5",
     "eventsource": "^1.0.7",
     "node-fetch": "^2.6.0",
-    "rxjs": "5.5.11"
+    "rxjs": "5.5.11",
+    "slugify": "^1.4.5"
   },
   "scripts": {
     "build": "tsc",

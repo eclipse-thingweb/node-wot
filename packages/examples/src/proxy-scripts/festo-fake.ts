@@ -1,6 +1,4 @@
-import "wot-typescript-definitions"
 
-let WoT:WoT.WoT;
 
 WoT.produce({
   title: "FestoFake",

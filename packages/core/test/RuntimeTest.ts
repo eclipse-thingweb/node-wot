@@ -32,16 +32,75 @@ import Servient from "../src/servient";
 class WoTRuntimeTest {
 
     static servient: Servient;
-    static WoT: WoT.WoT;
+// <<<<<<< HEAD
+    static WoT: typeof WoT;
 
+// =======
+//      static WoT: WoT.WoT;
+     exit: (code?: number) => never;
+    
+// >>>>>>> master
     static before() {
+        console.error = () => {}
         this.servient = new Servient();
         console.log("before starting test suite");
+    }
+
+    beforeEach(){
+        this.exit = process.exit
+    }
+
+    afterEach(){
+        process.exit = this.exit
     }
 
     static after() {
         console.log("after finishing test suite");
         this.servient.shutdown();
+    }
+
+    @test "should provide cli args"() {
+
+        let envScript = `module.exports = process.argv[0]`;
+
+        const test = WoTRuntimeTest.servient.runPrivilegedScript(envScript, undefined, { argv: ['myArg']})
+        assert.equal(test,'myArg')
+    }
+
+    @test "should use the compiler function"() {
+
+        let envScript = `this is not js`;
+
+        const test = WoTRuntimeTest.servient.runPrivilegedScript(envScript, undefined, { 
+            compiler: ()=>{
+                return "module.exports = 'ok'"
+            }
+        })
+        assert.equal(test,'ok')
+    }
+
+    @test "should provide env variables"() {
+
+        let envScript = `module.exports = process.env.MY_VAR`;
+        process.env;
+        const test = WoTRuntimeTest.servient.runPrivilegedScript(envScript, undefined, { env:{'MY_VAR':'test'} })
+        assert.equal(test, 'test')
+    }
+    
+    @test "should hide system env variables"() {
+
+        let envScript = `module.exports = process.env.OS`;
+
+        const test = WoTRuntimeTest.servient.runPrivilegedScript(envScript)
+        assert.equal(test, undefined)
+    }
+
+    @test "should require node builtin module"() {
+        const fs = require("fs")
+        let envScript = `module.exports = require("fs")`;
+
+        const test = WoTRuntimeTest.servient.runPrivilegedScript(envScript)
+        assert.equal(test, fs)
     }
 
     @test "should catch synchronous errors"() {
@@ -60,19 +119,90 @@ class WoTRuntimeTest {
         assert.doesNotThrow( () => { WoTRuntimeTest.servient.runPrivilegedScript(failNowScript); });
     }
 
-    @test "should catch asynchronous errors"() {
+    @test "should catch asynchronous errors for runScript"(done:any) {
+        // Test asynchronous uncaught exceptions is tricky 
+        // so here we verify if the exit function is called
+        let called = false
 
-        let failThenScript = `setTimeout( () => { throw new Error("Asynchronous error in Servient sandbox"); }, 1);`;
+        this.mockupProcessExitWithFunction(() => {
+            if (!called) {
+                done()
+                called = true
+            }
+        });
+       
+        
+        let failThenScript = `setTimeout( () => { throw new Error("Asynchronous error in Servient sandbox"); }, 0);`;
 
         assert.doesNotThrow( () => { WoTRuntimeTest.servient.runScript(failThenScript); });
-        assert.doesNotThrow( () => { WoTRuntimeTest.servient.runPrivilegedScript(failThenScript); });
+    }
+    @test "should catch asynchronous errors for runPrivilegedScript"(done:any) {
+        let called = false
+        
+        this.mockupProcessExitWithFunction(() => {
+            if(!called){
+                done()
+                called = true
+            }
+        });
+        
+        let failThenScript = `setTimeout( () => { throw new Error("Asynchronous error in Servient sandbox"); }, 0);`;
+
+       assert.doesNotThrow( () => { WoTRuntimeTest.servient.runPrivilegedScript(failThenScript); });
     }
 
-    @test "should catch bad asynchronous errors"() {
+    @test "should catch bad asynchronous errors for runScript"(done:any) {
+        // Mocha does not like string errors: https://github.com/trufflesuite/ganache-cli/issues/658
+        // so here I am removing its listeners for uncaughtException. 
+        // WARNING:  Remove this line as soon the issue is resolved.
+        const listeners = this.clearUncaughtListeners()
+        let called = false
+
+        this.mockupProcessExitWithFunction(() => {
+            if (!called) {
+                done()
+                this.restoreUncaughtListeners(listeners)
+                called = true
+            }
+        })
 
         let failThenScript = `setTimeout( () => { throw "Bad asynchronous error in Servient sandbox"; }, 1);`;
 
         assert.doesNotThrow( () => { WoTRuntimeTest.servient.runScript(failThenScript); });
+    }
+    @test "should catch bad asynchronous errors  for runPrivilegedScript"(done:any) {
+        // Mocha does not like string errors: https://github.com/trufflesuite/ganache-cli/issues/658
+        // so here I am removing its listeners for uncaughtException. 
+        // WARNING:  Remove this line as soon the issue is resolved.
+        const listeners = this.clearUncaughtListeners()
+        let called = false
+       
+        this.mockupProcessExitWithFunction(() => {
+            if (!called) {
+                done()
+                this.restoreUncaughtListeners(listeners)
+                called = true
+            }
+        })
+
+        let failThenScript = `setTimeout( () => { throw "Bad asynchronous error in Servient sandbox"; }, 1);`;
         assert.doesNotThrow( () => { WoTRuntimeTest.servient.runPrivilegedScript(failThenScript); });
+    }
+
+    private mockupProcessExitWithFunction(func:Function){
+        // @ts-ignore
+        process.exit = func
+    }
+
+    private clearUncaughtListeners(){
+        const listeners = process.listeners("uncaughtException")
+        process.removeAllListeners("uncaughtException")
+        return listeners;
+    }
+
+    private restoreUncaughtListeners(listeners:Array<(...args:any)=>void>){
+        listeners.forEach(element => {
+            process.on("uncaughtException", element)
+        });
     }
 }

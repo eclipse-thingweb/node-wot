@@ -17,11 +17,25 @@
 // An accompanying tutorial is available at http://www.thingweb.io/smart-coffee-machine.html.
 WoT.produce({
     title: 'Smart-Coffee-Machine',
+    id: 'urn:dev:wot:example:smart-coffee-machine',
     description: `A smart coffee machine with a range of capabilities.
 A complementary tutorial is available at http://www.thingweb.io/smart-coffee-machine.html.`,
     support: 'git://github.com/eclipse/thingweb.node-wot.git',
     '@context': [
         'https://www.w3.org/2019/wot/td/v1',
+    ],
+    securityDefinitions: {
+        oauth2_sc: {
+            scheme: 'oauth2',
+            flow: 'client_credentials',
+            token: 'https://127.0.0.1:3000/token',
+            scopes: [
+                'limited',
+            ],
+        },
+    },
+    security: [
+        'oauth2_sc',
     ],
     properties: {
         allAvailableResources: {
@@ -237,38 +251,37 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
     // Override a write handler for availableResourceLevel property,
     // utilizing the uriVariables properly
     thing.setPropertyWriteHandler('availableResourceLevel', (val, options) => {
-        // Check if uriVariables are provided
-        if (options && typeof options === 'object' && 'uriVariables' in options) {
-            const uriVariables = options['uriVariables'];
-            if ('id' in uriVariables) {
-                return thing.readProperty('allAvailableResources').then((resources) => {
-                    const id = uriVariables['id'];
-                    resources[id] = val;
-                    return thing.writeProperty('allAvailableResources', resources);
-                });
-            }
-        }
         return new Promise((resolve, reject) => {
-            resolve('Please specify id variable as uriVariables.');
+            // Check if uriVariables are provided
+            if (options && typeof options === 'object' && 'uriVariables' in options) {
+                const uriVariables = options['uriVariables'];
+                if ('id' in uriVariables) {
+                    return thing.readProperty('allAvailableResources').then((resources) => {
+                        const id = uriVariables['id'];
+                        resources[id] = val;
+                        thing.writeProperty('allAvailableResources', resources);
+                        return resolve();
+                    });
+                }
+            }
+            return reject('Please specify id variable as uriVariables.');
         });
     });
     // Override a read handler for availableResourceLevel property,
     // utilizing the uriVariables properly
     thing.setPropertyReadHandler('availableResourceLevel', (options) => {
-        // Check if uriVariables are provided
-        if (options && typeof options === 'object' && 'uriVariables' in options) {
-            const uriVariables = options['uriVariables'];
-            if ('id' in uriVariables) {
-                return thing.readProperty('allAvailableResources').then((resources) => {
-                    const id = uriVariables['id'];
-                    return new Promise((resolve, reject) => {
-                        resolve(resources[id]);
-                    });
-                });
-            }
-        }
         return new Promise((resolve, reject) => {
-            resolve('Please specify id variable as uriVariables.');
+            // Check if uriVariables are provided
+            if (options && typeof options === 'object' && 'uriVariables' in options) {
+                const uriVariables = options['uriVariables'];
+                if ('id' in uriVariables) {
+                    return thing.readProperty('allAvailableResources').then((resources) => {
+                        const id = uriVariables['id'];
+                        return resolve(resources[id]);
+                    });
+                }
+            }
+            return reject('Please specify id variable as uriVariables.');
         });
     });
     // Set up a handler for makeDrink action

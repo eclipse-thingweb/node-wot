@@ -13,9 +13,6 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import "wot-typescript-definitions"
-
-let WoT:WoT.WoT;
 
 var counter  = 0;
 

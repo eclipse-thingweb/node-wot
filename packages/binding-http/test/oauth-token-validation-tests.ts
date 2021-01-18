@@ -295,10 +295,14 @@ describe('OAuth2.0 Validator tests', () => {
                 }).end() 
             })
 
-            https.createServer({
+            let server = https.createServer({
                 key: fs.readFileSync('./test/server.key'),
                 cert: fs.readFileSync('./test/server.cert')
-            }, introspectEndpoint).listen(7778, "localhost")  
+            }, introspectEndpoint);
+            const serverStarted = new Promise((r, e) => {
+                server.listen(7778, r); // might need to check if there was an error
+            })
+            await serverStarted;
 
             const config: IntrospectionEndpoint = {
                 name: "introspection_endpoint",

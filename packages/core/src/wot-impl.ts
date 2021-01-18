@@ -24,9 +24,9 @@ import ConsumedThing from "./consumed-thing";
 import Helpers from "./helpers";
 import { ContentSerdes } from "./content-serdes";
 
-export default class WoTImpl implements WoT.WoT {
+export default class WoTImpl {
     private srv: Servient;
-
+    DiscoveryMethod:typeof WoT.DiscoveryMethod;
     constructor(srv: Servient) {
         this.srv = srv;
     }
@@ -42,9 +42,8 @@ export default class WoTImpl implements WoT.WoT {
             try {
                 let thing: TD.Thing;
                 thing = TD.parseTD(JSON.stringify(td), true);
-                let newThing: ConsumedThing = Helpers.extend(thing, new ConsumedThing(this.srv));
+                let newThing: ConsumedThing = new ConsumedThing(this.srv,thing);
 
-                newThing.extendInteractions();
 
                 console.debug("[core/wot-impl]",`WoTImpl consuming TD ${newThing.id ? "'" + newThing.id + "'" : "without id"} to instantiate ConsumedThing '${newThing.title}'`);
                 resolve(newThing);
@@ -88,10 +87,7 @@ export default class WoTImpl implements WoT.WoT {
                 // FIXME should be constrained version that omits instance-specific parts (but keeps "id")
                 let template = td;
                 this.addDefaultLanguage(template);
-                newThing = Helpers.extend(template, new ExposedThing(this.srv));
-
-                // augment Interaction descriptions with interactable functions
-                newThing.extendInteractions();
+                newThing =  new ExposedThing(this.srv,td);
 
                 console.debug("[core/servient]",`WoTImpl producing new ExposedThing '${newThing.title}'`);
 

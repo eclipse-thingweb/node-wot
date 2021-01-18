@@ -37,8 +37,12 @@ import * as xpath2json from '../src/xpath2json';
 
 describe('outer describe', function () {
 
+    this.timeout(10000);
+    let client: NetconfClient;
 
-    let client: NetconfClient = new NetconfClient();
+    before(() => {
+        client = new NetconfClient();
+    });
 
     it("should apply security", async function () {
         let metadata = [{ scheme: 'nosec' }];

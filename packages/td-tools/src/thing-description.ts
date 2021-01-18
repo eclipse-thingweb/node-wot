@@ -38,7 +38,7 @@ export default class Thing {
   created: string;
   version: VersionInfo;
   securityDefinitions: {
-    [key: string]: SecurityScheme;
+    [key: string]: SecurityType;
   };
   security: Array<String>;
   base: string;

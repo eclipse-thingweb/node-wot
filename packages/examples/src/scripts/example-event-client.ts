@@ -13,13 +13,10 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import "wot-typescript-definitions"
 import { Helpers } from "@node-wot/core";
-
-let WoT:WoT.WoT;
 let WoTHelpers: Helpers;
 
-WoTHelpers.fetch("http://localhost:8080/EventSource").then( async (td) => {
+WoTHelpers.fetch("http://localhost:8080/eventsource").then( async (td) => {
     try {
 		let source = await WoT.consume(td);
 		console.info("=== TD ===");

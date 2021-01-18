@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import * as WoT from "wot-typescript-definitions";
+import {ConsumedThing as IConsumedThing} from "wot-typescript-definitions";
 
 import * as TD from "@node-wot/td-tools";
 
@@ -34,7 +34,7 @@ enum Affordance {
     EventAffordance
 }
 
-export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing {
+export default class ConsumedThing extends TD.Thing implements IConsumedThing {
 
     /** A map of interactable Thing Properties with read()/write()/subscribe() functions */
     properties: {
@@ -54,7 +54,7 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
     private getServient: () => Servient;
     private getClients: () => Map<string, ProtocolClient>;
 
-    constructor(servient: Servient) {
+    constructor(servient: Servient, thingModel: TD.ThingModel = {}) {
         super();
 
         this.getServient = () => { return servient; };
@@ -62,6 +62,12 @@ export default class ConsumedThing extends TD.Thing implements WoT.ConsumedThing
             clients: Map<string, ProtocolClient> = new Map<string, ProtocolClient>();
             getMap = () => { return this.clients };
         }).getMap;
+
+        // Deep clone the Thing Model 
+        // without functions or methods
+        let clonedModel = JSON.parse(JSON.stringify(thingModel))
+        Object.assign(this,clonedModel);
+        this.extendInteractions();
     }
 
     getThingDescription(): WoT.ThingDescription {

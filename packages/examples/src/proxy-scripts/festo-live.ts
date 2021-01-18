@@ -1,7 +1,5 @@
-import "wot-typescript-definitions"
 import { Helpers } from "@node-wot/core";
 
-let WoT:WoT.WoT;
 let WoTHelpers: Helpers;
 
 console.debug = () =>  {};

@@ -44,9 +44,8 @@ class OAuthServerTests{
 
 
         await this.server.start(new MockServient());
-
-        let testThing = new ExposedThing(null);
-        testThing = Helpers.extend({
+        
+        let testThing = new ExposedThing(null, {
             title: "TestOAuth",
             id: "test",
             securityDefinitions: {
@@ -64,7 +63,7 @@ class OAuthServerTests{
                     type: "string"
                 }
             }
-        }, testThing);
+        });
         testThing.extendInteractions();
         await testThing.writeProperty("test", "off")
         testThing.properties.test.forms = [];
@@ -90,7 +89,7 @@ class OAuthServerTests{
             return true
         }
 
-        await fetch("http://localhost:8080/TestOAuth/TestOAuth")
+        await fetch("http://localhost:8080/testoauth/TestOAuth")
 
         called.should.be.true
 
@@ -105,7 +104,7 @@ class OAuthServerTests{
             return false
         }
 
-        const response = await fetch("http://localhost:8080/TestOAuth/TestOAuth")
+        const response = await fetch("http://localhost:8080/testoauth/TestOAuth")
 
         called.should.be.true
 
@@ -122,7 +121,7 @@ class OAuthServerTests{
             return false
         }
 
-        const response = await fetch("http://localhost:8080/TestOAuth/TestOAuth")
+        const response = await fetch("http://localhost:8080/testoauth/TestOAuth")
 
         called.should.be.true
 

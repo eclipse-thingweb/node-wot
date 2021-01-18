@@ -97,7 +97,7 @@ describe('OPCUA client test', function () {
             "opc:dataType": "Double"
         }
         let res = await client.writeResource(inputVector.form, { type: 'application/x.opcua-binary', body: Buffer.from(inputVector.payload) });
-        expect(res).to.equal(undefined);
+        expect(res).to.equal(null);
         return;
     })
 
@@ -138,7 +138,7 @@ describe('OPCUA client test', function () {
         let inputVector = {
             op: ["invokeAction"],
             form: {
-                href: "opc.tcp://localhost:5050/ns=1;b=9990FFAA;mns=1;mb=9997FFAA",
+                href: "opc.tcp://localhost:5050/ns=1;s=device;mns=1;ms=method",
                 "opc:method": "CALL_METHOD"
             },
             payload: JSON.stringify({
