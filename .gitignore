@@ -64,6 +64,7 @@ packages/*
 !packages/cli
 !packages/browser-bundle
 !packages/examples
+!packages/td-storage
 
 # JetBrains IDEs
 .idea/

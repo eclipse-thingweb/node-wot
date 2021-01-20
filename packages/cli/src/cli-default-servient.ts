@@ -28,6 +28,9 @@ import { HttpsClientFactory } from "@node-wot/binding-http";
 import { CoapClientFactory } from "@node-wot/binding-coap";
 import { CoapsClientFactory } from "@node-wot/binding-coap";
 import { MqttClientFactory }  from "@node-wot/binding-mqtt";
+// TODO: Register and import as package
+import { MongoDB } from "../../td-storage";
+import { Thing } from "@node-wot/td-tools";
 
 export default class DefaultServient extends Servient {
 
@@ -45,12 +48,22 @@ export default class DefaultServient extends Servient {
         },
         log: {
             level: "info"
+        },
+        TDStorage: {
+            MongoDB: {
+                uri: "",
+                db: "",
+                collection: ""
+            }
         }
     }
 
     public readonly config: any;
     // current log level
     public logLevel: string;
+
+    // TD storage container
+    private readonly TDStorage: any;
 
     public constructor(clientOnly: boolean, config?: any) {
         super();
@@ -113,6 +126,13 @@ export default class DefaultServient extends Servient {
         this.addClientFactory(new CoapClientFactory(coapServer));
         this.addClientFactory(new CoapsClientFactory());
         this.addClientFactory(new MqttClientFactory());
+
+        // Create and initialize TD storage
+        this.TDStorage = new MongoDB(
+            this.config.TDStorage.MongoDB.uri,
+            this.config.TDStorage.MongoDB.db,
+            this.config.TDStorage.MongoDB.collection
+        );
     }
 
     /**
@@ -150,6 +170,15 @@ export default class DefaultServient extends Servient {
                             description: "Run script",
                             input: { type: "string" },
                             output: { type: "string" }
+                        },
+                        register: {
+                            description: "Register Thing(s) in TD storage",
+                            output: { type: "boolean" }
+                        },
+                        search: {
+                            description: "Search for Things in TD storage",
+                            input: { type: "string" },
+                            output: { type: "array" }
                         }
                     }
                 })
@@ -179,6 +208,16 @@ export default class DefaultServient extends Servient {
                                 console.debug("[cli/default-servient]","returnings things");
                                 resolve(this.getThings());
                             });
+                        });
+                        thing.setActionHandler("register", () => {
+                            return new Promise((resolve, reject) => {
+                                console.debug("[cli/default-servient]","registering things in TD storage");
+                                resolve(this.register());
+                            });
+                        });
+                        thing.setActionHandler("search", (query) => {
+                            console.debug("[cli/default-servient]","searching for things in TD storage");
+                            return this.search(query);
                         });
                         thing.expose().then(() => {
                             // pass on WoTFactory
@@ -233,6 +272,18 @@ export default class DefaultServient extends Servient {
 
             this.logLevel = "info";
         }
+    }
+
+    // Register Thing(s) in TD storage
+    // (registers every Thing of the servient except for the servient itself)
+    private register(): boolean {
+        const things: Thing[] = Object.values(this.getThings()).filter(thing => thing.title !== "servient");
+        return this.TDStorage.register(things);
+    }
+
+    // Search for Things in TD storage
+    private search(query: string): Promise<any[]> {
+        return this.TDStorage.search(query);
     }
 }
 

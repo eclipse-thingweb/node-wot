@@ -1,0 +1,27 @@
+{
+  "name": "@node-wot/td-storage",
+  "version": "0.7.5",
+  "description": "",
+  "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
+  "license": "EPL-2.0 OR W3C-20150513",
+  "repository": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/td-storage",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist/"
+  ],
+  "main": "dist/td-storage.js",
+  "types": "dist/td-storage.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "@types/mongodb": "^3.6.3",
+    "typescript": "3.7.5"
+  },
+  "dependencies": {
+    "@node-wot/core": "^0.7.4",
+    "mongodb": "^3.6.3"
+  }
+}
