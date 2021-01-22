@@ -203,6 +203,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         return { client: client, form: form }
     }
 
+    // TODO change any with WoT.InteractionOutput
     readProperty(propertyName: string, options?: WoT.InteractionOptions): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             // TODO pass expected form op to getClientFor()
@@ -225,6 +226,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                         if (!content.type) content.type = form.contentType;
                         try {
                             let value = ContentManager.contentToValue(content, <any>tp);
+                            // TODO let output: WoT.InteractionOutput = { value: value, dataUsed: false, arrayBuffer: undefined };
                             resolve(value);
                         } catch {
                             reject(new Error(`Received invalid content from Thing`));
@@ -279,7 +281,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
     }
 
 
-    writeProperty(propertyName: string, value: any, options?: WoT.InteractionOptions): Promise<void> {
+    writeProperty(propertyName: string, value: WoT.InteractionInput, options?: WoT.InteractionOptions): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             // TODO pass expected form op to getClientFor()
             let tp: TD.ThingProperty = this.properties[propertyName];
@@ -326,7 +328,8 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
     }
 
 
-    public invokeAction(actionName: string, parameter?: any, options?: WoT.InteractionOptions): Promise<any> {
+    // TODO change any with WoT.InteractionOutput
+    public invokeAction(actionName: string, parameter?: WoT.InteractionInput, options?: WoT.InteractionOptions): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             let ta: TD.ThingAction = this.actions[actionName];
             if (!ta) {
@@ -362,6 +365,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
 
                         try {
                             let value = ContentManager.contentToValue(content, ta.output);
+                            // TODO let output: WoT.InteractionOutput = { value: value, dataUsed: false, arrayBuffer: undefined };
                             resolve(value);
                         } catch {
                             reject(new Error(`Received invalid content from Thing`));

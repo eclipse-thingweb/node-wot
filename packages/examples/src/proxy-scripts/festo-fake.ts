@@ -1,4 +1,14 @@
 
+// init property values
+let PumpStatus = false;
+let ValveStatus = false;
+// upper tank (102)
+let Tank102LevelValue = 0.0;
+let Tank102OverflowStatus = false;
+// lower tank (101)
+let Tank101MaximumLevelStatus = false;
+let Tank101MinimumLevelStatus = false;
+let Tank101OverflowStatus = false;
 
 WoT.produce({
   title: "FestoFake",
@@ -46,42 +56,69 @@ WoT.produce({
 	}
 })
 .then((thing) => {
-	console.log("Produced " + thing.getThingDescription().title);
-	
-	// init property values
-	thing.writeProperty("PumpStatus", false);
-  thing.writeProperty("ValveStatus", false);
-  // upper tank (102)
-  thing.writeProperty("Tank102LevelValue", 0.0);
-  thing.writeProperty("Tank102OverflowStatus", false);
-  // lower tank (101)
-  thing.writeProperty("Tank101MaximumLevelStatus", false);
-  thing.writeProperty("Tank101MinimumLevelStatus", false);
-  thing.writeProperty("Tank101OverflowStatus", false);
+  console.log("Produced " + thing.getThingDescription().title);
+
+  // set property read handlers
+  thing.setPropertyReadHandler("PumpStatus", () => {
+		return new Promise<any>((resolve, reject) => {
+      resolve(PumpStatus);
+		});
+  });
+  thing.setPropertyReadHandler("ValveStatus", () => {
+		return new Promise<any>((resolve, reject) => {
+      resolve(ValveStatus);
+		});
+  });
+  thing.setPropertyReadHandler("Tank102LevelValue", () => {
+		return new Promise<any>((resolve, reject) => {
+      resolve(Tank102LevelValue);
+		});
+  });
+  thing.setPropertyReadHandler("Tank102OverflowStatus", () => {
+		return new Promise<any>((resolve, reject) => {
+      resolve(Tank102OverflowStatus);
+		});
+  });
+
+  thing.setPropertyReadHandler("Tank101MaximumLevelStatus", () => {
+		return new Promise<any>((resolve, reject) => {
+      resolve(Tank101MaximumLevelStatus);
+		});
+  });
+  thing.setPropertyReadHandler("Tank101MinimumLevelStatus", () => {
+		return new Promise<any>((resolve, reject) => {
+      resolve(Tank101MinimumLevelStatus);
+		});
+  });
+  thing.setPropertyReadHandler("Tank101OverflowStatus", () => {
+		return new Promise<any>((resolve, reject) => {
+      resolve(Tank101OverflowStatus);
+		});
+  });
 	
 	// set action handlers
 	thing.setActionHandler("StartPump", () => {
 		return new Promise<any>((resolve, reject) => {
 			console.warn(">>> Startung pump!");
-      resolve();
+      resolve(undefined);
 		});
   });
   thing.setActionHandler("StopPump", () => {
 		return new Promise<any>((resolve, reject) => {
 			console.warn(">>> Stopping pump!");
-      resolve();
+      resolve(undefined);
 		});
   });
   thing.setActionHandler("OpenValve", () => {
 		return new Promise<any>((resolve, reject) => {
 			console.warn(">>> Opening valve!");
-      resolve();
+      resolve(undefined);
 		});
   });
   thing.setActionHandler("CloseValve", () => {
 		return new Promise<any>((resolve, reject) => {
 			console.warn(">>> Closing valve!");
-      resolve();
+      resolve(undefined);
 		});
 	});
 	
@@ -89,15 +126,15 @@ WoT.produce({
     console.info(thing.getThingDescription().title + " ready");
 
     setInterval( () => {
-      thing.writeProperty("PumpStatus", Math.random()<0.5 ? true : false);
-      thing.writeProperty("ValveStatus", Math.random()<0.5 ? true : false);
+      PumpStatus = Math.random()<0.5 ? true : false;
+      ValveStatus = Math.random()<0.5 ? true : false;
       let level102 = Math.random() * 150;
-      thing.writeProperty("Tank102LevelValue", level102);
-      thing.writeProperty("Tank102OverflowStatus", level102 > 140);
+      Tank102LevelValue = level102;
+      Tank102OverflowStatus = level102 > 140;
       let level101 = 150 - level102;
-      thing.writeProperty("Tank101MaximumLevelStatus", level101 > 100);
-      thing.writeProperty("Tank101MinimumLevelStatus", level101 > 10);
-      thing.writeProperty("Tank101OverflowStatus", level101 > 140);
+      Tank101MaximumLevelStatus = level101 > 100;
+      Tank101MinimumLevelStatus = level101 > 10;
+      Tank101OverflowStatus = level101 > 140;
     }, 5000);
   });
 })

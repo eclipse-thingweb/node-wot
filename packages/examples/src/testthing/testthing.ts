@@ -34,6 +34,7 @@ function checkActionInvocation(name: any, expected: any, actual: any) {
     }
 }
 
+// init property values
 let bool = false;
 let int = 42;
 let num = 3.14;
@@ -158,15 +159,39 @@ WoT.produce({
     .then((thing) => {
         console.log("Produced " + thing.getThingDescription().title);
 
-        // init property values
-        thing.writeProperty("bool", bool);
-        thing.writeProperty("int", int);
-        thing.writeProperty("num", num);
-        thing.writeProperty("string", string);
-        thing.writeProperty("array", array);
-        thing.writeProperty("object", object);
+        // set property read handlers
+        thing.setPropertyReadHandler("bool", () => {
+            return new Promise<any>((resolve, reject) => {
+                resolve(bool);
+            });
+        });
+        thing.setPropertyReadHandler("int", () => {
+            return new Promise<any>((resolve, reject) => {
+                resolve(int);
+            });
+        });
+        thing.setPropertyReadHandler("num", () => {
+            return new Promise<any>((resolve, reject) => {
+                resolve(num);
+            });
+        });
+        thing.setPropertyReadHandler("string", () => {
+            return new Promise<any>((resolve, reject) => {
+                resolve(string);
+            });
+        });
+        thing.setPropertyReadHandler("array", () => {
+            return new Promise<any>((resolve, reject) => {
+                resolve(array);
+            });
+        });
+        thing.setPropertyReadHandler("object", () => {
+            return new Promise<any>((resolve, reject) => {
+                resolve(object);
+            });
+        });
         
-        // TODO set property handlers
+        // TODO set property write handlers
         thing
             .setPropertyWriteHandler("bool", async (value) => {
                 let localBool = await value.value();

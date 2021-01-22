@@ -9,6 +9,18 @@ let PumpP101: WoT.ConsumedThing, ValveV102: WoT.ConsumedThing;
 
 let thingExposed: WoT.ExposedThing;
 
+// init property values
+// actuator state
+let PumpStatus = false; 
+let ValveStatus =false; 
+// upper tank (102)
+let Tank102LevelValue = 0.0; 
+let Tank102OverflowStatus = false;
+// lower tank (101)
+let Tank101MaximumLevelStatus = false;
+let Tank101MinimumLevelStatus = false;
+let Tank101OverflowStatus = false;
+
 // fetch and consume NodeMCU Things
 let fetchArray = [
   WoTHelpers.fetch("file://./tdPumpP101.jsonld"),
@@ -40,7 +52,7 @@ Promise.all(fetchArray).then(async (tdArray) => {
       .then(async value => {
         let valuep = await Helpers.parseInteractionOutput(value);
         console.info("+++ PumpStatus " + valuep);
-        thingExposed.writeProperty("PumpStatus", valuep === "ON" ? true : false);
+        PumpStatus = valuep === "ON" ? true : false;
       })
       .catch(err => { console.error("--- PumpStatus read error: " + err); });
 
@@ -48,42 +60,42 @@ Promise.all(fetchArray).then(async (tdArray) => {
       .then(async value => {
         let valuep = await Helpers.parseInteractionOutput(value);
         console.info("+++ ValveStatus " + valuep);
-        thingExposed.writeProperty("ValveStatus", valuep === "OPEN" ? true : false);
+        ValveStatus = valuep === "OPEN" ? true : false;
       })
       .catch(err => { console.error("--- ValveStatus read error: " + err); });
 
     UltrasonicSensorB101.readProperty("levelvalue")
       .then(value => {
         console.info("+++ Tank102LevelValue " + value);
-        thingExposed.writeProperty("Tank102LevelValue", value);
+        Tank102LevelValue = <any>value; // TODO fix reading InteractionOutput
       })
       .catch(err => { console.error("--- Tank102LevelValue read error: " + err); });
 
     FloatSwitchS112.readProperty("overflow102")
       .then(value => {
         console.info("+++ Tank102OverflowStatus " + value);
-        thingExposed.writeProperty("Tank102OverflowStatus", value);
+        Tank102OverflowStatus = <any>value; // TODO fix reading InteractionOutput
       })
       .catch(err => { console.error("--- Tank102OverflowStatus read error: " + err); });
 
     LevelSensorB114.readProperty("maxlevel101")
       .then(value => {
         console.info("+++ Tank101MaximumLevelStatus " + value);
-        thingExposed.writeProperty("Tank101MaximumLevelStatus", value);
+        Tank101MaximumLevelStatus = <any>value; // TODO fix reading InteractionOutput
       })
       .catch(err => { console.error("--- Tank101MaximumLevelStatus read error: " + err); });
 
     LevelSensorB113.readProperty("minlevel101")
       .then(value => {
         console.info("+++ Tank101MinimumLevelStatus " + value);
-        thingExposed.writeProperty("Tank101MinimumLevelStatus", value);
+        Tank101MinimumLevelStatus = <any>value; // TODO fix reading InteractionOutput
       })
       .catch(err => { console.error("--- Tank101MinimumLevelStatus read error: " + err); });
 
     LevelSwitchS111.readProperty("overflow101")
       .then(value => {
         console.info("+++ Tank101OverflowStatus " + value);
-        thingExposed.writeProperty("Tank101OverflowStatus", value);
+        Tank101OverflowStatus = <any>value; // TODO fix reading InteractionOutput
       })
       .catch(err => { console.error("--- Tank101OverflowStatus read error: " + err); });
 
@@ -142,53 +154,81 @@ WoT.produce({
   console.log("Produced " + thing.getThingDescription().title);
   thingExposed = thing;
 
-  // init property values
+  // set property read handlers
   // actuator state
-	thing.writeProperty("PumpStatus", false); 
-  thing.writeProperty("ValveStatus", false); 
+  thing.setPropertyReadHandler("PumpStatus", () => {
+		return new Promise<any>((resolve, reject) => {
+      resolve(PumpStatus);
+		});
+  });
+  thing.setPropertyReadHandler("ValveStatus", () => {
+		return new Promise<any>((resolve, reject) => {
+      resolve(ValveStatus);
+		});
+  });
   // upper tank (102)
-  thing.writeProperty("Tank102LevelValue", 0.0); 
-  thing.writeProperty("Tank102OverflowStatus", false);
+  thing.setPropertyReadHandler("Tank102LevelValue", () => {
+		return new Promise<any>((resolve, reject) => {
+      resolve(Tank102LevelValue);
+		});
+  });
+  thing.setPropertyReadHandler("Tank102OverflowStatus", () => {
+		return new Promise<any>((resolve, reject) => {
+      resolve(Tank102OverflowStatus);
+		});
+  });
   // lower tank (101)
-  thing.writeProperty("Tank101MaximumLevelStatus", false);
-  thing.writeProperty("Tank101MinimumLevelStatus", false);
-  thing.writeProperty("Tank101OverflowStatus", false);
+  thing.setPropertyReadHandler("Tank101MaximumLevelStatus", () => {
+		return new Promise<any>((resolve, reject) => {
+      resolve(Tank101MaximumLevelStatus);
+		});
+  });
+  thing.setPropertyReadHandler("Tank101MinimumLevelStatus", () => {
+		return new Promise<any>((resolve, reject) => {
+      resolve(Tank101MinimumLevelStatus);
+		});
+  });
+  thing.setPropertyReadHandler("Tank101OverflowStatus", () => {
+		return new Promise<any>((resolve, reject) => {
+      resolve(Tank101OverflowStatus);
+		});
+  });
 
   // set action handlers
   thing.setActionHandler("StartPump", () => {
 		return new Promise<any>((resolve, reject) => {
       console.info(">>> Startung pump!");
       PumpP101.invokeAction("on")
-        .then(() => { resolve(); })
+        .then(() => { resolve(undefined); })
         .catch((err) => { console.error("--- StartPump invoke error: " + err); reject(err); });
-			resolve();
+			resolve(undefined);
 		});
   });
   thing.setActionHandler("StopPump", () => {
 		return new Promise<any>((resolve, reject) => {
       console.info(">>> Stopping pump!");
       PumpP101.invokeAction("off")
-        .then(() => { resolve(); })
+        .then(() => { resolve(undefined); })
         .catch((err) => { console.error("--- StopPump invoke error: " + err); reject(err); });
-			resolve();
+			resolve(undefined);
 		});
   });
   thing.setActionHandler("OpenValve", () => {
 		return new Promise<any>((resolve, reject) => {
       console.info(">>> Opening valve!");
       ValveV102.invokeAction("open")
-        .then(() => { resolve(); })
+        .then(() => { resolve(undefined); })
         .catch((err) => { console.error("--- OpenValve invoke error: " + err); reject(err); });
-			resolve();
+			resolve(undefined);
 		});
   });
   thing.setActionHandler("CloseValve", () => {
 		return new Promise<any>((resolve, reject) => {
       console.info(">>> Closing valve!");
       ValveV102.invokeAction("close")
-        .then(() => { resolve(); })
+        .then(() => { resolve(undefined); })
         .catch((err) => { console.error("--- CloseValve invoke error: " + err); reject(err); });
-			resolve();
+			resolve(undefined);
 		});
 	});
 

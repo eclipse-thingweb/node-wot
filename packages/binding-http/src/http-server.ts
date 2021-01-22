@@ -432,6 +432,41 @@ export default class HttpServer implements ProtocolServer {
     return params;
   }
 
+  _readProperties(thing: ExposedThing, propertyNames: string[], options?: WoT.InteractionOptions): Promise<WoT.PropertyMap> {
+    return new Promise<object>((resolve, reject) => {
+        // collect all single promises into array
+        var promises: Promise<any>[] = [];
+        for (let propertyName of propertyNames) {
+          let property = thing.properties[propertyName];
+          promises.push(property.getState().readHandler(options));
+        }
+        // wait for all promises to succeed and create response
+        Promise.all(promises)
+            .then((result) => {
+                let allProps: {
+                    [key: string]: any;
+                } = {};
+                let index = 0;
+                for (let propertyName of propertyNames) {
+                    allProps[propertyName] = result[index];
+                    index++;
+                }
+                resolve(allProps);
+            })
+            .catch(err => {
+                reject(new Error(`ExposedThing '${thing.title}', failed to read properties ` + propertyNames));
+            });
+    });
+}
+
+readAllProperties(thing: ExposedThing, options?: WoT.InteractionOptions): Promise<WoT.PropertyMap> {
+    let propertyNames: string[] = [];
+    for (let propertyName in thing.properties) {
+        propertyNames.push(propertyName);
+    }
+    return this._readProperties(thing, propertyNames, options);
+}
+
   private async handleRequest(req: http.IncomingMessage, res: http.ServerResponse) {
     
     let requestUri = url.parse(req.url);
@@ -556,7 +591,8 @@ export default class HttpServer implements ProtocolServer {
           if (segments[2] === this.ALL_DIR) {
             if(this.ALL_PROPERTIES == segments[3]) {
               if (req.method === "GET") {
-                thing.readAllProperties()
+
+                this.readAllProperties(thing)
                   .then((value:any) => {
                     let content = ContentSerdes.get().valueToContent(value, undefined); // contentType handling? <any>property);
                     res.setHeader("Content-Type", content.type);
@@ -592,7 +628,7 @@ export default class HttpServer implements ProtocolServer {
                   // FIXME must decide on Content-Type here, not on next()
                   res.setHeader("Content-Type", ContentSerdes.DEFAULT);
                   res.writeHead(200);
-                  thing.observeProperty(segments[3],
+                  property.getState().subject.asObservable().subscribe(
                     (data) => {
                       let content;
                       try {
@@ -607,10 +643,34 @@ export default class HttpServer implements ProtocolServer {
                       // send event data
                       res.end(content.body);
                     },
-                    options
-                  )
-                  .then(() => res.end())
-                  .catch(() => res.end());
+                    (err) => {
+                      console.warn("[binding-http]",`HttpServer on port ${this.getPort()} cannot process data for Event '${segments[3]}: ${err.message}'`);
+                      res.writeHead(500);
+                      res.end("Invalid Event Data");
+                    },
+                    () => {
+                      console.debug("[binding-http]",`HttpServer on port ${this.getPort()} closed connection`);
+                      thing.unobserveProperty(segments[3]);
+                    });
+                  // thing.observeProperty(segments[3],
+                  //   (data) => {
+                  //     let content;
+                  //     try {
+                  //       let contentType = ProtocolHelpers.getPropertyContentType(thing.getThingDescription(), segments[3], "http");
+                  //       content = ContentSerdes.get().valueToContent(data, property.data, contentType);
+                  //     } catch(err) {
+                  //       console.warn("[binding-http]",`HttpServer on port ${this.getPort()} cannot process data for Event '${segments[3]}: ${err.message}'`);
+                  //       res.writeHead(500);
+                  //       res.end("Invalid Event Data");
+                  //       return;
+                  //     }
+                  //     // send event data
+                  //     res.end(content.body);
+                  //   },
+                  //   options
+                  // )
+                  // .then(() => res.end())
+                  // .catch(() => res.end());
                   res.on("finish", () => {
                     console.debug("[binding-http]",`HttpServer on port ${this.getPort()} closed connection`);
                     thing.unobserveProperty(segments[3]);
@@ -618,8 +678,7 @@ export default class HttpServer implements ProtocolServer {
                   res.setTimeout(60*60*1000, () => thing.unobserveProperty(segments[3]));
 
                 } else {
-                  thing.readProperty(segments[3], options)
-                  // property.read(options)
+                  property.getState().readHandler(options)
                     .then((value:any) => {
                       let contentType = ProtocolHelpers.getPropertyContentType(thing.getThingDescription(), segments[3], "http");
                       let content = ContentSerdes.get().valueToContent(value, <any>property, contentType);
@@ -649,8 +708,7 @@ export default class HttpServer implements ProtocolServer {
                       res.end("Invalid Data");
                       return;
                     }
-                    thing.writeProperty(segments[3], value, options)
-                    // property.write(value, options)
+                    property.getState().writeHandler(value, options)
                       .then(() => {
                         res.writeHead(204);
                         res.end("Changed");
@@ -674,7 +732,7 @@ export default class HttpServer implements ProtocolServer {
 
           } else if (segments[2] === this.ACTION_DIR) {
             // sub-path -> select Action
-            let action : TD.ThingAction = thing.actions[segments[3]];
+            let action = thing.actions[segments[3]];
             if (action) {
               if (req.method === "POST") {
                 // load payload
@@ -698,8 +756,7 @@ export default class HttpServer implements ProtocolServer {
                     options = {uriVariables: uriVariables};
                   }
 
-                  thing.invokeAction(segments[3], input, options)
-                  // action.invoke(input, options)
+                  action.getState().handler(input, options)
                     .then((output:any) => {
                       if (output) {
                         let contentType = ProtocolHelpers.getActionContentType(thing.getThingDescription(), segments[3], "http");
@@ -740,8 +797,7 @@ export default class HttpServer implements ProtocolServer {
                   options = {uriVariables: uriVariables};
                 }
 
-                thing.subscribeEvent(segments[3], 
-                // let subscription = event.subscribe(
+                event.getState().subject.asObservable().subscribe(
                   (data) => {
                     let content;
                     try {
@@ -756,10 +812,36 @@ export default class HttpServer implements ProtocolServer {
                     // send event data
                     res.end(content.body);
                   },
-                  options
-                )
-                .then(() => res.end())
-                .catch(() => res.end());
+                  (err) => {
+                    console.warn("[binding-http]",`HttpServer on port ${this.getPort()} cannot process data for Event '${segments[3]}: ${err.message}'`);
+                    res.writeHead(500);
+                    res.end("Invalid Event Data");
+                    return;
+                  },
+                  () => {
+                    console.debug("[binding-http]",`HttpServer on port ${this.getPort()} completes '${segments[3]}' subscription`);
+                    res.end();
+                  });
+
+                // thing.subscribeEvent(segments[3],
+                //   (data) => {
+                //     let content;
+                //     try {
+                //       let contentType = ProtocolHelpers.getEventContentType(thing.getThingDescription(), segments[3], "http");
+                //       content = ContentSerdes.get().valueToContent(data, event.data, contentType);
+                //     } catch(err) {
+                //       console.warn("[binding-http]",`HttpServer on port ${this.getPort()} cannot process data for Event '${segments[3]}: ${err.message}'`);
+                //       res.writeHead(500);
+                //       res.end("Invalid Event Data");
+                //       return;
+                //     }
+                //     // send event data
+                //     res.end(content.body);
+                //   },
+                //   options
+                // )
+                // .then(() => res.end())
+                // .catch(() => res.end());
                 res.on("finish", () => {
                   console.debug("[binding-http]",`HttpServer on port ${this.getPort()} closed Event connection`);
                   // subscription.unsubscribe();
