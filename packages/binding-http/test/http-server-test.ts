@@ -59,8 +59,18 @@ class HttpServerTest {
       }
       });
     
-    
-    await testThing.writeProperty("test", "off")
+    let test = "off";
+    testThing.setPropertyReadHandler("test", () => {
+        return new Promise<any>((resolve, reject) => {
+            resolve(test);
+        });
+    })
+    testThing.setPropertyWriteHandler("test", (value) => {
+      test = <any>value; // fix once InteractionOutput is properly set-up
+      return new Promise<any>((resolve, reject) => {
+          resolve(undefined);
+      });
+  })
     testThing.properties.test.forms = [];
     testThing.setActionHandler("try", (input) => { return new Promise<string>( (resolve, reject) => { resolve("TEST"); }); });
     testThing.actions.try.forms = [];

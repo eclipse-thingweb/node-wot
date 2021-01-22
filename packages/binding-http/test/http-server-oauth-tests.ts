@@ -65,7 +65,12 @@ class OAuthServerTests{
             }
         });
         testThing.extendInteractions();
-        await testThing.writeProperty("test", "off")
+        let test = "off";
+        testThing.setPropertyReadHandler("test", () => {
+            return new Promise<any>((resolve, reject) => {
+                resolve(test);
+            });
+        })
         testThing.properties.test.forms = [];
 
         await this.server.expose(testThing)
