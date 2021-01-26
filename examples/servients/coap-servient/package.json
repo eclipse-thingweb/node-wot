@@ -18,7 +18,7 @@
     "test"
   ],
   "devDependencies": {
-    "wot-typescript-definitions": "0.8.0-SNAPSHOT.9",
+    "wot-typescript-definitions": "0.8.0-SNAPSHOT.10",
     "@types/node": "10.9.4",
     "typescript": "2.9.2"
   },
