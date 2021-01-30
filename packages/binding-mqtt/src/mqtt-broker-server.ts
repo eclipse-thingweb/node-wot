@@ -107,26 +107,22 @@ export default class MqttBrokerServer implements ProtocolServer {
         let property = thing.properties[propertyName];
 
         if(!property.writeOnly ){
-          property.getState().subject.asObservable().subscribe(
+          thing.observeProperty(propertyName,
+          // let subscription = property.subscribe(
             (data) => {
               let content;
               try {
                 content = ContentSerdes.get().valueToContent(data, property.data);
-              } catch (err) {
-                console.warn("[binding-mqtt]", `MqttServer cannot process data for Property '${propertyName}': ${err.message}`);
+              } catch(err) {
+                console.warn("[binding-mqtt]",`MqttServer cannot process data for Property '${propertyName}': ${err.message}`);
                 // subscription.unsubscribe();
                 thing.unobserveProperty(propertyName);
                 return;
               }
-              console.debug("[binding-mqtt]", `MqttBrokerServer at ${this.brokerURI} publishing to Property topic '${propertyName}' `);
-              this.broker.publish(topic, content.body, { retain: true });
-            },
-            (err) => {
-              console.warn("[binding-mqtt]", `MqttBrokerServer at ${this.brokerURI}  cannot process data`);
-            },
-            () => {
-              console.debug("[binding-mqtt]", `MqttBrokerServer at ${this.brokerURI} closed connection`);
-            });
+              console.debug("[binding-mqtt]",`MqttBrokerServer at ${this.brokerURI} publishing to Property topic '${propertyName}' `);
+              this.broker.publish(topic, content.body,{retain:true});
+            }
+          );
 
           let href = this.brokerURI + topic;
           let form = new TD.Form(href, ContentSerdes.DEFAULT);
@@ -199,7 +195,7 @@ export default class MqttBrokerServer implements ProtocolServer {
                   }
                 }
               }
-              action.getState().handler(value)
+              thing.invokeAction(segments[3], value)
               .then((output) => {
                 // MQTT cannot return results
                 if (output) {
@@ -222,7 +218,7 @@ export default class MqttBrokerServer implements ProtocolServer {
               let property = thing.properties[segments[3]];
               if (property) {
                 if(!property.readOnly){
-                  property.getState().writeHandler(JSON.parse(payload.toString()))
+                  thing.writeProperty(segments[3], JSON.parse(payload.toString()))
                     .catch(err => {
                       console.error("[binding-mqtt]",`MqttBrokerServer at ${this.brokerURI} got error on writing to property '${segments[3]}': ${err.message}`);
                     });
@@ -245,30 +241,25 @@ export default class MqttBrokerServer implements ProtocolServer {
         let topic = "/" + encodeURIComponent(name) + "/events/" + encodeURIComponent(eventName);
         let event = thing.events[eventName];
 
+        thing.subscribeEvent(eventName,
+        // FIXME store subscription and clean up on stop
+        // let subscription = event.subscribe(
 
-        event.getState().subject.asObservable().subscribe(
           (data) => {
             let content;
             try {
               content = ContentSerdes.get().valueToContent(data, event.data);
-            } catch (err) {
-              console.warn("[binding-mqtt]", `HttpServer on port ${this.getPort()} cannot process data for Event '${eventName}: ${err.message}'`);
+            } catch(err) {
+              console.warn("[binding-mqtt]",`HttpServer on port ${this.getPort()} cannot process data for Event '${eventName}: ${err.message}'`);
               // subscription.unsubscribe();
               thing.unsubscribeEvent(eventName);
               return;
             }
             // send event data
-            console.debug("[binding-mqtt]", `MqttBrokerServer at ${this.brokerURI} publishing to Event topic '${eventName}' `);
+            console.debug("[binding-mqtt]",`MqttBrokerServer at ${this.brokerURI} publishing to Event topic '${eventName}' `);
             this.broker.publish(topic, content.body);
-          },
-          (err) => {
-            console.warn("[binding-mqtt]", `MqttBrokerServer at ${this.brokerURI} cannot process data`);
-          },
-          () => {
-            console.debug("[binding-mqtt]", `MqttBrokerServer at ${this.brokerURI} closed connection`);
-          });
-
-        // FIXME store subscription and clean up on stop
+          }
+        );
 
         let href = this.brokerURI + topic;
         let form = new TD.Form(href, ContentSerdes.DEFAULT);

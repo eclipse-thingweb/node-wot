@@ -160,14 +160,14 @@ export default class WebSocketServer implements ProtocolServer {
         this.socketServers[path] = new WebSocket.Server({ noServer: true });
         this.socketServers[path].on('connection', (ws, req) => {
           console.debug("[binding-websockets]",`WebSocketServer on port ${this.getPort()} received connection for '${path}' from ${Helpers.toUriLiteral(req.connection.remoteAddress)}:${req.connection.remotePort}`);
-          let event = thing.events[eventName];
-          event.getState().subject.asObservable().subscribe(
+          thing.subscribeEvent(eventName,
+          // let subscription = thing.events[eventName].subscribe(
             (data) => {
               let content;
               try {
                 content = ContentSerdes.get().valueToContent(data, thing.events[eventName].data);
-              } catch (err) {
-                console.warn("[binding-websockets]", `HttpServer on port ${this.getPort()} cannot process data for Event '${eventName}: ${err.message}'`);
+              } catch(err) {
+                console.warn("[binding-websockets]",`HttpServer on port ${this.getPort()} cannot process data for Event '${eventName}: ${err.message}'`);
                 ws.close(-1, err.message)
                 return;
               }
@@ -181,15 +181,13 @@ export default class WebSocketServer implements ProtocolServer {
                   ws.send(content.body);
                   break;
               }
-            },
-            (err) => {
-              console.warn("[binding-websockets]", `HttpServer on port ${this.getPort()} cannot process data for Event`);
-              ws.close(-1, err.message)
-            },
-            () => {
-              console.debug("[binding-websockets]", `HttpServer on port ${this.getPort()} closed connection`);
-              ws.close(0, "Completed");
-            });
+            }
+            // ,
+            // (err: Error) => ws.close(-1, err.message),
+            // () => ws.close(0, "Completed")
+          )
+          .then(() => ws.close(0, "Completed"))
+          .catch((err: Error) => ws.close(-1, err.message));
           ws.on("close", () => {
             thing.unsubscribeEvent(eventName)
             // subscription.unsubscribe();

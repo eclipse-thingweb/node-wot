@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2021 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -25,23 +25,22 @@ WoTHelpers.fetch("coap://localhost:5683/counter").then( async (td) => {
 		console.info("==========");
 	
 		// read property #1
-		let read1 : WoT.InteractionOutput = await thing.readProperty("count");
+		let read1 = await thing.readProperty("count");
 		console.info("count value is", read1);
 		
 		// increment property #1 (without step)
 		await thing.invokeAction("increment");
-		let inc1 : WoT.InteractionOutput = await thing.readProperty("count");
+		let inc1 = await thing.readProperty("count");
 		console.info("count value after increment #1 is", inc1);
 		
 		// increment property #2 (with step)
 		await thing.invokeAction("increment", undefined, {uriVariables: {'step' : 3}});
-		let inc2 : WoT.InteractionOutput = await thing.readProperty("count");
+		let inc2 = await thing.readProperty("count");
 		console.info("count value after increment #2 (with step 3) is", inc2);
 				
 		// decrement property with formIndex == 2
 		await thing.invokeAction("decrement", undefined, { formIndex: 2 });
-		let dec1 : WoT.InteractionOutput = await thing.readProperty("count");
-
+		let dec1 = await thing.readProperty("count");
 		console.info("count value after decrement is", dec1);
 	} catch(err) {
         console.error("Script error:", err);

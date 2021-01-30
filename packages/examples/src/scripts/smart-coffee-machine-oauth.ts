@@ -224,8 +224,7 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
         },
     },
 }).then( (thing) => {
-    // Initialize the property values + set read handlers?
-    /*
+    // Initialize the property values
     thing.writeProperty('allAvailableResources', {
         water: readFromSensor('water'),
         milk: readFromSensor('milk'),
@@ -235,21 +234,17 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
     thing.writeProperty('possibleDrinks', ['espresso', 'americano', 'cappuccino', 'latte', 'hotChocolate', 'hotWater']);
     thing.writeProperty('maintenanceNeeded', false);
     thing.writeProperty('schedules', []);
-    */
 
     // Observe the value of maintenanceNeeded property
-    /*
     thing.observeProperty('maintenanceNeeded', (data) => {
         
         // Notify a "maintainer" when the value has changed
         // (the notify function here simply logs a message to the console)
         notify('admin@coffeeMachine.com', `maintenanceNeeded property has changed, new value is: ${data}`);
     });
-    */
 
     // Override a write handler for servedCounter property,
     // raising maintenanceNeeded flag when the value exceeds 1000 drinks
-    /*
     thing.setPropertyWriteHandler('servedCounter', (val) => {
         return new Promise(async (resolve, reject) => {
             let valp = await Helpers.parseInteractionOutput(val);
@@ -259,12 +254,9 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
             }
         });
     });
-    */
 
     // Now initialize the servedCounter property
-    /*
     thing.writeProperty('servedCounter', readFromSensor('servedCounter'));
-    */
 
     // Override a write handler for availableResourceLevel property,
     // utilizing the uriVariables properly
@@ -311,7 +303,6 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
     });
 
     // Set up a handler for makeDrink action
-    /*
     thing.setActionHandler('makeDrink', (params, options) => {
 
         // Default values
@@ -404,11 +395,9 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
             });
         });
     });
-    */
 
     // Set up a handler for setSchedule action
     thing.setActionHandler('setSchedule', async (params, options) => {
-        /*
         let paramsp = await Helpers.parseInteractionOutput(params);
         // Check if uriVariables are provided
         if (paramsp && typeof paramsp === 'object' && 'time' in paramsp && 'mode' in paramsp) {
@@ -433,7 +422,6 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
         return new Promise((resolve, reject) => {
             resolve({result: false, message: `Please provide all the required parameters: time and mode.`});
         });
-        */
     });
 
     // Finally expose the thing

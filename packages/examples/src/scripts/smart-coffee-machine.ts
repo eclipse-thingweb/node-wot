@@ -20,19 +20,6 @@
 import { Helpers } from "@node-wot/core"
 let WoTHelpers: Helpers;
 
-// Initialize the property values
-let allAvailableResources : { [key: string]: any } =  {
-    water: readFromSensor('water'),
-    milk: readFromSensor('milk'),
-    chocolate: readFromSensor('chocolate'),
-    coffeeBeans: readFromSensor('coffeeBeans'),
-};
-let possibleDrinks = ['espresso', 'americano', 'cappuccino', 'latte', 'hotChocolate', 'hotWater'];
-let maintenanceNeeded = false;
-let schedules = [] as any[];
-
-let servedCounter: Number;
-
 WoT.produce({
     title: 'Smart-Coffee-Machine',
     description: `A smart coffee machine with a range of capabilities.
@@ -225,36 +212,24 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
         },
     },
 }).then( (thing) => {
-    // set property read handler
-    // allAvailableResources handler, see below
-    /* thing.setPropertyReadHandler("allAvailableResources", () => {
-        return new Promise<any>((resolve, reject) => {
-            resolve(allAvailableResources);
-        });
-    }); */
-    thing.setPropertyReadHandler("possibleDrinks", () => {
-        return new Promise<any>((resolve, reject) => {
-            resolve(possibleDrinks);
-        });
+    // Initialize the property values
+    thing.writeProperty('allAvailableResources', {
+        water: readFromSensor('water'),
+        milk: readFromSensor('milk'),
+        chocolate: readFromSensor('chocolate'),
+        coffeeBeans: readFromSensor('coffeeBeans'),
     });
-    thing.setPropertyReadHandler("maintenanceNeeded", () => {
-        return new Promise<any>((resolve, reject) => {
-            resolve(maintenanceNeeded);
-        });
-    });
-    thing.setPropertyReadHandler("schedules", () => {
-        return new Promise<any>((resolve, reject) => {
-            resolve(schedules);
-        });
-    });
+    thing.writeProperty('possibleDrinks', ['espresso', 'americano', 'cappuccino', 'latte', 'hotChocolate', 'hotWater']);
+    thing.writeProperty('maintenanceNeeded', false);
+    thing.writeProperty('schedules', []);
 
-    // // TODO Observe the value of maintenanceNeeded property
-    // thing.observeProperty('maintenanceNeeded', (data) => {
+    // Observe the value of maintenanceNeeded property
+    thing.observeProperty('maintenanceNeeded', (data) => {
         
-    //     // Notify a "maintainer" when the value has changed
-    //     // (the notify function here simply logs a message to the console)
-    //     notify('admin@coffeeMachine.com', `maintenanceNeeded property has changed, new value is: ${data}`);
-    // });
+        // Notify a "maintainer" when the value has changed
+        // (the notify function here simply logs a message to the console)
+        notify('admin@coffeeMachine.com', `maintenanceNeeded property has changed, new value is: ${data}`);
+    });
 
     // Override a write handler for servedCounter property,
     // raising maintenanceNeeded flag when the value exceeds 1000 drinks
@@ -263,33 +238,34 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
         return new Promise((resolve, reject) => {
             resolve(valp);
             if (valp > 1000) {
-                maintenanceNeeded = true;
+                thing.writeProperty('maintenanceNeeded', true);
             }
         });
     });
 
     // Now initialize the servedCounter property
-    servedCounter = readFromSensor('servedCounter');
-    thing.setPropertyReadHandler("servedCounter", () => {
-        return new Promise<any>((resolve, reject) => {
-            resolve(servedCounter);
-        });
-    });
+    thing.writeProperty('servedCounter', readFromSensor('servedCounter'));
 
     // Override a write handler for availableResourceLevel property,
     // utilizing the uriVariables properly
     thing.setPropertyWriteHandler('availableResourceLevel', (val, options) => {
         return new Promise((resolve, reject) => {
+            return reject('TODO update code');
+            /*
             // Check if uriVariables are provided
             if (options && typeof options === 'object' && 'uriVariables' in options) {
                 const uriVariables: any = options['uriVariables'];
                 if ('id' in uriVariables) {
-                    const id = uriVariables['id'];
-                    allAvailableResources[id] = val;
-                    return resolve(undefined);
+                    return thing.readProperty('allAvailableResources').then((resources) => {
+                        const id = uriVariables['id'];
+                        resources[id] = val;
+                        thing.writeProperty('allAvailableResources', resources);
+                        return resolve();
+                    });
                 }
             }
             return reject('Please specify id variable as uriVariables.');
+            */
         });
     });
 
@@ -297,20 +273,24 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
     // utilizing the uriVariables properly
     thing.setPropertyReadHandler('availableResourceLevel', (options) => {
         return new Promise((resolve, reject) => {
+            return reject('TODO update code');
+            /*
             // Check if uriVariables are provided
             if (options && typeof options === 'object' && 'uriVariables' in options) {
                 const uriVariables: any = options['uriVariables'];
                 if ('id' in uriVariables) {
-                    const id = uriVariables['id'];
-                    return resolve(allAvailableResources[id]);
+                    return thing.readProperty('allAvailableResources').then((resources) => {
+                        const id = uriVariables['id'];
+                        return resolve(resources[id]);
+                    });
                 }
             }
             return reject('Please specify id variable as uriVariables.');
+            */
         });
     });
 
     // Set up a handler for makeDrink action
-    /*
     thing.setActionHandler('makeDrink', (params, options) => {
 
         // Default values
@@ -370,43 +350,6 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
         }
 
         // Read the current level of allAvailableResources
-        thing.setPropertyReadHandler("allAvailableResources", () => {
-            return new Promise<any>((resolve, reject) => {
-                // Calculate the new level of resources
-                allAvailableResources['water'] -= Math.ceil(quantity * sizeQuantifiers[size] * drinkRecipes[drinkId]['water']);
-                allAvailableResources['milk'] -= Math.ceil(quantity * sizeQuantifiers[size] * drinkRecipes[drinkId]['milk']);
-                allAvailableResources['chocolate'] -= Math.ceil(quantity * sizeQuantifiers[size] * drinkRecipes[drinkId]['chocolate']);
-                allAvailableResources['coffeeBeans'] -= Math.ceil(quantity * sizeQuantifiers[size] * drinkRecipes[drinkId]['coffeeBeans']);
-
-                // Check if the amount of available resources is sufficient to make a drink
-                for (let resource in allAvailableResources) {
-                    if (allAvailableResources[resource] <= 0) {
-                        return new Promise((resolve, reject) => {
-                            thing.emitEvent('outOfResource', `Low level of ${resource}: ${allAvailableResources[resource]}%`);
-                            resolve({result: false, message: `${resource} level is not sufficient`});
-                        });
-                    }
-                }
-
-                // TODO fix; Daniel -> Not sure what is the intent of the following code?!?
-                // Now store the new level of allAvailableResources
-                return thing.writeProperty('allAvailableResources', newResources).then(() => {
-                    return thing.readProperty('servedCounter').then(async (counter) => {
-                        let counterp = await Helpers.parseInteractionOutput(counter);
-                        return new Promise((resolve, reject) => {
-                            thing.writeProperty('servedCounter', counterp + quantity);
-
-                            // Finally deliver the drink
-                            resolve({result: true, message: `Your ${drinkId} is in progress!`});
-                        });
-                    });
-                });
-
-                resolve(allAvailableResources);
-            });
-        });
-
-        // TODO fix; Daniel -> Not sure what is the intent of the following code?!? Yet again the same read handler?
         return thing.readProperty('allAvailableResources').then(async (resources) => {
             let resourcesp = await Helpers.parseInteractionOutput(resources);
             // Calculate the new level of resources
@@ -426,7 +369,6 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
                 }
             }
 
-            
             // Now store the new level of allAvailableResources
             return thing.writeProperty('allAvailableResources', newResources).then(() => {
                 return thing.readProperty('servedCounter').then(async (counter) => {
@@ -441,7 +383,6 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
             });
         });
     });
-    */
 
     // Set up a handler for setSchedule action
     thing.setActionHandler('setSchedule', async (params, options) => {
@@ -455,8 +396,6 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
             paramsp['size'] = ('size' in paramsp) ? paramsp['size'] : 'm';
             paramsp['quantity'] = ('quantity' in paramsp) ? paramsp['quantity'] : 1;
 
-            // TODO fix once WoT.InteractionOutput is properly in place
-            /*
             // Now read the schedules property, add a new schedule to it and then rewrite the schedules property
             return thing.readProperty('schedules').then(async (schedules) => {
                 let schedulesp = await Helpers.parseInteractionOutput(schedules);
@@ -467,7 +406,6 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
                     });
                 });
             });
-            */
 
         }
         return new Promise((resolve, reject) => {

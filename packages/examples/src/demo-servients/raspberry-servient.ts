@@ -44,7 +44,6 @@ declare interface Color {
 }
 
 let unicorn: WoT.ExposedThing;
-let color: Color;
 let gradient: Array<Color>;
 let gradientTimer: any;
 let gradIndex: number = 0;
@@ -91,11 +90,6 @@ function main() {
                   },
                   100
                 )
-              .setPropertyReadHandler("color", () => {
-                return new Promise<any>((resolve, reject) => {
-                    resolve(color);
-                });
-              })
               .setPropertyWriteHandler(
                   "brightness",
                   (value : any) => {
@@ -183,7 +177,7 @@ function main() {
                     return new Promise((resolve, reject) => {
                         unicorn.invokeAction('cancel');
                         unicorn.writeProperty('color', input);
-                        resolve(undefined);
+                        resolve();
                     });
                   }
                 )
@@ -197,7 +191,7 @@ function main() {
                         clearInterval(gradientTimer);
                         gradientTimer = null;
                       }
-                      resolve(undefined);
+                      resolve();
                     });
                   }
                 );
@@ -227,7 +221,7 @@ function gradientStep() {
     g: (gradNow.g + gradVector.g),
     b: (gradNow.b + gradVector.b)
   };
-  color = roundColor(gradNow);
+  unicorn.writeProperty('color', roundColor(gradNow));
   if (gradNow.r === gradNext.r && gradNow.g === gradNext.g && gradNow.b === gradNext.b) {
     gradNow = gradient[gradIndex];
     gradIndex = ++gradIndex % gradient.length;

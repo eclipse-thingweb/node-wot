@@ -239,9 +239,8 @@ class WoTClientTest {
 
                 return thing.readProperty("aProperty");
             })
-            .then(async (output) => {
-                expect(output).not.to.be.null;
-                let value = await output.value(); // TODO inspect InteractionOutput more properly
+            .then((value) => {
+                expect(value).not.to.be.null;
                 expect(value.toString()).to.equal("42");
                 done();
             })
@@ -249,10 +248,10 @@ class WoTClientTest {
     }
 
     @test "read a Property new api"(done: Function) {
-        // let the client return 43
+        // let the client return 42
         WoTClientTest.clientFactory.setTrap(
             () => {
-                return { contentType: "application/json", body: Buffer.from("43") };
+                return { contentType: "application/json", body: Buffer.from("42") };
             }
         );
 
@@ -266,20 +265,19 @@ class WoTClientTest {
                 expect(thing.getThingDescription()).to.have.property("properties").to.have.property("aProperty");
                 return thing.readProperty("aProperty");
             })
-            .then(async (output) => {
-                expect(output).not.to.be.null;
-                let value = await output.value(); // TODO inspect InteractionOutput more properly
-                expect(value.toString()).to.equal("43");
+            .then((value) => {
+                expect(value).not.to.be.null;
+                expect(value.toString()).to.equal("42");
                 done();
             })
             .catch(err => { done(err); });
     }
 
     @test "read all properties"(done: Function) {
-        // let the client return 44
+        // let the client return 42
         WoTClientTest.clientFactory.setTrap(
             () => {
-                return { contentType: "application/json", body: Buffer.from("44") };
+                return { contentType: "application/json", body: Buffer.from("42") };
             }
         );
 
@@ -293,14 +291,10 @@ class WoTClientTest {
                 expect(thing.getThingDescription()).to.have.property("properties").to.have.property("aProperty");
                 return thing.readAllProperties();
             })
-            .then(async (propertyMap : any) => {
-                expect(propertyMap).not.to.be.null;
-                expect(propertyMap).to.have.property("aProperty");
-                expect(propertyMap).to.have.not.property("aPropertyToObserve"); // observe only
-
-                let propertyOutput : WoT.InteractionOutput = propertyMap["aProperty"];
-                let value = await propertyOutput.value(); // TODO inspect InteractionOutput more properly
-                expect(value.toString()).to.equal("44");
+            .then((value) => {
+                expect(value).not.to.be.null;
+                expect(value).to.have.property("aProperty").that.equals(42);
+                expect(value).to.have.not.property("aPropertyToObserve"); // observe only
                 done();
             })
             .catch(err => { done(err); });
@@ -434,10 +428,9 @@ class WoTClientTest {
                 expect(thing).to.have.property("actions").that.has.property("anAction");
                 return thing.invokeAction("anAction", 23);
             })
-            .then(async (output) => {
-                expect(output).not.to.be.null;
-                let value = await output.value(); // TODO inspect InteractionOutput more properly
-                expect(value).to.equal(42);
+            .then((result) => {
+                expect(result).not.to.be.null;
+                expect(result).to.equal(42);
                 done();
             })
             .catch(err => { done(err) });
@@ -448,7 +441,7 @@ class WoTClientTest {
         WoTClientTest.clientFactory.setTrap(
             (form: Form, content: Content) => {
                 expect(content.body.toString()).to.equal("23");
-                return { contentType: "application/json", body: Buffer.from("43") };
+                return { contentType: "application/json", body: Buffer.from("42") };
             }
         )
 
@@ -461,10 +454,9 @@ class WoTClientTest {
                 expect(thing).to.have.property("actions").that.has.property("anAction");
                 return thing.invokeAction("anAction", 23);
             })
-            .then(async (output) => {
-                expect(output).not.to.be.null;
-                let value = await output.value(); // TODO inspect InteractionOutput more properly
-                expect(value).to.equal(43);
+            .then((result) => {
+                expect(result).not.to.be.null;
+                expect(result).to.equal(42);
                 done();
             })
             .catch(err => { done(err) });

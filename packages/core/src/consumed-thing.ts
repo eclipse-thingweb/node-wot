@@ -203,8 +203,8 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         return { client: client, form: form }
     }
 
-    readProperty(propertyName: string, options?: WoT.InteractionOptions): Promise<WoT.InteractionOutput> {
-        return new Promise<WoT.InteractionOutput>((resolve, reject) => {
+    readProperty(propertyName: string, options?: WoT.InteractionOptions): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
             // TODO pass expected form op to getClientFor()
             let tp: TD.ThingProperty = this.properties[propertyName];
             if (!tp) {
@@ -221,19 +221,11 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                     // uriVariables ?
                     form = this.handleUriVariables(form, options);
 
-                    // TODO protocol interface should be updated for InteractionOutput
                     client.readResource(form).then((content) => {
                         if (!content.type) content.type = form.contentType;
                         try {
                             let value = ContentManager.contentToValue(content, <any>tp);
-                            let output: WoT.InteractionOutput = {
-                                value: () => new Promise<any>((resolve, reject) => {
-                                    resolve(value);
-                                }),
-                                dataUsed: false,
-                                arrayBuffer: undefined
-                            };
-                            resolve(output);
+                            resolve(value);
                         } catch {
                             reject(new Error(`Received invalid content from Thing`));
                         }
@@ -287,7 +279,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
     }
 
 
-    writeProperty(propertyName: string, value: WoT.InteractionInput, options?: WoT.InteractionOptions): Promise<void> {
+    writeProperty(propertyName: string, value: any, options?: WoT.InteractionOptions): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             // TODO pass expected form op to getClientFor()
             let tp: TD.ThingProperty = this.properties[propertyName];
@@ -334,8 +326,8 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
     }
 
 
-    public invokeAction(actionName: string, parameter?: WoT.InteractionInput, options?: WoT.InteractionOptions): Promise<WoT.InteractionOutput> {
-        return new Promise<WoT.InteractionOutput>((resolve, reject) => {
+    public invokeAction(actionName: string, parameter?: any, options?: WoT.InteractionOptions): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
             let ta: TD.ThingAction = this.actions[actionName];
             if (!ta) {
                 reject(new Error(`ConsumedThing '${this.title}' does not have action ${actionName}`));
@@ -357,7 +349,6 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                     // uriVariables ?
                     form = this.handleUriVariables(form, options);
 
-                    // TODO protocol interface should be updated for InteractionOutput
                     client.invokeResource(form, input).then((content) => {
                         // infer media type from form if not in response metadata
                         if (!content.type) content.type = form.contentType;
@@ -371,14 +362,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
 
                         try {
                             let value = ContentManager.contentToValue(content, ta.output);
-                            let output: WoT.InteractionOutput = {
-                                value: () => new Promise<any>((resolve, reject) => {
-                                    resolve(value);
-                                }),
-                                dataUsed: false,
-                                arrayBuffer: undefined
-                            };
-                            resolve(output);
+                            resolve(value);
                         } catch {
                             reject(new Error(`Received invalid content from Thing`));
                         }

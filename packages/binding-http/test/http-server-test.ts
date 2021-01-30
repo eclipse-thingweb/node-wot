@@ -59,18 +59,8 @@ class HttpServerTest {
       }
       });
     
-    let test = "off";
-    testThing.setPropertyReadHandler("test", () => {
-        return new Promise<any>((resolve, reject) => {
-            resolve(test);
-        });
-    })
-    testThing.setPropertyWriteHandler("test", (value) => {
-      test = <any>value; // fix once InteractionOutput is properly set-up
-      return new Promise<any>((resolve, reject) => {
-          resolve(undefined);
-      });
-  })
+    
+    await testThing.writeProperty("test", "off")
     testThing.properties.test.forms = [];
     testThing.setActionHandler("try", (input) => { return new Promise<string>( (resolve, reject) => { resolve("TEST"); }); });
     testThing.actions.try.forms = [];
