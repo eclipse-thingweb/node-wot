@@ -38,7 +38,7 @@ Perform the following setup from the [Firestore console](https://console.firebas
 
 The values defined in (A), (B) and (C) will be written in the configuration file shown in `Confiuration` chapter.
 
-## Advance preparation
+### Advance preparation
 
 To prepare for creating a nodejs app, execute `npm install`.
 After executing `npm init`, install the following modules.
@@ -82,7 +82,7 @@ const firestoreConfig = require("./firestore-config.json")
 
 let servient = new Servient()
 const clientFactory = new WoTFirestoreClientFactory(firestoreConfig)
-servient.addClientFactory(clientFactory);
+servient.addClientFactory(clientFactory)
 
 const codec = new WoTFirestoreCodec()
 servient.addMediaType(codec)
@@ -95,13 +95,13 @@ wotHelper.fetch("wotfirestore://sample-host/MyCounter").then(async (td) => {
                 // read a property "count" and print the value
                 thing.readProperty("count").then((s) => {
                     console.log(s);
-                });
-            });
-        });
+                })
+            })
+        })
     } catch (err) {
-        console.error("Script error:", err);
+        console.error("Script error:", err)
     }
-}).catch((err) => { console.error("Fetch error:", err); });
+}).catch((err) => { console.error("Fetch error:", err) })
 ```
 
 ### Server Example
@@ -146,11 +146,11 @@ servient.start().then((WoT) => {
             console.info(thing.getThingDescription().title + " ready");
             console.info("TD : " + JSON.stringify(thing.getThingDescription()));
             thing.readProperty("count").then((c) => {
-                console.log("cound is " + c);
-            });
-        });
-    });
-});
+                console.log("count is " + c)
+            })
+        })
+    })
+})
 ```
 
 ## Notes

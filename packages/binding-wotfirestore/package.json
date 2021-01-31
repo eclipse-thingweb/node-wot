@@ -1,7 +1,8 @@
 {
   "name": "@hidetak/binding-wotfirestore",
-  "version": "0.0.1",
-  "description": "",
+  "version": "0.0.2",
+  "description": "Firestore binding for node-wot",
+  "repository": "https://github.com/hidetak/thingweb.node-wot",
   "main": "dist/wotfirestore.js",
   "scripts": {
     "build": "tsc",
@@ -12,8 +13,8 @@
   "author": "hidetak",
   "license": "EPL-2.0",
   "dependencies": {
-    "@node-wot/core": "0.7.1",
-    "@node-wot/td-tools": "0.7.1",
+    "@node-wot/core": "0.7.4",
+    "@node-wot/td-tools": "0.7.4",
     "buffer": "^5.5.0",
     "firebase": "^7.11.0",
     "uuid": "^7.0.3"

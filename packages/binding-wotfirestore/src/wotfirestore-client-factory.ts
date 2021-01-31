@@ -2,8 +2,11 @@
  * WoTFirestore client Factory
  */
 
-import { ProtocolClientFactory, ProtocolClient } from '@node-wot/core'
-import { ContentSerdes } from '@node-wot/core'
+import {
+  ProtocolClientFactory,
+  ProtocolClient,
+  ContentSerdes
+} from '@node-wot/core'
 import { WoTFirestoreConfig } from './wotfirestore'
 import WoTFirestoreClient from './wotfirestore-client'
 import WoTFirestoreCodec from './codecs/wotfirestore-codec'

@@ -62,6 +62,7 @@ packages/*
 !packages/binding-netconf
 !packages/binding-modbus
 !packages/binding-wotfirestore
+!packages/binding-wotfirestore-browser-bundle
 !packages/cli
 !packages/browser-bundle
 !packages/examples
@@ -72,5 +73,8 @@ packages/*
 .idea/
 
 # hidetak
-hidetak-tools/
-packages/binding-wotfirestore/tmp/
+packages/wot-agent/clientScript.js
+examples/.DS_Store
+.DS_Store
+packages/wot-console/public/binding-wotfirestore-bundle.min.js
+packages/wot-console/public/wot-bundle.min.js

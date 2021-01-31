@@ -1,10 +1,9 @@
 import * as TD from '@node-wot/td-tools'
 import { Buffer } from 'buffer'
-import { ContentCodec } from '@node-wot/core'
 
 const textDecoder = new TextDecoder('utf-8')
 
-export default class WoTFirestoreCodec implements ContentCodec {
+export default class WoTFirestoreCodec {
   getMediaType(): string {
     return 'application/wotfirestore'
   }
