@@ -49,7 +49,7 @@ WoTHelpers.fetch("http://127.0.0.1:8080/smart-coffee-machine").then(async (td) =
 
         // Now let's make 3 cups of latte!
         let makeCoffee = await thing.invokeAction('makeDrink', undefined, {'uriVariables': {'drinkId': 'latte', 'size': 'l', 'quantity': 3}});
-        let makeCoffeep = await Helpers.parseInteractionOutput(makeCoffee);
+        let makeCoffeep : any = await Helpers.parseInteractionOutput(makeCoffee);
         if (makeCoffeep['result']) {
             log('Enjoy your drink!', makeCoffeep);
         } else {
@@ -68,7 +68,7 @@ WoTHelpers.fetch("http://127.0.0.1:8080/smart-coffee-machine").then(async (td) =
             'time': '10:00',
             'mode': 'everyday'
         });
-        let scheduledTaskp = await Helpers.parseInteractionOutput(scheduledTask);
+        let scheduledTaskp : any = await Helpers.parseInteractionOutput(scheduledTask);
         log(scheduledTaskp['message'], scheduledTaskp);
         
         // See how it has been added to the schedules property

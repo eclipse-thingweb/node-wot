@@ -192,13 +192,13 @@ WoT.produce({
         });
         
         // TODO set property write handlers
+        /*
         thing
             .setPropertyWriteHandler("bool", async (value) => {
                 let localBool = await value.value();
                 checkPropertyWrite("boolean", typeof localBool);
                 bool = localBool;
             });
-        /*
         thing
             .setPropertyWriteHandler("bool", (value) => {
                 return new Promise((resolve, reject) => {

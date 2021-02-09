@@ -434,6 +434,7 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
             resolve({result: false, message: `Please provide all the required parameters: time and mode.`});
         });
         */
+       return undefined;
     });
 
     // Finally expose the thing

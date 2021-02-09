@@ -22,7 +22,7 @@
     "mocha": "3.5.3",
     "mocha-typescript": "1.1.8",
     "ts-node": "8.6.2",
-    "typescript": "3.7.5",
+    "typescript": "3.9.2",
     "typescript-standard": "0.3.36"
   },
   "dependencies": {

@@ -24,8 +24,8 @@
     "mocha": "^7.0.0",
     "node-opcua": "^2.4.3",
     "ts-node": "^8.6.2",
-    "typescript": "3.6.3",
-    "typescript-standard": "0.3.30"
+    "typescript": "3.9.2",
+    "typescript-standard": "0.3.36"
   },
   "dependencies": {
     "@node-wot/core": "0.8.0",
@@ -33,9 +33,9 @@
     "@types/url-parse": "^1.4.3",
     "case-1.5.3": "npm:case@^1.5.3",
     "node-opcua-client": "^2.1.8",
-    "typescript": "3.6.3",
+    "typescript": "3.9.2",
     "url-parse": "^1.4.7",
-    "wot-typescript-definitions": "0.8.0-SNAPSHOT.10",
+    "wot-typescript-definitions": "0.8.0-SNAPSHOT.11",
     "xml-writer": "^1.7.0"
   },
   "scripts": {

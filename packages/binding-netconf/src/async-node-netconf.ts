@@ -39,7 +39,7 @@ export class Client {
 			this.router.password = credentials.password;
 		}
 		return new Promise((resolve, reject) => {
-			resolve();
+			resolve(undefined);
 		});
 	}
 
@@ -55,7 +55,7 @@ export class Client {
 					reject(err);	
 				} else {
 					console.debug("[binding-netconf]",`New NetConf router opened connection with host ${self.router.host}, port ${self.router.port}, username ${self.router.username}`);
-					resolve();
+					resolve(undefined);
 				}
 			});
 		});
