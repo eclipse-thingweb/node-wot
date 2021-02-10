@@ -15,22 +15,25 @@
   "types": "dist/core.d.ts",
   "devDependencies": {
     "@types/chai": "4.2.8",
+    "@types/chai-as-promised": "^7.1.3",
     "@types/node": "13.7.0",
     "chai": "4.2.0",
     "mocha": "3.5.3",
     "mocha-typescript": "1.1.8",
     "ts-node": "8.6.2",
-    "typescript": "3.7.5",
+    "typescript": "^4.0.0",
     "typescript-standard": "0.3.36"
   },
   "dependencies": {
     "@node-wot/td-tools": "0.8.0",
-    "wot-typescript-definitions": "0.8.0-SNAPSHOT.5",
-    "uuid": "3.4.0",
+    "@types/uritemplate": "0.3.4",
+    "ajv": "^7.0.4",
     "rxjs": "5.5.11",
     "uritemplate": "0.3.4",
-    "@types/uritemplate": "0.3.4",
-    "vm2": "^3.9.2"
+    "uuid": "3.4.0",
+    "vm2": "^3.9.2",
+    "web-streams-polyfill": "^3.0.1",
+    "wot-typescript-definitions": "0.8.0-SNAPSHOT.5"
   },
   "scripts": {
     "build": "tsc",

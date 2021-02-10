@@ -27,6 +27,7 @@ import { default as ContentManager } from "./content-serdes"
 import { Subscribable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
 import UriTemplate = require('uritemplate');
+import { InteractionOutput } from "./iteraction-ouput";
 
 enum Affordance {
     PropertyAffordance,
@@ -203,7 +204,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         return { client: client, form: form }
     }
 
-    readProperty(propertyName: string, options?: WoT.InteractionOptions): Promise<any> {
+    readProperty(propertyName: string, options?: WoT.InteractionOptions): Promise<InteractionOutput> {
         return new Promise<any>((resolve, reject) => {
             // TODO pass expected form op to getClientFor()
             let tp: TD.ThingProperty = this.properties[propertyName];
@@ -222,13 +223,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                     form = this.handleUriVariables(form, options);
 
                     client.readResource(form).then((content) => {
-                        if (!content.type) content.type = form.contentType;
-                        try {
-                            let value = ContentManager.contentToValue(content, <any>tp);
-                            resolve(value);
-                        } catch {
-                            reject(new Error(`Received invalid content from Thing`));
-                        }
+                        resolve(new InteractionOutput(content,form,tp));
                     })
                         .catch(err => { reject(err); });
                 }
@@ -361,8 +356,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                         }
 
                         try {
-                            let value = ContentManager.contentToValue(content, ta.output);
-                            resolve(value);
+                            resolve(new InteractionOutput(content, form, ta.output));
                         } catch {
                             reject(new Error(`Received invalid content from Thing`));
                         }
@@ -394,10 +388,9 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                         (content) => {
                             if (!content.type) content.type = form.contentType;
                             try {
-                                let value = ContentManager.contentToValue(content, <any>tp);
-                                listener(value);
+                                listener(new InteractionOutput(content, form, tp));
                                 resolve();
-                            } catch {
+                            } catch(e) {
                                 reject(new Error(`Received invalid content from Thing`));
                             }
                         },
@@ -454,8 +447,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                         (content) => {
                             if (!content.type) content.type = form.contentType;
                             try {
-                                let value = ContentManager.contentToValue(content, <any>te.data);
-                                listener(value);
+                                listener(new InteractionOutput(content, form, te.data));
                                 resolve();
                             } catch {
                                 reject(new Error(`Received invalid content from Thing`));

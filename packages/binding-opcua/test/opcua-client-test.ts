@@ -17,7 +17,9 @@
  * Protocol test suite to test protocol implementations
  */
 
+import { ProtocolHelpers } from "@node-wot/core";
 import { expect, should, assert } from "chai";
+import { Readable } from "stream";
 // should must be called to augment all variables
 should();
 
@@ -57,7 +59,8 @@ describe('OPCUA client test', function () {
             }
         };
         let res = await client.readResource(inputVector.form);
-        let val = JSON.parse((Buffer.from(res.body)).toString()).value.value;
+        let buffer = await ProtocolHelpers.readStreamFully(res.body)
+        let val = JSON.parse(buffer.toString()).value.value;
         expect(val).to.equal(1);
 
         return;
@@ -96,7 +99,7 @@ describe('OPCUA client test', function () {
         let schema = {
             "opc:dataType": "Double"
         }
-        let res = await client.writeResource(inputVector.form, { type: 'application/x.opcua-binary', body: Buffer.from(inputVector.payload) });
+        let res = await client.writeResource(inputVector.form, { type: 'application/x.opcua-binary', body: Readable.from(Buffer.from(inputVector.payload)) });
         expect(res).to.equal(null);
         return;
     })
@@ -118,12 +121,12 @@ describe('OPCUA client test', function () {
         }
 
         try {
-            let res = await client.writeResource(inputVector.form, { type: 'application/x.opcua-binary', body: Buffer.from(inputVector.payload)});
+            let res = await client.writeResource(inputVector.form, { type: 'application/x.opcua-binary', body: Readable.from(Buffer.from(inputVector.payload))});
         } catch(err) {
             expect(err.message).to.equal("Mandatory \"schema\" field missing in the TD");
         }
         try {
-            let res = await client.writeResource(inputVector.form, { type: 'application/x.opcua-binary', body: Buffer.from(inputVector.payload)});
+            let res = await client.writeResource(inputVector.form, { type: 'application/x.opcua-binary', body: Readable.from(Buffer.from(inputVector.payload))});
         } catch(err) {
             expect(err.message).to.equal("opc:dataType field not specified for writeResource");
         }
@@ -146,7 +149,7 @@ describe('OPCUA client test', function () {
             })
         };
 
-        let res = await client.invokeResource(inputVector.form, { type: 'application/x.opcua-binary', body: Buffer.from(inputVector.payload) });
+        let res = await client.invokeResource(inputVector.form, { type: 'application/x.opcua-binary', body: Readable.from(Buffer.from(inputVector.payload)) });
         let val = res.body.value;
         expect(val).to.equal(5);
 
@@ -172,7 +175,7 @@ describe('OPCUA client test', function () {
                 c: { type: 'number', 'opc:dataType': 'Double' }
             }
         }
-        let res = await client.invokeResource(inputVector.form, { type: 'application/x.opcua-binary', body: Buffer.from(inputVector.payload) });
+        let res = await client.invokeResource(inputVector.form, { type: 'application/x.opcua-binary', body: Readable.from(Buffer.from(inputVector.payload)) });
         expect(res).to.equal(undefined);
         return;
     })

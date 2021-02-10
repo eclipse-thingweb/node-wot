@@ -30,6 +30,7 @@ import Servient, { ProtocolServer, ContentSerdes, Helpers, ExposedThing, Protoco
 import { HttpConfig, HttpForm, OAuth2ServerConfig } from "./http";
 import createValidator, { Validator } from "./oauth-token-validation";
 import { OAuth2SecurityScheme } from "@node-wot/td-tools";
+import { Readable } from "stream";
 
 export default class HttpServer implements ProtocolServer {
 
@@ -625,7 +626,7 @@ export default class HttpServer implements ProtocolServer {
                       let content = ContentSerdes.get().valueToContent(value, <any>property, contentType);
                       res.setHeader("Content-Type", content.type);
                       res.writeHead(200);
-                      res.end(content.body);
+                      content.body.pipe(res);
                     })
                     .catch(err => {
                       console.error("[binding-http]",`HttpServer on port ${this.getPort()} got internal error on read '${requestUri.pathname}': ${err.message}`);
@@ -706,7 +707,7 @@ export default class HttpServer implements ProtocolServer {
                         let content = ContentSerdes.get().valueToContent(output, action.output, contentType);
                         res.setHeader("Content-Type", content.type);
                         res.writeHead(200);
-                        res.end(content.body);
+                        content.body.pipe(res);
                       } else {
                         res.writeHead(200);
                         res.end();

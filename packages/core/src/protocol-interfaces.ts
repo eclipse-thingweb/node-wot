@@ -19,6 +19,7 @@ import { Subscription } from "rxjs/Subscription";
 
 import Servient from "./servient";
 import ExposedThing from "./exposed-thing";
+import { Readable } from "stream";
 
 export interface ProtocolClient {
 
@@ -62,5 +63,5 @@ export interface ProtocolServer {
 
 export interface Content {
   type: string,
-  body: Buffer
+  body: NodeJS.ReadableStream;
 }

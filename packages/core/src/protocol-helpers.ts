@@ -14,6 +14,8 @@
  ********************************************************************************/
 
 import * as TD from "@node-wot/td-tools";
+import { Readable } from "stream";
+import { ReadableStream } from 'web-streams-polyfill/ponyfill/es2018';
 
 export default class ProtocolHelpers {
 
@@ -108,6 +110,67 @@ export default class ProtocolHelpers {
     }
 
     return undefined; // not found
+  }
+
+  public static toWoTStream(stream:NodeJS.ReadableStream):ReadableStream{
+    //TODO USE CLASSES
+    if ((stream as any)._wotStream) {
+      return (stream as any)._wotStream;
+    }
+    const result: any =  new ReadableStream({
+      start: (controller)=>{
+        stream.on("data", data => controller.enqueue(data));
+        stream.on("error", e => controller.error(e));
+        stream.on("end", _ => controller.close());
+      },
+      cancel: (reason) => {
+        if(stream instanceof Readable){
+          stream.destroy(reason);
+        }
+      }
+    })
+    result._nodeStream = stream;
+    return result;
+  }
+
+  public static toNodeStream(stream:ReadableStream):Readable{
+    //TODO: use proper clases
+    if((stream as any)._nodeStream){
+      return (stream as any)._nodeStream;
+    }
+     const result:any = new Readable({
+      read: (size)=>{
+        stream.getReader().read().then(data =>{
+          result.push(data.value)
+          if(data.done){
+            // signal end
+            result.push(null);
+          }
+        });
+      },
+      destroy: (error,callback) =>{
+        stream.cancel(error);
+      }
+    })
+    result._wotStream = stream;
+    return result;
+  }
+
+  static readStreamFully(stream:NodeJS.ReadableStream): Promise<Buffer>{
+    return new Promise<Buffer>((resolve, reject) => {
+      const chunks: Array<any> = []
+      stream.on("data", data => chunks.push(data))
+      stream.on("error", reject)
+      stream.on("end", () => {
+        if(chunks[0] && (chunks[0] instanceof Array || 
+          chunks[0] instanceof Buffer ||
+          chunks[0] instanceof Uint8Array)){
+            resolve(Buffer.concat(chunks));
+        }else{
+          resolve(Buffer.from(chunks));
+        }
+      })
+    })
   }
 
 }

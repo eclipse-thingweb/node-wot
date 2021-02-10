@@ -18,13 +18,17 @@ import JsonCodec from "./codecs/json-codec";
 import TextCodec from "./codecs/text-codec";
 import Base64Codec from "./codecs/base64-codec";
 import OctetstreamCodec from "./codecs/octetstream-codec";
-import * as TD from "@node-wot/td-tools";
+import {DataSchema} from "wot-typescript-definitions";
+import { Readable } from "stream";
+import { DataSchemaValue } from "wot-typescript-definitions";
+import { ProtocolHelpers } from "./core";
+import { ReadableStream } from 'web-streams-polyfill/ponyfill/es2018';
 
 /** is a plugin for ContentSerdes for a specific format (such as JSON or EXI) */
 export interface ContentCodec {
   getMediaType(): string
-  bytesToValue(bytes: Buffer, schema: TD.DataSchema, parameters?: {[key: string]: string}): any
-  valueToBytes(value: any, schema: TD.DataSchema, parameters?: {[key: string]: string}): Buffer
+  bytesToValue(bytes: Buffer, schema: DataSchema, parameters?: {[key: string]: string}): any
+  valueToBytes(value: any, schema: DataSchema, parameters?: {[key: string]: string}): Buffer
 }
 
 /**
@@ -102,7 +106,11 @@ export class ContentSerdes {
     return Array.from(ContentSerdes.get().offered);
   }
 
-  public contentToValue(content: Content, schema: TD.DataSchema): any {
+  public isSupported(contentType:string){
+    let mt = ContentSerdes.getMediaType(contentType);
+    return this.codecs.has(mt);
+  }
+  public contentToValue(content: ReadContent, schema: DataSchema): any {
 
     if (content.type === undefined) {
       if (content.body.byteLength > 0) {
@@ -135,9 +143,13 @@ export class ContentSerdes {
     }
   }
 
-  public valueToContent(value: any, schema: TD.DataSchema, contentType = ContentSerdes.DEFAULT): Content {
+  public valueToContent(value: DataSchemaValue | ReadableStream, schema: DataSchema, contentType = ContentSerdes.DEFAULT): Content {
 
     if (value === undefined) console.warn("[core/content-senders]","ContentSerdes valueToContent got no value");
+
+    if(value instanceof ReadableStream){
+      return { type: contentType, body: ProtocolHelpers.toNodeStream(value) }
+    }
 
     let bytes = null;
 
@@ -154,10 +166,15 @@ export class ContentSerdes {
       console.warn("[core/content-senders]",`ContentSerdes passthrough due to unsupported serialization format '${contentType}'`);
       bytes = Buffer.from(value);
     }
-
-    return { type: contentType, body: bytes };
+    // http server does not like Readable.from(bytes)
+    // it works only with Arrays or strings
+    return { type: contentType, body: Readable.from([bytes]) };
   }
 }
 
+interface ReadContent{
+  type: string,
+  body: Buffer;
+}
 // export singleton instance
 export default ContentSerdes.get();

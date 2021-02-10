@@ -3,10 +3,11 @@
  */
 import { ModbusForm, ModbusFunction } from './modbus'
 
-import { ProtocolClient, Content, ContentSerdes } from '@node-wot/core'
+import { ProtocolClient, Content, ContentSerdes, ProtocolHelpers } from '@node-wot/core'
 import { SecurityScheme } from '@node-wot/td-tools'
 import { modbusFunctionToEntity } from './utils'
 import { ModbusConnection, PropertyOperation } from './modbus-connection'
+import { Readable } from 'stream'
 
 const DEFAULT_PORT = 805
 const DEFAULT_TIMEOUT = 1000
@@ -32,7 +33,7 @@ export default class ModbusClient implements ProtocolClient {
         await this.performOperation(form, content)
 
         // As mqtt there is no response
-        resolve({ type: ContentSerdes.DEFAULT, body: Buffer.from('') });
+        resolve({ type: ContentSerdes.DEFAULT, body: Readable.from('') });
       } catch (error) {
         reject(error)
       }
@@ -78,16 +79,19 @@ export default class ModbusClient implements ProtocolClient {
     // get host and port
     let parsed = new URL(form.href);
     const port = parsed.port ? parseInt(parsed.port, 10) : DEFAULT_PORT
-
-    form = this.validateAndFillDefaultForm(form, content ?.body.byteLength)
+    let body;
+    if(content){
+      body = await ProtocolHelpers.readStreamFully(content.body)
+    }
+    form = this.validateAndFillDefaultForm(form, body?.byteLength)
 
     let host = parsed.hostname;
     let hostAndPort = host + ':' + port;
 
     this.overrideFormFromURLPath(form);
 
-    if (content) {
-      this.validateContentLength(form, content)
+    if (body) {
+      this.validateBufferLength(form, body)
     }
 
     // find or create connection
@@ -101,7 +105,7 @@ export default class ModbusClient implements ProtocolClient {
       console.debug('[binding-modbus]', 'Reusing ModbusConnection for ', hostAndPort);
     }
     // create operation
-    let operation = new PropertyOperation(form, content ? content.body : undefined);
+    let operation = new PropertyOperation(form,body);
 
     // enqueue the operation at the connection
     connection.enqueue(operation);
@@ -120,12 +124,12 @@ export default class ModbusClient implements ProtocolClient {
     input['modbus:range'][1] = parseInt(query.get('length'), 10) || input['modbus:range'][1];
   }
 
-  private validateContentLength(form: ModbusForm, content: Content) {
+  private validateBufferLength(form: ModbusForm, buffer: Buffer) {
 
     const mpy = form['modbus:entity'] === 'InputRegister' || form['modbus:entity'] === 'HoldingRegister' ? 2 : 1;
     const length = form['modbus:range'][1]
-    if (content && content.body.length !== mpy * length) {
-      throw new Error('Content length does not match register / coil count, got ' + content.body.length + ' bytes for '
+    if (buffer && buffer.length !== mpy * length) {
+      throw new Error('Content length does not match register / coil count, got ' + buffer.length + ' bytes for '
         + length + ` ${mpy === 2 ? 'registers' : 'coils'}`);
     }
   }

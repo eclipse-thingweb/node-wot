@@ -16,7 +16,7 @@
 /**
  * Opcua protocol binding
  */
-import { ProtocolClient, Content } from "@node-wot/core"
+import { ProtocolClient, Content, ProtocolHelpers } from "@node-wot/core"
 import * as TD from "@node-wot/td-tools";
 
 import * as Url from 'url-parse';
@@ -40,6 +40,7 @@ import {
 import { StatusCodes } from "node-opcua-status-code"
 import * as crypto_utils from "node-opcua-crypto";
 import { Subscription } from "rxjs/Subscription";
+import { Readable } from "stream";
 
 export default class OpcuaClient implements ProtocolClient {
 	private client: OPCUAClient;
@@ -158,13 +159,13 @@ export default class OpcuaClient implements ProtocolClient {
 		}
 
 		return new Promise<Content>((resolve, reject) => {
-			resolve({ type: contentType, body: Buffer.from(result) });
+			resolve({ type: contentType, body: Readable.from(Buffer.from(result)) });
 		});
 	}
 
 	public async writeResource(form: OpcuaForm, content: Content): Promise<any> {
-
-		let payload: any = content ? JSON.parse((content.body).toString()): {};
+		let body = await ProtocolHelpers.readStreamFully(content.body);
+		let payload: any = content ? JSON.parse(body.toString()): {};
 		let url = new Url(form.href);
 		let endpointUrl = url.origin;
 		let method = form["opc:method"] ? form["opc:method"] : "WRITE";
@@ -225,8 +226,12 @@ export default class OpcuaClient implements ProtocolClient {
 	}
 
 	public async invokeResource(form: OpcuaForm, content: Content): Promise<any> {
-
-		let payload: any = content? JSON.parse((content.body).toString()): {};
+		let payload;
+		if(content){
+			let body = await ProtocolHelpers.readStreamFully(content.body);
+			payload = JSON.parse(body.toString());
+		}
+		
 		let url = new Url(form.href);
 
 		let endpointUrl = url.origin;

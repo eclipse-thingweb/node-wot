@@ -18,7 +18,7 @@
     "@node-wot/td-tools": "0.8.0",
     "@types/chai": "^4.2.7",
     "@types/mocha": "^5.2.7",
-    "@types/node": "^10.9.4",
+    "@types/node": "^12.0.0",
     "chai": "^4.2.0",
     "chai-spies": "^1.0.0",
     "mocha": "^7.0.0",
@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "@node-wot/core": "0.8.0",
-	  "rxjs": "5.5.11",
+    "rxjs": "5.5.11",
     "@types/url-parse": "^1.4.3",
     "case-1.5.3": "npm:case@^1.5.3",
     "node-opcua-client": "^2.1.8",

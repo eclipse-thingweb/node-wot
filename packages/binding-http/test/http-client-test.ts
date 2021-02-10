@@ -28,6 +28,7 @@ import { ContentSerdes, ProtocolServer } from "@node-wot/core";
 
 import HttpClient from "../src/http-client";
 import { HttpForm } from "../src/http";
+import { Readable } from "stream";
 
 // should must be called to augment all variables
 should();
@@ -170,7 +171,7 @@ class HttpClientTest {
             payload: "test"
         };
         httpServer.setTestVector(inputVector);
-        representation = await client.writeResource(inputVector.form, { type: ContentSerdes.DEFAULT, body: Buffer.from(inputVector.payload) });
+        representation = await client.writeResource(inputVector.form, { type: ContentSerdes.DEFAULT, body: Readable.from(inputVector.payload) });
 
         // invoke with defaults
         inputVector = {
@@ -181,7 +182,7 @@ class HttpClientTest {
             payload: "test"
         };
         httpServer.setTestVector(inputVector);
-        representation = await client.invokeResource(inputVector.form, { type: ContentSerdes.DEFAULT, body: Buffer.from(inputVector.payload) });
+        representation = await client.invokeResource(inputVector.form, { type: ContentSerdes.DEFAULT, body: Readable.from(inputVector.payload) });
 
         return httpServer.stop();
     }
@@ -217,7 +218,7 @@ class HttpClientTest {
             payload: "test"
         };
         httpServer.setTestVector(inputVector);
-        representation = await client.writeResource(inputVector.form as HttpForm, { type: ContentSerdes.DEFAULT, body: Buffer.from(inputVector.payload) });
+        representation = await client.writeResource(inputVector.form as HttpForm, { type: ContentSerdes.DEFAULT, body: Readable.from(inputVector.payload) });
 
         // invoke with PUT instead of POST
         inputVector = {
@@ -229,7 +230,7 @@ class HttpClientTest {
             payload: "test"
         };
         httpServer.setTestVector(inputVector);
-        representation = await client.invokeResource(inputVector.form as HttpForm, { type: ContentSerdes.DEFAULT, body: Buffer.from(inputVector.payload) });
+        representation = await client.invokeResource(inputVector.form as HttpForm, { type: ContentSerdes.DEFAULT, body: Readable.from(inputVector.payload) });
 
         // invoke with DELETE instead of POST
         inputVector = {

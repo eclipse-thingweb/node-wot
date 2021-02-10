@@ -26,7 +26,7 @@ import * as TD from "@node-wot/td-tools";
 // for Security definition
 import * as WoT from "wot-typescript-definitions";
 
-import { ProtocolClient, Content } from "@node-wot/core";
+import { ProtocolClient, Content, ProtocolHelpers } from "@node-wot/core";
 import { HttpForm, HttpHeader, HttpConfig, HTTPMethodName } from "./http";
 import fetch, { Request, RequestInit, Response } from 'node-fetch';
 import { Buffer } from "buffer";
@@ -102,7 +102,7 @@ export default class HttpClient implements ProtocolClient {
     console.debug("[binding-http]",`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
     console.debug("[binding-http]",`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
     
-    return { type: result.headers.get("content-type"), body: buffer };
+    return { type: result.headers.get("content-type"), body: result.body };
   }
 
   public async writeResource(form: HttpForm, content: Content): Promise<any> {
@@ -142,7 +142,7 @@ export default class HttpClient implements ProtocolClient {
     
     const buffer = await result.buffer()
 
-    return { type: result.headers.get("content-type"), body: buffer };
+    return { type: result.headers.get("content-type"), body: result.body };
   }
 
   public async unlinkResource(form: HttpForm): Promise<any> {

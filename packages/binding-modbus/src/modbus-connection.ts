@@ -2,6 +2,7 @@ import ModbusRTU from 'modbus-serial'
 import { ReadCoilResult, ReadRegisterResult } from 'modbus-serial/ModbusRTU'
 import { ModbusEntity, ModbusFunction, ModbusForm } from './modbus'
 import { Content } from '@node-wot/core'
+import { Readable } from 'stream'
 
 const configDefaults = {
   operationTimeout: 2000,
@@ -409,12 +410,12 @@ export class PropertyOperation {
       let bufend = 2 * (offset + this.length);
 
       resp = {
-        body: buffer.slice(bufstart, bufend),
+        body: Readable.from(buffer.slice(bufstart, bufend)),
         type: 'application/octet-stream'
       };
     } else {
       resp = {
-        body: buffer.slice(offset, this.length),
+        body: Readable.from(buffer.slice(offset, this.length)),
         type: 'application/octet-stream'
       };
     }

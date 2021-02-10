@@ -24,6 +24,7 @@ import { MqttForm, MqttQoS } from './mqtt';
 import { IPublishPacket, QoS } from 'mqtt';
 import * as url from 'url';
 import { Subscription } from "rxjs/Subscription";
+import { Readable } from 'stream';
 
 export default class MqttClient implements ProtocolClient {
     private user:string = undefined;
@@ -52,7 +53,7 @@ export default class MqttClient implements ProtocolClient {
         this.client.on('message', (receivedTopic : string, payload : string, packet: IPublishPacket) => {
             console.debug("[binding-mqtt]","Received MQTT message (topic, data): (" + receivedTopic + ", "+ payload + ")");
             if (receivedTopic === topic) {
-                next({ contentType: contentType, body: Buffer.from(payload) });
+                next({ type: contentType, body: Readable.from(payload) });
             }
         })
         this.client.on('error', (error :any)  => {
@@ -102,7 +103,7 @@ export default class MqttClient implements ProtocolClient {
                 this.client.publish(topic, content.body)
             }
             // there will bo no response
-            resolve({ type: ContentSerdes.DEFAULT, body: Buffer.from("") });
+            resolve({ type: ContentSerdes.DEFAULT, body: Readable.from([]) });
 
         });
     }

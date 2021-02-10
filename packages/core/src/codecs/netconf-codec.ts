@@ -15,6 +15,7 @@
 
 import { ContentSerdes, ContentCodec } from "../content-serdes";
 import * as TD from "@node-wot/td-tools";
+import { DataSchema } from "wot-typescript-definitions";
 
 /** default implementation offering JSON de-/serialisation */
 export default class NetconfCodec implements ContentCodec {
@@ -22,7 +23,7 @@ export default class NetconfCodec implements ContentCodec {
     return 'application/netconf';
   }
 
-  bytesToValue(bytes: Buffer, schema: TD.DataSchema, parameters: { [key: string]: string }): any {
+  bytesToValue(bytes: Buffer, schema: DataSchema, parameters: { [key: string]: string }): any {
     //console.debug(`NetconfCodec parsing '${bytes.toString()}'`);
 
     let parsed: any;
@@ -53,7 +54,7 @@ export default class NetconfCodec implements ContentCodec {
     return parsed;
   }
 
-  valueToBytes(value: any, schema: TD.DataSchema, parameters?: { [key: string]: string }): Buffer {
+  valueToBytes(value: any, schema: DataSchema, parameters?: { [key: string]: string }): Buffer {
 
     //console.debug("NetconfCodec serializing", value);
     let body = "";
@@ -66,7 +67,7 @@ export default class NetconfCodec implements ContentCodec {
     return Buffer.from(body);
   }
 
-  private getPayloadNamespaces(schema: any, payload: any, NSs: any, hasNamespace: boolean) {
+  private getPayloadNamespaces(schema: DataSchema, payload: any, NSs: any, hasNamespace: boolean) {
 
 
 		if (hasNamespace) { //expect to have xmlns

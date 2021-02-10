@@ -24,15 +24,17 @@ should();
 
 import ContentSerdes from "../src/content-serdes";
 import { ContentCodec } from "../src/content-serdes";
+import { ProtocolHelpers } from "../src/core";
 
 let checkJsonToJs = (value: any): void => {
     let jsonBuffer = Buffer.from(JSON.stringify(value));
     expect(ContentSerdes.contentToValue({ type: "application/json", body: jsonBuffer }, { type: "object", properties: {} })).to.deep.equal(value);
 }
 
-let checkJsToJson = (value: any): void => {
+let checkJsToJson = async (value: any) => {
     let jsonContent = ContentSerdes.valueToContent(value, { type: "object", properties: {} })
-    let reparsed = JSON.parse(jsonContent.body.toString());
+    const body = await ProtocolHelpers.readStreamFully(jsonContent.body);
+    let reparsed = JSON.parse(body.toString());
     expect(reparsed).to.deep.equal(value);
 }
 
@@ -55,13 +57,13 @@ class SerdesTests {
         checkJsonToJs({ "pi": 3.14 })
     }
 
-    @test "value to JSON"() {
-        checkJsToJson(42)
-        checkJsToJson("Hallo")
-        checkJsToJson(null)
-        checkJsToJson({ "foo": "bar" })
-        checkJsToJson({ "answer": 42 })
-        checkJsToJson({ "pi": 3.14 })
+    @test async "value to JSON"() {
+        await checkJsToJson(42)
+        await checkJsToJson("Hallo")
+        await checkJsToJson(null)
+        await checkJsToJson({ "foo": "bar" })
+        await checkJsToJson({ "answer": 42 })
+        await checkJsToJson({ "pi": 3.14 })
     }
 }
 
@@ -75,8 +77,10 @@ class SerdesCodecTests {
     static after() {
     }
 
-    @test "new codec should serialize"() {
-        ContentSerdes.valueToContent("The meaning of Life", { type: "string" }, "text/hodor").body.toString().should.equal("Hodor")
+    @test async "new codec should serialize"() {
+        const content = ContentSerdes.valueToContent("The meaning of Life", { type: "string" }, "text/hodor")
+        const body = await ProtocolHelpers.readStreamFully(content.body);
+        body.toString().should.equal("Hodor")
     }
 
     @test "new codec should deserialize"() {
