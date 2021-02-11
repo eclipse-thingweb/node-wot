@@ -164,7 +164,7 @@ export class ContentSerdes {
       bytes = codec.valueToBytes(value, schema, par);
     } else {
       console.warn("[core/content-senders]",`ContentSerdes passthrough due to unsupported serialization format '${contentType}'`);
-      bytes = Buffer.from(value);
+      bytes = Buffer.from(value.toString());
     }
     // http server does not like Readable.from(bytes)
     // it works only with Arrays or strings
