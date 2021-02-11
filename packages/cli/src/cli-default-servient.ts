@@ -156,7 +156,15 @@ export default class DefaultServient extends Servient {
                     .then((thing) => {
                         thing.setActionHandler("setLogLevel", (level) => {
                             return new Promise(async (resolve, reject) => {
-                                this.setLogLevel(await Helpers.parseInteractionOutput(level));
+                                let ll = await Helpers.parseInteractionOutput(level);
+                                if (typeof ll === "number") {
+                                    this.setLogLevel(ll as number);
+                                } else if (typeof ll === "string") {
+                                    this.setLogLevel(ll as string);
+                                } else {
+                                    // try to convert it to strings
+                                    this.setLogLevel(ll + "");
+                                }
                                 resolve(`Log level set to '${this.logLevel}'`);                                
                             });
                         });
@@ -164,15 +172,15 @@ export default class DefaultServient extends Servient {
                             return new Promise((resolve, reject) => {
                                 console.debug("[cli/default-servient]","shutting down by remote");
                                 this.shutdown();
-                                resolve();
+                                resolve(undefined);
                             });
                         });
                         thing.setActionHandler("runScript", (script) => {
                             return new Promise(async (resolve, reject) => {
                                 let scriptv = await Helpers.parseInteractionOutput(script);
                                 console.debug("[cli/default-servient]","running script", scriptv);
-                                this.runScript(scriptv);
-                                resolve();
+                                this.runScript(scriptv as string);
+                                resolve(undefined);
                             });
                         });
                         thing.setPropertyReadHandler("things", () => {

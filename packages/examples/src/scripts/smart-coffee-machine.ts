@@ -236,10 +236,10 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
     thing.setPropertyWriteHandler('servedCounter', async (val) => {
         let valp = await Helpers.parseInteractionOutput(val);
         return new Promise((resolve, reject) => {
-            resolve(valp);
             if (valp > 1000) {
                 thing.writeProperty('maintenanceNeeded', true);
             }
+            resolve(); // valp
         });
     });
 
@@ -386,7 +386,7 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
 
     // Set up a handler for setSchedule action
     thing.setActionHandler('setSchedule', async (params, options) => {
-        let paramsp = await Helpers.parseInteractionOutput(params);
+        let paramsp : any = await Helpers.parseInteractionOutput(params);
 
         // Check if uriVariables are provided
         if (paramsp && typeof paramsp === 'object' && 'time' in paramsp && 'mode' in paramsp) {

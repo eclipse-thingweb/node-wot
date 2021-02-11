@@ -19,7 +19,7 @@ import { Request} from 'node-fetch';
 
 
 export abstract class Credential{
-    abstract async sign(request:Request):Promise<Request>
+    abstract sign(request:Request):Promise<Request>
 }
 
 export class BasicCredential extends Credential{
