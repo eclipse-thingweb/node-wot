@@ -144,7 +144,7 @@ const Servient = require('@node-wot/core').Servient
 const HttpServer = require('@node-wot/binding-http').HttpServer
 
 const servient = new Servient()
-const servient.addServer(new HttpServer(servientConfig.http))
+servient.addServer(new HttpServer(servientConfig.http))
 const WoT = await this.servient.start()
 
 //Then from here on use WoT object to consume/produce Things
