@@ -136,7 +136,7 @@ If you want to use node-wot as a library in your Node.js application, you can us
 npm i @node-wot/core @node-wot/binding-http --save
 ```
 
-Now, you can implement your a thing as follows:
+Now, you can implement a thing as follows:
 
 ```JavaScript
 // server.js
