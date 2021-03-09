@@ -133,25 +133,52 @@ the default servient.
 If you want to use node-wot as a library in your Node.js application, you can use npm to install the node-wot packages that you need. To do so, `cd` inside you application folder, and run:
 
 ```
-npm i @node-wot/core @node-wot/binding-coap --save
+npm i @node-wot/core @node-wot/binding-http --save
 ```
 
-Now, you can implement your node-wot entry point, e.g., `main.js` as follows:
+Now, you can implement a thing as follows:
 
 ```JavaScript
-// Required steps to create a servient
-const Servient = require('@node-wot/core').Servient
-const HttpServer = require('@node-wot/binding-http').HttpServer
+// server.js
+// Required steps to create a servient for creating a thing
+const Servient = require('@node-wot/core').Servient;
+const HttpServer = require('@node-wot/binding-http').HttpServer;
 
-const servient = new Servient()
-const servient.addServer(new HttpServer(servientConfig.http))
-const WoT = await this.servient.start()
+const servient = new Servient();
+servient.addServer(new HttpServer());
 
-//Then from here on use WoT object to consume/produce Things
-//i.e. WoT.produce({.....})
+servient.start().then((WoT) => {
+    // Then from here on you can use the WoT object to produce the thing
+    // i.e WoT.produce({.....})
+});
 ```
 
-You can then start the application by running `node main.js`.
+A client consuming a thing can be implemented like this:
+
+```JavaScript
+// client.js
+// Required steps to create a servient for a client
+const { Servient, Helpers } = require("@node-wot/core");
+const { HttpClientFactory } = require('@node-wot/binding-http');
+
+const servient = new Servient();
+servient.addClientFactory(new HttpClientFactory(null));
+const WoTHelpers = new Helpers(servient);
+
+WoTHelpers.fetch("http://localhost:8080/example").then(async (td) => {
+    try {
+        servient.start().then(async (WoT) => {
+            // Then from here on you can consume the thing
+            // i.e let thing = await WoT.consume(td) ...
+        });
+    }
+    catch (err) {
+        console.error("Script error:", err);
+    }
+}).catch((err) => { console.error("Fetch error:", err); });
+```
+
+You can then start the applications with node by running `node server.js` and `node client.js`.
 
 #### CLI Tool
 You can alternatively install the node-wot CLI, either globally (`npm i @node-wot/cli -g`) or as
