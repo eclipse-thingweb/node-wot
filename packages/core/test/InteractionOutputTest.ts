@@ -18,7 +18,7 @@ import * as promised from "chai-as-promised";
 import { expect } from "chai";
 import {use} from 'chai';
 import {Readable} from 'stream';
-import { InteractionOutput } from "../src/iteraction-ouput";
+import { InteractionOutput } from "../src/interaction-output";
 
 use(promised)
 

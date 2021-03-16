@@ -27,7 +27,7 @@ import { default as ContentManager } from "./content-serdes"
 import { Subscribable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
 import UriTemplate = require('uritemplate');
-import { InteractionOutput } from "./iteraction-ouput";
+import { InteractionOutput } from "./interaction-output";
 
 enum Affordance {
     PropertyAffordance,
