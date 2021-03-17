@@ -36,6 +36,10 @@ Promise.all(fetchArray).then(async (tdArray) => {
   // regularly sync state to exposed Thing
   setInterval( () => {
 
+    // TODO FIX after v0.8 API changes are in place
+    console.error("TODO FIX after v0.8 API changes are in place");
+
+    /*
     PumpP101.readProperty("status")
       .then(async value => {
         let valuep = await Helpers.parseInteractionOutput(value);
@@ -86,6 +90,7 @@ Promise.all(fetchArray).then(async (tdArray) => {
         thingExposed.writeProperty("Tank101OverflowStatus", value);
       })
       .catch(err => { console.error("--- Tank101OverflowStatus read error: " + err); });
+    */
 
   }, 5000);
 });
@@ -142,6 +147,10 @@ WoT.produce({
   console.log("Produced " + thing.getThingDescription().title);
   thingExposed = thing;
 
+  // TODO FIX after v0.8 API changes are in place
+  console.error("TODO FIX after v0.8 API changes are in place");
+
+  /*
   // init property values
   // actuator state
 	thing.writeProperty("PumpStatus", false); 
@@ -194,6 +203,7 @@ WoT.produce({
 
   // expose the thing
 	thing.expose().then( () => { console.info(thing.getThingDescription().title + " ready"); } );
+  */
 })
 .catch((e) => {
 	console.log(e)

@@ -80,6 +80,10 @@ function main() {
           if(thing instanceof ExposedThing) {
             let unicorn : ExposedThing = thing;
 
+            // TODO FIX after v0.8 API changes are in place
+            console.error("TODO FIX after v0.8 API changes are in place");
+
+            /*
             unicorn
               .addProperty(
                   "brightness",
@@ -197,6 +201,7 @@ function main() {
                 );
             
             unicorn.expose().then( () => { console.info(unicorn.name + " ready"); });
+            */
           }
         });
 
@@ -221,6 +226,11 @@ function gradientStep() {
     g: (gradNow.g + gradVector.g),
     b: (gradNow.b + gradVector.b)
   };
+
+  // TODO FIX after v0.8 API changes are in place
+  console.error("TODO FIX after v0.8 API changes are in place");
+
+  /*
   unicorn.writeProperty('color', roundColor(gradNow));
   if (gradNow.r === gradNext.r && gradNow.g === gradNext.g && gradNow.b === gradNext.b) {
     gradNow = gradient[gradIndex];
@@ -233,6 +243,7 @@ function gradientStep() {
       b: (gradNext.b - gradNow.b) / 20
     };
   }
+  */
 }
 
 function setBrightness(val: number) {
