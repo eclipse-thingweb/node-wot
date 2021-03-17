@@ -21,6 +21,8 @@ import { NetconfForm } from "./netconf";
 import * as TD from "@node-wot/td-tools";
 import * as AsyncNodeNetcon from './async-node-netconf';
 import * as Url from 'url-parse';
+import { Readable } from "stream";
+import { ProtocolHelpers } from "@node-wot/core";
 
 
 let DEFAULT_TARGET = 'candidate'
@@ -68,13 +70,13 @@ export default class NetconfClient implements ProtocolClient {
 		}
 
 		return new Promise<Content>((resolve, reject) => {
-			resolve({ type: contentType, body: Buffer.from(result) });
+			resolve({ type: contentType, body: Readable.from(Buffer.from(result)) });
 		});
 	}
 
 	public async writeResource(form: NetconfForm, content: Content): Promise<any> {
-
-		let payload: any = content ? JSON.parse((content.body).toString()): {};
+		const body = await ProtocolHelpers.readStreamFully(content.body)
+		let payload: any = content ? JSON.parse(body.toString()): {};
 		let url = new Url(form.href);
 		let ip_address = url.hostname;
 		let port = parseInt(url.port);
@@ -104,13 +106,13 @@ export default class NetconfClient implements ProtocolClient {
 			throw err;
 		}
 		return new Promise<any>((resolve, reject) => {
-			resolve();
+			resolve(undefined);
 		});
 	}
 
 	public async invokeResource(form: NetconfForm, content: Content): Promise<any> {
-
-		let payload: any = content ? JSON.parse((content.body).toString()): {};
+		const body = await ProtocolHelpers.readStreamFully(content.body)
+		let payload: any = content ? JSON.parse(body.toString()): {};
 		let url = new Url(form.href);
 		let ip_address = url.hostname;
 		let port = parseInt(url.port);

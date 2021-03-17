@@ -224,7 +224,7 @@ export default class FujitsuServer implements ProtocolServer {
     
     if (content) {
       response.mediaType = content.type;
-      response.buffer = content.body.toString("base64");
+      response.buffer = content.body.toString();
     } else {
       response.buffer = "";
     }

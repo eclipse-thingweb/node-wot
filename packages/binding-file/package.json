@@ -16,7 +16,7 @@
   "devDependencies": {
     "@node-wot/td-tools": "0.8.0",
     "@types/node": "13.7.0",
-    "typescript": "3.7.5",
+    "typescript": "3.9.2",
     "typescript-standard": "0.3.36"
   },
   "dependencies": {

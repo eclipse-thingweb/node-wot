@@ -32,7 +32,7 @@ export default class FileClient implements ProtocolClient {
   public readResource(form: Form): Promise<Content> {
     return new Promise<Content>((resolve, reject) => {
       let filepath = form.href.split('//');
-      let resource = fs.readFileSync(filepath[1], 'utf8');
+      let resource = fs.createReadStream(filepath[1],{encoding: 'uf8'});
       let extension = path.extname(filepath[1]);
       console.debug("[binding-file]", `FileClient found '${extension}' extension`);
       let contentType;
@@ -58,7 +58,7 @@ export default class FileClient implements ProtocolClient {
             console.warn("[binding-file]", `FileClient cannot determine media type of '${form.href}'`);
         }
       }
-      resolve({ type: contentType, body: Buffer.from(resource) });
+      resolve({ type: contentType, body: resource });
     });
   }
 

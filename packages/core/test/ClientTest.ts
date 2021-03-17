@@ -32,12 +32,14 @@ import { Form } from "@node-wot/td-tools";
 import { ProtocolClient, ProtocolClientFactory, Content } from "../src/protocol-interfaces"
 import { ContentSerdes } from "../src/content-serdes";
 import Helpers from "../src/helpers";
+import { Readable } from "stream";
+import { ProtocolHelpers } from "../src/core";
 
 class TDClient implements ProtocolClient {
 
     public readResource(form: Form): Promise<Content> {
         // Note: this is not a "real" DataClient! Instead it just reports the same TD in any case
-        let c: Content = { type: ContentSerdes.TD, body: Buffer.from(JSON.stringify(myThingDesc)) };
+        let c: Content = { type: ContentSerdes.TD, body: Readable.from(Buffer.from(JSON.stringify(myThingDesc))) };
         return Promise.resolve(c);
     }
 
@@ -189,7 +191,9 @@ let myThingDesc = {
     },
     events: {
         anEvent: {
-            type: "number",
+            data: {
+                type:"string"
+            },
             forms: [
                 { "href": "testdata://host/athing/events/anevent", "mediaType": "application/json" }
             ]
@@ -220,313 +224,146 @@ class WoTClientTest {
         console.log("finished test suite");
     }
 
-    @test "read a Property"(done: Function) {
+    @test async "read a Property"() {
         // let the client return 42
         WoTClientTest.clientFactory.setTrap(
             () => {
-                return { contentType: "application/json", body: Buffer.from("42") };
+                return { type: "application/json", body: Readable.from(Buffer.from("42")) };
             }
         );
+        const td = await WoTClientTest.WoTHelpers.fetch("td://foo");
+        const thing = await WoTClientTest.WoT.consume(td);
 
-        WoTClientTest.WoTHelpers.fetch("td://foo")
-            .then((td) => {
-                return WoTClientTest.WoT.consume(td);
-            })
-            .then((thing) => {
-                expect(thing).to.have.property("title").that.equals("aThing");
-                expect(thing.getThingDescription()).to.have.property("properties");
-                expect(thing.getThingDescription()).to.have.property("properties").to.have.property("aProperty");
+        expect(thing).to.have.property("title").that.equals("aThing");
+        expect(thing.getThingDescription()).to.have.property("properties");
+        expect(thing.getThingDescription()).to.have.property("properties").to.have.property("aProperty");
 
-                return thing.readProperty("aProperty");
-            })
-            .then((value) => {
-                expect(value).not.to.be.null;
-                expect(value.toString()).to.equal("42");
-                done();
-            })
-            .catch(err => { done(err); });
+        const result = await thing.readProperty("aProperty");
+        expect(result).not.to.be.null;
+
+        const value = await result.value()
+        expect(value.toString()).to.equal("42");
     }
-
-    @test "read a Property new api"(done: Function) {
+    @test async "read all properties"() {
         // let the client return 42
         WoTClientTest.clientFactory.setTrap(
             () => {
-                return { contentType: "application/json", body: Buffer.from("42") };
+                return { type: "application/json", body: Readable.from(Buffer.from("42")) };
             }
         );
+        
+        const td = await WoTClientTest.WoTHelpers.fetch("td://foo");
+        const thing = await WoTClientTest.WoT.consume(td);
+        expect(thing).to.have.property("title").that.equals("aThing");
+        expect(thing.getThingDescription()).to.have.property("properties");
+        expect(thing.getThingDescription()).to.have.property("properties").to.have.property("aProperty");
 
-        WoTClientTest.WoTHelpers.fetch("td://foo")
-            .then((td) => {
-                return WoTClientTest.WoT.consume(td);
-            })
-            .then((thing) => {
-                expect(thing).to.have.property("title").that.equals("aThing");
-                expect(thing.getThingDescription()).to.have.property("properties");
-                expect(thing.getThingDescription()).to.have.property("properties").to.have.property("aProperty");
-                return thing.readProperty("aProperty");
-            })
-            .then((value) => {
-                expect(value).not.to.be.null;
-                expect(value.toString()).to.equal("42");
-                done();
-            })
-            .catch(err => { done(err); });
+        const result:any = await thing.readAllProperties();
+        expect(result).not.to.be.null;
+        expect(result).to.have.property("aProperty");
+        expect(result).to.have.not.property("aPropertyToObserve");
+
+        const value = await result.aProperty.value();
+        expect(value).to.equal(42)
     }
 
-    @test "read all properties"(done: Function) {
-        // let the client return 42
-        WoTClientTest.clientFactory.setTrap(
-            () => {
-                return { contentType: "application/json", body: Buffer.from("42") };
-            }
-        );
-
-        WoTClientTest.WoTHelpers.fetch("td://foo")
-            .then((td) => {
-                return WoTClientTest.WoT.consume(td);
-            })
-            .then((thing) => {
-                expect(thing).to.have.property("title").that.equals("aThing");
-                expect(thing.getThingDescription()).to.have.property("properties");
-                expect(thing.getThingDescription()).to.have.property("properties").to.have.property("aProperty");
-                return thing.readAllProperties();
-            })
-            .then((value) => {
-                expect(value).not.to.be.null;
-                expect(value).to.have.property("aProperty").that.equals(42);
-                expect(value).to.have.not.property("aPropertyToObserve"); // observe only
-                done();
-            })
-            .catch(err => { done(err); });
-    }
-
-    @test "write a Property"(done: Function) {
+    @test async "write a Property"() {
         //verify the value transmitted
         WoTClientTest.clientFactory.setTrap(
-            (form: Form, content: Content) => {
-                expect(content.body.toString()).to.equal("23");
+            async (form: Form, content: Content) => {
+                const buffer = await ProtocolHelpers.readStreamFully(content.body);
+                expect(buffer.toString()).to.equal("23");
+            }
+        )
+        const td = await WoTClientTest.WoTHelpers.fetch("td://foo");
+        const thing = await WoTClientTest.WoT.consume(td);
+
+        expect(thing).to.have.property("title").that.equals("aThing");
+        expect(thing).to.have.property("properties").that.has.property("aProperty");
+        return thing.writeProperty("aProperty",23);
+    }
+
+    @test async "write multiple property new api"() {
+        //verify the value transmitted
+        WoTClientTest.clientFactory.setTrap(
+            async(form: Form, content: Content) => {
+                const buffer = await ProtocolHelpers.readStreamFully(content.body);
+                expect(buffer.toString()).to.equal("66");
             }
         )
 
-        WoTClientTest.WoTHelpers.fetch("td://foo")
-            .then((td) => {
-                return WoTClientTest.WoT.consume(td);
-            })
-            .then((thing) => {
-                expect(thing).to.have.property("title").that.equals("aThing");
-                expect(thing).to.have.property("properties").that.has.property("aProperty");
-                return thing.writeProperty("aProperty", 23);
-            })
-            .then(() => done())
-            .catch(err => { done(err) });
+        const td = await WoTClientTest.WoTHelpers.fetch("td://foo");
+        const thing = await WoTClientTest.WoT.consume(td);
+
+        expect(thing).to.have.property("title").that.equals("aThing");
+        expect(thing).to.have.property("properties").that.has.property("aProperty");
+        
+        let valueMap: { [key: string]: any } = {};
+        valueMap["aProperty"] = 66;
+        return thing.writeMultipleProperties(valueMap);
     }
 
-    @test "write a Property new api"(done: Function) {
-        //verify the value transmitted
-        WoTClientTest.clientFactory.setTrap(
-            (form: Form, content: Content) => {
-                expect(content.body.toString()).to.equal("23");
-            }
-        )
-
-        WoTClientTest.WoTHelpers.fetch("td://foo")
-            .then((td) => {
-                return WoTClientTest.WoT.consume(td);
-            })
-            .then((thing) => {
-                expect(thing).to.have.property("title").that.equals("aThing");
-                expect(thing).to.have.property("properties").that.has.property("aProperty");
-                return thing.writeProperty("aProperty", 23);
-            })
-            .then(() => done())
-            .catch(err => { done(err) });
-    }
-
-    @test "write multiple property new api"(done: Function) {
-        //verify the value transmitted
-        WoTClientTest.clientFactory.setTrap(
-            (form: Form, content: Content) => {
-                expect(content.body.toString()).to.equal("66");
-            }
-        )
-
-        WoTClientTest.WoTHelpers.fetch("td://foo")
-            .then((td) => {
-                return WoTClientTest.WoT.consume(td);
-            })
-            .then((thing) => {
-                expect(thing).to.have.property("title").that.equals("aThing");
-                expect(thing).to.have.property("properties").that.has.property("aProperty");
-
-                let valueMap: { [key: string]: any } = {};
-                valueMap["aProperty"] = 66;
-                return thing.writeMultipleProperties(valueMap);
-            })
-            .then(() => done())
-            .catch(err => { done(err) });
-    }
-
-    // @test "observe a Property"(done: Function) {
-    //     // let the client return 42
-    //     WoTClientTest.clientFactory.setTrap(
-    //         () => {
-    //             return { contentType: "application/json", body: Buffer.from("42") };
-    //         }
-    //     );
-
-    //     WoTClientTest.WoT.fetch("data://" + "tdFoo")
-    //         .then((td) => {
-    //             let thing = WoTClientTest.WoT.consume(td);
-    //             expect(thing).not.to.be.null;
-    //             expect(this.getThingName(thing)).to.equal("aThing");
-    //             expect(thing.onPropertyChange("aProperty")).not.to.be.null;
-
-    //             let subscription = thing.onPropertyChange("aProperty").subscribe(
-    //                 x => {
-    //                     console.log('onNext: %s', x);
-    //                     if (x == 123) {
-    //                         done();
-    //                     }
-    //                 },
-    //                 e => console.log('onError: %s', e),
-    //                 () => {
-    //                     console.log('onCompleted aProperty changed');
-    //                     // done();
-    //                 }
-    //             );
-
-    //             // write one other value
-    //             thing.writeProperty("aProperty", 12356666);
-
-    //             setTimeout(() => {
-    //                 // update value to trigger success
-    //                 return thing.writeProperty("aProperty", 123);
-    //             }, 25);
-    //         })
-    //         .then((value) => {
-    //             expect(value).not.to.be.null;
-    //             // done(); 
-    //         })
-    //         .catch(err => { throw err });
-    // }
-
-    @test "call an action"(done: Function) {
+    @test async "call an action"() {
         //an action
         WoTClientTest.clientFactory.setTrap(
-            (form: Form, content: Content) => {
-                expect(content.body.toString()).to.equal("23");
-                return { contentType: "application/json", body: Buffer.from("42") };
+           async (form: Form, content: Content) => {
+                const buffer = await ProtocolHelpers.readStreamFully(content.body);
+                expect(buffer.toString()).to.equal("23");
+                return { type: "application/json", body: Readable.from(Buffer.from("42")) };
             }
         )
-
-        WoTClientTest.WoTHelpers.fetch("td://foo")
-            .then((td) => {
-                return WoTClientTest.WoT.consume(td);
-            })
-            .then((thing) => {
-                expect(thing).to.have.property("title").that.equals("aThing");
-                expect(thing).to.have.property("actions").that.has.property("anAction");
-                return thing.invokeAction("anAction", 23);
-            })
-            .then((result) => {
-                expect(result).not.to.be.null;
-                expect(result).to.equal(42);
-                done();
-            })
-            .catch(err => { done(err) });
+        const td = await WoTClientTest.WoTHelpers.fetch("td://foo");
+        const thing = await WoTClientTest.WoT.consume(td);
+        
+        expect(thing).to.have.property("title").that.equals("aThing");
+        expect(thing).to.have.property("actions").that.has.property("anAction");
+        const result = await thing.invokeAction("anAction",23);
+        expect(result).not.to.be.null;
+        const value = await result.value();
+        expect(value).to.equal(42);
     }
 
-    @test "call an action (next API)"(done: Function) {
-        //an action
-        WoTClientTest.clientFactory.setTrap(
-            (form: Form, content: Content) => {
-                expect(content.body.toString()).to.equal("23");
-                return { contentType: "application/json", body: Buffer.from("42") };
-            }
-        )
-
-        WoTClientTest.WoTHelpers.fetch("td://foo")
-            .then((td) => {
-                return WoTClientTest.WoT.consume(td);
-            })
-            .then((thing) => {
-                expect(thing).to.have.property("title").that.equals("aThing");
-                expect(thing).to.have.property("actions").that.has.property("anAction");
-                return thing.invokeAction("anAction", 23);
-            })
-            .then((result) => {
-                expect(result).not.to.be.null;
-                expect(result).to.equal(42);
-                done();
-            })
-            .catch(err => { done(err) });
-    }
-
-
-    @test "subscribe to property"(done: Function) {
+    @test async "subscribe to property"() {
         
         WoTClientTest.clientFactory.setTrap(
             () => {
-                return { contentType: "application/json", body: Buffer.from("triggered") };
+                return { type: "application/json", body: Readable.from(Buffer.from("triggered")) };
             }
         )
-
-        WoTClientTest.WoTHelpers.fetch("td://foo")
-            .then((td) => {
-                return WoTClientTest.WoT.consume(td);
+        const td = await WoTClientTest.WoTHelpers.fetch("td://foo");
+        const thing = await WoTClientTest.WoT.consume(td);
+        expect(thing).to.have.property("title").that.equals("aThing");
+        expect(thing).to.have.property("events").that.has.property("anEvent");
+        return new Promise((resolve) => {
+            thing.subscribeEvent("anEvent", async x => {
+                const value = await x.value();
+                expect(value).to.equal("triggered");
+                resolve(true)
             })
-            .then((thing) => {
-                expect(thing).to.have.property("title").that.equals("aThing");
-                expect(thing).to.have.property("properties").that.has.property("aProperty");
-                thing.subscribeEvent("anEvent", 
-                    (x: any) => {
-                        expect(x).to.equal("triggered");
-                    }
-                    // ,
-                    // (e: any) => {
-                    //     done(e);
-                    // },
-                    // () => {
-                    //     done();
-                    // }
-                )
-                .then(() => {
-                        done();
-                    })
-                .catch((e: any) => {
-                        done(e);
-                    })
-                ;
-            })
-            .catch(err => { done(err) });
+        })
     }
 
 
-    @test "observe property"(done: Function) {
+    @test async "observe property"() {
         
         WoTClientTest.clientFactory.setTrap(
             () => {
-                return { contentType: "application/json", body: Buffer.from("12") };
+                return { type: "application/json", body: Readable.from(Buffer.from("12")) };
             }
         )
-
-        WoTClientTest.WoTHelpers.fetch("td://foo")
-            .then((td) => {
-                return WoTClientTest.WoT.consume(td);
-            })
-            .then((thing) => {
-                expect(thing).to.have.property("title").that.equals("aThing");
-                expect(thing).to.have.property("properties").that.has.property("aPropertyToObserve");
-
-                thing.observeProperty("aPropertyToObserve",
-                    (data: any) => {
-                        if(data == 12) {
-                            done();
-                        }
-                    }
-                );
-            })
-            .catch(err => { done(err) });
+        const td = await WoTClientTest.WoTHelpers.fetch("td://foo");
+        const thing = await WoTClientTest.WoT.consume(td);
+        expect(thing).to.have.property("title").that.equals("aThing");
+        expect(thing).to.have.property("properties").that.has.property("aPropertyToObserve");
+        return new Promise( (resolve)=> {
+            thing.observeProperty("aPropertyToObserve",
+                async (data: any) => {
+                    const value = await data.value();
+                    expect(value).to.equal(12);
+                    resolve(true);
+                }
+            );
+        })
     }
 
 
@@ -550,65 +387,5 @@ class WoTClientTest {
             .catch(err => { done(err) });
     }
 
-    @test "subscribe to event"(done: Function) {
-        
-        WoTClientTest.clientFactory.setTrap(
-            () => {
-                return { contentType: "application/json", body: Buffer.from("triggered") };
-            }
-        )
 
-        WoTClientTest.WoTHelpers.fetch("td://foo")
-            .then((td) => {
-                return WoTClientTest.WoT.consume(td);
-            })
-            .then((thing) => {
-                expect(thing).to.have.property("title").that.equals("aThing");
-                expect(thing).to.have.property("events").that.has.property("anEvent");
-                thing.subscribeEvent("anEvent", 
-                    (x: any) => {
-                        expect(x).to.equal("triggered");
-                    }
-                )
-                .then(() => {
-                    done();
-                })
-                .catch((e: any) => {
-                    done(e);
-                });
-            })
-            .catch(err => { done(err) });
-    }
-
-
-    @test "subscribe to event (next API)"(done: Function) {
-        
-        WoTClientTest.clientFactory.setTrap(
-            () => {
-                return { contentType: "application/json", body: Buffer.from("triggeredOOOO") };
-            }
-        )
-
-        WoTClientTest.WoTHelpers.fetch("td://foo")
-            .then((td) => {
-                return WoTClientTest.WoT.consume(td);
-            })
-            .then((thing) => {
-                expect(thing).to.have.property("title").that.equals("aThing");
-                expect(thing).to.have.property("events").that.has.property("anEvent");
-
-                thing.subscribeEvent("anEvent",
-                    (data: any) => {
-                        expect(data).to.equal("triggeredOOOO");
-                    }
-                )
-                .then(() => {
-                    done();
-                })
-                .catch((e: any) => {
-                    done(e);
-                });
-            })
-            .catch(err => { done(err) });
-    }
 }

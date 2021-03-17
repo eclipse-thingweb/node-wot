@@ -32,6 +32,7 @@ import * as os from "os";
 import Servient from "./servient";
 import * as TD from "@node-wot/td-tools";
 import { ContentSerdes } from "./content-serdes";
+import { ProtocolHelpers } from "./core";
 
 export default class Helpers {
 
@@ -124,7 +125,7 @@ export default class Helpers {
         let client = this.srv.getClientFor(Helpers.extractScheme(uri));
       console.debug("[core/helpers]",`WoTImpl fetching TD from '${uri}' with ${client}`);
         client.readResource(new TD.Form(uri, ContentSerdes.TD))
-            .then((content) => {
+            .then(async (content) => {
                 client.stop();
 
                 if (content.type !== ContentSerdes.TD &&
@@ -132,7 +133,7 @@ export default class Helpers {
                   console.warn("[core/helpers]",`WoTImpl received TD with media type '${content.type}' from ${uri}`);
                 }
 
-                let td = content.body.toString();
+                let td = (await ProtocolHelpers.readStreamFully(content.body)).toString('utf-8')
 
                 try {
                   let jo : object = JSON.parse(td);
