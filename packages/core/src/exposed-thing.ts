@@ -290,7 +290,6 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                                         listener.call(customValue);
                                     }
                                 }
-                                ps.value = customValue;
                                 resolve();
                             })
                                 .catch((customError) => {
@@ -304,17 +303,16 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                                     listener.call(<any>promiseOrValueOrNil);
                                 }
                             }
-                            ps.value = <any>promiseOrValueOrNil;
                             resolve();
                         }
                     } else {
                         console.warn("[core/exposed-thing]", `ExposedThing '${this.title}' write handler for Property '${propertyName}' does not return custom value, using direct value '${value}'`);
                         if (ps.value !== value) {
+
                             for (let listener of ps.listeners) {
                                 listener.call(value);
                             }
                         }
-                        ps.value = value;
                         resolve();
                     }
                 } else {
@@ -325,7 +323,6 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                             listener.call(value);
                         }
                     }
-                    ps.value = value;
                     resolve();
                 }
             } else {
