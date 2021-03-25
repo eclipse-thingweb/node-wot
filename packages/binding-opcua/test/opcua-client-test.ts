@@ -100,7 +100,7 @@ describe('OPCUA client test', function () {
             "opc:dataType": "Double"
         }
         let res = await client.writeResource(inputVector.form, { type: 'application/x.opcua-binary', body: Readable.from(Buffer.from(inputVector.payload)) });
-        expect(res).to.equal(null);
+        expect(res).to.equal(undefined);
         return;
     })
 
