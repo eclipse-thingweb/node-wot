@@ -66,7 +66,7 @@ Note: More protocols can be easily added by implementing `ProtocolClient`, `Prot
 * CBOR :timer_clock:
 * EXI :timer_clock:
 
-Note: More mediaTyes can be easily added by implementing `ContentCodec` interface.
+Note: More mediaTypes can be easily added by implementing `ContentCodec` interface.
 
 ```JavaScript
 const ContentSerdes = require('@node-wot/core').ContentSerdes
