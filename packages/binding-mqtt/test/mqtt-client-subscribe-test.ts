@@ -30,7 +30,7 @@ import MqttClientFactory from "../dist/mqtt-client-factory";
 @suite("MQTT implementation")
 class MqttClientSubscribeTest {
 
-    @test(timeout(5000)) "should expose via broker"(done: Function) {
+    @test(timeout(10000)) "should expose via broker"(done: Function) {
 
         try {
             let servient = new Servient();
@@ -52,7 +52,7 @@ class MqttClientSubscribeTest {
                 var eventNumber = Math.floor(Math.random() * 1000000); 
                 var eventName : string = "event" + eventNumber;
                 var events : {[key: string] : any} = {};
-                events[eventName] = { type: "number" };
+                events[eventName] = { data: {type: "number"} };
 
                 WoT.produce({
                     title: "TestWoTMQTT",
@@ -67,16 +67,20 @@ class MqttClientSubscribeTest {
                         WoT.consume(thing.getThingDescription()).then(
                             (client) => {
                                 let check = 0;
+                                let sum = 0;
                                 client
                                     .subscribeEvent(eventName, (x) => {
-                                        expect(x).to.equal(++check);
-                                        if (check === 3) {
-                                            done();
-                                        }
+                                        x.value().then( val => {
+                                            ++check;
+                                            sum+=val as number;
+                                            if (check === 3) {
+                                                expect(sum).to.be.equals(6);
+                                                done();
+                                            }
+                                        })
                                     })
-                                    .then(() => {})
                                     .catch((e) => {
-                                        expect(true).to.equal(false);
+                                        done(e)
                                     });
 
                                 var job = setInterval(() => {
@@ -85,7 +89,7 @@ class MqttClientSubscribeTest {
                                     if (counter === 3) {
                                         clearInterval(job);
                                     }
-                                }, 400);
+                                }, 1000);
                             }
                         );
                     });

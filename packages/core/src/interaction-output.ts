@@ -20,6 +20,7 @@ import { DataSchemaError, NotReadableError, NotSupportedError } from "./errors";
 import { Content } from "./protocol-interfaces";
 import { ReadableStream } from 'web-streams-polyfill/ponyfill/es2018';
 import Ajv from 'ajv';
+import { Readable } from "stream";
 
 //Problem: strict mode ajv does not accept unknown keywords in schemas
 //however property affordances could contain all sort of fields
@@ -38,7 +39,7 @@ export class InteractionOutput implements WoT.InteractionOutput {
     form?: WoT.Form;
     schema?: WoT.DataSchema;
     
-    constructor(content:Content,form:WoT.Form,schema?:WoT.DataSchema) {
+    constructor(content:Content,form?:WoT.Form,schema?:WoT.DataSchema) {
         this.content = content;
         this.form = form;
         this.schema = schema;

@@ -22,7 +22,7 @@ import * as mqtt from "mqtt";
 import * as url from "url";
 
 import * as TD from "@node-wot/td-tools";
-import { ProtocolServer, Servient, ExposedThing, ContentSerdes } from "@node-wot/core";
+import { ProtocolServer, Servient, ExposedThing, ContentSerdes, ProtocolHelpers } from "@node-wot/core";
 
 export default class MqttBrokerServer implements ProtocolServer {
 
@@ -43,7 +43,7 @@ export default class MqttBrokerServer implements ProtocolServer {
 
   private readonly things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
 
-  private broker: any;
+  private broker: mqtt.Client;
 
   /*new MqttBrokerServer(this.config.mqtt.broker,
                         (typeof this.config.mqtt.username === "string") ? this.config.mqtt.username : undefined,
@@ -109,7 +109,7 @@ export default class MqttBrokerServer implements ProtocolServer {
         if(!property.writeOnly ){
           thing.observeProperty(propertyName,
           // let subscription = property.subscribe(
-            (data) => {
+            async (data) => {
               let content;
               try {
                 content = ContentSerdes.get().valueToContent(data, property.data);
@@ -120,7 +120,8 @@ export default class MqttBrokerServer implements ProtocolServer {
                 return;
               }
               console.debug("[binding-mqtt]",`MqttBrokerServer at ${this.brokerURI} publishing to Property topic '${propertyName}' `);
-              this.broker.publish(topic, content.body,{retain:true});
+              const buffer = await ProtocolHelpers.readStreamFully(content.body);
+              this.broker.publish(topic, buffer);
             }
           );
 
@@ -245,7 +246,7 @@ export default class MqttBrokerServer implements ProtocolServer {
         // FIXME store subscription and clean up on stop
         // let subscription = event.subscribe(
 
-          (data) => {
+          async (data) => {
             let content;
             try {
               content = ContentSerdes.get().valueToContent(data, event.data);
@@ -257,7 +258,8 @@ export default class MqttBrokerServer implements ProtocolServer {
             }
             // send event data
             console.debug("[binding-mqtt]",`MqttBrokerServer at ${this.brokerURI} publishing to Event topic '${eventName}' `);
-            this.broker.publish(topic, content.body);
+            const buffer = await ProtocolHelpers.readStreamFully(content.body);
+            this.broker.publish(topic,buffer);
           }
         );
 
@@ -267,7 +269,7 @@ export default class MqttBrokerServer implements ProtocolServer {
         event.forms.push(form);
         console.debug("[binding-mqtt]",`MqttBrokerServer at ${this.brokerURI} assigns '${href}' to Event '${eventName}'`);
       }
-      this.broker.publish(name, JSON.stringify(thing.getThingDescription()),{retain:true,contentType:"application/td+json"});
+      this.broker.publish(name, JSON.stringify(thing.getThingDescription()),{retain:true});
       resolve();
     });
   }
@@ -320,7 +322,7 @@ export default class MqttBrokerServer implements ProtocolServer {
 
       if (this.broker === undefined) resolve();
 
-      this.broker.stop();
+      this.broker.unsubscribe("*");
     });
   }
 
