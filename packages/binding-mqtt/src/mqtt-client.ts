@@ -42,7 +42,7 @@ export default class MqttClient implements ProtocolClient {
         let retain = form["mqtt:retain"]; // TODO: is this needed here?
         let qos = form["mqtt:qos"]; // TODO: is this needed here?
         let requestUri = url.parse(form['href']);
-        let topic = requestUri.pathname;
+        let topic = requestUri.pathname.slice(1);
         let brokerUri : String = "mqtt://"+requestUri.host;
 
         if(this.client==undefined) {
@@ -88,7 +88,7 @@ export default class MqttClient implements ProtocolClient {
 
 
             let requestUri = url.parse(form['href']);
-            let topic = requestUri.pathname;
+            let topic = requestUri.pathname.slice(1);
             let brokerUri : String = "mqtt://"+requestUri.host;
             
             if(this.client==undefined) {
@@ -110,7 +110,7 @@ export default class MqttClient implements ProtocolClient {
 
     unlinkResource = (form: TD.Form): Promise<void> => {
         let requestUri = url.parse(form['href']);
-        let topic = requestUri.pathname;
+        let topic = requestUri.pathname.slice(1);
 
         return new Promise<void>((resolve, reject) => {
             if(this.client && this.client.connected) {

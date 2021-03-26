@@ -217,7 +217,7 @@ export default class OpcuaClient implements ProtocolClient {
 
 		return new Promise<any>((resolve, reject) => {
 			if (res) {
-				resolve(null);
+				resolve(undefined);
 			} else {
 				reject(new Error("Error while writing property"));
 			}

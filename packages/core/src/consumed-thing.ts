@@ -204,7 +204,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         return { client: client, form: form }
     }
 
-    readProperty(propertyName: string, options?: WoT.InteractionOptions): Promise<InteractionOutput> {
+    readProperty(propertyName: string, options?: WoT.InteractionOptions): Promise<WoT.InteractionOutput> {
         return new Promise<any>((resolve, reject) => {
             // TODO pass expected form op to getClientFor()
             let tp: TD.ThingProperty = this.properties[propertyName];
@@ -492,13 +492,9 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         let ut = UriTemplate.parse(form.href);
         let updatedHref = ut.expand(options == undefined || options.uriVariables == undefined ? {} : options.uriVariables);
         if (updatedHref != form.href) {
-            // "clone" form to avoid modifying original form
-            let updForm = new TD.Form(updatedHref, form.contentType);
-            updForm.op = form.op;
-            updForm.security = form.security;
-            updForm.scopes = form.scopes;
-            updForm.response = form.response;
-
+            // create shallow copy and update href
+            let updForm = { ...form };
+            updForm.href = updatedHref;
             form = updForm;
             console.debug("[core/consumed-thing]",`ConsumedThing '${this.title}' update form URI to ${form.href}`);
         }

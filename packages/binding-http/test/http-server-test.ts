@@ -26,6 +26,7 @@ import * as rp from "request-promise";
 
 import HttpServer from "../src/http-server";
 import { ExposedThing, Helpers } from "@node-wot/core";
+import { DataSchemaValue } from "wot-typescript-definitions";
 
 @suite("HTTP server implementation")
 class HttpServerTest {
@@ -58,6 +59,9 @@ class HttpServerTest {
         }
       }
       });
+      let test:DataSchemaValue;
+      testThing.setPropertyReadHandler("test", _ => Promise.resolve(test));
+      testThing.setPropertyWriteHandler("test", async (value) => {test = await value.value()})
     
     
     await testThing.writeProperty("test", "off")
