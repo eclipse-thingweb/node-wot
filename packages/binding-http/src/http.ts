@@ -60,6 +60,6 @@ export class HttpForm extends TD.Form {
 export type HTTPMethodName = "GET" | "PUT" | "POST" | "DELETE" | "PATCH";
 
 export class HttpHeader {
-    public "htv:fieldName": number;
-    public "htv:fieldValue": any;
+    public "htv:fieldName": string;
+    public "htv:fieldValue": string;
 }
