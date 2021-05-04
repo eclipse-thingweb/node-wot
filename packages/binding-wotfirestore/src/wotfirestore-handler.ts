@@ -272,3 +272,23 @@ export const readMetaDataFromFirestore = (
       })
   })
 }
+
+export const removeMetaDataFromFirestore = (
+  firestore,
+  hostName: string
+): Promise<any> => {
+  return new Promise((resolve, reject) => {
+    console.debug('[debug] removeMetaDataFromFirestore hostName: ', hostName)
+    const ref = firestore.collection('hostsMetaData').doc(hostName)
+    ref
+      .delete()
+      .then(() => {
+        console.log('removed hostName: ', hostName)
+        resolve()
+      })
+      .catch((err) => {
+        console.error('error removing hostName: ', hostName, 'error: ', err)
+        reject(err)
+      })
+  })
+}

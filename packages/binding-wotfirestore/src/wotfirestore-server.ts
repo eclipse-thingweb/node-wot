@@ -4,17 +4,17 @@
 import * as os from 'os'
 
 import * as TD from '@node-wot/td-tools'
-import Servient, {
-  ProtocolServer,
-  ContentSerdes,
-  ExposedThing,
-  Helpers,
-  Content
-} from '@node-wot/core'
+//import Wot from '@node-wot/browser-bundle'
 import { WoTFirestoreConfig, WoTFirestoreForm } from './wotfirestore'
 import WoTFirestoreCodec from './codecs/wotfirestore-codec'
+import {
+  ProtocolServer,
+  ExposedThing,
+  ContentSerdes,
+  Servient,
+  Content
+} from '@node-wot/core'
 
-import * as firebase from 'firebase/app'
 import 'firebase/auth'
 import 'firebase/firestore'
 import {
@@ -391,5 +391,10 @@ export default class WoTFirestoreServer implements ProtocolServer {
       `${this.getHostName()}/${name}`,
       tdContent
     )
+    console.log(`**************************************`)
+    console.log(`***** exposed thing descriptioon *****`)
+    console.log(JSON.stringify(thing.getThingDescription(), null, '  '))
+    console.log(`**************************************`)
+    console.log(`**************************************`)
   }
 }
