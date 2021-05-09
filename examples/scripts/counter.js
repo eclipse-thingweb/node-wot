@@ -178,7 +178,7 @@ WoT.produce({
         lastChange = (new Date()).toISOString();
         thing.emitEvent("change", count);
     });
-    thing.setActionHandler("decrement", async (params, options) => {
+    thing.setActionHandler("reset", async (params, options) => {
         console.log("Resetting count");
         count = 0;
         lastChange = (new Date()).toISOString();
