@@ -15,6 +15,7 @@
 
 import "wot-typescript-definitions"
 import { Helpers } from "@node-wot/core";
+import * as TD from "@node-wot/td-tools";
 
 let WoT:WoT.WoT;
 let WoTHelpers: Helpers;
@@ -40,9 +41,17 @@ WoTHelpers.fetch("coap://localhost:5683/counter").then( async (td) => {
 		await thing.invokeAction("increment", undefined, {uriVariables: {'step' : 3}});
 		let inc2 = await thing.readProperty("count");
 		console.info("count value after increment #2 (with step 3) is", inc2);
-				
-		// decrement property with formIndex == 1 (via CoAP binding)
-		await thing.invokeAction("decrement", undefined, { formIndex: 1 });
+		
+		// look for the first form for decrement with CoAP binding
+		// formIndex: 0 if not found
+		let fi = 0
+		thing.getThingDescription()['actions']['decrement']['forms']
+			.forEach((form: TD.Form, index: number) => {
+				if (/^coaps?:\/\/.*/.test(form.href)) {
+					fi = index;
+				}
+			});
+		await thing.invokeAction("decrement", undefined, { formIndex: fi });
 		let dec1 = await thing.readProperty("count");
 		console.info("count value after decrement is", dec1);
 	} catch(err) {
