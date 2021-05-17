@@ -55,13 +55,12 @@ WoTHelpers.fetch("coap://localhost:5683/counter").then( async (td) => {
 }).catch( (err) => { console.error("Fetch error:", err); });
 
 function getFormIndexForDecrementWithCoAP(thing: WoT.ConsumedThing): number {
-	// return formIndex: 0 if no CoAP target IRI found
-	let fi = 0;
 	thing.getThingDescription()['actions']['decrement']['forms']
 		.forEach((form: TD.Form, index: number) => {
 			if (/^coaps?:\/\/.*/.test(form.href)) {
-				fi = index;
+				return index;
 			}
 		});
-	return fi;
+	// return formIndex: 0 if no CoAP target IRI found
+	return 0;
 }
