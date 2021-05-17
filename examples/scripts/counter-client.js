@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2021 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -31,15 +31,9 @@ WoTHelpers.fetch("coap://localhost:5683/counter").then(async (td) => {
         let inc2 = await thing.readProperty("count");
         console.info("count value after increment #2 (with step 3) is", inc2);
         // look for the first form for decrement with CoAP binding
-        // formIndex: 0 if not found
-        let fi = 0;
-        thing.getThingDescription()['actions']['decrement']['forms']
-            .forEach((form, index) => {
-            if (/^coaps?:\/\/.*/.test(form.href)) {
-                fi = index;
-            }
+        await thing.invokeAction("decrement", undefined, {
+            formIndex: getFormIndexForDecrementWithCoAP(thing)
         });
-        await thing.invokeAction("decrement", undefined, { formIndex: fi });
         let dec1 = await thing.readProperty("count");
         console.info("count value after decrement is", dec1);
     }
@@ -47,3 +41,15 @@ WoTHelpers.fetch("coap://localhost:5683/counter").then(async (td) => {
         console.error("Script error:", err);
     }
 }).catch((err) => { console.error("Fetch error:", err); });
+
+function getFormIndexForDecrementWithCoAP(thing) {
+    // return formIndex: 0 if no CoAP target IRI found
+    let fi = 0;
+    thing.getThingDescription()['actions']['decrement']['forms']
+        .forEach((form, index) => {
+        if (/^coaps?:\/\/.*/.test(form.href)) {
+            fi = index;
+        }
+    });
+    return fi;
+}
