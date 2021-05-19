@@ -40,7 +40,7 @@ export default class ModbusClient implements ProtocolClient {
   }
   unlinkResource(form: ModbusForm): Promise<void> {
     form = this.validateAndFillDefaultForm(form, 0)
-    const id = `${form.href}/${form['modbus:unitID']}#${form['modbus:function']}?${form['modbus:range'][0]}&${form['modbus:range'][1]}`
+    const id = `${form.href}/${form['modbus:unitID']}#${form['modbus:function']}?${form['modbus:offset']}&${form['modbus:length']}`
 
 
     this._subscriptions.get(id).unsubscribe()
@@ -52,7 +52,7 @@ export default class ModbusClient implements ProtocolClient {
     next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): any {
     form = this.validateAndFillDefaultForm(form, 0)
 
-    const id = `${form.href}/${form['modbus:unitID']}#${form['modbus:function']}?${form['modbus:range'][0]}&${form['modbus:range'][1]}`
+    const id = `${form.href}/${form['modbus:unitID']}#${form['modbus:function']}?${form['modbus:offset']}&${form['modbus:length']}`
 
     if (this._subscriptions.has(id)) {
       throw new Error('Already subscribed for ' + id + '. Multiple subscriptions are not supported');
@@ -116,14 +116,14 @@ export default class ModbusClient implements ProtocolClient {
     let query = parsed.searchParams
 
     input['modbus:unitID'] = parseInt(pathComp[1], 10) || input['modbus:unitID'];
-    input['modbus:range'][0] = parseInt(query.get('offset'), 10) || input['modbus:range'][0];
-    input['modbus:range'][1] = parseInt(query.get('length'), 10) || input['modbus:range'][1];
+    input['modbus:offset'] = parseInt(query.get('offset'), 10) || input['modbus:offset'];
+    input['modbus:length'] = parseInt(query.get('length'), 10) || input['modbus:length'];
   }
 
   private validateContentLength(form: ModbusForm, content: Content) {
 
     const mpy = form['modbus:entity'] === 'InputRegister' || form['modbus:entity'] === 'HoldingRegister' ? 2 : 1;
-    const length = form['modbus:range'][1]
+    const length = form['modbus:length']
     if (content && content.body.length !== mpy * length) {
       throw new Error('Content length does not match register / coil count, got ' + content.body.length + ' bytes for '
         + length + ` ${mpy === 2 ? 'registers' : 'coils'}`);
@@ -176,15 +176,17 @@ export default class ModbusClient implements ProtocolClient {
       result['modbus:entity'] = modbusFunctionToEntity(result['modbus:function'] as ModbusFunction)
     }
 
-    // fill default range
-    if (!form['modbus:range']) {
-      result['modbus:range'] = [0, 1]
-    } else if (!form['modbus:range'][1] && contentLength === 0) {
-      result['modbus:range'] = [form['modbus:range'][0], 1]
-    } else if (!form['modbus:range'][1] && contentLength > 0) {
-      const regSize = result['modbus:entity'] === 'InputRegister' ||
-        result['modbus:entity'] === 'HoldingRegister' ? 2 : 1;
-      result['modbus:range'] = [form['modbus:range'][0], contentLength / regSize]
+
+    if(!form['modbus:offset']) {
+        result['modbus:offset'] = 0;
+    }
+    
+    if(!form['modbus:length'] && contentLength === 0) {
+        result['modbus:length'] = 1;
+    } else if(!form['modbus:length'] && contentLength > 0) {
+        const regSize = result['modbus:entity'] === 'InputRegister' ||
+               result['modbus:entity'] === 'HoldingRegister' ? 2 : 1;
+        result['modbus:length'] = contentLength / regSize;
     }
 
     result['modbus:pollingTime'] = form['modbus:pollingTime'] ? form['modbus:pollingTime'] : DEFAULT_POLLING

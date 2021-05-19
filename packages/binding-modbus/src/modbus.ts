@@ -22,12 +22,16 @@ export class ModbusForm extends Form {
    */
   public 'modbus:unitID': number;
   /**
-   * Defines how many registers or coils should be written. The first
-   * element of the tuple is the starting address while the second is 
-   * the total amount of registers. For example [2,3] means that registers
-   * 2,3,4 will be returned as response.
+   * Defines the starting address of registers or coils that are
+   * meant to be written.
    */
-  public 'modbus:range'?: [number, number?];
+  public 'modbus:offset'?: number;
+  /**
+   * Defines the total amount of registers or coils that 
+   * should be written, beginning with the register specified
+   * with the property 'modbus:offset'.
+   */
+  public 'modbus:length'?: number;
   /**
    * Timeout in milliseconds of the modbus request. Default to 1000 milliseconds
    */

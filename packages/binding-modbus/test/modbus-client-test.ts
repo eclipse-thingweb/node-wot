@@ -36,7 +36,8 @@ describe('Modbus client test', () => {
         const form: ModbusForm = {
             href: "modbus://127.0.0.1:8502",
             "modbus:entity": "Coil",
-            "modbus:range": [0, 1],
+            "modbus:offset": 0,
+            "modbus:length": 1,
             "modbus:unitID": 1
         }
 
@@ -50,7 +51,8 @@ describe('Modbus client test', () => {
         const form: ModbusForm = {
             href: "modbus://127.0.0.1:8502",
             "modbus:entity": "HoldingRegister",
-            "modbus:range": [0, 1],
+            "modbus:offset": 0,
+            "modbus:length": 1,
             "modbus:unitID": 1
         }
 
@@ -63,7 +65,8 @@ describe('Modbus client test', () => {
         const form: ModbusForm = {
             href: "modbus://127.0.0.1:8502",
             "modbus:entity": "DiscreteInput",
-            "modbus:range": [0, 1],
+            "modbus:offset": 0,
+            "modbus:length": 1,
             "modbus:unitID": 1
         }
 
@@ -76,7 +79,8 @@ describe('Modbus client test', () => {
         const form: ModbusForm = {
             href: "modbus://127.0.0.1:8502",
             "modbus:function": "readCoil",
-            "modbus:range": [0, 1],
+            "modbus:offset": 0,
+            "modbus:length": 1,
             "modbus:unitID": 1
         }
 
@@ -87,14 +91,15 @@ describe('Modbus client test', () => {
         const form: ModbusForm = {
             href: "modbus://127.0.0.1:8502/2?offset=2&length=5",
             "modbus:function": "readCoil",
-            "modbus:range": [0, 1],
+            "modbus:offset": 0,
+            "modbus:length": 1,
             "modbus:unitID": 1
         }
 
         client["overrideFormFromURLPath"](form)
         form["modbus:unitID"].should.be.equal(2, "Form value not overridden")
-        form["modbus:range"][0].should.be.equal(2, "Form value not overridden")
-        form["modbus:range"][1].should.be.equal(5, "Form value not overridden")
+        form["modbus:offset"].should.be.equal(2, "Form value not overridden")
+        form["modbus:length"].should.be.equal(5, "Form value not overridden")
     });
 
     describe('misc', () => {
@@ -104,7 +109,8 @@ describe('Modbus client test', () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 1,
-                "modbus:range": [0, 1],
+                "modbus:offset": 0,
+                "modbus:length": 1,
                 "modbus:unitID": 1
             }
 
@@ -122,7 +128,8 @@ describe('Modbus client test', () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 1,
-                "modbus:range": [0, 1],
+                "modbus:offset": 0,
+                "modbus:length": 1,
                 "modbus:unitID": 1
             }
 
@@ -137,7 +144,8 @@ describe('Modbus client test', () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 1,
-                "modbus:range": [0, 3],
+                "modbus:offset": 0,
+                "modbus:length": 3,
                 "modbus:unitID": 1
             }
 
@@ -152,7 +160,8 @@ describe('Modbus client test', () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 2,
-                "modbus:range": [0, 1],
+                "modbus:offset": 0,
+                "modbus:length": 1,
                 "modbus:unitID": 1
             }
 
@@ -167,7 +176,8 @@ describe('Modbus client test', () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 2,
-                "modbus:range": [0, 3],
+                "modbus:offset": 0,
+                "modbus:length": 3,
                 "modbus:unitID": 1
             }
 
@@ -182,7 +192,8 @@ describe('Modbus client test', () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 3,
-                "modbus:range": [0, 1],
+                "modbus:offset": 0,
+                "modbus:length": 1,
                 "modbus:unitID": 1
             }
 
@@ -197,7 +208,8 @@ describe('Modbus client test', () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 3,
-                "modbus:range": [0, 3],
+                "modbus:offset": 0,
+                "modbus:length": 3,
                 "modbus:unitID": 1
             }
 
@@ -212,7 +224,8 @@ describe('Modbus client test', () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 4,
-                "modbus:range": [0, 1],
+                "modbus:offset": 0,
+                "modbus:length": 1,
                 "modbus:unitID": 1
             }
 
@@ -227,7 +240,8 @@ describe('Modbus client test', () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 4,
-                "modbus:range": [0, 3],
+                "modbus:offset": 0,
+                "modbus:length": 3,
                 "modbus:unitID": 1
             }
 
@@ -240,7 +254,8 @@ describe('Modbus client test', () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 255,
-                "modbus:range": [0, 3],
+                "modbus:offset": 0,
+                "modbus:length": 3,
                 "modbus:unitID": 1
             }
 
@@ -256,7 +271,7 @@ describe('Modbus client test', () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 5,
-                "modbus:range": [0],
+                "modbus:offset": 0,
                 "modbus:unitID": 1
             }
 
@@ -268,7 +283,7 @@ describe('Modbus client test', () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 15,
-                "modbus:range": [0],
+                "modbus:offset": 0,
                 "modbus:unitID": 1
             }
 
@@ -281,7 +296,7 @@ describe('Modbus client test', () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 6,
-                "modbus:range": [0],
+                "modbus:offset": 0,
                 "modbus:unitID": 1
             }
 
@@ -294,7 +309,7 @@ describe('Modbus client test', () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 16,
-                "modbus:range": [0],
+                "modbus:offset": 0,
                 "modbus:unitID": 1
             }
 
@@ -309,7 +324,7 @@ describe('Modbus client test', () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 1,
-                "modbus:range": [0],
+                "modbus:offset": 0,
                 "modbus:unitID": 1,
                 "modbus:pollingTime": 250
             }
@@ -326,7 +341,7 @@ describe('Modbus client test', () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 1,
-                "modbus:range": [0],
+                "modbus:offset": 0,
                 "modbus:unitID": 1,
                 "modbus:pollingTime": 125
             }

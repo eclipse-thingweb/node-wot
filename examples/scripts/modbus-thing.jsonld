@@ -27,7 +27,8 @@
             "writeproperty"
           ],
           "modbus:function": 5,
-          "modbus:range": [0, 1],
+          "modbus:offset": 0,
+          "modbus:length": 1,
           "modbus:unitID": 1
         },
         {
@@ -37,7 +38,8 @@
             "readproperty"
           ],
           "modbus:function": 1,
-          "modbus:range": [0, 1],
+          "modbus:offset": 0,
+          "modbus:length": 1,
           "modbus:unitID": 1
         }
       ]
@@ -57,7 +59,7 @@
             "writeproperty"
           ],
           "modbus:function": 6,
-          "modbus:range": [8],
+          "modbus:offset": 8,
           "modbus:unitID": 1
         },
         {
@@ -67,7 +69,7 @@
             "readproperty"
           ],
           "modbus:function": 3,
-          "modbus:range": [8],
+          "modbus:offset": 8,
           "modbus:unitID": 1
         }
       ]

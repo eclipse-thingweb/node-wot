@@ -51,9 +51,12 @@ A more user-friendly property to specify `modbus:function`. It can be filled wit
 ### modbus:unitID
 The physical bus address of the unit targeted by the mobus request.
  
-### modbus:range
-This property defines how many registers or coils should be read or written. The value is a tuple where the first element is the starting address while the second represents the total amount of registers. For example in a reading command the tuple [2,3] indicate that the values of registers 2,3,4 should be returned as response.
- 
+### modbus:offset
+This property defines the starting address of registers or coils that are meant to be written.
+
+### modbus:length
+This property defines the total amount of registers or coils that should be written, beginning with the register specified with the property 'modbus:offset'.
+
 ### modbus:pollingTime
 The polling time used for subscriptions. The client will issue a reading command every modbus:pollingTime milliseconds. Note that the reading request timeout can be still controlled using modbus:timeout property. 
 
@@ -74,8 +77,8 @@ with the following meaning:
 * `<host>` is the host name or IP address of the MODBUS slave
 * `<port>` is the optional TCP port number used to access the MODBUS slave. Default is 502
 * `<unitid>` is the MODBUS unit id of the MODBUS slave; same as [modbus:unitID](#modbus:unitID)  
-* `<offset>` is the starting offset register number; the first parameter of [modbus:range](#modbus:range)   
-* `<length>` is the optional number of registers to access. Default is 1; see [modbus:range](#modbus:range)
+* `<offset>` is the starting offset register number; the first parameter of [modbus:offset](#modbus:offset)   
+* `<length>` is the optional number of registers to access. Default is 1; see [modbus:length](#modbus:length)
 
 When specified URL values override the corresponding `form` parameter.
  
@@ -134,7 +137,7 @@ Reads the 8th input register of the unit 1
         "readproperty"
     ],
     "modbus:function": "readInputRegister",
-    "modbus:range": [8],
+    "modbus:offset": 8,
     "modbus:unitID": 1,
     "modbus:timeout": 2000
 }
@@ -150,7 +153,7 @@ Read and write the 8th holding register of the unit 1
         "writeproperty"
     ],
     "modbus:entity": "HoldingRegister",
-    "modbus:range": [8],
+    "modbus:offset": 8,
     "modbus:unitID": 1
 }
 ```
@@ -164,7 +167,7 @@ Polls the 8th holding register of the unit 1 every second.
         "observeproperty"
     ],
     "modbus:entity": "HoldingRegister",
-    "modbus:range": [8],
+    "modbus:offset": 8,
     "modbus:unitID": 1,
     "modbus:pollingTime: 1000
 }

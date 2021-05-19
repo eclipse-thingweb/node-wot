@@ -359,8 +359,8 @@ export class PropertyOperation {
   constructor(form: ModbusForm, content?: Buffer) {
     this.unitId = form['modbus:unitID'];
     this.registerType = form['modbus:entity'];
-    this.base = form['modbus:range'][0];
-    this.length = form['modbus:range'][1];
+    this.base = form['modbus:offset'];
+    this.length = form['modbus:length'];
     this.function = form['modbus:function'] as ModbusFunction;
     this.content = content;
     this.transaction = null;

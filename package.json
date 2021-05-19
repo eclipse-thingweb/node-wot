@@ -8,6 +8,7 @@
     "url": "https://github.com/eclipse/thingweb.node-wot.git"
   },
   "devDependencies": {
+    "@types/mocha": "^8.2.2",
     "lerna": "^3.20.2",
     "lerna-run": "0.0.2",
     "rimraf": "3.0.2"
@@ -16,11 +17,11 @@
   "scripts": {
     "bootstrap": "lerna bootstrap --no-ci",
     "prebuild": "npm run bootstrap",
-    "build": "lerna run build",
+    "build": "lerna --ignore @node-wot/binding-opcua run build",
     "pretest": "npm run build",
     "start": "cd packages/cli && npm run start",
     "debug": "cd packages/cli && npm run debug",
-    "test": "lerna run test",
+    "test": "lerna --ignore @node-wot/binding-opcua run test",
     "prelink": "npm run unlock",
     "link": "lerna-run npm link",
     "codestyle": "lerna run codestyle",
