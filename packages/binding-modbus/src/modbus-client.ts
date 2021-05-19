@@ -177,8 +177,8 @@ export default class ModbusClient implements ProtocolClient {
     }
 
 
-    if(!form['modbus:offset']) {
-        result['modbus:offset'] = 0;
+    if(form['modbus:offset'] !== 0) {
+        throw new Error('Malformed form: offset must be defined');
     }
     
     if(!form['modbus:length'] && contentLength === 0) {

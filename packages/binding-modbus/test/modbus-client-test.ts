@@ -263,6 +263,19 @@ describe('Modbus client test', () => {
 
             return promise.should.eventually.rejectedWith("Undefined function number or name: 255")
         });
+
+        it('should throw exception for missing offset', () => {
+
+            const form: ModbusForm = {
+                href: "modbus://127.0.0.1:8502",
+                "modbus:function": 1,
+                "modbus:unitID": 1
+            }
+
+            const promise = client.readResource(form)
+
+            return promise.should.eventually.rejectedWith("Malformed form: offset must be defined")
+        });
     });
 
     describe('write resource', () => {
