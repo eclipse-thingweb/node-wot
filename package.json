@@ -17,11 +17,11 @@
   "scripts": {
     "bootstrap": "lerna bootstrap --no-ci",
     "prebuild": "npm run bootstrap",
-    "build": "lerna --ignore @node-wot/binding-opcua run build",
+    "build": "lerna run build",
     "pretest": "npm run build",
     "start": "cd packages/cli && npm run start",
     "debug": "cd packages/cli && npm run debug",
-    "test": "lerna --ignore @node-wot/binding-opcua run test",
+    "test": "lerna run test",
     "prelink": "npm run unlock",
     "link": "lerna-run npm link",
     "codestyle": "lerna run codestyle",

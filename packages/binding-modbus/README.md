@@ -77,7 +77,7 @@ with the following meaning:
 * `<host>` is the host name or IP address of the MODBUS slave
 * `<port>` is the optional TCP port number used to access the MODBUS slave. Default is 502
 * `<unitid>` is the MODBUS unit id of the MODBUS slave; same as [modbus:unitID](#modbus:unitID)  
-* `<offset>` is the starting offset register number; the first parameter of [modbus:offset](#modbus:offset)   
+* `<offset>` is the starting offset register number; see [modbus:offset](#modbus:offset)   
 * `<length>` is the optional number of registers to access. Default is 1; see [modbus:length](#modbus:length)
 
 When specified URL values override the corresponding `form` parameter.
