@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2021 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -12,7 +12,6 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-
 WoTHelpers.fetch("coap://localhost:5683/counter").then(async (td) => {
     // using await for serial execution (note 'async' in then() of fetch())
     try {
@@ -31,8 +30,10 @@ WoTHelpers.fetch("coap://localhost:5683/counter").then(async (td) => {
         await thing.invokeAction("increment", undefined, { uriVariables: { 'step': 3 } });
         let inc2 = await thing.readProperty("count");
         console.info("count value after increment #2 (with step 3) is", inc2);
-        // decrement property with formIndex == 2
-        await thing.invokeAction("decrement", undefined, { formIndex: 2 });
+        // look for the first form for decrement with CoAP binding
+        await thing.invokeAction("decrement", undefined, {
+            formIndex: getFormIndexForDecrementWithCoAP(thing)
+        });
         let dec1 = await thing.readProperty("count");
         console.info("count value after decrement is", dec1);
     }
@@ -40,3 +41,14 @@ WoTHelpers.fetch("coap://localhost:5683/counter").then(async (td) => {
         console.error("Script error:", err);
     }
 }).catch((err) => { console.error("Fetch error:", err); });
+
+function getFormIndexForDecrementWithCoAP(thing) {
+    let forms = thing.getThingDescription()['actions']['decrement']['forms'];
+    for (let i = 0; i < forms.length; i++) {
+        if (/^coaps?:\/\/.*/.test(forms[i].href)) {
+            return i;
+        }
+    }
+    // return formIndex: 0 if no CoAP target IRI found
+    return 0;
+}
