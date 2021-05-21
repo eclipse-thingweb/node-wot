@@ -329,6 +329,62 @@ describe('Modbus client test', () => {
             await client.writeResource(form, { type: "", body: Buffer.from([1, 2, 1, 1]) }) //writes 0x0101 and 0x0100
             testServer.registers.should.be.deep.equal([258, 257], "wrong register value")
         });
+
+        it('should write a resource with big endian ordering', async () => {
+
+            const form: ModbusForm = {
+                href: "modbus://127.0.0.1:8502",
+                contentType: "application/octet-stream;length=2;byteSeq=BIG_ENDIAN",
+                "modbus:function": 16,
+                "modbus:offset": 0,
+                "modbus:unitID": 1
+            }
+
+            await client.writeResource(form, { type: "", body: Buffer.from([ 0x25, 0x49, 0x59, 0x60 ]) })
+            testServer.registers.should.be.deep.equal([9545, 22880], "wrong coil value")
+        });
+
+        it('should write a resource with little endian ordering', async () => {
+
+            const form: ModbusForm = {
+                href: "modbus://127.0.0.1:8502",
+                contentType: "application/octet-stream;length=2;byteSeq=LITTLE_ENDIAN",
+                "modbus:function": 16,
+                "modbus:offset": 0,
+                "modbus:unitID": 1
+            }
+
+            await client.writeResource(form, { type: "", body: Buffer.from([ 0x60, 0x59, 0x49, 0x25 ]) })
+            testServer.registers.should.be.deep.equal([9545, 22880], "wrong coil value")
+        });
+
+        it('should write a resource with byte swap big endian ordering', async () => {
+
+            const form: ModbusForm = {
+                href: "modbus://127.0.0.1:8502",
+                contentType: "application/octet-stream;length=2;byteSeq=BIG_ENDIAN_BYTE_SWAP",
+                "modbus:function": 16,
+                "modbus:offset": 0,
+                "modbus:unitID": 1
+            }
+
+            await client.writeResource(form, { type: "", body: Buffer.from([ 0x49, 0x25, 0x60, 0x59 ]) })
+            testServer.registers.should.be.deep.equal([9545, 22880], "wrong coil value")
+        });
+
+        it('should write a resource with byte swap little endian ordering', async () => {
+
+            const form: ModbusForm = {
+                href: "modbus://127.0.0.1:8502",
+                contentType: "application/octet-stream;length=2;byteSeq=LITTLE_ENDIAN_BYTE_SWAP",
+                "modbus:function": 16,
+                "modbus:offset": 0,
+                "modbus:unitID": 1
+            }
+
+            await client.writeResource(form, { type: "", body: Buffer.from([ 0x59, 0x60, 0x25, 0x49 ]) })
+            testServer.registers.should.be.deep.equal([9545, 22880], "wrong coil value")
+        });
     });
 
     describe('subscribe resource', () => {

@@ -1,7 +1,7 @@
 /**
  * Modbus master based on modbus-serial
  */
-import { ModbusForm, ModbusFunction } from './modbus'
+import { ModbusForm, ModbusFunction, ModbusEndianness } from './modbus'
 
 import { ProtocolClient, Content, ContentSerdes } from '@node-wot/core'
 import { SecurityScheme } from '@node-wot/td-tools'
@@ -81,13 +81,15 @@ export default class ModbusClient implements ProtocolClient {
 
     form = this.validateAndFillDefaultForm(form, content ?.body.byteLength)
 
+    let endianness = this.validateEndianness(form);
+
     let host = parsed.hostname;
     let hostAndPort = host + ':' + port;
 
     this.overrideFormFromURLPath(form);
 
     if (content) {
-      this.validateContentLength(form, content)
+      this.validateContentLength(form, content);
     }
 
     // find or create connection
@@ -101,13 +103,29 @@ export default class ModbusClient implements ProtocolClient {
       console.debug('[binding-modbus]', 'Reusing ModbusConnection for ', hostAndPort);
     }
     // create operation
-    let operation = new PropertyOperation(form, content ? content.body : undefined);
+    let operation = new PropertyOperation(form, endianness, content ? content.body : undefined);
 
     // enqueue the operation at the connection
     connection.enqueue(operation);
 
     // return a promise to execute the operation
     return operation.execute()
+  }
+
+  private validateEndianness(form: ModbusForm) : ModbusEndianness {
+    let endianness = ModbusEndianness.BIG_ENDIAN
+    if(form.contentType) {
+      const contentValues : string[] = form.contentType.split(';') ?? []
+      // Check endian-ness
+      const byteSeq = contentValues.find(value => /^byteSeq=/.test(value))
+      if(byteSeq) {
+        const guessEndianness = byteSeq.split('=')[1] as ModbusEndianness
+        if(guessEndianness) {
+            endianness = guessEndianness
+        }
+      }
+    }
+    return endianness
   }
 
   private overrideFormFromURLPath(input: ModbusForm) {

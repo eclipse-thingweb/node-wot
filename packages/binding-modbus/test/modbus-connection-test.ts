@@ -1,3 +1,4 @@
+import { ModbusEndianness } from './../src/modbus';
 import { should } from "chai";
 import * as chai from 'chai';
 import ModbusClient from "../src/modbus-client";
@@ -44,7 +45,7 @@ describe('Modbus connection', () => {
                 "modbus:unitID": 1
             }
             const connection = new ModbusConnection("127.0.0.2", 8503, {connectionTimeout: 200, connectionRetryTime: 10, maxRetries: 1 })
-            const op = new PropertyOperation(form)
+            const op = new PropertyOperation(form, ModbusEndianness.BIG_ENDIAN)
             connection.enqueue(op);
 
             return op.execute().should.eventually.be.rejected
