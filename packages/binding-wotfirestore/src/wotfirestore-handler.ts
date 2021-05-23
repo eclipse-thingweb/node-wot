@@ -273,6 +273,8 @@ export const readMetaDataFromFirestore = (
   })
 }
 
+// Firestoreからホスト名に対応するMetaDataを削除する。
+// 現状は誰も利用していない。
 export const removeMetaDataFromFirestore = (
   firestore,
   hostName: string
