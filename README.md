@@ -367,6 +367,7 @@ docker run -it --init -v "$(pwd)"/examples:/srv/examples --rm --net=host wot-ser
 * The counter exposes the HTTP endpoint at 8080/tcp and the CoAP endpoint at 5683/udp and they are bound to the host machine (with `-p 8080:8080/tcp -p 5683:5683/udp`).
 * The counter-client binds the network of the host machine (`--net=host`) so that it can access the counter thing's endpoints.
 * `--init` allows the containers to be killed with SIGINT (e.g., Ctrl+c)
+* `-v "$(pwd)"/examples:/srv/examples` mounts the `examples` directory to `/srv/examples` on the container so that the node inside the container can read the example scripts.
 
 ### Using a browser
 An example of how to use node-wot as a browser-side library can be found under `examples/browser/index.html`.
