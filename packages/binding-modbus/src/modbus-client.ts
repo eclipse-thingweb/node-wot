@@ -118,11 +118,14 @@ export default class ModbusClient implements ProtocolClient {
       const contentValues : string[] = form.contentType.split(';') ?? []
       // Check endian-ness
       const byteSeq = contentValues.find(value => /^byteSeq=/.test(value))
-      if(byteSeq) {
-        const guessEndianness = byteSeq.split('=')[1] as ModbusEndianness
+      if(byteSeq) { 
+        const guessEndianness = ModbusEndianness[byteSeq.split('=')[1] as keyof typeof ModbusEndianness]
         if(guessEndianness) {
             endianness = guessEndianness
+        } else {
+            throw new Error("Malformed form: Content Type endianness is not valid")
         }
+       
       }
     }
     return endianness

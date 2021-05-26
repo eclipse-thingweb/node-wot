@@ -249,6 +249,40 @@ describe('Modbus client test', () => {
             result.body.should.deep.equal(Buffer.from([0, 3, 0, 2, 0, 1]), "Wrong data")
         });
 
+        it('should read a resource using read multiple input registers function with little endian conversion', async () => {
+
+            testServer.setRegisters([3, 2, 1, 0])
+
+            const form: ModbusForm = {
+                href: "modbus://127.0.0.1:8502",
+                contentType: "application/octet-stream;byteSeq=LITTLE_ENDIAN",
+                "modbus:function": 4,
+                "modbus:offset": 0,
+                "modbus:length": 4,
+                "modbus:unitID": 1
+            }
+
+            const result = await client.readResource(form)
+            result.body.should.deep.equal(Buffer.from([0, 0, 1, 0, 2, 0, 3, 0]), "Wrong data")
+        });
+
+        it('should read a resource using read multiple input registers function with little endian byte swap conversion', async () => {
+
+            testServer.setRegisters([3, 2, 1, 0])
+
+            const form: ModbusForm = {
+                href: "modbus://127.0.0.1:8502",
+                contentType: "application/octet-stream;byteSeq=LITTLE_ENDIAN_BYTE_SWAP",
+                "modbus:function": 4,
+                "modbus:offset": 0,
+                "modbus:length": 4,
+                "modbus:unitID": 1
+            }
+
+            const result = await client.readResource(form)
+            result.body.should.deep.equal(Buffer.from([0, 0, 0, 1, 0, 2, 0, 3]), "Wrong data")
+        });
+
         it('should throw exception for unknown function', () => {
 
             const form: ModbusForm = {

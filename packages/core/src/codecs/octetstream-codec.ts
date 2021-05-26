@@ -74,8 +74,8 @@ export default class OctetstreamCodec implements ContentCodec {
             if(typeSem) {
                 // check for sign semantic type
                 signed = typeSem.toLowerCase().indexOf('unsigned') === -1;
-                let numberSem = /(int|long|float|double)/.exec(typeSem.toLowerCase())[1];
-                dataType = numberSem === "int" ? "integer" : "number";
+                let numberSem = /(short|int|long|float|double|byte)/.exec(typeSem.toLowerCase())[1];
+                dataType = numberSem === "int" || numberSem === "short" || numberSem === "byte" ? "integer" : "number";
             }
         }
 
@@ -128,7 +128,6 @@ export default class OctetstreamCodec implements ContentCodec {
                         return bigendian ? bytes.readFloatBE(0) : bytes.readFloatLE(0);
 
                     case 8:
-                        console.error("BOIAAIIAAI")
                         return bigendian ? bytes.readDoubleBE(0) : bytes.readDoubleLE(0);
 
                     default:

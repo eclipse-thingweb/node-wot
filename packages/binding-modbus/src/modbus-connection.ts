@@ -249,7 +249,6 @@ export class ModbusConnection {
     if(transaction.endianness == ModbusEndianness.LITTLE_ENDIAN_BYTE_SWAP
       || transaction.endianness == ModbusEndianness.BIG_ENDIAN_BYTE_SWAP)
       transaction.content.swap16();
-
     if(transaction.endianness == ModbusEndianness.LITTLE_ENDIAN_BYTE_SWAP
         || transaction.endianness == ModbusEndianness.LITTLE_ENDIAN)
       transaction.content.reverse();
@@ -331,6 +330,12 @@ class ModbusTransaction {
       console.debug('[binding-modbus]', 'Trigger read operation on', this.base, 'len', this.length);
       try {
         const result = await this.connection.readModbus(this)
+        if(this.endianness == ModbusEndianness.LITTLE_ENDIAN_BYTE_SWAP
+          || this.endianness == ModbusEndianness.LITTLE_ENDIAN)
+          result.buffer.reverse();
+        if(this.endianness == ModbusEndianness.LITTLE_ENDIAN_BYTE_SWAP
+          || this.endianness == ModbusEndianness.BIG_ENDIAN_BYTE_SWAP)
+          result.buffer.swap16();
         console.debug('[binding-modbus]', 'Got result from read operation on', this.base, 'len', this.length);
         this.operations.forEach(op => op.done(this.base, result.buffer));
       } catch (error) {
