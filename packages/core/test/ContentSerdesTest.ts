@@ -36,11 +36,40 @@ let checkJsToJson = (value: any): void => {
     expect(reparsed).to.deep.equal(value);
 }
 
+let checkStreamToValue = (value: any, match : any, type? : any, semanticType? : any): void => {
+    let octectBuffer = Buffer.from(value);
+    expect(
+        ContentSerdes.contentToValue(
+            { type: "application/octet-stream", body: octectBuffer }, 
+            { type: type ?? "integer", "@type": semanticType ?? [], properties: {} }
+        )
+    ).to.deep.equal(match);
+}
+
+let checkJsToStream = (value: any): void => {
+    let jsonContent = ContentSerdes.valueToContent(value, { type: "integer", properties: {} })
+    let reparsed = JSON.parse(jsonContent.body.toString());
+    expect(reparsed).to.deep.equal(value);
+}
+
 /** Hodor will always return the String "Hodor" */
 class HodorCodec implements ContentCodec {
     getMediaType(): string { return "text/hodor"; }
     bytesToValue(bytes: Buffer): any { return "Hodor"; }
     valueToBytes(value: any): Buffer { return Buffer.from("Hodor"); }
+}
+
+@suite("testing OctectStream codec")
+class SerdesOctetTests {
+
+    @test "OctetStream to value"() {
+        checkStreamToValue([ 0x30, 0x36 ], 12342, "integer")
+        checkStreamToValue([ 0x49, 0x25 ], 18725, "integer", ["xsd:unsignedInt", "xsd:bigEndian"])
+        checkStreamToValue([ 0x49, 0x25 ], 18725, "number", ["xsd:unsignedInt", "xsd:bigEndian"])
+        checkStreamToValue([ 0x78, 0xA4 ], -23432, "number", ["xsd:int", "xsd:littleEndian"])
+        checkStreamToValue([ 0x49, 0x90, 0xE6, 0xEB ], -5.5746861179443064e+26, "integer", ["xsd:float", "xsd:littleEndian"])
+        checkStreamToValue([ 0xD3, 0xCD, 0xCC, 0xCC, 0xC1, 0xB4, 0x82, 0x70 ], -4.9728447076484896e+95, "integer", ["xsd:double", "xsd:bigEndian"])
+    }
 }
 
 @suite("testing JSON codec")

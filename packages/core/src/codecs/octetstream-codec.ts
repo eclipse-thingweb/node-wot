@@ -15,6 +15,8 @@
 
  import { ContentCodec } from "../content-serdes";
  import * as TD from "@node-wot/td-tools";
+import { ArraySchema } from "@node-wot/td-tools";
+import { sign } from "crypto";
 
 /**
  * Codec to produce and consume simple data items and deserialize and serialize
@@ -57,8 +59,28 @@ export default class OctetstreamCodec implements ContentCodec {
             throw new Error("Lengths do not match, required: " + parameters.length + " provided: " + bytes.length);
         }
 
+        let dataType = schema.type;
+
+        // check @type property for further information
+        if(schema['@type'] !== undefined) {
+            let semTypes: Array<string> = schema["@type"];
+            // check for endianness semantic type
+            // see http://www.meta-share.org/ontologies/meta-share/meta-share-ontology.owl/documentation/index-en.html
+            let endianSem = semTypes.find(v => v.endsWith(":bigEndian") || v.endsWith(':littleEndian'));
+            bigendian = endianSem === undefined ? bigendian : endianSem.endsWith(":bigEndian");
+            // check for numeric datatype semantic
+            // see https://www.w3.org/TR/xmlschema-2/
+            let typeSem = semTypes.find(v => /:(unsigned)?(int|long|double|float)/.test(v.toLowerCase()));
+            if(typeSem) {
+                // check for sign semantic type
+                signed = typeSem.toLowerCase().indexOf('unsigned') === -1;
+                let numberSem = /(int|long|float|double)/.exec(typeSem.toLowerCase())[1];
+                dataType = numberSem === "int" ? "integer" : "number";
+            }
+        }
+
         // determine return type
-        switch (schema.type) {
+        switch (dataType) {
             case "boolean":
                 // true if any byte is non-zero
                 return !bytes.every((val) => val == 0);
@@ -106,6 +128,7 @@ export default class OctetstreamCodec implements ContentCodec {
                         return bigendian ? bytes.readFloatBE(0) : bytes.readFloatLE(0);
 
                     case 8:
+                        console.error("BOIAAIIAAI")
                         return bigendian ? bytes.readDoubleBE(0) : bytes.readDoubleLE(0);
 
                     default:
@@ -123,7 +146,6 @@ export default class OctetstreamCodec implements ContentCodec {
                 return null;
         }
 
-        throw new Error("Unknown object type");
     }
 
     valueToBytes(value: any, schema: TD.DataSchema, parameters?: { [key: string]: string; }): Buffer {
@@ -234,6 +256,5 @@ export default class OctetstreamCodec implements ContentCodec {
                 return null;
         }
 
-        throw new Error("Unknown object type");
     }
 }
