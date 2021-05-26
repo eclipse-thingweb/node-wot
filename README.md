@@ -299,7 +299,7 @@ To reduce the size of the installation from about 800 MByte down to about 200 MB
 
 ### As a Docker image
 
-Alternatively, Node-wot can be built as a Docker image with the `Dockerfile`.
+Alternatively, node-wot can be built as a Docker image with the `Dockerfile`.
 
 Clone the repository:
 ```
@@ -320,7 +320,7 @@ docker run --rm wot-servient -h
 
 ### As a browser library
 
-Node-wot can also be imported as browser-side library. To do so, include the following `script` tag in your html:
+node-wot can also be imported as browser-side library. To do so, include the following `script` tag in your html:
 ```html
 <script src="https://cdn.jsdelivr.net/npm/@node-wot/browser-bundle@latest/dist/wot-bundle.min.js"></script>
 ```
