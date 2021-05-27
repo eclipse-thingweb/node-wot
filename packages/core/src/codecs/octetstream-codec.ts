@@ -70,7 +70,7 @@ export default class OctetstreamCodec implements ContentCodec {
             bigendian = endianSem === undefined ? bigendian : endianSem.endsWith(":bigEndian");
             // check for numeric datatype semantic
             // see https://www.w3.org/TR/xmlschema-2/
-            let typeSem = semTypes.find(v => /:(unsigned)?(int|long|double|float)/.test(v.toLowerCase()));
+            let typeSem = semTypes.find(v => /:(unsigned)?(short|int|long|float|double|byte)/.test(v.toLowerCase()));
             if(typeSem) {
                 // check for sign semantic type
                 signed = typeSem.toLowerCase().indexOf('unsigned') === -1;
@@ -139,7 +139,7 @@ export default class OctetstreamCodec implements ContentCodec {
 
             case "array":
             case "object":
-                throw new Error("Unable to handle object type " + schema.type);
+                throw new Error("Unable to handle object type " + dataType);
 
             case "null":
                 return null;
@@ -163,7 +163,27 @@ export default class OctetstreamCodec implements ContentCodec {
             throw new Error("Undefined value");
         }
 
-        switch (schema.type) {
+        let dataType = schema.type;
+
+        // check @type property for further information
+        if(schema['@type'] !== undefined) {
+            let semTypes: Array<string> = schema["@type"];
+            // check for endianness semantic type
+            // see http://www.meta-share.org/ontologies/meta-share/meta-share-ontology.owl/documentation/index-en.html
+            let endianSem = semTypes.find(v => v.endsWith(":bigEndian") || v.endsWith(':littleEndian'));
+            bigendian = endianSem === undefined ? bigendian : endianSem.endsWith(":bigEndian");
+            // check for numeric datatype semantic
+            // see https://www.w3.org/TR/xmlschema-2/
+            let typeSem = semTypes.find(v => /:(unsigned)?(short|int|long|float|double|byte)/.test(v.toLowerCase()));
+            if(typeSem) {
+                // check for sign semantic type
+                signed = typeSem.toLowerCase().indexOf('unsigned') === -1;
+                let numberSem = /(short|int|long|float|double|byte)/.exec(typeSem.toLowerCase())[1];
+                dataType = numberSem === "int" || numberSem === "short" || numberSem === "byte" ? "integer" : "number";
+            }
+        }
+
+        switch (dataType) {
             case "boolean":
                 return Buffer.alloc(length, value ? 255 : 0);
 
@@ -249,7 +269,7 @@ export default class OctetstreamCodec implements ContentCodec {
 
             case "array":
             case "object":
-                throw new Error("Unable to handle object type " + schema.type);
+                throw new Error("Unable to handle object type " + dataType);
 
             case "null":
                 return null;
