@@ -63,15 +63,10 @@ packages/*
 !packages/cli
 !packages/browser-bundle
 !packages/examples
-!packages/wot-agent
-!packages/wot-console
 
 # JetBrains IDEs
 .idea/
 
 # hidetak
-packages/wot-agent/clientScript.js
 examples/.DS_Store
 .DS_Store
-packages/wot-console/public/binding-wotfirestore-bundle.min.js
-packages/wot-console/public/wot-bundle.min.js

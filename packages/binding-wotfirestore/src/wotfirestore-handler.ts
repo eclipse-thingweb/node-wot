@@ -6,7 +6,7 @@ import { Buffer } from 'buffer'
 
 /**
  * firestoreを初期化する。
- * fstoreがnullの場合でのみ初期化処理を実施する。
+ * fstoreがnullの場合のみ初期化処理を実施する。
  */
 export const initFirestore = async (fbConfig, fstore): Promise<any> => {
   if (fstore != null) {
