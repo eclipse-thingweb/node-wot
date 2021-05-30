@@ -39,9 +39,6 @@ jspm_packages
 # ignore dist
 dist/
 
-# ignore package-lock.json as not part of published module and might cause break
-package-lock.json
-
 # ignore compiled tests and scratch compiles
 test/**/*.js
 src/**/*.js

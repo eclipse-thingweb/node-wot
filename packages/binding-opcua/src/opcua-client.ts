@@ -29,7 +29,9 @@ import {
 	ClientSubscription,
 	TimestampsToReturn,
 	MonitoringParametersOptions,
-	ReadValueIdLike,
+	// ReadValueIdLike, // ReadValueIdLike: ReadValueIdOptions | ReadValueId
+	ReadValueIdOptions,
+	ReadValueId,
 	ClientMonitoredItem,
 	DataType,
 	DataValue,
@@ -214,7 +216,7 @@ export default class OpcuaClient implements ProtocolClient {
 
 		return new Promise<any>((resolve, reject) => {
 			if (res) {
-				resolve();
+				resolve(undefined);
 			} else {
 				reject(new Error("Error while writing property"));
 			}
@@ -323,7 +325,7 @@ export default class OpcuaClient implements ProtocolClient {
 					subscription = ClientSubscription.create(self.session, defaultSubscriptionOptions);
 				}
 
-				const itemToMonitor: ReadValueIdLike = {
+				const itemToMonitor: ReadValueIdOptions | ReadValueId = {
 					nodeId: nodeId,
 					attributeId: AttributeIds.Value
 				};

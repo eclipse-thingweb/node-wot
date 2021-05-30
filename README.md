@@ -7,7 +7,7 @@ Useful labels:
 <a href="https://github.com/eclipse/thingweb.node-wot/issues?q=label%3Aquestion+">question</a> |
 <a href="https://github.com/eclipse/thingweb.node-wot/issues?q=label%3A%22good+first+issue%22+">good first issue</a>
 
-[![Build Status](https://travis-ci.org/eclipse/thingweb.node-wot.svg?branch=master)](https://travis-ci.org/eclipse/thingweb.node-wot)
+![Default CI Pipeline](https://github.com/eclipse/thingweb.node-wot/workflows/Default%20CI%20Pipeline/badge.svg)
 
 ### Table of Contents
 <!-- https://ecotrust-canada.github.io/markdown-toc/ -->
@@ -21,9 +21,11 @@ Useful labels:
 - [How to get the library](#how-to-get-the-library)
   * [As a Node.js dependency](#as-a-nodejs-dependency)
   * [As a standalone application](#as-a-standalone-application)
+  * [As a Docker image](#as-a-docker-image)
   * [As a browser library](#as-a-browser-library)
 - [No time for explanations - show me a running example!](#no-time-for-explanations---show-me-a-running-example)
   * [Using Node.js](#using-nodejs)
+  * [Using Docker](#using-docker)
   * [Using a browser](#using-a-browser)
 - [How to use the library](#how-to-use-the-library)
   * [The API](#the-api)
@@ -66,7 +68,7 @@ Note: More protocols can be easily added by implementing `ProtocolClient`, `Prot
 * CBOR :timer_clock:
 * EXI :timer_clock:
 
-Note: More mediaTyes can be easily added by implementing `ContentCodec` interface.
+Note: More mediaTypes can be easily added by implementing `ContentCodec` interface.
 
 ```JavaScript
 const ContentSerdes = require('@node-wot/core').ContentSerdes
@@ -133,25 +135,52 @@ the default servient.
 If you want to use node-wot as a library in your Node.js application, you can use npm to install the node-wot packages that you need. To do so, `cd` inside you application folder, and run:
 
 ```
-npm i @node-wot/core @node-wot/binding-coap --save
+npm i @node-wot/core @node-wot/binding-http --save
 ```
 
-Now, you can implement your node-wot entry point, e.g., `main.js` as follows:
+Now, you can implement a thing as follows:
 
 ```JavaScript
-// Required steps to create a servient
-const Servient = require('@node-wot/core').Servient
-const HttpServer = require('@node-wot/binding-http').HttpServer
+// server.js
+// Required steps to create a servient for creating a thing
+const Servient = require('@node-wot/core').Servient;
+const HttpServer = require('@node-wot/binding-http').HttpServer;
 
-const servient = new Servient()
-const servient.addServer(new HttpServer(servientConfig.http))
-const WoT = await this.servient.start()
+const servient = new Servient();
+servient.addServer(new HttpServer());
 
-//Then from here on use WoT object to consume/produce Things
-//i.e. WoT.produce({.....})
+servient.start().then((WoT) => {
+    // Then from here on you can use the WoT object to produce the thing
+    // i.e WoT.produce({.....})
+});
 ```
 
-You can then start the application by running `node main.js`.
+A client consuming a thing can be implemented like this:
+
+```JavaScript
+// client.js
+// Required steps to create a servient for a client
+const { Servient, Helpers } = require("@node-wot/core");
+const { HttpClientFactory } = require('@node-wot/binding-http');
+
+const servient = new Servient();
+servient.addClientFactory(new HttpClientFactory(null));
+const WoTHelpers = new Helpers(servient);
+
+WoTHelpers.fetch("http://localhost:8080/example").then(async (td) => {
+    try {
+        servient.start().then(async (WoT) => {
+            // Then from here on you can consume the thing
+            // i.e let thing = await WoT.consume(td) ...
+        });
+    }
+    catch (err) {
+        console.error("Script error:", err);
+    }
+}).catch((err) => { console.error("Fetch error:", err); });
+```
+
+You can then start the applications with node by running `node server.js` and `node client.js`.
 
 #### CLI Tool
 You can alternatively install the node-wot CLI, either globally (`npm i @node-wot/cli -g`) or as
@@ -258,12 +287,40 @@ To reduce the size of the installation from about 800 MByte down to about 200 MB
 * `sudo npm run link` does not work
    * try `npm run unlock` from project root before calling `[sudo] npm run link`
    * try `npm link` in each package directory in this order: td-tools, core, binding-\*, cli, demo-servients
+* Error mesage for `npm link @node-wot/<module>` 
+  `ELOOP: too many symbolic links encountered, stat '/usr/lib/node_modules/@node-wot/<module>`
+   1. Run `npm run link` in `thingweb.node-wot` again
+   2. Remove `node_modules` in the targeted project
+   3. Remove all `@node-wot/<module>` dependencies in your `package.json`
+   4. Run `npm i` again
+   5. Install the packages with `npm link @node-wot/<module>`
 * Build error around `prebuild: npm run bootstrap`
    * This has been seen failing on WSL.  Try using Node 12.13.0
 
+### As a Docker image
+
+Alternatively, node-wot can be built as a Docker image with the `Dockerfile`.
+
+Clone the repository:
+```
+git clone https://github.com/eclipse/thingweb.node-wot
+```
+Go into the repository:
+```
+cd thingweb.node-wot
+```
+Build the Docker image named `wot-servient` from the `Dockerfile`:
+```
+docker build --rm -t wot-servient .
+```
+Run the wot-servient as a container:
+```
+docker run --rm wot-servient -h
+```
+
 ### As a browser library
 
-Node-wot can also be imported as browser-side library. To do so, include the following `script` tag in your html:
+node-wot can also be imported as browser-side library. To do so, include the following `script` tag in your html:
 ```html
 <script src="https://cdn.jsdelivr.net/npm/@node-wot/browser-bundle@latest/dist/wot-bundle.min.js"></script>
 ```
@@ -297,6 +354,20 @@ node packages\cli\dist\cli.js --clientonly examples\scripts\counter-client.js
 * Query the count by http://localhost:8080/counter/properties/count
 * Modify the count via POST on http://localhost:8080/counter/actions/increment and http://localhost:8080/counter/actions/decrement
 * Application logic is in `examples/scripts/counter.js`
+
+### Using Docker
+First [build the docker image](#as-a-docker-image) and then run the counter example:
+```
+# expose
+docker run -it --init -p 8080:8080/tcp -p 5683:5683/udp -v "$(pwd)"/examples:/srv/examples --rm wot-servient /srv/examples/scripts/counter.js
+# consume
+docker run -it --init -v "$(pwd)"/examples:/srv/examples --rm --net=host wot-servient /srv/examples/scripts/counter-client.js --clientonly
+```
+
+* The counter exposes the HTTP endpoint at 8080/tcp and the CoAP endpoint at 5683/udp and they are bound to the host machine (with `-p 8080:8080/tcp -p 5683:5683/udp`).
+* The counter-client binds the network of the host machine (`--net=host`) so that it can access the counter thing's endpoints.
+* `--init` allows the containers to be killed with SIGINT (e.g., Ctrl+c)
+* `-v "$(pwd)"/examples:/srv/examples` mounts the `examples` directory to `/srv/examples` on the container so that the node inside the container can read the example scripts.
 
 ### Using a browser
 An example of how to use node-wot as a browser-side library can be found under `examples/browser/index.html`.
