@@ -5,15 +5,14 @@ import 'firebase/firestore'
 import { Buffer } from 'buffer'
 
 /**
- * firestoreを初期化する。
- * fstoreがnullの場合のみ初期化処理を実施する。
+ * initialize firestore.
  */
 export const initFirestore = async (fbConfig, fstore): Promise<any> => {
   if (fstore != null) {
     return fstore
   }
   if (!firebase.apps.length) {
-    // 初期化されていない場合のみ初期化する
+    // initialize firestore if initialize not yet.
     firebase.initializeApp(fbConfig.firebaseConfig)
   }
   // Sign In
@@ -135,20 +134,21 @@ export const readDataFromFirestore = (
   })
 }
 
-export const subscribeFromFirestore = async (
+export const subscribeToFirestore = async (
   firestore,
   firestoreObservers,
   topic: string,
   callback: (err: string | null, content?: Content, reqId?: string) => void
 ) => {
-  console.debug('[debug] subscribeFromFirestore topic:', topic)
+  console.debug('[debug] subscribeToFirestore topic:', topic)
   let firstFlg = true
   const ref = firestore.collection('things').doc(encodeURIComponent(topic))
   let reqId
   const observer = ref.onSnapshot(
     (doc) => {
       const data = doc.data()
-      // reqIdが含まれており、TopicにactionResultsが含まれている場合、戻り値であるため最初の取得かどうかによらず値を返す
+      // If reqId is included and Topic contains actionResults,
+      // return the value regardless of whether it is the first acquisition because it is a return value.
       let dividedTopic = topic.split('/')
       if (data && data.reqId) {
         reqId = data.reqId
@@ -174,7 +174,7 @@ export const subscribeFromFirestore = async (
           return
         }
         content = {
-          type: null, // tdのデータタイプをセットすると動作しないためnullにする
+          type: null, // If you set the data type to td, it won't work, so set it to null.
           body:
             obj && obj.body && obj.body.type === 'Buffer'
               ? Buffer.from(obj.body.data)
@@ -195,11 +195,10 @@ export const subscribeFromFirestore = async (
     }
   )
   firestoreObservers[topic] = observer
-  //  firstFlgForSubscribe[topic] = true
 }
 
-export const unsubscribeFromFirestore = (firestoreObservers, topic: string) => {
-  console.debug('    unsubscribeFromFirestore topic:', topic)
+export const unsubscribeToFirestore = (firestoreObservers, topic: string) => {
+  console.debug('    unsubscribeToFirestore topic:', topic)
   const observer = firestoreObservers[topic]
   if (observer) {
     observer()
@@ -273,8 +272,8 @@ export const readMetaDataFromFirestore = (
   })
 }
 
-// Firestoreからホスト名に対応するMetaDataを削除する。
-// 現状は誰も利用していない。
+// Remove the MetaData corresponding to the hostname from Firestore.
+// Currently, no one is using it.
 export const removeMetaDataFromFirestore = (
   firestore,
   hostName: string

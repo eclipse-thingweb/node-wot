@@ -11,8 +11,8 @@ import {
   initFirestore,
   writeDataToFirestore,
   readDataFromFirestore,
-  subscribeFromFirestore,
-  unsubscribeFromFirestore
+  subscribeToFirestore,
+  unsubscribeToFirestore
 } from './wotfirestore-handler'
 import * as TD from '@node-wot/td-tools'
 
@@ -100,7 +100,7 @@ export default class WoTFirestoreClient implements ProtocolClient {
   ): Promise<Content> {
     const firestore = await initFirestore(this.fbConfig, this.firestore)
     this.firestore = firestore
-    // Firestoreの該当箇所にActionの内容を記述する
+    // Input the content of the Action in the corresponding section of Firestore.
     const pointerInfo = this.makePointerInfo(form)
     // subscrbe for results
     const actionResultTopic =
@@ -112,7 +112,7 @@ export default class WoTFirestoreClient implements ProtocolClient {
     const reqId = uuidv4()
     let timeoutId
     const retContent: Content = await new Promise((resolve, reject) => {
-      subscribeFromFirestore(
+      subscribeToFirestore(
         this.firestore,
         this.firestoreObservers,
         actionResultTopic,
@@ -120,10 +120,10 @@ export default class WoTFirestoreClient implements ProtocolClient {
           console.debug('[debug] return action and unsubscribe')
           console.debug(`[debug] reqId ${reqId}, resId ${resId}`)
           if (reqId !== resId) {
-            // reqIdが一致しないため無視
+            // Ignored because reqId and resId do not match
             return
           }
-          unsubscribeFromFirestore(this.firestoreObservers, actionResultTopic)
+          unsubscribeToFirestore(this.firestoreObservers, actionResultTopic)
           clearTimeout(timeoutId)
           if (err) {
             console.error('[error] failed to get action result:', err)
@@ -134,15 +134,15 @@ export default class WoTFirestoreClient implements ProtocolClient {
         }
       )
       timeoutId = setTimeout(() => {
-        unsubscribeFromFirestore(this.firestoreObservers, actionResultTopic)
+        unsubscribeToFirestore(this.firestoreObservers, actionResultTopic)
         reject(new Error(`timeout error topic: ${pointerInfo.topic}`))
-      }, 10 * 1000) // timeout判定
+      }, 10 * 1000) // timeout judgment
       // if not input was provided, set up an own body otherwise take input as body
       if (content !== undefined) {
-        // アクション実行(結果は上記のCallbackに返る)
+        // Execute the action (the result will be returned to the above Callback)
         writeDataToFirestore(this.firestore, pointerInfo.topic, content, reqId)
       } else {
-        // アクション実行(結果は上記のCallbackに返る)
+        // Execute the action (the result will be returned to the above Callback)
         writeDataToFirestore(
           this.firestore,
           pointerInfo.topic,
@@ -161,7 +161,7 @@ export default class WoTFirestoreClient implements ProtocolClient {
     const firestore = await initFirestore(this.fbConfig, this.firestore)
     this.firestore = firestore
     const pointerInfo = this.makePointerInfo(form)
-    unsubscribeFromFirestore(this.firestoreObservers, pointerInfo.topic)
+    unsubscribeToFirestore(this.firestoreObservers, pointerInfo.topic)
   }
 
   public subscribeResource(
@@ -175,7 +175,7 @@ export default class WoTFirestoreClient implements ProtocolClient {
     initFirestore(this.fbConfig, this.firestore)
       .then((firestore) => {
         this.firestore = firestore
-        subscribeFromFirestore(
+        subscribeToFirestore(
           this.firestore,
           this.firestoreObservers,
           pointerInfo.topic,
@@ -207,8 +207,8 @@ export default class WoTFirestoreClient implements ProtocolClient {
     metadata: Array<TD.SecurityScheme>,
     credentials?: any
   ): boolean {
-    // Firestoreにより通信路のセキュリティは確保
-    // 今後Thing毎にセキュリティ設定できるように対応予定
+    // Firestore provides security for the communication channel
+    // Should we be able to set security on a per-Thing basis in the future?
     return true
   }
 }

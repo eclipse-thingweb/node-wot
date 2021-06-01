@@ -21,8 +21,8 @@ import {
   initFirestore,
   writeDataToFirestore,
   readDataFromFirestore,
-  subscribeFromFirestore,
-  unsubscribeFromFirestore,
+  subscribeToFirestore,
+  unsubscribeToFirestore,
   readMetaDataFromFirestore,
   writeMetaDataToFirestore
 } from './wotfirestore-handler'
@@ -208,7 +208,7 @@ export default class WoTFirestoreServer implements ProtocolServer {
         )
       }
       if (thing.properties[propertyName].readOnly === false) {
-        subscribeFromFirestore(
+        subscribeToFirestore(
           this.firestore,
           this.firestoreObservers,
           propertyReceiveTopic,
@@ -248,7 +248,7 @@ export default class WoTFirestoreServer implements ProtocolServer {
         encodeURIComponent(name) +
         '/actions/' +
         encodeURIComponent(actionName)
-      // 結果書き込み用のトピックを作る
+      // Create a topic for writing results.
       let actionResultTopic =
         this.getHostName() +
         '/' +
@@ -256,7 +256,7 @@ export default class WoTFirestoreServer implements ProtocolServer {
         '/actionResults/' +
         encodeURIComponent(actionName)
 
-      subscribeFromFirestore(
+      subscribeToFirestore(
         this.firestore,
         this.firestoreObservers,
         topic,
@@ -292,7 +292,7 @@ export default class WoTFirestoreServer implements ProtocolServer {
               console.warn(
                 `[warn] WoTFirestoreServer at ${this.getHostName()} cannot return output '${actionName}'`
               )
-              // TODO: Actionの結果であるoutputの型をどのように求めるか？
+              // TODO: How do we find the type of output that is the result of Action?
               if (!output) {
                 output = ''
               }
@@ -380,7 +380,7 @@ export default class WoTFirestoreServer implements ProtocolServer {
       )
     }
 
-    // TDの登録
+    // Registration of TD
     let tdContent: Content = ContentSerdes.get().valueToContent(
       JSON.stringify(thing.getThingDescription()),
       null,

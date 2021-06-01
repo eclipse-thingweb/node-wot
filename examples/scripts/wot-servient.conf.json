@@ -28,18 +28,6 @@
 			"priority": 10
 		}
 	},
-    "wotfirestore": {
-        "hostName": "",
-        "firebaseConfig": {
-            "apiKey": "",
-            "projectId": "",
-            "authDomain": ""
-        },
-        "user": {
-            "email": "",
-            "password": ""
-        }
-    },
     "log": {
         "level": "info"
     },
