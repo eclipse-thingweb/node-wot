@@ -59,7 +59,8 @@ export default class OctetstreamCodec implements ContentCodec {
             throw new Error("Lengths do not match, required: " + parameters.length + " provided: " + bytes.length);
         }
 
-        let dataType = schema.type;
+        let dataType = undefined;
+        let dataLength = bytes.length;
 
         // check @type property for further information
         if(schema['@type'] !== undefined) {
@@ -74,8 +75,19 @@ export default class OctetstreamCodec implements ContentCodec {
             if(typeSem) {
                 // check for sign semantic type
                 signed = typeSem.toLowerCase().indexOf('unsigned') === -1;
-                let numberSem = /(short|int|long|float|double|byte)/.exec(typeSem.toLowerCase())[1];
-                dataType = numberSem === "int" || numberSem === "short" || numberSem === "byte" ? "integer" : "number";
+                dataType = /(short|int|long|float|double|byte)/.exec(typeSem.toLowerCase())[1];
+            }
+        }
+
+        // Check type specification 
+        // according paragraph 3.3.3 of https://datatracker.ietf.org/doc/rfc8927/
+        if(dataType === undefined) {
+            const schemaType : string = schema.type;
+            let typeSem = /(u)?(int|float)(8|16|32|64)?/.exec(schemaType.toLowerCase());
+            if(typeSem) {
+                signed = typeSem[1] !== undefined;
+                dataType = typeSem[2];
+                dataLength = +typeSem[3] ?? bytes.length;
             }
         }
 
@@ -85,8 +97,11 @@ export default class OctetstreamCodec implements ContentCodec {
                 // true if any byte is non-zero
                 return !bytes.every((val) => val == 0);
 
+            case "byte":
+            case "short":
+            case "int":
             case "integer":
-                switch (bytes.length) {
+                switch (dataLength) {
                     case 1:
                         return signed ? bytes.readInt8(0) : bytes.readUInt8(0);
 
@@ -107,11 +122,11 @@ export default class OctetstreamCodec implements ContentCodec {
                             negative = bytes.readInt8(0) < 0;
                         } else {
                             result = bytes.reduceRight((prev, curr, ix, arr) => prev << 8 + curr);
-                            negative = bytes.readInt8(bytes.length - 1) < 0;
+                            negative = bytes.readInt8(dataLength - 1) < 0;
                         }
 
                         if (signed && negative) {
-                            result -= 1 << (8 * bytes.length);
+                            result -= 1 << (8 * dataLength);
                         }
 
                         // warn about numbers being too big to be represented as safe integers
@@ -122,8 +137,10 @@ export default class OctetstreamCodec implements ContentCodec {
                         return result;
                 }
 
+            case "float":
+            case "double":
             case "number":
-                switch (bytes.length) {
+                switch (dataLength) {
                     case 4:
                         return bigendian ? bytes.readFloatBE(0) : bytes.readFloatLE(0);
 
@@ -131,7 +148,7 @@ export default class OctetstreamCodec implements ContentCodec {
                         return bigendian ? bytes.readDoubleBE(0) : bytes.readDoubleLE(0);
 
                     default:
-                        throw new Error("Wrong buffer length for type 'number', must be 4 or 8, is " + bytes.length);
+                        throw new Error("Wrong buffer length for type 'number', must be 4 or 8, is " + dataLength);
                 }
 
             case "string":
