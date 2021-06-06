@@ -46,12 +46,6 @@ let checkStreamToValue = (value: any, match : any, type? : any, semanticType? : 
     ).to.deep.equal(match);
 }
 
-let checkJsToStream = (value: any): void => {
-    let jsonContent = ContentSerdes.valueToContent(value, { type: "integer", properties: {} })
-    let reparsed = JSON.parse(jsonContent.body.toString());
-    expect(reparsed).to.deep.equal(value);
-}
-
 /** Hodor will always return the String "Hodor" */
 class HodorCodec implements ContentCodec {
     getMediaType(): string { return "text/hodor"; }
@@ -63,7 +57,9 @@ class HodorCodec implements ContentCodec {
 class SerdesOctetTests {
 
     @test "OctetStream to value"() {
-        checkStreamToValue([ 0x30, 0x36 ], 12342, "integer")
+        checkStreamToValue([ 0x30, 0x36 ], 13872, "int16", ["xsd:littleEndian"])
+        checkStreamToValue([ 0x49, 0x91, 0xA1, 0xC2 ], 1234280898, "int32")
+        checkStreamToValue([ 0x3D, 0xD6, 0xEA, 0xFC ], 0.10494038462638855, "float32", ["xsd:bigEndian"])
         checkStreamToValue([ 0x49, 0x25 ], 18725, "integer", ["xsd:unsignedInt", "xsd:bigEndian"])
         checkStreamToValue([ 0x49, 0x25 ], 18725, "number", ["xsd:unsignedInt", "xsd:bigEndian"])
         checkStreamToValue([ 0x78, 0xA4 ], -23432, "number", ["xsd:int", "xsd:littleEndian"])

@@ -83,11 +83,14 @@ export default class OctetstreamCodec implements ContentCodec {
         // according paragraph 3.3.3 of https://datatracker.ietf.org/doc/rfc8927/
         if(dataType === undefined) {
             const schemaType : string = schema.type;
-            let typeSem = /(u)?(int|float)(8|16|32|64)?/.exec(schemaType.toLowerCase());
-            if(typeSem) {
-                signed = typeSem[1] !== undefined;
-                dataType = typeSem[2];
-                dataLength = +typeSem[3] ?? bytes.length;
+            // Parse type property only if this test passes
+            if(/(short|(u)?int(8|16|32)?|float(32|64)?|byte)/.test(schemaType.toLowerCase())) {
+                let typeSem = /(u)?(short|int|float|byte)(8|16|32|64)?/.exec(schemaType.toLowerCase());
+                if(typeSem) {
+                    signed = typeSem[1] !== undefined;
+                    dataType = typeSem[2];
+                    dataLength = +typeSem[3] / 8 ?? bytes.length;
+                }
             }
         }
 
