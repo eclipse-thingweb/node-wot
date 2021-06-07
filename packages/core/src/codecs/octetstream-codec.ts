@@ -59,38 +59,18 @@ export default class OctetstreamCodec implements ContentCodec {
             throw new Error("Lengths do not match, required: " + parameters.length + " provided: " + bytes.length);
         }
 
-        let dataType = undefined;
         let dataLength = bytes.length;
-
-        // check @type property for further information
-        if(schema['@type'] !== undefined) {
-            let semTypes: Array<string> = schema["@type"];
-            // check for endianness semantic type
-            // see http://www.meta-share.org/ontologies/meta-share/meta-share-ontology.owl/documentation/index-en.html
-            let endianSem = semTypes.find(v => v.endsWith(":bigEndian") || v.endsWith(':littleEndian'));
-            bigendian = endianSem === undefined ? bigendian : endianSem.endsWith(":bigEndian");
-            // check for numeric datatype semantic
-            // see https://www.w3.org/TR/xmlschema-2/
-            let typeSem = semTypes.find(v => /:(unsigned)?(short|int|long|float|double|byte)/.test(v.toLowerCase()));
-            if(typeSem) {
-                // check for sign semantic type
-                signed = typeSem.toLowerCase().indexOf('unsigned') === -1;
-                dataType = /(short|int|long|float|double|byte)/.exec(typeSem.toLowerCase())[1];
-            }
-        }
+        let dataType : string = schema.type;
 
         // Check type specification 
         // according paragraph 3.3.3 of https://datatracker.ietf.org/doc/rfc8927/
-        if(dataType === undefined) {
-            const schemaType : string = schema.type;
-            // Parse type property only if this test passes
-            if(/(short|(u)?int(8|16|32)?|float(32|64)?|byte)/.test(schemaType.toLowerCase())) {
-                let typeSem = /(u)?(short|int|float|byte)(8|16|32|64)?/.exec(schemaType.toLowerCase());
-                if(typeSem) {
-                    signed = typeSem[1] !== undefined;
-                    dataType = typeSem[2];
-                    dataLength = +typeSem[3] / 8 ?? bytes.length;
-                }
+        // Parse type property only if this test passes
+        if(/(short|(u)?int(8|16|32)?|float(32|64)?|byte)/.test(dataType.toLowerCase())) {
+            let typeSem = /(u)?(short|int|float|byte)(8|16|32|64)?/.exec(dataType.toLowerCase());
+            if(typeSem) {
+                signed = typeSem[1] !== undefined;
+                dataType = typeSem[2];
+                dataLength = +typeSem[3] / 8 ?? bytes.length;
             }
         }
 
