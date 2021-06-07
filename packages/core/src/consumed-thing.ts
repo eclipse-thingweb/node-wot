@@ -231,25 +231,23 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         });
     }
 
-    _readProperties(propertyNames: string[]): Promise<WoT.PropertyMap> {
-        return new Promise<WoT.PropertyMap>((resolve, reject) => {
+    _readProperties(propertyNames: string[]): Promise<WoT.PropertyReadMap> {
+        return new Promise<WoT.PropertyReadMap>((resolve, reject) => {
             // collect all single promises into array
             var promises: Promise<any>[] = [];
             for (let propertyName of propertyNames) {
                 promises.push(this.readProperty(propertyName));
             }
             // wait for all promises to succeed and create response
+            const output = new Map<string,WoT.InteractionOutput>();
             Promise.all(promises)
                 .then((result) => {
-                    let allProps: {
-                        [key: string]: any;
-                    } = {};
                     let index = 0;
                     for (let propertyName of propertyNames) {
-                        allProps[propertyName] = result[index];
+                        output.set(propertyName, result[index]);
                         index++;
                     }
-                    resolve(allProps);
+                    resolve(output);
                 })
                 .catch(err => {
                     reject(new Error(`ConsumedThing '${this.title}', failed to read properties: ` + propertyNames));
@@ -257,7 +255,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         });
     }
 
-    readAllProperties(options?: WoT.InteractionOptions): Promise<WoT.PropertyMap> {
+    readAllProperties(options?: WoT.InteractionOptions): Promise<WoT.PropertyReadMap> {
         let propertyNames: string[] = [];
         for (let propertyName in this.properties) {
             // collect attributes that are "readable" only
@@ -269,7 +267,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         }
         return this._readProperties(propertyNames);
     }
-    readMultipleProperties(propertyNames: string[], options?: WoT.InteractionOptions): Promise<WoT.PropertyMap> {
+    readMultipleProperties(propertyNames: string[], options?: WoT.InteractionOptions): Promise<WoT.PropertyReadMap> {
         return this._readProperties(propertyNames);
     }
 
@@ -301,7 +299,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
             }
         });
     }
-    writeMultipleProperties(valueMap: WoT.PropertyMap, options?: WoT.InteractionOptions): Promise<void> {
+    writeMultipleProperties(valueMap: WoT.PropertyWriteMap, options?: WoT.InteractionOptions): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             // collect all single promises into array
             var promises: Promise<any>[] = [];

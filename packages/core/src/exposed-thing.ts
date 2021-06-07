@@ -54,7 +54,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     private getServient: () => Servient;
     private getSubjectTD: () => Subject<any>;
 
-    constructor(servient: Servient, thingModel: TD.ThingModel = {}) {
+    constructor(servient: Servient, thingModel: WoT.ExposedThingInit = {}) {
         super();
 
         this.getServient = () => { return servient; };
@@ -230,25 +230,23 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     }
 
 
-    _readProperties(propertyNames: string[], options?: WoT.InteractionOptions): Promise<WoT.PropertyMap> {
-        return new Promise<object>((resolve, reject) => {
+    _readProperties(propertyNames: string[], options?: WoT.InteractionOptions): Promise<WoT.PropertyReadMap> {
+        return new Promise<WoT.PropertyReadMap>((resolve, reject) => {
             // collect all single promises into array
             var promises: Promise<any>[] = [];
             for (let propertyName of propertyNames) {
                 promises.push(this.readProperty(propertyName, options));
             }
             // wait for all promises to succeed and create response
+            const output = new Map<string, WoT.InteractionOutput>();
             Promise.all(promises)
                 .then((result) => {
-                    let allProps: {
-                        [key: string]: any;
-                    } = {};
                     let index = 0;
                     for (let propertyName of propertyNames) {
-                        allProps[propertyName] = result[index];
+                        output.set(propertyName, result[index]);
                         index++;
                     }
-                    resolve(allProps);
+                    resolve(output);
                 })
                 .catch(err => {
                     reject(new Error(`ExposedThing '${this.title}', failed to read properties ` + propertyNames));
@@ -256,14 +254,14 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         });
     }
 
-    readAllProperties(options?: WoT.InteractionOptions): Promise<WoT.PropertyMap> {
+    readAllProperties(options?: WoT.InteractionOptions): Promise<WoT.PropertyReadMap> {
         let propertyNames: string[] = [];
         for (let propertyName in this.properties) {
             propertyNames.push(propertyName);
         }
         return this._readProperties(propertyNames, options);
     }
-    readMultipleProperties(propertyNames: string[], options?: WoT.InteractionOptions): Promise<WoT.PropertyMap> {
+    readMultipleProperties(propertyNames: string[], options?: WoT.InteractionOptions): Promise<WoT.PropertyReadMap> {
         return this._readProperties(propertyNames, options);
     }
 
@@ -336,7 +334,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             }
         });
     }
-    writeMultipleProperties(valueMap: WoT.PropertyMap, options?: WoT.InteractionOptions): Promise<void> {
+    writeMultipleProperties(valueMap: WoT.PropertyWriteMap, options?: WoT.InteractionOptions): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             // collect all single promises into array
             var promises: Promise<void>[] = [];
