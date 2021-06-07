@@ -37,7 +37,7 @@ WoT.produce({
 		return new Promise<any>((resolve, reject) => {
 			console.log("Resetting counter");
 			counter = 0;
-			resolve();
+			resolve(undefined);
 		});
 	});
 

@@ -13,13 +13,12 @@
   ],
   "main": "dist/wot-bundle.min.js",
   "devDependencies": {
-    "@node-wot/core": "0.8.0",
     "@node-wot/binding-http": "0.8.0",
     "@node-wot/binding-websockets": "0.8.0",
+    "@node-wot/core": "0.8.0",
     "browserify": "16.5.0",
-    "tinyify": "2.5.2"
-  },
-  "dependencies": {
+    "tinyify": "2.5.2",
+    "wot-typescript-definitions": "^0.8.0-SNAPSHOT.14"
   },
   "scripts": {
     "build": "browserify -r vm:vm2 index.js --plugin tinyify --external coffee-script -o dist/wot-bundle.min.js"

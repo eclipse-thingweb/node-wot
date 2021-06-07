@@ -38,7 +38,7 @@ try {
         console.info("Resetting");
         counter = 0;
         return new Promise((resolve, reject) => {
-          resolve();
+          resolve(undefined);
         });
       });
     });

@@ -14,6 +14,7 @@
  ********************************************************************************/
 
 import { Helpers } from "@node-wot/core";
+import { ThingDescription } from "wot-typescript-definitions";
 let WoTHelpers: Helpers;
 
 WoTHelpers.fetch("http://localhost:8080/eventsource").then( async (td) => {

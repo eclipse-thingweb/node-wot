@@ -1,4 +1,5 @@
 import { Helpers } from "@node-wot/core";
+import { ThingDescription } from "wot-typescript-definitions";
 
 let WoTHelpers: Helpers;
 
@@ -19,7 +20,7 @@ let fetchArray = [
   WoTHelpers.fetch("file://./tdS111.jsonld"),
   WoTHelpers.fetch("file://./tdS112.jsonld") ];
 
-Promise.all(fetchArray).then(async (tdArray) => {
+Promise.all(fetchArray).then(async (tdArray: ThingDescription[]) => {
   // order must match order of jsonld files
   let [tdPumpP101, tdValveV102, tdUltrasonicSensorB101, tdB114, tdB113, tdS111, tdS112] = tdArray;
 

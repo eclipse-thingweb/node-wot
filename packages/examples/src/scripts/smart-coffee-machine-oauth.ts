@@ -28,9 +28,10 @@ A complementary tutorial is available at http://www.thingweb.io/smart-coffee-mac
         'https://www.w3.org/2019/wot/td/v1',
     ],
     securityDefinitions: {
+        //@ts-ignore see https://github.com/w3c/wot-thing-description/issues/1162
         oauth2_sc: {
             scheme: 'oauth2',
-            flow: 'client_credentials',
+            flow: 'client_credential',
             token: 'https://127.0.0.1:3000/token',
             scopes: [
                 'limited',

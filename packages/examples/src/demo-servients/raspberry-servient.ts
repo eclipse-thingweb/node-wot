@@ -73,7 +73,7 @@ function main() {
 
     try {
 
-      let template: WoT.ThingDescription = { name: "Unicorn" };
+      let template: WoT.ExposedThingInit = { name: "Unicorn" };
 
       myWoT.produce(template)
         .then((thing) => {
