@@ -20,7 +20,7 @@ import { ReadableStream } from 'web-streams-polyfill/ponyfill/es2018';
 export default class ProtocolHelpers {
 
   // set contentType (extend with more?)
-  public static updatePropertyFormWithTemplate(form: TD.Form, tdTemplate: WoT.ThingDescription, propertyName: string) {
+  public static updatePropertyFormWithTemplate(form: TD.Form, tdTemplate: WoT.ExposedThingInit, propertyName: string) {
     if (form && tdTemplate && tdTemplate.properties && tdTemplate.properties[propertyName] && tdTemplate.properties[propertyName].forms) {
       for (let formTemplate of tdTemplate.properties[propertyName].forms) {
         // 1. Try to find match with correct href scheme
@@ -37,7 +37,7 @@ export default class ProtocolHelpers {
     }
   }
 
-  public static updateActionFormWithTemplate(form: TD.Form, tdTemplate: WoT.ThingDescription, actionName: string) {
+  public static updateActionFormWithTemplate(form: TD.Form, tdTemplate: WoT.ExposedThingInit, actionName: string) {
     if (form && tdTemplate && tdTemplate.actions && tdTemplate.actions[actionName] && tdTemplate.actions[actionName].forms) {
       for (let formTemplate of tdTemplate.actions[actionName].forms) {
         // 1. Try to find match with correct href scheme
@@ -54,7 +54,7 @@ export default class ProtocolHelpers {
     }
   }
 
-  public static updateEventFormWithTemplate(form: TD.Form, tdTemplate: WoT.ThingDescription, eventName: string) {
+  public static updateEventFormWithTemplate(form: TD.Form, tdTemplate: WoT.ExposedThingInit, eventName: string) {
     if (form && tdTemplate && tdTemplate.events && tdTemplate.events[eventName] && tdTemplate.events[eventName].forms) {
       for (let formTemplate of tdTemplate.events[eventName].forms) {
         // 1. Try to find match with correct href scheme
