@@ -244,7 +244,7 @@ class WoTClientTest {
         const value = await result.value()
         expect(value.toString()).to.equal("42");
     }
-    @test.skip async "read all properties"() {
+    @test async "read all properties"() {
         // let the client return 42
         WoTClientTest.clientFactory.setTrap(
             () => {
@@ -258,14 +258,14 @@ class WoTClientTest {
         expect(thing.getThingDescription()).to.have.property("properties");
         expect(thing.getThingDescription()).to.have.property("properties").to.have.property("aProperty");
 
-        const result:any = await thing.readAllProperties();
+        const result:WoT.PropertyReadMap = await thing.readAllProperties();
         expect(result).not.to.be.null;
-        // TODO to be fixed
-        // expect(result).to.have.property("aProperty");
-        // expect(result).to.have.not.property("aPropertyToObserve");
+        expect(result.get("aProperty")).not.to.be.null;
+        expect(result.get("aPropertyToObserve")).to.be.undefined;
 
-        // const value = await result.aProperty.value();
-        // expect(value).to.equal(42)
+        let io:WoT.InteractionOutput = result.get("aProperty");
+        const value = await io.value();
+        expect(value).to.equal(42)
     }
 
     @test async "write a Property"() {
