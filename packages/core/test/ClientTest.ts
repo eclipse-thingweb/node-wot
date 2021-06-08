@@ -258,12 +258,13 @@ class WoTClientTest {
         expect(thing.getThingDescription()).to.have.property("properties");
         expect(thing.getThingDescription()).to.have.property("properties").to.have.property("aProperty");
 
-        const result:any = await thing.readAllProperties();
+        const result:WoT.PropertyReadMap = await thing.readAllProperties();
         expect(result).not.to.be.null;
-        expect(result).to.have.property("aProperty");
-        expect(result).to.have.not.property("aPropertyToObserve");
+        expect(result.get("aProperty")).not.to.be.null;
+        expect(result.get("aPropertyToObserve")).to.be.undefined;
 
-        const value = await result.aProperty.value();
+        let io:WoT.InteractionOutput = result.get("aProperty");
+        const value = await io.value();
         expect(value).to.equal(42)
     }
 
@@ -298,8 +299,8 @@ class WoTClientTest {
         expect(thing).to.have.property("title").that.equals("aThing");
         expect(thing).to.have.property("properties").that.has.property("aProperty");
         
-        let valueMap: { [key: string]: any } = {};
-        valueMap["aProperty"] = 66;
+        let valueMap: WoT.PropertyWriteMap = new Map<string, WoT.InteractionInput>();
+        valueMap.set("aProperty", 66);
         return thing.writeMultipleProperties(valueMap);
     }
 

@@ -146,7 +146,7 @@ class HttpServerTest {
         scheme:"bearer"
       }
     }
-    httpServer.expose(testThing,{});
+    httpServer.expose(testThing);
     await httpServer.stop()
 
     expect(testThing.securityDefinitions["bearer"]).not.to.be.undefined;
@@ -172,7 +172,7 @@ class HttpServerTest {
       }
     }
 
-    expect(() => { httpServer.expose(testThing, {});}).throw()
+    expect(() => { httpServer.expose(testThing);}).throw()
     await httpServer.stop();
 
   }
