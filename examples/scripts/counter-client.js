@@ -22,19 +22,19 @@ WoTHelpers.fetch("coap://localhost:5683/counter").then(async (td) => {
         console.info("==========");
         // read property #1
         let read1 = await thing.readProperty("count");
-        console.info("count value is", read1);
+        console.log("count value is", await read1.value());
         // increment property #1 (without step)
         await thing.invokeAction("increment");
         let inc1 = await thing.readProperty("count");
-        console.info("count value after increment #1 is", inc1);
+        console.info("count value after increment #1 is", await inc1.value());
         // increment property #2 (with step)
         await thing.invokeAction("increment", undefined, { uriVariables: { 'step': 3 } });
         let inc2 = await thing.readProperty("count");
-        console.info("count value after increment #2 (with step 3) is", inc2);
+        console.info("count value after increment #2 (with step 3) is", await inc2.value());
         // decrement property with formIndex == 2
         await thing.invokeAction("decrement", undefined, { formIndex: 2 });
         let dec1 = await thing.readProperty("count");
-        console.info("count value after decrement is", dec1);
+        console.info("count value after decrement is", await dec1.value());
     }
     catch (err) {
         console.error("Script error:", err);
