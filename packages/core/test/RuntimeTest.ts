@@ -32,14 +32,11 @@ import Servient from "../src/servient";
 class WoTRuntimeTest {
 
     static servient: Servient;
-// <<<<<<< HEAD
+    
     static WoT: typeof WoT;
 
-// =======
-//      static WoT: WoT.WoT;
      exit: (code?: number) => never;
-    
-// >>>>>>> master
+
     static before() {
         console.error = () => {}
         this.servient = new Servient();
