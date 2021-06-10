@@ -231,14 +231,15 @@ class WoTServerTest {
         expect(thing).to.have.property("properties").to.have.property("my number").to.have.property("readOnly").that.equals(false);
         expect(thing).to.have.property("properties").to.have.property("my number").to.have.property("observable").that.equals(false);
 
-        // XXX How to to check handlers properly with some type-safety?
+        // Check internals, how to to check handlers properly with *some* type-safety
         let expThing: any = thing;
         let propertyState = expThing.properties["my number"].getState();
         let ff = await propertyState.readHandler();
         expect(ff).to.equal(1);
     }
 
-    //TODO: Review server side tests since ExposedThing does not implement ConsumedThing anymore
+    // TODO: Review server side tests since ExposedThing does not implement ConsumedThing anymore
+    // TBD: Are the following tests still useful/sensible?
     /*
     @test async "should be able to add a property with default value XYZ"() {
         let thing = await WoTServerTest.WoT.produce({
