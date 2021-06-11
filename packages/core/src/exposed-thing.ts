@@ -68,6 +68,10 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         let clonedModel = JSON.parse(JSON.stringify(thingModel))
         Object.assign(this, clonedModel);
 
+        // unset "@type":"tm:ThingModel" (see https://github.com/eclipse/thingweb.node-wot/issues/426)
+        if (this["@type"] && this["@type"] === "tm:ThingModel") {
+            delete this["@type"];
+        }
         // set default language
         this.addDefaultLanguage(this);
         // extend interactions

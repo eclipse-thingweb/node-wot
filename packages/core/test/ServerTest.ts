@@ -238,6 +238,32 @@ class WoTServerTest {
         expect(ff).to.equal(1);
     }
 
+    @test async "should remove tmModel type"() {
+        let thing = await WoTServerTest.WoT.produce({
+            title: "The Machine",
+            "@type" : "tm:ThingModel",
+            properties: {
+                "number": {
+                    type: "number"
+                }
+            }
+        });
+        expect(thing).to.not.have.property("@type");
+    }
+
+    @test async "should not remove any other type than tmModel"() {
+        let thing = await WoTServerTest.WoT.produce({
+            title: "The Sensor",
+            "@type": "saref:TemperatureSensor",
+            properties: {
+                "number": {
+                    type: "number"
+                }
+            }
+        });
+        expect(thing).to.have.property("@type").that.equals("saref:TemperatureSensor");
+    }
+
     // TODO: Review server side tests since ExposedThing does not implement ConsumedThing anymore
     // TBD: Are the following tests still useful/sensible?
     /*
