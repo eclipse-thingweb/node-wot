@@ -67,7 +67,32 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         // without functions or methods
         let clonedModel = JSON.parse(JSON.stringify(thingModel))
         Object.assign(this, clonedModel);
+
+        // set default language
+        this.addDefaultLanguage(this);
+        // extend interactions
         this.extendInteractions();
+    }
+
+    // Note: copy from td-parser.ts
+    addDefaultLanguage(thing: any) {
+        // add @language : "en" if no @language set
+        if (Array.isArray(thing["@context"])) {
+            let arrayContext: Array<any> = thing["@context"];
+            let languageSet = false;
+            for (let arrayEntry of arrayContext) {
+                if (typeof arrayEntry == "object") {
+                    if (arrayEntry["@language"] !== undefined) {
+                        languageSet = true;
+                    }
+                }
+            }
+            if (!languageSet) {
+                arrayContext.push({
+                    "@language": TD.DEFAULT_CONTEXT_LANGUAGE
+                });
+            }
+        }
     }
 
     extendInteractions(): void {

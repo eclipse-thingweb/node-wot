@@ -53,41 +53,15 @@ export default class WoTImpl {
         });
     }
 
-    // Note: copy from td-parser.ts 
-    addDefaultLanguage(thing: any) {
-        // add @language : "en" if no @language set
-        if (Array.isArray(thing["@context"])) {
-            let arrayContext: Array<any> = thing["@context"];
-            let languageSet = false;
-            for (let arrayEntry of arrayContext) {
-                if (typeof arrayEntry == "object") {
-                    if (arrayEntry["@language"] !== undefined) {
-                        languageSet = true;
-                    }
-                }
-            }
-            if (!languageSet) {
-                arrayContext.push({
-                    "@language": TD.DEFAULT_CONTEXT_LANGUAGE
-                });
-            }
-        }
-    }
-
     /**
      * create a new Thing
      *
      * @param title title/identifier of the thing to be created
      */
-    produce(td: WoT.ExposedThingInit): Promise<WoT.ExposedThing> {
+    produce(init: WoT.ExposedThingInit): Promise<WoT.ExposedThing> {
         return new Promise<WoT.ExposedThing>((resolve, reject) => {
             try {
-                let newThing: ExposedThing;
-
-                // FIXME should be constrained version that omits instance-specific parts (but keeps "id")
-                let template = td;
-                this.addDefaultLanguage(template);
-                newThing =  new ExposedThing(this.srv,td);
+                let newThing = new ExposedThing(this.srv, init);
 
                 console.debug("[core/servient]",`WoTImpl producing new ExposedThing '${newThing.title}'`);
 
