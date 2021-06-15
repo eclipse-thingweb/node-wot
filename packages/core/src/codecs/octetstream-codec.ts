@@ -65,10 +65,10 @@ export default class OctetstreamCodec implements ContentCodec {
         // Check type specification 
         // according paragraph 3.3.3 of https://datatracker.ietf.org/doc/rfc8927/
         // Parse type property only if this test passes
-        if(/(short|(u)?int(8|16|32)?|float(32|64)?|byte)/.test(dataType.toLowerCase())) {
+        if(/(short|(u)?int(8|16|32)?$|float(32|64)?|byte)/.test(dataType.toLowerCase())) {
             let typeSem = /(u)?(short|int|float|byte)(8|16|32|64)?/.exec(dataType.toLowerCase());
             if(typeSem) {
-                signed = typeSem[1] !== undefined;
+                signed = typeSem[1] === undefined;
                 dataType = typeSem[2];
                 dataLength = +typeSem[3] / 8 ?? bytes.length;
             }
