@@ -293,14 +293,15 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                 } else {
                     console.debug("[core/consumed-thing]",`ConsumedThing '${this.title}' writing ${form.href} with '${value}'`);
 
+                    let content = ContentManager.valueToContent(value, <any>tp, form.contentType);
+
                     // uriVariables ?
                     form = this.handleUriVariables(form, options);
                     
-                    let body = value instanceof ReadableStream ? ProtocolHelpers.toNodeStream(value).read() : value;
-                    client.writeResource(form, { body: body, type: form.contentType }).then(() => {
+                    client.writeResource(form, content).then(() => {
                             resolve();
-                        })
-                        .catch(err => { reject(err); });
+                    })
+                    .catch(err => { reject(err); });
                 }
             }
         });
@@ -340,10 +341,9 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                     console.debug("[core/consumed-thing]", `ConsumedThing '${this.title}' invoking ${form.href}${parameter !== undefined ? " with '" + parameter + "'" : ""}`);
 
                     let input;
-
+                    
                     if (parameter !== undefined) {
-                        let body = parameter instanceof ReadableStream ? ProtocolHelpers.toNodeStream(parameter).read() : parameter;
-                        input = { body: body, type: form.contentType };
+                        input = ContentManager.valueToContent(parameter, <any>ta.input, form.contentType);
                     }
 
                     // uriVariables ?
