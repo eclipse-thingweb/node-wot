@@ -1,3 +1,4 @@
+import { InteractionOutput } from './../src/Interaction-output';
 /********************************************************************************
  * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
  * 
@@ -34,7 +35,7 @@ import { ContentSerdes } from "../src/content-serdes";
 import Helpers from "../src/helpers";
 import { Readable } from "stream";
 import { ProtocolHelpers } from "../src/core";
-
+import { ReadableStream } from 'web-streams-polyfill/ponyfill/es2018';
 class TDClient implements ProtocolClient {
 
     public readResource(form: Form): Promise<Content> {
@@ -192,7 +193,7 @@ let myThingDesc = {
     events: {
         anEvent: {
             data: {
-                type:"string"
+                type: "string"
             },
             forms: [
                 { "href": "testdata://host/athing/events/anevent", "mediaType": "application/json" }
@@ -207,7 +208,7 @@ class WoTClientTest {
     static servient: Servient;
     static clientFactory: TrapClientFactory;
     static WoT: typeof WoT;
-    static WoTHelpers : Helpers;
+    static WoTHelpers: Helpers;
 
     static before() {
         this.servient = new Servient();
@@ -251,14 +252,14 @@ class WoTClientTest {
                 return { type: "application/json", body: Readable.from(Buffer.from("42")) };
             }
         );
-        
+
         const td = await WoTClientTest.WoTHelpers.fetch("td://foo");
         const thing = await WoTClientTest.WoT.consume(td);
         expect(thing).to.have.property("title").that.equals("aThing");
         expect(thing.getThingDescription()).to.have.property("properties");
         expect(thing.getThingDescription()).to.have.property("properties").to.have.property("aProperty");
 
-        const result:any = await thing.readAllProperties();
+        const result: any = await thing.readAllProperties();
         expect(result).not.to.be.null;
         expect(result).to.have.property("aProperty");
         expect(result).to.have.not.property("aPropertyToObserve");
@@ -267,11 +268,11 @@ class WoTClientTest {
         expect(value).to.equal(42)
     }
 
-    @test async "write a Property"() {
+    @test async "write a Property with raw readable stream"() {
         //verify the value transmitted
         WoTClientTest.clientFactory.setTrap(
             async (form: Form, content: Content) => {
-                const buffer = await ProtocolHelpers.readStreamFully(content.body);
+                const buffer = await ProtocolHelpers.readStreamFully(Readable.from(content.body));
                 expect(buffer.toString()).to.equal("23");
             }
         )
@@ -280,13 +281,31 @@ class WoTClientTest {
 
         expect(thing).to.have.property("title").that.equals("aThing");
         expect(thing).to.have.property("properties").that.has.property("aProperty");
-        return thing.writeProperty("aProperty",23);
+
+        const stream = Readable.from(Buffer.from("23"));
+        return thing.writeProperty("aProperty", ProtocolHelpers.toWoTStream(stream));
+    }
+
+    @test async "write a Property with data schema value"() {
+        //verify the value transmitted
+        WoTClientTest.clientFactory.setTrap(
+            async (form: Form, content: Content) => {
+                expect(content.body).to.equal(58);
+            }
+        )
+        const td = await WoTClientTest.WoTHelpers.fetch("td://foo");
+        const thing = await WoTClientTest.WoT.consume(td);
+
+        expect(thing).to.have.property("title").that.equals("aThing");
+        expect(thing).to.have.property("properties").that.has.property("aProperty");
+
+        return thing.writeProperty("aProperty", 58);
     }
 
     @test async "write multiple property new api"() {
         //verify the value transmitted
         WoTClientTest.clientFactory.setTrap(
-            async(form: Form, content: Content) => {
+            async (form: Form, content: Content) => {
                 const buffer = await ProtocolHelpers.readStreamFully(content.body);
                 expect(buffer.toString()).to.equal("66");
             }
@@ -297,27 +316,28 @@ class WoTClientTest {
 
         expect(thing).to.have.property("title").that.equals("aThing");
         expect(thing).to.have.property("properties").that.has.property("aProperty");
-        
+
         let valueMap: { [key: string]: any } = {};
-        valueMap["aProperty"] = 66;
+        const stream = Readable.from(Buffer.from("66"));
+
+        valueMap["aProperty"] = stream;
         return thing.writeMultipleProperties(valueMap);
     }
 
     @test async "call an action"() {
         //an action
         WoTClientTest.clientFactory.setTrap(
-           async (form: Form, content: Content) => {
-                const buffer = await ProtocolHelpers.readStreamFully(content.body);
-                expect(buffer.toString()).to.equal("23");
+            async (form: Form, content: Content) => {
+                expect(content.body.toString()).to.equal("23");
                 return { type: "application/json", body: Readable.from(Buffer.from("42")) };
             }
         )
         const td = await WoTClientTest.WoTHelpers.fetch("td://foo");
         const thing = await WoTClientTest.WoT.consume(td);
-        
+
         expect(thing).to.have.property("title").that.equals("aThing");
         expect(thing).to.have.property("actions").that.has.property("anAction");
-        const result = await thing.invokeAction("anAction",23);
+        const result = await thing.invokeAction("anAction", 23);
         expect(result).not.to.be.null;
         const value = await result.value();
         expect(value).to.equal(42);
@@ -355,7 +375,7 @@ class WoTClientTest {
         const thing = await WoTClientTest.WoT.consume(td);
         expect(thing).to.have.property("title").that.equals("aThing");
         expect(thing).to.have.property("properties").that.has.property("aPropertyToObserve");
-        return new Promise( (resolve)=> {
+        return new Promise((resolve) => {
             thing.observeProperty("aPropertyToObserve",
                 async (data: any) => {
                     const value = await data.value();
@@ -382,7 +402,7 @@ class WoTClientTest {
                         done(new Error("property is not observable"))
                     }
                 )
-                .catch(err => { done() });
+                    .catch(err => { done() });
             })
             .catch(err => { done(err) });
     }
