@@ -272,8 +272,8 @@ class WoTClientTest {
         //verify the value transmitted
         WoTClientTest.clientFactory.setTrap(
             async (form: Form, content: Content) => {
-                const buffer = await ProtocolHelpers.readStreamFully(Readable.from(content.body));
-                expect(buffer.toString()).to.equal("23");
+                const stream = await ProtocolHelpers.toWoTStream(content.body).getReader().read();
+                expect(stream.value.toString()).to.equal("23");
             }
         )
         const td = await WoTClientTest.WoTHelpers.fetch("td://foo");
@@ -290,7 +290,8 @@ class WoTClientTest {
         //verify the value transmitted
         WoTClientTest.clientFactory.setTrap(
             async (form: Form, content: Content) => {
-                expect(content.body).to.equal(58);
+                const stream = await ProtocolHelpers.toWoTStream(content.body).getReader().read();
+                expect(stream.value.toString()).to.equal("58");
             }
         )
         const td = await WoTClientTest.WoTHelpers.fetch("td://foo");
@@ -306,8 +307,8 @@ class WoTClientTest {
         //verify the value transmitted
         WoTClientTest.clientFactory.setTrap(
             async (form: Form, content: Content) => {
-                const buffer = await ProtocolHelpers.readStreamFully(content.body);
-                expect(buffer.toString()).to.equal("66");
+                const stream = await ProtocolHelpers.toWoTStream(content.body).getReader().read();
+                expect(stream.value.toString()).to.equal("66");
             }
         )
 
@@ -320,7 +321,7 @@ class WoTClientTest {
         let valueMap: { [key: string]: any } = {};
         const stream = Readable.from(Buffer.from("66"));
 
-        valueMap["aProperty"] = stream;
+        valueMap["aProperty"] = ProtocolHelpers.toWoTStream(stream);
         return thing.writeMultipleProperties(valueMap);
     }
 
@@ -328,7 +329,8 @@ class WoTClientTest {
         //an action
         WoTClientTest.clientFactory.setTrap(
             async (form: Form, content: Content) => {
-                expect(content.body.toString()).to.equal("23");
+                const stream = await ProtocolHelpers.toWoTStream(content.body).getReader().read();
+                expect(stream.value.toString()).to.equal("23");
                 return { type: "application/json", body: Readable.from(Buffer.from("42")) };
             }
         )
