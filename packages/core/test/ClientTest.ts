@@ -272,8 +272,8 @@ class WoTClientTest {
         //verify the value transmitted
         WoTClientTest.clientFactory.setTrap(
             async (form: Form, content: Content) => {
-                const stream = await ProtocolHelpers.toWoTStream(content.body).getReader().read();
-                expect(stream.value.toString()).to.equal("23");
+                const valueData = await ProtocolHelpers.readStreamFully(content.body);
+                expect(valueData.toString()).to.equal("23");
             }
         )
         const td = await WoTClientTest.WoTHelpers.fetch("td://foo");
@@ -290,8 +290,8 @@ class WoTClientTest {
         //verify the value transmitted
         WoTClientTest.clientFactory.setTrap(
             async (form: Form, content: Content) => {
-                const stream = await ProtocolHelpers.toWoTStream(content.body).getReader().read();
-                expect(stream.value.toString()).to.equal("58");
+                const valueData = await ProtocolHelpers.readStreamFully(content.body);
+                expect(valueData.toString()).to.equal("58");
             }
         )
         const td = await WoTClientTest.WoTHelpers.fetch("td://foo");
@@ -307,8 +307,8 @@ class WoTClientTest {
         //verify the value transmitted
         WoTClientTest.clientFactory.setTrap(
             async(form: Form, content: Content) => {
-                const stream = await ProtocolHelpers.toWoTStream(content.body).getReader().read();
-                expect(stream.value.toString()).to.equal("66");
+                const valueData = await ProtocolHelpers.readStreamFully(content.body);
+                expect(valueData.toString()).to.equal("66");
             }
         )
 
