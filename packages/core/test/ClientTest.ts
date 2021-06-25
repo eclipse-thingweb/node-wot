@@ -193,7 +193,7 @@ let myThingDesc = {
     events: {
         anEvent: {
             data: {
-                type: "string"
+                type:"string"
             },
             forms: [
                 { "href": "testdata://host/athing/events/anevent", "mediaType": "application/json" }
@@ -208,7 +208,7 @@ class WoTClientTest {
     static servient: Servient;
     static clientFactory: TrapClientFactory;
     static WoT: typeof WoT;
-    static WoTHelpers: Helpers;
+    static WoTHelpers : Helpers;
 
     static before() {
         this.servient = new Servient();
@@ -259,7 +259,7 @@ class WoTClientTest {
         expect(thing.getThingDescription()).to.have.property("properties");
         expect(thing.getThingDescription()).to.have.property("properties").to.have.property("aProperty");
 
-        const result: any = await thing.readAllProperties();
+        const result:any = await thing.readAllProperties();
         expect(result).not.to.be.null;
         expect(result).to.have.property("aProperty");
         expect(result).to.have.not.property("aPropertyToObserve");
@@ -306,7 +306,7 @@ class WoTClientTest {
     @test async "write multiple property new api"() {
         //verify the value transmitted
         WoTClientTest.clientFactory.setTrap(
-            async (form: Form, content: Content) => {
+            async(form: Form, content: Content) => {
                 const stream = await ProtocolHelpers.toWoTStream(content.body).getReader().read();
                 expect(stream.value.toString()).to.equal("66");
             }
@@ -377,7 +377,7 @@ class WoTClientTest {
         const thing = await WoTClientTest.WoT.consume(td);
         expect(thing).to.have.property("title").that.equals("aThing");
         expect(thing).to.have.property("properties").that.has.property("aPropertyToObserve");
-        return new Promise((resolve) => {
+        return new Promise( (resolve)=> {
             thing.observeProperty("aPropertyToObserve",
                 async (data: any) => {
                     const value = await data.value();
@@ -404,7 +404,7 @@ class WoTClientTest {
                         done(new Error("property is not observable"))
                     }
                 )
-                    .catch(err => { done() });
+                .catch(err => { done() });
             })
             .catch(err => { done(err) });
     }
