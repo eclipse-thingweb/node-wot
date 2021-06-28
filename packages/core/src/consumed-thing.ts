@@ -1,4 +1,3 @@
-import { DataSchemaValue, InteractionInput } from 'wot-typescript-definitions';
 /********************************************************************************
  * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
  * 
@@ -29,6 +28,7 @@ import { Subscribable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
 import UriTemplate = require('uritemplate');
 import { InteractionOutput } from "./interaction-output";
+import { InteractionInput } from 'wot-typescript-definitions';
 
 enum Affordance {
     PropertyAffordance,

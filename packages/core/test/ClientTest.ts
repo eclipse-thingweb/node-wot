@@ -329,8 +329,8 @@ class WoTClientTest {
         //an action
         WoTClientTest.clientFactory.setTrap(
             async (form: Form, content: Content) => {
-                const stream = await ProtocolHelpers.toWoTStream(content.body).getReader().read();
-                expect(stream.value.toString()).to.equal("23");
+                const valueData = await ProtocolHelpers.readStreamFully(content.body);
+                expect(valueData.toString()).to.equal("23");
                 return { type: "application/json", body: Readable.from(Buffer.from("42")) };
             }
         )
