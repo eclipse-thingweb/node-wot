@@ -266,7 +266,8 @@ class WoTServerTest {
         expect(thing).to.have.property("@type").that.equals("saref:TemperatureSensor");
     } */
 
-    @test async "should not remove any other type than tmModel in array"() {
+    // see https://github.com/eclipse/thingweb.node-wot/issues/426
+    /* @test async "should not remove any other type than tmModel in array"() {
         let thing = await WoTServerTest.WoT.produce({
             title: "The Sensor",
             "@type": ["saref:TemperatureSensor", "tm:ThingModel"],
@@ -278,7 +279,7 @@ class WoTServerTest {
         });
         expect(thing).to.have.property("@type").that.contains("saref:TemperatureSensor");
         expect(thing).to.have.property("@type").that.not.contains("tm:ThingModel");
-    }
+    } */
 
     // TODO: Review server side tests since ExposedThing does not implement ConsumedThing anymore
     // TBD: Are the following tests still useful/sensible?
