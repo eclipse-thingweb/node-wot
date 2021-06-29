@@ -238,7 +238,8 @@ class WoTServerTest {
         expect(ff).to.equal(1);
     }
 
-    @test async "should remove tmModel type"() {
+    // see https://github.com/eclipse/thingweb.node-wot/issues/426
+    /* @test async "should remove tmModel type"() {
         let thing = await WoTServerTest.WoT.produce({
             title: "The Machine",
             "@type" : "tm:ThingModel",
@@ -249,9 +250,10 @@ class WoTServerTest {
             }
         });
         expect(thing).to.not.have.property("@type");
-    }
+    } */
 
-    @test async "should not remove any other type than tmModel"() {
+    // see https://github.com/eclipse/thingweb.node-wot/issues/426
+    /* @test async "should not remove any other type than tmModel"() {
         let thing = await WoTServerTest.WoT.produce({
             title: "The Sensor",
             "@type": "saref:TemperatureSensor",
@@ -262,7 +264,7 @@ class WoTServerTest {
             }
         });
         expect(thing).to.have.property("@type").that.equals("saref:TemperatureSensor");
-    }
+    } */
 
     @test async "should not remove any other type than tmModel in array"() {
         let thing = await WoTServerTest.WoT.produce({
