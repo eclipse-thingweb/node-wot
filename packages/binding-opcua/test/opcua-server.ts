@@ -65,6 +65,43 @@ export class OpcuaServer {
 			}
 		});
 
+		let str = '';
+
+		namespace.addVariable({
+			componentOf: device,
+			nodeId: "ns=1;s=Case_Lamp_Variable", // some opaque NodeId in namespace 4
+			browseName: "TestString",
+			dataType: "String",
+			value: {
+				get: function () {
+					return new Variant({ dataType: DataType.String, value: str });
+				},
+				set: function (variant: any) { //write property
+					str = variant.value;
+					return StatusCodes.Good;
+				}
+
+			}
+		});
+
+		namespace.addVariable({
+			componentOf: device,
+			nodeId: "ns=1;s=\"Case_Lamp_Variable\"", // some opaque NodeId in namespace 4
+			browseName: "TestString",
+			dataType: "String",
+			value: {
+				get: function () {
+					return new Variant({ dataType: DataType.String, value: str });
+				},
+				set: function (variant: any) { //write property
+					str = variant.value;
+					return StatusCodes.Good;
+				}
+
+			}
+		});
+
+
 
 		namespace.addVariable({
 			browseName: "RandomValue",
@@ -82,7 +119,7 @@ export class OpcuaServer {
 		});
 
 		const method = namespace.addMethod(device, { //invoke action
-			nodeId:"ns=1;s=method",
+			nodeId: "ns=1;s=method",
 			browseName: "DivideFunction",
 			inputArguments: [
 				{
