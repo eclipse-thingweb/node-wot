@@ -74,6 +74,29 @@ export default class WoTImpl {
         }
     }
 
+    validateThingDescription(td: any) {
+        if(td.required !== undefined) {
+            let reservedKeywords: Array<string> = [ 
+                "title", "@context", "instance", "forms", "security", "href"
+            ]
+            if (Array.isArray(td.required)) {
+                let reqProps: Array<string> =td.required;
+                td.required = reqProps.filter(n => !reservedKeywords.includes(n))
+            } else if (typeof td.required === "string") {
+                if(reservedKeywords.indexOf(td.required) !== -1)
+                    delete td.required
+            }
+        }
+
+        if(td.properties !== undefined){
+            for (let prop in td.properties) {  
+                this.validateThingDescription(td.properties[prop])
+            }
+        }
+
+        return td
+    }
+
     /**
      * create a new Thing
      *
@@ -86,7 +109,10 @@ export default class WoTImpl {
 
                 // FIXME should be constrained version that omits instance-specific parts (but keeps "id")
                 let template = td;
+
+                this.validateThingDescription(template);
                 this.addDefaultLanguage(template);
+
                 newThing =  new ExposedThing(this.srv,td);
 
                 console.debug("[core/servient]",`WoTImpl producing new ExposedThing '${newThing.title}'`);

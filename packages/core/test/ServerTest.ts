@@ -88,6 +88,28 @@ class WoTServerTest {
         expect(thing).to.have.property("properties");
         expect(thing).to.have.property("properties").to.have.property("myProp");
     }
+
+    @test async "validate thing description"() {
+        let thing = await WoTServerTest.WoT.produce({
+            title: "myFragmentThing",
+            support: "none",
+            properties: {
+                myProp: { 
+                    type: "object",
+                    properties: {
+                        myProp2: { }
+                    },
+                    required: [ "myProp2", "forms", "href" ]
+                }
+            },
+            required: "href"
+        });
+
+        expect(thing).to.exist;
+        expect(thing).not.to.have.property("required")
+        expect(thing).to.have.property("properties").to.have.property("myProp")
+            .to.have.property("required").that.eql(["myProp2"])
+    }
     //TODO: Review server side tests since ExposedThing does not implement ConsumedThing anymore
     /*
     @test async "should be able to add a Thing based on WoT.ThingDescription"() {
