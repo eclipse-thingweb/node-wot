@@ -321,7 +321,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
     }
 
 
-    public invokeAction(actionName: string, parameter?: InteractionInput, options?: WoT.InteractionOptions): Promise<InteractionOutput> {
+    public invokeAction(actionName: string, parameter?: InteractionInput, options?: WoT.InteractionOptions): Promise<WoT.InteractionOutput> {
         return new Promise<any>((resolve, reject) => {
             let ta: TD.ThingAction = this.actions[actionName];
             if (!ta) {
