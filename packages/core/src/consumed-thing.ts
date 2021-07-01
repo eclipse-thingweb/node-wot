@@ -28,6 +28,7 @@ import { Subscribable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
 import UriTemplate = require('uritemplate');
 import { InteractionOutput } from "./interaction-output";
+import { InteractionInput } from 'wot-typescript-definitions';
 
 enum Affordance {
     PropertyAffordance,
@@ -272,7 +273,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
     }
 
 
-    writeProperty(propertyName: string, value: any, options?: WoT.InteractionOptions): Promise<void> {
+    writeProperty(propertyName: string, value: WoT.InteractionInput, options?: WoT.InteractionOptions): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             // TODO pass expected form op to getClientFor()
             let tp: TD.ThingProperty = this.properties[propertyName];
@@ -286,15 +287,16 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                     reject(new Error(`ConsumedThing '${this.title}' did not get suitable form`));
                 } else {
                     console.debug("[core/consumed-thing]",`ConsumedThing '${this.title}' writing ${form.href} with '${value}'`);
+
                     let content = ContentManager.valueToContent(value, <any>tp, form.contentType);
 
                     // uriVariables ?
                     form = this.handleUriVariables(form, options);
-
+                    
                     client.writeResource(form, content).then(() => {
-                        resolve();
+                            resolve();
                     })
-                        .catch(err => { reject(err); });
+                    .catch(err => { reject(err); });
                 }
             }
         });
@@ -319,7 +321,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
     }
 
 
-    public invokeAction(actionName: string, parameter?: any, options?: WoT.InteractionOptions): Promise<any> {
+    public invokeAction(actionName: string, parameter?: InteractionInput, options?: WoT.InteractionOptions): Promise<InteractionOutput> {
         return new Promise<any>((resolve, reject) => {
             let ta: TD.ThingAction = this.actions[actionName];
             if (!ta) {
@@ -334,7 +336,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                     console.debug("[core/consumed-thing]",`ConsumedThing '${this.title}' invoking ${form.href}${parameter !== undefined ? " with '" + parameter + "'" : ""}`);
 
                     let input;
-
+                    
                     if (parameter !== undefined) {
                         input = ContentManager.valueToContent(parameter, <any>ta.input, form.contentType);
                     }
@@ -437,7 +439,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                     reject(new Error(`ConsumedThing '${this.title}' did not get suitable form`));
                 } else {
                     console.debug("[core/consumed-thing]",`ConsumedThing '${this.title}' subscribing to ${form.href}`);
-                    
+
                     // uriVariables ?
                     form = this.handleUriVariables(form, options);
 
@@ -494,7 +496,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
             let updForm = { ...form };
             updForm.href = updatedHref;
             form = updForm;
-            console.debug("[core/consumed-thing]",`ConsumedThing '${this.title}' update form URI to ${form.href}`);
+            console.debug("[core/consumed-thing]", `ConsumedThing '${this.title}' update form URI to ${form.href}`);
         }
 
         return form;
