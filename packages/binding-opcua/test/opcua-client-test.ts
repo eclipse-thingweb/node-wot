@@ -88,7 +88,7 @@ describe('OPCUA client test', function () {
 
 
     it("should write a property", async function () {
-        let value = 2;
+        let value = 1;
         let schema: any = {
             "opc:dataType": "Double",
             constructor: {
@@ -159,7 +159,7 @@ describe('OPCUA client test', function () {
     })
 
     it("should fail to write a property because of missing schema information", async function () {
-        let value = 2;
+        let value = 1;
         let schema: any = {
             "opc:wrongField": "Double",
             title: 'test',
