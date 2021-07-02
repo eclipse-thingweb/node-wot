@@ -128,7 +128,7 @@ export class ContentSerdes {
 
     // choose codec based on mediaType
     if (this.codecs.has(mt)) {
-      console.debug("[core/content-senders]",`ContentSerdes deserializing from ${content.type}`);
+      console.debug("[core/content-serdes]",`ContentSerdes deserializing from ${content.type}`);
 
       let codec = this.codecs.get(mt)
 
@@ -138,14 +138,14 @@ export class ContentSerdes {
       return res;
 
     } else {
-      console.warn("[core/content-senders]",`ContentSerdes passthrough due to unsupported media type '${mt}'`);
+      console.warn("[core/content-serdes]",`ContentSerdes passthrough due to unsupported media type '${mt}'`);
       return content.body.toString();
     }
   }
 
   public valueToContent(value: DataSchemaValue | ReadableStream, schema: DataSchema, contentType = ContentSerdes.DEFAULT): Content {
 
-    if (value === undefined) console.warn("[core/content-senders]","ContentSerdes valueToContent got no value");
+    if (value === undefined) console.warn("[core/content-serdes]","ContentSerdes valueToContent got no value");
 
     if(value instanceof ReadableStream){
       return { type: contentType, body: ProtocolHelpers.toNodeStream(value) }
@@ -159,11 +159,11 @@ export class ContentSerdes {
 
     // choose codec based on mediaType
     if (this.codecs.has(mt)) {
-      console.debug("[core/content-senders]",`ContentSerdes serializing to ${contentType}`);
+      console.debug("[core/content-serdes]",`ContentSerdes serializing to ${contentType}`);
       let codec = this.codecs.get(mt);
       bytes = codec.valueToBytes(value, schema, par);
     } else {
-      console.warn("[core/content-senders]",`ContentSerdes passthrough due to unsupported serialization format '${contentType}'`);
+      console.warn("[core/content-serdes]",`ContentSerdes passthrough due to unsupported serialization format '${contentType}'`);
       bytes = Buffer.from(value.toString());
     }
     // http server does not like Readable.from(bytes)

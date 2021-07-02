@@ -28,9 +28,10 @@ A complementary tutorial is available at http://www.thingweb.io/smart-coffee-mac
         'https://www.w3.org/2019/wot/td/v1',
     ],
     securityDefinitions: {
+        //@ts-ignore see https://github.com/w3c/wot-thing-description/issues/1162
         oauth2_sc: {
             scheme: 'oauth2',
-            flow: 'client_credentials',
+            flow: 'client_credential',
             token: 'https://127.0.0.1:3000/token',
             scopes: [
                 'limited',
@@ -224,6 +225,10 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
         },
     },
 }).then( (thing) => {
+    // TODO FIX after v0.8 API changes are in place
+    console.error("TODO FIX after v0.8 API changes are in place");
+
+    /*
     // Initialize the property values
     thing.writeProperty('allAvailableResources', {
         water: readFromSensor('water'),
@@ -262,8 +267,6 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
     // utilizing the uriVariables properly
     thing.setPropertyWriteHandler('availableResourceLevel', (val, options) => {
         return new Promise((resolve, reject) => {
-            return reject('TODO update code');
-            /*
             // Check if uriVariables are provided
             if (options && typeof options === 'object' && 'uriVariables' in options) {
                 const uriVariables: any = options['uriVariables'];
@@ -277,7 +280,6 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
                 }
             }
             return reject('Please specify id variable as uriVariables.');
-            */
         });
     });
 
@@ -285,8 +287,6 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
     // utilizing the uriVariables properly
     thing.setPropertyReadHandler('availableResourceLevel', (options) => {
         return new Promise((resolve, reject) => {
-            return reject('TODO update code');
-            /*
             // Check if uriVariables are provided
             if (options && typeof options === 'object' && 'uriVariables' in options) {
                 const uriVariables: any = options['uriVariables'];
@@ -298,7 +298,6 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
                 }
             }
             return reject('Please specify id variable as uriVariables.');
-            */
         });
     });
 
@@ -427,6 +426,7 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
     // Finally expose the thing
     thing.expose().then( () => { console.info(`${thing.getThingDescription().title} ready`); } ); 
     console.log(`Produced ${thing.getThingDescription().title}`);
+    */
 }).catch(e => {
     console.log(e);
 });

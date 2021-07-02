@@ -17,7 +17,6 @@
  * Protocol test suite to test protocol implementations
  */
 
-
 import { suite, test, slow, timeout, skip, only } from "mocha-typescript";
 import { expect, should, assert } from "chai";
 // should must be called to augment all variables
@@ -28,66 +27,74 @@ import { Servient, ExposedThing } from "@node-wot/core";
 import MqttBrokerServer from "../dist/mqtt-broker-server";
 import MqttClientFactory from "../dist/mqtt-client-factory";
 
-
-
-
-
 @suite("MQTT implementation")
 class MqttClientSubscribeTest {
 
-    @test.skip "should expose via broker"(done: Function) {
+    @test(timeout(10000)) "should expose via broker"(done: Function) {
 
         try {
-
             let servient = new Servient();
+            var brokerAddress = "test.mosquitto.org"
+            var brokerPort = 1883
+            var brokerUri = `mqtt://${brokerAddress}:${brokerPort}`
 
-            let brokerServer = new MqttBrokerServer("mqtt://test.mosquitto.org:1883");
+            let brokerServer = new MqttBrokerServer(brokerUri);
             servient.addServer(brokerServer);
-            
+
             servient.addClientFactory(new MqttClientFactory());
 
             var counter = 0;
 
-            servient.start().then( (WoT) => {
+            servient.start().then((WoT) => {
+                expect(brokerServer.getPort()).to.equal(brokerPort);
+                expect(brokerServer.getAddress()).to.equal(brokerAddress);
 
-                expect(brokerServer.getPort()).to.equal(1883);
-                expect(brokerServer.getAddress()).to.equal("test.mosquitto.org");
+                var eventNumber = Math.floor(Math.random() * 1000000); 
+                var eventName : string = "event" + eventNumber;
+                var events : {[key: string] : any} = {};
+                events[eventName] = { data: {type: "number"} };
 
-                WoT.produce({ title: "TestWoTMQTT" })
-                    .then((thing) => {
-                        if(thing instanceof ExposedThing) {
-                            let exposedThing : ExposedThing = thing;
-                            thing.addEvent("event1", { type: "number" });
+                WoT.produce({
+                    title: "TestWoTMQTT",
+                    events: events,
+                }).then((thing) => {
+                    thing.expose().then(() => {
+                        console.info(
+                            "Exposed",
+                            thing.getThingDescription().title
+                        );
 
-                            thing.expose();
-    
-                            console.info("Exposed", thing.title);
-    
-                            WoT.consume(thing.getTD())
-                                .then((client) => {
-                                    let check = 0;
-                                    client.subscribeEvent("event1",
-                                        (x) => {
-                                            expect(x).to.equal(++check);
-                                            if (check === 3) done();
-                                        }
-                                    )
-                                    .then(() => { })
-                                    .catch((e) => { expect(true).to.equal(false); });
-            
-                                    var job = setInterval(() => {
-                                        ++counter;
-                                        thing.events.event1.emit(counter); // sends data to the topic /TestWoTMQTT/events/event1
-            
-                                        if (counter === 3) clearInterval(job);
-                                    }, 100);
-                                });
-                        } else {
-                            throw("no ExposedThing");
-                        }
+                        WoT.consume(thing.getThingDescription()).then(
+                            (client) => {
+                                let check = 0;
+                                let sum = 0;
+                                client
+                                    .subscribeEvent(eventName, (x) => {
+                                        x.value().then( val => {
+                                            ++check;
+                                            sum+=val as number;
+                                            if (check === 3) {
+                                                expect(sum).to.be.equals(6);
+                                                done();
+                                            }
+                                        })
+                                    })
+                                    .catch((e) => {
+                                        done(e)
+                                    });
+
+                                var job = setInterval(() => {
+                                    ++counter;
+                                    thing.emitEvent(eventName, counter);
+                                    if (counter === 3) {
+                                        clearInterval(job);
+                                    }
+                                }, 1000);
+                            }
+                        );
                     });
+                });
             });
-
         } catch (err) {
             console.error("ERROR", err);
         }

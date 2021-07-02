@@ -212,6 +212,10 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
         },
     },
 }).then( (thing) => {
+    // TODO FIX after v0.8 API changes are in place
+    console.error("TODO FIX after v0.8 API changes are in place");
+
+    /*
     // Initialize the property values
     thing.writeProperty('allAvailableResources', {
         water: readFromSensor('water'),
@@ -250,8 +254,6 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
     // utilizing the uriVariables properly
     thing.setPropertyWriteHandler('availableResourceLevel', (val, options) => {
         return new Promise((resolve, reject) => {
-            return reject('TODO update code');
-            /*
             // Check if uriVariables are provided
             if (options && typeof options === 'object' && 'uriVariables' in options) {
                 const uriVariables: any = options['uriVariables'];
@@ -265,7 +267,6 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
                 }
             }
             return reject('Please specify id variable as uriVariables.');
-            */
         });
     });
 
@@ -273,8 +274,6 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
     // utilizing the uriVariables properly
     thing.setPropertyReadHandler('availableResourceLevel', (options) => {
         return new Promise((resolve, reject) => {
-            return reject('TODO update code');
-            /*
             // Check if uriVariables are provided
             if (options && typeof options === 'object' && 'uriVariables' in options) {
                 const uriVariables: any = options['uriVariables'];
@@ -286,7 +285,6 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
                 }
             }
             return reject('Please specify id variable as uriVariables.');
-            */
         });
     });
 
@@ -416,6 +414,7 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
     // Finally expose the thing
     thing.expose().then( () => { console.info(`${thing.getThingDescription().title} ready`); } ); 
     console.log(`Produced ${thing.getThingDescription().title}`);
+    */
 }).catch(e => {
     console.log(e);
 });

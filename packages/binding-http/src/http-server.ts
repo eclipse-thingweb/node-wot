@@ -196,7 +196,7 @@ export default class HttpServer implements ProtocolServer {
     }
   }
   
-  public expose(thing: ExposedThing, tdTemplate?: WoT.ThingDescription): Promise<void> {
+  public expose(thing: ExposedThing, tdTemplate?: WoT.ExposedThingInit): Promise<void> {
 
     let slugify = require('slugify');
     let urlPath = slugify(thing.title, {lower: true});
@@ -234,7 +234,7 @@ export default class HttpServer implements ProtocolServer {
     }
   }
 
-  public addEndpoint(thing: ExposedThing, tdTemplate: WoT.ThingDescription, base: string) {
+  public addEndpoint(thing: ExposedThing, tdTemplate: WoT.ExposedThingInit, base: string) {
       for (let type of ContentSerdes.get().getOfferedMediaTypes()) {
 
         let allReadOnly = true;
@@ -479,7 +479,17 @@ export default class HttpServer implements ProtocolServer {
     }
 
     // route request
-    let segments = decodeURI(requestUri.pathname).split("/");
+    let segments: string[];
+    try {
+      segments = decodeURI(requestUri.pathname).split("/");
+    } catch (ex) {
+      // catch URIError, see https://github.com/eclipse/thingweb.node-wot/issues/389
+      console.warn("[binding-http]", `HttpServer on port ${this.getPort()} cannot decode URI for '${requestUri.pathname}'`);
+      res.writeHead(400);
+      res.end("decodeURI error for " + requestUri.pathname);
+      return;
+    }
+    
 
     if (segments[1] === "") {
       // no path -> list all Things

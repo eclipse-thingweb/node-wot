@@ -102,7 +102,7 @@ export default class WoTImpl {
      *
      * @param title title/identifier of the thing to be created
      */
-    produce(td: WoT.ThingDescription): Promise<WoT.ExposedThing> {
+    produce(td: WoT.ExposedThingInit): Promise<WoT.ExposedThing> {
         return new Promise<WoT.ExposedThing>((resolve, reject) => {
             try {
                 let newThing: ExposedThing;

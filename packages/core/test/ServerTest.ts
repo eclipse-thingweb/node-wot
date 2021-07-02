@@ -31,6 +31,7 @@ import * as TD from "@node-wot/td-tools";
 import Servient from "../src/servient";
 import { ProtocolServer } from "../src/protocol-interfaces"
 import ExposedThing from "../src/exposed-thing";
+import { InteractionOutput } from "../src/interaction-output";
 
 // implement a testserver to mock a server
 class TestProtocolServer implements ProtocolServer {
@@ -147,18 +148,27 @@ class WoTServerTest {
                 }
             }
         });
-        await thing.writeProperty("number", 1); // init
+        let number: WoT.DataSchemaValue = 1; // init
+        thing.setPropertyWriteHandler("number", async (io: WoT.InteractionOutput) => {
+            number = await io.value();
+        });
+        thing.setPropertyReadHandler("number", () => {
+            return new Promise((resolve, reject) => {
+                resolve(number);
+            });
+        });
 
         expect(thing).to.have.property("properties").to.have.property("number");
         expect(thing).to.have.property("properties").to.have.property("number").to.have.property("readOnly").that.equals(false);
         expect(thing).to.have.property("properties").to.have.property("number").to.have.property("observable").that.equals(false);
 
-        let value1 = await thing.readProperty("number");
-        expect(value1).to.equal(1);
-
         let readUnknownPossible = false;
         try {
-            await thing.readProperty("numberUnknwon")
+            thing.setPropertyReadHandler("numberUnknown", () => {
+                return new Promise((resolve, reject) => {
+                    resolve(number);
+                });
+            });
             readUnknownPossible = true;
         } catch(e) {
             // as expected
@@ -169,7 +179,7 @@ class WoTServerTest {
     }
 
     // skipped so far, see https://github.com/eclipse/thingweb.node-wot/issues/333#issuecomment-724583234
-    @test.skip async "should not be able to read property with writeOnly"() {
+    /* @test.skip async "should not be able to read property with writeOnly"() {
         let thing = await WoTServerTest.WoT.produce({
             title: "ThingWithWriteOnly",
             properties: {
@@ -191,10 +201,10 @@ class WoTServerTest {
         if (readingPossible) {
             fail("reading property 'numberWriteOnly' should throw error")
         }
-    }
+    } */
 
     // skipped so far, see https://github.com/eclipse/thingweb.node-wot/issues/333#issuecomment-724583234
-    @test.skip async "should not be able to write property with readOnly"() {
+    /* @test.skip async "should not be able to write property with readOnly"() {
         let thing = await WoTServerTest.WoT.produce({
             title: "ThingWithReadOnly",
             properties: {
@@ -222,7 +232,7 @@ class WoTServerTest {
         if (readingPossible) {
             fail("writing property 'numberReadOnly' should throw error")
         }
-    }
+    }*/
 
     @test async "should be able to add a thing with spaces in title and property "() {
         let thing = await WoTServerTest.WoT.produce({
@@ -233,17 +243,27 @@ class WoTServerTest {
                 }
             }
         });
-        await thing.writeProperty("my number", 1);
+        let number: WoT.DataSchemaValue = 1; // init
+        thing.setPropertyReadHandler("my number", () => {
+            return new Promise((resolve, reject) => {
+                resolve(number);
+            });
+        });
 
         expect(thing).to.have.property("properties").to.have.property("my number");
         expect(thing).to.have.property("properties").to.have.property("my number").to.have.property("readOnly").that.equals(false);
         expect(thing).to.have.property("properties").to.have.property("my number").to.have.property("observable").that.equals(false);
 
-        let value1 = await thing.readProperty("my number");
-        expect(value1).to.equal(1);
+        // Check internals, how to to check handlers properly with *some* type-safety
+        let expThing: any = thing;
+        let propertyState = expThing.properties["my number"].getState();
+        let ff = await propertyState.readHandler();
+        expect(ff).to.equal(1);
     }
 
-
+    // TODO: Review server side tests since ExposedThing does not implement ConsumedThing anymore
+    // TBD: Are the following tests still useful/sensible?
+    /*
     @test async "should be able to add a property with default value XYZ"() {
         let thing = await WoTServerTest.WoT.produce({
             title: "ThingWithXYZ",

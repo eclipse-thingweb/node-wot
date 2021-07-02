@@ -28,6 +28,7 @@ import { Subscribable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
 import UriTemplate = require('uritemplate');
 import { InteractionOutput } from "./interaction-output";
+import { InteractionInput } from 'wot-typescript-definitions';
 
 enum Affordance {
     PropertyAffordance,
@@ -75,7 +76,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         return JSON.parse(JSON.stringify(this));
     }
 
-    public emitEvent(name: string, data: any): void {
+    public emitEvent(name: string, data: InteractionInput): void {
         console.warn("[core/consumed-thing]","not implemented");
     }
 
@@ -204,8 +205,8 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         return { client: client, form: form }
     }
 
-    readProperty(propertyName: string, options?: WoT.InteractionOptions): Promise<InteractionOutput> {
-        return new Promise<any>((resolve, reject) => {
+    readProperty(propertyName: string, options?: WoT.InteractionOptions): Promise<WoT.InteractionOutput> {
+        return new Promise<WoT.InteractionOutput>((resolve, reject) => {
             // TODO pass expected form op to getClientFor()
             let tp: TD.ThingProperty = this.properties[propertyName];
             if (!tp) {
@@ -231,25 +232,23 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         });
     }
 
-    _readProperties(propertyNames: string[]): Promise<WoT.PropertyMap> {
-        return new Promise<WoT.PropertyMap>((resolve, reject) => {
+    _readProperties(propertyNames: string[]): Promise<WoT.PropertyReadMap> {
+        return new Promise<WoT.PropertyReadMap>((resolve, reject) => {
             // collect all single promises into array
-            var promises: Promise<any>[] = [];
+            var promises: Promise<WoT.InteractionOutput>[] = [];
             for (let propertyName of propertyNames) {
                 promises.push(this.readProperty(propertyName));
             }
             // wait for all promises to succeed and create response
+            const output = new Map<string,WoT.InteractionOutput>();
             Promise.all(promises)
                 .then((result) => {
-                    let allProps: {
-                        [key: string]: any;
-                    } = {};
                     let index = 0;
                     for (let propertyName of propertyNames) {
-                        allProps[propertyName] = result[index];
+                        output.set(propertyName, result[index]);
                         index++;
                     }
-                    resolve(allProps);
+                    resolve(output);
                 })
                 .catch(err => {
                     reject(new Error(`ConsumedThing '${this.title}', failed to read properties: ` + propertyNames));
@@ -257,7 +256,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         });
     }
 
-    readAllProperties(options?: WoT.InteractionOptions): Promise<WoT.PropertyMap> {
+    readAllProperties(options?: WoT.InteractionOptions): Promise<WoT.PropertyReadMap> {
         let propertyNames: string[] = [];
         for (let propertyName in this.properties) {
             // collect attributes that are "readable" only
@@ -269,12 +268,12 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         }
         return this._readProperties(propertyNames);
     }
-    readMultipleProperties(propertyNames: string[], options?: WoT.InteractionOptions): Promise<WoT.PropertyMap> {
+    readMultipleProperties(propertyNames: string[], options?: WoT.InteractionOptions): Promise<WoT.PropertyReadMap> {
         return this._readProperties(propertyNames);
     }
 
 
-    writeProperty(propertyName: string, value: any, options?: WoT.InteractionOptions): Promise<void> {
+    writeProperty(propertyName: string, value: WoT.InteractionInput, options?: WoT.InteractionOptions): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             // TODO pass expected form op to getClientFor()
             let tp: TD.ThingProperty = this.properties[propertyName];
@@ -288,26 +287,27 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                     reject(new Error(`ConsumedThing '${this.title}' did not get suitable form`));
                 } else {
                     console.debug("[core/consumed-thing]",`ConsumedThing '${this.title}' writing ${form.href} with '${value}'`);
-                    let content = ContentManager.valueToContent(value, <any>tp, form.contentType);
+
+                    let content = ContentManager.valueToContent(value, tp, form.contentType);
 
                     // uriVariables ?
                     form = this.handleUriVariables(form, options);
-
+                    
                     client.writeResource(form, content).then(() => {
-                        resolve();
+                            resolve();
                     })
-                        .catch(err => { reject(err); });
+                    .catch(err => { reject(err); });
                 }
             }
         });
     }
-    writeMultipleProperties(valueMap: WoT.PropertyMap, options?: WoT.InteractionOptions): Promise<void> {
+    writeMultipleProperties(valueMap: WoT.PropertyWriteMap, options?: WoT.InteractionOptions): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             // collect all single promises into array
-            var promises: Promise<any>[] = [];
+            var promises: Promise<void>[] = [];
             for (let propertyName in valueMap) {
-                let oValueMap: { [key: string]: any; } = valueMap;
-                promises.push(this.writeProperty(propertyName, oValueMap[propertyName]));
+                const value = valueMap.get(propertyName);
+                promises.push(this.writeProperty(propertyName, value));
             }
             // wait for all promises to succeed and create response
             Promise.all(promises)
@@ -321,8 +321,8 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
     }
 
 
-    public invokeAction(actionName: string, parameter?: any, options?: WoT.InteractionOptions): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
+    public invokeAction(actionName: string, parameter?: InteractionInput, options?: WoT.InteractionOptions): Promise<WoT.InteractionOutput> {
+        return new Promise<WoT.InteractionOutput>((resolve, reject) => {
             let ta: TD.ThingAction = this.actions[actionName];
             if (!ta) {
                 reject(new Error(`ConsumedThing '${this.title}' does not have action ${actionName}`));
@@ -336,9 +336,9 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                     console.debug("[core/consumed-thing]",`ConsumedThing '${this.title}' invoking ${form.href}${parameter !== undefined ? " with '" + parameter + "'" : ""}`);
 
                     let input;
-
+                    
                     if (parameter !== undefined) {
-                        input = ContentManager.valueToContent(parameter, <any>ta.input, form.contentType);
+                        input = ContentManager.valueToContent(parameter, ta.input, form.contentType);
                     }
 
                     // uriVariables ?
@@ -439,7 +439,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                     reject(new Error(`ConsumedThing '${this.title}' did not get suitable form`));
                 } else {
                     console.debug("[core/consumed-thing]",`ConsumedThing '${this.title}' subscribing to ${form.href}`);
-                    
+
                     // uriVariables ?
                     form = this.handleUriVariables(form, options);
 
@@ -492,15 +492,11 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         let ut = UriTemplate.parse(form.href);
         let updatedHref = ut.expand(options == undefined || options.uriVariables == undefined ? {} : options.uriVariables);
         if (updatedHref != form.href) {
-            // "clone" form to avoid modifying original form
-            let updForm = new TD.Form(updatedHref, form.contentType);
-            updForm.op = form.op;
-            updForm.security = form.security;
-            updForm.scopes = form.scopes;
-            updForm.response = form.response;
-
+            // create shallow copy and update href
+            let updForm = { ...form };
+            updForm.href = updatedHref;
             form = updForm;
-            console.debug("[core/consumed-thing]",`ConsumedThing '${this.title}' update form URI to ${form.href}`);
+            console.debug("[core/consumed-thing]", `ConsumedThing '${this.title}' update form URI to ${form.href}`);
         }
 
         return form;

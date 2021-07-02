@@ -14,9 +14,10 @@
   },
   "dependencies": {},
   "scripts": {
-    "bootstrap": "lerna bootstrap --no-ci",
+    "bootstrap": "lerna bootstrap --ci",
     "prebuild": "npm run bootstrap",
     "build": "lerna run build",
+    "build:only": "lerna run build",
     "pretest": "npm run build",
     "start": "cd packages/cli && npm run start",
     "debug": "cd packages/cli && npm run debug",
