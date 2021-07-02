@@ -76,7 +76,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         return JSON.parse(JSON.stringify(this));
     }
 
-    public emitEvent(name: string, data: any): void {
+    public emitEvent(name: string, data: InteractionInput): void {
         console.warn("[core/consumed-thing]","not implemented");
     }
 
@@ -206,7 +206,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
     }
 
     readProperty(propertyName: string, options?: WoT.InteractionOptions): Promise<WoT.InteractionOutput> {
-        return new Promise<any>((resolve, reject) => {
+        return new Promise<WoT.InteractionOutput>((resolve, reject) => {
             // TODO pass expected form op to getClientFor()
             let tp: TD.ThingProperty = this.properties[propertyName];
             if (!tp) {
@@ -235,7 +235,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
     _readProperties(propertyNames: string[]): Promise<WoT.PropertyReadMap> {
         return new Promise<WoT.PropertyReadMap>((resolve, reject) => {
             // collect all single promises into array
-            var promises: Promise<any>[] = [];
+            var promises: Promise<WoT.InteractionOutput>[] = [];
             for (let propertyName of propertyNames) {
                 promises.push(this.readProperty(propertyName));
             }
@@ -288,7 +288,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                 } else {
                     console.debug("[core/consumed-thing]",`ConsumedThing '${this.title}' writing ${form.href} with '${value}'`);
 
-                    let content = ContentManager.valueToContent(value, <any>tp, form.contentType);
+                    let content = ContentManager.valueToContent(value, tp, form.contentType);
 
                     // uriVariables ?
                     form = this.handleUriVariables(form, options);
@@ -304,10 +304,10 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
     writeMultipleProperties(valueMap: WoT.PropertyWriteMap, options?: WoT.InteractionOptions): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             // collect all single promises into array
-            var promises: Promise<any>[] = [];
+            var promises: Promise<void>[] = [];
             for (let propertyName in valueMap) {
-                let oValueMap: { [key: string]: any; } = valueMap;
-                promises.push(this.writeProperty(propertyName, oValueMap[propertyName]));
+                const value = valueMap.get(propertyName);
+                promises.push(this.writeProperty(propertyName, value));
             }
             // wait for all promises to succeed and create response
             Promise.all(promises)
@@ -322,7 +322,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
 
 
     public invokeAction(actionName: string, parameter?: InteractionInput, options?: WoT.InteractionOptions): Promise<WoT.InteractionOutput> {
-        return new Promise<any>((resolve, reject) => {
+        return new Promise<WoT.InteractionOutput>((resolve, reject) => {
             let ta: TD.ThingAction = this.actions[actionName];
             if (!ta) {
                 reject(new Error(`ConsumedThing '${this.title}' does not have action ${actionName}`));
@@ -338,7 +338,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                     let input;
                     
                     if (parameter !== undefined) {
-                        input = ContentManager.valueToContent(parameter, <any>ta.input, form.contentType);
+                        input = ContentManager.valueToContent(parameter, ta.input, form.contentType);
                     }
 
                     // uriVariables ?
