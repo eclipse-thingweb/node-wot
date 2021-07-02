@@ -319,10 +319,10 @@ class WoTClientTest {
         expect(thing).to.have.property("title").that.equals("aThing");
         expect(thing).to.have.property("properties").that.has.property("aProperty");
 
-        let valueMap: { [key: string]: any } = {};
+        let valueMap = new Map();
         const stream = Readable.from(Buffer.from("66"));
 
-        valueMap["aProperty"] = ProtocolHelpers.toWoTStream(stream);
+        valueMap.set("aProperty", ProtocolHelpers.toWoTStream(stream));
         return thing.writeMultipleProperties(valueMap);
     }
 
