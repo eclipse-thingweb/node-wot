@@ -85,6 +85,12 @@ When specified URL values override the corresponding `form` parameter.
 ## DataSchema
 The MODBUS binding uses and provides plain binary data for reading and writing. Therefore in most cases it will be associated with the content type `application/octet-stream`. Please refer to the description of this codec on how to decode and encode plain register values to/from JavaScript objects (See `OctetstreamCodec`). **Note** `array` and `object` schema are not supported.
 
+Along with content type `application/octet-stream`, also an optional `byteSeq` parameter is accepted and it specifies the endian-ness of the data being passed to the MODBUS binding. It follows the notation `application/octet-stream;byteSeq=value`, where its value can be one of the following:
+- `BIG_ENDIAN`, which is the default value
+- `LITTLE_ENDIAN`
+- `BIG_ENDIAN_BYTE_SWAP`
+- `LITTLE_ENDIAN_BYTE_SWAP`
+
 For register properties the payload is just the plain sequence of bytes read from or written to the registers. For coils and discrete inputs, the payload is a sequence of bytes, each corresponding to a single coil or discrete input. Each byte contains the value `0` or `1`. So the encoder / decoder should work on this series of bytes and does not have to take care about handling the individual bits. Mapping each coil or discrete input to a single property of type `boolean` works just fine!
 
 ## Security 
