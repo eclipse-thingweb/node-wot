@@ -158,6 +158,10 @@ WoT.produce({
     .then((thing) => {
         console.log("Produced " + thing.getThingDescription().title);
 
+        // TODO FIX after v0.8 API changes are in place
+        console.error("TODO FIX after v0.8 API changes are in place");
+
+        /*
         // init property values
         thing.writeProperty("bool", bool);
         thing.writeProperty("int", int);
@@ -166,8 +170,6 @@ WoT.produce({
         thing.writeProperty("array", array);
         thing.writeProperty("object", object);
         
-        // TODO set property write handlers
-        /*
         thing
             .setPropertyWriteHandler("bool", async (value) => {
                 let localBool = await value.value();

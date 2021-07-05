@@ -26,6 +26,7 @@ import * as rp from "request-promise";
 
 import HttpServer from "../src/http-server";
 import { ExposedThing, Helpers } from "@node-wot/core";
+import { DataSchemaValue } from "wot-typescript-definitions";
 
 @suite("HTTP server implementation")
 class HttpServerTest {
@@ -58,6 +59,9 @@ class HttpServerTest {
         }
       }
       });
+      let test:DataSchemaValue;
+      testThing.setPropertyReadHandler("test", _ => Promise.resolve(test));
+      testThing.setPropertyWriteHandler("test", async (value) => {test = await value.value()})
     
     
     await testThing.writeProperty("test", "off")
@@ -142,7 +146,7 @@ class HttpServerTest {
         scheme:"bearer"
       }
     }
-    httpServer.expose(testThing,{});
+    httpServer.expose(testThing);
     await httpServer.stop()
 
     expect(testThing.securityDefinitions["bearer"]).not.to.be.undefined;
@@ -168,7 +172,7 @@ class HttpServerTest {
       }
     }
 
-    expect(() => { httpServer.expose(testThing, {});}).throw()
+    expect(() => { httpServer.expose(testThing);}).throw()
     await httpServer.stop();
 
   }

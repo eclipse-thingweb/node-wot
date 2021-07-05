@@ -24,6 +24,8 @@ import Servient from "./servient";
 import { ContentSerdes } from "./content-serdes";
 import Helpers from "./helpers";
 import { Content } from "./protocol-interfaces";
+import { InteractionOutput } from "./interaction-output";
+import { Readable } from "stream";
 
 export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     security: Array<String>;
@@ -52,7 +54,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     private getServient: () => Servient;
     private getSubjectTD: () => Subject<any>;
 
-    constructor(servient: Servient, thingModel: TD.ThingModel = {}) {
+    constructor(servient: Servient, thingModel: WoT.ExposedThingInit = {}) {
         super();
 
         this.getServient = () => { return servient; };
@@ -91,7 +93,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         if (this.events[name]) {
             let es: EventState = this.events[name].getState();
             for (let listener of es.listeners) {
-                listener.call(data);
+                listener.call(this,data);
             }
         } else {
             // NotFoundError
@@ -228,25 +230,23 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     }
 
 
-    _readProperties(propertyNames: string[], options?: WoT.InteractionOptions): Promise<WoT.PropertyMap> {
-        return new Promise<object>((resolve, reject) => {
+    _readProperties(propertyNames: string[], options?: WoT.InteractionOptions): Promise<WoT.PropertyReadMap> {
+        return new Promise<WoT.PropertyReadMap>((resolve, reject) => {
             // collect all single promises into array
             var promises: Promise<any>[] = [];
             for (let propertyName of propertyNames) {
                 promises.push(this.readProperty(propertyName, options));
             }
             // wait for all promises to succeed and create response
+            const output = new Map<string, WoT.InteractionOutput>();
             Promise.all(promises)
                 .then((result) => {
-                    let allProps: {
-                        [key: string]: any;
-                    } = {};
                     let index = 0;
                     for (let propertyName of propertyNames) {
-                        allProps[propertyName] = result[index];
+                        output.set(propertyName, result[index]);
                         index++;
                     }
-                    resolve(allProps);
+                    resolve(output);
                 })
                 .catch(err => {
                     reject(new Error(`ExposedThing '${this.title}', failed to read properties ` + propertyNames));
@@ -254,18 +254,19 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         });
     }
 
-    readAllProperties(options?: WoT.InteractionOptions): Promise<WoT.PropertyMap> {
+    readAllProperties(options?: WoT.InteractionOptions): Promise<WoT.PropertyReadMap> {
         let propertyNames: string[] = [];
         for (let propertyName in this.properties) {
             propertyNames.push(propertyName);
         }
         return this._readProperties(propertyNames, options);
     }
-    readMultipleProperties(propertyNames: string[], options?: WoT.InteractionOptions): Promise<WoT.PropertyMap> {
+    readMultipleProperties(propertyNames: string[], options?: WoT.InteractionOptions): Promise<WoT.PropertyReadMap> {
         return this._readProperties(propertyNames, options);
     }
 
     writeProperty(propertyName: string, value: any, options?: WoT.InteractionOptions): Promise<void> {
+        //TODO: to be removed next api does not allow an ExposedThing to be also a ConsumeThing
         return new Promise<void>((resolve, reject) => {
             if (this.properties[propertyName]) {
                 // readOnly check skipped so far, see https://github.com/eclipse/thingweb.node-wot/issues/333#issuecomment-724583234
@@ -277,8 +278,11 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 
                 // call write handler (if any)
                 if (ps.writeHandler != null) {
+                
+                    const stream = Readable.from(Buffer.from(value, "utf-8"));
+                    const content = { body: stream, type: "application/json" };
                     // be generous when no promise is returned
-                    let promiseOrValueOrNil = ps.writeHandler(value, options);
+                    let promiseOrValueOrNil = ps.writeHandler(new InteractionOutput(content,{},this.properties[propertyName]), options);
                     if (promiseOrValueOrNil !== undefined) {
                         if (typeof promiseOrValueOrNil.then === "function") {
                             promiseOrValueOrNil.then((customValue) => {
@@ -290,7 +294,6 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                                         listener.call(customValue);
                                     }
                                 }
-                                ps.value = customValue;
                                 resolve();
                             })
                                 .catch((customError) => {
@@ -304,17 +307,16 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                                     listener.call(<any>promiseOrValueOrNil);
                                 }
                             }
-                            ps.value = <any>promiseOrValueOrNil;
                             resolve();
                         }
                     } else {
                         console.warn("[core/exposed-thing]", `ExposedThing '${this.title}' write handler for Property '${propertyName}' does not return custom value, using direct value '${value}'`);
                         if (ps.value !== value) {
+
                             for (let listener of ps.listeners) {
                                 listener.call(value);
                             }
                         }
-                        ps.value = value;
                         resolve();
                     }
                 } else {
@@ -325,7 +327,6 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                             listener.call(value);
                         }
                     }
-                    ps.value = value;
                     resolve();
                 }
             } else {
@@ -333,7 +334,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             }
         });
     }
-    writeMultipleProperties(valueMap: WoT.PropertyMap, options?: WoT.InteractionOptions): Promise<void> {
+    writeMultipleProperties(valueMap: WoT.PropertyWriteMap, options?: WoT.InteractionOptions): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             // collect all single promises into array
             var promises: Promise<void>[] = [];

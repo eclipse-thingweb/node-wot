@@ -162,6 +162,7 @@ WoT.produce({
         count = newValue;
         lastChange = (new Date()).toISOString();
         thing.emitEvent("change", count);
+        return undefined;
     });
     thing.setActionHandler("decrement", async (params, options) => {
         let step = 1;
@@ -177,12 +178,14 @@ WoT.produce({
         count = newValue;
         lastChange = (new Date()).toISOString();
         thing.emitEvent("change", count);
+        return undefined;
     });
     thing.setActionHandler("decrement", async (params, options) => {
         console.log("Resetting count");
         count = 0;
         lastChange = (new Date()).toISOString();
         thing.emitEvent("change", count);
+        return undefined;
     });
     // expose the thing
     thing.expose().then(() => { console.info(thing.getThingDescription().title + " ready"); });

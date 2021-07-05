@@ -48,6 +48,10 @@ WoT.produce({
 .then((thing) => {
 	console.log("Produced " + thing.getThingDescription().title);
 	
+  // TODO FIX after v0.8 API changes are in place
+  console.error("TODO FIX after v0.8 API changes are in place");
+  
+  /*
 	// init property values
 	thing.writeProperty("PumpStatus", false);
   thing.writeProperty("ValveStatus", false);
@@ -100,6 +104,7 @@ WoT.produce({
       thing.writeProperty("Tank101OverflowStatus", level101 > 140);
     }, 5000);
   });
+  */
 })
 .catch((e) => {
 	console.log(e)

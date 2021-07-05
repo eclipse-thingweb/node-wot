@@ -120,8 +120,9 @@ export default class Helpers {
     }
   }
 
-  public fetch(uri: string): Promise<WoT.ThingDescription> {
-    return new Promise<WoT.ThingDescription>((resolve, reject) => {
+  //TODO: specialize fetch to retrieve just thing descriptions
+  public fetch(uri: string): Promise<any> {
+    return new Promise<object>((resolve, reject) => {
         let client = this.srv.getClientFor(Helpers.extractScheme(uri));
       console.debug("[core/helpers]",`WoTImpl fetching TD from '${uri}' with ${client}`);
         client.readResource(new TD.Form(uri, ContentSerdes.TD))
