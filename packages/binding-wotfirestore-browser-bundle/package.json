@@ -1,6 +1,6 @@
 {
   "name": "@hidetak/binding-wotfirestore-browser-bundle",
-  "version": "0.0.3",
+  "version": "0.0.5",
   "description": "A binding-wotfirestore bundle that can run in a web browser",
   "repository": "https://github.com/hidetak/thingweb.node-wot",
   "author": "hidetak",

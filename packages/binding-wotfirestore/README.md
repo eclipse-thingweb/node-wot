@@ -4,6 +4,10 @@
 
 Firestore Binding is an implementation of the [W3C Web of Things](https://www.w3.org/WoT/) Binding using Firestore, which can be used with [Eclipse Thingweb node-wot](https://github.com/eclipse/thingweb.node-wot/) to embody the Web of Things.
 
+Firestore has the ability to subscribe to written data, and Firestore Binding uses this to perform communication between the Thing and the Client.  
+This Binding provides a storage location (Reference) in Firestore for data corresponding to a Thing's properties, actions, and events. By writing data to the Reference, communication between the Thing or Client that subscribes to the data is realized.  
+In this way, Firestore is only used for communication, and not for storing data history.
+
 ## Protocol specifier
 
 The protocol prefix handled by this binding is `wotfirestore://`.
@@ -152,6 +156,21 @@ servient.start().then((WoT) => {
     })
 })
 ```
+
+## Support functions for Client and Server implementations
+
+The functions that can be implemented for Client and Server differ as follows.
+
+| functions | Client | Server |
+| --- | --- | --- |
+| read property | ✓ | ✓ |
+| write property | ✓ | ✓ |
+| observe property | ✓ | - |
+| unobserve property | ✓ | - |
+| invoke action | ✓ | - |
+| emit event | - | ✓ |
+| subscribe event | ✓ | - |
+| unsubscribe event | ✓ | - |
 
 ## Notes
 

@@ -133,7 +133,7 @@ export default class WoTFirestoreServer implements ProtocolServer {
       let property = thing.properties[propertyName]
       console.info('  properties topic:', topic)
 
-      thing.observeProperty(propertyName, async (data) => {
+      thing.setPropertyWriteHandler(propertyName, async (data) => {
         console.debug(
           `[debug] property ${propertyName} changed in server:`,
           data
@@ -149,7 +149,8 @@ export default class WoTFirestoreServer implements ProtocolServer {
           console.warn(
             `[warn] WoTFirestoreServer cannot process data for Property '${propertyName}': ${err.message}`
           )
-          thing.unobserveProperty(propertyName)
+          // stop to handle writing property
+          thing.setPropertyWriteHandler(propertyName, async (data) => {})
           return
         }
         console.debug(`[debug] write property ${propertyName}:`, content)
@@ -165,23 +166,20 @@ export default class WoTFirestoreServer implements ProtocolServer {
           )
         }
       })
+
+      thing.setPropertyReadHandler(propertyName, async () => {
+        const content = await readDataFromFirestore(this.firestore, topic)
+        console.debug(`[debug] read property ${propertyName}:`, content)
+        const propertyValue = ContentSerdes.get().contentToValue(
+          content,
+          <any>thing.properties[propertyName]
+        )
+        return propertyValue
+      })
+
       if (!name) {
         name = 'no_name'
       }
-      const data = await thing.readProperty(propertyName)
-      console.debug(`[debug] write initial property ${propertyName}: `, data)
-      let content: Content = {
-        type: this.DEFAULT_CONTENT_TYPE,
-        body: undefined
-      }
-      if (data !== null || data !== undefined) {
-        content = ContentSerdes.get().valueToContent(
-          data,
-          <any>property,
-          this.DEFAULT_CONTENT_TYPE
-        )
-      }
-      await writeDataToFirestore(this.firestore, topic, content)
 
       let href = this.WOTFIRESTORE_HREF_BASE + topic
       let form = new TD.Form(href, this.DEFAULT_CONTENT_TYPE)

@@ -1,5 +1,5 @@
 import { Content } from '@node-wot/core'
-import * as firebase from 'firebase/app'
+import firebase from 'firebase/app'
 import 'firebase/auth'
 import 'firebase/firestore'
 import { Buffer } from 'buffer'
@@ -99,7 +99,7 @@ export const readDataFromFirestore = (
         if (doc.exists) {
           const data = doc.data()
           let content: Content = null
-          console.debug('[debug] readDataToFirestore gotten data:', data)
+          //console.debug('[debug] readDataToFirestore gotten data:', data)
           if (data && data.content) {
             let obj: any = JSON.parse(data.content)
             if (!obj) {
