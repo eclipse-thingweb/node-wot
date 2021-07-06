@@ -160,6 +160,18 @@ export default class Servient {
         }
     }
 
+    public removeThing(thingId: string): boolean {
+        if (this.things.has(thingId)) {
+            this.servers.forEach( (server) => {
+                // server.destroy(thingId);
+            });
+            this.things.delete(thingId);
+            console.warn("[core/servient]", `Servient removed thing with ID '${thingId}'`);
+        } else {
+            return false;
+        }
+    }
+
     public getThing(id: string): ExposedThing {
         if (this.things.has(id)) {
             return this.things.get(id);
