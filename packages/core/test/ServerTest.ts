@@ -71,9 +71,14 @@ class WoTServerTest {
         let thing = await WoTServerTest.WoT.produce({
             title: "myFragmentThing",
             support: "none",
+            securityDefinitions: {"psk_sc":{"scheme": "psk"}},
             "test:custom": "test",
             properties: {
-                myProp: { }
+                myProp: { 
+                    "forms": [{
+                        "href": "href"
+                    }]
+                }
             }
         });
 
@@ -94,9 +99,13 @@ class WoTServerTest {
         let thing = await WoTServerTest.WoT.produce({
             title: "myFragmentThing",
             support: "none",
+            securityDefinitions: {"psk_sc":{"scheme": "psk"}},
             properties: {
                 myProp: {
                     type: "object",
+                    "forms": [{
+                        "href": "href"
+                    }],
                     properties: {
                         myProp2: { }
                     },
@@ -237,9 +246,13 @@ class WoTServerTest {
     @test async "should be able to add a thing with spaces in title and property "() {
         let thing = await WoTServerTest.WoT.produce({
             title: "The Machine",
+            securityDefinitions: {"psk_sc":{"scheme": "psk"}},
             properties: {
                 "my number": {
-                    type: "number"
+                    type: "number",
+                    "forms": [{
+                        "href": "href"
+                    }]
                 }
             }
         });

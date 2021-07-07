@@ -15,14 +15,14 @@
 
 import { Observable } from "rxjs/Observable";
 import * as WoT from "wot-typescript-definitions";
-
+import TDSchema from "wot-typescript-definitions/schema/td-json-schema-validation.json";
 import * as TD from "@node-wot/td-tools";
-
 import Servient from "./servient";
 import ExposedThing from "./exposed-thing";
 import ConsumedThing from "./consumed-thing";
-import Helpers from "./helpers";
-import { ContentSerdes } from "./content-serdes";
+import Ajv from 'ajv';
+
+const ajv = new Ajv({strict:false, allErrors: true});
 
 export default class WoTImpl {
     private srv: Servient;
@@ -109,6 +109,15 @@ export default class WoTImpl {
 
                 // FIXME should be constrained version that omits instance-specific parts (but keeps "id")
                 let template = td;
+
+                let tdSchema = TDSchema;
+                let exposeThingInitSchema = this.validateThingDescription(tdSchema);
+
+                const validate = ajv.compile(exposeThingInitSchema)
+
+                if(!validate(template)) {
+                    throw new Error("Thing Description JSON schema validation failed: " + JSON.stringify(validate.errors));
+                }
 
                 this.validateThingDescription(template);
                 this.addDefaultLanguage(template);
