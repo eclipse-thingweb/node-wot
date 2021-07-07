@@ -233,10 +233,23 @@ export default class HttpServer implements ProtocolServer {
     }
   }
 
-  public destroy(thingId: string): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      // TODO destroy the thing with the given id
-      resolve();
+  public destroy(thingId: string): Promise<boolean> {
+    console.debug("[binding-http]", `HttpServer on port ${this.getPort()} destroying thingId '${thingId}'`);
+    return new Promise<boolean>((resolve, reject) => {
+      let removedThing: ExposedThing = undefined;
+      for (let name of Array.from(this.things.keys())) {
+        let expThing = this.things.get(name);
+        if (expThing != null && expThing.id != null && expThing.id === thingId) {
+          this.things.delete(name);
+          removedThing = expThing;
+        }
+      }
+      if (removedThing) {
+        console.info("[binding-http]", `HttpServer succesfully destroyed '${removedThing.title}'`);
+      } else {
+        console.info("[binding-http]", `HttpServer failed to destroy thing with thingId '${thingId}'`)
+      }
+      resolve(removedThing != undefined);
     });
   }
 

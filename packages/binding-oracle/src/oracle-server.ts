@@ -60,10 +60,10 @@ export default class OracleServer implements ProtocolServer {
     });
   }
 
-  public destroy(thingId: string): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
+  public destroy(thingId: string): Promise<boolean> {
+    return new Promise<boolean>((resolve, reject) => {
       // TODO destroy the thing with the given id
-      resolve();
+      resolve(false);
     });
   }
 

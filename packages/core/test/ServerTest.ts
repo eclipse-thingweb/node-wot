@@ -41,6 +41,10 @@ class TestProtocolServer implements ProtocolServer {
         return new Promise<void>((resolve, reject) => {});
     }
 
+    destroy(thingId: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {});
+    }
+
     start(): Promise<void> { return new Promise<void>((resolve, reject) => { resolve(); }); }
     stop(): Promise<void> { return new Promise<void>((resolve, reject) => { resolve(); }); }
     getPort(): number { return -1 }
@@ -113,6 +117,32 @@ class WoTServerTest {
         expect(thing).to.have.property("test:custom").that.equals("test");
         expect(thing).to.have.property("properties");
         expect(thing).to.have.property("properties").to.have.property("myProp");
+    }
+
+    @test async "should be able to destroy a Thing based on a thingId"() {
+        let desc = `{
+            "@context": ["https://w3c.github.io/wot/w3c-wot-td-context.jsonld"],
+            "@type": ["Thing"],
+            "title": "myDestroyThing",
+            "id": "1234567",
+            "properties": {
+                "myProp" : {
+                }
+            }
+        }`;
+        let thing = await WoTServerTest.WoT.produce(JSON.parse(desc));
+        expect(thing).to.exist;
+        // test TD
+        expect(thing.getThingDescription()).to.have.property("title").to.equal("myDestroyThing");
+        expect(thing.getThingDescription()).to.have.property("id").to.equal("1234567");
+        // test presence (and destroy)
+        if (WoTServerTest.servient.getThing("1234567") == null) {
+            fail("Thing not properly added");
+        }
+        await thing.destroy(); // destroy -> remove
+        if (WoTServerTest.servient.getThing("1234567") != null) {
+            fail("Thing not properly destroyed");
+        }
     }
 
     @test async "should be able to add a property with value 1"() {
