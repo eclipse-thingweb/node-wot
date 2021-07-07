@@ -134,6 +134,13 @@ export default class FujitsuServer implements ProtocolServer {
     });
   }
 
+  public destroy(thingId: string): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      // TODO destroy the thing with the given id
+      resolve();
+    });
+  }
+
   private handle(data: any) {
 
     console.debug("[binding-fujitsu]",`FujitsuServer for ${this.remote} received '${data}'`);

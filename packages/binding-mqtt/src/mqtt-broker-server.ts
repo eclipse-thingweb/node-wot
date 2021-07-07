@@ -272,6 +272,13 @@ export default class MqttBrokerServer implements ProtocolServer {
     });
   }
 
+  public destroy(thingId: string): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      // TODO destroy the thing with the given id
+      resolve();
+    });
+  }
+
   public start(servient: Servient): Promise<void> {
     return new Promise<void>((resolve, reject) => {
 

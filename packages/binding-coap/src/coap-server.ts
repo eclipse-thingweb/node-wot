@@ -164,6 +164,13 @@ export default class CoapServer implements ProtocolServer {
     });
   }
 
+  public destroy(thingId: string): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      // TODO destroy the thing with the given id
+      resolve();
+    });
+  }
+
   private handleRequest(req: any, res: any) {
     
     console.debug("[binding-coap]",`CoapServer on port ${this.getPort()} received '${req.method}(${req._packet.messageId}) ${req.url}' from ${Helpers.toUriLiteral(req.rsinfo.address)}:${req.rsinfo.port}`);

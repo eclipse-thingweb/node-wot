@@ -233,6 +233,13 @@ export default class HttpServer implements ProtocolServer {
     }
   }
 
+  public destroy(thingId: string): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      // TODO destroy the thing with the given id
+      resolve();
+    });
+  }
+
   public addEndpoint(thing: ExposedThing, tdTemplate: WoT.ThingDescription, base: string) {
       for (let type of ContentSerdes.get().getOfferedMediaTypes()) {
 

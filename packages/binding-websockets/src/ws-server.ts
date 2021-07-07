@@ -208,4 +208,11 @@ export default class WebSocketServer implements ProtocolServer {
       resolve();
     });
   }
+
+  public destroy(thingId: string): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      // TODO destroy the thing with the given id
+      resolve();
+    });
+  }
 }
