@@ -98,8 +98,7 @@ export default class MqttBrokerServer implements ProtocolServer {
 
     console.debug("[binding-mqtt]",`MqttBrokerServer at ${this.brokerURI} exposes '${thing.title}' as unique '${name}/*'`);
     return new Promise<void>((resolve, reject) => {
-
-      // clean-up on destroy and stop
+      
       this.things.set(name, thing);
 
       for (let propertyName in thing.properties) {
