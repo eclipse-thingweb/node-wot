@@ -71,13 +71,10 @@ class WoTServerTest {
         let thing = await WoTServerTest.WoT.produce({
             title: "myFragmentThing",
             support: "none",
-            securityDefinitions: {"psk_sc":{"scheme": "psk"}},
             "test:custom": "test",
             properties: {
                 myProp: { 
-                    "forms": [{
-                        "href": "href"
-                    }]
+                    
                 }
             }
         });
@@ -95,31 +92,6 @@ class WoTServerTest {
         expect(thing).to.have.property("properties").to.have.property("myProp");
     }
 
-    @test async "validate thing description"() {
-        let thing = await WoTServerTest.WoT.produce({
-            title: "myFragmentThing",
-            support: "none",
-            securityDefinitions: {"psk_sc":{"scheme": "psk"}},
-            properties: {
-                myProp: {
-                    type: "object",
-                    "forms": [{
-                        "href": "href"
-                    }],
-                    properties: {
-                        myProp2: { }
-                    },
-                    required: [ "myProp2", "forms", "href" ]
-                }
-            },
-            required: "href"
-        });
-
-        expect(thing).to.exist;
-        expect(thing).not.to.have.property("required")
-        expect(thing).to.have.property("properties").to.have.property("myProp")
-            .to.have.property("required").that.eql(["myProp2"])
-    }
     //TODO: Review server side tests since ExposedThing does not implement ConsumedThing anymore
     /*
     @test async "should be able to add a Thing based on WoT.ThingDescription"() {
@@ -246,13 +218,9 @@ class WoTServerTest {
     @test async "should be able to add a thing with spaces in title and property "() {
         let thing = await WoTServerTest.WoT.produce({
             title: "The Machine",
-            securityDefinitions: {"psk_sc":{"scheme": "psk"}},
             properties: {
                 "my number": {
                     type: "number",
-                    "forms": [{
-                        "href": "href"
-                    }]
                 }
             }
         });
