@@ -56,12 +56,15 @@ class HttpServerTest {
       }
     }, testThing);
     testThing.extendInteractions();
+    testThing.properties.test.forms = [];
 
     await httpServer.expose(testThing);
     let result = await httpServer.destroy("56789");
     expect(result);
     result = await httpServer.destroy("56789");
     expect(!result);
+
+    await httpServer.stop();
   }
 
   @test async "should change resource from 'off' to 'on' and try to invoke"() {
