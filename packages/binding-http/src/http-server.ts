@@ -239,7 +239,7 @@ export default class HttpServer implements ProtocolServer {
       let removedThing: ExposedThing = undefined;
       for (let name of Array.from(this.things.keys())) {
         let expThing = this.things.get(name);
-        if (expThing != null && expThing.id != null && expThing.id === thingId) {
+        if (expThing?.id === thingId) {
           this.things.delete(name);
           removedThing = expThing;
         }
