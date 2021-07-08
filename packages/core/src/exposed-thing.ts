@@ -107,13 +107,24 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 
     /** @inheritDoc */
     destroy(): Promise<void> {
-        console.debug("[core/exposed-thing]",`ExposedThing '${this.title}' destroying the thing and its interactions`);
+        console.debug("[core/exposed-thing]", `ExposedThing '${this.title}' destroying the thing and its interactions`);
 
         return new Promise<void>((resolve, reject) => {
             this.getServient().removeThing(this.id);
-            // remove alle listeners and such?
-
-            // inform TD observers that thing is gone?
+            // indicate possible subscriptions that subject has been completed
+            for (let propertyName in this.properties) {
+                let ps: PropertyState = this.properties[propertyName].getState();
+                if (ps.subject) {
+                    ps.subject.complete();
+                }
+            }
+            for (let eventName in this.events) {
+                let es: EventState = this.events[eventName].getState();
+                if (es.subject) {
+                    es.subject.complete();
+                }
+            }
+            // inform TD observers that thing is gone
             this.getSubjectTD().next(null);
             resolve();
         });
