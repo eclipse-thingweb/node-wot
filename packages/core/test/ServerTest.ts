@@ -136,13 +136,9 @@ class WoTServerTest {
         expect(thing.getThingDescription()).to.have.property("title").to.equal("myDestroyThing");
         expect(thing.getThingDescription()).to.have.property("id").to.equal("1234567");
         // test presence (and destroy)
-        if (WoTServerTest.servient.getThing("1234567") == null) {
-            fail("Thing not properly added");
-        }
+        expect(WoTServerTest.servient.getThing("1234567")).to.not.be.null;
         await thing.destroy(); // destroy -> remove
-        if (WoTServerTest.servient.getThing("1234567") != null) {
-            fail("Thing not properly destroyed");
-        }
+        expect(WoTServerTest.servient.getThing("1234567")).to.be.null;
     }
 
     @test async "should be able to add a property with value 1"() {
