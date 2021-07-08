@@ -162,11 +162,16 @@ export default class Servient {
 
     public removeThing(thingId: string): boolean {
         if (this.things.has(thingId)) {
-            this.servers.forEach( (server) => {
-                server.destroy(thingId);
+            let serverPromises: Promise<boolean>[] = [];
+            this.servers.forEach((server) => { serverPromises.push(server.destroy(thingId)); });
+            Promise.all(serverPromises).then(() => {
+                this.things.delete(thingId);
+                console.warn("[core/servient]", `Servient removed thing with ID '${thingId}'`);
+                return true;
+            }).catch((err) => {
+                console.warn("[core/servient]", `Servient removing thing with ID '${thingId}' failed`);
+                return false;
             });
-            this.things.delete(thingId);
-            console.warn("[core/servient]", `Servient removed thing with ID '${thingId}'`);
         } else {
             return false;
         }
