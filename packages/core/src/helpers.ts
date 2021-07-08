@@ -209,7 +209,16 @@ export default class Helpers {
    * Helper function to validate an ExposedThingInit
    */
   public static validateExposedThingInit(data : any) {
-    let exposeThingInitSchema = Helpers.validateThingDescription(JSON.parse(JSON.stringify(tdSchema)));
+    const td = JSON.parse(JSON.stringify(tdSchema));
+
+    if(data["@type"] !== undefined && data["@type"] == "tm:ThingModel") {
+      return {
+        valid: false,
+        errors: "ThingModel declaration is not supported"
+      };
+    }
+
+    let exposeThingInitSchema = Helpers.validateThingDescription(td);
     const validate = ajv.compile(exposeThingInitSchema);
     const isValid = validate(data);
     let errors = undefined;
