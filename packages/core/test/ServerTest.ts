@@ -38,11 +38,11 @@ class TestProtocolServer implements ProtocolServer {
     public readonly scheme: string = "test";
     
     expose(thing: ExposedThing): Promise<void> {
-        return new Promise<void>((resolve, reject) => {});
+        return new Promise<void>((resolve, reject) => { resolve() });
     }
 
     destroy(thingId: string): Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => {});
+        return new Promise<boolean>((resolve, reject) => { resolve(true) });
     }
 
     start(): Promise<void> { return new Promise<void>((resolve, reject) => { resolve(); }); }
