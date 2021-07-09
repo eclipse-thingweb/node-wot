@@ -39,7 +39,11 @@ import TDSchema from "wot-typescript-definitions/schema/td-json-schema-validatio
 const tdSchema = TDSchema;
 const ajv = new Ajv({strict:false});
 
+
+ 
 export default class Helpers {
+
+  static tsSchemaValidator = ajv.compile(Helpers.validateThingDescription(tdSchema));
 
   private srv: Servient;
 
@@ -209,21 +213,16 @@ export default class Helpers {
    * Helper function to validate an ExposedThingInit
    */
   public static validateExposedThingInit(data : any) {
-    const td = JSON.parse(JSON.stringify(tdSchema));
-
-    if(data["@type"] !== undefined && data["@type"] == "tm:ThingModel") {
+    if(data["@type"] == "tm:ThingModel") {
       return {
         valid: false,
         errors: "ThingModel declaration is not supported"
       };
     }
-
-    let exposeThingInitSchema = Helpers.validateThingDescription(td);
-    const validate = ajv.compile(exposeThingInitSchema);
-    const isValid = validate(data);
+    const isValid = Helpers.tsSchemaValidator(data);
     let errors = undefined;
     if(!isValid) {
-      errors = validate.errors.map(o => o.message).join('\n');
+      errors = Helpers.tsSchemaValidator.errors.map(o => o.message).join('\n');
     }
     return {
       valid: isValid,
