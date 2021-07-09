@@ -93,6 +93,12 @@ Along with content type `application/octet-stream`, this protocol binding accept
 
 **Note**: the list may be extended in the future. 
 
+In particular, the decimal number `9545 22880` will be encoded in as follows:
+- `BIG_ENDIAN`: `25 49 59 60`
+- `LITTLE_ENDIAN`: `60 59 49 25`
+- `BIG_ENDIAN_BYTE_SWAP`: `49 25 60 59`
+- `LITTLE_ENDIAN_BYTE_SWAP`: `59 60 25 49`
+
 For register properties the payload is just the plain sequence of bytes read from or written to the registers. For coils and discrete inputs, the payload is a sequence of bytes, each corresponding to a single coil or discrete input. Each byte contains the value `0` or `1`. So the encoder / decoder should work on this series of bytes and does not have to take care about handling the individual bits. Mapping each coil or discrete input to a single property of type `boolean` works just fine!
 
 ## Security 
