@@ -15,14 +15,14 @@
 
 import { Observable } from "rxjs/Observable";
 import * as WoT from "wot-typescript-definitions";
-
+import TDSchema from "wot-typescript-definitions/schema/td-json-schema-validation.json";
 import * as TD from "@node-wot/td-tools";
-
 import Servient from "./servient";
 import ExposedThing from "./exposed-thing";
 import ConsumedThing from "./consumed-thing";
 import Helpers from "./helpers";
-import { ContentSerdes } from "./content-serdes";
+
+const tdSchema = TDSchema;
 
 export default class WoTImpl {
     private srv: Servient;
@@ -74,28 +74,7 @@ export default class WoTImpl {
         }
     }
 
-    validateThingDescription(td: any) {
-        if(td.required !== undefined) {
-            let reservedKeywords: Array<string> = [ 
-                "title", "@context", "instance", "forms", "security", "href"
-            ]
-            if (Array.isArray(td.required)) {
-                let reqProps: Array<string> =td.required;
-                td.required = reqProps.filter(n => !reservedKeywords.includes(n))
-            } else if (typeof td.required === "string") {
-                if(reservedKeywords.indexOf(td.required) !== -1)
-                    delete td.required
-            }
-        }
-
-        if(td.properties !== undefined){
-            for (let prop in td.properties) {  
-                this.validateThingDescription(td.properties[prop])
-            }
-        }
-
-        return td
-    }
+    
 
     /**
      * create a new Thing
@@ -109,8 +88,13 @@ export default class WoTImpl {
 
                 // FIXME should be constrained version that omits instance-specific parts (but keeps "id")
                 let template = td;
+                
+                let validated = Helpers.validateExposedThingInit(template);
+                
+                if(!validated.valid) {
+                    throw new Error("Thing Description JSON schema validation failed:\n" + validated.errors);
+                }
 
-                this.validateThingDescription(template);
                 this.addDefaultLanguage(template);
 
                 newThing =  new ExposedThing(this.srv,td);

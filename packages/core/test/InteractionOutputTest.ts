@@ -14,7 +14,7 @@
  ********************************************************************************/
 
 import { suite, test } from "mocha-typescript";
-import * as promised from "chai-as-promised";
+import promised from "chai-as-promised";
 import { expect } from "chai";
 import {use} from 'chai';
 import {Readable} from 'stream';

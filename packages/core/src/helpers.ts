@@ -33,8 +33,17 @@ import Servient from "./servient";
 import * as TD from "@node-wot/td-tools";
 import { ContentSerdes } from "./content-serdes";
 import { ProtocolHelpers } from "./core";
+import Ajv from 'ajv';
+import TDSchema from "wot-typescript-definitions/schema/td-json-schema-validation.json";
 
+const tdSchema = TDSchema;
+const ajv = new Ajv({strict:false});
+
+
+ 
 export default class Helpers {
+
+  static tsSchemaValidator = ajv.compile(Helpers.validateThingDescription(tdSchema));
 
   private srv: Servient;
 
@@ -172,5 +181,52 @@ export default class Helpers {
       console.error("[core/helpers]", "parseInteractionOutput low-level stream not implemented");
     }
     return value;
+  }
+
+  /**
+   * Helper function to remove reserved keywords in required property of TD JSON Schema
+   */
+  static validateThingDescription(td: any) {
+    if(td.required !== undefined) {
+        let reservedKeywords: Array<string> = [ 
+            "title", "@context", "instance", "forms", "security", "href", "securityDefinitions"
+        ]
+        if (Array.isArray(td.required)) {
+            let reqProps: Array<string> =td.required;
+            td.required = reqProps.filter(n => !reservedKeywords.includes(n))
+        } else if (typeof td.required === "string") {
+            if(reservedKeywords.indexOf(td.required) !== -1)
+                delete td.required
+        }
+    }
+
+    if(td.definitions !== undefined){
+        for (let prop in td.definitions) {  
+            this.validateThingDescription(td.definitions[prop])
+        }
+    }
+
+    return td
+  }
+
+  /**
+   * Helper function to validate an ExposedThingInit
+   */
+  public static validateExposedThingInit(data : any) {
+    if(data["@type"] == "tm:ThingModel") {
+      return {
+        valid: false,
+        errors: "ThingModel declaration is not supported"
+      };
+    }
+    const isValid = Helpers.tsSchemaValidator(data);
+    let errors = undefined;
+    if(!isValid) {
+      errors = Helpers.tsSchemaValidator.errors.map(o => o.message).join('\n');
+    }
+    return {
+      valid: isValid,
+      errors: errors
+    };
   }
 }
