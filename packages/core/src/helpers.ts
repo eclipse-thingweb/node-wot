@@ -43,7 +43,7 @@ const ajv = new Ajv({strict:false});
  
 export default class Helpers {
 
-  static tsSchemaValidator = ajv.compile(Helpers.validateThingDescription(tdSchema));
+  static tsSchemaValidator = ajv.compile(Helpers.createExposeThingInitSchema(tdSchema));
 
   private srv: Servient;
 
@@ -186,27 +186,29 @@ export default class Helpers {
   /**
    * Helper function to remove reserved keywords in required property of TD JSON Schema
    */
-  static validateThingDescription(td: any) {
-    if(td.required !== undefined) {
+  static createExposeThingInitSchema(tdSchema: unknown) {
+    let tdSchemaCopy = JSON.parse(JSON.stringify(tdSchema));
+
+    if(tdSchemaCopy.required !== undefined) {
         let reservedKeywords: Array<string> = [ 
             "title", "@context", "instance", "forms", "security", "href", "securityDefinitions"
         ]
-        if (Array.isArray(td.required)) {
-            let reqProps: Array<string> =td.required;
-            td.required = reqProps.filter(n => !reservedKeywords.includes(n))
-        } else if (typeof td.required === "string") {
-            if(reservedKeywords.indexOf(td.required) !== -1)
-                delete td.required
+        if (Array.isArray(tdSchemaCopy.required)) {
+            let reqProps: Array<string> = tdSchemaCopy.required;
+            tdSchemaCopy.required = reqProps.filter(n => !reservedKeywords.includes(n))
+        } else if (typeof tdSchemaCopy.required === "string") {
+            if(reservedKeywords.indexOf(tdSchemaCopy.required) !== -1)
+                delete tdSchemaCopy.required
         }
     }
 
-    if(td.definitions !== undefined){
-        for (let prop in td.definitions) {  
-            this.validateThingDescription(td.definitions[prop])
+    if(tdSchemaCopy.definitions !== undefined){
+        for (let prop in tdSchemaCopy.definitions) {  
+            this.createExposeThingInitSchema(tdSchemaCopy.definitions[prop])
         }
     }
 
-    return td
+    return tdSchemaCopy
   }
 
   /**
