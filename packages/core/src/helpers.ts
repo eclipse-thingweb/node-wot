@@ -204,18 +204,45 @@ export default class Helpers {
 
     if(tdSchemaCopy.definitions !== undefined){
         for (let prop in tdSchemaCopy.definitions) {  
-            this.createExposeThingInitSchema(tdSchemaCopy.definitions[prop])
+            tdSchemaCopy.definitions[prop] = this.createExposeThingInitSchema(tdSchemaCopy.definitions[prop])
         }
     }
 
     return tdSchemaCopy
   }
 
+  private static isThingModelThingDescription(data : any) : boolean {
+
+    for (let key in data) {
+        if(key == "tm:ref")
+            return true;
+    }
+
+    if(data.links !== undefined && Array.isArray(data.links)) {
+        let foundTmExtendsRel = false;
+        data.links.forEach((link : any) => {
+            if(link.rel !== undefined && link.rel == "tm:extends")
+                foundTmExtendsRel = true;
+        });
+        if(foundTmExtendsRel) return true;
+    }
+
+    if(data.properties !== undefined){
+        for (let prop in data.properties) {  
+            if(this.isThingModelThingDescription(data.properties[prop]))
+                return true;
+        }
+    }
+
+    return false;
+  }
+
   /**
    * Helper function to validate an ExposedThingInit
    */
   public static validateExposedThingInit(data : any) {
-    if(data["@type"] == "tm:ThingModel") {
+    if(data["@type"] == "tm:ThingModel"
+        || this.isThingModelThingDescription(data)) {
       return {
         valid: false,
         errors: "ThingModel declaration is not supported"
