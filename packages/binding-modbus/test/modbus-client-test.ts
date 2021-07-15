@@ -119,6 +119,18 @@ describe('Modbus client test', () => {
             result = await client.readResource(form)
             result.body.should.deep.equal(Buffer.from([1]), "Wrong data")
         });
+        it('should fail for timeout', async () => {
+            const form: ModbusForm = {
+                href: "modbus://127.0.0.1:8502",
+                "modbus:function": 1,
+                "modbus:offset": 4444,
+                "modbus:length": 1,
+                "modbus:unitID": 1,
+                "modbus:timeout": 1000
+            }
+
+            await client.readResource(form).should.eventually.be.rejected;
+        }).timeout(5000);
     });
     describe('read resource', () => {
         it('should read a resource using read coil function', async () => {

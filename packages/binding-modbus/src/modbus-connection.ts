@@ -262,7 +262,7 @@ export class ModbusConnection {
         this.connecting = false;
         this.connected = false;
       } else {
-        console.error('[binding-modbus]', 'cannot close session ' + err);
+        console.error('[binding-modbus]', 'cannot close session ' + err); 
       }
     });
     clearInterval(this.timer)
