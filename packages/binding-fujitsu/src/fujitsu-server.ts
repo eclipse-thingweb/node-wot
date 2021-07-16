@@ -135,9 +135,22 @@ export default class FujitsuServer implements ProtocolServer {
   }
 
   public destroy(thingId: string): Promise<boolean> {
+    console.debug("[binding-fujitsu]", `FujitsuServer on port ${this.getPort()} destroying thingId '${thingId}'`);
     return new Promise<boolean>((resolve, reject) => {
-      // TODO destroy the thing with the given id
-      resolve(false);
+      let removedThing: ExposedThing = undefined;
+      for (let name of Array.from(this.things.keys())) {
+        let expThing = this.things.get(name);
+        if (expThing?.id === thingId) {
+          this.things.delete(name);
+          removedThing = expThing;
+        }
+      }
+      if (removedThing) {
+        console.info("[binding-fujitsu]", `FujitsuServer succesfully destroyed '${removedThing.title}'`);
+      } else {
+        console.info("[binding-fujitsu]", `FujitsuServer failed to destroy thing with thingId '${thingId}'`)
+      }
+      resolve(removedThing != undefined);
     });
   }
 
