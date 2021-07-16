@@ -1,4 +1,3 @@
-import { InteractionOutput } from './../src/Interaction-output';
 /********************************************************************************
  * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
  * 
