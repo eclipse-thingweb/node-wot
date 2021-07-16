@@ -55,7 +55,12 @@ export interface ProtocolClientFactory {
 export interface ProtocolServer {
   readonly scheme: string;
   expose(thing: ExposedThing, tdTemplate?: WoT.ThingDescription): Promise<void>;
-  destroy(thingId: string): Promise<boolean>; // reports success
+  /**
+   * @param thingId: id of the thing to destroy
+   * @returns true if the thing was found and destroyed; false if the thing was not found
+   * @throws if the binding couldn't destroy the thing
+   **/
+  destroy(thingId: string): Promise<boolean>;
   start(servient: Servient): Promise<void>;
   stop(): Promise<void>;
   getPort(): number;
