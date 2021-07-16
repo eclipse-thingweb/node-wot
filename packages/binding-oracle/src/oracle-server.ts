@@ -61,9 +61,9 @@ export default class OracleServer implements ProtocolServer {
   }
 
   public destroy(thingId: string): Promise<boolean> {
+    console.debug("[binding-oracle]", `OracleServer destroying thingId '${thingId}'`);
     return new Promise<boolean>((resolve, reject) => {
-      // TODO destroy the thing with the given id
-      resolve(false);
+      reject(new Error("NotImplemented"));
     });
   }
 
