@@ -33,8 +33,17 @@ import Servient from "./servient";
 import * as TD from "@node-wot/td-tools";
 import { ContentSerdes } from "./content-serdes";
 import { ProtocolHelpers } from "./core";
+import Ajv from 'ajv';
+import TDSchema from "wot-typescript-definitions/schema/td-json-schema-validation.json";
 
+const tdSchema = TDSchema;
+const ajv = new Ajv({strict:false});
+
+
+ 
 export default class Helpers {
+
+  static tsSchemaValidator = ajv.compile(Helpers.createExposeThingInitSchema(tdSchema));
 
   private srv: Servient;
 
@@ -172,5 +181,81 @@ export default class Helpers {
       console.error("[core/helpers]", "parseInteractionOutput low-level stream not implemented");
     }
     return value;
+  }
+
+  /**
+   * Helper function to remove reserved keywords in required property of TD JSON Schema
+   */
+  static createExposeThingInitSchema(tdSchema: unknown) {
+    let tdSchemaCopy = JSON.parse(JSON.stringify(tdSchema));
+
+    if(tdSchemaCopy.required !== undefined) {
+        let reservedKeywords: Array<string> = [ 
+            "title", "@context", "instance", "forms", "security", "href", "securityDefinitions"
+        ]
+        if (Array.isArray(tdSchemaCopy.required)) {
+            let reqProps: Array<string> = tdSchemaCopy.required;
+            tdSchemaCopy.required = reqProps.filter(n => !reservedKeywords.includes(n))
+        } else if (typeof tdSchemaCopy.required === "string") {
+            if(reservedKeywords.indexOf(tdSchemaCopy.required) !== -1)
+                delete tdSchemaCopy.required
+        }
+    }
+
+    if(tdSchemaCopy.definitions !== undefined){
+        for (let prop in tdSchemaCopy.definitions) {  
+            tdSchemaCopy.definitions[prop] = this.createExposeThingInitSchema(tdSchemaCopy.definitions[prop])
+        }
+    }
+
+    return tdSchemaCopy
+  }
+
+  private static isThingModelThingDescription(data : any) : boolean {
+
+    for (let key in data) {
+        if(key == "tm:ref")
+            return true;
+    }
+
+    if(data.links !== undefined && Array.isArray(data.links)) {
+        let foundTmExtendsRel = false;
+        data.links.forEach((link : any) => {
+            if(link.rel !== undefined && link.rel == "tm:extends")
+                foundTmExtendsRel = true;
+        });
+        if(foundTmExtendsRel) return true;
+    }
+
+    if(data.properties !== undefined){
+        for (let prop in data.properties) {  
+            if(this.isThingModelThingDescription(data.properties[prop]))
+                return true;
+        }
+    }
+
+    return false;
+  }
+
+  /**
+   * Helper function to validate an ExposedThingInit
+   */
+  public static validateExposedThingInit(data : any) {
+    if(data["@type"] == "tm:ThingModel"
+        || this.isThingModelThingDescription(data)) {
+      return {
+        valid: false,
+        errors: "ThingModel declaration is not supported"
+      };
+    }
+    const isValid = Helpers.tsSchemaValidator(data);
+    let errors = undefined;
+    if(!isValid) {
+      errors = Helpers.tsSchemaValidator.errors.map(o => o.message).join('\n');
+    }
+    return {
+      valid: isValid,
+      errors: errors
+    };
   }
 }

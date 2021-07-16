@@ -48,4 +48,41 @@ class HelperTest {
         let scheme = Helpers.extractScheme("coap+ws://blablupp.de")
         expect(scheme).to.eq("coap+ws")
     }
+
+    @test "should correctly validate schema"() {
+        let thing = {
+            title: "thingTest",
+            properties: {
+                myProp: { 
+                    type: "number"
+                }
+            }
+        };
+
+        let validated = Helpers.validateExposedThingInit(thing);
+
+        expect(thing).to.exist;
+        expect(validated.valid).to.be.true;
+        expect(validated.errors).to.be.undefined;
+    }
+
+    @test "should reject ThingModel schema on validation"() {
+        let thing = {
+            title: "thingTest",
+            links: [{
+                "rel": "tm:extend"
+            }],
+            properties: {
+                myProp: { 
+                    "tm:ref": "http://example.com/thingTest.tm.jsonld#/properties/myProp",
+                    type: "number"
+                }
+            }
+        };
+
+        let validated = Helpers.validateExposedThingInit(thing);
+
+        expect(thing).to.exist;
+        expect(validated.valid).to.be.false;
+    }
 }

@@ -15,14 +15,14 @@
 
 import { Observable } from "rxjs/Observable";
 import * as WoT from "wot-typescript-definitions";
-
+import TDSchema from "wot-typescript-definitions/schema/td-json-schema-validation.json";
 import * as TD from "@node-wot/td-tools";
-
 import Servient from "./servient";
 import ExposedThing from "./exposed-thing";
 import ConsumedThing from "./consumed-thing";
 import Helpers from "./helpers";
-import { ContentSerdes } from "./content-serdes";
+
+const tdSchema = TDSchema;
 
 export default class WoTImpl {
     private srv: Servient;
@@ -74,6 +74,8 @@ export default class WoTImpl {
         }
     }
 
+    
+
     /**
      * create a new Thing
      *
@@ -86,7 +88,15 @@ export default class WoTImpl {
 
                 // FIXME should be constrained version that omits instance-specific parts (but keeps "id")
                 let template = td;
+                
+                let validated = Helpers.validateExposedThingInit(template);
+                
+                if(!validated.valid) {
+                    throw new Error("Thing Description JSON schema validation failed:\n" + validated.errors);
+                }
+
                 this.addDefaultLanguage(template);
+
                 newThing =  new ExposedThing(this.srv,td);
 
                 console.debug("[core/servient]",`WoTImpl producing new ExposedThing '${newThing.title}'`);
