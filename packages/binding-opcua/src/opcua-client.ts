@@ -61,7 +61,7 @@ export default class OpcuaClient implements ProtocolClient {
 				maxRetry: 1
 			},
 			requestedSessionTimeout: 10000,
-			endpoint_must_exist: false
+			endpointMustExist: false
 		}
 		if (_config) {
 			this.config = _config;
@@ -190,23 +190,25 @@ export default class OpcuaClient implements ProtocolClient {
 			midtype: string;
 		} = this.extract_params(url.pathname.toString().substr(1));
 		let nodeId = params.ns + ';' + params.idtype;
-
 		try {
 			let nodeToWrite = {
 				nodeId: nodeId,
 				attributeId: AttributeIds.Value,
 				value: /* DataValue */ {
-					sourceTimestamp: new Date(),
-					statusCode: StatusCodes.Good,
+					// sourceTimestamp: new Date(), // FIXME: to be optional
+					// statusCode: StatusCodes.Good,
 					value: /* Variant */ {
-						dataType: dataType,
-						value: payload
+						dataType,
+						value: payload.payload
 					}
 				},
 			}
 			result = await this.session.write(nodeToWrite);
 			if (result._name === "Good" && result.value === 0) {
 				res = true;
+			} else if (result._description) {
+				const err = new Error(result._description);
+				throw err;
 			}
 		} catch (err) {
 			console.debug("[binding-opcua]",err);
@@ -376,6 +378,11 @@ export default class OpcuaClient implements ProtocolClient {
 
 
 	private extract_params(url: string): { ns: string; idtype: string; mns: string; midtype: string } {
+		try {
+			url = decodeURI(url);
+		} catch (err) {
+			console.error(err);
+		}
 		let res: {
 			ns: string;
 			idtype: string;
