@@ -199,21 +199,6 @@ This Binding realizes the interaction between Client and Server for Property, Ac
 
 Data will always be overwritten and no history will be retained.
 
-## Support functions for Client and Server implementations
-
-The functions that can be implemented for Client and Server differ as follows.
-
-| functions          | Client | Server |
-| ------------------ | ------ | ------ |
-| read property      | ✓      | ✓      |
-| write property     | ✓      | ✓      |
-| observe property   | ✓      | -      |
-| unobserve property | ✓      | -      |
-| invoke action      | ✓      | -      |
-| emit event         | -      | ✓      |
-| subscribe event    | ✓      | -      |
-| unsubscribe event  | ✓      | -      |
-
 ## Notes
 
 Because communication with Firestore occurs, you may be charged for using Firebase.
