@@ -8,6 +8,7 @@
     "url": "https://github.com/eclipse/thingweb.node-wot.git"
   },
   "devDependencies": {
+    "@types/mocha": "^8.2.2",
     "lerna": "^3.20.2",
     "lerna-run": "0.0.2",
     "rimraf": "3.0.2"
