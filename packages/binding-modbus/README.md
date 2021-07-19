@@ -93,7 +93,7 @@ Along with content type `application/octet-stream`, this protocol binding accept
 
 **Note**: the list may be extended in the future. 
 
-In particular, the decimal number `9545 22880` will be encoded in as follows:
+In particular, the decimal numbers `9545` and `22880` will be encoded as follows:
 - `BIG_ENDIAN`: `25 49 59 60`
 - `LITTLE_ENDIAN`: `60 59 49 25`
 - `BIG_ENDIAN_BYTE_SWAP`: `49 25 60 59`
