@@ -60,6 +60,13 @@ export default class OracleServer implements ProtocolServer {
     });
   }
 
+  public destroy(thingId: string): Promise<boolean> {
+    console.debug("[binding-oracle]", `OracleServer destroying thingId '${thingId}'`);
+    return new Promise<boolean>((resolve, reject) => {
+      reject(new Error("NotImplemented"));
+    });
+  }
+
   public start(servient: Servient): Promise<void> {
     console.info("[binding-oracle]",`OracleServer starting with ${this.activationId}`);
     return new Promise<void>( (resolve, reject) => {

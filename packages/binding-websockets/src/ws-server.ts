@@ -39,6 +39,7 @@ export default class WebSocketServer implements ProtocolServer {
   private readonly httpServer: http.Server | https.Server;
 
   private readonly thingNames: Set<string> = new Set<string>();
+  private readonly thingPaths: Map<string, any> = new Map<string, any>();
   private readonly socketServers: { [key: string]: WebSocket.Server } = {};
 
   constructor(serverOrConfig: HttpServer | HttpConfig = {} ) {
@@ -149,8 +150,8 @@ export default class WebSocketServer implements ProtocolServer {
 
       console.debug("[binding-websockets]",`WebSocketServer on port ${this.getPort()} exposes '${thing.title}' as unique '/${urlPath}/*'`);
 
-      // TODO clean-up on destroy
       this.thingNames.add(urlPath);
+      this.thingPaths.set(thing.id, urlPath);
     
       // TODO more efficient routing to ExposedThing without ResourceListeners in each server
       for (let eventName in thing.events) {
@@ -206,6 +207,23 @@ export default class WebSocketServer implements ProtocolServer {
     }
     return new Promise<void>((resolve, reject) => {
       resolve();
+    });
+  }
+
+  public destroy(thingId: string): Promise<boolean> {
+    console.debug("[binding-websockets]", `WebSocketServer on port ${this.getPort()} destroying thingId '${thingId}'`);
+    return new Promise<boolean>((resolve, reject) => {
+      let removedThing = false;
+      for (let name of Array.from(this.thingPaths.keys())) {
+        let thingPath = this.thingPaths.get(name);
+        removedThing = this.thingNames.delete(thingPath);
+      }
+      if (removedThing) {
+        console.info("[binding-websockets]", `WebSocketServer succesfully destroyed '${thingId}'`);
+      } else {
+        console.info("[binding-websockets]", `WebSocketServer failed to destroy thing with thingId '${thingId}'`)
+      }
+      resolve(removedThing != undefined);
     });
   }
 }
