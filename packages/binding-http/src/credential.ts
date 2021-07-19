@@ -116,9 +116,8 @@ export class OAuthCredential extends Credential {
         tempRequest = this.token.sign(tempRequest)
         
         const mergeHeaders = new Request(request,tempRequest)
-        const useNewURL = new Request(tempRequest.url,mergeHeaders)
         
-        return useNewURL
+        return mergeHeaders;
     }
 
     async refreshToken() {
