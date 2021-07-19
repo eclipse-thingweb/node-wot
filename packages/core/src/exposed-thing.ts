@@ -67,7 +67,47 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         // without functions or methods
         let clonedModel = JSON.parse(JSON.stringify(thingModel))
         Object.assign(this, clonedModel);
+
+        // unset "@type":"tm:ThingModel" ?
+        // see https://github.com/eclipse/thingweb.node-wot/issues/426
+        /* if (this["@type"]) {
+            if (typeof this["@type"] === 'string' && this["@type"] === "tm:ThingModel") {
+                delete this["@type"];
+            } else if (Array.isArray(this["@type"])) {
+                let arr: Array<any> = this["@type"];
+                for (var i = 0; i < arr.length; i++) {
+                    if (arr[i] === "tm:ThingModel") {
+                        arr.splice(i, 1);
+                        i--;
+                    }
+                }
+            }
+        } */
+        // set default language
+        this.addDefaultLanguage(this);
+        // extend interactions
         this.extendInteractions();
+    }
+
+    // Note: copy from td-parser.ts
+    addDefaultLanguage(thing: any) {
+        // add @language : "en" if no @language set
+        if (Array.isArray(thing["@context"])) {
+            let arrayContext: Array<any> = thing["@context"];
+            let languageSet = false;
+            for (let arrayEntry of arrayContext) {
+                if (typeof arrayEntry == "object") {
+                    if (arrayEntry["@language"] !== undefined) {
+                        languageSet = true;
+                    }
+                }
+            }
+            if (!languageSet) {
+                arrayContext.push({
+                    "@language": TD.DEFAULT_CONTEXT_LANGUAGE
+                });
+            }
+        }
     }
 
     extendInteractions(): void {

@@ -97,8 +97,6 @@ export default class HttpClient implements ProtocolClient {
     
     this.checkFetchResponse(result)
     
-    const buffer = await result.buffer()
-    
     console.debug("[binding-http]",`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
     console.debug("[binding-http]",`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
     
@@ -140,7 +138,6 @@ export default class HttpClient implements ProtocolClient {
     
     this.checkFetchResponse(result)
     
-    const buffer = await result.buffer()
 
     return { type: result.headers.get("content-type"), body: result.body };
   }
