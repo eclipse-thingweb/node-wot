@@ -61,7 +61,7 @@ export default class OpcuaClient implements ProtocolClient {
 				maxRetry: 1
 			},
 			requestedSessionTimeout: 10000,
-			endpoint_must_exist: false
+			endpointMustExist: false
 		}
 		if (_config) {
 			this.config = _config;
