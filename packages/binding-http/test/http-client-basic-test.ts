@@ -60,7 +60,7 @@ class HttpClientBasicTest {
 
         })
         
-        return new Promise((resolve)=>{
+        return new Promise<void>((resolve)=>{
             HttpClientBasicTest.server = https.createServer({
                 key: fs.readFileSync('./test/server.key'),
                 cert: fs.readFileSync('./test/server.cert')

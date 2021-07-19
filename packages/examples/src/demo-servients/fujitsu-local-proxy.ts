@@ -61,25 +61,25 @@ servient.start().then(async (WoT) => {
         
         // actuators
         exposedThing.addAction("StartPump", {}, () => {
-            return new Promise((resolve, reject) => {
+            return new Promise<void>((resolve, reject) => {
               console.warn(">>> Startung pump!");
               resolve();
             });
           });
           exposedThing.addAction("StopPump", {}, () => {
-            return new Promise((resolve, reject) => {
+            return new Promise<void>((resolve, reject) => {
               console.warn(">>> Stopping pump!");
               resolve();
             });
           });
           exposedThing.addAction("OpenValve", {}, () => {
-            return new Promise((resolve, reject) => {
+            return new Promise<void>((resolve, reject) => {
               console.warn(">>> Opening valve!");
               resolve();
             });
           });
           exposedThing.addAction("CloseValve", {}, () => {
-            return new Promise((resolve, reject) => {
+            return new Promise<void>((resolve, reject) => {
               console.warn(">>> Closing valve!");
               resolve();
             });

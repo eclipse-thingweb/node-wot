@@ -50,7 +50,7 @@ class HttpClientOAuthTest {
             res.send('Ok!')
         })
 
-        return new Promise((resolve)=>{
+        return new Promise<void>((resolve)=>{
             HttpClientOAuthTest.server = https.createServer({
                 key: fs.readFileSync('./test/server.key'),
                 cert: fs.readFileSync('./test/server.cert')
