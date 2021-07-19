@@ -27,7 +27,7 @@ describe('Modbus connection', () => {
     it('should connect', async()=>{
         const connection = new ModbusConnection("127.0.0.1",8502)
         await connection.connect()
-        connection.connected.should.be.true
+        connection.client.isOpen.should.be.true
     })
 
     it('should throw for unknown host', () => {

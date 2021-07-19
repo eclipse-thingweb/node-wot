@@ -30,7 +30,6 @@ export class ModbusConnection {
     this.port = port;
     this.client = new ModbusRTU(); // new ModbusClient();
     this.connecting = false;
-    this.connected = false;
     this.timer = null;
     this.currentTransaction = null;
     this.queue = new Array<ModbusTransaction>();
@@ -92,7 +91,7 @@ export class ModbusConnection {
   }
 
   async connect() {
-    if (!this.connecting && !this.connected) {
+    if (!this.connecting && !this.client.isOpen) {
       console.debug('[binding-modbus]', 'Trying to connect to', this.host);
       this.connecting = true;
 
@@ -101,7 +100,6 @@ export class ModbusConnection {
           this.client.setTimeout(this.config.connectionTimeout)
           await this.client.connectTCP(this.host, { port: this.port })
           this.connecting = false;
-          this.connected = true;
           console.debug('[binding-modbus]', 'Modbus connected to ' + this.host);
           return
         } catch (error) {
@@ -126,7 +124,7 @@ export class ModbusConnection {
    */
   async trigger() {
     console.debug('[binding-modbus]', 'ModbusConnection:trigger');
-    if (!this.connecting && !this.connected) {
+    if (!this.connecting && !this.client.isOpen) {
       // connection may be closed due to operation timeout
       // try to reconnect again
       try {
@@ -141,7 +139,7 @@ export class ModbusConnection {
           })
         })
       }
-    } else if (this.connected && this.currentTransaction == null && this.queue.length > 0) {
+    } else if (this.client.isOpen && this.currentTransaction == null && this.queue.length > 0) {
       // take next transaction from queue and execute
       this.currentTransaction = this.queue.shift();
       try {
@@ -260,7 +258,6 @@ export class ModbusConnection {
       if (!err) {
         console.debug('[binding-modbus]', 'session closed');
         this.connecting = false;
-        this.connected = false;
       } else {
         console.error('[binding-modbus]', 'cannot close session ' + err); 
       }
