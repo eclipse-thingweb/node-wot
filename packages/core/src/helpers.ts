@@ -37,9 +37,10 @@ import Ajv from 'ajv';
 import TDSchema from "wot-typescript-definitions/schema/td-json-schema-validation.json";
 
 const tdSchema = TDSchema;
-const ajv = new Ajv({strict:false});
-
-
+const ajv = new Ajv({strict:false})
+                .addFormat('iri-reference', /.*/)
+                .addFormat('uri', /.*/)
+                .addFormat('date-time', /.*/);
  
 export default class Helpers {
 
