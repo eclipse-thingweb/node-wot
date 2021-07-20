@@ -17,12 +17,18 @@
  */
 const OAuthServer = require('express-oauth-server')
 const bodyParser = require('body-parser');
+const cors = require('cors');
 const https = require('https');
 const fs = require('fs')
 const express = require('express')
 const Memory = require('./memory-model');
 
+
+
+
 var app = express();
+app.use(cors());
+app.options('*', cors());
 
 const model = new Memory()
 
@@ -32,7 +38,7 @@ app.oauth = new OAuthServer({
 
 app.use(bodyParser.json());
 app.use("/introspect", bodyParser.urlencoded({ extended: false }));
-app.use("/introspect", (req,res,next)=>{
+app.use("/introspect", (req, res, next) => {
     if (req.method !== "POST" || !req.is("application/x-www-form-urlencoded")) {
         return res.status(400).end()
     }
@@ -45,16 +51,16 @@ app.use("/introspect", (req,res,next)=>{
     next()
 })
 
-app.use("/introspect", async(req, res, next) => { 
-    return app.oauth.authenticate()(req,res,next)
-    
-    
+app.use("/introspect", async (req, res, next) => {
+    return app.oauth.authenticate()(req, res, next)
+
+
 });
-app.use("/introspect",(req,res)=>{
+app.use("/introspect", (req, res) => {
     const token = res.locals.oauth.token
-    console.log("Token was",token? "Ok": "not Ok")
+    console.log("Token was", token ? "Ok" : "not Ok")
     res.json({
-        active : !!token,
+        active: !!token,
         scope: token.client.grants.join(" "),
         client_id: token.client.clientId
     }).end()
