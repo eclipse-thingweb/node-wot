@@ -97,7 +97,7 @@ export default class ModbusClient implements ProtocolClient {
 
     if (!connection) {
       console.debug('[binding-modbus]', 'Creating new ModbusConnection for ', hostAndPort);
-      this._connections.set(hostAndPort, new ModbusConnection(host, port));
+      this._connections.set(hostAndPort, new ModbusConnection(host, port, {connectionTimeout: form['modbus:timeout'] || DEFAULT_TIMEOUT}));
       connection = this._connections.get(hostAndPort);
     }else {
       console.debug('[binding-modbus]', 'Reusing ModbusConnection for ', hostAndPort);
@@ -198,7 +198,7 @@ export default class ModbusClient implements ProtocolClient {
     }
 
 
-    if(form['modbus:offset'] !== 0) {
+    if(form['modbus:offset'] === undefined || form['modbus:offset'] === null) {
         throw new Error('Malformed form: offset must be defined');
     }
     

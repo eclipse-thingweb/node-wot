@@ -3,8 +3,10 @@ import {ServerTCP} from 'modbus-serial'
 export default class ModbusServer{
     serverTCP: ServerTCP;
     registers:Array<number> = [];
+    killers:Array<()=>void> = [];
     constructor(unitID:number) {
         const that = this
+
         var vector = {
             getInputRegister: function (addr: any, unitID: any) {
                 // Synchronous handling
@@ -18,6 +20,21 @@ export default class ModbusServer{
                 return that.registers[addr];
             },
             getCoil: function (addr: number, unitID: any) {
+                if (addr === 4444) {
+                    // promise sleeps for 100 second. Useful for testing long running requests.
+                    return new Promise((resolve) => {
+                        const timeout = setTimeout(() => {
+                            resolve(that.registers[addr]);
+                        }, 100000);
+                        // when stop forcing every connection to close
+                        // it seems that the modbus client will not properly 
+                        // close the connection otherwise
+                        that.killers.push(()=> {                            
+                            clearTimeout(timeout);
+                            resolve(0);
+                        });
+                    })
+                }
                 return that.registers[addr];
             },
 
@@ -61,6 +78,9 @@ export default class ModbusServer{
 
     public stop(){
         return new Promise((resolve)=> {
+            this.killers.forEach(killer => {
+                killer();
+            });
             this.serverTCP.close(resolve)
         })
     }
