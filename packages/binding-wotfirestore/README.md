@@ -199,6 +199,24 @@ This Binding realizes the interaction between Client and Server for Property, Ac
 
 Data will always be overwritten and no history will be retained.
 
+## Support WoT operations for Client implementations
+
+The WoT operations that can be implemented for Client as follows.
+
+| WoT operations          | Client |
+| ----------------------- | ------ |
+| readProperty            | ✓      |
+| readAllProperties       | -      |
+| readMultipleProperties  | -      |
+| writeProperty           | ✓      |
+| writeMultipleProperties | -      |
+| observeProperty         | ✓      |
+| unobserveProperty       | ✓      |
+| invokeAction            | ✓      |
+| emitEvent               | N/A    |
+| subscribeEvent          | ✓      |
+| unsubscribeEvent        | ✓      |
+
 ## Notes
 
 Because communication with Firestore occurs, you may be charged for using Firebase.

@@ -12,7 +12,8 @@ import WoTFirestoreClient from './wotfirestore-client'
 import WoTFirestoreCodec from './codecs/wotfirestore-codec'
 
 export default class WoTFirestoreClientFactory
-  implements ProtocolClientFactory {
+  implements ProtocolClientFactory
+{
   public readonly scheme: string = 'wotfirestore'
   private config: WoTFirestoreConfig = null
   public contentSerdes: ContentSerdes = ContentSerdes.get()
