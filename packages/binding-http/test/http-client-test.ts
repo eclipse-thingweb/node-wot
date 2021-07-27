@@ -94,6 +94,10 @@ class TestHttpServer implements ProtocolServer {
         return new Promise<void>((resolve, reject) => { resolve(); });
     }
 
+    public destroy(thingId: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => { resolve(false); });
+    }
+
     public setTestVector(vector: TestVector) {
         if (!vector.op) throw new Error("No vector op given");
         if (!vector.form["htv:methodName"]) {

@@ -98,8 +98,7 @@ export default class MqttBrokerServer implements ProtocolServer {
 
     console.debug("[binding-mqtt]",`MqttBrokerServer at ${this.brokerURI} exposes '${thing.title}' as unique '${name}/*'`);
     return new Promise<void>((resolve, reject) => {
-
-      // TODO clean-up on destroy and stop
+      
       this.things.set(name, thing);
 
       for (let propertyName in thing.properties) {
@@ -269,6 +268,26 @@ export default class MqttBrokerServer implements ProtocolServer {
       }
       this.broker.publish(name, JSON.stringify(thing.getThingDescription()),{retain:true,contentType:"application/td+json"});
       resolve();
+    });
+  }
+
+  public destroy(thingId: string): Promise<boolean> {
+    console.debug("[binding-mqtt]", `MqttBrokerServer on port ${this.getPort()} destroying thingId '${thingId}'`);
+    return new Promise<boolean>((resolve, reject) => {
+      let removedThing: ExposedThing = undefined;
+      for (let name of Array.from(this.things.keys())) {
+        let expThing = this.things.get(name);
+        if (expThing != null && expThing.id != null && expThing.id === thingId) {
+          this.things.delete(name);
+          removedThing = expThing;
+        }
+      }
+      if (removedThing) {
+        console.info("[binding-mqtt]", `MqttBrokerServer succesfully destroyed '${removedThing.title}'`);
+      } else {
+        console.info("[binding-mqtt]", `MqttBrokerServer failed to destroy thing with thingId '${thingId}'`)
+      }
+      resolve(removedThing != undefined);
     });
   }
 

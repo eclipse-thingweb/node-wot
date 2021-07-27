@@ -38,7 +38,11 @@ class TestProtocolServer implements ProtocolServer {
     public readonly scheme: string = "test";
     
     expose(thing: ExposedThing): Promise<void> {
-        return new Promise<void>((resolve, reject) => {});
+        return new Promise<void>((resolve, reject) => { resolve() });
+    }
+
+    destroy(thingId: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => { resolve(true) });
     }
 
     start(): Promise<void> { return new Promise<void>((resolve, reject) => { resolve(); }); }
@@ -113,6 +117,28 @@ class WoTServerTest {
         expect(thing).to.have.property("test:custom").that.equals("test");
         expect(thing).to.have.property("properties");
         expect(thing).to.have.property("properties").to.have.property("myProp");
+    }
+
+    @test async "should be able to destroy a Thing based on a thingId"() {
+        let desc = `{
+            "@context": ["https://w3c.github.io/wot/w3c-wot-td-context.jsonld"],
+            "@type": ["Thing"],
+            "title": "myDestroyThing",
+            "id": "1234567",
+            "properties": {
+                "myProp" : {
+                }
+            }
+        }`;
+        let thing = await WoTServerTest.WoT.produce(JSON.parse(desc));
+        expect(thing).to.exist;
+        // test TD
+        expect(thing.getThingDescription()).to.have.property("title").to.equal("myDestroyThing");
+        expect(thing.getThingDescription()).to.have.property("id").to.equal("1234567");
+        // test presence (and destroy)
+        expect(WoTServerTest.servient.getThing("1234567")).to.not.be.null;
+        await thing.destroy(); // destroy -> remove
+        expect(WoTServerTest.servient.getThing("1234567")).to.be.null;
     }
 
     @test async "should be able to add a property with value 1"() {

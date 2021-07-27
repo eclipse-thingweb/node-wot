@@ -164,6 +164,26 @@ export default class CoapServer implements ProtocolServer {
     });
   }
 
+  public destroy(thingId: string): Promise<boolean> {
+    console.debug("[binding-coap]", `CoapServer on port ${this.getPort()} destroying thingId '${thingId}'`);
+    return new Promise<boolean>((resolve, reject) => {
+      let removedThing: ExposedThing = undefined;
+      for (let name of Array.from(this.things.keys())) {
+        let expThing = this.things.get(name);
+        if (expThing?.id === thingId) {
+          this.things.delete(name);
+          removedThing = expThing;
+        }
+      }
+      if (removedThing) {
+        console.info("[binding-coap]", `CoapServer succesfully destroyed '${removedThing.title}'`);
+      } else {
+        console.info("[binding-coap]", `CoapServer failed to destroy thing with thingId '${thingId}'`)
+      }
+      resolve(removedThing != undefined);
+    });
+  }
+
   private handleRequest(req: any, res: any) {
     
     console.debug("[binding-coap]",`CoapServer on port ${this.getPort()} received '${req.method}(${req._packet.messageId}) ${req.url}' from ${Helpers.toUriLiteral(req.rsinfo.address)}:${req.rsinfo.port}`);
