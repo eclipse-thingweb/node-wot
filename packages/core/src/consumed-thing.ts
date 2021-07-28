@@ -459,7 +459,10 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                         () => {
                             resolve();
                         }
-                    );
+                    )
+                    .then((subscription : Subscription) => {
+                        resolve();
+                    });
                 }
             }
         });

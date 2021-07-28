@@ -35,7 +35,7 @@ export interface ProtocolClient {
   /** this client is requested to perform an "unlink" on the resource with the given URI */
   unlinkResource(form: TD.Form): Promise<void>;
 
-  subscribeResource(form: TD.Form, next: ((content: Content) => void), error?: (error: any) => void, complete?: () => void): Subscription;
+  subscribeResource(form: TD.Form, next: ((content: Content) => void), error?: (error: any) => void, complete?: () => void): Promise<Subscription>;
 
   /** start the client (ensure it is ready to send requests) */
   start(): boolean;

@@ -79,17 +79,19 @@ class MqttClientSubscribeTest {
                                             }
                                         })
                                     })
+                                    .then(() => {
+                                        var job = setInterval(() => {
+                                            ++counter;
+                                            thing.emitEvent(eventName, counter);
+                                            if (counter === 3) {
+                                                clearInterval(job);
+                                            }
+                                        }, 1000);
+                                    })
                                     .catch((e) => {
                                         done(e)
                                     });
-
-                                var job = setInterval(() => {
-                                    ++counter;
-                                    thing.emitEvent(eventName, counter);
-                                    if (counter === 3) {
-                                        clearInterval(job);
-                                    }
-                                }, 1000);
+                                
                             }
                         );
                     });
