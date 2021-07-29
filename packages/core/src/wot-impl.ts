@@ -15,14 +15,12 @@
 
 import { Observable } from "rxjs/Observable";
 import * as WoT from "wot-typescript-definitions";
-import TDSchema from "wot-typescript-definitions/schema/td-json-schema-validation.json";
 import * as TD from "@node-wot/td-tools";
 import Servient from "./servient";
 import ExposedThing from "./exposed-thing";
 import ConsumedThing from "./consumed-thing";
 import Helpers from "./helpers";
 
-const tdSchema = TDSchema;
 
 export default class WoTImpl {
     private srv: Servient;
