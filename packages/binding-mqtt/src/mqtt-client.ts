@@ -49,7 +49,10 @@ export default class MqttClient implements ProtocolClient {
                 this.client = mqtt.connect(brokerUri)
             }
     
-            this.client.on('connect', () => this.client.subscribe(topic))
+            this.client.on('connect', () => { 
+                this.client.subscribe(topic); 
+                resolve(new Subscription(()=>{this.client.unsubscribe(topic)}));
+            })
             this.client.on('message', (receivedTopic : string, payload : string, packet: IPublishPacket) => {
                 console.debug("[binding-mqtt]","Received MQTT message (topic, data): (" + receivedTopic + ", "+ payload + ")");
                 if (receivedTopic === topic) {
@@ -64,8 +67,6 @@ export default class MqttClient implements ProtocolClient {
                 // TODO: error handling
                 error(error);
             });
-
-            return resolve(new Subscription(()=>{this.client.unsubscribe(topic)}));
         });
       }
 
