@@ -49,14 +49,14 @@ export class ModbusForm extends Form {
  * Different modbus function names as defined in
  * https://en.wikipedia.org/wiki/Modbus. 
  */
-export type ModbusFunctionName = 'readCoil' | 'readDiscreteInput' | 'readMultipleHoldingRegisters' |
+export type ModbusFunctionName = 'readCoil' | 'readDiscreteInput' | 'readHoldingRegisters' |
   'writeSingleCoil' | 'writeSingleHoldingRegister' | 'writeMultipleCoils' | 'writeMultipleHoldingRegisters';
 
 export type ModbusEntity = 'Coil' | 'InputRegister' | 'HoldingRegister' | 'DiscreteInput'
 export enum ModbusFunction {
   'readCoil' = 1,
   'readDiscreteInput' = 2,
-  'readMultipleHoldingRegisters' = 3,
+  'readHoldingRegisters' = 3,
   'readInputRegister' = 4,
   'writeSingleCoil' = 5,
   'writeSingleHoldingRegister' = 6,
