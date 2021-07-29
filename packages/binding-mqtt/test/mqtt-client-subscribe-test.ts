@@ -30,7 +30,7 @@ import MqttClientFactory from "../dist/mqtt-client-factory";
 @suite("MQTT implementation")
 class MqttClientSubscribeTest {
 
-    @test(timeout(5000)) "should expose via broker"(done: Function) {
+    @test(timeout(10000)) "should expose via broker"(done: Function) {
 
         try {
             let servient = new Servient();
