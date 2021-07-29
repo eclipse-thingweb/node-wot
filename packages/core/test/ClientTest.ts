@@ -55,8 +55,10 @@ class TDClient implements ProtocolClient {
         return Promise.reject("unlinkResource not implemented");
     }
 
-    public subscribeResource(form: Form, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): Subscription {
-        return new Subscription();
+    public subscribeResource(form: Form, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): Promise<Subscription> {
+        return new Promise<Subscription>((resolve, reject) => {
+            resolve(new Subscription());
+        });
     }
 
     public start(): boolean {
@@ -116,12 +118,14 @@ class TrapClient implements ProtocolClient {
     public unlinkResource(form: Form): Promise<void> {
         return Promise.resolve(this.trap(form));
     }
-    public subscribeResource(form: Form, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): Subscription {
-        // send one event
-        next(this.trap(form));
-        // then complete
-        setImmediate(() => { complete(); });
-        return new Subscription();
+    public subscribeResource(form: Form, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): Promise<Subscription> {
+        return new Promise<Subscription>((resolve, reject) => {
+            // send one event
+            next(this.trap(form));
+            // then complete
+            setImmediate(() => { complete(); });
+            resolve(new Subscription());
+        });
     }
 
     public start(): boolean {
