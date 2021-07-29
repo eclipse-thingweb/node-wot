@@ -8,7 +8,7 @@ export function modbusFunctionToEntity(modbusFun: ModbusFunction): ModbusEntity 
       return 'DiscreteInput'
     case ModbusFunction.readInputRegister:
       return 'InputRegister'
-    case ModbusFunction.readMultipleHoldingRegisters:
+    case ModbusFunction.readHoldingRegisters:
       return 'HoldingRegister'
     case ModbusFunction.writeMultipleCoils:
       return 'Coil'

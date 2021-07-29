@@ -179,7 +179,7 @@ export default class ModbusClient implements ProtocolClient {
           break;
         case 'HoldingRegister':
           // the content length must be divided by 2 (holding registers are 16bit)
-          result['modbus:function'] = mode === 'r' ? ModbusFunction.readMultipleHoldingRegisters :
+          result['modbus:function'] = mode === 'r' ? ModbusFunction.readHoldingRegisters :
             contentLength / 2 > 1 ? ModbusFunction.writeMultipleHoldingRegisters :
               ModbusFunction.writeSingleHoldingRegister;
           break;
