@@ -20,7 +20,7 @@
 import { ProtocolClient, Content, ContentSerdes } from '@node-wot/core';
 import * as TD from '@node-wot/td-tools';
 import * as mqtt from 'mqtt';
-import { MqttForm, MqttQoS } from './mqtt';
+import { MqttClientConfig, MqttForm, MqttQoS } from './mqtt';
 import { IPublishPacket, QoS } from 'mqtt';
 import * as url from 'url';
 import { Subscription } from "rxjs/Subscription";
@@ -29,8 +29,12 @@ export default class MqttClient implements ProtocolClient {
     private user:string = undefined;
 
     private psw:string = undefined;
+    private scheme: string;
+    private rejectUnauthorized: boolean;
 
-    constructor(config: any = null, secure = false) {}
+    constructor(private readonly config: MqttClientConfig = null, secure = false) {
+        this.scheme = "mqtt" + (secure ? "s" : "");
+    }
 
     private client : any = undefined;
 
@@ -42,10 +46,10 @@ export default class MqttClient implements ProtocolClient {
         let qos = form["mqtt:qos"]; // TODO: is this needed here?
         let requestUri = url.parse(form['href']);
         let topic = requestUri.pathname.slice(1);
-        let brokerUri : String = "mqtt://"+requestUri.host;
+        let brokerUri: String = `${this.scheme}://${requestUri.host}`;
 
         if(this.client==undefined) {
-            this.client = mqtt.connect(brokerUri)
+            this.client = mqtt.connect(brokerUri, this.config)
         }
 
         this.client.on('connect', () => this.client.subscribe(topic))
@@ -88,10 +92,10 @@ export default class MqttClient implements ProtocolClient {
 
             let requestUri = url.parse(form['href']);
             let topic = requestUri.pathname.slice(1);
-            let brokerUri : String = "mqtt://"+requestUri.host;
+            let brokerUri: String = `${this.scheme}://${requestUri.host}`;
             
             if(this.client==undefined) {
-                this.client = mqtt.connect(brokerUri)
+                this.client = mqtt.connect(brokerUri, this.config)
             }
 
             // if not input was provided, set up an own body otherwise take input as body

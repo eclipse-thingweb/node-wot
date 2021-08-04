@@ -47,4 +47,8 @@ export class MqttForm extends Form {
 
 }
 
+export interface MqttClientConfig {
+    rejectUnauthorized?: boolean
+}
+
 
