@@ -14,7 +14,7 @@ The Binding example in the `./examples` directory provides a TD (`mbus-thing.jso
 ```bash
 # start the script
 cd examples/scripts
-node mbus-example.js
+node ../../packages/cli/dist/cli.js mbus-example.js
 ```
 
 ## New Form Fields for the M-Bus Binding
