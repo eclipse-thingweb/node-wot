@@ -28,6 +28,7 @@ import { HttpsClientFactory } from "@node-wot/binding-http";
 import { CoapClientFactory } from "@node-wot/binding-coap";
 import { CoapsClientFactory } from "@node-wot/binding-coap";
 import { MqttClientFactory }  from "@node-wot/binding-mqtt";
+import { MBusClientFactory }  from "@node-wot/binding-mbus";
 
 export default class DefaultServient extends Servient {
 
@@ -113,6 +114,7 @@ export default class DefaultServient extends Servient {
         this.addClientFactory(new CoapClientFactory(coapServer));
         this.addClientFactory(new CoapsClientFactory());
         this.addClientFactory(new MqttClientFactory());
+		this.addClientFactory(new MBusClientFactory());
     }
 
     /**
