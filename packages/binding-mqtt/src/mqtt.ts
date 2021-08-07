@@ -21,10 +21,12 @@ import { Form } from "@node-wot/td-tools";
 
 export { default as MqttClient } from './mqtt-client';
 export { default as MqttClientFactory } from './mqtt-client-factory';
+export { default as MqttsClientFactory } from './mqtts-client-factory';
 export { default as MqttBrokerServer } from './mqtt-broker-server';
 
 export * from './mqtt-client';
 export * from './mqtt-client-factory'
+export * from './mqtts-client-factory'
 export * from './mqtt-broker-server'
 
 
