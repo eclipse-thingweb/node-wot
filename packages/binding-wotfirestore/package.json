@@ -7,7 +7,8 @@
   "scripts": {
     "build": "tsc",
     "rebuild": "tsc & npm rebuild --unsafe-perm --build-from-source",
-    "test": "firebase emulators:start -c test/firebase.json & node -e 'setTimeout(()=>{}, 5000)' && mocha --require ts-node/register test/**/*.ts --timeout 10000 --exit && kill-port 4000 8088 9099",
+    "test": "firebase emulators:exec -c test/firebase.json \"npm run fbemutest\" && kill-port 4000 8088 9099",
+    "fbemutest": "mocha --require ts-node/register test/**/*.ts --timeout 10000 --exit",
     "codestyle": "standard --pretty"
   },
   "author": "hidetak",
@@ -16,7 +17,7 @@
     "@node-wot/core": "0.7.7",
     "@node-wot/td-tools": "0.7.7",
     "buffer": "^5.5.0",
-    "firebase": "^8.7.0",
+    "firebase": "^7.24.0",
     "uuid": "^7.0.3"
   },
   "devDependencies": {

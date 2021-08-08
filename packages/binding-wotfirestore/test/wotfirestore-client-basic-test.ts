@@ -1,7 +1,7 @@
 var fs = require('fs')
 import { suite, test } from 'mocha-typescript'
 import * as chai from 'chai'
-import * as chaiAsPromised from 'chai-as-promised'
+import chaiAsPromised from 'chai-as-promised'
 import { promisify } from 'util'
 import WoTFirestoreClient from '../src/wotfirestore-client'
 import Servient, { Helpers } from '@node-wot/core'
@@ -14,7 +14,7 @@ import { launchTestThing } from './test-thing'
 chai.use(chaiAsPromised)
 const assert = chai.assert
 
-process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8088'
+//process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8088'
 
 const wotfirestoreConfig = require('./wotfirestore-config.json')
 
@@ -43,7 +43,11 @@ class WoTFirestoreClientBasicTest {
       const isEmulating = true
       if (isEmulating) {
         firebase.auth().useEmulator('http://localhost:9099')
-        firebase.firestore().useEmulator('localhost', 8088)
+        //firebase.firestore().useEmulator('localhost', 8088)
+        firebase.firestore().settings({
+          host: 'localhost:8088',
+          ssl: false
+        })
       }
     }
 

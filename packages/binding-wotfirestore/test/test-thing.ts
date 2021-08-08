@@ -9,12 +9,16 @@ const wotfirestoreConfig = require('./wotfirestore-config.json')
 export const launchTestThing = async () => {
   // setup for emulator
   try {
-    process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8088'
+    //process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8088'
     firebase.initializeApp(wotfirestoreConfig.firebaseConfig)
     const isEmulating = true
     if (isEmulating) {
       firebase.auth().useEmulator('http://localhost:9099')
-      firebase.firestore().useEmulator('localhost', 8088)
+      //firebase.firestore().useEmulator('localhost', 8088)
+      firebase.firestore().settings({
+        host: 'localhost:8088',
+        ssl: false
+      })
       try {
         // add test user
         await firebase

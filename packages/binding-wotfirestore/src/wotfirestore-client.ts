@@ -34,9 +34,7 @@ export default class WoTFirestoreClient implements ProtocolClient {
     return `[WoTFirestoreClient]`
   }
 
-  private makePointerInfo(
-    form: WoTFirestoreForm
-  ): {
+  private makePointerInfo(form: WoTFirestoreForm): {
     hostName: string
     name: string
     topic: string
@@ -67,6 +65,7 @@ export default class WoTFirestoreClient implements ProtocolClient {
     const firestore = await initFirestore(this.fbConfig, this.firestore)
     this.firestore = firestore
     const pointerInfo = this.makePointerInfo(form)
+    //TODO: thingに問い合わせるように修正
     const content = await readDataFromFirestore(
       this.firestore,
       pointerInfo.topic
@@ -83,7 +82,7 @@ export default class WoTFirestoreClient implements ProtocolClient {
     this.firestore = firestore
     let splittedTopic = pointerInfo.topic.split('/')
     if (splittedTopic && splittedTopic[2] === 'properties') {
-      splittedTopic[2] = 'propertyReceives'
+      splittedTopic[2] = 'propertyWriteReq'
       pointerInfo.topic = splittedTopic.join('/')
     }
     const value = await writeDataToFirestore(

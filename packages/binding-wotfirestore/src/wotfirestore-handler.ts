@@ -205,6 +205,26 @@ export const unsubscribeToFirestore = (firestoreObservers, topic: string) => {
   }
 }
 
+export const removeDataFromFirestore = (
+  firestore,
+  topic: string
+): Promise<any> => {
+  return new Promise((resolve, reject) => {
+    console.debug('[debug] removeDataFromFirestore topic: ', topic)
+    const ref = firestore.collection('things').doc(encodeURIComponent(topic))
+    ref
+      .delete()
+      .then(() => {
+        console.log('removed topic: ', topic)
+        resolve()
+      })
+      .catch((err) => {
+        console.error('error removing topic: ', topic, 'error: ', err)
+        reject(err)
+      })
+  })
+}
+
 export const writeMetaDataToFirestore = (
   firestore,
   hostName: string,
@@ -273,7 +293,6 @@ export const readMetaDataFromFirestore = (
 }
 
 // Remove the MetaData corresponding to the hostname from Firestore.
-// Currently, no one is using it.
 export const removeMetaDataFromFirestore = (
   firestore,
   hostName: string

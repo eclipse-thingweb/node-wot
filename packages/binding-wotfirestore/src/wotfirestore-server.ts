@@ -23,8 +23,10 @@ import {
   readDataFromFirestore,
   subscribeToFirestore,
   unsubscribeToFirestore,
+  removeDataFromFirestore,
   readMetaDataFromFirestore,
-  writeMetaDataToFirestore
+  writeMetaDataToFirestore,
+  removeMetaDataFromFirestore
 } from './wotfirestore-handler'
 
 export default class WoTFirestoreServer implements ProtocolServer {
@@ -45,6 +47,9 @@ export default class WoTFirestoreServer implements ProtocolServer {
   private static metaData = { hostName: '', things: [] }
 
   private fbConfig = null
+
+  // storing topics for destroy thing
+  private topics = []
 
   constructor(config: WoTFirestoreConfig = {}) {
     this.contentSerdes.addCodec(new WoTFirestoreCodec(), true)
@@ -118,18 +123,28 @@ export default class WoTFirestoreServer implements ProtocolServer {
 
     console.info('[info] setup properties')
     for (let propertyName in thing.properties) {
-      let topic =
+      const topic =
         this.getHostName() +
         '/' +
         encodeURIComponent(name) +
         '/properties/' +
         encodeURIComponent(propertyName)
-      let propertyReceiveTopic =
+      const propertyWriteReqTopic =
         this.getHostName() +
         '/' +
         encodeURIComponent(name) +
-        '/propertyReceives/' +
+        '/propertyWriteReq/' +
         encodeURIComponent(propertyName)
+      /*      const propertyReadReqTopic =
+        this.getHostName() +
+        '/' +
+        encodeURIComponent(name) +
+        '/propertyReadReq/' +
+        encodeURIComponent(propertyName)
+*/
+      this.topics.push(topic)
+      this.topics.push(propertyWriteReqTopic)
+
       let property = thing.properties[propertyName]
       console.info('  properties topic:', topic)
 
@@ -205,11 +220,35 @@ export default class WoTFirestoreServer implements ProtocolServer {
           `HttpServer on port ${this.getPort()} assigns '${href}' to observable Property '${propertyName}'`
         )
       }
+      /*      subscribeToFirestore(
+        this.firestore,
+        this.firestoreObservers,
+        propertyReadReqTopic,
+        async (err, content: Content) => {
+          if (err) {
+            console.error(
+              `[error] failed to read property request (${propertyName}): `,
+              err
+            )
+            return
+          }
+          console.debug(
+            `[debug] WoTFirestoreServer at ${this.getHostName()} received message for '${propertyReadReqTopic}'`
+          )
+
+          const value = await thing.readProperty(propertyName)
+          console.debug(
+            `[debug] getting property(${propertyName}) data: `,
+            value
+          )
+        }
+      )
+*/
       if (thing.properties[propertyName].readOnly === false) {
         subscribeToFirestore(
           this.firestore,
           this.firestoreObservers,
-          propertyReceiveTopic,
+          propertyWriteReqTopic,
           (err, content: Content) => {
             if (err) {
               console.error(
@@ -253,6 +292,9 @@ export default class WoTFirestoreServer implements ProtocolServer {
         encodeURIComponent(name) +
         '/actionResults/' +
         encodeURIComponent(actionName)
+
+      this.topics.push(topic)
+      this.topics.push(actionResultTopic)
 
       subscribeToFirestore(
         this.firestore,
@@ -333,6 +375,9 @@ export default class WoTFirestoreServer implements ProtocolServer {
         encodeURIComponent(name) +
         '/events/' +
         encodeURIComponent(eventName)
+
+      this.topics.push(topic)
+
       let event = thing.events[eventName]
       // FIXME store subscription and clean up on stop
       thing.subscribeEvent(
@@ -389,10 +434,23 @@ export default class WoTFirestoreServer implements ProtocolServer {
       `${this.getHostName()}/${name}`,
       tdContent
     )
+    this.topics.push(`${this.getHostName()}/${name}`)
     console.log(`**************************************`)
     console.log(`***** exposed thing descriptioon *****`)
     console.log(JSON.stringify(thing.getThingDescription(), null, '  '))
     console.log(`**************************************`)
     console.log(`**************************************`)
+  }
+
+  public destroy(thingId: string): Promise<boolean> {
+    console.debug('[binding-wotfirestore]', `destroying thingId '${thingId}'`)
+    return new Promise<boolean>(async (resolve, reject) => {
+      //TODO Firestoreに登録した、このThingに関わるデータを削除？
+      await removeMetaDataFromFirestore(this.firestore, this.getHostName())
+      this.topics.forEach(async (topic) => {
+        await removeDataFromFirestore(this.firestore, topic)
+      })
+      resolve(true)
+    })
   }
 }

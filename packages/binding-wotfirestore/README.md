@@ -188,7 +188,7 @@ This Binding realizes the interaction between Client and Server for Property, Ac
   Stores the Thing Description that the Server program exposes.
 - things/\<hostName\>%2F\<title of Thing Description\>%2Fproperties%2F\<name of property\>  
   Stores the value of the Property when it is changed by the Server.
-- things/\<hostName\>%2F\<title of Thing Description\>%2FpropertyReceives%2F\<name of property\>  
+- things/\<hostName\>%2F\<title of Thing Description\>%2FpropertyWriteReq%2F\<name of property\>  
   Stores the value of the Property when it is changed by the Client.
 - things/\<hostName\>%2F\<title of Thing Description\>%2Factions%2F\<name of action\>  
   Stores the action calling information when the Client invokes an Action.
