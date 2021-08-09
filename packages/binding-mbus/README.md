@@ -21,7 +21,7 @@ cd examples/servients/modbus-cli
 npm install
 
 # then start the script
-cd examples/scripts
+cd ../../scripts
 node ../servients/mbus-cli/dist/mbus-cli.js mbus-example.js
 ```
 
