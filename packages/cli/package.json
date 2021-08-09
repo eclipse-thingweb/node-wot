@@ -33,7 +33,6 @@
     "@node-wot/binding-http": "0.7.8",
     "@node-wot/binding-websockets": "0.7.8",
     "@node-wot/binding-mqtt": "0.7.8",
-	"@node-wot/binding-mbus": "0.7.8",
     "dotenv": "^8.2.0"
   },
   "scripts": {

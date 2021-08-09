@@ -5,7 +5,7 @@ export default class MBusClientFactory implements ProtocolClientFactory {
   public readonly scheme: string = 'mbus+tcp';
 
   public getClient(): ProtocolClient {
-    console.log(`MBusClientFactory creating client for '${this.scheme}'`);
+    console.info('[binding-mbus]',`MBusClientFactory creating client for '${this.scheme}'`);
     return new MBusClient();
   }
   public init = () => true;

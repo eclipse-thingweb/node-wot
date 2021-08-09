@@ -5,6 +5,10 @@ W3C Web of Things (WoT) Protocol Binding for Meter Bus TCP. This package uses [n
 ## Protocol specifier
 
 The protocol prefix handled by this binding is `mbus+tcp:`. This is currently a non-standard prefix.
+
+## Disclaimer
+
+This binding is currently experimental. Some errors might occur with the use of this binding. The code was tested in a specific situation which might not correspond to your own using.
  
 ## Getting Started
 
@@ -12,9 +16,13 @@ The protocol prefix handled by this binding is `mbus+tcp:`. This is currently a 
  
 The Binding example in the `./examples` directory provides a TD (`mbus-thing.json`) and an app script (`mbus-example.js`) . To execute the script use the pre-configure servient inside `./examples/servients` folder, as following:
 ```bash
-# start the script
+# first init the node package
+cd examples/servients/modbus-cli
+npm install
+
+# then start the script
 cd examples/scripts
-node ../../packages/cli/dist/cli.js mbus-example.js
+node ../servients/mbus-cli/dist/mbus-cli.js mbus-example.js
 ```
 
 ## New Form Fields for the M-Bus Binding
