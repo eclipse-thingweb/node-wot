@@ -15,14 +15,12 @@
 
 import { Observable } from "rxjs/Observable";
 import * as WoT from "wot-typescript-definitions";
-
 import * as TD from "@node-wot/td-tools";
-
 import Servient from "./servient";
 import ExposedThing from "./exposed-thing";
 import ConsumedThing from "./consumed-thing";
 import Helpers from "./helpers";
-import { ContentSerdes } from "./content-serdes";
+
 
 export default class WoTImpl {
     private srv: Servient;
@@ -61,7 +59,15 @@ export default class WoTImpl {
     produce(init: WoT.ExposedThingInit): Promise<WoT.ExposedThing> {
         return new Promise<WoT.ExposedThing>((resolve, reject) => {
             try {
-                let newThing = new ExposedThing(this.srv, init);
+                let newThing: ExposedThing;
+                
+                let validated = Helpers.validateExposedThingInit(init);
+                
+                if(!validated.valid) {
+                    throw new Error("Thing Description JSON schema validation failed:\n" + validated.errors);
+                }
+
+                newThing =  new ExposedThing(this.srv,init);
 
                 console.debug("[core/servient]",`WoTImpl producing new ExposedThing '${newThing.title}'`);
 

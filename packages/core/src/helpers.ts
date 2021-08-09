@@ -33,8 +33,19 @@ import Servient from "./servient";
 import * as TD from "@node-wot/td-tools";
 import { ContentSerdes } from "./content-serdes";
 import { ProtocolHelpers } from "./core";
+import Ajv from 'ajv';
+import TDSchema from "wot-typescript-definitions/schema/td-json-schema-validation.json";
 
+const tdSchema = TDSchema;
+// RegExps take from https://github.com/ajv-validator/ajv-formats/blob/master/src/formats.ts
+const ajv = new Ajv({strict:false})
+                .addFormat('iri-reference', /^(?:[a-z][a-z0-9+\-.]*:)?(?:\/?\/(?:(?:[a-z0-9\-._~!$&'()*+,;=:]|%[0-9a-f]{2})*@)?(?:\[(?:(?:(?:(?:[0-9a-f]{1,4}:){6}|::(?:[0-9a-f]{1,4}:){5}|(?:[0-9a-f]{1,4})?::(?:[0-9a-f]{1,4}:){4}|(?:(?:[0-9a-f]{1,4}:){0,1}[0-9a-f]{1,4})?::(?:[0-9a-f]{1,4}:){3}|(?:(?:[0-9a-f]{1,4}:){0,2}[0-9a-f]{1,4})?::(?:[0-9a-f]{1,4}:){2}|(?:(?:[0-9a-f]{1,4}:){0,3}[0-9a-f]{1,4})?::[0-9a-f]{1,4}:|(?:(?:[0-9a-f]{1,4}:){0,4}[0-9a-f]{1,4})?::)(?:[0-9a-f]{1,4}:[0-9a-f]{1,4}|(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?))|(?:(?:[0-9a-f]{1,4}:){0,5}[0-9a-f]{1,4})?::[0-9a-f]{1,4}|(?:(?:[0-9a-f]{1,4}:){0,6}[0-9a-f]{1,4})?::)|[Vv][0-9a-f]+\.[a-z0-9\-._~!$&'()*+,;=:]+)\]|(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)|(?:[a-z0-9\-._~!$&'"()*+,;=]|%[0-9a-f]{2})*)(?::\d*)?(?:\/(?:[a-z0-9\-._~!$&'"()*+,;=:@]|%[0-9a-f]{2})*)*|\/(?:(?:[a-z0-9\-._~!$&'"()*+,;=:@]|%[0-9a-f]{2})+(?:\/(?:[a-z0-9\-._~!$&'"()*+,;=:@]|%[0-9a-f]{2})*)*)?|(?:[a-z0-9\-._~!$&'"()*+,;=:@]|%[0-9a-f]{2})+(?:\/(?:[a-z0-9\-._~!$&'"()*+,;=:@]|%[0-9a-f]{2})*)*)?(?:\?(?:[a-z0-9\-._~!$&'"()*+,;=:@/?]|%[0-9a-f]{2})*)?(?:#(?:[a-z0-9\-._~!$&'"()*+,;=:@/?]|%[0-9a-f]{2})*)?$/i)
+                .addFormat('uri', /^(?:[a-z][a-z0-9+\-.]*:)(?:\/?\/)?[^\s]*$/)
+                .addFormat('date-time', /^\d\d\d\d-[0-1]\d-[0-3]\d[t\s](?:[0-2]\d:[0-5]\d:[0-5]\d|23:59:60)(?:\.\d+)?(?:z|[+-]\d\d(?::?\d\d)?)$/);
+ 
 export default class Helpers {
+
+  static tsSchemaValidator = ajv.compile(Helpers.createExposeThingInitSchema(tdSchema));
 
   private srv: Servient;
 
@@ -172,5 +183,81 @@ export default class Helpers {
       console.error("[core/helpers]", "parseInteractionOutput low-level stream not implemented");
     }
     return value;
+  }
+
+  /**
+   * Helper function to remove reserved keywords in required property of TD JSON Schema
+   */
+  static createExposeThingInitSchema(tdSchema: unknown) {
+    let tdSchemaCopy = JSON.parse(JSON.stringify(tdSchema));
+
+    if(tdSchemaCopy.required !== undefined) {
+        let reservedKeywords: Array<string> = [ 
+            "title", "@context", "instance", "forms", "security", "href", "securityDefinitions"
+        ]
+        if (Array.isArray(tdSchemaCopy.required)) {
+            let reqProps: Array<string> = tdSchemaCopy.required;
+            tdSchemaCopy.required = reqProps.filter(n => !reservedKeywords.includes(n))
+        } else if (typeof tdSchemaCopy.required === "string") {
+            if(reservedKeywords.indexOf(tdSchemaCopy.required) !== -1)
+                delete tdSchemaCopy.required
+        }
+    }
+
+    if(tdSchemaCopy.definitions !== undefined){
+        for (let prop in tdSchemaCopy.definitions) {  
+            tdSchemaCopy.definitions[prop] = this.createExposeThingInitSchema(tdSchemaCopy.definitions[prop])
+        }
+    }
+
+    return tdSchemaCopy
+  }
+
+  private static isThingModelThingDescription(data : any) : boolean {
+
+    for (let key in data) {
+        if(key == "tm:ref")
+            return true;
+    }
+
+    if(data.links !== undefined && Array.isArray(data.links)) {
+        let foundTmExtendsRel = false;
+        data.links.forEach((link : any) => {
+            if(link.rel !== undefined && link.rel == "tm:extends")
+                foundTmExtendsRel = true;
+        });
+        if(foundTmExtendsRel) return true;
+    }
+
+    if(data.properties !== undefined){
+        for (let prop in data.properties) {  
+            if(this.isThingModelThingDescription(data.properties[prop]))
+                return true;
+        }
+    }
+
+    return false;
+  }
+
+  /**
+   * Helper function to validate an ExposedThingInit
+   */
+  public static validateExposedThingInit(data : any) {
+    if(data["@type"] == "tm:ThingModel"
+        || this.isThingModelThingDescription(data)) {
+      return {
+        valid: false,
+        errors: "ThingModel declaration is not supported"
+      };
+    }
+    const isValid = Helpers.tsSchemaValidator(data);
+    let errors = undefined;
+    if(!isValid) {
+      errors = Helpers.tsSchemaValidator.errors.map(o => o.message).join('\n');
+    }
+    return {
+      valid: isValid,
+      errors: errors
+    };
   }
 }
