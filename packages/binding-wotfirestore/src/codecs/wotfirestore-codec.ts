@@ -1,7 +1,13 @@
 import * as TD from '@node-wot/td-tools'
 import { Buffer } from 'buffer'
 
-const textDecoder = new TextDecoder('utf-8')
+let textDecoder
+try {
+  const util = require('util')
+  textDecoder = new util.TextDecoder('utf-8')
+} catch (err) {
+  textDecoder = new TextDecoder('utf-8')
+}
 
 export default class WoTFirestoreCodec {
   getMediaType(): string {
