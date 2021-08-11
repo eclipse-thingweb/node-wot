@@ -10,7 +10,7 @@ should();
 chai.use(chaiAsPromised);
 
 
-describe('Modbus connection', () => {
+describe('MBus connection', () => {
     
     before(() => {
 		
@@ -34,8 +34,8 @@ describe('Modbus connection', () => {
         it('should fail for unknown host', async ()=>{
             const form: MBusForm = {
                 href: "mbus+tcp://127.0.0.2:805",
-                "modbus:offset": 0,
-                "modbus:unitID": 1
+                "mbus:offset": 0,
+                "mbus:unitID": 1
             }
             const connection = new MBusConnection("127.0.0.2", 805, {connectionTimeout: 200, connectionRetryTime: 10, maxRetries: 1 })
             const op = new PropertyOperation(form)
@@ -48,8 +48,8 @@ describe('Modbus connection', () => {
         it('should throw with timeout', async() => {
             const form: MBusForm = {
                 href: "mbus+tcp://127.0.0.1:806",
-                "modbus:offset": 0,
-                "modbus:unitID": 1
+                "mbus:offset": 0,
+                "mbus:unitID": 1
             }
             const connection = new MBusConnection("127.0.0.1", 806, {connectionTimeout: 1000, connectionRetryTime: 10, maxRetries: 1 })
             const op = new PropertyOperation(form)

@@ -43,7 +43,7 @@ describe('mbus client test', () => {
 
     describe('misc', () => {
         it('should fail for timeout', async () => {
-            const form: mbusForm = {
+            const form: MBusForm = {
                 href: "mbus+tcp://127.0.0.1:805",
 				"mbus:offset": 0,
 				"mbus:unitID": 1,
@@ -56,7 +56,7 @@ describe('mbus client test', () => {
     describe('read resource', () => {
         it('should throw exception for missing offset', () => {
 
-            const form: mbusForm = {
+            const form: MBusForm = {
                 href: "mbus+tcp://127.0.0.1:805",
                 "mbus:unitID": 1
             }
@@ -64,18 +64,6 @@ describe('mbus client test', () => {
             const promise = client.readResource(form)
 
             return promise.should.eventually.rejectedWith("Malformed form: offset must be defined")
-        });
-		
-		it('should throw exception for missing unitID', () => {
-
-            const form: mbusForm = {
-                href: "mbus+tcp://127.0.0.1:805",
-                "mbus:offset": 0
-            }
-
-            const promise = client.readResource(form)
-
-            return promise.should.eventually.rejectedWith("Malformed form: unitID must be defined")
         });
     });
 });
