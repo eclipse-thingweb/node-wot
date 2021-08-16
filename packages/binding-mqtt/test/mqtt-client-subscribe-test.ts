@@ -104,7 +104,7 @@ class MqttClientSubscribeTest {
         }
     }
 
-    @test(timeout(5000)) "should subscribe using mqtts"(done: Function) {
+    @test.skip(timeout(5000)) "should subscribe using mqtts"(done: Function) {
 
         try {
             let servient = new Servient();
