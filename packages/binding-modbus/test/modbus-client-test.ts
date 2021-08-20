@@ -316,6 +316,18 @@ describe('Modbus client test', () => {
     });
 
     describe('subscribe resource', () => {
+        it('should wait for subscription', (done) => {
+            testServer.setRegisters([1])
+            const form: ModbusForm = {
+                href: "modbus://127.0.0.1:8502",
+                "modbus:function": 1,
+                "modbus:unitID": 1
+            }
+
+            client.subscribeResource(form, value => {})
+                .then((subscription) => { done() })
+        });
+
         it('should poll data', (done) => {
             testServer.setRegisters([1])
             const form: ModbusForm = {

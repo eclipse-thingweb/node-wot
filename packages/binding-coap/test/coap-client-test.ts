@@ -22,10 +22,12 @@ import { expect, should, assert } from "chai";
 // should must be called to augment all variables
 should();
 
-import { Content, ContentSerdes, Helpers, ExposedThing } from "@node-wot/core";
+import Servient, { Content, ContentSerdes, Helpers, ExposedThing, ProtocolHelpers } from "@node-wot/core";
 
 import CoapServer from "../src/coap-server";
 import CoapClient from "../src/coap-client";
+import CoapClientFactory from "../src/coap-client-factory";
+import { CoapForm } from "../src/coap";
 
 @suite("CoAP client implementation")
 class CoapClientTest {
@@ -96,5 +98,20 @@ class CoapClientTest {
                 done();
             });
         });
+    }
+
+    @test(timeout(5000)) "subscribe test" (done: Function) {
+
+        let client = new CoapClient();
+
+        const form: CoapForm = {
+            href: "coap://127.0.0.1:56834",
+            "coap:methodCode": 1
+        }
+
+        client.subscribeResource(form, value => {})
+            .then((subscription) => {
+                done();
+            });
     }
 }
