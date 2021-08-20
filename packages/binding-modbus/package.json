@@ -34,6 +34,7 @@
     "@node-wot/core": "0.8.0",
     "@node-wot/td-tools": "0.8.0",
     "modbus-serial": "^7.8.1",
+    "rxjs": "5.5.11",
     "wot-typescript-definitions": "0.8.0-SNAPSHOT.11"
   },
   "scripts": {

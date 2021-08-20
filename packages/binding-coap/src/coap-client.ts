@@ -140,29 +140,33 @@ export default class CoapClient implements ProtocolClient {
     });
   }
 
-  public subscribeResource(form: CoapForm, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): any {
-    let req = this.generateRequest(form, "GET", true);
+  public subscribeResource(form: CoapForm, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): Promise<Subscription> {
+    return new Promise<Subscription>((resolve, reject) => {
+      let req = this.generateRequest(form, "GET", true);
 
-    console.debug("[binding-coap]",`CoapClient sending ${req.statusCode} to ${form.href}`);
+      console.debug("[binding-coap]",`CoapClient sending ${req.statusCode} to ${form.href}`);
 
-    req.on("response", (res: any) => {
-      console.debug("[binding-coap]",`CoapClient received ${res.code} from ${form.href}`);
-      console.debug("[binding-coap]",`CoapClient received Content-Format: ${res.headers["Content-Format"]}`);
+      req.on("response", (res: any) => {
+        resolve(new Subscription( () => {} ));
+        
+        console.debug("[binding-coap]",`CoapClient received ${res.code} from ${form.href}`);
+        console.debug("[binding-coap]",`CoapClient received Content-Format: ${res.headers["Content-Format"]}`);
 
-      // FIXME does not work with blockwise because of node-coap
-      let contentType = res.headers["Content-Format"];
-      if (!contentType) contentType = form.contentType;
+        // FIXME does not work with blockwise because of node-coap
+        let contentType = res.headers["Content-Format"];
+        if (!contentType) contentType = form.contentType;
 
-      res.on('data', (data: any) => {
-        next({ type: contentType, body: Readable.from(res.payload) });
+        res.on('data', (data: any) => {
+          next({ type: contentType, body: Readable.from(res.payload) });
+        });
       });
+
+      req.on("error", (err: any) => {error(err); });
+
+      req.end();
+
+      
     });
-
-    req.on("error", (err: any) => error(err));
-
-    req.end();
-
-    return new Subscription( () => {} );
   }
 
   public start(): boolean {
