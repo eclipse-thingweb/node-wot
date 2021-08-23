@@ -2,4 +2,8 @@
 .vscode
 .idea/
 examples
-**/node_modules
+**/node_modules/
+node_modules/
+.*/
+tmp/
+*-lock*.*
