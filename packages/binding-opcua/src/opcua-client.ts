@@ -347,17 +347,29 @@ export default class OpcuaClient implements ProtocolClient {
 						TimestampsToReturn.Both
 					);
 
-					monitoredItem.on("changed", (dataValue: DataValue) => {
-						next({ type: contentType, body: dataValue.value });
+					monitoredItem.once("err", (error: String) => {
+						monitoredItem.removeAllListeners();
+						reject(new Error(`Error while subscribing property: ${error}`));
+					});
+
+					monitoredItem.on("initialized", () => { 
+						// remove initialization error listener
+						monitoredItem.removeAllListeners("error");
+						// forward next errors to the callback if any
+						error && monitoredItem.on("err", error)
+		
 						resolve(new Subscription(() => { }));
 					});
 
+					monitoredItem.on("changed", (dataValue: DataValue) => {
+						next({ type: contentType, body: dataValue.value });
+					});
+
 				} catch (err) {
-					error(new Error(`Error while subscribing property`));
 					reject(new Error(`Error while subscribing property`));
 				}
 
-			}).catch(err => { error(err); reject(err); });
+			}).catch(err => { reject(err); });
 		});
 	}
 
