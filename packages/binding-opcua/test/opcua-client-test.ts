@@ -19,6 +19,7 @@
 
 import { ProtocolHelpers } from "@node-wot/core";
 import { expect, should, assert } from "chai";
+import { fail } from "assert";
 import { Readable } from "stream";
 // should must be called to augment all variables
 should();
@@ -217,9 +218,10 @@ describe('OPCUA client test', function () {
         try {
             let res = await client.subscribeResource(inputVector.form, () => {});
         } catch(err) {
-            expect(err.message).to.equal("Error while subscribing property");
+            expect(err.message).to.equal("Error while subscribing property: BadNodeIdUnknown (0x80340000)");
+            return;
         }
-        return;
+        fail("should not have succeeded");
     })
 
     it("should apply security", async function () {
