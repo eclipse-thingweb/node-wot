@@ -388,7 +388,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                     resolve();
                 })
                 .catch(err => {
-                    reject(new Error(`ExposedThing '${this.title}', failed to read properties ` + valueMap));
+                    reject(new Error(`ExposedThing '${this.title}', failed to write multiple properties. ${err.message}`));
                 });
         });
     }
