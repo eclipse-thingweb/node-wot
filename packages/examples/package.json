@@ -23,6 +23,7 @@
     "@node-wot/binding-http": "0.7.8",
 	"@node-wot/binding-oracle": "0.7.8",
     "@node-wot/binding-fujitsu": "0.7.8",
+	"@node-wot/binding-mbus": "0.7.8",
     "rxjs": "5.5.11"
   },
   "scripts": {
