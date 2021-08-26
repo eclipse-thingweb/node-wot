@@ -31,7 +31,7 @@ import MqttsClientFactory from "../src/mqtts-client-factory";
 @suite("MQTT implementation")
 class MqttClientSubscribeTest {
 
-    @test(timeout(10000)) "should expose via broker"(done: Function) {
+    @test.skip(timeout(10000)) "should expose via broker"(done: Function) {
 
         try {
             let servient = new Servient();
