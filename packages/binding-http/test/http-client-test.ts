@@ -1,3 +1,4 @@
+import { should } from 'chai';
 /********************************************************************************
  * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
  * 
@@ -18,13 +19,13 @@
  */
 
 import { suite, test } from "mocha-typescript";
-import { expect, should, use } from "chai";
+import { expect, use } from "chai";
 
 import * as http from "http";
 import * as url from "url";
 import { AddressInfo } from "net";
 
-import { ContentSerdes, ProtocolServer } from "@node-wot/core";
+import { ContentSerdes, ProtocolHelpers, ProtocolServer } from "@node-wot/core";
 
 import HttpClient from "../src/http-client";
 import { HttpForm } from "../src/http";
@@ -344,6 +345,39 @@ class HttpClientTest {
         server.listen(60604, "0.0.0.0");
         server.once('listening', () => {
             client.subscribeResource(form, (data) => {}, errorSpy, completeSpy)
+        });
+
+        return;
+    }
+
+    @test "should subscribe successfully"(done: any) {
+
+        let client = new HttpClient();
+
+        // Subscribe to an event
+        let form: HttpForm = {
+            op: ["subscribeevent"],
+            href: "http://localhost:60605/"
+        };
+
+        let server = http.createServer((req, res) => {
+            res.writeHead(200);
+            res.end();
+        });
+
+        let subscribeSpy = chai.spy();
+
+        let eventSpy = chai.spy(async function (data : any) {
+            eventSpy.should.have.been.called.once;
+            subscribeSpy.should.have.been.called.once;
+            done();
+            server.close()
+        });
+
+        server.listen(60605, "0.0.0.0");
+        server.once('listening', () => {
+            client.subscribeResource(form, eventSpy, () => {}, () => {})
+                .then(subscribeSpy)
         });
 
         return;
