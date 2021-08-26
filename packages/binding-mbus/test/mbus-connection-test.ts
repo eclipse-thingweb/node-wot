@@ -10,7 +10,7 @@ should();
 chai.use(chaiAsPromised);
 
 
-describe('MBus connection', () => {
+describe.skip('MBus connection', () => {
     
     before(() => {
 		
@@ -23,12 +23,12 @@ describe('MBus connection', () => {
     it('should throw for unknown host', () => {
         const connection = new MBusConnection("127.0.0.2", 805,{connectionTimeout:200,connectionRetryTime:10,maxRetries:1})
         return connection.connect().should.eventually.be.rejectedWith("Max connection retries");
-    }).timeout(5000);
+    }).timeout(10000);
 
     it('should throw for timeout', () => {
         const connection = new MBusConnection("127.0.0.1", 806, { connectionTimeout: 200, connectionRetryTime: 10, maxRetries: 1 })
         return connection.connect().should.eventually.be.rejectedWith("Max connection retries");
-    }).timeout(5000);
+    }).timeout(10000);
 
     describe('Operation', () => {
         it('should fail for unknown host', async ()=>{
@@ -43,7 +43,7 @@ describe('MBus connection', () => {
 
             await op.execute().should.eventually.be.rejected
             connection.close();
-        }).timeout(5000);
+        }).timeout(10000);
 
         it('should throw with timeout', async() => {
             const form: MBusForm = {
@@ -58,6 +58,6 @@ describe('MBus connection', () => {
             await op.execute().should.eventually.be.rejected
 
             connection.close();
-        }).timeout(5000);
+        }).timeout(10000);
     });
 });
