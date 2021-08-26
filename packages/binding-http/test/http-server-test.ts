@@ -40,6 +40,33 @@ class HttpServerTest {
     expect(httpServer.getPort()).to.eq(-1); // from getPort() when not listening
   }
 
+  @test async "should be able to destroy a thing"() {
+    let httpServer = new HttpServer({ port: 0 });
+
+    await httpServer.start(null);
+
+    let testThing = new ExposedThing(null);
+    testThing = Helpers.extend({
+      title: "Test",
+      id: "56789",
+      properties: {
+        test: {
+          type: "string"
+        }
+      }
+    }, testThing);
+    testThing.extendInteractions();
+    testThing.properties.test.forms = [];
+
+    await httpServer.expose(testThing);
+    let result = await httpServer.destroy("56789");
+    expect(result);
+    result = await httpServer.destroy("56789");
+    expect(!result);
+
+    await httpServer.stop();
+  }
+
   @test async "should change resource from 'off' to 'on' and try to invoke"() {
     let httpServer = new HttpServer({ port: 0 });
 

@@ -16,6 +16,7 @@
     "@types/express-oauth-server": "^2.0.2",
     "express-oauth-server": "^2.0.0",
     "@types/node": "13.7.0",
+    "cors": "^2.8.5",
     "wot-typescript-definitions": "0.7.1-SNAPSHOT.1",
     "ts-node": "8.6.2",
     "typescript": "3.7.5",

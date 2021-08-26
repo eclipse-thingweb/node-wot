@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2021 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -55,6 +55,12 @@ export interface ProtocolClientFactory {
 export interface ProtocolServer {
   readonly scheme: string;
   expose(thing: ExposedThing, tdTemplate?: WoT.ThingDescription): Promise<void>;
+  /**
+   * @param thingId: id of the thing to destroy
+   * @returns true if the thing was found and destroyed; false if the thing was not found
+   * @throws if the binding couldn't destroy the thing
+   **/
+  destroy(thingId: string): Promise<boolean>;
   start(servient: Servient): Promise<void>;
   stop(): Promise<void>;
   getPort(): number;

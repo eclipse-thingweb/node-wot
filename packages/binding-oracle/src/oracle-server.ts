@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2021 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -57,6 +57,13 @@ export default class OracleServer implements ProtocolServer {
           reject(err);
         });
       }
+    });
+  }
+
+  public destroy(thingId: string): Promise<boolean> {
+    console.debug("[binding-oracle]", `OracleServer destroying thingId '${thingId}'`);
+    return new Promise<boolean>((resolve, reject) => {
+      reject(new Error("NotImplemented"));
     });
   }
 

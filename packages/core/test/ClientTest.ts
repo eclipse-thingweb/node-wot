@@ -28,7 +28,8 @@ should();
 import { Subscription } from "rxjs/Subscription";
 
 import Servient from "../src/servient";
-import { Form } from "@node-wot/td-tools";
+import ConsumedThing from "../src/consumed-thing";
+import { Form, SecurityScheme } from "@node-wot/td-tools";
 import { ProtocolClient, ProtocolClientFactory, Content } from "../src/protocol-interfaces"
 import { ContentSerdes } from "../src/content-serdes";
 import Helpers from "../src/helpers";
@@ -151,6 +152,36 @@ class TrapClientFactory implements ProtocolClientFactory {
     }
 
     public destroy(): boolean {
+        return true;
+    }
+}
+
+class TestProtocolClient implements ProtocolClient {
+    readResource(form: Form): Promise<Content> {
+        throw new Error("Method not implemented.");
+    }
+    writeResource(form: Form, content: Content): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+    invokeResource(form: Form, content: Content): Promise<Content> {
+        throw new Error("Method not implemented.");
+    }
+    unlinkResource(form: Form): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+    subscribeResource(form: Form, next: (content: Content) => void, error?: (error: any) => void, complete?: () => void): Subscription {
+        throw new Error("Method not implemented.");
+    }
+    start(): boolean {
+        throw new Error("Method not implemented.");
+    }
+    stop(): boolean {
+        throw new Error("Method not implemented.");
+    }
+
+    public securitySchemes: SecurityScheme[];
+    setSecurity(securitySchemes: SecurityScheme[], credentials?: any): boolean {
+        this.securitySchemes = securitySchemes;
         return true;
     }
 }
@@ -610,5 +641,53 @@ class WoTClientTest {
                 });
             })
             .catch(err => { done(err) });
+    }
+
+    @test "ensure security thing level"(done: Function) {
+        try {
+            let ct = new ConsumedThing(WoTClientTest.servient);
+            ct["securityDefinitions"] = {
+                "basic_sc": {
+                    "scheme": "basic",
+                }
+            };
+            ct["security"] = ["basic_sc"];
+            let pc = new TestProtocolClient();
+            let form: Form = {
+                "href": "https://example.com/"
+            };
+            ct.ensureClientSecurity(pc, form);
+            expect(pc.securitySchemes.length).equals(1);
+            expect(pc.securitySchemes[0].scheme).equals("basic");
+            done();
+        } catch (err) {
+            done(err);
+        }
+    }
+
+    @test "ensure security form level"(done: Function) {
+        try {
+            let ct = new ConsumedThing(WoTClientTest.servient);
+            ct["securityDefinitions"] = {
+                "basic_sc": {
+                    "scheme": "basic",
+                },
+                "apikey_sc": {
+                    "scheme": "apikey",
+                }
+            };
+            ct["security"] = ["basic_sc"];
+            let pc = new TestProtocolClient();
+            let form: Form = {
+                "href": "https://example.com/",
+                "security": ["apikey_sc"]
+            };
+            ct.ensureClientSecurity(pc, form);
+            expect(pc.securitySchemes.length).equals(1);
+            expect(pc.securitySchemes[0].scheme).equals("apikey");
+            done();
+        } catch (err) {
+            done(err);
+        }
     }
 }

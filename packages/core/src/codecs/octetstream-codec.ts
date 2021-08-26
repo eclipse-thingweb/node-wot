@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2021 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -17,6 +17,7 @@
  import * as TD from "@node-wot/td-tools";
 import { ArraySchema } from "@node-wot/td-tools";
 import { sign } from "crypto";
+import { getFloat16, setFloat16 } from "@petamoriken/float16";
 
 /**
  * Codec to produce and consume simple data items and deserialize and serialize
@@ -65,7 +66,7 @@ export default class OctetstreamCodec implements ContentCodec {
         // Check type specification 
         // according paragraph 3.3.3 of https://datatracker.ietf.org/doc/rfc8927/
         // Parse type property only if this test passes
-        if(/(short|(u)?int(8|16|32)?$|float(32|64)?|byte)/.test(dataType.toLowerCase())) {
+        if(/(short|(u)?int(8|16|32)?$|float(16|32|64)?|byte)/.test(dataType.toLowerCase())) {
             let typeSem = /(u)?(short|int|float|byte)(8|16|32|64)?/.exec(dataType.toLowerCase());
             if(typeSem) {
                 signed = typeSem[1] === undefined;
@@ -124,6 +125,8 @@ export default class OctetstreamCodec implements ContentCodec {
             case "double":
             case "number":
                 switch (dataLength) {
+                    case 2: 
+                        return getFloat16( new DataView(bytes.buffer), bytes.byteOffset, !bigendian );
                     case 4:
                         return bigendian ? bytes.readFloatBE(0) : bytes.readFloatLE(0);
 
@@ -131,7 +134,7 @@ export default class OctetstreamCodec implements ContentCodec {
                         return bigendian ? bytes.readDoubleBE(0) : bytes.readDoubleLE(0);
 
                     default:
-                        throw new Error("Wrong buffer length for type 'number', must be 4 or 8, is " + dataLength);
+                        throw new Error("Wrong buffer length for type 'number', must be 2, 4, 8, or is " + dataLength);
                 }
 
             case "string":
@@ -150,44 +153,41 @@ export default class OctetstreamCodec implements ContentCodec {
     valueToBytes(value: any, schema: TD.DataSchema, parameters?: { [key: string]: string; }): Buffer {
         //console.debug(`OctetstreamCodec serializing '${value}'`);
 
-         if (parameters.length === null) {
-            throw new Error("Missing 'length' parameter necessary for write");
+         if (!parameters.length) {
+            console.warn("[core/octetstream-codec]","Missing 'length' parameter necessary for write. I'll do my best");
          }
 
         let bigendian = parameters.byteorder ? parameters.byteorder === "bigendian" : true;
-        let signed = parameters.signed ? parameters.signed === "true" : false;
-        let length = parseInt(parameters.length);
+        let signed = parameters.signed ? parameters.signed === "true" : true; // default is signed
+        let length = parameters.length ? parseInt(parameters.length) : undefined;
         let buf: Buffer;
 
         if (value === undefined) {
             throw new Error("Undefined value");
         }
 
-        let dataType = schema.type;
+        let dataType: string = schema.type;
 
-        // check @type property for further information
-        if(schema['@type'] !== undefined) {
-            let semTypes: Array<string> = schema["@type"];
-            // check for endianness semantic type
-            // see http://www.meta-share.org/ontologies/meta-share/meta-share-ontology.owl/documentation/index-en.html
-            let endianSem = semTypes.find(v => v.endsWith(":bigEndian") || v.endsWith(':littleEndian'));
-            bigendian = endianSem === undefined ? bigendian : endianSem.endsWith(":bigEndian");
-            // check for numeric datatype semantic
-            // see https://www.w3.org/TR/xmlschema-2/
-            let typeSem = semTypes.find(v => /:(unsigned)?(short|int|long|float|double|byte)/.test(v.toLowerCase()));
-            if(typeSem) {
-                // check for sign semantic type
-                signed = typeSem.toLowerCase().indexOf('unsigned') === -1;
-                let numberSem = /(short|int|long|float|double|byte)/.exec(typeSem.toLowerCase())[1];
-                dataType = numberSem === "int" || numberSem === "short" || numberSem === "byte" ? "integer" : "number";
+        // Check type specification 
+        // according paragraph 3.3.3 of https://datatracker.ietf.org/doc/rfc8927/
+        // Parse type property only if this test passes
+        if (/(short|(u)?int(8|16|32)?$|float(16|32|64)?|byte)/.test(dataType.toLowerCase())) {
+            let typeSem = /(u)?(short|int|float|byte)(8|16|32|64)?/.exec(dataType.toLowerCase());
+            if (typeSem) {
+                signed = typeSem[1] === undefined;
+                dataType = typeSem[2];
+                length = +typeSem[3] / 8 ?? length;
             }
         }
 
         switch (dataType) {
             case "boolean":
                 return Buffer.alloc(length, value ? 255 : 0);
-
+            case "byte":
+            case "short":
+            case "int":
             case "integer":
+                length = length ?? 4;
                 if (typeof value !== "number") {
                     throw new Error("Value is not a number");
                 }
@@ -196,14 +196,14 @@ export default class OctetstreamCodec implements ContentCodec {
                 if (!Number.isSafeInteger(value)) {
                     console.warn("[core/octetstream-codec]","Value is not a safe integer");
                 }
-
+                let limit = Math.pow(2, 8 * length) - 1;
                 // throw error on overflow
                 if (signed) {
-                    if (value < -(1 << 8 * length - 1) || value >= (1 << 8 * length - 1)) {
+                    if (value < -limit || value >= limit) {
                         throw new Error("Integer overflow when representing signed " + value + " in " + length + " byte(s)");
                     }
                 } else {
-                    if (value < 0 || value >= (1 << 8 * length)) {
+                    if (value < 0 || value >= limit) {
                         throw new Error("Integer overflow when representing unsigned " + value + " in " + length + " byte(s)");
                     }
                 }
@@ -240,15 +240,19 @@ export default class OctetstreamCodec implements ContentCodec {
                 }
 
                 return buf;
-
+            case "float":
             case "number":
                 if (typeof value !== "number") {
                     throw new Error("Value is not a number");
                 }
 
+                length = length ?? 8;
                 buf = Buffer.alloc(length);
 
                 switch (length) {
+                    case 2:
+                        setFloat16(new DataView(buf.buffer),0,value, !bigendian);
+                        break;
                     case 4:
                         bigendian ? buf.writeFloatBE(value, 0) : buf.writeFloatLE(value, 0);
                         break;

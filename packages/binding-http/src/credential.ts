@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
+ * Copyright (c) 2020 - 2021 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -116,9 +116,8 @@ export class OAuthCredential extends Credential {
         tempRequest = this.token.sign(tempRequest)
         
         const mergeHeaders = new Request(request,tempRequest)
-        const useNewURL = new Request(tempRequest.url,mergeHeaders)
         
-        return useNewURL
+        return mergeHeaders;
     }
 
     async refreshToken() {

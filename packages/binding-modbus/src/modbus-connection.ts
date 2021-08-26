@@ -1,3 +1,17 @@
+/********************************************************************************
+ * Copyright (c) 2020 - 2021 Contributors to the Eclipse Foundation
+ * 
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ * 
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v. 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0, or the W3C Software Notice and
+ * Document License (2015-05-13) which is available at
+ * https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document.
+ * 
+ * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
+ ********************************************************************************/
 import ModbusRTU from 'modbus-serial'
 import { ReadCoilResult, ReadRegisterResult } from 'modbus-serial/ModbusRTU'
 import { ModbusEntity, ModbusFunction, ModbusForm, ModbusEndianness } from './modbus'
@@ -30,7 +44,6 @@ export class ModbusConnection {
     this.port = port;
     this.client = new ModbusRTU(); // new ModbusClient();
     this.connecting = false;
-    this.connected = false;
     this.timer = null;
     this.currentTransaction = null;
     this.queue = new Array<ModbusTransaction>();
@@ -92,7 +105,7 @@ export class ModbusConnection {
   }
 
   async connect() {
-    if (!this.connecting && !this.connected) {
+    if (!this.connecting && !this.client.isOpen) {
       console.debug('[binding-modbus]', 'Trying to connect to', this.host);
       this.connecting = true;
 
@@ -101,7 +114,6 @@ export class ModbusConnection {
           this.client.setTimeout(this.config.connectionTimeout)
           await this.client.connectTCP(this.host, { port: this.port })
           this.connecting = false;
-          this.connected = true;
           console.debug('[binding-modbus]', 'Modbus connected to ' + this.host);
           return
         } catch (error) {
@@ -126,7 +138,7 @@ export class ModbusConnection {
    */
   async trigger() {
     console.debug('[binding-modbus]', 'ModbusConnection:trigger');
-    if (!this.connecting && !this.connected) {
+    if (!this.connecting && !this.client.isOpen) {
       // connection may be closed due to operation timeout
       // try to reconnect again
       try {
@@ -141,7 +153,7 @@ export class ModbusConnection {
           })
         })
       }
-    } else if (this.connected && this.currentTransaction == null && this.queue.length > 0) {
+    } else if (this.client.isOpen && this.currentTransaction == null && this.queue.length > 0) {
       // take next transaction from queue and execute
       this.currentTransaction = this.queue.shift();
       try {
@@ -260,9 +272,8 @@ export class ModbusConnection {
       if (!err) {
         console.debug('[binding-modbus]', 'session closed');
         this.connecting = false;
-        this.connected = false;
       } else {
-        console.error('[binding-modbus]', 'cannot close session ' + err);
+        console.error('[binding-modbus]', 'cannot close session ' + err); 
       }
     });
     clearInterval(this.timer)

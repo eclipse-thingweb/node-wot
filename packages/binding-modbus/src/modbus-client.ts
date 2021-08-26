@@ -1,3 +1,17 @@
+/********************************************************************************
+ * Copyright (c) 2020 - 2021 Contributors to the Eclipse Foundation
+ * 
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ * 
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v. 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0, or the W3C Software Notice and
+ * Document License (2015-05-13) which is available at
+ * https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document.
+ * 
+ * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
+ ********************************************************************************/
 /**
  * Modbus master based on modbus-serial
  */
@@ -97,7 +111,7 @@ export default class ModbusClient implements ProtocolClient {
 
     if (!connection) {
       console.debug('[binding-modbus]', 'Creating new ModbusConnection for ', hostAndPort);
-      this._connections.set(hostAndPort, new ModbusConnection(host, port));
+      this._connections.set(hostAndPort, new ModbusConnection(host, port, {connectionTimeout: form['modbus:timeout'] || DEFAULT_TIMEOUT}));
       connection = this._connections.get(hostAndPort);
     }else {
       console.debug('[binding-modbus]', 'Reusing ModbusConnection for ', hostAndPort);
@@ -179,7 +193,7 @@ export default class ModbusClient implements ProtocolClient {
           break;
         case 'HoldingRegister':
           // the content length must be divided by 2 (holding registers are 16bit)
-          result['modbus:function'] = mode === 'r' ? ModbusFunction.readMultipleHoldingRegisters :
+          result['modbus:function'] = mode === 'r' ? ModbusFunction.readHoldingRegisters :
             contentLength / 2 > 1 ? ModbusFunction.writeMultipleHoldingRegisters :
               ModbusFunction.writeSingleHoldingRegister;
           break;
@@ -198,7 +212,7 @@ export default class ModbusClient implements ProtocolClient {
     }
 
 
-    if(form['modbus:offset'] !== 0) {
+    if(form['modbus:offset'] === undefined || form['modbus:offset'] === null) {
         throw new Error('Malformed form: offset must be defined');
     }
     

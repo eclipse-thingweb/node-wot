@@ -17,12 +17,18 @@
  */
 const OAuthServer = require('express-oauth-server')
 const bodyParser = require('body-parser');
+const cors = require('cors');
 const https = require('https');
 const fs = require('fs')
 const express = require('express')
 const Memory = require('./memory-model');
 
+
+
+
 var app = express();
+app.use(cors());
+app.options('*', cors());
 
 const model = new Memory()
 
