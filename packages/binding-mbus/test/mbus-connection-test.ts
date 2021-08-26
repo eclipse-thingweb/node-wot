@@ -10,7 +10,7 @@ should();
 chai.use(chaiAsPromised);
 
 
-describe('MBus connection', () => {
+describe.skip('MBus connection', () => {
     
     before(() => {
 		
