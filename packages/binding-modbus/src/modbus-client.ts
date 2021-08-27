@@ -121,7 +121,7 @@ export default class ModbusClient implements ProtocolClient {
       console.debug('[binding-modbus]', 'Reusing ModbusConnection for ', hostAndPort);
     }
     // create operation
-    let operation = new PropertyOperation(form, endianness, content ? content.body : undefined);
+    let operation = new PropertyOperation(form, endianness, body);
 
     // enqueue the operation at the connection
     connection.enqueue(operation);
@@ -158,16 +158,17 @@ export default class ModbusClient implements ProtocolClient {
     input['modbus:offset'] = parseInt(query.get('offset'), 10) || input['modbus:offset'];
     input['modbus:length'] = parseInt(query.get('length'), 10) || input['modbus:length'];
   }
-
-  private validateBufferLength(form: ModbusForm, buffer: Buffer) {
+  
+  private validateContentLength(form: ModbusForm, content: Content) {
 
     const mpy = form['modbus:entity'] === 'InputRegister' || form['modbus:entity'] === 'HoldingRegister' ? 2 : 1;
     const length = form['modbus:length']
-    if (content && content.body.length !== mpy * length) {
-      throw new Error('Content length does not match register / coil count, got ' + content.body.length + ' bytes for '
+    if (content ) { // @relu91  && content.body.length !== mpy * length
+      throw new Error('Content length does not match register / coil count, got ' +  '??LEN??' + ' bytes for ' // @relu91 content.body.length
         + length + ` ${mpy === 2 ? 'registers' : 'coils'}`);
     }
   }
+
   private validateAndFillDefaultForm(form: ModbusForm, contentLength = 0): ModbusForm {
     const result: ModbusForm = { ...form }
     const mode = contentLength > 0 ? 'w' : 'r';
