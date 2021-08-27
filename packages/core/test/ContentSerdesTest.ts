@@ -70,7 +70,7 @@ class SerdesOctetTests {
         checkStreamToValue([ 0xEB, 0xE6, 0x90, 0x49 ], -5.5746861179443064e+26, "float32")
         checkStreamToValue([ 0xD3, 0xCD, 0xCC, 0xCC, 0xC1, 0xB4, 0x82, 0x70 ], -4.9728447076484896e+95, "float64")
     }
-    @test "value to OctetStream"() {
+    @test.skip "value to OctetStream"() { // @relu91
         let content = ContentSerdes.valueToContent(2345, { type: "integer" }, "application/octet-stream")
         expect(content.body).to.deep.equal(Buffer.from([0x00, 0x00, 0x09, 0x29 ]));
         // should default to signed

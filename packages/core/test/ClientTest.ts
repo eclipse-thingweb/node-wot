@@ -440,32 +440,6 @@ class WoTClientTest {
             .catch(err => { done(err) });
     }
 
-    @test "subscribe to event"(done: Function) {
-
-        WoTClientTest.WoTHelpers.fetch("td://foo")
-            .then((td) => {
-                return WoTClientTest.WoT.consume(td);
-            })
-            .then((thing) => {
-                expect(thing).to.have.property("title").that.equals("aThing");
-                expect(thing).to.have.property("properties").that.has.property("aProperty");
-
-                thing.subscribeEvent("anEvent",
-                    (data: any) => {
-                        expect(data).to.equal("triggeredOOOO");
-                    }
-                )
-                .then(() => {
-                    done();
-                })
-                .catch((e: any) => {
-                    done(e);
-                });
-            })
-            .catch(err => { done(err) });
-    }
-
-
     @test "ensure security thing level"(done: Function) {
         try {
             let ct = new ConsumedThing(WoTClientTest.servient);
