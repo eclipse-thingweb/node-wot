@@ -185,11 +185,7 @@ export default class WoTFirestoreServer implements ProtocolServer {
       thing.setPropertyReadHandler(propertyName, async () => {
         const content = await readDataFromFirestore(this.firestore, topic)
         console.debug(`[debug] read property ${propertyName}:`, content)
-        const propertyValue = ContentSerdes.get().contentToValue(
-          content,
-          <any>thing.properties[propertyName]
-        )
-        return propertyValue
+        return content;
       })
 
       if (!name) {
@@ -262,16 +258,9 @@ export default class WoTFirestoreServer implements ProtocolServer {
             )
 
             content.type = this.DEFAULT_CONTENT_TYPE
-            let propertyData = ContentSerdes.get().contentToValue(
-              content,
-              <any>thing.properties[propertyName]
-            )
             console.debug(
-              `[debug] getting property(${propertyName}) data: `,
-              propertyData,
-              typeof propertyData
-            )
-            thing.writeProperty(propertyName, propertyData)
+              `[debug] getting property(${propertyName}) data: `)
+            thing.writeProperty(propertyName, content)
           }
         )
       }
@@ -313,14 +302,9 @@ export default class WoTFirestoreServer implements ProtocolServer {
           )
           if (thing) {
             let action = thing.actions[actionName]
-            let body = content.body
-            let params = undefined
-            if (body) {
-              params = ContentSerdes.get().contentToValue(content, action.input)
-            }
             if (action) {
               let output = await thing
-                .invokeAction(actionName, params)
+                .invokeAction(actionName, content)
                 .catch((err) => {
                   console.error(
                     `[error] WoTFirestoreServer at ${this.getHostName()} got error on invoking '${actionName}': ${

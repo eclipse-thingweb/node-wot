@@ -3,6 +3,7 @@ import firebase from 'firebase/app'
 import 'firebase/auth'
 import 'firebase/firestore'
 import { Buffer } from 'buffer'
+import { Readable } from "stream";
 
 /**
  * initialize firestore.
@@ -109,8 +110,8 @@ export const readDataFromFirestore = (
               type: obj.type,
               body:
                 obj && obj.body && obj.body.type === 'Buffer'
-                  ? Buffer.from(obj.body.data)
-                  : Buffer.from('')
+                  ? Readable.from(obj.body.data)
+                  : Readable.from('')
             }
           }
           resolve(content)
@@ -177,8 +178,8 @@ export const subscribeToFirestore = async (
           type: null, // If you set the data type to td, it won't work, so set it to null.
           body:
             obj && obj.body && obj.body.type === 'Buffer'
-              ? Buffer.from(obj.body.data)
-              : Buffer.from('')
+              ? Readable.from(obj.body.data)
+              : Readable.from('')
         }
         content = obj
       }
@@ -208,7 +209,7 @@ export const unsubscribeToFirestore = (firestoreObservers, topic: string) => {
 export const removeDataFromFirestore = (
   firestore,
   topic: string
-): Promise<any> => {
+): Promise<void> => {
   return new Promise((resolve, reject) => {
     console.debug('[debug] removeDataFromFirestore topic: ', topic)
     const ref = firestore.collection('things').doc(encodeURIComponent(topic))
@@ -296,7 +297,7 @@ export const readMetaDataFromFirestore = (
 export const removeMetaDataFromFirestore = (
   firestore,
   hostName: string
-): Promise<any> => {
+): Promise<void> => {
   return new Promise((resolve, reject) => {
     console.debug('[debug] removeMetaDataFromFirestore hostName: ', hostName)
     const ref = firestore.collection('hostsMetaData').doc(hostName)
