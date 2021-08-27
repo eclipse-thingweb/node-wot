@@ -56,7 +56,7 @@ class HttpServerTest {
         }
       }
     }, testThing);
-    testThing.extendInteractions();
+    // testThing.extendInteractions();
     testThing.properties.test.forms = [];
 
     await httpServer.expose(testThing);
