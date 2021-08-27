@@ -114,7 +114,7 @@ describe('OPCUA client test', function () {
         }
         let res = await client.writeResource(inputVector.form, { type: 'application/x.opcua-binary', body: Readable.from(Buffer.from(inputVector.payload)) });
         */
-        let res = await client.writeResource(inputVector.form, { type: 'application/x.opcua-binary', body: payload });
+        let res = await client.writeResource(inputVector.form, { type: 'application/x.opcua-binary', body: Readable.from(payload) });
         expect(res).to.equal(undefined);
         return;
     })
@@ -138,7 +138,7 @@ describe('OPCUA client test', function () {
                 "opc:method": "WRITE"
             },
         };
-        let res = await client.writeResource(inputVector.form, { type: 'application/x.opcua-binary', body: payload });
+        let res = await client.writeResource(inputVector.form, { type: 'application/x.opcua-binary', body: Readable.from(payload) });
         expect(res).to.equal(undefined);
         return;
     })
@@ -171,7 +171,7 @@ describe('OPCUA client test', function () {
                 "opc:method": "WRITE"
             },
         };
-        let res = await client.writeResource(inputVector.form, { type: 'application/x.opcua-binary', body: payload });
+        let res = await client.writeResource(inputVector.form, { type: 'application/x.opcua-binary', body: Readable.from(payload) });
         expect(res).to.equal(undefined);
         return;
     })
