@@ -51,9 +51,12 @@ A more user-friendly property to specify `modbus:function`. It can be filled wit
 ### modbus:unitID
 The physical bus address of the unit targeted by the mobus request.
  
-### modbus:range
-This property defines how many registers or coils should be read or written. The value is a tuple where the first element is the starting address while the second represents the total amount of registers. For example in a reading command the tuple [2,3] indicate that the values of registers 2,3,4 should be returned as response.
- 
+### modbus:offset
+This property defines the starting address of registers or coils that are meant to be written.
+
+### modbus:length
+This property defines the total amount of registers or coils that should be written, beginning with the register specified with the property 'modbus:offset'.
+
 ### modbus:pollingTime
 The polling time used for subscriptions. The client will issue a reading command every modbus:pollingTime milliseconds. Note that the reading request timeout can be still controlled using modbus:timeout property. 
 
@@ -74,13 +77,27 @@ with the following meaning:
 * `<host>` is the host name or IP address of the MODBUS slave
 * `<port>` is the optional TCP port number used to access the MODBUS slave. Default is 502
 * `<unitid>` is the MODBUS unit id of the MODBUS slave; same as [modbus:unitID](#modbus:unitID)  
-* `<offset>` is the starting offset register number; the first parameter of [modbus:range](#modbus:range)   
-* `<length>` is the optional number of registers to access. Default is 1; see [modbus:range](#modbus:range)
+* `<offset>` is the starting offset register number; see [modbus:offset](#modbus:offset)   
+* `<length>` is the optional number of registers to access. Default is 1; see [modbus:length](#modbus:length)
 
 When specified URL values override the corresponding `form` parameter.
  
 ## DataSchema
 The MODBUS binding uses and provides plain binary data for reading and writing. Therefore in most cases it will be associated with the content type `application/octet-stream`. Please refer to the description of this codec on how to decode and encode plain register values to/from JavaScript objects (See `OctetstreamCodec`). **Note** `array` and `object` schema are not supported.
+
+Along with content type `application/octet-stream`, this protocol binding accepts also an optional `byteSeq` parameter. `byteSeq` specifies the endian-ness of the raw byte data being read/written by the MODBUS binding. It follows the notation `application/octet-stream;byteSeq=value`, where its value can be one of the following:
+- `BIG_ENDIAN`, which is the default value
+- `LITTLE_ENDIAN`
+- `BIG_ENDIAN_BYTE_SWAP`
+- `LITTLE_ENDIAN_BYTE_SWAP`
+
+**Note**: the list may be extended in the future. 
+
+In particular, the decimal numbers `9545` and `22880` will be encoded as follows:
+- `BIG_ENDIAN`: `25 49 59 60`
+- `LITTLE_ENDIAN`: `60 59 49 25`
+- `BIG_ENDIAN_BYTE_SWAP`: `49 25 60 59`
+- `LITTLE_ENDIAN_BYTE_SWAP`: `59 60 25 49`
 
 For register properties the payload is just the plain sequence of bytes read from or written to the registers. For coils and discrete inputs, the payload is a sequence of bytes, each corresponding to a single coil or discrete input. Each byte contains the value `0` or `1`. So the encoder / decoder should work on this series of bytes and does not have to take care about handling the individual bits. Mapping each coil or discrete input to a single property of type `boolean` works just fine!
 
@@ -134,7 +151,7 @@ Reads the 8th input register of the unit 1
         "readproperty"
     ],
     "modbus:function": "readInputRegister",
-    "modbus:range": [8],
+    "modbus:offset": 8,
     "modbus:unitID": 1,
     "modbus:timeout": 2000
 }
@@ -150,7 +167,7 @@ Read and write the 8th holding register of the unit 1
         "writeproperty"
     ],
     "modbus:entity": "HoldingRegister",
-    "modbus:range": [8],
+    "modbus:offset": 8,
     "modbus:unitID": 1
 }
 ```
@@ -164,7 +181,7 @@ Polls the 8th holding register of the unit 1 every second.
         "observeproperty"
     ],
     "modbus:entity": "HoldingRegister",
-    "modbus:range": [8],
+    "modbus:offset": 8,
     "modbus:unitID": 1,
     "modbus:pollingTime: 1000
 }

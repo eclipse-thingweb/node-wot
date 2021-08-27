@@ -38,11 +38,67 @@ let checkJsToJson = async (value: any) => {
     expect(reparsed).to.deep.equal(value);
 }
 
+let checkStreamToValue = (value: any, match : any, type? : any): void => {
+    let octectBuffer = Buffer.from(value);
+    expect(
+        ContentSerdes.contentToValue(
+            { type: "application/octet-stream", body: octectBuffer }, 
+            { type: type ?? "integer", properties: {} }
+        )
+    ).to.deep.equal(match);
+}
+
 /** Hodor will always return the String "Hodor" */
 class HodorCodec implements ContentCodec {
     getMediaType(): string { return "text/hodor"; }
     bytesToValue(bytes: Buffer): any { return "Hodor"; }
     valueToBytes(value: any): Buffer { return Buffer.from("Hodor"); }
+}
+
+@suite("testing OctectStream codec")
+class SerdesOctetTests {
+
+    @test "OctetStream to value"() {
+        checkStreamToValue([ 0x36, 0x30 ], 13872, "uint16")
+        checkStreamToValue([ 0x49, 0x91, 0xA1, 0xC2 ], 1234280898, "int32")
+        checkStreamToValue([ 0x3D, 0xD6, 0xEA, 0xFC ], 0.10494038462638855, "float32")
+        checkStreamToValue([ 0x49, 0x25 ], 18725, "int16")
+        checkStreamToValue([ 0x49, 0x25 ], 18725, "integer")
+        checkStreamToValue([ 0xA4, 0x78 ], -23432, "int16")
+        checkStreamToValue([ 0xEB, 0xE6, 0x90, 0x49 ], -5.5746861179443064e+26, "number")
+        checkStreamToValue([0x44, 0x80], 4.5, "float16")
+        checkStreamToValue([ 0xEB, 0xE6, 0x90, 0x49 ], -5.5746861179443064e+26, "float32")
+        checkStreamToValue([ 0xD3, 0xCD, 0xCC, 0xCC, 0xC1, 0xB4, 0x82, 0x70 ], -4.9728447076484896e+95, "float64")
+    }
+    @test "value to OctetStream"() {
+        let content = ContentSerdes.valueToContent(2345, { type: "integer" }, "application/octet-stream")
+        expect(content.body).to.deep.equal(Buffer.from([0x00, 0x00, 0x09, 0x29 ]));
+        // should default to signed
+        content = ContentSerdes.valueToContent(-2345, { type: "integer" }, "application/octet-stream")
+        expect(content.body).to.deep.equal(Buffer.from([0xFF, 0xFF, 0xF6, 0xD7]));
+
+        //@ts-ignore new dataschema types are not yet supported in the td type definitions 
+        content = ContentSerdes.valueToContent(2345, { type: "int16" }, "application/octet-stream")
+        expect(content.body).to.deep.equal(Buffer.from([0x09, 0x29]));
+
+        //@ts-ignore new dataschema types are not yet supported in the td type definitions 
+        content = ContentSerdes.valueToContent(10, { type: "int8" }, "application/octet-stream")
+        expect(content.body).to.deep.equal(Buffer.from([0x0a]));
+
+        //should serialize a number as a float16
+        //@ts-ignore new dataschema types are not yet supported in the td type definitions 
+        content = ContentSerdes.valueToContent(4.5, { type: "float16" }, "application/octet-stream")
+        expect(content.body).to.deep.equal(Buffer.from([0x44, 0x80]));
+    }
+
+    @test "value to OctetStream should throw for overflow"() {
+        //@ts-ignore new dataschema types are not yet supported in the td type definitions 
+        expect(() => ContentSerdes.valueToContent(2345, { type: "int8" }, "application/octet-stream") )
+            .to.throw(Error, "Integer overflow when representing signed 2345 in 1 byte(s)");
+        //@ts-ignore new dataschema types are not yet supported in the td type definitions 
+        expect(() => ContentSerdes.valueToContent(23450000, { type: "int16" }, "application/octet-stream"))
+            .to.throw(Error, "Integer overflow when representing signed 23450000 in 2 byte(s)");
+    }
 }
 
 @suite("testing JSON codec")

@@ -20,19 +20,24 @@
 import { ProtocolHelpers } from "@node-wot/core";
 import { expect, should, assert } from "chai";
 import { Readable } from "stream";
+import OpcuaCodec from "../src/codecs/opcua-codec";
+import * as TD from "@node-wot/td-tools";
 // should must be called to augment all variables
 should();
 
 
 import OpcuaClient from "../src/opcua-client";
 import { OpcuaServer } from './opcua-server';
+import { DataType } from "node-opcua-client";
 
 
 
 describe('OPCUA client test', function () {
     let server: OpcuaServer;
+    let codec: OpcuaCodec; 
     try {
         server = new OpcuaServer();
+        codec = new OpcuaCodec();
     } catch(err) {
         console.log(err);
         throw new Error(err);
@@ -86,6 +91,14 @@ describe('OPCUA client test', function () {
 
 
     it("should write a property", async function () {
+        let value = 1;
+        let schema: any = {
+            "opc:dataType": "Double",
+            constructor: {
+                name: 'ConsumedThingProperty'
+            }
+        }
+        let payload = codec.valueToBytes(value, schema);
 
         // invoke with defaults
         let inputVector = {
@@ -94,32 +107,54 @@ describe('OPCUA client test', function () {
                 href: "opc.tcp://localhost:5050/ns=1;b=9998FFAA",
                 "opc:method": "WRITE"
             },
-            payload: JSON.stringify(2)
         };
+        /*
         let schema = {
             "opc:dataType": "Double"
         }
         let res = await client.writeResource(inputVector.form, { type: 'application/x.opcua-binary', body: Readable.from(Buffer.from(inputVector.payload)) });
+        */
+        let res = await client.writeResource(inputVector.form, { type: 'application/x.opcua-binary', body: payload });
         expect(res).to.equal(undefined);
         return;
     })
 
-    it("should fail to write a property because of missing schema information", async function () {
+    it("should write a property with a string as nodeId", async function () {
+
+        let value = 'Ciao';
+        let schema: any = {
+            "opc:dataType": "String",
+            constructor: {
+                name: 'ConsumedThingProperty'
+            }
+        }
+        let payload = codec.valueToBytes(value, schema);
 
         // invoke with defaults
         let inputVector = {
             op: ["writeProperty"],
             form: {
-                href: "opc.tcp://localhost:5050/ns=1;b=9998FFAA",
+                href: "opc.tcp://localhost:5050/ns=1;s=Case_Lamp_Variable",
                 "opc:method": "WRITE"
             },
-            payload: JSON.stringify(2)
         };
+        let res = await client.writeResource(inputVector.form, { type: 'application/x.opcua-binary', body: payload });
+        expect(res).to.equal(undefined);
+        return;
+    })
 
-        let schema = {
-            "opc:wrongField": "Double"
+    it("should write a property with a string with quotes as nodeId", async function () {
+
+        let value = 'Ciao';
+        let schema: any = {
+            "opc:dataType": "String",
+            constructor: {
+                name: 'ConsumedThingProperty'
+            }
         }
+        let payload = codec.valueToBytes(value, schema);
 
+        /*
         try {
             let res = await client.writeResource(inputVector.form, { type: 'application/x.opcua-binary', body: Readable.from(Buffer.from(inputVector.payload))});
         } catch(err) {
@@ -127,10 +162,35 @@ describe('OPCUA client test', function () {
         }
         try {
             let res = await client.writeResource(inputVector.form, { type: 'application/x.opcua-binary', body: Readable.from(Buffer.from(inputVector.payload))});
-        } catch(err) {
-            expect(err.message).to.equal("opc:dataType field not specified for writeResource");
-        }
+        */
+        // invoke with defaults
+        let inputVector = {
+            op: ["writeProperty"],
+            form: {
+                href: "opc.tcp://localhost:5050/ns=1;s=\"Case_Lamp_Variable\"",
+                "opc:method": "WRITE"
+            },
+        };
+        let res = await client.writeResource(inputVector.form, { type: 'application/x.opcua-binary', body: payload });
+        expect(res).to.equal(undefined);
+        return;
+    })
 
+    it("should fail to write a property because of missing schema information", async function () {
+        let value = 1;
+        let schema: any = {
+            "opc:wrongField": "Double",
+            title: 'test',
+            constructor: {
+                name: 'ConsumedThingProperty'
+            }
+        }
+        try {
+            let payload = codec.valueToBytes(value, schema);
+        } catch(err) {
+            expect(err.message).to.equal('opc:dataType field not specified for property "test"');
+        }
+        
         return;
     })
 
@@ -233,6 +293,8 @@ describe('OPCUA client test', function () {
     })
 
 
+
+
     after(async function () {
 
         try {
@@ -241,4 +303,50 @@ describe('OPCUA client test', function () {
             return new Error(err);
         }
     });
+
+    it("should return the right opcua datatype", async function () {
+        let value = '';
+        let schema: any = {
+            "opc:dataType": "Double",
+            title: 'test',
+            constructor: {
+                name: 'ConsumedThingProperty'
+            }
+        }
+        const dataTypes = [
+            "Null",
+            "Boolean",
+            "SByte",
+            "Byte",
+            "Int16",
+            "UInt16",
+            "Int32",
+            "UInt32",
+            "Int64",
+            "UInt64",
+            "Float",
+            "Double",
+            "String",
+            "DateTime",
+            "Guid",
+            "ByteString",
+            "XmlElement",
+            "NodeId",
+            "ExpandedNodeId",
+            "StatusCode",
+            "QualifiedName",
+            "LocalizedText",
+            "ExtensionObject",
+            "DataValue",
+            "Variant",
+            "DiagnosticInfo"
+        ];
+        for (const type of dataTypes) {
+            schema["opc:dataType"] = type;
+            let payload = JSON.parse((codec.valueToBytes(value, schema)).toString());
+            expect(payload.dataType).to.equal(DataType[type as any]);
+        }
+            
+        return;
+    })
 });

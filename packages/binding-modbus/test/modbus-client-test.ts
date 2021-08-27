@@ -38,7 +38,8 @@ describe('Modbus client test', () => {
         const form: ModbusForm = {
             href: "modbus://127.0.0.1:8502",
             "modbus:entity": "Coil",
-            "modbus:range": [0, 1],
+            "modbus:offset": 0,
+            "modbus:length": 1,
             "modbus:unitID": 1
         }
 
@@ -52,7 +53,8 @@ describe('Modbus client test', () => {
         const form: ModbusForm = {
             href: "modbus://127.0.0.1:8502",
             "modbus:entity": "HoldingRegister",
-            "modbus:range": [0, 1],
+            "modbus:offset": 0,
+            "modbus:length": 1,
             "modbus:unitID": 1
         }
 
@@ -65,7 +67,8 @@ describe('Modbus client test', () => {
         const form: ModbusForm = {
             href: "modbus://127.0.0.1:8502",
             "modbus:entity": "DiscreteInput",
-            "modbus:range": [0, 1],
+            "modbus:offset": 0,
+            "modbus:length": 1,
             "modbus:unitID": 1
         }
 
@@ -78,7 +81,8 @@ describe('Modbus client test', () => {
         const form: ModbusForm = {
             href: "modbus://127.0.0.1:8502",
             "modbus:function": "readCoil",
-            "modbus:range": [0, 1],
+            "modbus:offset": 0,
+            "modbus:length": 1,
             "modbus:unitID": 1
         }
 
@@ -89,14 +93,15 @@ describe('Modbus client test', () => {
         const form: ModbusForm = {
             href: "modbus://127.0.0.1:8502/2?offset=2&length=5",
             "modbus:function": "readCoil",
-            "modbus:range": [0, 1],
+            "modbus:offset": 0,
+            "modbus:length": 1,
             "modbus:unitID": 1
         }
 
         client["overrideFormFromURLPath"](form)
         form["modbus:unitID"].should.be.equal(2, "Form value not overridden")
-        form["modbus:range"][0].should.be.equal(2, "Form value not overridden")
-        form["modbus:range"][1].should.be.equal(5, "Form value not overridden")
+        form["modbus:offset"].should.be.equal(2, "Form value not overridden")
+        form["modbus:length"].should.be.equal(5, "Form value not overridden")
     });
 
     describe('misc', () => {
@@ -106,7 +111,8 @@ describe('Modbus client test', () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 1,
-                "modbus:range": [0, 1],
+                "modbus:offset": 0,
+                "modbus:length": 1,
                 "modbus:unitID": 1
             }
 
@@ -117,6 +123,18 @@ describe('Modbus client test', () => {
             body = await ProtocolHelpers.readStreamFully(result.body);
             body.should.deep.equal(Buffer.from([1]), "Wrong data")
         });
+        it('should fail for timeout', async () => {
+            const form: ModbusForm = {
+                href: "modbus://127.0.0.1:8502",
+                "modbus:function": 1,
+                "modbus:offset": 4444,
+                "modbus:length": 1,
+                "modbus:unitID": 1,
+                "modbus:timeout": 1000
+            }
+
+            await client.readResource(form).should.eventually.be.rejected;
+        }).timeout(5000);
     });
     describe('read resource', () => {
         it('should read a resource using read coil function', async () => {
@@ -126,7 +144,8 @@ describe('Modbus client test', () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 1,
-                "modbus:range": [0, 1],
+                "modbus:offset": 0,
+                "modbus:length": 1,
                 "modbus:unitID": 1
             }
 
@@ -142,7 +161,8 @@ describe('Modbus client test', () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 1,
-                "modbus:range": [0, 3],
+                "modbus:offset": 0,
+                "modbus:length": 3,
                 "modbus:unitID": 1
             }
 
@@ -158,7 +178,8 @@ describe('Modbus client test', () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 2,
-                "modbus:range": [0, 1],
+                "modbus:offset": 0,
+                "modbus:length": 1,
                 "modbus:unitID": 1
             }
 
@@ -174,7 +195,8 @@ describe('Modbus client test', () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 2,
-                "modbus:range": [0, 3],
+                "modbus:offset": 0,
+                "modbus:length": 3,
                 "modbus:unitID": 1
             }
 
@@ -190,7 +212,8 @@ describe('Modbus client test', () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 3,
-                "modbus:range": [0, 1],
+                "modbus:offset": 0,
+                "modbus:length": 1,
                 "modbus:unitID": 1
             }
 
@@ -206,7 +229,8 @@ describe('Modbus client test', () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 3,
-                "modbus:range": [0, 3],
+                "modbus:offset": 0,
+                "modbus:length": 3,
                 "modbus:unitID": 1
             }
 
@@ -222,7 +246,8 @@ describe('Modbus client test', () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 4,
-                "modbus:range": [0, 1],
+                "modbus:offset": 0,
+                "modbus:length": 1,
                 "modbus:unitID": 1
             }
 
@@ -238,7 +263,8 @@ describe('Modbus client test', () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 4,
-                "modbus:range": [0, 3],
+                "modbus:offset": 0,
+                "modbus:length": 3,
                 "modbus:unitID": 1
             }
 
@@ -247,18 +273,66 @@ describe('Modbus client test', () => {
             body.should.deep.equal(Buffer.from([0, 3, 0, 2, 0, 1]), "Wrong data")
         });
 
+        it('should read a resource using read multiple input registers function with little endian conversion', async () => {
+
+            testServer.setRegisters([3, 2, 1, 0])
+
+            const form: ModbusForm = {
+                href: "modbus://127.0.0.1:8502",
+                contentType: "application/octet-stream;byteSeq=LITTLE_ENDIAN",
+                "modbus:function": 4,
+                "modbus:offset": 0,
+                "modbus:length": 4,
+                "modbus:unitID": 1
+            }
+
+            const result = await client.readResource(form)
+            result.body.should.deep.equal(Buffer.from([0, 0, 1, 0, 2, 0, 3, 0]), "Wrong data")
+        });
+
+        it('should read a resource using read multiple input registers function with little endian byte swap conversion', async () => {
+
+            testServer.setRegisters([3, 2, 1, 0])
+
+            const form: ModbusForm = {
+                href: "modbus://127.0.0.1:8502",
+                contentType: "application/octet-stream;byteSeq=LITTLE_ENDIAN_BYTE_SWAP",
+                "modbus:function": 4,
+                "modbus:offset": 0,
+                "modbus:length": 4,
+                "modbus:unitID": 1
+            }
+
+            const result = await client.readResource(form)
+            result.body.should.deep.equal(Buffer.from([0, 0, 0, 1, 0, 2, 0, 3]), "Wrong data")
+        });
+
         it('should throw exception for unknown function', () => {
 
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 255,
-                "modbus:range": [0, 3],
+                "modbus:offset": 0,
+                "modbus:length": 3,
                 "modbus:unitID": 1
             }
 
             const promise = client.readResource(form)
 
             return promise.should.eventually.rejectedWith("Undefined function number or name: 255")
+        });
+
+        it('should throw exception for missing offset', () => {
+
+            const form: ModbusForm = {
+                href: "modbus://127.0.0.1:8502",
+                "modbus:function": 1,
+                "modbus:unitID": 1
+            }
+
+            const promise = client.readResource(form)
+
+            return promise.should.eventually.rejectedWith("Malformed form: offset must be defined")
         });
     });
 
@@ -268,7 +342,7 @@ describe('Modbus client test', () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 5,
-                "modbus:range": [0],
+                "modbus:offset": 0,
                 "modbus:unitID": 1
             }
 
@@ -280,7 +354,7 @@ describe('Modbus client test', () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 15,
-                "modbus:range": [0],
+                "modbus:offset": 0,
                 "modbus:unitID": 1
             }
 
@@ -293,7 +367,7 @@ describe('Modbus client test', () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 6,
-                "modbus:range": [0],
+                "modbus:offset": 0,
                 "modbus:unitID": 1
             }
 
@@ -306,12 +380,68 @@ describe('Modbus client test', () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 16,
-                "modbus:range": [0],
+                "modbus:offset": 0,
                 "modbus:unitID": 1
             }
 
             await client.writeResource(form, { type: "", body: Readable.from([1, 2, 1, 1]) }) //writes 0x0101 and 0x0100
             testServer.registers.should.be.deep.equal([258, 257], "wrong register value")
+        });
+
+        it('should write a resource with big endian ordering', async () => {
+
+            const form: ModbusForm = {
+                href: "modbus://127.0.0.1:8502",
+                contentType: "application/octet-stream;length=2;byteSeq=BIG_ENDIAN",
+                "modbus:function": 16,
+                "modbus:offset": 0,
+                "modbus:unitID": 1
+            }
+
+            await client.writeResource(form, { type: "", body: Buffer.from([ 0x25, 0x49, 0x59, 0x60 ]) })
+            testServer.registers.should.be.deep.equal([9545, 22880], "wrong coil value")
+        });
+
+        it('should write a resource with little endian ordering', async () => {
+
+            const form: ModbusForm = {
+                href: "modbus://127.0.0.1:8502",
+                contentType: "application/octet-stream;length=2;byteSeq=LITTLE_ENDIAN",
+                "modbus:function": 16,
+                "modbus:offset": 0,
+                "modbus:unitID": 1
+            }
+
+            await client.writeResource(form, { type: "", body: Buffer.from([ 0x60, 0x59, 0x49, 0x25 ]) })
+            testServer.registers.should.be.deep.equal([9545, 22880], "wrong coil value")
+        });
+
+        it('should write a resource with byte swap big endian ordering', async () => {
+
+            const form: ModbusForm = {
+                href: "modbus://127.0.0.1:8502",
+                contentType: "application/octet-stream;length=2;byteSeq=BIG_ENDIAN_BYTE_SWAP",
+                "modbus:function": 16,
+                "modbus:offset": 0,
+                "modbus:unitID": 1
+            }
+
+            await client.writeResource(form, { type: "", body: Buffer.from([ 0x49, 0x25, 0x60, 0x59 ]) })
+            testServer.registers.should.be.deep.equal([9545, 22880], "wrong coil value")
+        });
+
+        it('should write a resource with byte swap little endian ordering', async () => {
+
+            const form: ModbusForm = {
+                href: "modbus://127.0.0.1:8502",
+                contentType: "application/octet-stream;length=2;byteSeq=LITTLE_ENDIAN_BYTE_SWAP",
+                "modbus:function": 16,
+                "modbus:offset": 0,
+                "modbus:unitID": 1
+            }
+
+            await client.writeResource(form, { type: "", body: Buffer.from([ 0x59, 0x60, 0x25, 0x49 ]) })
+            testServer.registers.should.be.deep.equal([9545, 22880], "wrong coil value")
         });
     });
 
@@ -321,7 +451,7 @@ describe('Modbus client test', () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 1,
-                "modbus:range": [0],
+                "modbus:offset": 0,
                 "modbus:unitID": 1,
                 "modbus:pollingTime": 250
             }
@@ -339,7 +469,7 @@ describe('Modbus client test', () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 1,
-                "modbus:range": [0],
+                "modbus:offset": 0,
                 "modbus:unitID": 1,
                 "modbus:pollingTime": 125
             }

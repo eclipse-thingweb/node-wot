@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2021 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -161,6 +161,26 @@ export default class CoapServer implements ProtocolServer {
 
     return new Promise<void>((resolve, reject) => {
       resolve();
+    });
+  }
+
+  public destroy(thingId: string): Promise<boolean> {
+    console.debug("[binding-coap]", `CoapServer on port ${this.getPort()} destroying thingId '${thingId}'`);
+    return new Promise<boolean>((resolve, reject) => {
+      let removedThing: ExposedThing = undefined;
+      for (let name of Array.from(this.things.keys())) {
+        let expThing = this.things.get(name);
+        if (expThing?.id === thingId) {
+          this.things.delete(name);
+          removedThing = expThing;
+        }
+      }
+      if (removedThing) {
+        console.info("[binding-coap]", `CoapServer succesfully destroyed '${removedThing.title}'`);
+      } else {
+        console.info("[binding-coap]", `CoapServer failed to destroy thing with thingId '${thingId}'`)
+      }
+      resolve(removedThing != undefined);
     });
   }
 

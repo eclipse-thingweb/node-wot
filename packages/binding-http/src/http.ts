@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2021 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -60,6 +60,6 @@ export class HttpForm extends TD.Form {
 export type HTTPMethodName = "GET" | "PUT" | "POST" | "DELETE" | "PATCH";
 
 export class HttpHeader {
-    public "htv:fieldName": number;
-    public "htv:fieldValue": any;
+    public "htv:fieldName": string;
+    public "htv:fieldValue": string;
 }

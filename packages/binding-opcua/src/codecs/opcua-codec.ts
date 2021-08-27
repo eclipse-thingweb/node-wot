@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
+ * Copyright (c) 2020 - 2021 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -70,11 +70,12 @@ export default class OpcuaCodec implements ContentCodec {
         }
         let dataType = tmp_schema[dataType_string] ? tmp_schema[dataType_string] : tmp_schema.properties[dataType_string];
         dataType = this.getOPCUADataType(dataType);
+        obj.dataType = dataType;
       } else if(className === 'ConsumedThingAction') {
         let inputArguments = this.getInputArguments(value, tmp_schema.input);
         obj.inputArguments = inputArguments;
       }
-
+      
       body = JSON.stringify(obj);
     }
     return Buffer.from(body);
@@ -91,7 +92,7 @@ export default class OpcuaCodec implements ContentCodec {
         return DataType.Double;
       case "Null": return DataType.Null;
       case "Boolean": return DataType.Boolean;
-      case "Sbyte": return DataType.SByte;
+      case "SByte": return DataType.SByte;
       case "Byte": return DataType.Byte;
       case "Int16": return DataType.Int16;
       case "UInt16": return DataType.UInt16;
@@ -106,7 +107,7 @@ export default class OpcuaCodec implements ContentCodec {
       case "Guid": return DataType.Guid;
       case "ByteString": return DataType.ByteString;
       case "XmlElement": return DataType.XmlElement;
-      case "NodeId": return DataType.Guid;
+      case "NodeId": return DataType.NodeId;
       case "ExpandedNodeId": return DataType.ExpandedNodeId;
       case "StatusCode": return DataType.StatusCode;
       case "QualifiedName": return DataType.QualifiedName;

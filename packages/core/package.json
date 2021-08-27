@@ -32,6 +32,7 @@
     "ajv": "^7.0.4",
     "rxjs": "5.5.11",
     "uritemplate": "0.3.4",
+	"@petamoriken/float16": "^3.1.1",
     "uuid": "3.4.0",
     "vm2": "^3.9.2",
     "web-streams-polyfill": "^3.0.1"

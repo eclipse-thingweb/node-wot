@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2021 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -129,19 +129,30 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         return form;
     }
 
-    ensureClientSecurity(client: ProtocolClient) {
-        // td-tools parser ensures this.security is an array
-        if (this.security && this.securityDefinitions && Array.isArray(this.security) && this.security.length > 0) {
-            console.debug("[core/consumed-thing]",`ConsumedThing '${this.title}' setting credentials for ${client}`);
-            let scs: Array<TD.SecurityScheme> = [];
-            for (let s of this.security) {
-                let ws = this.securityDefinitions[s + ""]; // String vs. string (fix wot-typescript-definitions?)
-                // also push nosec in case of proxy
-                if (ws) {
-                    scs.push(ws);
-                }
+
+    getSecuritySchemes(security: Array<String>): Array<TD.SecurityScheme> {
+        let scs: Array<TD.SecurityScheme> = [];
+        for (let s of security) {
+            let ws = this.securityDefinitions[s + ""]; // String vs. string (fix wot-typescript-definitions?)
+            // also push nosec in case of proxy
+            if (ws) {
+                scs.push(ws);
             }
-            client.setSecurity(scs, this.getServient().getCredentials(this.id));
+        }
+        return scs;
+    }
+
+    ensureClientSecurity(client: ProtocolClient, form: TD.Form) {
+        if (this.securityDefinitions) {
+            if (form && Array.isArray(form.security) && form.security.length > 0) {
+                // Note security member in form objects overrides (i.e., completely replace) all definitions activated at the Thing level
+                // see https://www.w3.org/TR/wot-thing-description/#security-serialization-json
+                console.debug("[core/consumed-thing]", `ConsumedThing '${this.title}' setting credentials for ${client} based on form security`);
+                client.setSecurity(this.getSecuritySchemes(form.security), this.getServient().getCredentials(this.id));
+            } else if (this.security && Array.isArray(this.security) && this.security.length > 0) {
+                console.debug("[core/consumed-thing]", `ConsumedThing '${this.title}' setting credentials for ${client} based on thing security`);
+                client.setSecurity(this.getSecuritySchemes(this.security), this.getServient().getCredentials(this.id));
+            }
         }
     }
 
@@ -168,7 +179,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
 
                     if (!this.getClients().get(scheme)) {
                         // new client
-                        this.ensureClientSecurity(client);
+                        this.ensureClientSecurity(client, form);
                         this.getClients().set(scheme, client);
                     }
                 } else {
@@ -196,7 +207,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                 client = this.getServient().getClientFor(schemes[srvIdx]);
                 console.debug("[core/consumed-thing]",`ConsumedThing '${this.title}' got new client for '${schemes[srvIdx]}'`);
 
-                this.ensureClientSecurity(client);
+                this.ensureClientSecurity(client, form);
                 this.getClients().set(schemes[srvIdx], client);
 
                 form = this.findForm(forms, op, affordance, schemes, srvIdx);
