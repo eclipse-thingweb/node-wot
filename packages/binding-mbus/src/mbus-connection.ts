@@ -1,6 +1,7 @@
 import * as MbusMaster from 'node-mbus'
 import { MBusForm } from './mbus'
 import { Content, ContentSerdes } from '@node-wot/core'
+import { Readable } from "stream";
 
 const configDefaults = {
   operationTimeout: 10000,
@@ -286,7 +287,7 @@ export class PropertyOperation {
 	}
 	
 	resp = {
-		body: Buffer.from(JSON.stringify(payload)),
+		body: Readable.from(JSON.stringify(payload)),
 		type: 'application/json'
 	};
 
