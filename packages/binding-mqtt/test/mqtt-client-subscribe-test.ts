@@ -144,18 +144,14 @@ class MqttClientSubscribeTest {
                                 let check = 0;
                                 client
                                     .subscribeEvent(eventName, (x) => {
-                                        x.value().then( val => {
-                                            ++check;
-                                            sum+=val as number;
-                                            if (check === 3) {
-                                                expect(sum).to.be.equals(6);
-                                                done();
-                                            }
-                                        })
+                                        expect(x).to.equal(++check);
+                                        if (check === 3) {
+                                            done();
+                                        }
                                     })
                                     .then(() => { })
                                     .catch((e) => {
-                                        done(e)
+                                        expect(true).to.equal(false);
                                     });
 
                                 var job = setInterval(() => {
