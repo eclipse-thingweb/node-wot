@@ -17,7 +17,6 @@ import { Helpers } from "@node-wot/core";
 import { ThingDescription } from "wot-typescript-definitions";
 import * as TD from "@node-wot/td-tools";
 
-let WoT:WoT.WoT;
 let WoTHelpers: Helpers;
 
 WoTHelpers.fetch("coap://localhost:5683/counter").then( async (td) => {

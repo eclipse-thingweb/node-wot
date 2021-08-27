@@ -15,8 +15,6 @@
  
 import "wot-typescript-definitions"
  
-let WoT: WoT.WoT;
- 
 WoT.consume({
     "id": "urn:dev:ops:waterCounter",
     "title": "ACW Itron BM +m Cold water",
