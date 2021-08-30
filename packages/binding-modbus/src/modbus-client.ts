@@ -106,8 +106,8 @@ export default class ModbusClient implements ProtocolClient {
 
     this.overrideFormFromURLPath(form);
 
-    if (content) {
-      this.validateContentLength(form, content);
+    if (body) {
+      this.validateBufferLength(form, body);
     }
 
     // find or create connection
@@ -159,12 +159,12 @@ export default class ModbusClient implements ProtocolClient {
     input['modbus:length'] = parseInt(query.get('length'), 10) || input['modbus:length'];
   }
   
-  private validateContentLength(form: ModbusForm, content: Content) {
+  private validateBufferLength(form: ModbusForm, buffer: Buffer) {
 
     const mpy = form['modbus:entity'] === 'InputRegister' || form['modbus:entity'] === 'HoldingRegister' ? 2 : 1;
     const length = form['modbus:length']
-    if (content ) { // @relu91  && content.body.length !== mpy * length
-      throw new Error('Content length does not match register / coil count, got ' +  '??LEN??' + ' bytes for ' // @relu91 content.body.length
+    if (buffer && buffer.length !== mpy * length) {
+      throw new Error('Content length does not match register / coil count, got ' +  buffer.length  + ' bytes for '
         + length + ` ${mpy === 2 ? 'registers' : 'coils'}`);
     }
   }
