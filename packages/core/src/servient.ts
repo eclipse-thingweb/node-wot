@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2021 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -158,6 +158,21 @@ export default class Servient {
         } else {
             return false;
         }
+    }
+
+    public destroyThing(thingId: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            if (this.things.has(thingId)) {
+                console.debug("[core/servient]", `Servient destroying thing with id '${thingId}'`);
+                this.things.delete(thingId);
+                let serverPromises: Promise<boolean>[] = [];
+                this.servers.forEach((server) => { serverPromises.push(server.destroy(thingId)); });
+                Promise.all(serverPromises).then(() => resolve(true)).catch((err) => reject(err));
+            } else {
+                console.warn("[core/servient]", `Servient was asked to destroy thing but failed to find thing with id '${thingId}'`);
+                resolve(false);
+            }
+        });
     }
 
     public getThing(id: string): ExposedThing {

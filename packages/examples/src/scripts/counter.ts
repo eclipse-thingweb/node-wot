@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
+ * Copyright (c) 2020 - 2021 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -188,7 +188,7 @@ WoT.produce({
 			thing.emitEvent("change", count);
 			return undefined;
 		});
-		thing.setActionHandler("decrement", async (params, options) => {
+		thing.setActionHandler("reset", async (params, options) => {
 			console.log("Resetting count");
 			count = 0;
 			lastChange = (new Date()).toISOString();
