@@ -44,6 +44,11 @@ export const launchTestThing = async () => {
 
     const WoT = await servient.start()
 
+    // init property values
+    let objectProperty = { testNum: 0, testStr: 'abc' };
+    let stringProperty = '';
+    let integerProperty = 0;
+
     const thing = await WoT.produce({
       title: 'test-thing',
       description: 'thing for test',
@@ -166,17 +171,19 @@ export const launchTestThing = async () => {
 
     //@ts-ignore
     console.log('Produced ' + thing.getThingDescription().title)
-    // init property values
-    thing.writeProperty('objectProperty', { testNum: 0, testStr: 'abc' })
-    thing.writeProperty('stringProperty', '')
-    thing.writeProperty('integerProperty', 0)
+
+		// set property handlers (using async-await)
+		thing.setPropertyReadHandler("objectProperty", async () => objectProperty);
+		thing.setPropertyReadHandler("stringProperty", async () => stringProperty);
+    thing.setPropertyReadHandler("integerProperty", async () => integerProperty);
+
     // set action handlers
     thing.setActionHandler(
       'actionWithoutArgsResponse',
       function (params, options) {
         return new Promise(function (resolve, reject) {
           console.log('actionWithoutArgsResponse', params, options)
-          resolve()
+          resolve(thing)
         })
       }
     )
@@ -233,21 +240,21 @@ export const launchTestThing = async () => {
       return new Promise(function (resolve, reject) {
         console.log('actionEventInteger', params, options)
         thing.emitEvent('eventInteger', params)
-        resolve()
+        resolve(thing)
       })
     })
     thing.setActionHandler('actionEventString', function (params, options) {
       return new Promise(function (resolve, reject) {
         console.log('actionEventString', params, options)
         thing.emitEvent('eventString', params)
-        resolve()
+        resolve(thing)
       })
     })
     thing.setActionHandler('actionEventObject', function (params, options) {
       return new Promise(function (resolve, reject) {
         console.log('actionEventObject', params, options)
         thing.emitEvent('eventObject', params)
-        resolve()
+        resolve(thing)
       })
     })
 

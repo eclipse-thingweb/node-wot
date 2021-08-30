@@ -102,6 +102,7 @@ export const readDataFromFirestore = (
           let content: Content = null
           //console.debug('[debug] readDataToFirestore gotten data:', data)
           if (data && data.content) {
+            // XXX TODO change the way content is reported
             let obj: any = JSON.parse(data.content)
             if (!obj) {
               reject(new Error(`invalid ${topic} content:${content}`))
