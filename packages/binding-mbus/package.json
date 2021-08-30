@@ -30,7 +30,7 @@
     "@node-wot/core": "0.8.0",
     "@node-wot/td-tools": "0.8.0",
     "node-mbus": "^1.2.2",
-    "wot-typescript-definitions": "^0.8.0-SNAPSHOT.14"
+    "wot-typescript-definitions": "^0.8.0-SNAPSHOT.18"
   },
   "scripts": {
     "build": "tsc",
