@@ -34,7 +34,7 @@ import * as TD from "@node-wot/td-tools";
 import { ContentSerdes } from "./content-serdes";
 import { ProtocolHelpers } from "./core";
 import Ajv from 'ajv';
-import TDSchema from "wot-typescript-definitions/schema/td-json-schema-validation.json";
+import TDSchema from "wot-thing-description-types/schema/td-json-schema-validation.json";
 
 const tdSchema = TDSchema;
 // RegExps take from https://github.com/ajv-validator/ajv-formats/blob/master/src/formats.ts
