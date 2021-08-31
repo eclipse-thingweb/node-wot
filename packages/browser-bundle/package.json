@@ -23,5 +23,10 @@
   },
   "scripts": {
     "build": "browserify -r vm:vm2 index.js --plugin tinyify --external coffee-script -o dist/wot-bundle.min.js"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/eclipse/thingweb.node-wot/issues"
+  },
+  "homepage": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/browser-bundle#readme",
+  "keywords": []
 }

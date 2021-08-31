@@ -28,5 +28,11 @@
   },
   "scripts": {
     "build": "tsc"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/eclipse/thingweb.node-wot/issues"
+  },
+  "homepage": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/examples#readme",
+  "main": "index.js",
+  "keywords": []
 }

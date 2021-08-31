@@ -37,5 +37,13 @@
   "scripts": {
     "build": "tsc",
     "test": "mocha --require ts-node/register test/netconf-client-test.ts"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/thingweb/node-wot/issues"
+  },
+  "homepage": "https://github.com/thingweb/node-wot/tree/master/packages/binding-netconf#readme",
+  "directories": {
+    "test": "test"
+  },
+  "keywords": []
 }

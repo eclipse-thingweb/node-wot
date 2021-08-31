@@ -35,5 +35,13 @@
   "scripts": {
     "build": "tsc && webpack",
     "test": "mocha --compilers ts:ts-node/register"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/eclipse/thingweb.node-wot/issues"
+  },
+  "homepage": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/td-tools#readme",
+  "directories": {
+    "test": "test"
+  },
+  "keywords": []
 }

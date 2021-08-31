@@ -40,5 +40,10 @@
     "build": "tsc",
     "start": "ts-node src/cli.ts",
     "debug": "node -r ts-node/register --inspect-brk=9229 src/cli.ts"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/eclipse/thingweb.node-wot/issues"
+  },
+  "homepage": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/cli#readme",
+  "keywords": []
 }

@@ -1,5 +1,6 @@
 {
   "private": true,
+  "name": "thingweb.node-wot",
   "description": "W3C Web of Things (WoT) implementation based on Node.js and TypeScript (root project, not published)",
   "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
   "license": "EPL-2.0 OR W3C-20150513",
@@ -7,28 +8,14 @@
     "type": "git",
     "url": "https://github.com/eclipse/thingweb.node-wot.git"
   },
-  "devDependencies": {
-    "@types/mocha": "^8.2.2",
-    "lerna": "^3.20.2",
-    "lerna-run": "0.0.2",
-    "rimraf": "3.0.2"
-  },
-  "dependencies": {},
   "scripts": {
-    "bootstrap": "lerna bootstrap --ci",
-    "prebuild": "npm run bootstrap",
-    "build": "lerna run build",
-    "build:only": "lerna run build",
+    "build": "npm run build --workspaces",
     "pretest": "npm run build",
     "start": "cd packages/cli && npm run start",
     "debug": "cd packages/cli && npm run debug",
-    "test": "lerna run test",
-    "test:only": "lerna run test",
-    "prelink": "npm run unlock",
-    "link": "lerna-run npm link",
-    "codestyle": "lerna run codestyle",
-    "clean": "lerna clean",
-    "unlock": "lerna-run rimraf package-lock.json",
-    "publish": "lerna publish --force-publish=*"
-  }
+    "test": "npm run test --silent --workspaces --if-present",
+    "test:only": "npm run test --silent --workspaces --if-present",
+    "publish": "npm publish --workspaces"
+  },
+  "workspaces": [ "./packages/*"]
 }

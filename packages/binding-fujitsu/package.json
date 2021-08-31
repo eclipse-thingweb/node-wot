@@ -4,7 +4,7 @@
   "description": "Fujitsu Remote Proxy bridge for node-wot",
   "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
   "license": "EPL-2.0 OR W3C-20150513",
-  "repository": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-http",
+  "repository": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-fujitsu",
   "publishConfig": {
     "access": "public"
   },
@@ -32,5 +32,9 @@
   },
   "scripts": {
     "build": "tsc"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/eclipse/thingweb.node-wot/issues"
+  },
+  "homepage": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-fujitsu#readme"
 }

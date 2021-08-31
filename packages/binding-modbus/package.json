@@ -38,5 +38,12 @@
   "scripts": {
     "build": "tsc",
     "test": "mocha --require ts-node/register test/*"
+  },
+  "bugs": {
+    "url": "https://github.com/thingweb/node-wot/issues"
+  },
+  "homepage": "https://github.com/thingweb/node-wot/tree/master/packages/binding-modbus#readme",
+  "directories": {
+    "test": "test"
   }
 }

@@ -5,6 +5,7 @@
 		"module": "commonjs",
 		"outDir": "dist",
 		"alwaysStrict": true,
+		"incremental": true,
 		"sourceMap": true,
 		"noImplicitAny": true,
 		"removeComments": true,
