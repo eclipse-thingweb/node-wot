@@ -17,5 +17,11 @@
     "test:only": "npm run test --silent --workspaces --if-present",
     "publish": "npm publish --workspaces"
   },
-  "workspaces": [ "./packages/*"]
+  "workspaces": [ "./packages/td-tools",
+    "./packages/core",
+    "./packages/binding-!(wotfirestore-browser-bundle)",
+    "./packages/binding-wotfirestore-browser-bundle",
+    "./packages/cli",
+    "./packages/examples"
+  ]
 }
