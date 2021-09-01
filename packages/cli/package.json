@@ -11,7 +11,7 @@
   "files": [
     "dist/"
   ],
-  "main": "dist/cli.js",
+  "main": "bin/index.js",
   "types": "dist/cli.d.ts",
   "bin": {
     "wot-servient": "bin/index.js"
