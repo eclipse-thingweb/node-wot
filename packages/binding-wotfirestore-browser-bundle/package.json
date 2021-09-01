@@ -17,7 +17,7 @@
     "tinyify": "^2.5.2"
   },
   "dependencies": {
-    "@node-wot/binding-wotfirestore": "0.7.8"
+    "@node-wot/binding-wotfirestore": "0.8.0"
   },
   "scripts": {
     "build": "browserify -r vm:vm2 index.js --external coffee-script -o dist/binding-wotfirestore-bundle.js"
