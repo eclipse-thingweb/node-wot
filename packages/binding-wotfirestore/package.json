@@ -1,6 +1,6 @@
 {
   "name": "@node-wot/binding-wotfirestore",
-  "version": "0.7.8",
+  "version": "0.8.0",
   "description": "Firestore binding for node-wot",
   "repository": "https://github.com/hidetak/thingweb.node-wot",
   "main": "dist/wotfirestore.js",
