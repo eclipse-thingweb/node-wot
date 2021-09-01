@@ -52,10 +52,12 @@ Please also see the additional [notices](NOTICE.md) and [how to contribute](CONT
 * [CoAP](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-coap/README.md) :heavy_check_mark:
 * [CoAPS](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-coap/README.md) :heavy_check_mark:
 * [MQTT](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-mqtt/README.md) :heavy_check_mark:
+* [Firestore](https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-wotfirestore/README.md) :heavy_check_mark:
 * [Websocket](https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-websockets) :heavy_plus_sign: (Server only)
 * [OPC-UA](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-opcua/README.md) :heavy_plus_sign: (Client only)
 * [NETCONF](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-netconf/README.md) :heavy_plus_sign: (Client only)
 * [Modbus](https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-modbus) :heavy_plus_sign: (Client only)
+* [M-Bus](https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-mbus) :heavy_plus_sign: (Client only)
 
 Note: More protocols can be easily added by implementing `ProtocolClient`, `ProtocolClientFactory`, and `ProtocolServer` interface.
 
@@ -89,7 +91,7 @@ cs.addCodec(new MyCodec("application/myType"));
 ## Prerequisites
 ### To use with Node.js
 All systems require:
-* [NodeJS](https://nodejs.org/) version 10+ (e.g., 10.13.0 LTS)
+* [NodeJS](https://nodejs.org/) version 14+
 
 #### Linux
 Meet the [node-gyp](https://github.com/nodejs/node-gyp#installation) requirements:

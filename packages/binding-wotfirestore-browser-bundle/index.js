@@ -1,6 +1,6 @@
 "use strict";
 
-const BindingWoTFirestore = require("@hidetak/binding-wotfirestore");
+const BindingWoTFirestore = require("@node-wot/binding-wotfirestore");
 
 if (typeof window !== "undefined") {
     window.BindingWoTFirestore = BindingWoTFirestore;
