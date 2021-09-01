@@ -91,7 +91,7 @@ cs.addCodec(new MyCodec("application/myType"));
 ## Prerequisites
 ### To use with Node.js
 All systems require:
-* [NodeJS](https://nodejs.org/) version 10+ (e.g., 10.13.0 LTS)
+* [NodeJS](https://nodejs.org/) version 14+
 
 #### Linux
 Meet the [node-gyp](https://github.com/nodejs/node-gyp#installation) requirements:
