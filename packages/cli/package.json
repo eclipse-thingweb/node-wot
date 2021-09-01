@@ -14,7 +14,7 @@
   "main": "dist/cli.js",
   "types": "dist/cli.d.ts",
   "bin": {
-    "wot-servient": "dist/cli.js"
+    "wot-servient": "bin/index.js"
   },
   "devDependencies": {
     "@types/node": "13.7.0",
