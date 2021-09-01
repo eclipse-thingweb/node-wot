@@ -58,7 +58,7 @@ To prepare for creating a nodejs app, execute `npm install`.
 After executing `npm init`, install the following modules.
 
 - `npm install @node-wot/core`
-- `npm install @hidetak/binding-wotfirestore`
+- `npm install @node-wot/binding-wotfirestore`
 
 ### Creating configuration file
 
@@ -92,10 +92,10 @@ The ThingDescription registered by `example-server.js`.
 // example-client.js
 const Servient = require('@node-wot/core').Servient
 const WoTFirestoreClientFactory =
-  require('@hidetak/binding-wotfirestore').WoTFirestoreClientFactory
+  require('@node-wot/binding-wotfirestore').WoTFirestoreClientFactory
 const Helpers = require('@node-wot/core').Helpers
 const WoTFirestoreCodec =
-  require('@hidetak/binding-wotfirestore').WoTFirestoreCodec
+  require('@node-wot/binding-wotfirestore').WoTFirestoreCodec
 
 const firestoreConfig = require('./firestore-config.json')
 
@@ -138,9 +138,9 @@ The server example produces a thing that allows for setting a property `count`. 
 // example-server.js
 const Servient = require('@node-wot/core').Servient
 const WoTFirestoreServer =
-  require('@hidetak/binding-wotfirestore').WoTFirestoreServer
+  require('@node-wot/binding-wotfirestore').WoTFirestoreServer
 const WoTFirestoreCodec =
-  require('@hidetak/binding-wotfirestore').WoTFirestoreCodec
+  require('@node-wot/binding-wotfirestore').WoTFirestoreCodec
 
 const firestoreConfig = require('./firestore-config.json')
 
