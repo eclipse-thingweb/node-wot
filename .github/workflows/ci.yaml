@@ -23,6 +23,9 @@ jobs:
       - name: npm 7
       # npm workspaces requires npm v7 or higher
         run: npm i -g npm@7 --registry=https://registry.npmjs.org
+      - name: Install native tools
+        if:  ${{ matrix.os == 'windows-latest' }}
+        run: npm install -g --production windows-build-tools
       - name: Install
         run: npm ci
       
