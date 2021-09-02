@@ -42,7 +42,7 @@
   "bugs": {
     "url": "https://github.com/thingweb/node-wot/issues"
   },
-  "homepage": "https://github.com/thingweb/node-wot/tree/master/packages/binding-modbus#readme",
+  "homepage": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-modbus#readme",
   "directories": {
     "test": "test"
   }

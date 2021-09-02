@@ -39,7 +39,7 @@
   "bugs": {
     "url": "https://github.com/thingweb/node-wot/issues"
   },
-  "homepage": "https://github.com/thingweb/node-wot/tree/master/packages/binding-mbus#readme",
+  "homepage": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-mbus#readme",
   "directories": {
     "test": "test"
   }
