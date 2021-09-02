@@ -18,7 +18,7 @@ var bodyParser = require('body-parser');
 import * as https from 'https'
 
 var fs = require('fs')
-import { suite, test } from "mocha-typescript";
+import { suite, test } from "@testdeck/mocha";
 import * as express from 'express';
 import { HttpClient, HttpsClientFactory, HttpServer } from "../src/http";
 import { OAuth2SecurityScheme } from "@node-wot/td-tools";
@@ -59,7 +59,7 @@ class HttpClientOAuthTest {
     }   
 
     static after(){
-        return promisify(HttpClientOAuthTest.server.close)
+        return promisify(this.server.close.bind(this.server))();
     }
 
     before(){

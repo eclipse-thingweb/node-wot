@@ -2,7 +2,7 @@
 import Servient from '@node-wot/core'
 import WoTFirestoreServer from '../src/wotfirestore-server'
 import WoTFirestoreCodec from '../src/codecs/wotfirestore-codec'
-import firebase from 'firebase'
+const firebase = require('firebase')
 
 const wotfirestoreConfig = require('./wotfirestore-config.json')
 

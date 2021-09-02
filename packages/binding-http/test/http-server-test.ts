@@ -17,12 +17,12 @@
  * Protocol test suite to test protocol implementations
  */
 
-import { suite, test, slow, timeout, skip, only } from "mocha-typescript";
+import { suite, test, slow, timeout, skip, only } from "@testdeck/mocha";
 import { expect, should, assert } from "chai";
 // should must be called to augment all variables
 should();
 
-import * as rp from "request-promise";
+import fetch from "node-fetch";
 
 import HttpServer from "../src/http-server";
 import { ExposedThing, Helpers } from "@node-wot/core";
@@ -103,16 +103,16 @@ class HttpServerTest {
 
     console.log("Testing", uri);
 
-    body = await rp.get(uri+"properties/test");
+    body = await (await fetch(uri+"properties/test")).text();
     expect(body).to.equal("\"off\"");
 
-    body = await rp.put(uri+"properties/test", { body: "on" });
+    body = await (await fetch(uri+"properties/test", { method: "PUT", body: "on" })).text();
     expect(body).to.equal("");
 
-    body = await rp.get(uri+"properties/test");
+    body = await (await fetch(uri + "properties/test")).text();
     expect(body).to.equal("\"on\"");
 
-    body = await rp.post(uri+"actions/try", { body: "toggle" });
+    body = await (await fetch(uri+"actions/try", { method: "POST", body: "toggle" })).text();
     expect(body).to.equal("\"TEST\"");
 
     return httpServer.stop();
@@ -137,8 +137,8 @@ class HttpServerTest {
 
     let uri = `http://localhost:${httpServer1.getPort()}/`;
 
-    return rp.get(uri).then(async body => {
-      expect(body).to.equal("[]");
+    return fetch(uri).then(async body => {
+      expect(await body.text()).to.equal("[]");
 
       await httpServer1.stop();
       await httpServer2.stop();
@@ -273,14 +273,14 @@ class HttpServerTest {
     let uri = 'http://localhost:8080/smart-coffee-machine' //theBase.concat('/')
     let body;
 
-    body = await rp.get(uri);
+    body = await (await fetch(uri)).text();
     //console.debug(JSON.stringify(JSON.parse(body),undefined,2))
 
     var expected_url = `${theBaseUri}/smart-coffee-machine/actions/makeDrink`
 
     expect(body).to.include(expected_url);
     console.log(`Found URL ${expected_url} in TD`)
-
+    await httpServer.stop();
   }
 
 }

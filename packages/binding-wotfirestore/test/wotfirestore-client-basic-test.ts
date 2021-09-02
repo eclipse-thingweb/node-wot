@@ -1,5 +1,5 @@
 var fs = require('fs')
-import { suite, test } from 'mocha-typescript'
+import { suite, test } from '@testdeck/mocha'
 import * as chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import { promisify } from 'util'
