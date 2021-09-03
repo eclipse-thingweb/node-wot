@@ -24,6 +24,11 @@
     "@node-wot/core": "0.8.0"
   },
   "scripts": {
-    "build": "tsc"
-  }
+    "build": "tsc",
+    "test": ""
+  },
+  "bugs": {
+    "url": "https://github.com/eclipse/thingweb.node-wot/issues"
+  },
+  "homepage": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-file#readme"
 }

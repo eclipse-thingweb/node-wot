@@ -36,5 +36,12 @@
   "scripts": {
     "build": "tsc",
     "test": "mocha --compilers ts:ts-node/register"
+  },
+  "bugs": {
+    "url": "https://github.com/eclipse/thingweb.node-wot/issues"
+  },
+  "homepage": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-mqtt#readme",
+  "directories": {
+    "test": "test"
   }
 }

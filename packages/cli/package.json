@@ -11,10 +11,10 @@
   "files": [
     "dist/"
   ],
-  "main": "dist/cli.js",
+  "main": "bin/index.js",
   "types": "dist/cli.d.ts",
   "bin": {
-    "wot-servient": "dist/cli.js"
+    "wot-servient": "bin/index.js"
   },
   "devDependencies": {
     "@types/node": "13.7.0",
@@ -40,5 +40,10 @@
     "build": "tsc",
     "start": "ts-node src/cli.ts",
     "debug": "node -r ts-node/register --inspect-brk=9229 src/cli.ts"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/eclipse/thingweb.node-wot/issues"
+  },
+  "homepage": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/cli#readme",
+  "keywords": []
 }

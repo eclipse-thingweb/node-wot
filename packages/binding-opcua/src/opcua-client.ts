@@ -122,7 +122,7 @@ export default class OpcuaClient implements ProtocolClient {
 
 	public async readResource(form: OpcuaForm): Promise<Content> {
 		let url = new Url(form.href);
-		let endpointUrl = url.origin;
+		let endpointUrl = `${url.protocol}//${url.host}`;
 		let method = form["opc:method"] ? form["opc:method"] : "READ";
 
 		let contentType = "application/x.opcua-binary";
@@ -167,7 +167,7 @@ export default class OpcuaClient implements ProtocolClient {
 		let body = await ProtocolHelpers.readStreamFully(content.body);
 		let payload: any = content ? JSON.parse(body.toString()): {};
 		let url = new Url(form.href);
-		let endpointUrl = url.origin;
+		let endpointUrl = `${url.protocol}//${url.host}`;
 		let method = form["opc:method"] ? form["opc:method"] : "WRITE";
 		let contentType = "application/x.opcua-binary";
 
@@ -236,7 +236,7 @@ export default class OpcuaClient implements ProtocolClient {
 		
 		let url = new Url(form.href);
 
-		let endpointUrl = url.origin;
+		let endpointUrl = `${url.protocol}//${url.host}`;
 		let method = form["opc:method"] ? form["opc:method"] : "CALL_METHOD";
 
 
@@ -304,7 +304,7 @@ export default class OpcuaClient implements ProtocolClient {
 	public subscribeResource(form: OpcuaForm, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): any {
 
 		let url = new Url(form.href);
-		let endpointUrl = url.origin;
+		let endpointUrl = `${url.protocol}//${url.host}`;
 		let contentType = "application/x.opcua-binary";
 		let self = this;
 		this.checkConnection(endpointUrl).then(function () {

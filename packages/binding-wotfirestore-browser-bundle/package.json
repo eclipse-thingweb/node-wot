@@ -2,7 +2,7 @@
   "name": "@node-wot/binding-wotfirestore-browser-bundle",
   "version": "0.8.0",
   "description": "A binding-wotfirestore bundle that can run in a web browser",
-  "repository": "https://github.com/hidetak/thingweb.node-wot",
+  "repository": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-wotfirestore-browser-bundle",
   "author": "hidetak",
   "license": "EPL-2.0",
   "publishConfig": {
@@ -21,5 +21,10 @@
   },
   "scripts": {
     "build": "browserify -r vm:vm2 index.js --external coffee-script -o dist/binding-wotfirestore-bundle.js"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/eclipse/thingweb.node-wot/issues"
+  },
+  "homepage": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-wotfirestore-browser-bundle#readme",
+  "keywords": []
 }

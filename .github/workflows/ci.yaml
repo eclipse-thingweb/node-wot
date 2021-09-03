@@ -10,7 +10,7 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
-        node-version: [14.x, 16.x]
+        node-version: [ 12.x, 14.x, 16.x]
 
     steps:
       - name: Checkout
@@ -20,9 +20,11 @@ jobs:
         uses: actions/setup-node@v1
         with:
             node-version: ${{ matrix.node-version }}
-      
+      - name: npm 7
+      # npm workspaces requires npm v7 or higher
+        run: npm i -g npm@7 --registry=https://registry.npmjs.org
       - name: Install
-        run: npm install
+        run: npm ci
       
       - name: Build
         run: npm run build
