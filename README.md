@@ -95,7 +95,7 @@ All systems require:
 
 #### Linux
 Meet the [node-gyp](https://github.com/nodejs/node-gyp#installation) requirements:
-* Python v2.7, v3.5, v3.6, v3.7, or v3.8
+* Python v3.6, v3.7, or v3.8
 * make
 * A proper C/C++ compiler toolchain, like GCC
 
