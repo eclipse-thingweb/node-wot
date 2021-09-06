@@ -95,7 +95,7 @@ All systems require:
 
 #### Linux
 Meet the [node-gyp](https://github.com/nodejs/node-gyp#installation) requirements:
-* Python v2.7, v3.5, v3.6, v3.7, or v3.8
+* Python v3.6, v3.7, or v3.8
 * make
 * A proper C/C++ compiler toolchain, like GCC
 
@@ -235,9 +235,9 @@ Go into the repository:
 ```
 cd thingweb.node-wot
 ```
-Install root dependencies (locally installs tools such as [typescript](https://www.npmjs.com/package/typescript) and [lerna](https://www.npmjs.com/package/lerna)):
+Install root dependencies (locally installs tools such as [typescript](https://www.npmjs.com/package/typescript)):
 ```
-npm install 
+npm ci
 ```
 Use `tsc` to transcompile TS code to JS in dist directory for each package:
 *Note: This step automatically calls `npm run bootstrap`.*
@@ -273,11 +273,7 @@ sudo npm link wot-typescript-definitions
 ##### Optimization
 
 To reduce the size of the installation from about 800 MByte down to about 200 MByte, you can run the following commands (currently only tested on Linux):
-- yarn init
-- yarn add [packages]
-- npm run build
-- lerna init
-- lerna exec 'npm prune --production'
+```npm prune --production```
 
 #### Trouble shooting
 

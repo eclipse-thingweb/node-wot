@@ -41,7 +41,7 @@
     "test": "mocha --require ts-node/register test/opcua-client-test.ts"
   },
   "bugs": {
-    "url": "https://github.com/thingweb/node-wot/issues"
+     "url": "https://github.com/eclipse/thingweb.node-wot/issues"
   },
   "homepage": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-opcua#readme",
   "directories": {
