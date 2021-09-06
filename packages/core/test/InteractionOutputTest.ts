@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-expressions */
 /********************************************************************************
  * Copyright (c) 2018 - 2021 Contributors to the Eclipse Foundation
  *
@@ -15,20 +16,19 @@
 
 import { suite, test } from "@testdeck/mocha";
 import promised from "chai-as-promised";
-import { expect } from "chai";
-import {use} from 'chai';
-import {Readable} from 'stream';
+import { expect, use } from "chai";
+import { Readable } from "stream";
 import { InteractionOutput } from "../src/interaction-output";
 
-use(promised)
+use(promised);
 
 @suite("testing Interaction Output")
 class InteractionOutputTests {
     @test async "should read to a Buffer"() {
         const stream = Readable.from([1, 2, 3]);
-        const content = {body: stream ,type : ""};
+        const content = { body: stream, type: "" };
 
-        const out = new InteractionOutput(content,{});
+        const out = new InteractionOutput(content, {});
         const result = await out.arrayBuffer();
         expect(result).be.deep.equals(Buffer.from([1, 2, 3]));
     }
@@ -38,23 +38,22 @@ class InteractionOutputTests {
         const content = { body: stream, type: "" };
 
         const out = new InteractionOutput(content, {});
-        const result = []
+        const result = [];
         const reader = out.data.getReader();
         let read;
-        do{
+        do {
             read = await reader.read();
             !read.done && result.push(read.value);
-        }while(read.done !== true);
+        } while (read.done !== true);
 
-        expect(result).be.deep.equals([1,2,3]);
-        
+        expect(result).be.deep.equals([1, 2, 3]);
     }
 
     @test async "should return the value"() {
-        const stream = Readable.from(Buffer.from("true","utf-8"));
+        const stream = Readable.from(Buffer.from("true", "utf-8"));
         const content = { body: stream, type: "application/json" };
 
-        const out = new InteractionOutput(content, {},{type:"boolean"});
+        const out = new InteractionOutput(content, {}, { type: "boolean" });
         const result = await out.value<boolean>();
         expect(result).be.true;
     }
@@ -67,6 +66,7 @@ class InteractionOutputTests {
         const result = await out.arrayBuffer();
         expect(out.dataUsed).be.true;
     }
+
     @test async "should data be used after arrayBuffer"() {
         const stream = Readable.from(Buffer.from("true", "utf-8"));
         const content = { body: stream, type: "application/json" };
@@ -101,7 +101,7 @@ class InteractionOutputTests {
         const stream = Readable.from(Buffer.from("true", "utf-8"));
         const content = { body: stream, type: "application/json" };
 
-        const out = new InteractionOutput(content, {}, { type: { wrong: "schema"} });
+        const out = new InteractionOutput(content, {}, { type: { wrong: "schema" } });
         const result = out.value<number>();
         return expect(result).to.eventually.be.rejected;
     }

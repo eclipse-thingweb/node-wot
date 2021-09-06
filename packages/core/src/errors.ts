@@ -15,7 +15,7 @@ import { DataSchemaValue } from "wot-typescript-definitions";
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 export class NotReadableError extends Error {
-    constructor(message:string) {
+    constructor(message: string) {
         super(message);
 
         // Set the prototype explicitly.
@@ -25,7 +25,7 @@ export class NotReadableError extends Error {
 }
 
 export class NotSupportedError extends Error {
-    constructor(message:string) {
+    constructor(message: string) {
         super(message);
 
         // Set the prototype explicitly.
@@ -34,10 +34,9 @@ export class NotSupportedError extends Error {
     }
 }
 
-
 export class DataSchemaError extends Error {
     value: any;
-    constructor(message: string,value:DataSchemaValue) {
+    constructor(message: string, value: DataSchemaValue) {
         super(message);
         this.value = value;
         // Set the prototype explicitly.
