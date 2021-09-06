@@ -24,7 +24,7 @@ jobs:
       # npm workspaces requires npm v7 or higher
         run: npm i -g npm@7 --registry=https://registry.npmjs.org
       - name: Install
-        run: npm ci
+        run: npm install
       
       - name: Build
         run: npm run build
