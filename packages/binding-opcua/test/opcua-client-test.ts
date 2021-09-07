@@ -253,16 +253,21 @@ describe('OPCUA client test', function () {
 
         let times = 3;
         return new Promise(async function (resolve, reject) {
+            let interval = setInterval(function () {
+                server.forceValueChange();
+            }, 1000);
 
             let res = await client.subscribeResource(inputVector.form, async (data) => {
                 expect(data.body.value).to.greaterThan(0);
                 times--;
                 if (times === 0) {
+                    clearInterval(interval);
                     resolve();
                 }
             });
+            
         });
-    }).timeout(5000)
+    }).timeout(50000)
 
 
     it("should fail to subscribe to a resource because a wrong node", async function () {
