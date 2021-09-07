@@ -44,7 +44,7 @@
     "@node-wot/binding-mqtt": "0.8.0",
     "@node-wot/binding-websockets": "0.8.0",
     "@node-wot/core": "0.8.0",
-    "dotenv": "^8.2.0"
+    "dotenv": "^8.6.0"
   },
   "scripts": {
     "build": "tsc",
