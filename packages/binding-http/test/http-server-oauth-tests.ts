@@ -12,7 +12,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-import { suite, test, slow, timeout, skip, only, describe } from "mocha-typescript";
+import { suite, test, slow, timeout, skip, only } from "@testdeck/mocha";
 import { expect, should, assert } from "chai";
 import { HttpServer, OAuth2ServerConfig } from "../src/http";
 import { IntrospectionEndpoint, EndpointValidator } from "../src/oauth-token-validation";

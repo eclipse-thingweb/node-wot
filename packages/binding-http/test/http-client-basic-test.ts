@@ -14,7 +14,7 @@
  ********************************************************************************/
 
 var fs = require('fs')
-import { suite, test } from "mocha-typescript";
+import { suite, test } from "@testdeck/mocha";
 import * as express from 'express';
 import { HttpClient } from "../src/http";
 import * as https from 'https'
@@ -75,7 +75,7 @@ class HttpClientBasicTest {
     }
 
     static after() {
-        return promisify(HttpClientBasicTest.server.close)
+        return promisify(HttpClientBasicTest.server.close.bind(HttpClientBasicTest.server))()
     }
 
     @test async "should authorize client with basic"() {

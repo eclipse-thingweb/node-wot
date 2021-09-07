@@ -20,7 +20,7 @@
  * h0ru5: there is currently some problem with VSC failing to recognize experimentalDecorators option, it is present in both tsconfigs
  */
 
-import { suite, test, slow, timeout, skip, only } from "mocha-typescript";
+import { suite, test, slow, timeout, skip, only } from "@testdeck/mocha";
 import { expect, should, assert } from "chai";
 // should must be called to augment all variables
 should();
@@ -114,38 +114,6 @@ class WoTRuntimeTest {
 
         assert.doesNotThrow( () => { WoTRuntimeTest.servient.runScript(failNowScript); });
         assert.doesNotThrow( () => { WoTRuntimeTest.servient.runPrivilegedScript(failNowScript); });
-    }
-
-    @test "should catch asynchronous errors for runScript"(done:any) {
-        // Test asynchronous uncaught exceptions is tricky 
-        // so here we verify if the exit function is called
-        let called = false
-
-        this.mockupProcessExitWithFunction(() => {
-            if (!called) {
-                done()
-                called = true
-            }
-        });
-       
-        
-        let failThenScript = `setTimeout( () => { throw new Error("Asynchronous error in Servient sandbox"); }, 0);`;
-
-        assert.doesNotThrow( () => { WoTRuntimeTest.servient.runScript(failThenScript); });
-    }
-    @test "should catch asynchronous errors for runPrivilegedScript"(done:any) {
-        let called = false
-        
-        this.mockupProcessExitWithFunction(() => {
-            if(!called){
-                done()
-                called = true
-            }
-        });
-        
-        let failThenScript = `setTimeout( () => { throw new Error("Asynchronous error in Servient sandbox"); }, 0);`;
-
-       assert.doesNotThrow( () => { WoTRuntimeTest.servient.runPrivilegedScript(failThenScript); });
     }
 
     @test "should catch bad asynchronous errors for runScript"(done:any) {

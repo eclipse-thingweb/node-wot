@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { suite, test } from "mocha-typescript";
+import { suite, test } from "@testdeck/mocha";
 import promised from "chai-as-promised";
 import { expect } from "chai";
 import {use} from 'chai';

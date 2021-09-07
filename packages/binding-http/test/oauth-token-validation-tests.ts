@@ -1,4 +1,4 @@
-import { suite, test, slow, timeout } from 'mocha-typescript';
+import { suite, test, slow, timeout } from '@testdeck/mocha';
 import * as express from 'express';
 import { should } from "chai";
 import create, { IntrospectionEndpoint, Validator, EndpointValidator } from '../src/oauth-token-validation'
@@ -6,6 +6,7 @@ import * as http from "http";
 import * as https from "https";
 import * as fs from 'fs';
 import { assert } from 'console';
+import { promisify } from 'util';
 
 
 should()
@@ -27,6 +28,7 @@ describe('OAuth2.0 Validator tests', () => {
     });
     @suite class IntrospectProtocolTests {
         private validator: Validator;
+        static server: http.Server;
         static before() {
             console.debug = () => { }
             console.warn = () => { }
@@ -76,10 +78,12 @@ describe('OAuth2.0 Validator tests', () => {
                 }
             })
 
-            introspectEndpoint.listen(7777)
+            this.server = introspectEndpoint.listen(7777)
 
         }
-
+        static after () {
+            return promisify(this.server.close.bind(this.server))()
+        };
         before(){
             const config: IntrospectionEndpoint = {
                 name: "introspection_endpoint",
@@ -321,7 +325,7 @@ describe('OAuth2.0 Validator tests', () => {
             //test
             const valid = await this.validator.validate(req as http.IncomingMessage, ["1"], /.*/g)
             valid.should.be.true
-           
+            await promisify(server.close.bind(server))()
         }
 
 

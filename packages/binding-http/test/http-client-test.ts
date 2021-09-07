@@ -17,7 +17,7 @@
  * Protocol test suite to test protocol implementations
  */
 
-import { suite, test } from "mocha-typescript";
+import { suite, test } from "@testdeck/mocha";
 import { expect, should, use } from "chai";
 
 import * as http from "http";

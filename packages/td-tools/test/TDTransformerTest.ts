@@ -17,7 +17,7 @@
  * Basic test suite for TD transformer functions
  */
 
-import { suite, test, slow, timeout, skip, only } from "mocha-typescript";
+import { suite, test, slow, timeout, skip, only } from "@testdeck/mocha";
 import { expect } from "chai";
 
 import * as TDTransformer from "../src/td-transformer";

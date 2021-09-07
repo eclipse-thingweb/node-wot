@@ -17,7 +17,7 @@
  * Protocol test suite to test protocol implementations
  */
 
-import { suite, test, slow, timeout, skip, only } from "mocha-typescript";
+import { suite, test, slow, timeout, skip, only } from "@testdeck/mocha";
 import { expect, should, assert } from "chai";
 // should must be called to augment all variables
 should();
@@ -92,9 +92,9 @@ class CoapClientTest {
         let coapServer = new CoapServer(56834,"localhost"); 
         coapServer.start(null).then( () => {
             let coapClient = new CoapClient(coapServer);
-            coapClient.readResource({ href: "coap://localhost:56834/" }).then( (res) => {
-                done();
-            });
+            coapClient.readResource({ href: "coap://localhost:56834/" }).then(  (res) => {
+                return coapServer.stop();
+            }).then(() => { done();});
         });
     }
 }

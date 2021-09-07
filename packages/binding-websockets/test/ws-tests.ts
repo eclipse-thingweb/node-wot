@@ -17,7 +17,7 @@
  * Protocol test suite to test protocol implementations
  */
 
-import { suite, test, slow, timeout, skip, only } from "mocha-typescript";
+import { suite, test, slow, timeout, skip, only } from "@testdeck/mocha";
 import { expect, should, assert } from "chai";
 // should must be called to augment all variables
 should();
