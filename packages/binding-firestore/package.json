@@ -1,9 +1,9 @@
 {
-  "name": "@node-wot/binding-wotfirestore",
+  "name": "@node-wot/binding-firestore",
   "version": "0.7.8",
   "description": "Firestore binding for node-wot",
   "repository": "https://github.com/hidetak/thingweb.node-wot",
-  "main": "dist/wotfirestore.js",
+  "main": "dist/firestore.js",
   "scripts": {
     "build": "tsc",
     "rebuild": "tsc & npm rebuild --unsafe-perm --build-from-source",

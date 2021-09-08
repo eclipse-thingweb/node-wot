@@ -11,7 +11,7 @@ In addition, when you do an Expose thing in a Server program that uses this Bind
 This Thing Description can be accessed by the Client as follows.
 
 ```
-wotHelper.fetch("wotfirestore://sample-host/MyCounter").then((td) => {
+wotHelper.fetch("firestore://sample-host/MyCounter").then((td) => {
     // do something
 }
 ```
@@ -20,7 +20,7 @@ For more information on how to use Firestore, see `How to use Firestore`.
 
 ## Protocol specifier
 
-The protocol prefix handled by this binding is `wotfirestore://`.
+The protocol prefix handled by this binding is `firestore://`.
 
 ## Getting Started
 
@@ -58,7 +58,7 @@ To prepare for creating a nodejs app, execute `npm install`.
 After executing `npm init`, install the following modules.
 
 - `npm install @node-wot/core`
-- `npm install @node-wot/binding-wotfirestore`
+- `npm install @node-wot/binding-firestore`
 
 ### Creating configuration file
 
@@ -83,7 +83,7 @@ The information needed to create the configuration file can be found at [Firesto
 
 ### Client Example
 
-The client example tries to connect to `MyCounter` thing via Firestore and reads a property `count`. The ThingDescription is stored in Firebase which can be access by client as `wotfirestore://sample-host/MyCounter`.
+The client example tries to connect to `MyCounter` thing via Firestore and reads a property `count`. The ThingDescription is stored in Firebase which can be access by client as `firestore://sample-host/MyCounter`.
 The ThingDescription registered by `example-server.js`.
 
 `node example-client.js`
@@ -91,24 +91,24 @@ The ThingDescription registered by `example-server.js`.
 ```js
 // example-client.js
 const Servient = require('@node-wot/core').Servient
-const WoTFirestoreClientFactory =
-  require('@node-wot/binding-wotfirestore').WoTFirestoreClientFactory
+const FirestoreClientFactory =
+  require('@node-wot/binding-firestore').FirestoreClientFactory
 const Helpers = require('@node-wot/core').Helpers
-const WoTFirestoreCodec =
-  require('@node-wot/binding-wotfirestore').WoTFirestoreCodec
+const FirestoreCodec =
+  require('@node-wot/binding-firestore').FirestoreCodec
 
 const firestoreConfig = require('./firestore-config.json')
 
 let servient = new Servient()
-const clientFactory = new WoTFirestoreClientFactory(firestoreConfig)
+const clientFactory = new FirestoreClientFactory(firestoreConfig)
 servient.addClientFactory(clientFactory)
 
-const codec = new WoTFirestoreCodec()
+const codec = new FirestoreCodec()
 servient.addMediaType(codec)
 
 let wotHelper = new Helpers(servient)
 wotHelper
-  .fetch('wotfirestore://sample-host/MyCounter')
+  .fetch('firestore://sample-host/MyCounter')
   .then(async (td) => {
     try {
       servient.start().then((WoT) => {
@@ -137,21 +137,21 @@ The server example produces a thing that allows for setting a property `count`. 
 ```js
 // example-server.js
 const Servient = require('@node-wot/core').Servient
-const WoTFirestoreServer =
-  require('@node-wot/binding-wotfirestore').WoTFirestoreServer
-const WoTFirestoreCodec =
-  require('@node-wot/binding-wotfirestore').WoTFirestoreCodec
+const FirestoreServer =
+  require('@node-wot/binding-firestore').FirestoreServer
+const FirestoreCodec =
+  require('@node-wot/binding-firestore').FirestoreCodec
 
 const firestoreConfig = require('./firestore-config.json')
 
 // create server
-const server = new WoTFirestoreServer(firestoreConfig)
+const server = new FirestoreServer(firestoreConfig)
 
 // create Servient add Firebase binding
 let servient = new Servient()
 servient.addServer(server)
 
-const codec = new WoTFirestoreCodec()
+const codec = new FirestoreCodec()
 servient.addMediaType(codec)
 
 servient.start().then((WoT) => {
