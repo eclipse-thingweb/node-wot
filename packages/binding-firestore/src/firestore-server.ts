@@ -5,8 +5,8 @@ import * as os from 'os'
 
 import * as TD from '@node-wot/td-tools'
 //import Wot from '@node-wot/browser-bundle'
-import { WoTFirestoreConfig, WoTFirestoreForm } from './wotfirestore'
-import WoTFirestoreCodec from './codecs/wotfirestore-codec'
+import { FirestoreConfig, FirestoreForm } from './firestore'
+import FirestoreCodec from './codecs/firestore-codec'
 import {
   ProtocolServer,
   ExposedThing,
@@ -27,10 +27,10 @@ import {
   readMetaDataFromFirestore,
   writeMetaDataToFirestore,
   removeMetaDataFromFirestore
-} from './wotfirestore-handler'
+} from './firestore-handler'
 
-export default class WoTFirestoreServer implements ProtocolServer {
-  public readonly scheme: 'wotfirestore'
+export default class FirestoreServer implements ProtocolServer {
+  public readonly scheme: 'firestore'
   private readonly things: Map<string, ExposedThing> = new Map<
     string,
     ExposedThing
@@ -38,8 +38,8 @@ export default class WoTFirestoreServer implements ProtocolServer {
   private servient: Servient = null
   private contentSerdes: ContentSerdes = ContentSerdes.get()
 
-  private WOTFIRESTORE_HREF_BASE = 'wotfirestore://'
-  private DEFAULT_CONTENT_TYPE = 'application/wotfirestore'
+  private FIRESTORE_HREF_BASE = 'firestore://'
+  private DEFAULT_CONTENT_TYPE = 'application/firestore'
 
   private firestore = null
   private firestoreObservers = {}
@@ -51,11 +51,11 @@ export default class WoTFirestoreServer implements ProtocolServer {
   // storing topics for destroy thing
   private topics = []
 
-  constructor(config: WoTFirestoreConfig = {}) {
-    this.contentSerdes.addCodec(new WoTFirestoreCodec(), true)
+  constructor(config: FirestoreConfig = {}) {
+    this.contentSerdes.addCodec(new FirestoreCodec(), true)
     if (typeof config !== 'object') {
       throw new Error(
-        `WoTFirestoreServer requires config object (got ${typeof config})`
+        `FirestoreServer requires config object (got ${typeof config})`
       )
     }
     this.fbConfig = config
@@ -103,21 +103,21 @@ export default class WoTFirestoreServer implements ProtocolServer {
     }
 
     console.info(
-      `[info] WoTFirestoreServer exposes '${thing.title}' as unique '/${name}/*'`
+      `[info] FirestoreServer exposes '${thing.title}' as unique '/${name}/*'`
     )
     this.things.set(name, thing)
 
     try {
-      WoTFirestoreServer.metaData.hostName = this.getHostName()
-      if (!WoTFirestoreServer.metaData.things.includes(name)) {
-        WoTFirestoreServer.metaData.things.push(name)
-        console.debug('[debug] write metaData:', WoTFirestoreServer.metaData)
+      FirestoreServer.metaData.hostName = this.getHostName()
+      if (!FirestoreServer.metaData.things.includes(name)) {
+        FirestoreServer.metaData.things.push(name)
+        console.debug('[debug] write metaData:', FirestoreServer.metaData)
       }
     } finally {
       await writeMetaDataToFirestore(
         this.firestore,
         this.getHostName(),
-        WoTFirestoreServer.metaData
+        FirestoreServer.metaData
       )
     }
 
@@ -162,7 +162,7 @@ export default class WoTFirestoreServer implements ProtocolServer {
           )
         } catch (err) {
           console.warn(
-            `[warn] WoTFirestoreServer cannot process data for Property '${propertyName}': ${err.message}`
+            `[warn] FirestoreServer cannot process data for Property '${propertyName}': ${err.message}`
           )
           // stop to handle writing property
           thing.setPropertyWriteHandler(propertyName, async (data) => {})
@@ -196,7 +196,7 @@ export default class WoTFirestoreServer implements ProtocolServer {
         name = 'no_name'
       }
 
-      let href = this.WOTFIRESTORE_HREF_BASE + topic
+      let href = this.FIRESTORE_HREF_BASE + topic
       let form = new TD.Form(href, this.DEFAULT_CONTENT_TYPE)
       if (thing.properties[propertyName].readOnly) {
         form.op = ['readproperty']
@@ -207,11 +207,11 @@ export default class WoTFirestoreServer implements ProtocolServer {
       }
       thing.properties[propertyName].forms.push(form)
       console.debug(
-        `[debug] WoTFirestoreServer at ${this.WOTFIRESTORE_HREF_BASE} assigns '${href}' to property '${propertyName}'`
+        `[debug] FirestoreServer at ${this.FIRESTORE_HREF_BASE} assigns '${href}' to property '${propertyName}'`
       )
 
       if (thing.properties[propertyName].observable) {
-        let href = this.WOTFIRESTORE_HREF_BASE + topic
+        let href = this.FIRESTORE_HREF_BASE + topic
         let form = new TD.Form(href, this.DEFAULT_CONTENT_TYPE)
         form.op = ['observeproperty', 'unobserveproperty']
         thing.properties[propertyName].forms.push(form)
@@ -233,7 +233,7 @@ export default class WoTFirestoreServer implements ProtocolServer {
             return
           }
           console.debug(
-            `[debug] WoTFirestoreServer at ${this.getHostName()} received message for '${propertyReadReqTopic}'`
+            `[debug] FirestoreServer at ${this.getHostName()} received message for '${propertyReadReqTopic}'`
           )
 
           const value = await thing.readProperty(propertyName)
@@ -258,7 +258,7 @@ export default class WoTFirestoreServer implements ProtocolServer {
               return
             }
             console.debug(
-              `[debug] WoTFirestoreServer at ${this.getHostName()} received message for '${topic}'`
+              `[debug] FirestoreServer at ${this.getHostName()} received message for '${topic}'`
             )
 
             content.type = this.DEFAULT_CONTENT_TYPE
@@ -309,7 +309,7 @@ export default class WoTFirestoreServer implements ProtocolServer {
             return
           }
           console.debug(
-            `[debug] WoTFirestoreServer at ${this.getHostName()} received message for '${topic}'`
+            `[debug] FirestoreServer at ${this.getHostName()} received message for '${topic}'`
           )
           if (thing) {
             let action = thing.actions[actionName]
@@ -323,14 +323,14 @@ export default class WoTFirestoreServer implements ProtocolServer {
                 .invokeAction(actionName, params)
                 .catch((err) => {
                   console.error(
-                    `[error] WoTFirestoreServer at ${this.getHostName()} got error on invoking '${actionName}': ${
+                    `[error] FirestoreServer at ${this.getHostName()} got error on invoking '${actionName}': ${
                       err.message
                     }`
                   )
                 })
               // Firestore cannot return results
               console.warn(
-                `[warn] WoTFirestoreServer at ${this.getHostName()} cannot return output '${actionName}'`
+                `[warn] FirestoreServer at ${this.getHostName()} cannot return output '${actionName}'`
               )
               // TODO: How do we find the type of output that is the result of Action?
               if (!output) {
@@ -353,17 +353,17 @@ export default class WoTFirestoreServer implements ProtocolServer {
             }
           } // Thing exists?
           console.warn(
-            `[warn] WoTFirestoreServer at ${this.getHostName()} received message for invalid topic '${topic}'`
+            `[warn] FirestoreServer at ${this.getHostName()} received message for invalid topic '${topic}'`
           )
         }
       )
 
-      let href = this.WOTFIRESTORE_HREF_BASE + topic
+      let href = this.FIRESTORE_HREF_BASE + topic
       let form = new TD.Form(href, this.DEFAULT_CONTENT_TYPE)
       form.op = ['invokeaction']
       thing.actions[actionName].forms.push(form)
       console.debug(
-        `[debug] WoTFirestoreServer at ${this.WOTFIRESTORE_HREF_BASE} assigns '${href}' to Action '${actionName}'`
+        `[debug] FirestoreServer at ${this.FIRESTORE_HREF_BASE} assigns '${href}' to Action '${actionName}'`
       )
     }
 
@@ -393,7 +393,7 @@ export default class WoTFirestoreServer implements ProtocolServer {
             )
           } catch (err) {
             console.warn(
-              `[warn] WoTFirestoreServer on ${this.getHostName()} cannot process data for Event '${eventName}: ${
+              `[warn] FirestoreServer on ${this.getHostName()} cannot process data for Event '${eventName}: ${
                 err.message
               }'`
             )
@@ -402,7 +402,7 @@ export default class WoTFirestoreServer implements ProtocolServer {
           }
           // send event data
           console.debug(
-            `[debug] WoTFirestoreServer at ${this.getHostName()} publishing to Event topic '${eventName}' `
+            `[debug] FirestoreServer at ${this.getHostName()} publishing to Event topic '${eventName}' `
           )
           const value = await writeDataToFirestore(
             this.firestore,
@@ -414,12 +414,12 @@ export default class WoTFirestoreServer implements ProtocolServer {
         }
       )
 
-      let href = this.WOTFIRESTORE_HREF_BASE + topic
+      let href = this.FIRESTORE_HREF_BASE + topic
       let form = new TD.Form(href, ContentSerdes.DEFAULT)
       form.op = ['subscribeevent', 'unsubscribeevent']
       event.forms.push(form)
       console.debug(
-        `[debug] WoTFirestoreServer at ${this.getHostName()} assigns '${href}' to Event '${eventName}'`
+        `[debug] FirestoreServer at ${this.getHostName()} assigns '${href}' to Event '${eventName}'`
       )
     }
 
@@ -443,7 +443,7 @@ export default class WoTFirestoreServer implements ProtocolServer {
   }
 
   public destroy(thingId: string): Promise<boolean> {
-    console.debug('[binding-wotfirestore]', `destroying thingId '${thingId}'`)
+    console.debug('[binding-firestore]', `destroying thingId '${thingId}'`)
     return new Promise<boolean>(async (resolve, reject) => {
       //TODO Firestoreに登録した、このThingに関わるデータを削除？
       await removeMetaDataFromFirestore(this.firestore, this.getHostName())
