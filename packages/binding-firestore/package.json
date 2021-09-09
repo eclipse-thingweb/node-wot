@@ -44,7 +44,7 @@
   "bugs": {
     "url": "https://github.com/eclipse/thingweb.node-wot/issues"
   },
-  "homepage": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-wotfirestore#readme",
+  "homepage": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-firestore#readme",
   "directories": {
     "test": "test"
   },
