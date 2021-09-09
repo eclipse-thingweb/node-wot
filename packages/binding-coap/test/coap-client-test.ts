@@ -111,6 +111,7 @@ class CoapClientTest {
 
         client.subscribeResource(form, value => {})
             .then((subscription) => {
+                subscription.unsubscribe();
                 done();
             });
     }

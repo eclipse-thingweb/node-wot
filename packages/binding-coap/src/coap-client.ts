@@ -147,8 +147,6 @@ export default class CoapClient implements ProtocolClient {
       console.debug("[binding-coap]",`CoapClient sending ${req.statusCode} to ${form.href}`);
 
       req.on("response", (res: any) => {
-        resolve(new Subscription( () => {} ));
-        
         console.debug("[binding-coap]",`CoapClient received ${res.code} from ${form.href}`);
         console.debug("[binding-coap]",`CoapClient received Content-Format: ${res.headers["Content-Format"]}`);
 
@@ -159,6 +157,11 @@ export default class CoapClient implements ProtocolClient {
         res.on('data', (data: any) => {
           next({ type: contentType, body: Readable.from(res.payload) });
         });
+
+        resolve(new Subscription( () => { 
+            res.close();
+            if(complete) complete();
+         }));
       });
 
       req.on("error", (err: any) => {error(err); });
