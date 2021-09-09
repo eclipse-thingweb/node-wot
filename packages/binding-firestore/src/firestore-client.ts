@@ -2,7 +2,7 @@
  * Firestore client
  */
 import { ProtocolClient, Content } from '@node-wot/core'
-import { WoTFirestoreForm, WoTFirestoreConfig } from './wotfirestore'
+import { FirestoreForm, FirestoreConfig } from './firestore'
 import { v4 as uuidv4 } from 'uuid'
 
 import 'firebase/auth'
@@ -13,28 +13,28 @@ import {
   readDataFromFirestore,
   subscribeToFirestore,
   unsubscribeToFirestore
-} from './wotfirestore-handler'
+} from './firestore-handler'
 import * as TD from '@node-wot/td-tools'
 
-export default class WoTFirestoreClient implements ProtocolClient {
+export default class FirestoreClient implements ProtocolClient {
   private firestore = null
   private firestoreObservers = {}
   private fbConfig = null
 
-  constructor(config: WoTFirestoreConfig = null) {
+  constructor(config: FirestoreConfig = null) {
     if (typeof config !== 'object') {
       throw new Error(
-        `WoTFirestore requires config object (got ${typeof config})`
+        `Firestore requires config object (got ${typeof config})`
       )
     }
     this.fbConfig = config
   }
 
   public toString(): string {
-    return `[WoTFirestoreClient]`
+    return `[FirestoreClient]`
   }
 
-  private makePointerInfo(form: WoTFirestoreForm): {
+  private makePointerInfo(form: FirestoreForm): {
     hostName: string
     name: string
     topic: string
@@ -61,7 +61,7 @@ export default class WoTFirestoreClient implements ProtocolClient {
     return ret
   }
 
-  public async readResource(form: WoTFirestoreForm): Promise<Content> {
+  public async readResource(form: FirestoreForm): Promise<Content> {
     const firestore = await initFirestore(this.fbConfig, this.firestore)
     this.firestore = firestore
     const pointerInfo = this.makePointerInfo(form)
@@ -74,7 +74,7 @@ export default class WoTFirestoreClient implements ProtocolClient {
   }
 
   public async writeResource(
-    form: WoTFirestoreForm,
+    form: FirestoreForm,
     content: Content
   ): Promise<any> {
     const pointerInfo = this.makePointerInfo(form)
@@ -94,7 +94,7 @@ export default class WoTFirestoreClient implements ProtocolClient {
   }
 
   public async invokeResource(
-    form: WoTFirestoreForm,
+    form: FirestoreForm,
     content?: Content
   ): Promise<Content> {
     const firestore = await initFirestore(this.fbConfig, this.firestore)
@@ -156,7 +156,7 @@ export default class WoTFirestoreClient implements ProtocolClient {
     return retContent
   }
 
-  public async unlinkResource(form: WoTFirestoreForm): Promise<any> {
+  public async unlinkResource(form: FirestoreForm): Promise<any> {
     const firestore = await initFirestore(this.fbConfig, this.firestore)
     this.firestore = firestore
     const pointerInfo = this.makePointerInfo(form)
@@ -164,7 +164,7 @@ export default class WoTFirestoreClient implements ProtocolClient {
   }
 
   public subscribeResource(
-    form: WoTFirestoreForm,
+    form: FirestoreForm,
     next: (value: any) => void,
     error?: (error: any) => void,
     complete?: () => void

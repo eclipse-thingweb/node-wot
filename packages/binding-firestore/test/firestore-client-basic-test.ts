@@ -3,10 +3,10 @@ import { suite, test } from '@testdeck/mocha'
 import * as chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import { promisify } from 'util'
-import WoTFirestoreClient from '../src/wotfirestore-client'
+import FirestoreClient from '../src/firestore-client'
 import Servient, { Helpers } from '@node-wot/core'
-import WoTFirestoreClientFactory from '../src/wotfirestore-client-factory'
-import WoTFirestoreCodec from '../src/codecs/wotfirestore-codec'
+import FirestoreClientFactory from '../src/firestore-client-factory'
+import FirestoreCodec from '../src/codecs/firestore-codec'
 import firebase from 'firebase'
 import { launchTestThing } from './test-thing'
 
@@ -16,7 +16,7 @@ const assert = chai.assert
 
 //process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8088'
 
-const wotfirestoreConfig = require('./wotfirestore-config.json')
+const firestoreConfig = require('./firestore-config.json')
 
 const wait = async (msec) => {
   await new Promise((resolve, reject) => {
@@ -26,9 +26,9 @@ const wait = async (msec) => {
   })
 }
 
-@suite('WoTFirestore client basic test implementation')
-class WoTFirestoreClientBasicTest {
-  private client: WoTFirestoreClient
+@suite('Firestore client basic test implementation')
+class FirestoreClientBasicTest {
+  private client: FirestoreClient
   private thing
   private static serverThing
 
@@ -39,7 +39,7 @@ class WoTFirestoreClientBasicTest {
 
   async before() {
     if (!firebase) {
-      firebase.initializeApp(wotfirestoreConfig.firebaseConfig)
+      firebase.initializeApp(firestoreConfig.firebaseConfig)
       const isEmulating = true
       if (isEmulating) {
         firebase.auth().useEmulator('http://localhost:9099')
@@ -52,15 +52,15 @@ class WoTFirestoreClientBasicTest {
     }
 
     let servient = new Servient()
-    const clientFactory = new WoTFirestoreClientFactory(wotfirestoreConfig)
+    const clientFactory = new FirestoreClientFactory(firestoreConfig)
     servient.addClientFactory(clientFactory)
 
-    const codec = new WoTFirestoreCodec()
+    const codec = new FirestoreCodec()
     servient.addMediaType(codec)
 
     let wotHelper = new Helpers(servient)
     await wotHelper
-      .fetch(`wotfirestore://${wotfirestoreConfig.hostName}/test-thing`)
+      .fetch(`firestore://${firestoreConfig.hostName}/test-thing`)
       .then(async (td) => {
         try {
           servient.start().then((WoT) => {
@@ -235,14 +235,14 @@ class WoTFirestoreClientBasicTest {
     await wait(500)
     assert.equal(errorMes, null)
   }
-
+  
   @test.skip async '[server] property read / write for integer'() {
-    await WoTFirestoreClientBasicTest.serverThing.writeProperty(
+    await FirestoreClientBasicTest.serverThing.writeProperty(
       'integerProperty',
       256
     )
     await wait(500)
-    const int = await WoTFirestoreClientBasicTest.serverThing.readProperty(
+    const int = await FirestoreClientBasicTest.serverThing.readProperty(
       'integerProperty'
     )
     assert.equal(int, 256)

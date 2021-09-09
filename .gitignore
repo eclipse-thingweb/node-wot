@@ -58,8 +58,8 @@ packages/*
 !packages/binding-opcua
 !packages/binding-netconf
 !packages/binding-modbus
-!packages/binding-wotfirestore
-!packages/binding-wotfirestore-browser-bundle
+!packages/binding-firestore
+!packages/binding-firestore-browser-bundle
 !packages/binding-mbus
 !packages/cli
 !packages/browser-bundle
