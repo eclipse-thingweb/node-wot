@@ -9,9 +9,9 @@ try {
   textDecoder = new TextDecoder('utf-8')
 }
 
-export default class WoTFirestoreCodec {
+export default class FirestoreCodec {
   getMediaType(): string {
-    return 'application/wotfirestore'
+    return 'application/firestore'
   }
 
   bytesToValue(
