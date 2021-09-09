@@ -2,7 +2,10 @@
   "name": "@node-wot/binding-firestore",
   "version": "0.7.8",
   "description": "Firestore binding for node-wot",
-  "repository": "https://github.com/hidetak/thingweb.node-wot",
+  "repository": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-firestore",
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "dist/firestore.js",
   "scripts": {
     "build": "tsc",
