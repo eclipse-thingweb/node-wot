@@ -2,7 +2,10 @@
   "name": "@node-wot/binding-firestore-browser-bundle",
   "version": "0.7.8",
   "description": "A binding-firestore bundle that can run in a web browser",
-  "repository": "https://github.com/hidetak/thingweb.node-wot",
+  "repository": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-firestore",
+  "publishConfig": {
+    "access": "public"
+  },
   "author": "hidetak",
   "license": "EPL-2.0",
   "publishConfig": {
