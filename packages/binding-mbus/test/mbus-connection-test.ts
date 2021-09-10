@@ -1,14 +1,14 @@
 import { should } from "chai";
 import * as chai from "chai";
 import { MBusForm } from "../src/mbus";
-import chaiAsPromised from "chai-as-promised";
+import * as chaiAsPromised from "chai-as-promised";
 import { MBusConnection, PropertyOperation } from "../src/mbus-connection";
 
 // should must be called to augment all variables
 should();
 chai.use(chaiAsPromised);
 
-describe.skip("MBus connection", () => {
+describe("MBus connection", () => {
     before(() => {
         /* nothing */
     });
@@ -50,7 +50,7 @@ describe.skip("MBus connection", () => {
             const op = new PropertyOperation(form);
             connection.enqueue(op);
 
-            await op.execute().should.eventually.be.rejected;
+            await connection.execute(op).should.eventually.be.rejected;
             connection.close();
         }).timeout(10000);
 
@@ -68,7 +68,7 @@ describe.skip("MBus connection", () => {
             const op = new PropertyOperation(form);
             connection.enqueue(op);
 
-            await op.execute().should.eventually.be.rejected;
+            await connection.execute(op).should.eventually.be.rejected;
 
             connection.close();
         }).timeout(10000);
