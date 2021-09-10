@@ -1,16 +1,16 @@
 // test-thing.ts
 import Servient from '@node-wot/core'
-import WoTFirestoreServer from '../src/wotfirestore-server'
-import WoTFirestoreCodec from '../src/codecs/wotfirestore-codec'
+import FirestoreServer from '../src/firestore-server'
+import FirestoreCodec from '../src/codecs/firestore-codec'
 const firebase = require('firebase')
 
-const wotfirestoreConfig = require('./wotfirestore-config.json')
+const firestoreConfig = require('./firestore-config.json')
 
 export const launchTestThing = async () => {
   // setup for emulator
   try {
     //process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8088'
-    firebase.initializeApp(wotfirestoreConfig.firebaseConfig)
+    firebase.initializeApp(firestoreConfig.firebaseConfig)
     const isEmulating = true
     if (isEmulating) {
       firebase.auth().useEmulator('http://localhost:9099')
@@ -24,8 +24,8 @@ export const launchTestThing = async () => {
         await firebase
           .auth()
           .createUserWithEmailAndPassword(
-            wotfirestoreConfig.user.email,
-            wotfirestoreConfig.user.password
+            firestoreConfig.user.email,
+            firestoreConfig.user.password
           )
       } catch (e) {
         // is not error
@@ -33,13 +33,13 @@ export const launchTestThing = async () => {
       }
     }
     // create server
-    const server = new WoTFirestoreServer(wotfirestoreConfig)
+    const server = new FirestoreServer(firestoreConfig)
 
     // create Servient add Firebase binding
     let servient = new Servient()
     servient.addServer(server)
 
-    const codec = new WoTFirestoreCodec()
+    const codec = new FirestoreCodec()
     servient.addMediaType(codec)
 
     const WoT = await servient.start()

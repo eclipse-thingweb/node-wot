@@ -19,7 +19,7 @@
   },
   "workspaces": [ "./packages/td-tools",
     "./packages/core",
-    "./packages/binding-!(wotfirestore-browser-bundle|mbus|wotfirestore)",
+    "./packages/binding-!(firestore-browser-bundle|mbus|firestore)",
     "./packages/cli",
     "./packages/examples"
   ]
