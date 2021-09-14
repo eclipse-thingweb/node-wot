@@ -1,15 +1,15 @@
 /********************************************************************************
  * Copyright (c) 2018 - 2021 Contributors to the Eclipse Foundation
- * 
+ *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
- * 
+ *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0, or the W3C Software Notice and
  * Document License (2015-05-13) which is available at
  * https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document.
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
@@ -51,7 +51,7 @@ export default class HttpServer implements ProtocolServer {
   private readonly address: string = undefined;
   private readonly baseUri: string = undefined;
   private readonly httpSecurityScheme: string = "NoSec"; // HTTP header compatible string
-  private readonly validOAuthClients: RegExp = /.*/g; 
+  private readonly validOAuthClients: RegExp = /.*/g;
   private readonly server: http.Server | https.Server = null;
   private readonly things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
   private servient: Servient = null;
@@ -195,7 +195,7 @@ export default class HttpServer implements ProtocolServer {
       return encodeURIComponent(interactionName);
     }
   }
-  
+
   public expose(thing: ExposedThing, tdTemplate?: WoT.ExposedThingInit): Promise<void> {
 
     let slugify = require('slugify');
@@ -233,7 +233,7 @@ export default class HttpServer implements ProtocolServer {
       }
     }
   }
-  
+
   public destroy(thingId: string): Promise<boolean> {
     console.debug("[binding-http]", `HttpServer on port ${this.getPort()} destroying thingId '${thingId}'`);
     return new Promise<boolean>((resolve, reject) => {
@@ -356,20 +356,22 @@ export default class HttpServer implements ProtocolServer {
     switch (this.httpSecurityScheme) {
       case "NoSec":
         return true;
-      case "Basic":
+      case "Basic":{
         let basic = bauth(req);
+        const basicCreds = creds as { username: string, password: string };
         return (creds !== undefined) &&
                (basic !== undefined) &&
-               (basic.name === creds.username && basic.pass === creds.password);
+               (basic.name === basicCreds.username && basic.pass === basicCreds.password);
+      }
       case "Digest":
         return false;
       case "OAuth":
         const oAuthScheme = thing.securityDefinitions[thing.security[0] as string] as OAuth2SecurityScheme
-        
+
         //TODO: Support security schemes defined at affordance level
         const scopes = oAuthScheme.scopes ?? []
         let valid = false
-        
+
         try {
           valid = await this.oAuthValidator.validate(req, scopes, this.validOAuthClients);
         } catch (error) {
@@ -380,13 +382,15 @@ export default class HttpServer implements ProtocolServer {
         }
 
         return valid
-      case "Bearer":
+      case "Bearer":{
         if (req.headers["authorization"]===undefined) return false;
         // TODO proper token evaluation
         let auth = req.headers["authorization"].split(" ");
+        const bearerCredentials = creds as { token: string };
         return (auth[0]==="Bearer") &&
                (creds !== undefined) &&
-               (auth[1] === creds.token);
+              (auth[1] === bearerCredentials.token);
+      }
       default:
         return false;
     }
@@ -428,7 +432,7 @@ export default class HttpServer implements ProtocolServer {
       return params;
     }
 
-    var queryparams = url.split('?')[1]; 
+    var queryparams = url.split('?')[1];
     if (queryparams == null) {
       return params;
     }
@@ -454,7 +458,7 @@ export default class HttpServer implements ProtocolServer {
   }
 
   private async handleRequest(req: http.IncomingMessage, res: http.ServerResponse) {
-    
+
     let requestUri = url.parse(req.url);
 
     console.debug("[binding-http]",`HttpServer on port ${this.getPort()} received '${req.method} ${requestUri.pathname}' from ${Helpers.toUriLiteral(req.socket.remoteAddress)}:${req.socket.remotePort}`);
@@ -509,7 +513,7 @@ export default class HttpServer implements ProtocolServer {
       res.end("decodeURI error for " + requestUri.pathname);
       return;
     }
-    
+
 
     if (segments[1] === "") {
       // no path -> list all Things
@@ -555,7 +559,7 @@ export default class HttpServer implements ProtocolServer {
                 for(let lang in thing.titles) {
                   supportedLanguagesArray.push(lang);
                 }
-  
+
                 // the loose option allows partial matching on supported languages (e.g., returns "de" for "de-CH")
                 let prefLang = alparser.pick(supportedLanguagesArray, req.headers["accept-language"], { loose: true });
 
@@ -583,7 +587,7 @@ export default class HttpServer implements ProtocolServer {
             res.end();
             return;
           }
-          
+
           if (segments[2] === this.ALL_DIR) {
             if(this.ALL_PROPERTIES == segments[3]) {
               if (req.method === "GET") {
@@ -615,7 +619,7 @@ export default class HttpServer implements ProtocolServer {
               if(!this.isEmpty(uriVariables)) {
                 options = {uriVariables: uriVariables};
               }
-               
+
               if (req.method === "GET") {
 
                 // check if this an observable request (longpoll)
@@ -722,7 +726,7 @@ export default class HttpServer implements ProtocolServer {
                     res.end("Invalid Input Data");
                     return;
                   }
-                  
+
                   let options : WoT.InteractionOptions;
                   let uriVariables : {[k: string]: any} = this.parseUrlParameters(req.url, action.uriVariables);
                   if(!this.isEmpty(uriVariables)) {
@@ -764,14 +768,14 @@ export default class HttpServer implements ProtocolServer {
                 // FIXME must decide on Content-Type here, not on next()
                 res.setHeader("Content-Type", ContentSerdes.DEFAULT);
                 res.writeHead(200);
-                
+
                 let options : WoT.InteractionOptions;
                 let uriVariables : {[k: string]: any} = this.parseUrlParameters(req.url, event.uriVariables);
                 if(!this.isEmpty(uriVariables)) {
                   options = {uriVariables: uriVariables};
                 }
 
-                thing.subscribeEvent(segments[3], 
+                thing.subscribeEvent(segments[3],
                 // let subscription = event.subscribe(
                   (data) => {
                     let content;

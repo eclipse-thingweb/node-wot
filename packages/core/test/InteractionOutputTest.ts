@@ -58,21 +58,21 @@ class InteractionOutputTests {
         expect(result).be.true;
     }
 
-    @test async "should data be used after value"() {
-        const stream = Readable.from(Buffer.from("true", "utf-8"));
-        const content = { body: stream, type: "application/json" };
-
-        const out = new InteractionOutput(content, {}, { type: "boolean" });
-        const result = await out.arrayBuffer();
-        expect(out.dataUsed).be.true;
-    }
-
     @test async "should data be used after arrayBuffer"() {
         const stream = Readable.from(Buffer.from("true", "utf-8"));
         const content = { body: stream, type: "application/json" };
 
         const out = new InteractionOutput(content, {}, { type: "boolean" });
-        const result = await out.value<boolean>();
+        await out.arrayBuffer();
+        expect(out.dataUsed).be.true;
+    }
+
+    @test async "should data be used after value"() {
+        const stream = Readable.from(Buffer.from("true", "utf-8"));
+        const content = { body: stream, type: "application/json" };
+
+        const out = new InteractionOutput(content, {}, { type: "boolean" });
+        await out.value<boolean>();
         expect(out.dataUsed).be.true;
     }
 

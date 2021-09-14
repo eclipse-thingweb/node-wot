@@ -117,7 +117,7 @@ class WoTRuntimeTest {
         });
     }
 
-    @test "should catch bad asynchronous errors for runScript"(done: any) {
+    @test "should catch bad asynchronous errors for runScript"(done: Mocha.Done) {
         // Mocha does not like string errors: https://github.com/trufflesuite/ganache-cli/issues/658
         // so here I am removing its listeners for uncaughtException.
         // WARNING:  Remove this line as soon the issue is resolved.
@@ -139,7 +139,7 @@ class WoTRuntimeTest {
         });
     }
 
-    @test "should catch bad asynchronous errors  for runPrivilegedScript"(done: any) {
+    @test "should catch bad asynchronous errors  for runPrivilegedScript"(done: Mocha.Done) {
         // Mocha does not like string errors: https://github.com/trufflesuite/ganache-cli/issues/658
         // so here I am removing its listeners for uncaughtException.
         // WARNING:  Remove this line as soon the issue is resolved.
@@ -173,7 +173,7 @@ class WoTRuntimeTest {
         return listeners;
     }
 
-    private restoreUncaughtListeners(listeners: Array<(...args: any) => void>) {
+    private restoreUncaughtListeners(listeners: Array<(...args: unknown[]) => void>) {
         listeners.forEach((element) => {
             process.on("uncaughtException", element);
         });

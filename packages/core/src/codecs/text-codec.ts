@@ -14,7 +14,7 @@
  ********************************************************************************/
 
 import { ContentCodec } from "../content-serdes";
-import { DataSchema } from "wot-typescript-definitions";
+import { DataSchema, DataSchemaValue } from "wot-typescript-definitions";
 
 export default class TextCodec implements ContentCodec {
     private subMediaType: string;
@@ -31,7 +31,7 @@ export default class TextCodec implements ContentCodec {
         return this.subMediaType;
     }
 
-    bytesToValue(bytes: Buffer, schema: DataSchema, parameters: { [key: string]: string }): any {
+    bytesToValue(bytes: Buffer, schema: DataSchema, parameters: { [key: string]: string }): DataSchemaValue {
         // console.debug(`TextCodec parsing '${bytes.toString()}'`);
 
         const parsed = bytes.toString(parameters.charset);
@@ -41,11 +41,11 @@ export default class TextCodec implements ContentCodec {
         return parsed;
     }
 
-    valueToBytes(value: any, schema: DataSchema, parameters?: { [key: string]: string }): Buffer {
+    valueToBytes(value: unknown, schema: DataSchema, parameters?: { [key: string]: string }): Buffer {
         // console.debug(`TextCodec serializing '${value}'`);
         let body = "";
         if (value !== undefined) {
-            body = value;
+            body = value.toString();
         }
 
         // type BufferEncoding = "ascii" | "utf8" | "utf-8" | "utf16le" | "ucs2" | "ucs-2" | "base64" | "latin1" | "binary" | "hex";

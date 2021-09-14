@@ -14,7 +14,7 @@
  ********************************************************************************/
 
 import { ContentSerdes, ContentCodec } from "../content-serdes";
-import { DataSchema } from "wot-typescript-definitions";
+import { DataSchema, DataSchemaValue } from "wot-typescript-definitions";
 
 /** default implementation offering JSON de-/serialisation */
 export default class JsonCodec implements ContentCodec {
@@ -32,10 +32,10 @@ export default class JsonCodec implements ContentCodec {
         return this.subMediaType;
     }
 
-    bytesToValue(bytes: Buffer, schema: DataSchema, parameters: { [key: string]: string }): any {
+    bytesToValue(bytes: Buffer, schema: DataSchema, parameters: { [key: string]: string }): DataSchemaValue {
         // console.debug(`JsonCodec parsing '${bytes.toString()}'`);
 
-        let parsed: any;
+        let parsed;
         try {
             parsed = JSON.parse(bytes.toString());
         } catch (err) {
@@ -63,7 +63,7 @@ export default class JsonCodec implements ContentCodec {
         return parsed;
     }
 
-    valueToBytes(value: any, schema: DataSchema, parameters?: { [key: string]: string }): Buffer {
+    valueToBytes(value: unknown, schema: DataSchema, parameters?: { [key: string]: string }): Buffer {
         // console.debug("JsonCodec serializing", value);
         let body = "";
         if (value !== undefined) {

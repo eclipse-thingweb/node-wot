@@ -15,15 +15,48 @@
 
 import * as TD from "@node-wot/td-tools";
 import { Readable } from "stream";
-import { ReadableStream } from "web-streams-polyfill/ponyfill/es2018";
+import { ReadableStream as PolyfillStream } from "web-streams-polyfill/ponyfill/es2018";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/ban-types
+function ManagedStream<TBase extends new (...args: any[]) => {}>(Base: TBase) {
+    return class extends Base {
+        _nodeStream: NodeJS.ReadableStream;
+        _wotStream: ReadableStream;
+        set nodeStream(nodeStream: NodeJS.ReadableStream) {
+            this._nodeStream = nodeStream;
+        }
+
+        get nodeStream(): NodeJS.ReadableStream {
+            return this._nodeStream;
+        }
+
+        set wotStream(wotStream: ReadableStream) {
+            this._wotStream = wotStream;
+        }
+
+        get wotStream(): ReadableStream {
+            return this._wotStream;
+        }
+    };
+}
+
+const ManagedReadable = ManagedStream(Readable);
+const ManagedReadableStream = ManagedStream(PolyfillStream);
+
+function isManagedReadable(obj: unknown): obj is { nodeStream: Readable; wotStream: ReadableStream } {
+    return obj instanceof ManagedReadable;
+}
+
+function isManagedReadableStream(obj: unknown): obj is { nodeStream: Readable; wotStream: ReadableStream } {
+    return obj instanceof ManagedReadableStream;
+}
 export default class ProtocolHelpers {
     // set contentType (extend with more?)
     public static updatePropertyFormWithTemplate(
         form: TD.Form,
         tdTemplate: WoT.ExposedThingInit,
         propertyName: string
-    ) {
+    ): void {
         if (
             form &&
             tdTemplate &&
@@ -46,7 +79,11 @@ export default class ProtocolHelpers {
         }
     }
 
-    public static updateActionFormWithTemplate(form: TD.Form, tdTemplate: WoT.ExposedThingInit, actionName: string) {
+    public static updateActionFormWithTemplate(
+        form: TD.Form,
+        tdTemplate: WoT.ExposedThingInit,
+        actionName: string
+    ): void {
         if (
             form &&
             tdTemplate &&
@@ -69,7 +106,11 @@ export default class ProtocolHelpers {
         }
     }
 
-    public static updateEventFormWithTemplate(form: TD.Form, tdTemplate: WoT.ExposedThingInit, eventName: string) {
+    public static updateEventFormWithTemplate(
+        form: TD.Form,
+        tdTemplate: WoT.ExposedThingInit,
+        eventName: string
+    ): void {
         if (
             form &&
             tdTemplate &&
@@ -157,16 +198,19 @@ export default class ProtocolHelpers {
         return undefined; // not found
     }
 
-    public static toWoTStream(stream: NodeJS.ReadableStream): ReadableStream {
+    public static toWoTStream(
+        stream: NodeJS.ReadableStream | { nodeStream: Readable; wotStream: ReadableStream }
+    ): ReadableStream | PolyfillStream {
         // TODO USE CLASSES
-        if ((stream as any)._wotStream) {
-            return (stream as any)._wotStream;
+        if (isManagedReadable(stream)) {
+            return stream.wotStream;
         }
-        const result: any = new ReadableStream({
+
+        const result = new ManagedReadableStream({
             start: (controller) => {
                 stream.on("data", (data) => controller.enqueue(data));
                 stream.on("error", (e) => controller.error(e));
-                stream.on("end", (_) => controller.close());
+                stream.on("end", () => controller.close());
             },
             cancel: (reason) => {
                 if (stream instanceof Readable) {
@@ -174,16 +218,19 @@ export default class ProtocolHelpers {
                 }
             },
         });
-        result._nodeStream = stream;
+        result.nodeStream = stream;
         return result;
     }
 
-    public static toNodeStream(stream: ReadableStream): Readable {
+    public static toNodeStream(
+        stream: ReadableStream | PolyfillStream | { nodeStream: Readable; wotStream: ReadableStream }
+    ): Readable {
         // TODO: use proper clases
-        if ((stream as any)._nodeStream) {
-            return (stream as any)._nodeStream;
+        if (isManagedReadableStream(stream)) {
+            return stream.nodeStream;
         }
-        const result: any = new Readable({
+
+        const result = new ManagedReadable({
             read: (size) => {
                 stream
                     .getReader()
@@ -200,13 +247,13 @@ export default class ProtocolHelpers {
                 stream.cancel(error);
             },
         });
-        result._wotStream = stream;
+        result.wotStream = stream;
         return result;
     }
 
     static readStreamFully(stream: NodeJS.ReadableStream): Promise<Buffer> {
         return new Promise<Buffer>((resolve, reject) => {
-            const chunks: Array<any> = [];
+            const chunks: Array<unknown> = [];
             stream.on("data", (data) => chunks.push(data));
             stream.on("error", reject);
             stream.on("end", () => {
@@ -214,9 +261,9 @@ export default class ProtocolHelpers {
                     chunks[0] &&
                     (chunks[0] instanceof Array || chunks[0] instanceof Buffer || chunks[0] instanceof Uint8Array)
                 ) {
-                    resolve(Buffer.concat(chunks));
+                    resolve(Buffer.concat(chunks as Array<Buffer | Uint8Array>));
                 } else {
-                    resolve(Buffer.from(chunks));
+                    resolve(Buffer.from(chunks as Array<number>));
                 }
             });
         });

@@ -18,7 +18,6 @@ import { ContentSerdes } from "./content-serdes";
 import { ProtocolHelpers } from "./core";
 import { DataSchemaError, NotReadableError, NotSupportedError } from "./errors";
 import { Content } from "./protocol-interfaces";
-import { ReadableStream } from "web-streams-polyfill/ponyfill/es2018";
 import Ajv from "ajv";
 
 // Problem: strict mode ajv does not accept unknown keywords in schemas
@@ -31,9 +30,9 @@ const ajv = new Ajv({ strict: false });
 
 export class InteractionOutput implements WoT.InteractionOutput {
     private content: Content;
-    private parsedValue: any;
+    private parsedValue: unknown;
     private buffer: ArrayBuffer;
-    data?: ReadableStream<any>;
+    data?: ReadableStream;
     dataUsed: boolean;
     form?: WoT.Form;
     schema?: WoT.DataSchema;
@@ -60,7 +59,7 @@ export class InteractionOutput implements WoT.InteractionOutput {
 
     async value<T>(): Promise<T> {
         // the value has been already read?
-        if (this.parsedValue) return this.parsedValue;
+        if (this.parsedValue) return this.parsedValue as T;
 
         // is data schema valid?
         if (!this.schema) {
@@ -84,7 +83,7 @@ export class InteractionOutput implements WoT.InteractionOutput {
 
         // validate the schema
         if (!validate(value)) {
-            throw new DataSchemaError("Invalid value according to DataSchema", value);
+            throw new DataSchemaError("Invalid value according to DataSchema", value as WoT.DataSchemaValue);
         }
 
         this.parsedValue = value;

@@ -23,6 +23,7 @@
 
 import { suite, test } from "@testdeck/mocha";
 import { expect } from "chai";
+import { ExposedThingInit } from "wot-typescript-definitions";
 
 import Helpers from "../src/helpers";
 
@@ -49,7 +50,7 @@ class HelperTest {
     }
 
     @test "should correctly validate schema"() {
-        const thing = {
+        const thing: ExposedThingInit = {
             title: "thingTest",
             properties: {
                 myProp: {
@@ -66,7 +67,7 @@ class HelperTest {
     }
 
     @test "should reject ThingModel schema on validation"() {
-        const thing = {
+        const thing: ExposedThingInit = {
             title: "thingTest",
             links: [
                 {

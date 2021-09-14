@@ -281,7 +281,7 @@ class WoTServerTest {
             .that.equals(false);
 
         // Check internals, how to to check handlers properly with *some* type-safety
-        const expThing: any = thing;
+        const expThing = thing as ExposedThing;
         const propertyState = expThing.properties["my number"].getState();
         const ff = await propertyState.readHandler();
         expect(ff).to.equal(1);

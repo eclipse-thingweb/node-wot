@@ -33,6 +33,7 @@ import { ContentSerdes } from "../src/content-serdes";
 import Helpers from "../src/helpers";
 import { Readable } from "stream";
 import { ProtocolHelpers } from "../src/core";
+import { ThingDescription } from "wot-typescript-definitions";
 // should must be called to augment all variables
 should();
 class TDClient implements ProtocolClient {
@@ -56,8 +57,8 @@ class TDClient implements ProtocolClient {
 
     public subscribeResource(
         form: Form,
-        next: (value: any) => void,
-        error?: (error: any) => void,
+        next: (value: Content) => void,
+        error?: (error: Error) => void,
         complete?: () => void
     ): Subscription {
         return new Subscription();
@@ -71,7 +72,7 @@ class TDClient implements ProtocolClient {
         return true;
     }
 
-    public setSecurity = (metadata: any) => false;
+    public setSecurity = (metadata: SecurityScheme[]) => false;
 
     public toString(): string {
         return "TDClient";
@@ -121,12 +122,12 @@ class TrapClient implements ProtocolClient {
 
     public subscribeResource(
         form: Form,
-        next: (value: any) => void,
-        error?: (error: any) => void,
+        next: (value: Content) => void,
+        error?: (error: Error) => void,
         complete?: () => void
     ): Subscription {
         // send one event
-        next(this.trap(form));
+        next(this.trap(form) as Content);
         // then complete
         setImmediate(() => {
             complete();
@@ -142,7 +143,7 @@ class TrapClient implements ProtocolClient {
         return true;
     }
 
-    public setSecurity = (metadata: any) => false;
+    public setSecurity = (metadata: SecurityScheme[]) => false;
 }
 
 class TrapClientFactory implements ProtocolClientFactory {
@@ -186,7 +187,7 @@ class TestProtocolClient implements ProtocolClient {
     subscribeResource(
         form: Form,
         next: (content: Content) => void,
-        error?: (error: any) => void,
+        error?: (error: Error) => void,
         complete?: () => void
     ): Subscription {
         throw new Error("Method not implemented.");
@@ -201,7 +202,7 @@ class TestProtocolClient implements ProtocolClient {
     }
 
     public securitySchemes: SecurityScheme[];
-    setSecurity(securitySchemes: SecurityScheme[], credentials?: any): boolean {
+    setSecurity(securitySchemes: SecurityScheme[], credentials?: Record<string, unknown>): boolean {
         this.securitySchemes = securitySchemes;
         return true;
     }
@@ -278,7 +279,7 @@ class WoTClientTest {
         WoTClientTest.clientFactory.setTrap(() => {
             return { type: "application/json", body: Readable.from(Buffer.from("42")) };
         });
-        const td = await WoTClientTest.WoTHelpers.fetch("td://foo");
+        const td = (await WoTClientTest.WoTHelpers.fetch("td://foo")) as ThingDescription;
         const thing = await WoTClientTest.WoT.consume(td);
 
         expect(thing).to.have.property("title").that.equals("aThing");
@@ -299,7 +300,7 @@ class WoTClientTest {
             return { type: "application/json", body: Readable.from(Buffer.from("42")) };
         });
 
-        const td = await WoTClientTest.WoTHelpers.fetch("td://foo");
+        const td = (await WoTClientTest.WoTHelpers.fetch("td://foo")) as ThingDescription;
         const thing = await WoTClientTest.WoT.consume(td);
         expect(thing).to.have.property("title").that.equals("aThing");
         expect(thing.getThingDescription()).to.have.property("properties");
@@ -325,7 +326,7 @@ class WoTClientTest {
             expect(valueData.toString()).to.equal("23");
             return content;
         });
-        const td = await WoTClientTest.WoTHelpers.fetch("td://foo");
+        const td = (await WoTClientTest.WoTHelpers.fetch("td://foo")) as ThingDescription;
         const thing = await WoTClientTest.WoT.consume(td);
 
         expect(thing).to.have.property("title").that.equals("aThing");
@@ -342,7 +343,7 @@ class WoTClientTest {
             expect(valueData.toString()).to.equal("58");
             return content;
         });
-        const td = await WoTClientTest.WoTHelpers.fetch("td://foo");
+        const td = (await WoTClientTest.WoTHelpers.fetch("td://foo")) as ThingDescription;
         const thing = await WoTClientTest.WoT.consume(td);
 
         expect(thing).to.have.property("title").that.equals("aThing");
@@ -359,7 +360,7 @@ class WoTClientTest {
             return content;
         });
 
-        const td = await WoTClientTest.WoTHelpers.fetch("td://foo");
+        const td = (await WoTClientTest.WoTHelpers.fetch("td://foo")) as ThingDescription;
         const thing = await WoTClientTest.WoT.consume(td);
 
         expect(thing).to.have.property("title").that.equals("aThing");
@@ -379,7 +380,7 @@ class WoTClientTest {
             expect(valueData.toString()).to.equal("23");
             return { type: "application/json", body: Readable.from(Buffer.from("42")) };
         });
-        const td = await WoTClientTest.WoTHelpers.fetch("td://foo");
+        const td = (await WoTClientTest.WoTHelpers.fetch("td://foo")) as ThingDescription;
         const thing = await WoTClientTest.WoT.consume(td);
 
         expect(thing).to.have.property("title").that.equals("aThing");
@@ -395,7 +396,7 @@ class WoTClientTest {
         WoTClientTest.clientFactory.setTrap(() => {
             return { type: "application/json", body: Readable.from(Buffer.from("triggered")) };
         });
-        const td = await WoTClientTest.WoTHelpers.fetch("td://foo");
+        const td = (await WoTClientTest.WoTHelpers.fetch("td://foo")) as ThingDescription;
         const thing = await WoTClientTest.WoT.consume(td);
         expect(thing).to.have.property("title").that.equals("aThing");
         expect(thing).to.have.property("events").that.has.property("anEvent");
@@ -412,12 +413,12 @@ class WoTClientTest {
         WoTClientTest.clientFactory.setTrap(() => {
             return { type: "application/json", body: Readable.from(Buffer.from("12")) };
         });
-        const td = await WoTClientTest.WoTHelpers.fetch("td://foo");
+        const td = (await WoTClientTest.WoTHelpers.fetch("td://foo")) as ThingDescription;
         const thing = await WoTClientTest.WoT.consume(td);
         expect(thing).to.have.property("title").that.equals("aThing");
         expect(thing).to.have.property("properties").that.has.property("aPropertyToObserve");
         return new Promise((resolve) => {
-            thing.observeProperty("aPropertyToObserve", async (data: any) => {
+            thing.observeProperty("aPropertyToObserve", async (data) => {
                 const value = await data.value();
                 expect(value).to.equal(12);
                 resolve(true);
@@ -427,7 +428,7 @@ class WoTClientTest {
 
     @test "observe property should fail"(done: Mocha.Done) {
         WoTClientTest.WoTHelpers.fetch("td://foo")
-            .then((td) => {
+            .then((td: ThingDescription) => {
                 return WoTClientTest.WoT.consume(td);
             })
             .then((thing) => {
@@ -435,7 +436,7 @@ class WoTClientTest {
                 expect(thing).to.have.property("properties").that.has.property("aProperty");
 
                 thing
-                    .observeProperty("aProperty", (data: any) => {
+                    .observeProperty("aProperty", () => {
                         done(new Error("property is not observable"));
                     })
                     .catch(() => {

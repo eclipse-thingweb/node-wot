@@ -14,7 +14,7 @@
  ********************************************************************************/
 
 import { ContentCodec } from "../content-serdes";
-import { DataSchema } from "wot-typescript-definitions";
+import { DataSchema, DataSchemaValue } from "wot-typescript-definitions";
 
 /** default implementation offering JSON de-/serialisation */
 export default class NetconfCodec implements ContentCodec {
@@ -22,10 +22,10 @@ export default class NetconfCodec implements ContentCodec {
         return "application/netconf";
     }
 
-    bytesToValue(bytes: Buffer, schema: DataSchema, parameters: { [key: string]: string }): any {
+    bytesToValue(bytes: Buffer, schema: DataSchema, parameters: { [key: string]: string }): DataSchemaValue {
         // console.debug(`NetconfCodec parsing '${bytes.toString()}'`);
 
-        let parsed: any;
+        let parsed;
         try {
             parsed = JSON.parse(bytes.toString());
         } catch (err) {
@@ -53,19 +53,25 @@ export default class NetconfCodec implements ContentCodec {
         return parsed;
     }
 
-    valueToBytes(value: any, schema: DataSchema, parameters?: { [key: string]: string }): Buffer {
+    valueToBytes(value: unknown, schema: DataSchema, parameters?: { [key: string]: string }): Buffer {
         // console.debug("NetconfCodec serializing", value);
         let body = "";
         if (value !== undefined) {
             const NSs = {};
-            const tmpObj = this.getPayloadNamespaces(schema, value, NSs, false);
+            // TODO: is value an object? how to treat numbers and strings?
+            const tmpObj = this.getPayloadNamespaces(schema, value as Record<string, unknown>, NSs, false);
             body = JSON.stringify(tmpObj);
         }
 
         return Buffer.from(body);
     }
 
-    private getPayloadNamespaces(schema: DataSchema, payload: any, NSs: any, hasNamespace: boolean) {
+    private getPayloadNamespaces(
+        schema: DataSchema,
+        payload: Record<string, unknown>,
+        NSs: Record<string, unknown>,
+        hasNamespace: boolean
+    ) {
         if (hasNamespace) {
             // expect to have xmlns
             const properties = schema.properties;
@@ -82,7 +88,7 @@ export default class NetconfCodec implements ContentCodec {
                 }
                 if (el["nc:attribute"] === true && payload[key]) {
                     // if (el.format && el.format === 'urn')
-                    const ns = payload[key];
+                    const ns: string = payload[key] as string;
                     aliasNs = ns.split(":")[ns.split(":").length - 1];
                     NSs[aliasNs] = payload[key];
                     nsFound = true;
@@ -94,15 +100,13 @@ export default class NetconfCodec implements ContentCodec {
                 throw new Error(`Namespace not found in the payload`);
             } else {
                 // change the payload in order to be parsed by the xpath2json library
-                payload = aliasNs + "\\" + ":" + value;
+                return { payload: aliasNs + "\\" + ":" + value, NSs };
             }
-            return { payload, NSs }; // return objects
         }
 
         if (schema && schema.type && schema.type === "object" && schema.properties) {
             // nested object, go down
-            const tmpHasNamespace = false;
-            let tmpObj: any;
+            let tmpObj;
             if (schema.properties && schema["nc:container"]) {
                 // check the root level
                 tmpObj = this.getPayloadNamespaces(schema, payload, NSs, true); // root case
@@ -110,7 +114,7 @@ export default class NetconfCodec implements ContentCodec {
                 tmpObj = this.getPayloadNamespaces(schema.properties, payload, NSs, false);
             }
 
-            payload = tmpObj.payload;
+            payload = tmpObj.payload as Record<string, unknown>;
             NSs = { ...NSs, ...tmpObj.NSs };
         }
 
@@ -122,7 +126,12 @@ export default class NetconfCodec implements ContentCodec {
                 if (schema[key].properties && schema[key]["nc:container"]) {
                     tmpHasNamespace = true;
                 }
-                const tmpObj = this.getPayloadNamespaces(schema[key], payload[key], NSs, tmpHasNamespace);
+                const tmpObj = this.getPayloadNamespaces(
+                    schema[key],
+                    payload[key] as Record<string, unknown>,
+                    NSs,
+                    tmpHasNamespace
+                );
                 payload[key] = tmpObj.payload;
                 NSs = { ...NSs, ...tmpObj.NSs };
             }

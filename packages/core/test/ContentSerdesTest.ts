@@ -20,27 +20,28 @@
 
 import { suite, test } from "@testdeck/mocha";
 import { expect, should } from "chai";
+import { DataSchemaValue } from "wot-typescript-definitions";
 
 import ContentSerdes, { ContentCodec } from "../src/content-serdes";
 import { ProtocolHelpers } from "../src/core";
 // should must be called to augment all variables
 should();
 
-const checkJsonToJs = (value: any): void => {
+const checkJsonToJs = (value: unknown): void => {
     const jsonBuffer = Buffer.from(JSON.stringify(value));
     expect(
         ContentSerdes.contentToValue({ type: "application/json", body: jsonBuffer }, { type: "object", properties: {} })
     ).to.deep.equal(value);
 };
 
-const checkJsToJson = async (value: any) => {
+const checkJsToJson = async (value: DataSchemaValue) => {
     const jsonContent = ContentSerdes.valueToContent(value, { type: "object", properties: {} });
     const body = await ProtocolHelpers.readStreamFully(jsonContent.body);
     const reparsed = JSON.parse(body.toString());
     expect(reparsed).to.deep.equal(value);
 };
 
-const checkStreamToValue = (value: any, match: any, type?: any): void => {
+const checkStreamToValue = (value: number[], match: unknown, type?: string): void => {
     const octectBuffer = Buffer.from(value);
     expect(
         ContentSerdes.contentToValue(
@@ -56,11 +57,11 @@ class HodorCodec implements ContentCodec {
         return "text/hodor";
     }
 
-    bytesToValue(bytes: Buffer): any {
+    bytesToValue(): string {
         return "Hodor";
     }
 
-    valueToBytes(value: any): Buffer {
+    valueToBytes(): Buffer {
         return Buffer.from("Hodor");
     }
 }

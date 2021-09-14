@@ -26,8 +26,8 @@ import { ReadableStream } from "web-streams-polyfill/ponyfill/es2018";
 /** is a plugin for ContentSerdes for a specific format (such as JSON or EXI) */
 export interface ContentCodec {
     getMediaType(): string;
-    bytesToValue(bytes: Buffer, schema: DataSchema, parameters?: { [key: string]: string }): any;
-    valueToBytes(value: any, schema: DataSchema, parameters?: { [key: string]: string }): Buffer;
+    bytesToValue(bytes: Buffer, schema: DataSchema, parameters?: { [key: string]: string }): DataSchemaValue;
+    valueToBytes(value: unknown, schema: DataSchema, parameters?: { [key: string]: string }): Buffer;
 }
 
 interface ReadContent {
@@ -95,7 +95,7 @@ export class ContentSerdes {
         return params;
     }
 
-    public addCodec(codec: ContentCodec, offered = false) {
+    public addCodec(codec: ContentCodec, offered = false): void {
         ContentSerdes.get().codecs.set(codec.getMediaType(), codec);
         if (offered) ContentSerdes.get().offered.add(codec.getMediaType());
     }
@@ -108,12 +108,12 @@ export class ContentSerdes {
         return Array.from(ContentSerdes.get().offered);
     }
 
-    public isSupported(contentType: string) {
+    public isSupported(contentType: string): boolean {
         const mt = ContentSerdes.getMediaType(contentType);
         return this.codecs.has(mt);
     }
 
-    public contentToValue(content: ReadContent, schema: DataSchema): any {
+    public contentToValue(content: ReadContent, schema: DataSchema): DataSchemaValue {
         if (content.type === undefined) {
             if (content.body.byteLength > 0) {
                 // default to application/json

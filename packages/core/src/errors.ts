@@ -35,7 +35,7 @@ export class NotSupportedError extends Error {
 }
 
 export class DataSchemaError extends Error {
-    value: any;
+    value: DataSchemaValue;
     constructor(message: string, value: DataSchemaValue) {
         super(message);
         this.value = value;

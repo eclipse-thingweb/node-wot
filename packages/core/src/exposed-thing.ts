@@ -23,6 +23,8 @@ import Servient from "./servient";
 import Helpers from "./helpers";
 import { InteractionOutput } from "./interaction-output";
 import { Readable } from "stream";
+import ProtocolHelpers from "./protocol-helpers";
+import { ReadableStream as PolyfillStream } from "web-streams-polyfill/ponyfill/es2018";
 
 export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     security: Array<string>;
@@ -49,7 +51,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     };
 
     private getServient: () => Servient;
-    private getSubjectTD: () => Subject<any>;
+    private getSubjectTD: () => Subject<WoT.ThingDescription>;
 
     constructor(servient: Servient, thingModel: WoT.ExposedThingInit = {}) {
         super();
@@ -58,7 +60,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             return servient;
         };
         this.getSubjectTD = new (class {
-            subjectTDChange: Subject<any> = new Subject<any>();
+            subjectTDChange: Subject<WoT.ThingDescription> = new Subject<WoT.ThingDescription>();
             getSubject = () => {
                 return this.subjectTDChange;
             };
@@ -91,10 +93,10 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     }
 
     // Note: copy from td-parser.ts
-    addDefaultLanguage(thing: any) {
+    addDefaultLanguage(thing: ExposedThing): void {
         // add @language : "en" if no @language set
         if (Array.isArray(thing["@context"])) {
-            const arrayContext: Array<any> = thing["@context"];
+            const arrayContext = thing["@context"];
             let languageSet = false;
             for (const arrayEntry of arrayContext) {
                 if (typeof arrayEntry === "object") {
@@ -130,7 +132,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         return JSON.parse(TD.serializeTD(this));
     }
 
-    public emitEvent(name: string, data: any): void {
+    public emitEvent(name: string, data: unknown): void {
         if (this.events[name]) {
             const es: EventState = this.events[name].getState();
             for (const listener of es.listeners) {
@@ -274,8 +276,8 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         throw new Error("setEventHandler not supported");
     }
 
-    readProperty(propertyName: string, options?: WoT.InteractionOptions): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
+    readProperty(propertyName: string, options?: WoT.InteractionOptions): Promise<InteractionOutput> {
+        return new Promise((resolve, reject) => {
             if (this.properties[propertyName]) {
                 // writeOnly check skipped so far, see https://github.com/eclipse/thingweb.node-wot/issues/333#issuecomment-724583234
                 /* if(this.properties[propertyName].writeOnly && this.properties[propertyName].writeOnly === true) {
@@ -291,7 +293,8 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                     );
                     ps.readHandler(options)
                         .then((customValue) => {
-                            resolve(customValue);
+                            const body = ExposedThing.interactionInputToReadable(customValue);
+                            resolve(new InteractionOutput({ body, type: "application/json" }, this.properties[propertyName]));
                         })
                         .catch((err) => {
                             reject(err);
@@ -301,7 +304,8 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                         "[core/exposed-thing]",
                         `ExposedThing '${this.title}' gets internal value '${ps.value}' for Property '${propertyName}'`
                     );
-                    resolve(ps.value);
+                    const body = ExposedThing.interactionInputToReadable(ps.value);
+                    resolve(new InteractionOutput({ body, type: "application/json" }, this.properties[propertyName]));
                 }
             } else {
                 reject(new Error(`ExposedThing '${this.title}', no property found for '${propertyName}'`));
@@ -312,7 +316,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     _readProperties(propertyNames: string[], options?: WoT.InteractionOptions): Promise<WoT.PropertyReadMap> {
         return new Promise<WoT.PropertyReadMap>((resolve, reject) => {
             // collect all single promises into array
-            const promises: Promise<any>[] = [];
+            const promises: Promise<InteractionOutput>[] = [];
             for (const propertyName of propertyNames) {
                 promises.push(this.readProperty(propertyName, options));
             }
@@ -349,7 +353,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         return this._readProperties(propertyNames, options);
     }
 
-    writeProperty(propertyName: string, value: any, options?: WoT.InteractionOptions): Promise<void> {
+    writeProperty(propertyName: string, value: WoT.InteractionInput, options?: WoT.InteractionOptions): Promise<void> {
         // TODO: to be removed next api does not allow an ExposedThing to be also a ConsumeThing
         return new Promise<void>((resolve, reject) => {
             if (this.properties[propertyName]) {
@@ -362,8 +366,8 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 
                 // call write handler (if any)
                 if (ps.writeHandler != null) {
-                    const stream = Readable.from(Buffer.from(value, "utf-8"));
-                    const content = { body: stream, type: "application/json" };
+                    const body = ExposedThing.interactionInputToReadable(value);
+                    const content = { body: body, type: "application/json" };
                     // be generous when no promise is returned
                     const promiseOrValueOrNil = ps.writeHandler(
                         new InteractionOutput(content, {}, this.properties[propertyName]),
@@ -379,9 +383,9 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                                     );
                                     // notify state change
                                     // FIXME object comparison
-                                    if (ps.value !== customValue) {
+                                    if (ps.value !== value) {
                                         for (const listener of ps.listeners) {
-                                            listener.call(customValue);
+                                            listener.call(value);
                                         }
                                     }
                                     resolve();
@@ -400,7 +404,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                             );
                             if (ps.value !== promiseOrValueOrNil) {
                                 for (const listener of ps.listeners) {
-                                    listener.call(<any>promiseOrValueOrNil);
+                                    listener.call(promiseOrValueOrNil);
                                 }
                             }
                             resolve();
@@ -441,8 +445,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             // collect all single promises into array
             const promises: Promise<void>[] = [];
             for (const propertyName in valueMap) {
-                const oValueMap: { [key: string]: any } = valueMap;
-                promises.push(this.writeProperty(propertyName, oValueMap[propertyName], options));
+                promises.push(this.writeProperty(propertyName, valueMap.get(propertyName), options));
             }
             // wait for all promises to succeed and create response
             Promise.all(promises)
@@ -457,28 +460,35 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         });
     }
 
-    public invokeAction(actionName: string, parameter?: any, options?: WoT.InteractionOptions): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
-            if (this.actions[actionName]) {
+    public async invokeAction(
+        actionName: string,
+        parameter?: WoT.InteractionInput,
+        options?: WoT.InteractionOptions
+    ): Promise<InteractionOutput> {
+        if (this.actions[actionName]) {
+            console.debug("[core/exposed-thing]", `ExposedThing '${this.title}' has Action state of '${actionName}'`);
+
+            const as: ActionState = this.actions[actionName].getState();
+            if (as.handler != null) {
                 console.debug(
                     "[core/exposed-thing]",
-                    `ExposedThing '${this.title}' has Action state of '${actionName}'`
+                    `ExposedThing '${this.title}' calls registered handler for Action '${actionName}'`
+                );
+                let body = ExposedThing.interactionInputToReadable(parameter);
+
+                const result = await as.handler(
+                    new InteractionOutput({ body, type: "application/json" }, this.actions[actionName].input),
+                    options
                 );
 
-                const as: ActionState = this.actions[actionName].getState();
-                if (as.handler != null) {
-                    console.debug(
-                        "[core/exposed-thing]",
-                        `ExposedThing '${this.title}' calls registered handler for Action '${actionName}'`
-                    );
-                    resolve(as.handler(parameter, options));
-                } else {
-                    reject(new Error(`ExposedThing '${this.title}' has no handler for Action '${actionName}'`));
-                }
+                body = ExposedThing.interactionInputToReadable(result);
+                return new InteractionOutput({ body, type: "application/json" }, this.actions[actionName].output);
             } else {
-                reject(new Error(`ExposedThing '${this.title}', no action found for '${actionName}'`));
+                throw new Error(`ExposedThing '${this.title}' has no handler for Action '${actionName}'`);
             }
-        });
+        } else {
+            throw new Error(`ExposedThing '${this.title}', no action found for '${actionName}'`);
+        }
     }
 
     public observeProperty(name: string, listener: WoT.WotListener, options?: WoT.InteractionOptions): Promise<void> {
@@ -501,7 +511,6 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     public unobserveProperty(name: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             if (this.properties[name]) {
-                const ps: PropertyState = this.properties[name].getState();
                 // let sub: Subject<Content> = this.properties[name].getState().subject;
                 // sub.unsubscribe();  // XXX causes loop issue (see browser counter example)
                 console.debug(
@@ -535,7 +544,6 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     public unsubscribeEvent(name: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             if (this.events[name]) {
-                const es: EventState = this.events[name].getState();
                 // let sub: Subject<any> = this.events[name].getState().subject;
                 // sub.unsubscribe(); // XXX causes loop issue (see browser counter example)
                 console.debug("[core/exposed-thing]", `ExposedThing '${this.title}' unsubscribes from event '${name}'`);
@@ -544,9 +552,21 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             }
         });
     }
+
+    private static interactionInputToReadable(input: WoT.InteractionInput): Readable {
+        let body;
+        if (typeof ReadableStream !== 'undefined' && input instanceof ReadableStream) {
+            body = ProtocolHelpers.toNodeStream(input);
+        } else if (input instanceof PolyfillStream){
+            body = ProtocolHelpers.toNodeStream(input);
+        }else {
+            body = Readable.from(Buffer.from(input.toString(), "utf-8"));
+        }
+        return body;
+    }
 }
 class PropertyState {
-    public value: any;
+    public value: WoT.DataSchemaValue;
     // public subject: Subject<Content>;
     public scope: unknown;
 
@@ -555,7 +575,7 @@ class PropertyState {
 
     listeners: WoT.WotListener[];
 
-    constructor(value: any = null) {
+    constructor(value: WoT.DataSchemaValue = null) {
         this.value = value;
         this.listeners = [];
         // this.subject = new Subject<Content>();

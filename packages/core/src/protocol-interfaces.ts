@@ -19,6 +19,7 @@ import { Subscription } from "rxjs/Subscription";
 
 import Servient from "./servient";
 import ExposedThing from "./exposed-thing";
+import { Readable } from "stream";
 export interface Content {
     type: string;
     body: NodeJS.ReadableStream;
@@ -40,7 +41,7 @@ export interface ProtocolClient {
     subscribeResource(
         form: TD.Form,
         next: (content: Content) => void,
-        error?: (error: any) => void,
+        error?: (error: Error) => void,
         complete?: () => void
     ): Subscription;
 
@@ -50,7 +51,7 @@ export interface ProtocolClient {
     stop(): boolean;
 
     /** apply TD security metadata */
-    setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean;
+    setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: unknown): boolean;
 }
 
 export interface ProtocolClientFactory {

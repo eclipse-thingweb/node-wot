@@ -14,7 +14,7 @@
  ********************************************************************************/
 
 import { ContentCodec } from "../content-serdes";
-import { DataSchema } from "wot-typescript-definitions";
+import { DataSchema, DataSchemaValue } from "wot-typescript-definitions";
 import { getFloat16, setFloat16 } from "@petamoriken/float16";
 
 /**
@@ -47,7 +47,7 @@ export default class OctetstreamCodec implements ContentCodec {
         return "application/octet-stream";
     }
 
-    bytesToValue(bytes: Buffer, schema: DataSchema, parameters?: { [key: string]: string }): any {
+    bytesToValue(bytes: Buffer, schema: DataSchema, parameters?: { [key: string]: string }): DataSchemaValue {
         // console.debug(`OctetstreamCodec parsing '${bytes.toString()}'`);
 
         const bigendian = parameters.byteorder ? parameters.byteorder === "bigendian" : true;
@@ -158,7 +158,7 @@ export default class OctetstreamCodec implements ContentCodec {
         }
     }
 
-    valueToBytes(value: any, schema: DataSchema, parameters?: { [key: string]: string }): Buffer {
+    valueToBytes(value: unknown, schema: DataSchema, parameters?: { [key: string]: string }): Buffer {
         // console.debug(`OctetstreamCodec serializing '${value}'`);
 
         if (!parameters.length) {

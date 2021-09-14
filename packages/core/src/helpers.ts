@@ -35,6 +35,8 @@ import { ContentSerdes } from "./content-serdes";
 import { ProtocolHelpers } from "./core";
 import Ajv from "ajv";
 import TDSchema from "wot-thing-description-types/schema/td-json-schema-validation.json";
+import { DataSchemaValue, ExposedThingInit } from "wot-typescript-definitions";
+import { SomeJSONSchema } from "ajv/dist/types/json-schema";
 
 const tdSchema = TDSchema;
 // RegExps take from https://github.com/ajv-validator/ajv-formats/blob/master/src/formats.ts
@@ -60,7 +62,7 @@ export default class Helpers {
 
     private static staticAddress: string = undefined;
 
-    public static extractScheme(uri: string) {
+    public static extractScheme(uri: string): string {
         const parsed = new URL(uri);
         // console.log(parsed)
         // remove trailing ':'
@@ -72,12 +74,12 @@ export default class Helpers {
         return scheme;
     }
 
-    public static setStaticAddress(address: string) {
+    public static setStaticAddress(address: string): void {
         Helpers.staticAddress = address;
     }
 
     public static getAddresses(): Array<string> {
-        const addresses: Array<any> = [];
+        const addresses: Array<string> = [];
 
         if (Helpers.staticAddress !== undefined) {
             addresses.push(Helpers.staticAddress);
@@ -88,7 +90,7 @@ export default class Helpers {
             const interfaces = os.networkInterfaces();
 
             for (const iface in interfaces) {
-                interfaces[iface].forEach((entry: any) => {
+                interfaces[iface].forEach((entry) => {
                     console.debug("[core/helpers]", `AddressHelper found ${entry.address}`);
                     if (entry.internal === false) {
                         if (entry.family === "IPv4") {
@@ -125,7 +127,7 @@ export default class Helpers {
         return address;
     }
 
-    public static generateUniqueName(name: string) {
+    public static generateUniqueName(name: string): string {
         const suffix = name.match(/.+_([0-9]+)$/);
         if (suffix !== null) {
             return name.slice(0, -suffix[1].length) + (1 + parseInt(suffix[1]));
@@ -135,7 +137,7 @@ export default class Helpers {
     }
 
     // TODO: specialize fetch to retrieve just thing descriptions
-    public fetch(uri: string): Promise<any> {
+    public fetch(uri: string): Promise<unknown> {
         return new Promise<unknown>((resolve, reject) => {
             const client = this.srv.getClientFor(Helpers.extractScheme(uri));
             console.debug("[core/helpers]", `WoTImpl fetching TD from '${uri}' with ${client}`);
@@ -172,17 +174,17 @@ export default class Helpers {
     public static extend<T, U>(first: T, second: U): T & U {
         const result = <T & U>{};
         for (const id in first) {
-            (<any>result)[id] = (<any>first)[id];
+            (<Record<string, unknown>>result)[id] = (<Record<string, unknown>>first)[id];
         }
         for (const id in second) {
             if (!Object.prototype.hasOwnProperty.call(result, id)) {
-                (<any>result)[id] = (<any>second)[id];
+                (<Record<string, unknown>>result)[id] = (<Record<string, unknown>>second)[id];
             }
         }
         return result;
     }
 
-    public static async parseInteractionOutput(response: WoT.InteractionOutput) {
+    public static async parseInteractionOutput(response: WoT.InteractionOutput): Promise<DataSchemaValue> {
         let value;
         try {
             value = await response.value();
@@ -196,7 +198,7 @@ export default class Helpers {
     /**
      * Helper function to remove reserved keywords in required property of TD JSON Schema
      */
-    static createExposeThingInitSchema(tdSchema: unknown) {
+    static createExposeThingInitSchema(tdSchema: unknown): SomeJSONSchema {
         const tdSchemaCopy = JSON.parse(JSON.stringify(tdSchema));
 
         if (tdSchemaCopy.required !== undefined) {
@@ -226,32 +228,40 @@ export default class Helpers {
         return tdSchemaCopy;
     }
 
-    private static isThingModelThingDescription(data: any): boolean {
-        for (const key in data) {
-            if (key === "tm:ref") return true;
+    private static isThingModelThingDescription(data: Record<string, unknown>): boolean {
+        if (this.containsThingModelRef(data)) {
+            return true;
         }
 
         if (data.links !== undefined && Array.isArray(data.links)) {
             let foundTmExtendsRel = false;
-            data.links.forEach((link: any) => {
+            data.links.forEach((link) => {
                 if (link.rel !== undefined && link.rel === "tm:extends") foundTmExtendsRel = true;
             });
             if (foundTmExtendsRel) return true;
         }
 
         if (data.properties !== undefined) {
-            for (const prop in data.properties) {
-                if (this.isThingModelThingDescription(data.properties[prop])) return true;
+            for (const prop in <Record<string, unknown>>data.properties) {
+                const properties = <Record<string, Record<string, unknown>>>data.properties;
+                if (this.isThingModelThingDescription(properties[prop])) return true;
             }
         }
 
         return false;
     }
 
+    private static containsThingModelRef(data: Record<string, unknown>): boolean {
+        for (const key in data) {
+            if (key === "tm:ref") return true;
+        }
+        return false;
+    }
+
     /**
      * Helper function to validate an ExposedThingInit
      */
-    public static validateExposedThingInit(data: any) {
+    public static validateExposedThingInit(data: ExposedThingInit): { valid: boolean; errors: string } {
         if (data["@type"] === "tm:ThingModel" || this.isThingModelThingDescription(data)) {
             return {
                 valid: false,

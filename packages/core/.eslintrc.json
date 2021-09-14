@@ -9,7 +9,8 @@
         "unused-imports/no-unused-vars": [
             "warn",
             {
-                "args": "none"
+                "args": "none",
+                "varsIgnorePattern": "Test" // Ignore test suites from unused-imports
             }
         ]
     }

@@ -34,12 +34,12 @@ export default class Servient {
     private servers: Array<ProtocolServer> = [];
     private clientFactories: Map<string, ProtocolClientFactory> = new Map<string, ProtocolClientFactory>();
     private things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
-    private credentialStore: Map<string, Array<any>> = new Map<string, Array<any>>();
+    private credentialStore: Map<string, Array<unknown>> = new Map<string, Array<unknown>>();
 
-    private uncaughtListeners: Array<(...args: any) => void> = [];
+    private uncaughtListeners: Array<(...args: unknown[]) => void> = [];
 
     /** runs the script in a new sandbox */
-    public runScript(code: string, filename = "script") {
+    public runScript(code: string, filename = "script"): unknown {
         const context = {
             WoT: new WoTImpl(this),
             WoTHelpers: new Helpers(this),
@@ -65,7 +65,7 @@ export default class Servient {
     }
 
     /** runs the script in privileged context (dangerous) - means here: scripts can require */
-    public runPrivilegedScript(code: string, filename = "script", options: ScriptOptions = {}) {
+    public runPrivilegedScript(code: string, filename = "script", options: ScriptOptions = {}): unknown {
         const context = {
             WoT: new WoTImpl(this),
             WoTHelpers: new Helpers(this),
@@ -97,7 +97,7 @@ export default class Servient {
         }
     }
 
-    private logScriptError(description: string, error: any): void {
+    private logScriptError(description: string, error: Error): void {
         let message: string;
         if (typeof error === "object" && error.stack) {
             const match = error.stack.match(/evalmachine\.<anonymous>:([0-9]+:[0-9]+)/);
@@ -113,7 +113,7 @@ export default class Servient {
     }
 
     /** add a new codec to support a mediatype; offered mediatypes are listed in TDs */
-    public addMediaType(codec: ContentCodec, offered = false) {
+    public addMediaType(codec: ContentCodec, offered = false): void {
         ContentManager.addCodec(codec, offered);
     }
 
@@ -247,11 +247,11 @@ export default class Servient {
         return Array.from(this.clientFactories.keys());
     }
 
-    public addCredentials(credentials: any) {
+    public addCredentials(credentials: Record<string, unknown>): void {
         if (typeof credentials === "object") {
             for (const i in credentials) {
                 console.debug("[core/servient]", `Servient storing credentials for '${i}'`);
-                let currentCredentials: Array<any> = this.credentialStore.get(i);
+                let currentCredentials: Array<unknown> = this.credentialStore.get(i);
                 if (!currentCredentials) {
                     currentCredentials = [];
                     this.credentialStore.set(i, currentCredentials);
@@ -266,9 +266,9 @@ export default class Servient {
      *
      * @param identifier id
      */
-    public getCredentials(identifier: string): any {
+    public getCredentials(identifier: string): unknown {
         console.debug("[core/servient]", `Servient looking up credentials for '${identifier}' (@deprecated)`);
-        const currentCredentials: Array<any> = this.credentialStore.get(identifier);
+        const currentCredentials: Array<unknown> = this.credentialStore.get(identifier);
         if (currentCredentials && currentCredentials.length > 0) {
             // return first
             return currentCredentials[0];
@@ -277,7 +277,7 @@ export default class Servient {
         }
     }
 
-    public retrieveCredentials(identifier: string): Array<any> {
+    public retrieveCredentials(identifier: string): Array<unknown> {
         console.debug("[core/servient]", `Servient looking up credentials for '${identifier}'`);
         return this.credentialStore.get(identifier);
     }

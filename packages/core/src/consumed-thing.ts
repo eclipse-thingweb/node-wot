@@ -147,7 +147,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         return scs;
     }
 
-    ensureClientSecurity(client: ProtocolClient, form: TD.Form) {
+    ensureClientSecurity(client: ProtocolClient, form: TD.Form): void {
         if (this.securityDefinitions) {
             if (form && Array.isArray(form.security) && form.security.length > 0) {
                 // Note security member in form objects overrides (i.e., completely replace) all definitions activated at the Thing level
@@ -156,7 +156,10 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                     "[core/consumed-thing]",
                     `ConsumedThing '${this.title}' setting credentials for ${client} based on form security`
                 );
-                client.setSecurity(this.getSecuritySchemes(form.security), this.getServient().getCredentials(this.id));
+                client.setSecurity(
+                    this.getSecuritySchemes(form.security),
+                    this.getServient().retrieveCredentials(this.id)
+                );
             } else if (this.security && Array.isArray(this.security) && this.security.length > 0) {
                 console.debug(
                     "[core/consumed-thing]",
@@ -317,12 +320,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         for (const propertyName in this.properties) {
             // collect attributes that are "readable" only
             const tp: TD.ThingProperty = this.properties[propertyName];
-            const { client, form } = this.getClientFor(
-                tp.forms,
-                "readproperty",
-                Affordance.PropertyAffordance,
-                options
-            );
+            const { form } = this.getClientFor(tp.forms, "readproperty", Affordance.PropertyAffordance, options);
             if (form) {
                 propertyNames.push(propertyName);
             }
