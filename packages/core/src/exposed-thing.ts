@@ -294,7 +294,9 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                     ps.readHandler(options)
                         .then((customValue) => {
                             const body = ExposedThing.interactionInputToReadable(customValue);
-                            resolve(new InteractionOutput({ body, type: "application/json" }, this.properties[propertyName]));
+                            resolve(
+                                new InteractionOutput({ body, type: "application/json" }, this.properties[propertyName])
+                            );
                         })
                         .catch((err) => {
                             reject(err);
@@ -555,11 +557,11 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 
     private static interactionInputToReadable(input: WoT.InteractionInput): Readable {
         let body;
-        if (typeof ReadableStream !== 'undefined' && input instanceof ReadableStream) {
+        if (typeof ReadableStream !== "undefined" && input instanceof ReadableStream) {
             body = ProtocolHelpers.toNodeStream(input);
-        } else if (input instanceof PolyfillStream){
+        } else if (input instanceof PolyfillStream) {
             body = ProtocolHelpers.toNodeStream(input);
-        }else {
+        } else {
             body = Readable.from(Buffer.from(input.toString(), "utf-8"));
         }
         return body;
