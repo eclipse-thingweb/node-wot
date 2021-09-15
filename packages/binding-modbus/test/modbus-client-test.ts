@@ -43,10 +43,14 @@ describe("Modbus client test", () => {
             "modbus:unitID": 1,
         };
 
-        client.validateAndFillDefaultForm(form, 0)["modbus:function"].should.be.equal(1, "Wrong default read Coil");
-
-        client.validateAndFillDefaultForm(form, 1)["modbus:function"].should.be.equal(5, "Wrong write Coil");
-        client.validateAndFillDefaultForm(form, 2)["modbus:function"].should.be.equal(15, "Wrong write multiple Coil");
+        /* eslint-disable dot-notation */
+        client["validateAndFillDefaultForm"](form, 0)["modbus:function"].should.be.equal(1, "Wrong default read Coil");
+        client["validateAndFillDefaultForm"](form, 1)["modbus:function"].should.be.equal(5, "Wrong write Coil");
+        client["validateAndFillDefaultForm"](form, 2)["modbus:function"].should.be.equal(
+            15,
+            "Wrong write multiple Coil"
+        );
+        /* eslint-enable dot-notation */
     });
 
     it("use entity alias for holding registries", () => {
@@ -57,14 +61,17 @@ describe("Modbus client test", () => {
             "modbus:length": 1,
             "modbus:unitID": 1,
         };
-
-        client.validateAndFillDefaultForm(form)["modbus:function"].should.be.equal(3, "Wrong read Holding register");
-        client
-            .validateAndFillDefaultForm(form, 2)
-            ["modbus:function"].should.be.equal(6, "Wrong write Holding register");
-        client
-            .validateAndFillDefaultForm(form, 4)
-            ["modbus:function"].should.be.equal(16, "Wrong write multiple Holding register");
+        /* eslint-disable dot-notation */
+        client["validateAndFillDefaultForm"](form)["modbus:function"].should.be.equal(3, "Wrong read Holding register");
+        client["validateAndFillDefaultForm"](form, 2)["modbus:function"].should.be.equal(
+            6,
+            "Wrong write Holding register"
+        );
+        client["validateAndFillDefaultForm"](form, 4)["modbus:function"].should.be.equal(
+            16,
+            "Wrong write multiple Holding register"
+        );
+        /* eslint-enable dot-notation */
     });
 
     it("use entity alias for other entities", () => {
@@ -75,10 +82,11 @@ describe("Modbus client test", () => {
             "modbus:length": 1,
             "modbus:unitID": 1,
         };
-
-        client.validateAndFillDefaultForm(form)["modbus:function"].should.be.equal(2, "Wrong read Discrete input");
+        /* eslint-disable dot-notation */
+        client["validateAndFillDefaultForm"](form)["modbus:function"].should.be.equal(2, "Wrong read Discrete input");
         form["modbus:entity"] = "InputRegister";
-        client.validateAndFillDefaultForm(form)["modbus:function"].should.be.equal(4, "Wrong read Input register");
+        client["validateAndFillDefaultForm"](form)["modbus:function"].should.be.equal(4, "Wrong read Input register");
+        /* eslint-enable dot-notation */
     });
 
     it("should convert function names", () => {
@@ -90,7 +98,8 @@ describe("Modbus client test", () => {
             "modbus:unitID": 1,
         };
 
-        client.validateAndFillDefaultForm(form)["modbus:function"].should.be.equal(1, "Wrong substitution");
+        // eslint-disable-next-line dot-notation
+        client["validateAndFillDefaultForm"](form)["modbus:function"].should.be.equal(1, "Wrong substitution");
     });
 
     it("should override form values with URL", () => {
@@ -102,7 +111,8 @@ describe("Modbus client test", () => {
             "modbus:unitID": 1,
         };
 
-        client.overrideFormFromURLPath(form);
+        // eslint-disable-next-line dot-notation
+        client["overrideFormFromURLPath"](form);
         form["modbus:unitID"].should.be.equal(2, "Form value not overridden");
         form["modbus:offset"].should.be.equal(2, "Form value not overridden");
         form["modbus:length"].should.be.equal(5, "Form value not overridden");

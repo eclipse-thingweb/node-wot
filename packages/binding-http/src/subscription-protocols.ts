@@ -36,15 +36,20 @@ export class LongPollingSubscription implements InternalSubscription {
         const polling = async () => {
             try {
                 // long timeout for long polling
-                const request = await this.client.generateFetchRequest(this.form, "GET", { timeout: 60 * 60 * 1000 });
+                // eslint-disable-next-line dot-notation
+                const request = await this.client["generateFetchRequest"](this.form, "GET", {
+                    timeout: 60 * 60 * 1000,
+                });
                 console.debug(
                     "[binding-http]",
                     `HttpClient (subscribeResource) sending ${request.method} to ${request.url}`
                 );
 
-                const result = await this.client.fetch(request);
+                // eslint-disable-next-line dot-notation
+                const result = await this.client["fetch"](request);
 
-                this.client.checkFetchResponse(result);
+                // eslint-disable-next-line dot-notation
+                this.client["checkFetchResponse"](result);
 
                 const buffer = await result.buffer();
                 console.debug("[binding-http]", `HttpClient received ${result.status} from ${request.url}`);

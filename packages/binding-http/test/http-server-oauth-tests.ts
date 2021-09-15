@@ -73,14 +73,17 @@ class OAuthServerTests {
     }
 
     @test async "should configure oauth"() {
-        this.server.httpSecurityScheme.should.be.equal("OAuth");
-        this.server.oAuthValidator.should.be.instanceOf(EndpointValidator);
+        /* eslint-disable dot-notation */
+        this.server["httpSecurityScheme"].should.be.equal("OAuth");
+        this.server["oAuthValidator"].should.be.instanceOf(EndpointValidator);
+        /* eslint-enable dot-notation */
     }
 
     @test async "should call oauth validation"() {
         let called = false;
 
-        this.server.oAuthValidator.validate = async (token, scopes, clients) => {
+        // eslint-disable-next-line dot-notation
+        this.server["oAuthValidator"].validate = async (token, scopes, clients) => {
             called = true;
             return true;
         };
@@ -93,7 +96,8 @@ class OAuthServerTests {
     @test async "should send unauthorized if oauth validation fails"() {
         let called = false;
 
-        this.server.oAuthValidator.validate = async (token, scopes, clients) => {
+        // eslint-disable-next-line dot-notation
+        this.server["oAuthValidator"].validate = async (token, scopes, clients) => {
             called = true;
             return false;
         };
@@ -108,7 +112,8 @@ class OAuthServerTests {
     @test async "should send error if oauth validation throws"() {
         let called = false;
 
-        this.server.oAuthValidator.validate = async (token, scopes, clients) => {
+        // eslint-disable-next-line dot-notation
+        this.server["oAuthValidator"].validate = async (token, scopes, clients) => {
             called = true;
             return false;
         };
