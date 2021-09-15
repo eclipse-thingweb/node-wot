@@ -1,8 +1,17 @@
 import { Content } from '@node-wot/core'
-import firebase from 'firebase/app'
-import 'firebase/auth'
-import 'firebase/firestore'
+import tempfirebase from 'firebase/compat/app'
+import 'firebase/compat/auth'
+import 'firebase/compat/firestore'
 import { Buffer } from 'buffer'
+
+let firebase
+if (tempfirebase.apps) {
+  // for NodeJS
+  firebase = tempfirebase
+} else {
+  // for Web browser
+  firebase = window.firebase
+}
 
 /**
  * initialize firestore.
@@ -216,6 +225,7 @@ export const removeDataFromFirestore = (
       .delete()
       .then(() => {
         console.log('removed topic: ', topic)
+        //@ts-ignore
         resolve()
       })
       .catch((err) => {
@@ -304,6 +314,7 @@ export const removeMetaDataFromFirestore = (
       .delete()
       .then(() => {
         console.log('removed hostName: ', hostName)
+        //@ts-ignore
         resolve()
       })
       .catch((err) => {

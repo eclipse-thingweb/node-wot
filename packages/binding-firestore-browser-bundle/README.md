@@ -10,7 +10,13 @@ HTTP / HTTPS / WebSockets
 
 Include the following script tag in your html
 
-```js
+```html
+<!-- firestore modules -->
+<script src="https://www.gstatic.com/firebasejs/9.0.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.1/firebase-firestore-compat.js"></script>
+<!-- node-wot modules -->
+<script src="https://cdn.jsdelivr.net/npm/@node-wot/browser-bundle/dist/wot-bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@node-wot/binding-firestore-browser-bundle@latest/dist/binding-firestore-bundle.js"></script>
 ```
 

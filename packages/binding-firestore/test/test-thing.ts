@@ -2,7 +2,7 @@
 import Servient from '@node-wot/core'
 import FirestoreServer from '../src/firestore-server'
 import FirestoreCodec from '../src/codecs/firestore-codec'
-import firebase from 'firebase'
+import firebase from 'firebase/compat'
 
 const firestoreConfig = require('./firestore-config.json')
 
@@ -176,6 +176,7 @@ export const launchTestThing = async () => {
       function (params, options) {
         return new Promise(function (resolve, reject) {
           console.log('actionWithoutArgsResponse', params, options)
+          //@ts-ignore
           resolve()
         })
       }
@@ -233,6 +234,7 @@ export const launchTestThing = async () => {
       return new Promise(function (resolve, reject) {
         console.log('actionEventInteger', params, options)
         thing.emitEvent('eventInteger', params)
+        //@ts-ignore
         resolve()
       })
     })
@@ -240,6 +242,7 @@ export const launchTestThing = async () => {
       return new Promise(function (resolve, reject) {
         console.log('actionEventString', params, options)
         thing.emitEvent('eventString', params)
+        //@ts-ignore
         resolve()
       })
     })
@@ -247,6 +250,7 @@ export const launchTestThing = async () => {
       return new Promise(function (resolve, reject) {
         console.log('actionEventObject', params, options)
         thing.emitEvent('eventObject', params)
+        //@ts-ignore
         resolve()
       })
     })

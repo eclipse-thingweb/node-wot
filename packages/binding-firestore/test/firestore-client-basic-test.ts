@@ -7,7 +7,7 @@ import FirestoreClient from '../src/firestore-client'
 import Servient, { Helpers } from '@node-wot/core'
 import FirestoreClientFactory from '../src/firestore-client-factory'
 import FirestoreCodec from '../src/codecs/firestore-codec'
-import firebase from 'firebase'
+import firebase from 'firebase/compat'
 import { launchTestThing } from './test-thing'
 
 //chai.should()
@@ -21,6 +21,7 @@ const firestoreConfig = require('./firestore-config.json')
 const wait = async (msec) => {
   await new Promise((resolve, reject) => {
     setTimeout(() => {
+      //@ts-ignore
       resolve()
     }, msec)
   })

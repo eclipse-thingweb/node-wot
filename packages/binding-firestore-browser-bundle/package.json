@@ -23,6 +23,6 @@
     "@node-wot/binding-firestore": "0.7.8"
   },
   "scripts": {
-    "build": "browserify -r vm:vm2 index.js --external coffee-script -o dist/binding-firestore-bundle.js"
+    "build": "browserify -r vm:vm2 index.js --external coffee-script --ignore firebase --exclude ../binding-firestore/node-modules/firebase/ -o dist/binding-firestore-bundle.js"
   }
 }
