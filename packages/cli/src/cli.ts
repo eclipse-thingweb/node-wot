@@ -85,7 +85,7 @@ const loadEnvVariables = function () {
     const env = dotenv.config();
 
     // ignore file not found but throw otherwise
-    if (env.error && (env.error as any).code && (env.error as any).code != "ENOENT") {
+    if (env.error && (env.error as any).code && (env.error as any).code !== "ENOENT") {
         throw env.error;
     }
     return env;

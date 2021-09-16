@@ -17,7 +17,7 @@
 // TD V2 2017, USA, Santa Clara (http://w3c.github.io/wot/current-practices/wot-practices-santa-clara-2017.html)
 // TD V3 2017, Germany, Düsseldorf, (http://w3c.github.io/wot/current-practices/wot-practices-duesseldorf-2017.html)
 
-export function transformTDV1StringToV2String(td1: string): Object {
+export function transformTDV1StringToV2String(td1: string): Record<string, unknown> {
     // create object from original TD and re-arrange data
     const td2 = JSON.parse(td1);
 
@@ -27,11 +27,11 @@ export function transformTDV1StringToV2String(td1: string): Object {
     return td2;
 }
 
-export function transformTDV1ObjToV2Obj(td1: Object): Object {
+export function transformTDV1ObjToV2Obj(td1: Record<string, unknown>): Record<string, unknown> {
     return transformTDV1StringToV2String(JSON.stringify(td1));
 }
 
-export function transformTDV2StringToV1String(td2: string): Object {
+export function transformTDV2StringToV1String(td2: string): Record<string, unknown> {
     // create object from original TD and re-arrange data
     const td1 = JSON.parse(td2);
 
@@ -124,11 +124,11 @@ function fixLinksV2toHrefsEncodingsV1(td1: any, inter: any) {
     }
 }
 
-export function transformTDV2ObjToV1Obj(td2: Object): any {
+export function transformTDV2ObjToV1Obj(td2: Record<string, unknown>): any {
     return transformTDV2StringToV1String(JSON.stringify(td2));
 }
 
-export function transformTDV3StringToV1String(td3: string): Object {
+export function transformTDV3StringToV1String(td3: string): Record<string, unknown> {
     // very similar to TD2-to-TD1 transformation
 
     // differences to V2
@@ -220,7 +220,7 @@ export function transformTDV3StringToV1String(td3: string): Object {
     return td1;
 }
 
-export function transformTDV3ObjToV1Obj(td3: Object): any {
+export function transformTDV3ObjToV1Obj(td3: Record<string, unknown>): any {
     return transformTDV3StringToV1String(JSON.stringify(td3));
 }
 
