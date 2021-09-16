@@ -1,23 +1,21 @@
 {
-    "servient": {
-    },
-    "http":{
+    "servient": {},
+    "http": {
         "allowSelfSigned": true,
         "serverKey": "../privatekey.pem",
         "serverCert": "../certificate.pem",
         "security": {
             "scheme": "oauth2",
             "method": {
-                "name":"introspection_endpoint",
+                "name": "introspection_endpoint",
                 "endpoint": "https://localhost:3000/introspect",
                 "allowSelfSigned": true
             }
-
         }
     },
     "credentials": {
         "urn:dev:wot:oauth:test": {
-            "clientId" : "node-wot",
+            "clientId": "node-wot",
             "clientSecret": "isgreat!"
         }
     }

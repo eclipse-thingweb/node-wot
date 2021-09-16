@@ -1,28 +1,28 @@
 {
-  "name": "@node-wot/binding-firestore-browser-bundle",
-  "version": "0.8.0",
-  "description": "A binding-firestore bundle that can run in a web browser",
-  "repository": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-firestore-browser-bundle",
-  "publishConfig": {
-    "access": "public"
-  },
-  "author": "hidetak",
-  "license": "EPL-2.0",
-  "publishConfig": {
-    "access": "public"
-  },
-  "files": [
-    "dist/"
-  ],
-  "main": "dist/binding-firestore-bundle.js",
-  "devDependencies": {
-    "browserify": "^17.0.0",
-    "tinyify": "^2.5.2"
-  },
-  "dependencies": {
-    "@node-wot/binding-firestore": "0.8.0"
-  },
-  "scripts": {
-    "build": "browserify -r vm:vm2 index.js --external coffee-script -o dist/binding-firestore-bundle.js"
-  }
+    "name": "@node-wot/binding-firestore-browser-bundle",
+    "version": "0.8.0",
+    "description": "A binding-firestore bundle that can run in a web browser",
+    "repository": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-firestore-browser-bundle",
+    "publishConfig": {
+        "access": "public"
+    },
+    "author": "hidetak",
+    "license": "EPL-2.0",
+    "publishConfig": {
+        "access": "public"
+    },
+    "files": [
+        "dist/"
+    ],
+    "main": "dist/binding-firestore-bundle.js",
+    "devDependencies": {
+        "browserify": "^17.0.0",
+        "tinyify": "^2.5.2"
+    },
+    "dependencies": {
+        "@node-wot/binding-firestore": "0.8.0"
+    },
+    "scripts": {
+        "build": "browserify -r vm:vm2 index.js --external coffee-script -o dist/binding-firestore-bundle.js"
+    }
 }

@@ -5,8 +5,8 @@
 The following examples show how to use `wot-servient` based CLI.
 The `-h` option explains the functionality and also how node-wot can be configured based on `wot-servient.conf.json`.
 
-* `wot-servient -h` *or*
-* `node packages\cli\dist\cli.js`
+-   `wot-servient -h` _or_
+-   `node packages\cli\dist\cli.js`
 
 The `-h` help options shows the following output:
 
@@ -86,8 +86,8 @@ wot-servient.conf.json fields:
   USERNAME        : string for providing a Basic Auth username
   PASSWORD        : string for providing a Basic Auth password
   ---------------------------------------------------------------------------
- 
-Environment variables must be provided in a .env file in the current working directory. 
+
+Environment variables must be provided in a .env file in the current working directory.
 
 Example:
 VAR1=Value1
@@ -96,22 +96,21 @@ VAR2=Value2
 ```
 
 ### Prerequisites
+
 See instructions [how to build node-wot as a standalone application](https://github.com/eclipse/thingweb.node-wot/#as-a-standalone-application).
 
 ### Environment variables
+
 If your scripts needs to access environment variables those must be supplied in a particular file. Node-wot cli uses [dotenv](https://github.com/motdotla/dotenv) library to load `.env` files located at the current working directory. For example, providing the following `.env` file will fill variables `PORT` and `ADDRESS` in scripts `process.env` field:
 
 ```
 PORT=4242
 ADDRESS=http://hello.com
-```  
+```
 
 ### Examples
 
-See [node-wot examples using Node.js]( https://github.com/eclipse/thingweb.node-wot/#no-time-for-explanations---show-me-a-running-example).
-
-
-
+See [node-wot examples using Node.js](https://github.com/eclipse/thingweb.node-wot/#no-time-for-explanations---show-me-a-running-example).
 
 ### More Details
 
