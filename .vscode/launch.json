@@ -22,30 +22,20 @@
         {
             "name": "Debug default servient",
             "request": "launch",
-            
-            "runtimeArgs": [
-                "run-script",
-                "debug"
-            ],
+
+            "runtimeArgs": ["run-script", "debug"],
             "port": 9229,
             "runtimeExecutable": "npm",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
+            "skipFiles": ["<node_internals>/**"],
             "type": "node"
         },
         {
             "name": "Test",
             "request": "launch",
-            "runtimeArgs": [
-                "run-script",
-                "test:only"
-            ],
+            "runtimeArgs": ["run-script", "test:only"],
             "port": 9229,
             "runtimeExecutable": "npm",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
+            "skipFiles": ["<node_internals>/**"],
             "type": "pwa-node"
         },
         {
@@ -64,9 +54,7 @@
             "name": "HTTP Tests",
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
             "request": "launch",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
+            "skipFiles": ["<node_internals>/**"],
             "type": "pwa-node"
         },
         {
@@ -85,9 +73,7 @@
             "name": "HTTP Test current File",
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
             "request": "launch",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
+            "skipFiles": ["<node_internals>/**"],
             "type": "pwa-node"
         },
         {
@@ -108,9 +94,7 @@
             "name": "Modbus Tests",
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
             "request": "launch",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
+            "skipFiles": ["<node_internals>/**"],
             "type": "pwa-node"
         },
         {
@@ -131,9 +115,7 @@
             "name": "Modbus Test current File",
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
             "request": "launch",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
+            "skipFiles": ["<node_internals>/**"],
             "type": "pwa-node"
         },
         {
@@ -152,9 +134,7 @@
             "name": "COAP Tests",
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
             "request": "launch",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
+            "skipFiles": ["<node_internals>/**"],
             "type": "pwa-node"
         },
         {
@@ -173,9 +153,7 @@
             "name": "COAP Test current File",
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
             "request": "launch",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
+            "skipFiles": ["<node_internals>/**"],
             "type": "pwa-node"
         },
         {
@@ -194,14 +172,12 @@
             "name": "MQTT Tests",
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
             "request": "launch",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
+            "skipFiles": ["<node_internals>/**"],
             "type": "pwa-node"
         },
         {
             "args": [
-                "--require", 
+                "--require",
                 "ts-node/register",
                 "--timeout",
                 "999999",
@@ -213,14 +189,12 @@
             "name": "NetConf Tests",
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
             "request": "launch",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
+            "skipFiles": ["<node_internals>/**"],
             "type": "pwa-node"
         },
         {
             "args": [
-                "--require", 
+                "--require",
                 "ts-node/register",
                 "--timeout",
                 "999999",
@@ -232,9 +206,7 @@
             "name": "Opcua Tests",
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
             "request": "launch",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
+            "skipFiles": ["<node_internals>/**"],
             "type": "pwa-node"
         },
         {
@@ -253,9 +225,7 @@
             "name": "Websockets Tests",
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
             "request": "launch",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
+            "skipFiles": ["<node_internals>/**"],
             "type": "pwa-node"
         },
         {
@@ -274,9 +244,7 @@
             "name": "Core Tests",
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
             "request": "launch",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
+            "skipFiles": ["<node_internals>/**"],
             "type": "pwa-node"
         },
         {
@@ -295,9 +263,7 @@
             "name": "Core Test File",
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
             "request": "launch",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
+            "skipFiles": ["<node_internals>/**"],
             "type": "pwa-node"
         },
         {
@@ -316,9 +282,7 @@
             "name": "TDtools Tests",
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
             "request": "launch",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
+            "skipFiles": ["<node_internals>/**"],
             "type": "pwa-node"
         },
         {
@@ -337,9 +301,7 @@
             "name": "TDtools Test File",
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
             "request": "launch",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
+            "skipFiles": ["<node_internals>/**"],
             "type": "pwa-node"
         }
     ]
