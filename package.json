@@ -16,7 +16,7 @@
         "test": "npm run test --silent --workspaces --if-present",
         "test:only": "npm run test --silent --workspaces --if-present",
         "lint": "npm run lint --silent --workspaces --if-present",
-        "format": "npm run format --silent --workspaces --if-present",
+        "format": "prettier --write . && npm run format --silent --workspaces --if-present",
         "publish": "npm publish --workspaces"
     },
     "workspaces": [
