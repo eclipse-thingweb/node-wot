@@ -155,20 +155,24 @@ export default class HttpClient implements ProtocolClient {
     return {};
   }
 
-  public subscribeResource(form: HttpForm, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): any {
+  public subscribeResource(form: HttpForm, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): Promise<Subscription> {
+    return new Promise<Subscription>((resolve, reject) => {
+        let internalSubscription : InternalSubscription;
+        if (form.subprotocol == undefined || form.subprotocol == "longpoll") {
+            //longpoll or subprotocol is not defined default is longpoll
+            internalSubscription = new LongPollingSubscription(form,this)
+        } else if (form.subprotocol == "sse") {
+            //server sent events
+            internalSubscription = new SSESubscription(form)
+        }
 
-    let internalSubscription;
-    if (form.subprotocol == undefined || form.subprotocol == "longpoll") {
-      //longpoll or subprotocol is not defined default is longpoll
-      internalSubscription = new LongPollingSubscription(form,this)
-    } else if (form.subprotocol == "sse") {
-      //server sent events
-      internalSubscription = new SSESubscription(form)
-    }
-
-    internalSubscription.open(next, error, complete);
-    this.activeSubscriptions.set(form.href,internalSubscription);
-    return new Subscription(() => { });
+        internalSubscription.open(next, error, complete)
+            .then(() => {
+                this.activeSubscriptions.set(form.href,internalSubscription);
+                resolve(new Subscription(() => { }))
+            })
+            .catch((err) => reject(err));
+    });
   }
 
   public start(): boolean {
