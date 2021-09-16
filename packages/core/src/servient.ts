@@ -1,101 +1,106 @@
 /********************************************************************************
  * Copyright (c) 2018 - 2021 Contributors to the Eclipse Foundation
- * 
+ *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
- * 
+ *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0, or the W3C Software Notice and
  * Document License (2015-05-13) which is available at
  * https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document.
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import {NodeVM, CompilerFunction} from "vm2";
+import { NodeVM, CompilerFunction } from "vm2";
 
 import * as WoT from "wot-typescript-definitions";
 
 import WoTImpl from "./wot-impl";
 import Helpers from "./helpers";
 import ExposedThing from "./exposed-thing";
-import { ProtocolClientFactory, ProtocolServer, ProtocolClient } from "./protocol-interfaces"
-import { default as ContentManager, ContentCodec } from "./content-serdes";
+import { ProtocolClientFactory, ProtocolServer, ProtocolClient } from "./protocol-interfaces";
+import ContentManager, { ContentCodec } from "./content-serdes";
+import { v4 } from "uuid";
+
+export interface ScriptOptions {
+    argv?: Array<string>;
+    compiler?: CompilerFunction;
+    env?: Record<string, string>;
+}
 
 export default class Servient {
     private servers: Array<ProtocolServer> = [];
     private clientFactories: Map<string, ProtocolClientFactory> = new Map<string, ProtocolClientFactory>();
     private things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
-    private credentialStore: Map<string, Array<any>> = new Map<string, Array<any>>();
+    private credentialStore: Map<string, Array<unknown>> = new Map<string, Array<unknown>>();
 
-    private uncaughtListeners:Array<(...args:any)=>void> = []
+    private uncaughtListeners: Array<(...args: unknown[]) => void> = [];
 
     /** runs the script in a new sandbox */
-    public runScript(code: string, filename = 'script') {
-
-        let context = {
-            "WoT": new WoTImpl(this),
-            "WoTHelpers": new Helpers(this)
+    public runScript(code: string, filename = "script"): unknown {
+        const context = {
+            WoT: new WoTImpl(this),
+            WoTHelpers: new Helpers(this),
         };
 
         const vm = new NodeVM({
-            sandbox: context
-        })
+            sandbox: context,
+        });
 
-        let listener = (err:Error) => {
-            this.logScriptError(`Asynchronous script error '${filename}'`, err)
-            //TODO: clean up script resources
-            process.exit(1)
-        }
-        process.prependListener('uncaughtException',listener)
-        this.uncaughtListeners.push(listener)
+        const listener = (err: Error) => {
+            this.logScriptError(`Asynchronous script error '${filename}'`, err);
+            // TODO: clean up script resources
+            process.exit(1);
+        };
+        process.prependListener("uncaughtException", listener);
+        this.uncaughtListeners.push(listener);
 
         try {
-            return vm.run(code, filename)
+            return vm.run(code, filename);
         } catch (err) {
-            this.logScriptError(`Servient found error in privileged script '${filename}'`, err)
+            this.logScriptError(`Servient found error in privileged script '${filename}'`, err);
         }
     }
 
     /** runs the script in privileged context (dangerous) - means here: scripts can require */
-    public runPrivilegedScript(code: string, filename = 'script',options:ScriptOptions={}) {
-    
-        let context = {
-            "WoT": new WoTImpl(this),
-            "WoTHelpers": new Helpers(this)
+    public runPrivilegedScript(code: string, filename = "script", options: ScriptOptions = {}): unknown {
+        const context = {
+            WoT: new WoTImpl(this),
+            WoTHelpers: new Helpers(this),
         };
 
         const vm = new NodeVM({
-            sandbox:context,
+            sandbox: context,
             require: {
                 external: true,
-                builtin: ["*"]
+                builtin: ["*"],
             },
             argv: options.argv,
             compiler: options.compiler,
-            env: options.env
-        })
-        
-        let listener = (err: Error) => {
-            this.logScriptError(`Asynchronous script error '${filename}'`, err)
-            //TODO: clean up script resources
-            process.exit(1)
-        }
-        process.prependListener('uncaughtException', listener)
-        this.uncaughtListeners.push(listener)
+            env: options.env,
+        });
+
+        const listener = (err: Error) => {
+            this.logScriptError(`Asynchronous script error '${filename}'`, err);
+            // TODO: clean up script resources
+            process.exit(1);
+        };
+        process.prependListener("uncaughtException", listener);
+        this.uncaughtListeners.push(listener);
 
         try {
-            return vm.run(code,filename)
+            return vm.run(code, filename);
         } catch (err) {
-            this.logScriptError(`Servient found error in privileged script '${filename}'`,err)
+            this.logScriptError(`Servient found error in privileged script '${filename}'`, err);
         }
     }
 
-    private logScriptError(description: string, error: any): void {
+    private logScriptError(description: string, error: Error): void {
         let message: string;
-        if (typeof error==="object" && error.stack) {
-            let match = error.stack.match(/evalmachine\.<anonymous>\:([0-9]+\:[0-9]+)/);
+        if (typeof error === "object" && error.stack) {
+            const match = error.stack.match(/evalmachine\.<anonymous>:([0-9]+:[0-9]+)/);
             if (Array.isArray(match)) {
                 message = `and halted at line ${match[1]}\n    ${error}`;
             } else {
@@ -104,56 +109,60 @@ export default class Servient {
         } else {
             message = `that threw ${typeof error} instead of Error\n    ${error}`;
         }
-        console.error("[core/servient]",`Servient caught ${description} ${message}`);
+        console.error("[core/servient]", `Servient caught ${description} ${message}`);
     }
 
     /** add a new codec to support a mediatype; offered mediatypes are listed in TDs */
-    public addMediaType(codec: ContentCodec, offered: boolean = false) {
+    public addMediaType(codec: ContentCodec, offered = false): void {
         ContentManager.addCodec(codec, offered);
     }
 
     public expose(thing: ExposedThing): Promise<void> {
-
         if (this.servers.length === 0) {
-            console.warn("[core/servient]",`Servient has no servers to expose Things`);
-            return new Promise<void>((resolve) => { resolve(); });
+            console.warn("[core/servient]", `Servient has no servers to expose Things`);
+            return new Promise<void>((resolve) => {
+                resolve();
+            });
         }
 
-        console.debug("[core/servient]",`Servient exposing '${thing.title}'`);
+        console.debug("[core/servient]", `Servient exposing '${thing.title}'`);
 
         // What is a good way to to convey forms information like contentType et cetera for interactions
-        let tdTemplate: WoT.ThingDescription = JSON.parse(JSON.stringify(thing));
+        const tdTemplate: WoT.ThingDescription = JSON.parse(JSON.stringify(thing));
 
         // initializing forms fields
         thing.forms = [];
-        for (let name in thing.properties) {
+        for (const name in thing.properties) {
             thing.properties[name].forms = [];
         }
-        for (let name in thing.actions) {
+        for (const name in thing.actions) {
             thing.actions[name].forms = [];
         }
-        for (let name in thing.events) {
+        for (const name in thing.events) {
             thing.events[name].forms = [];
         }
 
-        let serverPromises: Promise<void>[] = [];
-        this.servers.forEach( (server) => { serverPromises.push(server.expose(thing, tdTemplate)); });
+        const serverPromises: Promise<void>[] = [];
+        this.servers.forEach((server) => {
+            serverPromises.push(server.expose(thing, tdTemplate));
+        });
 
         return new Promise<void>((resolve, reject) => {
-            Promise.all(serverPromises).then( () => resolve() ).catch( (err) => reject(err) );
+            Promise.all(serverPromises)
+                .then(() => resolve())
+                .catch((err) => reject(err));
         });
     }
-    
-    public addThing(thing: ExposedThing): boolean {
 
+    public addThing(thing: ExposedThing): boolean {
         if (thing.id === undefined) {
-            thing.id = "urn:uuid:" + require("uuid").v4();
-            console.warn("[core/servient]",`Servient generating ID for '${thing.title}': '${thing.id}'`);
+            thing.id = "urn:uuid:" + v4();
+            console.warn("[core/servient]", `Servient generating ID for '${thing.title}': '${thing.id}'`);
         }
 
         if (!this.things.has(thing.id)) {
             this.things.set(thing.id, thing);
-            console.debug("[core/servient]",`Servient reset ID '${thing.id}' with '${thing.title}'`);
+            console.debug("[core/servient]", `Servient reset ID '${thing.id}' with '${thing.title}'`);
             return true;
         } else {
             return false;
@@ -165,11 +174,18 @@ export default class Servient {
             if (this.things.has(thingId)) {
                 console.debug("[core/servient]", `Servient destroying thing with id '${thingId}'`);
                 this.things.delete(thingId);
-                let serverPromises: Promise<boolean>[] = [];
-                this.servers.forEach((server) => { serverPromises.push(server.destroy(thingId)); });
-                Promise.all(serverPromises).then(() => resolve(true)).catch((err) => reject(err));
+                const serverPromises: Promise<boolean>[] = [];
+                this.servers.forEach((server) => {
+                    serverPromises.push(server.destroy(thingId));
+                });
+                Promise.all(serverPromises)
+                    .then(() => resolve(true))
+                    .catch((err) => reject(err));
             } else {
-                console.warn("[core/servient]", `Servient was asked to destroy thing but failed to find thing with id '${thingId}'`);
+                console.warn(
+                    "[core/servient]",
+                    `Servient was asked to destroy thing but failed to find thing with id '${thingId}'`
+                );
                 resolve(false);
             }
         });
@@ -182,9 +198,9 @@ export default class Servient {
     }
 
     // FIXME should be getThingDescriptions (breaking change)
-    public getThings(): object {
-        console.debug("[core/servient]",`Servient getThings size == '${this.things.size}'`);
-        let ts : { [key: string]: object } = {};
+    public getThings(): Record<string, WoT.ThingDescription> {
+        console.debug("[core/servient]", `Servient getThings size == '${this.things.size}'`);
+        const ts: { [key: string]: WoT.ThingDescription } = {};
         this.things.forEach((thing, id) => {
             ts[id] = thing.getThingDescription();
         });
@@ -209,13 +225,16 @@ export default class Servient {
     }
 
     public hasClientFor(scheme: string): boolean {
-        console.debug("[core/servient]",`Servient checking for '${scheme}' scheme in ${this.clientFactories.size} ClientFactories`);
+        console.debug(
+            "[core/servient]",
+            `Servient checking for '${scheme}' scheme in ${this.clientFactories.size} ClientFactories`
+        );
         return this.clientFactories.has(scheme);
     }
 
     public getClientFor(scheme: string): ProtocolClient {
         if (this.clientFactories.has(scheme)) {
-            console.debug("[core/servient]",`Servient creating client for scheme '${scheme}'`);
+            console.debug("[core/servient]", `Servient creating client for scheme '${scheme}'`);
             return this.clientFactories.get(scheme).getClient();
         } else {
             // FIXME returning null was bad - Error or Promise?
@@ -228,12 +247,12 @@ export default class Servient {
         return Array.from(this.clientFactories.keys());
     }
 
-    public addCredentials(credentials: any) {
+    public addCredentials(credentials: Record<string, unknown>): void {
         if (typeof credentials === "object") {
-            for (let i in credentials) {
-                console.debug("[core/servient]",`Servient storing credentials for '${i}'`);
-                let currentCredentials : Array<any> = this.credentialStore.get(i);
-                if(!currentCredentials) {
+            for (const i in credentials) {
+                console.debug("[core/servient]", `Servient storing credentials for '${i}'`);
+                let currentCredentials: Array<unknown> = this.credentialStore.get(i);
+                if (!currentCredentials) {
                     currentCredentials = [];
                     this.credentialStore.set(i, currentCredentials);
                 }
@@ -244,12 +263,12 @@ export default class Servient {
 
     /**
      * @deprecated use retrieveCredentials() instead which may return multiple credentials
-     * 
+     *
      * @param identifier id
      */
-    public getCredentials(identifier: string): any {
+    public getCredentials(identifier: string): unknown {
         console.debug("[core/servient]", `Servient looking up credentials for '${identifier}' (@deprecated)`);
-        let currentCredentials: Array<any> = this.credentialStore.get(identifier);
+        const currentCredentials: Array<unknown> = this.credentialStore.get(identifier);
         if (currentCredentials && currentCredentials.length > 0) {
             // return first
             return currentCredentials[0];
@@ -258,14 +277,14 @@ export default class Servient {
         }
     }
 
-    public retrieveCredentials(identifier: string): Array<any> {
+    public retrieveCredentials(identifier: string): Array<unknown> {
         console.debug("[core/servient]", `Servient looking up credentials for '${identifier}'`);
         return this.credentialStore.get(identifier);
     }
 
     // will return WoT object
     public start(): Promise<typeof WoT> {
-        let serverStatus: Array<Promise<void>> = [];
+        const serverStatus: Array<Promise<void>> = [];
         this.servers.forEach((server) => serverStatus.push(server.start(this)));
         this.clientFactories.forEach((clientFactory) => clientFactory.init());
 
@@ -274,7 +293,7 @@ export default class Servient {
                 .then(() => {
                     resolve(new WoTImpl(this));
                 })
-                .catch(err => {
+                .catch((err) => {
                     reject(err);
                 });
         });
@@ -284,14 +303,8 @@ export default class Servient {
         this.clientFactories.forEach((clientFactory) => clientFactory.destroy());
         this.servers.forEach((server) => server.stop());
 
-        this.uncaughtListeners.forEach(listener =>{
-            process.removeListener("uncaughtException",listener);
-        })
+        this.uncaughtListeners.forEach((listener) => {
+            process.removeListener("uncaughtException", listener);
+        });
     }
-}
-
-export interface ScriptOptions {
-    argv?:Array<string>;
-    compiler?: CompilerFunction;
-    env?:Object;
 }

@@ -13,92 +13,90 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-var fs = require('fs')
 import { suite, test } from "@testdeck/mocha";
-import * as express from 'express';
+import * as express from "express";
 import { HttpClient } from "../src/http";
-import * as https from 'https'
+import * as https from "https";
 import { BasicSecurityScheme } from "@node-wot/td-tools";
-import * as chai from 'chai';
+import * as chai from "chai";
 import * as chaiAsPromised from "chai-as-promised";
 import { promisify } from "util";
+const fs = require("fs");
 
 chai.should();
-chai.use(chaiAsPromised)
+chai.use(chaiAsPromised);
 
 @suite("HTTP auth basic client implementation")
 class HttpClientBasicTest {
-
     private client: HttpClient;
-    
+
     private static server: https.Server;
     static before() {
         const app = express();
-        app.use((req:any, res:any, next:any) => {
-
+        app.use((req: any, res: any, next: any) => {
             // -----------------------------------------------------------------------
             // authentication middleware
 
-            const auth = { login: "admin", password: "password" } // change this
+            const auth = { login: "admin", password: "password" }; // change this
 
             // parse login and password from headers
-            const b64auth = (req.headers.authorization || '').split(' ')[1] || ''
-            const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':')
+            const b64auth = (req.headers.authorization || "").split(" ")[1] || "";
+            const [login, password] = Buffer.from(b64auth, "base64").toString().split(":");
 
             // Verify login and password are set and correct
             if (login && password && login === auth.login && password === auth.password) {
                 // Access granted...
-                res.end()
-                return
+                res.end();
+                return;
             }
 
             // Access denied...
-            res.set('WWW-Authenticate', 'Basic realm="401"') // change this
-            res.status(401).send('Authentication required.') // custom message
+            res.set("WWW-Authenticate", 'Basic realm="401"'); // change this
+            res.status(401).send("Authentication required."); // custom message
 
             // -----------------------------------------------------------------------
+        });
 
-        })
-        
-        return new Promise<void>((resolve)=>{
-            HttpClientBasicTest.server = https.createServer({
-                key: fs.readFileSync('./test/server.key'),
-                cert: fs.readFileSync('./test/server.cert')
-            }, app).listen(3001, "localhost", resolve)
-        })
-       
-
+        return new Promise<void>((resolve) => {
+            HttpClientBasicTest.server = https
+                .createServer(
+                    {
+                        key: fs.readFileSync("./test/server.key"),
+                        cert: fs.readFileSync("./test/server.cert"),
+                    },
+                    app
+                )
+                .listen(3001, "localhost", resolve);
+        });
     }
 
     before() {
-        this.client = new HttpClient({ allowSelfSigned: true }, true)
+        this.client = new HttpClient({ allowSelfSigned: true }, true);
     }
 
     static after() {
-        return promisify(HttpClientBasicTest.server.close.bind(HttpClientBasicTest.server))()
+        return promisify(HttpClientBasicTest.server.close.bind(HttpClientBasicTest.server))();
     }
 
     @test async "should authorize client with basic"() {
         const scheme: BasicSecurityScheme = {
-            scheme : "basic",
-            in: "header"
-        }
+            scheme: "basic",
+            in: "header",
+        };
 
-        this.client.setSecurity([scheme], {"username": "admin","password": "password" })
+        this.client.setSecurity([scheme], { username: "admin", password: "password" });
         return this.client.readResource({
-            href: "https://localhost:3001"
-        })
-
+            href: "https://localhost:3001",
+        });
     }
+
     @test async "should fail to authorize client with basic"() {
         const scheme: BasicSecurityScheme = {
-            scheme : "basic",
-            in: "header"
-        }
+            scheme: "basic",
+            in: "header",
+        };
 
-        this.client.setSecurity([scheme], {"username": "other","password": "other" })
-        return this.client.readResource({href: "https://localhost:3001"}).should.be.rejected
-
+        this.client.setSecurity([scheme], { username: "other", password: "other" });
+        return this.client.readResource({ href: "https://localhost:3001" }).should.be.rejected;
     }
-
 }

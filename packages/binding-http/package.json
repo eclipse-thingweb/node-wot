@@ -1,59 +1,71 @@
 {
-  "name": "@node-wot/binding-http",
-  "version": "0.8.0",
-  "description": "HTTP client & server protocol binding for node-wot",
-  "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
-  "license": "EPL-2.0 OR W3C-20150513",
-  "repository": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-http",
-  "publishConfig": {
-    "access": "public"
-  },
-  "files": [
-    "dist/"
-  ],
-  "main": "dist/http.js",
-  "types": "dist/http.d.ts",
-  "browser": "dist/http-browser.js",
-  "devDependencies": {
-    "@testdeck/mocha": "^0.1.2",
-    "@types/basic-auth": "1.1.3",
-    "@types/chai": "4.2.8",
-    "@types/chai-as-promised": "^7.1.3",
-    "@types/express": "^4.17.3",
-    "@types/express-oauth-server": "^2.0.2",
-    "@types/mocha": "^7.0.2",
-    "@types/node": "13.7.0",
-    "@types/node-fetch": "^2.5.6",
-    "@types/request-promise": "4.1.45",
-    "chai": "4.2.0",
-    "chai-as-promised": "^7.1.1",
-    "chai-spies": "1.0.0",
-    "express-oauth-server": "^2.0.0",
-    "mocha": "^9.1.1",
-    "ssestream": "1.0.0",
-    "ts-node": "8.6.2",
-    "typescript": "4.1.3",
-    "typescript-standard": "0.3.36",
-    "wot-typescript-definitions": "^0.8.0-SNAPSHOT.18"
-  },
-  "dependencies": {
-    "@node-wot/core": "0.8.0",
-    "@node-wot/td-tools": "0.8.0",
-    "@types/eventsource": "^1.1.2",
-    "accept-language-parser": "1.5.0",
-    "basic-auth": "2.0.1",
-    "client-oauth2": "^4.2.5",
-    "eventsource": "^1.0.7",
-    "node-fetch": "^2.6.0",
-    "rxjs": "5.5.11",
-    "slugify": "^1.4.5"
-  },
-  "scripts": {
-    "build": "tsc",
-    "test": "mocha --require ts-node/register --extension ts"
-  },
-  "bugs": {
-    "url": "https://github.com/eclipse/thingweb.node-wot/issues"
-  },
-  "homepage": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-http#readme"
+    "name": "@node-wot/binding-http",
+    "version": "0.8.0",
+    "description": "HTTP client & server protocol binding for node-wot",
+    "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
+    "license": "EPL-2.0 OR W3C-20150513",
+    "repository": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-http",
+    "publishConfig": {
+        "access": "public"
+    },
+    "files": [
+        "dist/"
+    ],
+    "main": "dist/http.js",
+    "types": "dist/http.d.ts",
+    "browser": "dist/http-browser.js",
+    "devDependencies": {
+        "@testdeck/mocha": "^0.1.2",
+        "@types/basic-auth": "1.1.3",
+        "@types/chai": "4.2.8",
+        "@types/chai-as-promised": "^7.1.3",
+        "@types/express": "^4.17.3",
+        "@types/express-oauth-server": "^2.0.2",
+        "@types/mocha": "^7.0.2",
+        "@types/node": "13.7.0",
+        "@types/node-fetch": "^2.5.6",
+        "@types/request-promise": "4.1.45",
+        "@typescript-eslint/eslint-plugin": "^4.30.0",
+        "@typescript-eslint/parser": "^4.30.0",
+        "chai": "4.2.0",
+        "chai-as-promised": "^7.1.1",
+        "chai-spies": "1.0.0",
+        "eslint": "^7.32.0",
+        "eslint-config-prettier": "^8.3.0",
+        "eslint-config-standard": "^16.0.3",
+        "eslint-plugin-import": "^2.24.2",
+        "eslint-plugin-node": "^11.1.0",
+        "eslint-plugin-promise": "^5.1.0",
+        "eslint-plugin-unused-imports": "^1.1.4",
+        "express-oauth-server": "^2.0.0",
+        "mocha": "^9.1.1",
+        "prettier": "^2.3.2",
+        "ssestream": "1.0.0",
+        "ts-node": "8.6.2",
+        "typescript": "4.1.3",
+        "typescript-standard": "0.3.36",
+        "wot-typescript-definitions": "^0.8.0-SNAPSHOT.18"
+    },
+    "dependencies": {
+        "@node-wot/core": "0.8.0",
+        "@node-wot/td-tools": "0.8.0",
+        "@types/eventsource": "^1.1.2",
+        "accept-language-parser": "1.5.0",
+        "basic-auth": "2.0.1",
+        "client-oauth2": "^4.2.5",
+        "eventsource": "^1.0.7",
+        "node-fetch": "^2.6.0",
+        "rxjs": "5.5.11",
+        "slugify": "^1.4.5"
+    },
+    "scripts": {
+        "build": "tsc",
+        "test": "mocha --require ts-node/register --extension ts",
+        "lint": "eslint .",
+        "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"**/*.json\""
+    },
+    "bugs": {
+        "url": "https://github.com/eclipse/thingweb.node-wot/issues"
+    },
+    "homepage": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-http#readme"
 }

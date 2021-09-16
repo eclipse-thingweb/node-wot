@@ -1,11 +1,9 @@
 {
-	"extends": "../../tsconfig.json",
-	"compilerOptions": {
-		"outDir": "dist",
-		"resolveJsonModule": true,
-		"esModuleInterop": true
-	},
-	"include": [
-		"src/**/*"
-	]
+    "extends": "../../tsconfig.json",
+    "compilerOptions": {
+        "outDir": "dist",
+        "resolveJsonModule": true,
+        "esModuleInterop": true
+    },
+    "include": ["src/**/*"]
 }
