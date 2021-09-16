@@ -17,22 +17,31 @@ import { Helpers } from "@node-wot/core";
 import { ThingDescription } from "wot-typescript-definitions";
 let WoTHelpers: Helpers;
 
-console.info("Ensure https://leshan.eclipse.org/#/security has the Client Endpoint 'node-wot-test' with Identity 'node-wot' and Key '68656c6c6f'");
+console.info(
+    "Ensure https://leshan.eclipse.org/#/security has the Client Endpoint 'node-wot-test' with Identity 'node-wot' and Key '68656c6c6f'"
+);
 console.info("==========");
 
-WoTHelpers.fetch("coap://localhost:5683/counter").then( async (td) => {
-    try {
-		let leshan = await WoT.consume(td as ThingDescription);
-		console.info("=== TD ===");
-		console.info(td);
-		console.info("==========");
+WoTHelpers.fetch("coap://localhost:5683/counter")
+    .then(async (td) => {
+        try {
+            let leshan = await WoT.consume(td as ThingDescription);
+            console.info("=== TD ===");
+            console.info(td);
+            console.info("==========");
 
-		leshan.invokeAction("register", "</0/0>,</3/0>").then( (res) => {
-			console.info("Registered");
-		}).catch( (err) => {
-			console.error("Registration error:", err.message);
-		});
-	} catch(err) {
-        console.error("Script error:", err);
-    }
-}).catch( (err) => { console.error("Fetch error:", err); });
+            leshan
+                .invokeAction("register", "</0/0>,</3/0>")
+                .then((res) => {
+                    console.info("Registered");
+                })
+                .catch((err) => {
+                    console.error("Registration error:", err.message);
+                });
+        } catch (err) {
+            console.error("Script error:", err);
+        }
+    })
+    .catch((err) => {
+        console.error("Fetch error:", err);
+    });

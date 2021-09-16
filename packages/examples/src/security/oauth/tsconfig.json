@@ -1,8 +1,8 @@
 {
     "compilerOptions": {
-        "outDir": "../../../dist/security/oauth",
+        "outDir": "../../../dist/security/oauth"
     },
     "extends": "../../../tsconfig.json",
     "include": [],
-    "files": ["consumer.ts","exposer.ts"]
+    "files": ["consumer.ts", "exposer.ts"]
 }

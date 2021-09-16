@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 /********************************************************************************
  * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
- * 
+ *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
- * 
+ *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0, or the W3C Software Notice and
  * Document License (2015-05-13) which is available at
  * https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document.
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
@@ -48,9 +48,9 @@ const readConf = function (filename: string): Promise<any> {
             }
         });
     });
-}
+};
 
-const runScripts = function(servient: MBusServient, scripts: Array<string>) {
+const runScripts = function (servient: MBusServient, scripts: Array<string>) {
     scripts.forEach((fname) => {
         console.info("WoT-Servient reading script", fname);
         fs.readFile(fname, "utf8", (err, data) => {
@@ -58,14 +58,18 @@ const runScripts = function(servient: MBusServient, scripts: Array<string>) {
                 console.error("WoT-Servient experienced error while reading script", err);
             } else {
                 // limit printout to first line
-                console.info(`WoT-Servient running script '${data.substr(0, data.indexOf("\n")).replace("\r", "")}'... (${data.split(/\r\n|\r|\n/).length} lines)`);
+                console.info(
+                    `WoT-Servient running script '${data.substr(0, data.indexOf("\n")).replace("\r", "")}'... (${
+                        data.split(/\r\n|\r|\n/).length
+                    } lines)`
+                );
                 servient.runPrivilegedScript(data, fname);
             }
         });
     });
-}
+};
 
-const runAllScripts = function(servient: MBusServient) {
+const runAllScripts = function (servient: MBusServient) {
     fs.readdir(baseDir, (err, files) => {
         if (err) {
             console.warn("WoT-Servient experienced error while loading directory", err);
@@ -73,37 +77,38 @@ const runAllScripts = function(servient: MBusServient) {
         }
 
         // unhidden .js files
-        let scripts = files.filter( (file) => {
-            return (file.substr(0, 1) !== "." && file.slice(-3) === ".js");
+        let scripts = files.filter((file) => {
+            return file.substr(0, 1) !== "." && file.slice(-3) === ".js";
         });
-        console.info(`WoT-Servient using current directory with ${scripts.length} script${scripts.length>1 ? "s" : ""}`);
-        
-        runScripts(servient, scripts.map(filename => path.join(baseDir, filename)));
+        console.info(
+            `WoT-Servient using current directory with ${scripts.length} script${scripts.length > 1 ? "s" : ""}`
+        );
+
+        runScripts(
+            servient,
+            scripts.map((filename) => path.join(baseDir, filename))
+        );
     });
-}
+};
 
 // main
-for( let i = 0; i < argv.length; i++){ 
+for (let i = 0; i < argv.length; i++) {
     if (flagArgConfigfile) {
         flagArgConfigfile = false;
         confFile = argv[i];
         argv.splice(i, 1);
         i--;
-
     } else if (argv[i].match(/^(-c|--clientonly|\/c)$/i)) {
         clientOnly = true;
         argv.splice(i, 1);
         i--;
-    
     } else if (argv[i].match(/^(-f|--configfile|\/f)$/i)) {
         flagArgConfigfile = true;
         argv.splice(i, 1);
         i--;
-
     } else if (argv[i].match(/^(-v|--version|\/c)$/i)) {
-        console.log( require('@node-wot/core/package.json').version );
+        console.log(require("@node-wot/core/package.json").version);
         process.exit(0);
-
     } else if (argv[i].match(/^(-h|--help|\/?|\/h)$/i)) {
         console.log(`Usage: wot-servient [options] [SCRIPT]...
        wot-servient
@@ -177,7 +182,7 @@ wot-servient.conf.json fields:
 
 readConf(confFile)
     .then((conf) => {
-        console.log(conf)
+        console.log(conf);
         return new MBusServient(clientOnly, conf);
     })
     .catch((err) => {
@@ -190,10 +195,13 @@ readConf(confFile)
         }
     })
     .then((servient) => {
-        servient.start()
+        servient
+            .start()
             .then(() => {
-                if (argv.length>0) {
-                    console.info(`WoT-Servient loading ${argv.length} command line script${argv.length>1 ? "s" : ""}`);
+                if (argv.length > 0) {
+                    console.info(
+                        `WoT-Servient loading ${argv.length} command line script${argv.length > 1 ? "s" : ""}`
+                    );
                     return runScripts(servient, argv);
                 } else {
                     return runAllScripts(servient);

@@ -15,37 +15,31 @@
 
 let td = {
     "@context": "https://www.w3.org/2019/wot/td/v1",
-    "title": "OAuth",
-    "id": "urn:dev:wot:oauth:test",
-    "securityDefinitions": {
-        "oauth2_sc": {
-            "scheme": "oauth2",
-            "flow": "client_credentials",
-            "authorization": "https://example.com/authorization",
-            "token": "https://localhost:3000/token",
-            "scopes": [
-                "limited",
-                "special"
-            ]
-        }
+    title: "OAuth",
+    id: "urn:dev:wot:oauth:test",
+    securityDefinitions: {
+        oauth2_sc: {
+            scheme: "oauth2",
+            flow: "client_credentials",
+            authorization: "https://example.com/authorization",
+            token: "https://localhost:3000/token",
+            scopes: ["limited", "special"],
+        },
     },
-    "security": [
-        "oauth2_sc"
-    ],
-    "actions": {
-        "sayOk": {
-            "description": "A simple action protected with oauth",
-            "idempotent": true
-        }
-    }
-}
+    security: ["oauth2_sc"],
+    actions: {
+        sayOk: {
+            description: "A simple action protected with oauth",
+            idempotent: true,
+        },
+    },
+};
 try {
     //@ts-ignore see https://github.com/w3c/wot-thing-description/issues/1162
     WoT.produce(td).then((thing) => {
-        thing.setActionHandler("sayOk",async ()=> "Ok!" )
-        thing.expose()
+        thing.setActionHandler("sayOk", async () => "Ok!");
+        thing.expose();
     });
-}
-catch (err) {
+} catch (err) {
     console.error("Script error: " + err);
 }

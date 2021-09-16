@@ -17,27 +17,30 @@ import { Helpers } from "@node-wot/core";
 import { ThingDescription } from "wot-typescript-definitions";
 let WoTHelpers: Helpers;
 
-WoTHelpers.fetch("http://localhost:8080/eventsource").then( async (td) => {
-    try {
-		let source = await WoT.consume(td as ThingDescription);
-		console.info("=== TD ===");
-		console.info(td);
-		console.info("==========");
+WoTHelpers.fetch("http://localhost:8080/eventsource")
+    .then(async (td) => {
+        try {
+            let source = await WoT.consume(td as ThingDescription);
+            console.info("=== TD ===");
+            console.info(td);
+            console.info("==========");
 
-		source.subscribeEvent("onchange",
-			(x: any) => {
-				console.info("onNext:", x);
-			}
-		)
-		.then(() => {
-			console.log("onCompleted");
-		})
-		.catch((e: any) => {
-			console.log("onError: %s", e)
-		});
+            source
+                .subscribeEvent("onchange", (x: any) => {
+                    console.info("onNext:", x);
+                })
+                .then(() => {
+                    console.log("onCompleted");
+                })
+                .catch((e: any) => {
+                    console.log("onError: %s", e);
+                });
 
-		console.info("Subscribed");
-	} catch(err) {
-        console.error("Script error:", err);
-    }
-}).catch( (err) => { console.error("Fetch error:", err); });
+            console.info("Subscribed");
+        } catch (err) {
+            console.error("Script error:", err);
+        }
+    })
+    .catch((err) => {
+        console.error("Fetch error:", err);
+    });

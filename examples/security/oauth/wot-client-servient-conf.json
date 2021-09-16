@@ -7,7 +7,7 @@
     },
     "credentials": {
         "urn:dev:wot:oauth:test": {
-            "clientId" : "node-wot",
+            "clientId": "node-wot",
             "clientSecret": "isgreat!"
         }
     }

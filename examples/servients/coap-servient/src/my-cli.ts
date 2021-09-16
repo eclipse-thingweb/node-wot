@@ -1,26 +1,26 @@
 #!/usr/bin/env node
 /********************************************************************************
  * Copyright (c) 2018 - 2021 Contributors to the Eclipse Foundation
- * 
+ *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
- * 
+ *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0, or the W3C Software Notice and
  * Document License (2015-05-13) which is available at
  * https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document.
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
 // global W3C WoT Scripting API definitions
 // using core definitions instead of 'wot-typescript-definitions' to avoid typing error
 import _ from "@node-wot/core";
-// node-wot implementation of W3C WoT Servient 
+// node-wot implementation of W3C WoT Servient
 import { Servient } from "@node-wot/core";
 
-// node-wot implementation of W3C WoT Servient 
+// node-wot implementation of W3C WoT Servient
 import CoapServient from "./coap-servient";
 
 // tools
@@ -30,7 +30,7 @@ import * as path from "path";
 const confFile = "my-cli.conf.json";
 const baseDir = ".";
 
-const readConf = function () : Promise<any> {
+const readConf = function (): Promise<any> {
     return new Promise((resolve, reject) => {
         fs.readFile(path.join(baseDir, confFile), "utf-8", (err, data) => {
             if (err) {
@@ -43,9 +43,9 @@ const readConf = function () : Promise<any> {
             }
         });
     });
-}
+};
 
-const runScripts = function(srv : CoapServient, scripts : Array<string>) : void {
+const runScripts = function (srv: CoapServient, scripts: Array<string>): void {
     scripts.forEach((fname) => {
         console.info("my-cli reading script", fname);
         fs.readFile(fname, "utf8", (err, data) => {
@@ -58,9 +58,9 @@ const runScripts = function(srv : CoapServient, scripts : Array<string>) : void 
             }
         });
     });
-}
+};
 
-const runAllScripts = function(srv : CoapServient) : void {
+const runAllScripts = function (srv: CoapServient): void {
     const scriptDir = path.join(baseDir, srv.config.servient.scriptDir);
     fs.readdir(scriptDir, (err, files) => {
         if (err) {
@@ -69,18 +69,23 @@ const runAllScripts = function(srv : CoapServient) : void {
         }
 
         // unhidden .js files
-        let scripts = files.filter( (file) => {
-            return (file.substr(0, 1) !== "." && file.slice(-3) === ".js");
+        let scripts = files.filter((file) => {
+            return file.substr(0, 1) !== "." && file.slice(-3) === ".js";
         });
-        console.info(`my-cli loading directory '${scriptDir}' with ${scripts.length} script${scripts.length>1 ? "s" : ""}`);
-        
-        runScripts(srv, scripts.map(value => path.join(scriptDir, value)));
+        console.info(
+            `my-cli loading directory '${scriptDir}' with ${scripts.length} script${scripts.length > 1 ? "s" : ""}`
+        );
+
+        runScripts(
+            srv,
+            scripts.map((value) => path.join(scriptDir, value))
+        );
     });
-}
+};
 
 // main
-if (process.argv.length>2) {
-    process.argv.slice(2).forEach( (arg) => {
+if (process.argv.length > 2) {
+    process.argv.slice(2).forEach((arg) => {
         if (arg.match(/^(-h|--help|\/?|\/h)$/i)) {
             console.log(`Usage: my-cli [SCRIPT]...
 Run a WoT Servient in the current directory. Automatically loads all .js files in the directory.
@@ -111,8 +116,8 @@ readConf()
     .then((conf) => {
         return new CoapServient(conf);
     })
-    .catch(err => {
-        if (err.code == 'ENOENT') {
+    .catch((err) => {
+        if (err.code == "ENOENT") {
             console.warn("my-cli using defaults as 'coap-servient.conf.json' does not exist");
             return new CoapServient();
         } else {
@@ -120,18 +125,23 @@ readConf()
             process.exit(err.errno);
         }
     })
-    .then(servient => {
-        servient.start()
-            .then( () => {
-                if (process.argv.length>2) {
-                    console.info(`my-cli loading ${process.argv.length-2} command line script${process.argv.length-2>1 ? "s" : ""}`);
+    .then((servient) => {
+        servient
+            .start()
+            .then(() => {
+                if (process.argv.length > 2) {
+                    console.info(
+                        `my-cli loading ${process.argv.length - 2} command line script${
+                            process.argv.length - 2 > 1 ? "s" : ""
+                        }`
+                    );
                     return runScripts(servient, process.argv.slice(2));
                 } else {
                     return runAllScripts(servient);
                 }
             })
-        .catch( err => {
-            console.error("my-cli cannot start: " + err.message);
-        });
+            .catch((err) => {
+                console.error("my-cli cannot start: " + err.message);
+            });
     })
-    .catch(err => console.error(err));
+    .catch((err) => console.error(err));

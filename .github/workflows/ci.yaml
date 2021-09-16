@@ -3,63 +3,55 @@ name: Default CI Pipeline
 on: [push, pull_request]
 
 jobs:
-  setup-and-test:
+    setup-and-test:
+        runs-on: ${{ matrix.os }}
 
-    runs-on: ${{ matrix.os }}
+        strategy:
+            matrix:
+                os: [macos-latest, ubuntu-latest, windows-latest]
+                node-version: [12.x, 14.x, 16.x]
 
-    strategy:
-      matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
-        node-version: [ 12.x, 14.x, 16.x]
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v2
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+            - name: Use Node.js ${{ matrix.os }} ${{ matrix.node-version }}
+              uses: actions/setup-node@v1
+              with:
+                  node-version: ${{ matrix.node-version }}
+            - name: npm 7
+              # npm workspaces requires npm v7 or higher
+              run: npm i -g npm@7 --registry=https://registry.npmjs.org
+            - name: Install
+              run: npm ci
 
-      - name: Use Node.js ${{ matrix.os }} ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
-        with:
-            node-version: ${{ matrix.node-version }}
-      - name: npm 7
-      # npm workspaces requires npm v7 or higher
-        run: npm i -g npm@7 --registry=https://registry.npmjs.org
-      - name: Install
-        run: npm ci
+            - name: Build
+              run: npm run build
 
-      - name: Build
-        run: npm run build
+            - name: Test
+              run: npm run test
 
-      - name: Test
-        run: npm run test
+    eslint:
+        name: eslint
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v1
+            - name: install node v12
+              uses: actions/setup-node@v1
+              with:
+                  node-version: 12
+            - name: yarn install
+              run: yarn install
+            - name: eslint
+              uses: icrawl/action-eslint@v1
+              with:
+                  custom-glob: packages
 
-  eslint:
-    name: eslint
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v1
-    - name: install node v12
-      uses: actions/setup-node@v1
-      with:
-        node-version: 12
-    - name: yarn install
-      run: yarn install
-    - name: eslint
-      uses: icrawl/action-eslint@v1
-      with:
-        custom-glob: packages
-
-  prettier:
-    name: Check coding style
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v1
-    - name: install node v12
-      uses: actions/setup-node@v1
-      with:
-        node-version: 12
-    - name: yarn install
-      run: yarn install
-    - name: Prettify code
-      uses: creyD/prettier_action@v4.0
-      with:
-        dry: True
+    prettier:
+        name: Check coding style
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+            - uses: actionsx/prettier@v2
+              with:
+                  args: --check .

@@ -2,7 +2,7 @@
 
 This content is produced and maintained by the Eclipse Thingweb project.
 
-* Project home: https://projects.eclipse.org/projects/iot.thingweb
+-   Project home: https://projects.eclipse.org/projects/iot.thingweb
 
 ## Trademarks
 
@@ -27,7 +27,6 @@ SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
 ## Source Code
 
 The project maintains the following source code repositories:
-
 
 ## Third-party Content
 

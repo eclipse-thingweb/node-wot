@@ -1,28 +1,29 @@
 {
-  "private": true,
-  "name": "thingweb.node-wot",
-  "description": "W3C Web of Things (WoT) implementation based on Node.js and TypeScript (root project, not published)",
-  "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
-  "license": "EPL-2.0 OR W3C-20150513",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/eclipse/thingweb.node-wot.git"
-  },
-  "scripts": {
-    "build": "npm run build --workspaces",
-    "pretest": "npm run build",
-    "start": "cd packages/cli && npm run start",
-    "debug": "cd packages/cli && npm run debug",
-    "test": "npm run test --silent --workspaces --if-present",
-    "test:only": "npm run test --silent --workspaces --if-present",
-    "lint": "npm run lint --silent --workspaces --if-present",
-    "format": "npm run format --silent --workspaces --if-present",
-    "publish": "npm publish --workspaces"
-  },
-  "workspaces": [ "./packages/td-tools",
-    "./packages/core",
-    "./packages/binding-!(firestore-browser-bundle|mbus|firestore)",
-    "./packages/cli",
-    "./packages/examples"
-  ]
+    "private": true,
+    "name": "thingweb.node-wot",
+    "description": "W3C Web of Things (WoT) implementation based on Node.js and TypeScript (root project, not published)",
+    "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
+    "license": "EPL-2.0 OR W3C-20150513",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/eclipse/thingweb.node-wot.git"
+    },
+    "scripts": {
+        "build": "npm run build --workspaces",
+        "pretest": "npm run build",
+        "start": "cd packages/cli && npm run start",
+        "debug": "cd packages/cli && npm run debug",
+        "test": "npm run test --silent --workspaces --if-present",
+        "test:only": "npm run test --silent --workspaces --if-present",
+        "lint": "npm run lint --silent --workspaces --if-present",
+        "format": "prettier --write . && npm run format --silent --workspaces --if-present",
+        "publish": "npm publish --workspaces"
+    },
+    "workspaces": [
+        "./packages/td-tools",
+        "./packages/core",
+        "./packages/binding-!(firestore-browser-bundle|mbus|firestore)",
+        "./packages/cli",
+        "./packages/examples"
+    ]
 }
