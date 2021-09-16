@@ -11,20 +11,14 @@
             "label": "build",
             "type": "shell",
             "command": "npm",
-            "args": [
-                "run",
-                "build"
-            ],
+            "args": ["run", "build"],
             "group": "build"
         },
         {
             "label": "test",
             "type": "shell",
             "command": "npm",
-            "args": [
-                "run",
-                "test"
-            ]
+            "args": ["run", "test"]
         }
     ]
 }

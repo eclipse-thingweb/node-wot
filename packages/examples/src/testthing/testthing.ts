@@ -1,21 +1,21 @@
 /********************************************************************************
+ * Copyright (c) 2018 - 2021 Contributors to the Eclipse Foundation
  * Copyright (c) 2020 - 2021 Contributors to the Eclipse Foundation
- * 
+ *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
- * 
+ *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0, or the W3C Software Notice and
  * Document License (2015-05-13) which is available at
  * https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document.
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import "wot-typescript-definitions"
-
-let WoT: WoT.WoT;
+import { Helpers } from "@node-wot/core";
+let WoTHelpers: Helpers;
 
 function checkPropertyWrite(expected: any, actual: any) {
     let output = "Property " + expected + " written with " + actual;
@@ -40,30 +40,30 @@ let int = 42;
 let num = 3.14;
 let string = "unset";
 let array = [2, "unset"];
-let object = { "id": 123, "name": "abc" };
+let object = { id: 123, name: "abc" };
 
 WoT.produce({
     title: "TestThing",
     properties: {
         bool: {
             title: "true/false",
-            type: "boolean"
+            type: "boolean",
         },
         int: {
             title: "Integer number",
-            type: "integer"
+            type: "integer",
         },
         num: {
             title: "Floating point",
-            type: "number"
+            type: "number",
         },
         string: {
-            type: "string"
+            type: "string",
         },
         array: {
             title: "Tuple",
             type: "array",
-            items: {}
+            items: {},
         },
         object: {
             title: "ID-name",
@@ -73,41 +73,41 @@ WoT.produce({
                 id: {
                     title: "ID",
                     description: "Internal identifier",
-                    type: "integer"
+                    type: "integer",
                 },
                 name: {
                     title: "Name",
                     description: "Public name",
-                    type: "string"
-                }
-            }
-        }
+                    type: "string",
+                },
+            },
+        },
     },
     actions: {
         "void-void": {
             title: "void-void Action",
-            description: "Action without input nor output"
+            description: "Action without input nor output",
         },
         "void-int": {
             title: "void-void Action",
-            description: "Action without input nor output"
+            description: "Action without input nor output",
         },
         "int-void": {
             title: "int-void Action",
             description: "Action with integer input, but without output",
-            input: { type: "integer" }
+            input: { type: "integer" },
         },
         "int-int": {
             title: "int-int Action",
             description: "Action with integer input and output",
             input: { type: "integer" },
-            output: { type: "integer" }
+            output: { type: "integer" },
         },
         "int-string": {
             title: "int-string Action",
             description: "Action with integer input and string output",
             input: { type: "integer" },
-            output: { type: "string" }
+            output: { type: "string" },
         },
         "void-obj": {
             title: "void-obj Action",
@@ -116,14 +116,14 @@ WoT.produce({
                 type: "object",
                 properties: {
                     prop1: {
-                        type: "integer"
+                        type: "integer",
                     },
                     prop2: {
-                        type: "string"
-                    }
+                        type: "string",
+                    },
                 },
-                required: ["prop1", "prop2"]
-            }
+                required: ["prop1", "prop2"],
+            },
         },
         "obj-void": {
             title: "obj-void Action",
@@ -132,33 +132,37 @@ WoT.produce({
                 type: "object",
                 properties: {
                     prop1: { type: "integer" },
-                    prop2: { type: "string" }
+                    prop2: { type: "string" },
                 },
-                required: ["prop1", "prop2"]
-            }
-        }
+                required: ["prop1", "prop2"],
+            },
+        },
     },
     events: {
         "on-bool": {
             title: "on-bool Event",
             description: "Event with boolean data",
-            data: { type: "boolean" }
+            data: { type: "boolean" },
         },
         "on-int": {
             title: "on-int Event",
             description: "Event with integer data",
-            data: { type: "integer" }
+            data: { type: "integer" },
         },
         "on-num": {
             title: "on-num Event",
             description: "Event with number data",
-            data: { type: "number" }
-        }
-    }
+            data: { type: "number" },
+        },
+    },
 })
     .then((thing) => {
         console.log("Produced " + thing.getThingDescription().title);
 
+        // TODO FIX after v0.8 API changes are in place
+        console.error("TODO FIX after v0.8 API changes are in place");
+
+        /*
         // init property values
         thing.writeProperty("bool", bool);
         thing.writeProperty("int", int);
@@ -166,13 +170,18 @@ WoT.produce({
         thing.writeProperty("string", string);
         thing.writeProperty("array", array);
         thing.writeProperty("object", object);
-
-        // set property handlers
+        
+        thing
+            .setPropertyWriteHandler("bool", async (value) => {
+                let localBool = await value.value();
+                checkPropertyWrite("boolean", typeof localBool);
+                bool = localBool;
+            });
         thing
             .setPropertyWriteHandler("bool", (value) => {
                 return new Promise((resolve, reject) => {
                     checkPropertyWrite("boolean", typeof value);
-                    bool = value;
+                    bool = value.value();
                     resolve();
                 });
             })
@@ -253,8 +262,10 @@ WoT.produce({
                     resolve(object);
                 });
             });
+        */
 
-        // set action handlers
+        // TODO set action handlers
+        /*
         thing
             .setActionHandler("void-void", (parameters) => {
                 return new Promise((resolve, reject) => {
@@ -327,10 +338,13 @@ WoT.produce({
                     resolve();
                 });
             });
+        */
 
         // expose the thing
-        thing.expose().then(() => { console.info(thing.getThingDescription().title + " ready"); });
+        thing.expose().then(() => {
+            console.info(thing.getThingDescription().title + " ready");
+        });
     })
     .catch((e) => {
-        console.log(e)
+        console.log(e);
     });

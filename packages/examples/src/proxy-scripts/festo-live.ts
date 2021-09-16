@@ -1,24 +1,24 @@
 /********************************************************************************
  * Copyright (c) 2020 - 2021 Contributors to the Eclipse Foundation
- * 
+ *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
- * 
+ *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0, or the W3C Software Notice and
  * Document License (2015-05-13) which is available at
  * https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document.
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-import "wot-typescript-definitions"
+import "wot-typescript-definitions";
 import { Helpers } from "@node-wot/core";
+import { ThingDescription } from "wot-typescript-definitions";
 
-let WoT:WoT.WoT;
 let WoTHelpers: Helpers;
 
-console.debug = () =>  {};
+console.debug = () => {};
 console.log = () => {};
 
 let PumpP101: WoT.ConsumedThing, ValveV102: WoT.ConsumedThing;
@@ -27,42 +27,48 @@ let thingExposed: WoT.ExposedThing;
 
 // fetch and consume NodeMCU Things
 let fetchArray = [
-  WoTHelpers.fetch("file://./tdPumpP101.jsonld"),
-  WoTHelpers.fetch("file://./tdValveV102.jsonld"),
-  WoTHelpers.fetch("file://./tdUltrasonicSensorB101.jsonld"),
-  WoTHelpers.fetch("file://./tdB114.jsonld"),
-  WoTHelpers.fetch("file://./tdB113.jsonld"),
-  WoTHelpers.fetch("file://./tdS111.jsonld"),
-  WoTHelpers.fetch("file://./tdS112.jsonld") ];
+    WoTHelpers.fetch("file://./tdPumpP101.jsonld"),
+    WoTHelpers.fetch("file://./tdValveV102.jsonld"),
+    WoTHelpers.fetch("file://./tdUltrasonicSensorB101.jsonld"),
+    WoTHelpers.fetch("file://./tdB114.jsonld"),
+    WoTHelpers.fetch("file://./tdB113.jsonld"),
+    WoTHelpers.fetch("file://./tdS111.jsonld"),
+    WoTHelpers.fetch("file://./tdS112.jsonld"),
+];
 
-Promise.all(fetchArray).then(async (tdArray) => {
-  // order must match order of jsonld files
-  let [tdPumpP101, tdValveV102, tdUltrasonicSensorB101, tdB114, tdB113, tdS111, tdS112] = tdArray;
+Promise.all(fetchArray).then(async (tdArray: ThingDescription[]) => {
+    // order must match order of jsonld files
+    let [tdPumpP101, tdValveV102, tdUltrasonicSensorB101, tdB114, tdB113, tdS111, tdS112] = tdArray;
 
-  PumpP101 = await WoT.consume(tdPumpP101); // Status
-  ValveV102 = await WoT.consume(tdValveV102); // Status
+    PumpP101 = await WoT.consume(tdPumpP101); // Status
+    ValveV102 = await WoT.consume(tdValveV102); // Status
 
-  let UltrasonicSensorB101 = await WoT.consume(tdUltrasonicSensorB101); // level
-  let LevelSensorB114 = await WoT.consume(tdB114); // maxlevel101
-  let LevelSensorB113 = await WoT.consume(tdB113); // minlevel101
+    let UltrasonicSensorB101 = await WoT.consume(tdUltrasonicSensorB101); // level
+    let LevelSensorB114 = await WoT.consume(tdB114); // maxlevel101
+    let LevelSensorB113 = await WoT.consume(tdB113); // minlevel101
 
-  let LevelSwitchS111 = await WoT.consume(tdS111); // overflow101
-  let FloatSwitchS112 = await WoT.consume(tdS112); // overflow102
+    let LevelSwitchS111 = await WoT.consume(tdS111); // overflow101
+    let FloatSwitchS112 = await WoT.consume(tdS112); // overflow102
 
-  // regularly sync state to exposed Thing
-  setInterval( () => {
+    // regularly sync state to exposed Thing
+    setInterval(() => {
+        // TODO FIX after v0.8 API changes are in place
+        console.error("TODO FIX after v0.8 API changes are in place");
 
+        /*
     PumpP101.readProperty("status")
-      .then(value => {
-        console.info("+++ PumpStatus " + value);
-        thingExposed.writeProperty("PumpStatus", value === "ON" ? true : false);
+      .then(async value => {
+        let valuep = await Helpers.parseInteractionOutput(value);
+        console.info("+++ PumpStatus " + valuep);
+        thingExposed.writeProperty("PumpStatus", valuep === "ON" ? true : false);
       })
       .catch(err => { console.error("--- PumpStatus read error: " + err); });
 
     ValveV102.readProperty("status")
-      .then(value => {
-        console.info("+++ ValveStatus " + value);
-        thingExposed.writeProperty("ValveStatus", value === "OPEN" ? true : false);
+      .then(async value => {
+        let valuep = await Helpers.parseInteractionOutput(value);
+        console.info("+++ ValveStatus " + valuep);
+        thingExposed.writeProperty("ValveStatus", valuep === "OPEN" ? true : false);
       })
       .catch(err => { console.error("--- ValveStatus read error: " + err); });
 
@@ -100,62 +106,60 @@ Promise.all(fetchArray).then(async (tdArray) => {
         thingExposed.writeProperty("Tank101OverflowStatus", value);
       })
       .catch(err => { console.error("--- Tank101OverflowStatus read error: " + err); });
-
-  }, 5000);
+    */
+    }, 5000);
 });
-
-
 
 // exposed Thing toward Oracle IoT Cloud Service
 WoT.produce({
-  title: "FestoLive",
-  id: "urn:dev:wot:siemens:festolive",
-  "iotcs:deviceModel": "urn:com:siemens:wot:festo",
-  properties: {
-		PumpStatus: {
-			type: "boolean",
-			readOnly: true
+    title: "FestoLive",
+    id: "urn:dev:wot:siemens:festolive",
+    "iotcs:deviceModel": "urn:com:siemens:wot:festo",
+    properties: {
+        PumpStatus: {
+            type: "boolean",
+            readOnly: true,
+        },
+        ValveStatus: {
+            type: "boolean",
+            readOnly: true,
+        },
+        Tank102LevelValue: {
+            type: "number",
+            readOnly: true,
+        },
+        Tank102OverflowStatus: {
+            type: "boolean",
+            readOnly: true,
+        },
+        Tank101MaximumLevelStatus: {
+            type: "boolean",
+            readOnly: true,
+        },
+        Tank101MinimumLevelStatus: {
+            type: "boolean",
+            readOnly: true,
+        },
+        Tank101OverflowStatus: {
+            type: "boolean",
+            readOnly: true,
+        },
     },
-    ValveStatus: {
-			type: "boolean",
-			readOnly: true
-		},
-    Tank102LevelValue: {
-			type: "number",
-			readOnly: true
-		},
-    Tank102OverflowStatus: {
-			type: "boolean",
-			readOnly: true
-		},
-    Tank101MaximumLevelStatus: {
-			type: "boolean",
-			readOnly: true
-		},
-    Tank101MinimumLevelStatus: {
-			type: "boolean",
-			readOnly: true
-		},
-    Tank101OverflowStatus: {
-			type: "boolean",
-			readOnly: true
-		}
-	},
-	actions: {
-		StartPump: {
+    actions: {
+        StartPump: {},
+        StopPump: {},
+        OpenValve: {},
+        CloseValve: {},
     },
-    StopPump: {
-		},
-    OpenValve: {
-		},
-    CloseValve: {
-		}
-	}
 })
-.then((thing) => {
-  console.log("Produced " + thing.getThingDescription().title);
-  thingExposed = thing;
+    .then((thing) => {
+        console.log("Produced " + thing.getThingDescription().title);
+        thingExposed = thing;
 
+        // TODO FIX after v0.8 API changes are in place
+        console.error("TODO FIX after v0.8 API changes are in place");
+
+        /*
   // init property values
   // actuator state
 	thing.writeProperty("PumpStatus", false); 
@@ -208,9 +212,8 @@ WoT.produce({
 
   // expose the thing
 	thing.expose().then( () => { console.info(thing.getThingDescription().title + " ready"); } );
-})
-.catch((e) => {
-	console.log(e)
-});
-
-
+  */
+    })
+    .catch((e) => {
+        console.log(e);
+    });

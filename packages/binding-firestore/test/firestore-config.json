@@ -1,14 +1,13 @@
 {
     "hostName": "sample-host",
     "firebaseConfig": {
-      "apiKey": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-      "appId": "wotfirestore-test-emulator",
-      "authDomain": "wotfirestore-test-emulator.firebaseapp.com",
-      "projectId": "wotfirestore-test-emulator"
+        "apiKey": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "appId": "wotfirestore-test-emulator",
+        "authDomain": "wotfirestore-test-emulator.firebaseapp.com",
+        "projectId": "wotfirestore-test-emulator"
     },
     "user": {
-      "email": "testuser@testuser.com",
-      "password": "testuserpassword"
+        "email": "testuser@testuser.com",
+        "password": "testuserpassword"
     }
 }
-  

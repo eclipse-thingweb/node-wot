@@ -1,15 +1,15 @@
 /********************************************************************************
  * Copyright (c) 2020 - 2021 Contributors to the Eclipse Foundation
- * 
+ *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
- * 
+ *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0, or the W3C Software Notice and
  * Document License (2015-05-13) which is available at
  * https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document.
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
@@ -17,106 +17,113 @@
 // It considers a fictional smart coffee machine in order to demonstrate the capabilities of Web of Things.
 // An accompanying tutorial is available at http://www.thingweb.io/smart-coffee-machine.html.
 
-import 'wot-typescript-definitions'
-
-let WoT:WoT.WoT;
+import { Helpers } from "@node-wot/core";
+let WoTHelpers: Helpers;
 
 WoT.produce({
-    title: 'Smart-Coffee-Machine',
+    title: "Smart-Coffee-Machine",
     description: `A smart coffee machine with a range of capabilities.
 A complementary tutorial is available at http://www.thingweb.io/smart-coffee-machine.html.`,
-    support: 'git://github.com/eclipse/thingweb.node-wot.git',
-    '@context': [
-        'https://www.w3.org/2019/wot/td/v1',
-    ],
+    support: "git://github.com/eclipse/thingweb.node-wot.git",
+    "@context": ["https://www.w3.org/2019/wot/td/v1"],
     properties: {
         allAvailableResources: {
-            type: 'object',
+            type: "object",
             description: `Current level of all available resources given as an integer percentage for each particular resource.
 The data is obtained from the machine's sensors but can be set manually via the availableResourceLevel property in case the sensors are broken.`,
             readOnly: true,
             properties: {
                 water: {
-                    type: 'integer',
+                    type: "integer",
                     minimum: 0,
                     maximum: 100,
                 },
                 milk: {
-                    type: 'integer',
+                    type: "integer",
                     minimum: 0,
                     maximum: 100,
                 },
                 chocolate: {
-                    type: 'integer',
+                    type: "integer",
                     minimum: 0,
                     maximum: 100,
                 },
                 coffeeBeans: {
-                    type: 'integer',
+                    type: "integer",
                     minimum: 0,
                     maximum: 100,
                 },
             },
         },
         availableResourceLevel: {
-            type: 'number',
+            type: "number",
             description: `Current level of a particular resource. Requires resource id variable as uriVariables.
 The property can also be overridden, which also requires resource id as uriVariables.`,
             uriVariables: {
                 id: {
-                    type: 'string', 
-                    enum: ['water', 'milk', 'chocolate', 'coffeeBeans'],
+                    type: "string",
+                    enum: ["water", "milk", "chocolate", "coffeeBeans"],
                 },
             },
         },
         possibleDrinks: {
-            type: 'array',
+            type: "array",
             description: `The list of possible drinks in general. Doesn't depend on the available resources.`,
             readOnly: true,
             items: {
-                type: 'string',
-            }
+                type: "string",
+            },
         },
         servedCounter: {
-            type: 'integer',
+            type: "integer",
             description: `The total number of served beverages.`,
             minimum: 0,
         },
         maintenanceNeeded: {
-            type: 'boolean',
+            type: "boolean",
             description: `Shows whether a maintenance is needed. The property is observable. Automatically set to true when the servedCounter property exceeds 1000.`,
             observable: true,
         },
         schedules: {
-            type: 'array',
+            type: "array",
             description: `The list of scheduled tasks.`,
             readOnly: true,
             items: {
-                type: 'object',
+                type: "object",
                 properties: {
                     drinkId: {
-                        type: 'string',
+                        type: "string",
                         description: `Defines what drink to make, drinkId is one of possibleDrinks property values, e.g. latte.`,
                     },
                     size: {
-                        type: 'string',
+                        type: "string",
                         description: `Defines the size of a drink, s = small, m = medium, l = large.`,
-                        enum: ['s', 'm', 'l'],
+                        enum: ["s", "m", "l"],
                     },
                     quantity: {
-                        type: 'integer',
+                        type: "integer",
                         description: `Defines how many drinks to make, ranging from 1 to 5.`,
                         minimum: 1,
                         maximum: 5,
                     },
                     time: {
-                        type: 'string',
+                        type: "string",
                         description: `Defines the time of the scheduled task in 24h format, e.g. 10:00 or 21:00.`,
                     },
                     mode: {
-                        type: 'string',
+                        type: "string",
                         description: `Defines the mode of the scheduled task, e.g. once or everyday. All the possible values are given in the enum field of this Thing Description.`,
-                        enum: ['once', 'everyday', 'everyMo', 'everyTu', 'everyWe', 'everyTh', 'everyFr', 'everySat', 'everySun'],
+                        enum: [
+                            "once",
+                            "everyday",
+                            "everyMo",
+                            "everyTu",
+                            "everyWe",
+                            "everyTh",
+                            "everyFr",
+                            "everySat",
+                            "everySun",
+                        ],
                     },
                 },
             },
@@ -126,33 +133,32 @@ The property can also be overridden, which also requires resource id as uriVaria
         makeDrink: {
             description: `Make a drink from available list of beverages. Accepts drink id, size and quantity as uriVariables.
 Brews one medium americano if no uriVariables are specified.`,
-            uriVariables:
-            {
+            uriVariables: {
                 drinkId: {
-                    type: 'string',
+                    type: "string",
                     description: `Defines what drink to make, drinkId is one of possibleDrinks property values, e.g. latte.`,
                 },
                 size: {
-                    type: 'string',
+                    type: "string",
                     description: `Defines the size of a drink, s = small, m = medium, l = large.`,
-                    enum: ['s', 'm', 'l'],
+                    enum: ["s", "m", "l"],
                 },
                 quantity: {
-                    type: 'integer',
+                    type: "integer",
                     description: `Defines how many drinks to make, ranging from 1 to 5.`,
                     minimum: 1,
                     maximum: 5,
                 },
             },
             output: {
-                type: 'object',
+                type: "object",
                 description: `Returns true/false and a message when all invoked promises are resolved (asynchronous).`,
                 properties: {
                     result: {
-                        type: 'boolean',
+                        type: "boolean",
                     },
                     message: {
-                        type: 'string',
+                        type: "string",
                     },
                 },
             },
@@ -161,44 +167,54 @@ Brews one medium americano if no uriVariables are specified.`,
             description: `Add a scheduled task to the schedules property. Accepts drink id, size, quantity, time and mode as body of a request.
 Assumes one medium americano if not specified, but time and mode are mandatory fields.`,
             input: {
-                type: 'object',
+                type: "object",
                 properties: {
                     drinkId: {
-                        type: 'string',
+                        type: "string",
                         description: `Defines what drink to make, drinkId is one of possibleDrinks property values, e.g. latte.`,
                     },
                     size: {
-                        type: 'string',
+                        type: "string",
                         description: `Defines the size of a drink, s = small, m = medium, l = large.`,
-                        enum: ['s', 'm', 'l'],
+                        enum: ["s", "m", "l"],
                     },
                     quantity: {
-                        type: 'integer',
+                        type: "integer",
                         description: `Defines how many drinks to make, ranging from 1 to 5.`,
                         minimum: 1,
-                        maximum: 5
+                        maximum: 5,
                     },
                     time: {
-                        type: 'string',
+                        type: "string",
                         description: `Defines the time of the scheduled task in 24h format, e.g. 10:00 or 21:00.`,
                     },
                     mode: {
-                        type: 'string',
+                        type: "string",
                         description: `Defines the mode of the scheduled task, e.g. once or everyday. All the possible values are given in the enum field of this Thing Description.`,
-                        enum: ['once', 'everyday', 'everyMo', 'everyTu', 'everyWe', 'everyTh', 'everyFr', 'everySat', 'everySun'],
+                        enum: [
+                            "once",
+                            "everyday",
+                            "everyMo",
+                            "everyTu",
+                            "everyWe",
+                            "everyTh",
+                            "everyFr",
+                            "everySat",
+                            "everySun",
+                        ],
                     },
                 },
-                required: ['time', 'mode'],
+                required: ["time", "mode"],
             },
             output: {
-                type: 'object',
+                type: "object",
                 description: `Returns true/false and a message when all invoked promises are resolved (asynchronous).`,
                 properties: {
                     result: {
-                        type: 'boolean',
+                        type: "boolean",
                     },
                     message: {
-                        type: 'string',
+                        type: "string",
                     },
                 },
             },
@@ -208,11 +224,16 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
         outOfResource: {
             description: `Out of resource event. Emitted when the available resource level is not sufficient for a desired drink.`,
             data: {
-                type: 'string',
+                type: "string",
             },
         },
     },
-}).then( (thing) => {
+})
+    .then((thing) => {
+        // TODO FIX after v0.8 API changes are in place
+        console.error("TODO FIX after v0.8 API changes are in place");
+
+        /*
     // Initialize the property values
     thing.writeProperty('allAvailableResources', {
         water: readFromSensor('water'),
@@ -234,12 +255,13 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
 
     // Override a write handler for servedCounter property,
     // raising maintenanceNeeded flag when the value exceeds 1000 drinks
-    thing.setPropertyWriteHandler('servedCounter', (val) => {
+    thing.setPropertyWriteHandler('servedCounter', async (val) => {
+        let valp = await Helpers.parseInteractionOutput(val);
         return new Promise((resolve, reject) => {
-            resolve(val);
-            if (val > 1000) {
+            if (valp > 1000) {
                 thing.writeProperty('maintenanceNeeded', true);
             }
+            resolve(); // valp
         });
     });
 
@@ -344,10 +366,10 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
         }
 
         // Read the current level of allAvailableResources
-        return thing.readProperty('allAvailableResources').then((resources) => {
-            
+        return thing.readProperty('allAvailableResources').then(async (resources) => {
+            let resourcesp = await Helpers.parseInteractionOutput(resources);
             // Calculate the new level of resources
-            let newResources = Object.assign({}, resources);
+            let newResources = Object.assign({}, resourcesp);
             newResources['water'] -= Math.ceil(quantity * sizeQuantifiers[size] * drinkRecipes[drinkId]['water']);
             newResources['milk'] -= Math.ceil(quantity * sizeQuantifiers[size] * drinkRecipes[drinkId]['milk']);
             newResources['chocolate'] -= Math.ceil(quantity * sizeQuantifiers[size] * drinkRecipes[drinkId]['chocolate']);
@@ -357,7 +379,7 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
             for (let resource in newResources) {
                 if (newResources[resource] <= 0) {
                     return new Promise((resolve, reject) => {
-                        thing.emitEvent('outOfResource', `Low level of ${resource}: ${resources[resource]}%`);
+                        thing.emitEvent('outOfResource', `Low level of ${resource}: ${resourcesp[resource]}%`);
                         resolve({result: false, message: `${resource} level is not sufficient`});
                     });
                 }
@@ -365,9 +387,10 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
 
             // Now store the new level of allAvailableResources
             return thing.writeProperty('allAvailableResources', newResources).then(() => {
-                return thing.readProperty('servedCounter').then((counter) => {
+                return thing.readProperty('servedCounter').then(async (counter) => {
+                    let counterp = await Helpers.parseInteractionOutput(counter);
                     return new Promise((resolve, reject) => {
-                        thing.writeProperty('servedCounter', counter + quantity);
+                        thing.writeProperty('servedCounter', counterp + quantity);
 
                         // Finally deliver the drink
                         resolve({result: true, message: `Your ${drinkId} is in progress!`});
@@ -378,20 +401,22 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
     });
 
     // Set up a handler for setSchedule action
-    thing.setActionHandler('setSchedule', (params, options) => {
+    thing.setActionHandler('setSchedule', async (params, options) => {
+        let paramsp : any = await Helpers.parseInteractionOutput(params);
 
         // Check if uriVariables are provided
-        if (params && typeof params === 'object' && 'time' in params && 'mode' in params) {
+        if (paramsp && typeof paramsp === 'object' && 'time' in paramsp && 'mode' in paramsp) {
 
             // Use default values if not provided
-            params['drinkId'] = ('drinkId' in params) ? params['drinkId'] : 'americano';
-            params['size'] = ('size' in params) ? params['size'] : 'm';
-            params['quantity'] = ('quantity' in params) ? params['quantity'] : 1;
+            paramsp['drinkId'] = ('drinkId' in paramsp) ? paramsp['drinkId'] : 'americano';
+            paramsp['size'] = ('size' in paramsp) ? paramsp['size'] : 'm';
+            paramsp['quantity'] = ('quantity' in paramsp) ? paramsp['quantity'] : 1;
 
             // Now read the schedules property, add a new schedule to it and then rewrite the schedules property
-            return thing.readProperty('schedules').then((schedules) => {
-                schedules.push(params);
-                return thing.writeProperty('schedules', schedules).then(() => {
+            return thing.readProperty('schedules').then(async (schedules) => {
+                let schedulesp = await Helpers.parseInteractionOutput(schedules);
+                schedulesp.push(paramsp);
+                return thing.writeProperty('schedules', schedulesp).then(() => {
                     return new Promise((resolve, reject) => {
                         resolve({result: true, message: `Your schedule has been set!`});
                     });
@@ -407,10 +432,11 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
     // Finally expose the thing
     thing.expose().then( () => { console.info(`${thing.getThingDescription().title} ready`); } ); 
     console.log(`Produced ${thing.getThingDescription().title}`);
-}).catch(e => {
-    console.log(e);
-});
-
+    */
+    })
+    .catch((e) => {
+        console.log(e);
+    });
 
 function readFromSensor(sensorType: any) {
     // Actual implementation of reading data from a sensor can go here

@@ -38,16 +38,16 @@ Perform the following setup from the [Firestore console](https://console.firebas
 1. Add user in Users (A)
 1. Create a database in Cloud Firestore
 1. Edit database rule of Firestore to require user authentication for access
-   ```
-   rules_version = '2';
-   service cloud.firestore {
-       match /databases/{database}/documents {
-           match /{document=**} {
-               allow read, write: if request.auth.uid != null;
-           }
-       }
-   }
-   ```
+    ```
+    rules_version = '2';
+    service cloud.firestore {
+        match /databases/{database}/documents {
+            match /{document=**} {
+                allow read, write: if request.auth.uid != null;
+            }
+        }
+    }
+    ```
 1. Select `Project Settings` from the top left gear and confirm the Project ID (B) and Web Api Key (C).
 
 The values defined in (A), (B) and (C) will be written in the configuration file shown in `Confiuration` chapter.
@@ -57,8 +57,8 @@ The values defined in (A), (B) and (C) will be written in the configuration file
 To prepare for creating a nodejs app, execute `npm install`.
 After executing `npm init`, install the following modules.
 
-- `npm install @node-wot/core`
-- `npm install @node-wot/binding-firestore`
+-   `npm install @node-wot/core`
+-   `npm install @node-wot/binding-firestore`
 
 ### Creating configuration file
 
@@ -66,16 +66,16 @@ These examples require a configuration file that contains Firestore connection i
 
 ```json
 {
-  "hostName": "<Host Name defined by user>",
-  "firebaseConfig": {
-    "apiKey": "<API Key of Firebase (C)>",
-    "projectId": "<Project Id of Firebase (B)>",
-    "authDomain": "<Auth Domain of Firebase(Usually it will be <B>.firebaseapp.com>"
-  },
-  "user": {
-    "email": "<email address registered in Firebase (A)>",
-    "password": "<password corresponding to the email address above (A)>"
-  }
+    "hostName": "<Host Name defined by user>",
+    "firebaseConfig": {
+        "apiKey": "<API Key of Firebase (C)>",
+        "projectId": "<Project Id of Firebase (B)>",
+        "authDomain": "<Auth Domain of Firebase(Usually it will be <B>.firebaseapp.com>"
+    },
+    "user": {
+        "email": "<email address registered in Firebase (A)>",
+        "password": "<password corresponding to the email address above (A)>"
+    }
 }
 ```
 
@@ -90,42 +90,40 @@ The ThingDescription registered by `example-server.js`.
 
 ```js
 // example-client.js
-const Servient = require('@node-wot/core').Servient
-const FirestoreClientFactory =
-  require('@node-wot/binding-firestore').FirestoreClientFactory
-const Helpers = require('@node-wot/core').Helpers
-const FirestoreCodec =
-  require('@node-wot/binding-firestore').FirestoreCodec
+const Servient = require("@node-wot/core").Servient;
+const FirestoreClientFactory = require("@node-wot/binding-firestore").FirestoreClientFactory;
+const Helpers = require("@node-wot/core").Helpers;
+const FirestoreCodec = require("@node-wot/binding-firestore").FirestoreCodec;
 
-const firestoreConfig = require('./firestore-config.json')
+const firestoreConfig = require("./firestore-config.json");
 
-let servient = new Servient()
-const clientFactory = new FirestoreClientFactory(firestoreConfig)
-servient.addClientFactory(clientFactory)
+let servient = new Servient();
+const clientFactory = new FirestoreClientFactory(firestoreConfig);
+servient.addClientFactory(clientFactory);
 
-const codec = new FirestoreCodec()
-servient.addMediaType(codec)
+const codec = new FirestoreCodec();
+servient.addMediaType(codec);
 
-let wotHelper = new Helpers(servient)
+let wotHelper = new Helpers(servient);
 wotHelper
-  .fetch('firestore://sample-host/MyCounter')
-  .then(async (td) => {
-    try {
-      servient.start().then((WoT) => {
-        WoT.consume(td).then((thing) => {
-          // read a property "count" and print the value
-          thing.readProperty('count').then((s) => {
-            console.log(s)
-          })
-        })
-      })
-    } catch (err) {
-      console.error('Script error:', err)
-    }
-  })
-  .catch((err) => {
-    console.error('Fetch error:', err)
-  })
+    .fetch("firestore://sample-host/MyCounter")
+    .then(async (td) => {
+        try {
+            servient.start().then((WoT) => {
+                WoT.consume(td).then((thing) => {
+                    // read a property "count" and print the value
+                    thing.readProperty("count").then((s) => {
+                        console.log(s);
+                    });
+                });
+            });
+        } catch (err) {
+            console.error("Script error:", err);
+        }
+    })
+    .catch((err) => {
+        console.error("Fetch error:", err);
+    });
 ```
 
 ### Server Example
@@ -136,66 +134,64 @@ The server example produces a thing that allows for setting a property `count`. 
 
 ```js
 // example-server.js
-const Servient = require('@node-wot/core').Servient
-const FirestoreServer =
-  require('@node-wot/binding-firestore').FirestoreServer
-const FirestoreCodec =
-  require('@node-wot/binding-firestore').FirestoreCodec
+const Servient = require("@node-wot/core").Servient;
+const FirestoreServer = require("@node-wot/binding-firestore").FirestoreServer;
+const FirestoreCodec = require("@node-wot/binding-firestore").FirestoreCodec;
 
-const firestoreConfig = require('./firestore-config.json')
+const firestoreConfig = require("./firestore-config.json");
 
 // create server
-const server = new FirestoreServer(firestoreConfig)
+const server = new FirestoreServer(firestoreConfig);
 
 // create Servient add Firebase binding
-let servient = new Servient()
-servient.addServer(server)
+let servient = new Servient();
+servient.addServer(server);
 
-const codec = new FirestoreCodec()
-servient.addMediaType(codec)
+const codec = new FirestoreCodec();
+servient.addMediaType(codec);
 
 servient.start().then((WoT) => {
-  WoT.produce({
-    '@context': 'https://www.w3.org/2019/wot/td/v1',
-    title: 'MyCounter',
-    properties: {
-      count: {
-        type: 'integer',
-        observable: true,
-        readOnly: false
-      }
-    }
-  }).then((thing) => {
-    console.log('Produced ' + thing.getThingDescription().title)
-    thing.writeProperty('count', 0)
+    WoT.produce({
+        "@context": "https://www.w3.org/2019/wot/td/v1",
+        title: "MyCounter",
+        properties: {
+            count: {
+                type: "integer",
+                observable: true,
+                readOnly: false,
+            },
+        },
+    }).then((thing) => {
+        console.log("Produced " + thing.getThingDescription().title);
+        thing.writeProperty("count", 0);
 
-    thing.expose().then(() => {
-      console.info(thing.getThingDescription().title + ' ready')
-      console.info('TD : ' + JSON.stringify(thing.getThingDescription()))
-      thing.readProperty('count').then((c) => {
-        console.log('count is ' + c)
-      })
-    })
-  })
-})
+        thing.expose().then(() => {
+            console.info(thing.getThingDescription().title + " ready");
+            console.info("TD : " + JSON.stringify(thing.getThingDescription()));
+            thing.readProperty("count").then((c) => {
+                console.log("count is " + c);
+            });
+        });
+    });
+});
 ```
 
 ## How to use Firestore
 
 This Binding realizes the interaction between Client and Server for Property, Action, and Event by storing data in the following reference.
 
-- things/\<hostName\>%2F\<title of Thing Description\>  
-  Stores the Thing Description that the Server program exposes.
-- things/\<hostName\>%2F\<title of Thing Description\>%2Fproperties%2F\<name of property\>  
-  Stores the value of the Property when it is changed by the Server.
-- things/\<hostName\>%2F\<title of Thing Description\>%2FpropertyWriteReq%2F\<name of property\>  
-  Stores the value of the Property when it is changed by the Client.
-- things/\<hostName\>%2F\<title of Thing Description\>%2Factions%2F\<name of action\>  
-  Stores the action calling information when the Client invokes an Action.
-- things/\<hostName\>%2F\<title of Thing Description\>%2FactionResults%2F\<name of action\>  
-  Stores the result of an Action executed by the Server.
-- things/\<hostName\>%2F\<title of Thing Description\>%events%2F\<name of event\>  
-  Stores the emitted events.
+-   things/\<hostName\>%2F\<title of Thing Description\>  
+    Stores the Thing Description that the Server program exposes.
+-   things/\<hostName\>%2F\<title of Thing Description\>%2Fproperties%2F\<name of property\>  
+    Stores the value of the Property when it is changed by the Server.
+-   things/\<hostName\>%2F\<title of Thing Description\>%2FpropertyWriteReq%2F\<name of property\>  
+    Stores the value of the Property when it is changed by the Client.
+-   things/\<hostName\>%2F\<title of Thing Description\>%2Factions%2F\<name of action\>  
+    Stores the action calling information when the Client invokes an Action.
+-   things/\<hostName\>%2F\<title of Thing Description\>%2FactionResults%2F\<name of action\>  
+    Stores the result of an Action executed by the Server.
+-   things/\<hostName\>%2F\<title of Thing Description\>%events%2F\<name of event\>  
+    Stores the emitted events.
 
 Data will always be overwritten and no history will be retained.
 

@@ -12,21 +12,18 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-import "wot-typescript-definitions"
 import { Helpers } from "@node-wot/core";
+import { ThingDescription } from "wot-typescript-definitions";
 
-let WoT: WoT.WoT;
 let WoTHelpers: Helpers;
 
-WoTHelpers.fetch("https://localhost:8080/oauth").then(td => {
-
-    WoT.consume(td).then(async thing => {
+WoTHelpers.fetch("https://localhost:8080/oauth").then((td) => {
+    WoT.consume(td as ThingDescription).then(async (thing) => {
         try {
-            const result = await thing.invokeAction("sayOk")
-            console.log("oAuth token was", result)   
+            const result = await thing.invokeAction("sayOk");
+            console.log("oAuth token was", result);
         } catch (error) {
-            console.log("It seems that I couldn't access the resource")
+            console.log("It seems that I couldn't access the resource");
         }
-    })
-})
-
+    });
+});

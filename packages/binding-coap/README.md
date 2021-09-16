@@ -5,8 +5,9 @@
 In the following examples it is shown how to use the CoAP binding of node-wot.
 
 ### Prerequisites
-* `npm install @node-wot/core`
-* `npm install @node-wot/binding-coap`
+
+-   `npm install @node-wot/core`
+-   `npm install @node-wot/binding-coap`
 
 ### Client Example
 
@@ -83,7 +84,6 @@ servient.start().then((WoT) => {
     });
 });
 ```
-
 
 ### More Details
 

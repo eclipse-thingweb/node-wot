@@ -15,68 +15,68 @@
 /**
  * A simple oAuth test server
  */
-const OAuthServer = require('express-oauth-server')
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const https = require('https');
-const fs = require('fs')
-const express = require('express')
-const Memory = require('./memory-model');
-
-
-
+const OAuthServer = require("express-oauth-server");
+const bodyParser = require("body-parser");
+const cors = require("cors");
+const https = require("https");
+const fs = require("fs");
+const express = require("express");
+const Memory = require("./memory-model");
 
 var app = express();
 app.use(cors());
-app.options('*', cors());
+app.options("*", cors());
 
-const model = new Memory()
+const model = new Memory();
 
 app.oauth = new OAuthServer({
-    model: model
+    model: model,
 });
 
 app.use(bodyParser.json());
 app.use("/introspect", bodyParser.urlencoded({ extended: false }));
 app.use("/introspect", (req, res, next) => {
     if (req.method !== "POST" || !req.is("application/x-www-form-urlencoded")) {
-        return res.status(400).end()
+        return res.status(400).end();
     }
 
     // rewrite body authenticate method is not compliant to https://tools.ietf.org/html/rfc7662
-    const token = req.body.token
-    delete req.body.token
-    req.body.access_token = token
-    console.log("Body changed,")
-    next()
-})
+    const token = req.body.token;
+    delete req.body.token;
+    req.body.access_token = token;
+    console.log("Body changed,");
+    next();
+});
 
 app.use("/introspect", async (req, res, next) => {
-    return app.oauth.authenticate()(req, res, next)
-
-
+    return app.oauth.authenticate()(req, res, next);
 });
 app.use("/introspect", (req, res) => {
-    const token = res.locals.oauth.token
-    console.log("Token was", token ? "Ok" : "not Ok")
+    const token = res.locals.oauth.token;
+    console.log("Token was", token ? "Ok" : "not Ok");
     res.json({
         active: !!token,
         scope: token.client.grants.join(" "),
-        client_id: token.client.clientId
-    }).end()
-})
+        client_id: token.client.clientId,
+    }).end();
+});
 
 app.use("/token", bodyParser.urlencoded({ extended: false }));
 app.use("/token", app.oauth.token());
 
 app.use("/resource", (req, res) => {
-    console.log("qui?")
-    res.send('Ok!')
-})
+    console.log("qui?");
+    res.send("Ok!");
+});
 
-https.createServer({
-    key: fs.readFileSync('../privatekey.pem'),
-    cert: fs.readFileSync('../certificate.pem')
-}, app).listen(3000, "localhost", () => {
-    console.log("listening")
-})  
+https
+    .createServer(
+        {
+            key: fs.readFileSync("../privatekey.pem"),
+            cert: fs.readFileSync("../certificate.pem"),
+        },
+        app
+    )
+    .listen(3000, "localhost", () => {
+        console.log("listening");
+    });

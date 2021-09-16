@@ -10,8 +10,8 @@ A command line interface similar to "wot-servient" in the cli package.
 It runs an HTTP server for local control and monitoring, but the main purpose is to open bridge connections to services with custom binding.
 At the moment, the bridge-servient supports
 
-* the Fujitsu Remote Proxy bridge
-* the Oracle IoT Cloud Service bridge
+-   the Fujitsu Remote Proxy bridge
+-   the Oracle IoT Cloud Service bridge
 
 The bridge-servient has several client bindings to act as local proxy that can consume several ecosystems.
 

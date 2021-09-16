@@ -1,24 +1,24 @@
 /********************************************************************************
  * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
- * 
+ *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
- * 
+ *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0, or the W3C Software Notice and
  * Document License (2015-05-13) which is available at
  * https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document.
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
 // global W3C WoT Scripting API definitions
 import * as WoT from "wot-typescript-definitions";
 
-export const DEFAULT_CONTEXT: string = "https://www.w3.org/2019/wot/td/v1";
-export const DEFAULT_CONTEXT_LANGUAGE: string = "en";
-export const DEFAULT_THING_TYPE: string = "Thing";
+export const DEFAULT_CONTEXT = "https://www.w3.org/2019/wot/td/v1";
+export const DEFAULT_CONTEXT_LANGUAGE = "en";
+export const DEFAULT_THING_TYPE = "Thing";
 
 /* TODOs / Questions
  ~ In Thing index structure could be read-only (sanitizing needs write access)
@@ -28,265 +28,277 @@ export declare type MultiLanguage = any; // object?
 
 /** Implements the Thing Description as software object */
 export default class Thing {
-  id: string;
-  title: string;
-  titles: MultiLanguage;
-  description: string;
-  descriptions: MultiLanguage;
-  support: string;
-  modified: string;
-  created: string;
-  version: VersionInfo;
-  securityDefinitions: {
-    [key: string]: SecurityScheme;
-  };
-  security: Array<String>;
-  base: string;
+    id: string;
+    title: string;
+    titles: MultiLanguage;
+    description: string;
+    descriptions: MultiLanguage;
+    support: string;
+    modified: string;
+    created: string;
+    version: VersionInfo;
+    securityDefinitions: {
+        [key: string]: SecurityType;
+    };
 
-  properties: {
-    [key: string]: ThingProperty;
-  };
-  actions: {
-    [key: string]: ThingAction;
-  }
-  events: {
-    [key: string]: ThingEvent;
-  }
-  links: Array<Link>;
-  forms: Array<Form>;
+    security: Array<string>;
+    base: string;
 
-  [key: string]: any;
+    properties: {
+        [key: string]: ThingProperty;
+    };
 
-  constructor() {
-    this["@context"] = DEFAULT_CONTEXT;
-    this["@type"] = DEFAULT_THING_TYPE;
-    this.security = [];
-    this.properties = {};
-    this.actions = {};
-    this.events = {};
-    this.links = [];
-  }
+    actions: {
+        [key: string]: ThingAction;
+    };
+
+    events: {
+        [key: string]: ThingEvent;
+    };
+
+    links: Array<Link>;
+    forms: Array<Form>;
+
+    [key: string]: any;
+
+    constructor() {
+        this["@context"] = DEFAULT_CONTEXT;
+        this["@type"] = DEFAULT_THING_TYPE;
+        this.security = [];
+        this.properties = {};
+        this.actions = {};
+        this.events = {};
+        this.links = [];
+    }
 }
 
 /** Basis from implementing the Thing Interaction descriptions for Property, Action, and Event */
 export interface ThingInteraction {
-  title?: string;
-  titles?: MultiLanguage;
-  description?: string;
-  descriptions?: MultiLanguage;
-  scopes?: Array<string>;
-  uriVariables?: {
-    [key: string]: DataSchema;
-  }
-  security?: Array<string>;
-  forms?: Array<Form>;
+    title?: string;
+    titles?: MultiLanguage;
+    description?: string;
+    descriptions?: MultiLanguage;
+    scopes?: Array<string>;
+    uriVariables?: {
+        [key: string]: DataSchema;
+    };
+    security?: Array<string>;
+    forms?: Array<Form>;
 
-  [key: string]: any;  
+    [key: string]: any;
 }
 
 export class ExpectedResponse implements ExpectedResponse {
-  contentType?: string;
+    contentType?: string;
 }
 
 /** Implements the Interaction Form description */
 export class Form implements Form {
-  href: string;
-  subprotocol?: string;
-  op?: string | Array<string>;
-  contentType?: string;
-  security?: Array<string>; // WoT.Security;
-  scopes?: Array<string>;
-  response?: ExpectedResponse;
+    href: string;
+    subprotocol?: string;
+    op?: string | Array<string>;
+    contentType?: string;
+    security?: Array<string>; // WoT.Security;
+    scopes?: Array<string>;
+    response?: ExpectedResponse;
 
-  constructor(href: string, contentType?: string) {
-    this.href = href;
-    if (contentType) this.contentType = contentType;
-  }
+    constructor(href: string, contentType?: string) {
+        this.href = href;
+        if (contentType) this.contentType = contentType;
+    }
 }
-
 
 /** Carries version information about the TD instance. If required, additional version information such as firmware and hardware version (term definitions outside of the TD namespace) can be extended here. */
 export interface VersionInfo {
-  instance?: string;
+    instance?: string;
 }
 
 export interface Link {
-  href: string;
-  rel?: string | Array<string>;
-  type?: string; // media type hint, no media type parameters
-  anchor?: string;
+    href: string;
+    rel?: string | Array<string>;
+    type?: string; // media type hint, no media type parameters
+    anchor?: string;
 }
 
 export interface ExpectedResponse {
-  contentType?: string;
+    contentType?: string;
 }
 
 export interface Form {
-  href: string;
-  subprotocol?: string;
-  op?: string | Array<string>;
-  contentType?: string; // media type + parameter(s), e.g., text/plain;charset=utf8
-  security?: Array<string>; // Set of security definition names, chosen from those defined in securityDefinitions  // Security;
-  scopes?: Array<string>;
-  response?: ExpectedResponse;
+    href: string;
+    subprotocol?: string;
+    op?: string | Array<string>;
+    contentType?: string; // media type + parameter(s), e.g., text/plain;charset=utf8
+    security?: Array<string>; // Set of security definition names, chosen from those defined in securityDefinitions  // Security;
+    scopes?: Array<string>;
+    response?: ExpectedResponse;
 }
 
-export type DataSchema = WoT.DataSchema & (BooleanSchema | IntegerSchema | NumberSchema | StringSchema | ObjectSchema | ArraySchema | NullSchema);
+export type DataSchema = WoT.DataSchema &
+    (BooleanSchema | IntegerSchema | NumberSchema | StringSchema | ObjectSchema | ArraySchema | NullSchema);
 
 export class BaseSchema {
-  type?: string;
-  title?: string;
-  titles?: MultiLanguage;
-  description?: string;
-  descriptions?: MultiLanguage;
-  writeOnly?: boolean;
-  readOnly?: boolean;
-  oneOf?: Array<DataSchema>;
-  unit?: string;
-  const?: any;
-  enum?: Array<any>;
+    type?: string;
+    title?: string;
+    titles?: MultiLanguage;
+    description?: string;
+    descriptions?: MultiLanguage;
+    writeOnly?: boolean;
+    readOnly?: boolean;
+    oneOf?: Array<DataSchema>;
+    unit?: string;
+    const?: any;
+    enum?: Array<any>;
 }
 
 export interface BooleanSchema extends BaseSchema {
-  type: "boolean";
+    type: "boolean";
 }
 
 export interface IntegerSchema extends BaseSchema {
-  type: "integer";
-  minimum?: number;
-  maximum?: number;
+    type: "integer";
+    minimum?: number;
+    maximum?: number;
 }
 
 export interface NumberSchema extends BaseSchema {
-  type: "number";
-  minimum?: number;
-  maximum?: number;
+    type: "number";
+    minimum?: number;
+    maximum?: number;
 }
 
 export interface StringSchema extends BaseSchema {
-  type: "string";
+    type: "string";
 }
 
 export interface ObjectSchema extends BaseSchema {
-  type: "object";
-  properties: { [key: string]: DataSchema };
-  required?: Array<string>;
+    type: "object";
+    properties: { [key: string]: DataSchema };
+    required?: Array<string>;
 }
 
 export interface ArraySchema extends BaseSchema {
-  type: "array";
-  items: DataSchema;
-  minItems?: number;
-  maxItems?: number;
+    type: "array";
+    items: DataSchema;
+    minItems?: number;
+    maxItems?: number;
 }
 
 export interface NullSchema extends BaseSchema {
-  type: "null";
+    type: "null";
 }
 
-
-export type SecurityType = NoSecurityScheme | BasicSecurityScheme | DigestSecurityScheme | BearerSecurityScheme | CertSecurityScheme | PoPSecurityScheme | APIKeySecurityScheme | OAuth2SecurityScheme | PSKSecurityScheme | PublicSecurityScheme;
-
+export type SecurityType =
+    | NoSecurityScheme
+    | BasicSecurityScheme
+    | DigestSecurityScheme
+    | BearerSecurityScheme
+    | CertSecurityScheme
+    | PoPSecurityScheme
+    | APIKeySecurityScheme
+    | OAuth2SecurityScheme
+    | PSKSecurityScheme
+    | PublicSecurityScheme;
 
 export interface SecurityScheme {
-  scheme: string;
-  description?: string;
-  proxy?: string;
+    scheme: string;
+    description?: string;
+    proxy?: string;
 }
 
 export interface NoSecurityScheme extends SecurityScheme {
-  scheme: "nosec";
+    scheme: "nosec";
 }
 
 export interface BasicSecurityScheme extends SecurityScheme {
-  scheme: "basic";
-  in?: string;
-  name?: string;
+    scheme: "basic";
+    in?: string;
+    name?: string;
 }
 
 export interface DigestSecurityScheme extends SecurityScheme {
-  scheme: "digest";
-  name?: string;
-  in?: string;
-  qop?: string;
+    scheme: "digest";
+    name?: string;
+    in?: string;
+    qop?: string;
 }
 
 export interface APIKeySecurityScheme extends SecurityScheme {
-  scheme: "apikey";
-  in?: string;
-  name?: string;
+    scheme: "apikey";
+    in?: string;
+    name?: string;
 }
 
 export interface BearerSecurityScheme extends SecurityScheme {
-  scheme: "bearer";
-  in?: string;
-  alg?: string;
-  format?: string;
-  name?: string;
-  authorization?: string;
+    scheme: "bearer";
+    in?: string;
+    alg?: string;
+    format?: string;
+    name?: string;
+    authorization?: string;
 }
 
 export interface CertSecurityScheme extends SecurityScheme {
-  scheme: "cert";
-  identity?: string;
+    scheme: "cert";
+    identity?: string;
 }
 
 export interface PSKSecurityScheme extends SecurityScheme {
-  scheme: "psk";
-  identity?: string;
+    scheme: "psk";
+    identity?: string;
 }
 
 export interface PublicSecurityScheme extends SecurityScheme {
-  scheme: "public";
-  identity?: string;
+    scheme: "public";
+    identity?: string;
 }
 
 export interface PoPSecurityScheme extends SecurityScheme {
-  scheme: "pop";
-  format?: string;
-  authorization?: string;
-  alg?: string;
-  name?: string;
-  in?: string;
+    scheme: "pop";
+    format?: string;
+    authorization?: string;
+    alg?: string;
+    name?: string;
+    in?: string;
 }
 
 export interface OAuth2SecurityScheme extends SecurityScheme {
-  scheme: "oauth2";
-  authorization?: string;
-  flow?: string; // one of implicit, password, client, or code
-  token?: string;
-  refresh?: string;
-  scopes?: Array<string>;
+    scheme: "oauth2";
+    authorization?: string;
+    flow?: string; // one of implicit, password, client, or code
+    token?: string;
+    refresh?: string;
+    scopes?: Array<string>;
 }
 
-
 /** Implements the Thing Property description */
-export abstract class ThingProperty extends BaseSchema implements  ThingInteraction {
-  // writable: boolean;
-  observable?: boolean;
-  type?: string;
+export abstract class ThingProperty extends BaseSchema implements ThingInteraction {
+    // writable: boolean;
+    observable?: boolean;
+    type?: string;
 
-  // ThingInteraction
-  forms?: Array<Form>;
-  title?: string;
-  titles?: MultiLanguage;
-  description?: string;
-  descriptions?: MultiLanguage;
-  scopes?: Array<string>;
-  uriVariables?: {
-    [key: string]: DataSchema;
-  }
-  security?: Array<string>;
+    // ThingInteraction
+    forms?: Array<Form>;
+    title?: string;
+    titles?: MultiLanguage;
+    description?: string;
+    descriptions?: MultiLanguage;
+    scopes?: Array<string>;
+    uriVariables?: {
+        [key: string]: DataSchema;
+    };
 
-  [key: string]: any;
+    security?: Array<string>;
+
+    [key: string]: any;
 }
 
 /** Implements the Thing Action description */
 export abstract class ThingAction implements ThingInteraction {
-  input?: DataSchema;
-  output?: DataSchema;
-  safe?: boolean;
-  idempotent?: boolean;
+    input?: DataSchema;
+    output?: DataSchema;
+    safe?: boolean;
+    idempotent?: boolean;
 
     // ThingInteraction
     forms?: Array<Form>;
@@ -296,17 +308,18 @@ export abstract class ThingAction implements ThingInteraction {
     descriptions?: MultiLanguage;
     scopes?: Array<string>;
     uriVariables?: {
-      [key: string]: DataSchema;
-    }
+        [key: string]: DataSchema;
+    };
+
     security?: Array<string>;
-    
+
     [key: string]: any;
 }
 /** Implements the Thing Event description */
 export abstract class ThingEvent implements ThingInteraction {
-  subscription?: DataSchema;
-  data?: DataSchema;
-  cancellation?: DataSchema;
+    subscription?: DataSchema;
+    data?: DataSchema;
+    cancellation?: DataSchema;
 
     // ThingInteraction
     forms?: Array<Form>;
@@ -316,9 +329,10 @@ export abstract class ThingEvent implements ThingInteraction {
     descriptions?: MultiLanguage;
     scopes?: Array<string>;
     uriVariables?: {
-      [key: string]: DataSchema;
-    }
+        [key: string]: DataSchema;
+    };
+
     security?: Array<string>;
-    
+
     [key: string]: any;
 }

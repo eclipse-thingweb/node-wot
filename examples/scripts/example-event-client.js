@@ -13,24 +13,28 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-WoTHelpers.fetch("http://localhost:8080/eventsource").then(async (td) => {
-    try {
-        let source = await WoT.consume(td);
-        console.info("=== TD ===");
-        console.info(td);
-        console.info("==========");
-        source.subscribeEvent("onchange", (x) => {
-            console.info("onNext:", x);
-        })
-            .then(() => {
-            console.log("onCompleted");
-        })
-            .catch((e) => {
-            console.log("onError: %s", e);
-        });
-        console.info("Subscribed");
-    }
-    catch (err) {
-        console.error("Script error:", err);
-    }
-}).catch((err) => { console.error("Fetch error:", err); });
+WoTHelpers.fetch("http://localhost:8080/eventsource")
+    .then(async (td) => {
+        try {
+            let source = await WoT.consume(td);
+            console.info("=== TD ===");
+            console.info(td);
+            console.info("==========");
+            source
+                .subscribeEvent("onchange", (x) => {
+                    console.info("onNext:", x);
+                })
+                .then(() => {
+                    console.log("onCompleted");
+                })
+                .catch((e) => {
+                    console.log("onError: %s", e);
+                });
+            console.info("Subscribed");
+        } catch (err) {
+            console.error("Script error:", err);
+        }
+    })
+    .catch((err) => {
+        console.error("Fetch error:", err);
+    });

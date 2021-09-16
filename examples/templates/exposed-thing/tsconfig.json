@@ -1,20 +1,16 @@
 {
-	"compilerOptions": {
-		"target": "es6",
-		"lib" : ["es2015","dom"],
-		"module": "commonjs",
-		"outDir": "dist",
-		"alwaysStrict": true,
-		"sourceMap": true,
-		"noLib": false,
-		"forceConsistentCasingInFileNames": true,
-		"noImplicitReturns": true,
-		"noUnusedLocals": true
-	},
-	"exclude": [
-        "node_modules",
-    ],
-	"include": [
-		"src/**/*"
-	]
+    "compilerOptions": {
+        "target": "es6",
+        "lib": ["es2015", "dom"],
+        "module": "commonjs",
+        "outDir": "dist",
+        "alwaysStrict": true,
+        "sourceMap": true,
+        "noLib": false,
+        "forceConsistentCasingInFileNames": true,
+        "noImplicitReturns": true,
+        "noUnusedLocals": true
+    },
+    "exclude": ["node_modules"],
+    "include": ["src/**/*"]
 }
