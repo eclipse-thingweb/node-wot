@@ -84,7 +84,13 @@ Simplify the API by reducing the number of functions.
 
 Closes #110
 BREAKING CHANGE: Change all calls to the API to the new `do()` function.
-``` 
+```
+
+## Coding Style
+
+Eclipse Thingweb uses `eslint` and `prettier` to enforce a consistent coding style.
+A Github Actions workflow checks for each Pull Request if the coding style is followed and creates annotations in the "files changed" tab for each warning that is emitted during this linting process.
+To avoid such warnings, please use `npm run lint` for linting your code and `npm run format` to automatically apply fixes before committing any changes.
 
 ## Pull Requests and Feature Branches
 
