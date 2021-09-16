@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
+ * Copyright (c) 2020 - 2021 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -75,7 +75,7 @@ servient.start().then(async (WoT) => {
 
         // actuators
         .addAction("StartPump", {}, () => {
-          return new Promise((resolve, reject) => {
+          return new Promise<void>((resolve, reject) => {
             console.info(">>> Startung pump!");
             if (live) PumpP101.invokeAction("on")
               .then(() => { resolve(); })
@@ -84,7 +84,7 @@ servient.start().then(async (WoT) => {
           });
         })
         .addAction("StopPump", {}, () => {
-          return new Promise((resolve, reject) => {
+          return new Promise<void>((resolve, reject) => {
             console.info(">>> Stopping pump!");
             if (live) PumpP101.invokeAction("off")
               .then(() => { resolve(); })
@@ -92,7 +92,7 @@ servient.start().then(async (WoT) => {
           });
         })
         .addAction("OpenValve", {}, () => {
-          return new Promise((resolve, reject) => {
+          return new Promise<void>((resolve, reject) => {
             console.info(">>> Opening valve!");
             if (live) ValveV102.invokeAction("open")
               .then(() => { resolve(); })
@@ -100,7 +100,7 @@ servient.start().then(async (WoT) => {
           });
         })
         .addAction("CloseValve", {}, () => {
-          return new Promise((resolve, reject) => {
+          return new Promise<void>((resolve, reject) => {
             console.info(">>> Closing valve!");
             if (live) ValveV102.invokeAction("close")
               .then(() => { resolve(); })

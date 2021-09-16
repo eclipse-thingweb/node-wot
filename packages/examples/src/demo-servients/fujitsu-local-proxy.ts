@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
+ * Copyright (c) 2020 - 2021 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -61,25 +61,25 @@ servient.start().then(async (WoT) => {
         
         // actuators
         exposedThing.addAction("StartPump", {}, () => {
-            return new Promise((resolve, reject) => {
+            return new Promise<void>((resolve, reject) => {
               console.warn(">>> Startung pump!");
               resolve();
             });
           });
           exposedThing.addAction("StopPump", {}, () => {
-            return new Promise((resolve, reject) => {
+            return new Promise<void>((resolve, reject) => {
               console.warn(">>> Stopping pump!");
               resolve();
             });
           });
           exposedThing.addAction("OpenValve", {}, () => {
-            return new Promise((resolve, reject) => {
+            return new Promise<void>((resolve, reject) => {
               console.warn(">>> Opening valve!");
               resolve();
             });
           });
           exposedThing.addAction("CloseValve", {}, () => {
-            return new Promise((resolve, reject) => {
+            return new Promise<void>((resolve, reject) => {
               console.warn(">>> Closing valve!");
               resolve();
             });

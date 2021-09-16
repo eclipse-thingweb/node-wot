@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2021 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -42,8 +42,9 @@ export default class MqttBrokerServer implements ProtocolServer {
   private brokerURI: string = undefined;
 
   private readonly things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
-
-  private broker: mqtt.Client;
+  
+  private broker: any;
+  private rejectUnauthorized: boolean;
 
   /*new MqttBrokerServer(this.config.mqtt.broker,
                         (typeof this.config.mqtt.username === "string") ? this.config.mqtt.username : undefined,
@@ -55,7 +56,7 @@ export default class MqttBrokerServer implements ProtocolServer {
         "port": BROKER-PORT,
         "version": MQTT_VERSION
   */
-  constructor(uri: string, user?: string, psw?: string, clientId?: string, protocolVersion?: number) {
+  constructor(uri: string, user?: string, psw?: string, clientId?: string, protocolVersion?: number, rejectUnauthorized?: boolean) {
     if (uri !== undefined) {
 
       //if there is a MQTT protocol identicator missing, add this
@@ -77,6 +78,8 @@ export default class MqttBrokerServer implements ProtocolServer {
     if (protocolVersion !== undefined) {
       this.protocolVersion = protocolVersion;
     }
+
+    this.rejectUnauthorized = rejectUnauthorized;
   }
 
   public expose(thing: ExposedThing): Promise<void> {
@@ -98,8 +101,7 @@ export default class MqttBrokerServer implements ProtocolServer {
 
     console.debug("[binding-mqtt]",`MqttBrokerServer at ${this.brokerURI} exposes '${thing.title}' as unique '${name}/*'`);
     return new Promise<void>((resolve, reject) => {
-
-      // TODO clean-up on destroy and stop
+      
       this.things.set(name, thing);
 
       for (let propertyName in thing.properties) {
@@ -274,6 +276,26 @@ export default class MqttBrokerServer implements ProtocolServer {
     });
   }
 
+  public destroy(thingId: string): Promise<boolean> {
+    console.debug("[binding-mqtt]", `MqttBrokerServer on port ${this.getPort()} destroying thingId '${thingId}'`);
+    return new Promise<boolean>((resolve, reject) => {
+      let removedThing: ExposedThing = undefined;
+      for (let name of Array.from(this.things.keys())) {
+        let expThing = this.things.get(name);
+        if (expThing != null && expThing.id != null && expThing.id === thingId) {
+          this.things.delete(name);
+          removedThing = expThing;
+        }
+      }
+      if (removedThing) {
+        console.info("[binding-mqtt]", `MqttBrokerServer succesfully destroyed '${removedThing.title}'`);
+      } else {
+        console.info("[binding-mqtt]", `MqttBrokerServer failed to destroy thing with thingId '${thingId}'`)
+      }
+      resolve(removedThing != undefined);
+    });
+  }
+
   public start(servient: Servient): Promise<void> {
     return new Promise<void>((resolve, reject) => {
 
@@ -284,21 +306,15 @@ export default class MqttBrokerServer implements ProtocolServer {
         // try to connect to the broker without or with credentials
         if (this.psw === undefined) {
           console.debug("[binding-mqtt]",`MqttBrokerServer trying to connect to broker at ${this.brokerURI}`);
-          // TODO test if mqtt extracts port from passed URI (this.address)
-          this.broker = mqtt.connect(this.brokerURI);
         } else if (this.clientId === undefined) {
           console.debug("[binding-mqtt]",`MqttBrokerServer trying to connect to secured broker at ${this.brokerURI}`);
-          // TODO test if mqtt extracts port from passed URI (this.address)
-          this.broker = mqtt.connect(this.brokerURI, { username: this.user, password: this.psw });
         } else if (this.protocolVersion === undefined) {
           console.debug("[binding-mqtt]",`MqttBrokerServer trying to connect to secured broker at ${this.brokerURI} with client ID ${this.clientId}`);
-          // TODO test if mqtt extracts port from passed URI (this.address)
-          this.broker = mqtt.connect(this.brokerURI, { username: this.user, password: this.psw, clientId: this.clientId });
         } else {
           console.debug("[binding-mqtt]",`MqttBrokerServer trying to connect to secured broker at ${this.brokerURI} with client ID ${this.clientId}`);
-          // TODO test if mqtt extracts port from passed URI (this.address)
-          this.broker = mqtt.connect(this.brokerURI, { username: this.user, password: this.psw, clientId: this.clientId, protocolVersion: this.protocolVersion });
         }
+        // TODO test if mqtt extracts port from passed URI (this.address)
+        this.broker = mqtt.connect(this.brokerURI, { username: this.user, password: this.psw, clientId: this.clientId, protocolVersion: this.protocolVersion, rejectUnauthorized: this.rejectUnauthorized });
 
         this.broker.on("connect", () => {
           console.info("[binding-mqtt]",`MqttBrokerServer connected to broker at ${this.brokerURI}`);

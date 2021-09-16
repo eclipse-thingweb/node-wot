@@ -36,6 +36,12 @@
     "**/.DS_Store": true,
     "src/**/*.js" : true,
     "test/**/*.js" : true
-  }
-  
+  },
+  "files.encoding": "utf8",
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "files.trimTrailingWhitespace": true,
+  "editor.tabSize": 4,
+  "editor.insertSpaces": true,
 }

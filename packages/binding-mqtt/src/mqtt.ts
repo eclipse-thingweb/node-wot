@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2021 Contributors to the Eclipse Foundation
  * 
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -21,10 +21,12 @@ import { Form } from "@node-wot/td-tools";
 
 export { default as MqttClient } from './mqtt-client';
 export { default as MqttClientFactory } from './mqtt-client-factory';
+export { default as MqttsClientFactory } from './mqtts-client-factory';
 export { default as MqttBrokerServer } from './mqtt-broker-server';
 
 export * from './mqtt-client';
 export * from './mqtt-client-factory'
+export * from './mqtts-client-factory'
 export * from './mqtt-broker-server'
 
 
@@ -45,6 +47,10 @@ export class MqttForm extends Form {
     //public 'mqtt:topic': string = ''
     public 'mqtt:retain' : Boolean
 
+}
+
+export interface MqttClientConfig {
+    rejectUnauthorized?: boolean
 }
 
 

@@ -3,15 +3,19 @@ import { OPCUAServer, Variant, DataType, StatusCodes } from "node-opcua";
 export class OpcuaServer {
 
 	server: OPCUAServer;
-
+	private testingVariable: number;
 	constructor() {
 		this.server = new OPCUAServer({
 			port: 5050, // the port of the listening socket of the server
 			resourcePath: "/opcua/server", // this path will be added to the endpoint resource name
 			allowAnonymous: true
 		});
+		this.testingVariable = 1;
 	}
 
+	forceValueChange(){
+		this.testingVariable++;
+	}
 	async start() {
 		// Let's create an instance of OPCUAServer
 		try {
@@ -50,20 +54,54 @@ export class OpcuaServer {
 
 		// VARIABLES
 
-		let variable = 1;
-		setInterval(function () { variable += 1; }, 1000);
-
 		namespace.addVariable({
 			componentOf: device,
 			nodeId: "ns=1;b=9998FFAA", // some opaque NodeId in namespace 4
 			browseName: "Increment",
 			dataType: "Double",
 			value: {
-				get: function () {
-					return new Variant({ dataType: DataType.Double, value: variable });
+				get: () => {
+					return new Variant({ dataType: DataType.Double, value: this.testingVariable });
 				}
 			}
 		});
+
+		let str = '';
+
+		namespace.addVariable({
+			componentOf: device,
+			nodeId: "ns=1;s=Case_Lamp_Variable", // some opaque NodeId in namespace 4
+			browseName: "TestString",
+			dataType: "String",
+			value: {
+				get: function () {
+					return new Variant({ dataType: DataType.String, value: str });
+				},
+				set: function (variant: any) { //write property
+					str = variant.value;
+					return StatusCodes.Good;
+				}
+
+			}
+		});
+
+		namespace.addVariable({
+			componentOf: device,
+			nodeId: "ns=1;s=\"Case_Lamp_Variable\"", // some opaque NodeId in namespace 4
+			browseName: "TestString",
+			dataType: "String",
+			value: {
+				get: function () {
+					return new Variant({ dataType: DataType.String, value: str });
+				},
+				set: function (variant: any) { //write property
+					str = variant.value;
+					return StatusCodes.Good;
+				}
+
+			}
+		});
+
 
 
 		namespace.addVariable({
@@ -75,14 +113,14 @@ export class OpcuaServer {
 					return new Variant({ dataType: DataType.Double, value: Math.random() });
 				},
 				set: function (variant: any) { //write property
-					variable = parseFloat(variant.value);
+					this.testVariable = parseFloat(variant.value);
 					return StatusCodes.Good;
 				}
 			}
 		});
 
 		const method = namespace.addMethod(device, { //invoke action
-			nodeId:"ns=1;s=method",
+			nodeId: "ns=1;s=method",
 			browseName: "DivideFunction",
 			inputArguments: [
 				{

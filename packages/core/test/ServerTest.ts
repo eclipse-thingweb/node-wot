@@ -1,55 +1,69 @@
 /********************************************************************************
  * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
- * 
+ *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
- * 
+ *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0, or the W3C Software Notice and
  * Document License (2015-05-13) which is available at
  * https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document.
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
 /**
  * Basic test suite to demonstrate test setup
  * uncomment the @skip to see failing tests
- * 
+ *
  * h0ru5: there is currently some problem with VSC failing to recognize experimentalDecorators option, it is present in both tsconfigs
  */
 
-import { suite, test, slow, timeout, skip, only } from "mocha-typescript";
+import { suite, test } from "@testdeck/mocha";
 import { expect, should } from "chai";
-import { fail } from "assert";
+
+import Servient from "../src/servient";
+import { ProtocolServer } from "../src/protocol-interfaces";
+import ExposedThing from "../src/exposed-thing";
 // should must be called to augment all variables
 should();
 
-import * as TD from "@node-wot/td-tools";
-
-import Servient from "../src/servient";
-import { ProtocolServer } from "../src/protocol-interfaces"
-import ExposedThing from "../src/exposed-thing";
-import { InteractionOutput } from "../src/interaction-output";
-
 // implement a testserver to mock a server
 class TestProtocolServer implements ProtocolServer {
-
     public readonly scheme: string = "test";
-    
+
     expose(thing: ExposedThing): Promise<void> {
-        return new Promise<void>((resolve, reject) => {});
+        return new Promise<void>((resolve, reject) => {
+            resolve();
+        });
     }
 
-    start(): Promise<void> { return new Promise<void>((resolve, reject) => { resolve(); }); }
-    stop(): Promise<void> { return new Promise<void>((resolve, reject) => { resolve(); }); }
-    getPort(): number { return -1 }
+    destroy(thingId: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            resolve(true);
+        });
+    }
+
+    start(): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            resolve();
+        });
+    }
+
+    stop(): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            resolve();
+        });
+    }
+
+    getPort(): number {
+        return -1;
+    }
 }
 
 @suite("the server side of servient")
 class WoTServerTest {
-
     static servient: Servient;
     static WoT: typeof WoT;
     static server: TestProtocolServer;
@@ -58,7 +72,9 @@ class WoTServerTest {
         this.servient = new Servient();
         this.server = new TestProtocolServer();
         this.servient.addServer(this.server);
-        this.servient.start().then(WoTruntime => { this.WoT = WoTruntime; });
+        this.servient.start().then((WoTruntime) => {
+            this.WoT = WoTruntime;
+        });
         console.log("started test suite");
     }
 
@@ -68,15 +84,16 @@ class WoTServerTest {
     }
 
     @test async "should be able to add a Thing based on WoT.ThingFragment"() {
-        let thing = await WoTServerTest.WoT.produce({
+        const thing = await WoTServerTest.WoT.produce({
             title: "myFragmentThing",
             support: "none",
             "test:custom": "test",
             properties: {
-                myProp: { }
-            }
+                myProp: {},
+            },
         });
 
+        // eslint-disable-next-line no-unused-expressions
         expect(thing).to.exist;
         // round-trip
         expect(thing.getThingDescription()).to.have.property("title").that.equals("myFragmentThing");
@@ -90,6 +107,8 @@ class WoTServerTest {
         expect(thing).to.have.property("properties").to.have.property("myProp");
     }
 
+    // TODO: Review server side tests since ExposedThing does not implement ConsumedThing anymore
+    /*
     @test async "should be able to add a Thing based on WoT.ThingDescription"() {
         let desc = `{
             "@context": ["https://w3c.github.io/wot/w3c-wot-td-context.jsonld"],
@@ -114,6 +133,28 @@ class WoTServerTest {
         expect(thing).to.have.property("test:custom").that.equals("test");
         expect(thing).to.have.property("properties");
         expect(thing).to.have.property("properties").to.have.property("myProp");
+    }
+
+    @test async "should be able to destroy a Thing based on a thingId"() {
+        let desc = `{
+            "@context": ["https://w3c.github.io/wot/w3c-wot-td-context.jsonld"],
+            "@type": ["Thing"],
+            "title": "myDestroyThing",
+            "id": "1234567",
+            "properties": {
+                "myProp" : {
+                }
+            }
+        }`;
+        let thing = await WoTServerTest.WoT.produce(JSON.parse(desc));
+        expect(thing).to.exist;
+        // test TD
+        expect(thing.getThingDescription()).to.have.property("title").to.equal("myDestroyThing");
+        expect(thing.getThingDescription()).to.have.property("id").to.equal("1234567");
+        // test presence (and destroy)
+        expect(WoTServerTest.servient.getThing("1234567")).to.not.be.null;
+        await thing.destroy(); // destroy -> remove
+        expect(WoTServerTest.servient.getThing("1234567")).to.be.null;
     }
 
     @test async "should be able to add a property with value 1"() {
@@ -198,7 +239,7 @@ class WoTServerTest {
         })
         let val = await (await thing.readProperty("numberReadOnly")).value();
         expect(val === 213);
-        
+
         let readingPossible = false;
         try {
             await thing.writeProperty("numberReadOnly", 1);
@@ -209,18 +250,18 @@ class WoTServerTest {
         if (readingPossible) {
             fail("writing property 'numberReadOnly' should throw error")
         }
-    }*/
+    } */
 
     @test async "should be able to add a thing with spaces in title and property "() {
-        let thing = await WoTServerTest.WoT.produce({
+        const thing = await WoTServerTest.WoT.produce({
             title: "The Machine",
             properties: {
                 "my number": {
-                    type: "number"
-                }
-            }
+                    type: "number",
+                },
+            },
         });
-        let number: WoT.DataSchemaValue = 1; // init
+        const number: WoT.DataSchemaValue = 1; // init
         thing.setPropertyReadHandler("my number", () => {
             return new Promise((resolve, reject) => {
                 resolve(number);
@@ -228,13 +269,21 @@ class WoTServerTest {
         });
 
         expect(thing).to.have.property("properties").to.have.property("my number");
-        expect(thing).to.have.property("properties").to.have.property("my number").to.have.property("readOnly").that.equals(false);
-        expect(thing).to.have.property("properties").to.have.property("my number").to.have.property("observable").that.equals(false);
+        expect(thing)
+            .to.have.property("properties")
+            .to.have.property("my number")
+            .to.have.property("readOnly")
+            .that.equals(false);
+        expect(thing)
+            .to.have.property("properties")
+            .to.have.property("my number")
+            .to.have.property("observable")
+            .that.equals(false);
 
         // Check internals, how to to check handlers properly with *some* type-safety
-        let expThing: any = thing;
-        let propertyState = expThing.properties["my number"].getState();
-        let ff = await propertyState.readHandler();
+        const expThing = thing as ExposedThing;
+        const propertyState = expThing.properties["my number"].getState();
+        const ff = await propertyState.readHandler();
         expect(ff).to.equal(1);
     }
 
@@ -294,7 +343,7 @@ class WoTServerTest {
             }
         });
         await thing.writeProperty("string", "XYZ"); // init
-        
+
         expect(thing).to.have.property("properties").to.have.property("string");
         expect(thing).to.have.property("properties").to.have.property("string").to.have.property("readOnly").that.equals(false);
         expect(thing).to.have.property("properties").to.have.property("string").to.have.property("observable").that.equals(false);
@@ -303,7 +352,7 @@ class WoTServerTest {
         try {
             expect(thing).to.have.property("properties").to.have.property("number");
             expectUnknownProperty = true;
-            
+
         } catch(e) {
             // no property "number"
         }
@@ -324,7 +373,7 @@ class WoTServerTest {
                 }
             }
         });
-        
+
         expect(thing).to.have.property("properties").to.have.property("null");
         expect(thing).to.have.property("properties").to.have.property("null").to.have.property("readOnly").that.equals(false);
         expect(thing).to.have.property("properties").to.have.property("null").to.have.property("observable").that.equals(false);
@@ -353,7 +402,7 @@ class WoTServerTest {
 
     }
 
-    
+
     @test async "should be able to read/readAll properties locally"() {
         let thing = await WoTServerTest.WoT.produce({
             title: "thing3",
@@ -412,7 +461,7 @@ class WoTServerTest {
 
         expect(await thing.readProperty("number")).to.equal(1);
         expect(await thing.readProperty("number")).to.equal(2);
-        expect(await thing.readProperty("number")).to.equal(3); 
+        expect(await thing.readProperty("number")).to.equal(3);
     }
 
     @test async "should be able to read and write property"() {

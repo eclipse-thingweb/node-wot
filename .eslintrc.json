@@ -1,0 +1,37 @@
+{
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "project": "./tsconfig.json"
+    },
+    "extends": [
+        "eslint:recommended",
+        "standard",
+        "prettier",
+        "plugin:@typescript-eslint/recommended"
+    ],
+    "plugins": [
+        "@typescript-eslint",
+        "unused-imports"
+    ],
+    "env": {
+        "es6": true,
+        "node": true
+    },
+    "ignorePatterns": [
+        "dist",
+        "node_modules",
+        "examples",
+        "bin"
+    ],
+    "rules": {
+        "@typescript-eslint/no-unused-vars": "off", // or "@typescript-eslint/no-unused-vars": "off",
+        "unused-imports/no-unused-imports": "error",
+        "unused-imports/no-unused-vars": [
+            "warn",
+            {
+                "args": "none",
+                "varsIgnorePattern": "Test" // Ignore test suites from unused-imports
+            }
+        ]
+    }
+}

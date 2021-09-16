@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
+ * Copyright (c) 2020 - 2021 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -14,40 +14,42 @@
  ********************************************************************************/
 
 import { APIKeySecurityScheme } from "@node-wot/td-tools";
-import { Token, CredentialsFlow } from "client-oauth2";
-import { Request} from 'node-fetch';
+import { Token } from "client-oauth2";
+import { Request } from "node-fetch";
 
-
-export abstract class Credential{
-    abstract sign(request:Request):Promise<Request>
+export abstract class Credential {
+    abstract sign(request: Request): Promise<Request>;
 }
 
-export class BasicCredential extends Credential{
+export class BasicCredential extends Credential {
     private readonly username: string;
     private readonly password: string;
     /**
      *
      */
-    constructor({ username, password }: { username: string; password: string; }) {
+    constructor({ username, password }: { username: string; password: string }) {
         super();
-        if (username === undefined || password === undefined || 
-                username === null || password === null) {
+        if (username === undefined || password === undefined || username === null || password === null) {
             throw new Error(`No Basic credentials for Thing`);
         }
 
         this.username = username;
         this.password = password;
     }
-    async sign(request:Request){
-        let result = request.clone()
-        result.headers.set("authorization","Basic "+Buffer.from(this.username + ":" + this.password).toString('base64'))
-        return result
+
+    async sign(request: Request) {
+        const result = request.clone();
+        result.headers.set(
+            "authorization",
+            "Basic " + Buffer.from(this.username + ":" + this.password).toString("base64")
+        );
+        return result;
     }
 }
 
-export class BearerCredential extends Credential{
+export class BearerCredential extends Credential {
     private readonly token: string;
-    constructor(token:string){
+    constructor(token: string) {
         super();
         if (token === undefined || token === null) {
             throw new Error(`No Bearer credentionals for Thing`);
@@ -55,83 +57,83 @@ export class BearerCredential extends Credential{
 
         this.token = token;
     }
+
     async sign(request: Request) {
-        let result = request.clone()
-        result.headers.set("authorization", "Bearer " + this.token)
-        return result
+        const result = request.clone();
+        result.headers.set("authorization", "Bearer " + this.token);
+        return result;
     }
 }
 
-export class BasicKeyCredential extends Credential{
+export class BasicKeyCredential extends Credential {
     private readonly apiKey: string;
     private readonly options: APIKeySecurityScheme;
-    
-    constructor(apiKey:string,options:APIKeySecurityScheme){
+
+    constructor(apiKey: string, options: APIKeySecurityScheme) {
         super();
         if (apiKey === undefined || apiKey === null) {
             throw new Error(`No API key credentials for Thing`);
         }
 
-        this.apiKey= apiKey;
+        this.apiKey = apiKey;
         this.options = options;
     }
+
     async sign(request: Request) {
-        const result = request.clone()
-        
-        let headerName = "authorization"
+        const result = request.clone();
+
+        let headerName = "authorization";
         if (this.options.in === "header" && this.options.name !== undefined) {
             headerName = this.options.name;
         }
-        result.headers.append(headerName, this.apiKey)
-        
-        return result
+        result.headers.append(headerName, this.apiKey);
+
+        return result;
     }
 }
 
-
-
 export class OAuthCredential extends Credential {
-    private token: Token | Promise<Token> ;
-    private readonly refresh: () => Promise<Token> ;
-   
+    private token: Token | Promise<Token>;
+    private readonly refresh: () => Promise<Token>;
+
     /**
-     * 
+     *
      * @param tokenRequest oAuth2 token instance
      * @param refresh use a custom refresh function
      */
-    constructor(token: Token | Promise<Token>,refresh?:() => Promise<Token>) {
+    constructor(token: Token | Promise<Token>, refresh?: () => Promise<Token>) {
         super();
         this.token = token;
         this.refresh = refresh;
-        this.token = token
+        this.token = token;
     }
+
     async sign(request: Request) {
-        if (this.token instanceof Promise){
-            const tokenRequest = this.token as Promise<Token>
-            this.token = await tokenRequest
+        if (this.token instanceof Promise) {
+            const tokenRequest = this.token as Promise<Token>;
+            this.token = await tokenRequest;
         }
-       
-        let tempRequest = {url:request.url,headers:{}}
-        
-        tempRequest = this.token.sign(tempRequest)
-        
-        const mergeHeaders = new Request(request,tempRequest)
-        const useNewURL = new Request(tempRequest.url,mergeHeaders)
-        
-        return useNewURL
+
+        let tempRequest = { url: request.url, headers: {} };
+
+        tempRequest = this.token.sign(tempRequest);
+
+        const mergeHeaders = new Request(request, tempRequest);
+
+        return mergeHeaders;
     }
 
     async refreshToken() {
-        if(this.token instanceof Promise){
+        if (this.token instanceof Promise) {
             throw new Error("Uninitialized token. You have to call sing before refresh");
         }
 
-        let newToken 
-        if (this.refresh){
-            newToken = await this.refresh()
-        }else{
-            newToken = await this.token.refresh()
+        let newToken;
+        if (this.refresh) {
+            newToken = await this.refresh();
+        } else {
+            newToken = await this.token.refresh();
         }
-        return new OAuthCredential(newToken,this.refresh)
+        return new OAuthCredential(newToken, this.refresh);
     }
 }

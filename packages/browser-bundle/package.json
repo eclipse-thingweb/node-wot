@@ -18,9 +18,15 @@
     "@node-wot/core": "0.8.0",
     "browserify": "16.5.0",
     "tinyify": "2.5.2",
-    "wot-typescript-definitions": "^0.8.0-SNAPSHOT.14"
+    "typescript": "4.1.3",
+    "wot-typescript-definitions": "^0.8.0-SNAPSHOT.18"
   },
   "scripts": {
     "build": "browserify -r vm:vm2 index.js --plugin tinyify --external coffee-script -o dist/wot-bundle.min.js"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/eclipse/thingweb.node-wot/issues"
+  },
+  "homepage": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/browser-bundle#readme",
+  "keywords": []
 }

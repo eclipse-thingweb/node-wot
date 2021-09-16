@@ -35,7 +35,10 @@ COPY --from=BUILD  /home/node/app/packages/binding-websockets /usr/local/lib/nod
 
 WORKDIR /usr/local/lib/node_modules/@node-wot/cli
 
-EXPOSE 8080
+EXPOSE 8080/tcp
+EXPOSE 5683/udp
+
+STOPSIGNAL SIGINT
 
 ENTRYPOINT [ "node", "dist/cli.js" ]
 CMD [ "-h" ]

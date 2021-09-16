@@ -1,26 +1,28 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
- * 
+ * Copyright (c) 2019 - 2021 Contributors to the Eclipse Foundation
+ *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
- * 
+ *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0, or the W3C Software Notice and
  * Document License (2015-05-13) which is available at
  * https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document.
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
 import * as TD from "@node-wot/td-tools";
 
-export { default as HttpClient } from './http-client'
-export { default as HttpClientFactory } from './http-client-factory'
-export { default as HttpsClientFactory } from './https-client-factory'
-export * from './http-client'
-export * from './http-client-factory'
-export * from './https-client-factory'
+import { Headers, Response } from "node-fetch";
+
+export { default as HttpClient } from "./http-client";
+export { default as HttpClientFactory } from "./http-client-factory";
+export { default as HttpsClientFactory } from "./https-client-factory";
+export * from "./http-client";
+export * from "./http-client-factory";
+export * from "./https-client-factory";
 
 export interface HttpConfig {
     port?: number;
@@ -50,17 +52,15 @@ export class HttpHeader {
     public "http:fieldValue": any;
 }
 
-import {Headers,Response} from "node-fetch"
-
 Headers.prototype.raw = function () {
-    const result: { [key: string]: [string] } = {}
-    for (let h in this.entries()) {
+    const result: { [key: string]: [string] } = {};
+    for (const h in this.entries()) {
         // @ts-ignore
-        result[h[0]] = h[1].split(",")
+        result[h[0]] = h[1].split(",");
     }
-    return result
-}
+    return result;
+};
 
 Response.prototype.buffer = async function () {
-    return Buffer.from( await this.arrayBuffer())
-}
+    return Buffer.from(await this.arrayBuffer());
+};

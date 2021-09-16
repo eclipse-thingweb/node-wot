@@ -5,6 +5,7 @@
 		"module": "commonjs",
 		"outDir": "dist",
 		"alwaysStrict": true,
+		"incremental": true,
 		"sourceMap": true,
 		"noImplicitAny": true,
 		"removeComments": true,
@@ -12,8 +13,5 @@
 		"preserveConstEnums": true,
 		"experimentalDecorators": true,
 		"declaration": true
-	},
-	"include": [
-		"src/**/*"
-	]
+	}
 }

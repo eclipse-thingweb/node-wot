@@ -173,7 +173,7 @@ Please setup node-wot as described at the [node-wot main page](https://github.co
         "host" : "mqtt://test.mosquitto.org",
         "username" : "username",
         "password" : "password",
-		"clientId" : "uniqueId",
+        "clientId" : "uniqueId",
         "port": 1883 
     }
 }

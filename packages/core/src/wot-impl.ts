@@ -1,32 +1,28 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
- * 
+ * Copyright (c) 2018 - 2021 Contributors to the Eclipse Foundation
+ *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
- * 
+ *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0, or the W3C Software Notice and
  * Document License (2015-05-13) which is available at
  * https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document.
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { Observable } from "rxjs/Observable";
 import * as WoT from "wot-typescript-definitions";
-
 import * as TD from "@node-wot/td-tools";
-
 import Servient from "./servient";
 import ExposedThing from "./exposed-thing";
 import ConsumedThing from "./consumed-thing";
 import Helpers from "./helpers";
-import { ContentSerdes } from "./content-serdes";
 
 export default class WoTImpl {
     private srv: Servient;
-    DiscoveryMethod:typeof WoT.DiscoveryMethod;
+    DiscoveryMethod: typeof WoT.DiscoveryMethod;
     constructor(srv: Servient) {
         this.srv = srv;
     }
@@ -40,12 +36,15 @@ export default class WoTImpl {
     consume(td: WoT.ThingDescription): Promise<WoT.ConsumedThing> {
         return new Promise<WoT.ConsumedThing>((resolve, reject) => {
             try {
-                let thing: TD.Thing;
-                thing = TD.parseTD(JSON.stringify(td), true);
-                let newThing: ConsumedThing = new ConsumedThing(this.srv,thing);
+                const thing = TD.parseTD(JSON.stringify(td), true);
+                const newThing: ConsumedThing = new ConsumedThing(this.srv, thing);
 
-
-                console.debug("[core/wot-impl]",`WoTImpl consuming TD ${newThing.id ? "'" + newThing.id + "'" : "without id"} to instantiate ConsumedThing '${newThing.title}'`);
+                console.debug(
+                    "[core/wot-impl]",
+                    `WoTImpl consuming TD ${
+                        newThing.id ? "'" + newThing.id + "'" : "without id"
+                    } to instantiate ConsumedThing '${newThing.title}'`
+                );
                 resolve(newThing);
             } catch (err) {
                 reject(new Error("Cannot consume TD because " + err.message));
@@ -61,9 +60,15 @@ export default class WoTImpl {
     produce(init: WoT.ExposedThingInit): Promise<WoT.ExposedThing> {
         return new Promise<WoT.ExposedThing>((resolve, reject) => {
             try {
-                let newThing = new ExposedThing(this.srv, init);
+                const validated = Helpers.validateExposedThingInit(init);
 
-                console.debug("[core/servient]",`WoTImpl producing new ExposedThing '${newThing.title}'`);
+                if (!validated.valid) {
+                    throw new Error("Thing Description JSON schema validation failed:\n" + validated.errors);
+                }
+
+                const newThing = new ExposedThing(this.srv, init);
+
+                console.debug("[core/servient]", `WoTImpl producing new ExposedThing '${newThing.title}'`);
 
                 if (this.srv.addThing(newThing)) {
                     resolve(newThing);
@@ -85,7 +90,7 @@ export enum DiscoveryMethod {
     /** for discovery based on a service provided by a directory or repository of Things  */
     "directory",
     /** for discovering Things in the device's network by using a supported multicast protocol  */
-    "multicast"
+    "multicast",
 }
 
 export class ThingDiscoveryImpl implements WoT.ThingDiscovery {
@@ -94,7 +99,7 @@ export class ThingDiscoveryImpl implements WoT.ThingDiscovery {
     done: boolean;
     error?: Error;
     constructor(filter?: WoT.ThingFilter) {
-        this.filter = filter ? filter : null;
+        this.filter = filter || null;
         this.active = false;
         this.done = false;
         this.error = new Error("not implemented");
@@ -103,17 +108,18 @@ export class ThingDiscoveryImpl implements WoT.ThingDiscovery {
     start(): void {
         this.active = true;
     }
+
     next(): Promise<WoT.ThingDescription> {
         return new Promise<WoT.ThingDescription>((resolve, reject) => {
             reject(this.error); // not implemented
         });
     }
+
     stop(): void {
         this.active = false;
         this.done = false;
     }
 }
-
 
 /** Instantiation of the WoT.DataType declaration */
 export enum DataType {
@@ -123,5 +129,5 @@ export enum DataType {
     string = "string",
     object = "object",
     array = "array",
-    null = "null"
+    null = "null",
 }

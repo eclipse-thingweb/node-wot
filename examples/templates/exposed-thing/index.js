@@ -18,7 +18,7 @@ HttpServer = require("@node-wot/binding-http").HttpServer
 //Creating the instances of the binding servers
 var httpServer = new HttpServer({port: 8080});
 //var coapServer = new CoapServer({port: 5683});
-//var mqttserver = new MqttBrokerServer("test.mosquitto.org"); //change it according to the broker address
+//var mqttServer = new MqttBrokerServer("test.mosquitto.org"); //change it according to the broker address
 
 
 //Building the servient object

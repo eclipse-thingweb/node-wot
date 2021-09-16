@@ -21,9 +21,11 @@ Useful labels:
 - [How to get the library](#how-to-get-the-library)
   * [As a Node.js dependency](#as-a-nodejs-dependency)
   * [As a standalone application](#as-a-standalone-application)
+  * [As a Docker image](#as-a-docker-image)
   * [As a browser library](#as-a-browser-library)
 - [No time for explanations - show me a running example!](#no-time-for-explanations---show-me-a-running-example)
   * [Using Node.js](#using-nodejs)
+  * [Using Docker](#using-docker)
   * [Using a browser](#using-a-browser)
 - [How to use the library](#how-to-use-the-library)
   * [The API](#the-api)
@@ -50,10 +52,12 @@ Please also see the additional [notices](NOTICE.md) and [how to contribute](CONT
 * [CoAP](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-coap/README.md) :heavy_check_mark:
 * [CoAPS](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-coap/README.md) :heavy_check_mark:
 * [MQTT](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-mqtt/README.md) :heavy_check_mark:
+* [Firestore](https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-firestore/README.md) :heavy_check_mark:
 * [Websocket](https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-websockets) :heavy_plus_sign: (Server only)
 * [OPC-UA](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-opcua/README.md) :heavy_plus_sign: (Client only)
 * [NETCONF](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-netconf/README.md) :heavy_plus_sign: (Client only)
 * [Modbus](https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-modbus) :heavy_plus_sign: (Client only)
+* [M-Bus](https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-mbus) :heavy_plus_sign: (Client only)
 
 Note: More protocols can be easily added by implementing `ProtocolClient`, `ProtocolClientFactory`, and `ProtocolServer` interface.
 
@@ -66,7 +70,7 @@ Note: More protocols can be easily added by implementing `ProtocolClient`, `Prot
 * CBOR :timer_clock:
 * EXI :timer_clock:
 
-Note: More mediaTyes can be easily added by implementing `ContentCodec` interface.
+Note: More mediaTypes can be easily added by implementing `ContentCodec` interface.
 
 ```JavaScript
 const ContentSerdes = require('@node-wot/core').ContentSerdes
@@ -87,11 +91,11 @@ cs.addCodec(new MyCodec("application/myType"));
 ## Prerequisites
 ### To use with Node.js
 All systems require:
-* [NodeJS](https://nodejs.org/) version 10+ (e.g., 10.13.0 LTS)
+* [NodeJS](https://nodejs.org/) version 14+
 
 #### Linux
 Meet the [node-gyp](https://github.com/nodejs/node-gyp#installation) requirements:
-* Python v2.7, v3.5, v3.6, v3.7, or v3.8
+* Python v3.6, v3.7, or v3.8
 * make
 * A proper C/C++ compiler toolchain, like GCC
 
@@ -231,9 +235,9 @@ Go into the repository:
 ```
 cd thingweb.node-wot
 ```
-Install root dependencies (locally installs tools such as [typescript](https://www.npmjs.com/package/typescript) and [lerna](https://www.npmjs.com/package/lerna)):
+Install root dependencies (locally installs tools such as [typescript](https://www.npmjs.com/package/typescript)):
 ```
-npm install 
+npm ci
 ```
 Use `tsc` to transcompile TS code to JS in dist directory for each package:
 *Note: This step automatically calls `npm run bootstrap`.*
@@ -269,11 +273,7 @@ sudo npm link wot-typescript-definitions
 ##### Optimization
 
 To reduce the size of the installation from about 800 MByte down to about 200 MByte, you can run the following commands (currently only tested on Linux):
-- yarn init
-- yarn add [packages]
-- npm run build
-- lerna init
-- lerna exec 'npm prune --production'
+```npm prune --production```
 
 #### Trouble shooting
 
@@ -295,9 +295,30 @@ To reduce the size of the installation from about 800 MByte down to about 200 MB
 * Build error around `prebuild: npm run bootstrap`
    * This has been seen failing on WSL.  Try using Node 12.13.0
 
+### As a Docker image
+
+Alternatively, node-wot can be built as a Docker image with the `Dockerfile`.
+
+Clone the repository:
+```
+git clone https://github.com/eclipse/thingweb.node-wot
+```
+Go into the repository:
+```
+cd thingweb.node-wot
+```
+Build the Docker image named `wot-servient` from the `Dockerfile`:
+```
+docker build --rm -t wot-servient .
+```
+Run the wot-servient as a container:
+```
+docker run --rm wot-servient -h
+```
+
 ### As a browser library
 
-Node-wot can also be imported as browser-side library. To do so, include the following `script` tag in your html:
+node-wot can also be imported as browser-side library. To do so, include the following `script` tag in your html:
 ```html
 <script src="https://cdn.jsdelivr.net/npm/@node-wot/browser-bundle@latest/dist/wot-bundle.min.js"></script>
 ```
@@ -331,6 +352,20 @@ node packages\cli\dist\cli.js --clientonly examples\scripts\counter-client.js
 * Query the count by http://localhost:8080/counter/properties/count
 * Modify the count via POST on http://localhost:8080/counter/actions/increment and http://localhost:8080/counter/actions/decrement
 * Application logic is in `examples/scripts/counter.js`
+
+### Using Docker
+First [build the docker image](#as-a-docker-image) and then run the counter example:
+```
+# expose
+docker run -it --init -p 8080:8080/tcp -p 5683:5683/udp -v "$(pwd)"/examples:/srv/examples --rm wot-servient /srv/examples/scripts/counter.js
+# consume
+docker run -it --init -v "$(pwd)"/examples:/srv/examples --rm --net=host wot-servient /srv/examples/scripts/counter-client.js --clientonly
+```
+
+* The counter exposes the HTTP endpoint at 8080/tcp and the CoAP endpoint at 5683/udp and they are bound to the host machine (with `-p 8080:8080/tcp -p 5683:5683/udp`).
+* The counter-client binds the network of the host machine (`--net=host`) so that it can access the counter thing's endpoints.
+* `--init` allows the containers to be killed with SIGINT (e.g., Ctrl+c)
+* `-v "$(pwd)"/examples:/srv/examples` mounts the `examples` directory to `/srv/examples` on the container so that the node inside the container can read the example scripts.
 
 ### Using a browser
 An example of how to use node-wot as a browser-side library can be found under `examples/browser/index.html`.

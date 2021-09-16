@@ -1,9 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
- * 
+ * Copyright (c) 2019 - 2021 Contributors to the Eclipse Foundation
+ *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
- * 
+ *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0, or the W3C Software Notice and
@@ -62,7 +62,7 @@ export default class OpcuaClient implements ProtocolClient {
 				maxRetry: 1
 			},
 			requestedSessionTimeout: 10000,
-			endpoint_must_exist: false
+			endpointMustExist: false
 		}
 		if (_config) {
 			this.config = _config;
@@ -122,7 +122,7 @@ export default class OpcuaClient implements ProtocolClient {
 
 	public async readResource(form: OpcuaForm): Promise<Content> {
 		let url = new Url(form.href);
-		let endpointUrl = url.origin;
+		let endpointUrl = `${url.protocol}//${url.host}`;
 		let method = form["opc:method"] ? form["opc:method"] : "READ";
 
 		let contentType = "application/x.opcua-binary";
@@ -167,7 +167,7 @@ export default class OpcuaClient implements ProtocolClient {
 		let body = await ProtocolHelpers.readStreamFully(content.body);
 		let payload: any = content ? JSON.parse(body.toString()): {};
 		let url = new Url(form.href);
-		let endpointUrl = url.origin;
+		let endpointUrl = `${url.protocol}//${url.host}`;
 		let method = form["opc:method"] ? form["opc:method"] : "WRITE";
 		let contentType = "application/x.opcua-binary";
 
@@ -191,23 +191,25 @@ export default class OpcuaClient implements ProtocolClient {
 			midtype: string;
 		} = this.extract_params(url.pathname.toString().substr(1));
 		let nodeId = params.ns + ';' + params.idtype;
-
 		try {
 			let nodeToWrite = {
 				nodeId: nodeId,
 				attributeId: AttributeIds.Value,
 				value: /* DataValue */ {
-					sourceTimestamp: new Date(),
-					statusCode: StatusCodes.Good,
+					// sourceTimestamp: new Date(), // FIXME: to be optional
+					// statusCode: StatusCodes.Good,
 					value: /* Variant */ {
-						dataType: dataType,
-						value: payload
+						dataType,
+						value: payload.payload
 					}
 				},
 			}
 			result = await this.session.write(nodeToWrite);
 			if (result._name === "Good" && result.value === 0) {
 				res = true;
+			} else if (result._description) {
+				const err = new Error(result._description);
+				throw err;
 			}
 		} catch (err) {
 			console.debug("[binding-opcua]",err);
@@ -231,10 +233,10 @@ export default class OpcuaClient implements ProtocolClient {
 			let body = await ProtocolHelpers.readStreamFully(content.body);
 			payload = JSON.parse(body.toString());
 		}
-		
+
 		let url = new Url(form.href);
 
-		let endpointUrl = url.origin;
+		let endpointUrl = `${url.protocol}//${url.host}`;
 		let method = form["opc:method"] ? form["opc:method"] : "CALL_METHOD";
 
 
@@ -299,6 +301,7 @@ export default class OpcuaClient implements ProtocolClient {
 		}
 		return;
 	}
+
 	public subscribeResource(form: OpcuaForm, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): Promise<Subscription> {
 		return new Promise<Subscription>((resolve, reject) => {
 			let url = new Url(form.href);
@@ -352,12 +355,12 @@ export default class OpcuaClient implements ProtocolClient {
 						reject(new Error(`Error while subscribing property: ${error}`));
 					});
 
-					monitoredItem.on("initialized", () => { 
+					monitoredItem.on("initialized", () => {
 						// remove initialization error listener
 						monitoredItem.removeAllListeners("error");
 						// forward next errors to the callback if any
 						error && monitoredItem.on("err", error)
-		
+
 						resolve(new Subscription(() => { }));
 					});
 
@@ -395,6 +398,11 @@ export default class OpcuaClient implements ProtocolClient {
 
 
 	private extract_params(url: string): { ns: string; idtype: string; mns: string; midtype: string } {
+		try {
+			url = decodeURI(url);
+		} catch (err) {
+			console.error(err);
+		}
 		let res: {
 			ns: string;
 			idtype: string;

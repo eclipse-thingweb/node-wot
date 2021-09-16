@@ -180,7 +180,7 @@ WoT.produce({
         thing.emitEvent("change", count);
         return undefined;
     });
-    thing.setActionHandler("decrement", async (params, options) => {
+    thing.setActionHandler("reset", async (params, options) => {
         console.log("Resetting count");
         count = 0;
         lastChange = (new Date()).toISOString();
