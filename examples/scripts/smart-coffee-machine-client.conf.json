@@ -4,7 +4,7 @@
     },
     "credentials": {
         "urn:dev:wot:example:smart-coffee-machine": {
-            "clientId" : "node-wot",
+            "clientId": "node-wot",
             "clientSecret": "isgreat!"
         }
     }

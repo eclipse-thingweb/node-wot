@@ -42,25 +42,26 @@ try {
         console.info("=== TD ===");
         console.info(td);
         console.info("==========");
-        source.subscribeEvent("counter", (x) => {
-            console.info("value:", x);
-        })
+        source
+            .subscribeEvent("counter", (x) => {
+                console.info("value:", x);
+            })
             .then(() => {
-            console.info("Completed");
-        })
+                console.info("Completed");
+            })
             .catch((e) => {
-            console.error("Error: %s", e);
-        });
-        setInterval(async () => {
-            source.invokeAction("resetCounter")
-                .then((res) => { })
-                .catch((err) => {
-                console.error("ResetCounter error:", err.message);
+                console.error("Error: %s", e);
             });
+        setInterval(async () => {
+            source
+                .invokeAction("resetCounter")
+                .then((res) => {})
+                .catch((err) => {
+                    console.error("ResetCounter error:", err.message);
+                });
             console.info("Reset counter!");
         }, 20000);
     });
-}
-catch (err) {
+} catch (err) {
     console.error("Script error: " + err);
 }

@@ -19,40 +19,39 @@ try {
     WoT.produce({
         title: "EventSource",
         actions: {
-            reset: {}
+            reset: {},
         },
         events: {
             onchange: {
-                data: { type: "integer" }
-            }
-        }
+                data: { type: "integer" },
+            },
+        },
     })
         .then((thing) => {
-        console.log("Produced " + thing.getThingDescription().title);
-        // set action handlers
-        thing.setActionHandler("reset", () => {
-            return new Promise((resolve, reject) => {
-                console.info("Resetting");
-                counter = 0;
+            console.log("Produced " + thing.getThingDescription().title);
+            // set action handlers
+            thing.setActionHandler("reset", () => {
                 return new Promise((resolve, reject) => {
-                    resolve();
+                    console.info("Resetting");
+                    counter = 0;
+                    return new Promise((resolve, reject) => {
+                        resolve();
+                    });
                 });
             });
-        });
-        // expose the thing
-        thing.expose().then(() => {
-            console.info(thing.getThingDescription().title + " ready");
-            setInterval(() => {
-                ++counter;
-                thing.emitEvent("onchange", counter);
-                console.info("Emitted change ", counter);
-            }, 5000);
-        });
-    })
+            // expose the thing
+            thing.expose().then(() => {
+                console.info(thing.getThingDescription().title + " ready");
+                setInterval(() => {
+                    ++counter;
+                    thing.emitEvent("onchange", counter);
+                    console.info("Emitted change ", counter);
+                }, 5000);
+            });
+        })
         .catch((e) => {
-        console.log(e);
-    });
-}
-catch (err) {
+            console.log(e);
+        });
+} catch (err) {
     console.error("Script error: ", err);
 }

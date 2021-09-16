@@ -16,36 +16,39 @@
 var counter = 0;
 WoT.produce({
     title: "MQTT-Test",
-    description: "Tests a MQTT client that published counter values as an WoT event and subscribes the resetCounter topic as WoT action to reset the own counter.",
+    description:
+        "Tests a MQTT client that published counter values as an WoT event and subscribes the resetCounter topic as WoT action to reset the own counter.",
     actions: {
         resetCounter: {
-            description: "Reset counter"
-        }
+            description: "Reset counter",
+        },
     },
     events: {
         counterEvent: {
-            description: "Get counter"
-        }
-    }
+            description: "Get counter",
+        },
+    },
 })
     .then((thing) => {
-    console.info("Setup MQTT broker address/port details in wot-servient.conf.json (also see sample in wot-servient.conf.json_mqtt)!");
-    thing.setActionHandler("resetCounter", () => {
-        return new Promise((resolve, reject) => {
-            console.log("Resetting counter");
-            counter = 0;
-            resolve();
+        console.info(
+            "Setup MQTT broker address/port details in wot-servient.conf.json (also see sample in wot-servient.conf.json_mqtt)!"
+        );
+        thing.setActionHandler("resetCounter", () => {
+            return new Promise((resolve, reject) => {
+                console.log("Resetting counter");
+                counter = 0;
+                resolve();
+            });
         });
-    });
-    thing.expose().then(() => {
-        console.info(thing.getThingDescription().title + " ready");
-        setInterval(() => {
-            ++counter;
-            thing.emitEvent("counterEvent", counter);
-            console.info("New count", counter);
-        }, 1000);
-    });
-})
+        thing.expose().then(() => {
+            console.info(thing.getThingDescription().title + " ready");
+            setInterval(() => {
+                ++counter;
+                thing.emitEvent("counterEvent", counter);
+                console.info("New count", counter);
+            }, 1000);
+        });
+    })
     .catch((e) => {
-    console.log(e);
-});
+        console.log(e);
+    });

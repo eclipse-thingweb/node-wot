@@ -1,4 +1,3 @@
-
 /********************************************************************************
  * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
  *
@@ -13,13 +12,12 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-WoTHelpers.fetch("https://localhost:8080/oauth").then(td => {
+WoTHelpers.fetch("https://localhost:8080/oauth").then((td) => {
     WoT.consume(td).then(async (thing) => {
         try {
             const result = await thing.invokeAction("sayOk");
             console.log("oAuth token was", result);
-        }
-        catch (error) {
+        } catch (error) {
             console.log("It seems that I couldn't access the resource");
         }
     });

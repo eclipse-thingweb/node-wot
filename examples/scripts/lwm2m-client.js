@@ -13,21 +13,29 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-console.info("Ensure https://leshan.eclipse.org/#/security has the Client Endpoint 'node-wot-test' with Identity 'node-wot' and Key '68656c6c6f'");
+console.info(
+    "Ensure https://leshan.eclipse.org/#/security has the Client Endpoint 'node-wot-test' with Identity 'node-wot' and Key '68656c6c6f'"
+);
 console.info("==========");
-WoTHelpers.fetch("coap://localhost:5683/counter").then(async (td) => {
-    try {
-        let leshan = await WoT.consume(td);
-        console.info("=== TD ===");
-        console.info(td);
-        console.info("==========");
-        leshan.invokeAction("register", "</0/0>,</3/0>").then((res) => {
-            console.info("Registered");
-        }).catch((err) => {
-            console.error("Registration error:", err.message);
-        });
-    }
-    catch (err) {
-        console.error("Script error:", err);
-    }
-}).catch((err) => { console.error("Fetch error:", err); });
+WoTHelpers.fetch("coap://localhost:5683/counter")
+    .then(async (td) => {
+        try {
+            let leshan = await WoT.consume(td);
+            console.info("=== TD ===");
+            console.info(td);
+            console.info("==========");
+            leshan
+                .invokeAction("register", "</0/0>,</3/0>")
+                .then((res) => {
+                    console.info("Registered");
+                })
+                .catch((err) => {
+                    console.error("Registration error:", err.message);
+                });
+        } catch (err) {
+            console.error("Script error:", err);
+        }
+    })
+    .catch((err) => {
+        console.error("Fetch error:", err);
+    });
