@@ -447,6 +447,7 @@ describe("Modbus client test", () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 1,
+                "modbus:offset": 0,
                 "modbus:unitID": 1,
             };
 
