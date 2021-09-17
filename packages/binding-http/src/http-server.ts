@@ -26,10 +26,11 @@ import * as url from "url";
 import { AddressInfo } from "net";
 
 import * as TD from "@node-wot/td-tools";
-import Servient, { ProtocolServer, ContentSerdes, Helpers, ExposedThing, ProtocolHelpers } from "@node-wot/core";
+import Servient, { ProtocolServer, ContentSerdes, Helpers, ExposedThing, ProtocolHelpers, Content } from "@node-wot/core";
 import { HttpConfig, HttpForm, OAuth2ServerConfig } from "./http";
 import createValidator, { Validator } from "./oauth-token-validation";
 import { OAuth2SecurityScheme } from "@node-wot/td-tools";
+import { InteractionOutput } from "@node-wot/core/dist/interaction-output";
 
 export default class HttpServer implements ProtocolServer {
     public readonly scheme: "http" | "https";
@@ -769,21 +770,21 @@ export default class HttpServer implements ProtocolServer {
                                 } else {
                                     thing
                                         .readProperty(segments[3], options)
-                                        // property.read(options)
-                                        .then((value: any) => {
+                                        .then(async (value: InteractionOutput) => {
                                             const contentType = ProtocolHelpers.getPropertyContentType(
                                                 thing.getThingDescription(),
                                                 segments[3],
                                                 "http"
                                             );
-                                            const content = ContentSerdes.get().valueToContent(
+                                            /*const content = ContentSerdes.get().valueToContent(
                                                 value,
                                                 <any>property,
                                                 contentType
-                                            );
-                                            res.setHeader("Content-Type", content.type);
+                                            );*/
+                                            res.setHeader("Content-Type", contentType); // content.type);
                                             res.writeHead(200);
-                                            content.body.pipe(res);
+                                            res.end(await value.value() + "");
+                                            // content.body.pipe(res);
                                         })
                                         .catch((err) => {
                                             console.error(

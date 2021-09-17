@@ -68,11 +68,11 @@ export class InteractionOutput implements WoT.InteractionOutput {
 
         const validate = ajv.compile<T>(this.schema);
 
-        // is content type vaild?
-        if (!this.form || !ContentSerdes.get().isSupported(this.content.type)) {
+        // is content type valid?
+        /* if (!this.form || !ContentSerdes.get().isSupported(this.content.type)) {
             const message = !this.form ? "Missing form" : `Content type ${this.content.type} not supported`;
             throw new NotSupportedError(message);
-        }
+        } */
         // read fully the stream
 
         const data = await ProtocolHelpers.readStreamFully(this.content.body);
