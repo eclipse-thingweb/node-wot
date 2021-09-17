@@ -18,13 +18,12 @@
  */
 
 import { suite, test, timeout } from "@testdeck/mocha";
-import { expect, should } from "chai";
+import { expect } from "chai";
 
-import Servient, { Content, ContentSerdes, Helpers, ExposedThing, ProtocolHelpers } from "@node-wot/core";
+import { Helpers, ExposedThing } from "@node-wot/core";
 
 import CoapServer from "../src/coap-server";
 import CoapClient from "../src/coap-client";
-import CoapClientFactory from "../src/coap-client-factory";
 import { CoapForm } from "../src/coap";
 
 @suite("CoAP client implementation")
@@ -104,18 +103,21 @@ class CoapClientTest {
     }
 
     @test(timeout(5000)) "subscribe test"(done: Function) {
-        let client = new CoapClient();
+        const coapServer = new CoapServer(56834, "localhost");
+        coapServer.start(null).then(() => {
+            const coapClient = new CoapClient(coapServer);
 
-        const form: CoapForm = {
-            href: "coap://127.0.0.1:56834",
-            "coap:methodCode": 1,
-        };
+            const form: CoapForm = {
+                href: "coap://127.0.0.1:56834",
+                "coap:methodCode": 1,
+            };
 
-        client
-            .subscribeResource(form, (value) => {})
-            .then((subscription) => {
-                subscription.unsubscribe();
-                done();
+            coapClient
+                .subscribeResource(form, (value) => {})
+                .then((subscription) => {
+                    subscription.unsubscribe();
+                    done();
+                });
             });
     }
 }
