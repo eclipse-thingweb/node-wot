@@ -34,7 +34,7 @@ export default class TextCodec implements ContentCodec {
     bytesToValue(bytes: Buffer, schema: DataSchema, parameters: { [key: string]: string }): DataSchemaValue {
         // console.debug(`TextCodec parsing '${bytes.toString()}'`);
 
-        const parsed = bytes.toString(parameters.charset);
+        const parsed = bytes.toString(parameters.charset as BufferEncoding);
 
         // TODO apply schema to convert string to real type
 

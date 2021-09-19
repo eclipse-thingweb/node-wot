@@ -21,12 +21,13 @@ import * as http from "http";
 import * as https from "https";
 import * as url from "url";
 import * as fs from "fs";
+import * as net from "net";
 
 import * as WebSocket from "ws";
 import { AddressInfo } from "net";
 
 import * as TD from "@node-wot/td-tools";
-import { ProtocolServer, Servient, ExposedThing, ContentSerdes, Helpers, Content } from "@node-wot/core";
+import { ProtocolServer, Servient, ExposedThing, ContentSerdes, Helpers } from "@node-wot/core";
 import { HttpServer, HttpConfig } from "@node-wot/binding-http";
 
 export default class WebSocketServer implements ProtocolServer {
@@ -49,7 +50,7 @@ export default class WebSocketServer implements ProtocolServer {
             this.port = serverOrConfig.getPort();
             this.scheme = serverOrConfig.scheme === "https" ? "wss" : "ws";
         } else if (typeof serverOrConfig === "object") {
-            let config: HttpConfig = <HttpConfig>serverOrConfig;
+            const config: HttpConfig = <HttpConfig>serverOrConfig;
             // HttpConfig
             if (config.port !== undefined) {
                 this.port = config.port;
@@ -60,7 +61,7 @@ export default class WebSocketServer implements ProtocolServer {
 
             // TLS
             if (config.serverKey && config.serverCert) {
-                let options: any = {};
+                const options: any = {};
                 options.key = fs.readFileSync(config.serverKey);
                 options.cert = fs.readFileSync(config.serverCert);
                 this.scheme = "wss";
@@ -84,10 +85,10 @@ export default class WebSocketServer implements ProtocolServer {
             this.httpServer.on("upgrade", (request, socket, head) => {
                 const pathname = url.parse(request.url).pathname;
 
-                let socketServer = this.socketServers[pathname];
+                const socketServer = this.socketServers[pathname];
 
                 if (socketServer) {
-                    socketServer.handleUpgrade(request, socket, head, (ws) => {
+                    socketServer.handleUpgrade(request, socket as net.Socket/* fix me */, head, (ws) => {
                         socketServer.emit("connection", ws, request);
                     });
                 } else {
@@ -119,8 +120,8 @@ export default class WebSocketServer implements ProtocolServer {
     public stop(): Promise<void> {
         console.debug("[binding-websockets]", `WebSocketServer stopping on port ${this.port}`);
         return new Promise<void>((resolve, reject) => {
-            for (let path in this.socketServers) {
-                this.socketServers[path].close();
+            for (const pathSocket in this.socketServers) {
+                this.socketServers[pathSocket].close();
             }
 
             // stop promise handles all errors from now on
@@ -147,7 +148,7 @@ export default class WebSocketServer implements ProtocolServer {
     }
 
     public expose(thing: ExposedThing): Promise<void> {
-        let slugify = require("slugify");
+        const slugify = require("slugify");
         let urlPath = slugify(thing.title, { lower: true });
 
         if (this.thingNames.has(urlPath)) {
@@ -164,8 +165,8 @@ export default class WebSocketServer implements ProtocolServer {
             this.thingPaths.set(thing.id, urlPath);
 
             // TODO more efficient routing to ExposedThing without ResourceListeners in each server
-            for (let eventName in thing.events) {
-                let path =
+            for (const eventName in thing.events) {
+                const path =
                     "/" + encodeURIComponent(urlPath) + "/" + this.EVENT_DIR + "/" + encodeURIComponent(eventName);
 
                 console.debug(
@@ -227,9 +228,9 @@ export default class WebSocketServer implements ProtocolServer {
                     });
                 });
 
-                for (let address of Helpers.getAddresses()) {
-                    let href = this.scheme + "://" + address + ":" + this.getPort() + path;
-                    let form = new TD.Form(href, ContentSerdes.DEFAULT);
+                for (const address of Helpers.getAddresses()) {
+                    const href = this.scheme + "://" + address + ":" + this.getPort() + path;
+                    const form = new TD.Form(href, ContentSerdes.DEFAULT);
                     form.op = "subscribeevent";
                     thing.events[eventName].forms.push(form);
                     console.debug(
@@ -251,8 +252,8 @@ export default class WebSocketServer implements ProtocolServer {
         );
         return new Promise<boolean>((resolve, reject) => {
             let removedThing = false;
-            for (let name of Array.from(this.thingPaths.keys())) {
-                let thingPath = this.thingPaths.get(name);
+            for (const name of Array.from(this.thingPaths.keys())) {
+                const thingPath = this.thingPaths.get(name);
                 removedThing = this.thingNames.delete(thingPath);
             }
             if (removedThing) {
@@ -263,7 +264,7 @@ export default class WebSocketServer implements ProtocolServer {
                     `WebSocketServer failed to destroy thing with thingId '${thingId}'`
                 );
             }
-            resolve(removedThing != undefined);
+            resolve(removedThing !== undefined);
         });
     }
 }
