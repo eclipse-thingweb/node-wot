@@ -532,7 +532,7 @@ class TDParserTest {
         expect(thing.properties.myTemp).to.have.property("reference").that.equals("threshold");
 
         // serialize
-        const newJson = TDParser.serializeTD(thing);
+        // const newJson = TDParser.serializeTD(thing);
         // TODO JSON.parse() and expect
     }
 
