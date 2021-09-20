@@ -96,7 +96,9 @@ class CoapClientTest {
                     return coapServer.stop();
                 })
                 .then(() => {
-                    done();
+                    coapServer.stop().then(() => {
+                        done();
+                    });
                 });
         });
     }
