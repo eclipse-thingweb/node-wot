@@ -26,7 +26,14 @@ import * as url from "url";
 import { AddressInfo } from "net";
 
 import * as TD from "@node-wot/td-tools";
-import Servient, { ProtocolServer, ContentSerdes, Helpers, ExposedThing, ProtocolHelpers, Content } from "@node-wot/core";
+import Servient, {
+    ProtocolServer,
+    ContentSerdes,
+    Helpers,
+    ExposedThing,
+    ProtocolHelpers,
+    Content,
+} from "@node-wot/core";
 import { HttpConfig, HttpForm, OAuth2ServerConfig } from "./http";
 import createValidator, { Validator } from "./oauth-token-validation";
 import { OAuth2SecurityScheme } from "@node-wot/td-tools";
@@ -783,7 +790,7 @@ export default class HttpServer implements ProtocolServer {
                                             );*/
                                             res.setHeader("Content-Type", contentType); // content.type);
                                             res.writeHead(200);
-                                            res.end(await value.value() + "");
+                                            res.end((await value.value()) + "");
                                             // content.body.pipe(res);
                                         })
                                         .catch((err) => {

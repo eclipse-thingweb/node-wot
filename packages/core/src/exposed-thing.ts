@@ -295,10 +295,8 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                     ps.readHandler(options)
                         .then((customValue) => {
                             const body = ExposedThing.interactionInputToReadable(customValue);
-                            let c : Content = {body : body, type: "application/json"};
-                            resolve(
-                                new InteractionOutput(c, undefined, this.properties[propertyName])
-                            );
+                            let c: Content = { body: body, type: "application/json" };
+                            resolve(new InteractionOutput(c, undefined, this.properties[propertyName]));
                         })
                         .catch((err) => {
                             reject(err);
@@ -309,7 +307,13 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                         `ExposedThing '${this.title}' gets internal value '${ps.value}' for Property '${propertyName}'`
                     );
                     const body = ExposedThing.interactionInputToReadable(ps.value);
-                    resolve(new InteractionOutput({ body, type: "application/json" }, undefined, this.properties[propertyName]));
+                    resolve(
+                        new InteractionOutput(
+                            { body, type: "application/json" },
+                            undefined,
+                            this.properties[propertyName]
+                        )
+                    );
                 }
             } else {
                 reject(new Error(`ExposedThing '${this.title}', no property found for '${propertyName}'`));
@@ -481,12 +485,20 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                 let body = ExposedThing.interactionInputToReadable(parameter);
 
                 const result = await as.handler(
-                    new InteractionOutput({ body, type: "application/json" }, undefined, this.actions[actionName].input),
+                    new InteractionOutput(
+                        { body, type: "application/json" },
+                        undefined,
+                        this.actions[actionName].input
+                    ),
                     options
                 );
 
                 body = ExposedThing.interactionInputToReadable(result);
-                return new InteractionOutput({ body, type: "application/json" }, undefined, this.actions[actionName].output);
+                return new InteractionOutput(
+                    { body, type: "application/json" },
+                    undefined,
+                    this.actions[actionName].output
+                );
             } else {
                 throw new Error(`ExposedThing '${this.title}' has no handler for Action '${actionName}'`);
             }
