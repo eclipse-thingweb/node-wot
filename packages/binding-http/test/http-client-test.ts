@@ -13,6 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
+/* eslint-disable @typescript-eslint/no-var-requires */
 /**
  * Protocol test suite to test protocol implementations
  */
@@ -346,13 +347,13 @@ class HttpClientTest {
         };
 
         const errorSpy = chai.spy();
-        const completeSpy = chai.spy(function () {
+        const completeSpy = chai.spy( () => {
             errorSpy.should.have.been.called.once;
             completeSpy.should.have.been.called.once;
             done();
         });
 
-        client.subscribeResource(form, (data) => {}, errorSpy, completeSpy);
+        client.subscribeResource(form, (data) => {/**  */}, errorSpy, completeSpy);
     }
 
     @test "should call error() and complete() on subscription with wrong URL"(done: any) {
@@ -379,7 +380,7 @@ class HttpClientTest {
 
         server.listen(port2, "0.0.0.0");
         server.once("listening", () => {
-            client.subscribeResource(form, (data) => {}, errorSpy, completeSpy);
+            client.subscribeResource(form, (data) => {/**  */}, errorSpy, completeSpy);
         });
     }
 
