@@ -35,17 +35,24 @@ jobs:
         name: eslint
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v1
-            - name: install node v12
+            - name: Checkout
+              uses: actions/checkout@v2
+
+            - name: Use Node.js 14
               uses: actions/setup-node@v1
               with:
-                  node-version: 12
-            - name: yarn install
-              run: yarn install
-            - name: eslint
-              uses: icrawl/action-eslint@v1
-              with:
-                  custom-glob: packages
+                  node-version: 14
+
+            - name: npm 7
+              # npm workspaces requires npm v7 or higher
+              run: npm i -g npm@7 --registry=https://registry.npmjs.org
+
+            - name: Install
+              run: npm ci
+
+            - name: Lint
+              run: npm run lint
+              continue-on-error: true
 
     prettier:
         name: Check coding style
