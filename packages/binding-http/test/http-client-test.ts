@@ -48,6 +48,10 @@ interface TestVector {
     form: any;
 }
 
+const port1 = 50000;
+const port2 = 50001;
+
+
 class TestHttpServer implements ProtocolServer {
     public readonly scheme: string = "test";
 
@@ -173,9 +177,9 @@ class HttpClientTest {
     @test async "should apply defaults"() {
         let inputVector;
 
-        const httpServer = new TestHttpServer(60603);
+        const httpServer = new TestHttpServer(port1);
         await httpServer.start();
-        expect(httpServer.getPort()).to.equal(60603);
+        expect(httpServer.getPort()).to.equal(port1);
 
         const client = new HttpClient();
 
@@ -183,7 +187,7 @@ class HttpClientTest {
         inputVector = {
             op: ["readproperty"],
             form: {
-                href: "http://localhost:60603/",
+                href: `http://localhost:${port1}/`,
             },
         };
         httpServer.setTestVector(inputVector);
@@ -193,7 +197,7 @@ class HttpClientTest {
         inputVector = {
             op: ["writeproperty"],
             form: {
-                href: "http://localhost:60603/",
+                href: `http://localhost:${port1}/`,
             },
             payload: "test",
         };
@@ -207,7 +211,7 @@ class HttpClientTest {
         inputVector = {
             op: ["invokeaction"],
             form: {
-                href: "http://localhost:60603/",
+                href: `http://localhost:${port1}/`,
             },
             payload: "test",
         };
@@ -223,9 +227,9 @@ class HttpClientTest {
     @test async "should apply form information"() {
         let inputVector;
 
-        const httpServer = new TestHttpServer(60603);
+        const httpServer = new TestHttpServer(port1);
         await httpServer.start();
-        expect(httpServer.getPort()).to.equal(60603);
+        expect(httpServer.getPort()).to.equal(port1);
 
         const client = new HttpClient();
 
@@ -233,7 +237,7 @@ class HttpClientTest {
         inputVector = {
             op: ["readproperty"],
             form: {
-                href: "http://localhost:60603/",
+                href: `http://localhost:${port1}/`,
                 "htv:methodName": "POST",
             },
         };
@@ -244,7 +248,7 @@ class HttpClientTest {
         inputVector = {
             op: ["writeproperty"],
             form: {
-                href: "http://localhost:60603/",
+                href: `http://localhost:${port1}/`,
                 "htv:methodName": "POST",
             },
             payload: "test",
@@ -259,7 +263,7 @@ class HttpClientTest {
         inputVector = {
             op: ["invokeaction"],
             form: {
-                href: "http://localhost:60603/",
+                href: `http://localhost:${port1}/`,
                 "htv:methodName": "PUT",
             },
             payload: "test",
@@ -274,7 +278,7 @@ class HttpClientTest {
         inputVector = {
             op: ["invokeaction"],
             form: {
-                href: "http://localhost:60603/",
+                href: `http://localhost:${port1}/`,
                 "htv:methodName": "DELETE",
             },
         };
@@ -311,9 +315,9 @@ class HttpClientTest {
             });
         });
 
-        const server = app.listen(60603, (err: any) => {
+        const server = app.listen(port1, (err: any) => {
             if (err) throw err;
-            console.log("server ready on http://localhost:60603");
+            console.log(`server ready on http://localhost:${port1}`);
         });
         console.log("client created");
         const client = new HttpClient();
@@ -323,7 +327,7 @@ class HttpClientTest {
             op: ["observeproperty"],
             subprotocol: "sse",
             contentType: "application/json",
-            href: "http://localhost:60603/sse",
+            href: `http://localhost:${port1}/sse`,
         };
 
         client.subscribeResource(form, (data) => {
@@ -357,7 +361,7 @@ class HttpClientTest {
         // Subscribe to an event
         const form: HttpForm = {
             op: ["subscribeevent"],
-            href: "http://localhost:60604/",
+            href: `http://localhost:${port2}/`,
         };
 
         const server = http.createServer((req, res) => {
@@ -373,7 +377,7 @@ class HttpClientTest {
             server.close();
         });
 
-        server.listen(60604, "0.0.0.0");
+        server.listen(port2, "0.0.0.0");
         server.once("listening", () => {
             client.subscribeResource(form, (data) => {}, errorSpy, completeSpy);
         });
