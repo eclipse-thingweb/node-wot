@@ -34,12 +34,10 @@ import {
     ReadValueIdOptions,
     ReadValueId,
     ClientMonitoredItem,
-    DataType,
     DataValue,
     UserTokenType,
 } from "node-opcua-client";
-import { StatusCodes } from "node-opcua-status-code";
-import * as crypto_utils from "node-opcua-crypto";
+import * as cryptoUtils from "node-opcua-crypto";
 import { Subscription } from "rxjs/Subscription";
 import { Readable } from "stream";
 
@@ -69,7 +67,7 @@ export default class OpcuaClient implements ProtocolClient {
         }
     }
 
-    public toString() {
+    public toString(): string {
         return "[OpcuaClient]";
     }
 
@@ -84,19 +82,20 @@ export default class OpcuaClient implements ProtocolClient {
                     type: UserTokenType.UserName,
                 };
             } else if (this.credentials.clientCertificate) {
-                const clientCertificate: crypto_utils.Certificate = crypto_utils.readCertificate(
+                const clientCertificate: cryptoUtils.Certificate = cryptoUtils.readCertificate(
                     this.credentials.clientCertificate
                 );
-                const privateKey: crypto_utils.PrivateKeyPEM = crypto_utils.readPrivateKeyPEM(
+                const privateKey: cryptoUtils.PrivateKeyPEM = cryptoUtils.readPrivateKeyPEM(
                     this.credentials.clientPrivateKey
                 );
                 this.clientOptions.securityMode = MessageSecurityMode.SignAndEncrypt;
-                (this.clientOptions.securityPolicy = SecurityPolicy.Basic256Sha256),
-                    (this.clientOptions.certificateFile = this.credentials.clientCertificate),
-                    (this.clientOptions.privateKeyFile = this.credentials.clientPrivateKey),
-                    (this.clientOptions.serverCertificate = crypto_utils.readCertificate(
-                        this.credentials.serverCertificate
-                    ));
+                this.clientOptions.securityPolicy = SecurityPolicy.Basic256Sha256;
+
+                this.clientOptions.certificateFile = this.credentials.clientCertificate;
+                this.clientOptions.privateKeyFile = this.credentials.clientPrivateKey;
+                this.clientOptions.serverCertificate = cryptoUtils.readCertificate(
+                    this.credentials.serverCertificate
+                );
                 userIdentity = {
                     certificateData: clientCertificate,
                     privateKey,
@@ -110,26 +109,18 @@ export default class OpcuaClient implements ProtocolClient {
         await this.client.connect(endpointUrl);
         this.session = await this.client.createSession(userIdentity);
 
-        /*this.client.on('connection_lost', () => { //FIXME, NOT WORKING because of framework?
-		});
-		this.session.on('closed', () => {
-			console.debug('Client connection has been reestablished')
-			//this.session.close();
-			this.client.disconnect();
-			this.session = null;
-		});*/
         if (next) {
-            //callback version
+            // callback version
             next();
         }
     }
 
     public async readResource(form: OpcuaForm): Promise<Content> {
-        let url = new Url(form.href);
-        let endpointUrl = `${url.protocol}//${url.host}`;
-        let method = form["opc:method"] ? form["opc:method"] : "READ";
+        const url = new Url(form.href);
+        const endpointUrl = `${url.protocol}//${url.host}`;
+        const method = form["opc:method"] ? form["opc:method"] : "READ";
 
-        let contentType = "application/x.opcua-binary";
+        const contentType = "application/x.opcua-binary";
 
         if (this.session === null) {
             try {
@@ -143,14 +134,14 @@ export default class OpcuaClient implements ProtocolClient {
         let result: any;
 
         try {
-            let params: {
+            const params: {
                 ns: string;
                 idtype: string;
                 mns: string;
                 midtype: string;
-            } = this.extract_params(url.pathname.toString().substr(1));
+            } = this.extractParams(url.pathname.toString().substr(1));
 
-            let nodeId = params.ns + ";" + params.idtype;
+            const nodeId = params.ns + ";" + params.idtype;
             const nodeToRead = {
                 nodeId: nodeId,
             };
@@ -168,15 +159,15 @@ export default class OpcuaClient implements ProtocolClient {
     }
 
     public async writeResource(form: OpcuaForm, content: Content): Promise<any> {
-        let body = await ProtocolHelpers.readStreamFully(content.body);
-        let payload: any = content ? JSON.parse(body.toString()) : {};
-        let url = new Url(form.href);
-        let endpointUrl = `${url.protocol}//${url.host}`;
-        let method = form["opc:method"] ? form["opc:method"] : "WRITE";
-        let contentType = "application/x.opcua-binary";
+        const body = await ProtocolHelpers.readStreamFully(content.body);
+        const payload: any = content ? JSON.parse(body.toString()) : {};
+        const url = new Url(form.href);
+        const endpointUrl = `${url.protocol}//${url.host}`;
+        const method = form["opc:method"] ? form["opc:method"] : "WRITE";
+        const contentType = "application/x.opcua-binary";
 
-        let res: Boolean = false;
-        let dataType = payload.dataType;
+        let res = false;
+        const dataType = payload.dataType;
 
         if (this.session === null) {
             try {
@@ -188,15 +179,15 @@ export default class OpcuaClient implements ProtocolClient {
         }
 
         let result: any;
-        let params: {
+        const params: {
             ns: string;
             idtype: string;
             mns: string;
             midtype: string;
-        } = this.extract_params(url.pathname.toString().substr(1));
-        let nodeId = params.ns + ";" + params.idtype;
+        } = this.extractParams(url.pathname.toString().substr(1));
+        const nodeId = params.ns + ";" + params.idtype;
         try {
-            let nodeToWrite = {
+            const nodeToWrite = {
                 nodeId: nodeId,
                 attributeId: AttributeIds.Value,
                 value: /* DataValue */ {
@@ -220,7 +211,7 @@ export default class OpcuaClient implements ProtocolClient {
             throw err;
         }
 
-        return new Promise<any>((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
             if (res) {
                 resolve(undefined);
             } else {
@@ -232,16 +223,16 @@ export default class OpcuaClient implements ProtocolClient {
     public async invokeResource(form: OpcuaForm, content: Content): Promise<any> {
         let payload;
         if (content) {
-            let body = await ProtocolHelpers.readStreamFully(content.body);
+            const body = await ProtocolHelpers.readStreamFully(content.body);
             payload = JSON.parse(body.toString());
         }
 
-        let url = new Url(form.href);
+        const url = new Url(form.href);
 
-        let endpointUrl = `${url.protocol}//${url.host}`;
-        let method = form["opc:method"] ? form["opc:method"] : "CALL_METHOD";
+        const endpointUrl = `${url.protocol}//${url.host}`;
+        const method = form["opc:method"] ? form["opc:method"] : "CALL_METHOD";
 
-        let contentType = "application/x.opcua-binary";
+        const contentType = "application/x.opcua-binary";
         if (this.session === null) {
             try {
                 await this.connect(endpointUrl);
@@ -252,41 +243,38 @@ export default class OpcuaClient implements ProtocolClient {
         }
 
         let result: any;
-        let params: {
+        const params: {
             ns: string;
             idtype: string;
             mns: string;
             midtype: string;
-        } = this.extract_params(url.pathname.toString().substr(1));
-        let objectId = params.ns + ";" + params.idtype;
-        let nodeId = params.mns + ";" + params.midtype;
-        let methodToCalls: any[] = [];
+        } = this.extractParams(url.pathname.toString().substr(1));
+        const objectId = params.ns + ";" + params.idtype;
+        const nodeId = params.mns + ";" + params.midtype;
+        const methodToCalls: any[] = [];
         let req;
         if (method === "CALL_METHOD") {
-            try {
-                req = {
-                    methodId: nodeId,
-                    objectId: objectId,
-                    inputArguments: payload.inputArguments,
-                };
-                methodToCalls.push(req);
-                result = await this.session.call(methodToCalls);
-                var status = result[0].statusCode;
-                if (status._value !== 0 || status._name !== "Good") {
-                    console.debug("[binding-opcua]", status);
-                    throw new Error(status);
-                }
-            } catch (err) {
-                throw err;
+            req = {
+                methodId: nodeId,
+                objectId: objectId,
+                inputArguments: payload.inputArguments,
+            };
+            methodToCalls.push(req);
+            result = await this.session.call(methodToCalls);
+            const status = result[0].statusCode;
+            if (status._value !== 0 || status._name !== "Good") {
+                console.debug("[binding-opcua]", status);
+                throw new Error(status);
             }
-            return new Promise<Object>((resolve, reject) => {
+
+            return new Promise((resolve, reject) => {
                 resolve({ type: contentType, body: result[0].outputArguments[0] });
             });
         }
     }
 
-    public unlinkResource(form: OpcuaForm): Promise<any> {
-        return new Promise<Object>((resolve, reject) => {
+    public unlinkResource(form: OpcuaForm): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
             reject(new Error(`OpcuaClient does not implement unlink`));
         });
     }
@@ -300,7 +288,6 @@ export default class OpcuaClient implements ProtocolClient {
                 throw err;
             }
         }
-        return;
     }
 
     public subscribeResource(
@@ -317,13 +304,13 @@ export default class OpcuaClient implements ProtocolClient {
             this.checkConnection(endpointUrl)
                 .then(function () {
                     try {
-                        let params: {
+                        const params: {
                             ns: string;
                             idtype: string;
                             mns: string;
                             midtype: string;
-                        } = self.extract_params(url.pathname.toString().substr(1));
-                        let nodeId = params.ns + ";" + params.idtype;
+                        } = self.extractParams(url.pathname.toString().substr(1));
+                        const nodeId = params.ns + ";" + params.idtype;
 
                         let subscription: any;
                         const defaultSubscriptionOptions = {
@@ -357,7 +344,7 @@ export default class OpcuaClient implements ProtocolClient {
                             TimestampsToReturn.Both
                         );
 
-                        monitoredItem.once("err", (error: String) => {
+                        monitoredItem.once("err", (error: string) => {
                             monitoredItem.removeAllListeners();
                             reject(new Error(`Error while subscribing property: ${error}`));
                         });
@@ -393,7 +380,7 @@ export default class OpcuaClient implements ProtocolClient {
     }
 
     public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean {
-        if (metadata === undefined || !Array.isArray(metadata) || metadata.length == 0) {
+        if (metadata === undefined || !Array.isArray(metadata) || metadata.length === 0) {
             console.warn("[binding-opcua]", `OpcuaClient without security`);
             return false;
         }
@@ -403,13 +390,13 @@ export default class OpcuaClient implements ProtocolClient {
         this.credentials = credentials;
     }
 
-    private extract_params(url: string): { ns: string; idtype: string; mns: string; midtype: string } {
+    private extractParams(url: string): { ns: string; idtype: string; mns: string; midtype: string } {
         try {
             url = decodeURI(url);
         } catch (err) {
             console.error(err);
         }
-        let res: {
+        const res: {
             ns: string;
             idtype: string;
             mns: string;
@@ -421,7 +408,7 @@ export default class OpcuaClient implements ProtocolClient {
             midtype: null,
         };
         for (let i = 0; i < url.split(";").length; i++) {
-            let value = url.split(";")[i];
+            const value = url.split(";")[i];
             if (value.includes("mns=")) {
                 res.mns = value.replace("mns", "ns");
             } else if (value.includes("ns=")) {
