@@ -67,13 +67,13 @@ export default class MqttClient implements ProtocolClient {
                 next({ type: contentType, body: Readable.from(payload) });
             }
         });
-        this.client.on("error", (error: any) => {
+        this.client.on("error", (err: any) => {
             if (this.client) {
                 this.client.end();
             }
             this.client == undefined;
             // TODO: error handling
-            error(error);
+            error(err);
         });
 
         return new Subscription(() => {
