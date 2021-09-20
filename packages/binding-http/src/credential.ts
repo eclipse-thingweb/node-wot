@@ -37,7 +37,7 @@ export class BasicCredential extends Credential {
         this.password = password;
     }
 
-    async sign(request: Request) {
+    async sign(request: Request): Promise<Request> {
         const result = request.clone();
         result.headers.set(
             "authorization",
@@ -58,7 +58,7 @@ export class BearerCredential extends Credential {
         this.token = token;
     }
 
-    async sign(request: Request) {
+    async sign(request: Request): Promise<Request> {
         const result = request.clone();
         result.headers.set("authorization", "Bearer " + this.token);
         return result;
@@ -79,7 +79,7 @@ export class BasicKeyCredential extends Credential {
         this.options = options;
     }
 
-    async sign(request: Request) {
+    async sign(request: Request): Promise<Request> {
         const result = request.clone();
 
         let headerName = "authorization";
@@ -108,7 +108,7 @@ export class OAuthCredential extends Credential {
         this.token = token;
     }
 
-    async sign(request: Request) {
+    async sign(request: Request): Promise<Request> {
         if (this.token instanceof Promise) {
             const tokenRequest = this.token as Promise<Token>;
             this.token = await tokenRequest;
@@ -123,7 +123,7 @@ export class OAuthCredential extends Credential {
         return mergeHeaders;
     }
 
-    async refreshToken() {
+    async refreshToken(): Promise<OAuthCredential> {
         if (this.token instanceof Promise) {
             throw new Error("Uninitialized token. You have to call sing before refresh");
         }

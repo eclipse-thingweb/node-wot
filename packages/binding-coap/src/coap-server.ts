@@ -32,9 +32,11 @@ export default class CoapServer implements ProtocolServer {
 
     private readonly port: number = 5683;
     private readonly address: string = undefined;
+
     private readonly server: any = coap.createServer((req: any, res: any) => {
         this.handleRequest(req, res);
     });
+
     private readonly things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
     private servient: Servient = null;
 
@@ -200,7 +202,7 @@ export default class CoapServer implements ProtocolServer {
             } else {
                 console.info("[binding-coap]", `CoapServer failed to destroy thing with thingId '${thingId}'`);
             }
-            resolve(removedThing != undefined);
+            resolve(removedThing !== undefined);
         });
     }
 
@@ -324,7 +326,7 @@ export default class CoapServer implements ProtocolServer {
                                     });
                                 // observeproperty
                             } else {
-                                var oInterval = setInterval(function () {
+                                const oInterval = setInterval(function () {
                                     thing
                                         .readProperty(segments[3])
                                         // property.read() periodically
@@ -344,6 +346,9 @@ export default class CoapServer implements ProtocolServer {
                                             res.write(content.body);
 
                                             res.on("finish", function (err: Error) {
+                                                if (err) {
+                                                    console.error(err);
+                                                }
                                                 clearInterval(oInterval);
                                                 res.end();
                                             });
@@ -485,7 +490,7 @@ export default class CoapServer implements ProtocolServer {
                                 packet.payload = "";
                                 packet.reset = false;
                                 packet.ack = true;
-                                packet.token = new Buffer(0);
+                                packet.token = Buffer.alloc(0);
 
                                 res._send(res, packet);
 
@@ -493,8 +498,7 @@ export default class CoapServer implements ProtocolServer {
                                 res._packet.token = res._request.token;
                                 // end of work-around
 
-                                const subscription = thing
-                                    .subscribeEvent(
+                                thing.subscribeEvent(
                                         segments[3],
                                         // let subscription = event.subscribe(
                                         (data) => {

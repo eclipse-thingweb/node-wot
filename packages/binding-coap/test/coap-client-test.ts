@@ -20,8 +20,6 @@
 import { suite, test } from "@testdeck/mocha";
 import { expect, should } from "chai";
 
-import { Helpers, ExposedThing } from "@node-wot/core";
-
 import CoapServer from "../src/coap-server";
 import CoapClient from "../src/coap-client";
 // should must be called to augment all variables
@@ -30,15 +28,15 @@ should();
 @suite("CoAP client implementation")
 class CoapClientTest {
     @test async "should apply form information"() {
-        const testThing = Helpers.extend(
-            {
-                name: "Test",
-                properties: {
-                    test: {},
-                },
-            },
-            new ExposedThing(null)
-        );
+        // const testThing = Helpers.extend(
+        //     {
+        //         name: "Test",
+        //         properties: {
+        //             test: {},
+        //         },
+        //     },
+        //     new ExposedThing(null)
+        // );
         // testThing.extendInteractions();
         // await testThing.writeProperty("test", "UNSET");
 
@@ -88,7 +86,7 @@ class CoapClientTest {
         await coapServer.stop();
     }
 
-    @test "should re-use port"(done: Function) {
+    @test "should re-use port"(done: () => {}) {
         const coapServer = new CoapServer(56834, "localhost");
         coapServer.start(null).then(() => {
             const coapClient = new CoapClient(coapServer);
