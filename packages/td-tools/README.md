@@ -5,7 +5,8 @@
 In the following example it is shown how td-tools of node-wot can be used.
 
 ### Prerequisites
-* `npm install @node-wot/td-tools`
+
+-   `npm install @node-wot/td-tools`
 
 ### Example
 
@@ -45,7 +46,6 @@ console.log("**** SERIALIZED TD ****");
 console.log(tdString2);
 console.log("****");
 ```
-
 
 ### More Details
 

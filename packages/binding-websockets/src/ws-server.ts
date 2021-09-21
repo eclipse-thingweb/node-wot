@@ -88,7 +88,7 @@ export default class WebSocketServer implements ProtocolServer {
                 const socketServer = this.socketServers[pathname];
 
                 if (socketServer) {
-                    socketServer.handleUpgrade(request, socket as net.Socket/* fix me */, head, (ws) => {
+                    socketServer.handleUpgrade(request, socket as net.Socket /* fix me */, head, (ws) => {
                         socketServer.emit("connection", ws, request);
                     });
                 } else {
