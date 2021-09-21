@@ -18,7 +18,7 @@
  */
 
 import { suite, test } from "@testdeck/mocha";
-import { expect, should, assert } from "chai";
+import { expect, should } from "chai";
 
 import CoapServer from "../src/coap-server";
 // should must be called to augment all variables
@@ -38,30 +38,27 @@ class CoapServerTest {
         expect(coapServer.getPort()).to.eq(-1); // from getPort() when not listening
     }
 
-    @test.skip async "should cause EADDRINUSE error when already running"() {
-        const coapServer1 = new CoapServer(0); // cannot use 0, since getPort() does not work
-        await coapServer1.start(null);
+    // This test has been commented out until further information from node-coap
+    // repo maintainer about having two coap server instances listening to the same port
+    // Issue: https://github.com/mcollina/node-coap/issues/268
+    //
+    // @test async "should cause EADDRINUSE error when already running"() {
+    //     const coapServer1 = new CoapServer(56832);
+    //     await coapServer1.start(null);
 
-        expect(coapServer1.getPort()).to.be.above(0); // from server._port, not real socket
+    //     expect(coapServer1.getPort()).to.eq(56832);
 
-        const coapServer2 = new CoapServer(coapServer1.getPort());
+    //     const coapServer2 = new CoapServer(coapServer1.getPort());
 
-        try {
-            await coapServer2.start(null); // should fail, but does not...
-        } catch (err) {
-            assert(true);
-        }
+    //     try {
+    //         await coapServer2.start(null);
+    //     } catch(err) {
+    //         assert(true);
+    //     }
 
-        expect(coapServer2.getPort()).to.eq(-1);
+    //     expect(coapServer2.getPort()).to.eq(56832);
 
-        // TODO expose Thing on coapServer1
-        const req = coap.request({ method: "GET", hostname: "localhost", port: coapServer1.getPort(), path: "/" });
-        req.on("response", async (res: any) => {
-            expect(res.payload.toString()).to.equal("One");
-
-            await coapServer1.stop();
-            await coapServer2.stop();
-        });
-        req.end();
-    }
+    //     await coapServer1.stop();
+    //     await coapServer2.stop();
+    // }
 }
