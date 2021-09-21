@@ -919,7 +919,7 @@ export default class HttpServer implements ProtocolServer {
                                     thing
                                         .invokeAction(segments[3], input, options)
                                         .then(async (output: InteractionOutput) => {
-                                            if (output) {
+                                            if (output && action.output) {
                                                 const contentType = ProtocolHelpers.getActionContentType(
                                                     thing.getThingDescription(),
                                                     segments[3],

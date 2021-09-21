@@ -482,23 +482,23 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                     "[core/exposed-thing]",
                     `ExposedThing '${this.title}' calls registered handler for Action '${actionName}'`
                 );
-                let body = ExposedThing.interactionInputToReadable(parameter);
+                let bodyInput;
+                if (parameter) {
+                    bodyInput = ExposedThing.interactionInputToReadable(parameter);
+                }
 
+                let cInput: Content = { body: bodyInput, type: "application/json" };
                 const result = await as.handler(
-                    new InteractionOutput(
-                        { body, type: "application/json" },
-                        undefined,
-                        this.actions[actionName].input
-                    ),
+                    new InteractionOutput(cInput, undefined, this.actions[actionName].input),
                     options
                 );
 
-                body = ExposedThing.interactionInputToReadable(result);
-                return new InteractionOutput(
-                    { body, type: "application/json" },
-                    undefined,
-                    this.actions[actionName].output
-                );
+                let bodyOutput;
+                if (result) {
+                    bodyOutput = ExposedThing.interactionInputToReadable(result);
+                }
+                let cOutput: Content = { body: bodyOutput, type: "application/json" };
+                return new InteractionOutput(cOutput, undefined, this.actions[actionName].output);
             } else {
                 throw new Error(`ExposedThing '${this.title}' has no handler for Action '${actionName}'`);
             }

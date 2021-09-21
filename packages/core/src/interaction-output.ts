@@ -42,7 +42,9 @@ export class InteractionOutput implements WoT.InteractionOutput {
         this.form = form;
         this.schema = schema;
 
-        this.data = ProtocolHelpers.toWoTStream(content.body);
+        if (content && content.body) {
+            this.data = ProtocolHelpers.toWoTStream(content.body);
+        }
     }
 
     async arrayBuffer(): Promise<ArrayBuffer> {
