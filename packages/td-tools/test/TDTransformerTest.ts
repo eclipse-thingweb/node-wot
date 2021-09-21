@@ -91,7 +91,7 @@ class TDTransformerTest {
             expect(td2V1.actions[1].hrefs).to.include("http://mytemp.example.com:8080/in");
         } else {
             // ERROR
-            throw Error('Test Error - incorrect TD structure');
+            throw Error("Test Error - incorrect TD structure");
         }
 
         // Events
@@ -169,7 +169,7 @@ class TDTransformerTest {
             expect(td2V1.actions[1].hrefs).to.include("http://mytemp.example.com:8080/in");
         } else {
             // ERROR
-            throw Error('Test Error - incorrect TD structure');
+            throw Error("Test Error - incorrect TD structure");
         }
 
         // Events

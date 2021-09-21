@@ -498,7 +498,8 @@ export default class CoapServer implements ProtocolServer {
                                 res._packet.token = res._request.token;
                                 // end of work-around
 
-                                thing.subscribeEvent(
+                                thing
+                                    .subscribeEvent(
                                         segments[3],
                                         // let subscription = event.subscribe(
                                         (data) => {

@@ -86,7 +86,7 @@ class CoapClientTest {
         await coapServer.stop();
     }
 
-    @test "should re-use port"(done: () => {}) {
+    @test "should re-use port"(done: Mocha.Done) {
         const coapServer = new CoapServer(56834, "localhost");
         coapServer.start(null).then(() => {
             const coapClient = new CoapClient(coapServer);
