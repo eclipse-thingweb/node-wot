@@ -112,6 +112,9 @@ class HttpServerTest {
         body = await (await fetch(uri + "properties/test")).text();
         expect(body).to.equal("off");
 
+        body = await (await fetch(uri + "all/properties")).text();
+        expect(body).to.equal('{"test":"off"}');
+
         body = await (await fetch(uri + "properties/test", { method: "PUT", body: "on" })).text();
         expect(body).to.equal("");
 

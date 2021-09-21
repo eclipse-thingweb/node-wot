@@ -691,11 +691,24 @@ export default class HttpServer implements ProtocolServer {
                             if (req.method === "GET") {
                                 thing
                                     .readAllProperties()
-                                    .then((value: any) => {
-                                        const content = ContentSerdes.get().valueToContent(value, undefined); // contentType handling? <any>property);
-                                        res.setHeader("Content-Type", content.type);
+                                    .then(async (propMap: WoT.PropertyReadMap) => {
+                                        // Note we create one object to return, TODO piping response
+                                        let recordReponse: Record<string, any> = {};
+                                        for (let key of propMap.keys()) {
+                                            let value: WoT.InteractionOutput = propMap.get(key);
+                                            value.form = { f: "all" }; // to avoid missing form error
+                                            let content = ContentSerdes.get().valueToContent(
+                                                value.data && !value.dataUsed ? value.data : await value.value(),
+                                                undefined,
+                                                "application/json"
+                                            );
+                                            // TODO ProtocolHelpers.readStreamFully() does not work for counter example for SVG countAsImage
+                                            const data = await ProtocolHelpers.readStreamFully(content.body);
+                                            recordReponse[key] = data.toString(); // contentType handling?
+                                        }
+                                        res.setHeader("Content-Type", "application/json"); // contentType handling?
                                         res.writeHead(200);
-                                        content.body.pipe(res);
+                                        res.end(JSON.stringify(recordReponse));
                                     })
                                     .catch((err) => {
                                         console.error(
