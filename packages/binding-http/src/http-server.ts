@@ -695,7 +695,7 @@ export default class HttpServer implements ProtocolServer {
                                         const content = ContentSerdes.get().valueToContent(value, undefined); // contentType handling? <any>property);
                                         res.setHeader("Content-Type", content.type);
                                         res.writeHead(200);
-                                        res.end(content.body);
+                                        content.body.pipe(res);
                                     })
                                     .catch((err) => {
                                         console.error(
@@ -735,7 +735,7 @@ export default class HttpServer implements ProtocolServer {
                                     thing
                                         .observeProperty(
                                             segments[3],
-                                            (data) => {
+                                            async (value: InteractionOutput) => {
                                                 let content;
                                                 try {
                                                     const contentType = ProtocolHelpers.getPropertyContentType(
@@ -744,7 +744,9 @@ export default class HttpServer implements ProtocolServer {
                                                         "http"
                                                     );
                                                     content = ContentSerdes.get().valueToContent(
-                                                        data,
+                                                        value.data && !value.dataUsed
+                                                            ? value.data
+                                                            : await value.value(),
                                                         property.data,
                                                         contentType
                                                     );
@@ -760,7 +762,7 @@ export default class HttpServer implements ProtocolServer {
                                                     return;
                                                 }
                                                 // send event data
-                                                res.end(content.body);
+                                                content.body.pipe(res);
                                             },
                                             options
                                         )
@@ -783,15 +785,14 @@ export default class HttpServer implements ProtocolServer {
                                                 segments[3],
                                                 "http"
                                             );
-                                            /*const content = ContentSerdes.get().valueToContent(
-                                                value,
+                                            const content = ContentSerdes.get().valueToContent(
+                                                value.data && !value.dataUsed ? value.data : await value.value(),
                                                 <any>property,
                                                 contentType
-                                            );*/
-                                            res.setHeader("Content-Type", contentType); // content.type);
+                                            );
+                                            res.setHeader("Content-Type", content.type);
                                             res.writeHead(200);
-                                            res.end((await value.value()) + "");
-                                            // content.body.pipe(res);
+                                            content.body.pipe(res);
                                         })
                                         .catch((err) => {
                                             console.error(
@@ -835,7 +836,6 @@ export default class HttpServer implements ProtocolServer {
                                         }
                                         thing
                                             .writeProperty(segments[3], value, options)
-                                            // property.write(value, options)
                                             .then(() => {
                                                 res.writeHead(204);
                                                 res.end("Changed");
@@ -905,8 +905,7 @@ export default class HttpServer implements ProtocolServer {
 
                                     thing
                                         .invokeAction(segments[3], input, options)
-                                        // action.invoke(input, options)
-                                        .then((output: any) => {
+                                        .then(async (output: InteractionOutput) => {
                                             if (output) {
                                                 const contentType = ProtocolHelpers.getActionContentType(
                                                     thing.getThingDescription(),
@@ -914,7 +913,9 @@ export default class HttpServer implements ProtocolServer {
                                                     "http"
                                                 );
                                                 const content = ContentSerdes.get().valueToContent(
-                                                    output,
+                                                    output.data && !output.dataUsed
+                                                        ? output.data
+                                                        : await output.value(),
                                                     action.output,
                                                     contentType
                                                 );
@@ -964,8 +965,7 @@ export default class HttpServer implements ProtocolServer {
                                 thing
                                     .subscribeEvent(
                                         segments[3],
-                                        // let subscription = event.subscribe(
-                                        (data) => {
+                                        async (value) => {
                                             let content;
                                             try {
                                                 const contentType = ProtocolHelpers.getEventContentType(
@@ -974,7 +974,7 @@ export default class HttpServer implements ProtocolServer {
                                                     "http"
                                                 );
                                                 content = ContentSerdes.get().valueToContent(
-                                                    data,
+                                                    value.data && !value.dataUsed ? value.data : await value.value(),
                                                     event.data,
                                                     contentType
                                                 );
@@ -990,7 +990,7 @@ export default class HttpServer implements ProtocolServer {
                                                 return;
                                             }
                                             // send event data
-                                            res.end(content.body);
+                                            content.body.pipe(res);
                                         },
                                         options
                                     )

@@ -70,8 +70,7 @@ class HttpServerTest {
         await httpServer.stop();
     }
 
-    // TODO: unskip this test
-    @test.skip async "should change resource from 'off' to 'on' and try to invoke"() {
+    @test async "should change resource from 'off' to 'on' and try to invoke"() {
         const httpServer = new HttpServer({ port: 0 });
 
         await httpServer.start(null);
@@ -111,16 +110,16 @@ class HttpServerTest {
         console.log("Testing", uri);
 
         body = await (await fetch(uri + "properties/test")).text();
-        expect(body).to.equal('"off"');
+        expect(body).to.equal("off");
 
         body = await (await fetch(uri + "properties/test", { method: "PUT", body: "on" })).text();
         expect(body).to.equal("");
 
         body = await (await fetch(uri + "properties/test")).text();
-        expect(body).to.equal('"on"');
+        expect(body).to.equal("on");
 
         body = await (await fetch(uri + "actions/try", { method: "POST", body: "toggle" })).text();
-        expect(body).to.equal('"TEST"');
+        expect(body).to.equal("TEST");
 
         return httpServer.stop();
     }
