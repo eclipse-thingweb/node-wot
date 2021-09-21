@@ -454,6 +454,7 @@ describe("Modbus client test", () => {
             client
                 .subscribeResource(form, (value) => {})
                 .then((subscription) => {
+                    client.unlinkResource(form);
                     done();
                 });
         });
