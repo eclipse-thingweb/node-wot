@@ -284,12 +284,12 @@ describe("OPCUA client test", function () {
         };
         try {
             let res = await client.subscribeResource(inputVector.form, () => {});
-        } catch(err) {
+        } catch (err) {
             expect(err.message).to.equal("Error while subscribing property: BadNodeIdUnknown (0x80340000)");
             return;
         }
         fail("should not have succeeded");
-    })
+    });
 
     it("should apply security", async function () {
         let metadata = [{ scheme: "nosec" }];

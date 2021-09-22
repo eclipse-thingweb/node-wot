@@ -121,6 +121,6 @@ class CoapClientTest {
                 .then(() => {
                     done();
                 });
-            });
+        });
     }
 }

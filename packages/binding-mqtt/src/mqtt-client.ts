@@ -37,33 +37,45 @@ export default class MqttClient implements ProtocolClient {
         this.scheme = "mqtt" + (secure ? "s" : "");
     }
 
-    private client : any = undefined;
+    private client: any = undefined;
 
-    public subscribeResource(form: MqttForm, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): Promise<Subscription> {
+    public subscribeResource(
+        form: MqttForm,
+        next: (value: any) => void,
+        error?: (error: any) => void,
+        complete?: () => void
+    ): Promise<Subscription> {
         return new Promise<Subscription>((resolve, reject) => {
             // get MQTT-based metadata
             let contentType = form.contentType;
             let retain = form["mqtt:retain"]; // TODO: is this needed here?
             let qos = form["mqtt:qos"]; // TODO: is this needed here?
-            let requestUri = url.parse(form['href']);
+            let requestUri = url.parse(form["href"]);
             let topic = requestUri.pathname.slice(1);
-            let brokerUri : String = "mqtt://"+requestUri.host;
+            let brokerUri: String = "mqtt://" + requestUri.host;
 
-            if(this.client==undefined) {
-                this.client = mqtt.connect(brokerUri)
+            if (this.client == undefined) {
+                this.client = mqtt.connect(brokerUri);
             }
 
-            this.client.on('connect', () => {
+            this.client.on("connect", () => {
                 this.client.subscribe(topic);
-                resolve(new Subscription(()=>{this.client.unsubscribe(topic)}));
-            })
-            this.client.on('message', (receivedTopic : string, payload : string, packet: IPublishPacket) => {
-                console.debug("[binding-mqtt]","Received MQTT message (topic, data): (" + receivedTopic + ", "+ payload + ")");
+                resolve(
+                    new Subscription(() => {
+                        this.client.unsubscribe(topic);
+                    })
+                );
+            });
+            this.client.on("message", (receivedTopic: string, payload: string, packet: IPublishPacket) => {
+                console.debug(
+                    "[binding-mqtt]",
+                    "Received MQTT message (topic, data): (" + receivedTopic + ", " + payload + ")"
+                );
                 if (receivedTopic === topic) {
                     next({ type: contentType, body: Readable.from(payload) });
                 }
-            })
-            this.client.on('error', (error :any)  => {
+            });
+            this.client.on("error", (error: any) => {
                 if (this.client) {
                     this.client.end();
                 }
@@ -72,8 +84,7 @@ export default class MqttClient implements ProtocolClient {
                 error(error);
             });
         });
-      }
-
+    }
 
     readResource = (form: MqttForm): Promise<Content> => {
         return new Promise<Content>((resolve, reject) => {

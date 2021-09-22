@@ -118,320 +118,327 @@ export default class OpcuaClient implements ProtocolClient {
 			this.client.disconnect();
 			this.session = null;
 		});*/
-		if (next) { //callback version
-			next();
-		}
+        if (next) {
+            //callback version
+            next();
+        }
+    }
 
-	}
+    public async readResource(form: OpcuaForm): Promise<Content> {
+        let url = new Url(form.href);
+        let endpointUrl = `${url.protocol}//${url.host}`;
+        let method = form["opc:method"] ? form["opc:method"] : "READ";
 
-	public async readResource(form: OpcuaForm): Promise<Content> {
-		let url = new Url(form.href);
-		let endpointUrl = `${url.protocol}//${url.host}`;
-		let method = form["opc:method"] ? form["opc:method"] : "READ";
+        let contentType = "application/x.opcua-binary";
 
-		let contentType = "application/x.opcua-binary";
+        if (this.session === null) {
+            try {
+                await this.connect(endpointUrl);
+            } catch (err) {
+                console.debug("[binding-opcua]", err);
+                throw err;
+            }
+        }
 
-		if (this.session === null) {
-			try {
-				await this.connect(endpointUrl);
-			} catch (err) {
-				console.debug("[binding-opcua]",err);
-				throw err;
-			}
-		}
+        let result: any;
 
-		let result: any;
+        try {
+            let params: {
+                ns: string;
+                idtype: string;
+                mns: string;
+                midtype: string;
+            } = this.extract_params(url.pathname.toString().substr(1));
 
-		try {
-			let params: {
-				ns: string;
-				idtype: string;
-				mns: string;
-				midtype: string;
-			} = this.extract_params(url.pathname.toString().substr(1));
+            let nodeId = params.ns + ";" + params.idtype;
+            const nodeToRead = {
+                nodeId: nodeId,
+            };
 
-			let nodeId = params.ns + ';' + params.idtype;
-			const nodeToRead = {
-				nodeId: nodeId
-			};
+            result = await this.session.read(nodeToRead);
+            result = JSON.stringify(result);
+        } catch (err) {
+            console.debug("[binding-opcua]", err);
+            throw err;
+        }
 
-			result = await this.session.read(nodeToRead);
-			result = JSON.stringify(result);
-		} catch (err) {
-			console.debug("[binding-opcua]",err);
-			throw err;
-		}
+        return new Promise<Content>((resolve, reject) => {
+            resolve({ type: contentType, body: Readable.from(Buffer.from(result)) });
+        });
+    }
 
-		return new Promise<Content>((resolve, reject) => {
-			resolve({ type: contentType, body: Readable.from(Buffer.from(result)) });
-		});
-	}
+    public async writeResource(form: OpcuaForm, content: Content): Promise<any> {
+        let body = await ProtocolHelpers.readStreamFully(content.body);
+        let payload: any = content ? JSON.parse(body.toString()) : {};
+        let url = new Url(form.href);
+        let endpointUrl = `${url.protocol}//${url.host}`;
+        let method = form["opc:method"] ? form["opc:method"] : "WRITE";
+        let contentType = "application/x.opcua-binary";
 
-	public async writeResource(form: OpcuaForm, content: Content): Promise<any> {
-		let body = await ProtocolHelpers.readStreamFully(content.body);
-		let payload: any = content ? JSON.parse(body.toString()): {};
-		let url = new Url(form.href);
-		let endpointUrl = `${url.protocol}//${url.host}`;
-		let method = form["opc:method"] ? form["opc:method"] : "WRITE";
-		let contentType = "application/x.opcua-binary";
+        let res: Boolean = false;
+        let dataType = payload.dataType;
 
-		let res: Boolean = false;
-		let dataType = payload.dataType;
+        if (this.session === null) {
+            try {
+                await this.connect(endpointUrl);
+            } catch (err) {
+                console.debug("[binding-opcua]", err);
+                throw err;
+            }
+        }
 
-		if (this.session === null) {
-			try {
-				await this.connect(endpointUrl);
-			} catch (err) {
-				console.debug("[binding-opcua]",err);
-				throw err;
-			}
-		}
+        let result: any;
+        let params: {
+            ns: string;
+            idtype: string;
+            mns: string;
+            midtype: string;
+        } = this.extract_params(url.pathname.toString().substr(1));
+        let nodeId = params.ns + ";" + params.idtype;
+        try {
+            let nodeToWrite = {
+                nodeId: nodeId,
+                attributeId: AttributeIds.Value,
+                value: /* DataValue */ {
+                    // sourceTimestamp: new Date(), // FIXME: to be optional
+                    // statusCode: StatusCodes.Good,
+                    value: /* Variant */ {
+                        dataType,
+                        value: payload.payload,
+                    },
+                },
+            };
+            result = await this.session.write(nodeToWrite);
+            if (result._name === "Good" && result.value === 0) {
+                res = true;
+            } else if (result._description) {
+                const err = new Error(result._description);
+                throw err;
+            }
+        } catch (err) {
+            console.debug("[binding-opcua]", err);
+            throw err;
+        }
 
-		let result: any;
-		let params: {
-			ns: string;
-			idtype: string;
-			mns: string;
-			midtype: string;
-		} = this.extract_params(url.pathname.toString().substr(1));
-		let nodeId = params.ns + ';' + params.idtype;
-		try {
-			let nodeToWrite = {
-				nodeId: nodeId,
-				attributeId: AttributeIds.Value,
-				value: /* DataValue */ {
-					// sourceTimestamp: new Date(), // FIXME: to be optional
-					// statusCode: StatusCodes.Good,
-					value: /* Variant */ {
-						dataType,
-						value: payload.payload
-					}
-				},
-			}
-			result = await this.session.write(nodeToWrite);
-			if (result._name === "Good" && result.value === 0) {
-				res = true;
-			} else if (result._description) {
-				const err = new Error(result._description);
-				throw err;
-			}
-		} catch (err) {
-			console.debug("[binding-opcua]",err);
-			throw err;
-		}
+        return new Promise<any>((resolve, reject) => {
+            if (res) {
+                resolve(undefined);
+            } else {
+                reject(new Error("Error while writing property"));
+            }
+        });
+    }
 
+    public async invokeResource(form: OpcuaForm, content: Content): Promise<any> {
+        let payload;
+        if (content) {
+            let body = await ProtocolHelpers.readStreamFully(content.body);
+            payload = JSON.parse(body.toString());
+        }
 
-		return new Promise<any>((resolve, reject) => {
-			if (res) {
-				resolve(undefined);
-			} else {
-				reject(new Error("Error while writing property"));
-			}
-		});
+        let url = new Url(form.href);
 
-	}
+        let endpointUrl = `${url.protocol}//${url.host}`;
+        let method = form["opc:method"] ? form["opc:method"] : "CALL_METHOD";
 
-	public async invokeResource(form: OpcuaForm, content: Content): Promise<any> {
-		let payload;
-		if(content){
-			let body = await ProtocolHelpers.readStreamFully(content.body);
-			payload = JSON.parse(body.toString());
-		}
+        let contentType = "application/x.opcua-binary";
+        if (this.session === null) {
+            try {
+                await this.connect(endpointUrl);
+            } catch (err) {
+                console.debug("[binding-opcua]", err);
+                throw err;
+            }
+        }
 
-		let url = new Url(form.href);
+        let result: any;
+        let params: {
+            ns: string;
+            idtype: string;
+            mns: string;
+            midtype: string;
+        } = this.extract_params(url.pathname.toString().substr(1));
+        let objectId = params.ns + ";" + params.idtype;
+        let nodeId = params.mns + ";" + params.midtype;
+        let methodToCalls: any[] = [];
+        let req;
+        if (method === "CALL_METHOD") {
+            try {
+                req = {
+                    methodId: nodeId,
+                    objectId: objectId,
+                    inputArguments: payload.inputArguments,
+                };
+                methodToCalls.push(req);
+                result = await this.session.call(methodToCalls);
+                var status = result[0].statusCode;
+                if (status._value !== 0 || status._name !== "Good") {
+                    console.debug("[binding-opcua]", status);
+                    throw new Error(status);
+                }
+            } catch (err) {
+                throw err;
+            }
+            return new Promise<Object>((resolve, reject) => {
+                resolve({ type: contentType, body: result[0].outputArguments[0] });
+            });
+        }
+    }
 
-		let endpointUrl = `${url.protocol}//${url.host}`;
-		let method = form["opc:method"] ? form["opc:method"] : "CALL_METHOD";
+    public unlinkResource(form: OpcuaForm): Promise<any> {
+        return new Promise<Object>((resolve, reject) => {
+            reject(new Error(`OpcuaClient does not implement unlink`));
+        });
+    }
 
+    private async checkConnection(endpointUrl: string) {
+        if (this.session === null) {
+            try {
+                await this.connect(endpointUrl);
+            } catch (err) {
+                console.debug("[binding-opcua]", err);
+                throw err;
+            }
+        }
+        return;
+    }
 
-		let contentType = "application/x.opcua-binary";
-		if (this.session === null) {
-			try {
-				await this.connect(endpointUrl);
-			} catch (err) {
-				console.debug("[binding-opcua]",err);
-				throw err;
-			}
-		}
+    public subscribeResource(
+        form: OpcuaForm,
+        next: (value: any) => void,
+        error?: (error: any) => void,
+        complete?: () => void
+    ): Promise<Subscription> {
+        return new Promise<Subscription>((resolve, reject) => {
+            let url = new Url(form.href);
+            let endpointUrl = url.origin;
+            let contentType = "application/x.opcua-binary";
+            let self = this;
+            this.checkConnection(endpointUrl)
+                .then(function () {
+                    try {
+                        let params: {
+                            ns: string;
+                            idtype: string;
+                            mns: string;
+                            midtype: string;
+                        } = self.extract_params(url.pathname.toString().substr(1));
+                        let nodeId = params.ns + ";" + params.idtype;
 
-		let result: any;
-		let params: {
-			ns: string;
-			idtype: string;
-			mns: string;
-			midtype: string;
-		} = this.extract_params(url.pathname.toString().substr(1));
-		let objectId = params.ns + ';' + params.idtype;
-		let nodeId = params.mns + ';' + params.midtype;
-		let methodToCalls: any[] = [];
-		let req;
-		if (method === "CALL_METHOD") {
-			try {
-				req = {
-					methodId: nodeId,
-					objectId: objectId,
-					inputArguments: payload.inputArguments
-				};
-				methodToCalls.push(req);
-				result = await this.session.call(methodToCalls);
-				var status = result[0].statusCode;
-				if (status._value !== 0 || status._name !== 'Good') {
-					console.debug("[binding-opcua]",status);
-					throw new Error(status);
-				}
-			} catch (err) {
-				throw err;
-			}
-			return new Promise<Object>((resolve, reject) => {
-				resolve({ type: contentType, body: result[0].outputArguments[0] });
-			});
-		}
-	}
+                        let subscription: any;
+                        const defaultSubscriptionOptions = {
+                            requestedPublishingInterval: 1000,
+                            requestedLifetimeCount: 100,
+                            requestedMaxKeepAliveCount: 10,
+                            maxNotificationsPerPublish: 100,
+                            publishingEnabled: true,
+                            priority: 10,
+                        };
+                        if (self.config && self.config.subscriptionOptions) {
+                            subscription = ClientSubscription.create(self.session, self.config.subscriptionOptions);
+                        } else {
+                            subscription = ClientSubscription.create(self.session, defaultSubscriptionOptions);
+                        }
 
-	public unlinkResource(form: OpcuaForm): Promise<any> {
-		return new Promise<Object>((resolve, reject) => {
-			reject(new Error(`OpcuaClient does not implement unlink`));
-		});
-	}
+                        const itemToMonitor: ReadValueIdOptions | ReadValueId = {
+                            nodeId: nodeId,
+                            attributeId: AttributeIds.Value,
+                        };
+                        const parameters: MonitoringParametersOptions = {
+                            samplingInterval: 100,
+                            discardOldest: true,
+                            queueSize: 10,
+                        };
 
-	private async checkConnection(endpointUrl: string) {
-		if (this.session === null) {
-			try {
-				await this.connect(endpointUrl);
-			} catch (err) {
-				console.debug("[binding-opcua]",err);
-				throw err;
-			}
-		}
-		return;
-	}
+                        const monitoredItem = ClientMonitoredItem.create(
+                            subscription,
+                            itemToMonitor,
+                            parameters,
+                            TimestampsToReturn.Both
+                        );
 
-	public subscribeResource(form: OpcuaForm, next: ((value: any) => void), error?: (error: any) => void, complete?: () => void): Promise<Subscription> {
-		return new Promise<Subscription>((resolve, reject) => {
-			let url = new Url(form.href);
-			let endpointUrl = url.origin;
-			let contentType = "application/x.opcua-binary";
-			let self = this;
-			this.checkConnection(endpointUrl).then(function () {
-				try {
-					let params: {
-						ns: string;
-						idtype: string;
-						mns: string;
-						midtype: string;
-					} = self.extract_params(url.pathname.toString().substr(1));
-					let nodeId = params.ns + ';' + params.idtype;
+                        monitoredItem.once("err", (error: String) => {
+                            monitoredItem.removeAllListeners();
+                            reject(new Error(`Error while subscribing property: ${error}`));
+                        });
 
-					let subscription: any;
-					const defaultSubscriptionOptions = {
-						requestedPublishingInterval: 1000,
-						requestedLifetimeCount: 100,
-						requestedMaxKeepAliveCount: 10,
-						maxNotificationsPerPublish: 100,
-						publishingEnabled: true,
-						priority: 10
-					};
-					if (self.config && self.config.subscriptionOptions) {
-						subscription = ClientSubscription.create(self.session, self.config.subscriptionOptions);
-					} else {
-						subscription = ClientSubscription.create(self.session, defaultSubscriptionOptions);
-					}
+                        monitoredItem.on("initialized", () => {
+                            // remove initialization error listener
+                            monitoredItem.removeAllListeners("error");
+                            // forward next errors to the callback if any
+                            error && monitoredItem.on("err", error);
 
-					const itemToMonitor: ReadValueIdOptions | ReadValueId = {
-						nodeId: nodeId,
-						attributeId: AttributeIds.Value
-					};
-					const parameters: MonitoringParametersOptions = {
-						samplingInterval: 100,
-						discardOldest: true,
-						queueSize: 10
-					};
+                            resolve(new Subscription(() => {}));
+                        });
 
-					const monitoredItem = ClientMonitoredItem.create(
-						subscription,
-						itemToMonitor,
-						parameters,
-						TimestampsToReturn.Both
-					);
+                        monitoredItem.on("changed", (dataValue: DataValue) => {
+                            next({ type: contentType, body: dataValue.value });
+                        });
+                    } catch (err) {
+                        reject(new Error(`Error while subscribing property`));
+                    }
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+    }
 
-					monitoredItem.once("err", (error: String) => {
-						monitoredItem.removeAllListeners();
-						reject(new Error(`Error while subscribing property: ${error}`));
-					});
+    public start(): boolean {
+        return true;
+    }
 
-					monitoredItem.on("initialized", () => {
-						// remove initialization error listener
-						monitoredItem.removeAllListeners("error");
-						// forward next errors to the callback if any
-						error && monitoredItem.on("err", error)
+    public stop(): boolean {
+        return true;
+    }
 
-						resolve(new Subscription(() => { }));
-					});
+    public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean {
+        if (metadata === undefined || !Array.isArray(metadata) || metadata.length == 0) {
+            console.warn("[binding-opcua]", `OpcuaClient without security`);
+            return false;
+        }
+        if (!credentials || (!credentials.password && !credentials.privateKey)) {
+            console.warn("[binding-opcua]", `Both password and certificate missing inside credentials`);
+        }
+        this.credentials = credentials;
+    }
 
-					monitoredItem.on("changed", (dataValue: DataValue) => {
-						next({ type: contentType, body: dataValue.value });
-					});
-
-				} catch (err) {
-					reject(new Error(`Error while subscribing property`));
-				}
-
-			}).catch(err => { reject(err); });
-		});
-	}
-
-	public start(): boolean {
-		return true;
-	}
-
-	public stop(): boolean {
-		return true;
-	}
-
-	public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean {
-
-		if (metadata === undefined || !Array.isArray(metadata) || metadata.length == 0) {
-			console.warn("[binding-opcua]",`OpcuaClient without security`);
-			return false;
-		}
-		if (!credentials || (!(credentials.password) && !(credentials.privateKey))) {
-			console.warn("[binding-opcua]",`Both password and certificate missing inside credentials`);
-		}
-		this.credentials = credentials;
-	}
-
-
-	private extract_params(url: string): { ns: string; idtype: string; mns: string; midtype: string } {
-		try {
-			url = decodeURI(url);
-		} catch (err) {
-			console.error(err);
-		}
-		let res: {
-			ns: string;
-			idtype: string;
-			mns: string;
-			midtype: string;
-		} = {
-			ns: null,
-			idtype: null,
-			mns: null,
-			midtype: null
-		}
-		for (let i = 0; i < url.split(';').length; i++) {
-			let value = url.split(';')[i];
-			if (value.includes('mns=')) {
-				res.mns = value.replace('mns', 'ns');
-			} else if (value.includes('ns=')) {
-				res.ns = value;
-			} else if (value.includes('mb=') || value.includes('ms=') || value.includes('mg=') || value.includes('mi=')) {
-				let midtype = value.split('=')[0];
-				midtype = midtype.substr(1);
-				res.midtype = midtype + '=' + value.split('=')[1];
-			} else if (value.includes('b=') || value.includes('s=') || value.includes('g=') || value.includes('i=')) {
-				res.idtype = value;
-			}
-		}
-		return res;
-	}
+    private extract_params(url: string): { ns: string; idtype: string; mns: string; midtype: string } {
+        try {
+            url = decodeURI(url);
+        } catch (err) {
+            console.error(err);
+        }
+        let res: {
+            ns: string;
+            idtype: string;
+            mns: string;
+            midtype: string;
+        } = {
+            ns: null,
+            idtype: null,
+            mns: null,
+            midtype: null,
+        };
+        for (let i = 0; i < url.split(";").length; i++) {
+            let value = url.split(";")[i];
+            if (value.includes("mns=")) {
+                res.mns = value.replace("mns", "ns");
+            } else if (value.includes("ns=")) {
+                res.ns = value;
+            } else if (
+                value.includes("mb=") ||
+                value.includes("ms=") ||
+                value.includes("mg=") ||
+                value.includes("mi=")
+            ) {
+                let midtype = value.split("=")[0];
+                midtype = midtype.substr(1);
+                res.midtype = midtype + "=" + value.split("=")[1];
+            } else if (value.includes("b=") || value.includes("s=") || value.includes("g=") || value.includes("i=")) {
+                res.idtype = value;
+            }
+        }
+        return res;
+    }
 }

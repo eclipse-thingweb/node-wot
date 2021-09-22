@@ -58,43 +58,38 @@ class MqttClientSubscribeTest {
                     events: events,
                 }).then((thing) => {
                     thing.expose().then(() => {
-                        console.info(
-                            "Exposed",
-                            thing.getThingDescription().title
-                        );
+                        console.info("Exposed", thing.getThingDescription().title);
 
-                        WoT.consume(thing.getThingDescription()).then(
-                            (client) => {
-                                let check = 0;
-                                let sum = 0;
-                                let eventReceived = false;
+                        WoT.consume(thing.getThingDescription()).then((client) => {
+                            let check = 0;
+                            let sum = 0;
+                            let eventReceived = false;
 
-                                client
-                                    .subscribeEvent(eventName, (x) => {
-                                        if(!eventReceived) {
-                                            counter = 0;
-                                            eventReceived = true;
-                                        } else {
-                                            expect(x).to.equal(++check);
-                                            if (check === 3) {
-                                                done();
-                                            }
+                            client
+                                .subscribeEvent(eventName, (x) => {
+                                    if (!eventReceived) {
+                                        counter = 0;
+                                        eventReceived = true;
+                                    } else {
+                                        expect(x).to.equal(++check);
+                                        if (check === 3) {
+                                            done();
                                         }
-                                    })
-                                    .then(() => {
-                                        const job = setInterval(() => {
-                                            ++counter;
-                                            thing.emitEvent(eventName, counter);
-                                            if (counter === 3) {
-                                                clearInterval(job);
-                                            }
-                                        }, 1000);
-                                    })
-                                    .catch((e) => {
-                                        expect(true).to.equal(false);
-                                    });
-                            }
-                        );
+                                    }
+                                })
+                                .then(() => {
+                                    const job = setInterval(() => {
+                                        ++counter;
+                                        thing.emitEvent(eventName, counter);
+                                        if (counter === 3) {
+                                            clearInterval(job);
+                                        }
+                                    }, 1000);
+                                })
+                                .catch((e) => {
+                                    expect(true).to.equal(false);
+                                });
+                        });
                     });
                 });
             });
@@ -131,28 +126,22 @@ class MqttClientSubscribeTest {
                     events: events,
                 }).then((thing) => {
                     thing.expose().then(() => {
-                        console.info(
-                            "Exposed",
-                            thing.getThingDescription().title
-                        );
+                        console.info("Exposed", thing.getThingDescription().title);
 
-                        WoT.consume(thing.getThingDescription()).then(
-                            (client) => {
-                                let check = 0;
-                                client
-                                    .subscribeEvent(eventName, (x) => {
-                                        expect(x).to.equal(++check);
-                                        if (check === 3) {
-                                            done();
-                                        }
-                                    })
-                                    .then(() => { })
-                                    .catch((e) => {
-                                        expect(true).to.equal(false);
-                                    });
-
-                            }
-                        );
+                        WoT.consume(thing.getThingDescription()).then((client) => {
+                            let check = 0;
+                            client
+                                .subscribeEvent(eventName, (x) => {
+                                    expect(x).to.equal(++check);
+                                    if (check === 3) {
+                                        done();
+                                    }
+                                })
+                                .then(() => {})
+                                .catch((e) => {
+                                    expect(true).to.equal(false);
+                                });
+                        });
                     });
                 });
             });
