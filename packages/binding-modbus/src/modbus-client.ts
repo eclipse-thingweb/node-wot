@@ -22,6 +22,7 @@ import { SecurityScheme } from "@node-wot/td-tools";
 import { modbusFunctionToEntity } from "./utils";
 import { ModbusConnection, PropertyOperation } from "./modbus-connection";
 import { Readable } from "stream";
+import { Subscription } from "rxjs/Subscription";
 
 const DEFAULT_PORT = 805;
 const DEFAULT_TIMEOUT = 1000;
@@ -30,7 +31,7 @@ const DEFAULT_POLLING = 2000;
 export default class ModbusClient implements ProtocolClient {
     private _connections: Map<string, ModbusConnection>;
 
-    private _subscriptions: Map<string, Subscription> = new Map();
+    private _subscriptions: Map<string, ModbusSubscription> = new Map();
 
     constructor() {
         this._connections = new Map();
@@ -72,16 +73,25 @@ export default class ModbusClient implements ProtocolClient {
         next: (value: any) => void,
         error?: (error: any) => void,
         complete?: () => void
-    ): any {
-        form = this.validateAndFillDefaultForm(form, 0);
+    ): Promise<Subscription> {
+        return new Promise<Subscription>((resolve, reject) => {
+            form = this.validateAndFillDefaultForm(form, 0);
 
-        const id = `${form.href}/${form["modbus:unitID"]}#${form["modbus:function"]}?${form["modbus:offset"]}&${form["modbus:length"]}`;
+            const id = `${form.href}/${form["modbus:unitID"]}#${form["modbus:function"]}?${form["modbus:offset"]}&${form["modbus:length"]}`;
 
-        if (this._subscriptions.has(id)) {
-            throw new Error("Already subscribed for " + id + ". Multiple subscriptions are not supported");
-        }
+            if (this._subscriptions.has(id)) {
+                reject(new Error("Already subscribed for " + id + ". Multiple subscriptions are not supported"));
+            }
 
-        this._subscriptions.set(id, new Subscription(form, this, next, error, complete));
+            const subscription = new ModbusSubscription(form, this, next, error, complete);
+
+            this._subscriptions.set(id, subscription);
+            resolve(
+                new Subscription(() => {
+                    subscription.unsubscribe();
+                })
+            );
+        });
     }
 
     start(): boolean {
@@ -257,7 +267,7 @@ export default class ModbusClient implements ProtocolClient {
     }
 }
 
-class Subscription {
+class ModbusSubscription {
     interval: NodeJS.Timeout;
     complete: () => void;
     constructor(

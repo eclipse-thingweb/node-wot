@@ -302,68 +302,86 @@ export default class OpcuaClient implements ProtocolClient {
         }
         return;
     }
+
     public subscribeResource(
         form: OpcuaForm,
         next: (value: any) => void,
         error?: (error: any) => void,
         complete?: () => void
-    ): any {
-        let url = new Url(form.href);
-        let endpointUrl = `${url.protocol}//${url.host}`;
-        let contentType = "application/x.opcua-binary";
-        let self = this;
-        this.checkConnection(endpointUrl)
-            .then(function () {
-                try {
-                    let params: {
-                        ns: string;
-                        idtype: string;
-                        mns: string;
-                        midtype: string;
-                    } = self.extract_params(url.pathname.toString().substr(1));
-                    let nodeId = params.ns + ";" + params.idtype;
+    ): Promise<Subscription> {
+        return new Promise<Subscription>((resolve, reject) => {
+            let url = new Url(form.href);
+            let endpointUrl = url.origin;
+            let contentType = "application/x.opcua-binary";
+            let self = this;
+            this.checkConnection(endpointUrl)
+                .then(function () {
+                    try {
+                        let params: {
+                            ns: string;
+                            idtype: string;
+                            mns: string;
+                            midtype: string;
+                        } = self.extract_params(url.pathname.toString().substr(1));
+                        let nodeId = params.ns + ";" + params.idtype;
 
-                    let subscription: any;
-                    const defaultSubscriptionOptions = {
-                        requestedPublishingInterval: 1000,
-                        requestedLifetimeCount: 100,
-                        requestedMaxKeepAliveCount: 10,
-                        maxNotificationsPerPublish: 100,
-                        publishingEnabled: true,
-                        priority: 10,
-                    };
-                    if (self.config && self.config.subscriptionOptions) {
-                        subscription = ClientSubscription.create(self.session, self.config.subscriptionOptions);
-                    } else {
-                        subscription = ClientSubscription.create(self.session, defaultSubscriptionOptions);
+                        let subscription: any;
+                        const defaultSubscriptionOptions = {
+                            requestedPublishingInterval: 1000,
+                            requestedLifetimeCount: 100,
+                            requestedMaxKeepAliveCount: 10,
+                            maxNotificationsPerPublish: 100,
+                            publishingEnabled: true,
+                            priority: 10,
+                        };
+                        if (self.config && self.config.subscriptionOptions) {
+                            subscription = ClientSubscription.create(self.session, self.config.subscriptionOptions);
+                        } else {
+                            subscription = ClientSubscription.create(self.session, defaultSubscriptionOptions);
+                        }
+
+                        const itemToMonitor: ReadValueIdOptions | ReadValueId = {
+                            nodeId: nodeId,
+                            attributeId: AttributeIds.Value,
+                        };
+                        const parameters: MonitoringParametersOptions = {
+                            samplingInterval: 100,
+                            discardOldest: true,
+                            queueSize: 10,
+                        };
+
+                        const monitoredItem = ClientMonitoredItem.create(
+                            subscription,
+                            itemToMonitor,
+                            parameters,
+                            TimestampsToReturn.Both
+                        );
+
+                        monitoredItem.once("err", (error: String) => {
+                            monitoredItem.removeAllListeners();
+                            reject(new Error(`Error while subscribing property: ${error}`));
+                        });
+
+                        monitoredItem.on("initialized", () => {
+                            // remove initialization error listener
+                            monitoredItem.removeAllListeners("error");
+                            // forward next errors to the callback if any
+                            error && monitoredItem.on("err", error);
+
+                            resolve(new Subscription(() => {}));
+                        });
+
+                        monitoredItem.on("changed", (dataValue: DataValue) => {
+                            next({ type: contentType, body: dataValue.value });
+                        });
+                    } catch (err) {
+                        reject(new Error(`Error while subscribing property`));
                     }
-
-                    const itemToMonitor: ReadValueIdOptions | ReadValueId = {
-                        nodeId: nodeId,
-                        attributeId: AttributeIds.Value,
-                    };
-                    const parameters: MonitoringParametersOptions = {
-                        samplingInterval: 100,
-                        discardOldest: true,
-                        queueSize: 10,
-                    };
-
-                    const monitoredItem = ClientMonitoredItem.create(
-                        subscription,
-                        itemToMonitor,
-                        parameters,
-                        TimestampsToReturn.Both
-                    );
-
-                    monitoredItem.on("changed", (dataValue: DataValue) => {
-                        next({ type: contentType, body: dataValue.value });
-                        return new Subscription(() => {});
-                    });
-                } catch (err) {
-                    error(new Error(`Error while subscribing property`));
-                }
-            })
-            .catch((err) => error(err));
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
     }
 
     public start(): boolean {

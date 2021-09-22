@@ -57,11 +57,13 @@ class TDClient implements ProtocolClient {
 
     public subscribeResource(
         form: Form,
-        next: (value: Content) => void,
-        error?: (error: Error) => void,
+        next: (value: any) => void,
+        error?: (error: any) => void,
         complete?: () => void
-    ): Subscription {
-        return new Subscription();
+    ): Promise<Subscription> {
+        return new Promise<Subscription>((resolve, reject) => {
+            resolve(new Subscription());
+        });
     }
 
     public start(): boolean {
@@ -122,17 +124,19 @@ class TrapClient implements ProtocolClient {
 
     public subscribeResource(
         form: Form,
-        next: (value: Content) => void,
-        error?: (error: Error) => void,
+        next: (value: any) => void,
+        error?: (error: any) => void,
         complete?: () => void
-    ): Subscription {
-        // send one event
-        next(this.trap(form) as Content);
-        // then complete
-        setImmediate(() => {
-            complete();
+    ): Promise<Subscription> {
+        return new Promise<Subscription>((resolve, reject) => {
+            // send one event
+            next(this.trap(form));
+            // then complete
+            setImmediate(() => {
+                complete();
+            });
+            resolve(new Subscription());
         });
-        return new Subscription();
     }
 
     public start(): boolean {
@@ -189,7 +193,7 @@ class TestProtocolClient implements ProtocolClient {
         next: (content: Content) => void,
         error?: (error: Error) => void,
         complete?: () => void
-    ): Subscription {
+    ): Promise<Subscription> {
         throw new Error("Method not implemented.");
     }
 
