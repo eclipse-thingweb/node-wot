@@ -347,7 +347,7 @@ export default class CoapServer implements ProtocolServer {
 
                                             res.on("finish", function (err: Error) {
                                                 if (err) {
-                                                    console.error(err);
+                                                    console.error("[binding-coap]", err);
                                                 }
                                                 clearInterval(oInterval);
                                                 res.end();
