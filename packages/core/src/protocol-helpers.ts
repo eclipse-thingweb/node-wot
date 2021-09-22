@@ -270,7 +270,7 @@ export default class ProtocolHelpers {
             } else {
                 console.debug(
                     "[core/helpers]",
-                    `Protocol-Helper returns empty buffer for readStreamFully due to undefined strem`
+                    `Protocol-Helper returns empty buffer for readStreamFully due to undefined stream`
                 );
                 resolve(Buffer.alloc(0));
             }
