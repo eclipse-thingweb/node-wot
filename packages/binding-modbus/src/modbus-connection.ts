@@ -240,7 +240,8 @@ export class ModbusConnection {
         const modFunc: ModbusFunction = transaction.function;
         this.client.setID(transaction.unitId);
         switch (modFunc) {
-            case 5: // write single coil
+            case 5: {
+                // write single coil
                 const coil = transaction.content.readUInt8(0) !== 0;
                 const result = await this.client.writeCoil(transaction.base, coil);
 
@@ -249,7 +250,9 @@ export class ModbusConnection {
                 }
 
                 break;
-            case 15: // write multiple coils
+            }
+            case 15: {
+                // write multiple coils
                 const coils = new Array<boolean>();
                 transaction.content.forEach((v) => coils.push(v !== 0));
                 const coilsResult = await this.client.writeCoils(transaction.base, coils);
@@ -257,16 +260,20 @@ export class ModbusConnection {
                     throw new Error(`writing ${coils} to ${transaction.base} failed`);
                 }
                 break;
-            case 6: // writing a single value to a single register
+            }
+            case 6: {
+                // writing a single value to a single register
                 this.contentConversion(transaction);
                 const value = transaction.content.readUInt16BE(0);
                 const resultRegister = await this.client.writeRegister(transaction.base, value);
 
                 if (resultRegister.address !== transaction.base && resultRegister.value !== value) {
-                    throw new Error(`writing ${value} to ${transaction.base} failed, state is ${result.value}`);
+                    throw new Error(`writing ${value} to ${transaction.base} failed, state is ${resultRegister.value}`);
                 }
                 break;
-            case 16: // writing values to multiple registers
+            }
+            case 16: {
+                // writing values to multiple registers
                 this.contentConversion(transaction);
                 const values = new Array<number>();
                 // transaction length contains the total number of register to be written
@@ -286,6 +293,7 @@ export class ModbusConnection {
                     );
                 }
                 break;
+            }
             default:
                 throw new Error("cannot read unknown function type " + modFunc);
         }
@@ -293,13 +301,13 @@ export class ModbusConnection {
 
     private contentConversion(transaction: ModbusTransaction) {
         if (
-            transaction.endianness == ModbusEndianness.LITTLE_ENDIAN_BYTE_SWAP ||
-            transaction.endianness == ModbusEndianness.BIG_ENDIAN_BYTE_SWAP
+            transaction.endianness === ModbusEndianness.LITTLE_ENDIAN_BYTE_SWAP ||
+            transaction.endianness === ModbusEndianness.BIG_ENDIAN_BYTE_SWAP
         )
             transaction.content.swap16();
         if (
-            transaction.endianness == ModbusEndianness.LITTLE_ENDIAN_BYTE_SWAP ||
-            transaction.endianness == ModbusEndianness.LITTLE_ENDIAN
+            transaction.endianness === ModbusEndianness.LITTLE_ENDIAN_BYTE_SWAP ||
+            transaction.endianness === ModbusEndianness.LITTLE_ENDIAN
         )
             transaction.content.reverse();
     }
@@ -388,13 +396,13 @@ class ModbusTransaction {
             try {
                 const result = await this.connection.readModbus(this);
                 if (
-                    this.endianness == ModbusEndianness.LITTLE_ENDIAN_BYTE_SWAP ||
-                    this.endianness == ModbusEndianness.LITTLE_ENDIAN
+                    this.endianness === ModbusEndianness.LITTLE_ENDIAN_BYTE_SWAP ||
+                    this.endianness === ModbusEndianness.LITTLE_ENDIAN
                 )
                     result.buffer.reverse();
                 if (
-                    this.endianness == ModbusEndianness.LITTLE_ENDIAN_BYTE_SWAP ||
-                    this.endianness == ModbusEndianness.BIG_ENDIAN_BYTE_SWAP
+                    this.endianness === ModbusEndianness.LITTLE_ENDIAN_BYTE_SWAP ||
+                    this.endianness === ModbusEndianness.BIG_ENDIAN_BYTE_SWAP
                 )
                     result.buffer.swap16();
                 console.debug("[binding-modbus]", "Got result from read operation on", this.base, "len", this.length);
@@ -452,12 +460,12 @@ export class PropertyOperation {
      */
     async execute(): Promise<Content | PromiseLike<Content>> {
         return new Promise(
-            (resolve: (value?: Content | PromiseLike<Content>) => void, reject: (reason?: any) => void) => {
+            (resolve: (value?: Content | PromiseLike<Content>) => void, reject: (reason?: Error) => void) => {
                 this.resolve = resolve;
                 this.reject = reject;
 
                 if (this.transaction == null) {
-                    reject("No transaction for this operation");
+                    reject(Error("No transaction for this operation"));
                 } else {
                     this.transaction.trigger();
                 }
@@ -472,7 +480,7 @@ export class PropertyOperation {
      * @param buffer Result data of the transaction as Buffer (on read)
      * @param data Result data of the transaction as array (on read)
      */
-    done(base?: number, buffer?: Buffer) {
+    done(base?: number, buffer?: Buffer): void {
         console.debug("[binding-modbus]", "Operation done");
 
         if (base === null || base === undefined) {

@@ -26,10 +26,18 @@ import * as url from "url";
 import { AddressInfo } from "net";
 
 import * as TD from "@node-wot/td-tools";
-import Servient, { ProtocolServer, ContentSerdes, Helpers, ExposedThing, ProtocolHelpers } from "@node-wot/core";
+import Servient, {
+    ProtocolServer,
+    ContentSerdes,
+    Helpers,
+    ExposedThing,
+    ProtocolHelpers,
+    Content,
+} from "@node-wot/core";
 import { HttpConfig, HttpForm, OAuth2ServerConfig } from "./http";
 import createValidator, { Validator } from "./oauth-token-validation";
 import { OAuth2SecurityScheme } from "@node-wot/td-tools";
+import { InteractionOutput } from "@node-wot/core/dist/interaction-output";
 
 export default class HttpServer implements ProtocolServer {
     public readonly scheme: "http" | "https";
@@ -683,11 +691,24 @@ export default class HttpServer implements ProtocolServer {
                             if (req.method === "GET") {
                                 thing
                                     .readAllProperties()
-                                    .then((value: any) => {
-                                        const content = ContentSerdes.get().valueToContent(value, undefined); // contentType handling? <any>property);
-                                        res.setHeader("Content-Type", content.type);
+                                    .then(async (propMap: WoT.PropertyReadMap) => {
+                                        // Note we create one object to return, TODO piping response
+                                        let recordReponse: Record<string, any> = {};
+                                        for (let key of propMap.keys()) {
+                                            let value: WoT.InteractionOutput = propMap.get(key);
+                                            value.form = { f: "all" }; // to avoid missing form error
+                                            let content = ContentSerdes.get().valueToContent(
+                                                value.data && !value.dataUsed ? value.data : await value.value(),
+                                                undefined,
+                                                "application/json"
+                                            );
+                                            // TODO ProtocolHelpers.readStreamFully() does not work for counter example for SVG countAsImage
+                                            const data = await ProtocolHelpers.readStreamFully(content.body);
+                                            recordReponse[key] = data.toString(); // contentType handling?
+                                        }
+                                        res.setHeader("Content-Type", "application/json"); // contentType handling?
                                         res.writeHead(200);
-                                        res.end(content.body);
+                                        res.end(JSON.stringify(recordReponse));
                                     })
                                     .catch((err) => {
                                         console.error(
@@ -727,19 +748,22 @@ export default class HttpServer implements ProtocolServer {
                                     thing
                                         .observeProperty(
                                             segments[3],
-                                            (data) => {
-                                                let content;
+                                            async (value: InteractionOutput) => {
                                                 try {
                                                     const contentType = ProtocolHelpers.getPropertyContentType(
                                                         thing.getThingDescription(),
                                                         segments[3],
                                                         "http"
                                                     );
-                                                    content = ContentSerdes.get().valueToContent(
-                                                        data,
+                                                    const content = ContentSerdes.get().valueToContent(
+                                                        value.data && !value.dataUsed
+                                                            ? value.data
+                                                            : await value.value(),
                                                         property.data,
                                                         contentType
                                                     );
+                                                    // send event data
+                                                    content.body.pipe(res);
                                                 } catch (err) {
                                                     console.warn(
                                                         "[binding-http]",
@@ -751,8 +775,6 @@ export default class HttpServer implements ProtocolServer {
                                                     res.end("Invalid Event Data");
                                                     return;
                                                 }
-                                                // send event data
-                                                res.end(content.body);
                                             },
                                             options
                                         )
@@ -769,15 +791,14 @@ export default class HttpServer implements ProtocolServer {
                                 } else {
                                     thing
                                         .readProperty(segments[3], options)
-                                        // property.read(options)
-                                        .then((value: any) => {
+                                        .then(async (value: InteractionOutput) => {
                                             const contentType = ProtocolHelpers.getPropertyContentType(
                                                 thing.getThingDescription(),
                                                 segments[3],
                                                 "http"
                                             );
                                             const content = ContentSerdes.get().valueToContent(
-                                                value,
+                                                value.data && !value.dataUsed ? value.data : await value.value(),
                                                 <any>property,
                                                 contentType
                                             );
@@ -827,7 +848,6 @@ export default class HttpServer implements ProtocolServer {
                                         }
                                         thing
                                             .writeProperty(segments[3], value, options)
-                                            // property.write(value, options)
                                             .then(() => {
                                                 res.writeHead(204);
                                                 res.end("Changed");
@@ -897,16 +917,17 @@ export default class HttpServer implements ProtocolServer {
 
                                     thing
                                         .invokeAction(segments[3], input, options)
-                                        // action.invoke(input, options)
-                                        .then((output: any) => {
-                                            if (output) {
+                                        .then(async (output: InteractionOutput) => {
+                                            if (output && action.output) {
                                                 const contentType = ProtocolHelpers.getActionContentType(
                                                     thing.getThingDescription(),
                                                     segments[3],
                                                     "http"
                                                 );
                                                 const content = ContentSerdes.get().valueToContent(
-                                                    output,
+                                                    output.data && !output.dataUsed
+                                                        ? output.data
+                                                        : await output.value(),
                                                     action.output,
                                                     contentType
                                                 );
@@ -956,20 +977,20 @@ export default class HttpServer implements ProtocolServer {
                                 thing
                                     .subscribeEvent(
                                         segments[3],
-                                        // let subscription = event.subscribe(
-                                        (data) => {
-                                            let content;
+                                        async (value) => {
                                             try {
                                                 const contentType = ProtocolHelpers.getEventContentType(
                                                     thing.getThingDescription(),
                                                     segments[3],
                                                     "http"
                                                 );
-                                                content = ContentSerdes.get().valueToContent(
-                                                    data,
+                                                const content = ContentSerdes.get().valueToContent(
+                                                    value.data && !value.dataUsed ? value.data : await value.value(),
                                                     event.data,
                                                     contentType
                                                 );
+                                                // send event data
+                                                content.body.pipe(res);
                                             } catch (err) {
                                                 console.warn(
                                                     "[binding-http]",
@@ -981,8 +1002,6 @@ export default class HttpServer implements ProtocolServer {
                                                 res.end("Invalid Event Data");
                                                 return;
                                             }
-                                            // send event data
-                                            res.end(content.body);
                                         },
                                         options
                                     )

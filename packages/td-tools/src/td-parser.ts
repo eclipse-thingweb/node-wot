@@ -66,7 +66,7 @@ export function parseTD(td: string, normalize?: boolean): Thing {
             if (prop.writeOnly === undefined || typeof prop.writeOnly !== "boolean") {
                 prop.writeOnly = false;
             }
-            if (prop.observable == undefined || typeof prop.observable !== "boolean") {
+            if (prop.observable === undefined || typeof prop.observable !== "boolean") {
                 prop.observable = false;
             }
         }
@@ -113,17 +113,17 @@ export function parseTD(td: string, normalize?: boolean): Thing {
     for (const pattern in interactionPatterns) {
         for (const interaction in thing[pattern]) {
             // ensure forms mandatory forms field
-            if (!thing[pattern][interaction].hasOwnProperty("forms"))
+            if (!Object.prototype.hasOwnProperty.call(thing[pattern][interaction], "forms"))
                 throw new Error(`${interactionPatterns[pattern]} '${interaction}' has no forms field`);
             // ensure array structure internally
             if (!Array.isArray(thing[pattern][interaction].forms))
                 thing[pattern][interaction].forms = [thing[pattern][interaction].forms];
             for (const form of thing[pattern][interaction].forms) {
                 // ensure mandatory href field
-                if (!form.hasOwnProperty("href"))
+                if (!Object.prototype.hasOwnProperty.call(form, "href"))
                     throw new Error(`Form of ${interactionPatterns[pattern]} '${interaction}' has no href field`);
                 // check if base field required
-                if (!isAbsoluteUrl(form.href) && !thing.hasOwnProperty("base"))
+                if (!isAbsoluteUrl(form.href) && !Object.prototype.hasOwnProperty.call(thing, "base"))
                     throw new Error(
                         `Form of ${interactionPatterns[pattern]} '${interaction}' has relative URI while TD has no base field`
                     );
@@ -133,12 +133,12 @@ export function parseTD(td: string, normalize?: boolean): Thing {
         }
     }
 
-    if (thing.hasOwnProperty("base")) {
+    if (Object.prototype.hasOwnProperty.call(thing, "base")) {
         if (normalize === undefined || normalize === true) {
             console.debug("[td-tools/td-parser]", `parseTD() normalizing 'base' into 'forms'`);
 
             for (const form of allForms) {
-                if (!form.href.match(/^([a-z0-9\+-\.]+\:).+/i)) {
+                if (!form.href.match(/^([a-z0-9+-.]+:).+/i)) {
                     console.debug(
                         "[td-tools/td-parser]",
                         `parseTDString() applying base '${thing.base}' to '${form.href}'`
@@ -200,7 +200,7 @@ export function serializeTD(thing: Thing): string {
             if (prop.writeOnly === undefined || typeof prop.writeOnly !== "boolean") {
                 prop.writeOnly = false;
             }
-            if (prop.observable == undefined || typeof prop.observable !== "boolean") {
+            if (prop.observable === undefined || typeof prop.observable !== "boolean") {
                 prop.observable = false;
             }
         }

@@ -1,31 +1,31 @@
 {
-  "name": "wot-default-change-here-",
-  "version": "1.0.0",
-  "description": "W3C WoT interface for base (!change here!)",
-  "main": "index.js",
-  "keywords": [
-    "wot",
-    "w3c"
-  ],
-  "author": "tumeiesi",
-  "license": "MIT",
-  "devDependencies": {
-    "typescript": "3.3.1",
-    "wot-typescript-definitions": "0.8.0-SNAPSHOT.11",
-    "@types/node": "11.9.4",
-    "tslint": "5.12.1"
-  },
-  "dependencies": {
-    "@node-wot/binding-http": "0.8.0",
-    "@node-wot/core": "0.8.0",
-    "request": "2.88.0",
-	"ajv": "^6.10.2"
-  },
-  "optionalDependencies": {},
-  "scripts": {
-    "build": "tsc",
-    "buildAll": "npm install; tsc;",
-    "start": "node index.js",
-    "clean": "rm -rf node_modules; rm -rf dist; rm -rf package-lock.json"
-  }
+    "name": "wot-default-change-here-",
+    "version": "1.0.0",
+    "description": "W3C WoT interface for base (!change here!)",
+    "main": "index.js",
+    "keywords": [
+        "wot",
+        "w3c"
+    ],
+    "author": "tumeiesi",
+    "license": "MIT",
+    "devDependencies": {
+        "typescript": "4.1.3",
+        "wot-typescript-definitions": "^0.8.0-SNAPSHOT.18",
+        "@types/node": "16.4.13",
+        "tslint": "5.12.1"
+    },
+    "dependencies": {
+        "@node-wot/binding-http": "0.8.0",
+        "@node-wot/core": "0.8.0",
+        "request": "2.88.0",
+        "ajv": "^7.0.4"
+    },
+    "optionalDependencies": {},
+    "scripts": {
+        "build": "tsc",
+        "buildAll": "npm install; tsc;",
+        "start": "node index.js",
+        "clean": "rm -rf node_modules; rm -rf dist; rm -rf package-lock.json"
+    }
 }

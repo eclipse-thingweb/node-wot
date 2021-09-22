@@ -3,31 +3,74 @@ name: Default CI Pipeline
 on: [push, pull_request]
 
 jobs:
-  setup-and-test:
+    setup-and-test:
+        runs-on: ${{ matrix.os }}
 
-    runs-on: ${{ matrix.os }}
+        strategy:
+            matrix:
+                os: [macos-latest, ubuntu-latest, windows-latest]
+                node-version: [12.x, 14.x, 16.x]
 
-    strategy:
-      matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
-        node-version: [ 12.x, 14.x, 16.x]
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v2
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+            - name: Use Node.js ${{ matrix.os }} ${{ matrix.node-version }}
+              uses: actions/setup-node@v1
+              with:
+                  node-version: ${{ matrix.node-version }}
+            - name: npm 7
+              # npm workspaces requires npm v7 or higher
+              run: npm i -g npm@7 --registry=https://registry.npmjs.org
+            - name: Install
+              run: npm ci
 
-      - name: Use Node.js ${{ matrix.os }} ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
-        with:
-            node-version: ${{ matrix.node-version }}
-      - name: npm 7
-      # npm workspaces requires npm v7 or higher
-        run: npm i -g npm@7 --registry=https://registry.npmjs.org
-      - name: Install
-        run: npm ci
+            - name: Build
+              run: npm run build
 
-      - name: Build
-        run: npm run build
+            - name: Test
+              run: npm run test
 
-      - name: Test
-        run: npm run test
+    eslint:
+        name: eslint
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v2
+
+            - name: Use Node.js 14
+              uses: actions/setup-node@v1
+              with:
+                  node-version: 14
+
+            - name: npm 7
+              # npm workspaces requires npm v7 or higher
+              run: npm i -g npm@7 --registry=https://registry.npmjs.org
+
+            - name: Install
+              run: npm ci
+
+            - name: Lint
+              run: npm run lint
+              continue-on-error: true
+
+    version_consistency:
+        name: Check version consistency of packages
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v1
+            - name: install node v12
+              uses: actions/setup-node@v1
+              with:
+                  node-version: 12
+            - name: verify packages version consistency accross sub-modules
+              run: npm run check:versions
+
+    prettier:
+        name: Check coding style
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+            - uses: actionsx/prettier@v2
+              with:
+                  args: --check .

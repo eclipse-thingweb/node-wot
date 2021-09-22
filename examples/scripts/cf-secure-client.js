@@ -17,19 +17,24 @@
  * To test this client, run the Californium CoAPS example server
  * (https://github.com/eclipse/californium/tree/master/demo-apps/cf-secure)
  */
-WoTHelpers.fetch("file://./cf-sandbox.jsonld").then(async (td) => {
-    try {
-        let cf = await WoT.consume(td);
-        console.info("=== TD ===");
-        console.info(td);
-        console.info("==========");
-        cf.readProperty("test").then((res) => {
-            console.info("Received:", res);
-        }).catch((err) => {
-            console.error("Script error:", err.message);
-        });
-    }
-    catch (err) {
-        console.error("Script error:", err);
-    }
-}).catch((err) => { console.error("Fetch error:", err); });
+WoTHelpers.fetch("file://./cf-sandbox.jsonld")
+    .then(async (td) => {
+        try {
+            let cf = await WoT.consume(td);
+            console.info("=== TD ===");
+            console.info(td);
+            console.info("==========");
+            cf.readProperty("test")
+                .then((res) => {
+                    console.info("Received:", res);
+                })
+                .catch((err) => {
+                    console.error("Script error:", err.message);
+                });
+        } catch (err) {
+            console.error("Script error:", err);
+        }
+    })
+    .catch((err) => {
+        console.error("Fetch error:", err);
+    });

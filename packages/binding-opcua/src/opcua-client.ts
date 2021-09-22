@@ -16,97 +16,101 @@
 /**
  * Opcua protocol binding
  */
-import { ProtocolClient, Content, ProtocolHelpers } from "@node-wot/core"
+import { ProtocolClient, Content, ProtocolHelpers } from "@node-wot/core";
 import * as TD from "@node-wot/td-tools";
 
-import * as Url from 'url-parse';
+import * as Url from "url-parse";
 
-import { OpcuaForm, OpcuaConfig } from "./opcua"
+import { OpcuaForm, OpcuaConfig } from "./opcua";
 import {
-	OPCUAClient,
-	MessageSecurityMode, SecurityPolicy,
-	AttributeIds,
-	ClientSubscription,
-	TimestampsToReturn,
-	MonitoringParametersOptions,
-	// ReadValueIdLike, // ReadValueIdLike: ReadValueIdOptions | ReadValueId
-	ReadValueIdOptions,
-	ReadValueId,
-	ClientMonitoredItem,
-	DataType,
-	DataValue,
-	UserTokenType
+    OPCUAClient,
+    MessageSecurityMode,
+    SecurityPolicy,
+    AttributeIds,
+    ClientSubscription,
+    TimestampsToReturn,
+    MonitoringParametersOptions,
+    // ReadValueIdLike, // ReadValueIdLike: ReadValueIdOptions | ReadValueId
+    ReadValueIdOptions,
+    ReadValueId,
+    ClientMonitoredItem,
+    DataType,
+    DataValue,
+    UserTokenType,
 } from "node-opcua-client";
-import { StatusCodes } from "node-opcua-status-code"
+import { StatusCodes } from "node-opcua-status-code";
 import * as crypto_utils from "node-opcua-crypto";
 import { Subscription } from "rxjs/Subscription";
 import { Readable } from "stream";
 
 export default class OpcuaClient implements ProtocolClient {
-	private client: OPCUAClient;
-	private credentials: any;
-	private session: any;
-	private clientOptions: any;
-	private config: OpcuaConfig;
-	constructor(_config: OpcuaConfig = null) {
+    private client: OPCUAClient;
+    private credentials: any;
+    private session: any;
+    private clientOptions: any;
+    private config: OpcuaConfig;
+    constructor(_config: OpcuaConfig = null) {
+        this.credentials = null;
+        this.session = null;
+        this.clientOptions = {
+            applicationName: "Client",
+            keepSessionAlive: true,
+            securityMode: MessageSecurityMode.None,
+            securityPolicy: SecurityPolicy.None,
+            connectionStrategy: {
+                initialDelay: 0,
+                maxRetry: 1,
+            },
+            requestedSessionTimeout: 10000,
+            endpointMustExist: false,
+        };
+        if (_config) {
+            this.config = _config;
+        }
+    }
 
-		this.credentials = null;
-		this.session = null;
-		this.clientOptions = {
-			applicationName: "Client",
-			keepSessionAlive: true,
-			securityMode: MessageSecurityMode.None,
-			securityPolicy: SecurityPolicy.None,
-			connectionStrategy: {
-				initialDelay: 0,
-				maxRetry: 1
-			},
-			requestedSessionTimeout: 10000,
-			endpointMustExist: false
-		}
-		if (_config) {
-			this.config = _config;
-		}
+    public toString() {
+        return "[OpcuaClient]";
+    }
 
-	}
+    private async connect(endpointUrl: string, next?: () => void) {
+        let userIdentity: any;
 
-	public toString() {
-		return "[OpcuaClient]";
-	}
+        if (this.credentials) {
+            if (this.credentials.password) {
+                userIdentity = {
+                    userName: this.credentials.username,
+                    password: this.credentials.password,
+                    type: UserTokenType.UserName,
+                };
+            } else if (this.credentials.clientCertificate) {
+                const clientCertificate: crypto_utils.Certificate = crypto_utils.readCertificate(
+                    this.credentials.clientCertificate
+                );
+                const privateKey: crypto_utils.PrivateKeyPEM = crypto_utils.readPrivateKeyPEM(
+                    this.credentials.clientPrivateKey
+                );
+                this.clientOptions.securityMode = MessageSecurityMode.SignAndEncrypt;
+                (this.clientOptions.securityPolicy = SecurityPolicy.Basic256Sha256),
+                    (this.clientOptions.certificateFile = this.credentials.clientCertificate),
+                    (this.clientOptions.privateKeyFile = this.credentials.clientPrivateKey),
+                    (this.clientOptions.serverCertificate = crypto_utils.readCertificate(
+                        this.credentials.serverCertificate
+                    ));
+                userIdentity = {
+                    certificateData: clientCertificate,
+                    privateKey,
+                    type: UserTokenType.Certificate,
+                };
+            }
+        } else {
+            userIdentity = null;
+        }
+        this.client = OPCUAClient.create(this.clientOptions);
+        await this.client.connect(endpointUrl);
+        this.session = await this.client.createSession(userIdentity);
 
-	private async connect(endpointUrl: string, next?: () => void) {
-		let userIdentity: any;
-
-		if (this.credentials) {
-			if (this.credentials.password) {
-				userIdentity = {
-					userName: this.credentials.username,
-					password: this.credentials.password,
-					type: UserTokenType.UserName,
-				};
-			} else if (this.credentials.clientCertificate) {
-
-				const clientCertificate: crypto_utils.Certificate = crypto_utils.readCertificate(this.credentials.clientCertificate);
-				const privateKey: crypto_utils.PrivateKeyPEM = crypto_utils.readPrivateKeyPEM(this.credentials.clientPrivateKey);
-				this.clientOptions.securityMode = MessageSecurityMode.SignAndEncrypt;
-				this.clientOptions.securityPolicy = SecurityPolicy.Basic256Sha256,
-					this.clientOptions.certificateFile = this.credentials.clientCertificate,
-					this.clientOptions.privateKeyFile = this.credentials.clientPrivateKey,
-					this.clientOptions.serverCertificate = crypto_utils.readCertificate(this.credentials.serverCertificate)
-				userIdentity = {
-					certificateData: clientCertificate,
-					privateKey,
-					type: UserTokenType.Certificate,
-				};
-			}
-		} else {
-			userIdentity = null
-		}
-		this.client = OPCUAClient.create(this.clientOptions);
-		await this.client.connect(endpointUrl);
-		this.session = await this.client.createSession(userIdentity);
-
-		/*this.client.on('connection_lost', () => { //FIXME, NOT WORKING because of framework?
+        /*this.client.on('connection_lost', () => { //FIXME, NOT WORKING because of framework?
 		});
 		this.session.on('closed', () => {
 			console.debug('Client connection has been reestablished')

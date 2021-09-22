@@ -18,13 +18,11 @@ import * as WoT from "wot-typescript-definitions";
 // node-wot implementation of W3C WoT Servient
 import { Servient, Helpers } from "@node-wot/core";
 // protocols used
-import { HttpServer } from "@node-wot/binding-http";
+import { HttpServer, HttpClientFactory, HttpsClientFactory } from "@node-wot/binding-http";
 import { WebSocketServer } from "@node-wot/binding-websockets";
 import { CoapServer, CoapClientFactory, CoapsClientFactory } from "@node-wot/binding-coap";
 import { MqttBrokerServer, MqttClientFactory } from "@node-wot/binding-mqtt";
 import { FileClientFactory } from "@node-wot/binding-file";
-import { HttpClientFactory } from "@node-wot/binding-http";
-import { HttpsClientFactory } from "@node-wot/binding-http";
 
 export default class DefaultServient extends Servient {
     private static readonly defaultConfig = {
@@ -82,6 +80,8 @@ export default class DefaultServient extends Servient {
         if (typeof this.config.servient.staticAddress === "string") {
             Helpers.setStaticAddress(this.config.servient.staticAddress);
         }
+
+        let coapServer: CoapServer | undefined;
         if (!this.config.servient.clientOnly) {
             if (this.config.http) {
                 const httpServer = new HttpServer(this.config.http);
@@ -91,8 +91,7 @@ export default class DefaultServient extends Servient {
                 this.addServer(new WebSocketServer(httpServer));
             }
             if (this.config.coap) {
-                // var to reuse below in CoapClient
-                var coapServer =
+                coapServer =
                     typeof this.config.coap.port === "number"
                         ? new CoapServer(this.config.coap.port)
                         : new CoapServer();
@@ -159,9 +158,9 @@ export default class DefaultServient extends Servient {
                             },
                         })
                         .then((thing) => {
-                            thing.setActionHandler("setLogLevel", (level) => {
-                                return new Promise(async (resolve, reject) => {
-                                    const ll = await Helpers.parseInteractionOutput(level);
+                            thing.setActionHandler("setLogLevel", async (level) => {
+                                const ll = await Helpers.parseInteractionOutput(level);
+                                return new Promise((resolve, reject) => {
                                     if (typeof ll === "number") {
                                         this.setLogLevel(ll as number);
                                     } else if (typeof ll === "string") {
@@ -180,9 +179,9 @@ export default class DefaultServient extends Servient {
                                     resolve(undefined);
                                 });
                             });
-                            thing.setActionHandler("runScript", (script) => {
-                                return new Promise(async (resolve, reject) => {
-                                    const scriptv = await Helpers.parseInteractionOutput(script);
+                            thing.setActionHandler("runScript", async (script) => {
+                                const scriptv = await Helpers.parseInteractionOutput(script);
+                                return new Promise((resolve, reject) => {
                                     console.debug("[cli/default-servient]", "running script", scriptv);
                                     this.runScript(scriptv as string);
                                     resolve(undefined);
@@ -215,25 +214,25 @@ export default class DefaultServient extends Servient {
     };
 
     private setLogLevel(logLevel: string | number): void {
-        if (logLevel == "error" || logLevel == 0) {
+        if (logLevel === "error" || logLevel === 0) {
             console.warn = () => {};
             console.info = () => {};
             console.debug = () => {};
 
             this.logLevel = "error";
-        } else if (logLevel == "warn" || logLevel == "warning" || logLevel == 1) {
+        } else if (logLevel === "warn" || logLevel === "warning" || logLevel === 1) {
             console.warn = this.loggers.warn;
             console.info = () => {};
             console.debug = () => {};
 
             this.logLevel = "warn";
-        } else if (logLevel == "info" || logLevel == 2) {
+        } else if (logLevel === "info" || logLevel === 2) {
             console.warn = this.loggers.warn;
             console.info = this.loggers.info;
             console.debug = () => {};
 
             this.logLevel = "info";
-        } else if (logLevel == "debug" || logLevel == 3) {
+        } else if (logLevel === "debug" || logLevel === 3) {
             console.warn = this.loggers.warn;
             console.info = this.loggers.info;
             console.debug = this.loggers.debug;

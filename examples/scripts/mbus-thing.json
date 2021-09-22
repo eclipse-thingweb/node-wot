@@ -1,17 +1,13 @@
 {
     "id": "urn:dev:ops:waterCounter",
     "title": "ACW Itron BM +m Cold water",
-    "@context": [
-        "https://www.w3.org/2019/wot/td/v1"
-    ],
+    "@context": ["https://www.w3.org/2019/wot/td/v1"],
     "securityDefinitions": {
         "nosec_sc": {
             "scheme": "nosec"
         }
     },
-    "security": [
-        "nosec_sc"
-    ],
+    "security": ["nosec_sc"],
     "properties": {
         "SlaveInformation": {
             "title": "SlaveInformation",
@@ -22,9 +18,7 @@
             "forms": [
                 {
                     "href": "mbus+tcp://127.0.0.1:8181",
-                    "op": [
-                        "readproperty"
-                    ],
+                    "op": ["readproperty"],
                     "mbus:unitID": 1,
                     "mbus:offset": -1,
                     "mbus:timeout": 2000,
@@ -51,9 +45,7 @@
             "forms": [
                 {
                     "href": "mbus+tcp://127.0.0.1:8181",
-                    "op": [
-                        "readproperty"
-                    ],
+                    "op": ["readproperty"],
                     "mbus:unitID": 1,
                     "mbus:offset": 0,
                     "mbus:timeout": 2000,
@@ -71,9 +63,7 @@
             "forms": [
                 {
                     "href": "mbus+tcp://127.0.0.1:8181",
-                    "op": [
-                        "readproperty"
-                    ],
+                    "op": ["readproperty"],
                     "mbus:unitID": 1,
                     "mbus:offset": 1,
                     "mbus:timeout": 2000,
@@ -91,9 +81,7 @@
             "forms": [
                 {
                     "href": "mbus+tcp://127.0.0.1:8181",
-                    "op": [
-                        "readproperty"
-                    ],
+                    "op": ["readproperty"],
                     "mbus:unitID": 1,
                     "mbus:offset": 2,
                     "mbus:timeout": 2000,
@@ -111,9 +99,7 @@
             "forms": [
                 {
                     "href": "mbus+tcp://127.0.0.1:8181",
-                    "op": [
-                        "readproperty"
-                    ],
+                    "op": ["readproperty"],
                     "mbus:unitID": 1,
                     "mbus:offset": 3,
                     "mbus:timeout": 2000,
@@ -131,9 +117,7 @@
             "forms": [
                 {
                     "href": "mbus+tcp://127.0.0.1:8181",
-                    "op": [
-                        "readproperty"
-                    ],
+                    "op": ["readproperty"],
                     "mbus:unitID": 1,
                     "mbus:offset": 4,
                     "mbus:timeout": 2000,
@@ -151,9 +135,7 @@
             "forms": [
                 {
                     "href": "mbus+tcp://127.0.0.1:8181",
-                    "op": [
-                        "readproperty"
-                    ],
+                    "op": ["readproperty"],
                     "mbus:unitID": 1,
                     "mbus:offset": 5,
                     "mbus:timeout": 2000,
@@ -170,9 +152,7 @@
             "forms": [
                 {
                     "href": "mbus+tcp://127.0.0.1:8181",
-                    "op": [
-                        "readproperty"
-                    ],
+                    "op": ["readproperty"],
                     "mbus:unitID": 1,
                     "mbus:offset": 6,
                     "mbus:timeout": 2000,
@@ -189,9 +169,7 @@
             "forms": [
                 {
                     "href": "mbus+tcp://127.0.0.1:8181",
-                    "op": [
-                        "readproperty"
-                    ],
+                    "op": ["readproperty"],
                     "mbus:unitID": 1,
                     "mbus:offset": 7,
                     "mbus:timeout": 2000,
@@ -208,9 +186,7 @@
             "forms": [
                 {
                     "href": "mbus+tcp://127.0.0.1:8181",
-                    "op": [
-                        "readproperty"
-                    ],
+                    "op": ["readproperty"],
                     "mbus:unitID": 1,
                     "mbus:offset": 8,
                     "mbus:timeout": 2000,

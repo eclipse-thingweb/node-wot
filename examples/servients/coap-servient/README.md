@@ -1,11 +1,14 @@
-# Installing and building the CLI 
+# Installing and building the CLI
+
 ```
 $ npm install
 $ npm run build
 ```
 
 # Running script
+
 e.g.,
+
 ```
 $  node dist\my-cli-cli.js ..\..\..\examples\scripts\counter.js
 ```

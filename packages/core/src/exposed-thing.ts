@@ -25,6 +25,7 @@ import { InteractionOutput } from "./interaction-output";
 import { Readable } from "stream";
 import ProtocolHelpers from "./protocol-helpers";
 import { ReadableStream as PolyfillStream } from "web-streams-polyfill/ponyfill/es2018";
+import { Content } from "./core";
 
 export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     security: Array<string>;
@@ -294,9 +295,8 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                     ps.readHandler(options)
                         .then((customValue) => {
                             const body = ExposedThing.interactionInputToReadable(customValue);
-                            resolve(
-                                new InteractionOutput({ body, type: "application/json" }, this.properties[propertyName])
-                            );
+                            let c: Content = { body: body, type: "application/json" };
+                            resolve(new InteractionOutput(c, undefined, this.properties[propertyName]));
                         })
                         .catch((err) => {
                             reject(err);
@@ -307,7 +307,13 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                         `ExposedThing '${this.title}' gets internal value '${ps.value}' for Property '${propertyName}'`
                     );
                     const body = ExposedThing.interactionInputToReadable(ps.value);
-                    resolve(new InteractionOutput({ body, type: "application/json" }, this.properties[propertyName]));
+                    resolve(
+                        new InteractionOutput(
+                            { body, type: "application/json" },
+                            undefined,
+                            this.properties[propertyName]
+                        )
+                    );
                 }
             } else {
                 reject(new Error(`ExposedThing '${this.title}', no property found for '${propertyName}'`));
@@ -476,15 +482,23 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                     "[core/exposed-thing]",
                     `ExposedThing '${this.title}' calls registered handler for Action '${actionName}'`
                 );
-                let body = ExposedThing.interactionInputToReadable(parameter);
+                let bodyInput;
+                if (parameter) {
+                    bodyInput = ExposedThing.interactionInputToReadable(parameter);
+                }
 
+                let cInput: Content = { body: bodyInput, type: "application/json" };
                 const result = await as.handler(
-                    new InteractionOutput({ body, type: "application/json" }, this.actions[actionName].input),
+                    new InteractionOutput(cInput, undefined, this.actions[actionName].input),
                     options
                 );
 
-                body = ExposedThing.interactionInputToReadable(result);
-                return new InteractionOutput({ body, type: "application/json" }, this.actions[actionName].output);
+                let bodyOutput;
+                if (result) {
+                    bodyOutput = ExposedThing.interactionInputToReadable(result);
+                }
+                let cOutput: Content = { body: bodyOutput, type: "application/json" };
+                return new InteractionOutput(cOutput, undefined, this.actions[actionName].output);
             } else {
                 throw new Error(`ExposedThing '${this.title}' has no handler for Action '${actionName}'`);
             }

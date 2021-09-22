@@ -30,14 +30,12 @@ import MqttsClientFactory from "../src/mqtts-client-factory";
 
 @suite("MQTT implementation")
 class MqttClientSubscribeTest {
-
     @test.skip(timeout(10000)) "should expose via broker"(done: Function) {
-
         try {
             let servient = new Servient();
-            var brokerAddress = "test.mosquitto.org"
-            var brokerPort = 1883
-            var brokerUri = `mqtt://${brokerAddress}:${brokerPort}`
+            var brokerAddress = "test.mosquitto.org";
+            var brokerPort = 1883;
+            var brokerUri = `mqtt://${brokerAddress}:${brokerPort}`;
 
             let brokerServer = new MqttBrokerServer(brokerUri);
             servient.addServer(brokerServer);
@@ -51,9 +49,9 @@ class MqttClientSubscribeTest {
                 expect(brokerServer.getAddress()).to.equal(brokerAddress);
 
                 var eventNumber = Math.floor(Math.random() * 1000000);
-                var eventName : string = "event" + eventNumber;
-                var events : {[key: string] : any} = {};
-                events[eventName] = { data: {type: "number"} };
+                var eventName: string = "event" + eventNumber;
+                var events: { [key: string]: any } = {};
+                events[eventName] = { data: { type: "number" } };
 
                 WoT.produce({
                     title: "TestWoTMQTT",
@@ -106,17 +104,16 @@ class MqttClientSubscribeTest {
     }
 
     @test.skip(timeout(5000)) "should subscribe using mqtts"(done: Function) {
-
         try {
             let servient = new Servient();
-            var brokerAddress = "test.mosquitto.org"
-            var brokerPort = 8883
-            var brokerUri = `mqtts://${brokerAddress}:${brokerPort}`
+            var brokerAddress = "test.mosquitto.org";
+            var brokerPort = 8883;
+            var brokerUri = `mqtts://${brokerAddress}:${brokerPort}`;
 
-            let brokerServer = new MqttBrokerServer(brokerUri, undefined,undefined,undefined,undefined, false);
+            let brokerServer = new MqttBrokerServer(brokerUri, undefined, undefined, undefined, undefined, false);
             servient.addServer(brokerServer);
 
-            servient.addClientFactory(new MqttsClientFactory({rejectUnauthorized: false}));
+            servient.addClientFactory(new MqttsClientFactory({ rejectUnauthorized: false }));
 
             var counter = 0;
 

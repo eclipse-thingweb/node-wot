@@ -43,10 +43,6 @@ export default class CoapClient implements ProtocolClient {
 
         // WoT-specific content formats
         coap.registerFormat(ContentSerdes.JSON_LD, 2100);
-        // TODO also register content fromat with IANA
-        // from experimental range for now
-        coap.registerFormat(ContentSerdes.TD, 65100);
-        // TODO need hook from ContentSerdes for runtime data formats
     }
 
     public toString(): string {

@@ -17,13 +17,13 @@ Include the following script tag in your html
 You can access all binding-firestore functionality through the "BindingFirestore" global object:
 
 ```js
-var FirestoreClientFactory = BindingFirestore.FirestoreClientFactory
-var FirestoreCodec = BindingFirestore.FirestoreCodec
-var FirestoreServer = BindingFirestore.FirestoreServer
+var FirestoreClientFactory = BindingFirestore.FirestoreClientFactory;
+var FirestoreCodec = BindingFirestore.FirestoreCodec;
+var FirestoreServer = BindingFirestore.FirestoreServer;
 ```
 
 ## Using binding-firestore browser bundle library in web frameworks
 
 Install browser-bundle in your project by running
 
-- `npm install @node-wot/binding-firestore-browser-bundle`
+-   `npm install @node-wot/binding-firestore-browser-bundle`
