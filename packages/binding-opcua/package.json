@@ -48,7 +48,8 @@
     },
     "scripts": {
         "build": "tsc",
-        "test": "mocha --require ts-node/register test/opcua-client-test.ts"
+        "test": "mocha --require ts-node/register test/opcua-client-test.ts",
+        "lint": "eslint src test"
     },
     "bugs": {
         "url": "https://github.com/eclipse/thingweb.node-wot/issues"
