@@ -147,7 +147,7 @@ export default class OctetstreamCodec implements ContentCodec {
                 }
 
             case "string":
-                return bytes.toString(parameters.charset);
+                return bytes.toString(parameters.charset as BufferEncoding);
 
             case "array":
             case "object":
