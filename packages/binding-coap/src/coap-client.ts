@@ -95,31 +95,25 @@ export default class CoapClient implements ProtocolClient {
     }
 
     public invokeResource(form: CoapForm, content?: Content): Promise<Content> {
-        return new Promise<Content>((resolve, reject) => {
-            ProtocolHelpers.readStreamFully(content.body)
-                .then((buffer) => {
-                    const req = this.generateRequest(form, "POST");
+        return new Promise<Content>(async (resolve, reject) => {
+            const req = this.generateRequest(form, "POST");
 
-                    console.debug("[binding-coap]", `CoapClient sending ${req.statusCode} to ${form.href}`);
+            console.debug("[binding-coap]", `CoapClient sending ${req.statusCode} to ${form.href}`);
 
-                    req.on("response", (res: any) => {
-                        console.debug("[binding-coap]", `CoapClient received ${res.code} from ${form.href}`);
-                        console.debug(
-                            "[binding-coap]",
-                            `CoapClient received Content-Format: ${res.headers["Content-Format"]}`
-                        );
-                        console.debug("[binding-coap]", `CoapClient received headers: ${JSON.stringify(res.headers)}`);
-                        const contentType = res.headers["Content-Format"];
-                        resolve({ type: contentType, body: Readable.from(res.payload) });
-                    });
-                    req.on("error", (err: Error) => reject(err));
-                    if (content) {
-                        req.setOption("Content-Format", content.type);
-                        req.write(buffer);
-                    }
-                    req.end();
-                })
-                .catch(reject);
+            req.on("response", (res: any) => {
+                console.debug("[binding-coap]", `CoapClient received ${res.code} from ${form.href}`);
+                console.debug("[binding-coap]", `CoapClient received Content-Format: ${res.headers["Content-Format"]}`);
+                console.debug("[binding-coap]", `CoapClient received headers: ${JSON.stringify(res.headers)}`);
+                const contentType = res.headers["Content-Format"];
+                resolve({ type: contentType, body: Readable.from(res.payload) });
+            });
+            req.on("error", (err: Error) => reject(err));
+            if (content && content.body) {
+                let buffer = await ProtocolHelpers.readStreamFully(content.body);
+                req.setOption("Content-Format", content.type);
+                req.write(buffer);
+            }
+            req.end();
         });
     }
 
