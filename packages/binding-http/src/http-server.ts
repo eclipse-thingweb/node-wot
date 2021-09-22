@@ -749,20 +749,21 @@ export default class HttpServer implements ProtocolServer {
                                         .observeProperty(
                                             segments[3],
                                             async (value: InteractionOutput) => {
-                                                let content;
                                                 try {
                                                     const contentType = ProtocolHelpers.getPropertyContentType(
                                                         thing.getThingDescription(),
                                                         segments[3],
                                                         "http"
                                                     );
-                                                    content = ContentSerdes.get().valueToContent(
+                                                    const content = ContentSerdes.get().valueToContent(
                                                         value.data && !value.dataUsed
                                                             ? value.data
                                                             : await value.value(),
                                                         property.data,
                                                         contentType
                                                     );
+                                                    // send event data
+                                                    content.body.pipe(res);
                                                 } catch (err) {
                                                     console.warn(
                                                         "[binding-http]",
@@ -774,8 +775,6 @@ export default class HttpServer implements ProtocolServer {
                                                     res.end("Invalid Event Data");
                                                     return;
                                                 }
-                                                // send event data
-                                                content.body.pipe(res);
                                             },
                                             options
                                         )
@@ -979,18 +978,19 @@ export default class HttpServer implements ProtocolServer {
                                     .subscribeEvent(
                                         segments[3],
                                         async (value) => {
-                                            let content;
                                             try {
                                                 const contentType = ProtocolHelpers.getEventContentType(
                                                     thing.getThingDescription(),
                                                     segments[3],
                                                     "http"
                                                 );
-                                                content = ContentSerdes.get().valueToContent(
+                                                const content = ContentSerdes.get().valueToContent(
                                                     value.data && !value.dataUsed ? value.data : await value.value(),
                                                     event.data,
                                                     contentType
                                                 );
+                                                // send event data
+                                                content.body.pipe(res);
                                             } catch (err) {
                                                 console.warn(
                                                     "[binding-http]",
@@ -1002,8 +1002,6 @@ export default class HttpServer implements ProtocolServer {
                                                 res.end("Invalid Event Data");
                                                 return;
                                             }
-                                            // send event data
-                                            content.body.pipe(res);
                                         },
                                         options
                                     )
