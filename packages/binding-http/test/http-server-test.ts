@@ -70,8 +70,7 @@ class HttpServerTest {
         await httpServer.stop();
     }
 
-    // TODO: unskip this test
-    @test.skip async "should change resource from 'off' to 'on' and try to invoke"() {
+    @test async "should change resource from 'off' to 'on' and try to invoke"() {
         const httpServer = new HttpServer({ port: 0 });
 
         await httpServer.start(null);
@@ -96,7 +95,7 @@ class HttpServerTest {
         });
         await testThing.writeProperty("test", "off");
         testThing.properties.test.forms = [];
-        testThing.setActionHandler("try", (input) => {
+        testThing.setActionHandler("try", (input: WoT.InteractionOutput) => {
             return new Promise<string>((resolve, reject) => {
                 resolve("TEST");
             });
@@ -106,21 +105,27 @@ class HttpServerTest {
         await httpServer.expose(testThing);
 
         const uri = `http://localhost:${httpServer.getPort()}/test/`;
-        let body;
+        let resp;
 
         console.log("Testing", uri);
 
-        body = await (await fetch(uri + "properties/test")).text();
-        expect(body).to.equal('"off"');
+        resp = await (await fetch(uri + "properties/test")).text();
+        expect(resp).to.equal("off");
 
-        body = await (await fetch(uri + "properties/test", { method: "PUT", body: "on" })).text();
-        expect(body).to.equal("");
+        resp = await (await fetch(uri + "all/properties")).text();
+        expect(resp).to.equal('{"test":"off"}');
 
-        body = await (await fetch(uri + "properties/test")).text();
-        expect(body).to.equal('"on"');
+        resp = await (await fetch(uri + "properties/test", { method: "PUT", body: "on" })).text();
+        expect(resp).to.equal("");
 
-        body = await (await fetch(uri + "actions/try", { method: "POST", body: "toggle" })).text();
-        expect(body).to.equal('"TEST"');
+        resp = await (await fetch(uri + "properties/test")).text();
+        expect(resp).to.equal("on");
+
+        resp = await (await fetch(uri + "actions/try", { method: "POST", body: "toggle" })).text();
+        expect(resp).to.equal("TEST");
+
+        resp = await (await fetch(uri + "actions/try", { method: "POST", body: undefined })).text();
+        expect(resp).to.equal("TEST");
 
         return httpServer.stop();
     }
