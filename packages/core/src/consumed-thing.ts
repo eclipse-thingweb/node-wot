@@ -26,6 +26,7 @@ import ContentManager from "./content-serdes";
 
 import UriTemplate = require("uritemplate");
 import { InteractionOutput } from "./interaction-output";
+import { Subscription } from "rxjs/Subscription";
 
 enum Affordance {
     PropertyAffordance,
@@ -555,24 +556,28 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                     // uriVariables ?
                     form = this.handleUriVariables(form, options);
 
-                    return client.subscribeResource(
-                        form,
-                        (content) => {
-                            if (!content.type) content.type = form.contentType;
-                            try {
-                                listener(new InteractionOutput(content, form, te.data));
+                    return client
+                        .subscribeResource(
+                            form,
+                            (content) => {
+                                if (!content.type) content.type = form.contentType;
+                                try {
+                                    listener(new InteractionOutput(content, form, te.data));
+                                    resolve();
+                                } catch {
+                                    reject(new Error(`Received invalid content from Thing`));
+                                }
+                            },
+                            (err) => {
+                                reject(err);
+                            },
+                            () => {
                                 resolve();
-                            } catch {
-                                reject(new Error(`Received invalid content from Thing`));
                             }
-                        },
-                        (err) => {
-                            reject(err);
-                        },
-                        () => {
+                        )
+                        .then((subscription: Subscription) => {
                             resolve();
-                        }
-                    );
+                        });
                 }
             }
         });

@@ -17,15 +17,14 @@
  * Protocol test suite to test protocol implementations
  */
 
-import { suite, test } from "@testdeck/mocha";
-import { expect, should } from "chai";
+import { suite, test, timeout } from "@testdeck/mocha";
+import { expect } from "chai";
 
 import { Helpers, ExposedThing } from "@node-wot/core";
 
 import CoapServer from "../src/coap-server";
 import CoapClient from "../src/coap-client";
-// should must be called to augment all variables
-should();
+import { CoapForm } from "../src/coap";
 
 @suite("CoAP client implementation")
 class CoapClientTest {
@@ -101,5 +100,27 @@ class CoapClientTest {
                     done();
                 });
         });
+    }
+
+    @test(timeout(5000)) "subscribe test"(done: Function) {
+        const coapServer = new CoapServer(56834, "localhost");
+        coapServer.start(null).then(() => {
+            const coapClient = new CoapClient(coapServer);
+
+            const form: CoapForm = {
+                href: "coap://127.0.0.1:56834",
+                "coap:methodCode": 1,
+            };
+
+            coapClient
+                .subscribeResource(form, (value) => {})
+                .then((subscription) => {
+                    subscription.unsubscribe();
+                    return coapServer.stop();
+                })
+                .then(() => {
+                    done();
+                });
+            });
     }
 }

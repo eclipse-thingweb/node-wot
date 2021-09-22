@@ -24,7 +24,7 @@ import * as http from "http";
 import * as url from "url";
 import { AddressInfo } from "net";
 
-import { ContentSerdes, ProtocolServer } from "@node-wot/core";
+import { ContentSerdes, ProtocolHelpers, ProtocolServer } from "@node-wot/core";
 
 import HttpClient from "../src/http-client";
 import { HttpForm } from "../src/http";
@@ -377,5 +377,43 @@ class HttpClientTest {
         server.once("listening", () => {
             client.subscribeResource(form, (data) => {}, errorSpy, completeSpy);
         });
+    }
+
+    @test "should subscribe successfully"(done: any) {
+        let client = new HttpClient();
+
+        // Subscribe to an event
+        let form: HttpForm = {
+            op: ["subscribeevent"],
+            href: "http://localhost:60605/",
+        };
+
+        let server = http.createServer((req, res) => {
+            res.writeHead(200);
+            res.end();
+        });
+
+        let subscribeSpy = chai.spy();
+
+        let eventSpy = chai.spy(async function (data: any) {
+            eventSpy.should.have.been.called.once;
+            subscribeSpy.should.have.been.called.once;
+            done();
+            server.close();
+        });
+
+        server.listen(60605, "0.0.0.0");
+        server.once("listening", () => {
+            client
+                .subscribeResource(
+                    form,
+                    eventSpy,
+                    () => {},
+                    () => {}
+                )
+                .then(subscribeSpy);
+        });
+
+        return;
     }
 }

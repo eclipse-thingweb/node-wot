@@ -107,22 +107,25 @@ export default class CoapsClient implements ProtocolClient {
         next: (value: any) => void,
         error?: (error: any) => void,
         complete?: () => void
-    ): any {
-        const requestUri = url.parse(form.href.replace(/$coaps/, "https"));
-        coaps.setSecurityParams(requestUri.hostname, this.authorization);
+    ): Promise<Subscription> {
+        return new Promise<Subscription>((resolve, reject) => {
+            let requestUri = url.parse(form.href.replace(/$coaps/, "https"));
+            coaps.setSecurityParams(requestUri.hostname, this.authorization);
 
-        coaps
-            .observe(form.href, "get", next)
-            .then(() => {
-                /* observing was successfully set up */
-            })
-            .catch((err: any) => {
-                error(err);
-            });
-
-        return new Subscription(() => {
-            coaps.stopObserving(form.href);
-            complete();
+            coaps
+                .observe(form.href, "get", next)
+                .then(() => {
+                    resolve(
+                        new Subscription(() => {
+                            coaps.stopObserving(form.href);
+                            complete();
+                        })
+                    );
+                })
+                .catch((err: any) => {
+                    error(err);
+                    reject(err);
+                });
         });
     }
 

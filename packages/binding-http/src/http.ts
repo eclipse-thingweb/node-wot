@@ -57,7 +57,7 @@ export class HttpForm extends TD.Form {
     public "htv:headers"?: Array<HttpHeader> | HttpHeader;
 }
 
-export type HTTPMethodName = "GET" | "PUT" | "POST" | "DELETE" | "PATCH";
+export type HTTPMethodName = "GET" | "PUT" | "POST" | "DELETE" | "PATCH" | "HEAD";
 
 export class HttpHeader {
     public "htv:fieldName": string;
