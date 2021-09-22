@@ -31,6 +31,8 @@ import { OpcuaServer } from "./opcua-server";
 should();
 
 describe("OPCUA client test", function () {
+    this.timeout(20000);
+
     let server: OpcuaServer;
     let codec: OpcuaCodec;
     try {
@@ -43,7 +45,6 @@ describe("OPCUA client test", function () {
     const client = new OpcuaClient();
 
     before(async () => {
-        this.timeout(10000);
         try {
             await server.start();
         } catch (err) {
