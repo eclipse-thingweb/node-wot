@@ -26,7 +26,14 @@ import { Subscription } from "rxjs/Subscription";
 import * as TD from "@node-wot/td-tools";
 
 import { ProtocolClient, Content, ContentSerdes, ProtocolHelpers } from "@node-wot/core";
-import { CoapForm, CoapRequestConfig, CoapOption } from "./coap";
+import {
+    CoapForm,
+    CoapRequestConfig,
+    CoapOption,
+    CoapMethodName,
+    isSupportedCoapMethod,
+    isValidCoapMethod,
+} from "./coap";
 import CoapServer from "./coap-server";
 import { Readable } from "stream";
 const coap = require("coap");
@@ -211,34 +218,37 @@ export default class CoapClient implements ProtocolClient {
         return options;
     }
 
-    private generateRequest(form: CoapForm, dflt: string, observable = false): any {
+    private determineRequestMethod(formMethod: CoapMethodName, defaultMethod: string) {
+        if (isSupportedCoapMethod(formMethod)) {
+            return formMethod;
+        } else if (isValidCoapMethod(formMethod)) {
+            // TODO: Merge with condition above when a new version of node-coap is
+            //       released
+            console.debug(
+                `[binding-coap] Method ${formMethod} is not supported yet.`,
+                `Using default method ${defaultMethod} instead.`
+            );
+        } else {
+            console.debug(
+                `[binding-coap] Unknown method ${formMethod} found.`,
+                `Using default method ${defaultMethod} instead.`
+            );
+        }
+
+        return defaultMethod;
+    }
+
+    private generateRequest(form: CoapForm, defaultMethod: CoapMethodName, observable = false): any {
         const options: CoapRequestConfig = this.uriToOptions(form.href);
 
-        options.method = dflt;
-
-        if (typeof form["coap:methodCode"] === "number") {
-            console.debug("[binding-coap]", "CoapClient got Form 'methodCode'", form["coap:methodCode"]);
-            switch (form["coap:methodCode"]) {
-                case 1:
-                    options.method = "GET";
-                    break;
-                case 2:
-                    options.method = "POST";
-                    break;
-                case 3:
-                    options.method = "PUT";
-                    break;
-                case 4:
-                    options.method = "DELETE";
-                    break;
-                default:
-                    console.warn(
-                        "[binding-coap]",
-                        "CoapClient got invalid 'methodCode', using default",
-                        options.method
-                    );
-            }
+        if (form["cov:methodName"] != null) {
+            const formMethodName = form["cov:methodName"];
+            console.debug(`[binding-coap] CoapClient got Form "methodName" ${formMethodName}`);
+            options.method = this.determineRequestMethod(formMethodName, defaultMethod);
+        } else {
+            options.method = defaultMethod;
         }
+
         options.observe = observable;
 
         const req = this.agent.request(options);
@@ -248,16 +258,16 @@ export default class CoapClient implements ProtocolClient {
             console.debug("[binding-coap]", "CoapClient got Form 'contentType'", form.contentType);
             req.setOption("Accept", form.contentType);
         }
-        if (Array.isArray(form["coap:options"])) {
-            console.debug("[binding-coap]", "CoapClient got Form 'options'", form["coap:options"]);
-            const options = form["coap:options"] as Array<CoapOption>;
+        if (Array.isArray(form["cov:options"])) {
+            console.debug("[binding-coap]", "CoapClient got Form 'options'", form["cov:options"]);
+            const options = form["cov:options"] as Array<CoapOption>;
             for (const option of options) {
-                req.setOption(option["coap:optionCode"], option["coap:optionValue"]);
+                req.setOption(option["cov:optionName"], option["cov:optionValue"]);
             }
-        } else if (typeof form["coap:options"] === "object") {
-            console.warn("[binding-coap]", "CoapClient got Form SINGLE-ENTRY 'options'", form["coap:options"]);
-            const option = form["coap:options"] as CoapOption;
-            req.setHeader(option["coap:optionCode"], option["coap:optionValue"]);
+        } else if (typeof form["cov:options"] === "object") {
+            console.warn("[binding-coap]", "CoapClient got Form SINGLE-ENTRY 'options'", form["cov:options"]);
+            const option = form["cov:options"] as CoapOption;
+            req.setHeader(option["cov:optionName"], option["cov:optionValue"]);
         }
 
         return req;
