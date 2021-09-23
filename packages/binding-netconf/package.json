@@ -46,7 +46,9 @@
     },
     "scripts": {
         "build": "tsc",
-        "test": "mocha --require ts-node/register test/netconf-client-test.ts"
+        "test": "mocha --require ts-node/register test/netconf-client-test.ts",
+        "lint": "eslint .",
+        "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"**/*.json\""
     },
     "bugs": {
         "url": "https://github.com/eclipse/thingweb.node-wot/issues"
