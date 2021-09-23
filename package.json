@@ -15,7 +15,7 @@
         "debug": "cd packages/cli && npm run debug",
         "test": "npm run test --silent --workspaces --if-present",
         "test:only": "npm run test --silent --workspaces --if-present",
-        "coverage": "nyc npm run test",
+        "coverage": "nyc --reporter=lcov npm run test",
         "lint": "npm run lint --silent --workspaces --if-present",
         "format": "prettier --write . && npm run format --silent --workspaces --if-present",
         "publish": "npm publish --workspaces",
