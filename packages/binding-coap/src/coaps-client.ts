@@ -23,7 +23,7 @@ import * as TD from "@node-wot/td-tools";
 import { Subscription } from "rxjs/Subscription";
 
 import { ProtocolClient, Content } from "@node-wot/core";
-import { CoapForm } from "./coap";
+import { CoapForm, CoapMethodName, isValidCoapMethod, isSupportedCoapMethod } from "./coap";
 const coaps = require("node-coap-client").CoapClient;
 
 export default class CoapsClient implements ProtocolClient {
@@ -40,7 +40,7 @@ export default class CoapsClient implements ProtocolClient {
 
     public readResource(form: CoapForm): Promise<Content> {
         return new Promise<Content>((resolve, reject) => {
-            this.generateRequest(form, "get")
+            this.generateRequest(form, "GET")
                 .then((res: any) => {
                     console.debug("[binding-coap]", `CoapsClient received ${res.code} from ${form.href}`);
 
@@ -58,7 +58,7 @@ export default class CoapsClient implements ProtocolClient {
 
     public writeResource(form: CoapForm, content: Content): Promise<any> {
         return new Promise<void>((resolve, reject) => {
-            this.generateRequest(form, "put", content)
+            this.generateRequest(form, "PUT", content)
                 .then((res: any) => {
                     console.debug("[binding-coap]", `CoapsClient received ${res.code} from ${form.href}`);
 
@@ -72,7 +72,7 @@ export default class CoapsClient implements ProtocolClient {
 
     public invokeResource(form: CoapForm, content?: Content): Promise<Content> {
         return new Promise<Content>((resolve, reject) => {
-            this.generateRequest(form, "post", content)
+            this.generateRequest(form, "POST", content)
                 .then((res: any) => {
                     console.debug("[binding-coap]", `CoapsClient received ${res.code} from ${form.href}`);
 
@@ -90,7 +90,7 @@ export default class CoapsClient implements ProtocolClient {
 
     public unlinkResource(form: CoapForm): Promise<any> {
         return new Promise<void>((resolve, reject) => {
-            this.generateRequest(form, "delete")
+            this.generateRequest(form, "DELETE")
                 .then((res: any) => {
                     console.debug("[binding-coap]", `CoapsClient received ${res.code} from ${form.href}`);
                     console.debug("[binding-coap]", `CoapsClient received headers: ${JSON.stringify(res.format)}`);
@@ -113,7 +113,7 @@ export default class CoapsClient implements ProtocolClient {
             coaps.setSecurityParams(requestUri.hostname, this.authorization);
 
             coaps
-                .observe(form.href, "get", next)
+                .observe(form.href, "GET", next)
                 .then(() => {
                     resolve(
                         new Subscription(() => {
@@ -181,37 +181,43 @@ export default class CoapsClient implements ProtocolClient {
         return true;
     }
 
-    private generateRequest(form: CoapForm, dflt: string, content?: Content): any {
+    private determineRequestMethod(formMethod: CoapMethodName, defaultMethod: string) {
+        if (isSupportedCoapMethod(formMethod)) {
+            return formMethod;
+        } else if (isValidCoapMethod(formMethod)) {
+            console.debug(
+                `[binding-coap] Method ${formMethod} is not supported yet.`,
+                `Using default method ${defaultMethod} instead.`
+            );
+        } else {
+            console.debug(
+                `[binding-coap] Unknown method ${formMethod} found.`,
+                `Using default method ${defaultMethod} instead.`
+            );
+        }
+
+        return defaultMethod;
+    }
+
+    private generateRequest(form: CoapForm, defaultMethod: CoapMethodName, content?: Content): any {
         // url only works with http*
         const requestUri = url.parse(form.href.replace(/$coaps/, "https"));
         coaps.setSecurityParams(requestUri.hostname, this.authorization);
 
-        let method: string = dflt;
+        let method;
 
-        if (typeof form["coap:methodCode"] === "number") {
-            console.debug("[binding-coap]", "CoapsClient got Form 'methodCode'", form["coap:methodCode"]);
-            switch (form["coap:methodCode"]) {
-                case 1:
-                    method = "get";
-                    break;
-                case 2:
-                    method = "post";
-                    break;
-                case 3:
-                    method = "put";
-                    break;
-                case 4:
-                    method = "delete";
-                    break;
-                default:
-                    console.warn("[binding-coap]", "CoapsClient got invalid 'methodCode', using default", method);
-            }
+        if (form["cov:methodName"] != null) {
+            const formMethodName = form["cov:methodName"];
+            console.debug(`[binding-coap] CoapClient got Form "methodName" ${formMethodName}`);
+            method = this.determineRequestMethod(formMethodName, defaultMethod);
+        } else {
+            method = defaultMethod;
         }
 
         console.debug("[binding-coap]", `CoapsClient sending ${method} to ${form.href}`);
         const req = coaps.request(
             form.href /* string */,
-            method /* "get" | "post" | "put" | "delete" */,
+            method.toLowerCase() /* "get" | "post" | "put" | "delete" */,
             content ? content.body : undefined /* Buffer */
         );
 
