@@ -30,7 +30,6 @@ import { OpcuaServer } from "./opcua-server";
 // should must be called to augment all variables
 should();
 
-
 describe("OPCUA client test", function () {
     let server: OpcuaServer;
     let codec: OpcuaCodec;
@@ -214,7 +213,6 @@ describe("OPCUA client test", function () {
         });
         const val = res.body.value;
         expect(val).to.equal(5);
-
     });
 
     it("should not receive a result by invoking an action because a wrong method", async function () {
@@ -277,7 +275,9 @@ describe("OPCUA client test", function () {
             },
         };
         try {
-            const res = await client.subscribeResource(inputVector.form, () => { /** */ });
+            const res = await client.subscribeResource(inputVector.form, () => {
+                /** */
+            });
         } catch (err) {
             expect(err.message).to.equal("Error while subscribing property: BadNodeIdUnknown (0x80340000)");
             return;

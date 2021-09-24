@@ -93,9 +93,7 @@ export default class OpcuaClient implements ProtocolClient {
 
                 this.clientOptions.certificateFile = this.credentials.clientCertificate;
                 this.clientOptions.privateKeyFile = this.credentials.clientPrivateKey;
-                this.clientOptions.serverCertificate = cryptoUtils.readCertificate(
-                    this.credentials.serverCertificate
-                );
+                this.clientOptions.serverCertificate = cryptoUtils.readCertificate(this.credentials.serverCertificate);
                 userIdentity = {
                     certificateData: clientCertificate,
                     privateKey,
@@ -297,10 +295,10 @@ export default class OpcuaClient implements ProtocolClient {
         complete?: () => void
     ): Promise<Subscription> {
         return new Promise<Subscription>((resolve, reject) => {
-            let url = new Url(form.href);
-            let endpointUrl = url.origin;
-            let contentType = "application/x.opcua-binary";
-            let self = this;
+            const url = new Url(form.href);
+            const endpointUrl = url.origin;
+            const contentType = "application/x.opcua-binary";
+            const self = this;
             this.checkConnection(endpointUrl)
                 .then(function () {
                     try {
