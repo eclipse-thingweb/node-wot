@@ -39,6 +39,30 @@ export class CoapForm extends Form {
     public "cov:options"?: Array<CoapOption> | CoapOption;
 }
 
+/**
+ * Checks if a given method name is valid against the CoAP binding templates.
+ *
+ * Valid method names are `GET`, `POST`, `PUT`, `DELETE`, `FETCH`, `PATCH`, and `iPATCH`.
+ *
+ * @param methodName The method name to check.
+ * @returns `true` if the given `methodName` is valid.
+ */
+export function isValidCoapMethod(methodName: CoapMethodName): methodName is CoapMethodName {
+    return ["GET", "POST", "PUT", "DELETE", "FETCH", "PATCH", "iPATCH"].includes(methodName);
+}
+
+/**
+ * Checks if a given method name is supported by the current CoAP implementation.
+ *
+ * Valid method names are `GET`, `POST`, `PUT`, and `DELETE`.
+ *
+ * @param methodName The method name to check.
+ * @returns `true` if the given `methodName` is supported.
+ */
+export function isSupportedCoapMethod(methodName: CoapMethodName): methodName is CoapMethodName {
+    return ["GET", "POST", "PUT", "DELETE"].includes(methodName);
+}
+
 export declare interface CoapRequestConfig {
     agent?: Object;
     hostname?: string;
