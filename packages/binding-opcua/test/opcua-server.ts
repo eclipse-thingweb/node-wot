@@ -48,7 +48,7 @@ export class OpcuaServer {
 
         namespace.addVariable({
             componentOf: device,
-            nodeId: "ns=1;b=9998FFAA", // some opaque NodeId in namespace 4
+            nodeId: "ns=1;s=9998FFAA", // some opaque NodeId in namespace 4
             browseName: "Increment",
             dataType: "Double",
             value: {
@@ -96,7 +96,7 @@ export class OpcuaServer {
 
         namespace.addVariable({
             browseName: "RandomValue",
-            nodeId: "ns=1;b=9998FF00", // some opaque NodeId in namespace 4
+            nodeId: "ns=1;s=9998FF00", // some opaque NodeId in namespace 4
             dataType: "Double",
             value: {
                 get: function () {

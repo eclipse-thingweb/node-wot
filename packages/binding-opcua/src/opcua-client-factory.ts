@@ -35,6 +35,11 @@ export default class OpcuaClientFactory implements ProtocolClientFactory {
         return new OpcuaClient(this.config);
     }
 
-    public init = (): boolean => true;
-    public destroy = (): boolean => true;
+    public init(): boolean {
+        return true;
+    }
+
+    public destroy(): boolean {
+        return true;
+    }
 }

@@ -17,8 +17,8 @@
  * Protocol test suite to test protocol implementations
  */
 
-import { ProtocolHelpers } from "@node-wot/core";
-import { expect, should } from "chai";
+import { ProtocolHelpers, Content } from "@node-wot/core";
+import { expect, should, assert } from "chai";
 import { fail } from "assert";
 import { Readable } from "stream";
 import { DataType } from "node-opcua-client";
@@ -42,32 +42,39 @@ describe("OPCUA client test", function () {
         console.log(err);
         throw new Error(err);
     }
-    const client = new OpcuaClient();
 
+    let client: OpcuaClient;
     before(async () => {
         try {
             await server.start();
         } catch (err) {
             return new Error(err);
         }
+        client = new OpcuaClient();
     });
     after(async () => {
+        await client.stopAsync();
         await server.stop();
     });
+
+    async function getBody(content: Content): Promise<Record<string, any>> {
+        const buffer = await ProtocolHelpers.readStreamFully(content.body);
+        const val = JSON.parse(buffer.toString()).value.value;
+        return val;
+    }
 
     it("should read a property", async function () {
         // invoke with defaults
         const inputVector = {
             op: ["readProperty"],
             form: {
-                href: "opc.tcp://localhost:5050/ns=1;b=9998FFAA",
+                href: "opc.tcp://localhost:5050/ns=1;s=9998FFAA",
                 "opc:method": "READ",
             },
         };
-        const res = await client.readResource(inputVector.form);
-        const buffer = await ProtocolHelpers.readStreamFully(res.body);
-        const val = JSON.parse(buffer.toString()).value.value;
-        expect(val).to.equal(1);
+        const content = await client.readResource(inputVector.form);
+        const variant = await getBody(content);
+        expect(variant).to.equal(1);
     });
 
     it("should fail to read a property because of a wrong node", async function () {
@@ -75,32 +82,38 @@ describe("OPCUA client test", function () {
         const inputVector = {
             op: ["readProperty"],
             form: {
-                href: "opc.tcp://localhost:5050/ns=1;b=9998FFAA",
+                href: "opc.tcp://localhost:5050/ns=1;s=WRONGNODE",
                 "opc:method": "READ",
             },
         };
+        let _err: Error;
         try {
-            const res = await client.readResource(inputVector.form);
+            await client.readResource(inputVector.form);
         } catch (err) {
-            expect(err.message).to.equal("Error: Error while reading property");
+            _err = err as Error;
+            return;
         }
+        assert(_err, "expecting exception to be raised when reading wrong node");
+        expect(_err.message).to.equal("Error: Error while reading property");
     });
 
     it("should write a property", async function () {
         const value = 1;
-        const schema: any = {
+
+        const schema = {
+            type: "null",
             "opc:dataType": "Double",
             constructor: {
                 name: "ConsumedThingProperty",
             },
         };
-        const payload = codec.valueToBytes(value, schema);
+        const payload = codec.valueToBytes(value, schema as any);
 
         // invoke with defaults
         const inputVector = {
             op: ["writeProperty"],
             form: {
-                href: "opc.tcp://localhost:5050/ns=1;b=9998FFAA",
+                href: "opc.tcp://localhost:5050/ns=1;s=9998FFAA",
                 "opc:method": "WRITE",
             },
         };
@@ -119,13 +132,13 @@ describe("OPCUA client test", function () {
 
     it("should write a property with a string as nodeId", async function () {
         const value = "Ciao";
-        const schema: any = {
+        const schema = {
             "opc:dataType": "String",
             constructor: {
                 name: "ConsumedThingProperty",
             },
         };
-        const payload = codec.valueToBytes(value, schema);
+        const payload = codec.valueToBytes(value, schema as any);
 
         // invoke with defaults
         const inputVector = {
@@ -208,36 +221,40 @@ describe("OPCUA client test", function () {
             }),
         };
 
-        const res = await client.invokeResource(inputVector.form, {
+        const result = await client.invokeResource(inputVector.form, {
             type: "application/x.opcua-binary",
             body: Readable.from(Buffer.from(inputVector.payload)),
         });
-        const val = res.body.value;
-        expect(val).to.equal(5);
+
+        const payload = await ProtocolHelpers.readStreamFully(result.body);
+        console.log(" payload = ", payload.toString("ascii"));
+
+        const returnValue = payload && payload.length ? JSON.parse(payload.toString("ascii"))[0] : null;
+
+        expect(returnValue?.value).to.equal(5);
     });
 
-    it("should not receive a result by invoking an action because a wrong method", async function () {
+    it("should raise an exception if an action is invoked with a wrong method", async function () {
         // invoke with defaults
         const inputVector = {
             op: ["invokeAction"],
             form: {
-                href: "opc.tcp://localhost:5050/ns=1;b=9990FFAA;mns=1;mb=9997FFAA",
+                href: "opc.tcp://localhost:5050/ns=1;s=9990FFAA;mns=1;ms=9997FFAA",
                 "opc:method": "RANDOM_METHOD",
             },
             payload: JSON.stringify({ a: 10, c: 2 }),
         };
-        const schema = {
-            type: "object",
-            properties: {
-                a: { type: "number", "opc:dataType": "Double" },
-                c: { type: "number", "opc:dataType": "Double" },
-            },
-        };
-        const res = await client.invokeResource(inputVector.form, {
-            type: "application/x.opcua-binary",
-            body: Readable.from(Buffer.from(inputVector.payload)),
-        });
-        expect(res).to.equal(undefined);
+
+        try {
+            await client.invokeResource(inputVector.form, {
+                type: "application/x.opcua-binary",
+                body: Readable.from(Buffer.from(inputVector.payload)),
+            });
+        } catch (err) {
+            console.log("res = ", err.message);
+            return;
+        }
+        assert(false, "expecting invokeResource to raise an exception because opc:method is incorrect");
     });
 
     it("should subscribe to a resource", async () => {
@@ -245,26 +262,37 @@ describe("OPCUA client test", function () {
         const inputVector = {
             op: ["subscribeevent"],
             form: {
-                href: "opc.tcp://localhost:5050/ns=1;b=9998FFAA",
+                href: "opc.tcp://localhost:5050/ns=1;s=9998FFAA",
                 "opc:method": "SUBSCRIBE_PROPERTY",
             },
         };
 
-        let times = 3;
-        return new Promise(function (resolve, reject) {
-            const interval = setInterval(function () {
-                server.forceValueChange();
-            }, 1000);
+        const dataCollected: any = [];
+        await new Promise<void>((resolve) => {
+            (async () => {
+                let times = 3;
+                const interval = setInterval(() => {
+                    server.forceValueChange();
+                }, 1000);
 
-            client.subscribeResource(inputVector.form, async (data) => {
-                expect(data.body.value).to.greaterThan(0);
-                times--;
-                if (times === 0) {
-                    clearInterval(interval);
-                    resolve();
-                }
-            });
+                const subscription = await client.subscribeResource(inputVector.form, async (content: Content) => {
+                    const body = JSON.parse((await ProtocolHelpers.readStreamFully(content.body)).toString("ascii"));
+                    dataCollected.push(body);
+                    console.log("[binding_http-test", "tick", body);
+                    times--;
+                    if (times === 0) {
+                        clearInterval(interval);
+                        subscription.unsubscribe();
+                        resolve();
+                    }
+                });
+            })();
         });
+        console.log("dataCollected = ", dataCollected);
+        expect(dataCollected.length).to.eql(3);
+        expect(dataCollected[0].value.value).to.greaterThan(0);
+        expect(dataCollected[1].value.value).to.greaterThan(0);
+        expect(dataCollected[2].value.value).to.greaterThan(0);
     }).timeout(50000);
 
     it("should fail to subscribe to a resource because a wrong node", async function () {
@@ -280,6 +308,7 @@ describe("OPCUA client test", function () {
                 /** */
             });
         } catch (err) {
+            console.log(err);
             expect(err.message).to.equal("Error while subscribing property: BadNodeIdUnknown (0x80340000)");
             return;
         }
@@ -293,14 +322,6 @@ describe("OPCUA client test", function () {
             password: "test",
         };
         client.setSecurity(metadata, credentials);
-    });
-
-    after(async function () {
-        try {
-            await server.stop();
-        } catch (err) {
-            return new Error(err);
-        }
     });
 
     it("should return the right opcua datatype", async function () {

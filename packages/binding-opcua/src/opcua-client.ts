@@ -27,29 +27,42 @@ import {
     MessageSecurityMode,
     SecurityPolicy,
     AttributeIds,
-    ClientSubscription,
     TimestampsToReturn,
     MonitoringParametersOptions,
     // ReadValueIdLike, // ReadValueIdLike: ReadValueIdOptions | ReadValueId
     ReadValueIdOptions,
     ReadValueId,
-    ClientMonitoredItem,
     DataValue,
     UserTokenType,
+    ClientSession,
+    OPCUAClientOptions,
+    StatusCodes,
+    ClientMonitoredItem,
+    ClientSubscription,
 } from "node-opcua-client";
 import * as cryptoUtils from "node-opcua-crypto";
 import { Subscription } from "rxjs/Subscription";
 import { Readable } from "stream";
 
+async function decodeContent(content: Content): Promise<Record<string, any> | Record<string, any>[]> {
+    if (content) {
+        const body = await ProtocolHelpers.readStreamFully(content.body);
+        const payload = JSON.parse(body.toString("ascii"));
+        return payload;
+    } else {
+        return {};
+    }
+}
+
 export default class OpcuaClient implements ProtocolClient {
-    private client: OPCUAClient;
+    private client?: OPCUAClient;
     private credentials: any;
-    private session: any;
-    private clientOptions: any;
+    private session?: ClientSession;
+    private subscription?: ClientSubscription;
+    private clientOptions: OPCUAClientOptions;
     private config: OpcuaConfig;
     constructor(_config: OpcuaConfig = null) {
         this.credentials = null;
-        this.session = null;
         this.clientOptions = {
             applicationName: "Client",
             keepSessionAlive: true,
@@ -71,7 +84,7 @@ export default class OpcuaClient implements ProtocolClient {
         return "[OpcuaClient]";
     }
 
-    private async connect(endpointUrl: string, next?: () => void) {
+    private async connect(endpointUrl: string): Promise<void> {
         let userIdentity: any;
 
         if (this.credentials) {
@@ -106,11 +119,6 @@ export default class OpcuaClient implements ProtocolClient {
         this.client = OPCUAClient.create(this.clientOptions);
         await this.client.connect(endpointUrl);
         this.session = await this.client.createSession(userIdentity);
-
-        if (next) {
-            // callback version
-            next();
-        }
     }
 
     public async readResource(form: OpcuaForm): Promise<Content> {
@@ -119,41 +127,33 @@ export default class OpcuaClient implements ProtocolClient {
         const method = form["opc:method"] ? form["opc:method"] : "READ";
 
         const contentType = "application/x.opcua-binary";
+        await this.checkConnection(endpointUrl);
 
-        if (this.session === null) {
-            try {
-                await this.connect(endpointUrl);
-            } catch (err) {
-                console.debug("[binding-opcua]", err);
-                throw err;
-            }
-        }
+        const params: {
+            ns: string;
+            idtype: string;
+            mns: string;
+            midtype: string;
+        } = this.extractParams(url.pathname.toString().substr(1));
 
-        let result: any;
+        const nodeId = params.ns + ";" + params.idtype;
+        const nodeToRead = {
+            nodeId,
+            attributeId: AttributeIds.Value,
+        };
 
+        let result: DataValue;
         try {
-            const params: {
-                ns: string;
-                idtype: string;
-                mns: string;
-                midtype: string;
-            } = this.extractParams(url.pathname.toString().substr(1));
-
-            const nodeId = params.ns + ";" + params.idtype;
-            const nodeToRead = {
-                nodeId: nodeId,
-            };
-
             result = await this.session.read(nodeToRead);
-            result = JSON.stringify(result);
         } catch (err) {
             console.debug("[binding-opcua]", err);
             throw err;
         }
-
-        return new Promise<Content>((resolve, reject) => {
-            resolve({ type: contentType, body: Readable.from(Buffer.from(result)) });
-        });
+        if (result.statusCode === StatusCodes.BadNodeIdUnknown) {
+            throw new Error("Invalid nodeId");
+        }
+        const body = JSON.stringify(result.toJSON());
+        return { type: contentType, body: Readable.from(Buffer.from(body)) };
     }
 
     public async writeResource(form: OpcuaForm, content: Content): Promise<any> {
@@ -164,19 +164,10 @@ export default class OpcuaClient implements ProtocolClient {
         const method = form["opc:method"] ? form["opc:method"] : "WRITE";
         const contentType = "application/x.opcua-binary";
 
-        let res = false;
         const dataType = payload.dataType;
 
-        if (this.session === null) {
-            try {
-                await this.connect(endpointUrl);
-            } catch (err) {
-                console.debug("[binding-opcua]", err);
-                throw err;
-            }
-        }
+        await this.checkConnection(endpointUrl);
 
-        let result: any;
         const params: {
             ns: string;
             idtype: string;
@@ -197,77 +188,61 @@ export default class OpcuaClient implements ProtocolClient {
                     },
                 },
             };
-            result = await this.session.write(nodeToWrite);
-            if (result._name === "Good" && result.value === 0) {
-                res = true;
-            } else if (result._description) {
-                const err = new Error(result._description);
+            const statusCode = await this.session.write(nodeToWrite);
+            if (statusCode === StatusCodes.Good) {
+                return;
+            } else {
+                const err = new Error(statusCode.toString());
                 throw err;
             }
         } catch (err) {
             console.debug("[binding-opcua]", err);
             throw err;
         }
-
-        return new Promise<void>((resolve, reject) => {
-            if (res) {
-                resolve(undefined);
-            } else {
-                reject(new Error("Error while writing property"));
-            }
-        });
     }
 
-    public async invokeResource(form: OpcuaForm, content: Content): Promise<any> {
-        let payload;
-        if (content) {
-            const body = await ProtocolHelpers.readStreamFully(content.body);
-            payload = JSON.parse(body.toString());
-        }
-
+    public async invokeResource(form: OpcuaForm, content: Content): Promise<Content> {
         const url = new Url(form.href);
 
         const endpointUrl = `${url.protocol}//${url.host}`;
         const method = form["opc:method"] ? form["opc:method"] : "CALL_METHOD";
 
         const contentType = "application/x.opcua-binary";
-        if (this.session === null) {
-            try {
-                await this.connect(endpointUrl);
-            } catch (err) {
-                console.debug("[binding-opcua]", err);
-                throw err;
-            }
-        }
 
-        let result: any;
+        await this.checkConnection(endpointUrl);
+
         const params: {
             ns: string;
             idtype: string;
             mns: string;
             midtype: string;
         } = this.extractParams(url.pathname.toString().substr(1));
+
         const objectId = params.ns + ";" + params.idtype;
         const nodeId = params.mns + ";" + params.midtype;
-        const methodToCalls: any[] = [];
-        let req;
+
         if (method === "CALL_METHOD") {
-            req = {
+            const payload: any = await decodeContent(content);
+
+            const methodToCall = {
                 methodId: nodeId,
                 objectId: objectId,
                 inputArguments: payload.inputArguments,
             };
-            methodToCalls.push(req);
-            result = await this.session.call(methodToCalls);
-            const status = result[0].statusCode;
-            if (status._value !== 0 || status._name !== "Good") {
-                console.debug("[binding-opcua]", status);
-                throw new Error(status);
-            }
+            const result = await this.session.call(methodToCall);
 
-            return new Promise((resolve, reject) => {
-                resolve({ type: contentType, body: result[0].outputArguments[0] });
-            });
+            console.log("[binding-opcua]", "[invoke]", result.toString());
+
+            const statusCode = result.statusCode;
+            if (statusCode !== StatusCodes.Good) {
+                console.debug("[binding-opcua]", statusCode);
+                throw new Error(statusCode.toString());
+            }
+            const outputArgs = result.outputArguments.map((outputArg) => outputArg.toJSON());
+            const body: string = JSON.stringify(outputArgs);
+            return { type: contentType, body: Readable.from(Buffer.from(body, "ascii")) };
+        } else {
+            throw new Error("Invalid method : " + method);
         }
     }
 
@@ -278,7 +253,7 @@ export default class OpcuaClient implements ProtocolClient {
     }
 
     private async checkConnection(endpointUrl: string) {
-        if (this.session === null) {
+        if (!this.session) {
             try {
                 await this.connect(endpointUrl);
             } catch (err) {
@@ -288,84 +263,81 @@ export default class OpcuaClient implements ProtocolClient {
         }
     }
 
-    public subscribeResource(
+    private async getOrCreateSubscription(): Promise<ClientSubscription> {
+        if (this.subscription) {
+            return this.subscription;
+        }
+        const defaultSubscriptionOptions = {
+            requestedPublishingInterval: 1000,
+            requestedLifetimeCount: 100,
+            requestedMaxKeepAliveCount: 10,
+            maxNotificationsPerPublish: 100,
+            publishingEnabled: true,
+            priority: 10,
+        };
+
+        const subscriptionParameters =
+            this.config && this.config.subscriptionOptions
+                ? this.config.subscriptionOptions
+                : defaultSubscriptionOptions;
+
+        this.subscription = await this.session.createSubscription2(subscriptionParameters);
+        return this.subscription;
+    }
+    public async subscribeResource(
         form: OpcuaForm,
-        next: (value: any) => void,
+        next: (value: Content) => void,
         error?: (error: any) => void,
         complete?: () => void
     ): Promise<Subscription> {
-        return new Promise<Subscription>((resolve, reject) => {
-            const url = new Url(form.href);
-            const endpointUrl = url.origin;
+        const url = new Url(form.href);
+        const endpointUrl = `${url.protocol}//${url.host}`;
+
+        await this.checkConnection(endpointUrl);
+
+        const subscription = await this.getOrCreateSubscription();
+
+        const params: {
+            ns: string;
+            idtype: string;
+            mns: string;
+            midtype: string;
+        } = this.extractParams(url.pathname.toString().substr(1));
+        const nodeId = params.ns + ";" + params.idtype;
+        const itemToMonitor: ReadValueIdOptions | ReadValueId = {
+            nodeId: nodeId,
+            attributeId: AttributeIds.Value,
+        };
+        const parameters: MonitoringParametersOptions = {
+            samplingInterval: 100,
+            discardOldest: true,
+            queueSize: 10,
+        };
+
+        const monitoredItem = await new Promise<ClientMonitoredItem>((resolve, reject) => {
+            const monitoredItem = ClientMonitoredItem.create(
+                subscription,
+                itemToMonitor,
+                parameters,
+                TimestampsToReturn.Both
+            );
+            monitoredItem.once("err", async (error: string) => {
+                const err = new Error("Error while subscribing property: " + monitoredItem.statusCode.toString());
+                reject(err);
+            });
+            monitoredItem.once("initialized", async () => {
+                resolve(monitoredItem);
+            });
+        });
+        monitoredItem.on("changed", (dataValue: DataValue) => {
+            const body = JSON.stringify(dataValue.toJSON());
             const contentType = "application/x.opcua-binary";
-            const self = this;
-            this.checkConnection(endpointUrl)
-                .then(function () {
-                    try {
-                        const params: {
-                            ns: string;
-                            idtype: string;
-                            mns: string;
-                            midtype: string;
-                        } = self.extractParams(url.pathname.toString().substr(1));
-                        const nodeId = params.ns + ";" + params.idtype;
 
-                        let subscription: any;
-                        const defaultSubscriptionOptions = {
-                            requestedPublishingInterval: 1000,
-                            requestedLifetimeCount: 100,
-                            requestedMaxKeepAliveCount: 10,
-                            maxNotificationsPerPublish: 100,
-                            publishingEnabled: true,
-                            priority: 10,
-                        };
-                        if (self.config && self.config.subscriptionOptions) {
-                            subscription = ClientSubscription.create(self.session, self.config.subscriptionOptions);
-                        } else {
-                            subscription = ClientSubscription.create(self.session, defaultSubscriptionOptions);
-                        }
+            next({ type: contentType, body: Readable.from(Buffer.from(body)) });
+        });
 
-                        const itemToMonitor: ReadValueIdOptions | ReadValueId = {
-                            nodeId: nodeId,
-                            attributeId: AttributeIds.Value,
-                        };
-                        const parameters: MonitoringParametersOptions = {
-                            samplingInterval: 100,
-                            discardOldest: true,
-                            queueSize: 10,
-                        };
-
-                        const monitoredItem = ClientMonitoredItem.create(
-                            subscription,
-                            itemToMonitor,
-                            parameters,
-                            TimestampsToReturn.Both
-                        );
-
-                        monitoredItem.once("err", (error: string) => {
-                            monitoredItem.removeAllListeners();
-                            reject(new Error(`Error while subscribing property: ${error}`));
-                        });
-
-                        monitoredItem.on("initialized", () => {
-                            // remove initialization error listener
-                            monitoredItem.removeAllListeners("error");
-                            // forward next errors to the callback if any
-                            error && monitoredItem.on("err", error);
-
-                            resolve(new Subscription(() => {}));
-                        });
-
-                        monitoredItem.on("changed", (dataValue: DataValue) => {
-                            next({ type: contentType, body: dataValue.value });
-                        });
-                    } catch (err) {
-                        reject(new Error(`Error while subscribing property`));
-                    }
-                })
-                .catch((err) => {
-                    reject(err);
-                });
+        return new Subscription(async () => {
+            await monitoredItem.terminate();
         });
     }
 
@@ -373,7 +345,26 @@ export default class OpcuaClient implements ProtocolClient {
         return true;
     }
 
+    public async stopAsync(): Promise<boolean> {
+        const { subscription, session, client } = this;
+        this.subscription = undefined;
+        this.session = undefined;
+        this.client = undefined;
+        if (subscription) {
+            await subscription.terminate();
+        }
+        if (session) {
+            await session.close();
+        }
+        if (client) {
+            await client.disconnect();
+        }
+        return true;
+    }
+
     public stop(): boolean {
+        // note: Stop should really be an async function !!
+        this.stopAsync();
         return true;
     }
 
