@@ -26,9 +26,10 @@ import { AddressInfo } from "net";
 
 import { ContentSerdes, ProtocolHelpers, ProtocolServer } from "@node-wot/core";
 
+import { Readable } from "stream";
+
 import HttpClient from "../src/http-client";
 import { HttpForm } from "../src/http";
-import { Readable } from "stream";
 
 // should must be called to augment all variables
 should();
@@ -58,9 +59,7 @@ class TestHttpServer implements ProtocolServer {
 
     private readonly port: number = 60606;
     private readonly address: string = undefined;
-    private readonly server: http.Server = http.createServer((req, res) => {
-        this.checkRequest(req, res);
-    });
+    private readonly server: http.Server;
 
     constructor(port?: number, address?: string) {
         if (port !== undefined) {
@@ -69,10 +68,13 @@ class TestHttpServer implements ProtocolServer {
         if (address !== undefined) {
             this.address = address;
         }
+        this.server = http.createServer((req, res) => {
+            this.checkRequest(req, res);
+        });
     }
 
-    public start(): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
+    public async start(): Promise<void> {
+        return await new Promise<void>((resolve, reject) => {
             this.server.once("listening", () => {
                 resolve();
             });
@@ -80,8 +82,8 @@ class TestHttpServer implements ProtocolServer {
         });
     }
 
-    public stop(): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
+    public async stop(): Promise<void> {
+        return await new Promise<void>((resolve, reject) => {
             this.server.close(() => {
                 console.error("STOPPED");
                 resolve();
@@ -99,7 +101,7 @@ class TestHttpServer implements ProtocolServer {
         }
     }
 
-    public expose(thing: any): Promise<void> {
+    public expose(thing: unknown): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             resolve();
         });
@@ -171,127 +173,153 @@ class TestHttpServer implements ProtocolServer {
     }
 }
 
-@suite("HTTP client implementation")
-class HttpClientTest {
-    @test async "should apply defaults"() {
-        let inputVector;
-
-        const httpServer = new TestHttpServer(port1);
-        await httpServer.start();
-        expect(httpServer.getPort()).to.equal(port1);
-
-        const client = new HttpClient();
-
-        // read with defaults
-        inputVector = {
-            op: ["readproperty"],
-            form: {
-                href: `http://localhost:${port1}/`,
-            },
-        };
-        httpServer.setTestVector(inputVector);
-        let representation = await client.readResource(inputVector.form);
-
-        // write with defaults
-        inputVector = {
-            op: ["writeproperty"],
-            form: {
-                href: `http://localhost:${port1}/`,
-            },
-            payload: "test",
-        };
-        httpServer.setTestVector(inputVector);
-        representation = await client.writeResource(inputVector.form, {
-            type: ContentSerdes.DEFAULT,
-            body: Readable.from(inputVector.payload),
-        });
-
-        // invoke with defaults
-        inputVector = {
-            op: ["invokeaction"],
-            form: {
-                href: `http://localhost:${port1}/`,
-            },
-            payload: "test",
-        };
-        httpServer.setTestVector(inputVector);
-        representation = await client.invokeResource(inputVector.form, {
-            type: ContentSerdes.DEFAULT,
-            body: Readable.from(inputVector.payload),
-        });
-
-        return httpServer.stop();
+@suite("HTTP client implementation 1")
+class HttpClientTest1 {
+    static httpServer: TestHttpServer;
+    static async before(): Promise<void> {
+        HttpClientTest1.httpServer = new TestHttpServer(port1);
+        await HttpClientTest1.httpServer.start();
+        expect(HttpClientTest1.httpServer.getPort()).to.equal(port1);
     }
 
-    @test async "should apply form information"() {
-        let inputVector;
+    static async after(): Promise<void> {
+        HttpClientTest1.httpServer.stop();
+    }
 
-        const httpServer = new TestHttpServer(port1);
-        await httpServer.start();
-        expect(httpServer.getPort()).to.equal(port1);
+    private client: HttpClient;
 
-        const client = new HttpClient();
+    before() {
+        this.client = new HttpClient();
+    }
 
-        // read with POST instead of GET
-        inputVector = {
+    after() {
+        this.client.stop();
+    }
+
+    @test async "should apply defaults : read with default"() {
+        // read with defaults
+        const inputVector1 = {
             op: ["readproperty"],
-            form: {
+            form: <HttpForm>{
+                href: `http://localhost:${port1}/`,
+            },
+        };
+        HttpClientTest1.httpServer.setTestVector(inputVector1);
+        const resource = await this.client.readResource(inputVector1.form);
+        const body = await ProtocolHelpers.readStreamFully(resource.body);
+        body.toString("ascii").should.eql("");
+    }
+
+    @test async "should apply defaults - write with default"() {
+        // write with defaults
+        const inputVector2 = {
+            op: ["writeproperty"],
+            form: <HttpForm>{
+                href: `http://localhost:${port1}/`,
+            },
+            payload: "test",
+        };
+        HttpClientTest1.httpServer.setTestVector(inputVector2);
+
+        await this.client.writeResource(inputVector2.form, {
+            type: ContentSerdes.DEFAULT,
+            body: Readable.from(inputVector2.payload),
+        });
+    }
+
+    @test async "should apply defaults - invoke with default"() {
+        // invoke with defaults
+        const inputVector3 = {
+            op: ["invokeaction"],
+            form: <HttpForm>{
+                href: `http://localhost:${port1}/`,
+            },
+            payload: "test",
+        };
+        HttpClientTest1.httpServer.setTestVector(inputVector3);
+
+        const resource = await this.client.invokeResource(inputVector3.form, {
+            type: ContentSerdes.DEFAULT,
+            body: Readable.from(inputVector3.payload),
+        });
+
+        expect(resource.type).eql(null);
+        const body = await ProtocolHelpers.readStreamFully(resource.body);
+        body.toString("ascii").should.eql("");
+    }
+
+    @test async "should apply form information - read with POST instead of GET"() {
+        // read with POST instead of GET
+        const inputVector1 = {
+            op: ["readproperty"],
+            form: <HttpForm>{
                 href: `http://localhost:${port1}/`,
                 "htv:methodName": "POST",
             },
         };
-        httpServer.setTestVector(inputVector);
-        let representation = await client.readResource(inputVector.form as HttpForm);
+        HttpClientTest1.httpServer.setTestVector(inputVector1);
+        const resource = await this.client.readResource(inputVector1.form);
+        expect(resource.type).eql(null);
+        const body = await ProtocolHelpers.readStreamFully(resource.body);
+        body.toString("ascii").should.eql("");
+    }
 
+    @test async "should apply form information - read with POST instead of PUT"() {
         // write with POST instead of PUT
-        inputVector = {
+        const inputVector2 = {
             op: ["writeproperty"],
-            form: {
+            form: <HttpForm>{
                 href: `http://localhost:${port1}/`,
                 "htv:methodName": "POST",
             },
             payload: "test",
         };
-        httpServer.setTestVector(inputVector);
-        representation = await client.writeResource(inputVector.form as HttpForm, {
+        HttpClientTest1.httpServer.setTestVector(inputVector2);
+        const writeResult = await this.client.writeResource(inputVector2.form, {
             type: ContentSerdes.DEFAULT,
-            body: Readable.from(inputVector.payload),
+            body: Readable.from(inputVector2.payload),
         });
+    }
 
+    @test async "should apply form information - read with PUT instead of GET"() {
         // invoke with PUT instead of POST
-        inputVector = {
+        const inputVector3 = {
             op: ["invokeaction"],
-            form: {
+            form: <HttpForm>{
                 href: `http://localhost:${port1}/`,
                 "htv:methodName": "PUT",
             },
             payload: "test",
         };
-        httpServer.setTestVector(inputVector);
-        representation = await client.invokeResource(inputVector.form as HttpForm, {
+        HttpClientTest1.httpServer.setTestVector(inputVector3);
+        const invokeResourceResult = await this.client.invokeResource(inputVector3.form, {
             type: ContentSerdes.DEFAULT,
-            body: Readable.from(inputVector.payload),
+            body: Readable.from(inputVector3.payload),
         });
+    }
 
+    @test async "should apply form information - read with DELETE instead of POST"() {
         // invoke with DELETE instead of POST
-        inputVector = {
+        const inputVector4 = {
             op: ["invokeaction"],
-            form: {
+            form: <HttpForm>{
                 href: `http://localhost:${port1}/`,
                 "htv:methodName": "DELETE",
             },
         };
-        httpServer.setTestVector(inputVector);
-        representation = await client.invokeResource(inputVector.form as HttpForm);
-
-        return httpServer.stop();
+        HttpClientTest1.httpServer.setTestVector(inputVector4);
+        const invokeResourceResult2 = await this.client.invokeResource(inputVector4.form);
     }
+}
 
+const express = require("express");
+const serveStatic = require("serve-static");
+const SseStream = require("ssestream");
+
+@suite("HTTP client implementation 2")
+class HttpClientTest2 {
     @test "should register to sse server and get server sent event"(done: any) {
         // create sse server
-        const express = require("express");
-        const serveStatic = require("serve-static");
-        const SseStream = require("ssestream");
 
         const app = express();
         app.use(serveStatic(__dirname));
@@ -335,7 +363,7 @@ class HttpClientTest {
         });
     }
 
-    @test "should call error() and complete() on subscription with no connection"(done: any) {
+    @test "should call error() and complete() on subscription with no connection"(done: () => void) {
         const client = new HttpClient();
 
         // Subscribe to an event
@@ -425,12 +453,14 @@ class HttpClientTest {
                 .subscribeResource(
                     form,
                     eventSpy,
-                    () => {},
-                    () => {}
+                    () => {
+                        /** */
+                    },
+                    () => {
+                        /** */
+                    }
                 )
                 .then(subscribeSpy);
         });
-
-        return;
     }
 }

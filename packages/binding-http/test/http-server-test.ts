@@ -188,7 +188,7 @@ class HttpServerTest {
         httpServer.expose(testThing);
         await httpServer.stop();
 
-        expect(testThing.securityDefinitions.bearer).not.to.be.undefined;
+        expect(testThing.securityDefinitions.bearer).not.eql(undefined);
     }
 
     @test async "should not accept an unsupported scheme"() {
@@ -217,7 +217,7 @@ class HttpServerTest {
         await httpServer.stop();
     }
 
-    @test async "config.port is overriden by WOT_PORT or PORT"() {
+    @test async "config.port is overridden by WOT_PORT or PORT"() {
         // Works when none set
         let httpServer = new HttpServer({ port: 58080 });
         await httpServer.start(null);
