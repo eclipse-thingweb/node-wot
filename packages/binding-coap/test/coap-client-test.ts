@@ -109,7 +109,7 @@ class CoapClientTest {
 
             const form: CoapForm = {
                 href: "coap://127.0.0.1:56834",
-                "coap:methodCode": 1,
+                "cov:methodName": "GET",
             };
 
             coapClient
