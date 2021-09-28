@@ -28,7 +28,7 @@ export * from "./coaps-client-factory";
 export * from "./coaps-client";
 
 export class CoapOption {
-    public "cov:optionName": number;
+    public "cov:optionName": string;
     public "cov:optionValue": any;
 }
 
