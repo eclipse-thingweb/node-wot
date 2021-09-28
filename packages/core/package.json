@@ -62,5 +62,14 @@
     "directories": {
         "test": "test"
     },
-    "keywords": []
+    "keywords": [],
+    "eslintConfig": {
+        "extends": "../../.eslintrc.json",
+        "parserOptions": {
+            "project": [
+                "./tsconfig.json",
+                "./test.tsconfig.json"
+            ]
+        }
+    }
 }
