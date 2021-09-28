@@ -24,7 +24,7 @@ import { Subscription } from "rxjs/Subscription";
 
 import { ProtocolClient, Content } from "@node-wot/core";
 import { CoapForm } from "./coap";
-const coaps = require("node-coap-client").CoapClient;
+import {CoapClient as coaps} from "node-coap-client";
 
 export default class CoapsClient implements ProtocolClient {
     // FIXME coap Agent closes socket when no messages in flight -> new socket with every request

@@ -29,7 +29,7 @@ import { ProtocolClient, Content, ContentSerdes, ProtocolHelpers } from "@node-w
 import { CoapForm, CoapRequestConfig, CoapOption } from "./coap";
 import CoapServer from "./coap-server";
 import { Readable } from "stream";
-const coap = require("coap");
+import coap = require("coap");
 
 export default class CoapClient implements ProtocolClient {
     // FIXME coap Agent closes socket when no messages in flight -> new socket with every request

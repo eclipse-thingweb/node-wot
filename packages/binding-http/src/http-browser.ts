@@ -24,6 +24,14 @@ export * from "./http-client";
 export * from "./http-client-factory";
 export * from "./https-client-factory";
 
+export interface HttpProxyConfig {
+    href: string;
+    scheme?: string;
+    token?: string;
+    username?: string;
+    password?: string;
+}
+
 export interface HttpConfig {
     port?: number;
     address?: string;
@@ -34,22 +42,14 @@ export interface HttpConfig {
     security?: TD.SecurityScheme;
 }
 
-export interface HttpProxyConfig {
-    href: string;
-    scheme?: string;
-    token?: string;
-    username?: string;
-    password?: string;
+export class HttpHeader {
+    public "http:fieldName": number;
+    public "http:fieldValue": any;
 }
 
 export class HttpForm extends TD.Form {
     public "http:methodName"?: string; // "GET", "PUT", "POST", "DELETE"
     public "http:headers"?: Array<HttpHeader> | HttpHeader;
-}
-
-export class HttpHeader {
-    public "http:fieldName": number;
-    public "http:fieldValue": any;
 }
 
 Headers.prototype.raw = function () {

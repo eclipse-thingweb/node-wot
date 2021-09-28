@@ -27,14 +27,14 @@ export * from "./coap-client";
 export * from "./coaps-client-factory";
 export * from "./coaps-client";
 
-export class CoapForm extends Form {
-    public "coap:methodCode"?: number; // 1=0.01=GET, 2=0.02=POST, 3=0.03=PUT, 4=0.04=DELETE
-    public "coap:options"?: Array<CoapOption> | CoapOption;
-}
-
 export class CoapOption {
     public "coap:optionCode": number;
     public "coap:optionValue": any;
+}
+
+export class CoapForm extends Form {
+    public "coap:methodCode"?: number; // 1=0.01=GET, 2=0.02=POST, 3=0.03=PUT, 4=0.04=DELETE
+    public "coap:options"?: Array<CoapOption> | CoapOption;
 }
 
 export declare interface CoapRequestConfig {
