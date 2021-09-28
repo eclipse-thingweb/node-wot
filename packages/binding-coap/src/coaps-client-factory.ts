@@ -23,8 +23,6 @@ import CoapsClient from "./coaps-client";
 export default class CoapsClientFactory implements ProtocolClientFactory {
     public readonly scheme: string = "coaps";
 
-    constructor(proxy?: string) {}
-
     public getClient(): ProtocolClient {
         console.debug("[binding-coap]", `CoapsClientFactory creating client for '${this.scheme}'`);
         return new CoapsClient();
