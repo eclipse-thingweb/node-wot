@@ -326,7 +326,7 @@ export default class CoapServer implements ProtocolServer {
                                     });
                                 // observeproperty
                             } else {
-                                const oInterval = setInterval(function () {
+                                const oInterval = setInterval(() => {
                                     thing
                                         .readProperty(segments[3])
                                         // property.read() periodically
@@ -345,7 +345,7 @@ export default class CoapServer implements ProtocolServer {
                                             res.code = "2.05";
                                             res.write(content.body);
 
-                                            res.on("finish", function (err: Error) {
+                                            res.on("finish", (err: Error) => {
                                                 if (err) {
                                                     console.error(
                                                         "[binding-coap]",
