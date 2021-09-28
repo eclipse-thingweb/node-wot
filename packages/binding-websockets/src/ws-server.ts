@@ -32,6 +32,8 @@ import { HttpServer, HttpConfig } from "@node-wot/binding-http";
 
 export default class WebSocketServer implements ProtocolServer {
     public readonly scheme: string;
+    public readonly PROPERTY_DIR: string = "properties";
+    public readonly ACTION_DIR: string = "actions";
     public readonly EVENT_DIR: string = "events";
     private readonly port: number = 8081;
     private readonly address: string = undefined;
@@ -165,9 +167,134 @@ export default class WebSocketServer implements ProtocolServer {
             this.thingPaths.set(thing.id, urlPath);
 
             // TODO more efficient routing to ExposedThing without ResourceListeners in each server
-            for (const eventName in thing.events) {
-                const path =
+
+            for (let propertyName in thing.properties) {
+                let path =
+                    "/" +
+                    encodeURIComponent(urlPath) +
+                    "/" +
+                    this.PROPERTY_DIR +
+                    "/" +
+                    encodeURIComponent(propertyName);
+                let property = thing.properties[propertyName];
+
+                console.debug(
+                    "[binding-websockets]",
+                    `WebSocketServer on port ${this.getPort()} adding socketServer for '${path}'`
+                );
+                this.socketServers[path] = new WebSocket.Server({ noServer: true });
+                this.socketServers[path].on("connection", (ws, req) => {
+                    console.debug(
+                        "[binding-websockets]",
+                        `WebSocketServer on port ${this.getPort()} received connection for '${path}' from ${Helpers.toUriLiteral(
+                            req.connection.remoteAddress
+                        )}:${req.connection.remotePort}`
+                    );
+
+                    if (!property.writeOnly) {
+                        thing
+                            .observeProperty(
+                                propertyName,
+                                // let subscription = property.subscribe(
+                                async (data) => {
+                                    let content;
+                                    try {
+                                        content = ContentSerdes.get().valueToContent(
+                                            data,
+                                            thing.properties[propertyName].data
+                                        );
+                                    } catch (err) {
+                                        console.warn(
+                                            "[binding-websockets]",
+                                            `HttpServer on port ${this.getPort()} cannot process data for property '${propertyName}: ${
+                                                err.message
+                                            }'`
+                                        );
+                                        ws.close(-1, err.message);
+                                        thing.unobserveProperty(propertyName);
+                                        return;
+                                    }
+
+                                    console.debug(
+                                        "[binding-websockets]",
+                                        `WebSocketServer on port ${this.getPort()} publishing to property '${propertyName}' `
+                                    );
+
+                                    switch (content.type) {
+                                        case "application/json":
+                                        case "text/plain":
+                                            ws.send(content.body.toString());
+                                            break;
+                                        default:
+                                            ws.send(content.body);
+                                            break;
+                                    }
+                                }
+                                // ,
+                                // (err: Error) => ws.close(-1, err.message),
+                                // () => ws.close(0, "Completed")
+                            )
+                            .then(() => ws.close(0, "Completed"))
+                            .catch((err: Error) => ws.close(-1, err.message));
+
+                        for (let address of Helpers.getAddresses()) {
+                            let href = this.scheme + "://" + address + ":" + this.getPort() + path;
+                            let form = new TD.Form(href, ContentSerdes.DEFAULT);
+                            form.op = ["readproperty", "observeproperty", "unobserveproperty"];
+                            thing.properties[propertyName].forms.push(form);
+                            console.debug(
+                                "[binding-websockets]",
+                                `WebSocketServer on port ${this.getPort()} assigns '${href}' to Property '${propertyName}'`
+                            );
+                        }
+                    }
+
+                    if (!property.readOnly) {
+                        for (let address of Helpers.getAddresses()) {
+                            let href = this.scheme + "://" + address + ":" + this.getPort() + path;
+                            let form = new TD.Form(href, ContentSerdes.DEFAULT);
+                            form.op = ["writeproperty"];
+                            thing.properties[propertyName].forms.push(form);
+                            console.debug(
+                                "[binding-websockets]",
+                                `WebSocketServer on port ${this.getPort()} assigns '${href}' to Property '${propertyName}'`
+                            );
+                        }
+                    }
+
+                    ws.on("close", () => {
+                        thing.unobserveProperty(propertyName);
+                        console.debug(
+                            "[binding-websockets]",
+                            `WebSocketServer on port ${this.getPort()} closed connection for '${path}' from ${Helpers.toUriLiteral(
+                                req.connection.remoteAddress
+                            )}:${req.connection.remotePort}`
+                        );
+                    });
+                });
+            }
+
+            for (let actionName in thing.actions) {
+                let path =
+                    "/" + encodeURIComponent(urlPath) + "/" + this.ACTION_DIR + "/" + encodeURIComponent(actionName);
+                let action = thing.actions[actionName];
+
+                for (let address of Helpers.getAddresses()) {
+                    let href = this.scheme + "://" + address + ":" + this.getPort() + path;
+                    let form = new TD.Form(href, ContentSerdes.DEFAULT);
+                    form.op = ["invokeaction"];
+                    thing.actions[actionName].forms.push(form);
+                    console.debug(
+                        "[binding-websockets]",
+                        `WebSocketServer on port ${this.getPort()} assigns '${href}' to Action '${actionName}'`
+                    );
+                }
+            }
+
+            for (let eventName in thing.events) {
+                let path =
                     "/" + encodeURIComponent(urlPath) + "/" + this.EVENT_DIR + "/" + encodeURIComponent(eventName);
+                let event = thing.events[eventName];
 
                 console.debug(
                     "[binding-websockets]",
