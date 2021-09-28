@@ -130,76 +130,82 @@ WoT.produce({
     },
 })
     .then((thing) => {
-    console.log("Produced " + thing.getThingDescription().title);
-    // init property values
-    count = 0;
-    lastChange = new Date().toISOString();
-    // set property handlers (using async-await)
-    thing.setPropertyReadHandler("count", async () => count);
-    thing.setPropertyReadHandler("lastChange", async () => lastChange);
-    thing.setPropertyReadHandler("countAsImage", async (options) => {
-        let fill = "black";
-        if (options && typeof options === "object" && "uriVariables" in options) {
-            console.log("options = " + JSON.stringify(options));
-            if ("fill" in options["uriVariables"]) {
-                let uriVariables = options["uriVariables"];
-                fill = uriVariables["fill"];
-            }
-        }
-        return ("<svg xmlns='http://www.w3.org/2000/svg' height='30' width='200'>" +
-            "<text x='0' y='15' fill='" +
-            fill +
-            "'>" +
-            count +
-            "</text>" +
-            "</svg>");
-    });
-    thing.setPropertyReadHandler("redDotImage", async () => "iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==");
-    // set action handlers (using async-await)
-    thing.setActionHandler("increment", async (params, options) => {
-        let step = 1;
-        if (options && typeof options === "object" && "uriVariables" in options) {
-            console.log("options = " + JSON.stringify(options));
-            if ("step" in options["uriVariables"]) {
-                let uriVariables = options["uriVariables"];
-                step = uriVariables["step"];
-            }
-        }
-        let newValue = count + step;
-        console.log("Incrementing count from " + count + " to " + newValue + " (with step " + step + ")");
-        count = newValue;
-        lastChange = new Date().toISOString();
-        thing.emitEvent("change", count);
-        return undefined;
-    });
-    thing.setActionHandler("decrement", async (params, options) => {
-        let step = 1;
-        if (options && typeof options === "object" && "uriVariables" in options) {
-            console.log("options = " + JSON.stringify(options));
-            if ("step" in options["uriVariables"]) {
-                let uriVariables = options["uriVariables"];
-                step = uriVariables["step"];
-            }
-        }
-        let newValue = count - step;
-        console.log("Decrementing count from " + count + " to " + newValue + " (with step " + step + ")");
-        count = newValue;
-        lastChange = new Date().toISOString();
-        thing.emitEvent("change", count);
-        return undefined;
-    });
-    thing.setActionHandler("reset", async (params, options) => {
-        console.log("Resetting count");
+        console.log("Produced " + thing.getThingDescription().title);
+        // init property values
         count = 0;
         lastChange = new Date().toISOString();
-        thing.emitEvent("change", count);
-        return undefined;
-    });
-    // expose the thing
-    thing.expose().then(() => {
-        console.info(thing.getThingDescription().title + " ready");
-    });
-})
+        // set property handlers (using async-await)
+        thing.setPropertyReadHandler("count", async () => count);
+        thing.setPropertyReadHandler("lastChange", async () => lastChange);
+        thing.setPropertyReadHandler("countAsImage", async (options) => {
+            let fill = "black";
+            if (options && typeof options === "object" && "uriVariables" in options) {
+                console.log("options = " + JSON.stringify(options));
+                if ("fill" in options["uriVariables"]) {
+                    let uriVariables = options["uriVariables"];
+                    fill = uriVariables["fill"];
+                }
+            }
+            return (
+                "<svg xmlns='http://www.w3.org/2000/svg' height='30' width='200'>" +
+                "<text x='0' y='15' fill='" +
+                fill +
+                "'>" +
+                count +
+                "</text>" +
+                "</svg>"
+            );
+        });
+        thing.setPropertyReadHandler(
+            "redDotImage",
+            async () =>
+                "iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=="
+        );
+        // set action handlers (using async-await)
+        thing.setActionHandler("increment", async (params, options) => {
+            let step = 1;
+            if (options && typeof options === "object" && "uriVariables" in options) {
+                console.log("options = " + JSON.stringify(options));
+                if ("step" in options["uriVariables"]) {
+                    let uriVariables = options["uriVariables"];
+                    step = uriVariables["step"];
+                }
+            }
+            let newValue = count + step;
+            console.log("Incrementing count from " + count + " to " + newValue + " (with step " + step + ")");
+            count = newValue;
+            lastChange = new Date().toISOString();
+            thing.emitEvent("change", count);
+            return undefined;
+        });
+        thing.setActionHandler("decrement", async (params, options) => {
+            let step = 1;
+            if (options && typeof options === "object" && "uriVariables" in options) {
+                console.log("options = " + JSON.stringify(options));
+                if ("step" in options["uriVariables"]) {
+                    let uriVariables = options["uriVariables"];
+                    step = uriVariables["step"];
+                }
+            }
+            let newValue = count - step;
+            console.log("Decrementing count from " + count + " to " + newValue + " (with step " + step + ")");
+            count = newValue;
+            lastChange = new Date().toISOString();
+            thing.emitEvent("change", count);
+            return undefined;
+        });
+        thing.setActionHandler("reset", async (params, options) => {
+            console.log("Resetting count");
+            count = 0;
+            lastChange = new Date().toISOString();
+            thing.emitEvent("change", count);
+            return undefined;
+        });
+        // expose the thing
+        thing.expose().then(() => {
+            console.info(thing.getThingDescription().title + " ready");
+        });
+    })
     .catch((e) => {
-    console.log(e);
-});
+        console.log(e);
+    });
