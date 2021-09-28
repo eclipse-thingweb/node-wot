@@ -93,9 +93,9 @@ WoT.produce({
     },
     actions: {
         increment: {
-            description: "Incrementing counter value (with optional step parameter as uriVariable)",
+            description: "Incrementing counter value",
             descriptions: {
-                en: "increment value",
+                en: "Incrementing counter value",
                 de: "Zähler erhöhen",
                 it: "incrementare valore",
             },
@@ -104,9 +104,9 @@ WoT.produce({
             },
         },
         decrement: {
-            description: "Decrementing counter value (with optional step parameter as uriVariable)",
+            description: "Decrementing counter value",
             descriptions: {
-                en: "decrement value",
+                en: "Decrementing counter value",
                 de: "Zähler verringern",
                 it: "decrementare valore",
             },

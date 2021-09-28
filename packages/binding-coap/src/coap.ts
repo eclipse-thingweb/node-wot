@@ -28,13 +28,39 @@ export * from "./coaps-client-factory";
 export * from "./coaps-client";
 
 export class CoapOption {
-    public "coap:optionCode": number;
-    public "coap:optionValue": any;
+    public "cov:optionName": string;
+    public "cov:optionValue": any;
 }
 
+export type CoapMethodName = "GET" | "POST" | "PUT" | "DELETE" | "FETCH" | "PATCH" | "iPATCH";
+
 export class CoapForm extends Form {
-    public "coap:methodCode"?: number; // 1=0.01=GET, 2=0.02=POST, 3=0.03=PUT, 4=0.04=DELETE
-    public "coap:options"?: Array<CoapOption> | CoapOption;
+    public "cov:methodName"?: CoapMethodName;
+    public "cov:options"?: Array<CoapOption> | CoapOption;
+}
+
+/**
+ * Checks if a given method name is valid against the CoAP binding templates.
+ *
+ * Valid method names are `GET`, `POST`, `PUT`, `DELETE`, `FETCH`, `PATCH`, and `iPATCH`.
+ *
+ * @param methodName The method name to check.
+ * @returns `true` if the given `methodName` is valid.
+ */
+export function isValidCoapMethod(methodName: CoapMethodName): methodName is CoapMethodName {
+    return ["GET", "POST", "PUT", "DELETE", "FETCH", "PATCH", "iPATCH"].includes(methodName);
+}
+
+/**
+ * Checks if a given method name is supported by the current CoAP implementation.
+ *
+ * Valid method names are `GET`, `POST`, `PUT`, and `DELETE`.
+ *
+ * @param methodName The method name to check.
+ * @returns `true` if the given `methodName` is supported.
+ */
+export function isSupportedCoapMethod(methodName: CoapMethodName): methodName is CoapMethodName {
+    return ["GET", "POST", "PUT", "DELETE"].includes(methodName);
 }
 
 export declare interface CoapRequestConfig {

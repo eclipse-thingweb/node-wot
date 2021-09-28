@@ -253,19 +253,27 @@ export default class ProtocolHelpers {
 
     static readStreamFully(stream: NodeJS.ReadableStream): Promise<Buffer> {
         return new Promise<Buffer>((resolve, reject) => {
-            const chunks: Array<unknown> = [];
-            stream.on("data", (data) => chunks.push(data));
-            stream.on("error", reject);
-            stream.on("end", () => {
-                if (
-                    chunks[0] &&
-                    (chunks[0] instanceof Array || chunks[0] instanceof Buffer || chunks[0] instanceof Uint8Array)
-                ) {
-                    resolve(Buffer.concat(chunks as Array<Buffer | Uint8Array>));
-                } else {
-                    resolve(Buffer.from(chunks as Array<number>));
-                }
-            });
+            if (stream) {
+                const chunks: Array<unknown> = [];
+                stream.on("data", (data) => chunks.push(data));
+                stream.on("error", reject);
+                stream.on("end", () => {
+                    if (
+                        chunks[0] &&
+                        (chunks[0] instanceof Array || chunks[0] instanceof Buffer || chunks[0] instanceof Uint8Array)
+                    ) {
+                        resolve(Buffer.concat(chunks as Array<Buffer | Uint8Array>));
+                    } else {
+                        resolve(Buffer.from(chunks as Array<number>));
+                    }
+                });
+            } else {
+                console.debug(
+                    "[core/helpers]",
+                    `Protocol-Helper returns empty buffer for readStreamFully due to undefined stream`
+                );
+                resolve(Buffer.alloc(0));
+            }
         });
     }
 }

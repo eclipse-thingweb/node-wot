@@ -133,7 +133,6 @@ export default class HttpClient implements ProtocolClient {
                 request.url
             }`
         );
-
         const result = await this.fetch(request);
 
         console.debug("[binding-http]", `HttpClient received ${result.status} from ${result.url}`);
@@ -141,6 +140,32 @@ export default class HttpClient implements ProtocolClient {
         this.checkFetchResponse(result);
 
         console.debug("[binding-http]", `HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
+    }
+
+    public subscribeResource(
+        form: HttpForm,
+        next: (value: any) => void,
+        error?: (error: any) => void,
+        complete?: () => void
+    ): Promise<Subscription> {
+        return new Promise<Subscription>((resolve, reject) => {
+            let internalSubscription: InternalSubscription;
+            if (form.subprotocol == undefined || form.subprotocol == "longpoll") {
+                //longpoll or subprotocol is not defined default is longpoll
+                internalSubscription = new LongPollingSubscription(form, this);
+            } else if (form.subprotocol == "sse") {
+                //server sent events
+                internalSubscription = new SSESubscription(form);
+            }
+
+            internalSubscription
+                .open(next, error, complete)
+                .then(() => {
+                    this.activeSubscriptions.set(form.href, internalSubscription);
+                    resolve(new Subscription(() => {}));
+                })
+                .catch((err) => reject(err));
+        });
     }
 
     public async invokeResource(form: HttpForm, content?: Content): Promise<Content> {
@@ -179,26 +204,6 @@ export default class HttpClient implements ProtocolClient {
         }
 
         return {};
-    }
-
-    public subscribeResource(
-        form: HttpForm,
-        next: (value: any) => void,
-        error?: (error: any) => void,
-        complete?: () => void
-    ): any {
-        let internalSubscription;
-        if (form.subprotocol == undefined || form.subprotocol == "longpoll") {
-            // longpoll or subprotocol is not defined default is longpoll
-            internalSubscription = new LongPollingSubscription(form, this);
-        } else if (form.subprotocol == "sse") {
-            // server sent events
-            internalSubscription = new SSESubscription(form);
-        }
-
-        internalSubscription.open(next, error, complete);
-        this.activeSubscriptions.set(form.href, internalSubscription);
-        return new Subscription(() => {});
     }
 
     public start(): boolean {

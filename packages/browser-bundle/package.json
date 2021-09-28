@@ -22,7 +22,9 @@
         "wot-typescript-definitions": "^0.8.0-SNAPSHOT.18"
     },
     "scripts": {
-        "build": "browserify -r vm:vm2 index.js --plugin tinyify --external coffee-script -o dist/wot-bundle.min.js"
+        "build": "browserify -r vm:vm2 index.js --plugin tinyify --external coffee-script -o dist/wot-bundle.min.js",
+        "lint": "eslint .",
+        "format": "prettier --write index.js \"**/*.json\""
     },
     "bugs": {
         "url": "https://github.com/eclipse/thingweb.node-wot/issues"

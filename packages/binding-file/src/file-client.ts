@@ -29,7 +29,7 @@ export default class FileClient implements ProtocolClient {
     public readResource(form: Form): Promise<Content> {
         return new Promise<Content>((resolve, reject) => {
             const filepath = form.href.split("//");
-            const resource = fs.createReadStream(filepath[1], { encoding: "uf8" });
+            const resource = fs.createReadStream(filepath[1], { encoding: "utf8" });
             const extension = path.extname(filepath[1]);
             console.debug("[binding-file]", `FileClient found '${extension}' extension`);
             let contentType;

@@ -16,8 +16,7 @@
 /**
  * Opcua protocol binding
  */
-import { ProtocolClientFactory, ProtocolClient } from "@node-wot/core";
-import { ContentSerdes } from "@node-wot/core";
+import { ProtocolClientFactory, ProtocolClient, ContentSerdes } from "@node-wot/core";
 import { OpcuaConfig } from "./opcua";
 import OpcuaClient from "./opcua-client";
 import OpcuaCodec from "./codecs/opcua-codec";
@@ -36,6 +35,11 @@ export default class OpcuaClientFactory implements ProtocolClientFactory {
         return new OpcuaClient(this.config);
     }
 
-    public init = () => true;
-    public destroy = () => true;
+    public init(): boolean {
+        return true;
+    }
+
+    public destroy(): boolean {
+        return true;
+    }
 }

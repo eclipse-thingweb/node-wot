@@ -42,7 +42,9 @@ export class InteractionOutput implements WoT.InteractionOutput {
         this.form = form;
         this.schema = schema;
 
-        this.data = ProtocolHelpers.toWoTStream(content.body);
+        if (content && content.body) {
+            this.data = ProtocolHelpers.toWoTStream(content.body);
+        }
     }
 
     async arrayBuffer(): Promise<ArrayBuffer> {
@@ -68,7 +70,7 @@ export class InteractionOutput implements WoT.InteractionOutput {
 
         const validate = ajv.compile<T>(this.schema);
 
-        // is content type vaild?
+        // is content type valid?
         if (!this.form || !ContentSerdes.get().isSupported(this.content.type)) {
             const message = !this.form ? "Missing form" : `Content type ${this.content.type} not supported`;
             throw new NotSupportedError(message);
