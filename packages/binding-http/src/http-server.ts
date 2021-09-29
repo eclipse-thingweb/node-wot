@@ -878,78 +878,34 @@ export default class HttpServer implements ProtocolServer {
                         const action: TD.ThingAction = thing.actions[segments[3]];
                         if (action) {
                             if (req.method === "POST") {
-                                // load payload
-                                const body: Array<any> = [];
-                                req.on("data", (data) => {
-                                    body.push(data);
-                                });
-                                req.on("end", () => {
-                                    console.debug(
+                                try {
+                                    const form = action.forms.find((form) => {
+                                        const formUrl = new URL(form.href);
+                                        return formUrl.protocol === "http:" && formUrl.pathname === req.url;
+                                    });
+                                    const output = await thing.handleInvokeAction(
+                                        segments[3],
+                                        { body: req, type: contentType },
+                                        form
+                                    );
+                                    if (output) {
+                                        res.setHeader("Content-Type", output.type);
+                                        res.writeHead(200);
+                                        output.body.pipe(res);
+                                    } else {
+                                        res.writeHead(200);
+                                        res.end();
+                                    }
+                                } catch (err) {
+                                    console.error(
                                         "[binding-http]",
-                                        `HttpServer on port ${this.getPort()} completed body '${body}'`
+                                        `HttpServer on port ${this.getPort()} got internal error on invoke '${
+                                            requestUri.pathname
+                                        }': ${err.message}`
                                     );
-                                    let input;
-                                    try {
-                                        input = ContentSerdes.get().contentToValue(
-                                            { type: contentType, body: Buffer.concat(body) },
-                                            action.input
-                                        );
-                                    } catch (err) {
-                                        console.warn(
-                                            "[binding-http]",
-                                            `HttpServer on port ${this.getPort()} cannot process input to Action '${
-                                                segments[3]
-                                            }: ${err.message}'`
-                                        );
-                                        res.writeHead(400);
-                                        res.end("Invalid Input Data");
-                                        return;
-                                    }
-
-                                    let options: WoT.InteractionOptions;
-                                    const uriVariables: { [k: string]: any } = this.parseUrlParameters(
-                                        req.url,
-                                        action.uriVariables
-                                    );
-                                    if (!this.isEmpty(uriVariables)) {
-                                        options = { uriVariables: uriVariables };
-                                    }
-
-                                    thing
-                                        .invokeAction(segments[3], input, options)
-                                        .then(async (output: InteractionOutput) => {
-                                            if (output && action.output) {
-                                                const contentType = ProtocolHelpers.getActionContentType(
-                                                    thing.getThingDescription(),
-                                                    segments[3],
-                                                    "http"
-                                                );
-                                                const content = ContentSerdes.get().valueToContent(
-                                                    output.data && !output.dataUsed
-                                                        ? output.data
-                                                        : await output.value(),
-                                                    action.output,
-                                                    contentType
-                                                );
-                                                res.setHeader("Content-Type", content.type);
-                                                res.writeHead(200);
-                                                content.body.pipe(res);
-                                            } else {
-                                                res.writeHead(200);
-                                                res.end();
-                                            }
-                                        })
-                                        .catch((err) => {
-                                            console.error(
-                                                "[binding-http]",
-                                                `HttpServer on port ${this.getPort()} got internal error on invoke '${
-                                                    requestUri.pathname
-                                                }': ${err.message}`
-                                            );
-                                            res.writeHead(500);
-                                            res.end(err.message);
-                                        });
-                                });
+                                    res.writeHead(500);
+                                    res.end(err.message);
+                                }
                             } else {
                                 respondUnallowedMethod(res, "POST");
                             }
