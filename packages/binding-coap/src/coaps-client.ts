@@ -109,7 +109,7 @@ export default class CoapsClient implements ProtocolClient {
             coaps.setSecurityParams(requestUri.hostname, this.authorization);
 
             coaps
-                .observe(form.href, "GET", next)
+                .observe(form.href, "get", next)
                 .then(() => {
                     resolve(
                         new Subscription(() => {
