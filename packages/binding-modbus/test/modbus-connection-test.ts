@@ -51,8 +51,8 @@ describe("Modbus connection", () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.2:8502",
                 "modbus:function": 15,
-                "modbus:offset": 0,
-                "modbus:length": 1,
+                "modbus:address": 0,
+                "modbus:quantity": 1,
                 "modbus:unitID": 1,
             };
             const connection = new ModbusConnection("127.0.0.2", 8503, {
@@ -71,8 +71,8 @@ describe("Modbus connection", () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:entity": "Coil",
-                "modbus:offset": 4444,
-                "modbus:length": 1,
+                "modbus:address": 4444,
+                "modbus:quantity": 1,
                 "modbus:unitID": 1,
             };
             const connection = new ModbusConnection("127.0.0.1", 8502, {
