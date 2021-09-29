@@ -24,7 +24,7 @@ import { Subscription } from "rxjs/Subscription";
 
 import { ProtocolClient, Content } from "@node-wot/core";
 import { CoapForm, CoapMethodName, isValidCoapMethod, isSupportedCoapMethod } from "./coap";
-import {CoapClient as coaps} from "node-coap-client";
+import { CoapClient as coaps } from "node-coap-client";
 
 export default class CoapsClient implements ProtocolClient {
     // FIXME coap Agent closes socket when no messages in flight -> new socket with every request
@@ -105,7 +105,7 @@ export default class CoapsClient implements ProtocolClient {
         complete?: () => void
     ): Promise<Subscription> {
         return new Promise<Subscription>((resolve, reject) => {
-            let requestUri = url.parse(form.href.replace(/$coaps/, "https"));
+            const requestUri = url.parse(form.href.replace(/$coaps/, "https"));
             coaps.setSecurityParams(requestUri.hostname, this.authorization);
 
             coaps

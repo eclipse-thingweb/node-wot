@@ -100,7 +100,7 @@ class CoapClientTest {
         });
     }
 
-    @test(timeout(5000)) "subscribe test"(done: Function) {
+    @test(timeout(5000)) "subscribe test"(done: Mocha.Done) {
         const coapServer = new CoapServer(56834, "localhost");
         coapServer.start(null).then(() => {
             const coapClient = new CoapClient(coapServer);

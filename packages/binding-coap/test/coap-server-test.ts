@@ -19,12 +19,10 @@
 
 import { suite, test } from "@testdeck/mocha";
 import { expect, should } from "chai";
-import coap = require("coap");
 
 import CoapServer from "../src/coap-server";
 // should must be called to augment all variables
 should();
-
 
 @suite("CoAP server implementation")
 class CoapServerTest {
