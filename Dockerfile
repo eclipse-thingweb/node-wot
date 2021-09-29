@@ -8,6 +8,8 @@ RUN apk add --no-cache \
     python3
 RUN npm install -g npm@7
 
+## change it to maintain all the dev dependencies
+ARG BUILD_ENV=production
 WORKDIR /app
 COPY ./package.json ./
 COPY ./tsconfig.json ./
@@ -17,7 +19,7 @@ RUN npm install && npm run build
 
 # now remove dev dependencies by reinstalling for production
 # this wil reduce the size of the image built in next steps significantly
-RUN npm install --production
+RUN if [ "${BUILD_ENV}" = "production" ]; then npm prune --production; fi
 
 FROM node:12.16.1-alpine3.11
 

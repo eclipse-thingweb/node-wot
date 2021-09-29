@@ -19,7 +19,7 @@
         "format": "prettier --write . && npm run format --silent --workspaces --if-present",
         "publish": "npm publish --workspaces",
         "check:versions": "node utils/check_package_version_consistency.js",
-        "build:docker": "docker build -t wot-servient . -f ./docker/Dockerfile"
+        "build:docker": "docker build -t wot-servient ."
     },
     "workspaces": [
         "./packages/td-tools",

@@ -1,9 +1,11 @@
 .git
 .vscode
 .idea/
+.nyc_output/
 examples
 **/node_modules/
 node_modules/
+coverage/
 .*/
 tmp/
 *-lock*.*
