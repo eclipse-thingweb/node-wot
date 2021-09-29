@@ -26,6 +26,7 @@ import { Readable } from "stream";
 import ProtocolHelpers from "./protocol-helpers";
 import { ReadableStream as PolyfillStream } from "web-streams-polyfill/ponyfill/es2018";
 import { Content } from "./core";
+import ContentManager from "./content-serdes";
 
 export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     security: Array<string>;
@@ -295,7 +296,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                     ps.readHandler(options)
                         .then((customValue) => {
                             const body = ExposedThing.interactionInputToReadable(customValue);
-                            let c: Content = { body: body, type: "application/json" };
+                            const c: Content = { body: body, type: "application/json" };
                             resolve(new InteractionOutput(c, undefined, this.properties[propertyName]));
                         })
                         .catch((err) => {
@@ -487,7 +488,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                     bodyInput = ExposedThing.interactionInputToReadable(parameter);
                 }
 
-                let cInput: Content = { body: bodyInput, type: "application/json" };
+                const cInput: Content = { body: bodyInput, type: "application/json" };
                 const result = await as.handler(
                     new InteractionOutput(cInput, undefined, this.actions[actionName].input),
                     options
@@ -497,7 +498,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                 if (result) {
                     bodyOutput = ExposedThing.interactionInputToReadable(result);
                 }
-                let cOutput: Content = { body: bodyOutput, type: "application/json" };
+                const cOutput: Content = { body: bodyOutput, type: "application/json" };
                 return new InteractionOutput(cOutput, undefined, this.actions[actionName].output);
             } else {
                 throw new Error(`ExposedThing '${this.title}' has no handler for Action '${actionName}'`);
@@ -567,6 +568,37 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                 reject(new Error(`ExposedThing '${this.title}', no event found for '${name}'`));
             }
         });
+    }
+
+    /**
+     * Handle the request of an action invocation form the protocol binding level
+     * @experimental
+     */
+    public async handleInvokeAction(name: string, inputContent: Content, form?: TD.Form): Promise<Content | void> {
+        // TODO: handling URI variables?
+        if (this.actions[name]) {
+            console.debug("[core/exposed-thing]", `ExposedThing '${this.title}' has Action state of '${name}'`);
+
+            const as: ActionState = this.actions[name].getState();
+            if (as.handler != null) {
+                console.debug(
+                    "[core/exposed-thing]",
+                    `ExposedThing '${this.title}' calls registered handler for Action '${name}'`
+                );
+
+                const result: WoT.InteractionInput | void = await as.handler(
+                    new InteractionOutput(inputContent, form, this.actions[name].input)
+                );
+                if (result) {
+                    // TODO: handle form.response.contentType
+                    return ContentManager.valueToContent(result, this.actions[name].output, form?.contentType);
+                }
+            } else {
+                throw new Error(`ExposedThing '${this.title}' has no handler for Action '${name}'`);
+            }
+        } else {
+            throw new Error(`ExposedThing '${this.title}', no action found for '${name}'`);
+        }
     }
 
     private static interactionInputToReadable(input: WoT.InteractionInput): Readable {
