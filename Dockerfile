@@ -1,5 +1,4 @@
 FROM node:12.16.1-alpine3.11 as BUILD
-
 RUN apk add --no-cache \
 	gcc \
     g++ \
@@ -7,33 +6,26 @@ RUN apk add --no-cache \
     linux-headers \
     udev \
     python3
+RUN npm install -g npm@7
 
-ARG BUILD_ENV=development
+## change it to maintain all the dev dependencies
+ARG BUILD_ENV=production
+WORKDIR /app
+COPY ./package.json ./
+COPY ./tsconfig.json ./
+COPY ./packages packages/
 
-WORKDIR /home/node/app
+RUN npm install && npm run build
 
-COPY package*.json ./
-
-RUN npm install
-
-COPY . .
-
-RUN npm run build  \
-    && if [ "${BUILD_ENV}" = "production" ]; then node_modules/.bin/lerna exec "npm prune --production"; fi 
+# now remove dev dependencies by reinstalling for production
+# this wil reduce the size of the image built in next steps significantly
+RUN if [ "${BUILD_ENV}" = "production" ]; then npm prune --production; fi
 
 FROM node:12.16.1-alpine3.11
 
-COPY --from=BUILD  /home/node/app/packages/cli /usr/local/lib/node_modules/@node-wot/cli
-COPY --from=BUILD  /home/node/app/packages/td-tools /usr/local/lib/node_modules/@node-wot/td-tools
-COPY --from=BUILD  /home/node/app/packages/core /usr/local/lib/node_modules/@node-wot/core
-COPY --from=BUILD  /home/node/app/packages/binding-http /usr/local/lib/node_modules/@node-wot/binding-http
-COPY --from=BUILD  /home/node/app/packages/binding-file /usr/local/lib/node_modules/@node-wot/binding-file
-COPY --from=BUILD  /home/node/app/packages/binding-mqtt /usr/local/lib/node_modules/@node-wot/binding-mqtt
-COPY --from=BUILD  /home/node/app/packages/binding-coap /usr/local/lib/node_modules/@node-wot/binding-coap
-COPY --from=BUILD  /home/node/app/packages/binding-websockets /usr/local/lib/node_modules/@node-wot/binding-websockets
+COPY --from=BUILD  /app /app
 
-
-WORKDIR /usr/local/lib/node_modules/@node-wot/cli
+WORKDIR /app/packages/cli
 
 EXPOSE 8080/tcp
 EXPOSE 5683/udp
@@ -42,3 +34,5 @@ STOPSIGNAL SIGINT
 
 ENTRYPOINT [ "node", "dist/cli.js" ]
 CMD [ "-h" ]
+
+##  docker build -t wot-servient ./docker/Dockerfile
