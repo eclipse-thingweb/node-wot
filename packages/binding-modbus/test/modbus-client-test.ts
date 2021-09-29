@@ -391,7 +391,7 @@ describe("Modbus client test", () => {
         it("should write a resource with big endian ordering", async () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
-                contentType: "application/octet-stream;quantity=2;byteSeq=BIG_ENDIAN",
+                contentType: "application/octet-stream;length=2;byteSeq=BIG_ENDIAN",
                 "modbus:function": 16,
                 "modbus:address": 0,
                 "modbus:unitID": 1,
@@ -404,7 +404,7 @@ describe("Modbus client test", () => {
         it("should write a resource with little endian ordering", async () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
-                contentType: "application/octet-stream;quantity=2;byteSeq=LITTLE_ENDIAN",
+                contentType: "application/octet-stream;length=2;byteSeq=LITTLE_ENDIAN",
                 "modbus:function": 16,
                 "modbus:address": 0,
                 "modbus:unitID": 1,
@@ -417,7 +417,7 @@ describe("Modbus client test", () => {
         it("should write a resource with byte swap big endian ordering", async () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
-                contentType: "application/octet-stream;quantity=2;byteSeq=BIG_ENDIAN_BYTE_SWAP",
+                contentType: "application/octet-stream;length=2;byteSeq=BIG_ENDIAN_BYTE_SWAP",
                 "modbus:function": 16,
                 "modbus:address": 0,
                 "modbus:unitID": 1,
@@ -430,7 +430,7 @@ describe("Modbus client test", () => {
         it("should write a resource with byte swap little endian ordering", async () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
-                contentType: "application/octet-stream;quantity=2;byteSeq=LITTLE_ENDIAN_BYTE_SWAP",
+                contentType: "application/octet-stream;length=2;byteSeq=LITTLE_ENDIAN_BYTE_SWAP",
                 "modbus:function": 16,
                 "modbus:address": 0,
                 "modbus:unitID": 1,

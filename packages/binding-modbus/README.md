@@ -161,7 +161,7 @@ Reads the 8th input register of the unit 1
 ```json
 {
     "href": "modbus://127.0.0.1:60000",
-    "contentType": "application/octet-stream;quantity=2",
+    "contentType": "application/octet-stream;length=2",
     "op": ["readproperty"],
     "modbus:function": "readInputRegister",
     "modbus:address": 8,
@@ -177,7 +177,7 @@ Read and write the 8th holding register of the unit 1
 ```json
 {
     "href": "modbus://127.0.0.1:60000",
-    "contentType": "application/octet-stream;quantity=2",
+    "contentType": "application/octet-stream;length=2",
     "op": ["readproperty", "writeproperty"],
     "modbus:entity": "HoldingRegister",
     "modbus:address": 8,
@@ -192,7 +192,7 @@ Polls the 8th holding register of the unit 1 every second.
 ```json
 {
     "href": "modbus://127.0.0.1:60000",
-    "contentType": "application/octet-stream;quantity=2",
+    "contentType": "application/octet-stream;length=2",
     "op": [
         "observeproperty"
     ],
