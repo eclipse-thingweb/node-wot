@@ -28,8 +28,11 @@ jobs:
             - name: Build
               run: npm run build
 
-            - name: Test
-              run: npm run test
+            - name: Test with coverage report
+              run: npm run coverage
+
+            - name: Upload to codecov.io
+              uses: codecov/codecov-action@v2
 
     eslint:
         name: eslint

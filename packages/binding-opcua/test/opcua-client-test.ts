@@ -289,10 +289,10 @@ describe("OPCUA client test", function () {
             })();
         });
         console.log("dataCollected = ", dataCollected);
-        expect(dataCollected.length).to.eql(3);
-        expect(dataCollected[0].value.value).to.greaterThan(0);
-        expect(dataCollected[1].value.value).to.greaterThan(0);
-        expect(dataCollected[2].value.value).to.greaterThan(0);
+        expect(dataCollected.length).to.be.greaterThanOrEqual(3);
+        expect(dataCollected[0].value.value).to.be.greaterThan(0);
+        expect(dataCollected[1].value.value).to.be.greaterThan(0);
+        expect(dataCollected[2].value.value).to.be.greaterThan(0);
     }).timeout(50000);
 
     it("should fail to subscribe to a resource because a wrong node", async function () {
@@ -304,11 +304,10 @@ describe("OPCUA client test", function () {
             },
         };
         try {
-            const res = await client.subscribeResource(inputVector.form, () => {
+            await client.subscribeResource(inputVector.form, () => {
                 /** */
             });
         } catch (err) {
-            console.log(err);
             expect(err.message).to.equal("Error while subscribing property: BadNodeIdUnknown (0x80340000)");
             return;
         }

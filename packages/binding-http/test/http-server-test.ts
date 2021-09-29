@@ -122,10 +122,10 @@ class HttpServerTest {
         expect(resp).to.equal("on");
 
         resp = await (await fetch(uri + "actions/try", { method: "POST", body: "toggle" })).text();
-        expect(resp).to.equal("TEST");
+        expect(resp).to.equal('"TEST"');
 
         resp = await (await fetch(uri + "actions/try", { method: "POST", body: undefined })).text();
-        expect(resp).to.equal("TEST");
+        expect(resp).to.equal('"TEST"');
 
         return httpServer.stop();
     }
