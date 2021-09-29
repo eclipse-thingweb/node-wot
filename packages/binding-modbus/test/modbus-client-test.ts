@@ -38,8 +38,8 @@ describe("Modbus client test", () => {
         const form: ModbusForm = {
             href: "modbus://127.0.0.1:8502",
             "modbus:entity": "Coil",
-            "modbus:offset": 0,
-            "modbus:length": 1,
+            "modbus:address": 0,
+            "modbus:quantity": 1,
             "modbus:unitID": 1,
         };
 
@@ -57,8 +57,8 @@ describe("Modbus client test", () => {
         const form: ModbusForm = {
             href: "modbus://127.0.0.1:8502",
             "modbus:entity": "HoldingRegister",
-            "modbus:offset": 0,
-            "modbus:length": 1,
+            "modbus:address": 0,
+            "modbus:quantity": 1,
             "modbus:unitID": 1,
         };
         /* eslint-disable dot-notation */
@@ -78,8 +78,8 @@ describe("Modbus client test", () => {
         const form: ModbusForm = {
             href: "modbus://127.0.0.1:8502",
             "modbus:entity": "DiscreteInput",
-            "modbus:offset": 0,
-            "modbus:length": 1,
+            "modbus:address": 0,
+            "modbus:quantity": 1,
             "modbus:unitID": 1,
         };
         /* eslint-disable dot-notation */
@@ -93,8 +93,8 @@ describe("Modbus client test", () => {
         const form: ModbusForm = {
             href: "modbus://127.0.0.1:8502",
             "modbus:function": "readCoil",
-            "modbus:offset": 0,
-            "modbus:length": 1,
+            "modbus:address": 0,
+            "modbus:quantity": 1,
             "modbus:unitID": 1,
         };
 
@@ -104,18 +104,18 @@ describe("Modbus client test", () => {
 
     it("should override form values with URL", () => {
         const form: ModbusForm = {
-            href: "modbus://127.0.0.1:8502/2?offset=2&length=5",
+            href: "modbus://127.0.0.1:8502/2?address=2&quantity=5",
             "modbus:function": "readCoil",
-            "modbus:offset": 0,
-            "modbus:length": 1,
+            "modbus:address": 0,
+            "modbus:quantity": 1,
             "modbus:unitID": 1,
         };
 
         // eslint-disable-next-line dot-notation
         client["overrideFormFromURLPath"](form);
         form["modbus:unitID"].should.be.equal(2, "Form value not overridden");
-        form["modbus:offset"].should.be.equal(2, "Form value not overridden");
-        form["modbus:length"].should.be.equal(5, "Form value not overridden");
+        form["modbus:address"].should.be.equal(2, "Form value not overridden");
+        form["modbus:quantity"].should.be.equal(5, "Form value not overridden");
     });
 
     describe("misc", () => {
@@ -125,8 +125,8 @@ describe("Modbus client test", () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 1,
-                "modbus:offset": 0,
-                "modbus:length": 1,
+                "modbus:address": 0,
+                "modbus:quantity": 1,
                 "modbus:unitID": 1,
             };
 
@@ -141,8 +141,8 @@ describe("Modbus client test", () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 1,
-                "modbus:offset": 4444,
-                "modbus:length": 1,
+                "modbus:address": 4444,
+                "modbus:quantity": 1,
                 "modbus:unitID": 1,
                 "modbus:timeout": 1000,
             };
@@ -157,8 +157,8 @@ describe("Modbus client test", () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 1,
-                "modbus:offset": 0,
-                "modbus:length": 1,
+                "modbus:address": 0,
+                "modbus:quantity": 1,
                 "modbus:unitID": 1,
             };
 
@@ -173,8 +173,8 @@ describe("Modbus client test", () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 1,
-                "modbus:offset": 0,
-                "modbus:length": 3,
+                "modbus:address": 0,
+                "modbus:quantity": 3,
                 "modbus:unitID": 1,
             };
 
@@ -189,8 +189,8 @@ describe("Modbus client test", () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 2,
-                "modbus:offset": 0,
-                "modbus:length": 1,
+                "modbus:address": 0,
+                "modbus:quantity": 1,
                 "modbus:unitID": 1,
             };
 
@@ -205,8 +205,8 @@ describe("Modbus client test", () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 2,
-                "modbus:offset": 0,
-                "modbus:length": 3,
+                "modbus:address": 0,
+                "modbus:quantity": 3,
                 "modbus:unitID": 1,
             };
 
@@ -221,8 +221,8 @@ describe("Modbus client test", () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 3,
-                "modbus:offset": 0,
-                "modbus:length": 1,
+                "modbus:address": 0,
+                "modbus:quantity": 1,
                 "modbus:unitID": 1,
             };
 
@@ -237,8 +237,8 @@ describe("Modbus client test", () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 3,
-                "modbus:offset": 0,
-                "modbus:length": 3,
+                "modbus:address": 0,
+                "modbus:quantity": 3,
                 "modbus:unitID": 1,
             };
 
@@ -253,8 +253,8 @@ describe("Modbus client test", () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 4,
-                "modbus:offset": 0,
-                "modbus:length": 1,
+                "modbus:address": 0,
+                "modbus:quantity": 1,
                 "modbus:unitID": 1,
             };
 
@@ -269,8 +269,8 @@ describe("Modbus client test", () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 4,
-                "modbus:offset": 0,
-                "modbus:length": 3,
+                "modbus:address": 0,
+                "modbus:quantity": 3,
                 "modbus:unitID": 1,
             };
 
@@ -286,8 +286,8 @@ describe("Modbus client test", () => {
                 href: "modbus://127.0.0.1:8502",
                 contentType: "application/octet-stream;byteSeq=LITTLE_ENDIAN",
                 "modbus:function": 4,
-                "modbus:offset": 0,
-                "modbus:length": 4,
+                "modbus:address": 0,
+                "modbus:quantity": 4,
                 "modbus:unitID": 1,
             };
 
@@ -303,8 +303,8 @@ describe("Modbus client test", () => {
                 href: "modbus://127.0.0.1:8502",
                 contentType: "application/octet-stream;byteSeq=LITTLE_ENDIAN_BYTE_SWAP",
                 "modbus:function": 4,
-                "modbus:offset": 0,
-                "modbus:length": 4,
+                "modbus:address": 0,
+                "modbus:quantity": 4,
                 "modbus:unitID": 1,
             };
 
@@ -317,8 +317,8 @@ describe("Modbus client test", () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 255,
-                "modbus:offset": 0,
-                "modbus:length": 3,
+                "modbus:address": 0,
+                "modbus:quantity": 3,
                 "modbus:unitID": 1,
             };
 
@@ -327,7 +327,7 @@ describe("Modbus client test", () => {
             return promise.should.eventually.rejectedWith("Undefined function number or name: 255");
         });
 
-        it("should throw exception for missing offset", () => {
+        it("should throw exception for missing address", () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 1,
@@ -336,7 +336,7 @@ describe("Modbus client test", () => {
 
             const promise = client.readResource(form);
 
-            return promise.should.eventually.rejectedWith("Malformed form: offset must be defined");
+            return promise.should.eventually.rejectedWith("Malformed form: address must be defined");
         });
     });
 
@@ -345,7 +345,7 @@ describe("Modbus client test", () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 5,
-                "modbus:offset": 0,
+                "modbus:address": 0,
                 "modbus:unitID": 1,
             };
 
@@ -356,7 +356,7 @@ describe("Modbus client test", () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 15,
-                "modbus:offset": 0,
+                "modbus:address": 0,
                 "modbus:unitID": 1,
             };
 
@@ -368,7 +368,7 @@ describe("Modbus client test", () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 6,
-                "modbus:offset": 0,
+                "modbus:address": 0,
                 "modbus:unitID": 1,
             };
 
@@ -380,7 +380,7 @@ describe("Modbus client test", () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 16,
-                "modbus:offset": 0,
+                "modbus:address": 0,
                 "modbus:unitID": 1,
             };
 
@@ -393,7 +393,7 @@ describe("Modbus client test", () => {
                 href: "modbus://127.0.0.1:8502",
                 contentType: "application/octet-stream;length=2;byteSeq=BIG_ENDIAN",
                 "modbus:function": 16,
-                "modbus:offset": 0,
+                "modbus:address": 0,
                 "modbus:unitID": 1,
             };
 
@@ -406,7 +406,7 @@ describe("Modbus client test", () => {
                 href: "modbus://127.0.0.1:8502",
                 contentType: "application/octet-stream;length=2;byteSeq=LITTLE_ENDIAN",
                 "modbus:function": 16,
-                "modbus:offset": 0,
+                "modbus:address": 0,
                 "modbus:unitID": 1,
             };
 
@@ -419,7 +419,7 @@ describe("Modbus client test", () => {
                 href: "modbus://127.0.0.1:8502",
                 contentType: "application/octet-stream;length=2;byteSeq=BIG_ENDIAN_BYTE_SWAP",
                 "modbus:function": 16,
-                "modbus:offset": 0,
+                "modbus:address": 0,
                 "modbus:unitID": 1,
             };
 
@@ -432,7 +432,7 @@ describe("Modbus client test", () => {
                 href: "modbus://127.0.0.1:8502",
                 contentType: "application/octet-stream;length=2;byteSeq=LITTLE_ENDIAN_BYTE_SWAP",
                 "modbus:function": 16,
-                "modbus:offset": 0,
+                "modbus:address": 0,
                 "modbus:unitID": 1,
             };
 
@@ -447,7 +447,7 @@ describe("Modbus client test", () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 1,
-                "modbus:offset": 0,
+                "modbus:address": 0,
                 "modbus:unitID": 1,
             };
 
@@ -464,7 +464,7 @@ describe("Modbus client test", () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 1,
-                "modbus:offset": 0,
+                "modbus:address": 0,
                 "modbus:unitID": 1,
                 "modbus:pollingTime": 250,
             };
@@ -482,7 +482,7 @@ describe("Modbus client test", () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 "modbus:function": 1,
-                "modbus:offset": 0,
+                "modbus:address": 0,
                 "modbus:unitID": 1,
                 "modbus:pollingTime": 125,
             };
