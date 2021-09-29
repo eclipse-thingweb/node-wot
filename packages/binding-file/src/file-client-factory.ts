@@ -22,13 +22,11 @@ import FileClient from "./file-client";
 export default class FileClientFactory implements ProtocolClientFactory {
     public readonly scheme: string = "file";
 
-    constructor(proxy?: string) {}
-
     public getClient(): ProtocolClient {
         console.debug("[binding-file]", `FileClientFactory creating client for '${this.scheme}'`);
         return new FileClient();
     }
 
-    public init = () => true;
-    public destroy = () => true;
+    public init = (): boolean => true;
+    public destroy = (): boolean => true;
 }

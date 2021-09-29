@@ -1,4 +1,4 @@
-import { OPCUAServer, Variant, DataType, StatusCodes } from "node-opcua";
+import { OPCUAServer, Variant, DataType, StatusCodes, MethodFunctorCallback, SessionContext } from "node-opcua";
 
 export class OpcuaServer {
     server: OPCUAServer;
@@ -12,29 +12,28 @@ export class OpcuaServer {
         this.testingVariable = 1;
     }
 
-    forceValueChange() {
+    forceValueChange(): void {
         this.testingVariable++;
     }
-    async start() {
+
+    async start(): Promise<void> {
         // Let's create an instance of OPCUAServer
         try {
             await this.server.initialize();
-            this.construct_my_address_space(this.server);
+            this.constructMyAddressSpace(this.server);
             await this.server.start();
-            const endpointUrl = this.server.endpoints[0].endpointDescriptions()[0].endpointUrl;
-            console.log("OPCUA server started");
+            const endpointUrl = this.server.getEndpointUrl();
+            console.log("OPCUA server started at", endpointUrl);
         } catch (err) {
             throw new Error(err);
         }
     }
 
-    async stop() {
-        this.server.shutdown(1000, function () {
-            process.exit(-1); //  add this line to stop the process
-        });
+    async stop(): Promise<void> {
+        await this.server.shutdown(1000);
     }
 
-    construct_my_address_space(server: any) {
+    constructMyAddressSpace(server: OPCUAServer): void {
         const addressSpace = server.engine.addressSpace;
         const namespace = addressSpace.getOwnNamespace();
 
@@ -43,17 +42,13 @@ export class OpcuaServer {
             nodeId: "ns=1;s=device",
             organizedBy: addressSpace.rootFolder.objects,
             browseName: "WotDevice",
-            targetName: {
-                namespaceIndex: 1,
-                name: "device",
-            },
         });
 
         // VARIABLES
 
         namespace.addVariable({
             componentOf: device,
-            nodeId: "ns=1;b=9998FFAA", // some opaque NodeId in namespace 4
+            nodeId: "ns=1;s=9998FFAA", // some opaque NodeId in namespace 4
             browseName: "Increment",
             dataType: "Double",
             value: {
@@ -74,8 +69,8 @@ export class OpcuaServer {
                 get: function () {
                     return new Variant({ dataType: DataType.String, value: str });
                 },
-                set: function (variant: any) {
-                    //write property
+                set: function (variant: Variant) {
+                    // write property
                     str = variant.value;
                     return StatusCodes.Good;
                 },
@@ -91,8 +86,8 @@ export class OpcuaServer {
                 get: function () {
                     return new Variant({ dataType: DataType.String, value: str });
                 },
-                set: function (variant: any) {
-                    //write property
+                set: function (variant: Variant) {
+                    // write property
                     str = variant.value;
                     return StatusCodes.Good;
                 },
@@ -101,14 +96,14 @@ export class OpcuaServer {
 
         namespace.addVariable({
             browseName: "RandomValue",
-            nodeId: "ns=1;b=9998FF00", // some opaque NodeId in namespace 4
+            nodeId: "ns=1;s=9998FF00", // some opaque NodeId in namespace 4
             dataType: "Double",
             value: {
                 get: function () {
                     return new Variant({ dataType: DataType.Double, value: Math.random() });
                 },
-                set: function (variant: any) {
-                    //write property
+                set: function (variant: Variant) {
+                    // write property
                     this.testVariable = parseFloat(variant.value);
                     return StatusCodes.Good;
                 },
@@ -116,7 +111,7 @@ export class OpcuaServer {
         });
 
         const method = namespace.addMethod(device, {
-            //invoke action
+            // invoke action
             nodeId: "ns=1;s=method",
             browseName: "DivideFunction",
             inputArguments: [
@@ -142,11 +137,11 @@ export class OpcuaServer {
             ],
         });
 
-        method.bindMethod((inputArguments: any, context: any, callback: any) => {
+        method.bindMethod((inputArguments: Variant[], context: SessionContext, callback: MethodFunctorCallback) => {
             const a = inputArguments[0].value;
             const b = inputArguments[1].value;
 
-            let res = a / b;
+            const res = a / b;
             const callMethodResult = {
                 statusCode: StatusCodes.Good,
                 outputArguments: [

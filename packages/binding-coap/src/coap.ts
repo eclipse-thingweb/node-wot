@@ -64,7 +64,7 @@ export function isSupportedCoapMethod(methodName: CoapMethodName): methodName is
 }
 
 export declare interface CoapRequestConfig {
-    agent?: Object;
+    agent?: Record<string, unknown>;
     hostname?: string;
     port?: number;
     pathname?: string;

@@ -43,9 +43,9 @@ This is a valid `href` example for addressing a node:
 `opc.tcp://localhost:5050/ns=1;s=mynode`
 
 For a method, two nodes need to be given (one for the node on which to call the method, one for the method definition):
-`opc.tcp://localhost:5050/ns=1;s=mydevice;mns=1;mb=9997FFAA`
+`opc.tcp://localhost:5050/ns=1;s=mydevice;mns=1;ms=9997FFAA`
 
-where `ns=1;s=mydevice` is the nodeId of the Device, while `mns=1;mb=9997FFAA` is the nodeId of the method to apply.
+where `ns=1;s=mydevice` is the nodeId of the Device, while `mns=1;ms=9997FFAA` is the nodeId of the method to apply.
 
 ### opc:method
 

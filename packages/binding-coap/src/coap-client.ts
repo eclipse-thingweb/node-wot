@@ -188,7 +188,7 @@ export default class CoapClient implements ProtocolClient {
         return true;
     }
 
-    public setSecurity = (metadata: Array<TD.SecurityScheme>) => true;
+    public setSecurity = (metadata: Array<TD.SecurityScheme>): boolean => true;
 
     private uriToOptions(uri: string): CoapRequestConfig {
         const requestUri = url.parse(uri);

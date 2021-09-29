@@ -30,7 +30,9 @@
         "iotcs-csl-js": "19.1.5"
     },
     "scripts": {
-        "build": "tsc"
+        "build": "tsc",
+        "lint": "eslint .",
+        "format": "prettier --write \"src/**/*.ts\" \"**/*.json\""
     },
     "bugs": {
         "url": "https://github.com/eclipse/thingweb.node-wot/issues"

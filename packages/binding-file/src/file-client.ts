@@ -22,9 +22,7 @@ import fs = require("fs");
 import path = require("path");
 
 export default class FileClient implements ProtocolClient {
-    constructor() {}
-
-    public toString() {
+    public toString(): string {
         return "[FileClient]";
     }
 
@@ -61,20 +59,20 @@ export default class FileClient implements ProtocolClient {
         });
     }
 
-    public writeResource(form: Form, content: Content): Promise<any> {
-        return new Promise<Object>((resolve, reject) => {
+    public writeResource(form: Form, content: Content): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
             reject(new Error(`FileClient does not implement write`));
         });
     }
 
-    public invokeResource(form: Form, payload: Object): Promise<any> {
-        return new Promise<Object>((resolve, reject) => {
+    public invokeResource(form: Form, content: Content): Promise<Content> {
+        return new Promise<Content>((resolve, reject) => {
             reject(new Error(`FileClient does not implement invoke`));
         });
     }
 
-    public unlinkResource(form: Form): Promise<any> {
-        return new Promise<Object>((resolve, reject) => {
+    public unlinkResource(form: Form): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
             reject(new Error(`FileClient does not implement unlink`));
         });
     }
@@ -97,5 +95,5 @@ export default class FileClient implements ProtocolClient {
         return true;
     }
 
-    public setSecurity = (metadata: any) => false;
+    public setSecurity = (metadata: any): boolean => false;
 }
