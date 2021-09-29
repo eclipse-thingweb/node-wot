@@ -9,7 +9,8 @@
         "access": "public"
     },
     "files": [
-        "dist/"
+        "dist/",
+        "src/"
     ],
     "main": "dist/td-tools.js",
     "types": "dist/td-tools.d.ts",

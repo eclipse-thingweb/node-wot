@@ -219,11 +219,11 @@ If you do so, anyway, you can specify the entry point as follows:
 }
 ```
 
-There are several ways to start the application:  
- a. Execute `npm start`.  
- b. Execute `./node_modules/.bin/wot-servient main.js`.  
- c. Execute `node ./node_modules/@node-wot/cli/dist/cli.js main.js`.  
- d. If you have installed `@node-wot/cli` globally you can even start the application right
+There are several ways to start the application:
+a. Execute `npm start`.
+b. Execute `./node_modules/.bin/wot-servient main.js`.
+c. Execute `node ./node_modules/@node-wot/cli/dist/cli.js main.js`.
+d. If you have installed `@node-wot/cli` globally you can even start the application right
 away using this command `wot-servient main.js`. However, in the current implementation, the
 import of local dependencies is not supported in this case.
 
@@ -328,6 +328,8 @@ To reduce the size of the installation from about 800 MByte down to about 200 MB
 
 Alternatively, node-wot can be built as a Docker image with the `Dockerfile`.
 
+Make sure you are under linux or under WSL if you are running on Windows.
+
 Clone the repository:
 
 ```
@@ -343,7 +345,7 @@ cd thingweb.node-wot
 Build the Docker image named `wot-servient` from the `Dockerfile`:
 
 ```
-docker build --rm -t wot-servient .
+npm run build:docker
 ```
 
 Run the wot-servient as a container:

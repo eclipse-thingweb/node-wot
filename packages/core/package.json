@@ -9,7 +9,8 @@
         "access": "public"
     },
     "files": [
-        "dist/"
+        "dist/",
+        "src/"
     ],
     "main": "dist/core.js",
     "types": "dist/core.d.ts",
