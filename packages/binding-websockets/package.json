@@ -45,7 +45,9 @@
     },
     "scripts": {
         "build": "tsc",
-        "test": "mocha --require ts-node/register --extension ts"
+        "test": "mocha --require ts-node/register --extension ts",
+        "lint": "eslint .",
+        "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"**/*.json\""
     },
     "bugs": {
         "url": "https://github.com/eclipse/thingweb.node-wot/issues"

@@ -13,9 +13,9 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
+import { Form } from "@node-wot/td-tools";
 export { default as OpcuaClient } from "./opcua-client";
 export { default as OpcuaClientFactory } from "./opcua-client-factory";
-import { Form } from "@node-wot/td-tools";
 export * from "./opcua";
 export * from "./opcua-client-factory";
 

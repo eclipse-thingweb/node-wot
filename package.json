@@ -16,6 +16,7 @@
         "test": "npm run test --silent --workspaces --if-present",
         "test:only": "npm run test --silent --workspaces --if-present",
         "coverage": "nyc --reporter=lcov npm run test",
+        "coverage:only": "nyc --reporter=lcov npm run test:only",
         "lint": "npm run lint --silent --workspaces --if-present",
         "format": "prettier --write . && npm run format --silent --workspaces --if-present",
         "publish": "npm publish --workspaces",
