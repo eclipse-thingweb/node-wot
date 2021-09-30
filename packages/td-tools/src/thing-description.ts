@@ -15,7 +15,7 @@
 
 // global W3C WoT Scripting API definitions
 import * as WoT from "wot-typescript-definitions";
-import * as TD from "wot-thing-description-types";
+import * as TDT from "wot-thing-description-types";
 
 export const DEFAULT_CONTEXT = "https://www.w3.org/2019/wot/td/v1";
 export const DEFAULT_CONTEXT_LANGUAGE = "en";
@@ -26,44 +26,48 @@ export const DEFAULT_THING_TYPE = "Thing";
 */
 
 /** Implements the Thing Description as software object */
-export default class Thing {
-    id: string;
-    title: TD.Title;
-    titles: TD.Titles;
-    description: TD.Description;
-    descriptions: TD.Descriptions;
+export default class Thing implements TDT.ThingDescription {
+    id?: string;
+    title: TDT.Title;
+    titles: TDT.Titles;
+    description: TDT.Description;
+    descriptions: TDT.Descriptions;
     support: string;
     modified: string;
     created: string;
-    version: VersionInfo;
+    /** Carries version information about the TD instance. If required, additional version information such as firmware and hardware version (term definitions outside of the TD namespace) can be extended here. */
+    // version: VersionInfo;
     securityDefinitions: {
-        [key: string]: SecurityType;
+        [k: string]: TDT.SecurityScheme;
+        // [key: string]: SecurityType;
     };
 
-    security: Array<string>;
+    security: string | [string, ...string[]]; // Array<string>;
     base: string;
 
-    properties: {
+    /* properties?: {
         [key: string]: ThingProperty;
-    };
+    };*/
 
-    actions: {
+    /* actions: {
         [key: string]: ThingAction;
-    };
+    }; */
 
-    events: {
+    /* events: {
         [key: string]: ThingEvent;
-    };
+    }; */
 
-    links: Array<Link>;
-    forms: Array<Form>;
+    links?: (TDT.LinkElement | TDT.IconLinkElement)[]; // Array<Link>;
+    forms?: [TDT.FormElementRoot, ...TDT.FormElementRoot[]]; // Array<Form>;
+
+    "@context": TDT.ThingContext;
 
     [key: string]: any;
 
     constructor() {
         this["@context"] = DEFAULT_CONTEXT;
         this["@type"] = DEFAULT_THING_TYPE;
-        this.security = [];
+        this.security = "";
         this.properties = {};
         this.actions = {};
         this.events = {};
@@ -73,10 +77,10 @@ export default class Thing {
 
 /** Basis from implementing the Thing Interaction descriptions for Property, Action, and Event */
 export interface ThingInteraction {
-    title?: TD.Title;
-    titles?: TD.Titles;
-    description?: TD.Description;
-    descriptions?: TD.Descriptions;
+    title?: TDT.Title;
+    titles?: TDT.Titles;
+    description?: TDT.Description;
+    descriptions?: TDT.Descriptions;
     scopes?: Array<string>;
     uriVariables?: {
         [key: string]: DataSchema;
@@ -107,11 +111,6 @@ export class Form implements Form {
     }
 }
 
-/** Carries version information about the TD instance. If required, additional version information such as firmware and hardware version (term definitions outside of the TD namespace) can be extended here. */
-export interface VersionInfo {
-    instance?: string;
-}
-
 export interface Link {
     href: string;
     rel?: string | Array<string>;
@@ -138,10 +137,10 @@ export type DataSchema = WoT.DataSchema &
 
 export class BaseSchema {
     type?: string;
-    title?: TD.Title;
-    titles?: TD.Titles;
-    description?: TD.Description;
-    descriptions?: TD.Descriptions;
+    title?: TDT.Title;
+    titles?: TDT.Titles;
+    description?: TDT.Description;
+    descriptions?: TDT.Descriptions;
     writeOnly?: boolean;
     readOnly?: boolean;
     oneOf?: Array<DataSchema>;
@@ -187,6 +186,40 @@ export interface NullSchema extends BaseSchema {
     type: "null";
 }
 
+// TODO these security types should come from "wot-thing-description-types"
+
+export interface SecurityScheme {
+    scheme: string;
+    description?: string;
+    proxy?: string;
+}
+
+export interface APIKeySecurityScheme {
+    "@type"?: TDT.TypeDeclaration;
+    description?: TDT.Description;
+    descriptions?: TDT.Descriptions;
+    proxy?: TDT.AnyUri;
+    scheme: "apikey";
+    in?: "header" | "query" | "body" | "cookie";
+    name?: string;
+    [k: string]: unknown;
+}
+
+export interface OAuth2SecurityScheme {
+    "@type"?: TDT.TypeDeclaration;
+    description?: TDT.Description;
+    descriptions?: TDT.Descriptions;
+    proxy?: TDT.AnyUri;
+    scheme: "oauth2";
+    authorization?: TDT.AnyUri;
+    token?: TDT.AnyUri;
+    refresh?: TDT.AnyUri;
+    scopes?: string[] | string;
+    flow?: string; // "code"; // TODO other flows?
+    [k: string]: unknown;
+}
+
+/*
 export type SecurityType =
     | NoSecurityScheme
     | BasicSecurityScheme
@@ -269,6 +302,7 @@ export interface OAuth2SecurityScheme extends SecurityScheme {
     refresh?: string;
     scopes?: Array<string>;
 }
+*/
 
 /** Implements the Thing Property description */
 export abstract class ThingProperty extends BaseSchema implements ThingInteraction {
@@ -278,10 +312,10 @@ export abstract class ThingProperty extends BaseSchema implements ThingInteracti
 
     // ThingInteraction
     forms?: Array<Form>;
-    title?: TD.Title;
-    titles?: TD.Titles;
-    description?: TD.Description;
-    descriptions?: TD.Descriptions;
+    title?: TDT.Title;
+    titles?: TDT.Titles;
+    description?: TDT.Description;
+    descriptions?: TDT.Descriptions;
     scopes?: Array<string>;
     uriVariables?: {
         [key: string]: DataSchema;
@@ -301,10 +335,10 @@ export abstract class ThingAction implements ThingInteraction {
 
     // ThingInteraction
     forms?: Array<Form>;
-    title?: TD.Title;
-    titles?: TD.Titles;
-    description?: TD.Description;
-    descriptions?: TD.Descriptions;
+    title?: TDT.Title;
+    titles?: TDT.Titles;
+    description?: TDT.Description;
+    descriptions?: TDT.Descriptions;
     scopes?: Array<string>;
     uriVariables?: {
         [key: string]: DataSchema;
@@ -322,10 +356,10 @@ export abstract class ThingEvent implements ThingInteraction {
 
     // ThingInteraction
     forms?: Array<Form>;
-    title?: TD.Title;
-    titles?: TD.Titles;
-    description?: TD.Description;
-    descriptions?: TD.Descriptions;
+    title?: TDT.Title;
+    titles?: TDT.Titles;
+    description?: TDT.Description;
+    descriptions?: TDT.Descriptions;
     scopes?: Array<string>;
     uriVariables?: {
         [key: string]: DataSchema;

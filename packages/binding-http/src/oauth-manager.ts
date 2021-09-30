@@ -73,7 +73,7 @@ export default class OAuthManager {
                 clientId: credentials.clientId,
                 clientSecret: credentials.clientSecret,
                 accessTokenUri: securityScheme.token,
-                scopes: securityScheme.scopes,
+                scopes: typeof securityScheme.scopes === "string" ? [securityScheme.scopes] : securityScheme.scopes,
                 body: {
                     // TODO: some server implementation may require client_id and secret inside
                     // the request body
@@ -93,7 +93,7 @@ export default class OAuthManager {
                 clientId: credentials.clientId,
                 clientSecret: credentials.clientSecret,
                 accessTokenUri: securityScheme.token,
-                scopes: securityScheme.scopes,
+                scopes: typeof securityScheme.scopes === "string" ? [securityScheme.scopes] : securityScheme.scopes,
             },
             createRequestFunction(false)
         );

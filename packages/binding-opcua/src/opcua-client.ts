@@ -17,7 +17,7 @@
  * Opcua protocol binding
  */
 import { ProtocolClient, Content, ProtocolHelpers } from "@node-wot/core";
-import * as TD from "@node-wot/td-tools";
+import * as TDT from "wot-thing-description-types";
 
 import * as Url from "url-parse";
 
@@ -368,7 +368,7 @@ export default class OpcuaClient implements ProtocolClient {
         return true;
     }
 
-    public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean {
+    public setSecurity(metadata: Array<TDT.SecurityScheme>, credentials?: any): boolean {
         if (metadata === undefined || !Array.isArray(metadata) || metadata.length === 0) {
             console.warn("[binding-opcua]", `OpcuaClient without security`);
             return false;

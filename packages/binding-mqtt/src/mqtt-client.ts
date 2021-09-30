@@ -19,6 +19,7 @@
 
 import { ProtocolClient, Content, ContentSerdes } from "@node-wot/core";
 import * as TD from "@node-wot/td-tools";
+import * as TDT from "wot-thing-description-types";
 import * as mqtt from "mqtt";
 import { MqttClientConfig, MqttForm, MqttQoS } from "./mqtt";
 import { IPublishPacket, QoS } from "mqtt";
@@ -145,12 +146,12 @@ export default class MqttClient implements ProtocolClient {
     //  throw new Error('Method not implemented.');
     // }
 
-    public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean {
+    public setSecurity(metadata: Array<TDT.SecurityScheme>, credentials?: any): boolean {
         if (metadata === undefined || !Array.isArray(metadata) || metadata.length == 0) {
             console.warn("[binding-mqtt]", `MqttClient received empty security metadata`);
             return false;
         }
-        let security: TD.SecurityScheme = metadata[0];
+        let security: TDT.SecurityScheme = metadata[0];
 
         if (security.scheme === "basic") {
             //this.authorization = "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString('base64');

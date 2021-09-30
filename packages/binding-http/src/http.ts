@@ -14,6 +14,7 @@
  ********************************************************************************/
 
 import * as TD from "@node-wot/td-tools";
+import * as TDT from "wot-thing-description-types";
 import { Method } from "./oauth-token-validation";
 
 export { default as HttpServer } from "./http-server";
@@ -33,7 +34,7 @@ export interface HttpConfig {
     allowSelfSigned?: boolean;
     serverKey?: string;
     serverCert?: string;
-    security?: TD.SecurityScheme;
+    security?: TDT.SecurityScheme;
 }
 
 export interface OAuth2ServerConfig extends TD.SecurityScheme {

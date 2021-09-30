@@ -13,6 +13,8 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
+import * as TDT from "wot-thing-description-types";
+
 import Thing from "./thing-description";
 import * as TD from "./thing-description";
 
@@ -32,7 +34,7 @@ export function parseTD(td: string, normalize?: boolean): Thing {
     if (thing["@context"] === undefined) {
         thing["@context"] = [TD.DEFAULT_CONTEXT];
     } else if (Array.isArray(thing["@context"])) {
-        const semContext: Array<string> = thing["@context"];
+        const semContext = thing["@context"] as any; // TDT.ThingContext
         if (semContext.indexOf(TD.DEFAULT_CONTEXT) === -1) {
             // insert last
             semContext.push(TD.DEFAULT_CONTEXT);

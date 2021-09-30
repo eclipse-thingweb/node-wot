@@ -23,7 +23,7 @@ import * as net from "net";
 import { Subscription } from "rxjs/Subscription";
 
 // for Security definition
-import * as TD from "@node-wot/td-tools";
+import * as TDT from "wot-thing-description-types";
 
 import { ProtocolClient, Content, ContentSerdes, ProtocolHelpers } from "@node-wot/core";
 import {
@@ -188,7 +188,7 @@ export default class CoapClient implements ProtocolClient {
         return true;
     }
 
-    public setSecurity = (metadata: Array<TD.SecurityScheme>): boolean => true;
+    public setSecurity = (metadata: Array<TDT.SecurityScheme>): boolean => true;
 
     private uriToOptions(uri: string): CoapRequestConfig {
         const requestUri = url.parse(uri);

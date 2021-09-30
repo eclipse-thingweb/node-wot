@@ -13,6 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
+import * as TDT from "wot-thing-description-types";
 import * as TD from "@node-wot/td-tools";
 
 import { Subscription } from "rxjs/Subscription";
@@ -50,7 +51,7 @@ export interface ProtocolClient {
     stop(): boolean;
 
     /** apply TD security metadata */
-    setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: unknown): boolean;
+    setSecurity(metadata: Array<TDT.SecurityScheme>, credentials?: unknown): boolean;
 }
 
 export interface ProtocolClientFactory {

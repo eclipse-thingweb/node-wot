@@ -14,6 +14,7 @@
  ********************************************************************************/
 
 import * as WoT from "wot-typescript-definitions";
+import * as TDT from "wot-thing-description-types";
 
 import { Subject } from "rxjs/Subject";
 
@@ -29,13 +30,13 @@ import { Content } from "./core";
 import ContentManager from "./content-serdes";
 
 export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
-    security: Array<string>;
-    securityDefinitions: { [key: string]: TD.SecurityType };
+    security: string | [string, ...string[]]; // Array<string>;
+    securityDefinitions: { [k: string]: TDT.SecurityScheme }; //  { [key: string]: TD.SecurityType };
 
     id: string;
     title: string;
     base: string;
-    forms: Array<TD.Form>;
+    forms?: [TDT.FormElementRoot, ...TDT.FormElementRoot[]]; // Array<TD.Form>;
 
     /** A map of interactable Thing Properties with read()/write()/subscribe() functions */
     properties: {
@@ -98,7 +99,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     addDefaultLanguage(thing: ExposedThing): void {
         // add @language : "en" if no @language set
         if (Array.isArray(thing["@context"])) {
-            const arrayContext = thing["@context"];
+            let arrayContext: TDT.ThingContext = thing["@context"];
             let languageSet = false;
             for (const arrayEntry of arrayContext) {
                 if (typeof arrayEntry === "object") {
@@ -108,7 +109,8 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                 }
             }
             if (!languageSet) {
-                arrayContext.push({
+                let arrayContext2 = arrayContext as any;
+                arrayContext2.push({
                     "@language": TD.DEFAULT_CONTEXT_LANGUAGE,
                 });
             }

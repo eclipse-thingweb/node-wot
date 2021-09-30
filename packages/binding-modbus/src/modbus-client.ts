@@ -18,7 +18,7 @@
 import { ModbusForm, ModbusFunction, ModbusEndianness } from "./modbus";
 
 import { ProtocolClient, Content, ContentSerdes, ProtocolHelpers } from "@node-wot/core";
-import { SecurityScheme } from "@node-wot/td-tools";
+import { SecurityScheme } from "wot-thing-description-types";
 import { modbusFunctionToEntity } from "./utils";
 import { ModbusConnection, PropertyOperation } from "./modbus-connection";
 import { Readable } from "stream";

@@ -18,7 +18,7 @@
  */
 
 import * as url from "url";
-import * as TD from "@node-wot/td-tools";
+import * as TDT from "wot-thing-description-types";
 
 import { Subscription } from "rxjs/Subscription";
 
@@ -134,13 +134,13 @@ export default class CoapsClient implements ProtocolClient {
         return true;
     }
 
-    public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean {
+    public setSecurity(metadata: Array<TDT.SecurityScheme>, credentials?: any): boolean {
         if (metadata === undefined || !Array.isArray(metadata) || metadata.length === 0) {
             console.warn("[binding-coap]", `CoapsClient received empty security metadata`);
             return false;
         }
 
-        const security: TD.SecurityScheme = metadata[0];
+        const security: TDT.SecurityScheme = metadata[0];
 
         if (security.scheme === "psk") {
             this.authorization = { psk: {} };

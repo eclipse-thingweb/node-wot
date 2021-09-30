@@ -16,6 +16,7 @@
 import { NodeVM, CompilerFunction } from "vm2";
 
 import * as WoT from "wot-typescript-definitions";
+import * as TDT from "wot-thing-description-types";
 
 import WoTImpl from "./wot-impl";
 import Helpers from "./helpers";
@@ -131,7 +132,7 @@ export default class Servient {
         const tdTemplate: WoT.ThingDescription = JSON.parse(JSON.stringify(thing));
 
         // initializing forms fields
-        thing.forms = [];
+        thing.forms = undefined; // [];
         for (const name in thing.properties) {
             thing.properties[name].forms = [];
         }

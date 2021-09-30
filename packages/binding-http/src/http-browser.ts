@@ -14,6 +14,7 @@
  ********************************************************************************/
 
 import * as TD from "@node-wot/td-tools";
+import * as TDT from "wot-thing-description-types";
 
 import { Headers, Response } from "node-fetch";
 
@@ -31,7 +32,7 @@ export interface HttpConfig {
     allowSelfSigned?: boolean;
     serverKey?: string;
     serverCert?: string;
-    security?: TD.SecurityScheme;
+    security?: TDT.SecurityScheme;
 }
 
 export interface HttpProxyConfig {

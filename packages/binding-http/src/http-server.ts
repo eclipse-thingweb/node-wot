@@ -26,6 +26,7 @@ import * as url from "url";
 import { AddressInfo } from "net";
 
 import * as TD from "@node-wot/td-tools";
+import * as TDT from "wot-thing-description-types";
 import Servient, {
     ProtocolServer,
     ContentSerdes,
@@ -127,7 +128,7 @@ export default class HttpServer implements ProtocolServer {
                     break;
                 case "oauth2":
                     this.httpSecurityScheme = "OAuth";
-                    const oAuthConfig = config.security as OAuth2ServerConfig;
+                    const oAuthConfig = config.security as any as OAuth2ServerConfig;
                     this.validOAuthClients = new RegExp(oAuthConfig.allowedClients ?? ".*");
                     this.oAuthValidator = createValidator(oAuthConfig.method);
                     break;
@@ -311,9 +312,9 @@ export default class HttpServer implements ProtocolServer {
                     ];
                 }
                 if (!thing.forms) {
-                    thing.forms = [];
+                    thing.forms = undefined; // [];
                 }
-                thing.forms.push(form);
+                thing.forms.push(form as TDT.FormElementRoot);
             }
 
             for (const propertyName in thing.properties) {
@@ -430,7 +431,11 @@ export default class HttpServer implements ProtocolServer {
                 const oAuthScheme = thing.securityDefinitions[thing.security[0] as string] as OAuth2SecurityScheme;
 
                 // TODO: Support security schemes defined at affordance level
-                const scopes = oAuthScheme.scopes ?? [];
+                const scopes = oAuthScheme.scopes
+                    ? typeof oAuthScheme.scopes === "string"
+                        ? [oAuthScheme.scopes]
+                        : oAuthScheme.scopes
+                    : []; // oAuthScheme.scopes ?? [];
                 let valid = false;
 
                 try {

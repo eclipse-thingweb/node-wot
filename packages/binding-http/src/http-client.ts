@@ -22,8 +22,9 @@ import * as https from "https";
 
 import { Subscription } from "rxjs/Subscription";
 
-import * as TD from "@node-wot/td-tools";
 // for Security definition
+import * as TD from "@node-wot/td-tools";
+import * as TDT from "wot-thing-description-types";
 
 import { ProtocolClient, Content } from "@node-wot/core";
 import { HttpForm, HttpHeader, HttpConfig, HTTPMethodName } from "./http";
@@ -215,14 +216,14 @@ export default class HttpClient implements ProtocolClient {
         return true;
     }
 
-    public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean {
+    public setSecurity(metadata: Array<TDT.SecurityScheme>, credentials?: any): boolean {
         if (metadata === undefined || !Array.isArray(metadata) || metadata.length == 0) {
             console.warn("[binding-http]", `HttpClient without security`);
             return false;
         }
 
         // TODO support for multiple security schemes
-        const security: TD.SecurityScheme = metadata[0];
+        const security: TDT.SecurityScheme = metadata[0];
         switch (security.scheme) {
             case "basic":
                 this.credential = new BasicCredential(credentials);

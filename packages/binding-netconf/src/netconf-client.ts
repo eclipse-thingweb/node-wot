@@ -18,7 +18,7 @@
  */
 import { ProtocolClient, Content, ContentSerdes } from "@node-wot/core";
 import { NetconfForm } from "./netconf";
-import * as TD from "@node-wot/td-tools";
+import * as TDT from "wot-thing-description-types";
 import * as AsyncNodeNetcon from "./async-node-netconf";
 import * as Url from "url-parse";
 import { Readable } from "stream";
@@ -169,7 +169,7 @@ export default class NetconfClient implements ProtocolClient {
         return true;
     }
 
-    public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean {
+    public setSecurity(metadata: Array<TDT.SecurityScheme>, credentials?: any): boolean {
         if (metadata === undefined || !Array.isArray(metadata) || metadata.length == 0) {
             console.warn("[binding-netconf]", `NetconfClient without security`);
             return false;

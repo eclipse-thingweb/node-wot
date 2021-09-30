@@ -4,7 +4,7 @@
 import { MBusForm } from "./mbus";
 
 import { ProtocolClient, Content, ContentSerdes } from "@node-wot/core";
-import { SecurityScheme } from "@node-wot/td-tools";
+import { SecurityScheme } from "wot-thing-description-types";
 import { MBusConnection, PropertyOperation } from "./mbus-connection";
 
 const DEFAULT_PORT = 805;
