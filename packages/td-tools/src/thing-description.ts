@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2021 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -15,6 +15,7 @@
 
 // global W3C WoT Scripting API definitions
 import * as WoT from "wot-typescript-definitions";
+import * as TD from "wot-thing-description-types";
 
 export const DEFAULT_CONTEXT = "https://www.w3.org/2019/wot/td/v1";
 export const DEFAULT_CONTEXT_LANGUAGE = "en";
@@ -24,15 +25,13 @@ export const DEFAULT_THING_TYPE = "Thing";
  ~ In Thing index structure could be read-only (sanitizing needs write access)
 */
 
-export declare type MultiLanguage = any; // object?
-
 /** Implements the Thing Description as software object */
 export default class Thing {
     id: string;
-    title: string;
-    titles: MultiLanguage;
-    description: string;
-    descriptions: MultiLanguage;
+    title: TD.Title;
+    titles: TD.Titles;
+    description: TD.Description;
+    descriptions: TD.Descriptions;
     support: string;
     modified: string;
     created: string;
@@ -74,10 +73,10 @@ export default class Thing {
 
 /** Basis from implementing the Thing Interaction descriptions for Property, Action, and Event */
 export interface ThingInteraction {
-    title?: string;
-    titles?: MultiLanguage;
-    description?: string;
-    descriptions?: MultiLanguage;
+    title?: TD.Title;
+    titles?: TD.Titles;
+    description?: TD.Description;
+    descriptions?: TD.Descriptions;
     scopes?: Array<string>;
     uriVariables?: {
         [key: string]: DataSchema;
@@ -139,10 +138,10 @@ export type DataSchema = WoT.DataSchema &
 
 export class BaseSchema {
     type?: string;
-    title?: string;
-    titles?: MultiLanguage;
-    description?: string;
-    descriptions?: MultiLanguage;
+    title?: TD.Title;
+    titles?: TD.Titles;
+    description?: TD.Description;
+    descriptions?: TD.Descriptions;
     writeOnly?: boolean;
     readOnly?: boolean;
     oneOf?: Array<DataSchema>;
@@ -279,10 +278,10 @@ export abstract class ThingProperty extends BaseSchema implements ThingInteracti
 
     // ThingInteraction
     forms?: Array<Form>;
-    title?: string;
-    titles?: MultiLanguage;
-    description?: string;
-    descriptions?: MultiLanguage;
+    title?: TD.Title;
+    titles?: TD.Titles;
+    description?: TD.Description;
+    descriptions?: TD.Descriptions;
     scopes?: Array<string>;
     uriVariables?: {
         [key: string]: DataSchema;
@@ -302,10 +301,10 @@ export abstract class ThingAction implements ThingInteraction {
 
     // ThingInteraction
     forms?: Array<Form>;
-    title?: string;
-    titles?: MultiLanguage;
-    description?: string;
-    descriptions?: MultiLanguage;
+    title?: TD.Title;
+    titles?: TD.Titles;
+    description?: TD.Description;
+    descriptions?: TD.Descriptions;
     scopes?: Array<string>;
     uriVariables?: {
         [key: string]: DataSchema;
@@ -323,10 +322,10 @@ export abstract class ThingEvent implements ThingInteraction {
 
     // ThingInteraction
     forms?: Array<Form>;
-    title?: string;
-    titles?: MultiLanguage;
-    description?: string;
-    descriptions?: MultiLanguage;
+    title?: TD.Title;
+    titles?: TD.Titles;
+    description?: TD.Description;
+    descriptions?: TD.Descriptions;
     scopes?: Array<string>;
     uriVariables?: {
         [key: string]: DataSchema;
