@@ -312,7 +312,7 @@ export default class HttpServer implements ProtocolServer {
                     ];
                 }
                 if (!thing.forms) {
-                    thing.forms = undefined; // [];
+                    thing.forms = new Array() as [TDT.FormElementRoot];
                 }
                 thing.forms.push(form as TDT.FormElementRoot);
             }
