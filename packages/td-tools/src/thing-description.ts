@@ -21,44 +21,13 @@ export const DEFAULT_CONTEXT = "https://www.w3.org/2019/wot/td/v1";
 export const DEFAULT_CONTEXT_LANGUAGE = "en";
 export const DEFAULT_THING_TYPE = "Thing";
 
-/* TODOs / Questions
- ~ In Thing index structure could be read-only (sanitizing needs write access)
-*/
-
 /** Implements the Thing Description as software object */
 export default class Thing implements TDT.ThingDescription {
-    id?: string;
     title: TDT.Title;
-    titles: TDT.Titles;
-    description: TDT.Description;
-    descriptions: TDT.Descriptions;
-    support: string;
-    modified: string;
-    created: string;
-    /** Carries version information about the TD instance. If required, additional version information such as firmware and hardware version (term definitions outside of the TD namespace) can be extended here. */
-    // version: VersionInfo;
     securityDefinitions: {
         [k: string]: TDT.SecurityScheme;
-        // [key: string]: SecurityType;
     };
-
-    security: string | [string, ...string[]]; // Array<string>;
-    base: string;
-
-    /* properties?: {
-        [key: string]: ThingProperty;
-    };*/
-
-    /* actions: {
-        [key: string]: ThingAction;
-    }; */
-
-    /* events: {
-        [key: string]: ThingEvent;
-    }; */
-
-    links?: (TDT.LinkElement | TDT.IconLinkElement)[]; // Array<Link>;
-    forms?: [TDT.FormElementRoot, ...TDT.FormElementRoot[]]; // Array<Form>;
+    security: string | [string, ...string[]];
 
     "@context": TDT.ThingContext;
 
@@ -91,11 +60,22 @@ export interface ThingInteraction {
     [key: string]: any;
 }
 
-export class ExpectedResponse implements ExpectedResponse {
+export interface ExpectedResponse {
     contentType?: string;
 }
 
 /** Implements the Interaction Form description */
+// Note: JSON schema definition at https://github.com/w3c/wot-thing-description/blob/main/validation/td-json-schema-validation.json
+// uses different kinds of forms: FormElementRoot, FormElementProperty, ...
+export interface Form {
+    href: string;
+    subprotocol?: string;
+    op?: string | Array<string>;
+    contentType?: string; // media type + parameter(s), e.g., text/plain;charset=utf8
+    security?: Array<string>; // Set of security definition names, chosen from those defined in securityDefinitions  // Security;
+    scopes?: Array<string>;
+    response?: ExpectedResponse;
+}
 export class Form implements Form {
     href: string;
     subprotocol?: string;
@@ -116,20 +96,6 @@ export interface Link {
     rel?: string | Array<string>;
     type?: string; // media type hint, no media type parameters
     anchor?: string;
-}
-
-export interface ExpectedResponse {
-    contentType?: string;
-}
-
-export interface Form {
-    href: string;
-    subprotocol?: string;
-    op?: string | Array<string>;
-    contentType?: string; // media type + parameter(s), e.g., text/plain;charset=utf8
-    security?: Array<string>; // Set of security definition names, chosen from those defined in securityDefinitions  // Security;
-    scopes?: Array<string>;
-    response?: ExpectedResponse;
 }
 
 export type DataSchema = WoT.DataSchema &
