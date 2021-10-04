@@ -86,13 +86,12 @@ class CoapClientTest {
         await coapServer.stop();
     }
 
-
     @test async "should re-use port"() {
         const coapServer = new CoapServer(56834, "localhost");
         await coapServer.start(null);
         const coapClient = new CoapClient(coapServer);
-        const res =  await coapClient.readResource({
-            href: "coap://localhost:56834/"
+        const res = await coapClient.readResource({
+            href: "coap://localhost:56834/",
         });
         false && console.log(res);
         await coapServer.stop();
@@ -104,9 +103,11 @@ class CoapClientTest {
         const coapClient = new CoapClient(coapServer);
         const form: CoapForm = {
             href: "coap://127.0.0.1:56834",
-            "coap:methodCode": "GET",
+            "cov:methodName": "GET",
         };
-        const subscription = await  coapClient.subscribeResource(form, (value) => { /**  */});
+        const subscription = await coapClient.subscribeResource(form, (value) => {
+            /**  */
+        });
         subscription.unsubscribe();
         await coapServer.stop();
     }

@@ -74,7 +74,7 @@ class TestHttpServer implements ProtocolServer {
     }
 
     public async start(): Promise<void> {
-        return await new Promise<void>((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
             this.server.once("listening", () => {
                 resolve();
             });
@@ -83,7 +83,7 @@ class TestHttpServer implements ProtocolServer {
     }
 
     public async stop(): Promise<void> {
-        return await new Promise<void>((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
             this.server.close(() => {
                 console.error("STOPPED");
                 resolve();
@@ -173,7 +173,7 @@ class TestHttpServer implements ProtocolServer {
     }
 }
 
-@suite("HTTP client implementation 1")
+@suite("HTTP client basic operations")
 class HttpClientTest1 {
     static httpServer: TestHttpServer;
     static async before(): Promise<void> {
@@ -316,7 +316,7 @@ const express = require("express");
 const serveStatic = require("serve-static");
 const SseStream = require("ssestream");
 
-@suite("HTTP client implementation 2")
+@suite("HTTP client subscriptions")
 class HttpClientTest2 {
     @test "should register to sse server and get server sent event"(done: any) {
         // create sse server
