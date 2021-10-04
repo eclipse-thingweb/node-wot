@@ -14,7 +14,7 @@ import {
     subscribeToFirestore,
     unsubscribeToFirestore,
 } from "./firestore-handler";
-import * as TDT from "wot-thing-description-types";
+import { SecurityScheme } from "wot-thing-description-types";
 
 export default class FirestoreClient implements ProtocolClient {
     private firestore = null;
@@ -177,7 +177,7 @@ export default class FirestoreClient implements ProtocolClient {
         return true;
     }
 
-    public setSecurity(metadata: Array<TDT.SecurityScheme>, credentials?: any): boolean {
+    public setSecurity(metadata: Array<SecurityScheme>, credentials?: any): boolean {
         // Firestore provides security for the communication channel
         // Should we be able to set security on a per-Thing basis in the future?
         return true;

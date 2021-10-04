@@ -17,7 +17,7 @@ import { suite, test } from "@testdeck/mocha";
 import * as express from "express";
 import { HttpClient } from "../src/http";
 import * as https from "https";
-import * as TDT from "wot-thing-description-types";
+import { SecurityScheme } from "wot-thing-description-types";
 import * as chai from "chai";
 import * as chaiAsPromised from "chai-as-promised";
 import { promisify } from "util";
@@ -79,7 +79,7 @@ class HttpClientBasicTest {
     }
 
     @test async "should authorize client with basic"() {
-        const scheme: TDT.SecurityScheme = {
+        const scheme: SecurityScheme = {
             scheme: "basic",
             in: "header",
         };
@@ -91,7 +91,7 @@ class HttpClientBasicTest {
     }
 
     @test async "should fail to authorize client with basic"() {
-        const scheme: TDT.SecurityScheme = {
+        const scheme: SecurityScheme = {
             scheme: "basic",
             in: "header",
         };

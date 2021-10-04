@@ -16,7 +16,7 @@ import { suite, test } from "@testdeck/mocha";
 import { should } from "chai";
 import { HttpServer, OAuth2ServerConfig } from "../src/http";
 import { IntrospectionEndpoint, EndpointValidator } from "../src/oauth-token-validation";
-import * as TDT from "wot-thing-description-types";
+import { SecurityScheme } from "wot-thing-description-types";
 import Servient, { ExposedThing } from "@node-wot/core";
 import fetch from "node-fetch";
 
@@ -33,7 +33,7 @@ class OAuthServerTests {
             name: "introspection_endpoint",
             endpoint: "http://localhost:4242",
         };
-        const authConfig: TDT.SecurityScheme = {
+        const authConfig: SecurityScheme = {
             scheme: "oauth2",
             method: method,
         };

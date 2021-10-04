@@ -26,7 +26,7 @@ const chai = require("chai"),
 
 chai.use(spies);
 
-import * as TDT from "wot-thing-description-types";
+import { SecurityScheme } from "wot-thing-description-types";
 import { ContentSerdes } from "@node-wot/core";
 
 import NetconfClient from "../src/netconf-client";
@@ -42,7 +42,7 @@ describe("outer describe", function () {
     });
 
     it("should apply security", async function () {
-        let ss: TDT.SecurityScheme = { scheme: "nosec" };
+        let ss: SecurityScheme = { scheme: "nosec" };
         let metadata = [ss];
         let credentials = {
             username: "user",

@@ -17,7 +17,7 @@
  * Protocol test suite to test protocol implementations
  */
 
-import * as TDT from "wot-thing-description-types";
+import { SecurityScheme } from "wot-thing-description-types";
 import { ProtocolHelpers, Content } from "@node-wot/core";
 import { expect, should, assert } from "chai";
 import { fail } from "assert";
@@ -316,7 +316,7 @@ describe("OPCUA client test", function () {
     });
 
     it("should apply security", async function () {
-        let ss: TDT.SecurityScheme = { scheme: "nosec" };
+        let ss: SecurityScheme = { scheme: "nosec" };
         const metadata = [ss];
         const credentials = {
             username: "user",

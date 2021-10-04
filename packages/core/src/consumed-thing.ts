@@ -14,7 +14,7 @@
  ********************************************************************************/
 
 import { ConsumedThing as IConsumedThing, InteractionInput } from "wot-typescript-definitions";
-import * as TDT from "wot-thing-description-types";
+import { SecurityScheme } from "wot-thing-description-types";
 
 import * as TD from "@node-wot/td-tools";
 
@@ -137,8 +137,8 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         return form;
     }
 
-    getSecuritySchemes(security: Array<string>): Array<TDT.SecurityScheme> {
-        const scs: Array<TDT.SecurityScheme> = [];
+    getSecuritySchemes(security: Array<string>): Array<SecurityScheme> {
+        const scs: Array<SecurityScheme> = [];
         for (const s of security) {
             const ws = this.securityDefinitions[s + ""]; // String vs. string (fix wot-typescript-definitions?)
             // also push nosec in case of proxy

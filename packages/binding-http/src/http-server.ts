@@ -26,7 +26,7 @@ import * as url from "url";
 import { AddressInfo } from "net";
 
 import * as TD from "@node-wot/td-tools";
-import * as TDT from "wot-thing-description-types";
+import { FormElementRoot } from "wot-thing-description-types";
 import Servient, {
     ProtocolServer,
     ContentSerdes,
@@ -312,9 +312,9 @@ export default class HttpServer implements ProtocolServer {
                     ];
                 }
                 if (!thing.forms) {
-                    thing.forms = new Array() as [TDT.FormElementRoot];
+                    thing.forms = new Array() as [FormElementRoot];
                 }
-                thing.forms.push(form as TDT.FormElementRoot);
+                thing.forms.push(form as FormElementRoot);
             }
 
             for (const propertyName in thing.properties) {

@@ -13,8 +13,6 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import * as TDT from "wot-thing-description-types";
-
 import Thing from "./thing-description";
 import * as TD from "./thing-description";
 

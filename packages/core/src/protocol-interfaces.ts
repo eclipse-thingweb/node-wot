@@ -13,8 +13,8 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import * as TDT from "wot-thing-description-types";
-import * as TD from "@node-wot/td-tools";
+import { SecurityScheme } from "wot-thing-description-types";
+import { Form } from "@node-wot/td-tools";
 
 import { Subscription } from "rxjs/Subscription";
 
@@ -27,19 +27,19 @@ export interface Content {
 
 export interface ProtocolClient {
     /** this client is requested to perform a "read" on the resource with the given URI */
-    readResource(form: TD.Form): Promise<Content>;
+    readResource(form: Form): Promise<Content>;
 
     /** this cliet is requested to perform a "write" on the resource with the given URI  */
-    writeResource(form: TD.Form, content: Content): Promise<void>;
+    writeResource(form: Form, content: Content): Promise<void>;
 
     /** this client is requested to perform an "invoke" on the resource with the given URI */
-    invokeResource(form: TD.Form, content: Content): Promise<Content>;
+    invokeResource(form: Form, content: Content): Promise<Content>;
 
     /** this client is requested to perform an "unlink" on the resource with the given URI */
-    unlinkResource(form: TD.Form): Promise<void>;
+    unlinkResource(form: Form): Promise<void>;
 
     subscribeResource(
-        form: TD.Form,
+        form: Form,
         next: (content: Content) => void,
         error?: (error: any) => void,
         complete?: () => void
@@ -51,7 +51,7 @@ export interface ProtocolClient {
     stop(): boolean;
 
     /** apply TD security metadata */
-    setSecurity(metadata: Array<TDT.SecurityScheme>, credentials?: unknown): boolean;
+    setSecurity(metadata: Array<SecurityScheme>, credentials?: unknown): boolean;
 }
 
 export interface ProtocolClientFactory {

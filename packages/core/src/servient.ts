@@ -16,7 +16,6 @@
 import { NodeVM, CompilerFunction } from "vm2";
 
 import * as WoT from "wot-typescript-definitions";
-import * as TDT from "wot-thing-description-types";
 
 import WoTImpl from "./wot-impl";
 import Helpers from "./helpers";

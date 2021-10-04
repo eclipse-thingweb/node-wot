@@ -18,7 +18,7 @@ import { suite, test } from "@testdeck/mocha";
 import * as express from "express";
 import { HttpClient } from "../src/http";
 import * as TD from "@node-wot/td-tools";
-import * as TDT from "wot-thing-description-types";
+import { SecurityScheme } from "wot-thing-description-types";
 
 import Memory from "./memory-model";
 import { promisify } from "util";
@@ -82,7 +82,7 @@ class HttpClientOAuthTest {
             token: "https://localhost:3000/token",
             scopes: ["test"],
         };
-        this.client.setSecurity([scheme as TDT.SecurityScheme], { clientId: "thom", clientSecret: "nightworld" });
+        this.client.setSecurity([scheme as SecurityScheme], { clientId: "thom", clientSecret: "nightworld" });
         return this.client.readResource({
             href: "https://localhost:3000/resource",
         });
@@ -95,7 +95,7 @@ class HttpClientOAuthTest {
             token: "https://localhost:3000/token",
             scopes: ["test"],
         };
-        this.client.setSecurity([scheme as TDT.SecurityScheme], {
+        this.client.setSecurity([scheme as SecurityScheme], {
             clientId: "thom",
             clientSecret: "nightworld",
             username: "thomseddon",
@@ -114,7 +114,7 @@ class HttpClientOAuthTest {
             scopes: ["test"],
         };
         HttpClientOAuthTest.model.expireAllTokens();
-        await this.client.setSecurity([scheme as TDT.SecurityScheme], { clientId: "thom", clientSecret: "nightworld" });
+        await this.client.setSecurity([scheme as SecurityScheme], { clientId: "thom", clientSecret: "nightworld" });
         await sleep(1000);
         return this.client.readResource({
             href: "https://localhost:3000/resource",
@@ -130,7 +130,7 @@ class HttpClientOAuthTest {
         };
 
         HttpClientOAuthTest.model.expireAllTokens();
-        this.client.setSecurity([scheme as TDT.SecurityScheme], {
+        this.client.setSecurity([scheme as SecurityScheme], {
             clientId: "thom",
             clientSecret: "nightworld",
             username: "thomseddon",
