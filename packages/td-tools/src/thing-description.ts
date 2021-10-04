@@ -91,13 +91,6 @@ export class Form implements Form {
     }
 }
 
-export interface Link {
-    href: string;
-    rel?: string | Array<string>;
-    type?: string; // media type hint, no media type parameters
-    anchor?: string;
-}
-
 export type DataSchema = WoT.DataSchema &
     (BooleanSchema | IntegerSchema | NumberSchema | StringSchema | ObjectSchema | ArraySchema | NullSchema);
 
