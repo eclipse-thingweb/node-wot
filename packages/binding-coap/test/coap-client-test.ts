@@ -86,42 +86,28 @@ class CoapClientTest {
         await coapServer.stop();
     }
 
-    @test "should re-use port"(done: Done) {
+
+    @test async "should re-use port"() {
         const coapServer = new CoapServer(56834, "localhost");
-        coapServer.start(null).then(() => {
-            const coapClient = new CoapClient(coapServer);
-            coapClient
-                .readResource({ href: "coap://localhost:56834/" })
-                .then((res) => {
-                    return coapServer.stop();
-                })
-                .then(() => {
-                    coapServer.stop().then(() => {
-                        done();
-                    });
-                });
+        await coapServer.start(null);
+        const coapClient = new CoapClient(coapServer);
+        const res =  await coapClient.readResource({
+            href: "coap://localhost:56834/"
         });
+        false && console.log(res);
+        await coapServer.stop();
     }
 
-    @test(timeout(5000)) "subscribe test"(done: Done) {
+    @test(timeout(5000)) async "subscribe test"() {
         const coapServer = new CoapServer(56834, "localhost");
-        coapServer.start(null).then(() => {
-            const coapClient = new CoapClient(coapServer);
-
-            const form: CoapForm = {
-                href: "coap://127.0.0.1:56834",
-                "cov:methodName": "GET",
-            };
-
-            coapClient
-                .subscribeResource(form, (value) => {})
-                .then((subscription) => {
-                    subscription.unsubscribe();
-                    return coapServer.stop();
-                })
-                .then(() => {
-                    done();
-                });
-        });
+        await coapServer.start(null);
+        const coapClient = new CoapClient(coapServer);
+        const form: CoapForm = {
+            href: "coap://127.0.0.1:56834",
+            "coap:methodCode": "GET",
+        };
+        const subscription = await  coapClient.subscribeResource(form, (value) => { /**  */});
+        subscription.unsubscribe();
+        await coapServer.stop();
     }
 }
