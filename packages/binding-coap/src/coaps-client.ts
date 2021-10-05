@@ -17,7 +17,6 @@
  * CoAPS client based on node-coap-client by AlCalzone
  */
 
-import * as url from "url";
 import * as TD from "@node-wot/td-tools";
 
 import { Subscription } from "rxjs/Subscription";
@@ -105,11 +104,11 @@ export default class CoapsClient implements ProtocolClient {
         complete?: () => void
     ): Promise<Subscription> {
         return new Promise<Subscription>((resolve, reject) => {
-            let requestUri = url.parse(form.href.replace(/$coaps/, "https"));
+            const requestUri = new URL(form.href.replace(/$coaps/, "https"));
             coaps.setSecurityParams(requestUri.hostname, this.authorization);
 
             coaps
-                .observe(form.href, "GET", next)
+                .observe(form.href, "get", next)
                 .then(() => {
                     resolve(
                         new Subscription(() => {

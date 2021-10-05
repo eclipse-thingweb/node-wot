@@ -24,8 +24,6 @@ import CoapServer from "../src/coap-server";
 // should must be called to augment all variables
 should();
 
-const coap = require("coap");
-
 @suite("CoAP server implementation")
 class CoapServerTest {
     @test async "should start and stop a server"() {

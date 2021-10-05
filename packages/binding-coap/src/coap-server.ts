@@ -21,7 +21,8 @@ import * as url from "url";
 
 import * as TD from "@node-wot/td-tools";
 import Servient, { ProtocolServer, ContentSerdes, ExposedThing, Helpers, ProtocolHelpers } from "@node-wot/core";
-const coap = require("coap");
+import coap = require("coap");
+import slugify from "slugify";
 
 export default class CoapServer implements ProtocolServer {
     public readonly scheme: string = "coap";
@@ -103,7 +104,6 @@ export default class CoapServer implements ProtocolServer {
     }
 
     public expose(thing: ExposedThing, tdTemplate?: WoT.ExposedThingInit): Promise<void> {
-        const slugify = require("slugify");
         let urlPath = slugify(thing.title, { lower: true });
 
         if (this.things.has(urlPath)) {
