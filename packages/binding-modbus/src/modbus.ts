@@ -39,13 +39,13 @@ export class ModbusForm extends Form {
      * Defines the starting address of registers or coils that are
      * meant to be written.
      */
-    public "modbus:offset"?: number;
+    public "modbus:address"?: number;
     /**
      * Defines the total amount of registers or coils that
      * should be written, beginning with the register specified
-     * with the property 'modbus:offset'.
+     * with the property 'modbus:address'.
      */
-    public "modbus:length"?: number;
+    public "modbus:quantity"?: number;
     /**
      * Timeout in milliseconds of the modbus request. Default to 1000 milliseconds
      */

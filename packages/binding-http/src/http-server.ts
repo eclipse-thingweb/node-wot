@@ -42,8 +42,6 @@ import { InteractionOutput } from "@node-wot/core/dist/interaction-output";
 export default class HttpServer implements ProtocolServer {
     public readonly scheme: "http" | "https";
 
-    private readonly ALL_DIR = "all";
-    private readonly ALL_PROPERTIES = "properties";
     private readonly PROPERTY_DIR = "properties";
     private readonly ACTION_DIR = "actions";
     private readonly EVENT_DIR = "events";
@@ -296,7 +294,7 @@ export default class HttpServer implements ProtocolServer {
                 }
             }
             if (anyProperties) {
-                const href = base + "/" + this.ALL_DIR + "/" + encodeURIComponent(this.ALL_PROPERTIES);
+                const href = base + "/" + this.PROPERTY_DIR;
                 const form = new TD.Form(href, type);
                 if (allReadOnly) {
                     form.op = ["readallproperties", "readmultipleproperties"];
@@ -686,8 +684,9 @@ export default class HttpServer implements ProtocolServer {
                         return;
                     }
 
-                    if (segments[2] === this.ALL_DIR) {
-                        if (this.ALL_PROPERTIES == segments[3]) {
+                    if (segments[2] === this.PROPERTY_DIR) {
+                        if (segments.length == 3) {
+                            // all properties
                             if (req.method === "GET") {
                                 thing
                                     .readAllProperties()
@@ -725,154 +724,154 @@ export default class HttpServer implements ProtocolServer {
                             }
                             // resource found and response sent
                             return;
-                        }
-                    } else if (segments[2] === this.PROPERTY_DIR) {
-                        // sub-path -> select Property
-                        const property = thing.properties[segments[3]];
-                        if (property) {
-                            let options: WoT.InteractionOptions;
-                            const uriVariables: { [k: string]: any } = this.parseUrlParameters(
-                                req.url,
-                                property.uriVariables
-                            );
-                            if (!this.isEmpty(uriVariables)) {
-                                options = { uriVariables: uriVariables };
-                            }
-
-                            if (req.method === "GET") {
-                                // check if this an observable request (longpoll)
-                                if (segments[4] === this.OBSERVABLE_DIR) {
-                                    // FIXME must decide on Content-Type here, not on next()
-                                    res.setHeader("Content-Type", ContentSerdes.DEFAULT);
-                                    res.writeHead(200);
-                                    thing
-                                        .observeProperty(
-                                            segments[3],
-                                            async (value: InteractionOutput) => {
-                                                try {
-                                                    const contentType = ProtocolHelpers.getPropertyContentType(
-                                                        thing.getThingDescription(),
-                                                        segments[3],
-                                                        "http"
-                                                    );
-                                                    const content = ContentSerdes.get().valueToContent(
-                                                        value.data && !value.dataUsed
-                                                            ? value.data
-                                                            : await value.value(),
-                                                        property.data,
-                                                        contentType
-                                                    );
-                                                    // send event data
-                                                    content.body.pipe(res);
-                                                } catch (err) {
-                                                    console.warn(
-                                                        "[binding-http]",
-                                                        `HttpServer on port ${this.getPort()} cannot process data for Event '${
-                                                            segments[3]
-                                                        }: ${err.message}'`
-                                                    );
-                                                    res.writeHead(500);
-                                                    res.end("Invalid Event Data");
-                                                    return;
-                                                }
-                                            },
-                                            options
-                                        )
-                                        .then(() => res.end())
-                                        .catch(() => res.end());
-                                    res.on("finish", () => {
-                                        console.debug(
-                                            "[binding-http]",
-                                            `HttpServer on port ${this.getPort()} closed connection`
-                                        );
-                                        thing.unobserveProperty(segments[3]);
-                                    });
-                                    res.setTimeout(60 * 60 * 1000, () => thing.unobserveProperty(segments[3]));
-                                } else {
-                                    thing
-                                        .readProperty(segments[3], options)
-                                        .then(async (value: InteractionOutput) => {
-                                            const contentType = ProtocolHelpers.getPropertyContentType(
-                                                thing.getThingDescription(),
-                                                segments[3],
-                                                "http"
-                                            );
-                                            const content = ContentSerdes.get().valueToContent(
-                                                value.data && !value.dataUsed ? value.data : await value.value(),
-                                                <any>property,
-                                                contentType
-                                            );
-                                            res.setHeader("Content-Type", content.type);
-                                            res.writeHead(200);
-                                            content.body.pipe(res);
-                                        })
-                                        .catch((err) => {
-                                            console.error(
-                                                "[binding-http]",
-                                                `HttpServer on port ${this.getPort()} got internal error on read '${
-                                                    requestUri.pathname
-                                                }': ${err.message}`
-                                            );
-                                            res.writeHead(500);
-                                            res.end(err.message);
-                                        });
+                        } else {
+                            // sub-path -> select Property
+                            const property = thing.properties[segments[3]];
+                            if (property) {
+                                let options: WoT.InteractionOptions;
+                                const uriVariables: { [k: string]: any } = this.parseUrlParameters(
+                                    req.url,
+                                    property.uriVariables
+                                );
+                                if (!this.isEmpty(uriVariables)) {
+                                    options = { uriVariables: uriVariables };
                                 }
-                            } else if (req.method === "PUT") {
-                                if (!property.readOnly) {
-                                    // load payload
-                                    const body: Array<any> = [];
-                                    req.on("data", (data) => {
-                                        body.push(data);
-                                    });
-                                    req.on("end", () => {
-                                        console.debug(
-                                            "[binding-http]",
-                                            `HttpServer on port ${this.getPort()} completed body '${body}'`
-                                        );
-                                        let value;
-                                        try {
-                                            value = ContentSerdes.get().contentToValue(
-                                                { type: contentType, body: Buffer.concat(body) },
-                                                <any>property
-                                            );
-                                        } catch (err) {
-                                            console.warn(
-                                                "[binding-http]",
-                                                `HttpServer on port ${this.getPort()} cannot process write value for Property '${
-                                                    segments[3]
-                                                }: ${err.message}'`
-                                            );
-                                            res.writeHead(400);
-                                            res.end("Invalid Data");
-                                            return;
-                                        }
+
+                                if (req.method === "GET") {
+                                    // check if this an observable request (longpoll)
+                                    if (segments[4] === this.OBSERVABLE_DIR) {
+                                        // FIXME must decide on Content-Type here, not on next()
+                                        res.setHeader("Content-Type", ContentSerdes.DEFAULT);
+                                        res.writeHead(200);
                                         thing
-                                            .writeProperty(segments[3], value, options)
-                                            .then(() => {
-                                                res.writeHead(204);
-                                                res.end("Changed");
+                                            .observeProperty(
+                                                segments[3],
+                                                async (value: InteractionOutput) => {
+                                                    try {
+                                                        const contentType = ProtocolHelpers.getPropertyContentType(
+                                                            thing.getThingDescription(),
+                                                            segments[3],
+                                                            "http"
+                                                        );
+                                                        const content = ContentSerdes.get().valueToContent(
+                                                            value.data && !value.dataUsed
+                                                                ? value.data
+                                                                : await value.value(),
+                                                            property.data,
+                                                            contentType
+                                                        );
+                                                        // send event data
+                                                        content.body.pipe(res);
+                                                    } catch (err) {
+                                                        console.warn(
+                                                            "[binding-http]",
+                                                            `HttpServer on port ${this.getPort()} cannot process data for Event '${
+                                                                segments[3]
+                                                            }: ${err.message}'`
+                                                        );
+                                                        res.writeHead(500);
+                                                        res.end("Invalid Event Data");
+                                                        return;
+                                                    }
+                                                },
+                                                options
+                                            )
+                                            .then(() => res.end())
+                                            .catch(() => res.end());
+                                        res.on("finish", () => {
+                                            console.debug(
+                                                "[binding-http]",
+                                                `HttpServer on port ${this.getPort()} closed connection`
+                                            );
+                                            thing.unobserveProperty(segments[3]);
+                                        });
+                                        res.setTimeout(60 * 60 * 1000, () => thing.unobserveProperty(segments[3]));
+                                    } else {
+                                        thing
+                                            .readProperty(segments[3], options)
+                                            .then(async (value: InteractionOutput) => {
+                                                const contentType = ProtocolHelpers.getPropertyContentType(
+                                                    thing.getThingDescription(),
+                                                    segments[3],
+                                                    "http"
+                                                );
+                                                const content = ContentSerdes.get().valueToContent(
+                                                    value.data && !value.dataUsed ? value.data : await value.value(),
+                                                    <any>property,
+                                                    contentType
+                                                );
+                                                res.setHeader("Content-Type", content.type);
+                                                res.writeHead(200);
+                                                content.body.pipe(res);
                                             })
                                             .catch((err) => {
                                                 console.error(
                                                     "[binding-http]",
-                                                    `HttpServer on port ${this.getPort()} got internal error on write '${
+                                                    `HttpServer on port ${this.getPort()} got internal error on read '${
                                                         requestUri.pathname
                                                     }': ${err.message}`
                                                 );
                                                 res.writeHead(500);
                                                 res.end(err.message);
                                             });
-                                    });
+                                    }
+                                } else if (req.method === "PUT") {
+                                    if (!property.readOnly) {
+                                        // load payload
+                                        const body: Array<any> = [];
+                                        req.on("data", (data) => {
+                                            body.push(data);
+                                        });
+                                        req.on("end", () => {
+                                            console.debug(
+                                                "[binding-http]",
+                                                `HttpServer on port ${this.getPort()} completed body '${body}'`
+                                            );
+                                            let value;
+                                            try {
+                                                value = ContentSerdes.get().contentToValue(
+                                                    { type: contentType, body: Buffer.concat(body) },
+                                                    <any>property
+                                                );
+                                            } catch (err) {
+                                                console.warn(
+                                                    "[binding-http]",
+                                                    `HttpServer on port ${this.getPort()} cannot process write value for Property '${
+                                                        segments[3]
+                                                    }: ${err.message}'`
+                                                );
+                                                res.writeHead(400);
+                                                res.end("Invalid Data");
+                                                return;
+                                            }
+                                            thing
+                                                .writeProperty(segments[3], value, options)
+                                                .then(() => {
+                                                    res.writeHead(204);
+                                                    res.end("Changed");
+                                                })
+                                                .catch((err) => {
+                                                    console.error(
+                                                        "[binding-http]",
+                                                        `HttpServer on port ${this.getPort()} got internal error on write '${
+                                                            requestUri.pathname
+                                                        }': ${err.message}`
+                                                    );
+                                                    res.writeHead(500);
+                                                    res.end(err.message);
+                                                });
+                                        });
+                                    } else {
+                                        res.writeHead(400);
+                                        res.end("Property readOnly");
+                                    }
                                 } else {
-                                    res.writeHead(400);
-                                    res.end("Property readOnly");
+                                    respondUnallowedMethod(res, "GET, PUT");
                                 }
-                            } else {
-                                respondUnallowedMethod(res, "GET, PUT");
-                            }
-                            // resource found and response sent
-                            return;
-                        } // Property exists?
+                                // resource found and response sent
+                                return;
+                            } // Property exists?
+                        }
                     } else if (segments[2] === this.ACTION_DIR) {
                         // sub-path -> select Action
                         const action: TD.ThingAction = thing.actions[segments[3]];
