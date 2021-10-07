@@ -8,7 +8,9 @@ Useful labels:
 <a href="https://github.com/eclipse/thingweb.node-wot/issues?q=label%3Aquestion+">question</a> |
 <a href="https://github.com/eclipse/thingweb.node-wot/issues?q=label%3A%22good+first+issue%22+">good first issue</a>
 
-![Default CI Pipeline](https://github.com/eclipse/thingweb.node-wot/workflows/Default%20CI%20Pipeline/badge.svg) [<img alt="npm" src="https://img.shields.io/npm/dw/@node-wot/td-tools">](https://npmstats.org/@node-wot:td-tools) [![Telegram Group](https://img.shields.io/endpoint?color=neon&url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Fnodewot)](https://t.me/nodewot)
+![Default CI Pipeline](https://github.com/eclipse/thingweb.node-wot/workflows/Default%20CI%20Pipeline/badge.svg)
+[<img alt="npm" src="https://img.shields.io/npm/dw/@node-wot/td-tools">](https://npmstats.org/@node-wot:td-tools)
+[![Telegram Group](https://img.shields.io/endpoint?color=neon&url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Fnodewot)](https://t.me/nodewot)
 
 ### Table of Contents
 
