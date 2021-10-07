@@ -10,6 +10,7 @@ Useful labels:
 
 ![Default CI Pipeline](https://github.com/eclipse/thingweb.node-wot/workflows/Default%20CI%20Pipeline/badge.svg)
 [<img alt="npm" src="https://img.shields.io/npm/dw/@node-wot/td-tools">](https://npmstats.org/@node-wot:td-tools)
+[![codecov](https://codecov.io/gh/eclipse/thingweb.node-wot/branch/master/graph/badge.svg)](https://codecov.io/gh/eclipse/thingweb.node-wot)
 [![Telegram Group](https://img.shields.io/endpoint?color=neon&url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Fnodewot)](https://t.me/nodewot)
 
 ### Table of Contents
