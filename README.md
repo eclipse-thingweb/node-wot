@@ -1,3 +1,8 @@
+![Default CI Pipeline](https://github.com/eclipse/thingweb.node-wot/workflows/Default%20CI%20Pipeline/badge.svg)
+[<img alt="npm" src="https://img.shields.io/npm/dw/@node-wot/td-tools">](https://npmstats.org/@node-wot:td-tools)
+[![codecov](https://codecov.io/gh/eclipse/thingweb.node-wot/branch/master/graph/badge.svg)](https://codecov.io/gh/eclipse/thingweb.node-wot)
+[![Telegram Group](https://img.shields.io/endpoint?color=neon&url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Fnodewot)](https://t.me/nodewot)
+
 # Eclipse Thingweb node-wot
 
 W3C Web of Things implementation on NodeJS.
@@ -7,11 +12,6 @@ Visit http://www.thingweb.io for a practical [node-wot API usage](http://www.thi
 Useful labels:
 <a href="https://github.com/eclipse/thingweb.node-wot/issues?q=label%3Aquestion+">question</a> |
 <a href="https://github.com/eclipse/thingweb.node-wot/issues?q=label%3A%22good+first+issue%22+">good first issue</a>
-
-![Default CI Pipeline](https://github.com/eclipse/thingweb.node-wot/workflows/Default%20CI%20Pipeline/badge.svg)
-[<img alt="npm" src="https://img.shields.io/npm/dw/@node-wot/td-tools">](https://npmstats.org/@node-wot:td-tools)
-[![codecov](https://codecov.io/gh/eclipse/thingweb.node-wot/branch/master/graph/badge.svg)](https://codecov.io/gh/eclipse/thingweb.node-wot)
-[![Telegram Group](https://img.shields.io/endpoint?color=neon&url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Fnodewot)](https://t.me/nodewot)
 
 ### Table of Contents
 
