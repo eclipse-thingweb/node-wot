@@ -17,8 +17,9 @@ import {
     coerceQualifiedName,
     VariantArrayType,
     CallbackT,
+    CallMethodResultOptions,
 } from "node-opcua";
-import { CallMethodResultOptions, KeyValuePair } from "node-opcua-types";
+import { KeyValuePair } from "node-opcua-types";
 
 interface UAVariable2 extends UAVariable {
     setValueFromSource(value: VariantLike, statusCode?: StatusCode, sourceTimestamp?: Date): void;
