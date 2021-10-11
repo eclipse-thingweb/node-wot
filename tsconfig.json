@@ -5,7 +5,7 @@
         "skipLibCheck": false,
         "module": "commonjs",
         "outDir": "dist",
-        "alwaysStrict": false,
+        "alwaysStrict": true,
         "strict": false,
         "composite": true,
         "incremental": true,
