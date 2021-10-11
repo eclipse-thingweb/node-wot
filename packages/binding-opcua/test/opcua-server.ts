@@ -94,21 +94,23 @@ export class OpcuaServer {
             },
         });
 
-        namespace.addVariable({
+        let testVariable = Math.random();
+        const v = namespace.addVariable({
             browseName: "RandomValue",
             nodeId: "ns=1;s=9998FF00", // some opaque NodeId in namespace 4
             dataType: "Double",
             value: {
                 get: function () {
-                    return new Variant({ dataType: DataType.Double, value: Math.random() });
+                    return new Variant({ dataType: DataType.Double, value: testVariable });
                 },
                 set: function (variant: Variant) {
                     // write property
-                    this.testVariable = parseFloat(variant.value);
+                    testVariable = variant.value;
                     return StatusCodes.Good;
                 },
             },
         });
+        v.setValueFromSource({ dataType: DataType.Double, value: testVariable });
 
         const method = namespace.addMethod(device, {
             // invoke action
