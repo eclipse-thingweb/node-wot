@@ -22,6 +22,7 @@ import { ProtocolHelpers } from "@node-wot/core";
 import * as chai from "chai";
 import * as chaiAsPromised from "chai-as-promised";
 import { promisify } from "util";
+import { fail } from "assert";
 const fs = require("fs");
 
 chai.should();
@@ -109,16 +110,12 @@ class HttpClientBasicTest {
         };
 
         this.client.setSecurity([scheme], { username: "other", password: "other" });
-
-        const error = await new Promise<Error>((resolve, reject) => {
-            this.client
-                .readResource({ href: "https://localhost:3001" })
-                .then(() => reject("Expecting readResource to fail"))
-                .catch((err: unknown) => {
-                    resolve(err as Error);
-                });
-        });
-
-        error.message.should.eql("Client error: Unauthorized");
+        try {
+            await this.client.readResource({ href: "https://localhost:3001" });
+        } catch (error) {
+            error.message.should.eql("Client error: Unauthorized");
+            return;
+        }
+        fail("should fail to authorize client with basic");
     }
 }
