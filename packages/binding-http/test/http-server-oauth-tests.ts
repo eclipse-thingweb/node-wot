@@ -90,7 +90,7 @@ class OAuthServerTests {
 
         await fetch("http://localhost:8080/testoauth/TestOAuth");
 
-        called.should.be.true;
+        called.should.eql(true);
     }
 
     @test async "should send unauthorized if oauth validation fails"() {
@@ -104,7 +104,7 @@ class OAuthServerTests {
 
         const response = await fetch("http://localhost:8080/testoauth/TestOAuth");
 
-        called.should.be.true;
+        called.should.eql(true);
 
         response.status.should.be.equal(401);
     }
@@ -120,16 +120,10 @@ class OAuthServerTests {
 
         const response = await fetch("http://localhost:8080/testoauth/TestOAuth");
 
-        called.should.be.true;
+        called.should.eql(true);
 
         response.status.should.be.equal(401);
     }
 }
 
-class MockServient extends Servient {
-    constructor() {
-        super();
-    }
-
-    getCredentials() {}
-}
+class MockServient extends Servient {}

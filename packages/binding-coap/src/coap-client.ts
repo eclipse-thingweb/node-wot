@@ -184,7 +184,7 @@ export default class CoapClient implements ProtocolClient {
     }
 
     public stop(): boolean {
-        // FIXME coap does not provide proper API to close Agent
+        this.agent.close();
         return true;
     }
 
