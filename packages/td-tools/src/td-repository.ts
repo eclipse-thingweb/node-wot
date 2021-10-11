@@ -15,7 +15,7 @@
 
 import ThingDescription from "./thing-description";
 
-/** This enales to discovery and manage TD's that are host in a TD repo */
+/** This enables to discovery and manage TD's that are host in a TD repo */
 export default class TDRepository {
     /* uri of the repo */
     private tdRepoURI: string;
