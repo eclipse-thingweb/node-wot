@@ -8,7 +8,7 @@
     "repository": "https://github.com/eclipse/thingweb.node-wot/tree/master/examples/servients",
     "main": "coap-servient.js",
     "scripts": {
-        "build": "tsc",
+        "build": "tsc -b",
         "start": "node dist/my-cli.js"
     },
     "bin": {

@@ -32,7 +32,7 @@
         "@node-wot/binding-file": "0.8.0"
     },
     "scripts": {
-        "build": "tsc",
+        "build": "tsc -b",
         "start": "ts-node src/netconf-cli.ts"
     }
 }

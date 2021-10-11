@@ -8,8 +8,8 @@
     },
     "main": "dist/firestore.js",
     "scripts": {
-        "build": "tsc",
-        "rebuild": "tsc & npm rebuild --unsafe-perm --build-from-source",
+        "build": "tsc -b",
+        "rebuild": "tsc -b && npm rebuild --unsafe-perm --build-from-source",
         "test": "firebase emulators:exec -c test/firebase.json \"npm run fbemutest\" && kill-port 4000 8088 9099",
         "fbemutest": "mocha --require ts-node/register test/**/*.ts --timeout 10000 --exit",
         "codestyle": "standard --pretty"

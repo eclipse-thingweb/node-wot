@@ -51,7 +51,7 @@
         "web-streams-polyfill": "^3.0.1"
     },
     "scripts": {
-        "build": "tsc",
+        "build": "tsc -b",
         "lint": "eslint .",
         "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"**/*.json\"",
         "test": "mocha --require ts-node/register --extension ts"
@@ -65,12 +65,6 @@
     },
     "keywords": [],
     "eslintConfig": {
-        "extends": "../../.eslintrc.json",
-        "parserOptions": {
-            "project": [
-                "./tsconfig.json",
-                "./test.tsconfig.json"
-            ]
-        }
+        "extends": "../../.eslintrc.json"
     }
 }

@@ -14,7 +14,6 @@
     "main": "dist/netconf.js",
     "types": "dist/netconf.d.ts",
     "devDependencies": {
-        "@node-wot/td-tools": "0.8.0",
         "@types/chai": "^4.2.18",
         "@types/mocha": "^9.0.0",
         "@types/node": "16.4.13",
@@ -37,6 +36,7 @@
         "wot-typescript-definitions": "^0.8.0-SNAPSHOT.18"
     },
     "dependencies": {
+        "@node-wot/td-tools": "0.8.0",
         "@node-wot/core": "0.8.0",
         "@types/node-netconf": "npm:@types/netconf@^2.0.0",
         "@types/url-parse": "^1.4.3",
@@ -45,7 +45,7 @@
         "url-parse": "^1.5.3"
     },
     "scripts": {
-        "build": "tsc",
+        "build": "tsc -b",
         "test": "mocha --require ts-node/register test/netconf-client-test.ts",
         "lint": "eslint .",
         "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"**/*.json\""

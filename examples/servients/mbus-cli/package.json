@@ -23,14 +23,17 @@
         "wot-typescript-definitions": "^0.8.0-SNAPSHOT.18"
     },
     "dependencies": {
+        "@node-wot/core": "0.8.0",
+        "@node-wot/binding-mbus": "0.8.0",
+        "@node-wot/binding-file": "0.8.0",
+        "@node-wot/binding-http": "0.8.0",
         "fs": "0.0.1-security",
         "node-mbus": "^1.2.2",
         "path": "^0.12.7",
         "typescript": "4.1.3"
     },
     "scripts": {
-        "postinstall": "npm link @node-wot/core && npm link @node-wot/binding-mbus &&  npm link @node-wot/binding-file && npm link @node-wot/binding-http",
-        "build": "tsc",
+        "build": "tsc -b",
         "start": "ts-node src/mbus-cli.ts",
         "codestyle": "standard --pretty"
     }

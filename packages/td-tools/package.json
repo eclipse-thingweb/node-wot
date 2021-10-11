@@ -20,6 +20,7 @@
         "@types/node": "16.4.13",
         "@typescript-eslint/eslint-plugin": "^4.30.0",
         "@typescript-eslint/parser": "^4.30.0",
+        "@types/readable-stream": "^2.3.11",
         "chai": "^4.3.4",
         "eslint": "^7.32.0",
         "eslint-config-prettier": "^8.3.0",
@@ -44,7 +45,7 @@
         "wot-typescript-definitions": "^0.8.0-SNAPSHOT.18"
     },
     "scripts": {
-        "build": "tsc && webpack",
+        "build": "tsc -b && webpack",
         "test": "mocha --require ts-node/register --extension ts",
         "lint": "eslint .",
         "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"**/*.json\""

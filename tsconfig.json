@@ -1,17 +1,50 @@
 {
     "compilerOptions": {
         "target": "es6",
-        "lib": ["es2015", "dom"],
+        "lib": ["dom"],
+        "skipLibCheck": false,
         "module": "commonjs",
         "outDir": "dist",
-        "alwaysStrict": true,
+        "alwaysStrict": false,
+        "strict": false,
+        "composite": true,
         "incremental": true,
         "sourceMap": true,
         "noImplicitAny": true,
+        "noImplicitReturns": false,
         "removeComments": true,
         "noLib": false,
         "preserveConstEnums": true,
         "experimentalDecorators": true,
-        "declaration": true
-    }
+        "declaration": true,
+        "esModuleInterop": true,
+        "strictFunctionTypes": false,
+        "moduleResolution": "node" /* Specify module resolution strategy: 'node' (Node.js) or 'classic' (TypeScript pre-1.6). */,
+        "resolveJsonModule": false,
+        "noStrictGenericChecks": false,
+        "noImplicitThis": true,
+        "skipDefaultLibCheck": false,
+        "allowJs": false
+    },
+    "references": [
+        { "path": "./packages/binding-coap" },
+        { "path": "./packages/binding-file" },
+        // { "path": "./packages/binding-firestore" },
+        // { "path": "./packages/binding-fujitsu" },
+        { "path": "./packages/binding-http" },
+        { "path": "./packages/binding-mbus" },
+        { "path": "./packages/binding-modbus" },
+        { "path": "./packages/binding-mqtt" },
+        { "path": "./packages/binding-netconf" },
+        { "path": "./packages/binding-opcua" },
+        { "path": "./packages/binding-oracle" },
+        { "path": "./packages/binding-websockets" },
+        { "path": "./packages/cli" },
+        { "path": "./packages/core" },
+        { "path": "./packages/td-tools" }
+    ],
+    "include": [
+        /** specifically nothing here */
+    ],
+    "exclude": []
 }

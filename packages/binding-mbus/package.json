@@ -43,7 +43,7 @@
         "wot-typescript-definitions": "^0.8.0-SNAPSHOT.18"
     },
     "scripts": {
-        "build": "tsc",
+        "build": "tsc -b",
         "test": "mocha --require ts-node/register test/*",
         "lint": "eslint .",
         "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"**/*.json\""

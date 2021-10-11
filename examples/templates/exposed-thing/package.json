@@ -23,7 +23,7 @@
     },
     "optionalDependencies": {},
     "scripts": {
-        "build": "tsc",
+        "build": "tsc -b",
         "buildAll": "npm install; tsc;",
         "start": "node index.js",
         "clean": "rm -rf node_modules; rm -rf dist; rm -rf package-lock.json"

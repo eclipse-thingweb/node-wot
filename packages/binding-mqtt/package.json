@@ -41,7 +41,7 @@
         "rxjs": "5.5.11"
     },
     "scripts": {
-        "build": "tsc",
+        "build": "tsc -b",
         "test": "mocha --require ts-node/register --extension ts",
         "lint": "eslint .",
         "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"**/*.json\""

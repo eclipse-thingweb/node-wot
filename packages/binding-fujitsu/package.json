@@ -37,7 +37,7 @@
         "ws": "^7.5.4"
     },
     "scripts": {
-        "build": "tsc",
+        "build": "tsc -b",
         "lint": "eslint .",
         "format": "prettier --write \"src/**/*.ts\" \"**/*.json\""
     },
@@ -46,11 +46,6 @@
     },
     "homepage": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-fujitsu#readme",
     "eslintConfig": {
-        "extends": "../../.eslintrc.json",
-        "parserOptions": {
-            "project": [
-                "./tsconfig.json"
-            ]
-        }
+        "extends": "../../.eslintrc.json"
     }
 }

@@ -47,7 +47,7 @@
         "dotenv": "^8.6.0"
     },
     "scripts": {
-        "build": "tsc",
+        "build": "tsc -b",
         "start": "ts-node src/cli.ts",
         "debug": "node -r ts-node/register --inspect-brk=9229 src/cli.ts",
         "lint": "eslint .",

@@ -37,7 +37,7 @@
         "rxjs": "5.5.11"
     },
     "scripts": {
-        "build": "tsc",
+        "build": "tsc -b",
         "lint": "eslint .",
         "format": "prettier --write \"src/**/*.ts\" \"**/*.json\""
     },

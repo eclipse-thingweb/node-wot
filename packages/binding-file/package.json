@@ -34,7 +34,7 @@
         "@node-wot/core": "0.8.0"
     },
     "scripts": {
-        "build": "tsc",
+        "build": "tsc -b",
         "test": "",
         "lint": "eslint .",
         "format": "prettier --write \"src/**/*.ts\" \"**/*.json\""

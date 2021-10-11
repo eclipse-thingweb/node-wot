@@ -2,11 +2,8 @@
     "extends": "../../tsconfig.json",
     "compilerOptions": {
         "outDir": "dist",
-        "target": "ES2018",
-        "alwaysStrict": false,
-        "noImplicitUseStrict": true,
-        "sourceMap": false,
-        "removeComments": false
+        "rootDir": "src"
     },
-    "include": ["src/**/*"]
+    "include": ["src/**/*"],
+    "references": [{ "path": "../td-tools" }]
 }

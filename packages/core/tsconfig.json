@@ -1,9 +1,10 @@
 {
     "extends": "../../tsconfig.json",
     "compilerOptions": {
-        "outDir": "dist",
         "resolveJsonModule": true,
-        "esModuleInterop": true
+        "outDir": "dist",
+        "rootDir": "src"
     },
-    "include": ["src/**/*"]
+    "include": ["src/**/*"],
+    "references": [{ "path": "../td-tools" }]
 }
