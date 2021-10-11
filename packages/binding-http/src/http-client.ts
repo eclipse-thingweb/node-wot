@@ -121,7 +121,7 @@ export default class HttpClient implements ProtocolClient {
         return { type: result.headers.get("content-type"), body: result.body };
     }
 
-    public async writeResource(form: HttpForm, content: Content): Promise<any> {
+    public async writeResource(form: HttpForm, content: Content): Promise<void> {
         const request = await this.generateFetchRequest(form, "PUT", {
             headers: [["content-type", content.type]],
             body: content.body,
@@ -150,11 +150,11 @@ export default class HttpClient implements ProtocolClient {
     ): Promise<Subscription> {
         return new Promise<Subscription>((resolve, reject) => {
             let internalSubscription: InternalSubscription;
-            if (form.subprotocol == undefined || form.subprotocol == "longpoll") {
-                //longpoll or subprotocol is not defined default is longpoll
+            if (form.subprotocol === undefined || form.subprotocol === "longpoll") {
+                // longpoll or subprotocol is not defined default is longpoll
                 internalSubscription = new LongPollingSubscription(form, this);
             } else if (form.subprotocol == "sse") {
-                //server sent events
+                // server sent events
                 internalSubscription = new SSESubscription(form);
             }
 
