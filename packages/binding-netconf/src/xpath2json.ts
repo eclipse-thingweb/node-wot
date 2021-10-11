@@ -138,7 +138,7 @@ export function xpath2json(xpath: string, NSs: any) {
     return obj;
 }
 
-export function addLeaves(xpath: string, payload: any) {
+export function addLeaves(this: any, xpath: string, payload: any) {
     if (!this.isObject(payload)) {
         return xpath;
     }
