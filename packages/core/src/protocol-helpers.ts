@@ -17,9 +17,18 @@ import * as TD from "@node-wot/td-tools";
 import { Readable } from "stream";
 import { ReadableStream as PolyfillStream } from "web-streams-polyfill/ponyfill/es2018";
 
+export interface IManagedStream2 {
+    nodeStream: Readable;
+    wotStream: ReadableStream;
+}
+
+export interface IManagedStream {
+    nodeStream: NodeJS.ReadableStream;
+    wotStream: ReadableStream;
+}
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/ban-types
 function ManagedStream<TBase extends new (...args: any[]) => {}>(Base: TBase) {
-    return class extends Base {
+    return class extends Base implements IManagedStream {
         _nodeStream: NodeJS.ReadableStream;
         _wotStream: ReadableStream;
         set nodeStream(nodeStream: NodeJS.ReadableStream) {
@@ -43,11 +52,11 @@ function ManagedStream<TBase extends new (...args: any[]) => {}>(Base: TBase) {
 const ManagedReadable = ManagedStream(Readable);
 const ManagedReadableStream = ManagedStream(PolyfillStream);
 
-function isManagedReadable(obj: unknown): obj is { nodeStream: Readable; wotStream: ReadableStream } {
+function isManagedReadable(obj: unknown): obj is IManagedStream2 {
     return obj instanceof ManagedReadable;
 }
 
-function isManagedReadableStream(obj: unknown): obj is { nodeStream: Readable; wotStream: ReadableStream } {
+function isManagedReadableStream(obj: unknown): obj is IManagedStream2 {
     return obj instanceof ManagedReadableStream;
 }
 export default class ProtocolHelpers {
@@ -198,9 +207,7 @@ export default class ProtocolHelpers {
         return undefined; // not found
     }
 
-    public static toWoTStream(
-        stream: NodeJS.ReadableStream | { nodeStream: Readable; wotStream: ReadableStream }
-    ): ReadableStream | PolyfillStream {
+    public static toWoTStream(stream: NodeJS.ReadableStream | IManagedStream2): ReadableStream | PolyfillStream {
         // TODO USE CLASSES
         if (isManagedReadable(stream)) {
             return stream.wotStream;
@@ -222,10 +229,8 @@ export default class ProtocolHelpers {
         return result;
     }
 
-    public static toNodeStream(
-        stream: ReadableStream | PolyfillStream | { nodeStream: Readable; wotStream: ReadableStream }
-    ): Readable {
-        // TODO: use proper clases
+    public static toNodeStream(stream: ReadableStream | PolyfillStream | IManagedStream2): Readable {
+        // TODO: use proper classes
         if (isManagedReadableStream(stream)) {
             return stream.nodeStream;
         }
@@ -247,7 +252,8 @@ export default class ProtocolHelpers {
                 stream.cancel(error);
             },
         });
-        result.wotStream = stream;
+        result.wotStream = stream as any;
+
         return result;
     }
 

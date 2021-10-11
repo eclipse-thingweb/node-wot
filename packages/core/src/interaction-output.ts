@@ -43,7 +43,7 @@ export class InteractionOutput implements WoT.InteractionOutput {
         this.schema = schema;
 
         if (content && content.body) {
-            this.data = ProtocolHelpers.toWoTStream(content.body);
+            this.data = ProtocolHelpers.toWoTStream(content.body) as any;
         }
     }
 
