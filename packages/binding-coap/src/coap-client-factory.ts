@@ -26,7 +26,7 @@ export default class CoapClientFactory implements ProtocolClientFactory {
 
     private readonly server: CoapServer;
 
-    constructor(server?: CoapServer) {
+    constructor(server: CoapServer) {
         this.server = server;
     }
 

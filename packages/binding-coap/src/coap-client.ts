@@ -56,12 +56,10 @@ export default class CoapClient implements ProtocolClient {
         return "[CoapClient]";
     }
 
-    public readResource(form: CoapForm): Promise<Content> {
+    public async readResource(form: CoapForm): Promise<Content> {
+        const req = await this.generateRequest(form, "GET");
+        console.debug("[binding-coap]", `CoapClient sending ${req.statusCode} to ${form.href}`);
         return new Promise<Content>((resolve, reject) => {
-            const req = this.generateRequest(form, "GET");
-
-            console.debug("[binding-coap]", `CoapClient sending ${req.statusCode} to ${form.href}`);
-
             req.on("response", (res: any) => {
                 console.debug("[binding-coap]", `CoapClient received ${res.code} from ${form.href}`);
                 console.debug("[binding-coap]", `CoapClient received Content-Format: ${res.headers["Content-Format"]}`);
@@ -102,31 +100,43 @@ export default class CoapClient implements ProtocolClient {
     }
 
     public invokeResource(form: CoapForm, content?: Content): Promise<Content> {
-        return new Promise<Content>(async (resolve, reject) => {
+        return new Promise<Content>((resolve, reject) => {
             const req = this.generateRequest(form, "POST");
 
             console.debug("[binding-coap]", `CoapClient sending ${req.statusCode} to ${form.href}`);
 
-            req.on("response", (res: any) => {
-                console.debug("[binding-coap]", `CoapClient received ${res.code} from ${form.href}`);
-                console.debug("[binding-coap]", `CoapClient received Content-Format: ${res.headers["Content-Format"]}`);
-                console.debug("[binding-coap]", `CoapClient received headers: ${JSON.stringify(res.headers)}`);
-                const contentType = res.headers["Content-Format"];
-                resolve({ type: contentType, body: Readable.from(res.payload) });
-            });
+            req.on(
+                "response",
+                (res: {
+                    code: string;
+                    headers: { "Content-Format"?: string };
+                    payload: Iterable<any> | AsyncIterable<any>;
+                }) => {
+                    console.debug("[binding-coap]", `CoapClient received ${res.code} from ${form.href}`);
+                    console.debug(
+                        "[binding-coap]",
+                        `CoapClient received Content-Format: ${res.headers["Content-Format"]}`
+                    );
+                    console.debug("[binding-coap]", `CoapClient received headers: ${JSON.stringify(res.headers)}`);
+                    const contentType = res.headers["Content-Format"];
+                    resolve({ type: contentType || "", body: Readable.from(res.payload) });
+                }
+            );
             req.on("error", (err: Error) => reject(err));
-            if (content && content.body) {
-                let buffer = await ProtocolHelpers.readStreamFully(content.body);
-                req.setOption("Content-Format", content.type);
-                req.write(buffer);
-            }
-            req.end();
+            (async () => {
+                if (content && content.body) {
+                    const buffer = await ProtocolHelpers.readStreamFully(content.body);
+                    req.setOption("Content-Format", content.type);
+                    req.write(buffer);
+                }
+                req.end();
+            })();
         });
     }
 
     public unlinkResource(form: CoapForm): Promise<any> {
         return new Promise<void>((resolve, reject) => {
-            let req = this.generateRequest(form, "GET", false);
+            const req = this.generateRequest(form, "GET", false);
 
             console.debug("[binding-coap]", `CoapClient sending ${req.statusCode} to ${form.href}`);
 
@@ -147,7 +157,7 @@ export default class CoapClient implements ProtocolClient {
         complete?: () => void
     ): Promise<Subscription> {
         return new Promise<Subscription>((resolve, reject) => {
-            let req = this.generateRequest(form, "GET", true);
+            const req = this.generateRequest(form, "GET", true);
 
             console.debug("[binding-coap]", `CoapClient sending ${req.statusCode} to ${form.href}`);
 
@@ -171,8 +181,10 @@ export default class CoapClient implements ProtocolClient {
                 );
             });
 
-            req.on("error", (err: any) => {
-                error(err);
+            req.on("error", (err: Error) => {
+                if (error) {
+                    error(err);
+                }
             });
 
             req.end();
@@ -191,17 +203,18 @@ export default class CoapClient implements ProtocolClient {
     public setSecurity = (metadata: Array<TD.SecurityScheme>): boolean => true;
 
     private uriToOptions(uri: string): CoapRequestConfig {
+        // eslint-disable-next-line node/no-deprecated-api
         const requestUri = url.parse(uri);
         const agentOptions = this.agentOptions;
-        agentOptions.type = net.isIPv6(requestUri.hostname) ? "udp6" : "udp4";
+        agentOptions.type = net.isIPv6(requestUri.hostname || "") ? "udp6" : "udp4";
         this.agent = new coap.Agent(agentOptions);
 
         const options: CoapRequestConfig = {
             agent: this.agent,
-            hostname: requestUri.hostname,
+            hostname: requestUri.hostname || "",
             port: requestUri.port ? parseInt(requestUri.port, 10) : 5683,
-            pathname: requestUri.pathname,
-            query: requestUri.query,
+            pathname: requestUri.pathname || "",
+            query: requestUri.query || "",
             observe: false,
             multicast: false,
             confirmable: true,
