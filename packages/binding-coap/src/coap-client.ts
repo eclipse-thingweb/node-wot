@@ -179,11 +179,11 @@ export default class CoapClient implements ProtocolClient {
         });
     }
 
-    public start(): boolean {
+    public async start(): Promise<boolean> {
         return true;
     }
 
-    public stop(): boolean {
+    public async stop(): Promise<boolean> {
         this.agent.close();
         return true;
     }

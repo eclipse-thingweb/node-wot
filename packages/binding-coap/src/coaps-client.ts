@@ -124,11 +124,11 @@ export default class CoapsClient implements ProtocolClient {
         });
     }
 
-    public start(): boolean {
+    public async start(): Promise<boolean> {
         return true;
     }
 
-    public stop(): boolean {
+    public async stop(): Promise<boolean> {
         // FIXME coap does not provide proper API to close Agent
         return true;
     }

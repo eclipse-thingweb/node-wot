@@ -66,11 +66,11 @@ class TDClient implements ProtocolClient {
         });
     }
 
-    public start(): boolean {
+    public async start(): Promise<boolean> {
         return true;
     }
 
-    public stop(): boolean {
+    public async stop(): Promise<boolean> {
         return true;
     }
 
@@ -139,11 +139,11 @@ class TrapClient implements ProtocolClient {
         });
     }
 
-    public start(): boolean {
+    public async start(): Promise<boolean> {
         return true;
     }
 
-    public stop(): boolean {
+    public async stop(): Promise<boolean> {
         return true;
     }
 
@@ -197,11 +197,11 @@ class TestProtocolClient implements ProtocolClient {
         throw new Error("Method not implemented.");
     }
 
-    start(): boolean {
+    async start(): Promise<boolean> {
         throw new Error("Method not implemented.");
     }
 
-    stop(): boolean {
+    async stop(): Promise<boolean> {
         throw new Error("Method not implemented.");
     }
 

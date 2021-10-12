@@ -341,11 +341,11 @@ export default class OpcuaClient implements ProtocolClient {
         });
     }
 
-    public start(): boolean {
+    public async start(): Promise<boolean> {
         return true;
     }
 
-    public async stopAsync(): Promise<boolean> {
+    public async stop(): Promise<boolean> {
         const { subscription, session, client } = this;
         this.subscription = undefined;
         this.session = undefined;
@@ -359,12 +359,6 @@ export default class OpcuaClient implements ProtocolClient {
         if (client) {
             await client.disconnect();
         }
-        return true;
-    }
-
-    public stop(): boolean {
-        // note: Stop should really be an async function !!
-        this.stopAsync();
         return true;
     }
 

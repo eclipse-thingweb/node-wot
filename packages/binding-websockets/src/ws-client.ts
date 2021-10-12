@@ -52,11 +52,11 @@ export default class WebSocketClient implements ProtocolClient {
         return null;
     }
 
-    public start(): boolean {
+    public async start(): Promise<boolean> {
         return true;
     }
 
-    public stop(): boolean {
+    public async stop(): Promise<boolean> {
         return true;
     }
 
