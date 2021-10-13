@@ -3,7 +3,7 @@ import * as chai from "chai";
 import ModbusClient from "../src/modbus-client";
 import { ModbusForm } from "../src/modbus";
 import ModbusServer from "./test-modbus-server";
-import * as chaiAsPromised from "chai-as-promised";
+import chaiAsPromised from "chai-as-promised";
 import { Readable } from "stream";
 import { ProtocolHelpers } from "@node-wot/core";
 

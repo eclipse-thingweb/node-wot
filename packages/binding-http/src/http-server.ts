@@ -20,24 +20,21 @@
 import * as fs from "fs";
 import * as http from "http";
 import * as https from "https";
-import * as bauth from "basic-auth";
+import bauth from "basic-auth";
 import * as url from "url";
 
 import { AddressInfo } from "net";
 
 import * as TD from "@node-wot/td-tools";
-import Servient, {
-    ProtocolServer,
-    ContentSerdes,
-    Helpers,
-    ExposedThing,
-    ProtocolHelpers,
-    Content,
-} from "@node-wot/core";
+import Servient, { ProtocolServer, ContentSerdes, Helpers, ExposedThing, ProtocolHelpers } from "@node-wot/core";
 import { HttpConfig, HttpForm, OAuth2ServerConfig } from "./http";
 import createValidator, { Validator } from "./oauth-token-validation";
 import { OAuth2SecurityScheme } from "@node-wot/td-tools";
-import { InteractionOutput } from "@node-wot/core/dist/interaction-output";
+import slugify from "slugify";
+import { InteractionOutput } from "wot-typescript-definitions";
+import "accept-language-parser";
+
+declare const alparser: any;
 
 export default class HttpServer implements ProtocolServer {
     public readonly scheme: "http" | "https";
@@ -124,10 +121,12 @@ export default class HttpServer implements ProtocolServer {
                     this.httpSecurityScheme = "Bearer";
                     break;
                 case "oauth2":
-                    this.httpSecurityScheme = "OAuth";
-                    const oAuthConfig = config.security as OAuth2ServerConfig;
-                    this.validOAuthClients = new RegExp(oAuthConfig.allowedClients ?? ".*");
-                    this.oAuthValidator = createValidator(oAuthConfig.method);
+                    {
+                        this.httpSecurityScheme = "OAuth";
+                        const oAuthConfig = config.security as OAuth2ServerConfig;
+                        this.validOAuthClients = new RegExp(oAuthConfig.allowedClients ?? ".*");
+                        this.oAuthValidator = createValidator(oAuthConfig.method);
+                    }
                     break;
                 default:
                     throw new Error(`HttpServer does not support security scheme '${config.security.scheme}`);
@@ -207,7 +206,7 @@ export default class HttpServer implements ProtocolServer {
             let pattern = "{?";
             let index = 0;
             for (const key in uriVariables) {
-                if (index != 0) {
+                if (index !== 0) {
                     pattern += ",";
                 }
                 pattern += encodeURIComponent(key);
@@ -221,7 +220,6 @@ export default class HttpServer implements ProtocolServer {
     }
 
     public expose(thing: ExposedThing, tdTemplate?: WoT.ExposedThingInit): Promise<void> {
-        const slugify = require("slugify");
         let urlPath = slugify(thing.title, { lower: true });
 
         if (this.things.has(urlPath)) {
@@ -276,7 +274,7 @@ export default class HttpServer implements ProtocolServer {
             } else {
                 console.info("[binding-http]", `HttpServer failed to destroy thing with thingId '${thingId}'`);
             }
-            resolve(removedThing != undefined);
+            resolve(removedThing !== undefined);
         });
     }
 
@@ -424,7 +422,7 @@ export default class HttpServer implements ProtocolServer {
             }
             case "Digest":
                 return false;
-            case "OAuth":
+            case "OAuth": {
                 const oAuthScheme = thing.securityDefinitions[thing.security[0] as string] as OAuth2SecurityScheme;
 
                 // TODO: Support security schemes defined at affordance level
@@ -441,6 +439,7 @@ export default class HttpServer implements ProtocolServer {
                 }
 
                 return valid;
+            }
             case "Bearer": {
                 if (req.headers.authorization === undefined) return false;
                 // TODO proper token evaluation
@@ -456,11 +455,10 @@ export default class HttpServer implements ProtocolServer {
     private fillSecurityScheme(thing: ExposedThing) {
         if (thing.securityDefinitions) {
             const secCandidate = Object.keys(thing.securityDefinitions).find((key) => {
-                let scheme = thing.securityDefinitions[key].scheme;
+                let scheme = thing.securityDefinitions[key].scheme as string;
                 // HTTP Authentication Scheme for OAuth does not contain the version number
                 // see https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml
                 // remove version number for oauth2 schemes
-                // @ts-ignore
                 scheme = scheme === "oauth2" ? scheme.split("2")[0] : scheme;
                 return scheme === this.httpSecurityScheme.toLowerCase();
             });
@@ -517,6 +515,7 @@ export default class HttpServer implements ProtocolServer {
     }
 
     private async handleRequest(req: http.IncomingMessage, res: http.ServerResponse) {
+        // eslint-disable-next-line node/no-deprecated-api
         const requestUri = url.parse(req.url);
 
         console.debug(
@@ -640,9 +639,8 @@ export default class HttpServer implements ProtocolServer {
                         // look for language negotiation through the Accept-Language header field of HTTP (e.g., "de", "de-CH", "en-US,en;q=0.5")
                         // Note: "title" on thing level is mandatory term --> check whether "titles" exists for multi-languages
                         // Note: HTTP header names are case-insensitive and req.headers seems to contain them in lowercase
-                        if (req.headers["accept-language"] && req.headers["accept-language"] != "*") {
+                        if (req.headers["accept-language"] && req.headers["accept-language"] !== "*") {
                             if (thing.titles) {
-                                const alparser = require("accept-language-parser");
                                 const supportedLanguagesArray: string[] = []; // e.g., ['fr', 'en']
 
                                 // collect supported languages by checking titles (given title is the only mandatory multi-lang term)
@@ -685,29 +683,29 @@ export default class HttpServer implements ProtocolServer {
                     }
 
                     if (segments[2] === this.PROPERTY_DIR) {
-                        if (segments.length == 3) {
+                        if (segments.length === 3) {
                             // all properties
                             if (req.method === "GET") {
                                 thing
                                     .readAllProperties()
                                     .then(async (propMap: WoT.PropertyReadMap) => {
                                         // Note we create one object to return, TODO piping response
-                                        let recordReponse: Record<string, any> = {};
-                                        for (let key of propMap.keys()) {
-                                            let value: WoT.InteractionOutput = propMap.get(key);
+                                        const recordResponse: Record<string, any> = {};
+                                        for (const key of propMap.keys()) {
+                                            const value: WoT.InteractionOutput = propMap.get(key);
                                             value.form = { f: "all" }; // to avoid missing form error
-                                            let content = ContentSerdes.get().valueToContent(
+                                            const content = ContentSerdes.get().valueToContent(
                                                 value.data && !value.dataUsed ? value.data : await value.value(),
                                                 undefined,
                                                 "application/json"
                                             );
                                             // TODO ProtocolHelpers.readStreamFully() does not work for counter example for SVG countAsImage
                                             const data = await ProtocolHelpers.readStreamFully(content.body);
-                                            recordReponse[key] = data.toString(); // contentType handling?
+                                            recordResponse[key] = data.toString(); // contentType handling?
                                         }
                                         res.setHeader("Content-Type", "application/json"); // contentType handling?
                                         res.writeHead(200);
-                                        res.end(JSON.stringify(recordReponse));
+                                        res.end(JSON.stringify(recordResponse));
                                     })
                                     .catch((err) => {
                                         console.error(
@@ -771,7 +769,6 @@ export default class HttpServer implements ProtocolServer {
                                                         );
                                                         res.writeHead(500);
                                                         res.end("Invalid Event Data");
-                                                        return;
                                                     }
                                                 },
                                                 options
@@ -955,7 +952,6 @@ export default class HttpServer implements ProtocolServer {
                                                 );
                                                 res.writeHead(500);
                                                 res.end("Invalid Event Data");
-                                                return;
                                             }
                                         },
                                         options
@@ -989,7 +985,7 @@ export default class HttpServer implements ProtocolServer {
 
     private isEmpty(obj: any) {
         for (const key in obj) {
-            if (obj.hasOwnProperty(key)) return false;
+            if (Object.prototype.hasOwnProperty.call(obj, key)) return false;
         }
         return true;
     }

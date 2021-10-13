@@ -2,7 +2,8 @@
     "extends": "../../tsconfig.json",
     "compilerOptions": {
         "outDir": "dist",
-        "alwaysStrict": false
+        "rootDir": "src"
     },
-    "include": ["src/**/*"]
+    "include": ["src/**/*"],
+    "references": [{ "path": "../td-tools" }, { "path": "../core" }]
 }

@@ -1,35 +1,48 @@
-const fs = require("fs");
+/* eslint-disable @typescript-eslint/no-var-requires */
 const path = require("path");
+const fs = require("fs");
 
 const doDebug = false;
 async function main() {
     const dependencies = {};
 
-    async function exploreFolder(folderToExplore) {
-        const subFolders = await fs.promises.readdir(folderToExplore);
-        for (const subFolder of subFolders) {
-            const folderPath = path.join(folderToExplore, subFolder);
-            const packagejson = path.join(folderPath, "package.json");
-            if (fs.existsSync(packagejson)) {
-                if (doDebug) {
-                    console.log("exploring ", folderPath);
+    async function exploreModule(folderPath) {
+        const folder = path.basename(folderPath);
+
+        const packageFilename = path.join(folderPath, "package.json");
+        if (fs.existsSync(packageFilename)) {
+            if (doDebug) {
+                console.log("exploring ", folderPath);
+            }
+            const packageJson = JSON.parse(await fs.promises.readFile(packageFilename, "utf8"));
+            if (packageJson.dependencies || packageJson.devDependencies) {
+                const modules = Object.entries(packageJson.dependencies || []).concat(
+                    Object.entries(packageJson.devDependencies || [])
+                );
+                for (const [moduleName, version] of modules) {
+                    dependencies[moduleName] = dependencies[moduleName] || {};
+                    dependencies[moduleName][version] = dependencies[moduleName][version] || [];
+                    dependencies[moduleName][version].push(folder);
                 }
-                const packageJson = JSON.parse(await fs.promises.readFile(packagejson, "utf8"));
-                if (packageJson.dependencies) {
-                    for (const [moduleName, version] of Object.entries(packageJson.dependencies).concat(
-                        Object.entries(packageJson.devDependencies)
-                    )) {
-                        dependencies[moduleName] = dependencies[moduleName] || {};
-                        dependencies[moduleName][version] = dependencies[moduleName][version] || [];
-                        dependencies[moduleName][version].push(subFolder);
-                    }
+                if (doDebug) {
+                    console.log(folder);
+                    console.log(modules);
                 }
             }
         }
     }
+    async function exploreFolder(folderToExplore) {
+        const subFolders = await fs.promises.readdir(folderToExplore);
+        for (const subFolder of subFolders) {
+            const folderPath = path.join(folderToExplore, subFolder);
+            exploreModule(folderPath);
+        }
+    }
 
     const rootFolder = path.join(__dirname, "..");
+    await exploreModule(rootFolder);
     await exploreFolder(path.join(rootFolder, "packages"));
+    await exploreFolder(path.join(rootFolder, "examples"));
     await exploreFolder(path.join(rootFolder, "examples/servients"));
     await exploreFolder(path.join(rootFolder, "examples/templates"));
     await exploreFolder(path.join(rootFolder, "examples/security"));

@@ -15,7 +15,7 @@
 
 import * as https from "https";
 import { suite, test } from "@testdeck/mocha";
-import * as express from "express";
+import express from "express";
 import { HttpClient } from "../src/http";
 import { OAuth2SecurityScheme } from "@node-wot/td-tools";
 

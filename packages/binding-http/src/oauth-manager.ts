@@ -14,7 +14,7 @@
  ********************************************************************************/
 
 import { OAuth2SecurityScheme } from "@node-wot/td-tools";
-import * as ClientOAuth2 from "client-oauth2";
+import ClientOAuth2 from "client-oauth2";
 import { request, RequestOptions } from "https";
 import { parse } from "url";
 import { OAuthCredential } from "./credential";

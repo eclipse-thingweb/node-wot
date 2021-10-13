@@ -2,7 +2,9 @@
     "extends": "../../tsconfig.json",
     "compilerOptions": {
         "outDir": "dist",
+        "rootDir": "src",
         "typeRoots": ["./node_modules/@types", "./typings"]
     },
-    "include": ["src/**/*"]
+    "include": ["src/**/*"],
+    "references": [{ "path": "../td-tools" }, { "path": "../core" }]
 }

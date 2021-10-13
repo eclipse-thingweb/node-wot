@@ -14,7 +14,7 @@
  ********************************************************************************/
 
 import * as TD from "@node-wot/td-tools";
-import * as Url from "url-parse";
+import Url from "url-parse";
 
 /** default implementation offering JSON de-/serialisation */
 export default class NetconfCodec {
@@ -23,17 +23,17 @@ export default class NetconfCodec {
     }
 
     bytesToValue(bytes: Buffer, schema: TD.DataSchema, parameters: { [key: string]: string }): any {
-        //console.debug(`NetconfCodec parsing '${bytes.toString()}'`);
+        // console.debug(`NetconfCodec parsing '${bytes.toString()}'`);
 
         let parsed: any;
         try {
             parsed = JSON.parse(bytes.toString());
-            //get data reply
+            // get data reply
             let reply = parsed.rpc_reply.data;
             let leaf = <any>schema;
             let form = leaf.forms[0];
-            leaf = form.href.split("/").splice(-1, 1); //take the first one, since there is no difference for the leaf
-            leaf = leaf[0].replace(/\[(.*?)\]/g, ""); //clean the leaf from possible values
+            leaf = form.href.split("/").splice(-1, 1); // take the first one, since there is no difference for the leaf
+            leaf = leaf[0].replace(/\[(.*?)\]/g, ""); // clean the leaf from possible values
             if (!leaf) {
                 throw new Error(`The href specified in TD is missing the leaf node in the Xpath`);
             }

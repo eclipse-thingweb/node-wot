@@ -3,5 +3,14 @@
     "compilerOptions": {
         "outDir": "dist"
     },
-    "include": ["src/**/*"]
+    "include": ["src/**/*"],
+    "references": [
+        { "path": "../td-tools" },
+        { "path": "../core" },
+        { "path": "../binding-http" },
+        { "path": "../binding-file" },
+        { "path": "../binding-websockets" },
+        { "path": "../binding-coap" },
+        { "path": "../binding-mqtt" }
+    ]
 }

@@ -1,19 +1,10 @@
 {
+    "extends": "../../tsconfig.json",
     "compilerOptions": {
-        "target": "es5",
-        "lib": ["es2018", "dom"],
-        "module": "commonjs",
         "outDir": "dist",
-        "alwaysStrict": true,
-        "sourceMap": true,
-        "noImplicitAny": false,
-        "removeComments": true,
-        "noLib": false,
-        "preserveConstEnums": true,
-        "experimentalDecorators": true,
-        "declaration": true,
-        "esModuleInterop": true
+        "rootDir": "src"
     },
     "include": ["src/**/*"],
-    "exclude": ["node_modules"]
+    "exclude": ["node_modules"],
+    "references": [{ "path": "../td-tools" }, { "path": "../core" }]
 }

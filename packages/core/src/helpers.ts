@@ -52,7 +52,7 @@ const ajv = new Ajv({ strict: false })
     );
 
 export default class Helpers {
-    static tsSchemaValidator = ajv.compile(Helpers.createExposeThingInitSchema(tdSchema));
+    static tsSchemaValidator = ajv.compile(Helpers.createExposeThingInitSchema(tdSchema)) as any;
 
     private srv: Servient;
 
@@ -271,7 +271,7 @@ export default class Helpers {
         const isValid = Helpers.tsSchemaValidator(data);
         let errors;
         if (!isValid) {
-            errors = Helpers.tsSchemaValidator.errors.map((o) => o.message).join("\n");
+            errors = Helpers.tsSchemaValidator.errors.map((o: any) => o.message).join("\n");
         }
         return {
             valid: isValid,

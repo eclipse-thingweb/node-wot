@@ -67,3 +67,6 @@ packages/*
 
 # JetBrains IDEs
 .idea/
+
+# tsc build info
+tsconfig.tsbuildinfo

@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 import { HttpClient, HttpForm } from "./http";
-import * as EventSource from "eventsource";
+import EventSource from "eventsource";
 import { Subscription } from "rxjs/Subscription";
 export interface InternalSubscription {
     open(next: (value: any) => void, error?: (error: any) => void, complete?: () => void): Promise<void>;
