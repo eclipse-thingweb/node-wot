@@ -52,9 +52,9 @@ class WoTRuntimeTest {
         process.exit = this.exit;
     }
 
-    static after() {
+    static async after(): Promise<void> {
         console.log("after finishing test suite");
-        this.servient.shutdown();
+        await this.servient.shutdown();
     }
 
     @test "should provide cli args"() {

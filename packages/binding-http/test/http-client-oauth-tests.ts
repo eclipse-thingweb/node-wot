@@ -64,16 +64,16 @@ class HttpClientOAuthTest {
         });
     }
 
-    static after() {
-        return promisify(this.server.close.bind(this.server))();
+    static async after() {
+        return await promisify(this.server.close.bind(this.server))();
     }
 
     before() {
         this.client = new HttpClient({ allowSelfSigned: true }, true);
     }
 
-    after() {
-        this.client.stop();
+    async after() {
+        await this.client.stop();
     }
 
     @test async "should authorize client with client_credentials flow"() {

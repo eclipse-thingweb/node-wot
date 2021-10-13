@@ -294,9 +294,11 @@ export default class Servient {
         return new WoTImpl(this);
     }
 
-    public shutdown(): void {
+    public async shutdown(): Promise<void> {
         this.clientFactories.forEach((clientFactory) => clientFactory.destroy());
-        this.servers.forEach((server) => server.stop());
+
+        const promises = this.servers.map((server) => server.stop());
+        await Promise.all(promises);
 
         this.uncaughtListeners.forEach((listener) => {
             process.removeListener("uncaughtException", listener);

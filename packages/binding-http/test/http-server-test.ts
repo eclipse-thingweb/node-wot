@@ -203,16 +203,18 @@ class HttpServerTest {
         });
         await httpServer.start(null);
 
-        const testThing = new ExposedThing(null);
-        testThing.title = "Test";
-        testThing.securityDefinitions = {
-            oauth2: {
-                scheme: "oauth2",
-            },
-        };
-
-        await expect(httpServer.expose(testThing)).to.be.rejectedWith(Error);
-        await httpServer.stop();
+        try {
+            const testThing = new ExposedThing(null);
+            testThing.title = "Test";
+            testThing.securityDefinitions = {
+                oauth2: {
+                    scheme: "oauth2",
+                },
+            };
+            await expect(httpServer.expose(testThing)).to.be.eventually.rejectedWith(Error);
+        } finally {
+            await httpServer.stop();
+        }
     }
 
     @test async "config.port is overridden by WOT_PORT or PORT"() {

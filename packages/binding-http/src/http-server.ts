@@ -462,7 +462,9 @@ export default class HttpServer implements ProtocolServer {
             if (!secCandidate) {
                 throw new Error(
                     "Servient does not support thing security schemes. Current scheme supported: " +
-                        this.httpSecurityScheme
+                        this.httpSecurityScheme +
+                        " secCandidate " +
+                        Object.keys(thing.securityDefinitions).join(", ")
                 );
             }
 
