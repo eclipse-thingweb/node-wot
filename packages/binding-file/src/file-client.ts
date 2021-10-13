@@ -87,9 +87,13 @@ export default class FileClient implements ProtocolClient {
         return null;
     }
 
-    public async start(): Promise<void> {}
+    public async start(): Promise<void> {
+        // do nothing
+    }
 
-    public async stop(): Promise<void> {}
+    public async stop(): Promise<void> {
+        // do nothing
+    }
 
     public setSecurity = (metadata: any): boolean => false;
 }

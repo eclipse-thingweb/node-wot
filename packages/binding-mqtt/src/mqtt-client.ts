@@ -132,15 +132,13 @@ export default class MqttClient implements ProtocolClient {
         });
     };
 
-    start = async (): Promise<void> => {};
+    start = async (): Promise<void> => {
+        // do nothing
+    };
+
     stop = async (): Promise<void> => {
         if (this.client) this.client.end();
     };
-
-    //setSecurity = (metadata: any, credentials?: any): boolean => {
-    //TODO: Implement
-    //  throw new Error('Method not implemented.');
-    // }
 
     public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean {
         if (metadata === undefined || !Array.isArray(metadata) || metadata.length == 0) {

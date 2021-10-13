@@ -66,9 +66,13 @@ class TDClient implements ProtocolClient {
         });
     }
 
-    public async start(): Promise<void> {}
+    public async start(): Promise<void> {
+        // do nothing
+    }
 
-    public async stop(): Promise<void> {}
+    public async stop(): Promise<void> {
+        // do nothing
+    }
 
     public setSecurity = (metadata: SecurityScheme[]) => false;
 
@@ -135,9 +139,13 @@ class TrapClient implements ProtocolClient {
         });
     }
 
-    public async start(): Promise<void> {}
+    public async start(): Promise<void> {
+        // do nothing
+    }
 
-    public async stop(): Promise<void> {}
+    public async stop(): Promise<void> {
+        // do nothing
+    }
 
     public setSecurity = (metadata: SecurityScheme[]) => false;
 }

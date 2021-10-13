@@ -341,7 +341,9 @@ export default class OpcuaClient implements ProtocolClient {
         });
     }
 
-    public async start(): Promise<void> {}
+    public async start(): Promise<void> {
+        // do nothing
+    }
 
     public async stop(): Promise<void> {
         const { subscription, session, client } = this;

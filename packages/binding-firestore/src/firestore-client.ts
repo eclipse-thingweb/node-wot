@@ -169,9 +169,13 @@ export default class FirestoreClient implements ProtocolClient {
             });
     }
 
-    public async start(): Promise<void> {}
+    public async start(): Promise<void> {
+        // do nothing
+    }
 
-    public async stop(): Promise<void> {}
+    public async stop(): Promise<void> {
+        // do nothing
+    }
 
     public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean {
         // Firestore provides security for the communication channel

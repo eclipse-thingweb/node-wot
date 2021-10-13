@@ -179,7 +179,9 @@ export default class CoapClient implements ProtocolClient {
         });
     }
 
-    public async start(): Promise<void> {}
+    public async start(): Promise<void> {
+        // do nothing
+    }
 
     public async stop(): Promise<void> {
         this.agent.close();

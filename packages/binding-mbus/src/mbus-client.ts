@@ -44,12 +44,17 @@ export default class MBusClient implements ProtocolClient {
             throw new Error("Method not implemented.");
         });
     }
-    async start(): Promise<void> {}
+
+    async start(): Promise<void> {
+        // do nothing
+    }
+
     async stop(): Promise<void> {
         this._connections.forEach((connection) => {
             connection.close();
         });
     }
+
     setSecurity(metadata: SecurityScheme[], credentials?: any): boolean {
         return false;
     }

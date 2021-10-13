@@ -94,7 +94,9 @@ export default class ModbusClient implements ProtocolClient {
         });
     }
 
-    async start(): Promise<void> {}
+    async start(): Promise<void> {
+        // do nothing
+    }
 
     async stop(): Promise<void> {
         this._connections.forEach((connection) => {
