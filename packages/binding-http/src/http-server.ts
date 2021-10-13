@@ -219,7 +219,7 @@ export default class HttpServer implements ProtocolServer {
         }
     }
 
-    public expose(thing: ExposedThing, tdTemplate?: WoT.ExposedThingInit): Promise<void> {
+    public async expose(thing: ExposedThing, tdTemplate?: WoT.ExposedThingInit): Promise<void> {
         let urlPath = slugify(thing.title, { lower: true });
 
         if (this.things.has(urlPath)) {
@@ -250,10 +250,6 @@ export default class HttpServer implements ProtocolServer {
                 if (this.scheme === "https") {
                     this.fillSecurityScheme(thing);
                 }
-
-                return new Promise<void>((resolve, reject) => {
-                    resolve();
-                });
             }
         }
     }
@@ -278,7 +274,7 @@ export default class HttpServer implements ProtocolServer {
         });
     }
 
-    public addEndpoint(thing: ExposedThing, tdTemplate: WoT.ExposedThingInit, base: string) {
+    public addEndpoint(thing: ExposedThing, tdTemplate: WoT.ExposedThingInit, base: string): void {
         for (const type of ContentSerdes.get().getOfferedMediaTypes()) {
             let allReadOnly = true;
             let allWriteOnly = true;
