@@ -19,7 +19,7 @@
 import { ProtocolClient, Content, ProtocolHelpers } from "@node-wot/core";
 import * as TD from "@node-wot/td-tools";
 
-import * as Url from "url-parse";
+import Url from "url-parse";
 
 import { OpcuaForm, OpcuaConfig } from "./opcua";
 import {

@@ -14,13 +14,13 @@
  ********************************************************************************/
 
 import { suite, test } from "@testdeck/mocha";
-import * as express from "express";
+import express from "express";
 import { HttpClient } from "../src/http";
 import * as https from "https";
 import { BasicSecurityScheme } from "@node-wot/td-tools";
 import { ProtocolHelpers } from "@node-wot/core";
 import * as chai from "chai";
-import * as chaiAsPromised from "chai-as-promised";
+import chaiAsPromised from "chai-as-promised";
 import { promisify } from "util";
 import { fail } from "assert";
 const fs = require("fs");

@@ -8,7 +8,7 @@
     "repository": "https://github.com/eclipse/thingweb.node-wot/tree/master/examples/servients",
     "main": "coap-servient.js",
     "scripts": {
-        "build": "tsc",
+        "build": "tsc -b",
         "start": "node dist/my-cli.js"
     },
     "bin": {
@@ -20,7 +20,7 @@
     "devDependencies": {
         "wot-typescript-definitions": "^0.8.0-SNAPSHOT.18",
         "@types/node": "16.4.13",
-        "typescript": "4.1.3"
+        "typescript": "4.4.3"
     },
     "dependencies": {
         "@node-wot/core": "0.8.0",

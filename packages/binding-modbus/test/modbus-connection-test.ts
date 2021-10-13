@@ -3,7 +3,7 @@ import { should } from "chai";
 import * as chai from "chai";
 import { ModbusForm } from "../src/modbus";
 import ModbusServer from "./test-modbus-server";
-import * as chaiAsPromised from "chai-as-promised";
+import chaiAsPromised from "chai-as-promised";
 import { ModbusConnection, PropertyOperation } from "../src/modbus-connection";
 
 // should must be called to augment all variables

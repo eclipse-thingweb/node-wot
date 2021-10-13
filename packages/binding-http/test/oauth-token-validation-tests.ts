@@ -1,5 +1,5 @@
 import { suite, test } from "@testdeck/mocha";
-import * as express from "express";
+import express from "express";
 import { should } from "chai";
 import create, { IntrospectionEndpoint, Validator, EndpointValidator } from "../src/oauth-token-validation";
 import * as http from "http";

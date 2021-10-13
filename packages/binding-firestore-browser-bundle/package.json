@@ -16,8 +16,8 @@
     ],
     "main": "dist/binding-firestore-bundle.js",
     "devDependencies": {
-        "browserify": "^17.0.0",
-        "tinyify": "^2.5.2"
+        "browserify": "16.5.0",
+        "tinyify": "2.5.2"
     },
     "dependencies": {
         "@node-wot/binding-firestore": "0.8.0"

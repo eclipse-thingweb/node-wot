@@ -2,7 +2,7 @@ import { should } from "chai";
 import * as chai from "chai";
 import MBusClient from "../src/mbus-client";
 import { MBusForm } from "../src/mbus";
-import * as chaiAsPromised from "chai-as-promised";
+import chaiAsPromised from "chai-as-promised";
 
 // should must be called to augment all variables
 should();
