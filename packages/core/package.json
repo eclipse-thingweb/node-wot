@@ -65,6 +65,6 @@
     },
     "keywords": [],
     "eslintConfig": {
-        "extends": "../../.eslintrc.json"
+        "extends": "../../.eslintrc.js"
     }
 }

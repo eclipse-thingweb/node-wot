@@ -46,6 +46,6 @@
     },
     "homepage": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-fujitsu#readme",
     "eslintConfig": {
-        "extends": "../../.eslintrc.json"
+        "extends": "../../.eslintrc.js"
     }
 }
