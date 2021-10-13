@@ -61,6 +61,7 @@ export default class Servient {
             return vm.run(code, filename);
         } catch (err) {
             this.logScriptError(`Servient found error in privileged script '${filename}'`, err);
+            return undefined;
         }
     }
 
@@ -94,6 +95,7 @@ export default class Servient {
             return vm.run(code, filename);
         } catch (err) {
             this.logScriptError(`Servient found error in privileged script '${filename}'`, err);
+            return undefined;
         }
     }
 

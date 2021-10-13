@@ -120,7 +120,7 @@ export class ContentSerdes {
                 content.type = ContentSerdes.DEFAULT;
             } else {
                 // empty payload without media type -> void/undefined (note: e.g., empty payload with text/plain -> "")
-                return;
+                return undefined;
             }
         }
 
