@@ -283,20 +283,13 @@ export default class Servient {
     }
 
     // will return WoT object
-    public start(): Promise<typeof WoT> {
+    public async start(): Promise<typeof WoT> {
         const serverStatus: Array<Promise<void>> = [];
         this.servers.forEach((server) => serverStatus.push(server.start(this)));
         this.clientFactories.forEach((clientFactory) => clientFactory.init());
 
-        return new Promise<typeof WoT>((resolve, reject) => {
-            Promise.all(serverStatus)
-                .then(() => {
-                    resolve(new WoTImpl(this));
-                })
-                .catch((err) => {
-                    reject(err);
-                });
-        });
+        await Promise.all(serverStatus);
+        return new WoTImpl(this);
     }
 
     public shutdown(): void {
