@@ -132,12 +132,9 @@ export default class MqttClient implements ProtocolClient {
         });
     };
 
-    start = async (): Promise<boolean> => {
-        return true;
-    };
-    stop = async (): Promise<boolean> => {
+    start = async (): Promise<void> => {};
+    stop = async (): Promise<void> => {
         if (this.client) this.client.end();
-        return true;
     };
 
     //setSecurity = (metadata: any, credentials?: any): boolean => {

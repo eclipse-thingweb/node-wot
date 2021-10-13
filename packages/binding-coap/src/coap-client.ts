@@ -179,13 +179,10 @@ export default class CoapClient implements ProtocolClient {
         });
     }
 
-    public async start(): Promise<boolean> {
-        return true;
-    }
+    public async start(): Promise<void> {}
 
-    public async stop(): Promise<boolean> {
+    public async stop(): Promise<void> {
         this.agent.close();
-        return true;
     }
 
     public setSecurity = (metadata: Array<TD.SecurityScheme>): boolean => true;

@@ -45,9 +45,9 @@ export interface ProtocolClient {
     ): Promise<Subscription>;
 
     /** start the client (ensure it is ready to send requests) */
-    start(): Promise<boolean>;
+    start(): Promise<void>;
     /** stop the client */
-    stop(): Promise<boolean>;
+    stop(): Promise<void>;
 
     /** apply TD security metadata */
     setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: unknown): boolean;

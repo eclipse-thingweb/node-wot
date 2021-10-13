@@ -206,13 +206,10 @@ export default class HttpClient implements ProtocolClient {
         return {};
     }
 
-    public async start(): Promise<boolean> {
-        return true;
-    }
+    public async start(): Promise<void> {}
 
-    public async stop(): Promise<boolean> {
+    public async stop(): Promise<void> {
         if (this.agent && this.agent.destroy) this.agent.destroy(); // When running in browser mode, Agent.destroy() might not exist.
-        return true;
     }
 
     public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean {

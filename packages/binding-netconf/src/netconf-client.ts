@@ -161,13 +161,9 @@ export default class NetconfClient implements ProtocolClient {
         return null;
     }
 
-    public async start(): Promise<boolean> {
-        return true;
-    }
+    public async start(): Promise<void> {}
 
-    public async stop(): Promise<boolean> {
-        return true;
-    }
+    public async stop(): Promise<void> {}
 
     public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean {
         if (metadata === undefined || !Array.isArray(metadata) || metadata.length == 0) {

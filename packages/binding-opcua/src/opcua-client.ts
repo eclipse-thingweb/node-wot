@@ -341,11 +341,9 @@ export default class OpcuaClient implements ProtocolClient {
         });
     }
 
-    public async start(): Promise<boolean> {
-        return true;
-    }
+    public async start(): Promise<void> {}
 
-    public async stop(): Promise<boolean> {
+    public async stop(): Promise<void> {
         const { subscription, session, client } = this;
         this.subscription = undefined;
         this.session = undefined;
@@ -359,7 +357,6 @@ export default class OpcuaClient implements ProtocolClient {
         if (client) {
             await client.disconnect();
         }
-        return true;
     }
 
     public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean {
