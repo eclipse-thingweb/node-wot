@@ -301,13 +301,6 @@ export default class ProtocolHelpers {
             });
             if (contentTypeMatchingForms.length > 0) matchingForms = contentTypeMatchingForms;
         }
-        // optionally try to match form response's content type
-        if (contentType) {
-            const contentTypeMatchingForms : TD.Form[] = forms.filter((form) => {
-                return form.contentType === contentType
-            });
-            if (contentTypeMatchingForms.length > 0) matchingForms = contentTypeMatchingForms;
-        }
         return matchingForms.length > 0 ? matchingForms[0] : undefined
     }
 }
