@@ -33,23 +33,21 @@ export default class WoTImpl {
     }
 
     /** @inheritDoc */
-    consume(td: WoT.ThingDescription): Promise<WoT.ConsumedThing> {
-        return new Promise<WoT.ConsumedThing>((resolve, reject) => {
-            try {
-                const thing = TD.parseTD(JSON.stringify(td), true);
-                const newThing: ConsumedThing = new ConsumedThing(this.srv, thing);
+    async consume(td: WoT.ThingDescription): Promise<ConsumedThing> {
+        try {
+            const thing = TD.parseTD(JSON.stringify(td), true);
+            const newThing: ConsumedThing = new ConsumedThing(this.srv, thing);
 
-                console.debug(
-                    "[core/wot-impl]",
-                    `WoTImpl consuming TD ${
-                        newThing.id ? "'" + newThing.id + "'" : "without id"
-                    } to instantiate ConsumedThing '${newThing.title}'`
-                );
-                resolve(newThing);
-            } catch (err) {
-                reject(new Error("Cannot consume TD because " + err.message));
-            }
-        });
+            console.debug(
+                "[core/wot-impl]",
+                `WoTImpl consuming TD ${
+                    newThing.id ? "'" + newThing.id + "'" : "without id"
+                } to instantiate ConsumedThing '${newThing.title}'`
+            );
+            return newThing;
+        } catch (err) {
+            throw new Error("Cannot consume TD because " + err.message);
+        }
     }
 
     /**

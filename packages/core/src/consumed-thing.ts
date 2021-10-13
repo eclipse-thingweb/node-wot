@@ -252,68 +252,50 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         return { client: client, form: form };
     }
 
-    readProperty(propertyName: string, options?: WoT.InteractionOptions): Promise<WoT.InteractionOutput> {
-        return new Promise<WoT.InteractionOutput>((resolve, reject) => {
-            // TODO pass expected form op to getClientFor()
-            const tp: TD.ThingProperty = this.properties[propertyName];
-            if (!tp) {
-                reject(new Error(`ConsumedThing '${this.title}' does not have property ${propertyName}`));
-            } else {
-                let { client, form } = this.getClientFor(
-                    tp.forms,
-                    "readproperty",
-                    Affordance.PropertyAffordance,
-                    options
-                );
-                if (!client) {
-                    reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
-                } else if (!form) {
-                    reject(new Error(`ConsumedThing '${this.title}' did not get suitable form`));
-                } else {
-                    console.debug("[core/consumed-thing]", `ConsumedThing '${this.title}' reading ${form.href}`);
+    async readProperty(propertyName: string, options?: WoT.InteractionOptions): Promise<WoT.InteractionOutput> {
+        // TODO pass expected form op to getClientFor()
+        const tp: TD.ThingProperty = this.properties[propertyName];
+        if (!tp) {
+            throw new Error(`ConsumedThing '${this.title}' does not have property ${propertyName}`);
+        }
 
-                    // uriVariables ?
-                    form = this.handleUriVariables(form, options);
+        let { client, form } = this.getClientFor(tp.forms, "readproperty", Affordance.PropertyAffordance, options);
+        if (!client) {
+            throw new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`);
+        }
+        if (!form) {
+            throw new Error(`ConsumedThing '${this.title}' did not get suitable form`);
+        }
+        console.debug("[core/consumed-thing]", `ConsumedThing '${this.title}' reading ${form.href}`);
 
-                    client
-                        .readResource(form)
-                        .then((content) => {
-                            resolve(new InteractionOutput(content, form, tp));
-                        })
-                        .catch((err) => {
-                            reject(err);
-                        });
-                }
-            }
-        });
+        // uriVariables ?
+        form = this.handleUriVariables(form, options);
+
+        const content = await client.readResource(form);
+        return new InteractionOutput(content, form, tp);
     }
 
-    _readProperties(propertyNames: string[]): Promise<WoT.PropertyReadMap> {
-        return new Promise<WoT.PropertyReadMap>((resolve, reject) => {
-            // collect all single promises into array
-            const promises: Promise<WoT.InteractionOutput>[] = [];
+    async _readProperties(propertyNames: string[]): Promise<WoT.PropertyReadMap> {
+        // collect all single promises into array
+        const promises: Promise<WoT.InteractionOutput>[] = [];
+        for (const propertyName of propertyNames) {
+            promises.push(this.readProperty(propertyName));
+        }
+        // wait for all promises to succeed and create response
+        const output = new Map<string, WoT.InteractionOutput>();
+        try {
+            const result = await Promise.all(promises);
+            let index = 0;
             for (const propertyName of propertyNames) {
-                promises.push(this.readProperty(propertyName));
+                output.set(propertyName, result[index]);
+                index++;
             }
-            // wait for all promises to succeed and create response
-            const output = new Map<string, WoT.InteractionOutput>();
-            Promise.all(promises)
-                .then((result) => {
-                    let index = 0;
-                    for (const propertyName of propertyNames) {
-                        output.set(propertyName, result[index]);
-                        index++;
-                    }
-                    resolve(output);
-                })
-                .catch((err) => {
-                    reject(
-                        new Error(
-                            `ConsumedThing '${this.title}', failed to read properties: ${propertyNames}.\n Error: ${err}`
-                        )
-                    );
-                });
-        });
+            return output;
+        } catch (err) {
+            throw new Error(
+                `ConsumedThing '${this.title}', failed to read properties: ${propertyNames}.\n Error: ${err}`
+            );
+        }
     }
 
     readAllProperties(options?: WoT.InteractionOptions): Promise<WoT.PropertyReadMap> {
@@ -333,282 +315,225 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         return this._readProperties(propertyNames);
     }
 
-    writeProperty(propertyName: string, value: WoT.InteractionInput, options?: WoT.InteractionOptions): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            // TODO pass expected form op to getClientFor()
-            const tp: TD.ThingProperty = this.properties[propertyName];
-            if (!tp) {
-                reject(new Error(`ConsumedThing '${this.title}' does not have property ${propertyName}`));
-            } else {
-                let { client, form } = this.getClientFor(
-                    tp.forms,
-                    "writeproperty",
-                    Affordance.PropertyAffordance,
-                    options
-                );
-                if (!client) {
-                    reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
-                } else if (!form) {
-                    reject(new Error(`ConsumedThing '${this.title}' did not get suitable form`));
-                } else {
-                    console.debug(
-                        "[core/consumed-thing]",
-                        `ConsumedThing '${this.title}' writing ${form.href} with '${value}'`
-                    );
+    async writeProperty(
+        propertyName: string,
+        value: WoT.InteractionInput,
+        options?: WoT.InteractionOptions
+    ): Promise<void> {
+        // TODO pass expected form op to getClientFor()
+        const tp: TD.ThingProperty = this.properties[propertyName];
+        if (!tp) {
+            throw new Error(`ConsumedThing '${this.title}' does not have property ${propertyName}`);
+        }
+        let { client, form } = this.getClientFor(tp.forms, "writeproperty", Affordance.PropertyAffordance, options);
+        if (!client) {
+            throw new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`);
+        }
+        if (!form) {
+            throw new Error(`ConsumedThing '${this.title}' did not get suitable form`);
+        }
+        console.debug("[core/consumed-thing]", `ConsumedThing '${this.title}' writing ${form.href} with '${value}'`);
 
-                    const content = ContentManager.valueToContent(value, tp, form.contentType);
+        const content = ContentManager.valueToContent(value, tp, form.contentType);
 
-                    // uriVariables ?
-                    form = this.handleUriVariables(form, options);
-
-                    client
-                        .writeResource(form, content)
-                        .then(() => {
-                            resolve();
-                        })
-                        .catch((err) => {
-                            reject(err);
-                        });
-                }
-            }
-        });
+        // uriVariables ?
+        form = this.handleUriVariables(form, options);
+        await client.writeResource(form, content);
     }
 
-    writeMultipleProperties(valueMap: WoT.PropertyWriteMap, options?: WoT.InteractionOptions): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            // collect all single promises into array
-            const promises: Promise<void>[] = [];
-            for (const propertyName in valueMap) {
-                const value = valueMap.get(propertyName);
-                promises.push(this.writeProperty(propertyName, value));
-            }
-            // wait for all promises to succeed and create response
-            Promise.all(promises)
-                .then((result) => {
-                    resolve();
-                })
-                .catch((err) => {
-                    reject(
-                        new Error(
-                            `ConsumedThing '${this.title}', failed to write multiple propertes: ${valueMap}\n Error: ${err}`
-                        )
-                    );
-                });
-        });
+    async writeMultipleProperties(valueMap: WoT.PropertyWriteMap, options?: WoT.InteractionOptions): Promise<void> {
+        // collect all single promises into array
+        const promises: Promise<void>[] = [];
+        for (const propertyName in valueMap) {
+            const value = valueMap.get(propertyName);
+            promises.push(this.writeProperty(propertyName, value));
+        }
+        // wait for all promises to succeed and create response
+        try {
+            await Promise.all(promises);
+        } catch (err) {
+            throw new Error(
+                `ConsumedThing '${this.title}', failed to write multiple propertes: ${valueMap}\n Error: ${err}`
+            );
+        }
     }
 
-    public invokeAction(
+    public async invokeAction(
         actionName: string,
         parameter?: InteractionInput,
         options?: WoT.InteractionOptions
     ): Promise<WoT.InteractionOutput> {
-        return new Promise<WoT.InteractionOutput>((resolve, reject) => {
-            const ta: TD.ThingAction = this.actions[actionName];
-            if (!ta) {
-                reject(new Error(`ConsumedThing '${this.title}' does not have action ${actionName}`));
-            } else {
-                let { client, form } = this.getClientFor(
-                    ta.forms,
-                    "invokeaction",
-                    Affordance.ActionAffordance,
-                    options
-                );
-                if (!client) {
-                    reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
-                } else if (!form) {
-                    reject(new Error(`ConsumedThing '${this.title}' did not get suitable form`));
-                } else {
-                    console.debug(
-                        "[core/consumed-thing]",
-                        `ConsumedThing '${this.title}' invoking ${form.href}${
-                            parameter !== undefined ? " with '" + parameter + "'" : ""
-                        }`
-                    );
+        const ta: TD.ThingAction = this.actions[actionName];
+        if (!ta) {
+            throw new Error(`ConsumedThing '${this.title}' does not have action ${actionName}`);
+        }
+        let { client, form } = this.getClientFor(ta.forms, "invokeaction", Affordance.ActionAffordance, options);
+        if (!client) {
+            throw new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`);
+        }
+        if (!form) {
+            throw new Error(`ConsumedThing '${this.title}' did not get suitable form`);
+        }
+        console.debug(
+            "[core/consumed-thing]",
+            `ConsumedThing '${this.title}' invoking ${form.href}${
+                parameter !== undefined ? " with '" + parameter + "'" : ""
+            }`
+        );
 
-                    let input;
+        let input;
 
-                    if (parameter !== undefined) {
-                        input = ContentManager.valueToContent(parameter, ta.input, form.contentType);
+        if (parameter !== undefined) {
+            input = ContentManager.valueToContent(parameter, ta.input, form.contentType);
+        }
+
+        // uriVariables ?
+        form = this.handleUriVariables(form, options);
+
+        const content = await client.invokeResource(form, input);
+        // infer media type from form if not in response metadata
+        if (!content.type) content.type = form.contentType;
+
+        // check if returned media type is the same as expected media type (from TD)
+        if (form.response) {
+            if (content.type !== form.response.contentType) {
+                throw new Error(`Unexpected type in response`);
+            }
+        }
+        try {
+            return new InteractionOutput(content, form, ta.output);
+        } catch {
+            throw new Error(`Received invalid content from Thing`);
+        }
+    }
+
+    public async observeProperty(
+        name: string,
+        listener: WoT.WotListener,
+        options?: WoT.InteractionOptions
+    ): Promise<void> {
+        const tp: TD.ThingProperty = this.properties[name];
+        if (!tp) {
+            throw new Error(`ConsumedThing '${this.title}' does not have property ${name}`);
+        }
+        let { client, form } = this.getClientFor(tp.forms, "observeproperty", Affordance.PropertyAffordance, options);
+        if (!client) {
+            throw new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`);
+        }
+        if (!form) {
+            throw new Error(`ConsumedThing '${this.title}' did not get suitable form`);
+        }
+        console.debug("[core/consumed-thing]", `ConsumedThing '${this.title}' observing to ${form.href}`);
+
+        // uriVariables ?
+        form = this.handleUriVariables(form, options);
+
+        return new Promise<void>((resolve, reject) => {
+            const subscriptioPromise = client.subscribeResource(
+                form,
+                // next
+                (content) => {
+                    if (!content.type) content.type = form.contentType;
+                    try {
+                        listener(new InteractionOutput(content, form, tp));
+                        resolve();
+                    } catch (e) {
+                        reject(new Error(`Received invalid content from Thing`));
                     }
-
-                    // uriVariables ?
-                    form = this.handleUriVariables(form, options);
-
-                    client
-                        .invokeResource(form, input)
-                        .then((content) => {
-                            // infer media type from form if not in response metadata
-                            if (!content.type) content.type = form.contentType;
-
-                            // check if returned media type is the same as expected media type (from TD)
-                            if (form.response) {
-                                if (content.type !== form.response.contentType) {
-                                    reject(new Error(`Unexpected type in response`));
-                                }
-                            }
-
-                            try {
-                                resolve(new InteractionOutput(content, form, ta.output));
-                            } catch {
-                                reject(new Error(`Received invalid content from Thing`));
-                            }
-                        })
-                        .catch((err) => {
-                            reject(err);
-                        });
-                }
-            }
-        });
-    }
-
-    public observeProperty(name: string, listener: WoT.WotListener, options?: WoT.InteractionOptions): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            const tp: TD.ThingProperty = this.properties[name];
-            if (!tp) {
-                reject(new Error(`ConsumedThing '${this.title}' does not have property ${name}`));
-            } else {
-                let { client, form } = this.getClientFor(
-                    tp.forms,
-                    "observeproperty",
-                    Affordance.PropertyAffordance,
-                    options
-                );
-                if (!client) {
-                    reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
-                } else if (!form) {
-                    reject(new Error(`ConsumedThing '${this.title}' did not get suitable form`));
-                } else {
-                    console.debug("[core/consumed-thing]", `ConsumedThing '${this.title}' observing to ${form.href}`);
-
-                    // uriVariables ?
-                    form = this.handleUriVariables(form, options);
-
-                    return client.subscribeResource(
-                        form,
-                        (content) => {
-                            if (!content.type) content.type = form.contentType;
-                            try {
-                                listener(new InteractionOutput(content, form, tp));
-                                resolve();
-                            } catch (e) {
-                                reject(new Error(`Received invalid content from Thing`));
-                            }
-                        },
-                        (err) => {
-                            reject(err);
-                        },
-                        () => {
-                            resolve();
-                        }
-                    );
-                }
-            }
-        });
-    }
-
-    public unobserveProperty(name: string, options?: WoT.InteractionOptions): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            const tp: TD.ThingProperty = this.properties[name];
-            if (!tp) {
-                reject(new Error(`ConsumedThing '${this.title}' does not have property ${name}`));
-            } else {
-                const { client, form } = this.getClientFor(
-                    tp.forms,
-                    "unobserveproperty",
-                    Affordance.PropertyAffordance,
-                    options
-                );
-                if (!client) {
-                    reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
-                } else if (!form) {
-                    reject(new Error(`ConsumedThing '${this.title}' did not get suitable form`));
-                } else {
-                    console.debug(
-                        "[core/consumed-thing]",
-                        `ConsumedThing '${this.title}' unobserveing to ${form.href}`
-                    );
-                    client.unlinkResource(form);
+                },
+                // error
+                (err) => {
+                    reject(err);
+                },
+                // complete
+                () => {
                     resolve();
                 }
-            }
+            );
+            // to do : what shall we do with subscriptionPromise ?
         });
     }
 
-    public subscribeEvent(name: string, listener: WoT.WotListener, options?: WoT.InteractionOptions): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            const te: TD.ThingEvent = this.events[name];
-            if (!te) {
-                reject(new Error(`ConsumedThing '${this.title}' does not have event ${name}`));
-            } else {
-                let { client, form } = this.getClientFor(
-                    te.forms,
-                    "subscribeevent",
-                    Affordance.EventAffordance,
-                    options
-                );
-                if (!client) {
-                    reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
-                } else if (!form) {
-                    reject(new Error(`ConsumedThing '${this.title}' did not get suitable form`));
-                } else {
-                    console.debug("[core/consumed-thing]", `ConsumedThing '${this.title}' subscribing to ${form.href}`);
-
-                    // uriVariables ?
-                    form = this.handleUriVariables(form, options);
-
-                    return client
-                        .subscribeResource(
-                            form,
-                            (content) => {
-                                if (!content.type) content.type = form.contentType;
-                                try {
-                                    listener(new InteractionOutput(content, form, te.data));
-                                    resolve();
-                                } catch {
-                                    reject(new Error(`Received invalid content from Thing`));
-                                }
-                            },
-                            (err) => {
-                                reject(err);
-                            },
-                            () => {
-                                resolve();
-                            }
-                        )
-                        .then((subscription: Subscription) => {
-                            resolve();
-                        });
-                }
-            }
-        });
+    public async unobserveProperty(name: string, options?: WoT.InteractionOptions): Promise<void> {
+        const tp: TD.ThingProperty = this.properties[name];
+        if (!tp) {
+            throw new Error(`ConsumedThing '${this.title}' does not have property ${name}`);
+        }
+        const { client, form } = this.getClientFor(
+            tp.forms,
+            "unobserveproperty",
+            Affordance.PropertyAffordance,
+            options
+        );
+        if (!client) {
+            throw new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`);
+        }
+        if (!form) {
+            throw new Error(`ConsumedThing '${this.title}' did not get suitable form`);
+        }
+        console.debug("[core/consumed-thing]", `ConsumedThing '${this.title}' unobserveing to ${form.href}`);
+        client.unlinkResource(form);
     }
 
-    public unsubscribeEvent(name: string, options?: WoT.InteractionOptions): Promise<void> {
+    public async subscribeEvent(
+        name: string,
+        listener: WoT.WotListener,
+        options?: WoT.InteractionOptions
+    ): Promise<void> {
+        const te: TD.ThingEvent = this.events[name];
+        if (!te) {
+            throw new Error(`ConsumedThing '${this.title}' does not have event ${name}`);
+        }
+        let { client, form } = this.getClientFor(te.forms, "subscribeevent", Affordance.EventAffordance, options);
+        if (!client) {
+            throw new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`);
+        }
+        if (!form) {
+            throw new Error(`ConsumedThing '${this.title}' did not get suitable form`);
+        }
+        console.debug("[core/consumed-thing]", `ConsumedThing '${this.title}' subscribing to ${form.href}`);
+
+        // uriVariables ?
+        form = this.handleUriVariables(form, options);
+
         return new Promise<void>((resolve, reject) => {
-            const te: TD.ThingEvent = this.events[name];
-            if (!te) {
-                reject(new Error(`ConsumedThing '${this.title}' does not have event ${name}`));
-            } else {
-                const { client, form } = this.getClientFor(
-                    te.forms,
-                    "unsubscribeevent",
-                    Affordance.EventAffordance,
-                    options
-                );
-                if (!client) {
-                    reject(new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`));
-                } else if (!form) {
-                    reject(new Error(`ConsumedThing '${this.title}' did not get suitable form`));
-                } else {
-                    console.debug(
-                        "[core/consumed-thing]",
-                        `ConsumedThing '${this.title}' unsubscribing to ${form.href}`
-                    );
-                    client.unlinkResource(form);
+            const subscriptioPromise = client.subscribeResource(
+                form,
+                (content) => {
+                    if (!content.type) content.type = form.contentType;
+                    try {
+                        listener(new InteractionOutput(content, form, te.data));
+                    } catch {
+                        throw new Error(`Received invalid content from Thing`);
+                    }
+                },
+                // error
+                (err) => {
+                    reject(err);
+                },
+                // complete
+                () => {
                     resolve();
                 }
-            }
+            );
+            // todo : we need to keep the subscription around to unsubscribe later
         });
+    }
+
+    public async unsubscribeEvent(name: string, options?: WoT.InteractionOptions): Promise<void> {
+        const te: TD.ThingEvent = this.events[name];
+        if (!te) {
+            throw new Error(`ConsumedThing '${this.title}' does not have event ${name}`);
+        }
+        const { client, form } = this.getClientFor(te.forms, "unsubscribeevent", Affordance.EventAffordance, options);
+        if (!client) {
+            throw new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`);
+        }
+        if (!form) {
+            throw new Error(`ConsumedThing '${this.title}' did not get suitable form`);
+        }
+        console.debug("[core/consumed-thing]", `ConsumedThing '${this.title}' unsubscribing to ${form.href}`);
+        client.unlinkResource(form);
     }
 
     // creates new form (if needed) for URI Variables
