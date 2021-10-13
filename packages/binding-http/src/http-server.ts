@@ -32,6 +32,7 @@ import Servient, {
     Helpers,
     ExposedThing,
     ProtocolHelpers,
+    PropertyContentMap,
     Content,
 } from "@node-wot/core";
 import { HttpConfig, HttpForm, OAuth2ServerConfig } from "./http";
@@ -687,39 +688,29 @@ export default class HttpServer implements ProtocolServer {
                     }
 
                     if (segments[2] === this.ALL_DIR) {
-                        if (this.ALL_PROPERTIES == segments[3]) {
+                        if (this.ALL_PROPERTIES === segments[3]) {
                             if (req.method === "GET") {
-                                thing
-                                    .readAllProperties()
-                                    .then(async (propMap: WoT.PropertyReadMap) => {
-                                        // Note we create one object to return, TODO piping response
-                                        let recordReponse: Record<string, any> = {};
-                                        for (let key of propMap.keys()) {
-                                            let value: WoT.InteractionOutput = propMap.get(key);
-                                            value.form = { f: "all" }; // to avoid missing form error
-                                            let content = ContentSerdes.get().valueToContent(
-                                                value.data && !value.dataUsed ? value.data : await value.value(),
-                                                undefined,
-                                                "application/json"
-                                            );
-                                            // TODO ProtocolHelpers.readStreamFully() does not work for counter example for SVG countAsImage
-                                            const data = await ProtocolHelpers.readStreamFully(content.body);
-                                            recordReponse[key] = data.toString(); // contentType handling?
-                                        }
-                                        res.setHeader("Content-Type", "application/json"); // contentType handling?
-                                        res.writeHead(200);
-                                        res.end(JSON.stringify(recordReponse));
-                                    })
-                                    .catch((err) => {
-                                        console.error(
-                                            "[binding-http]",
-                                            `HttpServer on port ${this.getPort()} got internal error on read '${
-                                                requestUri.pathname
-                                            }': ${err.message}`
-                                        );
-                                        res.writeHead(500);
-                                        res.end(err.message);
-                                    });
+                                try {
+                                    const propMap: PropertyContentMap = await thing.handleReadAllProperties();
+                                    res.setHeader("Content-Type", "application/json"); // contentType handling?
+                                    res.writeHead(200);
+                                    const recordReponse: Record<string, any> = {};
+                                    for (const key of propMap.keys()) {
+                                        const content: Content = propMap.get(key);
+                                        const data = await ProtocolHelpers.readStreamFully(content.body);
+                                        recordReponse[key] = data.toString();
+                                    }
+                                     res.end(JSON.stringify(recordReponse));
+                                } catch (err) {
+                                    console.error(
+                                        "[binding-http]",
+                                        `HttpServer on port ${this.getPort()} got internal error on invoke '${
+                                            requestUri.pathname
+                                        }': ${err.message}`
+                                    );
+                                    res.writeHead(500);
+                                    res.end(err.message);
+                                }
                             } else {
                                 respondUnallowedMethod(res, "GET");
                             }
@@ -773,7 +764,7 @@ export default class HttpServer implements ProtocolServer {
                                                     );
                                                     res.writeHead(500);
                                                     res.end("Invalid Event Data");
-                                                    return;
+
                                                 }
                                             },
                                             options
@@ -789,80 +780,48 @@ export default class HttpServer implements ProtocolServer {
                                     });
                                     res.setTimeout(60 * 60 * 1000, () => thing.unobserveProperty(segments[3]));
                                 } else {
-                                    thing
-                                        .readProperty(segments[3], options)
-                                        .then(async (value: InteractionOutput) => {
-                                            const contentType = ProtocolHelpers.getPropertyContentType(
-                                                thing.getThingDescription(),
-                                                segments[3],
-                                                "http"
-                                            );
-                                            const content = ContentSerdes.get().valueToContent(
-                                                value.data && !value.dataUsed ? value.data : await value.value(),
-                                                <any>property,
-                                                contentType
-                                            );
-                                            res.setHeader("Content-Type", content.type);
-                                            res.writeHead(200);
-                                            content.body.pipe(res);
-                                        })
-                                        .catch((err) => {
-                                            console.error(
-                                                "[binding-http]",
-                                                `HttpServer on port ${this.getPort()} got internal error on read '${
-                                                    requestUri.pathname
-                                                }': ${err.message}`
-                                            );
-                                            res.writeHead(500);
-                                            res.end(err.message);
-                                        });
+                                    try {
+                                        const content = await thing.handleReadProperty(
+                                            segments[3],
+                                            options
+                                        );
+                                        res.setHeader("Content-Type", content.type);
+                                        res.writeHead(200);
+                                        content.body.pipe(res);
+                                    } catch (err) {
+                                        console.error(
+                                            "[binding-http]",
+                                            `HttpServer on port ${this.getPort()} got internal error on read '${
+                                                requestUri.pathname
+                                            }': ${err.message}`
+                                        );
+                                        res.writeHead(500);
+                                        res.end(err.message);
+                                    }
                                 }
                             } else if (req.method === "PUT") {
                                 if (!property.readOnly) {
-                                    // load payload
-                                    const body: Array<any> = [];
-                                    req.on("data", (data) => {
-                                        body.push(data);
-                                    });
-                                    req.on("end", () => {
-                                        console.debug(
-                                            "[binding-http]",
-                                            `HttpServer on port ${this.getPort()} completed body '${body}'`
+                                    try {
+                                        const form = ProtocolHelpers.findRequestMatchingForm(property.forms,
+                                            "http", req.url, contentType);
+                                        await thing.handleWriteProperty(
+                                            segments[3],
+                                            { body: req, type: contentType },
+                                            form,
+                                            options
                                         );
-                                        let value;
-                                        try {
-                                            value = ContentSerdes.get().contentToValue(
-                                                { type: contentType, body: Buffer.concat(body) },
-                                                <any>property
-                                            );
-                                        } catch (err) {
-                                            console.warn(
-                                                "[binding-http]",
-                                                `HttpServer on port ${this.getPort()} cannot process write value for Property '${
-                                                    segments[3]
-                                                }: ${err.message}'`
-                                            );
-                                            res.writeHead(400);
-                                            res.end("Invalid Data");
-                                            return;
-                                        }
-                                        thing
-                                            .writeProperty(segments[3], value, options)
-                                            .then(() => {
-                                                res.writeHead(204);
-                                                res.end("Changed");
-                                            })
-                                            .catch((err) => {
-                                                console.error(
-                                                    "[binding-http]",
-                                                    `HttpServer on port ${this.getPort()} got internal error on write '${
-                                                        requestUri.pathname
-                                                    }': ${err.message}`
-                                                );
-                                                res.writeHead(500);
-                                                res.end(err.message);
-                                            });
-                                    });
+                                        res.writeHead(204);
+                                        res.end("Changed");
+                                    } catch (err) {
+                                        console.error(
+                                            "[binding-http]",
+                                            `HttpServer on port ${this.getPort()} got internal error on invoke '${
+                                                requestUri.pathname
+                                            }': ${err.message}`
+                                        );
+                                        res.writeHead(500);
+                                        res.end(err.message);
+                                    }
                                 } else {
                                     res.writeHead(400);
                                     res.end("Property readOnly");
@@ -878,15 +837,22 @@ export default class HttpServer implements ProtocolServer {
                         const action: TD.ThingAction = thing.actions[segments[3]];
                         if (action) {
                             if (req.method === "POST") {
+                                let options: WoT.InteractionOptions;
+                                const uriVariables: { [k: string]: any } = this.parseUrlParameters(
+                                    req.url,
+                                    action.uriVariables
+                                );
+                                if (!this.isEmpty(uriVariables)) {
+                                    options = { uriVariables: uriVariables };
+                                }
                                 try {
-                                    const form = action.forms.find((form) => {
-                                        const formUrl = new URL(form.href);
-                                        return formUrl.protocol === "http:" && formUrl.pathname === req.url;
-                                    });
+                                    const form = ProtocolHelpers.findRequestMatchingForm(action.forms,
+                                        "http", req.url, contentType);
                                     const output = await thing.handleInvokeAction(
                                         segments[3],
                                         { body: req, type: contentType },
-                                        form
+                                        form,
+                                        options
                                     );
                                     if (output) {
                                         res.setHeader("Content-Type", output.type);
@@ -931,22 +897,14 @@ export default class HttpServer implements ProtocolServer {
                                 }
 
                                 thing
-                                    .subscribeEvent(
+                                    .handleSubscribeEvent(
                                         segments[3],
                                         async (value) => {
                                             try {
-                                                const contentType = ProtocolHelpers.getEventContentType(
-                                                    thing.getThingDescription(),
-                                                    segments[3],
-                                                    "http"
-                                                );
-                                                const content = ContentSerdes.get().valueToContent(
-                                                    value.data && !value.dataUsed ? value.data : await value.value(),
-                                                    event.data,
-                                                    contentType
-                                                );
                                                 // send event data
-                                                content.body.pipe(res);
+                                                res.setHeader("Content-Type", value.type);
+                                                res.writeHead(200);
+                                                value.body.pipe(res);
                                             } catch (err) {
                                                 console.warn(
                                                     "[binding-http]",
@@ -956,7 +914,7 @@ export default class HttpServer implements ProtocolServer {
                                                 );
                                                 res.writeHead(500);
                                                 res.end("Invalid Event Data");
-                                                return;
+
                                             }
                                         },
                                         options
