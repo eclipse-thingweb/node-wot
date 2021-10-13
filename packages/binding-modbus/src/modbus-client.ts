@@ -94,15 +94,14 @@ export default class ModbusClient implements ProtocolClient {
         });
     }
 
-    start(): boolean {
-        return true;
+    async start(): Promise<void> {
+        // do nothing
     }
 
-    stop(): boolean {
+    async stop(): Promise<void> {
         this._connections.forEach((connection) => {
             connection.close();
         });
-        return true;
     }
 
     setSecurity(metadata: SecurityScheme[], credentials?: any): boolean {

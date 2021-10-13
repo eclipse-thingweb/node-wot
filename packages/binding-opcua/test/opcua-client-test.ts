@@ -53,7 +53,7 @@ describe("OPCUA client test", function () {
         client = new OpcuaClient();
     });
     after(async () => {
-        await client.stopAsync();
+        await client.stop();
         await server.stop();
     });
 

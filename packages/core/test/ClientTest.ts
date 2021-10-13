@@ -66,12 +66,12 @@ class TDClient implements ProtocolClient {
         });
     }
 
-    public start(): boolean {
-        return true;
+    public async start(): Promise<void> {
+        // do nothing
     }
 
-    public stop(): boolean {
-        return true;
+    public async stop(): Promise<void> {
+        // do nothing
     }
 
     public setSecurity = (metadata: SecurityScheme[]) => false;
@@ -139,12 +139,12 @@ class TrapClient implements ProtocolClient {
         });
     }
 
-    public start(): boolean {
-        return true;
+    public async start(): Promise<void> {
+        // do nothing
     }
 
-    public stop(): boolean {
-        return true;
+    public async stop(): Promise<void> {
+        // do nothing
     }
 
     public setSecurity = (metadata: SecurityScheme[]) => false;
@@ -197,11 +197,11 @@ class TestProtocolClient implements ProtocolClient {
         throw new Error("Method not implemented.");
     }
 
-    start(): boolean {
+    async start(): Promise<void> {
         throw new Error("Method not implemented.");
     }
 
-    stop(): boolean {
+    async stop(): Promise<void> {
         throw new Error("Method not implemented.");
     }
 
