@@ -483,7 +483,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                     // uriVariables ?
                     form = this.handleUriVariables(form, options);
 
-                    return client.subscribeResource(
+                    client.subscribeResource(
                         form,
                         (content) => {
                             if (!content.type) content.type = form.contentType;
@@ -556,7 +556,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                     // uriVariables ?
                     form = this.handleUriVariables(form, options);
 
-                    return client
+                    client
                         .subscribeResource(
                             form,
                             (content) => {
