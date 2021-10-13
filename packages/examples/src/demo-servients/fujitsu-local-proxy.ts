@@ -22,7 +22,6 @@ import { HttpServer } from "@node-wot/binding-http";
 // consuming protocols
 import { CoapClientFactory } from "@node-wot/binding-coap";
 import { FileClientFactory } from "@node-wot/binding-file";
-import { TDRepository } from "@node-wot/td-tools";
 
 let servient = new Servient();
 
