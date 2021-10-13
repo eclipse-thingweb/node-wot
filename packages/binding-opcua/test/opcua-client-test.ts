@@ -45,13 +45,10 @@ describe("OPCUA client test", function () {
 
     let client: OpcuaClient;
     before(async () => {
-        try {
-            await server.start();
-        } catch (err) {
-            return new Error(err);
-        }
+        await server.start();
         client = new OpcuaClient();
     });
+
     after(async () => {
         await client.stop();
         await server.stop();
