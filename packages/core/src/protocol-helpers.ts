@@ -290,23 +290,22 @@ export default class ProtocolHelpers {
         contentType?: string
     ): TD.Form | undefined {
         // first find forms with matching url protocol and path
-        let matchingForms : TD.Form[] = forms.filter((form) => {
+        let matchingForms: TD.Form[] = forms.filter((form) => {
             // remove optional uriVariables from href Form
-            const formUrl = new URL(form.href.replace(/(\{[\S]*\})/, ''));
+            const formUrl = new URL(form.href.replace(/(\{[\S]*\})/, ""));
 
             // remove uriVariables from request url, if any
-            const reqUrl = (requestUrl.indexOf('?') !== -1 ? requestUrl.split('?')[0] : requestUrl);
+            const reqUrl = requestUrl.indexOf("?") !== -1 ? requestUrl.split("?")[0] : requestUrl;
 
-            return formUrl.protocol === (uriScheme + ":") &&
-                formUrl.pathname === reqUrl;
+            return formUrl.protocol === uriScheme + ":" && formUrl.pathname === reqUrl;
         });
         // optionally try to match form's content type to the request's one
         if (contentType) {
-            const contentTypeMatchingForms : TD.Form[] = forms.filter((form) => {
-                return form.contentType === contentType
+            const contentTypeMatchingForms: TD.Form[] = forms.filter((form) => {
+                return form.contentType === contentType;
             });
             if (contentTypeMatchingForms.length > 0) matchingForms = contentTypeMatchingForms;
         }
-        return matchingForms.length > 0 ? matchingForms[0] : undefined
+        return matchingForms.length > 0 ? matchingForms[0] : undefined;
     }
 }

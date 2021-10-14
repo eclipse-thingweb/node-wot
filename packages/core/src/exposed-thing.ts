@@ -141,7 +141,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             for (const listener of es.listeners) {
                 listener.call(this, data);
             }
-             for (const listener of es.contentListeners) {
+            for (const listener of es.contentListeners) {
                 listener.call(this, data);
             }
         } else {
@@ -578,7 +578,12 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
      * Handle the request of an action invocation form the protocol binding level
      * @experimental
      */
-    public async handleInvokeAction(name: string, inputContent: Content, form?: TD.Form, options?: WoT.InteractionOptions): Promise<Content | void> {
+    public async handleInvokeAction(
+        name: string,
+        inputContent: Content,
+        form?: TD.Form,
+        options?: WoT.InteractionOptions
+    ): Promise<Content | void> {
         // TODO: handling URI variables?
         if (this.actions[name]) {
             console.debug("[core/exposed-thing]", `ExposedThing '${this.title}' has Action state of '${name}'`);
@@ -640,7 +645,10 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
      * Handle the request of a read operation for multiple properties from the protocol binding level
      * @experimental
      */
-    public async _handleReadProperties(propertyNames: string[], options?: WoT.InteractionOptions): Promise<PropertyContentMap> {
+    public async _handleReadProperties(
+        propertyNames: string[],
+        options?: WoT.InteractionOptions
+    ): Promise<PropertyContentMap> {
         return new Promise<PropertyContentMap>((resolve, reject) => {
             // collect all single promises into array
             const promises: Promise<Content>[] = [];
@@ -682,16 +690,23 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     /**
      * @experimental
      */
-    public async handleReadMultipleProperties(propertyNames: string[], options?: WoT.InteractionOptions): Promise<PropertyContentMap> {
+    public async handleReadMultipleProperties(
+        propertyNames: string[],
+        options?: WoT.InteractionOptions
+    ): Promise<PropertyContentMap> {
         return await this._handleReadProperties(propertyNames, options);
     }
-
 
     /**
      * Handle the request of an property write operation to the protocol binding level
      * @experimental
      */
-    public async handleWriteProperty(propertyName: string, inputContent: Content, form?: TD.Form, options?: WoT.InteractionOptions): Promise<void> {
+    public async handleWriteProperty(
+        propertyName: string,
+        inputContent: Content,
+        form?: TD.Form,
+        options?: WoT.InteractionOptions
+    ): Promise<void> {
         // TODO: to be removed next api does not allow an ExposedThing to be also a ConsumeThing
         if (this.properties[propertyName]) {
             // readOnly check skipped so far, see https://github.com/eclipse/thingweb.node-wot/issues/333#issuecomment-724583234
@@ -703,7 +718,6 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 
             // call write handler (if any)
             if (ps.writeHandler != null) {
-
                 const value = await ps.writeHandler(
                     new InteractionOutput(inputContent, form, this.properties[propertyName]),
                     options
@@ -749,7 +763,10 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
      *
      * @experimental
      */
-    public async handleWriteMultipleProperties(valueMap: PropertyContentMap, options?: WoT.InteractionOptions): Promise<void> {
+    public async handleWriteMultipleProperties(
+        valueMap: PropertyContentMap,
+        options?: WoT.InteractionOptions
+    ): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             // collect all single promises into array
             const promises: Promise<void>[] = [];
@@ -773,7 +790,11 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
      *
      * @experimental
      */
-    public handleSubscribeEvent(name: string, listener: ContentListener, options?: WoT.InteractionOptions): Promise<void> {
+    public handleSubscribeEvent(
+        name: string,
+        listener: ContentListener,
+        options?: WoT.InteractionOptions
+    ): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             if (this.events[name]) {
                 const es: EventState = this.events[name].getState();
@@ -791,19 +812,18 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         });
     }
 
-     public handleUnsubscribeEvent(name: string, listener: ContentListener): Promise<void> {
+    public handleUnsubscribeEvent(name: string, listener: ContentListener): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             if (this.events[name]) {
                 const es: EventState = this.events[name].getState();
-                const unsubscribeIndex = es.contentListeners.findIndex(e => e === listener);
-                if (unsubscribeIndex !== -1)
-                    es.contentListeners.splice(unsubscribeIndex, 1);
+                const unsubscribeIndex = es.contentListeners.findIndex((e) => e === listener);
+                if (unsubscribeIndex !== -1) es.contentListeners.splice(unsubscribeIndex, 1);
                 console.debug("[core/exposed-thing]", `ExposedThing '${this.title}' unsubscribes from event '${name}'`);
             } else {
                 reject(new Error(`ExposedThing '${this.title}', no event found for '${name}'`));
             }
         });
-     }
+    }
 
     private static interactionInputToReadable(input: WoT.InteractionInput): Readable {
         let body;
