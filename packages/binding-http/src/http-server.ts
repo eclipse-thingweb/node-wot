@@ -733,104 +733,105 @@ export default class HttpServer implements ProtocolServer {
                                     options = { uriVariables: uriVariables };
                                 }
 
-                            if (req.method === "GET") {
-                                // check if this an observable request (longpoll)
-                                if (segments[4] === this.OBSERVABLE_DIR) {
-                                    // FIXME must decide on Content-Type here, not on next()
-                                    res.setHeader("Content-Type", ContentSerdes.DEFAULT);
-                                    res.writeHead(200);
-                                    thing
-                                        .observeProperty(
-                                            segments[3],
-                                            async (value: InteractionOutput) => {
-                                                try {
-                                                    const contentType = ProtocolHelpers.getPropertyContentType(
-                                                        thing.getThingDescription(),
-                                                        segments[3],
-                                                        "http"
-                                                    );
-                                                    const content = ContentSerdes.get().valueToContent(
-                                                        value.data && !value.dataUsed
-                                                            ? value.data
-                                                            : await value.value(),
-                                                        property.data,
-                                                        contentType
-                                                    );
-                                                    // send event data
-                                                    content.body.pipe(res);
-                                                } catch (err) {
-                                                    console.warn(
-                                                        "[binding-http]",
-                                                        `HttpServer on port ${this.getPort()} cannot process data for Event '${
-                                                            segments[3]
-                                                        }: ${err.message}'`
-                                                    );
-                                                    res.writeHead(500);
-                                                    res.end("Invalid Event Data");
-
-                                                }
-                                            },
-                                            options
-                                        )
-                                        .then(() => res.end())
-                                        .catch(() => res.end());
-                                    res.on("finish", () => {
-                                        console.debug(
-                                            "[binding-http]",
-                                            `HttpServer on port ${this.getPort()} closed connection`
-                                        );
-                                        thing.unobserveProperty(segments[3]);
-                                    });
-                                    res.setTimeout(60 * 60 * 1000, () => thing.unobserveProperty(segments[3]));
-                                } else {
-                                    try {
-                                        const content = await thing.handleReadProperty(
-                                            segments[3],
-                                            options
-                                        );
-                                        res.setHeader("Content-Type", content.type);
+                                if (req.method === "GET") {
+                                    // check if this an observable request (longpoll)
+                                    if (segments[4] === this.OBSERVABLE_DIR) {
+                                        // FIXME must decide on Content-Type here, not on next()
+                                        res.setHeader("Content-Type", ContentSerdes.DEFAULT);
                                         res.writeHead(200);
-                                        content.body.pipe(res);
-                                    } catch (err) {
-                                        console.error(
-                                            "[binding-http]",
-                                            `HttpServer on port ${this.getPort()} got internal error on read '${
-                                                requestUri.pathname
-                                            }': ${err.message}`
-                                        );
-                                        res.writeHead(500);
-                                        res.end(err.message);
+                                        thing
+                                            .observeProperty(
+                                                segments[3],
+                                                async (value: InteractionOutput) => {
+                                                    try {
+                                                        const contentType = ProtocolHelpers.getPropertyContentType(
+                                                            thing.getThingDescription(),
+                                                            segments[3],
+                                                            "http"
+                                                        );
+                                                        const content = ContentSerdes.get().valueToContent(
+                                                            value.data && !value.dataUsed
+                                                                ? value.data
+                                                                : await value.value(),
+                                                            property.data,
+                                                            contentType
+                                                        );
+                                                        // send event data
+                                                        content.body.pipe(res);
+                                                    } catch (err) {
+                                                        console.warn(
+                                                            "[binding-http]",
+                                                            `HttpServer on port ${this.getPort()} cannot process data for Event '${
+                                                                segments[3]
+                                                            }: ${err.message}'`
+                                                        );
+                                                        res.writeHead(500);
+                                                        res.end("Invalid Event Data");
+
+                                                    }
+                                                },
+                                                options
+                                            )
+                                            .then(() => res.end())
+                                            .catch(() => res.end());
+                                        res.on("finish", () => {
+                                            console.debug(
+                                                "[binding-http]",
+                                                `HttpServer on port ${this.getPort()} closed connection`
+                                            );
+                                            thing.unobserveProperty(segments[3]);
+                                        });
+                                        res.setTimeout(60 * 60 * 1000, () => thing.unobserveProperty(segments[3]));
+                                    } else {
+                                        try {
+                                            const content = await thing.handleReadProperty(
+                                                segments[3],
+                                                options
+                                            );
+                                            res.setHeader("Content-Type", content.type);
+                                            res.writeHead(200);
+                                            content.body.pipe(res);
+                                        } catch (err) {
+                                            console.error(
+                                                "[binding-http]",
+                                                `HttpServer on port ${this.getPort()} got internal error on read '${
+                                                    requestUri.pathname
+                                                }': ${err.message}`
+                                            );
+                                            res.writeHead(500);
+                                            res.end(err.message);
+                                        }
                                     }
-                                }
-                            } else if (req.method === "PUT") {
-                                if (!property.readOnly) {
-                                    try {
-                                        const form = ProtocolHelpers.findRequestMatchingForm(property.forms,
-                                            "http", req.url, contentType);
-                                        await thing.handleWriteProperty(
-                                            segments[3],
-                                            { body: req, type: contentType },
-                                            form,
-                                            options
-                                        );
-                                        res.writeHead(204);
-                                        res.end("Changed");
-                                    } catch (err) {
-                                        console.error(
-                                            "[binding-http]",
-                                            `HttpServer on port ${this.getPort()} got internal error on invoke '${
-                                                requestUri.pathname
-                                            }': ${err.message}`
-                                        );
-                                        res.writeHead(500);
-                                        res.end(err.message);
+                                } else if (req.method === "PUT") {
+                                    if (!property.readOnly) {
+                                        try {
+                                            const form = ProtocolHelpers.findRequestMatchingForm(property.forms,
+                                                "http", req.url, contentType);
+                                            await thing.handleWriteProperty(
+                                                segments[3],
+                                                { body: req, type: contentType },
+                                                form,
+                                                options
+                                            );
+                                            res.writeHead(204);
+                                            res.end("Changed");
+                                        } catch (err) {
+                                            console.error(
+                                                "[binding-http]",
+                                                `HttpServer on port ${this.getPort()} got internal error on invoke '${
+                                                    requestUri.pathname
+                                                }': ${err.message}`
+                                            );
+                                            res.writeHead(500);
+                                            res.end(err.message);
+                                        }
+                                    } else {
+                                        respondUnallowedMethod(res, "GET, PUT");
                                     }
-                                } else {
-                                    respondUnallowedMethod(res, "GET, PUT");
-                                }
-                                // resource found and response sent
-                                return;
-                            } // Property exists?
+                                    // resource found and response sent
+                                    return;
+                                } // Property exists?
+                            }
                         }
                     } else if (segments[2] === this.ACTION_DIR) {
                         // sub-path -> select Action
