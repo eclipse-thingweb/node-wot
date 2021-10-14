@@ -21,7 +21,8 @@ import * as url from "url";
 
 import * as TD from "@node-wot/td-tools";
 import Servient, { ProtocolServer, ContentSerdes, ExposedThing, Helpers, ProtocolHelpers } from "@node-wot/core";
-const coap = require("coap");
+import coap = require("coap");
+import slugify from "slugify";
 
 export default class CoapServer implements ProtocolServer {
     public readonly scheme: string = "coap";
@@ -31,14 +32,13 @@ export default class CoapServer implements ProtocolServer {
     private readonly EVENT_DIR = "events";
 
     private readonly port: number = 5683;
-    private readonly address: string = undefined;
+    private readonly address?: string = undefined;
 
     private readonly server: any = coap.createServer((req: any, res: any) => {
         this.handleRequest(req, res);
     });
 
     private readonly things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
-    private servient: Servient = null;
 
     constructor(port?: number, address?: string) {
         if (port !== undefined) {
@@ -58,9 +58,6 @@ export default class CoapServer implements ProtocolServer {
             `CoapServer starting on ${this.address !== undefined ? this.address + " " : ""}port ${this.port}`
         );
         return new Promise<void>((resolve, reject) => {
-            // store servient to get credentials
-            this.servient = servient;
-
             // start promise handles all errors until successful start
             this.server.once("error", (err: Error) => {
                 reject(err);
@@ -103,7 +100,6 @@ export default class CoapServer implements ProtocolServer {
     }
 
     public expose(thing: ExposedThing, tdTemplate?: WoT.ExposedThingInit): Promise<void> {
-        const slugify = require("slugify");
         let urlPath = slugify(thing.title, { lower: true });
 
         if (this.things.has(urlPath)) {

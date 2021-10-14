@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 - 2021 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -16,11 +16,9 @@
 import Thing from "./thing-description";
 
 export { default as Thing } from "./thing-description";
-export { default as TDRepository } from "./td-repository";
 export * from "./thing-description";
 export * from "./td-parser";
 export * from "./td-helpers";
-export * from "./td-transformer";
 type DeepPartial<T> = T extends Record<string, unknown>
     ? {
           [P in keyof T]?: T[P] extends Array<infer I> ? Array<DeepPartial<I>> : DeepPartial<T[P]>;

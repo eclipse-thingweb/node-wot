@@ -1,3 +1,8 @@
+![Default CI Pipeline](https://github.com/eclipse/thingweb.node-wot/workflows/Default%20CI%20Pipeline/badge.svg)
+[<img alt="npm" src="https://img.shields.io/npm/dw/@node-wot/td-tools">](https://npmstats.org/@node-wot:td-tools)
+[![codecov](https://codecov.io/gh/eclipse/thingweb.node-wot/branch/master/graph/badge.svg)](https://codecov.io/gh/eclipse/thingweb.node-wot)
+[![Telegram Group](https://img.shields.io/endpoint?color=neon&url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Fnodewot)](https://t.me/nodewot)
+
 # Eclipse Thingweb node-wot
 
 W3C Web of Things implementation on NodeJS.
@@ -7,8 +12,6 @@ Visit http://www.thingweb.io for a practical [node-wot API usage](http://www.thi
 Useful labels:
 <a href="https://github.com/eclipse/thingweb.node-wot/issues?q=label%3Aquestion+">question</a> |
 <a href="https://github.com/eclipse/thingweb.node-wot/issues?q=label%3A%22good+first+issue%22+">good first issue</a>
-
-![Default CI Pipeline](https://github.com/eclipse/thingweb.node-wot/workflows/Default%20CI%20Pipeline/badge.svg)
 
 ### Table of Contents
 
@@ -93,7 +96,7 @@ cs.addCodec(new MyCodec("application/myType"));
 
 All systems require:
 
--   [NodeJS](https://nodejs.org/) version 14+
+-   [NodeJS](https://nodejs.org/) version 12+
 
 #### Linux
 
@@ -219,11 +222,11 @@ If you do so, anyway, you can specify the entry point as follows:
 }
 ```
 
-There are several ways to start the application:  
- a. Execute `npm start`.  
- b. Execute `./node_modules/.bin/wot-servient main.js`.  
- c. Execute `node ./node_modules/@node-wot/cli/dist/cli.js main.js`.  
- d. If you have installed `@node-wot/cli` globally you can even start the application right
+There are several ways to start the application:
+a. Execute `npm start`.
+b. Execute `./node_modules/.bin/wot-servient main.js`.
+c. Execute `node ./node_modules/@node-wot/cli/dist/cli.js main.js`.
+d. If you have installed `@node-wot/cli` globally you can even start the application right
 away using this command `wot-servient main.js`. However, in the current implementation, the
 import of local dependencies is not supported in this case.
 
@@ -328,6 +331,8 @@ To reduce the size of the installation from about 800 MByte down to about 200 MB
 
 Alternatively, node-wot can be built as a Docker image with the `Dockerfile`.
 
+Make sure you are under linux or under WSL if you are running on Windows.
+
 Clone the repository:
 
 ```
@@ -343,7 +348,7 @@ cd thingweb.node-wot
 Build the Docker image named `wot-servient` from the `Dockerfile`:
 
 ```
-docker build --rm -t wot-servient .
+npm run build:docker
 ```
 
 Run the wot-servient as a container:

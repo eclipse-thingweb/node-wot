@@ -16,8 +16,8 @@
 import Thing from "./thing-description";
 import * as TD from "./thing-description";
 
-const isAbsoluteUrl = require("is-absolute-url");
-const URLToolkit = require("url-toolkit");
+import isAbsoluteUrl = require("is-absolute-url");
+import URLToolkit = require("url-toolkit");
 
 /** Parses a TD into a Thing object */
 export function parseTD(td: string, normalize?: boolean): Thing {

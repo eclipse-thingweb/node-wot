@@ -15,12 +15,13 @@
 
 import * as https from "https";
 import { suite, test } from "@testdeck/mocha";
-import * as express from "express";
+import express from "express";
 import { HttpClient } from "../src/http";
 import { OAuth2SecurityScheme } from "@node-wot/td-tools";
 
-import Memory from "./memory-model";
+import InMemoryModel from "./memory-model";
 import { promisify } from "util";
+import { ProtocolHelpers } from "@node-wot/core";
 const OAuthServer = require("express-oauth-server");
 const bodyParser = require("body-parser");
 
@@ -31,9 +32,10 @@ class HttpClientOAuthTest {
     private client: HttpClient;
     static model: any;
     static server: https.Server;
-    static before() {
+
+    static before(): Promise<void> {
         const app: any = express();
-        HttpClientOAuthTest.model = new Memory();
+        HttpClientOAuthTest.model = new InMemoryModel();
 
         app.oauth = new OAuthServer({
             model: HttpClientOAuthTest.model,
@@ -82,9 +84,11 @@ class HttpClientOAuthTest {
             scopes: ["test"],
         };
         this.client.setSecurity([scheme], { clientId: "thom", clientSecret: "nightworld" });
-        return this.client.readResource({
+        const resource = await this.client.readResource({
             href: "https://localhost:3000/resource",
         });
+        const body = await ProtocolHelpers.readStreamFully(resource.body);
+        body.toString("ascii").should.eql("Ok!");
     }
 
     @test async "should authorize client with resource owener flow"() {
@@ -100,9 +104,11 @@ class HttpClientOAuthTest {
             username: "thomseddon",
             password: "nightworld",
         });
-        return this.client.readResource({
+        const resource = await this.client.readResource({
             href: "https://localhost:3000/resource",
         });
+        const body = await ProtocolHelpers.readStreamFully(resource.body);
+        body.toString("ascii").should.eql("Ok!");
     }
 
     @test async "should refresh token"() {
@@ -115,9 +121,11 @@ class HttpClientOAuthTest {
         HttpClientOAuthTest.model.expireAllTokens();
         await this.client.setSecurity([scheme], { clientId: "thom", clientSecret: "nightworld" });
         await sleep(1000);
-        return this.client.readResource({
+        const resource = await this.client.readResource({
             href: "https://localhost:3000/resource",
         });
+        const body = await ProtocolHelpers.readStreamFully(resource.body);
+        body.toString("ascii").should.eql("Ok!");
     }
 
     @test async "should refresh token with resource owener flow"() {
@@ -136,9 +144,11 @@ class HttpClientOAuthTest {
             password: "nightworld",
         });
         await sleep(1000);
-        return this.client.readResource({
+        const resource = await this.client.readResource({
             href: "https://localhost:3000/resource",
         });
+        const body = await ProtocolHelpers.readStreamFully(resource.body);
+        body.toString("ascii").should.eql("Ok!");
     }
 }
 

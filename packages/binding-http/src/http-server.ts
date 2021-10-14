@@ -20,7 +20,7 @@
 import * as fs from "fs";
 import * as http from "http";
 import * as https from "https";
-import * as bauth from "basic-auth";
+import bauth from "basic-auth";
 import * as url from "url";
 
 import { AddressInfo } from "net";
@@ -38,13 +38,15 @@ import Servient, {
 import { HttpConfig, HttpForm, OAuth2ServerConfig } from "./http";
 import createValidator, { Validator } from "./oauth-token-validation";
 import { OAuth2SecurityScheme } from "@node-wot/td-tools";
-import { InteractionOutput } from "@node-wot/core/dist/interaction-output";
+import slugify from "slugify";
+import { InteractionOutput } from "wot-typescript-definitions";
+import "accept-language-parser";
+
+declare const alparser: any;
 
 export default class HttpServer implements ProtocolServer {
     public readonly scheme: "http" | "https";
 
-    private readonly ALL_DIR = "all";
-    private readonly ALL_PROPERTIES = "properties";
     private readonly PROPERTY_DIR = "properties";
     private readonly ACTION_DIR = "actions";
     private readonly EVENT_DIR = "events";
@@ -127,10 +129,12 @@ export default class HttpServer implements ProtocolServer {
                     this.httpSecurityScheme = "Bearer";
                     break;
                 case "oauth2":
-                    this.httpSecurityScheme = "OAuth";
-                    const oAuthConfig = config.security as OAuth2ServerConfig;
-                    this.validOAuthClients = new RegExp(oAuthConfig.allowedClients ?? ".*");
-                    this.oAuthValidator = createValidator(oAuthConfig.method);
+                    {
+                        this.httpSecurityScheme = "OAuth";
+                        const oAuthConfig = config.security as OAuth2ServerConfig;
+                        this.validOAuthClients = new RegExp(oAuthConfig.allowedClients ?? ".*");
+                        this.oAuthValidator = createValidator(oAuthConfig.method);
+                    }
                     break;
                 default:
                     throw new Error(`HttpServer does not support security scheme '${config.security.scheme}`);
@@ -210,7 +214,7 @@ export default class HttpServer implements ProtocolServer {
             let pattern = "{?";
             let index = 0;
             for (const key in uriVariables) {
-                if (index != 0) {
+                if (index !== 0) {
                     pattern += ",";
                 }
                 pattern += encodeURIComponent(key);
@@ -224,7 +228,6 @@ export default class HttpServer implements ProtocolServer {
     }
 
     public expose(thing: ExposedThing, tdTemplate?: WoT.ExposedThingInit): Promise<void> {
-        const slugify = require("slugify");
         let urlPath = slugify(thing.title, { lower: true });
 
         if (this.things.has(urlPath)) {
@@ -279,7 +282,7 @@ export default class HttpServer implements ProtocolServer {
             } else {
                 console.info("[binding-http]", `HttpServer failed to destroy thing with thingId '${thingId}'`);
             }
-            resolve(removedThing != undefined);
+            resolve(removedThing !== undefined);
         });
     }
 
@@ -297,7 +300,7 @@ export default class HttpServer implements ProtocolServer {
                 }
             }
             if (anyProperties) {
-                const href = base + "/" + this.ALL_DIR + "/" + encodeURIComponent(this.ALL_PROPERTIES);
+                const href = base + "/" + this.PROPERTY_DIR;
                 const form = new TD.Form(href, type);
                 if (allReadOnly) {
                     form.op = ["readallproperties", "readmultipleproperties"];
@@ -427,7 +430,7 @@ export default class HttpServer implements ProtocolServer {
             }
             case "Digest":
                 return false;
-            case "OAuth":
+            case "OAuth": {
                 const oAuthScheme = thing.securityDefinitions[thing.security[0] as string] as OAuth2SecurityScheme;
 
                 // TODO: Support security schemes defined at affordance level
@@ -444,6 +447,7 @@ export default class HttpServer implements ProtocolServer {
                 }
 
                 return valid;
+            }
             case "Bearer": {
                 if (req.headers.authorization === undefined) return false;
                 // TODO proper token evaluation
@@ -459,11 +463,10 @@ export default class HttpServer implements ProtocolServer {
     private fillSecurityScheme(thing: ExposedThing) {
         if (thing.securityDefinitions) {
             const secCandidate = Object.keys(thing.securityDefinitions).find((key) => {
-                let scheme = thing.securityDefinitions[key].scheme;
+                let scheme = thing.securityDefinitions[key].scheme as string;
                 // HTTP Authentication Scheme for OAuth does not contain the version number
                 // see https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml
                 // remove version number for oauth2 schemes
-                // @ts-ignore
                 scheme = scheme === "oauth2" ? scheme.split("2")[0] : scheme;
                 return scheme === this.httpSecurityScheme.toLowerCase();
             });
@@ -520,6 +523,7 @@ export default class HttpServer implements ProtocolServer {
     }
 
     private async handleRequest(req: http.IncomingMessage, res: http.ServerResponse) {
+        // eslint-disable-next-line node/no-deprecated-api
         const requestUri = url.parse(req.url);
 
         console.debug(
@@ -643,9 +647,8 @@ export default class HttpServer implements ProtocolServer {
                         // look for language negotiation through the Accept-Language header field of HTTP (e.g., "de", "de-CH", "en-US,en;q=0.5")
                         // Note: "title" on thing level is mandatory term --> check whether "titles" exists for multi-languages
                         // Note: HTTP header names are case-insensitive and req.headers seems to contain them in lowercase
-                        if (req.headers["accept-language"] && req.headers["accept-language"] != "*") {
+                        if (req.headers["accept-language"] && req.headers["accept-language"] !== "*") {
                             if (thing.titles) {
-                                const alparser = require("accept-language-parser");
                                 const supportedLanguagesArray: string[] = []; // e.g., ['fr', 'en']
 
                                 // collect supported languages by checking titles (given title is the only mandatory multi-lang term)
@@ -687,8 +690,9 @@ export default class HttpServer implements ProtocolServer {
                         return;
                     }
 
-                    if (segments[2] === this.ALL_DIR) {
-                        if (this.ALL_PROPERTIES === segments[3]) {
+                    if (segments[2] === this.PROPERTY_DIR) {
+                        if (segments.length === 3) {
+                            // all properties
                             if (req.method === "GET") {
                                 try {
                                     const propMap: PropertyContentMap = await thing.handleReadAllProperties();
@@ -716,19 +720,18 @@ export default class HttpServer implements ProtocolServer {
                             }
                             // resource found and response sent
                             return;
-                        }
-                    } else if (segments[2] === this.PROPERTY_DIR) {
-                        // sub-path -> select Property
-                        const property = thing.properties[segments[3]];
-                        if (property) {
-                            let options: WoT.InteractionOptions;
-                            const uriVariables: { [k: string]: any } = this.parseUrlParameters(
-                                req.url,
-                                property.uriVariables
-                            );
-                            if (!this.isEmpty(uriVariables)) {
-                                options = { uriVariables: uriVariables };
-                            }
+                        } else {
+                            // sub-path -> select Property
+                            const property = thing.properties[segments[3]];
+                            if (property) {
+                                let options: WoT.InteractionOptions;
+                                const uriVariables: { [k: string]: any } = this.parseUrlParameters(
+                                    req.url,
+                                    property.uriVariables
+                                );
+                                if (!this.isEmpty(uriVariables)) {
+                                    options = { uriVariables: uriVariables };
+                                }
 
                             if (req.method === "GET") {
                                 // check if this an observable request (longpoll)
@@ -823,15 +826,12 @@ export default class HttpServer implements ProtocolServer {
                                         res.end(err.message);
                                     }
                                 } else {
-                                    res.writeHead(400);
-                                    res.end("Property readOnly");
+                                    respondUnallowedMethod(res, "GET, PUT");
                                 }
-                            } else {
-                                respondUnallowedMethod(res, "GET, PUT");
-                            }
-                            // resource found and response sent
-                            return;
-                        } // Property exists?
+                                // resource found and response sent
+                                return;
+                            } // Property exists?
+                        }
                     } else if (segments[2] === this.ACTION_DIR) {
                         // sub-path -> select Action
                         const action: TD.ThingAction = thing.actions[segments[3]];
@@ -914,7 +914,6 @@ export default class HttpServer implements ProtocolServer {
                                                 );
                                                 res.writeHead(500);
                                                 res.end("Invalid Event Data");
-
                                             }
                                         },
                                         options
@@ -948,7 +947,7 @@ export default class HttpServer implements ProtocolServer {
 
     private isEmpty(obj: any) {
         for (const key in obj) {
-            if (obj.hasOwnProperty(key)) return false;
+            if (Object.prototype.hasOwnProperty.call(obj, key)) return false;
         }
         return true;
     }

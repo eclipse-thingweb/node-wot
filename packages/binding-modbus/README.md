@@ -57,13 +57,13 @@ A more user-friendly property to specify `modbus:function`. It can be filled wit
 
 The physical bus address of the unit targeted by the mobus request.
 
-### modbus:offset
+### modbus:address
 
 This property defines the starting address of registers or coils that are meant to be written.
 
-### modbus:length
+### modbus:quantity
 
-This property defines the total amount of registers or coils that should be written, beginning with the register specified with the property 'modbus:offset'.
+This property defines the total amount of registers or coils that should be written, beginning with the register specified with the property 'modbus:address'.
 
 ### modbus:pollingTime
 
@@ -78,7 +78,7 @@ Timeout in milliseconds of the modbus request. Default to 1000 milliseconds
 The URL is used to transport all addressing information necessary to describe the MODBUS connection and register addresses. It has the following structure:
 
 ```
-modbus+tcp:// <host> [ : <port> ] [/ <unitid> [ ?offset=<offset> [&length=<length> ] ] ]
+modbus+tcp:// <host> [ : <port> ] [/ <unitid> [ ?address=<address> [&quantity=<quantity> ] ] ]
 ```
 
 with the following meaning:
@@ -86,8 +86,8 @@ with the following meaning:
 -   `<host>` is the host name or IP address of the MODBUS slave
 -   `<port>` is the optional TCP port number used to access the MODBUS slave. Default is 502
 -   `<unitid>` is the MODBUS unit id of the MODBUS slave; same as [modbus:unitID](#modbus:unitID)
--   `<offset>` is the starting offset register number; see [modbus:offset](#modbus:offset)
--   `<length>` is the optional number of registers to access. Default is 1; see [modbus:length](#modbus:length)
+-   `<address>` is the starting address register number; see [modbus:address](#modbus:address)
+-   `<quantity>` is the optional number of registers to access. Default is 1; see [modbus:quantity](#modbus:quantity)
 
 When specified URL values override the corresponding `form` parameter.
 
@@ -164,7 +164,7 @@ Reads the 8th input register of the unit 1
     "contentType": "application/octet-stream;length=2",
     "op": ["readproperty"],
     "modbus:function": "readInputRegister",
-    "modbus:offset": 8,
+    "modbus:address": 8,
     "modbus:unitID": 1,
     "modbus:timeout": 2000
 }
@@ -180,7 +180,7 @@ Read and write the 8th holding register of the unit 1
     "contentType": "application/octet-stream;length=2",
     "op": ["readproperty", "writeproperty"],
     "modbus:entity": "HoldingRegister",
-    "modbus:offset": 8,
+    "modbus:address": 8,
     "modbus:unitID": 1
 }
 ```
@@ -197,7 +197,7 @@ Polls the 8th holding register of the unit 1 every second.
         "observeproperty"
     ],
     "modbus:entity": "HoldingRegister",
-    "modbus:offset": 8,
+    "modbus:address": 8,
     "modbus:unitID": 1,
     "modbus:pollingTime: 1000
 }

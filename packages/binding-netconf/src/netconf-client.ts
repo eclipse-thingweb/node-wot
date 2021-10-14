@@ -20,7 +20,7 @@ import { ProtocolClient, Content, ContentSerdes } from "@node-wot/core";
 import { NetconfForm } from "./netconf";
 import * as TD from "@node-wot/td-tools";
 import * as AsyncNodeNetcon from "./async-node-netconf";
-import * as Url from "url-parse";
+import Url from "url-parse";
 import { Readable } from "stream";
 import { ProtocolHelpers } from "@node-wot/core";
 

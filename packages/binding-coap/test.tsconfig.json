@@ -1,9 +1,0 @@
-{
-    "extends": "../../tsconfig.json",
-    "compilerOptions": {
-        "outDir": "testDist",
-        "resolveJsonModule": true,
-        "esModuleInterop": true
-    },
-    "include": ["test/**/*"]
-}

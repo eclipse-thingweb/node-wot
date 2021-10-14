@@ -17,14 +17,13 @@
  * CoAPS client based on node-coap-client by AlCalzone
  */
 
-import * as url from "url";
 import * as TD from "@node-wot/td-tools";
 
 import { Subscription } from "rxjs/Subscription";
 
-import { ProtocolClient, Content } from "@node-wot/core";
+import { ProtocolClient, Content, ProtocolHelpers } from "@node-wot/core";
 import { CoapForm, CoapMethodName, isValidCoapMethod, isSupportedCoapMethod } from "./coap";
-const coaps = require("node-coap-client").CoapClient;
+import { CoapClient as coaps, RequestMethod } from "node-coap-client";
 
 export default class CoapsClient implements ProtocolClient {
     // FIXME coap Agent closes socket when no messages in flight -> new socket with every request
@@ -105,11 +104,11 @@ export default class CoapsClient implements ProtocolClient {
         complete?: () => void
     ): Promise<Subscription> {
         return new Promise<Subscription>((resolve, reject) => {
-            let requestUri = url.parse(form.href.replace(/$coaps/, "https"));
+            const requestUri = new URL(form.href.replace(/$coaps/, "https"));
             coaps.setSecurityParams(requestUri.hostname, this.authorization);
 
             coaps
-                .observe(form.href, "GET", next)
+                .observe(form.href, "get", next)
                 .then(() => {
                     resolve(
                         new Subscription(() => {
@@ -118,7 +117,7 @@ export default class CoapsClient implements ProtocolClient {
                         })
                     );
                 })
-                .catch((err: any) => {
+                .catch((err) => {
                     error(err);
                     reject(err);
                 });
@@ -195,7 +194,7 @@ export default class CoapsClient implements ProtocolClient {
         return defaultMethod;
     }
 
-    private generateRequest(form: CoapForm, defaultMethod: CoapMethodName, content?: Content): any {
+    private async generateRequest(form: CoapForm, defaultMethod: CoapMethodName, content?: Content): Promise<any> {
         // url only works with http*
         const requestUri = new URL(form.href.replace(/$coaps/, "https"));
         coaps.setSecurityParams(requestUri.hostname, this.authorization);
@@ -211,10 +210,13 @@ export default class CoapsClient implements ProtocolClient {
         }
 
         console.debug("[binding-coap]", `CoapsClient sending ${method} to ${form.href}`);
+
+        const body = content.body ? await ProtocolHelpers.readStreamFully(content.body) : undefined;
+
         const req = coaps.request(
             form.href /* string */,
-            method.toLowerCase() /* "get" | "post" | "put" | "delete" */,
-            content ? content.body : undefined /* Buffer */
+            method.toLowerCase() as RequestMethod /* "get" | "post" | "put" | "delete" */,
+            body
         );
 
         return req;

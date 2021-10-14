@@ -36,7 +36,7 @@ export default class InMemoryModel {
         this.users = [{ id: "123", username: "thomseddon", password: "nightworld" }];
     }
 
-    dump() {
+    dump(): void {
         console.log("clients", this.clients);
         console.log("tokens", this.tokens);
         console.log("users", this.users);

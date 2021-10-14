@@ -32,7 +32,7 @@ export interface ProtocolClient {
     /** this client is requested to perform a "read" on the resource with the given URI */
     readResource(form: TD.Form): Promise<Content>;
 
-    /** this cliet is requested to perform a "write" on the resource with the given URI  */
+    /** this client is requested to perform a "write" on the resource with the given URI  */
     writeResource(form: TD.Form, content: Content): Promise<void>;
 
     /** this client is requested to perform an "invoke" on the resource with the given URI */

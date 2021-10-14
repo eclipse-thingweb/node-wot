@@ -1,5 +1,5 @@
 import { suite, test } from "@testdeck/mocha";
-import * as express from "express";
+import express from "express";
 import { should } from "chai";
 import create, { IntrospectionEndpoint, Validator, EndpointValidator } from "../src/oauth-token-validation";
 import * as http from "http";
@@ -110,7 +110,7 @@ describe("OAuth2.0 Validator tests", () => {
             };
 
             const valid = await this.validator.validate(req as http.IncomingMessage, ["1", "2"], /.*/g);
-            valid.should.be.true;
+            valid.should.eql(true);
         }
 
         @test async "should validate token from query string"() {
@@ -120,7 +120,7 @@ describe("OAuth2.0 Validator tests", () => {
             };
 
             const valid = await this.validator.validate(req as http.IncomingMessage, ["1", "2"], /.*/g);
-            valid.should.be.true;
+            valid.should.eql(true);
         }
 
         @test async "should validate a single scope"() {
@@ -130,7 +130,7 @@ describe("OAuth2.0 Validator tests", () => {
             };
 
             const valid = await this.validator.validate(req as http.IncomingMessage, ["1"], /.*/g);
-            valid.should.be.true;
+            valid.should.eql(true);
         }
 
         @test async "should validate a single scope mixed with invalid scopes"() {
@@ -140,7 +140,7 @@ describe("OAuth2.0 Validator tests", () => {
             };
 
             const valid = await this.validator.validate(req as http.IncomingMessage, ["1", "3", "4"], /.*/g);
-            valid.should.be.true;
+            valid.should.eql(true);
         }
 
         @test async "should validate cliedId"() {
@@ -150,7 +150,7 @@ describe("OAuth2.0 Validator tests", () => {
             };
 
             const valid = await this.validator.validate(req as http.IncomingMessage, ["1", "3", "4"], /coolClient/g);
-            valid.should.be.true;
+            valid.should.eql(true);
         }
 
         @test async "should validate cliedId using regex"() {
@@ -160,7 +160,7 @@ describe("OAuth2.0 Validator tests", () => {
             };
 
             const valid = await this.validator.validate(req as http.IncomingMessage, ["1", "3", "4"], /cool.*/g);
-            valid.should.be.true;
+            valid.should.eql(true);
         }
 
         @test async "should reject invalid cliedId"() {
@@ -170,7 +170,7 @@ describe("OAuth2.0 Validator tests", () => {
             };
 
             const valid = await this.validator.validate(req as http.IncomingMessage, ["1", "3", "4"], /otherClient/g);
-            valid.should.be.false;
+            valid.should.eql(false);
         }
 
         @test async "should reject invalid scopes"() {
@@ -180,7 +180,7 @@ describe("OAuth2.0 Validator tests", () => {
             };
 
             const valid = await this.validator.validate(req as http.IncomingMessage, ["3"], /.*/g);
-            valid.should.be.false;
+            valid.should.eql(false);
         }
 
         @test async "should reject invalid token from headers"() {
@@ -192,7 +192,7 @@ describe("OAuth2.0 Validator tests", () => {
             };
 
             const valid = await this.validator.validate(req as http.IncomingMessage, [], /.*/g);
-            valid.should.be.false;
+            valid.should.eql(false);
         }
 
         @test async "should reject invalid token from query string"() {
@@ -202,7 +202,7 @@ describe("OAuth2.0 Validator tests", () => {
             };
 
             const valid = await this.validator.validate(req as http.IncomingMessage, [], /.*/g);
-            valid.should.be.false;
+            valid.should.eql(false);
         }
 
         @test async "should throw invalid incoming message"() {
@@ -310,8 +310,8 @@ describe("OAuth2.0 Validator tests", () => {
                 },
                 introspectEndpoint
             );
-            const serverStarted = new Promise<void>((r, e) => {
-                server.listen(7778, r); // might need to check if there was an error
+            const serverStarted = new Promise<void>((resolve, reject) => {
+                server.listen(7778, resolve); // might need to check if there was an error
             });
             await serverStarted;
 
@@ -331,7 +331,7 @@ describe("OAuth2.0 Validator tests", () => {
 
             // test
             const valid = await this.validator.validate(req as http.IncomingMessage, ["1"], /.*/g);
-            valid.should.be.true;
+            valid.should.eql(true);
             await promisify(server.close.bind(server))();
         }
     }

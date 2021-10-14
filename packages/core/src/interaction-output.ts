@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2021 Contributors to the Eclipse Foundation
+ * Copyright (c) 2021 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -43,7 +43,7 @@ export class InteractionOutput implements WoT.InteractionOutput {
         this.schema = schema;
 
         if (content && content.body) {
-            this.data = ProtocolHelpers.toWoTStream(content.body);
+            this.data = ProtocolHelpers.toWoTStream(content.body) as any;
         }
     }
 
