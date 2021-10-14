@@ -1,4 +1,4 @@
-import { Content } from './../../core/src/protocol-interfaces';
+import { Content } from "./../../core/src/protocol-interfaces";
 /********************************************************************************
  * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
  *
@@ -25,7 +25,7 @@ import fetch from "node-fetch";
 import HttpServer from "../src/http-server";
 import { ExposedThing, Helpers, ProtocolHelpers } from "@node-wot/core";
 import { DataSchemaValue, InteractionInput, InteractionOptions } from "wot-typescript-definitions";
-import { Readable } from 'stream';
+import { Readable } from "stream";
 // should must be called to augment all variables
 should();
 
@@ -84,7 +84,7 @@ class HttpServerTest {
                 },
             },
             events: {
-                eventTest: { }
+                eventTest: {},
             },
             actions: {
                 try: {
@@ -99,12 +99,14 @@ class HttpServerTest {
         });
         await testThing.writeProperty("test", "off");
         testThing.properties.test.forms = [];
-        testThing.handleSubscribeEvent(
-            "eventTest", async (input: Content) => {
+        testThing.handleSubscribeEvent("eventTest", async (input: Content) => {
             const eventData = await ProtocolHelpers.readStreamFully(input.body);
             expect(eventData.toString()).to.equal("test");
         });
-        testThing.emitEvent("eventTest", { type: "application/json", body: Readable.from(Buffer.from("test", "utf-8")) })
+        testThing.emitEvent("eventTest", {
+            type: "application/json",
+            body: Readable.from(Buffer.from("test", "utf-8")),
+        });
         testThing.events.eventTest.forms = [];
         testThing.setActionHandler("try", (input: WoT.InteractionOutput) => {
             return new Promise<string>((resolve, reject) => {
@@ -141,7 +143,6 @@ class HttpServerTest {
         return httpServer.stop();
     }
 
-
     @test async "should check uriVariables consistency"() {
         const httpServer = new HttpServer({ port: 0 });
 
@@ -154,7 +155,7 @@ class HttpServerTest {
                     type: "string",
                     uriVariables: {
                         id: {
-                            type: "string"
+                            type: "string",
                         },
                     },
                 },
@@ -180,7 +181,7 @@ class HttpServerTest {
             test = await value.value();
         });
         testThing.properties.test.forms = [];
-        testThing.setActionHandler("try", (input: WoT.InteractionOutput, params : InteractionOptions) => {
+        testThing.setActionHandler("try", (input: WoT.InteractionOutput, params: InteractionOptions) => {
             return new Promise<string>((resolve, reject) => {
                 expect(params.uriVariables).to.deep.equal({ step: 5 });
                 resolve("TEST");
@@ -194,7 +195,7 @@ class HttpServerTest {
         let resp;
 
         resp = await (await fetch(uri + "properties/test?id=testId", { method: "PUT", body: "on" })).text();
-        expect(resp).to.equal('');
+        expect(resp).to.equal("");
 
         resp = await (await fetch(uri + "actions/try?step=5", { method: "POST", body: "toggle" })).text();
         expect(resp).to.equal('"TEST"');

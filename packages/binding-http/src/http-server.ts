@@ -704,7 +704,7 @@ export default class HttpServer implements ProtocolServer {
                                         const data = await ProtocolHelpers.readStreamFully(content.body);
                                         recordReponse[key] = data.toString();
                                     }
-                                     res.end(JSON.stringify(recordReponse));
+                                    res.end(JSON.stringify(recordReponse));
                                 } catch (err) {
                                     console.error(
                                         "[binding-http]",
@@ -767,7 +767,6 @@ export default class HttpServer implements ProtocolServer {
                                                         );
                                                         res.writeHead(500);
                                                         res.end("Invalid Event Data");
-
                                                     }
                                                 },
                                                 options
@@ -784,10 +783,7 @@ export default class HttpServer implements ProtocolServer {
                                         res.setTimeout(60 * 60 * 1000, () => thing.unobserveProperty(segments[3]));
                                     } else {
                                         try {
-                                            const content = await thing.handleReadProperty(
-                                                segments[3],
-                                                options
-                                            );
+                                            const content = await thing.handleReadProperty(segments[3], options);
                                             res.setHeader("Content-Type", content.type);
                                             res.writeHead(200);
                                             content.body.pipe(res);
@@ -805,8 +801,12 @@ export default class HttpServer implements ProtocolServer {
                                 } else if (req.method === "PUT") {
                                     if (!property.readOnly) {
                                         try {
-                                            const form = ProtocolHelpers.findRequestMatchingForm(property.forms,
-                                                "http", req.url, contentType);
+                                            const form = ProtocolHelpers.findRequestMatchingForm(
+                                                property.forms,
+                                                "http",
+                                                req.url,
+                                                contentType
+                                            );
                                             await thing.handleWriteProperty(
                                                 segments[3],
                                                 { body: req, type: contentType },
@@ -847,8 +847,12 @@ export default class HttpServer implements ProtocolServer {
                                     options = { uriVariables: uriVariables };
                                 }
                                 try {
-                                    const form = ProtocolHelpers.findRequestMatchingForm(action.forms,
-                                        "http", req.url, contentType);
+                                    const form = ProtocolHelpers.findRequestMatchingForm(
+                                        action.forms,
+                                        "http",
+                                        req.url,
+                                        contentType
+                                    );
                                     const output = await thing.handleInvokeAction(
                                         segments[3],
                                         { body: req, type: contentType },
