@@ -155,6 +155,8 @@ export default class OctetstreamCodec implements ContentCodec {
 
             case "null":
                 return null;
+            default:
+                throw new Error("Unable to handle object type " + dataType);
         }
     }
 
@@ -301,6 +303,8 @@ export default class OctetstreamCodec implements ContentCodec {
 
             case "null":
                 return null;
+            default:
+                throw new Error("Unable to handle object type " + dataType);
         }
     }
 }
