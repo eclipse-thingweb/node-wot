@@ -38,7 +38,7 @@ export function parseTD(td: string, normalize?: boolean): Thing {
             semContext.push(TD.DEFAULT_CONTEXT);
         }
     } else if (thing["@context"] !== TD.DEFAULT_CONTEXT) {
-        const semContext: string | any = thing["@context"];
+        const semContext = thing["@context"];
         thing["@context"] = [semContext, TD.DEFAULT_CONTEXT];
     }
     // add @language : "en" if no @language set
@@ -53,7 +53,7 @@ export function parseTD(td: string, normalize?: boolean): Thing {
             semTypes.unshift(TD.DEFAULT_THING_TYPE);
         }
     } else if (thing["@type"] !== TD.DEFAULT_THING_TYPE) {
-        const semType: string = thing["@type"];
+        const semType = thing["@type"];
         thing["@type"] = [TD.DEFAULT_THING_TYPE, semType];
     }
 
@@ -105,31 +105,58 @@ export function parseTD(td: string, normalize?: boolean): Thing {
 
     // collect all forms for normalization and use iterations also for checking
     const allForms: TD.Form[] = [];
-    const interactionPatterns: any = {
-        properties: "Property",
-        actions: "Action",
-        events: "Event",
-    };
-    for (const pattern in interactionPatterns) {
-        for (const interaction in thing[pattern]) {
-            // ensure forms mandatory forms field
-            if (!Object.prototype.hasOwnProperty.call(thing[pattern][interaction], "forms"))
-                throw new Error(`${interactionPatterns[pattern]} '${interaction}' has no forms field`);
-            // ensure array structure internally
-            if (!Array.isArray(thing[pattern][interaction].forms))
-                thing[pattern][interaction].forms = [thing[pattern][interaction].forms];
-            for (const form of thing[pattern][interaction].forms) {
-                // ensure mandatory href field
-                if (!Object.prototype.hasOwnProperty.call(form, "href"))
-                    throw new Error(`Form of ${interactionPatterns[pattern]} '${interaction}' has no href field`);
-                // check if base field required
-                if (!isAbsoluteUrl(form.href) && !Object.prototype.hasOwnProperty.call(thing, "base"))
-                    throw new Error(
-                        `Form of ${interactionPatterns[pattern]} '${interaction}' has relative URI while TD has no base field`
-                    );
-                // add
-                allForms.push(form);
+    // properties
+    for (const propName in thing.properties) {
+        const prop: TD.ThingProperty = thing.properties[propName];
+        // ensure forms mandatory forms field
+        if (!prop.forms) {
+            throw new Error(`Property '${propName}' has no forms field`);
+        }
+        for (const form of prop.forms) {
+            if (!form.href) {
+                throw new Error(`Form of Property '${propName}' has no href field`);
             }
+            // check if base field required
+            if (!isAbsoluteUrl(form.href) && !thing.base)
+                throw new Error(`Form of Property '${propName}' has relative URI while TD has no base field`);
+            // add
+            allForms.push(form);
+        }
+    }
+    // actions
+    for (const actName in thing.actions) {
+        const act: TD.ThingProperty = thing.actions[actName];
+        // ensure forms mandatory forms field
+        if (!act.forms) {
+            throw new Error(`Action '${actName}' has no forms field`);
+        }
+        for (const form of act.forms) {
+            if (!form.href) {
+                throw new Error(`Form of Action '${actName}' has no href field`);
+            }
+            // check if base field required
+            if (!isAbsoluteUrl(form.href) && !thing.base)
+                throw new Error(`Form of Action '${actName}' has relative URI while TD has no base field`);
+            // add
+            allForms.push(form);
+        }
+    }
+    // events
+    for (const evtName in thing.events) {
+        const evt: TD.ThingProperty = thing.events[evtName];
+        // ensure forms mandatory forms field
+        if (!evt.forms) {
+            throw new Error(`Event '${evtName}' has no forms field`);
+        }
+        for (const form of evt.forms) {
+            if (!form.href) {
+                throw new Error(`Form of Event '${evtName}' has no href field`);
+            }
+            // check if base field required
+            if (!isAbsoluteUrl(form.href) && !thing.base)
+                throw new Error(`Form of Event '${evtName}' has relative URI while TD has no base field`);
+            // add
+            allForms.push(form);
         }
     }
 
@@ -155,7 +182,7 @@ export function parseTD(td: string, normalize?: boolean): Thing {
 function addDefaultLanguage(thing: Thing) {
     // add @language : "en" if no @language set
     if (Array.isArray(thing["@context"])) {
-        const arrayContext: Array<any> = thing["@context"];
+        const arrayContext: Array<string | Record<string, unknown>> = thing["@context"];
         let languageSet = false;
         for (const arrayEntry of arrayContext) {
             if (typeof arrayEntry === "object") {
@@ -174,7 +201,7 @@ function addDefaultLanguage(thing: Thing) {
 
 /** Serializes a Thing object into a TD */
 export function serializeTD(thing: Thing): string {
-    const copy: any = JSON.parse(JSON.stringify(thing));
+    const copy = JSON.parse(JSON.stringify(thing));
 
     // clean-ups
     if (!copy.security || copy.security.length === 0) {
