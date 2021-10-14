@@ -211,9 +211,7 @@ class HttpServerTest {
             },
         };
 
-        expect(() => {
-            httpServer.expose(testThing);
-        }).throw();
+        await expect(httpServer.expose(testThing)).to.be.rejectedWith(Error);
         await httpServer.stop();
     }
 
@@ -282,9 +280,7 @@ class HttpServerTest {
         await httpServer.expose(testThing);
 
         const uri = "http://localhost:8080/smart-coffee-machine"; // theBase.concat('/')
-        let body;
-
-        body = await (await fetch(uri)).text();
+        const body = await (await fetch(uri)).text();
         // console.debug(JSON.stringify(JSON.parse(body),undefined,2))
 
         const expected_url = `${theBaseUri}/smart-coffee-machine/actions/makeDrink`;

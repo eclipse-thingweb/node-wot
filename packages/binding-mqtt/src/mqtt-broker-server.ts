@@ -27,7 +27,7 @@ import { ProtocolServer, Servient, ExposedThing, ContentSerdes, ProtocolHelpers 
 export default class MqttBrokerServer implements ProtocolServer {
     readonly scheme: string = "mqtt";
 
-    private port: number = -1;
+    private port = -1;
     private address: string = undefined;
 
     private user: string = undefined; // in the case usesername is required to connect the broker
@@ -45,16 +45,6 @@ export default class MqttBrokerServer implements ProtocolServer {
     private broker: any;
     private rejectUnauthorized: boolean;
 
-    /*new MqttBrokerServer(this.config.mqtt.broker,
-                        (typeof this.config.mqtt.username === "string") ? this.config.mqtt.username : undefined,
-                        (typeof this.config.mqtt.password === "string") ? this.config.mqtt.password : undefined,
-                        (typeof this.config.mqtt.clientId === "string") ? this.config.mqtt.clientId : undefined);
-  /*
-
-  /*
-        "port": BROKER-PORT,
-        "version": MQTT_VERSION
-  */
     constructor(
         uri: string,
         user?: string,
@@ -64,8 +54,8 @@ export default class MqttBrokerServer implements ProtocolServer {
         rejectUnauthorized?: boolean
     ) {
         if (uri !== undefined) {
-            //if there is a MQTT protocol identicator missing, add this
-            if (uri.indexOf("://") == -1) {
+            // if there is a MQTT protocol indicator missing, add this
+            if (uri.indexOf("://") === -1) {
                 uri = this.scheme + "://" + uri;
             }
             this.brokerURI = uri;
@@ -87,7 +77,7 @@ export default class MqttBrokerServer implements ProtocolServer {
         this.rejectUnauthorized = rejectUnauthorized;
     }
 
-    public expose(thing: ExposedThing): Promise<void> {
+    public async expose(thing: ExposedThing): Promise<void> {
         if (this.broker === undefined) {
             return;
         }
@@ -95,7 +85,7 @@ export default class MqttBrokerServer implements ProtocolServer {
         let name = thing.title;
 
         if (this.things.has(name)) {
-            let suffix = name.match(/.+_([0-9]+)$/);
+            const suffix = name.match(/.+_([0-9]+)$/);
             if (suffix !== null) {
                 name = name.slice(0, -suffix[1].length) + (1 + parseInt(suffix[1]));
             } else {
@@ -110,9 +100,9 @@ export default class MqttBrokerServer implements ProtocolServer {
         return new Promise<void>((resolve, reject) => {
             this.things.set(name, thing);
 
-            for (let propertyName in thing.properties) {
-                let topic = encodeURIComponent(name) + "/properties/" + encodeURIComponent(propertyName);
-                let property = thing.properties[propertyName];
+            for (const propertyName in thing.properties) {
+                const topic = encodeURIComponent(name) + "/properties/" + encodeURIComponent(propertyName);
+                const property = thing.properties[propertyName];
 
                 if (!property.writeOnly) {
                     thing.observeProperty(
@@ -140,8 +130,8 @@ export default class MqttBrokerServer implements ProtocolServer {
                         }
                     );
 
-                    let href = this.brokerURI + "/" + topic;
-                    let form = new TD.Form(href, ContentSerdes.DEFAULT);
+                    const href = this.brokerURI + "/" + topic;
+                    const form = new TD.Form(href, ContentSerdes.DEFAULT);
                     form.op = ["readproperty", "observeproperty", "unobserveproperty"];
                     thing.properties[propertyName].forms.push(form);
                     console.debug(
@@ -150,9 +140,9 @@ export default class MqttBrokerServer implements ProtocolServer {
                     );
                 }
                 if (!property.readOnly) {
-                    let href = this.brokerURI + "/" + topic + "/writeproperty";
+                    const href = this.brokerURI + "/" + topic + "/writeproperty";
                     this.broker.subscribe(topic + "/writeproperty");
-                    let form = new TD.Form(href, ContentSerdes.DEFAULT);
+                    const form = new TD.Form(href, ContentSerdes.DEFAULT);
                     form.op = ["writeproperty"];
                     thing.properties[propertyName].forms.push(form);
                     console.debug(
@@ -162,12 +152,12 @@ export default class MqttBrokerServer implements ProtocolServer {
                 }
             }
 
-            for (let actionName in thing.actions) {
-                let topic = encodeURIComponent(name) + "/actions/" + encodeURIComponent(actionName);
+            for (const actionName in thing.actions) {
+                const topic = encodeURIComponent(name) + "/actions/" + encodeURIComponent(actionName);
                 this.broker.subscribe(topic);
 
-                let href = this.brokerURI + "/" + topic;
-                let form = new TD.Form(href, ContentSerdes.DEFAULT);
+                const href = this.brokerURI + "/" + topic;
+                const form = new TD.Form(href, ContentSerdes.DEFAULT);
                 form.op = ["invokeaction"];
                 thing.actions[actionName].forms.push(form);
                 console.debug(
@@ -179,7 +169,7 @@ export default class MqttBrokerServer implements ProtocolServer {
             // connect incoming messages to Thing
             this.broker.on("message", (receivedTopic: string, rawPayload: Buffer | string, packet: IPublishPacket) => {
                 // route request
-                let segments = receivedTopic.split("/");
+                const segments = receivedTopic.split("/");
                 let payload: Buffer;
                 if (rawPayload instanceof Buffer) {
                     payload = rawPayload;
@@ -193,10 +183,10 @@ export default class MqttBrokerServer implements ProtocolServer {
                         "[binding-mqtt]",
                         `MqttBrokerServer at ${this.brokerURI} received message for '${receivedTopic}'`
                     );
-                    let thing = this.things.get(segments[1]);
+                    const thing = this.things.get(segments[1]);
                     if (thing) {
                         if (segments[2] === "actions") {
-                            let action = thing.actions[segments[3]];
+                            const action = thing.actions[segments[3]];
                             let value;
                             if (action) {
                                 /*
@@ -247,11 +237,11 @@ export default class MqttBrokerServer implements ProtocolServer {
                         } // Action exists?
                     } // Thing exists?
                 } else if (segments.length === 5 && segments[4] === "writeproperty") {
-                    //connecting to the writeable properties
-                    let thing = this.things.get(segments[1]);
+                    // connecting to the writeable properties
+                    const thing = this.things.get(segments[1]);
                     if (thing) {
                         if (segments[2] === "properties") {
-                            let property = thing.properties[segments[3]];
+                            const property = thing.properties[segments[3]];
                             if (property) {
                                 if (!property.readOnly) {
                                     thing.writeProperty(segments[3], JSON.parse(payload.toString())).catch((err) => {
@@ -268,7 +258,7 @@ export default class MqttBrokerServer implements ProtocolServer {
                                         `MqttBrokerServer at ${this.brokerURI} received message for readOnly property at '${receivedTopic}'`
                                     );
                                     return;
-                                } //property is writeable? Not necessary since it didn't actually subscribe to this topic
+                                } // property is writeable? Not necessary since it didn't actually subscribe to this topic
                             } // Property exists?
                         }
                     }
@@ -281,9 +271,9 @@ export default class MqttBrokerServer implements ProtocolServer {
                 );
             });
 
-            for (let eventName in thing.events) {
-                let topic = encodeURIComponent(name) + "/events/" + encodeURIComponent(eventName);
-                let event = thing.events[eventName];
+            for (const eventName in thing.events) {
+                const topic = encodeURIComponent(name) + "/events/" + encodeURIComponent(eventName);
+                const event = thing.events[eventName];
 
                 thing.subscribeEvent(
                     eventName,
@@ -315,8 +305,8 @@ export default class MqttBrokerServer implements ProtocolServer {
                     }
                 );
 
-                let href = this.brokerURI + "/" + topic;
-                let form = new TD.Form(href, ContentSerdes.DEFAULT);
+                const href = this.brokerURI + "/" + topic;
+                const form = new TD.Form(href, ContentSerdes.DEFAULT);
                 form.op = ["subscribeevent", "unsubscribeevent"];
                 event.forms.push(form);
                 console.debug(
@@ -332,9 +322,9 @@ export default class MqttBrokerServer implements ProtocolServer {
     public destroy(thingId: string): Promise<boolean> {
         console.debug("[binding-mqtt]", `MqttBrokerServer on port ${this.getPort()} destroying thingId '${thingId}'`);
         return new Promise<boolean>((resolve, reject) => {
-            let removedThing: ExposedThing = undefined;
-            for (let name of Array.from(this.things.keys())) {
-                let expThing = this.things.get(name);
+            let removedThing: ExposedThing;
+            for (const name of Array.from(this.things.keys())) {
+                const expThing = this.things.get(name);
                 if (expThing != null && expThing.id != null && expThing.id === thingId) {
                     this.things.delete(name);
                     removedThing = expThing;
@@ -345,7 +335,7 @@ export default class MqttBrokerServer implements ProtocolServer {
             } else {
                 console.info("[binding-mqtt]", `MqttBrokerServer failed to destroy thing with thingId '${thingId}'`);
             }
-            resolve(removedThing != undefined);
+            resolve(removedThing !== undefined);
         });
     }
 
@@ -389,9 +379,9 @@ export default class MqttBrokerServer implements ProtocolServer {
                 this.broker.on("connect", () => {
                     console.info("[binding-mqtt]", `MqttBrokerServer connected to broker at ${this.brokerURI}`);
 
-                    let parsed = url.parse(this.brokerURI);
+                    const parsed = url.parse(this.brokerURI);
                     this.address = parsed.hostname;
-                    let port = parseInt(parsed.port);
+                    const port = parseInt(parsed.port);
                     this.port = port > 0 ? port : 1883;
                     resolve();
                 });
