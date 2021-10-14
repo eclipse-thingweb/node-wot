@@ -252,7 +252,7 @@ export default class ProtocolHelpers {
                 stream.cancel(error);
             },
         });
-        result.wotStream = stream as any;
+        result.wotStream = stream as ReadableStream;
 
         return result;
     }

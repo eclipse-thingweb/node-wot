@@ -40,7 +40,7 @@ export interface ProtocolClient {
     subscribeResource(
         form: TD.Form,
         next: (content: Content) => void,
-        error?: (error: any) => void,
+        error?: (error: Error) => void,
         complete?: () => void
     ): Promise<Subscription>;
 
