@@ -370,6 +370,7 @@ export default class OpcuaClient implements ProtocolClient {
             console.warn("[binding-opcua]", `Both password and certificate missing inside credentials`);
         }
         this.credentials = credentials;
+        return true;
     }
 
     private extractParams(url: string): { ns: string; idtype: string; mns: string; midtype: string } {
