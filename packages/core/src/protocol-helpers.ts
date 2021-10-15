@@ -199,7 +199,6 @@ export default class ProtocolHelpers {
     }
 
     public static toWoTStream(stream: NodeJS.ReadableStream | IManagedStream): ReadableStream | PolyfillStream {
-        // TODO USE CLASSES
         if (isManaged(stream)) {
             return stream.wotStream;
         }
@@ -227,7 +226,6 @@ export default class ProtocolHelpers {
     }
 
     public static toNodeStream(stream: ReadableStream | PolyfillStream | IManagedStream): Readable {
-        // TODO: use proper classes
         if (isManaged(stream)) {
             return stream.nodeStream;
         }
