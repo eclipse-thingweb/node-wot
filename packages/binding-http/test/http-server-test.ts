@@ -84,7 +84,9 @@ class HttpServerTest {
                 },
             },
             events: {
-                eventTest: {},
+                eventTest: {
+                    forms: [],
+                },
             },
             actions: {
                 try: {
