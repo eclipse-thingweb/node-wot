@@ -745,7 +745,7 @@ export default class HttpServer implements ProtocolServer {
                                                         const contentType = ProtocolHelpers.getPropertyContentType(
                                                             thing.getThingDescription(),
                                                             segments[3],
-                                                            "http"
+                                                            this.scheme
                                                         );
                                                         const content = ContentSerdes.get().valueToContent(
                                                             value.data && !value.dataUsed
@@ -781,7 +781,13 @@ export default class HttpServer implements ProtocolServer {
                                         res.setTimeout(60 * 60 * 1000, () => thing.unobserveProperty(segments[3]));
                                     } else {
                                         try {
-                                            const content = await thing.handleReadProperty(segments[3], options);
+                                            const form = ProtocolHelpers.findRequestMatchingForm(
+                                                property.forms,
+                                                this.scheme,
+                                                req.url,
+                                                contentType
+                                            );
+                                            const content = await thing.handleReadProperty(segments[3], form, options);
                                             res.setHeader("Content-Type", content.type);
                                             res.writeHead(200);
                                             content.body.pipe(res);
@@ -801,7 +807,7 @@ export default class HttpServer implements ProtocolServer {
                                         try {
                                             const form = ProtocolHelpers.findRequestMatchingForm(
                                                 property.forms,
-                                                "http",
+                                                this.scheme,
                                                 req.url,
                                                 contentType
                                             );
@@ -847,7 +853,7 @@ export default class HttpServer implements ProtocolServer {
                                 try {
                                     const form = ProtocolHelpers.findRequestMatchingForm(
                                         action.forms,
-                                        "http",
+                                        this.scheme,
                                         req.url,
                                         contentType
                                     );
