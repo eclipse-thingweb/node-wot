@@ -57,8 +57,8 @@ class TDClient implements ProtocolClient {
 
     public subscribeResource(
         form: Form,
-        next: (value: any) => void,
-        error?: (error: any) => void,
+        next: (value: Content) => void,
+        error?: (error: Error) => void,
         complete?: () => void
     ): Promise<Subscription> {
         return new Promise<Subscription>((resolve, reject) => {
@@ -124,13 +124,13 @@ class TrapClient implements ProtocolClient {
 
     public subscribeResource(
         form: Form,
-        next: (value: any) => void,
-        error?: (error: any) => void,
+        next: (value: Content) => void,
+        error?: (error: Error) => void,
         complete?: () => void
     ): Promise<Subscription> {
         return new Promise<Subscription>((resolve, reject) => {
             // send one event
-            next(this.trap(form));
+            next(this.trap(form) as Content);
             // then complete
             setImmediate(() => {
                 complete();

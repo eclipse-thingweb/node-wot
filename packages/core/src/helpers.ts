@@ -33,7 +33,7 @@ import Servient from "./servient";
 import * as TD from "@node-wot/td-tools";
 import { ContentSerdes } from "./content-serdes";
 import { ProtocolHelpers } from "./core";
-import Ajv from "ajv";
+import Ajv, { ValidateFunction, ErrorObject } from "ajv";
 import TDSchema from "wot-thing-description-types/schema/td-json-schema-validation.json";
 import { DataSchemaValue, ExposedThingInit } from "wot-typescript-definitions";
 import { SomeJSONSchema } from "ajv/dist/types/json-schema";
@@ -52,7 +52,7 @@ const ajv = new Ajv({ strict: false })
     );
 
 export default class Helpers {
-    static tsSchemaValidator = ajv.compile(Helpers.createExposeThingInitSchema(tdSchema)) as any;
+    static tsSchemaValidator = ajv.compile(Helpers.createExposeThingInitSchema(tdSchema)) as ValidateFunction;
 
     private srv: Servient;
 
@@ -271,7 +271,7 @@ export default class Helpers {
         const isValid = Helpers.tsSchemaValidator(data);
         let errors;
         if (!isValid) {
-            errors = Helpers.tsSchemaValidator.errors.map((o: any) => o.message).join("\n");
+            errors = Helpers.tsSchemaValidator.errors.map((o: ErrorObject) => o.message).join("\n");
         }
         return {
             valid: isValid,
