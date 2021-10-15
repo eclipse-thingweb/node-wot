@@ -27,7 +27,7 @@ export const DEFAULT_THING_TYPE = "Thing";
  ~ In Thing index structure could be read-only (sanitizing needs write access)
 */
 
-export declare type MultiLanguage = any; // object?
+export declare type MultiLanguage = Record<string, unknown>; // object?
 
 /** Implements the Thing Description as software object */
 export default class Thing {
@@ -62,6 +62,7 @@ export default class Thing {
     links: Array<Link>;
     forms: Array<Form>;
 
+    // eslint-disable-next-line  @typescript-eslint/no-explicit-any
     [key: string]: any;
 
     constructor() {
@@ -88,6 +89,7 @@ export interface ThingInteraction {
     security?: Array<string>;
     forms?: Array<Form>;
 
+    // eslint-disable-next-line  @typescript-eslint/no-explicit-any
     [key: string]: any;
 }
 
@@ -150,8 +152,8 @@ export class BaseSchema {
     readOnly?: boolean;
     oneOf?: Array<DataSchema>;
     unit?: string;
-    const?: any;
-    enum?: Array<any>;
+    const?: unknown;
+    enum?: Array<unknown>;
 }
 
 export interface BooleanSchema extends BaseSchema {
@@ -293,6 +295,7 @@ export abstract class ThingProperty extends BaseSchema implements ThingInteracti
 
     security?: Array<string>;
 
+    // eslint-disable-next-line  @typescript-eslint/no-explicit-any
     [key: string]: any;
 }
 
@@ -316,6 +319,7 @@ export abstract class ThingAction implements ThingInteraction {
 
     security?: Array<string>;
 
+    // eslint-disable-next-line  @typescript-eslint/no-explicit-any
     [key: string]: any;
 }
 /** Implements the Thing Event description */
@@ -337,5 +341,6 @@ export abstract class ThingEvent implements ThingInteraction {
 
     security?: Array<string>;
 
+    // eslint-disable-next-line  @typescript-eslint/no-explicit-any
     [key: string]: any;
 }
