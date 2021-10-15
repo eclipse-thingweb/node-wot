@@ -49,8 +49,9 @@ interface TestVector {
     form: any;
 }
 
-const port1 = 50000;
-const port2 = 50001;
+const port1 = 30001;
+const port2 = 30002;
+const port3 = 30001;
 
 class TestHttpServer implements ProtocolServer {
     public readonly scheme: string = "test";
@@ -74,16 +75,13 @@ class TestHttpServer implements ProtocolServer {
     }
 
     public async start(): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            this.server.once("listening", () => {
-                resolve();
-            });
-            this.server.listen(this.port, this.address);
+        return new Promise<void>((resolve) => {
+            this.server.listen(this.port, this.address, resolve);
         });
     }
 
     public async stop(): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
+        return new Promise<void>((resolve) => {
             this.server.close(() => {
                 console.error("STOPPED");
                 resolve();
@@ -192,8 +190,8 @@ class HttpClientTest1 {
         this.client = new HttpClient();
     }
 
-    after() {
-        this.client.stop();
+    async after() {
+        await this.client.stop();
     }
 
     @test async "should apply defaults : read with default"() {
@@ -430,7 +428,7 @@ class HttpClientTest2 {
         // Subscribe to an event
         let form: HttpForm = {
             op: ["subscribeevent"],
-            href: "http://localhost:60605/",
+            href: `http://localhost:${port3}/`,
         };
 
         let server = http.createServer((req, res) => {
@@ -443,11 +441,11 @@ class HttpClientTest2 {
         let eventSpy = chai.spy(async function (data: any) {
             eventSpy.should.have.been.called.once;
             subscribeSpy.should.have.been.called.once;
-            done();
             server.close();
+            done();
         });
 
-        server.listen(60605, "0.0.0.0");
+        server.listen(port3, "0.0.0.0");
         server.once("listening", () => {
             client
                 .subscribeResource(

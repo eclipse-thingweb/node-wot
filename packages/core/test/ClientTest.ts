@@ -273,8 +273,8 @@ class WoTClientTest {
         console.log("started test suite");
     }
 
-    static after() {
-        this.servient.shutdown();
+    static async after(): Promise<void> {
+        await this.servient.shutdown();
         console.log("finished test suite");
     }
 

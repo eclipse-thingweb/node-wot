@@ -85,8 +85,8 @@ class HttpClientBasicTest {
         this.client = new HttpClient({ allowSelfSigned: true }, true);
     }
 
-    after() {
-        this.client.stop();
+    async after() {
+        await this.client.stop();
     }
 
     @test async "should authorize client with basic"(): Promise<void> {
