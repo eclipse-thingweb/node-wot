@@ -1,3 +1,4 @@
+import { Content } from "./../../core/src/protocol-interfaces";
 /********************************************************************************
  * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
  *
@@ -19,12 +20,12 @@
 
 import { suite, test } from "@testdeck/mocha";
 import { expect, should, assert } from "chai";
-
 import fetch from "node-fetch";
 
 import HttpServer from "../src/http-server";
-import { ExposedThing, Helpers } from "@node-wot/core";
-import { DataSchemaValue } from "wot-typescript-definitions";
+import { ExposedThing, Helpers, ProtocolHelpers } from "@node-wot/core";
+import { DataSchemaValue, InteractionInput, InteractionOptions } from "wot-typescript-definitions";
+import { Readable } from "stream";
 // should must be called to augment all variables
 should();
 
@@ -82,6 +83,9 @@ class HttpServerTest {
                     type: "string",
                 },
             },
+            events: {
+                eventTest: {},
+            },
             actions: {
                 try: {
                     output: { type: "string" },
@@ -95,6 +99,15 @@ class HttpServerTest {
         });
         await testThing.writeProperty("test", "off");
         testThing.properties.test.forms = [];
+        testThing.handleSubscribeEvent("eventTest", async (input: Content) => {
+            const eventData = await ProtocolHelpers.readStreamFully(input.body);
+            expect(eventData.toString()).to.equal("test");
+        });
+        testThing.emitEvent("eventTest", {
+            type: "application/json",
+            body: Readable.from(Buffer.from("test", "utf-8")),
+        });
+        testThing.events.eventTest.forms = [];
         testThing.setActionHandler("try", (input: WoT.InteractionOutput) => {
             return new Promise<string>((resolve, reject) => {
                 resolve("TEST");
@@ -110,21 +123,81 @@ class HttpServerTest {
         console.log("Testing", uri);
 
         resp = await (await fetch(uri + "properties/test")).text();
-        expect(resp).to.equal("off");
+        expect(resp).to.equal('"off"');
 
         resp = await (await fetch(uri + "properties")).text();
-        expect(resp).to.equal('{"test":"off"}');
+        expect(resp).to.equal('{"test":"\\"off\\""}');
 
         resp = await (await fetch(uri + "properties/test", { method: "PUT", body: "on" })).text();
         expect(resp).to.equal("");
 
         resp = await (await fetch(uri + "properties/test")).text();
-        expect(resp).to.equal("on");
+        expect(resp).to.equal('"on"');
 
         resp = await (await fetch(uri + "actions/try", { method: "POST", body: "toggle" })).text();
         expect(resp).to.equal('"TEST"');
 
         resp = await (await fetch(uri + "actions/try", { method: "POST", body: undefined })).text();
+        expect(resp).to.equal('"TEST"');
+
+        return httpServer.stop();
+    }
+
+    @test async "should check uriVariables consistency"() {
+        const httpServer = new HttpServer({ port: 0 });
+
+        await httpServer.start(null);
+
+        const testThing = new ExposedThing(null, {
+            title: "Test",
+            properties: {
+                test: {
+                    type: "string",
+                    uriVariables: {
+                        id: {
+                            type: "string",
+                        },
+                    },
+                },
+            },
+            actions: {
+                try: {
+                    output: { type: "string" },
+                    uriVariables: {
+                        step: { type: "integer" },
+                    },
+                },
+            },
+        });
+        let test: DataSchemaValue;
+        testThing.setPropertyReadHandler("test", (options) => {
+            expect(options.uriVariables).to.deep.equal({ id: "testId" });
+            return new Promise<InteractionInput>((resolve, reject) => {
+                resolve(test);
+            });
+        });
+        testThing.setPropertyWriteHandler("test", async (value, options) => {
+            expect(options.uriVariables).to.deep.equal({ id: "testId" });
+            test = await value.value();
+        });
+        testThing.properties.test.forms = [];
+        testThing.setActionHandler("try", (input: WoT.InteractionOutput, params: InteractionOptions) => {
+            return new Promise<string>((resolve, reject) => {
+                expect(params.uriVariables).to.deep.equal({ step: 5 });
+                resolve("TEST");
+            });
+        });
+        testThing.actions.try.forms = [];
+
+        await httpServer.expose(testThing);
+
+        const uri = `http://localhost:${httpServer.getPort()}/test/`;
+        let resp;
+
+        resp = await (await fetch(uri + "properties/test?id=testId", { method: "PUT", body: "on" })).text();
+        expect(resp).to.equal("");
+
+        resp = await (await fetch(uri + "actions/try?step=5", { method: "POST", body: "toggle" })).text();
         expect(resp).to.equal('"TEST"');
 
         return httpServer.stop();
@@ -250,7 +323,7 @@ class HttpServerTest {
         delete process.env.WOT_PORT;
     }
 
-    @test async "should allow HttpServer baseUri to specify url prefix for proxied/gateswayed/buildpack etc "() {
+    @test.skip async "should allow HttpServer baseUri to specify url prefix for proxied/gateswayed/buildpack etc "() {
         const theHostname = "wot.w3c.loopback.site:8080";
         const theBasePath = "/things";
         const theBaseUri = `http://${theHostname}${theBasePath}`;
