@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { ConsumedThing as IConsumedThing, InteractionInput } from "wot-typescript-definitions";
+import { ConsumedThing as IConsumedThing, InteractionInput, Subscription } from "wot-typescript-definitions";
 
 import * as TD from "@node-wot/td-tools";
 
@@ -26,7 +26,6 @@ import ContentManager from "./content-serdes";
 
 import UriTemplate = require("uritemplate");
 import { InteractionOutput } from "./interaction-output";
-import { Subscription } from "rxjs/Subscription";
 
 enum Affordance {
     PropertyAffordance,
@@ -407,11 +406,16 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         }
     }
 
+    /**
+     * @inheritdoc
+     * @experimental
+     */
     public async observeProperty(
         name: string,
         listener: WoT.WotListener,
+        errorListener?: WoT.ErrorListener,
         options?: WoT.InteractionOptions
-    ): Promise<void> {
+    ): Promise<Subscription> {
         const tp: TD.ThingProperty = this.properties[name];
         if (!tp) {
             throw new Error(`ConsumedThing '${this.title}' does not have property ${name}`);
@@ -428,58 +432,39 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         // uriVariables ?
         form = this.handleUriVariables(form, options);
 
-        return new Promise<void>((resolve, reject) => {
-            const subscriptioPromise = client.subscribeResource(
+        await client.subscribeResource(
                 form,
                 // next
                 (content) => {
                     if (!content.type) content.type = form.contentType;
                     try {
                         listener(new InteractionOutput(content, form, tp));
-                        resolve();
                     } catch (e) {
-                        reject(new Error(`Received invalid content from Thing`));
+                        console.warn("[core/consumed-thing]", "Error while processing observe event for", tp.title);
+                        console.warn("[core/consumed-thing]", e);
                     }
                 },
                 // error
                 (err) => {
-                    reject(err);
+                    errorListener?.(err);
                 },
                 // complete
-                () => {
-                    resolve();
-                }
+                () => { /* TODO: current scripting api cannot handle this */ }
             );
-            // to do : what shall we do with subscriptionPromise ?
-        });
+        return new InternalSubscription(this, "property", name);
     }
 
-    public async unobserveProperty(name: string, options?: WoT.InteractionOptions): Promise<void> {
-        const tp: TD.ThingProperty = this.properties[name];
-        if (!tp) {
-            throw new Error(`ConsumedThing '${this.title}' does not have property ${name}`);
-        }
-        const { client, form } = this.getClientFor(
-            tp.forms,
-            "unobserveproperty",
-            Affordance.PropertyAffordance,
-            options
-        );
-        if (!client) {
-            throw new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`);
-        }
-        if (!form) {
-            throw new Error(`ConsumedThing '${this.title}' did not get suitable form`);
-        }
-        console.debug("[core/consumed-thing]", `ConsumedThing '${this.title}' unobserveing to ${form.href}`);
-        client.unlinkResource(form);
-    }
 
+    /**
+     * @inheritdoc
+     * @experimental
+     */
     public async subscribeEvent(
         name: string,
         listener: WoT.WotListener,
+        errorListener?: WoT.ErrorListener,
         options?: WoT.InteractionOptions
-    ): Promise<void> {
+    ): Promise<Subscription> {
         const te: TD.ThingEvent = this.events[name];
         if (!te) {
             throw new Error(`ConsumedThing '${this.title}' does not have event ${name}`);
@@ -496,44 +481,26 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         // uriVariables ?
         form = this.handleUriVariables(form, options);
 
-        return new Promise<void>((resolve, reject) => {
-            const subscriptioPromise = client.subscribeResource(
+        await client.subscribeResource(
                 form,
                 (content) => {
                     if (!content.type) content.type = form.contentType;
                     try {
                         listener(new InteractionOutput(content, form, te.data));
-                    } catch {
-                        throw new Error(`Received invalid content from Thing`);
+                    } catch (e) {
+                        console.warn("[core/consumed-thing]", "Error while processing event for", te.title);
+                        console.warn("[core/consumed-thing]", e);
                     }
                 },
                 // error
                 (err) => {
-                    reject(err);
+                    errorListener?.(err);
                 },
                 // complete
-                () => {
-                    resolve();
-                }
-            );
-            // todo : we need to keep the subscription around to unsubscribe later
-        });
-    }
+            () => {/* TODO: current scripting api cannot handle this */}
+        );
 
-    public async unsubscribeEvent(name: string, options?: WoT.InteractionOptions): Promise<void> {
-        const te: TD.ThingEvent = this.events[name];
-        if (!te) {
-            throw new Error(`ConsumedThing '${this.title}' does not have event ${name}`);
-        }
-        const { client, form } = this.getClientFor(te.forms, "unsubscribeevent", Affordance.EventAffordance, options);
-        if (!client) {
-            throw new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`);
-        }
-        if (!form) {
-            throw new Error(`ConsumedThing '${this.title}' did not get suitable form`);
-        }
-        console.debug("[core/consumed-thing]", `ConsumedThing '${this.title}' unsubscribing to ${form.href}`);
-        client.unlinkResource(form);
+        return new InternalSubscription(this, "event", name);
     }
 
     // creates new form (if needed) for URI Variables
@@ -608,4 +575,67 @@ class ConsumedThingEvent extends TD.ThingEvent {
             return thing;
         };
     }
+}
+
+type SubscriptionType = "property" | "event";
+/**
+ * Describe a subscription with the underling platform
+ * @experimental
+ */
+class InternalSubscription implements Subscription {
+    active: boolean;
+    constructor(private readonly thing:ConsumedThing, private readonly type:SubscriptionType, private readonly name:string) {
+        this.active = true;
+    }
+
+    stop(options?: WoT.InteractionOptions): Promise<void> {
+        switch (this.type) {
+            case "property":
+                return this.unobserveProperty(options);
+            case "event":
+                return this.unsubscribeEvent(options);
+            default:
+                throw new Error("Invalid subscription type");
+        }
+    }
+
+    public async unobserveProperty( options?: WoT.InteractionOptions): Promise<void> {
+        const tp: TD.ThingProperty = this.thing.properties[this.name];
+        if (!tp) {
+            throw new Error(`ConsumedThing '${this.thing.title}' does not have property ${this.name}`);
+        }
+        const { client, form } = this.thing.getClientFor(
+            tp.forms,
+            "unobserveproperty",
+            Affordance.PropertyAffordance,
+            options
+        );
+        if (!client) {
+            throw new Error(`ConsumedThing '${this.thing.title}' did not get suitable client for ${form.href}`);
+        }
+        if (!form) {
+            throw new Error(`ConsumedThing '${this.thing.title}' did not get suitable form`);
+        }
+        console.debug("[core/consumed-thing]", `ConsumedThing '${this.thing.title}' unobserving to ${form.href}`);
+        await client.unlinkResource(form);
+        this.active = false;
+    }
+
+    public async unsubscribeEvent( options?: WoT.InteractionOptions): Promise<void> {
+        const te: TD.ThingEvent = this.thing.events[this.name];
+        if (!te) {
+            throw new Error(`ConsumedThing '${this.thing.title}' does not have event ${this.name}`);
+        }
+        const { client, form } = this.thing.getClientFor(te.forms, "unsubscribeevent", Affordance.EventAffordance, options);
+        if (!client) {
+            throw new Error(`ConsumedThing '${this.thing.title}' did not get suitable client for ${form.href}`);
+        }
+        if (!form) {
+            throw new Error(`ConsumedThing '${this.thing.title}' did not get suitable form`);
+        }
+        console.debug("[core/consumed-thing]", `ConsumedThing '${this.thing.title}' unsubscribing to ${form.href}`);
+        client.unlinkResource(form);
+        this.active = false;
+    }
+
 }
