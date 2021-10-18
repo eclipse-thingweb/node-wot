@@ -797,6 +797,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             if (this.events[name]) {
                 const es: EventState = this.events[name].getState();
                 // TODO: handle options.data
+                // TODO: call subscribe event handler
                 es.registerSubscription( options.formIndex, listener );
                 console.debug("[core/exposed-thing]", `ExposedThing '${this.title}' subscribes to event '${name}'`);
             } else {
@@ -812,6 +813,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             if (this.events[name]) {
                 const es: EventState = this.events[name].getState();
                 es.unRegisterSubscription(options.formIndex, listener);
+                // TODO: call unsubscribe event handler
                 console.debug("[core/exposed-thing]", `ExposedThing '${this.title}' unsubscribes from event '${name}'`);
             } else {
                 throw new Error(`ExposedThing '${this.title}', no event found for '${name}'`);
@@ -827,10 +829,12 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         listener: ContentListener,
         options?: WoT.InteractionOptions
     ): Promise<void> {
+        // TODO: call observe event handler
         throw new Error("Not yet implemented");
     }
 
     public handleUnobserveProperty(name: string, listener: ContentListener, options: WoT.InteractionOptions): void {
+        // TODO: call unobserve event handler
         throw new Error("Not yet implemented");
 
     }
@@ -847,6 +851,9 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         return body;
     }
 }
+/**
+ * @deprecated
+ */
 class PropertyState {
     public value: WoT.DataSchemaValue;
     // public subject: Subject<Content>;
@@ -866,7 +873,9 @@ class PropertyState {
         this.readHandler = null;
     }
 }
-
+/**
+ * @deprecated
+ */
 class ActionState {
     public scope: unknown;
     public handler: WoT.ActionHandler;
@@ -876,7 +885,9 @@ class ActionState {
         this.handler = null;
     }
 }
-
+/**
+ * @deprecated
+ */
 class EventState {
     // public subject: Subject<any>;
     legacyListeners: WoT.WotListener[];
@@ -917,6 +928,9 @@ class EventState {
         }
     }
 }
+/**
+ * @deprecated
+ */
 class ExposedThingProperty extends TD.ThingProperty implements TD.ThingProperty, TD.BaseSchema {
     // functions for wrapping internal state
     getName: () => string;
@@ -946,7 +960,9 @@ class ExposedThingProperty extends TD.ThingProperty implements TD.ThingProperty,
         this.observable = false;
     }
 }
-
+/**
+ * @deprecated
+ */
 class ExposedThingAction extends TD.ThingAction implements TD.ThingAction {
     // functions for wrapping internal state
     getName: () => string;
@@ -972,6 +988,9 @@ class ExposedThingAction extends TD.ThingAction implements TD.ThingAction {
     }
 }
 
+/**
+ * @deprecated
+ */
 class ExposedThingEvent extends TD.ThingEvent implements TD.ThingEvent {
     // functions for wrapping internal state
     getName: () => string;
