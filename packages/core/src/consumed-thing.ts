@@ -433,27 +433,28 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         form = this.handleUriVariables(form, options);
 
         await client.subscribeResource(
-                form,
-                // next
-                (content) => {
-                    if (!content.type) content.type = form.contentType;
-                    try {
-                        listener(new InteractionOutput(content, form, tp));
-                    } catch (e) {
-                        console.warn("[core/consumed-thing]", "Error while processing observe event for", tp.title);
-                        console.warn("[core/consumed-thing]", e);
-                    }
-                },
-                // error
-                (err) => {
-                    errorListener?.(err);
-                },
-                // complete
-                () => { /* TODO: current scripting api cannot handle this */ }
-            );
+            form,
+            // next
+            (content) => {
+                if (!content.type) content.type = form.contentType;
+                try {
+                    listener(new InteractionOutput(content, form, tp));
+                } catch (e) {
+                    console.warn("[core/consumed-thing]", "Error while processing observe event for", tp.title);
+                    console.warn("[core/consumed-thing]", e);
+                }
+            },
+            // error
+            (err) => {
+                errorListener?.(err);
+            },
+            // complete
+            () => {
+                /* TODO: current scripting api cannot handle this */
+            }
+        );
         return new InternalSubscription(this, "property", name);
     }
-
 
     /**
      * @inheritdoc
@@ -482,22 +483,24 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         form = this.handleUriVariables(form, options);
 
         await client.subscribeResource(
-                form,
-                (content) => {
-                    if (!content.type) content.type = form.contentType;
-                    try {
-                        listener(new InteractionOutput(content, form, te.data));
-                    } catch (e) {
-                        console.warn("[core/consumed-thing]", "Error while processing event for", te.title);
-                        console.warn("[core/consumed-thing]", e);
-                    }
-                },
-                // error
-                (err) => {
-                    errorListener?.(err);
-                },
-                // complete
-            () => {/* TODO: current scripting api cannot handle this */}
+            form,
+            (content) => {
+                if (!content.type) content.type = form.contentType;
+                try {
+                    listener(new InteractionOutput(content, form, te.data));
+                } catch (e) {
+                    console.warn("[core/consumed-thing]", "Error while processing event for", te.title);
+                    console.warn("[core/consumed-thing]", e);
+                }
+            },
+            // error
+            (err) => {
+                errorListener?.(err);
+            },
+            // complete
+            () => {
+                /* TODO: current scripting api cannot handle this */
+            }
         );
 
         return new InternalSubscription(this, "event", name);
@@ -584,7 +587,11 @@ type SubscriptionType = "property" | "event";
  */
 class InternalSubscription implements Subscription {
     active: boolean;
-    constructor(private readonly thing:ConsumedThing, private readonly type:SubscriptionType, private readonly name:string) {
+    constructor(
+        private readonly thing: ConsumedThing,
+        private readonly type: SubscriptionType,
+        private readonly name: string
+    ) {
         this.active = true;
     }
 
@@ -599,7 +606,7 @@ class InternalSubscription implements Subscription {
         }
     }
 
-    public async unobserveProperty( options?: WoT.InteractionOptions): Promise<void> {
+    public async unobserveProperty(options?: WoT.InteractionOptions): Promise<void> {
         const tp: TD.ThingProperty = this.thing.properties[this.name];
         if (!tp) {
             throw new Error(`ConsumedThing '${this.thing.title}' does not have property ${this.name}`);
@@ -621,12 +628,17 @@ class InternalSubscription implements Subscription {
         this.active = false;
     }
 
-    public async unsubscribeEvent( options?: WoT.InteractionOptions): Promise<void> {
+    public async unsubscribeEvent(options?: WoT.InteractionOptions): Promise<void> {
         const te: TD.ThingEvent = this.thing.events[this.name];
         if (!te) {
             throw new Error(`ConsumedThing '${this.thing.title}' does not have event ${this.name}`);
         }
-        const { client, form } = this.thing.getClientFor(te.forms, "unsubscribeevent", Affordance.EventAffordance, options);
+        const { client, form } = this.thing.getClientFor(
+            te.forms,
+            "unsubscribeevent",
+            Affordance.EventAffordance,
+            options
+        );
         if (!client) {
             throw new Error(`ConsumedThing '${this.thing.title}' did not get suitable client for ${form.href}`);
         }
@@ -637,5 +649,4 @@ class InternalSubscription implements Subscription {
         client.unlinkResource(form);
         this.active = false;
     }
-
 }
