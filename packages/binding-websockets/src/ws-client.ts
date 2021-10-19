@@ -21,34 +21,45 @@ import { ProtocolClient, Content } from "@node-wot/core";
 import { Form } from "@node-wot/td-tools";
 
 export default class WebSocketClient implements ProtocolClient {
-    constructor() {}
+    // eslint-disable-next-line no-useless-constructor
+    constructor() {
+        // TODO: implement and remove eslint-ignore-useless-constructor
+    }
 
     public toString(): string {
         return `[WebSocketClient]`;
     }
 
     public readResource(form: Form): Promise<Content> {
-        return new Promise<Content>((resolve, reject) => {});
+        return new Promise<Content>((resolve, reject) => {
+            // TODO: implement
+        });
     }
 
-    public writeResource(form: Form, content: Content): Promise<any> {
-        return new Promise<void>((resolve, reject) => {});
+    public writeResource(form: Form, content: Content): Promise<unknown> {
+        return new Promise<void>((resolve, reject) => {
+            // TODO: implement
+        });
     }
 
     public invokeResource(form: Form, content?: Content): Promise<Content> {
-        return new Promise<Content>((resolve, reject) => {});
+        return new Promise<Content>((resolve, reject) => {
+            // TODO: implement
+        });
     }
 
-    public unlinkResource(form: Form): Promise<any> {
-        return new Promise<void>((resolve, reject) => {});
+    public unlinkResource(form: Form): Promise<unknown> {
+        return new Promise<void>((resolve, reject) => {
+            // TODO: implement
+        });
     }
 
     public subscribeResource(
         form: Form,
-        next: (value: any) => void,
-        error?: (error: any) => void,
+        next: (value: unknown) => void,
+        error?: (error: unknown) => void,
         complete?: () => void
-    ): any {
+    ): unknown {
         return null;
     }
 
@@ -60,7 +71,7 @@ export default class WebSocketClient implements ProtocolClient {
         // do nothing
     }
 
-    public setSecurity(metadata: any, credentials?: any): boolean {
+    public setSecurity(metadata: unknown, credentials?: unknown): boolean {
         if (Array.isArray(metadata)) {
             metadata = metadata[0];
         }

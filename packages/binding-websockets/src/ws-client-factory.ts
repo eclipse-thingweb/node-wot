@@ -22,9 +22,9 @@ import WebSocketClient from "./ws-client";
 
 export default class WebSocketClientFactory implements ProtocolClientFactory {
     public readonly scheme: string = "ws";
-    private clientSideProxy: any = null;
+    private clientSideProxy: unknown = null;
 
-    constructor(proxy: any = null) {
+    constructor(proxy: unknown = null) {
         this.clientSideProxy = proxy;
     }
 

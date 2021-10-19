@@ -29,6 +29,7 @@ import { AddressInfo } from "net";
 import * as TD from "@node-wot/td-tools";
 import { ProtocolServer, Servient, ExposedThing, ContentSerdes, Helpers } from "@node-wot/core";
 import { HttpServer, HttpConfig } from "@node-wot/binding-http";
+import slugify from "slugify";
 
 export default class WebSocketServer implements ProtocolServer {
     public readonly scheme: string;
@@ -41,7 +42,7 @@ export default class WebSocketServer implements ProtocolServer {
     private readonly httpServer: http.Server | https.Server;
 
     private readonly thingNames: Set<string> = new Set<string>();
-    private readonly thingPaths: Map<string, any> = new Map<string, any>();
+    private readonly thingPaths: Map<string, unknown> = new Map<string, unknown>();
     private readonly socketServers: { [key: string]: WebSocket.Server } = {};
 
     constructor(serverOrConfig: HttpServer | HttpConfig = {}) {
@@ -63,9 +64,10 @@ export default class WebSocketServer implements ProtocolServer {
 
             // TLS
             if (config.serverKey && config.serverCert) {
-                const options: any = {};
-                options.key = fs.readFileSync(config.serverKey);
-                options.cert = fs.readFileSync(config.serverCert);
+                const options = {
+                    key: fs.readFileSync(config.serverKey),
+                    cert: fs.readFileSync(config.serverCert),
+                };
                 this.scheme = "wss";
                 this.httpServer = https.createServer(options);
             } else {
@@ -85,7 +87,7 @@ export default class WebSocketServer implements ProtocolServer {
         return new Promise<void>((resolve, reject) => {
             // handle incoming WebScoket connections
             this.httpServer.on("upgrade", (request, socket, head) => {
-                const pathname = url.parse(request.url).pathname;
+                const pathname = new url.URL(request.url).pathname;
 
                 const socketServer = this.socketServers[pathname];
 
@@ -150,7 +152,6 @@ export default class WebSocketServer implements ProtocolServer {
     }
 
     public expose(thing: ExposedThing): Promise<void> {
-        const slugify = require("slugify");
         let urlPath = slugify(thing.title, { lower: true });
 
         if (this.thingNames.has(urlPath)) {
@@ -168,15 +169,15 @@ export default class WebSocketServer implements ProtocolServer {
 
             // TODO more efficient routing to ExposedThing without ResourceListeners in each server
 
-            for (let propertyName in thing.properties) {
-                let path =
+            for (const propertyName in thing.properties) {
+                const path =
                     "/" +
                     encodeURIComponent(urlPath) +
                     "/" +
                     this.PROPERTY_DIR +
                     "/" +
                     encodeURIComponent(propertyName);
-                let property = thing.properties[propertyName];
+                const property = thing.properties[propertyName];
 
                 console.debug(
                     "[binding-websockets]",
@@ -237,9 +238,9 @@ export default class WebSocketServer implements ProtocolServer {
                             .then(() => ws.close(0, "Completed"))
                             .catch((err: Error) => ws.close(-1, err.message));
 
-                        for (let address of Helpers.getAddresses()) {
-                            let href = this.scheme + "://" + address + ":" + this.getPort() + path;
-                            let form = new TD.Form(href, ContentSerdes.DEFAULT);
+                        for (const address of Helpers.getAddresses()) {
+                            const href = this.scheme + "://" + address + ":" + this.getPort() + path;
+                            const form = new TD.Form(href, ContentSerdes.DEFAULT);
                             form.op = ["readproperty", "observeproperty", "unobserveproperty"];
                             thing.properties[propertyName].forms.push(form);
                             console.debug(
@@ -250,9 +251,9 @@ export default class WebSocketServer implements ProtocolServer {
                     }
 
                     if (!property.readOnly) {
-                        for (let address of Helpers.getAddresses()) {
-                            let href = this.scheme + "://" + address + ":" + this.getPort() + path;
-                            let form = new TD.Form(href, ContentSerdes.DEFAULT);
+                        for (const address of Helpers.getAddresses()) {
+                            const href = this.scheme + "://" + address + ":" + this.getPort() + path;
+                            const form = new TD.Form(href, ContentSerdes.DEFAULT);
                             form.op = ["writeproperty"];
                             thing.properties[propertyName].forms.push(form);
                             console.debug(
@@ -274,14 +275,15 @@ export default class WebSocketServer implements ProtocolServer {
                 });
             }
 
-            for (let actionName in thing.actions) {
-                let path =
+            for (const actionName in thing.actions) {
+                const path =
                     "/" + encodeURIComponent(urlPath) + "/" + this.ACTION_DIR + "/" + encodeURIComponent(actionName);
-                let action = thing.actions[actionName];
+                // eslint-disable-next-line unused-imports/no-unused-vars
+                const action = thing.actions[actionName];
 
-                for (let address of Helpers.getAddresses()) {
-                    let href = this.scheme + "://" + address + ":" + this.getPort() + path;
-                    let form = new TD.Form(href, ContentSerdes.DEFAULT);
+                for (const address of Helpers.getAddresses()) {
+                    const href = this.scheme + "://" + address + ":" + this.getPort() + path;
+                    const form = new TD.Form(href, ContentSerdes.DEFAULT);
                     form.op = ["invokeaction"];
                     thing.actions[actionName].forms.push(form);
                     console.debug(
@@ -291,10 +293,11 @@ export default class WebSocketServer implements ProtocolServer {
                 }
             }
 
-            for (let eventName in thing.events) {
-                let path =
+            for (const eventName in thing.events) {
+                const path =
                     "/" + encodeURIComponent(urlPath) + "/" + this.EVENT_DIR + "/" + encodeURIComponent(eventName);
-                let event = thing.events[eventName];
+                // eslint-disable-next-line unused-imports/no-unused-vars
+                const event = thing.events[eventName];
 
                 console.debug(
                     "[binding-websockets]",
