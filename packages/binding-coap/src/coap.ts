@@ -29,7 +29,7 @@ export * from "./coaps-client";
 
 export class CoapOption {
     public "cov:optionName": string;
-    public "cov:optionValue": any;
+    public "cov:optionValue": string | number | Buffer;
 }
 
 export type CoapMethodName = "GET" | "POST" | "PUT" | "DELETE" | "FETCH" | "PATCH" | "iPATCH";

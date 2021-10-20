@@ -17,12 +17,11 @@
  * CoAP Server based on coap by mcollina
  */
 
-import * as url from "url";
-
 import * as TD from "@node-wot/td-tools";
 import Servient, { ProtocolServer, ContentSerdes, ExposedThing, Helpers, ProtocolHelpers } from "@node-wot/core";
 import coap = require("coap");
 import slugify from "slugify";
+import { Socket } from "dgram";
 
 export default class CoapServer implements ProtocolServer {
     public readonly scheme: string = "coap";
@@ -34,6 +33,7 @@ export default class CoapServer implements ProtocolServer {
     private readonly port: number = 5683;
     private readonly address?: string = undefined;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private readonly server: any = coap.createServer((req: any, res: any) => {
         this.handleRequest(req, res);
     });
@@ -86,7 +86,7 @@ export default class CoapServer implements ProtocolServer {
     }
 
     /** returns socket to be re-used by CoapClients */
-    public getSocket(): any {
+    public getSocket(): Socket {
         return this.server._sock;
     }
 
@@ -198,6 +198,7 @@ export default class CoapServer implements ProtocolServer {
         });
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private handleRequest(req: any, res: any) {
         console.debug(
             "[binding-coap]",
@@ -214,7 +215,7 @@ export default class CoapServer implements ProtocolServer {
             );
         });
 
-        const requestUri = url.parse(req.url);
+        const requestUri = req.url;
         let contentType = req.options["Content-Format"];
 
         if (req.method === "PUT" || req.method === "POST") {
@@ -299,7 +300,7 @@ export default class CoapServer implements ProtocolServer {
                                         );
                                         const content = ContentSerdes.get().valueToContent(
                                             value,
-                                            <any>property,
+                                            property,
                                             contentType
                                         );
                                         res.setOption("Content-Format", content.type);
@@ -330,7 +331,7 @@ export default class CoapServer implements ProtocolServer {
                                             );
                                             const content = ContentSerdes.get().valueToContent(
                                                 value,
-                                                <any>property,
+                                                property,
                                                 contentType
                                             );
                                             res.setOption("Content-Format", content.type);
@@ -367,7 +368,7 @@ export default class CoapServer implements ProtocolServer {
                                 try {
                                     value = ContentSerdes.get().contentToValue(
                                         { type: contentType, body: req.payload },
-                                        <any>property
+                                        property
                                     );
                                 } catch (err) {
                                     console.warn(
