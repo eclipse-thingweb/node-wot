@@ -18,10 +18,12 @@
  */
 
 import { ProtocolHelpers, Content } from "@node-wot/core";
+import * as TD from "@node-wot/td-tools";
+
 import { expect, should, assert } from "chai";
 import { fail } from "assert";
 import { Readable } from "stream";
-import { DataType } from "node-opcua-client";
+import { DataType, DataValue } from "node-opcua-client";
 
 import OpcuaCodec from "../src/codecs/opcua-codec";
 import OpcuaClient from "../src/opcua-client";
@@ -54,7 +56,7 @@ describe("OPCUA client test", function () {
         await server.stop();
     });
 
-    async function getBody(content: Content): Promise<Record<string, any>> {
+    async function getBody(content: Content): Promise<Record<string, unknown>> {
         const buffer = await ProtocolHelpers.readStreamFully(content.body);
         const val = JSON.parse(buffer.toString()).value.value;
         return val;
@@ -97,14 +99,11 @@ describe("OPCUA client test", function () {
     it("should write a property", async function () {
         const value = 1;
 
-        const schema = {
+        const schema: TD.DataSchema = {
             type: "null",
             "opc:dataType": "Double",
-            constructor: {
-                name: "ConsumedThingProperty",
-            },
         };
-        const payload = codec.valueToBytes(value, schema as any);
+        const payload = codec.valueToBytes(value, schema);
 
         // invoke with defaults
         const inputVector = {
@@ -129,13 +128,11 @@ describe("OPCUA client test", function () {
 
     it("should write a property with a string as nodeId", async function () {
         const value = "Ciao";
-        const schema = {
+        const schema: TD.DataSchema = {
+            type: "null",
             "opc:dataType": "String",
-            constructor: {
-                name: "ConsumedThingProperty",
-            },
         };
-        const payload = codec.valueToBytes(value, schema as any);
+        const payload = codec.valueToBytes(value, schema);
 
         // invoke with defaults
         const inputVector = {
@@ -154,11 +151,9 @@ describe("OPCUA client test", function () {
 
     it("should write a property with a string with quotes as nodeId", async function () {
         const value = "Ciao";
-        const schema: any = {
+        const schema: TD.DataSchema = {
+            type: "null",
             "opc:dataType": "String",
-            constructor: {
-                name: "ConsumedThingProperty",
-            },
         };
         const payload = codec.valueToBytes(value, schema);
 
@@ -188,15 +183,13 @@ describe("OPCUA client test", function () {
 
     it("should fail to write a property because of missing schema information", async function () {
         const value = 1;
-        const schema: any = {
+        const schema = {
             "opc:wrongField": "Double",
             title: "test",
-            constructor: {
-                name: "ConsumedThingProperty",
-            },
         };
         try {
-            const payload = codec.valueToBytes(value, schema);
+            const payload = codec.valueToBytes(value, schema as unknown as TD.DataSchema);
+            payload.should.be.instanceOf(Buffer);
         } catch (err) {
             expect(err.message).to.equal('opc:dataType field not specified for property "test"');
         }
@@ -264,7 +257,7 @@ describe("OPCUA client test", function () {
             },
         };
 
-        const dataCollected: any = [];
+        const dataCollected: DataValue[] = [];
         await new Promise<void>((resolve) => {
             (async () => {
                 let times = 3;
@@ -322,12 +315,10 @@ describe("OPCUA client test", function () {
 
     it("should return the right opcua datatype", async function () {
         const value = "";
-        const schema: any = {
+        const schema: TD.DataSchema = {
+            type: "null",
             "opc:dataType": "Double",
             title: "test",
-            constructor: {
-                name: "ConsumedThingProperty",
-            },
         };
         const dataTypes = [
             "Null",
