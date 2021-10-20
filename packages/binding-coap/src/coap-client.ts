@@ -40,7 +40,9 @@ import coap = require("coap");
 
 export default class CoapClient implements ProtocolClient {
     // FIXME coap Agent closes socket when no messages in flight -> new socket with every request
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private agent: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private readonly agentOptions: any;
 
     constructor(server?: CoapServer) {
@@ -60,6 +62,7 @@ export default class CoapClient implements ProtocolClient {
         const req = await this.generateRequest(form, "GET");
         console.debug("[binding-coap]", `CoapClient sending ${req.statusCode} to ${form.href}`);
         return new Promise<Content>((resolve, reject) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             req.on("response", (res: any) => {
                 console.debug("[binding-coap]", `CoapClient received ${res.code} from ${form.href}`);
                 console.debug("[binding-coap]", `CoapClient received Content-Format: ${res.headers["Content-Format"]}`);
@@ -85,6 +88,7 @@ export default class CoapClient implements ProtocolClient {
 
                     console.debug("[binding-coap]", `CoapClient sending ${req.statusCode} to ${form.href}`);
 
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     req.on("response", (res: any) => {
                         console.debug("[binding-coap]", `CoapClient received ${res.code} from ${form.href}`);
                         console.debug("[binding-coap]", `CoapClient received headers: ${JSON.stringify(res.headers)}`);
@@ -130,6 +134,7 @@ export default class CoapClient implements ProtocolClient {
 
             console.debug("[binding-coap]", `CoapClient sending ${req.statusCode} to ${form.href}`);
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             req.on("response", (res: any) => {
                 console.debug("[binding-coap]", `CoapClient received ${res.code} from ${form.href}`);
                 console.debug("[binding-coap]", `CoapClient received headers: ${JSON.stringify(res.headers)}`);
@@ -151,6 +156,7 @@ export default class CoapClient implements ProtocolClient {
 
             console.debug("[binding-coap]", `CoapClient sending ${req.statusCode} to ${form.href}`);
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             req.on("response", (res: any) => {
                 console.debug("[binding-coap]", `CoapClient received ${res.code} from ${form.href}`);
                 console.debug("[binding-coap]", `CoapClient received Content-Format: ${res.headers["Content-Format"]}`);
@@ -234,6 +240,7 @@ export default class CoapClient implements ProtocolClient {
         return defaultMethod;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private generateRequest(form: CoapForm, defaultMethod: CoapMethodName, observable = false): any {
         const options: CoapRequestConfig = this.uriToOptions(form.href);
 

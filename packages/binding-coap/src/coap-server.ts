@@ -33,6 +33,7 @@ export default class CoapServer implements ProtocolServer {
     private readonly port: number = 5683;
     private readonly address?: string = undefined;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private readonly server: any = coap.createServer((req: any, res: any) => {
         this.handleRequest(req, res);
     });
@@ -197,6 +198,7 @@ export default class CoapServer implements ProtocolServer {
         });
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private handleRequest(req: any, res: any) {
         console.debug(
             "[binding-coap]",
