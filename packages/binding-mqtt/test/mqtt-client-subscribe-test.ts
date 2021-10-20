@@ -17,40 +17,40 @@
  * Protocol test suite to test protocol implementations
  */
 
-import { suite, test, slow, timeout, skip, only } from "@testdeck/mocha";
-import { expect, should, assert } from "chai";
-// should must be called to augment all variables
-should();
-
-import { Servient, ExposedThing } from "@node-wot/core";
+import { Servient } from "@node-wot/core";
 
 import MqttBrokerServer from "../src/mqtt-broker-server";
 import MqttClientFactory from "../src/mqtt-client-factory";
 import MqttsClientFactory from "../src/mqtts-client-factory";
 
+import { suite, test, timeout } from "@testdeck/mocha";
+import { expect, should } from "chai";
+// should must be called to augment all variables
+should();
+
 @suite("MQTT implementation")
 class MqttClientSubscribeTest {
-    @test.skip(timeout(10000)) "should expose via broker"(done: Function) {
+    @test.skip(timeout(10000)) "should expose via broker"(done: Mocha.Done) {
         try {
-            let servient = new Servient();
-            var brokerAddress = "test.mosquitto.org";
-            var brokerPort = 1883;
-            var brokerUri = `mqtt://${brokerAddress}:${brokerPort}`;
+            const servient = new Servient();
+            const brokerAddress = "test.mosquitto.org";
+            const brokerPort = 1883;
+            const brokerUri = `mqtt://${brokerAddress}:${brokerPort}`;
 
-            let brokerServer = new MqttBrokerServer(brokerUri);
+            const brokerServer = new MqttBrokerServer(brokerUri);
             servient.addServer(brokerServer);
 
             servient.addClientFactory(new MqttClientFactory());
 
-            var counter = 0;
+            let counter = 0;
 
             servient.start().then((WoT) => {
                 expect(brokerServer.getPort()).to.equal(brokerPort);
                 expect(brokerServer.getAddress()).to.equal(brokerAddress);
 
-                var eventNumber = Math.floor(Math.random() * 1000000);
-                var eventName: string = "event" + eventNumber;
-                var events: { [key: string]: any } = {};
+                const eventNumber = Math.floor(Math.random() * 1000000);
+                const eventName: string = "event" + eventNumber;
+                const events: { [key: string]: Record<string, unknown> } = {};
                 events[eventName] = { data: { type: "number" } };
 
                 WoT.produce({
@@ -62,7 +62,6 @@ class MqttClientSubscribeTest {
 
                         WoT.consume(thing.getThingDescription()).then((client) => {
                             let check = 0;
-                            let sum = 0;
                             let eventReceived = false;
 
                             client
@@ -98,27 +97,25 @@ class MqttClientSubscribeTest {
         }
     }
 
-    @test.skip(timeout(5000)) "should subscribe using mqtts"(done: Function) {
+    @test.skip(timeout(5000)) "should subscribe using mqtts"(done: Mocha.Done) {
         try {
-            let servient = new Servient();
-            var brokerAddress = "test.mosquitto.org";
-            var brokerPort = 8883;
-            var brokerUri = `mqtts://${brokerAddress}:${brokerPort}`;
+            const servient = new Servient();
+            const brokerAddress = "test.mosquitto.org";
+            const brokerPort = 8883;
+            const brokerUri = `mqtts://${brokerAddress}:${brokerPort}`;
 
-            let brokerServer = new MqttBrokerServer(brokerUri, undefined, undefined, undefined, undefined, false);
+            const brokerServer = new MqttBrokerServer(brokerUri, undefined, undefined, undefined, undefined, false);
             servient.addServer(brokerServer);
 
             servient.addClientFactory(new MqttsClientFactory({ rejectUnauthorized: false }));
-
-            var counter = 0;
 
             servient.start().then((WoT) => {
                 expect(brokerServer.getPort()).to.equal(brokerPort);
                 expect(brokerServer.getAddress()).to.equal(brokerAddress);
 
-                var eventNumber = Math.floor(Math.random() * 1000000);
-                var eventName: string = "event" + eventNumber;
-                var events: { [key: string]: any } = {};
+                const eventNumber = Math.floor(Math.random() * 1000000);
+                const eventName: string = "event" + eventNumber;
+                const events: { [key: string]: Record<string, unknown> } = {};
                 events[eventName] = { type: "number" };
 
                 WoT.produce({
@@ -137,7 +134,9 @@ class MqttClientSubscribeTest {
                                         done();
                                     }
                                 })
-                                .then(() => {})
+                                .then(() => {
+                                    /* nothing */
+                                })
                                 .catch((e) => {
                                     expect(true).to.equal(false);
                                 });
