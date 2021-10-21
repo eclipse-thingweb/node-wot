@@ -80,7 +80,7 @@ export default class WebSocketClient implements ProtocolClient {
         // TODO support for multiple security schemes (see http-client.ts)
         const security: SecurityScheme = metadata[0];
 
-        console.debug("[binding-http]", `HttpClient using security scheme '${security.scheme}'`);
+        console.debug("[binding-websockets]", `WebSocketClient using security scheme '${security.scheme}'`);
         return true;
     }
 }
