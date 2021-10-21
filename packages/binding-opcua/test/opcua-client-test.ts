@@ -113,12 +113,6 @@ describe("OPCUA client test", function () {
                 "opc:method": "WRITE",
             },
         };
-        /*
-        let schema = {
-            "opc:dataType": "Double"
-        }
-        let res = await client.writeResource(inputVector.form, { type: 'application/x.opcua-binary', body: Readable.from(Buffer.from(inputVector.payload)) });
-        */
         const res = await client.writeResource(inputVector.form, {
             type: "application/x.opcua-binary",
             body: Readable.from(payload),
@@ -157,15 +151,6 @@ describe("OPCUA client test", function () {
         };
         const payload = codec.valueToBytes(value, schema);
 
-        /*
-        try {
-            let res = await client.writeResource(inputVector.form, { type: 'application/x.opcua-binary', body: Readable.from(Buffer.from(inputVector.payload))});
-        } catch(err) {
-            expect(err.message).to.equal("Mandatory \"schema\" field missing in the TD");
-        }
-        try {
-            let res = await client.writeResource(inputVector.form, { type: 'application/x.opcua-binary', body: Readable.from(Buffer.from(inputVector.payload))});
-        */
         // invoke with defaults
         const inputVector = {
             op: ["writeProperty"],
@@ -295,7 +280,7 @@ describe("OPCUA client test", function () {
         };
         try {
             await client.subscribeResource(inputVector.form, () => {
-                /** */
+                /** empty */
             });
         } catch (err) {
             expect(err.message).to.equal("Error while subscribing property: BadNodeIdUnknown (0x80340000)");

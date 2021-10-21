@@ -25,7 +25,6 @@ export default class OpcuaCodec implements ContentCodec {
     }
 
     bytesToValue(bytes: Buffer, schema: TD.DataSchema, parameters: { [key: string]: string }): DataSchemaValue {
-        // console.debug(`JsonCodec parsing '${bytes.toString()}'`);
         let parsed;
         try {
             parsed = JSON.parse(bytes.toString());
@@ -55,7 +54,6 @@ export default class OpcuaCodec implements ContentCodec {
     }
 
     valueToBytes(value: unknown, schema: TD.DataSchema, parameters?: { [key: string]: string }): Buffer {
-        // console.debug("JsonCodec serializing", value);
         let body = "";
         if (value !== undefined) {
             const obj: { inputArguments?: VariantLike[]; dataType?: DataType; payload: unknown } = { payload: value };

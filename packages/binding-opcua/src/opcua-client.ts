@@ -136,7 +136,6 @@ export default class OpcuaClient implements ProtocolClient {
     public async readResource(form: OpcuaForm): Promise<Content> {
         const url = new Url(form.href);
         const endpointUrl = `${url.protocol}//${url.host}`;
-        // const method = form["opc:method"] ? form["opc:method"] : "READ";
 
         const contentType = "application/x.opcua-binary";
         await this.checkConnection(endpointUrl);
@@ -173,8 +172,6 @@ export default class OpcuaClient implements ProtocolClient {
         const payload: Record<string, unknown> = content ? JSON.parse(body.toString()) : {};
         const url = new Url(form.href);
         const endpointUrl = `${url.protocol}//${url.host}`;
-        // const method = form["opc:method"] ? form["opc:method"] : "WRITE";
-        // const contentType = "application/x.opcua-binary";
 
         const dataType = payload.dataType as DataType | string;
 
@@ -192,8 +189,6 @@ export default class OpcuaClient implements ProtocolClient {
                 nodeId: nodeId,
                 attributeId: AttributeIds.Value,
                 value: /* DataValue */ {
-                    // sourceTimestamp: new Date(), // FIXME: to be optional
-                    // statusCode: StatusCodes.Good,
                     value: /* Variant */ {
                         dataType,
                         value: payload.payload,
