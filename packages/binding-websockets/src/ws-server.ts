@@ -383,7 +383,7 @@ export default class WebSocketServer implements ProtocolServer {
         return new Promise<boolean>((resolve, reject) => {
             let removedThing = false;
             for (const name of Array.from(this.thingPaths.keys())) {
-                const thingPath = this.thingPaths.get(name);
+                const thingPath = this.thingPaths.get(name) as string;
                 removedThing = this.thingNames.delete(thingPath);
             }
             if (removedThing) {
