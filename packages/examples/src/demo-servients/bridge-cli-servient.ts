@@ -31,7 +31,7 @@ export default class BridgeServient extends Servient {
         http: {
             port: 8080,
             selfSigned: false,
-        }
+        },
     };
 
     public readonly config: any;
