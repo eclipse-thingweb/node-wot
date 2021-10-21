@@ -25,7 +25,7 @@ export default class MqttClientFactory implements ProtocolClientFactory {
     private readonly clients: Array<ProtocolClient> = [];
 
     getClient = (): ProtocolClient => {
-        let client = new MqttClient();
+        const client = new MqttClient();
         this.clients.push(client);
         return client;
     };
