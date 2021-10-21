@@ -48,8 +48,6 @@ export default class MqttClient implements ProtocolClient {
         return new Promise<Subscription>((resolve, reject) => {
             // get MQTT-based metadata
             const contentType = form.contentType;
-            // const retain = form["mqtt:retain"]; // TODO: is this needed here?
-            // const qos = form["mqtt:qos"]; // TODO: is this needed here?
             const requestUri = new url.URL(form.href);
             const topic = requestUri.pathname.slice(1);
             const brokerUri: string = "mqtt://" + requestUri.host;

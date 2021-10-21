@@ -43,7 +43,6 @@ export enum MqttQoS {
 
 export class MqttForm extends Form {
     public "mqtt:qos": MqttQoS = MqttQoS.QoS0;
-    // public 'mqtt:topic': string = ''
     public "mqtt:retain": boolean;
 }
 
