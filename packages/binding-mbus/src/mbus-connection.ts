@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import * as MbusMaster from "node-mbus";
 import { MBusForm } from "./mbus";
-import { Content, ContentSerdes } from "@node-wot/core";
+import { Content } from "@node-wot/core";
 import { Readable } from "stream";
 
 const configDefaults = {
@@ -15,11 +17,14 @@ const configDefaults = {
 export class MBusConnection {
     host: string;
     port: number;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     client: any; // MBusClient.IMBusRTU
     connecting: boolean;
     connected: boolean;
     timer: NodeJS.Timer; // connection idle timer
+    // eslint-disable-next-line no-use-before-define
     currentTransaction: MBusTransaction; // transaction currently in progress or null
+    // eslint-disable-next-line no-use-before-define
     queue: Array<MBusTransaction>; // queue of further transactions
     config: {
         connectionTimeout?: number;
@@ -70,7 +75,7 @@ export class MBusConnection {
      */
     enqueue(op: PropertyOperation): void {
         // try to merge with any pending transaction
-        for (let t of this.queue) {
+        for (const t of this.queue) {
             if (op.unitId === t.unitId) {
                 t.inform(op);
                 return;
@@ -78,12 +83,12 @@ export class MBusConnection {
         }
 
         // create and append a new transaction
-        let transaction = new MBusTransaction(this, op.unitId, op.base);
+        const transaction = new MBusTransaction(this, op.unitId, op.base);
         transaction.inform(op);
         this.queue.push(transaction);
     }
 
-    async connect() {
+    async connect(): Promise<void> {
         if (!this.connecting && !this.connected) {
             console.debug("[binding-mbus]", "Trying to connect to", this.host);
             this.connecting = true;
@@ -111,7 +116,7 @@ export class MBusConnection {
                     if (retry >= this.config.maxRetries - 1) {
                         throw new Error("Max connection retries");
                     }
-                    await new Promise((r) => setTimeout(r, this.config.connectionRetryTime));
+                    await new Promise((resolve, reject) => setTimeout(resolve, this.config.connectionRetryTime));
                 }
             }
         }
@@ -125,7 +130,7 @@ export class MBusConnection {
      * start the next transaction.
      * Retrigger after success or failure.
      */
-    async trigger() {
+    async trigger(): Promise<void> {
         console.debug("[binding-mbus]", "MBusConnection:trigger");
         if (!this.connecting && !this.connected) {
             // connection may be closed due to operation timeout
@@ -157,12 +162,12 @@ export class MBusConnection {
         }
     }
 
-    public close() {
+    public close(): void {
         this.mbusstop();
     }
 
-    async readMBus(transaction: MBusTransaction): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
+    async readMBus(transaction: MBusTransaction): Promise<unknown> {
+        return new Promise<unknown>((resolve, reject) => {
             console.debug("[binding-mbus]", "Invoking read transaction");
             // reset connection idle timer
             if (this.timer) {
@@ -171,7 +176,7 @@ export class MBusConnection {
 
             this.timer = global.setTimeout(() => this.mbusstop(), this.config.operationTimeout);
 
-            this.client.getData(transaction.unitId, (error: string, data: any) => {
+            this.client.getData(transaction.unitId, (error: string, data: unknown) => {
                 if (error !== null) reject(error);
                 resolve(data);
             });
@@ -201,6 +206,7 @@ class MBusTransaction {
     connection: MBusConnection;
     unitId: number;
     base: number;
+    // eslint-disable-next-line no-use-before-define
     operations: Array<PropertyOperation>; // operations to be completed when this transaction completes
     constructor(connection: MBusConnection, unitId: number, base: number) {
         this.connection = connection;
@@ -261,7 +267,7 @@ export class PropertyOperation {
     base: number;
     transaction: MBusTransaction; // transaction used to execute this operation
     resolve: (value?: Content | PromiseLike<Content>) => void;
-    reject: (reason?: any) => void;
+    reject: (reason?: Error) => void;
 
     constructor(form: MBusForm) {
         this.unitId = form["mbus:unitID"];
@@ -275,12 +281,12 @@ export class PropertyOperation {
      */
     async execute(): Promise<Content | PromiseLike<Content>> {
         return new Promise(
-            (resolve: (value?: Content | PromiseLike<Content>) => void, reject: (reason?: any) => void) => {
+            (resolve: (value?: Content | PromiseLike<Content>) => void, reject: (reason?: Error) => void) => {
                 this.resolve = resolve;
                 this.reject = reject;
 
                 if (this.transaction == null) {
-                    reject("No transaction for this operation");
+                    reject(new Error("No transaction for this operation"));
                 } else {
                     this.transaction.trigger();
                 }
@@ -295,15 +301,13 @@ export class PropertyOperation {
      * @param result Result data of the transaction (on read)
      * @param data Result data of the transaction as array (on read)
      */
-    done(base?: number, result?: any) {
+    done(base?: number, result?: any): void {
         console.debug("[binding-mbus]", "Operation done");
 
         // extract the proper part from the result and resolve promise
-        let resp: Content;
-
         let payload: any = "";
         if (base === -1) {
-            //return SlaveInformation
+            // return SlaveInformation
             payload = result.SlaveInformation;
         } else {
             result.DataRecord.forEach((dataRec: any) => {
@@ -313,7 +317,7 @@ export class PropertyOperation {
             });
         }
 
-        resp = {
+        const resp: Content = {
             body: Readable.from(JSON.stringify(payload)),
             type: "application/json",
         };
@@ -327,9 +331,9 @@ export class PropertyOperation {
      *
      * @param reason Reason of failure
      */
-    failed(reason: string) {
+    failed(reason: string): void {
         console.warn("[binding-mbus]", "Operation failed:", reason);
         // reject the Promise given to the invoking script
-        this.reject(reason);
+        this.reject(new Error(reason));
     }
 }
