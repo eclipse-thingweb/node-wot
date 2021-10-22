@@ -1,4 +1,3 @@
-import { Content } from "./../../core/src/protocol-interfaces";
 /********************************************************************************
  * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
  *
@@ -20,12 +19,17 @@ import { Content } from "./../../core/src/protocol-interfaces";
 
 import { suite, test } from "@testdeck/mocha";
 import { expect, should, assert } from "chai";
+import * as chai from "chai";
 import fetch from "node-fetch";
 
 import HttpServer from "../src/http-server";
-import { ExposedThing, Helpers, ProtocolHelpers } from "@node-wot/core";
+import { Content, ExposedThing, Helpers, ProtocolHelpers } from "@node-wot/core";
 import { DataSchemaValue, InteractionInput, InteractionOptions } from "wot-typescript-definitions";
 import { Readable } from "stream";
+import chaiAsPromised from 'chai-as-promised';
+
+chai.use(chaiAsPromised);
+
 // should must be called to augment all variables
 should();
 
@@ -85,7 +89,12 @@ class HttpServerTest {
             },
             events: {
                 eventTest: {
-                    forms: [],
+                    forms: [
+                        {
+                            href: "http://test",
+                            op: "subscribeevent"
+                        }
+                    ],
                 },
             },
             actions: {
@@ -99,17 +108,18 @@ class HttpServerTest {
         testThing.setPropertyWriteHandler("test", async (value) => {
             test = await value.value();
         });
-        await testThing.writeProperty("test", "off");
+        await testThing.handleWriteProperty("test", {
+            type: "text/plain",
+            body: Readable.from(Buffer.from("off", "utf-8"))
+        }, { href: "" });
         testThing.properties.test.forms = [];
+
         testThing.handleSubscribeEvent("eventTest", async (input: Content) => {
-            const eventData = await ProtocolHelpers.readStreamFully(input.body);
-            expect(eventData.toString()).to.equal("test");
+            const data = await ProtocolHelpers.readStreamFully(input.body);
+            expect(data.toString()).to.equal("'test''");
         });
-        testThing.emitEvent("eventTest", {
-            type: "application/json",
-            body: Readable.from(Buffer.from("test", "utf-8")),
-        });
-        testThing.events.eventTest.forms = [];
+        testThing.handleEmitEvent("eventTest", "test");
+
         testThing.setActionHandler("try", (input: WoT.InteractionOutput) => {
             return new Promise<string>((resolve, reject) => {
                 resolve("TEST");
@@ -352,7 +362,7 @@ class HttpServerTest {
         testThing.properties.maintenanceNeeded.forms = [];
         testThing.actions.makeDrink.forms = [];
 
-        const td = testThing.getThingDescription();
+        testThing.getThingDescription();
 
         await httpServer.expose(testThing);
 
@@ -360,10 +370,10 @@ class HttpServerTest {
         const body = await (await fetch(uri)).text();
         // console.debug(JSON.stringify(JSON.parse(body),undefined,2))
 
-        const expected_url = `${theBaseUri}/smart-coffee-machine/actions/makeDrink`;
+        const expectedUrl = `${theBaseUri}/smart-coffee-machine/actions/makeDrink`;
 
-        expect(body).to.include(expected_url);
-        console.log(`Found URL ${expected_url} in TD`);
+        expect(body).to.include(expectedUrl);
+        console.log(`Found URL ${expectedUrl} in TD`);
         await httpServer.stop();
     }
 }

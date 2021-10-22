@@ -303,4 +303,41 @@ export default class ProtocolHelpers {
         }
         return matchingForms.length > 0 ? matchingForms[0] : undefined;
     }
+
+    public static getFormIndexForOperation(
+        forms: TD.Form[],
+        operationName: string = null,
+        formIndex: number = null
+        ) : number {
+        let finalFormIndex = -1;
+
+        // If a form index hint is gived, you it. Just check the form actually supports the op
+        if(formIndex && forms.length > formIndex) {
+            const form = forms[formIndex];
+            if(form.op.includes(operationName)) {
+                finalFormIndex = formIndex;
+            }
+        }
+
+        // If no form was found yet, loop through all forms
+        if(finalFormIndex === -1) {
+            if(operationName) {
+                forms.every((form: TD.Form) => {
+                    if(form.op.includes(operationName)) {
+                        finalFormIndex = forms.indexOf(form);
+                    }
+                    return finalFormIndex === -1;
+                });
+            } else {
+                forms.every((form: TD.Form) => {
+                    finalFormIndex = forms.indexOf(form);
+                    return false;
+                });
+            }
+        }
+
+        // No suitable form found for this operation
+        return finalFormIndex;
+    }
+
 }

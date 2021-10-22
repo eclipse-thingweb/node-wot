@@ -28,6 +28,25 @@ export type PropertyContentMap = Map<string, Content>;
 
 export type ContentListener = (data: Content) => void;
 
+export type PropertyHandlers = {
+    readHandler?: WoT.PropertyReadHandler,
+    writeHandler?: WoT.PropertyWriteHandler,
+    observeHandler?: WoT.PropertyReadHandler,
+    unobserveHandler?: WoT.PropertyReadHandler
+}
+export type PropertyHandlerMap = Map<string, PropertyHandlers>;
+export type ActionHandlerMap = Map<string, WoT.ActionHandler>;
+
+export type EventHandlerMap = Map<string, {
+    handler?: WoT.EventListenerHandler,
+    subscribe?: WoT.EventSubscriptionHandler,
+    unsubscribe?: WoT.EventSubscriptionHandler
+}>;
+
+export type ListenerMap = Map<string, {
+    [formIndex: number]: ContentListener[]
+}>
+
 export interface ProtocolClient {
     /** this client is requested to perform a "read" on the resource with the given URI */
     readResource(form: TD.Form): Promise<Content>;
