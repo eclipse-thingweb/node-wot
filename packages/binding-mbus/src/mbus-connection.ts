@@ -307,7 +307,6 @@ export class PropertyOperation {
         // extract the proper part from the result and resolve promise
         let payload: any = "";
         if (base === -1) {
-            // return SlaveInformation
             payload = result.SlaveInformation;
         } else {
             result.DataRecord.forEach((dataRec: any) => {
