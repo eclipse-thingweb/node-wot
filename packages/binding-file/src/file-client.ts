@@ -16,8 +16,9 @@
 /**
  * File protocol binding
  */
-import { Form } from "@node-wot/td-tools";
+import { Form, SecurityScheme } from "@node-wot/td-tools";
 import { ProtocolClient, Content } from "@node-wot/core";
+import { Subscription } from "rxjs/Subscription";
 import fs = require("fs");
 import path = require("path");
 
@@ -79,10 +80,10 @@ export default class FileClient implements ProtocolClient {
 
     public subscribeResource(
         form: Form,
-        next: (value: any) => void,
-        error?: (error: any) => void,
+        next: (value: Content) => void,
+        error?: (error: Error) => void,
         complete?: () => void
-    ): any {
+    ): Promise<Subscription> {
         error(new Error(`FileClient does not implement subscribe`));
         return null;
     }
@@ -95,5 +96,5 @@ export default class FileClient implements ProtocolClient {
         // do nothing
     }
 
-    public setSecurity = (metadata: any): boolean => false;
+    public setSecurity = (metadata: Array<SecurityScheme>): boolean => false;
 }
