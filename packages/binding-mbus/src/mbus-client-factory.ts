@@ -8,6 +8,12 @@ export default class MBusClientFactory implements ProtocolClientFactory {
         console.info("[binding-mbus]", `MBusClientFactory creating client for '${this.scheme}'`);
         return new MBusClient();
     }
-    public init = () => true;
-    public destroy = () => true;
+
+    public init(): boolean {
+        return true;
+    }
+
+    public destroy(): boolean {
+        return true;
+    }
 }

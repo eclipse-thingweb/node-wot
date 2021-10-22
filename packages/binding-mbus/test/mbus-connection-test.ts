@@ -1,6 +1,5 @@
 import { should } from "chai";
 import * as chai from "chai";
-import MBusClient from "../src/mbus-client";
 import { MBusForm } from "../src/mbus";
 import chaiAsPromised from "chai-as-promised";
 import { MBusConnection, PropertyOperation } from "../src/mbus-connection";
@@ -10,9 +9,13 @@ should();
 chai.use(chaiAsPromised);
 
 describe.skip("MBus connection", () => {
-    before(() => {});
+    before(() => {
+        /* nothing */
+    });
 
-    after(() => {});
+    after(() => {
+        /* nothing */
+    });
 
     it("should throw for unknown host", () => {
         const connection = new MBusConnection("127.0.0.2", 805, {
