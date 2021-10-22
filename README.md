@@ -66,6 +66,8 @@ Please also see the additional [notices](NOTICE.md) and [how to contribute](CONT
 
 Note: More protocols can be easily added by implementing `ProtocolClient`, `ProtocolClientFactory`, and `ProtocolServer` interface.
 
+Note: the bindings for [binding-fujitsu](https://github.com/eclipse/thingweb.node-wot/tree/v0.7.x/packages/binding-fujitsu) and [binding-oracle](https://github.com/eclipse/thingweb.node-wot/tree/v0.7.x/packages/binding-oracle) were removed after `v0.7.x` due to lack of maintainers.
+
 ### MediaType Support
 
 -   JSON :heavy_check_mark:

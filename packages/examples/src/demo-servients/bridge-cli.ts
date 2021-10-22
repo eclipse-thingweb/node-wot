@@ -118,7 +118,6 @@ if (argv.length > 0) {
        bridge-servient
        bridge-servient examples/scripts/counter.js examples/scripts/example-event.js
        bridge-servient -f ~/mybridge.conf.json testthing.js
-       bridge-servient -p myOracleSecret
 
 Run a WoT Servient in the current directory.
 If no SCRIPT is given, all .js files in the current directory are loaded.
@@ -128,7 +127,7 @@ If the file 'bridge-servient.conf.json' exists, that configuration is applied.
 Options:
   -v, --version           display node-wot version
   -f, --configfile=file   load configuration from specified file
-  -p, --password=secret   pass the password for the Oracle trust store
+  -p, --password=secret   pass the password for the trust store
   -h, --help              show this help
 
   bridge-servient.conf.json syntax:
@@ -138,12 +137,6 @@ Options:
         "proxy": PROXY,
         "allowSelfSigned": ALLOW
     },
-    "fujitsu": {
-        "remote": FREMOTE
-    },
-    "oracle": {
-        "store": OSTORE
-    }
     "credentials": {
         THING_ID1: {
             "token": TOKEN
@@ -164,8 +157,6 @@ bridge-servient.conf.json fields:
                            "scheme" field for either "basic" or "bearer", and
                            corresponding credential fields as defined below
   ALLOW      : boolean whether self-signed certificates should be allowed
-  FREMOTE    : URI for the Fujitsu remote proxy
-  OSTORE     : file name of the Oracle IoT CS trust store
   THING_IDx  : string with TD "id" for which credentials should be configured
   TOKEN      : string for providing a Bearer token
   USERNAME   : string for providing a Basic Auth username
