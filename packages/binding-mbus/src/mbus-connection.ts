@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import * as MbusMaster from "node-mbus";
 import { MBusForm } from "./mbus";
 import { Content } from "@node-wot/core";
@@ -301,14 +299,20 @@ export class PropertyOperation {
      * @param result Result data of the transaction (on read)
      * @param data Result data of the transaction as array (on read)
      */
-    done(base?: number, result?: any): void {
+    done(
+        base?: number,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
+        result?: any
+    ): void {
         console.debug("[binding-mbus]", "Operation done");
 
         // extract the proper part from the result and resolve promise
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let payload: any = "";
         if (base === -1) {
             payload = result.SlaveInformation;
         } else {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             result.DataRecord.forEach((dataRec: any) => {
                 if (base === dataRec.id) {
                     payload = dataRec;
