@@ -23,7 +23,6 @@
     },
     "scripts": {
         "build": "browserify -r vm:vm2 index.js --plugin tinyify --external coffee-script -o dist/wot-bundle.min.js",
-        "lint": "eslint .",
         "format": "prettier --write index.js \"**/*.json\""
     },
     "bugs": {
