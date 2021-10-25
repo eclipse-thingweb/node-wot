@@ -500,7 +500,7 @@ export default class CoapServer implements ProtocolServer {
                                             req.rsinfo.port
                                         }`
                                     );
-                                    thing.handleUnsubscribeEvent(segments[3], listener, null);
+                                    thing.handleUnsubscribeEvent(segments[3], listener, options);
                                 });
                             } else if (req.headers.Observe > 0) {
                                 console.debug(

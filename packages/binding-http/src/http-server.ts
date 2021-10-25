@@ -39,7 +39,6 @@ import { HttpConfig, HttpForm, OAuth2ServerConfig } from "./http";
 import createValidator, { Validator } from "./oauth-token-validation";
 import { OAuth2SecurityScheme } from "@node-wot/td-tools";
 import slugify from "slugify";
-import { InteractionOutput } from "wot-typescript-definitions";
 import "accept-language-parser";
 
 declare const alparser: any;
@@ -737,48 +736,39 @@ export default class HttpServer implements ProtocolServer {
                                         // FIXME must decide on Content-Type here, not on next()
                                         res.setHeader("Content-Type", ContentSerdes.DEFAULT);
                                         res.writeHead(200);
+
+                                        const listener = async (value : Content) => {
+                                            try {
+                                                // send event data
+                                                value.body.pipe(res);
+                                            } catch (err) {
+                                                 console.warn(
+                                                    "[binding-http]",
+                                                    `HttpServer on port ${this.getPort()} cannot process data for Event '${
+                                                        segments[3]
+                                                    }: ${err.message}'`
+                                                );
+                                                res.writeHead(500);
+                                                res.end("Invalid Event Data");
+                                            }
+                                        };
+
                                         thing
-                                            .observeProperty(
+                                            .handleObserveProperty(
                                                 segments[3],
-                                                async (value: InteractionOutput) => {
-                                                    try {
-                                                        const contentType = ProtocolHelpers.getPropertyContentType(
-                                                            thing.getThingDescription(),
-                                                            segments[3],
-                                                            this.scheme
-                                                        );
-                                                        const content = ContentSerdes.get().valueToContent(
-                                                            value.data && !value.dataUsed
-                                                                ? value.data
-                                                                : await value.value(),
-                                                            property.data,
-                                                            contentType
-                                                        );
-                                                        // send event data
-                                                        content.body.pipe(res);
-                                                    } catch (err) {
-                                                        console.warn(
-                                                            "[binding-http]",
-                                                            `HttpServer on port ${this.getPort()} cannot process data for Event '${
-                                                                segments[3]
-                                                            }: ${err.message}'`
-                                                        );
-                                                        res.writeHead(500);
-                                                        res.end("Invalid Event Data");
-                                                    }
-                                                },
+                                                listener,
                                                 options
                                             )
                                             .then(() => res.end())
                                             .catch(() => res.end());
                                         res.on("finish", () => {
-                                            console.debug(
+                                             console.debug(
                                                 "[binding-http]",
                                                 `HttpServer on port ${this.getPort()} closed connection`
                                             );
-                                            thing.unobserveProperty(segments[3]);
+                                            thing.handleUnobserveProperty(segments[3], listener, options);
                                         });
-                                        res.setTimeout(60 * 60 * 1000, () => thing.unobserveProperty(segments[3]));
+                                        res.setTimeout(60 * 60 * 1000, () => thing.handleUnobserveProperty(segments[3], listener, options));
                                     } else {
                                         try {
                                             const form = ProtocolHelpers.findRequestMatchingForm(
@@ -935,9 +925,9 @@ export default class HttpServer implements ProtocolServer {
                                         "[binding-http]",
                                         `HttpServer on port ${this.getPort()} closed Event connection`
                                     );
-                                    thing.handleUnsubscribeEvent(segments[3], listener, null);
+                                    thing.handleUnsubscribeEvent(segments[3], listener, options);
                                 });
-                                res.setTimeout(60 * 60 * 1000, () => thing.handleUnsubscribeEvent(segments[3], listener, null));
+                                res.setTimeout(60 * 60 * 1000, () => thing.handleUnsubscribeEvent(segments[3], listener, options));
                             } else {
                                 respondUnallowedMethod(res, "GET");
                             }
