@@ -22,7 +22,7 @@ import * as mqtt from "mqtt";
 import * as url from "url";
 
 import * as TD from "@node-wot/td-tools";
-import { ProtocolServer, Servient, ExposedThing, ContentSerdes, ProtocolHelpers } from "@node-wot/core";
+import { ProtocolServer, Servient, ExposedThing, ContentSerdes, ProtocolHelpers, Content } from "@node-wot/core";
 
 export default class MqttBrokerServer implements ProtocolServer {
     readonly scheme: string = "mqtt";
@@ -105,29 +105,29 @@ export default class MqttBrokerServer implements ProtocolServer {
                 const property = thing.properties[propertyName];
 
                 if (!property.writeOnly) {
-                    thing.observeProperty(
-                        propertyName,
-                        // let subscription = property.subscribe(
-                        async (data) => {
-                            let content;
-                            try {
-                                content = ContentSerdes.get().valueToContent(data, property.data);
-                            } catch (err) {
-                                console.warn(
-                                    "[binding-mqtt]",
-                                    `MqttServer cannot process data for Property '${propertyName}': ${err.message}`
-                                );
-                                // subscription.unsubscribe();
-                                thing.unobserveProperty(propertyName);
-                                return;
-                            }
-                            console.debug(
+                    const listener = async (data : Content) => {
+                        let content;
+                        try {
+                            content = ContentSerdes.get().valueToContent(data, property.data);
+                        } catch (err) {
+                            console.warn(
                                 "[binding-mqtt]",
-                                `MqttBrokerServer at ${this.brokerURI} publishing to Property topic '${propertyName}' `
+                                `MqttServer cannot process data for Property '${propertyName}': ${err.message}`
                             );
-                            const buffer = await ProtocolHelpers.readStreamFully(content.body);
-                            this.broker.publish(topic, buffer);
+                            thing.handleUnobserveProperty(propertyName, listener, null);
+                            return;
                         }
+                        console.debug(
+                            "[binding-mqtt]",
+                            `MqttBrokerServer at ${this.brokerURI} publishing to Property topic '${propertyName}' `
+                        );
+                        const buffer = await ProtocolHelpers.readStreamFully(content.body);
+                        this.broker.publish(topic, buffer);
+                    };
+                    thing.handleObserveProperty(
+                        propertyName,
+                        listener,
+                        null
                     );
 
                     const href = this.brokerURI + "/" + topic;
