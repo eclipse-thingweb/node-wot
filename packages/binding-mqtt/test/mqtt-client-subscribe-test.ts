@@ -17,6 +17,7 @@
  * Protocol test suite to test protocol implementations
  */
 
+
 import { suite, test, timeout } from "@testdeck/mocha";
 import { expect, should } from "chai";
 import { Servient } from "@node-wot/core";
@@ -30,7 +31,7 @@ should();
 
 @suite("MQTT implementation")
 class MqttClientSubscribeTest {
-    @test.skip(timeout(10000)) "should expose via broker"(done: Function) {
+    @test.skip(timeout(10000)) "should expose via broker"(done: Mocha.Done) {
         try {
             const servient = new Servient();
             const brokerAddress = "test.mosquitto.org";
@@ -50,7 +51,7 @@ class MqttClientSubscribeTest {
 
                 const eventNumber = Math.floor(Math.random() * 1000000);
                 const eventName: string = "event" + eventNumber;
-                const events: { [key: string]: any } = {};
+                const events: { [key: string]: Record<string, unknown> } = {};
                 events[eventName] = { data: { type: "number" } };
 
                 WoT.produce({
@@ -97,7 +98,7 @@ class MqttClientSubscribeTest {
         }
     }
 
-    @test.skip(timeout(5000)) "should subscribe using mqtts"(done: Function) {
+    @test.skip(timeout(5000)) "should subscribe using mqtts"(done: Mocha.Done) {
         try {
             const servient = new Servient();
             const brokerAddress = "test.mosquitto.org";
@@ -115,7 +116,8 @@ class MqttClientSubscribeTest {
 
                 const eventNumber = Math.floor(Math.random() * 1000000);
                 const eventName: string = "event" + eventNumber;
-                const events: { [key: string]: any } = {};
+                const events: { [key: string]: Record<string, unknown> } = {};
+
                 events[eventName] = { type: "number" };
 
                 WoT.produce({
@@ -135,7 +137,7 @@ class MqttClientSubscribeTest {
                                     }
                                 })
                                 .then(() => {
-                                    /** */
+                                    /* nothing */
                                 })
                                 .catch((e) => {
                                     expect(true).to.equal(false);

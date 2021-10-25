@@ -25,12 +25,11 @@ import Servient, {
  * CoAP Server based on coap by mcollina
  */
 
-import * as url from "url";
-
 import * as TD from "@node-wot/td-tools";
 import coap = require("coap");
 import slugify from "slugify";
 import { Readable } from "stream";
+import { Socket } from "dgram";
 
 export default class CoapServer implements ProtocolServer {
     public readonly scheme: string = "coap";
@@ -42,6 +41,7 @@ export default class CoapServer implements ProtocolServer {
     private readonly port: number = 5683;
     private readonly address?: string = undefined;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private readonly server: any = coap.createServer((req: any, res: any) => {
         this.handleRequest(req, res);
     });
@@ -94,7 +94,7 @@ export default class CoapServer implements ProtocolServer {
     }
 
     /** returns socket to be re-used by CoapClients */
-    public getSocket(): any {
+    public getSocket(): Socket {
         return this.server._sock;
     }
 
@@ -206,6 +206,8 @@ export default class CoapServer implements ProtocolServer {
         });
     }
 
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private async handleRequest(req: any, res: any) {
         console.debug(
             "[binding-coap]",
@@ -222,7 +224,7 @@ export default class CoapServer implements ProtocolServer {
             );
         });
 
-        const requestUri = url.parse(req.url);
+        const requestUri = req.url;
         let contentType = req.options["Content-Format"];
 
         if (req.method === "PUT" || req.method === "POST") {

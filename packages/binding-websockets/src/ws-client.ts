@@ -18,37 +18,49 @@
  */
 
 import { ProtocolClient, Content } from "@node-wot/core";
-import { Form } from "@node-wot/td-tools";
+import { Form, SecurityScheme } from "@node-wot/td-tools";
+import { Subscription } from "rxjs/Subscription";
 
 export default class WebSocketClient implements ProtocolClient {
-    constructor() {}
+    // eslint-disable-next-line no-useless-constructor
+    constructor() {
+        // TODO: implement and remove eslint-ignore-useless-constructor
+    }
 
     public toString(): string {
         return `[WebSocketClient]`;
     }
 
     public readResource(form: Form): Promise<Content> {
-        return new Promise<Content>((resolve, reject) => {});
+        return new Promise<Content>((resolve, reject) => {
+            // TODO: implement
+        });
     }
 
-    public writeResource(form: Form, content: Content): Promise<any> {
-        return new Promise<void>((resolve, reject) => {});
+    public writeResource(form: Form, content: Content): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            // TODO: implement
+        });
     }
 
     public invokeResource(form: Form, content?: Content): Promise<Content> {
-        return new Promise<Content>((resolve, reject) => {});
+        return new Promise<Content>((resolve, reject) => {
+            // TODO: implement
+        });
     }
 
-    public unlinkResource(form: Form): Promise<any> {
-        return new Promise<void>((resolve, reject) => {});
+    public unlinkResource(form: Form): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            // TODO: implement
+        });
     }
 
     public subscribeResource(
         form: Form,
-        next: (value: any) => void,
-        error?: (error: any) => void,
+        next: (content: Content) => void,
+        error?: (error: Error) => void,
         complete?: () => void
-    ): any {
+    ): Promise<Subscription> {
         return null;
     }
 
@@ -60,11 +72,15 @@ export default class WebSocketClient implements ProtocolClient {
         // do nothing
     }
 
-    public setSecurity(metadata: any, credentials?: any): boolean {
-        if (Array.isArray(metadata)) {
-            metadata = metadata[0];
+    public setSecurity(metadata: Array<SecurityScheme>, credentials?: unknown): boolean {
+        if (metadata === undefined || !Array.isArray(metadata) || metadata.length === 0) {
+            console.warn("[binding-websockets]", `WebSocketClient received empty security metadata`);
+            return false;
         }
+        // TODO support for multiple security schemes (see http-client.ts)
+        const security: SecurityScheme = metadata[0];
 
+        console.debug("[binding-websockets]", `WebSocketClient using security scheme '${security.scheme}'`);
         return true;
     }
 }

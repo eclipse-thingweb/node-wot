@@ -18,7 +18,6 @@
  */
 
 import { suite, test, timeout } from "@testdeck/mocha";
-import { Done } from "mocha";
 import { expect } from "chai";
 
 import CoapServer from "../src/coap-server";
