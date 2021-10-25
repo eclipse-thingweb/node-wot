@@ -26,7 +26,7 @@ import HttpServer from "../src/http-server";
 import { Content, ExposedThing, Helpers, ProtocolHelpers } from "@node-wot/core";
 import { DataSchemaValue, InteractionInput, InteractionOptions } from "wot-typescript-definitions";
 import { Readable } from "stream";
-import chaiAsPromised from 'chai-as-promised';
+import chaiAsPromised from "chai-as-promised";
 
 chai.use(chaiAsPromised);
 
@@ -92,8 +92,8 @@ class HttpServerTest {
                     forms: [
                         {
                             href: "http://test",
-                            op: "subscribeevent"
-                        }
+                            op: "subscribeevent",
+                        },
                     ],
                 },
             },
@@ -108,10 +108,14 @@ class HttpServerTest {
         testThing.setPropertyWriteHandler("test", async (value) => {
             test = await value.value();
         });
-        await testThing.handleWriteProperty("test", {
-            type: "text/plain",
-            body: Readable.from(Buffer.from("off", "utf-8"))
-        }, { href: "" });
+        await testThing.handleWriteProperty(
+            "test",
+            {
+                type: "text/plain",
+                body: Readable.from(Buffer.from("off", "utf-8")),
+            },
+            { href: "" }
+        );
         testThing.properties.test.forms = [];
 
         testThing.handleSubscribeEvent("eventTest", async (input: Content) => {

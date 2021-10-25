@@ -308,22 +308,22 @@ export default class ProtocolHelpers {
         forms: TD.Form[],
         operationName: string = null,
         formIndex: number = null
-        ) : number {
+    ): number {
         let finalFormIndex = -1;
 
         // If a form index hint is gived, you it. Just check the form actually supports the op
-        if(formIndex && forms.length > formIndex) {
+        if (formIndex && forms.length > formIndex) {
             const form = forms[formIndex];
-            if(form.op.includes(operationName)) {
+            if (form.op.includes(operationName)) {
                 finalFormIndex = formIndex;
             }
         }
 
         // If no form was found yet, loop through all forms
-        if(finalFormIndex === -1) {
-            if(operationName) {
+        if (finalFormIndex === -1) {
+            if (operationName) {
                 forms.every((form: TD.Form) => {
-                    if(form.op.includes(operationName)) {
+                    if (form.op.includes(operationName)) {
                         finalFormIndex = forms.indexOf(form);
                     }
                     return finalFormIndex === -1;
@@ -339,5 +339,4 @@ export default class ProtocolHelpers {
         // No suitable form found for this operation
         return finalFormIndex;
     }
-
 }

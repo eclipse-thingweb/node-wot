@@ -27,7 +27,14 @@ import ProtocolHelpers from "./protocol-helpers";
 import { ReadableStream as PolyfillStream } from "web-streams-polyfill/ponyfill/es2018";
 import { Content, ContentSerdes, PropertyContentMap } from "./core";
 import ContentManager from "./content-serdes";
-import { ActionHandlerMap, ContentListener, EventHandlerMap, ListenerMap, PropertyHandlerMap, PropertyHandlers } from "./protocol-interfaces";
+import {
+    ActionHandlerMap,
+    ContentListener,
+    EventHandlerMap,
+    ListenerMap,
+    PropertyHandlerMap,
+    PropertyHandlers,
+} from "./protocol-interfaces";
 
 export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     security: Array<string>;
@@ -60,13 +67,13 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     actionHandlers: ActionHandlerMap = new Map();
 
     /** A map of event handler callback functions */
-    eventHandlers: EventHandlerMap = new Map;
+    eventHandlers: EventHandlerMap = new Map();
 
     /** A map of property listener callback functions */
-    propertyListeners: ListenerMap = new Map;
+    propertyListeners: ListenerMap = new Map();
 
     /** A map of event listener callback functions */
-    eventListeners: ListenerMap = new Map;
+    eventListeners: ListenerMap = new Map();
 
     private getServient: () => Servient;
     private getSubjectTD: () => Subject<WoT.ThingDescription>;
@@ -229,7 +236,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                 );
             } else {
                 let propertyHandler;
-                if(this.propertyHandlers.has(propertyName)) {
+                if (this.propertyHandlers.has(propertyName)) {
                     propertyHandler = this.propertyHandlers.get(propertyName);
                     propertyHandler.readHandler = handler;
                 } else {
@@ -258,7 +265,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                 );
             } else {
                 let propertyHandler;
-                if(this.propertyHandlers.has(propertyName)) {
+                if (this.propertyHandlers.has(propertyName)) {
                     propertyHandler = this.propertyHandlers.get(propertyName);
                     propertyHandler.writeHandler = handler;
                 } else {
@@ -282,7 +289,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 
         if (this.properties[name]) {
             let propertyHandler;
-            if(this.propertyHandlers.has(name)) {
+            if (this.propertyHandlers.has(name)) {
                 propertyHandler = this.propertyHandlers.get(name);
                 propertyHandler.observeHandler = handler;
             } else {
@@ -305,7 +312,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 
         if (this.properties[name]) {
             let propertyHandler;
-            if(this.propertyHandlers.has(name)) {
+            if (this.propertyHandlers.has(name)) {
                 propertyHandler = this.propertyHandlers.get(name);
                 propertyHandler.unobserveHandler = handler;
             } else {
@@ -343,7 +350,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 
         if (this.events[name]) {
             let eventHandler;
-            if(this.eventHandlers.has(name)) {
+            if (this.eventHandlers.has(name)) {
                 eventHandler = this.eventHandlers.get(name);
                 eventHandler.subscribe = handler;
             } else {
@@ -366,7 +373,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 
         if (this.events[name]) {
             let eventHandler;
-            if(this.eventHandlers.has(name)) {
+            if (this.eventHandlers.has(name)) {
                 eventHandler = this.eventHandlers.get(name);
                 eventHandler.unsubscribe = handler;
             } else {
@@ -382,14 +389,11 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 
     /** @inheritDoc */
     setEventHandler(name: string, handler: WoT.EventListenerHandler): WoT.ExposedThing {
-        console.debug(
-            "[core/exposed-thing]",
-            `ExposedThing '${this.title}' setting event handler for '${name}'`
-        );
+        console.debug("[core/exposed-thing]", `ExposedThing '${this.title}' setting event handler for '${name}'`);
 
         if (this.events[name]) {
             let eventHandler;
-            if(this.eventHandlers.has(name)) {
+            if (this.eventHandlers.has(name)) {
                 eventHandler = this.eventHandlers.get(name);
                 eventHandler.handler = handler;
             } else {
@@ -769,7 +773,11 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
      * Handle the request of a property read operation from the protocol binding level
      * @experimental
      */
-    public async handleReadProperty(propertyName: string, form:TD.Form, options?: WoT.InteractionOptions): Promise<Content> {
+    public async handleReadProperty(
+        propertyName: string,
+        form: TD.Form,
+        options?: WoT.InteractionOptions
+    ): Promise<Content> {
         if (this.properties[propertyName]) {
             console.debug("[core/exposed-thing]", `ExposedThing '${this.title}' has Action state of '${propertyName}'`);
 
@@ -781,7 +789,11 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                     `ExposedThing '${this.title}' calls registered readHandler for Property '${propertyName}'`
                 );
                 const result: WoT.InteractionInput | void = await readHandler(options);
-                return ContentManager.valueToContent(result, this.properties[propertyName], form.contentType ?? "application/json");
+                return ContentManager.valueToContent(
+                    result,
+                    this.properties[propertyName],
+                    form.contentType ?? "application/json"
+                );
             } else {
                 throw new Error(`ExposedThing '${this.title}' has no readHandler for Property '${propertyName}'`);
             }
@@ -798,32 +810,33 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         propertyNames: string[],
         options?: WoT.InteractionOptions
     ): Promise<PropertyContentMap> {
-            // collect all single promises into array
-            const promises: Promise<Content>[] = [];
-            for (const propertyName of propertyNames) {
-                // Note: currently only DataSchema properties are supported
-                const form = this.properties[propertyName].forms.find(form => form.contentType === "application/json" || !form.contentType);
-                if(!form){
-                    continue;
-                }
-
-                promises.push(this.handleReadProperty(propertyName, form, options));
+        // collect all single promises into array
+        const promises: Promise<Content>[] = [];
+        for (const propertyName of propertyNames) {
+            // Note: currently only DataSchema properties are supported
+            const form = this.properties[propertyName].forms.find(
+                (form) => form.contentType === "application/json" || !form.contentType
+            );
+            if (!form) {
+                continue;
             }
-            try {
-                // wait for all promises to succeed and create response
-                const output = new Map<string, Content>();
-                const results = await Promise.all(promises);
 
-                for (let i = 0; i < results.length; i++) {
-                    output.set(propertyNames[i], results[i]);
-                }
-                return output;
-            } catch (error) {
-                throw new Error(
-                    `ConsumedThing '${this.title}', failed to read properties: ${propertyNames}.\n Error: ${error}`
-                );
+            promises.push(this.handleReadProperty(propertyName, form, options));
+        }
+        try {
+            // wait for all promises to succeed and create response
+            const output = new Map<string, Content>();
+            const results = await Promise.all(promises);
 
+            for (let i = 0; i < results.length; i++) {
+                output.set(propertyNames[i], results[i]);
             }
+            return output;
+        } catch (error) {
+            throw new Error(
+                `ConsumedThing '${this.title}', failed to read properties: ${propertyNames}.\n Error: ${error}`
+            );
+        }
     }
 
     /**
@@ -863,14 +876,11 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                 throw new Error(`ExposedThing '${this.title}', property '${propertyName}' is readOnly`);
             }
 
-             const writeHandler = this.propertyHandlers.get(propertyName)?.writeHandler;
+            const writeHandler = this.propertyHandlers.get(propertyName)?.writeHandler;
 
             // call write handler (if any)
             if (writeHandler != null) {
-                await writeHandler(
-                    new InteractionOutput(inputContent, form, this.properties[propertyName]),
-                    options
-                );
+                await writeHandler(new InteractionOutput(inputContent, form, this.properties[propertyName]), options);
             } else {
                 throw new Error(`ExposedThing '${this.title}' has no writeHandler for Property '${propertyName}'`);
             }
@@ -887,21 +897,23 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         valueMap: PropertyContentMap,
         options?: WoT.InteractionOptions
     ): Promise<void> {
-            // collect all single promises into array
-            const promises: Promise<void>[] = [];
-            for (const propertyName in valueMap) {
-                // Note: currently only DataSchema properties are supported
-                const form = this.properties[propertyName].forms.find(form => form.contentType === "application/json" || !form.contentType);
-                if (!form) {
-                    continue;
-                }
-                promises.push(this.handleWriteProperty(propertyName, valueMap.get(propertyName), form, options));
+        // collect all single promises into array
+        const promises: Promise<void>[] = [];
+        for (const propertyName in valueMap) {
+            // Note: currently only DataSchema properties are supported
+            const form = this.properties[propertyName].forms.find(
+                (form) => form.contentType === "application/json" || !form.contentType
+            );
+            if (!form) {
+                continue;
             }
-            try {
-                await Promise.all(promises);
-            } catch (error) {
-                throw new Error(`ExposedThing '${this.title}', failed to write multiple properties. ${error.message}`)
-            }
+            promises.push(this.handleWriteProperty(propertyName, valueMap.get(propertyName), form, options));
+        }
+        try {
+            await Promise.all(promises);
+        } catch (error) {
+            throw new Error(`ExposedThing '${this.title}', failed to write multiple properties. ${error.message}`);
+        }
     }
 
     /**
@@ -913,36 +925,47 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         listener: ContentListener,
         options?: WoT.InteractionOptions
     ): Promise<void> {
-            if (this.events[name]) {
-                const eventListener = this.eventListeners.get(name) ?? {};
-                const formIndex = ProtocolHelpers.getFormIndexForOperation(this.events[name].forms, "subscribeevent", options?.formIndex);
-                if(formIndex !== -1) {
-                    if(!eventListener[formIndex])
-                        eventListener[formIndex] = [];
-                    eventListener[formIndex].push(listener);
-                    this.eventListeners.set(name, eventListener);
-                    console.debug("[core/exposed-thing]", `ExposedThing '${this.title}' subscribes to event '${name}'`);
-                } else {
-                    throw new Error(`ExposedThing '${this.title}', no property listener from found for '${name}' with form index '${options.formIndex}'`);
-                }
+        if (this.events[name]) {
+            const eventListener = this.eventListeners.get(name) ?? {};
+            const formIndex = ProtocolHelpers.getFormIndexForOperation(
+                this.events[name].forms,
+                "subscribeevent",
+                options?.formIndex
+            );
+            if (formIndex !== -1) {
+                if (!eventListener[formIndex]) eventListener[formIndex] = [];
+                eventListener[formIndex].push(listener);
+                this.eventListeners.set(name, eventListener);
+                console.debug("[core/exposed-thing]", `ExposedThing '${this.title}' subscribes to event '${name}'`);
             } else {
-                throw new Error(`ExposedThing '${this.title}', no event found for '${name}'`);
+                throw new Error(
+                    `ExposedThing '${this.title}', no property listener from found for '${name}' with form index '${options.formIndex}'`
+                );
             }
+        } else {
+            throw new Error(`ExposedThing '${this.title}', no event found for '${name}'`);
+        }
     }
 
     /**
-    *
-    * @experimental
-    */
+     *
+     * @experimental
+     */
     public handleUnsubscribeEvent(name: string, listener: ContentListener, options: WoT.InteractionOptions): void {
         if (this.events[name]) {
             const eventListener = this.eventListeners.get(name) ?? {};
-            const formIndex = ProtocolHelpers.getFormIndexForOperation(this.forms, "unsubscribeevent", options?.formIndex);
-            if(formIndex !== -1 && eventListener[formIndex] && eventListener[formIndex].indexOf(listener) !== -1) {
+            const formIndex = ProtocolHelpers.getFormIndexForOperation(
+                this.forms,
+                "unsubscribeevent",
+                options?.formIndex
+            );
+            if (formIndex !== -1 && eventListener[formIndex] && eventListener[formIndex].indexOf(listener) !== -1) {
                 eventListener[options.formIndex].splice(eventListener[options.formIndex].indexOf(listener), 1);
                 this.eventListeners.set(name, eventListener);
             } else {
-                throw new Error(`ExposedThing '${this.title}', no event listener from found for '${name}' with form index '${options.formIndex}'`);
+                throw new Error(
+                    `ExposedThing '${this.title}', no event listener from found for '${name}' with form index '${options.formIndex}'`
+                );
             }
             console.debug("[core/exposed-thing]", `ExposedThing '${this.title}' unsubscribes from event '${name}'`);
         } else {
@@ -957,8 +980,12 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     public handleEmitEvent(name: string, data: WoT.InteractionInput, options?: WoT.InteractionOptions): void {
         if (this.events[name]) {
             const eventListener = this.eventListeners.get(name) ?? {};
-            const formIndex = ProtocolHelpers.getFormIndexForOperation(this.events[name].forms, "subscribeevent", options?.formIndex);
-            if(formIndex !== -1 && eventListener[formIndex]) {
+            const formIndex = ProtocolHelpers.getFormIndexForOperation(
+                this.events[name].forms,
+                "subscribeevent",
+                options?.formIndex
+            );
+            if (formIndex !== -1 && eventListener[formIndex]) {
                 const form = this.events[name].forms[formIndex];
                 const content = ContentSerdes.get().valueToContent(data, this.event, form.contentType);
                 eventListener[formIndex].forEach((listener) => listener(content));
@@ -966,8 +993,12 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                 for (let formIndex = 0; formIndex < this.eventListener.length; formIndex++) {
                     const listener = this.eventListener[formIndex];
                     // this.listeners may not have all the elements filled
-                    if(listener){
-                        const content = ContentSerdes.get().valueToContent(data, this.event, this.event.forms[formIndex].contentType);
+                    if (listener) {
+                        const content = ContentSerdes.get().valueToContent(
+                            data,
+                            this.event,
+                            this.event.forms[formIndex].contentType
+                        );
                         listener(content);
                     }
                 }
@@ -989,15 +1020,20 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     ): Promise<void> {
         if (this.properties[name]) {
             const propertyListener = this.propertyListeners.get(name) ?? {};
-            const formIndex = ProtocolHelpers.getFormIndexForOperation(this.forms, "observeproperty", options?.formIndex);
-            if(formIndex !== -1) {
-                if(!propertyListener[formIndex])
-                    propertyListener[formIndex] = [];
+            const formIndex = ProtocolHelpers.getFormIndexForOperation(
+                this.forms,
+                "observeproperty",
+                options?.formIndex
+            );
+            if (formIndex !== -1) {
+                if (!propertyListener[formIndex]) propertyListener[formIndex] = [];
                 propertyListener[formIndex].push(listener);
                 this.propertyListeners.set(name, propertyListener);
                 console.debug("[core/exposed-thing]", `ExposedThing '${this.title}' subscribes to property '${name}'`);
             } else {
-                throw new Error(`ExposedThing '${this.title}', no property listener from found for '${name}' with form index '${options.formIndex}'`);
+                throw new Error(
+                    `ExposedThing '${this.title}', no property listener from found for '${name}' with form index '${options.formIndex}'`
+                );
             }
         } else {
             throw new Error(`ExposedThing '${this.title}', no property found for '${name}'`);
@@ -1005,14 +1041,24 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     }
 
     public handleUnobserveProperty(name: string, listener: ContentListener, options: WoT.InteractionOptions): void {
-       if (this.properties[name]) {
+        if (this.properties[name]) {
             const propertyListener = this.propertyListeners.get(name) ?? {};
-            const formIndex = ProtocolHelpers.getFormIndexForOperation(this.forms, "unobserveproperty", options?.formIndex);
-            if(formIndex !== -1 && propertyListener[formIndex] && propertyListener[formIndex].indexOf(listener) !== -1) {
+            const formIndex = ProtocolHelpers.getFormIndexForOperation(
+                this.forms,
+                "unobserveproperty",
+                options?.formIndex
+            );
+            if (
+                formIndex !== -1 &&
+                propertyListener[formIndex] &&
+                propertyListener[formIndex].indexOf(listener) !== -1
+            ) {
                 propertyListener[options.formIndex].splice(propertyListener[options.formIndex].indexOf(listener), 1);
                 this.propertyListeners.set(name, propertyListener);
             } else {
-                throw new Error(`ExposedThing '${this.title}', no property listener from found for '${name}' with form index '${options.formIndex}'`);
+                throw new Error(
+                    `ExposedThing '${this.title}', no property listener from found for '${name}' with form index '${options.formIndex}'`
+                );
             }
             console.debug("[core/exposed-thing]", `ExposedThing '${this.title}' subscribes to property '${name}'`);
         } else {
@@ -1072,7 +1118,7 @@ class ActionState {
 class EventState {
     // public subject: Subject<any>;
     legacyListeners: WoT.WotListener[];
-    listeners: ContentListener [];
+    listeners: ContentListener[];
     constructor(private event: WoT.ThingDescription["events"][0]) {
         this.legacyListeners = [];
         this.listeners = [];
@@ -1090,20 +1136,27 @@ class EventState {
         const form = this.event.forms[options?.formIndex];
 
         // send event to all listeners
-        if(form){
-            if (this.listeners[options.formIndex]){
+        if (form) {
+            if (this.listeners[options.formIndex]) {
                 const content = ContentSerdes.get().valueToContent(input, this.event, form?.contentType);
                 this.listeners[options.formIndex](content);
-            }else{
-                console.warn("[core/exposed-thing]", `Event '${this.event.name}' has no listener for form '${options.formIndex}'`);
+            } else {
+                console.warn(
+                    "[core/exposed-thing]",
+                    `Event '${this.event.name}' has no listener for form '${options.formIndex}'`
+                );
             }
             return;
         }
         for (let formIndex = 0; formIndex < this.listeners.length; formIndex++) {
             const listener = this.listeners[formIndex];
             // this.listeners may not have all the elements filled
-            if(listener){
-                const content = ContentSerdes.get().valueToContent(input, this.event, this.event.forms[formIndex].contentType);
+            if (listener) {
+                const content = ContentSerdes.get().valueToContent(
+                    input,
+                    this.event,
+                    this.event.forms[formIndex].contentType
+                );
                 listener(content);
             }
         }
