@@ -937,7 +937,7 @@ export default class HttpServer implements ProtocolServer {
                                     );
                                     thing.handleUnsubscribeEvent(segments[3], listener, null);
                                 });
-                                res.setTimeout(60 * 60 * 1000, () => thing.unsubscribeEvent(segments[3])); // subscription.unsubscribe());
+                                res.setTimeout(60 * 60 * 1000, () => thing.handleUnsubscribeEvent(segments[3], listener, null));
                             } else {
                                 respondUnallowedMethod(res, "GET");
                             }
