@@ -1,4 +1,11 @@
-import Servient, { Content , ProtocolServer, ContentSerdes, ExposedThing, Helpers, ProtocolHelpers } from '@node-wot/core';
+import Servient, {
+    Content,
+    ProtocolServer,
+    ContentSerdes,
+    ExposedThing,
+    Helpers,
+    ProtocolHelpers,
+} from "@node-wot/core";
 /********************************************************************************
  * Copyright (c) 2018 - 2021 Contributors to the Eclipse Foundation
  *
@@ -312,29 +319,12 @@ export default class CoapServer implements ProtocolServer {
                                 }
                                 // observeproperty
                             } else {
-                                const oInterval = setInterval(async () => {
+                                const listener = async (content: Content) => {
                                     try {
-                                        const form = ProtocolHelpers.findRequestMatchingForm(
-                                            property.forms,
-                                            this.scheme,
-                                            req.url,
-                                            contentType
-                                        );
-                                        const content = await thing.handleReadProperty(segments[3], form);
                                         res.setOption("Content-Format", content.type);
                                         res.code = "2.05";
+                                        // send event data
                                         content.body.pipe(res);
-
-                                        res.on("finish", (err: Error) => {
-                                            if (err) {
-                                                console.error(
-                                                    "[binding-coap]",
-                                                    `CoapServer on port ${this.port} failed on observe with: ${err.message}`
-                                                );
-                                            }
-                                            clearInterval(oInterval);
-                                            res.end();
-                                        });
                                     } catch (err) {
                                         console.error(
                                             "[binding-coap]",
@@ -345,7 +335,26 @@ export default class CoapServer implements ProtocolServer {
                                         res.code = "5.00";
                                         res.end(err.message);
                                     }
-                                }, 100);
+                                };
+
+                                thing
+                                    .handleObserveProperty(segments[3], listener, null)
+                                    .then(() => res.end())
+                                    .catch(() => res.end());
+
+                                res.on("finish", (err: Error) => {
+                                    if (err) {
+                                        console.error(
+                                            "[binding-coap]",
+                                            `CoapServer on port ${this.port} failed on observe with: ${err.message}`
+                                        );
+                                    }
+                                    thing.handleUnobserveProperty(segments[3], listener, null);
+                                });
+
+                                res.setTimeout(60 * 60 * 1000, () =>
+                                    thing.handleUnobserveProperty(segments[3], listener, null)
+                                );
                             }
                             // writeproperty
                         } else if (req.method === "PUT") {
@@ -460,13 +469,15 @@ export default class CoapServer implements ProtocolServer {
                                     options = { uriVariables: event.uriVariables };
                                 }
 
-                                const listener = async (value : Content) => {
+                                const listener = async (value: Content) => {
                                     try {
                                         // send event data
                                         console.debug(
                                             "[binding-coap]",
-                                            `CoapServer on port ${this.getPort()} sends '${segments[3]
-                                            }' notification to ${Helpers.toUriLiteral(req.rsinfo.address)}:${req.rsinfo.port
+                                            `CoapServer on port ${this.getPort()} sends '${
+                                                segments[3]
+                                            }' notification to ${Helpers.toUriLiteral(req.rsinfo.address)}:${
+                                                req.rsinfo.port
                                             }`
                                         );
                                         res.setOption("Content-Format", value.type);
@@ -475,8 +486,7 @@ export default class CoapServer implements ProtocolServer {
                                     } catch (err) {
                                         console.debug(
                                             "[binding-coap]",
-                                            `CoapServer on port ${this.getPort()} failed '${segments[3]
-                                            }' subscription`
+                                            `CoapServer on port ${this.getPort()} failed '${segments[3]}' subscription`
                                         );
                                         res.code = "5.00";
                                         res.end();
@@ -484,11 +494,7 @@ export default class CoapServer implements ProtocolServer {
                                 };
 
                                 thing
-                                    .handleSubscribeEvent(
-                                        segments[3],
-                                        listener,
-                                        options
-                                    )
+                                    .handleSubscribeEvent(segments[3], listener, options)
                                     .then(() => res.end())
                                     .catch(() => res.end());
                                 res.on("finish", () => {
