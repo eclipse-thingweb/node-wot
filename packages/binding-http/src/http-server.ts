@@ -905,26 +905,27 @@ export default class HttpServer implements ProtocolServer {
                                     options = { uriVariables: uriVariables };
                                 }
 
+                                const listener = async (value : Content) => {
+                                    try {
+                                        // send event data
+                                        res.setHeader("Content-Type", value.type);
+                                        res.writeHead(200);
+                                        value.body.pipe(res);
+                                    } catch (err) {
+                                        console.warn(
+                                            "[binding-http]",
+                                            `HttpServer on port ${this.getPort()} cannot process data for Event '${segments[3]
+                                            }: ${err.message}'`
+                                        );
+                                        res.writeHead(500);
+                                        res.end("Invalid Event Data");
+                                    }
+                                };
+
                                 thing
                                     .handleSubscribeEvent(
                                         segments[3],
-                                        async (value) => {
-                                            try {
-                                                // send event data
-                                                res.setHeader("Content-Type", value.type);
-                                                res.writeHead(200);
-                                                value.body.pipe(res);
-                                            } catch (err) {
-                                                console.warn(
-                                                    "[binding-http]",
-                                                    `HttpServer on port ${this.getPort()} cannot process data for Event '${
-                                                        segments[3]
-                                                    }: ${err.message}'`
-                                                );
-                                                res.writeHead(500);
-                                                res.end("Invalid Event Data");
-                                            }
-                                        },
+                                        listener,
                                         options
                                     )
                                     .then(() => res.end())
@@ -934,8 +935,7 @@ export default class HttpServer implements ProtocolServer {
                                         "[binding-http]",
                                         `HttpServer on port ${this.getPort()} closed Event connection`
                                     );
-                                    // subscription.unsubscribe();
-                                    thing.unsubscribeEvent(segments[3]);
+                                    thing.handleUnsubscribeEvent(segments[3], listener, null);
                                 });
                                 res.setTimeout(60 * 60 * 1000, () => thing.unsubscribeEvent(segments[3])); // subscription.unsubscribe());
                             } else {

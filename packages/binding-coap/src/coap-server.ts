@@ -1,3 +1,4 @@
+import Servient, { Content , ProtocolServer, ContentSerdes, ExposedThing, Helpers, ProtocolHelpers } from '@node-wot/core';
 /********************************************************************************
  * Copyright (c) 2018 - 2021 Contributors to the Eclipse Foundation
  *
@@ -20,9 +21,9 @@
 import * as url from "url";
 
 import * as TD from "@node-wot/td-tools";
-import Servient, { ProtocolServer, ContentSerdes, ExposedThing, Helpers, ProtocolHelpers } from "@node-wot/core";
 import coap = require("coap");
 import slugify from "slugify";
+import { Readable } from "stream";
 
 export default class CoapServer implements ProtocolServer {
     public readonly scheme: string = "coap";
@@ -198,7 +199,7 @@ export default class CoapServer implements ProtocolServer {
         });
     }
 
-    private handleRequest(req: any, res: any) {
+    private async handleRequest(req: any, res: any) {
         console.debug(
             "[binding-coap]",
             `CoapServer on port ${this.getPort()} received '${req.method}(${req._packet.messageId}) ${
@@ -288,25 +289,53 @@ export default class CoapServer implements ProtocolServer {
                         if (req.method === "GET") {
                             // readproperty
                             if (req.headers.Observe === undefined) {
-                                thing
-                                    .readProperty(segments[3])
-                                    // property.read()
-                                    .then((value) => {
-                                        const contentType = ProtocolHelpers.getPropertyContentType(
-                                            thing.getThingDescription(),
-                                            segments[3],
-                                            "coap"
-                                        );
-                                        const content = ContentSerdes.get().valueToContent(
-                                            value,
-                                            <any>property,
+                                try {
+                                    const form = ProtocolHelpers.findRequestMatchingForm(
+                                        property.forms,
+                                        this.scheme,
+                                        req.url,
+                                        contentType
+                                    );
+                                    const content = await thing.handleReadProperty(segments[3], form);
+                                    res.setOption("Content-Format", content.type);
+                                    res.code = "2.05";
+                                    content.body.pipe(res);
+                                } catch (err) {
+                                    console.error(
+                                        "[binding-coap]",
+                                        `CoapServer on port ${this.getPort()} got internal error on read '${
+                                            requestUri.pathname
+                                        }': ${err.message}`
+                                    );
+                                    res.code = "5.00";
+                                    res.end(err.message);
+                                }
+                                // observeproperty
+                            } else {
+                                const oInterval = setInterval(async () => {
+                                    try {
+                                        const form = ProtocolHelpers.findRequestMatchingForm(
+                                            property.forms,
+                                            this.scheme,
+                                            req.url,
                                             contentType
                                         );
+                                        const content = await thing.handleReadProperty(segments[3], form);
                                         res.setOption("Content-Format", content.type);
                                         res.code = "2.05";
-                                        res.end(content.body);
-                                    })
-                                    .catch((err) => {
+                                        content.body.pipe(res);
+
+                                        res.on("finish", (err: Error) => {
+                                            if (err) {
+                                                console.error(
+                                                    "[binding-coap]",
+                                                    `CoapServer on port ${this.port} failed on observe with: ${err.message}`
+                                                );
+                                            }
+                                            clearInterval(oInterval);
+                                            res.end();
+                                        });
+                                    } catch (err) {
                                         console.error(
                                             "[binding-coap]",
                                             `CoapServer on port ${this.getPort()} got internal error on read '${
@@ -315,88 +344,36 @@ export default class CoapServer implements ProtocolServer {
                                         );
                                         res.code = "5.00";
                                         res.end(err.message);
-                                    });
-                                // observeproperty
-                            } else {
-                                const oInterval = setInterval(() => {
-                                    thing
-                                        .readProperty(segments[3])
-                                        // property.read() periodically
-                                        .then((value) => {
-                                            const contentType = ProtocolHelpers.getPropertyContentType(
-                                                thing.getThingDescription(),
-                                                segments[3],
-                                                "coap"
-                                            );
-                                            const content = ContentSerdes.get().valueToContent(
-                                                value,
-                                                <any>property,
-                                                contentType
-                                            );
-                                            res.setOption("Content-Format", content.type);
-                                            res.code = "2.05";
-                                            res.write(content.body);
-
-                                            res.on("finish", (err: Error) => {
-                                                if (err) {
-                                                    console.error(
-                                                        "[binding-coap]",
-                                                        `CoapServer on port ${this.port} failed on observe with: ${err.message}`
-                                                    );
-                                                }
-                                                clearInterval(oInterval);
-                                                res.end();
-                                            });
-                                        })
-                                        .catch((err) => {
-                                            console.error(
-                                                "[binding-coap]",
-                                                `CoapServer on port ${this.getPort()} got internal error on read '${
-                                                    requestUri.pathname
-                                                }': ${err.message}`
-                                            );
-                                            res.code = "5.00";
-                                            res.end(err.message);
-                                        });
+                                    }
                                 }, 100);
                             }
                             // writeproperty
                         } else if (req.method === "PUT") {
                             if (!property.readOnly) {
-                                let value;
                                 try {
-                                    value = ContentSerdes.get().contentToValue(
-                                        { type: contentType, body: req.payload },
-                                        <any>property
+                                    const form = ProtocolHelpers.findRequestMatchingForm(
+                                        property.forms,
+                                        this.scheme,
+                                        req.url,
+                                        contentType
                                     );
+                                    await thing.handleWriteProperty(
+                                        segments[3],
+                                        { body: Readable.from(req.payload), type: contentType },
+                                        form
+                                    );
+                                    res.code = "2.04";
+                                    res.end("Changed");
                                 } catch (err) {
-                                    console.warn(
+                                    console.error(
                                         "[binding-coap]",
-                                        `CoapServer on port ${this.getPort()} cannot process write data for Property '${
-                                            segments[3]
-                                        }: ${err.message}'`
+                                        `CoapServer on port ${this.getPort()} got internal error on write '${
+                                            requestUri.pathname
+                                        }': ${err.message}`
                                     );
-                                    res.code = "4.00";
-                                    res.end("Invalid Data");
-                                    return;
+                                    res.code = "5.00";
+                                    res.end(err.message);
                                 }
-                                thing
-                                    .writeProperty(segments[3], value)
-                                    // property.write(value)
-                                    .then(() => {
-                                        res.code = "2.04";
-                                        res.end("Changed");
-                                    })
-                                    .catch((err) => {
-                                        console.error(
-                                            "[binding-coap]",
-                                            `CoapServer on port ${this.getPort()} got internal error on write '${
-                                                requestUri.pathname
-                                            }': ${err.message}`
-                                        );
-                                        res.code = "5.00";
-                                        res.end(err.message);
-                                    });
                             } else {
                                 res.code = "4.00";
                                 res.end("Property readOnly");
@@ -414,56 +391,41 @@ export default class CoapServer implements ProtocolServer {
                     if (action) {
                         // invokeaction
                         if (req.method === "POST") {
-                            let input;
-                            try {
-                                input = ContentSerdes.get().contentToValue(
-                                    { type: contentType, body: req.payload },
-                                    action.input
-                                );
-                            } catch (err) {
-                                console.warn(
-                                    "[binding-coap]",
-                                    `CoapServer on port ${this.getPort()} cannot process input to Action '${
-                                        segments[3]
-                                    }: ${err.message}'`
-                                );
-                                res.code = "4.00";
-                                res.end("Invalid Input Data");
-                                return;
+                            let options: WoT.InteractionOptions;
+                            if (!this.isEmpty(action.uriVariables)) {
+                                options = { uriVariables: action.uriVariables };
                             }
-                            thing
-                                .invokeAction(segments[3], input)
-                                // action.invoke(input)
-                                .then((output) => {
-                                    if (output) {
-                                        const contentType = ProtocolHelpers.getActionContentType(
-                                            thing.getThingDescription(),
-                                            segments[3],
-                                            "coap"
-                                        );
-                                        const content = ContentSerdes.get().valueToContent(
-                                            output,
-                                            action.output,
-                                            contentType
-                                        );
-                                        res.setOption("Content-Format", content.type);
-                                        res.code = "2.05";
-                                        res.end(content.body);
-                                    } else {
-                                        res.code = "2.04";
-                                        res.end();
-                                    }
-                                })
-                                .catch((err) => {
-                                    console.error(
-                                        "[binding-coap]",
-                                        `CoapServer on port ${this.getPort()} got internal error on invoke '${
-                                            requestUri.pathname
-                                        }': ${err.message}`
-                                    );
-                                    res.code = "5.00";
-                                    res.end(err.message);
-                                });
+                            try {
+                                const form = ProtocolHelpers.findRequestMatchingForm(
+                                    action.forms,
+                                    this.scheme,
+                                    req.url,
+                                    contentType
+                                );
+                                const output = await thing.handleInvokeAction(
+                                    segments[3],
+                                    { body: Readable.from(req.payload), type: contentType },
+                                    form,
+                                    options
+                                );
+                                if (output) {
+                                    res.setOption("Content-Format", output.type);
+                                    res.code = "2.05";
+                                    res.end(output.body.read());
+                                } else {
+                                    res.code = "2.04";
+                                    res.end();
+                                }
+                            } catch (err) {
+                                console.error(
+                                    "[binding-coap]",
+                                    `CoapServer on port ${this.getPort()} got internal error on invoke '${
+                                        requestUri.pathname
+                                    }': ${err.message}`
+                                );
+                                res.code = "5.00";
+                                res.end(err.message);
+                            }
                         } else {
                             res.code = "4.05";
                             res.end("Method Not Allowed");
@@ -493,76 +455,42 @@ export default class CoapServer implements ProtocolServer {
                                 res._packet.token = res._request.token;
                                 // end of work-around
 
-                                thing
-                                    .subscribeEvent(
-                                        segments[3],
-                                        // let subscription = event.subscribe(
-                                        (data) => {
-                                            let content;
-                                            try {
-                                                const contentType = ProtocolHelpers.getEventContentType(
-                                                    thing.getThingDescription(),
-                                                    segments[3],
-                                                    "coap"
-                                                );
-                                                content = ContentSerdes.get().valueToContent(
-                                                    data,
-                                                    event.data,
-                                                    contentType
-                                                );
-                                            } catch (err) {
-                                                console.warn(
-                                                    "[binding-coap]",
-                                                    `CoapServer on port ${this.getPort()} cannot process data for Event '${
-                                                        segments[3]
-                                                    }: ${err.message}'`
-                                                );
-                                                res.code = "5.00";
-                                                res.end("Invalid Event Data");
-                                                return;
-                                            }
+                                let options: WoT.InteractionOptions;
+                                if (!this.isEmpty(event.uriVariables)) {
+                                    options = { uriVariables: event.uriVariables };
+                                }
 
-                                            // send event data
-                                            console.debug(
-                                                "[binding-coap]",
-                                                `CoapServer on port ${this.getPort()} sends '${
-                                                    segments[3]
-                                                }' notification to ${Helpers.toUriLiteral(req.rsinfo.address)}:${
-                                                    req.rsinfo.port
-                                                }`
-                                            );
-                                            res.setOption("Content-Format", content.type);
-                                            res.code = "2.05";
-                                            res.write(content.body);
-                                        }
-                                        // ,
-                                        // () => {
-                                        //   console.log(`CoapServer on port ${this.getPort()} failed '${segments[3]}' subscription`);
-                                        //   res.code = "5.00";
-                                        //   res.end();
-                                        // },
-                                        // () => {
-                                        //   console.log(`CoapServer on port ${this.getPort()} completes '${segments[3]}' subscription`);
-                                        //   res.end();
-                                        // }
-                                    )
-                                    .then(() => {
+                                const listener = async (value : Content) => {
+                                    try {
+                                        // send event data
                                         console.debug(
                                             "[binding-coap]",
-                                            `CoapServer on port ${this.getPort()} completes '${
-                                                segments[3]
-                                            }' subscription`
+                                            `CoapServer on port ${this.getPort()} sends '${segments[3]
+                                            }' notification to ${Helpers.toUriLiteral(req.rsinfo.address)}:${req.rsinfo.port
+                                            }`
                                         );
-                                        res.end();
-                                    })
-                                    .catch(() => {
+                                        res.setOption("Content-Format", value.type);
+                                        res.code = "2.05";
+                                        value.body.pipe(res);
+                                    } catch (err) {
                                         console.debug(
                                             "[binding-coap]",
-                                            `CoapServer on port ${this.getPort()} failed '${segments[3]}' subscription`
+                                            `CoapServer on port ${this.getPort()} failed '${segments[3]
+                                            }' subscription`
                                         );
                                         res.code = "5.00";
                                         res.end();
-                                    });
+                                    }
+                                };
+
+                                thing
+                                    .handleSubscribeEvent(
+                                        segments[3],
+                                        listener,
+                                        options
+                                    )
+                                    .then(() => res.end())
+                                    .catch(() => res.end());
                                 res.on("finish", () => {
                                     console.debug(
                                         "[binding-coap]",
@@ -572,8 +500,7 @@ export default class CoapServer implements ProtocolServer {
                                             req.rsinfo.port
                                         }`
                                     );
-                                    thing.unsubscribeEvent(segments[3]);
-                                    // subscription.unsubscribe();
+                                    thing.handleUnsubscribeEvent(segments[3], listener, null);
                                 });
                             } else if (req.headers.Observe > 0) {
                                 console.debug(
@@ -609,5 +536,12 @@ export default class CoapServer implements ProtocolServer {
         // resource not found
         res.code = "4.04";
         res.end("Not Found");
+    }
+
+    private isEmpty(obj: any) {
+        for (const key in obj) {
+            if (Object.prototype.hasOwnProperty.call(obj, key)) return false;
+        }
+        return true;
     }
 }
