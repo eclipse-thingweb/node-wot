@@ -17,7 +17,7 @@
  * Protocol test suite to test protocol implementations
  */
 
-import { ProtocolClient, Content, ContentSerdes } from "@node-wot/core";
+import { ProtocolClient, Content, ContentSerdes, ProtocolHelpers } from "@node-wot/core";
 import * as TD from "@node-wot/td-tools";
 import * as mqtt from "mqtt";
 import { MqttClientConfig, MqttForm, MqttQoS } from "./mqtt";
@@ -37,24 +37,22 @@ export default class MqttClient implements ProtocolClient {
         this.scheme = "mqtt" + (secure ? "s" : "");
     }
 
-    private client: any = undefined;
+    private client: mqtt.MqttClient = undefined;
 
     public subscribeResource(
         form: MqttForm,
-        next: (value: any) => void,
-        error?: (error: any) => void,
+        next: (value: Content) => void,
+        error?: (error: Error) => void,
         complete?: () => void
     ): Promise<Subscription> {
         return new Promise<Subscription>((resolve, reject) => {
             // get MQTT-based metadata
-            let contentType = form.contentType;
-            let retain = form["mqtt:retain"]; // TODO: is this needed here?
-            let qos = form["mqtt:qos"]; // TODO: is this needed here?
-            let requestUri = url.parse(form["href"]);
-            let topic = requestUri.pathname.slice(1);
-            let brokerUri: String = "mqtt://" + requestUri.host;
+            const contentType = form.contentType;
+            const requestUri = new url.URL(form.href);
+            const topic = requestUri.pathname.slice(1);
+            const brokerUri: string = "mqtt://" + requestUri.host;
 
-            if (this.client == undefined) {
+            if (this.client === undefined) {
                 this.client = mqtt.connect(brokerUri);
             }
 
@@ -75,53 +73,48 @@ export default class MqttClient implements ProtocolClient {
                     next({ type: contentType, body: Readable.from(payload) });
                 }
             });
-            this.client.on("error", (error: any) => {
+            this.client.on("error", (err: Error) => {
                 if (this.client) {
                     this.client.end();
                 }
-                this.client == undefined;
+                this.client = undefined;
                 // TODO: error handling
-                error(error);
+                error(err);
             });
         });
     }
 
-    readResource = (form: MqttForm): Promise<Content> => {
-        return new Promise<Content>((resolve, reject) => {
-            throw new Error("Method not implemented.");
-        });
-    };
+    public async readResource(form: MqttForm): Promise<Content> {
+        throw new Error("Method not implemented.");
+    }
 
-    writeResource = (form: MqttForm, content: Content): Promise<void> => {
-        return new Promise<void>((resolve, reject) => {
-            throw new Error("Method not implemented.");
-        });
-    };
+    public async writeResource(form: MqttForm, content: Content): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
 
-    invokeResource = (form: MqttForm, content: Content): Promise<Content> => {
-        return new Promise<Content>((resolve, reject) => {
-            let requestUri = url.parse(form["href"]);
-            let topic = requestUri.pathname.slice(1);
-            let brokerUri: String = `${this.scheme}://${requestUri.host}`;
+    public async invokeResource(form: MqttForm, content: Content): Promise<Content> {
+        const requestUri = new url.URL(form.href);
+        const topic = requestUri.pathname.slice(1);
+        const brokerUri = `${this.scheme}://${requestUri.host}`;
 
-            if (this.client == undefined) {
-                this.client = mqtt.connect(brokerUri, this.config);
-            }
+        if (this.client === undefined) {
+            this.client = mqtt.connect(brokerUri, this.config);
+        }
 
-            // if not input was provided, set up an own body otherwise take input as body
-            if (content == undefined) {
-                this.client.publish(topic, JSON.stringify(Buffer.from("")));
-            } else {
-                this.client.publish(topic, content.body);
-            }
-            // there will bo no response
-            resolve({ type: ContentSerdes.DEFAULT, body: Readable.from([]) });
-        });
-    };
+        // if not input was provided, set up an own body otherwise take input as body
+        if (content === undefined) {
+            this.client.publish(topic, JSON.stringify(Buffer.from("")));
+        } else {
+            const buffer = await ProtocolHelpers.readStreamFully(content.body);
+            this.client.publish(topic, buffer);
+        }
+        // there will bo no response
+        return { type: ContentSerdes.DEFAULT, body: Readable.from([]) };
+    }
 
-    unlinkResource = (form: TD.Form): Promise<void> => {
-        let requestUri = url.parse(form["href"]);
-        let topic = requestUri.pathname.slice(1);
+    public async unlinkResource(form: TD.Form): Promise<void> {
+        const requestUri = new url.URL(form.href);
+        const topic = requestUri.pathname.slice(1);
 
         return new Promise<void>((resolve, reject) => {
             if (this.client && this.client.connected) {
@@ -130,25 +123,25 @@ export default class MqttClient implements ProtocolClient {
             }
             resolve();
         });
-    };
+    }
 
-    start = async (): Promise<void> => {
+    public async start(): Promise<void> {
         // do nothing
-    };
+    }
 
-    stop = async (): Promise<void> => {
+    public async stop(): Promise<void> {
         if (this.client) this.client.end();
-    };
+    }
 
-    public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean {
-        if (metadata === undefined || !Array.isArray(metadata) || metadata.length == 0) {
+    public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: never): boolean {
+        if (metadata === undefined || !Array.isArray(metadata) || metadata.length === 0) {
             console.warn("[binding-mqtt]", `MqttClient received empty security metadata`);
             return false;
         }
-        let security: TD.SecurityScheme = metadata[0];
+        const security: TD.SecurityScheme = metadata[0];
 
         if (security.scheme === "basic") {
-            //this.authorization = "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString('base64');
+            // this.authorization = "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString('base64');
             //  this.user = mqtt.username;
         }
         return true;

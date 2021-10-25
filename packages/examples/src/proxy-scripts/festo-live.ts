@@ -110,7 +110,7 @@ Promise.all(fetchArray).then(async (tdArray: ThingDescription[]) => {
     }, 5000);
 });
 
-// exposed Thing toward Oracle IoT Cloud Service
+// exposed Thing toward IoT Cloud Service
 WoT.produce({
     title: "FestoLive",
     id: "urn:dev:wot:siemens:festolive",

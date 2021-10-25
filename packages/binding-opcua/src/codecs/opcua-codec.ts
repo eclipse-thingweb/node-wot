@@ -15,7 +15,7 @@
 
 import { ContentCodec } from "@node-wot/core";
 import * as TD from "@node-wot/td-tools";
-import { DataType } from "node-opcua-client";
+import { DataType, VariantLike } from "node-opcua-client";
 import { DataSchemaValue } from "wot-typescript-definitions";
 
 /** default implementation offering JSON de-/serialization */
@@ -25,7 +25,6 @@ export default class OpcuaCodec implements ContentCodec {
     }
 
     bytesToValue(bytes: Buffer, schema: TD.DataSchema, parameters: { [key: string]: string }): DataSchemaValue {
-        // console.debug(`JsonCodec parsing '${bytes.toString()}'`);
         let parsed;
         try {
             parsed = JSON.parse(bytes.toString());
@@ -36,7 +35,7 @@ export default class OpcuaCodec implements ContentCodec {
                     // empty payload -> void/undefined
                     parsed = undefined;
                 } else {
-                    parsed = (<any>bytes).value; // Variant instance then
+                    parsed = bytes.values; // Variant instance then
                 }
             } else {
                 throw err;
@@ -55,30 +54,26 @@ export default class OpcuaCodec implements ContentCodec {
     }
 
     valueToBytes(value: unknown, schema: TD.DataSchema, parameters?: { [key: string]: string }): Buffer {
-        // console.debug("JsonCodec serializing", value);
         let body = "";
         if (value !== undefined) {
-            const obj: any = {};
-            obj.payload = value;
-
-            const className = schema.constructor.name;
-            const tmpSchema = <any>schema;
-            if (className === "ConsumedThingProperty") {
+            const obj: { inputArguments?: VariantLike[]; dataType?: DataType; payload: unknown } = { payload: value };
+            if (!schema.input) {
                 const dataTypeString = this.dataTypeToString();
                 if (
                     !schema ||
-                    !tmpSchema[dataTypeString] ||
-                    (tmpSchema.properties && !(dataTypeString in (tmpSchema.properties as Record<string, unknown>)))
+                    !schema[dataTypeString] ||
+                    (schema.properties && !(dataTypeString in (schema.properties as Record<string, unknown>)))
                 ) {
                     throw new Error(`opc:dataType field not specified for property "${schema.title}"`);
                 }
-                let dataType = tmpSchema[dataTypeString]
-                    ? tmpSchema[dataTypeString]
-                    : (tmpSchema.properties as Record<string, string>)[dataTypeString];
+                let dataType = schema[dataTypeString]
+                    ? schema[dataTypeString]
+                    : (schema.properties as Record<string, string>)[dataTypeString];
                 dataType = this.getOPCUADataType(dataType);
                 obj.dataType = dataType;
-            } else if (className === "ConsumedThingAction") {
-                const inputArguments = this.getInputArguments(value, tmpSchema.input);
+            } else {
+                // action!
+                const inputArguments = this.getInputArguments(value, schema.input);
                 obj.inputArguments = inputArguments;
             }
 
@@ -151,39 +146,35 @@ export default class OpcuaCodec implements ContentCodec {
         }
     }
 
-    private getInputArguments(payload: any, schema?: TD.DataSchema) {
-        const inputArguments: any[] = [];
-        const tmpSchema = <any>schema;
-        if (!tmpSchema) {
+    private getInputArguments(payload: unknown, schema?: TD.DataSchema) {
+        const inputArguments: VariantLike[] = [];
+        if (!schema) {
             throw new Error('Mandatory "input" field missing in the TD');
         }
-        if (tmpSchema.type === "object" && !tmpSchema.properties) {
+        if (schema.type === "object" && !schema.properties) {
             throw new Error('Mandatory  "properties" field missing in the "input"');
         }
-        const properties = tmpSchema.properties;
+        const properties = schema.properties;
         const dataTypeString = this.dataTypeToString();
         if (properties) {
             // multiple inputs
-            for (const key in payload) {
-                const tmpObj: any = {};
+            for (const [key, value] of Object.entries(payload)) {
                 if (!(key in properties) || !(dataTypeString in properties[key])) {
                     throw new Error(`dataType field not specified for parameter "${key}"`);
                 }
                 const tmpDataType = properties[key][dataTypeString];
-                tmpObj.dataType = this.getOPCUADataType(tmpDataType);
-                tmpObj.value = payload[key];
-                inputArguments.push(tmpObj);
+                const dataType = this.getOPCUADataType(tmpDataType);
+                inputArguments.push({ dataType, value });
             }
         } else {
             // single input
-            if (!(dataTypeString in tmpSchema)) {
+            if (!(dataTypeString in schema)) {
                 throw new Error(`dataType field not specified for input "${payload}"`);
             }
-            const tmpObj: any = {};
-            const tmpDataType = tmpSchema[dataTypeString];
-            tmpObj.dataType = this.getOPCUADataType(tmpDataType);
-            tmpObj.value = payload;
-            inputArguments.push(tmpObj);
+            const tmpDataType = schema[dataTypeString];
+            const dataType = this.getOPCUADataType(tmpDataType);
+            const value = payload;
+            inputArguments.push({ dataType, value });
         }
         return inputArguments;
     }

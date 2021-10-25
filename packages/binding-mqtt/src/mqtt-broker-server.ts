@@ -42,7 +42,7 @@ export default class MqttBrokerServer implements ProtocolServer {
 
     private readonly things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
 
-    private broker: any;
+    private broker: mqtt.MqttClient;
     private rejectUnauthorized: boolean;
 
     constructor(
@@ -384,7 +384,7 @@ export default class MqttBrokerServer implements ProtocolServer {
                 this.broker.on("connect", () => {
                     console.info("[binding-mqtt]", `MqttBrokerServer connected to broker at ${this.brokerURI}`);
 
-                    const parsed = url.parse(this.brokerURI);
+                    const parsed = new url.URL(this.brokerURI);
                     this.address = parsed.hostname;
                     const port = parseInt(parsed.port);
                     this.port = port > 0 ? port : 1883;

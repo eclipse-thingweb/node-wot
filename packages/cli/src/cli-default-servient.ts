@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /********************************************************************************
  * Copyright (c) 2018 - 2021 Contributors to the Eclipse Foundation
  *
@@ -46,6 +47,7 @@ export default class DefaultServient extends Servient {
     // current log level
     public logLevel: string;
 
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     public constructor(clientOnly: boolean, config?: any) {
         super();
 
@@ -215,21 +217,33 @@ export default class DefaultServient extends Servient {
 
     private setLogLevel(logLevel: string | number): void {
         if (logLevel === "error" || logLevel === 0) {
-            console.warn = () => {};
-            console.info = () => {};
-            console.debug = () => {};
+            console.warn = () => {
+                /* nothing */
+            };
+            console.info = () => {
+                /* nothing */
+            };
+            console.debug = () => {
+                /* nothing */
+            };
 
             this.logLevel = "error";
         } else if (logLevel === "warn" || logLevel === "warning" || logLevel === 1) {
             console.warn = this.loggers.warn;
-            console.info = () => {};
-            console.debug = () => {};
+            console.info = () => {
+                /* nothing */
+            };
+            console.debug = () => {
+                /* nothing */
+            };
 
             this.logLevel = "warn";
         } else if (logLevel === "info" || logLevel === 2) {
             console.warn = this.loggers.warn;
             console.info = this.loggers.info;
-            console.debug = () => {};
+            console.debug = () => {
+                /* nothing */
+            };
 
             this.logLevel = "info";
         } else if (logLevel === "debug" || logLevel === 3) {
@@ -242,7 +256,9 @@ export default class DefaultServient extends Servient {
             // Fallback to default ("info")
             console.warn = this.loggers.warn;
             console.info = this.loggers.info;
-            console.debug = () => {};
+            console.debug = () => {
+                /* nothing */
+            };
 
             this.logLevel = "info";
         }
@@ -274,6 +290,6 @@ function mergeConfigs(target: any, source: any): any {
 }
 
 // Helper function needed for `mergeConfigs` function
-function isObject(item: any) {
+function isObject(item: unknown) {
     return item && typeof item === "object" && !Array.isArray(item);
 }
