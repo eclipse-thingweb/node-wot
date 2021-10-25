@@ -1,0 +1,10 @@
+{
+    "extends": "../../tsconfig.json",
+    "compilerOptions": {
+        "outDir": "testDist",
+        "resolveJsonModule": true,
+        "esModuleInterop": true,
+        "typeRoots": ["./node_modules/@types", "./typings"]
+    },
+    "include": ["test/**/*"]
+}
