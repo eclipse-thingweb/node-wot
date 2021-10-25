@@ -290,26 +290,26 @@ export default class MqttBrokerServer implements ProtocolServer {
             const event = thing.events[eventName];
 
             const listener = async (data: Content) => {
-                    let content;
-                    try {
-                        content = ContentSerdes.get().valueToContent(data, event.data);
-                    } catch (err) {
-                        console.warn(
-                            "[binding-mqtt]",
-                            `HttpServer on port ${this.getPort()} cannot process data for Event '${eventName}: ${
-                                err.message
-                            }'`
-                        );
-                        thing.handleUnsubscribeEvent(eventName, listener, null);
-                        return;
-                    }
-                    console.debug(
+                let content;
+                try {
+                    content = ContentSerdes.get().valueToContent(data, event.data);
+                } catch (err) {
+                    console.warn(
                         "[binding-mqtt]",
-                        `MqttBrokerServer at ${this.brokerURI} publishing to Event topic '${eventName}' `
+                        `HttpServer on port ${this.getPort()} cannot process data for Event '${eventName}: ${
+                            err.message
+                        }'`
                     );
-                    const buffer = await ProtocolHelpers.readStreamFully(content.body);
-                    this.broker.publish(topic, buffer);
-                };
+                    thing.handleUnsubscribeEvent(eventName, listener, null);
+                    return;
+                }
+                console.debug(
+                    "[binding-mqtt]",
+                    `MqttBrokerServer at ${this.brokerURI} publishing to Event topic '${eventName}' `
+                );
+                const buffer = await ProtocolHelpers.readStreamFully(content.body);
+                this.broker.publish(topic, buffer);
+            };
             thing.handleSubscribeEvent(eventName, listener, null);
 
             const href = this.brokerURI + "/" + topic;

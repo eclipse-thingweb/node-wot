@@ -31,6 +31,7 @@ import {
     ActionHandlerMap,
     ContentListener,
     EventHandlerMap,
+    EventHandlers,
     ListenerMap,
     PropertyHandlerMap,
     PropertyHandlers,
@@ -67,7 +68,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     actionHandlers: ActionHandlerMap = new Map();
 
     /** A map of event handler callback functions */
-    eventHandlers: EventHandlerMap = new Map();
+    eventHandlers: EventHandlerMap = new Map<string, EventHandlers>();
 
     /** A map of property listener callback functions */
     propertyListeners: ListenerMap = new Map();
@@ -942,6 +943,11 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                     `ExposedThing '${this.title}', no property listener from found for '${name}' with form index '${options.formIndex}'`
                 );
             }
+            const subscribe = this.eventHandlers.get(name)?.subscribe;
+            if (subscribe) {
+                subscribe(options);
+            }
+            console.debug("[core/exposed-thing]", `ExposedThing '${this.title}' subscribes to event '${name}'`);
         } else {
             throw new Error(`ExposedThing '${this.title}', no event found for '${name}'`);
         }
@@ -966,6 +972,10 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                 throw new Error(
                     `ExposedThing '${this.title}', no event listener from found for '${name}' with form index '${options.formIndex}'`
                 );
+            }
+            const unsubscribe = this.eventHandlers.get(name)?.unsubscribe;
+            if (unsubscribe) {
+                unsubscribe(options);
             }
             console.debug("[core/exposed-thing]", `ExposedThing '${this.title}' unsubscribes from event '${name}'`);
         } else {
@@ -1035,6 +1045,10 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                     `ExposedThing '${this.title}', no property listener from found for '${name}' with form index '${options.formIndex}'`
                 );
             }
+            const observeHandler = this.propertyHandlers.get(name)?.observeHandler;
+            if (observeHandler) {
+                observeHandler(options);
+            }
         } else {
             throw new Error(`ExposedThing '${this.title}', no property found for '${name}'`);
         }
@@ -1060,7 +1074,10 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                     `ExposedThing '${this.title}', no property listener from found for '${name}' with form index '${options.formIndex}'`
                 );
             }
-            console.debug("[core/exposed-thing]", `ExposedThing '${this.title}' subscribes to property '${name}'`);
+            const unobserveHandler = this.propertyHandlers.get(name)?.unobserveHandler;
+            if (unobserveHandler) {
+                unobserveHandler(options);
+            }
         } else {
             throw new Error(`ExposedThing '${this.title}', no property found for '${name}'`);
         }

@@ -737,12 +737,12 @@ export default class HttpServer implements ProtocolServer {
                                         res.setHeader("Content-Type", ContentSerdes.DEFAULT);
                                         res.writeHead(200);
 
-                                        const listener = async (value : Content) => {
+                                        const listener = async (value: Content) => {
                                             try {
                                                 // send event data
                                                 value.body.pipe(res);
                                             } catch (err) {
-                                                 console.warn(
+                                                console.warn(
                                                     "[binding-http]",
                                                     `HttpServer on port ${this.getPort()} cannot process data for Event '${
                                                         segments[3]
@@ -754,21 +754,19 @@ export default class HttpServer implements ProtocolServer {
                                         };
 
                                         thing
-                                            .handleObserveProperty(
-                                                segments[3],
-                                                listener,
-                                                options
-                                            )
+                                            .handleObserveProperty(segments[3], listener, options)
                                             .then(() => res.end())
                                             .catch(() => res.end());
                                         res.on("finish", () => {
-                                             console.debug(
+                                            console.debug(
                                                 "[binding-http]",
                                                 `HttpServer on port ${this.getPort()} closed connection`
                                             );
                                             thing.handleUnobserveProperty(segments[3], listener, options);
                                         });
-                                        res.setTimeout(60 * 60 * 1000, () => thing.handleUnobserveProperty(segments[3], listener, options));
+                                        res.setTimeout(60 * 60 * 1000, () =>
+                                            thing.handleUnobserveProperty(segments[3], listener, options)
+                                        );
                                     } else {
                                         try {
                                             const form = ProtocolHelpers.findRequestMatchingForm(
@@ -895,7 +893,7 @@ export default class HttpServer implements ProtocolServer {
                                     options = { uriVariables: uriVariables };
                                 }
 
-                                const listener = async (value : Content) => {
+                                const listener = async (value: Content) => {
                                     try {
                                         // send event data
                                         res.setHeader("Content-Type", value.type);
@@ -904,7 +902,8 @@ export default class HttpServer implements ProtocolServer {
                                     } catch (err) {
                                         console.warn(
                                             "[binding-http]",
-                                            `HttpServer on port ${this.getPort()} cannot process data for Event '${segments[3]
+                                            `HttpServer on port ${this.getPort()} cannot process data for Event '${
+                                                segments[3]
                                             }: ${err.message}'`
                                         );
                                         res.writeHead(500);
@@ -913,11 +912,7 @@ export default class HttpServer implements ProtocolServer {
                                 };
 
                                 thing
-                                    .handleSubscribeEvent(
-                                        segments[3],
-                                        listener,
-                                        options
-                                    )
+                                    .handleSubscribeEvent(segments[3], listener, options)
                                     .then(() => res.end())
                                     .catch(() => res.end());
                                 res.on("finish", () => {
@@ -927,7 +922,9 @@ export default class HttpServer implements ProtocolServer {
                                     );
                                     thing.handleUnsubscribeEvent(segments[3], listener, options);
                                 });
-                                res.setTimeout(60 * 60 * 1000, () => thing.handleUnsubscribeEvent(segments[3], listener, options));
+                                res.setTimeout(60 * 60 * 1000, () =>
+                                    thing.handleUnsubscribeEvent(segments[3], listener, options)
+                                );
                             } else {
                                 respondUnallowedMethod(res, "GET");
                             }
