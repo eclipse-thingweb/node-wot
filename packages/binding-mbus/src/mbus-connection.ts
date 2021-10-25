@@ -119,11 +119,11 @@ export class MBusConnection {
             }
         }
     }
-	
-	async execute(op: PropertyOperation) {
-		this.trigger();
-		return op.execute();
-	}
+
+    async execute(op: PropertyOperation) {
+        this.trigger();
+        return op.execute();
+    }
 
     /**
      * Trigger work on this connection.
@@ -164,9 +164,9 @@ export class MBusConnection {
             }
         }
     }
-	
-	async executeTransaction(transaction: MBusTransaction) : Promise<void> {
-		// Read transaction
+
+    async executeTransaction(transaction: MBusTransaction): Promise<void> {
+        // Read transaction
         console.debug("[binding-mbus]", "Execute read operation on unit", transaction.unitId);
         try {
             const result = await this.readMBus(transaction);
@@ -178,7 +178,7 @@ export class MBusConnection {
             transaction.operations.forEach((op) => op.failed(error));
             throw error;
         }
-	}
+    }
 
     public close(): void {
         this.mbusstop();
