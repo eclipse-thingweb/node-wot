@@ -24,7 +24,7 @@ describe("mbus connection test", () => {
             maxRetries: 1,
         });
         return connection.connect().should.eventually.be.rejectedWith("Max connection retries");
-    }).timeout(10000);
+    }).timeout(100000);
 
     it("should throw for timeout", () => {
         const connection = new MBusConnection("127.0.0.1", 806, {
@@ -52,7 +52,7 @@ describe("mbus connection test", () => {
 
             await connection.execute(op).should.eventually.be.rejected;
             connection.close();
-        }).timeout(10000);
+        }).timeout(100000);
 
         it("should throw with timeout", async () => {
             const form: MBusForm = {
