@@ -95,11 +95,11 @@ class CoapServerTest {
         const uri = `coap://localhost:${coapServer.getPort()}/test/`;
 
         const coapClient = new CoapClient(coapServer);
-        let resp = await coapClient.writeResource(new TD.Form(uri + "properties/test"), {
+        await coapClient.writeResource(new TD.Form(uri + "properties/test"), {
             type: "text/plain",
             body: Readable.from(Buffer.from("testValue1", "utf-8")),
         });
-        resp = await coapClient.readResource(new TD.Form(uri + "properties/test"));
+        const resp = await coapClient.readResource(new TD.Form(uri + "properties/test"));
         const data = (await ProtocolHelpers.readStreamFully(resp.body)).toString();
         expect(data).to.equal('"testValue1"');
 
