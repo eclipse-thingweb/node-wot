@@ -1,14 +1,14 @@
 import { should } from "chai";
 import * as chai from "chai";
 import { MBusForm } from "../src/mbus";
-import * as chaiAsPromised from "chai-as-promised";
+import chaiAsPromised from "chai-as-promised";
 import { MBusConnection, PropertyOperation } from "../src/mbus-connection";
 
 // should must be called to augment all variables
 should();
 chai.use(chaiAsPromised);
 
-describe("MBus connection", () => {
+describe("mbus connection test", () => {
     before(() => {
         /* nothing */
     });

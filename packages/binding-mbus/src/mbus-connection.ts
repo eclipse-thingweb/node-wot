@@ -1,4 +1,4 @@
-import * as MbusMaster from "node-mbus";
+const MbusMaster = require("node-mbus");
 import { MBusForm } from "./mbus";
 import { Content } from "@node-wot/core";
 import { Readable } from "stream";
