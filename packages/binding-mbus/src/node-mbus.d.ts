@@ -1,1 +1,1 @@
-declare module "node-mbus"
+declare module "node-mbus";
