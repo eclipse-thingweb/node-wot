@@ -17,15 +17,6 @@ describe("mbus connection test", () => {
         /* nothing */
     });
 
-    it("should throw for unknown host", () => {
-        const connection = new MBusConnection("127.0.0.2", 805, {
-            connectionTimeout: 200,
-            connectionRetryTime: 10,
-            maxRetries: 1,
-        });
-        return connection.connect().should.eventually.be.rejectedWith("Max connection retries");
-    }).timeout(100000);
-
     it("should throw for timeout", () => {
         const connection = new MBusConnection("127.0.0.1", 806, {
             connectionTimeout: 200,
@@ -36,24 +27,6 @@ describe("mbus connection test", () => {
     }).timeout(10000);
 
     describe("Operation", () => {
-        it("should fail for unknown host", async () => {
-            const form: MBusForm = {
-                href: "mbus+tcp://127.0.0.2:805",
-                "mbus:offset": 0,
-                "mbus:unitID": 1,
-            };
-            const connection = new MBusConnection("127.0.0.2", 805, {
-                connectionTimeout: 200,
-                connectionRetryTime: 10,
-                maxRetries: 1,
-            });
-            const op = new PropertyOperation(form);
-            connection.enqueue(op);
-
-            await connection.execute(op).should.eventually.be.rejected;
-            connection.close();
-        }).timeout(100000);
-
         it("should throw with timeout", async () => {
             const form: MBusForm = {
                 href: "mbus+tcp://127.0.0.1:806",
