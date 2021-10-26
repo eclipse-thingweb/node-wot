@@ -206,7 +206,6 @@ export default class CoapServer implements ProtocolServer {
         });
     }
 
-
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private async handleRequest(req: any, res: any) {
         console.debug(

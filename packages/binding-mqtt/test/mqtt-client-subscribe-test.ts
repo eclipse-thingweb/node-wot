@@ -17,7 +17,6 @@
  * Protocol test suite to test protocol implementations
  */
 
-
 import { suite, test, timeout } from "@testdeck/mocha";
 import { expect, should } from "chai";
 import { Servient } from "@node-wot/core";
