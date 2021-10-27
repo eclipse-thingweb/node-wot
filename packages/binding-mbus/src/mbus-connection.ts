@@ -1,7 +1,7 @@
-const MbusMaster = require("node-mbus");
 import { MBusForm } from "./mbus";
 import { Content } from "@node-wot/core";
 import { Readable } from "stream";
+import MbusMaster from "node-mbus";
 
 const configDefaults = {
     operationTimeout: 10000,
@@ -120,7 +120,7 @@ export class MBusConnection {
         }
     }
 
-    async execute(op: PropertyOperation) {
+    async execute(op: PropertyOperation): Promise<Content | PromiseLike<Content>> {
         this.trigger();
         return op.execute();
     }
