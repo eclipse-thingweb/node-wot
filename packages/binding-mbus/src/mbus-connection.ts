@@ -1,7 +1,8 @@
 import { MBusForm } from "./mbus";
 import { Content } from "@node-wot/core";
 import { Readable } from "stream";
-import MbusMaster from "node-mbus";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const MbusMaster = require("node-mbus");
 
 const configDefaults = {
     operationTimeout: 10000,
