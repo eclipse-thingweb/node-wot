@@ -227,7 +227,7 @@ If you do so, anyway, you can specify the entry point as follows:
 There are several ways to start the application:
 a. Execute `npm start`.
 b. Execute `./node_modules/.bin/wot-servient main.js`.
-c. Execute `node ./node_modules/@node-wot/cli/dist/src/cli.js main.js`.
+c. Execute `node ./node_modules/@node-wot/cli/dist/cli.js main.js`.
 d. If you have installed `@node-wot/cli` globally you can even start the application right
 away using this command `wot-servient main.js`. However, in the current implementation, the
 import of local dependencies is not supported in this case.
@@ -391,9 +391,9 @@ Without the "Link Packages" step, the `wot-servient` command is not available an
 
 ```
 # expose
-node packages\cli\dist\src\cli.js examples\scripts\counter.js
+node packages\cli\dist\cli.js examples\scripts\counter.js
 # consume
-node packages\cli\dist\src\cli.js --clientonly examples\scripts\counter-client.js
+node packages\cli\dist\cli.js --clientonly examples\scripts\counter-client.js
 ```
 
 -   Go to http://localhost:8080/counter and you'll find a thing description
