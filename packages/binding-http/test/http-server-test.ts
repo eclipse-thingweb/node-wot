@@ -339,7 +339,7 @@ class HttpServerTest {
         delete process.env.WOT_PORT;
     }
 
-    @test.skip async "should allow HttpServer baseUri to specify url prefix for proxied/gateswayed/buildpack etc "() {
+    @test async "should allow HttpServer baseUri to specify url prefix for proxied/gateswayed/buildpack etc "() {
         const theHostname = "wot.w3c.loopback.site:8080";
         const theBasePath = "/things";
         const theBaseUri = `http://${theHostname}${theBasePath}`;
