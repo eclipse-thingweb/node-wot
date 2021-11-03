@@ -32,9 +32,7 @@ import createValidator, { Validator } from "./oauth-token-validation";
 import { OAuth2SecurityScheme } from "@node-wot/td-tools";
 import slugify from "slugify";
 import { InteractionOutput } from "wot-typescript-definitions";
-import "accept-language-parser";
-
-declare const alparser: any;
+import * as acceptLanguageParser from "accept-language-parser";
 
 export default class HttpServer implements ProtocolServer {
     public readonly scheme: "http" | "https";
@@ -647,7 +645,7 @@ export default class HttpServer implements ProtocolServer {
                                 }
 
                                 // the loose option allows partial matching on supported languages (e.g., returns "de" for "de-CH")
-                                const prefLang = alparser.pick(
+                                const prefLang = acceptLanguageParser.pick(
                                     supportedLanguagesArray,
                                     req.headers["accept-language"],
                                     { loose: true }
