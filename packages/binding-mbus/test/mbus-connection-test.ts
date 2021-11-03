@@ -1,6 +1,5 @@
 import { should } from "chai";
 import * as chai from "chai";
-import MBusClient from "../src/mbus-client";
 import { MBusForm } from "../src/mbus";
 import chaiAsPromised from "chai-as-promised";
 import { MBusConnection, PropertyOperation } from "../src/mbus-connection";
@@ -9,19 +8,14 @@ import { MBusConnection, PropertyOperation } from "../src/mbus-connection";
 should();
 chai.use(chaiAsPromised);
 
-describe.skip("MBus connection", () => {
-    before(() => {});
+describe("mbus connection test", () => {
+    before(() => {
+        /* nothing */
+    });
 
-    after(() => {});
-
-    it("should throw for unknown host", () => {
-        const connection = new MBusConnection("127.0.0.2", 805, {
-            connectionTimeout: 200,
-            connectionRetryTime: 10,
-            maxRetries: 1,
-        });
-        return connection.connect().should.eventually.be.rejectedWith("Max connection retries");
-    }).timeout(10000);
+    after(() => {
+        /* nothing */
+    });
 
     it("should throw for timeout", () => {
         const connection = new MBusConnection("127.0.0.1", 806, {
@@ -33,24 +27,6 @@ describe.skip("MBus connection", () => {
     }).timeout(10000);
 
     describe("Operation", () => {
-        it("should fail for unknown host", async () => {
-            const form: MBusForm = {
-                href: "mbus+tcp://127.0.0.2:805",
-                "mbus:offset": 0,
-                "mbus:unitID": 1,
-            };
-            const connection = new MBusConnection("127.0.0.2", 805, {
-                connectionTimeout: 200,
-                connectionRetryTime: 10,
-                maxRetries: 1,
-            });
-            const op = new PropertyOperation(form);
-            connection.enqueue(op);
-
-            await op.execute().should.eventually.be.rejected;
-            connection.close();
-        }).timeout(10000);
-
         it("should throw with timeout", async () => {
             const form: MBusForm = {
                 href: "mbus+tcp://127.0.0.1:806",
@@ -65,7 +41,7 @@ describe.skip("MBus connection", () => {
             const op = new PropertyOperation(form);
             connection.enqueue(op);
 
-            await op.execute().should.eventually.be.rejected;
+            await connection.execute(op).should.eventually.be.rejected;
 
             connection.close();
         }).timeout(10000);
