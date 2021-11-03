@@ -24,6 +24,9 @@ import CoapServer from "../src/coap-server";
 import CoapClient from "../src/coap-client";
 import { CoapForm } from "../src/coap";
 
+const port1 = 31833;
+const port2 = 31834;
+
 @suite("CoAP client implementation")
 class CoapClientTest {
     @test async "should apply form information"() {
@@ -39,10 +42,10 @@ class CoapClientTest {
         // testThing.extendInteractions();
         // await testThing.writeProperty("test", "UNSET");
 
-        const coapServer = new CoapServer(56833);
+        const coapServer = new CoapServer(port1);
 
         await coapServer.start(null);
-        expect(coapServer.getPort()).to.equal(56833);
+        expect(coapServer.getPort()).to.equal(port1);
 
         /*
         coapServer.expose(testThing);
@@ -86,22 +89,22 @@ class CoapClientTest {
     }
 
     @test async "should re-use port"() {
-        const coapServer = new CoapServer(56834, "localhost");
+        const coapServer = new CoapServer(port2, "localhost");
         await coapServer.start(null);
         const coapClient = new CoapClient(coapServer);
         const res = await coapClient.readResource({
-            href: "coap://localhost:56834/",
+            href: `coap://localhost:${port2}/`,
         });
         false && console.log(res);
         await coapServer.stop();
     }
 
     @test(timeout(5000)) async "subscribe test"() {
-        const coapServer = new CoapServer(56834, "localhost");
+        const coapServer = new CoapServer(port2, "localhost");
         await coapServer.start(null);
         const coapClient = new CoapClient(coapServer);
         const form: CoapForm = {
-            href: "coap://127.0.0.1:56834",
+            href: `coap://127.0.0.1:${port2}`,
             "cov:methodName": "GET",
         };
         const subscription = await coapClient.subscribeResource(form, (value) => {
