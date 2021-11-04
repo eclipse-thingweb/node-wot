@@ -22,7 +22,8 @@
         "publish": "npm publish --workspaces",
         "check:versions": "node utils/check_package_version_consistency.js",
         "build:docker": "docker build -t wot-servient .",
-        "clean:dist": "npm exec  --workspaces -- npx rimraf tsconfig.tsbuildinfo dist"
+        "clean:dist": "npm exec  --workspaces -- npx rimraf tsconfig.tsbuildinfo dist",
+        "link": "npm link -ws"
     },
     "workspaces": [
         "./packages/td-tools",
