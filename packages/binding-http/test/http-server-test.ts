@@ -25,8 +25,8 @@ import fetch from "node-fetch";
 import HttpServer from "../src/http-server";
 import { Content, ExposedThing, Helpers, ProtocolHelpers } from "@node-wot/core";
 import { DataSchemaValue, InteractionInput, InteractionOptions } from "wot-typescript-definitions";
-import { Readable } from "stream";
 import chaiAsPromised from "chai-as-promised";
+import { Readable } from "stream";
 
 chai.use(chaiAsPromised);
 
@@ -84,54 +84,53 @@ class HttpServerTest {
             title: "Test",
             properties: {
                 test: {
-                    type: "string",
+                    forms: [
+                    ],
                 },
             },
             events: {
                 eventTest: {
                     forms: [
-                        {
-                            href: "http://test",
-                            op: "subscribeevent",
-                        },
                     ],
                 },
             },
             actions: {
                 try: {
                     output: { type: "string" },
+                    forms: [
+                    ],
                 },
             },
         });
+
         let test: DataSchemaValue;
         testThing.setPropertyReadHandler("test", (_) => Promise.resolve(test));
         testThing.setPropertyWriteHandler("test", async (value) => {
             test = await value.value();
         });
-        await testThing.handleWriteProperty(
-            "test",
-            {
-                type: "text/plain",
-                body: Readable.from(Buffer.from("off", "utf-8")),
-            },
-            { href: "" }
-        );
-        testThing.properties.test.forms = [];
-
-        testThing.handleSubscribeEvent("eventTest", async (input: Content) => {
-            const data = await ProtocolHelpers.readStreamFully(input.body);
-            expect(data.toString()).to.equal("'test''");
-        });
-        testThing.handleEmitEvent("eventTest", "test");
 
         testThing.setActionHandler("try", (input: WoT.InteractionOutput) => {
             return new Promise<string>((resolve, reject) => {
                 resolve("TEST");
             });
         });
-        testThing.actions.try.forms = [];
 
         await httpServer.expose(testThing);
+
+        testThing.handleSubscribeEvent("eventTest", async (input: Content) => {
+            const data = await ProtocolHelpers.readStreamFully(input.body);
+            expect(data.toString()).to.equal("'test''");
+        }, { formIndex: 0 });
+        testThing.handleEmitEvent("eventTest", "test", { formIndex: 0 });
+
+        await testThing.handleWriteProperty(
+            "test",
+            {
+                type: "text/plain",
+                body: Readable.from(Buffer.from("off", "utf-8")),
+            },
+            { formIndex: 0 }
+        );
 
         const uri = `http://localhost:${httpServer.getPort()}/test/`;
         let resp;

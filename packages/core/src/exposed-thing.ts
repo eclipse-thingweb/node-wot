@@ -32,6 +32,7 @@ import {
     ContentListener,
     EventHandlerMap,
     EventHandlers,
+    ListenerItem,
     ListenerMap,
     PropertyHandlerMap,
     PropertyHandlers,
@@ -65,16 +66,16 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     propertyHandlers: PropertyHandlerMap = new Map<string, PropertyHandlers>();
 
     /** A map of action handler callback functions */
-    actionHandlers: ActionHandlerMap = new Map();
+    actionHandlers: ActionHandlerMap = new Map<string, WoT.ActionHandler>();
 
     /** A map of event handler callback functions */
     eventHandlers: EventHandlerMap = new Map<string, EventHandlers>();
 
     /** A map of property listener callback functions */
-    propertyListeners: ListenerMap = new Map();
+    propertyListeners: ListenerMap = new Map<string, ListenerItem>();
 
     /** A map of event listener callback functions */
-    eventListeners: ListenerMap = new Map();
+    eventListeners: ListenerMap = new Map<string, ListenerItem>();
 
     private getServient: () => Servient;
     private getSubjectTD: () => Subject<WoT.ThingDescription>;
@@ -740,8 +741,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     public async handleInvokeAction(
         name: string,
         inputContent: Content,
-        form?: TD.Form,
-        options?: WoT.InteractionOptions
+        options: WoT.InteractionOptions & { formIndex: number }
     ): Promise<Content | void> {
         // TODO: handling URI variables?
         if (this.actions[name]) {
@@ -753,14 +753,16 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                     "[core/exposed-thing]",
                     `ExposedThing '${this.title}' calls registered handler for Action '${name}'`
                 );
-
+                const form = this.actions[name].forms
+                    ? this.actions[name].forms[options.formIndex]
+                    : { contentType: "application/json" };
                 const result: WoT.InteractionInput | void = await handler(
                     new InteractionOutput(inputContent, form, this.actions[name].input),
                     options
                 );
                 if (result) {
                     // TODO: handle form.response.contentType
-                    return ContentManager.valueToContent(result, this.actions[name].output, form?.contentType);
+                    return ContentManager.valueToContent(result, this.actions[name].output, form.contentType);
                 }
             } else {
                 throw new Error(`ExposedThing '${this.title}' has no handler for Action '${name}'`);
@@ -789,10 +791,13 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                     `ExposedThing '${this.title}' calls registered readHandler for Property '${propertyName}'`
                 );
                 const result: WoT.InteractionInput | void = await readHandler(options);
+                const form = this.properties[propertyName].forms
+                    ? this.properties[propertyName].forms[options.formIndex]
+                    : { contentType: "application/json" };
                 return ContentManager.valueToContent(
                     result,
                     this.properties[propertyName],
-                    form.contentType ?? "application/json"
+                    form?.contentType ?? "application/json"
                 );
             } else {
                 throw new Error(`ExposedThing '${this.title}' has no readHandler for Property '${propertyName}'`);
@@ -808,7 +813,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
      */
     public async _handleReadProperties(
         propertyNames: string[],
-        options?: WoT.InteractionOptions
+        options: WoT.InteractionOptions & { formIndex: number }
     ): Promise<PropertyContentMap> {
         // collect all single promises into array
         const promises: Promise<Content>[] = [];
@@ -821,7 +826,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                 continue;
             }
 
-            promises.push(this.handleReadProperty(propertyName, form, options));
+            promises.push(this.handleReadProperty(propertyName, options));
         }
         try {
             // wait for all promises to succeed and create response
@@ -842,7 +847,9 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     /**
      * @experimental
      */
-    public async handleReadAllProperties(options?: WoT.InteractionOptions): Promise<PropertyContentMap> {
+    public async handleReadAllProperties(
+        options: WoT.InteractionOptions & { formIndex: number }
+    ): Promise<PropertyContentMap> {
         const propertyNames: string[] = [];
         for (const propertyName in this.properties) {
             propertyNames.push(propertyName);
@@ -855,7 +862,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
      */
     public async handleReadMultipleProperties(
         propertyNames: string[],
-        options?: WoT.InteractionOptions
+        options: WoT.InteractionOptions & { formIndex: number }
     ): Promise<PropertyContentMap> {
         return await this._handleReadProperties(propertyNames, options);
     }
@@ -867,8 +874,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     public async handleWriteProperty(
         propertyName: string,
         inputContent: Content,
-        form: TD.Form,
-        options?: WoT.InteractionOptions
+        options: WoT.InteractionOptions & { formIndex: number }
     ): Promise<void> {
         // TODO: to be removed next api does not allow an ExposedThing to be also a ConsumeThing
         if (this.properties[propertyName]) {
@@ -877,7 +883,9 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             }
 
             const writeHandler = this.propertyHandlers.get(propertyName)?.writeHandler;
-
+            const form = this.properties[propertyName].forms
+                ? this.properties[propertyName].forms[options.formIndex]
+                : {};
             // call write handler (if any)
             if (writeHandler != null) {
                 await writeHandler(new InteractionOutput(inputContent, form, this.properties[propertyName]), options);
@@ -895,7 +903,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
      */
     public async handleWriteMultipleProperties(
         valueMap: PropertyContentMap,
-        options?: WoT.InteractionOptions
+        options: WoT.InteractionOptions & { formIndex: number }
     ): Promise<void> {
         // collect all single promises into array
         const promises: Promise<void>[] = [];
@@ -907,7 +915,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             if (!form) {
                 continue;
             }
-            promises.push(this.handleWriteProperty(propertyName, valueMap.get(propertyName), form, options));
+            promises.push(this.handleWriteProperty(propertyName, valueMap.get(propertyName), options));
         }
         try {
             await Promise.all(promises);
@@ -923,14 +931,14 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     public async handleSubscribeEvent(
         name: string,
         listener: ContentListener,
-        options?: WoT.InteractionOptions
+        options: WoT.InteractionOptions & { formIndex: number }
     ): Promise<void> {
         if (this.events[name]) {
             const eventListener = this.eventListeners.get(name) ?? {};
             const formIndex = ProtocolHelpers.getFormIndexForOperation(
-                this.events[name].forms,
+                this.events[name],
                 "subscribeevent",
-                options?.formIndex
+                options.formIndex
             );
             if (formIndex !== -1) {
                 if (!eventListener[formIndex]) eventListener[formIndex] = [];
@@ -956,16 +964,20 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
      *
      * @experimental
      */
-    public handleUnsubscribeEvent(name: string, listener: ContentListener, options: WoT.InteractionOptions): void {
+    public handleUnsubscribeEvent(
+        name: string,
+        listener: ContentListener,
+        options: WoT.InteractionOptions & { formIndex: number }
+    ): void {
         if (this.events[name]) {
             const eventListener = this.eventListeners.get(name) ?? {};
             const formIndex = ProtocolHelpers.getFormIndexForOperation(
-                this.events[name].forms,
+                this.events[name],
                 "unsubscribeevent",
-                options?.formIndex
+                options.formIndex
             );
             if (formIndex !== -1 && eventListener[formIndex] && eventListener[formIndex].indexOf(listener) !== -1) {
-                eventListener[options.formIndex].splice(eventListener[options.formIndex].indexOf(listener), 1);
+                eventListener[formIndex].splice(eventListener[formIndex].indexOf(listener), 1);
                 this.eventListeners.set(name, eventListener);
             } else {
                 throw new Error(
@@ -986,29 +998,35 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
      *
      * @experimental
      */
-    public handleEmitEvent(name: string, data: WoT.InteractionInput, options?: WoT.InteractionOptions): void {
+    public handleEmitEvent(
+        name: string,
+        data: WoT.InteractionInput,
+        options: WoT.InteractionOptions & { formIndex: number }
+    ): void {
         if (this.events[name]) {
-            const eventListener = this.eventListeners.get(name) ?? {};
+            const eventListener = this.eventListeners.get(name);
             const formIndex = ProtocolHelpers.getFormIndexForOperation(
-                this.events[name].forms,
+                this.events[name],
                 "subscribeevent",
-                options?.formIndex
+                options.formIndex
             );
-            if (formIndex !== -1 && eventListener[formIndex]) {
-                const form = this.events[name].forms[formIndex];
-                const content = ContentSerdes.get().valueToContent(data, this.event, form.contentType);
-                eventListener[formIndex].forEach((listener) => listener(content));
-            } else {
-                for (let formIndex = 0; formIndex < this.eventListener.length; formIndex++) {
-                    const listener = this.eventListener[formIndex];
-                    // this.listeners may not have all the elements filled
-                    if (listener) {
-                        const content = ContentSerdes.get().valueToContent(
-                            data,
-                            this.event,
-                            this.event.forms[formIndex].contentType
-                        );
-                        listener(content);
+            if (eventListener) {
+                if (formIndex !== -1 && eventListener[formIndex]) {
+                    const form = this.events[name].forms[formIndex];
+                    const content = ContentSerdes.get().valueToContent(data, this.event, form.contentType);
+                    eventListener[formIndex].forEach((listener) => listener(content));
+                } else {
+                    for (let formIndex = 0; formIndex < this.eventListener.length; formIndex++) {
+                        const listener = this.eventListener[formIndex];
+                        // this.listeners may not have all the elements filled
+                        if (listener) {
+                            const content = ContentSerdes.get().valueToContent(
+                                data,
+                                this.event,
+                                this.event.forms[formIndex].contentType
+                            );
+                            listener(content);
+                        }
                     }
                 }
             }
@@ -1025,14 +1043,14 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     public async handleObserveProperty(
         name: string,
         listener: ContentListener,
-        options?: WoT.InteractionOptions
+        options: WoT.InteractionOptions & { formIndex: number }
     ): Promise<void> {
         if (this.properties[name]) {
             const propertyListener = this.propertyListeners.get(name) ?? {};
             const formIndex = ProtocolHelpers.getFormIndexForOperation(
-                this.forms,
+                this.properties[name],
                 "observeproperty",
-                options?.formIndex
+                options.formIndex
             );
             if (formIndex !== -1) {
                 if (!propertyListener[formIndex]) propertyListener[formIndex] = [];
@@ -1053,20 +1071,24 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         }
     }
 
-    public handleUnobserveProperty(name: string, listener: ContentListener, options: WoT.InteractionOptions): void {
+    public handleUnobserveProperty(
+        name: string,
+        listener: ContentListener,
+        options: WoT.InteractionOptions & { formIndex: number }
+    ): void {
         if (this.properties[name]) {
             const propertyListener = this.propertyListeners.get(name) ?? {};
             const formIndex = ProtocolHelpers.getFormIndexForOperation(
-                this.forms,
+                this.properties[name],
                 "unobserveproperty",
-                options?.formIndex
+                options.formIndex
             );
             if (
                 formIndex !== -1 &&
                 propertyListener[formIndex] &&
                 propertyListener[formIndex].indexOf(listener) !== -1
             ) {
-                propertyListener[options.formIndex].splice(propertyListener[options.formIndex].indexOf(listener), 1);
+                propertyListener[formIndex].splice(propertyListener[formIndex].indexOf(listener), 1);
                 this.propertyListeners.set(name, propertyListener);
             } else {
                 throw new Error(

@@ -25,8 +25,16 @@ import { suite, test } from "@testdeck/mocha";
 
 @suite("Protocol Helpers")
 class ProtocolHelpersTest {
-    @test.skip "should get form index "(){/** */}
-    @test.skip "should get form index with defaults for property"() {/** */ }
-    @test.skip "should get form index with defaults for action"() {/** */ }
-    @test.skip "should get form index with defaults for event"() {/** */ }
+    @test.skip "should get form index "() {
+        /** */
+    }
+    @test.skip "should get form index with defaults for property"() {
+        /** */
+    }
+    @test.skip "should get form index with defaults for action"() {
+        /** */
+    }
+    @test.skip "should get form index with defaults for event"() {
+        /** */
+    }
 }

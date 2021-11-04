@@ -44,12 +44,11 @@ export type EventHandlers = {
 };
 export type EventHandlerMap = Map<string, EventHandlers>;
 
-export type ListenerMap = Map<
-    string,
-    {
-        [formIndex: number]: ContentListener[];
-    }
->;
+export type ListenerItem = {
+    [formIndex: number]: ContentListener[];
+};
+
+export type ListenerMap = Map<string, ListenerItem>;
 
 export interface ProtocolClient {
     /** this client is requested to perform a "read" on the resource with the given URI */

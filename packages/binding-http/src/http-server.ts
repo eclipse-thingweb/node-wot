@@ -39,7 +39,6 @@ import { HttpConfig, HttpForm, OAuth2ServerConfig } from "./http";
 import createValidator, { Validator } from "./oauth-token-validation";
 import { OAuth2SecurityScheme } from "@node-wot/td-tools";
 import slugify from "slugify";
-import { InteractionOutput } from "wot-typescript-definitions";
 import * as acceptLanguageParser from "accept-language-parser";
 
 export default class HttpServer implements ProtocolServer {
@@ -691,7 +690,7 @@ export default class HttpServer implements ProtocolServer {
                             // all properties
                             if (req.method === "GET") {
                                 try {
-                                    const propMap: PropertyContentMap = await thing.handleReadAllProperties();
+                                    const propMap: PropertyContentMap = await thing.handleReadAllProperties({ formIndex: 0});
                                     res.setHeader("Content-Type", "application/json"); // contentType handling?
                                     res.writeHead(200);
                                     const recordReponse: Record<string, any> = {};
@@ -720,13 +719,20 @@ export default class HttpServer implements ProtocolServer {
                             // sub-path -> select Property
                             const property = thing.properties[segments[3]];
                             if (property) {
-                                let options: WoT.InteractionOptions;
+                                const options: WoT.InteractionOptions & { formIndex: number } = {
+                                    formIndex: ProtocolHelpers.findRequestMatchingFormIndex(
+                                        property.forms,
+                                        this.scheme,
+                                        req.url,
+                                        contentType
+                                    )
+                                };
                                 const uriVariables: { [k: string]: any } = this.parseUrlParameters(
                                     req.url,
                                     property.uriVariables
                                 );
                                 if (!this.isEmpty(uriVariables)) {
-                                    options = { uriVariables: uriVariables };
+                                    options.uriVariables = uriVariables;
                                 }
 
                                 if (req.method === "GET") {
@@ -768,13 +774,7 @@ export default class HttpServer implements ProtocolServer {
                                         );
                                     } else {
                                         try {
-                                            const form = ProtocolHelpers.findRequestMatchingForm(
-                                                property.forms,
-                                                this.scheme,
-                                                req.url,
-                                                contentType
-                                            );
-                                            const content = await thing.handleReadProperty(segments[3], form, options);
+                                            const content = await thing.handleReadProperty(segments[3], options);
                                             res.setHeader("Content-Type", content.type);
                                             res.writeHead(200);
                                             content.body.pipe(res);
@@ -792,16 +792,9 @@ export default class HttpServer implements ProtocolServer {
                                 } else if (req.method === "PUT") {
                                     if (!property.readOnly) {
                                         try {
-                                            const form = ProtocolHelpers.findRequestMatchingForm(
-                                                property.forms,
-                                                this.scheme,
-                                                req.url,
-                                                contentType
-                                            );
                                             await thing.handleWriteProperty(
                                                 segments[3],
                                                 { body: req, type: contentType },
-                                                form,
                                                 options
                                             );
                                             res.writeHead(204);
@@ -829,25 +822,25 @@ export default class HttpServer implements ProtocolServer {
                         const action: TD.ThingAction = thing.actions[segments[3]];
                         if (action) {
                             if (req.method === "POST") {
-                                let options: WoT.InteractionOptions;
+                                const options: WoT.InteractionOptions & { formIndex: number } = {
+                                    formIndex: ProtocolHelpers.findRequestMatchingFormIndex(
+                                        action.forms,
+                                        this.scheme,
+                                        req.url,
+                                        contentType
+                                    )
+                                };
                                 const uriVariables: { [k: string]: any } = this.parseUrlParameters(
                                     req.url,
                                     action.uriVariables
                                 );
                                 if (!this.isEmpty(uriVariables)) {
-                                    options = { uriVariables: uriVariables };
+                                    options.uriVariables = uriVariables;
                                 }
                                 try {
-                                    const form = ProtocolHelpers.findRequestMatchingForm(
-                                        action.forms,
-                                        this.scheme,
-                                        req.url,
-                                        contentType
-                                    );
                                     const output = await thing.handleInvokeAction(
                                         segments[3],
                                         { body: req, type: contentType },
-                                        form,
                                         options
                                     );
                                     if (output) {
@@ -883,13 +876,20 @@ export default class HttpServer implements ProtocolServer {
                                 res.setHeader("Content-Type", ContentSerdes.DEFAULT);
                                 res.writeHead(200);
 
-                                let options: WoT.InteractionOptions;
+                                 const options: WoT.InteractionOptions & { formIndex: number } = {
+                                    formIndex: ProtocolHelpers.findRequestMatchingFormIndex(
+                                        event.forms,
+                                        this.scheme,
+                                        req.url,
+                                        contentType
+                                    )
+                                };
                                 const uriVariables: { [k: string]: any } = this.parseUrlParameters(
                                     req.url,
                                     event.uriVariables
                                 );
                                 if (!this.isEmpty(uriVariables)) {
-                                    options = { uriVariables: uriVariables };
+                                    options.uriVariables = uriVariables;
                                 }
 
                                 const listener = async (value: Content) => {

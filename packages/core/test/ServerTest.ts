@@ -826,36 +826,38 @@ class WoTServerTest {
                     forms: [
                         {
                             href: "http://example.org/test",
-                            op: ["readproperty"]
-                        }
-                    ]
+                            op: ["readproperty"],
+                        },
+                    ],
                 },
             },
         });
-        const callback = spy(async () => { return true} );
+        const callback = spy(async () => {
+            return true;
+        });
         thing.setPropertyReadHandler("test", callback);
 
         // TODO: call handleReadProperty
     }
 
     @test async "should be able to subscribe to an event"() {
-        const thing= await WoTServerTest.WoT.produce({
+        const thing = await WoTServerTest.WoT.produce({
             title: "The Machine",
             events: {
-                test : {
+                test: {
                     forms: [
                         {
                             href: "http://example.org/test",
-                            op: ["subscribeevent"]
-                        }
-                    ]
+                            op: ["subscribeevent"],
+                        },
+                    ],
                 },
             },
         });
         const callback = spy();
-        (<ExposedThing>thing).handleSubscribeEvent("test",callback,{formIndex:0});
+        (<ExposedThing>thing).handleSubscribeEvent("test", callback, { formIndex: 0 });
 
-        thing.emitEvent("test",undefined);
+        thing.emitEvent("test", undefined);
 
         callback.should.have.been.called();
     }
@@ -868,17 +870,18 @@ class WoTServerTest {
                     forms: [
                         {
                             href: "http://example.org/test",
-                            op: ["subscribeevent"]
-                        }
-                    ]
+                            op: ["subscribeevent"],
+                        },
+                    ],
                 },
             },
         });
-        const callback = spy(async () => {/**  */});
+        const callback = spy(async () => {
+            /**  */
+        });
         thing.setEventSubscribeHandler("test", callback);
         (<ExposedThing>thing).handleSubscribeEvent("test", callback, { formIndex: 0 });
 
         callback.should.have.been.called();
     }
-
 }
