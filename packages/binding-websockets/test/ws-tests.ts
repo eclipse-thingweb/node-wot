@@ -24,13 +24,14 @@ import WebSocketServer from "../src/ws-server";
 // should must be called to augment all variables
 should();
 
+const port = 31080;
 @suite("WebSockets binding")
 class WebSocketsTest {
     @test async "should start and stop own server"() {
-        const wsServer = new WebSocketServer({ port: 58080 });
+        const wsServer = new WebSocketServer({ port });
 
         await wsServer.start(null);
-        expect(wsServer.getPort()).to.eq(58080); // from test
+        expect(wsServer.getPort()).to.eq(port); // from test
 
         console.log("Test stopping WebSocket server");
 
