@@ -305,7 +305,7 @@ export default class CoapServer implements ProtocolServer {
                                         );
                                         res.setOption("Content-Format", content.type);
                                         res.code = "2.05";
-                                        res.end(content.body);
+                                        content.body.pipe(res, { end: true });
                                     })
                                     .catch((err) => {
                                         console.error(
@@ -336,7 +336,7 @@ export default class CoapServer implements ProtocolServer {
                                             );
                                             res.setOption("Content-Format", content.type);
                                             res.code = "2.05";
-                                            res.write(content.body);
+                                            content.body.pipe(res, { end: true });
 
                                             res.on("finish", (err: Error) => {
                                                 if (err) {
@@ -449,7 +449,7 @@ export default class CoapServer implements ProtocolServer {
                                         );
                                         res.setOption("Content-Format", content.type);
                                         res.code = "2.05";
-                                        res.end(content.body);
+                                        content.body.pipe(res,{end:true});
                                     } else {
                                         res.code = "2.04";
                                         res.end();
