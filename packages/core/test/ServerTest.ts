@@ -26,6 +26,8 @@ import spies from "chai-spies";
 import Servient from "../src/servient";
 import { ProtocolServer } from "../src/protocol-interfaces";
 import ExposedThing from "../src/exposed-thing";
+import { Readable } from "stream";
+import { InteractionOutput } from "wot-typescript-definitions";
 // should must be called to augment all variables
 should();
 chaiUse(spies);
@@ -821,8 +823,9 @@ class WoTServerTest {
     @test async "should call read handler"() {
         const thing = await WoTServerTest.WoT.produce({
             title: "The Machine",
-            property: {
+            properties: {
                 test: {
+                    type: "string",
                     forms: [
                         {
                             href: "http://example.org/test",
@@ -837,7 +840,34 @@ class WoTServerTest {
         });
         thing.setPropertyReadHandler("test", callback);
 
-        // TODO: call handleReadProperty
+        await (<ExposedThing>thing).handleReadProperty("test", { formIndex: 0 });
+
+        callback.should.have.been.called();
+    }
+
+    @test async "should call write handler"() {
+        const thing = await WoTServerTest.WoT.produce({
+            title: "The Machine",
+            properties: {
+                test: {
+                    type: "string",
+                    forms: [
+                        {
+                            href: "http://example.org/test",
+                            op: ["readproperty", "writeproperty"],
+                        },
+                    ],
+                },
+            },
+        });
+        const callback = spy(async () => {
+            /** */
+        });
+        thing.setPropertyWriteHandler("test", callback);
+
+        await (<ExposedThing>thing).handleWriteProperty("test", { type: "", body: undefined }, { formIndex: 0 });
+
+        callback.should.have.been.called();
     }
 
     @test async "should be able to subscribe to an event"() {
@@ -855,9 +885,8 @@ class WoTServerTest {
             },
         });
         const callback = spy();
-        (<ExposedThing>thing).handleSubscribeEvent("test", callback, { formIndex: 0 });
-
-        thing.emitEvent("test", undefined);
+        await (<ExposedThing>thing).handleSubscribeEvent("test", callback, { formIndex: 0 });
+        (<ExposedThing>thing).handleEmitEvent("test", undefined, { formIndex: 0 });
 
         callback.should.have.been.called();
     }
@@ -880,7 +909,70 @@ class WoTServerTest {
             /**  */
         });
         thing.setEventSubscribeHandler("test", callback);
-        (<ExposedThing>thing).handleSubscribeEvent("test", callback, { formIndex: 0 });
+        await (<ExposedThing>thing).handleSubscribeEvent("test", callback, { formIndex: 0 });
+
+        callback.should.have.been.called();
+    }
+
+    @test async "should be able to unsubscribe to an event"() {
+        const thing = await WoTServerTest.WoT.produce({
+            title: "The Machine",
+            events: {
+                test: {
+                    forms: [
+                        {
+                            href: "http://example.org/test",
+                            op: ["subscribeevent"],
+                        },
+                    ],
+                },
+            },
+        });
+        const callback = spy(async () => {
+            /**  */
+        });
+        const handler = spy(async () => {
+            /**  */
+        });
+        thing.setEventSubscribeHandler("test", handler);
+        await (<ExposedThing>thing).handleSubscribeEvent("test", callback, { formIndex: 0 });
+        await (<ExposedThing>thing).handleEmitEvent("test", undefined, { formIndex: 0 });
+        await (<ExposedThing>thing).handleUnsubscribeEvent("test", callback, { formIndex: 0 });
+        await (<ExposedThing>thing).handleEmitEvent("test", undefined, { formIndex: 0 });
+
+        return expect(callback).to.have.been.called.once;
+    }
+
+    @test async "should call action handler"() {
+        const thing = await WoTServerTest.WoT.produce({
+            title: "The Machine",
+            actions: {
+                test: {
+                    type: "string",
+                    input: {
+                        type: "string",
+                    },
+                    forms: [
+                        {
+                            href: "http://example.org/test",
+                            op: ["invokeaction"],
+                        },
+                    ],
+                },
+            },
+        });
+        const callback = spy(async (params: InteractionOutput) => {
+            expect(await params.value()).to.be.equal("ping");
+            return "";
+        });
+
+        thing.setActionHandler("test", callback);
+
+        await (<ExposedThing>thing).handleInvokeAction(
+            "test",
+            { type: "application/json", body: Readable.from(Buffer.from("ping")) },
+            { formIndex: 0 }
+        );
 
         callback.should.have.been.called();
     }
