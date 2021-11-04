@@ -776,8 +776,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
      */
     public async handleReadProperty(
         propertyName: string,
-        form: TD.Form,
-        options?: WoT.InteractionOptions
+        options: WoT.InteractionOptions & { formIndex: number }
     ): Promise<Content> {
         if (this.properties[propertyName]) {
             console.debug("[core/exposed-thing]", `ExposedThing '${this.title}' has Action state of '${propertyName}'`);
@@ -961,7 +960,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         if (this.events[name]) {
             const eventListener = this.eventListeners.get(name) ?? {};
             const formIndex = ProtocolHelpers.getFormIndexForOperation(
-                this.forms,
+                this.events[name].forms,
                 "unsubscribeevent",
                 options?.formIndex
             );

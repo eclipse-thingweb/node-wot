@@ -21,13 +21,14 @@
  */
 
 import { suite, test } from "@testdeck/mocha";
-import { expect, should } from "chai";
-
+import { expect, should, use as chaiUse, spy } from "chai";
+import spies from "chai-spies";
 import Servient from "../src/servient";
 import { ProtocolServer } from "../src/protocol-interfaces";
 import ExposedThing from "../src/exposed-thing";
 // should must be called to augment all variables
 should();
+chaiUse(spies);
 
 // implement a testserver to mock a server
 class TestProtocolServer implements ProtocolServer {
@@ -817,4 +818,67 @@ class WoTServerTest {
     // TODO add Event and subscribe locally (based on addEvent)
     // TODO add Event and subscribe locally (based on WoT.ThingFragment)
     // TODO add Event and subscribe locally (based on WoT.ThingDescription)
+    @test async "should call read handler"() {
+        const thing = await WoTServerTest.WoT.produce({
+            title: "The Machine",
+            property: {
+                test: {
+                    forms: [
+                        {
+                            href: "http://example.org/test",
+                            op: ["readproperty"]
+                        }
+                    ]
+                },
+            },
+        });
+        const callback = spy(async () => { return true} );
+        thing.setPropertyReadHandler("test", callback);
+
+        // TODO: call handleReadProperty
+    }
+
+    @test async "should be able to subscribe to an event"() {
+        const thing= await WoTServerTest.WoT.produce({
+            title: "The Machine",
+            events: {
+                test : {
+                    forms: [
+                        {
+                            href: "http://example.org/test",
+                            op: ["subscribeevent"]
+                        }
+                    ]
+                },
+            },
+        });
+        const callback = spy();
+        (<ExposedThing>thing).handleSubscribeEvent("test",callback,{formIndex:0});
+
+        thing.emitEvent("test",undefined);
+
+        callback.should.have.been.called();
+    }
+
+    @test async "should call subscribe handler"() {
+        const thing = await WoTServerTest.WoT.produce({
+            title: "The Machine",
+            events: {
+                test: {
+                    forms: [
+                        {
+                            href: "http://example.org/test",
+                            op: ["subscribeevent"]
+                        }
+                    ]
+                },
+            },
+        });
+        const callback = spy(async () => {/**  */});
+        thing.setEventSubscribeHandler("test", callback);
+        (<ExposedThing>thing).handleSubscribeEvent("test", callback, { formIndex: 0 });
+
+        callback.should.have.been.called();
+    }
+
 }
