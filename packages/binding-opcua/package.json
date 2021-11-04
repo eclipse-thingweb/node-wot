@@ -11,8 +11,8 @@
     "files": [
         "dist/"
     ],
-    "main": "dist/opcua.js",
-    "types": "dist/opcua.d.ts",
+    "main": "opcua.js",
+    "types": "opcua.d.ts",
     "devDependencies": {
         "@types/chai": "^4.2.18",
         "@types/mocha": "^9.0.0",
@@ -48,7 +48,7 @@
     "scripts": {
         "build": "tsc -b",
         "test": "mocha --require ts-node/register test/opcua-client-test.ts",
-        "lint": "eslint src test",
+        "lint": "eslint .",
         "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"**/*.json\""
     },
     "bugs": {
