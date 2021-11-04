@@ -936,9 +936,9 @@ class WoTServerTest {
         });
         thing.setEventSubscribeHandler("test", handler);
         await (<ExposedThing>thing).handleSubscribeEvent("test", callback, { formIndex: 0 });
-        await (<ExposedThing>thing).handleEmitEvent("test", undefined, { formIndex: 0 });
-        await (<ExposedThing>thing).handleUnsubscribeEvent("test", callback, { formIndex: 0 });
-        await (<ExposedThing>thing).handleEmitEvent("test", undefined, { formIndex: 0 });
+        (<ExposedThing>thing).handleEmitEvent("test", undefined, { formIndex: 0 });
+        (<ExposedThing>thing).handleUnsubscribeEvent("test", callback, { formIndex: 0 });
+        (<ExposedThing>thing).handleEmitEvent("test", undefined, { formIndex: 0 });
 
         return expect(callback).to.have.been.called.once;
     }
