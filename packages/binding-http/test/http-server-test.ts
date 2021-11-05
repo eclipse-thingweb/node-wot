@@ -84,21 +84,18 @@ class HttpServerTest {
             title: "Test",
             properties: {
                 test: {
-                    forms: [
-                    ],
+                    forms: [],
                 },
             },
             events: {
                 eventTest: {
-                    forms: [
-                    ],
+                    forms: [],
                 },
             },
             actions: {
                 try: {
                     output: { type: "string" },
-                    forms: [
-                    ],
+                    forms: [],
                 },
             },
         });
@@ -117,10 +114,14 @@ class HttpServerTest {
 
         await httpServer.expose(testThing);
 
-        testThing.handleSubscribeEvent("eventTest", async (input: Content) => {
-            const data = await ProtocolHelpers.readStreamFully(input.body);
-            expect(data.toString()).to.equal("'test''");
-        }, { formIndex: 0 });
+        testThing.handleSubscribeEvent(
+            "eventTest",
+            async (input: Content) => {
+                const data = await ProtocolHelpers.readStreamFully(input.body);
+                expect(data.toString()).to.equal("'test''");
+            },
+            { formIndex: 0 }
+        );
         testThing.handleEmitEvent("eventTest", "test", { formIndex: 0 });
 
         await testThing.handleWriteProperty(

@@ -690,7 +690,9 @@ export default class HttpServer implements ProtocolServer {
                             // all properties
                             if (req.method === "GET") {
                                 try {
-                                    const propMap: PropertyContentMap = await thing.handleReadAllProperties({ formIndex: 0});
+                                    const propMap: PropertyContentMap = await thing.handleReadAllProperties({
+                                        formIndex: 0,
+                                    });
                                     res.setHeader("Content-Type", "application/json"); // contentType handling?
                                     res.writeHead(200);
                                     const recordReponse: Record<string, any> = {};
@@ -725,7 +727,7 @@ export default class HttpServer implements ProtocolServer {
                                         this.scheme,
                                         req.url,
                                         contentType
-                                    )
+                                    ),
                                 };
                                 const uriVariables: { [k: string]: any } = this.parseUrlParameters(
                                     req.url,
@@ -828,7 +830,7 @@ export default class HttpServer implements ProtocolServer {
                                         this.scheme,
                                         req.url,
                                         contentType
-                                    )
+                                    ),
                                 };
                                 const uriVariables: { [k: string]: any } = this.parseUrlParameters(
                                     req.url,
@@ -876,13 +878,13 @@ export default class HttpServer implements ProtocolServer {
                                 res.setHeader("Content-Type", ContentSerdes.DEFAULT);
                                 res.writeHead(200);
 
-                                 const options: WoT.InteractionOptions & { formIndex: number } = {
+                                const options: WoT.InteractionOptions & { formIndex: number } = {
                                     formIndex: ProtocolHelpers.findRequestMatchingFormIndex(
                                         event.forms,
                                         this.scheme,
                                         req.url,
                                         contentType
-                                    )
+                                    ),
                                 };
                                 const uriVariables: { [k: string]: any } = this.parseUrlParameters(
                                     req.url,
