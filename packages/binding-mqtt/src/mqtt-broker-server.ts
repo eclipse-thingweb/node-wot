@@ -222,7 +222,7 @@ export default class MqttBrokerServer implements ProtocolServer {
                                     this.scheme,
                                     this.brokerURI,
                                     "application/json"
-                                )
+                                ),
                             };
 
                             try {
@@ -263,7 +263,7 @@ export default class MqttBrokerServer implements ProtocolServer {
                                             this.scheme,
                                             this.brokerURI,
                                             contentType
-                                        )
+                                        ),
                                     };
 
                                     try {

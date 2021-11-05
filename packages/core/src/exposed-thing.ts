@@ -161,7 +161,6 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 
     public emitEvent(name: string, data: WoT.InteractionInput): void {
         if (this.events[name]) {
-
             // TODO: remove after the new api
             const es: EventState = this.events[name].getState();
             for (const listener of es.legacyListeners) {
@@ -171,11 +170,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             // --- END REMOVE
 
             const eventListener = this.eventListeners.get(name);
-            const formIndex = ProtocolHelpers.getFormIndexForOperation(
-                this.events[name],
-                "event",
-                "subscribeevent"
-            );
+            const formIndex = ProtocolHelpers.getFormIndexForOperation(this.events[name], "event", "subscribeevent");
 
             if (eventListener) {
                 if (formIndex !== -1 && eventListener[formIndex]) {
