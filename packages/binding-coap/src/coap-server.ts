@@ -298,13 +298,15 @@ export default class CoapServer implements ProtocolServer {
                             // readproperty
                             if (req.headers.Observe === undefined) {
                                 try {
-                                    const form = ProtocolHelpers.findRequestMatchingForm(
-                                        property.forms,
-                                        this.scheme,
-                                        req.url,
-                                        contentType
-                                    );
-                                    const content = await thing.handleReadProperty(segments[3], form);
+                                    const options: WoT.InteractionOptions & { formIndex: number } = {
+                                            formIndex: ProtocolHelpers.findRequestMatchingFormIndex(
+                                                property.forms,
+                                                this.scheme,
+                                                req.url,
+                                                contentType
+                                            )
+                                    };
+                                    const content = await thing.handleReadProperty(segments[3], options);
                                     res.setOption("Content-Format", content.type);
                                     res.code = "2.05";
                                     content.body.pipe(res);
@@ -361,16 +363,18 @@ export default class CoapServer implements ProtocolServer {
                         } else if (req.method === "PUT") {
                             if (!property.readOnly) {
                                 try {
-                                    const form = ProtocolHelpers.findRequestMatchingForm(
-                                        property.forms,
-                                        this.scheme,
-                                        req.url,
-                                        contentType
-                                    );
+                                    const options: WoT.InteractionOptions & { formIndex: number } = {
+                                            formIndex: ProtocolHelpers.findRequestMatchingFormIndex(
+                                                property.forms,
+                                                this.scheme,
+                                                req.url,
+                                                contentType
+                                            )
+                                    };
                                     await thing.handleWriteProperty(
                                         segments[3],
                                         { body: Readable.from(req.payload), type: contentType },
-                                        form
+                                        options
                                     );
                                     res.code = "2.04";
                                     res.end("Changed");
@@ -401,21 +405,21 @@ export default class CoapServer implements ProtocolServer {
                     if (action) {
                         // invokeaction
                         if (req.method === "POST") {
-                            let options: WoT.InteractionOptions;
+                            const options: WoT.InteractionOptions & { formIndex: number } = {
+                                    formIndex: ProtocolHelpers.findRequestMatchingFormIndex(
+                                        action.forms,
+                                        this.scheme,
+                                        req.url,
+                                        contentType
+                                    )
+                            };
                             if (!this.isEmpty(action.uriVariables)) {
-                                options = { uriVariables: action.uriVariables };
+                                options.uriVariables = action.uriVariables;
                             }
                             try {
-                                const form = ProtocolHelpers.findRequestMatchingForm(
-                                    action.forms,
-                                    this.scheme,
-                                    req.url,
-                                    contentType
-                                );
                                 const output = await thing.handleInvokeAction(
                                     segments[3],
                                     { body: Readable.from(req.payload), type: contentType },
-                                    form,
                                     options
                                 );
                                 if (output) {
@@ -465,9 +469,17 @@ export default class CoapServer implements ProtocolServer {
                                 res._packet.token = res._request.token;
                                 // end of work-around
 
-                                let options: WoT.InteractionOptions;
+                                const options: WoT.InteractionOptions & { formIndex: number } = {
+                                    formIndex: ProtocolHelpers.findRequestMatchingFormIndex(
+                                        event.forms,
+                                        this.scheme,
+                                        req.url,
+                                        contentType
+                                    )
+                                };
+
                                 if (!this.isEmpty(event.uriVariables)) {
-                                    options = { uriVariables: event.uriVariables };
+                                    options.uriVariables = event.uriVariables;
                                 }
 
                                 const listener = async (value: Content) => {
