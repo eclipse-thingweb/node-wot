@@ -23,6 +23,7 @@ import * as url from "url";
 
 import * as TD from "@node-wot/td-tools";
 import { ProtocolServer, Servient, ExposedThing, ContentSerdes, ProtocolHelpers, Content } from "@node-wot/core";
+import { InteractionOptions } from "wot-typescript-definitions";
 
 export default class MqttBrokerServer implements ProtocolServer {
     readonly scheme: string = "mqtt";
@@ -215,8 +216,17 @@ export default class MqttBrokerServer implements ProtocolServer {
                                 }
                             }
 
+                            const options: InteractionOptions & { formIndex: number } = {
+                                formIndex: ProtocolHelpers.findRequestMatchingFormIndex(
+                                    action.forms,
+                                    this.scheme,
+                                    this.brokerURI,
+                                    "application/json"
+                                )
+                            };
+
                             try {
-                                const output = await thing.handleInvokeAction(segments[3], value);
+                                const output = await thing.handleInvokeAction(segments[3], value, options);
 
                                 // MQTT cannot return results
                                 if (output) {
@@ -247,15 +257,17 @@ export default class MqttBrokerServer implements ProtocolServer {
                                         contentType = packet.properties.contentType;
                                     }
 
-                                    const form = ProtocolHelpers.findRequestMatchingForm(
-                                        property.forms,
-                                        this.scheme,
-                                        this.brokerURI,
-                                        contentType
-                                    );
+                                    const options: InteractionOptions & { formIndex: number } = {
+                                        formIndex: ProtocolHelpers.findRequestMatchingFormIndex(
+                                            property.forms,
+                                            this.scheme,
+                                            this.brokerURI,
+                                            contentType
+                                        )
+                                    };
 
                                     try {
-                                        thing.handleWriteProperty(segments[3], JSON.parse(payload.toString()), form);
+                                        thing.handleWriteProperty(segments[3], JSON.parse(payload.toString()), options);
                                     } catch (err) {
                                         console.error(
                                             "[binding-mqtt]",
