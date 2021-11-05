@@ -303,7 +303,7 @@ export default class ProtocolHelpers {
         });
         // optionally try to match form's content type to the request's one
         if (contentType) {
-            const contentTypeMatchingForms: TD.Form[] = forms.filter((form) => {
+            const contentTypeMatchingForms: TD.Form[] = matchingForms.filter((form) => {
                 return form.contentType === contentType;
             });
             if (contentTypeMatchingForms.length > 0) matchingForms = contentTypeMatchingForms;
@@ -312,7 +312,8 @@ export default class ProtocolHelpers {
     }
 
     public static getFormIndexForOperation(
-        interaction: TD.ThingProperty | TD.ThingAction | TD.ThingEvent,
+        interaction: TD.ThingInteraction,
+        type: "property" | "action" | "event",
         operationName?: string,
         formIndex?: number
     ): number {
@@ -321,35 +322,41 @@ export default class ProtocolHelpers {
         // Check for default interaction OPs
         // https://w3c.github.io/wot-thing-description/#sec-default-values
         let defaultOps: string[] = [];
-        switch (interaction) {
-            case TD.ThingProperty:
-                if (!interaction.readOnly) defaultOps.push("writeproperty");
-                if (!interaction.writeOnly) defaultOps.push("readproperty");
+        switch (type) {
+            case "property":
+                if (
+                    (interaction.readOnly && operationName === "writeproperty") ||
+                    (interaction.writeOnly && operationName === "readproperty")
+                )
+                    return finalFormIndex;
+                if (interaction.readOnly === undefined || !interaction.readOnly) defaultOps.push("writeproperty");
+                if (interaction.writeOnly === undefined || !interaction.writeOnly) defaultOps.push("readproperty");
                 break;
-            case TD.ThingAction:
+            case "action":
                 defaultOps = ["invokeaction"];
                 break;
-            case TD.ThingEvent:
+            case "event":
                 defaultOps = ["subscribeevent", "unsubscribeevent"];
                 break;
         }
-        if (defaultOps.indexOf(operationName)) {
+
+        if (defaultOps.indexOf(operationName) !== -1) {
             operationName = undefined;
         }
 
         // If a form index hint is gived, you it. Just check the form actually supports the op
         if (interaction.forms !== undefined && formIndex !== undefined && interaction.forms.length > formIndex) {
             const form = interaction.forms[formIndex];
-            if (form && (operationName === undefined || form.op.includes(operationName))) {
+            if (form && (operationName === undefined || form.op?.includes(operationName))) {
                 finalFormIndex = formIndex;
             }
         }
 
         // If no form was found yet, loop through all forms
         if (interaction.forms !== undefined && finalFormIndex === -1) {
-            if (operationName) {
+            if (operationName !== undefined) {
                 interaction.forms.every((form: TD.Form) => {
-                    if (form.op.includes(operationName)) {
+                    if (form.op?.includes(operationName)) {
                         finalFormIndex = interaction.forms.indexOf(form);
                     }
                     return finalFormIndex === -1;

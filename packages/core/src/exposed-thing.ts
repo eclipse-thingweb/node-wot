@@ -937,6 +937,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             const eventListener = this.eventListeners.get(name) ?? {};
             const formIndex = ProtocolHelpers.getFormIndexForOperation(
                 this.events[name],
+                "event",
                 "subscribeevent",
                 options.formIndex
             );
@@ -973,6 +974,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             const eventListener = this.eventListeners.get(name) ?? {};
             const formIndex = ProtocolHelpers.getFormIndexForOperation(
                 this.events[name],
+                "event",
                 "unsubscribeevent",
                 options.formIndex
             );
@@ -1007,6 +1009,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             const eventListener = this.eventListeners.get(name);
             const formIndex = ProtocolHelpers.getFormIndexForOperation(
                 this.events[name],
+                "event",
                 "subscribeevent",
                 options.formIndex
             );
@@ -1049,6 +1052,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             const propertyListener = this.propertyListeners.get(name) ?? {};
             const formIndex = ProtocolHelpers.getFormIndexForOperation(
                 this.properties[name],
+                "property",
                 "observeproperty",
                 options.formIndex
             );
@@ -1080,6 +1084,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             const propertyListener = this.propertyListeners.get(name) ?? {};
             const formIndex = ProtocolHelpers.getFormIndexForOperation(
                 this.properties[name],
+                "property",
                 "unobserveproperty",
                 options.formIndex
             );
