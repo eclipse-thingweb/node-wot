@@ -161,13 +161,42 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 
     public emitEvent(name: string, data: WoT.InteractionInput): void {
         if (this.events[name]) {
-            const es: EventState = this.events[name].getState();
+
             // TODO: remove after the new api
+            const es: EventState = this.events[name].getState();
             for (const listener of es.legacyListeners) {
                 listener.call(this, data);
             }
-
             es.emit(data);
+            // --- END REMOVE
+
+            const eventListener = this.eventListeners.get(name);
+            const formIndex = ProtocolHelpers.getFormIndexForOperation(
+                this.events[name],
+                "event",
+                "subscribeevent"
+            );
+
+            if (eventListener) {
+                if (formIndex !== -1 && eventListener[formIndex]) {
+                    const form = this.events[name].forms[formIndex];
+                    const content = ContentSerdes.get().valueToContent(data, this.event, form.contentType);
+                    eventListener[formIndex].forEach((listener) => listener(content));
+                } else {
+                    for (let formIndex = 0; formIndex < this.eventListener.length; formIndex++) {
+                        const listener = this.eventListener[formIndex];
+                        // this.listeners may not have all the elements filled
+                        if (listener) {
+                            const content = ContentSerdes.get().valueToContent(
+                                data,
+                                this.event,
+                                this.event.forms[formIndex].contentType
+                            );
+                            listener(content);
+                        }
+                    }
+                }
+            }
         } else {
             // NotFoundError
             throw new Error("NotFoundError for event '" + name + "'");
@@ -993,49 +1022,6 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             console.debug("[core/exposed-thing]", `ExposedThing '${this.title}' unsubscribes from event '${name}'`);
         } else {
             throw new Error(`ExposedThing '${this.title}', no event found for '${name}'`);
-        }
-    }
-
-    /**
-     *
-     * @experimental
-     */
-    public handleEmitEvent(
-        name: string,
-        data: WoT.InteractionInput,
-        options: WoT.InteractionOptions & { formIndex: number }
-    ): void {
-        if (this.events[name]) {
-            const eventListener = this.eventListeners.get(name);
-            const formIndex = ProtocolHelpers.getFormIndexForOperation(
-                this.events[name],
-                "event",
-                "subscribeevent",
-                options.formIndex
-            );
-            if (eventListener) {
-                if (formIndex !== -1 && eventListener[formIndex]) {
-                    const form = this.events[name].forms[formIndex];
-                    const content = ContentSerdes.get().valueToContent(data, this.event, form.contentType);
-                    eventListener[formIndex].forEach((listener) => listener(content));
-                } else {
-                    for (let formIndex = 0; formIndex < this.eventListener.length; formIndex++) {
-                        const listener = this.eventListener[formIndex];
-                        // this.listeners may not have all the elements filled
-                        if (listener) {
-                            const content = ContentSerdes.get().valueToContent(
-                                data,
-                                this.event,
-                                this.event.forms[formIndex].contentType
-                            );
-                            listener(content);
-                        }
-                    }
-                }
-            }
-        } else {
-            // NotFoundError
-            throw new Error("NotFoundError for event '" + name + "'");
         }
     }
 

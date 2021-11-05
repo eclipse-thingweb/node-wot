@@ -886,7 +886,7 @@ class WoTServerTest {
         });
         const callback = spy();
         await (<ExposedThing>thing).handleSubscribeEvent("test", callback, { formIndex: 0 });
-        (<ExposedThing>thing).handleEmitEvent("test", undefined, { formIndex: 0 });
+        (<ExposedThing>thing).emitEvent("test", undefined);
 
         callback.should.have.been.called();
     }
@@ -936,9 +936,9 @@ class WoTServerTest {
         });
         thing.setEventSubscribeHandler("test", handler);
         await (<ExposedThing>thing).handleSubscribeEvent("test", callback, { formIndex: 0 });
-        (<ExposedThing>thing).handleEmitEvent("test", undefined, { formIndex: 0 });
+        (<ExposedThing>thing).emitEvent("test", undefined);
         (<ExposedThing>thing).handleUnsubscribeEvent("test", callback, { formIndex: 0 });
-        (<ExposedThing>thing).handleEmitEvent("test", undefined, { formIndex: 0 });
+        (<ExposedThing>thing).emitEvent("test", undefined);
 
         return expect(callback).to.have.been.called.once;
     }
