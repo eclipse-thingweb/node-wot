@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-var counter = 0;
+let counter = 0;
 
 WoT.produce({
     title: "MQTT-Test",
@@ -36,7 +36,7 @@ WoT.produce({
         );
 
         thing.setActionHandler("resetCounter", () => {
-            return new Promise<any>((resolve, reject) => {
+            return new Promise<undefined>((resolve, reject) => {
                 console.log("Resetting counter");
                 counter = 0;
                 resolve(undefined);

@@ -12,21 +12,25 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-import "wot-typescript-definitions";
+
 import { Helpers } from "@node-wot/core";
 import { ThingDescription } from "wot-typescript-definitions";
 
 let WoTHelpers: Helpers;
 
-console.debug = () => {};
-console.log = () => {};
+console.debug = () => {
+    /* empty */
+};
+console.log = () => {
+    /* empty */
+};
 
 let PumpP101: WoT.ConsumedThing, ValveV102: WoT.ConsumedThing;
 
 let thingExposed: WoT.ExposedThing;
 
 // fetch and consume NodeMCU Things
-let fetchArray = [
+const fetchArray = [
     WoTHelpers.fetch("file://./tdPumpP101.jsonld"),
     WoTHelpers.fetch("file://./tdValveV102.jsonld"),
     WoTHelpers.fetch("file://./tdUltrasonicSensorB101.jsonld"),
@@ -38,17 +42,17 @@ let fetchArray = [
 
 Promise.all(fetchArray).then(async (tdArray: ThingDescription[]) => {
     // order must match order of jsonld files
-    let [tdPumpP101, tdValveV102, tdUltrasonicSensorB101, tdB114, tdB113, tdS111, tdS112] = tdArray;
+    const [tdPumpP101, tdValveV102, tdUltrasonicSensorB101, tdB114, tdB113, tdS111, tdS112] = tdArray;
 
     PumpP101 = await WoT.consume(tdPumpP101); // Status
     ValveV102 = await WoT.consume(tdValveV102); // Status
 
-    let UltrasonicSensorB101 = await WoT.consume(tdUltrasonicSensorB101); // level
-    let LevelSensorB114 = await WoT.consume(tdB114); // maxlevel101
-    let LevelSensorB113 = await WoT.consume(tdB113); // minlevel101
+    const UltrasonicSensorB101 = await WoT.consume(tdUltrasonicSensorB101); // level
+    const LevelSensorB114 = await WoT.consume(tdB114); // maxlevel101
+    const LevelSensorB113 = await WoT.consume(tdB113); // minlevel101
 
-    let LevelSwitchS111 = await WoT.consume(tdS111); // overflow101
-    let FloatSwitchS112 = await WoT.consume(tdS112); // overflow102
+    const LevelSwitchS111 = await WoT.consume(tdS111); // overflow101
+    const FloatSwitchS112 = await WoT.consume(tdS112); // overflow102
 
     // regularly sync state to exposed Thing
     setInterval(() => {
@@ -162,10 +166,10 @@ WoT.produce({
         /*
   // init property values
   // actuator state
-	thing.writeProperty("PumpStatus", false); 
-  thing.writeProperty("ValveStatus", false); 
+	thing.writeProperty("PumpStatus", false);
+  thing.writeProperty("ValveStatus", false);
   // upper tank (102)
-  thing.writeProperty("Tank102LevelValue", 0.0); 
+  thing.writeProperty("Tank102LevelValue", 0.0);
   thing.writeProperty("Tank102OverflowStatus", false);
   // lower tank (101)
   thing.writeProperty("Tank101MaximumLevelStatus", false);

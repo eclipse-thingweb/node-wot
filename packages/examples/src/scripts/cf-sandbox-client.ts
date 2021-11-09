@@ -26,7 +26,7 @@ let WoTHelpers: Helpers;
 WoTHelpers.fetch("file://./cf-sandbox.jsonld")
     .then(async (td) => {
         try {
-            let cf = await WoT.consume(td as ThingDescription);
+            const cf = await WoT.consume(td as ThingDescription);
             console.info("=== TD ===");
             console.info(td);
             console.info("==========");

@@ -12,10 +12,8 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-import { Helpers } from "@node-wot/core";
-let WoTHelpers: Helpers;
 
-let td = `{
+const td_ = `{
     "@context": "https://www.w3.org/2019/wot/td/v1",
     "title": "MQTT Counter",
     "id": "urn:dev:wot:mqtt:counter",
@@ -27,7 +25,7 @@ let td = `{
                 {"href": "mqtt://test.mosquitto.org:1883/MQTT-Test/actions/resetCounter"}
             ]
         }
-    }, 
+    },
     "events": {
         "counter": {
             "data": {
@@ -36,12 +34,12 @@ let td = `{
             "forms": [
                 {"href": "mqtt://test.mosquitto.org:1883/MQTT-Test/events/counterEvent"}
             ]
-        } 
-    } 
+        }
+    }
 }`;
 
 try {
-    WoT.consume(JSON.parse(td)).then((source) => {
+    WoT.consume(JSON.parse(td_)).then((source) => {
         console.info("=== TD ===");
         console.info(td);
         console.info("==========");
@@ -53,14 +51,16 @@ try {
             .then(() => {
                 console.info("Completed");
             })
-            .catch((e: any) => {
+            .catch((e: Error) => {
                 console.error("Error: %s", e);
             });
 
         setInterval(async () => {
             source
                 .invokeAction("resetCounter")
-                .then((res) => {})
+                .then((res) => {
+                    /* empty */
+                })
                 .catch((err) => {
                     console.error("ResetCounter error:", err.message);
                 });

@@ -33,7 +33,7 @@ try {
 
             // set action handlers
             thing.setActionHandler("reset", () => {
-                return new Promise<any>((resolve, reject) => {
+                return new Promise<undefined>((resolve, reject) => {
                     console.info("Resetting");
                     counter = 0;
                     return new Promise((resolve, reject) => {

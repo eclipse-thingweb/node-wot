@@ -13,9 +13,6 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { Helpers } from "@node-wot/core";
-let WoTHelpers: Helpers;
-
 // This is an example Thing script.
 // It has a count property that can be incremented or decremented via actions and its changes are reported via events.
 // It also has two properties that return an image. The SVG property is also influenced by the increment and decrement actions.
@@ -148,9 +145,9 @@ WoT.produce({
             let fill = "black";
             if (options && typeof options === "object" && "uriVariables" in options) {
                 console.log("options = " + JSON.stringify(options));
-                if ("fill" in options["uriVariables"]) {
-                    let uriVariables: any = options["uriVariables"];
-                    fill = uriVariables["fill"];
+                if ("fill" in options.uriVariables) {
+                    const uriVariables: any = options.uriVariables;
+                    fill = uriVariables.fill;
                 }
             }
             return (
@@ -174,12 +171,12 @@ WoT.produce({
             let step = 1;
             if (options && typeof options === "object" && "uriVariables" in options) {
                 console.log("options = " + JSON.stringify(options));
-                if ("step" in options["uriVariables"]) {
-                    let uriVariables: any = options["uriVariables"];
-                    step = uriVariables["step"];
+                if ("step" in options.uriVariables) {
+                    const uriVariables: any = options.uriVariables;
+                    step = uriVariables.step;
                 }
             }
-            let newValue = count + step;
+            const newValue = count + step;
             console.log("Incrementing count from " + count + " to " + newValue + " (with step " + step + ")");
             count = newValue;
             lastChange = new Date().toISOString();
@@ -190,12 +187,12 @@ WoT.produce({
             let step = 1;
             if (options && typeof options === "object" && "uriVariables" in options) {
                 console.log("options = " + JSON.stringify(options));
-                if ("step" in options["uriVariables"]) {
-                    let uriVariables: any = options["uriVariables"];
-                    step = uriVariables["step"];
+                if ("step" in options.uriVariables) {
+                    const uriVariables: any = options.uriVariables;
+                    step = uriVariables.step;
                 }
             }
-            let newValue = count - step;
+            const newValue = count - step;
             console.log("Decrementing count from " + count + " to " + newValue + " (with step " + step + ")");
             count = newValue;
             lastChange = new Date().toISOString();

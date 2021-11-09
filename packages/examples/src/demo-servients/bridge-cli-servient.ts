@@ -16,15 +16,11 @@
 // global W3C WoT Scripting API definitions
 import * as WoT from "wot-typescript-definitions";
 // node-wot implementation of W3C WoT Servient
-import { Servient, Helpers } from "@node-wot/core";
+import { Servient } from "@node-wot/core";
 // protocols used
-import { HttpServer } from "@node-wot/binding-http";
-
+import { HttpServer, HttpClientFactory, HttpsClientFactory } from "@node-wot/binding-http";
 import { FileClientFactory } from "@node-wot/binding-file";
-import { HttpClientFactory } from "@node-wot/binding-http";
-import { HttpsClientFactory } from "@node-wot/binding-http";
-import { CoapClientFactory } from "@node-wot/binding-coap";
-import { CoapsClientFactory } from "@node-wot/binding-coap";
+import { CoapClientFactory, CoapsClientFactory } from "@node-wot/binding-coap";
 
 export default class BridgeServient extends Servient {
     private static readonly defaultConfig = {
@@ -54,7 +50,7 @@ export default class BridgeServient extends Servient {
         console.dir(this.config);
 
         // http server for local control and monitoring
-        let httpServer =
+        const httpServer =
             typeof this.config.http.port === "number" ? new HttpServer(this.config.http.port) : new HttpServer();
         this.addServer(httpServer);
 
@@ -62,7 +58,7 @@ export default class BridgeServient extends Servient {
         this.addClientFactory(new FileClientFactory());
         this.addClientFactory(new HttpClientFactory(this.config.http));
         this.addClientFactory(new HttpsClientFactory(this.config.http));
-        this.addClientFactory(new CoapClientFactory());
+        this.addClientFactory(new CoapClientFactory(null)); // TODO
         this.addClientFactory(new CoapsClientFactory());
     }
 

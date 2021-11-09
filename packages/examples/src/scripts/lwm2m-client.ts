@@ -25,7 +25,7 @@ console.info("==========");
 WoTHelpers.fetch("coap://localhost:5683/counter")
     .then(async (td) => {
         try {
-            let leshan = await WoT.consume(td as ThingDescription);
+            const leshan = await WoT.consume(td as ThingDescription);
             console.info("=== TD ===");
             console.info(td);
             console.info("==========");

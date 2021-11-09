@@ -20,19 +20,19 @@ let WoTHelpers: Helpers;
 WoTHelpers.fetch("http://localhost:8080/eventsource")
     .then(async (td) => {
         try {
-            let source = await WoT.consume(td as ThingDescription);
+            const source = await WoT.consume(td as ThingDescription);
             console.info("=== TD ===");
             console.info(td);
             console.info("==========");
 
             source
-                .subscribeEvent("onchange", (x: any) => {
+                .subscribeEvent("onchange", (x: WoT.InteractionOutput) => {
                     console.info("onNext:", x);
                 })
                 .then(() => {
                     console.log("onCompleted");
                 })
-                .catch((e: any) => {
+                .catch((e: Error) => {
                     console.log("onError: %s", e);
                 });
 

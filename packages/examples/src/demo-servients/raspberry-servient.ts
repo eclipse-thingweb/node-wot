@@ -17,8 +17,6 @@
 // global W3C WoT Scripting API definitions
 import * as WoT from "wot-typescript-definitions";
 
-import * as TD from "@node-wot/td-tools";
-
 // node-wot implementation of W3C WoT Servient
 import { Servient, ExposedThing } from "@node-wot/core";
 import { HttpServer } from "@node-wot/binding-http";
@@ -27,7 +25,7 @@ import { HttpServer } from "@node-wot/binding-http";
 import { CoapServer } from "@node-wot/binding-coap";
 
 // tools
-const net = require("net");
+import net from "net";
 
 // the UnicornHat API daemon listens on a Unix socket at /var/run/mysocket
 const client = net.createConnection("/var/run/unicornd.socket");
@@ -49,12 +47,12 @@ declare interface Color {
     b: number;
 }
 
-let unicorn: WoT.ExposedThing;
-let gradient: Array<Color>;
-let gradientTimer: any;
-let gradIndex: number = 0;
+// let unicorn: WoT.ExposedThing;
+// let gradient: Array<Color>;
+// let gradientTimer: any;
+// const gradIndex = 0;
 let gradNow: Color;
-let gradNext: Color;
+// let gradNext: Color;
 let gradVector: Color;
 
 // main logic after connecting to UnicornHat daemon
@@ -66,7 +64,7 @@ function main() {
 
     console.info("UnicornHAT initilized");
 
-    let servient = new Servient();
+    const servient = new Servient();
 
     servient.addServer(new HttpServer());
     servient.addServer(new CoapServer());
@@ -78,11 +76,11 @@ function main() {
             console.info("RaspberryServient started");
 
             try {
-                let template: WoT.ExposedThingInit = { name: "Unicorn" };
+                const template: WoT.ExposedThingInit = { name: "Unicorn" };
 
                 myWoT.produce(template).then((thing) => {
                     if (thing instanceof ExposedThing) {
-                        let unicorn: ExposedThing = thing;
+                        const unicorn: ExposedThing = thing;
 
                         // TODO FIX after v0.8 API changes are in place
                         console.error("TODO FIX after v0.8 API changes are in place");
@@ -154,7 +152,7 @@ function main() {
                         return '{ "minItems": 2 }';
                       }
                       unicorn.invokeAction('cancel');
-            
+
                       gradient = input;
                       gradIndex = 0;
                       gradNow = gradient[0];
@@ -203,7 +201,7 @@ function main() {
                     });
                   }
                 );
-            
+
             unicorn.expose().then( () => { console.info(unicorn.name + " ready"); });
             */
                     }
@@ -278,7 +276,7 @@ function setAll(r: number, g: number, b: number) {
         console.error("not connected");
         return;
     }
-    let all = [2];
+    const all = [2];
     for (let i = 0; i < 64; ++i) {
         all.push(g);
         all.push(r);

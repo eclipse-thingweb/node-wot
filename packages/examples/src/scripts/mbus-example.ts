@@ -215,13 +215,13 @@ WoT.consume({
     },
 }).then(async (mbusThing) => {
     try {
-        let res: any;
+        let res: WoT.InteractionOutput;
         res = await mbusThing.readProperty("SlaveInformation");
         console.log("Slave Informations:", res);
         res = await mbusThing.readProperty("Volume0");
-        console.log("Volume 0:", res.Value);
+        console.log("Volume 0:", res.value());
         res = await mbusThing.readProperty("TimeAndDate");
-        console.log("Time and Date:", res.Value);
+        console.log("Time and Date:", res.value());
     } catch (err) {
         console.error("Application error:", err.message);
         console.error(err);

@@ -25,14 +25,14 @@ const argv = process.argv.slice(2); // remove "node" and executable
 const defaultFile = "bridge-servient.conf.json";
 const baseDir = ".";
 
-var flagArgConfigfile = false;
-var confFile: string;
-var flagArgPassword = false;
-var password: string;
+let flagArgConfigfile = false;
+let confFile: string;
+let flagArgPassword = false;
+let password: string;
 
 const readConf = function (filename: string): Promise<any> {
     return new Promise((resolve, reject) => {
-        let open = filename ? filename : path.join(baseDir, defaultFile);
+        const open = filename || path.join(baseDir, defaultFile);
         fs.readFile(open, "utf-8", (err, data) => {
             if (err) {
                 reject(err);
@@ -78,7 +78,7 @@ const runAllScripts = function (servient: BridgeServient) {
         }
 
         // unhidden .js files
-        let scripts = files.filter((file) => {
+        const scripts = files.filter((file) => {
             return file.substr(0, 1) !== "." && file.slice(-3) === ".js";
         });
         console.info(
@@ -94,7 +94,7 @@ const runAllScripts = function (servient: BridgeServient) {
 
 // main
 if (argv.length > 0) {
-    let argvCopy = argv.slice(0);
+    const argvCopy = argv.slice(0);
     argvCopy.forEach((arg) => {
         if (flagArgConfigfile) {
             flagArgConfigfile = false;
@@ -111,6 +111,7 @@ if (argv.length > 0) {
             flagArgPassword = true;
             argv.shift();
         } else if (arg.match(/^(-v|--version|\/c)$/i)) {
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
             console.log(require("@node-wot/core/package.json").version);
             process.exit(0);
         } else if (arg.match(/^(-h|--help|\/?|\/h)$/i)) {
