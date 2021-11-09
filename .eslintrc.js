@@ -10,7 +10,7 @@ module.exports = {
         es6: true,
         node: true,
     },
-    ignorePatterns: [".eslintrc.js", "dist", "node_modules", "/examples", "bin"],
+    ignorePatterns: [".eslintrc.js", "dist", "node_modules", "/examples", "bin", "*.js"],
     rules: {
         "@typescript-eslint/no-unused-vars": "off", // or "@typescript-eslint/no-unused-vars": "off",
         "unused-imports/no-unused-imports": "error",
