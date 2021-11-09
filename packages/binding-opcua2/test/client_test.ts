@@ -1,7 +1,7 @@
-import { VariableIds, OPCUAServer, DataValue } from "node-opcua";
+import { VariableIds, OPCUAServer, DataValue, DataType } from "node-opcua";
 import { ContentSerdes, ProtocolHelpers } from "@node-wot/core";
 
-import { OPCUAProtocolClient, OPCUAForm } from "../src/opcua_protocol_client";
+import { OPCUAProtocolClient, OPCUAForm, OPCUAFormInvoke } from "../src/opcua_protocol_client";
 import { OpcuaJSONCodec, schemaDataValue } from "../src/codec";
 
 import { startServer } from "./fixture/basic_opcua_server";
@@ -69,6 +69,7 @@ describe("OPCUA Client", function () {
             }
         });
     });
+
     it("Y3 - should subscribe to many topics but establish the opcua connection once", async () => {
         const form: OPCUAForm = {
             href: endpoint,
@@ -89,5 +90,21 @@ describe("OPCUA Client", function () {
             client.subscribeResource(form, onSubscribedValueChanged);
             client.subscribeResource(form, onSubscribedValueChanged);
         });
+    });
+
+    it("Y4 - invokeResource", async () => {
+        const form: OPCUAFormInvoke = {
+            href: endpoint,
+            "opcua:nodeId": { root: "i=84", path: "/Objects/1:MySensor" },
+            "opcua:method": { root: "i=84", path: "/Objects/1:MySensor/2:MethodSet/1:SetTemperatureSetPoint" },
+            "opcua:inputArguments": {
+                "TargetTemperature": { dataType: DataType.Float },
+            },
+        };
+        const contentType = "application/json";
+        const contentSerDes = ContentSerdes.get();
+        const content = contentSerDes.valueToContent({ TargetTemperature: 25 }, schemaDataValue, contentType);
+
+        const sub = await client.invokeResource(form, content);
     });
 });

@@ -17,17 +17,20 @@ import {
     VariantLike,
     DataType,
     IBasicSession,
+    VariantArrayType,
 } from "node-opcua-client";
-import { getBuiltInDataType } from "node-opcua-pseudo-session";
+import { ArgumentDefinition, getBuiltInDataType } from "node-opcua-pseudo-session";
 
-import { NodeId, NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
-import { AttributeIds } from "node-opcua-data-model";
+import { makeNodeId, NodeId, NodeIdLike, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
+import { AttributeIds, BrowseDirection, makeResultMask } from "node-opcua-data-model";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { StatusCodes } from "node-opcua-status-code";
 
 import { theOpcuaJSONCodec, schemaDataValue, formatForNodeWoT } from "./codec";
 import { FormElementProperty } from "wot-thing-description-types";
 import { opcuaJsonEncodeDataValue } from "node-opcua-json";
+import { Argument, BrowseDescription, BrowseResult } from "node-opcua-types";
+import { ReferenceTypeIds } from "node-opcua";
 
 export type Command = "Read" | "Write" | "Subscribe";
 
@@ -50,6 +53,7 @@ export interface OPCUAFormElement extends FormElementProperty, FormPartialNodeDe
 
 export interface OPCUAFormInvoke extends OPCUAForm {
     "opcua:method": NodeIdLike | NodeByBrowsePath;
+    "opcua:inputArguments": Record<string, VariantLike>;
 }
 export interface OPCUAFormSubscribe extends OPCUAForm {
     "opcua:samplingInterval"?: number;
@@ -64,6 +68,97 @@ export interface OPCUAConnection {
 export type Resolver = (...arg: [...unknown[]]) => void;
 export interface OPCUAConnectionEx extends OPCUAConnection {
     pending?: Resolver[];
+}
+
+export function findBasicDataTypeC(
+    session: IBasicSession,
+    dataTypeId: NodeId,
+    callback: (err: Error | null, dataType?: DataType) => void
+): void {
+    const resultMask = makeResultMask("ReferenceType");
+
+    if (dataTypeId.identifierType === NodeIdType.NUMERIC && dataTypeId.value <= 25) {
+        // we have a well-known DataType
+        const dataTypeName = DataType[dataTypeId.value as number];
+        callback!(null, dataTypeId.value as DataType);
+    } else {
+        // let's browse for the SuperType of this object
+        const nodeToBrowse = new BrowseDescription({
+            browseDirection: BrowseDirection.Inverse,
+            includeSubtypes: false,
+            nodeId: dataTypeId,
+            referenceTypeId: makeNodeId(ReferenceTypeIds.HasSubtype),
+            resultMask,
+        });
+
+        session.browse(nodeToBrowse, (err: Error | null, browseResult?: BrowseResult) => {
+            /* istanbul ignore next */
+            if (err) {
+                return callback!(err);
+            }
+
+            /* istanbul ignore next */
+            if (!browseResult) {
+                return callback!(new Error("Internal Error"));
+            }
+
+            browseResult.references = browseResult.references || /* istanbul ignore next */ [];
+            const baseDataType = browseResult.references[0].nodeId;
+            return findBasicDataTypeC(session, baseDataType, callback!);
+        });
+    }
+}
+const findBasicDataType: (session: IBasicSession, dataTypeId: NodeId) => Promise<DataType> =
+    promisify(findBasicDataTypeC);
+
+async function _resolveInputArguments(
+    session: IBasicSession,
+    argumentDefinition: ArgumentDefinition,
+    form: OPCUAFormInvoke, 
+    bodyInput: Record<string,unknown>
+): Promise<VariantLike[]> {
+    const inputArguments = (argumentDefinition.inputArguments || []) as any as Argument[];
+
+    const variants: VariantLike[] = [];
+    for (let index = 0; index < inputArguments.length; index++) {
+        const argument = inputArguments[index];
+        const { name, dataType, description, arrayDimensions, valueRank } = argument;
+        const value = form["opcua:inputArguments"][name];
+        if (value === undefined) {
+            throw new Error("missing value for argument " + name);
+        }
+        if (bodyInput[name] === undefined) {
+            throw new Error("missing value in bodyInput for argument " + name);     
+        }
+        const basicDataType = await findBasicDataType(session, dataType);
+        const arrayType: VariantArrayType = valueRank === -1 ? VariantArrayType.Scalar : VariantArrayType.Array;
+
+        variants.push({
+            dataType: basicDataType,
+            arrayType,
+            value: bodyInput[name],
+        });
+    }
+    return variants;
+}
+async function _resolveOutputArguments(
+    session: IBasicSession,
+    argumentDefinition: ArgumentDefinition,
+    outputVariants: VariantLike[]
+): Promise<Record<string, unknown>> {
+    const outputArguments = (argumentDefinition.outputArguments || []) as any as Argument[];
+
+    const res: Record<string, unknown> = {};
+    for (let index = 0; index < outputArguments.length; index++) {
+        const argument = outputArguments[index];
+        const { name, dataType, description, arrayDimensions, valueRank } = argument;
+        const basicDataType = await findBasicDataType(session, dataType);
+        const arrayType: VariantArrayType = valueRank === -1 ? VariantArrayType.Scalar : VariantArrayType.Array;
+
+        res[name] = outputVariants[index].value;
+    }
+
+    return res;
 }
 
 function codeResolution(contentType: string) {
@@ -263,19 +358,18 @@ export class OPCUAProtocolClient implements ProtocolClient {
         }
     }
 
-    private async _resolveInputArguments(content: Content): Promise<VariantLike[]> {
-        return [];
-    }
-
     public async invokeResource(form: OPCUAFormInvoke, content: Content): Promise<Content> {
+        
         const content2 = { ...content, body: await ProtocolHelpers.readStreamFully(content.body) };
-        console.debug("[opcua-client|invokeResource] : Sorry not implemented");
 
         return await this._withSession(form, async (session) => {
             const objectId = await this._resolveNodeId(form);
             const methodId = await this._resolveMethodNodeId(form);
 
-            const inputArguments = await this._resolveInputArguments(content);
+            const argumentDefinition: ArgumentDefinition = await session.getArgumentDefinition(methodId);
+
+            const bodyInput = JSON.parse(content2.body.toString());
+            const inputArguments = await _resolveInputArguments(session, argumentDefinition, form, bodyInput);
 
             const callResult = await session.call({
                 objectId,
@@ -285,7 +379,13 @@ export class OPCUAProtocolClient implements ProtocolClient {
             if (callResult.statusCode !== StatusCodes.Good) {
                 throw new Error("Error in Calling OPCUA MEthod : " + callResult.statusCode.toString());
             }
-            return {} as Content;
+            const body = await _resolveOutputArguments(session, argumentDefinition, callResult.outputArguments);
+
+            const contentType = "application/json";
+            const contentSerDes = ContentSerdes.get();  
+            const content = contentSerDes.valueToContent(body, schemaDataValue, contentType);
+            console.debug("[opcua-client|readResource]", "contentType", content.type);
+            return content;
         });
     }
 
