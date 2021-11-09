@@ -27,6 +27,18 @@ import { CoapForm } from "../src/coap";
 const port1 = 31833;
 const port2 = 31834;
 
+/**
+ * Helper function for waiting during tests.
+ *
+ * @param ms The time to wait in miliseconds.
+ * @returns A Promise that is resolved after the given time period.
+ */
+function sleep(ms: number) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+}
+
 @suite("CoAP client implementation")
 class CoapClientTest {
     @test async "should apply form information"() {
@@ -92,10 +104,10 @@ class CoapClientTest {
         const coapServer = new CoapServer(port2, "localhost");
         await coapServer.start(null);
         const coapClient = new CoapClient(coapServer);
-        const res = await coapClient.readResource({
+        await coapClient.readResource({
             href: `coap://localhost:${port2}/`,
         });
-        false && console.log(res);
+        await sleep(50); // Wait for client to send its ACK
         await coapServer.stop();
     }
 

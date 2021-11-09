@@ -26,32 +26,31 @@ import { Subscription } from "rxjs/Subscription";
 import * as TD from "@node-wot/td-tools";
 
 import { ProtocolClient, Content, ContentSerdes, ProtocolHelpers } from "@node-wot/core";
-import {
-    CoapForm,
-    CoapRequestConfig,
-    CoapOption,
-    CoapMethodName,
-    isSupportedCoapMethod,
-    isValidCoapMethod,
-} from "./coap";
+import { CoapForm, CoapOption, CoapMethodName, isSupportedCoapMethod, isValidCoapMethod } from "./coap";
 import CoapServer from "./coap-server";
 import { Readable } from "stream";
-import coap = require("coap");
+import {
+    Agent,
+    registerFormat,
+    AgentOptions,
+    CoapRequestParams,
+    IncomingMessage,
+    OutgoingMessage,
+    ObserveReadStream,
+} from "coap";
 
 export default class CoapClient implements ProtocolClient {
     // FIXME coap Agent closes socket when no messages in flight -> new socket with every request
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private agent: any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private readonly agentOptions: any;
+    private agent: Agent;
+    private readonly agentOptions: AgentOptions;
 
     constructor(server?: CoapServer) {
         // if server is passed, feed its socket into the CoAP agent for socket re-use
-        this.agent = new coap.Agent(server ? { socket: server.getSocket() } : undefined);
+        this.agent = new Agent(server ? { socket: server.getSocket() } : undefined);
         this.agentOptions = server ? { socket: server.getSocket() } : {};
 
         // WoT-specific content formats
-        coap.registerFormat(ContentSerdes.JSON_LD, 2100);
+        registerFormat(ContentSerdes.JSON_LD, 2100);
     }
 
     public toString(): string {
@@ -62,13 +61,12 @@ export default class CoapClient implements ProtocolClient {
         const req = await this.generateRequest(form, "GET");
         console.debug("[binding-coap]", `CoapClient sending ${req.statusCode} to ${form.href}`);
         return new Promise<Content>((resolve, reject) => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            req.on("response", (res: any) => {
+            req.on("response", (res: ObserveReadStream) => {
                 console.debug("[binding-coap]", `CoapClient received ${res.code} from ${form.href}`);
                 console.debug("[binding-coap]", `CoapClient received Content-Format: ${res.headers["Content-Format"]}`);
 
                 // FIXME does not work with blockwise because of node-coap
-                let contentType = res.headers["Content-Format"];
+                let contentType = res.headers["Content-Format"] as string;
                 if (!contentType) contentType = form.contentType;
 
                 resolve({ type: contentType, body: Readable.from(res.payload) });
@@ -88,8 +86,7 @@ export default class CoapClient implements ProtocolClient {
 
                     console.debug("[binding-coap]", `CoapClient sending ${req.statusCode} to ${form.href}`);
 
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    req.on("response", (res: any) => {
+                    req.on("response", (res: IncomingMessage) => {
                         console.debug("[binding-coap]", `CoapClient received ${res.code} from ${form.href}`);
                         console.debug("[binding-coap]", `CoapClient received headers: ${JSON.stringify(res.headers)}`);
                         resolve();
@@ -109,12 +106,12 @@ export default class CoapClient implements ProtocolClient {
 
             console.debug("[binding-coap]", `CoapClient sending ${req.statusCode} to ${form.href}`);
 
-            req.on("response", (res: { code: string; headers: { "Content-Format"?: string }; payload: Buffer }) => {
+            req.on("response", (res: IncomingMessage) => {
                 console.debug("[binding-coap]", `CoapClient received ${res.code} from ${form.href}`);
                 console.debug("[binding-coap]", `CoapClient received Content-Format: ${res.headers["Content-Format"]}`);
                 console.debug("[binding-coap]", `CoapClient received headers: ${JSON.stringify(res.headers)}`);
-                const contentType = res.headers["Content-Format"];
-                resolve({ type: contentType || "", body: Readable.from(res.payload) });
+                const contentType = res.headers["Content-Format"] as string;
+                resolve({ type: contentType ?? "", body: Readable.from(res.payload) });
             });
             req.on("error", (err: Error) => reject(err));
             (async () => {
@@ -134,8 +131,7 @@ export default class CoapClient implements ProtocolClient {
 
             console.debug("[binding-coap]", `CoapClient sending ${req.statusCode} to ${form.href}`);
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            req.on("response", (res: any) => {
+            req.on("response", (res: IncomingMessage) => {
                 console.debug("[binding-coap]", `CoapClient received ${res.code} from ${form.href}`);
                 console.debug("[binding-coap]", `CoapClient received headers: ${JSON.stringify(res.headers)}`);
                 resolve();
@@ -156,8 +152,7 @@ export default class CoapClient implements ProtocolClient {
 
             console.debug("[binding-coap]", `CoapClient sending ${req.statusCode} to ${form.href}`);
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            req.on("response", (res: any) => {
+            req.on("response", (res: ObserveReadStream) => {
                 console.debug("[binding-coap]", `CoapClient received ${res.code} from ${form.href}`);
                 console.debug("[binding-coap]", `CoapClient received Content-Format: ${res.headers["Content-Format"]}`);
 
@@ -166,7 +161,7 @@ export default class CoapClient implements ProtocolClient {
                 if (!contentType) contentType = form.contentType;
 
                 res.on("data", (data: Buffer) => {
-                    next({ type: contentType, body: Readable.from(res.payload) });
+                    next({ type: `${contentType}`, body: Readable.from(res.payload) });
                 });
 
                 resolve(
@@ -197,14 +192,14 @@ export default class CoapClient implements ProtocolClient {
 
     public setSecurity = (metadata: Array<TD.SecurityScheme>): boolean => true;
 
-    private uriToOptions(uri: string): CoapRequestConfig {
+    private uriToOptions(uri: string): CoapRequestParams {
         // eslint-disable-next-line node/no-deprecated-api
         const requestUri = url.parse(uri);
         const agentOptions = this.agentOptions;
-        agentOptions.type = net.isIPv6(requestUri.hostname || "") ? "udp6" : "udp4";
-        this.agent = new coap.Agent(agentOptions);
+        agentOptions.type = net.isIPv6(requestUri.hostname ?? "") ? "udp6" : "udp4";
+        this.agent = new Agent(agentOptions);
 
-        const options: CoapRequestConfig = {
+        const options: CoapRequestParams = {
             agent: this.agent,
             hostname: requestUri.hostname || "",
             port: requestUri.port ? parseInt(requestUri.port, 10) : 5683,
@@ -220,7 +215,7 @@ export default class CoapClient implements ProtocolClient {
         return options;
     }
 
-    private determineRequestMethod(formMethod: CoapMethodName, defaultMethod: string) {
+    private determineRequestMethod(formMethod: CoapMethodName, defaultMethod: CoapMethodName): CoapMethodName {
         if (isSupportedCoapMethod(formMethod)) {
             return formMethod;
         } else if (isValidCoapMethod(formMethod)) {
@@ -240,9 +235,8 @@ export default class CoapClient implements ProtocolClient {
         return defaultMethod;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private generateRequest(form: CoapForm, defaultMethod: CoapMethodName, observable = false): any {
-        const options: CoapRequestConfig = this.uriToOptions(form.href);
+    private generateRequest(form: CoapForm, defaultMethod: CoapMethodName, observable = false): OutgoingMessage {
+        const options: CoapRequestParams = this.uriToOptions(form.href);
 
         if (form["cov:methodName"] != null) {
             const formMethodName = form["cov:methodName"];
