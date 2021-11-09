@@ -310,9 +310,9 @@ export default class CoapServer implements ProtocolServer {
                                     .catch((err) => {
                                         console.error(
                                             "[binding-coap]",
-                                            `CoapServer on port ${this.getPort()} got internal error on read '${
-                                                requestUri
-                                            }': ${err.message}`
+                                            `CoapServer on port ${this.getPort()} got internal error on read '${requestUri}': ${
+                                                err.message
+                                            }`
                                         );
                                         res.code = "5.00";
                                         res.end(err.message);
@@ -352,9 +352,9 @@ export default class CoapServer implements ProtocolServer {
                                         .catch((err) => {
                                             console.error(
                                                 "[binding-coap]",
-                                                `CoapServer on port ${this.getPort()} got internal error on read '${
-                                                    requestUri
-                                                }': ${err.message}`
+                                                `CoapServer on port ${this.getPort()} got internal error on read '${requestUri}': ${
+                                                    err.message
+                                                }`
                                             );
                                             res.code = "5.00";
                                             res.end(err.message);
@@ -391,9 +391,9 @@ export default class CoapServer implements ProtocolServer {
                                     .catch((err) => {
                                         console.error(
                                             "[binding-coap]",
-                                            `CoapServer on port ${this.getPort()} got internal error on write '${
-                                                requestUri
-                                            }': ${err.message}`
+                                            `CoapServer on port ${this.getPort()} got internal error on write '${requestUri}': ${
+                                                err.message
+                                            }`
                                         );
                                         res.code = "5.00";
                                         res.end(err.message);
@@ -449,7 +449,7 @@ export default class CoapServer implements ProtocolServer {
                                         );
                                         res.setOption("Content-Format", content.type);
                                         res.code = "2.05";
-                                        content.body.pipe(res,{end:true});
+                                        content.body.pipe(res, { end: true });
                                     } else {
                                         res.code = "2.04";
                                         res.end();
@@ -458,9 +458,9 @@ export default class CoapServer implements ProtocolServer {
                                 .catch((err) => {
                                     console.error(
                                         "[binding-coap]",
-                                        `CoapServer on port ${this.getPort()} got internal error on invoke '${
-                                            requestUri
-                                        }': ${err.message}`
+                                        `CoapServer on port ${this.getPort()} got internal error on invoke '${requestUri}': ${
+                                            err.message
+                                        }`
                                     );
                                     res.code = "5.00";
                                     res.end(err.message);
