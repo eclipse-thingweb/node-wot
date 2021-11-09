@@ -234,7 +234,7 @@ export default class CoapServer implements ProtocolServer {
         }
 
         // route request
-        const segments = decodeURI(requestUri).split("/");
+        const segments = decodeURI(requestUri.pathname).split("/");
 
         if (segments[1] === "") {
             // no path -> list all Things
