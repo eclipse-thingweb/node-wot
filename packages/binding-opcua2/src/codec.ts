@@ -22,7 +22,6 @@ import Ajv from "ajv";
 import {
     opcuaJsonEncodeDataValue,
     opcuaJsonDecodeDataValue,
-    opcuaJsonEncodeVariant,
     opcuaJsonDecodeVariant,
     DataValueJSON,
 } from "node-opcua-json";
@@ -38,13 +37,13 @@ const ajv = new Ajv({ strict: false });
  * const pojo = (new DataValue({})).toString();
  *
  */
-export const schemaDataValue: object = {
+export const schemaDataValue = {
     type: ["object"], // "number", "integer", "string", "boolean", "array", "null"],
     properties: {
         serverPicoseconds: { type: "integer" },
         sourcePicoseconds: { type: "integer" },
         serverTimestamp: { type: "string", /* format: "date", */ nullable: true },
-        sourceTimestamp: { type: "string", /* format: "date",*/ nullable: true },
+        sourceTimestamp: { type: "string", /* format: "date", */ nullable: true },
         statusCode: {
             type: ["object"],
             properties: {
@@ -73,7 +72,7 @@ export const schemaDataValue: object = {
             },
         },
     },
-    //required: [/**  */],
+    // required: [/**  */],
     additionalProperties: true,
 };
 
@@ -116,19 +115,15 @@ export const schemaDataValueJSON1 = {
             type: "integer",
             minimum: 0,
         },
-        // },
-        // oneOf: [
 
         Value: schemaVariantJSON,
         Value1: { type: "number", nullable: true },
-        //     {
-        //         properties: {
+
         Value2: {
             oneOf: [schemaVariantJSON, schemaVariantJSONNull],
         },
     },
-    //},
-    // ],
+
     additionalProperties: false,
     required: ["Value"],
 };
@@ -220,7 +215,7 @@ export class OpcuaJSONCodec implements ContentCodec {
 }
 export const theOpcuaJSONCodec = new OpcuaJSONCodec();
 
-export function jsonify(a: object) {
+export function jsonify(a: unknown): unknown {
     return JSON.parse(JSON.stringify(a));
 }
 export class OpcuaBinaryCodec implements ContentCodec {

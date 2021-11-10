@@ -2,42 +2,42 @@
 
 import { expect } from "chai";
 import { ExposedThing, Servient } from "@node-wot/core";
-import { OPCUAServer, DataValue, DataType } from "node-opcua";
+import { OPCUAServer, DataType } from "node-opcua";
 
 import { OPCUAClientFactory } from "../src";
 import { startServer } from "./fixture/basic_opcua_server";
 import { DataValueJSON } from "node-opcua-json";
 const endpoint = "opc.tcp://localhost:7890";
 
-function schemaVariantMaker(dataType: DataType) {
-    const valueType = (() => {
-        switch (dataType) {
-            case DataType.Boolean:
-                return "boolean";
-            case DataType.Byte:
-            case DataType.SByte:
-            case DataType.Float:
-            case DataType.Double:
-                return "number";
-        }
-        return "object";
-    })();
+// function schemaVariantMaker(dataType: DataType) {
+//     const valueType = (() => {
+//         switch (dataType) {
+//             case DataType.Boolean:
+//                 return "boolean";
+//             case DataType.Byte:
+//             case DataType.SByte:
+//             case DataType.Float:
+//             case DataType.Double:
+//                 return "number";
+//         }
+//         return "object";
+//     })();
 
-    const schema = {
-        type: "object",
-        properties: {
-            Type: {
-                type: "number",
-                minimum: dataType,
-                maximum: dataType,
-            },
-            Value: {
-                type: "object",
-            },
-        },
-    };
-    return schema;
-}
+//     const schema = {
+//         type: "object",
+//         properties: {
+//             Type: {
+//                 type: "number",
+//                 minimum: dataType,
+//                 maximum: dataType,
+//             },
+//             Value: {
+//                 type: "object",
+//             },
+//         },
+//     };
+//     return schema;
+// }
 
 const thingDescription: WoT.ThingDescription = {
     "@context": "https://www.w3.org/2019/wot/td/v1",
@@ -128,6 +128,47 @@ const thingDescription: WoT.ThingDescription = {
                 required: ["PreviousSetPoint"],
             },
         },
+
+        GetSongLyrics: {
+            forms: [
+                {
+                    type: "object",
+                    href: "/",
+                    op: ["invokeaction"],
+                    "opcua:nodeId": { root: "i=84", path: "/Objects/1:MySensor" },
+                    "opcua:method": { root: "i=84", path: "/Objects/1:MySensor/2:MethodSet/1:GetSongLyrics" },
+                },
+            ],
+            input: {
+                type: "object",
+                properties: {
+                    SongList: {
+                        title: "the songs to sing",
+                        type: "array",
+                        // minimum: 0,
+                        // maximum: 100,
+                    },
+                    Volume: {
+                        type: "number",
+                        minimum: 0,
+                        maximum: 255,
+                    },
+                },
+                required: ["SongList", "Volume"],
+            },
+            output: {
+                type: "object",
+                properties: {
+                    SoundAndLyrics: {
+                        type: "array",
+                        title: "an array of key value pair containing song as key and lyrics as value",
+                        // minimum: 0,
+                        // maximum: 100,
+                    },
+                },
+                required: ["SoundAndLyrics"],
+            },
+        },
     },
 };
 
@@ -212,9 +253,6 @@ describe("Full OPCUA Thing Test", () => {
                 expect(dataValueJSON.Value).to.eql({ Type: 11, Body: 100.0 });
             }
         } finally {
-            console.log("Now shuting down");
-            // create a ConsumedThing
-            //  const consumedThing = new ExposedThing(thing);
             await servient.shutdown();
         }
     });
@@ -239,7 +277,7 @@ describe("Full OPCUA Thing Test", () => {
             const contentA = await (
                 await thing.invokeAction("setTemperatureSetPoint", { TargetTemperature: 26 })
             ).value();
-            const returnedValue = contentA.valueOf() as object;
+            const returnedValue = contentA.valueOf();
             console.log("temperature setpoint Before", returnedValue);
             expect(returnedValue).to.eql({ PreviousSetPoint: 27 });
 
@@ -247,9 +285,65 @@ describe("Full OPCUA Thing Test", () => {
             console.log("temperature setpoint Before -verified ", contentVerif.valueOf());
             expect((contentVerif.valueOf() as DataValueJSON).Value).to.eql({ Body: 26.0, Type: 11 });
         } finally {
-            console.log("Now shuting down");
-            // create a ConsumedThing
-            //  const consumedThing = new ExposedThing(thing);
+            await servient.shutdown();
+        }
+    });
+
+    it("Z4 - should create a servient (consume) with OPCUA client factory - InvokeAction (GetSongLyrics)", async () => {
+        const servient = new Servient();
+
+        const opcuaClientFactory = new OPCUAClientFactory();
+
+        servient.addClientFactory(opcuaClientFactory);
+
+        const wot = await servient.start();
+
+        const thing: WoT.ConsumedThing = await wot.consume(thingDescription);
+
+        console.debug(thing.getThingDescription().properties);
+
+        try {
+            const content = await (
+                await thing.invokeAction("GetSongLyrics", {
+                    SongList: ["Jingle Bell", "Mary has a little lamb"],
+                    Volume: 100,
+                })
+            ).value();
+            const returnedValue = content.valueOf();
+            // console.log("return value", JSON.stringify(returnedValue, null, " "));
+            expect(returnedValue).to.eql({
+                SoundAndLyrics: [
+                    {
+                        TypeId: {
+                            Id: 14533,
+                        },
+                        Body: {
+                            Key: {
+                                Name: "Jingle Bell",
+                            },
+                            Value: {
+                                Type: 12,
+                                Body: "Lyrics for 'Jingle Bell' (Volume = 100)",
+                            },
+                        },
+                    },
+                    {
+                        TypeId: {
+                            Id: 14533,
+                        },
+                        Body: {
+                            Key: {
+                                Name: "Mary has a little lamb",
+                            },
+                            Value: {
+                                Type: 12,
+                                Body: "Lyrics for 'Mary has a little lamb' (Volume = 100)",
+                            },
+                        },
+                    },
+                ],
+            });
+        } finally {
             await servient.shutdown();
         }
     });

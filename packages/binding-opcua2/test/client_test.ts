@@ -1,4 +1,4 @@
-import { VariableIds, OPCUAServer, DataValue, DataType } from "node-opcua";
+import { VariableIds, OPCUAServer, DataValue } from "node-opcua";
 import { ContentSerdes, ProtocolHelpers } from "@node-wot/core";
 
 import { OPCUAProtocolClient, OPCUAForm, OPCUAFormInvoke } from "../src/opcua_protocol_client";

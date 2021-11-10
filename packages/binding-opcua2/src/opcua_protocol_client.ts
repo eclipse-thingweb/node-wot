@@ -18,6 +18,7 @@ import {
     DataType,
     IBasicSession,
     VariantArrayType,
+    Variant,
 } from "node-opcua-client";
 import { ArgumentDefinition, getBuiltInDataType } from "node-opcua-pseudo-session";
 
@@ -28,7 +29,13 @@ import { StatusCodes } from "node-opcua-status-code";
 
 import { theOpcuaJSONCodec, schemaDataValue, formatForNodeWoT } from "./codec";
 import { FormElementProperty } from "wot-thing-description-types";
-import { opcuaJsonEncodeDataValue, opcuaJsonDecodeDataValue, DataValueJSON } from "node-opcua-json";
+import {
+    opcuaJsonEncodeDataValue,
+    opcuaJsonDecodeDataValue,
+    DataValueJSON,
+    opcuaJsonEncodeVariant,
+    VariantJSON,
+} from "node-opcua-json";
 import { Argument, BrowseDescription, BrowseResult } from "node-opcua-types";
 import { ReferenceTypeIds } from "node-opcua";
 
@@ -102,7 +109,7 @@ export function findBasicDataTypeC(
 
             browseResult.references = browseResult.references || /* istanbul ignore next */ [];
             const baseDataType = browseResult.references[0].nodeId;
-            return findBasicDataTypeC(session, baseDataType, callback!);
+            return findBasicDataTypeC(session, baseDataType, callback);
         });
     }
 }
@@ -115,15 +122,12 @@ async function _resolveInputArguments(
     form: OPCUAFormInvoke,
     bodyInput: Record<string, unknown>
 ): Promise<VariantLike[]> {
-    const inputArguments = (argumentDefinition.inputArguments || []) as any as Argument[];
-
-    const inputVariants: VariantLike[] = [];
+    const inputArguments = (argumentDefinition.inputArguments || []) as unknown as Argument[];
 
     const variants: VariantLike[] = [];
     for (let index = 0; index < inputArguments.length; index++) {
-        
         const argument = inputArguments[index];
-        
+
         const { name, dataType, /* description, */ arrayDimensions, valueRank } = argument;
 
         if (bodyInput[name] === undefined) {
@@ -149,26 +153,20 @@ async function _resolveInputArguments(
 async function _resolveOutputArguments(
     session: IBasicSession,
     argumentDefinition: ArgumentDefinition,
-    outputVariants: VariantLike[]
+    outputVariants: Variant[]
 ): Promise<Record<string, unknown>> {
-    const outputArguments = (argumentDefinition.outputArguments || []) as any as Argument[];
+    const outputArguments = (argumentDefinition.outputArguments || []) as unknown as Argument[];
 
     const res: Record<string, unknown> = {};
     for (let index = 0; index < outputArguments.length; index++) {
         const argument = outputArguments[index];
         const { name } = argument;
-        res[name] = outputVariants[index].value;
+        res[name] = (opcuaJsonEncodeVariant(outputVariants[index], true) as VariantJSON).Body;
     }
 
     return res;
 }
 
-function codeResolution(contentType: string) {
-    if (contentType === "application/json") {
-        return theOpcuaJSONCodec;
-    }
-    return null;
-}
 export class OPCUAProtocolClient implements ProtocolClient {
     private _connections: Map<string, OPCUAConnectionEx> = new Map<string, OPCUAConnectionEx>();
 
@@ -496,7 +494,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
         }
     }
 
-    setSecurity(metadata: SecurityScheme[], credentials?: any): boolean {
+    setSecurity(metadata: SecurityScheme[], credentials?: unknown): boolean {
         return true;
         // throw new Error("Method not implemented.");
     }
