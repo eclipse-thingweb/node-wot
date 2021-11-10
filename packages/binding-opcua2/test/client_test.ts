@@ -5,6 +5,8 @@ import { OPCUAProtocolClient, OPCUAForm, OPCUAFormInvoke } from "../src/opcua_pr
 import { OpcuaJSONCodec, schemaDataValue } from "../src/codec";
 
 import { startServer } from "./fixture/basic_opcua_server";
+import Ajv from "ajv/dist/core";
+import { expect } from "chai";
 
 describe("OPCUA Client", function () {
     this.timeout(10000);
@@ -93,17 +95,27 @@ describe("OPCUA Client", function () {
     });
 
     it("Y4 - invokeResource", async () => {
+        const inputSchema = {
+            type: "object",
+            properties: {
+                TargetTemperature: { type: "number" },
+            },
+            required: ["TargetTemperature"],
+        };
+
         const form: OPCUAFormInvoke = {
             href: endpoint,
             "opcua:nodeId": { root: "i=84", path: "/Objects/1:MySensor" },
             "opcua:method": { root: "i=84", path: "/Objects/1:MySensor/2:MethodSet/1:SetTemperatureSetPoint" },
-            "opcua:inputArguments": {
-                "TargetTemperature": { dataType: DataType.Double },
-            },
         };
         const contentType = "application/json";
         const contentSerDes = ContentSerdes.get();
-        const content = contentSerDes.valueToContent({ TargetTemperature: 25 }, schemaDataValue, contentType);
+
+        const value = { TargetTemperature: 25 }; // inputSchema
+        const ajv = new Ajv({ strict: false });
+        expect(ajv.compile(inputSchema)(value)).to.equal(true);
+
+        const content = contentSerDes.valueToContent(value, schemaDataValue, contentType);
 
         const contentResult = await client.invokeResource(form, content);
 
@@ -112,6 +124,6 @@ describe("OPCUA Client", function () {
         const outputArguments = codecSerDes.contentToValue(contentResult2, schemaDataValue);
         console.log("Y4: outputArguments:", outputArguments);
 
-        outputArguments.should.eql({ PreviousSetPoint: 27})
+        outputArguments.should.eql({ PreviousSetPoint: 27 });
     });
 });

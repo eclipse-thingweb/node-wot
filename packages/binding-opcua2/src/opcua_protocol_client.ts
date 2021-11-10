@@ -53,7 +53,6 @@ export interface OPCUAFormElement extends FormElementProperty, FormPartialNodeDe
 
 export interface OPCUAFormInvoke extends OPCUAForm {
     "opcua:method": NodeIdLike | NodeByBrowsePath;
-    "opcua:inputArguments": Record<string, VariantLike>;
 }
 export interface OPCUAFormSubscribe extends OPCUAForm {
     "opcua:samplingInterval"?: number;
@@ -117,18 +116,16 @@ async function _resolveInputArguments(
     bodyInput: Record<string, unknown>
 ): Promise<VariantLike[]> {
     const inputArguments = (argumentDefinition.inputArguments || []) as any as Argument[];
-    if (!form["opcua:inputArguments"]) {
-        throw new Error("opcua:inputArguments is missing in form : " + JSON.stringify(form));
-    }
+
+    const inputVariants: VariantLike[] = [];
 
     const variants: VariantLike[] = [];
     for (let index = 0; index < inputArguments.length; index++) {
+        
         const argument = inputArguments[index];
+        
         const { name, dataType, /* description, */ arrayDimensions, valueRank } = argument;
-        const value = form["opcua:inputArguments"][name];
-        if (value === undefined) {
-            throw new Error("missing value for argument " + name);
-        }
+
         if (bodyInput[name] === undefined) {
             throw new Error("missing value in bodyInput for argument " + name);
         }

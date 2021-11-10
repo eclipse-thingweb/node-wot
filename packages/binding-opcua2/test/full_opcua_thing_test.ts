@@ -9,6 +9,36 @@ import { startServer } from "./fixture/basic_opcua_server";
 import { DataValueJSON } from "node-opcua-json";
 const endpoint = "opc.tcp://localhost:7890";
 
+function schemaVariantMaker(dataType: DataType) {
+    const valueType = (() => {
+        switch (dataType) {
+            case DataType.Boolean:
+                return "boolean";
+            case DataType.Byte:
+            case DataType.SByte:
+            case DataType.Float:
+            case DataType.Double:
+                return "number";
+        }
+        return "object";
+    })();
+
+    const schema = {
+        type: "object",
+        properties: {
+            Type: {
+                type: "number",
+                minimum: dataType,
+                maximum: dataType,
+            },
+            Value: {
+                type: "object",
+            },
+        },
+    };
+    return schema;
+}
+
 const thingDescription: WoT.ThingDescription = {
     "@context": "https://www.w3.org/2019/wot/td/v1",
     "@type": ["Thing"],
@@ -69,15 +99,33 @@ const thingDescription: WoT.ThingDescription = {
                     op: ["invokeaction"],
                     "opcua:nodeId": { root: "i=84", path: "/Objects/1:MySensor" },
                     "opcua:method": { root: "i=84", path: "/Objects/1:MySensor/2:MethodSet/1:SetTemperatureSetPoint" },
-                    "opcua:inputArguments": { TargetTemperature: { type: "number", unit: "°C" } },
                 },
             ],
             description: "set the temperature set point",
+            // see https://www.w3.org/TR/wot-thing-description11/#action-serialization-sample
             input: {
-                TargetTemperature: { type: "number" },
+                type: "object",
+                properties: {
+                    TargetTemperature: {
+                        title: "the new temperature set point",
+                        type: "number",
+                        // minimum: 0,
+                        // maximum: 100,
+                    },
+                },
+                required: ["TargetTemperature"],
             },
             output: {
-                PreviousTemperatureSetPoint: { type: "number" },
+                type: "object",
+                properties: {
+                    PreviousSetPoint: {
+                        type: "number",
+                        title: "the previous temperature set point",
+                        // minimum: 0,
+                        // maximum: 100,
+                    },
+                },
+                required: ["PreviousSetPoint"],
             },
         },
     },
@@ -152,10 +200,9 @@ describe("Full OPCUA Thing Test", () => {
                 const dataValueJSON = (await content.value()).valueOf() as DataValueJSON;
                 console.log("Temperature After", dataValueJSON);
                 expect(dataValueJSON.Value).to.eql({ Type: 11, Body: 27.0 });
-
             }
 
-            await thing.writeProperty("temperatureSetPoint", { Value: { Type: 11, Body: 100 }});
+            await thing.writeProperty("temperatureSetPoint", { Value: { Type: 11, Body: 100 } });
 
             {
                 // read temperature after
@@ -185,7 +232,7 @@ describe("Full OPCUA Thing Test", () => {
 
         console.debug(thing.getThingDescription().properties);
 
-        await thing.writeProperty("temperatureSetPoint", { Value: { Type: DataType.Double, Body: 27 }});
+        await thing.writeProperty("temperatureSetPoint", { Value: { Type: DataType.Double, Body: 27 } });
 
         try {
             // read temperature before
