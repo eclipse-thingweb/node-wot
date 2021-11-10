@@ -264,6 +264,8 @@ export default class ProtocolHelpers {
                         (chunks[0] instanceof Array || chunks[0] instanceof Buffer || chunks[0] instanceof Uint8Array)
                     ) {
                         resolve(Buffer.concat(chunks as Array<Buffer | Uint8Array>));
+                    } else if (chunks[0] && typeof chunks[0] === "string") {
+                        resolve(Buffer.from(chunks.join()));
                     } else {
                         resolve(Buffer.from(chunks as Array<number>));
                     }
