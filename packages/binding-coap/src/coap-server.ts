@@ -555,7 +555,7 @@ export default class CoapServer implements ProtocolServer {
         res.end("Not Found");
     }
 
-    private isEmpty(obj: any) {
+    private isEmpty(obj: Record<string, unknown>) {
         for (const key in obj) {
             if (Object.prototype.hasOwnProperty.call(obj, key)) return false;
         }
