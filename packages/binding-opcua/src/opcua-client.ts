@@ -163,7 +163,7 @@ export default class OpcuaClient implements ProtocolClient {
         if (result.statusCode === StatusCodes.BadNodeIdUnknown) {
             throw new Error("Invalid nodeId");
         }
-        const body = JSON.stringify(result, (k, v) => {
+        const body = JSON.stringify(result.toJSON(), (k, v) => {
             if (ArrayBuffer.isView(v as ArrayLike<unknown>)) {
                 return Array.from(v);
             } else {
