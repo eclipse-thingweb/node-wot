@@ -23,6 +23,10 @@ export class WotDevice {
     public thing: WoT.ExposedThing;
     public WoT: WoT.WoT;
     public td: any;
+
+    // property declarations
+    private myProperty: any;
+
     constructor(WoT: WoT.WoT, tdDirectory?: string) {
         //create WotDevice as a server
         this.WoT = WoT;
@@ -76,14 +80,14 @@ export class WotDevice {
         ).then((exposedThing) => {
             this.thing = exposedThing;
             this.td = exposedThing.getThingDescription();
-            this.add_properties();
-            this.add_actions();
-            this.add_events();
-            this.thing.expose();
+            this.addProperties();   // Initialize properties and add their handlers
+            this.addActions();      // Initialize actions and add their handlers
+                                    // Events do not need to be initialzed, can be emited from anywhere
+            this.thing.expose();    // Expose thing
             if (tdDirectory) {
                 this.register(tdDirectory);
             }
-            this.listen_to_myEvent(); //used to listen to specific events provided by a library. If you don't have events, simply remove it
+            this.listenToMyEvent(); // used to listen to specific events provided by a library. If you don't have events, simply remove it
         });
     }
 
@@ -104,21 +108,35 @@ export class WotDevice {
         });
     }
 
-    private myPropertyHandler() {
+    private myPropertyReadHandler() {
         return new Promise((resolve, reject) => {
             // read something
-            resolve();
+            resolve(this.myProperty);
         });
     }
 
-    private myActionHandler(inputData) {
+    private myPropertyWriteHandler(inputData, options?) {
         return new Promise((resolve, reject) => {
-            // do something with inputData
-            resolve();
+            // write something to property
+            this.myProperty = inputData;
+            // resolve that write was succesful
+            resolve(true);
         });
     }
 
-    private listen_to_myEvent() {
+
+    private myActionHandler(inputData?, options?) {
+        return new Promise((resolve, reject) => {
+            // do something with inputData if available
+            if(inputData) {
+                this.thing.emitEvent("myEvent") // Emiting an event (may be removed; only for demonstration purposes)
+            }
+            //resolve that action was successful
+            resolve(true);
+        });
+    }
+
+    private listenToMyEvent() {
         /*
 		specialLibrary.getMyEvent()//change specialLibrary to your library
 		.then((thisEvent) => {
@@ -127,13 +145,14 @@ export class WotDevice {
     	*/
     }
 
-    private add_properties() {
+    private addProperties() {
         //fill in add properties
-        this.thing.writeProperty("myProperty", ""); //replace quotes with the initial value
-        this.thing.setPropertyReadHandler("myProperty", this.myPropertyHandler);
+        this.myProperty = ""  ; // replace quotes with the initial value
+        this.thing.setPropertyReadHandler("myProperty", this.myPropertyReadHandler);   // not applicable for write-only
+        this.thing.setPropertyWriteHandler("myProperty", this.myPropertyWriteHandler); // not applicable for read-only
     }
 
-    private add_actions() {
+    private addActions() {
         //fill in add actions
         this.thing.setActionHandler("myAction", (inputData) => {
             return new Promise((resolve, reject) => {
@@ -144,8 +163,5 @@ export class WotDevice {
                 }
             });
         });
-    }
-    private add_events() {
-        // can/should be removed, no need to add events anywhere, just emit them
     }
 }
