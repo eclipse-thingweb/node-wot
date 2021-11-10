@@ -30,16 +30,13 @@ import { HttpForm, HttpHeader, HttpConfig, HTTPMethodName } from "./http";
 import fetch, { Request, RequestInit, Response } from "node-fetch";
 import { Buffer } from "buffer";
 import OAuthManager from "./oauth-manager";
-import { parse } from "url";
 import { BasicCredential, Credential, BearerCredential, BasicKeyCredential, OAuthCredential } from "./credential";
 import { LongPollingSubscription, SSESubscription, InternalSubscription } from "./subscription-protocols";
 
 export default class HttpClient implements ProtocolClient {
     private readonly agent: http.Agent;
-    private readonly provider: any;
+    private readonly provider: "https" | "http";
     private proxyRequest: Request = null;
-    private authorization: string = null;
-    private authorizationHeader = "Authorization";
     private allowSelfSigned = false;
     private oauth: OAuthManager;
 
@@ -53,7 +50,10 @@ export default class HttpClient implements ProtocolClient {
             this.proxyRequest = new Request(HttpClient.fixLocalhostName(config.proxy.href));
 
             if (config.proxy.scheme === "basic") {
-                if (!config.proxy.hasOwnProperty("username") || !config.proxy.hasOwnProperty("password"))
+                if (
+                    !Object.prototype.hasOwnProperty.call(config.proxy, "username") ||
+                    !Object.prototype.hasOwnProperty.call(config.proxy, "password")
+                )
                     console.warn(
                         "[binding-http]",
                         `HttpClient client configured for basic proxy auth, but no username/password given`
@@ -63,7 +63,7 @@ export default class HttpClient implements ProtocolClient {
                     "Basic " + Buffer.from(config.proxy.username + ":" + config.proxy.password).toString("base64")
                 );
             } else if (config.proxy.scheme === "bearer") {
-                if (!config.proxy.hasOwnProperty("token"))
+                if (!Object.prototype.hasOwnProperty.call(config.proxy, "token"))
                     console.warn(
                         "[binding-http]",
                         `HttpClient client configured for bearer proxy auth, but no token given`
@@ -99,7 +99,7 @@ export default class HttpClient implements ProtocolClient {
               })
             : new http.Agent();
 
-        this.provider = secure ? https : http;
+        this.provider = secure ? "https" : "http";
         this.oauth = oauthManager;
     }
 
@@ -144,8 +144,8 @@ export default class HttpClient implements ProtocolClient {
 
     public subscribeResource(
         form: HttpForm,
-        next: (value: any) => void,
-        error?: (error: any) => void,
+        next: (value: Content) => void,
+        error?: (error: Error) => void,
         complete?: () => void
     ): Promise<Subscription> {
         return new Promise<Subscription>((resolve, reject) => {
@@ -153,7 +153,7 @@ export default class HttpClient implements ProtocolClient {
             if (form.subprotocol === undefined || form.subprotocol === "longpoll") {
                 // longpoll or subprotocol is not defined default is longpoll
                 internalSubscription = new LongPollingSubscription(form, this);
-            } else if (form.subprotocol == "sse") {
+            } else if (form.subprotocol === "sse") {
                 // server sent events
                 internalSubscription = new SSESubscription(form);
             }
@@ -162,7 +162,7 @@ export default class HttpClient implements ProtocolClient {
                 .open(next, error, complete)
                 .then(() => {
                     this.activeSubscriptions.set(form.href, internalSubscription);
-                    resolve(new Subscription(() => {}));
+                    resolve(new Subscription(null));
                 })
                 .catch((err) => reject(err));
         });
@@ -193,7 +193,7 @@ export default class HttpClient implements ProtocolClient {
         return { type: result.headers.get("content-type"), body: result.body };
     }
 
-    public async unlinkResource(form: HttpForm): Promise<any> {
+    public async unlinkResource(form: HttpForm): Promise<void> {
         console.debug("[binding-http]", `HttpClient (unlinkResource) ${form.href}`);
         const internalSub = this.activeSubscriptions.get(form.href);
 
@@ -202,8 +202,6 @@ export default class HttpClient implements ProtocolClient {
         } else {
             console.warn("[binding-http]", `HttpClient cannot unlink ${form.href} no subscription found`);
         }
-
-        return {};
     }
 
     public async start(): Promise<void> {
@@ -216,7 +214,7 @@ export default class HttpClient implements ProtocolClient {
     }
 
     public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean {
-        if (metadata === undefined || !Array.isArray(metadata) || metadata.length == 0) {
+        if (metadata === undefined || !Array.isArray(metadata) || metadata.length === 0) {
             console.warn("[binding-http]", `HttpClient without security`);
             return false;
         }
@@ -231,12 +229,13 @@ export default class HttpClient implements ProtocolClient {
                 // TODO check security.in and adjust
                 this.credential = new BearerCredential(credentials?.token);
                 break;
-            case "apikey":
+            case "apikey": {
                 const securityAPIKey: TD.APIKeySecurityScheme = <TD.APIKeySecurityScheme>security;
 
                 this.credential = new BasicKeyCredential(credentials?.apiKey, securityAPIKey);
                 break;
-            case "oauth2":
+            }
+            case "oauth2": {
                 const securityOAuth: TD.OAuth2SecurityScheme = <TD.OAuth2SecurityScheme>security;
 
                 if (securityOAuth.flow === "client_credentials") {
@@ -246,6 +245,7 @@ export default class HttpClient implements ProtocolClient {
                 }
 
                 break;
+            }
             case "nosec":
                 break;
             default:
@@ -265,7 +265,7 @@ export default class HttpClient implements ProtocolClient {
             this.proxyRequest = new Request(HttpClient.fixLocalhostName(security.proxy));
 
             // TODO support for different credentials at proxy and server (e.g., credentials.username vs credentials.proxy.username)
-            if (security.scheme == "basic") {
+            if (security.scheme === "basic") {
                 if (
                     credentials === undefined ||
                     credentials.username === undefined ||
@@ -277,7 +277,7 @@ export default class HttpClient implements ProtocolClient {
                     "proxy-authorization",
                     "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString("base64")
                 );
-            } else if (security.scheme == "bearer") {
+            } else if (security.scheme === "bearer") {
                 if (credentials === undefined || credentials.token === undefined) {
                     throw new Error(`No Bearer credentionals for Thing`);
                 }
@@ -327,8 +327,8 @@ export default class HttpClient implements ProtocolClient {
         }
 
         if (this.proxyRequest) {
-            const parsedBaseURL = parse(url);
-            request.url = request.url + parsedBaseURL.path;
+            const parsedBaseURL = new URL(url);
+            request.url = request.url + parsedBaseURL.pathname;
 
             console.debug("[binding-http]", "HttpClient proxy request URL:", request.url);
 

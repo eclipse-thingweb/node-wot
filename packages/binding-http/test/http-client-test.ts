@@ -423,22 +423,22 @@ class HttpClientTest2 {
     }
 
     @test "should subscribe successfully"(done: any) {
-        let client = new HttpClient();
+        const client = new HttpClient();
 
         // Subscribe to an event
-        let form: HttpForm = {
+        const form: HttpForm = {
             op: ["subscribeevent"],
             href: `http://localhost:${port3}/`,
         };
 
-        let server = http.createServer((req, res) => {
+        const server = http.createServer((req, res) => {
             res.writeHead(200);
             res.end();
         });
 
-        let subscribeSpy = chai.spy();
+        const subscribeSpy = chai.spy();
 
-        let eventSpy = chai.spy(async function (data: any) {
+        const eventSpy = chai.spy(async function (data: any) {
             eventSpy.should.have.been.called.once;
             subscribeSpy.should.have.been.called.once;
             server.close();

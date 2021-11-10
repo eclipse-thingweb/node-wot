@@ -29,8 +29,11 @@ describe("OAuth2.0 Validator tests", () => {
         private validator: Validator;
         static server: http.Server;
         static before() {
+            // eslint-disable-next-line @typescript-eslint/no-empty-function
             console.debug = () => {};
+            // eslint-disable-next-line @typescript-eslint/no-empty-function
             console.warn = () => {};
+            // eslint-disable-next-line @typescript-eslint/no-empty-function
             console.info = () => {};
 
             const tokens = ["active", "notActive"];
@@ -212,7 +215,7 @@ describe("OAuth2.0 Validator tests", () => {
             };
 
             try {
-                const valid = await this.validator.validate(req as http.IncomingMessage, [], /.*/g);
+                await this.validator.validate(req as http.IncomingMessage, [], /.*/g);
                 assert(false, "method did not throw");
             } catch (error) {
                 assert(true);
@@ -234,7 +237,7 @@ describe("OAuth2.0 Validator tests", () => {
             };
 
             try {
-                const valid = await this.validator.validate(req as http.IncomingMessage, [], /.*/g);
+                await this.validator.validate(req as http.IncomingMessage, [], /.*/g);
                 assert(false, "method did not throw");
             } catch (error) {
                 assert(true);
@@ -256,7 +259,7 @@ describe("OAuth2.0 Validator tests", () => {
             };
 
             try {
-                const valid = await this.validator.validate(req as http.IncomingMessage, [], /.*/g);
+                await this.validator.validate(req as http.IncomingMessage, [], /.*/g);
                 assert(false, "method did not throw");
             } catch (error) {
                 assert(true);
@@ -278,7 +281,7 @@ describe("OAuth2.0 Validator tests", () => {
             };
 
             try {
-                const valid = await this.validator.validate(req as http.IncomingMessage, [], /.*/g);
+                await this.validator.validate(req as http.IncomingMessage, [], /.*/g);
                 assert(false, "method did not throw");
             } catch (error) {
                 assert(true);

@@ -13,13 +13,35 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
+interface Client {
+    clientId: string;
+    clientSecret: string;
+    redirectUris: string[];
+    grants: string[];
+}
+
+interface User {
+    id: string;
+    username: string;
+    password: string;
+}
+
+interface Token {
+    accessToken: string;
+    accessTokenExpiresAt?: number;
+    client?: Client;
+    refreshToken: string;
+    refreshTokenExpiresAt?: number;
+    user?: User;
+}
+
 /**
  * oAuth server logic. See https://oauth2-server.readthedocs.io/en/latest/model/overview.html
  */
 export default class InMemoryModel {
-    clients: { clientId: string; clientSecret: string; redirectUris: string[]; grants: string[] }[];
-    tokens: any[];
-    users: { id: string; username: string; password: string }[];
+    clients: Client[];
+    tokens: Token[];
+    users: User[];
     /**
      *
      */
@@ -46,7 +68,7 @@ export default class InMemoryModel {
      * Get access token.
      */
 
-    getAccessToken(bearerToken: string) {
+    getAccessToken(bearerToken: string): Token | false {
         const tokens = this.tokens.filter(function (token) {
             return token.accessToken === bearerToken;
         });
@@ -58,7 +80,7 @@ export default class InMemoryModel {
      * Get refresh token.
      */
 
-    getRefreshToken(bearerToken: string) {
+    getRefreshToken(bearerToken: string): Token | false {
         const tokens = this.tokens.filter(function (token) {
             return token.refreshToken === bearerToken;
         });
@@ -70,7 +92,7 @@ export default class InMemoryModel {
      * Get client.
      */
 
-    getClient(clientId: string, clientSecret: string) {
+    getClient(clientId: string, clientSecret: string): Client | false {
         const clients = this.clients.filter(function (client) {
             return client.clientId === clientId && (!clientSecret || client.clientSecret === clientSecret);
         });
@@ -82,7 +104,7 @@ export default class InMemoryModel {
      * Save token.
      */
 
-    saveToken(token: any, client: any, user: any) {
+    saveToken(token: Token, client: Client, user: User): Token {
         const { accessToken, accessTokenExpiresAt, refreshTokenExpiresAt, refreshToken } = token;
         this.tokens.push({
             accessToken: accessToken,
@@ -99,7 +121,7 @@ export default class InMemoryModel {
      * Get user.
      */
 
-    getUser(username: string, password: string) {
+    getUser(username: string, password: string): User | false {
         const users = this.users.filter(function (user) {
             return user.username === username && user.password === password;
         });
@@ -107,17 +129,19 @@ export default class InMemoryModel {
         return users.length ? users[0] : false;
     }
 
-    getUserFromClient(client: string) {
+    getUserFromClient(client: string): User {
         return this.users[0];
     }
 
-    saveAuthorizationCode() {}
+    saveAuthorizationCode(): void {
+        return undefined;
+    }
 
-    revokeToken(token: any): boolean {
+    revokeToken(token: Token): boolean {
         return true;
     }
 
-    expireAllTokens() {
+    expireAllTokens(): void {
         for (const token of this.tokens) {
             token.accessTokenExpiresAt = Date.now();
         }
