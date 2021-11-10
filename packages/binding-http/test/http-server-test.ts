@@ -123,7 +123,7 @@ class HttpServerTest {
             },
             { formIndex: 0 }
         );
-        testThing.handleEmitEvent("eventTest", "test", { formIndex: 0 });
+        testThing.emitEvent("eventTest", "test");
 
         await testThing.handleWriteProperty(
             "test",
