@@ -2,10 +2,11 @@
 
 import { expect } from "chai";
 import { ExposedThing, Servient } from "@node-wot/core";
-import { OPCUAServer, DataValue } from "node-opcua";
+import { OPCUAServer, DataValue, DataType } from "node-opcua";
 
 import { OPCUAClientFactory } from "../src";
 import { startServer } from "./fixture/basic_opcua_server";
+import { DataValueJSON } from "node-opcua-json";
 const endpoint = "opc.tcp://localhost:7890";
 
 const thingDescription: WoT.ThingDescription = {
@@ -54,11 +55,32 @@ const thingDescription: WoT.ThingDescription = {
                     href: "/",
                     op: ["readproperty", "observeproperty", "writeproperty"],
                     "opcua:nodeId": { root: "i=84", path: "/Objects/1:MySensor/2:ParameterSet/1:TemperatureSetPoint" },
+                    contentType: "application/json+opcua;type=Value;dataType=Double",
                 },
             ],
         },
     },
-    actions: {},
+    actions: {
+        setTemperatureSetPoint: {
+            forms: [
+                {
+                    type: "object",
+                    href: "/",
+                    op: ["invokeaction"],
+                    "opcua:nodeId": { root: "i=84", path: "/Objects/1:MySensor" },
+                    "opcua:method": { root: "i=84", path: "/Objects/1:MySensor/2:MethodSet/1:SetTemperatureSetPoint" },
+                    "opcua:inputArguments": { TargetTemperature: { type: "number", unit: "°C" } },
+                },
+            ],
+            description: "set the temperature set point",
+            input: {
+                TargetTemperature: { type: "number" },
+            },
+            output: {
+                PreviousTemperatureSetPoint: { type: "number" },
+            },
+        },
+    },
 };
 
 describe("Full OPCUA Thing Test", () => {
@@ -110,7 +132,7 @@ describe("Full OPCUA Thing Test", () => {
         await servient.shutdown();
     });
 
-    it("Z2- should create a servient (consume) with OPCUA client factory", async () => {
+    it("Z2- should create a servient (consume) with OPCUA client factory - readProperty", async () => {
         const servient = new Servient();
 
         const opcuaClientFactory = new OPCUAClientFactory();
@@ -126,18 +148,57 @@ describe("Full OPCUA Thing Test", () => {
         try {
             {
                 // read temperature before
-                const contentA = await (await thing.readProperty("temperatureSetPoint")).value();
-                console.log("temperature setpoint Before", contentA.toString());
+                const content = await thing.readProperty("temperatureSetPoint");
+                const dataValueJSON = (await content.value()).valueOf() as DataValueJSON;
+                console.log("Temperature After", dataValueJSON);
+                expect(dataValueJSON.Value).to.eql({ Type: 11, Body: 27.0 });
+
             }
 
-            await thing.writeProperty("temperatureSetPoint", 100);
+            await thing.writeProperty("temperatureSetPoint", { Value: { Type: 11, Body: 100 }});
 
             {
                 // read temperature after
                 const content = await thing.readProperty("temperatureSetPoint");
-                const content2 = (await content.value()) as DataValue;
-                console.log("Temperature After", content2.toString());
+                const dataValueJSON = (await content.value()).valueOf() as DataValueJSON;
+                console.log("Temperature After", dataValueJSON);
+                expect(dataValueJSON.Value).to.eql({ Type: 11, Body: 100.0 });
             }
+        } finally {
+            console.log("Now shuting down");
+            // create a ConsumedThing
+            //  const consumedThing = new ExposedThing(thing);
+            await servient.shutdown();
+        }
+    });
+
+    it("Z3 - should create a servient (consume) with OPCUA client factory - InvokeAction", async () => {
+        const servient = new Servient();
+
+        const opcuaClientFactory = new OPCUAClientFactory();
+
+        servient.addClientFactory(opcuaClientFactory);
+
+        const wot = await servient.start();
+
+        const thing: WoT.ConsumedThing = await wot.consume(thingDescription);
+
+        console.debug(thing.getThingDescription().properties);
+
+        await thing.writeProperty("temperatureSetPoint", { Value: { Type: DataType.Double, Body: 27 }});
+
+        try {
+            // read temperature before
+            const contentA = await (
+                await thing.invokeAction("setTemperatureSetPoint", { TargetTemperature: 26 })
+            ).value();
+            const returnedValue = contentA.valueOf() as object;
+            console.log("temperature setpoint Before", returnedValue);
+            expect(returnedValue).to.eql({ PreviousSetPoint: 27 });
+
+            const contentVerif = await (await thing.readProperty("temperatureSetPoint")).value();
+            console.log("temperature setpoint Before -verified ", contentVerif.valueOf());
+            expect((contentVerif.valueOf() as DataValueJSON).Value).to.eql({ Body: 26.0, Type: 11 });
         } finally {
             console.log("Now shuting down");
             // create a ConsumedThing

@@ -8,9 +8,9 @@ import { DataType, VariantArrayType } from "node-opcua-variant";
 import { coerceLocalizedText } from "node-opcua-data-model";
 
 import { jsonify, OpcuaBinaryCodec, OpcuaJSONCodec, theOpcuaBinaryCodec, theOpcuaJSONCodec } from "../src/codec";
-import { opcuaJsonDecodeDataValue, opcuaJsonEncodeDataValue } from "node-opcua-json";
+import { opcuaJsonEncodeDataValue } from "node-opcua-json";
 import { expect } from "chai";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { StatusCodes } from "node-opcua-status-code";
 
 const dataValue1 = new DataValue({});
 const dataValue2 = new DataValue({

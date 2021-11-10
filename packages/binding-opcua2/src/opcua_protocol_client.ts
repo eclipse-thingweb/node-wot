@@ -28,7 +28,7 @@ import { StatusCodes } from "node-opcua-status-code";
 
 import { theOpcuaJSONCodec, schemaDataValue, formatForNodeWoT } from "./codec";
 import { FormElementProperty } from "wot-thing-description-types";
-import { opcuaJsonEncodeDataValue } from "node-opcua-json";
+import { opcuaJsonEncodeDataValue, opcuaJsonDecodeDataValue, DataValueJSON } from "node-opcua-json";
 import { Argument, BrowseDescription, BrowseResult } from "node-opcua-types";
 import { ReferenceTypeIds } from "node-opcua";
 
@@ -79,8 +79,7 @@ export function findBasicDataTypeC(
 
     if (dataTypeId.identifierType === NodeIdType.NUMERIC && dataTypeId.value <= 25) {
         // we have a well-known DataType
-        const dataTypeName = DataType[dataTypeId.value as number];
-        callback!(null, dataTypeId.value as DataType);
+        callback(null, dataTypeId.value as DataType);
     } else {
         // let's browse for the SuperType of this object
         const nodeToBrowse = new BrowseDescription({
@@ -94,12 +93,12 @@ export function findBasicDataTypeC(
         session.browse(nodeToBrowse, (err: Error | null, browseResult?: BrowseResult) => {
             /* istanbul ignore next */
             if (err) {
-                return callback!(err);
+                return callback(err);
             }
 
             /* istanbul ignore next */
             if (!browseResult) {
-                return callback!(new Error("Internal Error"));
+                return callback(new Error("Internal Error"));
             }
 
             browseResult.references = browseResult.references || /* istanbul ignore next */ [];
@@ -114,28 +113,37 @@ const findBasicDataType: (session: IBasicSession, dataTypeId: NodeId) => Promise
 async function _resolveInputArguments(
     session: IBasicSession,
     argumentDefinition: ArgumentDefinition,
-    form: OPCUAFormInvoke, 
-    bodyInput: Record<string,unknown>
+    form: OPCUAFormInvoke,
+    bodyInput: Record<string, unknown>
 ): Promise<VariantLike[]> {
     const inputArguments = (argumentDefinition.inputArguments || []) as any as Argument[];
+    if (!form["opcua:inputArguments"]) {
+        throw new Error("opcua:inputArguments is missing in form : " + JSON.stringify(form));
+    }
 
     const variants: VariantLike[] = [];
     for (let index = 0; index < inputArguments.length; index++) {
         const argument = inputArguments[index];
-        const { name, dataType, description, arrayDimensions, valueRank } = argument;
+        const { name, dataType, /* description, */ arrayDimensions, valueRank } = argument;
         const value = form["opcua:inputArguments"][name];
         if (value === undefined) {
             throw new Error("missing value for argument " + name);
         }
         if (bodyInput[name] === undefined) {
-            throw new Error("missing value in bodyInput for argument " + name);     
+            throw new Error("missing value in bodyInput for argument " + name);
         }
         const basicDataType = await findBasicDataType(session, dataType);
-        const arrayType: VariantArrayType = valueRank === -1 ? VariantArrayType.Scalar : VariantArrayType.Array;
+        const arrayType: VariantArrayType =
+            valueRank === -1
+                ? VariantArrayType.Scalar
+                : valueRank === 1
+                ? VariantArrayType.Array
+                : VariantArrayType.Matrix;
 
         variants.push({
             dataType: basicDataType,
             arrayType,
+            dimensions: arrayType === VariantArrayType.Matrix ? arrayDimensions : undefined,
             value: bodyInput[name],
         });
     }
@@ -151,10 +159,7 @@ async function _resolveOutputArguments(
     const res: Record<string, unknown> = {};
     for (let index = 0; index < outputArguments.length; index++) {
         const argument = outputArguments[index];
-        const { name, dataType, description, arrayDimensions, valueRank } = argument;
-        const basicDataType = await findBasicDataType(session, dataType);
-        const arrayType: VariantArrayType = valueRank === -1 ? VariantArrayType.Scalar : VariantArrayType.Array;
-
+        const { name } = argument;
         res[name] = outputVariants[index].value;
     }
 
@@ -341,14 +346,15 @@ export class OPCUAProtocolClient implements ProtocolClient {
         });
 
         const contentSerDes = ContentSerdes.get();
-        const value = contentSerDes.contentToValue(content2, schemaDataValue) as DataValue;
+        const dataValueJSON = contentSerDes.contentToValue(content2, schemaDataValue) as DataValueJSON;
+        const dataValue = opcuaJsonDecodeDataValue(dataValueJSON);
 
         const statusCode = await this._withSession(form, async (session) => {
             const nodeId = await this._resolveNodeId(form);
             const statusCode = await session.write({
                 nodeId,
                 attributeId: AttributeIds.Value,
-                value,
+                value: dataValue,
             });
             return statusCode;
         });
@@ -359,7 +365,6 @@ export class OPCUAProtocolClient implements ProtocolClient {
     }
 
     public async invokeResource(form: OPCUAFormInvoke, content: Content): Promise<Content> {
-        
         const content2 = { ...content, body: await ProtocolHelpers.readStreamFully(content.body) };
 
         return await this._withSession(form, async (session) => {
@@ -382,7 +387,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
             const body = await _resolveOutputArguments(session, argumentDefinition, callResult.outputArguments);
 
             const contentType = "application/json";
-            const contentSerDes = ContentSerdes.get();  
+            const contentSerDes = ContentSerdes.get();
             const content = contentSerDes.valueToContent(body, schemaDataValue, contentType);
             console.debug("[opcua-client|readResource]", "contentType", content.type);
             return content;
