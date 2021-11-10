@@ -423,7 +423,7 @@ export default class CoapServer implements ProtocolServer {
                                 if (output) {
                                     res.setOption("Content-Format", output.type);
                                     res.code = "2.05";
-                                    res.end(output.body.read());
+                                    output.body.pipe(res, { end: true });
                                 } else {
                                     res.code = "2.04";
                                     res.end();
