@@ -1,3 +1,4 @@
+import { ProtocolHelpers, ExposedThing } from "@node-wot/core";
 /********************************************************************************
  * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
  *
@@ -19,8 +20,11 @@
 
 import { suite, test } from "@testdeck/mocha";
 import { expect, should } from "chai";
-
+import { DataSchemaValue } from "wot-typescript-definitions";
+import * as TD from "@node-wot/td-tools";
 import CoapServer from "../src/coap-server";
+import { CoapClient } from "../src/coap";
+import { Readable } from "stream";
 // should must be called to augment all variables
 should();
 
@@ -35,6 +39,141 @@ class CoapServerTest {
 
         await coapServer.stop();
         expect(coapServer.getPort()).to.eq(-1); // from getPort() when not listening
+    }
+
+    @test async "should read property"() {
+        const coapServer = new CoapServer(56831);
+
+        await coapServer.start(null);
+
+        const testThing = new ExposedThing(null, {
+            title: "Test",
+            properties: {
+                test: {
+                    type: "string",
+                },
+            },
+        });
+
+        const test: DataSchemaValue = "testValue";
+        testThing.setPropertyReadHandler("test", (_) => Promise.resolve(test));
+        testThing.properties.test.forms = [];
+
+        await coapServer.expose(testThing);
+
+        const uri = `coap://localhost:${coapServer.getPort()}/test/`;
+
+        const coapClient = new CoapClient(coapServer);
+        const resp = await coapClient.readResource(new TD.Form(uri + "properties/test"));
+        expect((await ProtocolHelpers.readStreamFully(resp.body)).toString()).to.equal('"testValue"');
+
+        await coapServer.stop();
+    }
+
+    @test async "should write property"() {
+        const coapServer = new CoapServer(56831);
+
+        await coapServer.start(null);
+
+        const testThing = new ExposedThing(null, {
+            title: "Test",
+            properties: {
+                test: {
+                    type: "string",
+                },
+            },
+        });
+
+        let test: DataSchemaValue = "testValue";
+        testThing.setPropertyReadHandler("test", (_) => Promise.resolve(test));
+        testThing.setPropertyWriteHandler("test", async (value) => {
+            test = await value.value();
+        });
+        testThing.properties.test.forms = [];
+
+        await coapServer.expose(testThing);
+
+        const uri = `coap://localhost:${coapServer.getPort()}/test/`;
+
+        const coapClient = new CoapClient(coapServer);
+        await coapClient.writeResource(new TD.Form(uri + "properties/test"), {
+            type: "text/plain",
+            body: Readable.from(Buffer.from("testValue1", "utf-8")),
+        });
+        const resp = await coapClient.readResource(new TD.Form(uri + "properties/test"));
+        const data = (await ProtocolHelpers.readStreamFully(resp.body)).toString();
+        expect(data).to.equal('"testValue1"');
+
+        await coapServer.stop();
+    }
+
+    @test async "should perform an action"() {
+        const coapServer = new CoapServer(56831);
+
+        await coapServer.start(null);
+
+        const testThing = new ExposedThing(null, {
+            title: "Test",
+            actions: {
+                try: {
+                    output: { type: "string" },
+                },
+            },
+        });
+
+        testThing.setActionHandler("try", (input: WoT.InteractionOutput) => {
+            return new Promise<string>((resolve, reject) => {
+                resolve("TEST");
+            });
+        });
+        testThing.actions.try.forms = [];
+
+        await coapServer.expose(testThing);
+
+        const uri = `coap://localhost:${coapServer.getPort()}/test/`;
+
+        const coapClient = new CoapClient(coapServer);
+        const resp = await coapClient.invokeResource(new TD.Form(uri + "actions/try"), {
+            type: "text/plain",
+            body: Readable.from(Buffer.from("testValue1", "utf-8")),
+        });
+        expect((await ProtocolHelpers.readStreamFully(resp.body)).toString()).to.equal('"TEST"');
+
+        await coapServer.stop();
+    }
+
+    @test async "should subscribe to event"() {
+        const coapServer = new CoapServer(56831);
+
+        await coapServer.start(null);
+
+        const testThing = new ExposedThing(null, {
+            title: "Test",
+            events: {
+                eventTest: {
+                    forms: [
+                        {
+                            href: "http://test",
+                            op: "subscribeevent",
+                        },
+                    ],
+                },
+            },
+        });
+
+        await coapServer.expose(testThing);
+
+        const uri = `coap://localhost:${coapServer.getPort()}/test/`;
+
+        const coapClient = new CoapClient(coapServer);
+        const form = new TD.Form(uri + "events/eventTest");
+        const subscription = await coapClient.subscribeResource(form, (value) => {
+            /**  */
+        });
+
+        subscription.unsubscribe();
+
+        await coapServer.stop();
     }
 
     // This test has been commented out until further information from node-coap
