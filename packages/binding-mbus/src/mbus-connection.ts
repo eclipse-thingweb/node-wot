@@ -1,7 +1,8 @@
-import * as MbusMaster from "node-mbus";
 import { MBusForm } from "./mbus";
 import { Content } from "@node-wot/core";
 import { Readable } from "stream";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const MbusMaster = require("node-mbus");
 
 const configDefaults = {
     operationTimeout: 10000,
@@ -81,7 +82,7 @@ export class MBusConnection {
         }
 
         // create and append a new transaction
-        const transaction = new MBusTransaction(this, op.unitId, op.base);
+        const transaction = new MBusTransaction(op.unitId, op.base);
         transaction.inform(op);
         this.queue.push(transaction);
     }
@@ -120,6 +121,11 @@ export class MBusConnection {
         }
     }
 
+    async execute(op: PropertyOperation): Promise<Content | PromiseLike<Content>> {
+        this.trigger();
+        return op.execute();
+    }
+
     /**
      * Trigger work on this connection.
      *
@@ -149,7 +155,7 @@ export class MBusConnection {
             // take next transaction from queue and execute
             this.currentTransaction = this.queue.shift();
             try {
-                await this.currentTransaction.execute();
+                await this.executeTransaction(this.currentTransaction);
                 this.currentTransaction = null;
                 this.trigger();
             } catch (error) {
@@ -157,6 +163,21 @@ export class MBusConnection {
                 this.currentTransaction = null;
                 this.trigger();
             }
+        }
+    }
+
+    async executeTransaction(transaction: MBusTransaction): Promise<void> {
+        // Read transaction
+        console.debug("[binding-mbus]", "Execute read operation on unit", transaction.unitId);
+        try {
+            const result = await this.readMBus(transaction);
+            console.debug("[binding-mbus]", "Got result from read operation on unit", transaction.unitId);
+            transaction.operations.forEach((op) => op.done(op.base, result));
+        } catch (error) {
+            console.warn("[binding-mbus]", "read operation failed on unit", transaction.unitId, error);
+            // inform all operations and the invoker
+            transaction.operations.forEach((op) => op.failed(error));
+            throw error;
         }
     }
 
@@ -201,13 +222,11 @@ export class MBusConnection {
  * MBusTransaction represents a raw M-Bus operation performed on a MBusConnection
  */
 class MBusTransaction {
-    connection: MBusConnection;
     unitId: number;
     base: number;
     // eslint-disable-next-line no-use-before-define
     operations: Array<PropertyOperation>; // operations to be completed when this transaction completes
-    constructor(connection: MBusConnection, unitId: number, base: number) {
-        this.connection = connection;
+    constructor(unitId: number, base: number) {
         this.unitId = unitId;
         this.base = base;
         this.operations = new Array<PropertyOperation>();
@@ -220,40 +239,7 @@ class MBusTransaction {
      * @param op the PropertyOperation to link with this transaction
      */
     inform(op: PropertyOperation) {
-        op.transaction = this;
         this.operations.push(op);
-    }
-
-    /**
-     * Trigger work on the associated connection.
-     *
-     * @see MBusConnection.trigger()
-     */
-    trigger() {
-        console.debug("[binding-mbus]", "MBusTransaction:trigger");
-        this.connection.trigger();
-    }
-
-    /**
-     * Execute this MBusTransaction and resolve/reject the invoking Promise as well
-     * as the Promises of all associated PropertyOperations.
-     *
-     * @param resolve
-     * @param reject
-     */
-    async execute(): Promise<void> {
-        // Read transaction
-        console.debug("[binding-mbus]", "Trigger read operation on unit", this.unitId);
-        try {
-            const result = await this.connection.readMBus(this);
-            console.debug("[binding-mbus]", "Got result from read operation on unit", this.unitId);
-            this.operations.forEach((op) => op.done(op.base, result));
-        } catch (error) {
-            console.warn("[binding-mbus]", "read operation failed on unit", this.unitId, error);
-            // inform all operations and the invoker
-            this.operations.forEach((op) => op.failed(error));
-            throw error;
-        }
     }
 }
 
@@ -263,14 +249,12 @@ class MBusTransaction {
 export class PropertyOperation {
     unitId: number;
     base: number;
-    transaction: MBusTransaction; // transaction used to execute this operation
     resolve: (value?: Content | PromiseLike<Content>) => void;
     reject: (reason?: Error) => void;
 
     constructor(form: MBusForm) {
         this.unitId = form["mbus:unitID"];
         this.base = form["mbus:offset"];
-        this.transaction = null;
     }
 
     /**
@@ -282,12 +266,6 @@ export class PropertyOperation {
             (resolve: (value?: Content | PromiseLike<Content>) => void, reject: (reason?: Error) => void) => {
                 this.resolve = resolve;
                 this.reject = reject;
-
-                if (this.transaction == null) {
-                    reject(new Error("No transaction for this operation"));
-                } else {
-                    this.transaction.trigger();
-                }
             }
         );
     }

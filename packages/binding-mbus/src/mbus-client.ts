@@ -98,7 +98,7 @@ export default class MBusClient implements ProtocolClient {
         connection.enqueue(operation);
 
         // return a promise to execute the operation
-        return operation.execute();
+        return connection.execute(operation);
     }
 
     private overrideFormFromURLPath(input: MBusForm) {

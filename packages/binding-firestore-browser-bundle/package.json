@@ -8,9 +8,6 @@
     },
     "author": "hidetak",
     "license": "EPL-2.0",
-    "publishConfig": {
-        "access": "public"
-    },
     "files": [
         "dist/"
     ],
