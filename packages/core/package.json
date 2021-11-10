@@ -53,6 +53,7 @@
     "scripts": {
         "build": "tsc -b",
         "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
         "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"**/*.json\"",
         "test": "mocha --require ts-node/register --extension ts"
     },

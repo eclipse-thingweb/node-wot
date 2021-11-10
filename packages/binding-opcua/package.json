@@ -49,6 +49,7 @@
         "build": "tsc -b",
         "test": "mocha --require ts-node/register test/opcua-client-test.ts",
         "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
         "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"**/*.json\""
     },
     "bugs": {

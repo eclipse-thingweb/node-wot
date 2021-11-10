@@ -23,6 +23,7 @@
         "coverage": "nyc --reporter=lcov npm run test",
         "coverage:only": "nyc --reporter=lcov npm run test:only",
         "lint": "npm run lint --silent --workspaces --if-present",
+        "lint:fix": "npm run lint:fix --silent --workspaces --if-present",
         "format": "prettier --write . && npm run format --silent --workspaces --if-present",
         "format:quick": "pretty-quick",
         "prepare": "husky install",
