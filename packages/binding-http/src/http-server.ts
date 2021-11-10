@@ -88,7 +88,7 @@ export default class HttpServer implements ProtocolServer {
 
         // TLS
         if (config.serverKey && config.serverCert) {
-            const options: any = {};
+            const options: https.ServerOptions = {};
             options.key = fs.readFileSync(config.serverKey);
             options.cert = fs.readFileSync(config.serverCert);
             this.scheme = "https";

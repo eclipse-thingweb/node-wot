@@ -14,7 +14,6 @@
  ********************************************************************************/
 import { HttpClient, HttpForm } from "./http";
 import EventSource from "eventsource";
-import { Subscription } from "rxjs/Subscription";
 export interface InternalSubscription {
     open(next: (value: any) => void, error?: (error: any) => void, complete?: () => void): Promise<void>;
     close(): void;
@@ -35,7 +34,7 @@ export class LongPollingSubscription implements InternalSubscription {
 
     open(next: (value: any) => void, error?: (error: any) => void, complete?: () => void): Promise<void> {
         return new Promise<void>((resolve, reject) => {
-            let polling = async (handshake: boolean) => {
+            const polling = async (handshake: boolean) => {
                 try {
                     if (handshake) {
                         const headRequest = await this.client["generateFetchRequest"](this.form, "HEAD", {
@@ -117,7 +116,7 @@ export class SSESubscription implements InternalSubscription {
             };
             this.eventSource.onmessage = (event) => {
                 console.debug("[binding-http]", `HttpClient received ${JSON.stringify(event)} from ${this.form.href}`);
-                let output = { type: this.form.contentType, body: JSON.stringify(event) };
+                const output = { type: this.form.contentType, body: JSON.stringify(event) };
                 next(output);
             };
             this.eventSource.onerror = function (event) {

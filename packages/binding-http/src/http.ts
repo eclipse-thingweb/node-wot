@@ -25,6 +25,14 @@ export * from "./http-client";
 export * from "./http-client-factory";
 export * from "./https-client-factory";
 
+export interface HttpProxyConfig {
+    href: string;
+    scheme?: "basic" | "bearer";
+    token?: string;
+    username?: string;
+    password?: string;
+}
+
 export interface HttpConfig {
     port?: number;
     address?: string;
@@ -44,22 +52,14 @@ export interface OAuth2ServerConfig extends TD.SecurityScheme {
     allowedClients?: string;
 }
 
-export interface HttpProxyConfig {
-    href: string;
-    scheme?: "basic" | "bearer";
-    token?: string;
-    username?: string;
-    password?: string;
-}
-
-export class HttpForm extends TD.Form {
-    public "htv:methodName"?: HTTPMethodName;
-    public "htv:headers"?: Array<HttpHeader> | HttpHeader;
-}
-
 export type HTTPMethodName = "GET" | "PUT" | "POST" | "DELETE" | "PATCH" | "HEAD";
 
 export class HttpHeader {
     public "htv:fieldName": string;
     public "htv:fieldValue": string;
+}
+
+export class HttpForm extends TD.Form {
+    public "htv:methodName"?: HTTPMethodName;
+    public "htv:headers"?: Array<HttpHeader> | HttpHeader;
 }
