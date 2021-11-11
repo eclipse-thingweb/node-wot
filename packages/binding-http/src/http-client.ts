@@ -29,8 +29,17 @@ import { ProtocolClient, Content } from "@node-wot/core";
 import { HttpForm, HttpHeader, HttpConfig, HTTPMethodName } from "./http";
 import fetch, { Request, RequestInit, Response } from "node-fetch";
 import { Buffer } from "buffer";
-import OAuthManager from "./oauth-manager";
-import { BasicCredential, Credential, BearerCredential, BasicKeyCredential, OAuthCredential } from "./credential";
+import OAuthManager, { OAuthClientCredentialsConfiguration, OAuthResourceOwnerConfiguration } from "./oauth-manager";
+import {
+    BasicCredential,
+    Credential,
+    BearerCredential,
+    BasicKeyCredential,
+    OAuthCredential,
+    BasicCredentialConfiguration,
+    BearerCredentialConfiguration,
+    BasicKeyCredentialConfiguration,
+} from "./credential";
 import { LongPollingSubscription, SSESubscription, InternalSubscription } from "./subscription-protocols";
 
 export default class HttpClient implements ProtocolClient {
@@ -213,7 +222,7 @@ export default class HttpClient implements ProtocolClient {
         if (this.agent && this.agent.destroy) this.agent.destroy();
     }
 
-    public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean {
+    public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: unknown): boolean {
         if (metadata === undefined || !Array.isArray(metadata) || metadata.length === 0) {
             console.warn("[binding-http]", `HttpClient without security`);
             return false;
@@ -223,25 +232,34 @@ export default class HttpClient implements ProtocolClient {
         const security: TD.SecurityScheme = metadata[0];
         switch (security.scheme) {
             case "basic":
-                this.credential = new BasicCredential(credentials);
+                this.credential = new BasicCredential(credentials as BasicCredentialConfiguration);
                 break;
             case "bearer":
                 // TODO check security.in and adjust
-                this.credential = new BearerCredential(credentials?.token);
+                this.credential = new BearerCredential(credentials as BearerCredentialConfiguration);
                 break;
             case "apikey": {
                 const securityAPIKey: TD.APIKeySecurityScheme = <TD.APIKeySecurityScheme>security;
 
-                this.credential = new BasicKeyCredential(credentials?.apiKey, securityAPIKey);
+                this.credential = new BasicKeyCredential(
+                    credentials as BasicKeyCredentialConfiguration,
+                    securityAPIKey
+                );
                 break;
             }
             case "oauth2": {
                 const securityOAuth: TD.OAuth2SecurityScheme = <TD.OAuth2SecurityScheme>security;
 
                 if (securityOAuth.flow === "client_credentials") {
-                    this.credential = this.oauth.handleClientCredential(securityOAuth, credentials);
+                    this.credential = this.oauth.handleClientCredential(
+                        securityOAuth,
+                        credentials as OAuthClientCredentialsConfiguration
+                    );
                 } else if (securityOAuth.flow === "password") {
-                    this.credential = this.oauth.handleResourceOwnerCredential(securityOAuth, credentials);
+                    this.credential = this.oauth.handleResourceOwnerCredential(
+                        securityOAuth,
+                        credentials as OAuthResourceOwnerConfiguration
+                    );
                 }
 
                 break;
@@ -266,22 +284,25 @@ export default class HttpClient implements ProtocolClient {
 
             // TODO support for different credentials at proxy and server (e.g., credentials.username vs credentials.proxy.username)
             if (security.scheme === "basic") {
+                const basicCredential: BasicCredentialConfiguration = credentials as BasicCredentialConfiguration;
                 if (
-                    credentials === undefined ||
-                    credentials.username === undefined ||
-                    credentials.password === undefined
+                    basicCredential === undefined ||
+                    basicCredential.username === undefined ||
+                    basicCredential.password === undefined
                 ) {
                     throw new Error(`No Basic credentionals for Thing`);
                 }
+
                 this.proxyRequest.headers.set(
                     "proxy-authorization",
-                    "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString("base64")
+                    "Basic " + Buffer.from(basicCredential.username + ":" + basicCredential.password).toString("base64")
                 );
             } else if (security.scheme === "bearer") {
-                if (credentials === undefined || credentials.token === undefined) {
+                const tokenCredentials: BearerCredentialConfiguration = credentials as BearerCredentialConfiguration;
+                if (credentials === undefined || tokenCredentials.token === undefined) {
                     throw new Error(`No Bearer credentionals for Thing`);
                 }
-                this.proxyRequest.headers.set("proxy-authorization", "Bearer " + credentials.token);
+                this.proxyRequest.headers.set("proxy-authorization", "Bearer " + tokenCredentials.token);
             }
         }
 

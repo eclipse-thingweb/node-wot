@@ -83,7 +83,6 @@ class TestHttpServer implements ProtocolServer {
     public async stop(): Promise<void> {
         return new Promise<void>((resolve) => {
             this.server.close(() => {
-                console.error("STOPPED");
                 resolve();
             });
         });

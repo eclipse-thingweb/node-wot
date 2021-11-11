@@ -47,10 +47,11 @@ interface TokenInformation {
      * Client identifier for the OAuth 2.0 client that
      * requested this token
      */
+    // eslint-disable-next-line camelcase -- the name is defined in the spec
     client_id?: string;
 }
 
-export default function (method?: Method) {
+export default function (method?: Method): EndpointValidator {
     if (!method || !method?.name) {
         throw new Error("Undefined oauth token validation method");
     }
@@ -98,7 +99,7 @@ export class EndpointValidator extends Validator {
 
         const response = await fetch(request);
 
-        if (response.status != 200) {
+        if (response.status !== 200) {
             throw new Error("Introspection endpoint error: " + response.statusText);
         }
 
