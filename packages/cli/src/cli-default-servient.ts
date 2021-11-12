@@ -20,7 +20,7 @@ import * as WoT from "wot-typescript-definitions";
 import { Servient, Helpers } from "@node-wot/core";
 // protocols used
 import { HttpServer, HttpClientFactory, HttpsClientFactory } from "@node-wot/binding-http";
-import { WebSocketServer } from "@node-wot/binding-websockets";
+// import { WebSocketServer } from "@node-wot/binding-websockets";
 import { CoapServer, CoapClientFactory, CoapsClientFactory } from "@node-wot/binding-coap";
 import { MqttBrokerServer, MqttClientFactory } from "@node-wot/binding-mqtt";
 import { FileClientFactory } from "@node-wot/binding-file";
@@ -90,7 +90,7 @@ export default class DefaultServient extends Servient {
                 this.addServer(httpServer);
 
                 // re-use httpServer (same port)
-                this.addServer(new WebSocketServer(httpServer));
+                // this.addServer(new WebSocketServer(httpServer));
             }
             if (this.config.coap) {
                 coapServer =
