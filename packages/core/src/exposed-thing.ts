@@ -166,7 +166,6 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             for (const listener of es.legacyListeners) {
                 listener.call(this, data);
             }
-            es.emit(data);
             // --- END REMOVE
 
             const eventListener = this.eventListeners.get(name);
