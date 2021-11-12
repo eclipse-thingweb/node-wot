@@ -25,9 +25,10 @@ export default class MqttsClientFactory implements ProtocolClientFactory {
     public readonly scheme: string = "mqtts";
     private readonly clients: Array<ProtocolClient> = [];
 
+    // eslint-disable-next-line no-useless-constructor
     constructor(private readonly config: MqttClientConfig) {}
     getClient = (): ProtocolClient => {
-        let client = new MqttClient(this.config, true);
+        const client = new MqttClient(this.config, true);
         this.clients.push(client);
         return client;
     };

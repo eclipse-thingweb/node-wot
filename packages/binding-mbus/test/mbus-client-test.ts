@@ -12,9 +12,13 @@ describe("mbus client test", () => {
     let client: MBusClient;
 
     before(() => {
-        //Turn off logging to have a clean test log
-        console.debug = () => {};
-        console.warn = () => {};
+        // Turn off logging to have a clean test log
+        console.debug = () => {
+            /* nothing */
+        };
+        console.warn = () => {
+            /* nothing */
+        };
     });
 
     beforeEach(() => {
@@ -23,7 +27,9 @@ describe("mbus client test", () => {
     afterEach(() => {
         client.stop();
     });
-    after(() => {});
+    after(() => {
+        /* nothing */
+    });
 
     it("should override form values with URL", () => {
         const form: MBusForm = {
@@ -33,6 +39,7 @@ describe("mbus client test", () => {
             "mbus:unitID": 1,
         };
 
+        // eslint-disable-next-line dot-notation
         client["overrideFormFromURLPath"](form);
         form["mbus:unitID"].should.be.equal(2, "Form value not overridden");
         form["mbus:offset"].should.be.equal(2, "Form value not overridden");

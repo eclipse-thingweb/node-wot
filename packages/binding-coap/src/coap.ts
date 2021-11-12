@@ -14,6 +14,8 @@
  ********************************************************************************/
 
 import { Form } from "@node-wot/td-tools";
+import { OptionName } from "coap-packet";
+import { OptionValue } from "coap";
 
 export { default as CoapServer } from "./coap-server";
 export { default as CoapClientFactory } from "./coap-client-factory";
@@ -28,8 +30,8 @@ export * from "./coaps-client-factory";
 export * from "./coaps-client";
 
 export class CoapOption {
-    public "cov:optionName": string;
-    public "cov:optionValue": any;
+    public "cov:optionName": OptionName;
+    public "cov:optionValue": OptionValue;
 }
 
 export type CoapMethodName = "GET" | "POST" | "PUT" | "DELETE" | "FETCH" | "PATCH" | "iPATCH";
@@ -61,16 +63,4 @@ export function isValidCoapMethod(methodName: CoapMethodName): methodName is Coa
  */
 export function isSupportedCoapMethod(methodName: CoapMethodName): methodName is CoapMethodName {
     return ["GET", "POST", "PUT", "DELETE"].includes(methodName);
-}
-
-export declare interface CoapRequestConfig {
-    agent?: Record<string, unknown>;
-    hostname?: string;
-    port?: number;
-    pathname?: string;
-    query?: string;
-    observe?: boolean;
-    multicast?: boolean;
-    confirmable?: boolean;
-    method?: string;
 }

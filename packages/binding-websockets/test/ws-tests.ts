@@ -17,20 +17,21 @@
  * Protocol test suite to test protocol implementations
  */
 
-import { suite, test, slow, timeout, skip, only } from "@testdeck/mocha";
-import { expect, should, assert } from "chai";
+import { suite, test } from "@testdeck/mocha";
+import { expect, should } from "chai";
+import WebSocketServer from "../src/ws-server";
+
 // should must be called to augment all variables
 should();
 
-import WebSocketServer from "../src/ws-server";
-
+const port = 31080;
 @suite("WebSockets binding")
 class WebSocketsTest {
     @test async "should start and stop own server"() {
-        let wsServer = new WebSocketServer({ port: 58080 });
+        const wsServer = new WebSocketServer({ port });
 
         await wsServer.start(null);
-        expect(wsServer.getPort()).to.eq(58080); // from test
+        expect(wsServer.getPort()).to.eq(port); // from test
 
         console.log("Test stopping WebSocket server");
 

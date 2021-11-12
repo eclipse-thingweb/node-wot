@@ -24,13 +24,14 @@ import CoapServer from "../src/coap-server";
 // should must be called to augment all variables
 should();
 
+const port1 = 31831;
 @suite("CoAP server implementation")
 class CoapServerTest {
     @test async "should start and stop a server"() {
-        const coapServer = new CoapServer(56831);
+        const coapServer = new CoapServer(port1);
 
         await coapServer.start(null);
-        expect(coapServer.getPort()).to.eq(56831); // from test
+        expect(coapServer.getPort()).to.eq(port1); // from test
 
         await coapServer.stop();
         expect(coapServer.getPort()).to.eq(-1); // from getPort() when not listening

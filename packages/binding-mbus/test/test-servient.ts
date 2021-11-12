@@ -16,7 +16,7 @@
 // global W3C WoT Scripting API definitions
 import * as WoT from "wot-typescript-definitions";
 // node-wot implementation of W3C WoT Servient
-import { Servient, Helpers, ExposedThing } from "@node-wot/core";
+import { Servient } from "@node-wot/core";
 
 import { MBusClientFactory } from "../src/mbus";
 

@@ -29,7 +29,6 @@ import {
     AttributeIds,
     TimestampsToReturn,
     MonitoringParametersOptions,
-    // ReadValueIdLike, // ReadValueIdLike: ReadValueIdOptions | ReadValueId
     ReadValueIdOptions,
     ReadValueId,
     DataValue,
@@ -39,12 +38,25 @@ import {
     StatusCodes,
     ClientMonitoredItem,
     ClientSubscription,
+    VariantLike,
+    WriteValueOptions,
+    DataType,
+    UserIdentityInfo,
 } from "node-opcua-client";
 import * as cryptoUtils from "node-opcua-crypto";
 import { Subscription } from "rxjs/Subscription";
 import { Readable } from "stream";
 
-async function decodeContent(content: Content): Promise<Record<string, any> | Record<string, any>[]> {
+interface ThingOPCUACredentials {
+    username?: string;
+    password?: string;
+    clientCertificate?: string;
+    clientPrivateKey?: string;
+    serverCertificate?: string;
+    privateKey?: string;
+}
+
+async function decodeContent(content: Content): Promise<Record<string, unknown> | Record<string, unknown>[]> {
     if (content) {
         const body = await ProtocolHelpers.readStreamFully(content.body);
         const payload = JSON.parse(body.toString("ascii"));
@@ -56,7 +68,7 @@ async function decodeContent(content: Content): Promise<Record<string, any> | Re
 
 export default class OpcuaClient implements ProtocolClient {
     private client?: OPCUAClient;
-    private credentials: any;
+    private credentials: ThingOPCUACredentials | null;
     private session?: ClientSession;
     private subscription?: ClientSubscription;
     private clientOptions: OPCUAClientOptions;
@@ -85,7 +97,7 @@ export default class OpcuaClient implements ProtocolClient {
     }
 
     private async connect(endpointUrl: string): Promise<void> {
-        let userIdentity: any;
+        let userIdentity: UserIdentityInfo;
 
         if (this.credentials) {
             if (this.credentials.password) {
@@ -124,7 +136,6 @@ export default class OpcuaClient implements ProtocolClient {
     public async readResource(form: OpcuaForm): Promise<Content> {
         const url = new Url(form.href);
         const endpointUrl = `${url.protocol}//${url.host}`;
-        const method = form["opc:method"] ? form["opc:method"] : "READ";
 
         const contentType = "application/x.opcua-binary";
         await this.checkConnection(endpointUrl);
@@ -152,19 +163,24 @@ export default class OpcuaClient implements ProtocolClient {
         if (result.statusCode === StatusCodes.BadNodeIdUnknown) {
             throw new Error("Invalid nodeId");
         }
-        const body = JSON.stringify(result.toJSON());
+        const body = JSON.stringify(result.toJSON(), (k, v) => {
+            if (ArrayBuffer.isView(v as ArrayLike<unknown>)) {
+                return Array.from(v);
+            } else {
+                return v;
+            }
+        });
+
         return { type: contentType, body: Readable.from(Buffer.from(body)) };
     }
 
-    public async writeResource(form: OpcuaForm, content: Content): Promise<any> {
+    public async writeResource(form: OpcuaForm, content: Content): Promise<void> {
         const body = await ProtocolHelpers.readStreamFully(content.body);
-        const payload: any = content ? JSON.parse(body.toString()) : {};
+        const payload: Record<string, unknown> = content ? JSON.parse(body.toString()) : {};
         const url = new Url(form.href);
         const endpointUrl = `${url.protocol}//${url.host}`;
-        const method = form["opc:method"] ? form["opc:method"] : "WRITE";
-        const contentType = "application/x.opcua-binary";
 
-        const dataType = payload.dataType;
+        const dataType = payload.dataType as DataType | string;
 
         await this.checkConnection(endpointUrl);
 
@@ -176,12 +192,10 @@ export default class OpcuaClient implements ProtocolClient {
         } = this.extractParams(url.pathname.toString().substr(1));
         const nodeId = params.ns + ";" + params.idtype;
         try {
-            const nodeToWrite = {
+            const nodeToWrite: WriteValueOptions = {
                 nodeId: nodeId,
                 attributeId: AttributeIds.Value,
                 value: /* DataValue */ {
-                    // sourceTimestamp: new Date(), // FIXME: to be optional
-                    // statusCode: StatusCodes.Good,
                     value: /* Variant */ {
                         dataType,
                         value: payload.payload,
@@ -222,7 +236,7 @@ export default class OpcuaClient implements ProtocolClient {
         const nodeId = params.mns + ";" + params.midtype;
 
         if (method === "CALL_METHOD") {
-            const payload: any = await decodeContent(content);
+            const payload = (await decodeContent(content)) as { inputArguments: VariantLike[] };
 
             const methodToCall = {
                 methodId: nodeId,
@@ -284,10 +298,11 @@ export default class OpcuaClient implements ProtocolClient {
         this.subscription = await this.session.createSubscription2(subscriptionParameters);
         return this.subscription;
     }
+
     public async subscribeResource(
         form: OpcuaForm,
         next: (value: Content) => void,
-        error?: (error: any) => void,
+        error?: (error?: Error) => void,
         complete?: () => void
     ): Promise<Subscription> {
         const url = new Url(form.href);
@@ -321,7 +336,7 @@ export default class OpcuaClient implements ProtocolClient {
                 parameters,
                 TimestampsToReturn.Both
             );
-            monitoredItem.once("err", async (error: string) => {
+            monitoredItem.once("err", () => {
                 const err = new Error("Error while subscribing property: " + monitoredItem.statusCode.toString());
                 reject(err);
             });
@@ -361,7 +376,7 @@ export default class OpcuaClient implements ProtocolClient {
         }
     }
 
-    public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean {
+    public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: ThingOPCUACredentials): boolean {
         if (metadata === undefined || !Array.isArray(metadata) || metadata.length === 0) {
             console.warn("[binding-opcua]", `OpcuaClient without security`);
             return false;

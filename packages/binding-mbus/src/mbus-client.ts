@@ -3,9 +3,11 @@
  */
 import { MBusForm } from "./mbus";
 
-import { ProtocolClient, Content, ContentSerdes } from "@node-wot/core";
+import { ProtocolClient, Content } from "@node-wot/core";
 import { SecurityScheme } from "@node-wot/td-tools";
 import { MBusConnection, PropertyOperation } from "./mbus-connection";
+
+import { Subscription } from "rxjs/Subscription";
 
 const DEFAULT_PORT = 805;
 const DEFAULT_TIMEOUT = 1000;
@@ -16,31 +18,36 @@ export default class MBusClient implements ProtocolClient {
     constructor() {
         this._connections = new Map();
     }
+
     readResource(form: MBusForm): Promise<Content> {
         return this.performOperation(form) as Promise<Content>;
     }
+
     writeResource(form: MBusForm, content: Content): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             throw new Error("Method not implemented.");
         });
     }
+
     invokeResource(form: MBusForm, content: Content): Promise<Content> {
         return new Promise<Content>((resolve, reject) => {
             throw new Error("Method not implemented.");
         });
     }
+
     unlinkResource(form: MBusForm): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             throw new Error("Method not implemented.");
         });
     }
+
     public subscribeResource(
         form: MBusForm,
-        next: (value: any) => void,
-        error?: (error: any) => void,
+        next: (value: Content) => void,
+        error?: (error: Error) => void,
         complete?: () => void
-    ): any {
-        return new Promise<Content>((resolve, reject) => {
+    ): Promise<Subscription> {
+        return new Promise<Subscription>((resolve, reject) => {
             throw new Error("Method not implemented.");
         });
     }
@@ -55,19 +62,19 @@ export default class MBusClient implements ProtocolClient {
         });
     }
 
-    setSecurity(metadata: SecurityScheme[], credentials?: any): boolean {
+    setSecurity(metadata: SecurityScheme[], credentials?: never): boolean {
         return false;
     }
 
     private async performOperation(form: MBusForm): Promise<Content | void> {
         // get host and port
-        let parsed = new URL(form.href);
+        const parsed = new URL(form.href);
         const port = parsed.port ? parseInt(parsed.port, 10) : DEFAULT_PORT;
 
         form = this.validateAndFillDefaultForm(form);
 
-        let host = parsed.hostname;
-        let hostAndPort = host + ":" + port;
+        const host = parsed.hostname;
+        const hostAndPort = host + ":" + port;
 
         this.overrideFormFromURLPath(form);
 
@@ -85,19 +92,19 @@ export default class MBusClient implements ProtocolClient {
             console.debug("[binding-mbus]", "Reusing MbusConnection for ", hostAndPort);
         }
         // create operation
-        let operation = new PropertyOperation(form);
+        const operation = new PropertyOperation(form);
 
         // enqueue the operation at the connection
         connection.enqueue(operation);
 
         // return a promise to execute the operation
-        return operation.execute();
+        return connection.execute(operation);
     }
 
     private overrideFormFromURLPath(input: MBusForm) {
-        let parsed = new URL(input.href);
-        let pathComp = parsed.pathname.split("/");
-        let query = parsed.searchParams;
+        const parsed = new URL(input.href);
+        const pathComp = parsed.pathname.split("/");
+        const query = parsed.searchParams;
 
         input["mbus:unitID"] = parseInt(pathComp[1], 10) || input["mbus:unitID"];
         input["mbus:offset"] = parseInt(query.get("offset"), 10) || input["mbus:offset"];

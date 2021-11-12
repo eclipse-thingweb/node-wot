@@ -35,6 +35,8 @@ export default class OpcuaServient extends Servient {
     };
 
     public readonly config: any;
+    // current log level
+    public logLevel: string;
 
     public constructor(clientOnly: boolean, config?: any) {
         super();
@@ -74,16 +76,15 @@ export default class OpcuaServient extends Servient {
         this.addClientFactory(new FileClientFactory());
         this.addClientFactory(new OpcuaClientFactory(this.config.opcua));
     }
-
     /**
      * start
      */
-    public start(): Promise<WoT.WoT> {
-        return new Promise<WoT.WoT>((resolve, reject) => {
+    public start(): Promise<typeof WoT> {
+        return new Promise<typeof WoT>((resolve, reject) => {
             super
                 .start()
                 .then((myWoT) => {
-                    console.info("DefaultServient started");
+                    console.info("[cli/default-servient]", "DefaultServient started");
 
                     // TODO think about builder pattern that starts with produce() ends with expose(), which exposes/publishes the Thing
                     myWoT
@@ -99,9 +100,9 @@ export default class OpcuaServient extends Servient {
                                 },
                             },
                             actions: {
-                                log: {
-                                    description: "Enable logging",
-                                    input: { type: "string" },
+                                setLogLevel: {
+                                    description: "Set log level",
+                                    input: { oneOf: [{ type: "string" }, { type: "number" }] },
                                     output: { type: "string" },
                                 },
                                 shutdown: {
@@ -116,29 +117,38 @@ export default class OpcuaServient extends Servient {
                             },
                         })
                         .then((thing) => {
-                            thing.setActionHandler("log", (msg) => {
+                            thing.setActionHandler("setLogLevel", async (level) => {
+                                const ll = await Helpers.parseInteractionOutput(level);
                                 return new Promise((resolve, reject) => {
-                                    console.info(msg);
-                                    resolve(`logged '${msg}'`);
+                                    if (typeof ll === "number") {
+                                        this.setLogLevel(ll as number);
+                                    } else if (typeof ll === "string") {
+                                        this.setLogLevel(ll as string);
+                                    } else {
+                                        // try to convert it to strings
+                                        this.setLogLevel(ll + "");
+                                    }
+                                    resolve(`Log level set to '${this.logLevel}'`);
                                 });
                             });
                             thing.setActionHandler("shutdown", () => {
                                 return new Promise((resolve, reject) => {
-                                    console.info("shutting down by remote");
+                                    console.debug("[cli/default-servient]", "shutting down by remote");
                                     this.shutdown();
-                                    resolve();
+                                    resolve(undefined);
                                 });
                             });
-                            thing.setActionHandler("runScript", (script) => {
+                            thing.setActionHandler("runScript", async (script) => {
+                                const scriptv = await Helpers.parseInteractionOutput(script);
                                 return new Promise((resolve, reject) => {
-                                    console.log("running script", script);
-                                    this.runScript(script);
-                                    resolve();
+                                    console.debug("[cli/default-servient]", "running script", scriptv);
+                                    this.runScript(scriptv as string);
+                                    resolve(undefined);
                                 });
                             });
                             thing.setPropertyReadHandler("things", () => {
                                 return new Promise((resolve, reject) => {
-                                    console.log("returnings things");
+                                    console.debug("[cli/default-servient]", "returnings things");
                                     resolve(this.getThings());
                                 });
                             });
@@ -154,4 +164,89 @@ export default class OpcuaServient extends Servient {
                 .catch((err) => reject(err));
         });
     }
+
+    // Save default loggers (needed when changing log levels)
+    private readonly loggers: any = {
+        warn: console.warn,
+        info: console.info,
+        debug: console.debug,
+    };
+
+    private setLogLevel(logLevel: string | number): void {
+        if (logLevel === "error" || logLevel === 0) {
+            console.warn = () => {
+                /* nothing */
+            };
+            console.info = () => {
+                /* nothing */
+            };
+            console.debug = () => {
+                /* nothing */
+            };
+
+            this.logLevel = "error";
+        } else if (logLevel === "warn" || logLevel === "warning" || logLevel === 1) {
+            console.warn = this.loggers.warn;
+            console.info = () => {
+                /* nothing */
+            };
+            console.debug = () => {
+                /* nothing */
+            };
+
+            this.logLevel = "warn";
+        } else if (logLevel === "info" || logLevel === 2) {
+            console.warn = this.loggers.warn;
+            console.info = this.loggers.info;
+            console.debug = () => {
+                /* nothing */
+            };
+
+            this.logLevel = "info";
+        } else if (logLevel === "debug" || logLevel === 3) {
+            console.warn = this.loggers.warn;
+            console.info = this.loggers.info;
+            console.debug = this.loggers.debug;
+
+            this.logLevel = "debug";
+        } else {
+            // Fallback to default ("info")
+            console.warn = this.loggers.warn;
+            console.info = this.loggers.info;
+            console.debug = () => {
+                /* nothing */
+            };
+
+            this.logLevel = "info";
+        }
+    }
+}
+
+/**
+ * Helper function merging default parameters into a custom config file.
+ *
+ * @param {object} target - an object containing default config parameters
+ * @param {object} source - an object containing custom config parameters
+ *
+ * @return {object} The new config file containing both custom and default parameters
+ */
+function mergeConfigs(target: any, source: any): any {
+    const output = Object.assign({}, target);
+    Object.keys(source).forEach((key) => {
+        if (!(key in target)) {
+            Object.assign(output, { [key]: source[key] });
+        } else {
+            if (isObject(target[key]) && isObject(source[key])) {
+                output[key] = mergeConfigs(target[key], source[key]);
+            } else {
+                Object.assign(output, { [key]: source[key] });
+            }
+        }
+    });
+    return output;
+}
+
+// Helper function needed for `mergeConfigs` function
+function isObject(item: unknown) {
+    return item && typeof item === "object" && !Array.isArray(item);
 }

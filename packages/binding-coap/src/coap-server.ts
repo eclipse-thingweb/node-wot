@@ -17,11 +17,10 @@
  * CoAP Server based on coap by mcollina
  */
 
-import * as url from "url";
-
 import * as TD from "@node-wot/td-tools";
 import Servient, { ProtocolServer, ContentSerdes, ExposedThing, Helpers, ProtocolHelpers } from "@node-wot/core";
-import coap = require("coap");
+import { Socket } from "dgram";
+import { Server, createServer, registerFormat, IncomingMessage, OutgoingMessage } from "coap";
 import slugify from "slugify";
 
 export default class CoapServer implements ProtocolServer {
@@ -33,8 +32,7 @@ export default class CoapServer implements ProtocolServer {
 
     private readonly port: number = 5683;
     private readonly address?: string = undefined;
-
-    private readonly server: any = coap.createServer((req: any, res: any) => {
+    private readonly server: Server = createServer((req: IncomingMessage, res: OutgoingMessage) => {
         this.handleRequest(req, res);
     });
 
@@ -49,7 +47,7 @@ export default class CoapServer implements ProtocolServer {
         }
 
         // WoT-specific content formats
-        coap.registerFormat(ContentSerdes.JSON_LD, 2100);
+        registerFormat(ContentSerdes.JSON_LD, 2100);
     }
 
     public start(servient: Servient): Promise<void> {
@@ -86,7 +84,7 @@ export default class CoapServer implements ProtocolServer {
     }
 
     /** returns socket to be re-used by CoapClients */
-    public getSocket(): any {
+    public getSocket(): Socket {
         return this.server._sock;
     }
 
@@ -198,7 +196,7 @@ export default class CoapServer implements ProtocolServer {
         });
     }
 
-    private handleRequest(req: any, res: any) {
+    private handleRequest(req: IncomingMessage, res: OutgoingMessage) {
         console.debug(
             "[binding-coap]",
             `CoapServer on port ${this.getPort()} received '${req.method}(${req._packet.messageId}) ${
@@ -214,8 +212,8 @@ export default class CoapServer implements ProtocolServer {
             );
         });
 
-        const requestUri = url.parse(req.url);
-        let contentType = req.options["Content-Format"];
+        const requestUri = new URL(req.url);
+        let contentType = req.headers["Content-Format"] as string;
 
         if (req.method === "PUT" || req.method === "POST") {
             if (!contentType && req.payload) {
@@ -241,7 +239,7 @@ export default class CoapServer implements ProtocolServer {
         if (segments[1] === "") {
             // no path -> list all Things
             if (req.method === "GET") {
-                res.setHeader("Content-Type", ContentSerdes.DEFAULT);
+                res.setHeader("Content-Format", ContentSerdes.DEFAULT);
                 res.code = "2.05";
                 const list = [];
                 for (const address of Helpers.getAddresses()) {
@@ -299,19 +297,19 @@ export default class CoapServer implements ProtocolServer {
                                         );
                                         const content = ContentSerdes.get().valueToContent(
                                             value,
-                                            <any>property,
+                                            property,
                                             contentType
                                         );
                                         res.setOption("Content-Format", content.type);
                                         res.code = "2.05";
-                                        res.end(content.body);
+                                        content.body.pipe(res, { end: true });
                                     })
                                     .catch((err) => {
                                         console.error(
                                             "[binding-coap]",
-                                            `CoapServer on port ${this.getPort()} got internal error on read '${
-                                                requestUri.pathname
-                                            }': ${err.message}`
+                                            `CoapServer on port ${this.getPort()} got internal error on read '${requestUri}': ${
+                                                err.message
+                                            }`
                                         );
                                         res.code = "5.00";
                                         res.end(err.message);
@@ -330,12 +328,12 @@ export default class CoapServer implements ProtocolServer {
                                             );
                                             const content = ContentSerdes.get().valueToContent(
                                                 value,
-                                                <any>property,
+                                                property,
                                                 contentType
                                             );
                                             res.setOption("Content-Format", content.type);
                                             res.code = "2.05";
-                                            res.write(content.body);
+                                            content.body.pipe(res, { end: true });
 
                                             res.on("finish", (err: Error) => {
                                                 if (err) {
@@ -351,9 +349,9 @@ export default class CoapServer implements ProtocolServer {
                                         .catch((err) => {
                                             console.error(
                                                 "[binding-coap]",
-                                                `CoapServer on port ${this.getPort()} got internal error on read '${
-                                                    requestUri.pathname
-                                                }': ${err.message}`
+                                                `CoapServer on port ${this.getPort()} got internal error on read '${requestUri}': ${
+                                                    err.message
+                                                }`
                                             );
                                             res.code = "5.00";
                                             res.end(err.message);
@@ -367,7 +365,7 @@ export default class CoapServer implements ProtocolServer {
                                 try {
                                     value = ContentSerdes.get().contentToValue(
                                         { type: contentType, body: req.payload },
-                                        <any>property
+                                        property
                                     );
                                 } catch (err) {
                                     console.warn(
@@ -390,9 +388,9 @@ export default class CoapServer implements ProtocolServer {
                                     .catch((err) => {
                                         console.error(
                                             "[binding-coap]",
-                                            `CoapServer on port ${this.getPort()} got internal error on write '${
-                                                requestUri.pathname
-                                            }': ${err.message}`
+                                            `CoapServer on port ${this.getPort()} got internal error on write '${requestUri}': ${
+                                                err.message
+                                            }`
                                         );
                                         res.code = "5.00";
                                         res.end(err.message);
@@ -448,7 +446,7 @@ export default class CoapServer implements ProtocolServer {
                                         );
                                         res.setOption("Content-Format", content.type);
                                         res.code = "2.05";
-                                        res.end(content.body);
+                                        content.body.pipe(res, { end: true });
                                     } else {
                                         res.code = "2.04";
                                         res.end();
@@ -457,9 +455,9 @@ export default class CoapServer implements ProtocolServer {
                                 .catch((err) => {
                                     console.error(
                                         "[binding-coap]",
-                                        `CoapServer on port ${this.getPort()} got internal error on invoke '${
-                                            requestUri.pathname
-                                        }': ${err.message}`
+                                        `CoapServer on port ${this.getPort()} got internal error on invoke '${requestUri}': ${
+                                            err.message
+                                        }`
                                     );
                                     res.code = "5.00";
                                     res.end(err.message);
@@ -482,7 +480,7 @@ export default class CoapServer implements ProtocolServer {
                                 // (node-coap does not deduplicate when Observe is set)
                                 const packet = res._packet;
                                 packet.code = "0.00";
-                                packet.payload = "";
+                                packet.payload = Buffer.from("");
                                 packet.reset = false;
                                 packet.ack = true;
                                 packet.token = Buffer.alloc(0);

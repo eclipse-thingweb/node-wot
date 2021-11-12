@@ -23,11 +23,16 @@ import { Subscription } from "rxjs/Subscription";
 
 import { ProtocolClient, Content, ProtocolHelpers } from "@node-wot/core";
 import { CoapForm, CoapMethodName, isValidCoapMethod, isSupportedCoapMethod } from "./coap";
-import { CoapClient as coaps, RequestMethod } from "node-coap-client";
+import { CoapClient as coaps, CoapResponse, RequestMethod, SecurityParameters } from "node-coap-client";
+import { Readable } from "stream";
+
+declare interface pskSecurityParameters {
+    [identity: string]: string;
+}
 
 export default class CoapsClient implements ProtocolClient {
     // FIXME coap Agent closes socket when no messages in flight -> new socket with every request
-    private authorization: any;
+    private authorization: SecurityParameters;
 
     public toString(): string {
         return "[CoapsClient]";
@@ -36,30 +41,30 @@ export default class CoapsClient implements ProtocolClient {
     public readResource(form: CoapForm): Promise<Content> {
         return new Promise<Content>((resolve, reject) => {
             this.generateRequest(form, "GET")
-                .then((res: any) => {
+                .then((res: CoapResponse) => {
                     console.debug("[binding-coap]", `CoapsClient received ${res.code} from ${form.href}`);
 
                     // FIXME node-coap-client does not support options
                     let contentType; // = res.format[...]
                     if (!contentType) contentType = form.contentType;
 
-                    resolve({ type: contentType, body: res.payload });
+                    resolve({ type: contentType, body: Readable.from(res.payload) });
                 })
-                .catch((err: any) => {
+                .catch((err: Error) => {
                     reject(err);
                 });
         });
     }
 
-    public writeResource(form: CoapForm, content: Content): Promise<any> {
+    public writeResource(form: CoapForm, content: Content): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             this.generateRequest(form, "PUT", content)
-                .then((res: any) => {
+                .then((res: CoapResponse) => {
                     console.debug("[binding-coap]", `CoapsClient received ${res.code} from ${form.href}`);
 
                     resolve();
                 })
-                .catch((err: any) => {
+                .catch((err: Error) => {
                     reject(err);
                 });
         });
@@ -68,30 +73,30 @@ export default class CoapsClient implements ProtocolClient {
     public invokeResource(form: CoapForm, content?: Content): Promise<Content> {
         return new Promise<Content>((resolve, reject) => {
             this.generateRequest(form, "POST", content)
-                .then((res: any) => {
+                .then((res: CoapResponse) => {
                     console.debug("[binding-coap]", `CoapsClient received ${res.code} from ${form.href}`);
 
                     // FIXME node-coap-client does not support options
                     let contentType; // = res.format[...]
                     if (!contentType) contentType = form.contentType;
 
-                    resolve({ type: contentType, body: res.payload });
+                    resolve({ type: contentType, body: Readable.from(res.payload) });
                 })
-                .catch((err: any) => {
+                .catch((err: Error) => {
                     reject(err);
                 });
         });
     }
 
-    public unlinkResource(form: CoapForm): Promise<any> {
+    public unlinkResource(form: CoapForm): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             this.generateRequest(form, "DELETE")
-                .then((res: any) => {
+                .then((res: CoapResponse) => {
                     console.debug("[binding-coap]", `CoapsClient received ${res.code} from ${form.href}`);
                     console.debug("[binding-coap]", `CoapsClient received headers: ${JSON.stringify(res.format)}`);
                     resolve();
                 })
-                .catch((err: any) => {
+                .catch((err: Error) => {
                     reject(err);
                 });
         });
@@ -99,16 +104,22 @@ export default class CoapsClient implements ProtocolClient {
 
     public subscribeResource(
         form: CoapForm,
-        next: (value: any) => void,
-        error?: (error: any) => void,
+        next: (value: Content) => void,
+        error?: (error: Error) => void,
         complete?: () => void
     ): Promise<Subscription> {
         return new Promise<Subscription>((resolve, reject) => {
             const requestUri = new URL(form.href.replace(/$coaps/, "https"));
             coaps.setSecurityParams(requestUri.hostname, this.authorization);
 
+            const callback = (resp: CoapResponse) => {
+                if (resp.payload != null) {
+                    next({ type: form?.contentType, body: Readable.from(resp.payload) });
+                }
+            };
+
             coaps
-                .observe(form.href, "get", next)
+                .observe(form.href, "get", callback)
                 .then(() => {
                     resolve(
                         new Subscription(() => {
@@ -132,7 +143,7 @@ export default class CoapsClient implements ProtocolClient {
         // FIXME coap does not provide proper API to close Agent
     }
 
-    public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean {
+    public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: pskSecurityParameters): boolean {
         if (metadata === undefined || !Array.isArray(metadata) || metadata.length === 0) {
             console.warn("[binding-coap]", `CoapsClient received empty security metadata`);
             return false;
@@ -193,7 +204,11 @@ export default class CoapsClient implements ProtocolClient {
         return defaultMethod;
     }
 
-    private async generateRequest(form: CoapForm, defaultMethod: CoapMethodName, content?: Content): Promise<any> {
+    private async generateRequest(
+        form: CoapForm,
+        defaultMethod: CoapMethodName,
+        content?: Content
+    ): Promise<CoapResponse> {
         // url only works with http*
         const requestUri = new URL(form.href.replace(/$coaps/, "https"));
         coaps.setSecurityParams(requestUri.hostname, this.authorization);

@@ -42,7 +42,7 @@ interface DebugParams {
 }
 let debug: DebugParams;
 
-const readConf = function (filename: string): Promise<any> {
+const readConf = function (filename: string): Promise<unknown> {
     return new Promise((resolve, reject) => {
         const open = filename || path.join(baseDir, defaultFile);
         fs.readFile(open, "utf-8", (err, data) => {
@@ -50,7 +50,7 @@ const readConf = function (filename: string): Promise<any> {
                 reject(err);
             }
             if (data) {
-                let config: any;
+                let config;
                 try {
                     config = JSON.parse(data);
                 } catch (err) {
@@ -65,6 +65,7 @@ const readConf = function (filename: string): Promise<any> {
 
 const loadCompilerFunction = function (compilerModule: string | undefined) {
     if (compilerModule) {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
         const compilerMod = require(compilerModule);
 
         if (!compilerMod.create) {
@@ -82,9 +83,10 @@ const loadCompilerFunction = function (compilerModule: string | undefined) {
 };
 
 const loadEnvVariables = function () {
-    const env = dotenv.config();
+    const env: dotenv.DotenvConfigOutput = dotenv.config();
 
     // ignore file not found but throw otherwise
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (env.error && (env.error as any).code && (env.error as any).code !== "ENOENT") {
         throw env.error;
     }
@@ -121,6 +123,7 @@ const runScripts = async function (servient: DefaultServient, scripts: Array<str
         });
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const inspector = require("inspector");
     if (debug && debug.shouldBreak) {
         // Activate inspector only if is not already opened and wait for the debugger to attach
@@ -130,7 +133,7 @@ const runScripts = async function (servient: DefaultServient, scripts: Array<str
         // the breakpoint gives time to inspector clients to set their breakpoints
         const session = new inspector.Session();
         session.connect();
-        session.post("Debugger.enable", (error: any) => {
+        session.post("Debugger.enable", (error: Error) => {
             if (error) {
                 console.warn("[cli]", "Cannot set breakpoint; reason: cannot enable debugger");
                 console.warn(error);
@@ -142,7 +145,7 @@ const runScripts = async function (servient: DefaultServient, scripts: Array<str
                     lineNumber: 0,
                     url: "file:///" + path.resolve(scripts[0]).replace(/\\/g, "/"),
                 },
-                (err: any) => {
+                (err: Error) => {
                     if (err) {
                         console.warn("[cli]", "Cannot set breakpoint");
                         console.warn("[cli]", error);
@@ -226,6 +229,7 @@ for (let i = 0; i < argv.length; i++) {
         argv.splice(i, 1);
         i--;
     } else if (argv[i].match(/^(-v|--version|\/c)$/i)) {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
         console.log(require("@node-wot/core/package.json").version);
         process.exit(0);
     } else if (argv[i].match(/^(-h|--help|\/?|\/h)$/i)) {
