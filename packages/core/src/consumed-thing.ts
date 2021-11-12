@@ -462,7 +462,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                 /* TODO: current scripting api cannot handle this */
             }
         );
-        const subscription = new InternalSubscription(this, "property", name, form as FormElementProperty);
+        const subscription = new InternalPropertySubscription(this, name, form as FormElementProperty);
         this.observedProperties.set(name, subscription);
         return subscription;
     }
@@ -519,7 +519,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
             }
         );
 
-        const subscription = new InternalSubscription(this, "event", name, form as FormElementEvent);
+        const subscription = new InternalEventSubscription(this, name, form as FormElementEvent);
         this.subscribedEvents.set(name, subscription);
         return subscription;
     }
@@ -598,68 +598,31 @@ class ConsumedThingEvent extends TD.ThingEvent {
     }
 }
 
-type SubscriptionType = "property" | "event";
 /**
  * Describe a subscription with the underling platform
  * @experimental
  */
-class InternalSubscription implements Subscription {
+abstract class InternalSubscription implements Subscription {
     active: boolean;
-    private formIndex: number;
-    constructor(
-        private readonly thing: ConsumedThing,
-        private readonly type: SubscriptionType,
-        private readonly name: string,
-        private readonly form: FormElementEvent | FormElementProperty
-    ) {
+
+    constructor(protected readonly thing: ConsumedThing, protected readonly name: string) {
         this.active = true;
-        if (type === "property") {
-            this.formIndex = this.thing.properties[name].forms.indexOf(form as TD.Form);
-        } else {
-            this.formIndex = this.thing.events[name].forms.indexOf(form as TD.Form);
-        }
+    }
+
+    abstract stop(options?: WoT.InteractionOptions): Promise<void>;
+}
+
+class InternalEventSubscription extends InternalSubscription {
+    private formIndex: number;
+    constructor(thing: ConsumedThing, name: string, private readonly form: FormElementEvent) {
+        super(thing, name);
+        this.formIndex = this.thing.events[name].forms.indexOf(form as TD.Form);
     }
 
     async stop(options?: WoT.InteractionOptions): Promise<void> {
-        switch (this.type) {
-            case "property":
-                await this.unobserveProperty(options);
-                // eslint-disable-next-line dot-notation
-                this.thing["observedProperties"].delete(this.name);
-                break;
-            case "event":
-                await this.unsubscribeEvent(options);
-                // eslint-disable-next-line dot-notation
-                this.thing["subscribedEvents"].delete(this.name);
-                break;
-            default:
-                throw new Error("Invalid subscription type");
-        }
-    }
-
-    public async unobserveProperty(options: WoT.InteractionOptions = {}): Promise<void> {
-        const tp: TD.ThingProperty = this.thing.properties[this.name];
-        if (!tp) {
-            throw new Error(`ConsumedThing '${this.thing.title}' does not have property ${this.name}`);
-        }
-        if (!options.formIndex) {
-            options.formIndex = this.matchingUnsubscribeForm(this.formIndex, "property");
-        }
-        const { client, form } = this.thing.getClientFor(
-            tp.forms,
-            "unobserveproperty",
-            Affordance.PropertyAffordance,
-            options
-        );
-        if (!client) {
-            throw new Error(`ConsumedThing '${this.thing.title}' did not get suitable client for ${form.href}`);
-        }
-        if (!form) {
-            throw new Error(`ConsumedThing '${this.thing.title}' did not get suitable form`);
-        }
-        console.debug("[core/consumed-thing]", `ConsumedThing '${this.thing.title}' unobserving to ${form.href}`);
-        await client.unlinkResource(form);
-        this.active = false;
+        await this.unsubscribeEvent(options);
+        // eslint-disable-next-line dot-notation
+        this.thing["subscribedEvents"].delete(this.name);
     }
 
     public async unsubscribeEvent(options: WoT.InteractionOptions = {}): Promise<void> {
@@ -669,7 +632,7 @@ class InternalSubscription implements Subscription {
         }
 
         if (!options.formIndex) {
-            options.formIndex = this.matchingUnsubscribeForm(this.formIndex, "event");
+            options.formIndex = this.matchingUnsubscribeForm();
         }
 
         const { client, form } = this.thing.getClientFor(
@@ -689,39 +652,79 @@ class InternalSubscription implements Subscription {
         this.active = false;
     }
 
-    private matchingUnsubscribeForm(formIndex: number, type: SubscriptionType): number {
-        if (!(type === "property" || type === "event")) {
-            throw new Error("Invalid subscription type");
+    private matchingUnsubscribeForm(): number {
+        const refForm = this.thing.events[this.name].forms[this.formIndex];
+        // Here we have to keep in mind that op default is ["subscribeevent", "unsubscribeevent"]
+        if (!refForm.op || (Array.isArray(refForm.op) && refForm.op.includes("unsubscribeevent"))) {
+            // we can re-use the same form for unsubscribe
+            return this.formIndex;
+        }
+        // we have to find a matching form for unsubscribe
+        const bestFormMatch = findFormIndexWithScoring(
+            this.formIndex,
+            this.thing.events[this.name].forms,
+            "unsubscribeevent"
+        );
+
+        if (bestFormMatch === -1) {
+            throw new Error(`Could not find matching form for unsubscribe`);
         }
 
-        let bestFormMatch = -1;
+        return bestFormMatch;
+    }
+}
 
-        if (type === "property") {
-            const refForm = this.thing.properties[this.name].forms[formIndex];
-            if (Array.isArray(refForm.op) && refForm.op.includes("unobserveproperty")) {
-                // we can re-use the same form for unsubscribe
-                return formIndex;
-            }
-            // we have to find a matching form for unsubscribe
-            bestFormMatch = this.findFormIndexWithScoring(
-                formIndex,
-                this.thing.properties[this.name].forms,
-                "unobserveproperty"
-            );
-        } else if (type === "event") {
-            const refForm = this.thing.events[this.name].forms[formIndex];
-            // Here we have to keep in mind that op default is ["subscribeevent", "unsubscribeevent"]
-            if (!refForm.op || (Array.isArray(refForm.op) && refForm.op.includes("unsubscribeevent"))) {
-                // we can re-use the same form for unsubscribe
-                return formIndex;
-            }
-            // we have to find a matching form for unsubscribe
-            bestFormMatch = this.findFormIndexWithScoring(
-                formIndex,
-                this.thing.events[this.name].forms,
-                "unsubscribeevent"
-            );
+class InternalPropertySubscription extends InternalSubscription {
+    active: boolean;
+    private formIndex: number;
+    constructor(thing: ConsumedThing, name: string, private readonly form: FormElementProperty) {
+        super(thing, name);
+        this.formIndex = this.thing.properties[name].forms.indexOf(form as TD.Form);
+    }
+
+    async stop(options?: WoT.InteractionOptions): Promise<void> {
+        await this.unobserveProperty(options);
+        // eslint-disable-next-line dot-notation
+        this.thing["observedProperties"].delete(this.name);
+    }
+
+    public async unobserveProperty(options: WoT.InteractionOptions = {}): Promise<void> {
+        const tp: TD.ThingProperty = this.thing.properties[this.name];
+        if (!tp) {
+            throw new Error(`ConsumedThing '${this.thing.title}' does not have property ${this.name}`);
         }
+        if (!options.formIndex) {
+            options.formIndex = this.matchingUnsubscribeForm();
+        }
+        const { client, form } = this.thing.getClientFor(
+            tp.forms,
+            "unobserveproperty",
+            Affordance.PropertyAffordance,
+            options
+        );
+        if (!client) {
+            throw new Error(`ConsumedThing '${this.thing.title}' did not get suitable client for ${form.href}`);
+        }
+        if (!form) {
+            throw new Error(`ConsumedThing '${this.thing.title}' did not get suitable form`);
+        }
+        console.debug("[core/consumed-thing]", `ConsumedThing '${this.thing.title}' unobserving to ${form.href}`);
+        await client.unlinkResource(form);
+        this.active = false;
+    }
+
+    private matchingUnsubscribeForm(): number {
+        const refForm = this.thing.properties[this.name].forms[this.formIndex];
+        if (Array.isArray(refForm.op) && refForm.op.includes("unobserveproperty")) {
+            // we can re-use the same form for unsubscribe
+            return this.formIndex;
+        }
+        // we have to find a matching form for unsubscribe
+        const bestFormMatch = this.findFormIndexWithScoring(
+            this.formIndex,
+            this.thing.properties[this.name].forms,
+            "unobserveproperty"
+        );
 
         if (bestFormMatch === -1) {
             throw new Error(`Could not find matching form for unsubscribe`);
@@ -765,4 +768,40 @@ class InternalSubscription implements Subscription {
         }
         return maxScoreIndex;
     }
+}
+
+/*
+ * Find the form index with the best matching score.
+ * Implementation of https://w3c.github.io/wot-scripting-api/#dfn-find-a-matching-unsubscribe-form
+ */
+function findFormIndexWithScoring(
+    formIndex: number,
+    forms: TD.Form[],
+    operation: "unsubscribeevent" | "unobserveproperty"
+): number {
+    const refForm = forms[formIndex];
+    let maxScore = 0;
+    let maxScoreIndex = -1;
+
+    for (let i = 0; i < forms.length; i++) {
+        let score = 0;
+        const form = forms[i];
+        if (form.op === operation || (Array.isArray(form.op) && form.op.includes(operation))) {
+            score += 1;
+        }
+
+        if (new URL(form.href).origin === new URL(refForm.href).origin) {
+            score += 1;
+        }
+
+        if (form.contentType === refForm.contentType) {
+            score += 1;
+        }
+
+        if (score > maxScore) {
+            maxScore = score;
+            maxScoreIndex = i;
+        }
+    }
+    return maxScoreIndex;
 }
