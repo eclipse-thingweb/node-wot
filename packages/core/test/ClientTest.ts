@@ -234,6 +234,16 @@ const myThingDesc = {
                     mediaType: "application/json",
                     op: ["observeproperty", "unobserveproperty"],
                 },
+                {
+                    href: "testdata://host/athing/properties/apropertytoobserve1",
+                    contentType: "application/json",
+                    op: ["observeproperty"],
+                },
+                {
+                    href: "testdata://host/athing/properties/apropertytoobserve1",
+                    contentType: "application/json",
+                    op: ["unobserveproperty"],
+                },
             ],
         },
     },
@@ -254,6 +264,16 @@ const myThingDesc = {
                     href: "testdata://host/athing/events/anevent",
                     mediaType: "application/json",
                     op: ["subscribeevent", "unsubscribeevent"],
+                },
+                {
+                    href: "testdata://host/athing/events/anevent",
+                    contentType: "application/json",
+                    op: ["subscribeevent"],
+                },
+                {
+                    href: "testdata://host/athing/events/anevent",
+                    contentType: "application/json",
+                    op: ["unsubscribeevent"],
                 },
             ],
         },
@@ -436,6 +456,26 @@ class WoTClientTest {
         });
     }
 
+    @test async "subscribe to event with formIndex"() {
+        WoTClientTest.clientFactory.setTrap(() => {
+            return { type: "application/json", body: Readable.from(Buffer.from("triggered")) };
+        });
+        const td = (await WoTClientTest.WoTHelpers.fetch("td://foo")) as ThingDescription;
+        const thing = await WoTClientTest.WoT.consume(td);
+        expect(thing).to.have.property("title").that.equals("aThing");
+        expect(thing).to.have.property("events").that.has.property("anEvent");
+
+        const subscription = await thing.subscribeEvent(
+            "anEvent",
+            () => {
+                /*  */
+            },
+            undefined,
+            { formIndex: 1 }
+        );
+        await subscription.stop();
+    }
+
     @test async "should not subscribe twice to event"() {
         WoTClientTest.clientFactory.setTrap(() => {
             return { type: "application/json", body: Readable.from(Buffer.from("triggered")) };
@@ -493,6 +533,26 @@ class WoTClientTest {
                 resolve(true);
             });
         });
+    }
+
+    @test async "observe property with formIndex"() {
+        WoTClientTest.clientFactory.setTrap(() => {
+            return { type: "application/json", body: Readable.from(Buffer.from("12")) };
+        });
+        const td = (await WoTClientTest.WoTHelpers.fetch("td://foo")) as ThingDescription;
+        const thing = await WoTClientTest.WoT.consume(td);
+        expect(thing).to.have.property("title").that.equals("aThing");
+        expect(thing).to.have.property("properties").that.has.property("aPropertyToObserve");
+
+        const subscription = await thing.observeProperty(
+            "aPropertyToObserve",
+            () => {
+                /** */
+            },
+            undefined,
+            { formIndex: 1 }
+        );
+        await subscription.stop();
     }
 
     @test async "should not observe twice a property"() {
