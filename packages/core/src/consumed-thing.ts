@@ -56,6 +56,9 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
     private getServient: () => Servient;
     private getClients: () => Map<string, ProtocolClient>;
 
+    private subscribedEvents: Map<string, Subscription> = new Map<string, Subscription>();
+    private observedProperties: Map<string, Subscription> = new Map<string, Subscription>();
+
     constructor(servient: Servient, thingModel: TD.ThingModel = {}) {
         super();
 
@@ -427,6 +430,11 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         if (!form) {
             throw new Error(`ConsumedThing '${this.title}' did not get suitable form`);
         }
+        if (this.observedProperties.has(name)) {
+            throw new Error(
+                `ConsumedThing '${this.title}' has already a function subscribed to ${name}. You can only observe once`
+            );
+        }
         console.debug("[core/consumed-thing]", `ConsumedThing '${this.title}' observing to ${form.href}`);
 
         // uriVariables ?
@@ -453,7 +461,9 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                 /* TODO: current scripting api cannot handle this */
             }
         );
-        return new InternalSubscription(this, "property", name);
+        const subscription = new InternalSubscription(this, "property", name);
+        this.observedProperties.set(name, subscription);
+        return subscription;
     }
 
     /**
@@ -476,6 +486,11 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         }
         if (!form) {
             throw new Error(`ConsumedThing '${this.title}' did not get suitable form`);
+        }
+        if (this.subscribedEvents.has(name)) {
+            throw new Error(
+                `ConsumedThing '${this.title}' has already a function subscribed to ${name}. You can only subscribe once`
+            );
         }
         console.debug("[core/consumed-thing]", `ConsumedThing '${this.title}' subscribing to ${form.href}`);
 
@@ -503,7 +518,9 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
             }
         );
 
-        return new InternalSubscription(this, "event", name);
+        const subscription = new InternalSubscription(this, "event", name);
+        this.subscribedEvents.set(name, subscription);
+        return subscription;
     }
 
     // creates new form (if needed) for URI Variables
@@ -595,12 +612,18 @@ class InternalSubscription implements Subscription {
         this.active = true;
     }
 
-    stop(options?: WoT.InteractionOptions): Promise<void> {
+    async stop(options?: WoT.InteractionOptions): Promise<void> {
         switch (this.type) {
             case "property":
-                return this.unobserveProperty(options);
+                await this.unobserveProperty(options);
+                // eslint-disable-next-line dot-notation
+                this.thing["observedProperties"].delete(this.name);
+                break;
             case "event":
-                return this.unsubscribeEvent(options);
+                await this.unsubscribeEvent(options);
+                // eslint-disable-next-line dot-notation
+                this.thing["subscribedEvents"].delete(this.name);
+                break;
             default:
                 throw new Error("Invalid subscription type");
         }
