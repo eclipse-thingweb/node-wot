@@ -1095,6 +1095,8 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             body = ProtocolHelpers.toNodeStream(input);
         } else if (input instanceof PolyfillStream) {
             body = ProtocolHelpers.toNodeStream(input);
+        } else if (Array.isArray(input) || typeof input === "object") {
+            body = Readable.from(Buffer.from(JSON.stringify(input), "utf-8"));
         } else {
             body = Readable.from(Buffer.from(input.toString(), "utf-8"));
         }
