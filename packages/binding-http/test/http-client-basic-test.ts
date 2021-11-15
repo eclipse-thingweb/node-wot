@@ -21,7 +21,6 @@ import { BasicSecurityScheme } from "@node-wot/td-tools";
 import { ProtocolHelpers } from "@node-wot/core";
 import * as chai from "chai";
 import chaiAsPromised from "chai-as-promised";
-import { promisify } from "util";
 import { fail } from "assert";
 const fs = require("fs");
 

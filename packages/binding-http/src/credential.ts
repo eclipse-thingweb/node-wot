@@ -21,13 +21,17 @@ export abstract class Credential {
     abstract sign(request: Request): Promise<Request>;
 }
 
+export interface BasicCredentialConfiguration {
+    username: string;
+    password: string;
+}
 export class BasicCredential extends Credential {
     private readonly username: string;
     private readonly password: string;
     /**
      *
      */
-    constructor({ username, password }: { username: string; password: string }) {
+    constructor({ username, password }: BasicCredentialConfiguration) {
         super();
         if (username === undefined || password === undefined || username === null || password === null) {
             throw new Error(`No Basic credentials for Thing`);
@@ -46,10 +50,12 @@ export class BasicCredential extends Credential {
         return result;
     }
 }
-
+export interface BearerCredentialConfiguration {
+    token: string;
+}
 export class BearerCredential extends Credential {
     private readonly token: string;
-    constructor(token: string) {
+    constructor({ token }: BearerCredentialConfiguration) {
         super();
         if (token === undefined || token === null) {
             throw new Error(`No Bearer credentionals for Thing`);
@@ -64,12 +70,14 @@ export class BearerCredential extends Credential {
         return result;
     }
 }
-
+export interface BasicKeyCredentialConfiguration {
+    apiKey: string;
+}
 export class BasicKeyCredential extends Credential {
     private readonly apiKey: string;
     private readonly options: APIKeySecurityScheme;
 
-    constructor(apiKey: string, options: APIKeySecurityScheme) {
+    constructor({ apiKey }: BasicKeyCredentialConfiguration, options: APIKeySecurityScheme) {
         super();
         if (apiKey === undefined || apiKey === null) {
             throw new Error(`No API key credentials for Thing`);

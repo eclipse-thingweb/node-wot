@@ -26,7 +26,6 @@ import ContentManager from "./content-serdes";
 
 import UriTemplate = require("uritemplate");
 import { InteractionOutput } from "./interaction-output";
-import { Subscription } from "rxjs/Subscription";
 
 enum Affordance {
     PropertyAffordance,
@@ -429,7 +428,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         form = this.handleUriVariables(form, options);
 
         return new Promise<void>((resolve, reject) => {
-            const subscriptioPromise = client.subscribeResource(
+            client.subscribeResource(
                 form,
                 // next
                 (content) => {
@@ -450,7 +449,6 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                     resolve();
                 }
             );
-            // to do : what shall we do with subscriptionPromise ?
         });
     }
 

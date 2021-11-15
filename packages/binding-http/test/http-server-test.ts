@@ -278,18 +278,15 @@ class HttpServerTest {
         testThing.properties.maintenanceNeeded.forms = [];
         testThing.actions.makeDrink.forms = [];
 
-        const td = testThing.getThingDescription();
-
         await httpServer.expose(testThing);
 
-        const uri = "http://localhost:8080/smart-coffee-machine"; // theBase.concat('/')
+        const uri = "http://localhost:8080/smart-coffee-machine";
         const body = await (await fetch(uri)).text();
-        // console.debug(JSON.stringify(JSON.parse(body),undefined,2))
 
-        const expected_url = `${theBaseUri}/smart-coffee-machine/actions/makeDrink`;
+        const expectedUrl = `${theBaseUri}/smart-coffee-machine/actions/makeDrink`;
 
-        expect(body).to.include(expected_url);
-        console.log(`Found URL ${expected_url} in TD`);
+        expect(body).to.include(expectedUrl);
+        console.log(`Found URL ${expectedUrl} in TD`);
         await httpServer.stop();
     }
 }
