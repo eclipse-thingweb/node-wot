@@ -131,6 +131,68 @@ class HttpServerTest {
         return httpServer.stop();
     }
 
+    @test async "should serialize objects for actions and properties"() {
+        const httpServer = new HttpServer({ port: 0 });
+
+        await httpServer.start(null);
+
+        const testThing = new ExposedThing(null, {
+            title: "Test",
+            properties: {
+                test: {
+                    type: "object",
+                },
+            },
+            actions: {
+                try: {
+                    output: { type: "object" },
+                },
+            },
+        });
+        let test: DataSchemaValue;
+        testThing.setPropertyReadHandler("test", (_) => Promise.resolve(test));
+        testThing.setPropertyWriteHandler("test", async (value) => {
+            test = await value.value();
+        });
+        await testThing.writeProperty("test", {});
+        testThing.properties.test.forms = [];
+        testThing.setActionHandler("try", (input: WoT.InteractionOutput) => {
+            return new Promise<string>((resolve, reject) => {
+                resolve("TEST");
+            });
+        });
+        testThing.actions.try.forms = [];
+
+        await httpServer.expose(testThing);
+
+        const uri = `http://localhost:${httpServer.getPort()}/test/`;
+        let resp;
+
+        console.log("Testing", uri);
+
+        resp = await (await fetch(uri + "properties/test")).text();
+        expect(resp).to.equal("{}");
+
+        resp = await (await fetch(uri + "properties")).text();
+        expect(resp).to.equal('{"test":"{}"}');
+
+        resp = await (
+            await fetch(uri + "properties/test", { method: "PUT", body: JSON.stringify({ new: true }) })
+        ).text();
+        expect(resp).to.equal("");
+
+        resp = await (await fetch(uri + "properties/test")).text();
+        expect(resp).to.equal('{"new":true}');
+
+        resp = await (await fetch(uri + "actions/try", { method: "POST", body: "toggle" })).text();
+        expect(resp).to.equal('"TEST"');
+
+        resp = await (await fetch(uri + "actions/try", { method: "POST", body: undefined })).text();
+        expect(resp).to.equal('"TEST"');
+
+        return httpServer.stop();
+    }
+
     @test async "should cause EADDRINUSE error when already running"() {
         const httpServer1 = new HttpServer({ port: 0 });
 
