@@ -367,13 +367,10 @@ class HttpServerTest {
         testThing.properties.maintenanceNeeded.forms = [];
         testThing.actions.makeDrink.forms = [];
 
-        testThing.getThingDescription();
-
         await httpServer.expose(testThing);
 
         const uri = "http://localhost:8080/smart-coffee-machine"; // theBase.concat('/')
         const body = await (await fetch(uri)).text();
-        // console.debug(JSON.stringify(JSON.parse(body),undefined,2))
 
         const expectedUrl = `${theBaseUri}/smart-coffee-machine/actions/makeDrink`;
 
