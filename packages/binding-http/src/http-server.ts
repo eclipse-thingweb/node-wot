@@ -738,15 +738,15 @@ export default class HttpServer implements ProtocolServer {
                                 if (req.method === "GET") {
                                     // check if this an observable request (longpoll)
                                     if (segments[4] === this.OBSERVABLE_DIR) {
-                                        // FIXME must decide on Content-Type here, not on next()
-                                        res.setHeader("Content-Type", ContentSerdes.DEFAULT);
-                                        res.writeHead(200);
-
                                         const listener = async (value: Content) => {
                                             try {
                                                 // send event data
                                                 value.body.pipe(res);
                                             } catch (err) {
+                                                if (err?.code === "ERR_HTTP_HEADERS_SENT") {
+                                                    thing.handleUnsubscribeEvent(segments[3], listener, options);
+                                                    return;
+                                                }
                                                 console.warn(
                                                     "[binding-http]",
                                                     `HttpServer on port ${this.getPort()} cannot process data for Event '${
@@ -758,10 +758,8 @@ export default class HttpServer implements ProtocolServer {
                                             }
                                         };
 
-                                        thing
-                                            .handleObserveProperty(segments[3], listener, options)
-                                            .then(() => res.end())
-                                            .catch(() => res.end());
+                                        await thing.handleObserveProperty(segments[3], listener, options);
+
                                         res.on("finish", () => {
                                             console.debug(
                                                 "[binding-http]",
@@ -869,10 +867,6 @@ export default class HttpServer implements ProtocolServer {
                         const event = thing.events[segments[3]];
                         if (event) {
                             if (req.method === "GET") {
-                                // FIXME must decide on Content-Type here, not on next()
-                                res.setHeader("Content-Type", ContentSerdes.DEFAULT);
-                                res.writeHead(200);
-
                                 const options: WoT.InteractionOptions & { formIndex: number } = {
                                     formIndex: ProtocolHelpers.findRequestMatchingFormIndex(
                                         event.forms,
@@ -893,6 +887,10 @@ export default class HttpServer implements ProtocolServer {
                                         res.writeHead(200);
                                         value.body.pipe(res);
                                     } catch (err) {
+                                        if (err?.code === "ERR_HTTP_HEADERS_SENT") {
+                                            thing.handleUnsubscribeEvent(segments[3], listener, options);
+                                            return;
+                                        }
                                         console.warn(
                                             "[binding-http]",
                                             `HttpServer on port ${this.getPort()} cannot process data for Event '${
@@ -904,10 +902,7 @@ export default class HttpServer implements ProtocolServer {
                                     }
                                 };
 
-                                thing
-                                    .handleSubscribeEvent(segments[3], listener, options)
-                                    .then(() => res.end())
-                                    .catch(() => res.end());
+                                await thing.handleSubscribeEvent(segments[3], listener, options);
                                 res.on("finish", () => {
                                     console.debug(
                                         "[binding-http]",
