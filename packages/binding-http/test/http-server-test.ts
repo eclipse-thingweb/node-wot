@@ -131,7 +131,7 @@ class HttpServerTest {
         return httpServer.stop();
     }
 
-    @test async "should change object resource from {} to {'new': true} and try to invoke"() {
+    @test async "should serialize objects for actions and properties"() {
         const httpServer = new HttpServer({ port: 0 });
 
         await httpServer.start(null);
