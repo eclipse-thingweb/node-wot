@@ -28,21 +28,21 @@ import { Readable } from "stream";
 // should must be called to augment all variables
 should();
 
-const port1 = 31831;
+const PORT = 31831;
 @suite("CoAP server implementation")
 class CoapServerTest {
     @test async "should start and stop a server"() {
-        const coapServer = new CoapServer(port1);
+        const coapServer = new CoapServer(PORT);
 
         await coapServer.start(null);
-        expect(coapServer.getPort()).to.eq(port1); // from test
+        expect(coapServer.getPort()).to.eq(PORT); // from test
 
         await coapServer.stop();
         expect(coapServer.getPort()).to.eq(-1); // from getPort() when not listening
     }
 
     @test async "should read property"() {
-        const coapServer = new CoapServer(56831);
+        const coapServer = new CoapServer(PORT);
 
         await coapServer.start(null);
 
@@ -71,7 +71,7 @@ class CoapServerTest {
     }
 
     @test async "should write property"() {
-        const coapServer = new CoapServer(56831);
+        const coapServer = new CoapServer(PORT);
 
         await coapServer.start(null);
 
@@ -108,7 +108,7 @@ class CoapServerTest {
     }
 
     @test async "should perform an action"() {
-        const coapServer = new CoapServer(56831);
+        const coapServer = new CoapServer(PORT);
 
         await coapServer.start(null);
 
@@ -143,7 +143,7 @@ class CoapServerTest {
     }
 
     @test async "should subscribe to event"() {
-        const coapServer = new CoapServer(56831);
+        const coapServer = new CoapServer(PORT);
 
         await coapServer.start(null);
 
