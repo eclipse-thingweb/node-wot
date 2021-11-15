@@ -173,6 +173,10 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 
             if (eventListener) {
                 if (formIndex !== -1 && eventListener[formIndex]) {
+                    if (eventListener[formIndex].length < 1) {
+                        return;
+                    }
+
                     const form = this.events[name].forms[formIndex];
                     const content = ContentSerdes.get().valueToContent(data, this.event, form.contentType);
                     eventListener[formIndex].forEach((listener) => listener(content));
