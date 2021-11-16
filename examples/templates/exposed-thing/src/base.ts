@@ -136,7 +136,7 @@ export class WotDevice {
             // uncomment to emit property changed event for observers
             // this.emitPropertyChange("myProperty")
 
-            // resolve that write was succesful
+            // resolve that write was succesful without returning anything
             resolve();
         });
     }
@@ -150,7 +150,7 @@ export class WotDevice {
 
             let outputData = "";
 
-            // resolve that with outputData if available, else resolve that action was successful
+            // resolve that with outputData if available, else resolve that action was successful without returning anything
             if (outputData) {
                 resolve(outputData);
             } else {
