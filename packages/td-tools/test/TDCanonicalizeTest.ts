@@ -141,4 +141,53 @@ class TDCanonicalizeTest {
         const canTD: string = TDCanonicalizer.canonicalizeTD(testTD);
         expect(canTD).to.equals(`{"literals":[null,true,false],"numbers":[333333333.3333333,1e+30,4.5,0.002,1e-27]}`);
     }
+
+    @test "should canoncalize dateTime #1"() {
+        const testTD = `{
+    "created": "2018-11-13T20:20:39+00:00"
+  }`;
+        const canTD: string = TDCanonicalizer.canonicalizeTD(testTD);
+        expect(canTD).to.equals(`{"created":"2018-11-13T20:20:39Z"}`);
+    }
+
+    @test "should canoncalize dateTime #2"() {
+        const testTD = `{
+  "modified": "2018-11-13T20:20:39+01:00"
+}`;
+        const canTD: string = TDCanonicalizer.canonicalizeTD(testTD);
+        expect(canTD).to.equals(`{"modified":"2018-11-13T19:20:39Z"}`);
+    }
+
+    @test "should canoncalize dateTime #3"() {
+        const testTD = `{
+"created": "2015-08-11T23:00:00+09:00"
+}`;
+        const canTD: string = TDCanonicalizer.canonicalizeTD(testTD);
+        expect(canTD).to.equals(`{"created":"2015-08-11T14:00:00Z"}`);
+    }
+
+    @test "should canoncalize dateTime #4"() {
+        const testTD = `{
+"created": "2015-08-11T23:00:00-09:00"
+}`;
+        const canTD: string = TDCanonicalizer.canonicalizeTD(testTD);
+        expect(canTD).to.equals(`{"created":"2015-08-12T08:00:00Z"}`);
+    }
+
+    @test "should canoncalize dateTime #5"() {
+        const testTD = `{
+"created": "2015-08-11T23:00:00Z"
+}`;
+        const canTD: string = TDCanonicalizer.canonicalizeTD(testTD);
+        expect(canTD).to.equals(`{"created":"2015-08-11T23:00:00Z"}`);
+    }
+
+    @test.skip "should canoncalize dateTimehour 25 #5"() {
+        // fails with RangeError: Invalid time value
+        const testTD = `{
+"created": "2014-08-11T25:00:00Z"
+}`;
+        const canTD: string = TDCanonicalizer.canonicalizeTD(testTD);
+        expect(canTD).to.equals(`{"created":"2014-08-12T01:00:00Z"}`);
+    }
 }

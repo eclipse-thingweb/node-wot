@@ -22,12 +22,16 @@ export function canonicalizeTD(thingDescription: string): string {
     // https://w3c.github.io/wot-thing-description/#canonicalization-serialization-json
     //
     // The following sequence of transformations and constraints are to be applied
-    //
+
     // 1. In the Canonical TD, values that are of type dateTime MUST use the literal "Z" representing the UTC time zone instead of an offset.
-
     // 2. In the Canonical TD, values that are of type dateTime MUST serialize the fractional part of the seconds field as other numbers under the JSON Canonicalization Scheme, except that negative numbers and exponents are not permitted. Note in particular that trailing zeros and zero fractional seconds are not permitted under this serialization.
-
     // 3. In the Canonical TD, values that are of type dateTime MUST NOT use '24' in the hours field.
+    if (thing.created !== undefined && typeof thing.created === "string") {
+        thing.created = getCanonicalizedDateTime(thing.created);
+    }
+    if (thing.modified !== undefined && typeof thing.modified === "string") {
+        thing.modified = getCanonicalizedDateTime(thing.modified);
+    }
 
     // 4. In the Canonical TD, all required elements MUST be given explicitly, even if they have defaults and are assigned their default value. For example, the default value of writeOnly is false. If an input TD omits observable where it is allowed, it must still explicitly appear in the canonical form with the value of false. Note that this also applies to extension vocabularies, e.g. for protocol bindings. If any such extension defines default values they must be given explicitly in the canonical form.
     // -> https://w3c.github.io/wot-thing-description/#sec-default-values
@@ -102,6 +106,14 @@ function stringifySorted(value: any) {
         objString += `${value}`;
     }
     return objString;
+}
+
+function getCanonicalizedDateTime(dt: string): string {
+    // TODO is there a library we could use?
+    const date = new Date(Date.parse(dt));
+    let iso = date.toISOString(); // 2018-11-13T20:20:39.000Z
+    iso = iso.slice(0, -5);
+    return iso + "Z";
 }
 
 // TODO Should be merged with td-parser code
