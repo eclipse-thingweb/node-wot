@@ -18,7 +18,15 @@ import * as TD from "./thing-description";
 
 /** Canonicalizes a TD into a string */
 export function canonicalizeTD(thingDescription: string): string {
-    const thing = JSON.parse(thingDescription); // : Thing = JSON.parse(thingDescription);
+    if (thingDescription === undefined) {
+        return undefined;
+    }
+    // TODO shall we check wether we deal with a valid TD in the first place?
+    const thing = JSON.parse(thingDescription);
+    if (thing === undefined || typeof thing !== "object") {
+        return undefined;
+    }
+
     // https://w3c.github.io/wot-thing-description/#canonicalization-serialization-json
     //
     // The following sequence of transformations and constraints are to be applied
