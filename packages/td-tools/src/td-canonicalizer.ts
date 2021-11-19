@@ -76,7 +76,7 @@ export function canonicalizeTD(thingDescription: string): string {
 function stringifySorted(value: any) {
     let objString = "";
     if (Array.isArray(value)) {
-        // add first angle brace
+        // add first angle brackets
         objString += "[";
         for (let i = 0; i < value.length; i++) {
             const entry = value[i];
@@ -86,14 +86,14 @@ function stringifySorted(value: any) {
                 objString += ",";
             }
         }
-        // add last angle brace
+        // add last angle brackets
         objString += "]";
     } else if (value === null) {
         objString += "null";
     } else if (typeof value === "object") {
         let keys: string[] = Object.keys(value);
         keys = keys.sort(); // sort keys
-        // add first curly brace
+        // add first curly brackets
         objString += "{";
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -104,7 +104,7 @@ function stringifySorted(value: any) {
                 objString += ",";
             }
         }
-        // add last curly brace
+        // add last curly brackets
         objString += "}";
     } else if (typeof value === "string") {
         objString += `"${value}"`;
