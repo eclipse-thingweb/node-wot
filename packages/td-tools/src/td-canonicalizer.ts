@@ -76,6 +76,8 @@ function stringifySorted(value: any) {
         }
         // add last angle brace
         objString += "]";
+    } else if (value === null) {
+        objString += "null";
     } else if (typeof value === "object") {
         let keys: string[] = Object.keys(value);
         keys = keys.sort(); // sort keys

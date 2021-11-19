@@ -112,4 +112,33 @@ class TDCanonicalizeTest {
             `{"@context":"http://www.w3.org/ns/td","id":"urn:dev:ops:32473-WoTLamp-1234","properties":{"status":{"forms":[{"contentType":"application/json","href":"https://mylamp.example.com/status","htv:methodName":"GET","op":"readproperty","security":"basic_sc"},{"contentType":"application/json","href":"https://mylamp.example.com/status","htv:methodName":"PUT","op":"writeproperty","security":"basic_sc"}],"observable":false,"readOnly":false,"type":"string","writeOnly":false}},"security":["basic_sc"],"securityDefinitions":{"basic_sc":{"in":"header","scheme":"basic"}},"title":"MyLampThing"}`
         );
     }
+
+    @test "RFC8785 3.2.2 Primitive Data Types - Numbers and Literals"() {
+        // https://datatracker.ietf.org/doc/html/rfc8785#section-3.2.2
+        // Note: string causes issues with plain JSON.parse();
+        // "string": "\u20ac$\u000F\u000aA'\u0042\u0022\u005c\\\"\/",
+        const testTD = `{
+        "numbers": [333333333.33333329, 1E30, 4.50,
+                    2e-3, 0.000000000000000000000000001],
+        "literals": [null, true, false]
+      }`;
+        const canTD: string = TDCanonicalizer.canonicalizeTD(testTD);
+        expect(canTD).to.equals(`{"literals":[null,true,false],"numbers":[333333333.3333333,1e+30,4.5,0.002,1e-27]}`);
+    }
+
+    @test.skip "RFC8785 3.2.3 Sorting of Object Properties"() {
+        // Note: JSON.parse(...) fails
+        // https://datatracker.ietf.org/doc/html/rfc8785#section-3.2.3
+        const testTD = `{
+        "\u20ac": "Euro Sign",
+        "\r": "Carriage Return",
+        "\ufb33": "Hebrew Letter Dalet With Dagesh",
+        "1": "One",
+        "\ud83d\ude00": "Emoji: Grinning Face",
+        "\u0080": "Control",
+        "\u00f6": "Latin Small Letter O With Diaeresis"
+      }`;
+        const canTD: string = TDCanonicalizer.canonicalizeTD(testTD);
+        expect(canTD).to.equals(`{"literals":[null,true,false],"numbers":[333333333.3333333,1e+30,4.5,0.002,1e-27]}`);
+    }
 }
