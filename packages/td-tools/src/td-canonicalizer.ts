@@ -47,6 +47,7 @@ export function canonicalizeTD(thingDescription: string): string {
         for (const propName in thing.properties) {
             const prop: TD.ThingProperty = thing.properties[propName];
             applyDataSchemaDefaults(prop as TD.DataSchema);
+            applyPropertyAffordanceDefaults(prop);
         }
     }
     if (thing.actions !== undefined && thing.actions instanceof Object) {
@@ -133,9 +134,11 @@ function applyDataSchemaDefaults(dataSchema: TD.DataSchema) {
     if (dataSchema.writeOnly === undefined || typeof dataSchema.writeOnly !== "boolean") {
         dataSchema.writeOnly = false;
     }
-    // TODO does this really come fomr DataSchema? Shouldn't it be PropertyAffordance?
-    if (dataSchema.observable === undefined || typeof dataSchema.observable !== "boolean") {
-        dataSchema.observable = false;
+}
+
+function applyPropertyAffordanceDefaults(propertyAffordance: TD.ThingProperty) {
+    if (propertyAffordance.observable === undefined || typeof propertyAffordance.observable !== "boolean") {
+        propertyAffordance.observable = false;
     }
 }
 
