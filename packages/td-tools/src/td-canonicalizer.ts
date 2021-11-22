@@ -43,17 +43,41 @@ export function canonicalizeTD(thingDescription: string): string {
 
     // 4. In the Canonical TD, all required elements MUST be given explicitly, even if they have defaults and are assigned their default value. For example, the default value of writeOnly is false. If an input TD omits observable where it is allowed, it must still explicitly appear in the canonical form with the value of false. Note that this also applies to extension vocabularies, e.g. for protocol bindings. If any such extension defines default values they must be given explicitly in the canonical form.
     // -> https://w3c.github.io/wot-thing-description/#sec-default-values
+    applyFormDefaults(thing.forms);
+    // TODO defaults for security terms (BasicSecurityScheme, DigestSecurityScheme, ...), AdditionalExpectedResponse, AdditionalExpectedResponse
     if (thing.properties !== undefined && thing.properties instanceof Object) {
         for (const propName in thing.properties) {
             const prop: TD.ThingProperty = thing.properties[propName];
             applyDataSchemaDefaults(prop as TD.DataSchema);
             applyPropertyAffordanceDefaults(prop);
+            if (prop.forms) {
+                let defaultOps: string[];
+                if (prop.readOnly === false && prop.writeOnly === false) {
+                    defaultOps = ["readproperty", "writeproperty"];
+                } else if (prop.readOnly === true) {
+                    defaultOps = ["readproperty"];
+                } else if (prop.writeOnly === false) {
+                    defaultOps = ["writeproperty"];
+                }
+                prop.forms.forEach((item) => applyFormDefaults(item, defaultOps));
+            }
         }
     }
     if (thing.actions !== undefined && thing.actions instanceof Object) {
         for (const actName in thing.actions) {
             const act: TD.ThingAction = thing.actions[actName];
             applyActionAffordanceDefaults(act);
+            if (act.forms) {
+                act.forms.forEach((item) => applyFormDefaults(item, ["invokeaction"]));
+            }
+        }
+    }
+    if (thing.events !== undefined && thing.events instanceof Object) {
+        for (const evtName in thing.events) {
+            const evt: TD.ThingEvent = thing.events[evtName];
+            if (evt.forms) {
+                evt.forms.forEach((item) => applyFormDefaults(item, ["subscribeevent", "unsubscribeevent"]));
+            }
         }
     }
     // TODO DataSchema in Action(input/output), Event (subscription, data, cancellation)  ...
@@ -126,8 +150,19 @@ function getCanonicalizedDateTime(dt: string): string {
 }
 
 // TODO Should be merged with td-parser code
+function applyFormDefaults(form: TD.Form, defaultOps?: string[]) {
+    if (form) {
+        if (form.contentType === undefined || typeof form.contentType !== "string") {
+            form.contentType = "application/json";
+        }
+        if (form.op === undefined && defaultOps) {
+            form.op = defaultOps;
+        }
+    }
+}
+
+// TODO Should be merged with td-parser code
 function applyDataSchemaDefaults(dataSchema: TD.DataSchema) {
-    // const prop: TD.ThingProperty = thing.properties[propName];
     if (dataSchema.readOnly === undefined || typeof dataSchema.readOnly !== "boolean") {
         dataSchema.readOnly = false;
     }

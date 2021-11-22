@@ -66,7 +66,33 @@ class TDCanonicalizeTest {
       }`;
         const canTD: string = TDCanonicalizer.canonicalizeTD(testTD);
         expect(canTD).to.equals(
-            `{"id":"xyz","properties":{"t1":{"forms":[{"contentType":"application/json","href":"coap://mything.example.com:5683/temp"}],"observable":false,"readOnly":false,"type":"boolean","writeOnly":false},"t2":{"forms":[{"contentType":"application/json","href":"coap://mything.example.com:5683/temp"}],"observable":false,"readOnly":false,"type":"number","writeOnly":false}},"security":"basic_sc","securityDefinitions":{"basic_sc":{"in":"header","scheme":"basic"}},"title":"MyThing1"}`
+            `{"id":"xyz","properties":{"t1":{"forms":[{"contentType":"application/json","href":"coap://mything.example.com:5683/temp","op":["readproperty","writeproperty"]}],"observable":false,"readOnly":false,"type":"boolean","writeOnly":false},"t2":{"forms":[{"contentType":"application/json","href":"coap://mything.example.com:5683/temp","op":["readproperty","writeproperty"]}],"observable":false,"readOnly":false,"type":"number","writeOnly":false}},"security":"basic_sc","securityDefinitions":{"basic_sc":{"in":"header","scheme":"basic"}},"title":"MyThing1"}`
+        );
+    }
+
+    @test "should add defaults for property forms"() {
+        const testTD = `{
+      "@context": "https://www.w3.org/2019/wot/td/v1",
+      "title": "MyThing1",
+      "securityDefinitions": {
+        "basic_sc": {
+          "scheme": "basic",
+          "in": "header"
+        }
+      },
+      "security": "basic_sc",
+      "properties": {
+        "t1": {
+          "type": "boolean",
+          "forms": [{
+            "href": "coap://mything.example.com:5683/temp"
+          }]
+        }
+      }
+    }`;
+        const canTD: string = TDCanonicalizer.canonicalizeTD(testTD);
+        expect(canTD).to.equals(
+            `{"@context":"https://www.w3.org/2019/wot/td/v1","properties":{"t1":{"forms":[{"contentType":"application/json","href":"coap://mything.example.com:5683/temp","op":["readproperty","writeproperty"]}],"observable":false,"readOnly":false,"type":"boolean","writeOnly":false}},"security":"basic_sc","securityDefinitions":{"basic_sc":{"in":"header","scheme":"basic"}},"title":"MyThing1"}`
         );
     }
 
