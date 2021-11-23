@@ -44,7 +44,6 @@ export function canonicalizeTD(thingDescription: string): string {
     // 4. In the Canonical TD, all required elements MUST be given explicitly, even if they have defaults and are assigned their default value. For example, the default value of writeOnly is false. If an input TD omits observable where it is allowed, it must still explicitly appear in the canonical form with the value of false. Note that this also applies to extension vocabularies, e.g. for protocol bindings. If any such extension defines default values they must be given explicitly in the canonical form.
     // -> https://w3c.github.io/wot-thing-description/#sec-default-values
     // TODO defaults for AdditionalExpectedResponse, AdditionalExpectedResponse
-    // TODO DataSchema in Action(input/output), Event (subscription, data, cancellation)  ...
     applySecurityDefinitionsDefaults(thing.securityDefinitions);
     applyFormDefaults(thing.forms);
     if (thing.properties !== undefined && thing.properties instanceof Object) {
@@ -72,6 +71,12 @@ export function canonicalizeTD(thingDescription: string): string {
             if (act.forms) {
                 act.forms.forEach((item) => applyFormDefaults(item, ["invokeaction"]));
             }
+            if (act.input && act.input instanceof Object) {
+                applyDataSchemaDefaults(act.input);
+            }
+            if (act.output && act.output instanceof Object) {
+                applyDataSchemaDefaults(act.output);
+            }
         }
     }
     if (thing.events !== undefined && thing.events instanceof Object) {
@@ -79,6 +84,15 @@ export function canonicalizeTD(thingDescription: string): string {
             const evt: TD.ThingEvent = thing.events[evtName];
             if (evt.forms) {
                 evt.forms.forEach((item) => applyFormDefaults(item, ["subscribeevent", "unsubscribeevent"]));
+            }
+            if (evt.cancellation && evt.cancellation instanceof Object) {
+                applyDataSchemaDefaults(evt.cancellation);
+            }
+            if (evt.data && evt.data instanceof Object) {
+                applyDataSchemaDefaults(evt.data);
+            }
+            if (evt.subscription && evt.subscription instanceof Object) {
+                applyDataSchemaDefaults(evt.subscription);
             }
         }
     }

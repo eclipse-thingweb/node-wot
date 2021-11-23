@@ -96,6 +96,65 @@ class TDCanonicalizeTest {
         );
     }
 
+    @test "should add defaults for action input/output"() {
+        const testTD = `{
+        "@context": "https://www.w3.org/2019/wot/td/v1",
+        "actions": {
+          "a1": {
+            "forms": [{
+              "contentType": "text/html",
+              "href": "/a1",
+              "op": ["invokeaction"]
+            }],
+            "idempotent": false,
+                  "input": {},
+                  "output": {},
+            "safe": false
+          }
+        },
+        "security": "nosec_sc",
+        "securityDefinitions": {
+          "nosec_sc": {
+            "scheme": "nosec"
+          }
+        },
+        "title": "MyThing"
+      }`;
+        const canTD: string = TDCanonicalizer.canonicalizeTD(testTD);
+        expect(canTD).to.equals(
+            `{"@context":"https://www.w3.org/2019/wot/td/v1","actions":{"a1":{"forms":[{"contentType":"text/html","href":"/a1","op":["invokeaction"]}],"idempotent":false,"input":{"readOnly":false,"writeOnly":false},"output":{"readOnly":false,"writeOnly":false},"safe":false}},"security":"nosec_sc","securityDefinitions":{"nosec_sc":{"scheme":"nosec"}},"title":"MyThing"}`
+        );
+    }
+
+    @test "should add defaults for event cancellation/data/output"() {
+        const testTD = `{
+        "@context": "https://www.w3.org/2019/wot/td/v1",
+        "events": {
+          "e1": {
+            "forms": [{
+              "contentType": "application/json",
+              "href": "/e1",
+              "op": ["subscribeevent", "unsubscribeevent"]
+            }],
+                  "cancellation": {},
+                  "data": {},
+                  "subscription": {}
+          }
+        },
+        "security": "nosec_sc",
+        "securityDefinitions": {
+          "nosec_sc": {
+            "scheme": "nosec"
+          }
+        },
+        "title": "MyThing"
+      }`;
+        const canTD: string = TDCanonicalizer.canonicalizeTD(testTD);
+        expect(canTD).to.equals(
+            `{"@context":"https://www.w3.org/2019/wot/td/v1","events":{"e1":{"cancellation":{"readOnly":false,"writeOnly":false},"data":{"readOnly":false,"writeOnly":false},"forms":[{"contentType":"application/json","href":"/e1","op":["subscribeevent","unsubscribeevent"]}],"subscription":{"readOnly":false,"writeOnly":false}}},"security":"nosec_sc","securityDefinitions":{"nosec_sc":{"scheme":"nosec"}},"title":"MyThing"}`
+        );
+    }
+
     @test "should add defaults for BasicSecurityScheme"() {
         const testTD = `{
         "@context": "https://www.w3.org/2019/wot/td/v1",
