@@ -100,6 +100,16 @@ export function canonicalizeTD(thingDescription: string): string {
     // 5. In the Canonical TD, if a prefix is defined it MUST be used in place of that URL.
 
     // 6. In the Canonical TD, all values that can be expressed as either an array or as a single value MUST be written as a single value if there is only one element. In other words, square brackets around arrays of single elements must be removed.
+    // Concerns raised in
+    // * https://github.com/w3c/wot-thing-description/issues/1287
+    // * https://github.com/w3c/wot-thing-description/issues/1296
+    // TODO getSingleArrayToSingleValue for Thing, InteractionAffordance, DataSchema, ...
+    if (thing["@context"] !== undefined) {
+        thing["@context"] = getSingleArrayToSingleValue(thing["@context"]);
+    }
+    if (thing["@type"] !== undefined) {
+        thing["@type"] = getSingleArrayToSingleValue(thing["@type"]);
+    }
 
     // 7. In the Canonical TD, all provisions of the JSON Canonicalization Scheme [RFC8785] MUST be applied. The JSON Canonicalization Scheme [RFC8785], among other transformations, sorts object members by name, removes white space, and normalizes number representations.
     return stringifySorted(thing);
@@ -148,6 +158,15 @@ function stringifySorted(value: any) {
         stringRepresentation += `${value}`;
     }
     return stringRepresentation;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getSingleArrayToSingleValue(value: any): any {
+    if (Array.isArray(value) && value.length === 1) {
+        return value[0];
+    } else {
+        return value;
+    }
 }
 
 function getCanonicalizedDateTime(dt: string): string {

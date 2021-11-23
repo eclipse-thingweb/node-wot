@@ -30,10 +30,10 @@ class TDCanonicalizeTest {
     @test "should short keys on root level"() {
         const testTD = `{
       "title": "T",
-      "@context": ["http://www.w3.org/ns/td"]
+      "@context": "http://www.w3.org/ns/td"
     }`;
         const canTD: string = TDCanonicalizer.canonicalizeTD(testTD);
-        expect(canTD).to.equals(`{"@context":["http://www.w3.org/ns/td"],"title":"T"}`);
+        expect(canTD).to.equals(`{"@context":"http://www.w3.org/ns/td","title":"T"}`);
     }
 
     @test "should short keys on various levels + defaults #1"() {
@@ -342,5 +342,40 @@ class TDCanonicalizeTest {
 }`;
         const canTD: string = TDCanonicalizer.canonicalizeTD(testTD);
         expect(canTD).to.equals(`{"created":"2014-08-12T01:00:00Z"}`);
+    }
+
+    @test "should convert single array to single value @context"() {
+        const testTD = `{
+      "@context": [ "https://www.w3.org/2019/wot/td/v1" ],
+      "security": "nosec_sc",
+      "securityDefinitions": {
+        "nosec_sc": {
+          "scheme": "nosec"
+        }
+      },
+      "title": "MyThing"
+    }`;
+        const canTD: string = TDCanonicalizer.canonicalizeTD(testTD);
+        expect(canTD).to.equals(
+            `{"@context":"https://www.w3.org/2019/wot/td/v1","security":"nosec_sc","securityDefinitions":{"nosec_sc":{"scheme":"nosec"}},"title":"MyThing"}`
+        );
+    }
+
+    @test "should convert single array to single value @type"() {
+        const testTD = `{
+        "@context": "https://www.w3.org/2019/wot/td/v1",
+        "@type": ["Thing"],
+        "security": "nosec_sc",
+        "securityDefinitions": {
+          "nosec_sc": {
+            "scheme": "nosec"
+          }
+        },
+        "title": "MyThing"
+      }`;
+        const canTD: string = TDCanonicalizer.canonicalizeTD(testTD);
+        expect(canTD).to.equals(
+            `{"@context":"https://www.w3.org/2019/wot/td/v1","@type":"Thing","security":"nosec_sc","securityDefinitions":{"nosec_sc":{"scheme":"nosec"}},"title":"MyThing"}`
+        );
     }
 }
