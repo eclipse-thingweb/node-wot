@@ -43,7 +43,7 @@ export function canonicalizeTD(thingDescription: string): string {
 
     // 4. In the Canonical TD, all required elements MUST be given explicitly, even if they have defaults and are assigned their default value. For example, the default value of writeOnly is false. If an input TD omits observable where it is allowed, it must still explicitly appear in the canonical form with the value of false. Note that this also applies to extension vocabularies, e.g. for protocol bindings. If any such extension defines default values they must be given explicitly in the canonical form.
     // -> https://w3c.github.io/wot-thing-description/#sec-default-values
-    // TODO defaults for AdditionalExpectedResponse, AdditionalExpectedResponse
+    // TODO defaults for AdditionalExpectedResponse in Form
     applySecurityDefinitionsDefaults(thing.securityDefinitions);
     applyFormDefaults(thing.forms);
     if (thing.properties !== undefined && thing.properties instanceof Object) {
