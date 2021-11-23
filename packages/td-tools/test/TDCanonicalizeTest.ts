@@ -96,6 +96,74 @@ class TDCanonicalizeTest {
         );
     }
 
+    @test "should add defaults for BasicSecurityScheme"() {
+        const testTD = `{
+        "@context": "https://www.w3.org/2019/wot/td/v1",
+        "title": "MyThingSecurity",
+        "security": "basic_sc",
+        "securityDefinitions": {
+          "basic_sc": {
+            "scheme": "basic"
+          }
+        }
+      }`;
+        const canTD: string = TDCanonicalizer.canonicalizeTD(testTD);
+        expect(canTD).to.equals(
+            `{"@context":"https://www.w3.org/2019/wot/td/v1","security":"basic_sc","securityDefinitions":{"basic_sc":{"in":"header","scheme":"basic"}},"title":"MyThingSecurity"}`
+        );
+    }
+
+    @test "should add defaults for DigestSecurityScheme"() {
+        const testTD = `{
+      "@context": "https://www.w3.org/2019/wot/td/v1",
+      "security": "digest_sc",
+      "securityDefinitions": {
+        "digest_sc": {
+                "scheme": "digest"
+        }
+      },
+        "title": "MyThingSecurity"
+    }`;
+        const canTD: string = TDCanonicalizer.canonicalizeTD(testTD);
+        expect(canTD).to.equals(
+            `{"@context":"https://www.w3.org/2019/wot/td/v1","security":"digest_sc","securityDefinitions":{"digest_sc":{"in":"header","qop":"auth","scheme":"digest"}},"title":"MyThingSecurity"}`
+        );
+    }
+
+    @test "should add defaults for BearerSecurityScheme"() {
+        const testTD = `{
+    "@context": "https://www.w3.org/2019/wot/td/v1",
+    "security": "bearer_sc",
+    "securityDefinitions": {
+      "bearer_sc": {
+              "scheme": "bearer"
+      }
+    },
+      "title": "MyThingSecurity"
+  }`;
+        const canTD: string = TDCanonicalizer.canonicalizeTD(testTD);
+        expect(canTD).to.equals(
+            `{"@context":"https://www.w3.org/2019/wot/td/v1","security":"bearer_sc","securityDefinitions":{"bearer_sc":{"alg":"ES256","format":"jwt","in":"header","scheme":"bearer"}},"title":"MyThingSecurity"}`
+        );
+    }
+
+    @test "should add defaults for APIKeySecurityScheme"() {
+        const testTD = `{
+    "@context": "https://www.w3.org/2019/wot/td/v1",
+    "security": "apikey_sc",
+    "securityDefinitions": {
+      "apikey_sc": {
+              "scheme": "apikey"
+      }
+    },
+      "title": "MyThingSecurity"
+  }`;
+        const canTD: string = TDCanonicalizer.canonicalizeTD(testTD);
+        expect(canTD).to.equals(
+            `{"@context":"https://www.w3.org/2019/wot/td/v1","security":"apikey_sc","securityDefinitions":{"apikey_sc":{"in":"query","scheme":"apikey"}},"title":"MyThingSecurity"}`
+        );
+    }
+
     @test "example in spec - Example 38"() {
         const testTD = `{
         "@context": "http://www.w3.org/ns/td",

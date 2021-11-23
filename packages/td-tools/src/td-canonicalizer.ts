@@ -43,8 +43,10 @@ export function canonicalizeTD(thingDescription: string): string {
 
     // 4. In the Canonical TD, all required elements MUST be given explicitly, even if they have defaults and are assigned their default value. For example, the default value of writeOnly is false. If an input TD omits observable where it is allowed, it must still explicitly appear in the canonical form with the value of false. Note that this also applies to extension vocabularies, e.g. for protocol bindings. If any such extension defines default values they must be given explicitly in the canonical form.
     // -> https://w3c.github.io/wot-thing-description/#sec-default-values
+    // TODO defaults for AdditionalExpectedResponse, AdditionalExpectedResponse
+    // TODO DataSchema in Action(input/output), Event (subscription, data, cancellation)  ...
+    applySecurityDefinitionsDefaults(thing.securityDefinitions);
     applyFormDefaults(thing.forms);
-    // TODO defaults for security terms (BasicSecurityScheme, DigestSecurityScheme, ...), AdditionalExpectedResponse, AdditionalExpectedResponse
     if (thing.properties !== undefined && thing.properties instanceof Object) {
         for (const propName in thing.properties) {
             const prop: TD.ThingProperty = thing.properties[propName];
@@ -80,19 +82,12 @@ export function canonicalizeTD(thingDescription: string): string {
             }
         }
     }
-    // TODO DataSchema in Action(input/output), Event (subscription, data, cancellation)  ...
 
     // 5. In the Canonical TD, if a prefix is defined it MUST be used in place of that URL.
 
     // 6. In the Canonical TD, all values that can be expressed as either an array or as a single value MUST be written as a single value if there is only one element. In other words, square brackets around arrays of single elements must be removed.
 
     // 7. In the Canonical TD, all provisions of the JSON Canonicalization Scheme [RFC8785] MUST be applied. The JSON Canonicalization Scheme [RFC8785], among other transformations, sorts object members by name, removes white space, and normalizes number representations.
-    // Sorting? eg., via https://www.npmjs.com/package/json-stable-stringify OR JSON.stringify(obj, Object.keys(obj).sort())
-    // https://stackoverflow.com/questions/16167581/sort-object-properties-and-json-stringify
-
-    // Note: see https://w3c.github.io/wot-thing-description/#sec-default-values
-
-    // sort
     return stringifySorted(thing);
 }
 
@@ -147,6 +142,44 @@ function getCanonicalizedDateTime(dt: string): string {
     let iso = date.toISOString(); // 2018-11-13T20:20:39.000Z
     iso = iso.slice(0, -5);
     return iso + "Z";
+}
+
+// TODO Should be merged with td-parser code
+function applySecurityDefinitionsDefaults(securityDefinitions: { [key: string]: TD.SecurityType }) {
+    if (securityDefinitions) {
+        for (const securityDefinition in securityDefinitions) {
+            if (securityDefinitions[securityDefinition].scheme === "basic") {
+                const basicSecurity = securityDefinitions[securityDefinition] as TD.BasicSecurityScheme;
+                if (basicSecurity.in === undefined) {
+                    basicSecurity.in = "header";
+                }
+            } else if (securityDefinitions[securityDefinition].scheme === "digest") {
+                const digestSecurity = securityDefinitions[securityDefinition] as TD.DigestSecurityScheme;
+                if (digestSecurity.in === undefined) {
+                    digestSecurity.in = "header";
+                }
+                if (digestSecurity.qop === undefined) {
+                    digestSecurity.qop = "auth";
+                }
+            } else if (securityDefinitions[securityDefinition].scheme === "bearer") {
+                const bearerSecurity = securityDefinitions[securityDefinition] as TD.BearerSecurityScheme;
+                if (bearerSecurity.alg === undefined) {
+                    bearerSecurity.alg = "ES256";
+                }
+                if (bearerSecurity.format === undefined) {
+                    bearerSecurity.format = "jwt";
+                }
+                if (bearerSecurity.in === undefined) {
+                    bearerSecurity.in = "header";
+                }
+            } else if (securityDefinitions[securityDefinition].scheme === "apikey") {
+                const apikeySecurity = securityDefinitions[securityDefinition] as TD.APIKeySecurityScheme;
+                if (apikeySecurity.in === undefined) {
+                    apikeySecurity.in = "query";
+                }
+            }
+        }
+    }
 }
 
 // TODO Should be merged with td-parser code
