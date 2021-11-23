@@ -94,46 +94,46 @@ export function canonicalizeTD(thingDescription: string): string {
 // inspired by https://levelup.gitconnected.com/creating-your-own-simplified-implementation-of-json-stringify-ed8e50b9144a
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function stringifySorted(value: any) {
-    let objString = "";
+    let stringRepresentation = "";
     if (Array.isArray(value)) {
         // add first angle brackets
-        objString += "[";
+        stringRepresentation += "[";
         for (let i = 0; i < value.length; i++) {
             const entry = value[i];
-            objString += `${stringifySorted(entry)}`;
+            stringRepresentation += `${stringifySorted(entry)}`;
             // add comma?
             if (i < value.length - 1) {
-                objString += ",";
+                stringRepresentation += ",";
             }
         }
         // add last angle brackets
-        objString += "]";
+        stringRepresentation += "]";
     } else if (value === null) {
-        objString += "null";
+        stringRepresentation += "null";
     } else if (typeof value === "object") {
         let keys: string[] = Object.keys(value);
         keys = keys.sort(); // sort keys
         // add first curly brackets
-        objString += "{";
+        stringRepresentation += "{";
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const valueInner = value[key];
-            objString += `"${key}":${stringifySorted(valueInner)}`;
+            stringRepresentation += `"${key}":${stringifySorted(valueInner)}`;
             // add comma?
             if (i < keys.length - 1) {
-                objString += ",";
+                stringRepresentation += ",";
             }
         }
         // add last curly brackets
-        objString += "}";
+        stringRepresentation += "}";
     } else if (typeof value === "string") {
-        objString += `"${value}"`;
+        stringRepresentation += `"${value}"`;
     } else if (typeof value === "number") {
-        objString += `${value}`;
+        stringRepresentation += `${value}`;
     } else if (typeof value === "boolean") {
-        objString += `${value}`;
+        stringRepresentation += `${value}`;
     }
-    return objString;
+    return stringRepresentation;
 }
 
 function getCanonicalizedDateTime(dt: string): string {
