@@ -207,8 +207,8 @@ export default class WebSocketServer implements ProtocolServer {
                     console.debug(
                         "[binding-websockets]",
                         `WebSocketServer on port ${this.getPort()} received connection for '${path}' from ${Helpers.toUriLiteral(
-                            req.connection.remoteAddress
-                        )}:${req.connection.remotePort}`
+                            req.socket.remoteAddress
+                        )}:${req.socket.remotePort}`
                     );
 
                     if (!property.writeOnly) {
@@ -262,8 +262,8 @@ export default class WebSocketServer implements ProtocolServer {
                         console.debug(
                             "[binding-websockets]",
                             `WebSocketServer on port ${this.getPort()} closed connection for '${path}' from ${Helpers.toUriLiteral(
-                                req.connection.remoteAddress
-                            )}:${req.connection.remotePort}`
+                                req.socket.remoteAddress
+                            )}:${req.socket.remotePort}`
                         );
                     });
                 });
@@ -314,8 +314,8 @@ export default class WebSocketServer implements ProtocolServer {
                     console.debug(
                         "[binding-websockets]",
                         `WebSocketServer on port ${this.getPort()} received connection for '${path}' from ${Helpers.toUriLiteral(
-                            req.connection.remoteAddress
-                        )}:${req.connection.remotePort}`
+                            req.socket.remoteAddress
+                        )}:${req.socket.remotePort}`
                     );
                     thing
                         .subscribeEvent(
@@ -358,8 +358,8 @@ export default class WebSocketServer implements ProtocolServer {
                         console.debug(
                             "[binding-websockets]",
                             `WebSocketServer on port ${this.getPort()} closed connection for '${path}' from ${Helpers.toUriLiteral(
-                                req.connection.remoteAddress
-                            )}:${req.connection.remotePort}`
+                                req.socket.remoteAddress
+                            )}:${req.socket.remotePort}`
                         );
                     });
                 });
