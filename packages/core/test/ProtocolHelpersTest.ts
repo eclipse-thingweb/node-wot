@@ -18,7 +18,6 @@
  * Basic test suite for helper functions
  * uncomment the @skip to see failing tests
  *
- * h0ru5: there is currently some problem with VSC failing to recognize experimentalDecorators option, it is present in both tsconfigs
  */
 
 import { suite, test } from "@testdeck/mocha";
