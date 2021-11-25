@@ -179,6 +179,25 @@ export default class WebSocketServer implements ProtocolServer {
                     encodeURIComponent(propertyName);
                 const property = thing.properties[propertyName];
 
+                // Populate forms related to the property
+                for (const address of Helpers.getAddresses()) {
+                    const href = this.scheme + "://" + address + ":" + this.getPort() + path;
+                    const form = new TD.Form(href, ContentSerdes.DEFAULT);
+                    const ops = [];
+                    if (!property.writeOnly) {
+                        ops.push("readproperty", "observeproperty", "unobserveproperty");
+                    }
+                    if (!property.readOnly) {
+                        ops.push("writeproperty");
+                    }
+                    form.op = ops;
+                    thing.properties[propertyName].forms.push(form);
+                    console.debug(
+                        "[binding-websockets]",
+                        `WebSocketServer on port ${this.getPort()} assigns '${href}' to Property '${propertyName}'`
+                    );
+                }
+
                 console.debug(
                     "[binding-websockets]",
                     `WebSocketServer on port ${this.getPort()} adding socketServer for '${path}'`
@@ -237,32 +256,7 @@ export default class WebSocketServer implements ProtocolServer {
                             )
                             .then(() => ws.close(0, "Completed"))
                             .catch((err: Error) => ws.close(-1, err.message));
-
-                        for (const address of Helpers.getAddresses()) {
-                            const href = this.scheme + "://" + address + ":" + this.getPort() + path;
-                            const form = new TD.Form(href, ContentSerdes.DEFAULT);
-                            form.op = ["readproperty", "observeproperty", "unobserveproperty"];
-                            thing.properties[propertyName].forms.push(form);
-                            console.debug(
-                                "[binding-websockets]",
-                                `WebSocketServer on port ${this.getPort()} assigns '${href}' to Property '${propertyName}'`
-                            );
-                        }
                     }
-
-                    if (!property.readOnly) {
-                        for (const address of Helpers.getAddresses()) {
-                            const href = this.scheme + "://" + address + ":" + this.getPort() + path;
-                            const form = new TD.Form(href, ContentSerdes.DEFAULT);
-                            form.op = ["writeproperty"];
-                            thing.properties[propertyName].forms.push(form);
-                            console.debug(
-                                "[binding-websockets]",
-                                `WebSocketServer on port ${this.getPort()} assigns '${href}' to Property '${propertyName}'`
-                            );
-                        }
-                    }
-
                     ws.on("close", () => {
                         thing.unobserveProperty(propertyName);
                         console.debug(
@@ -298,6 +292,18 @@ export default class WebSocketServer implements ProtocolServer {
                     "/" + encodeURIComponent(urlPath) + "/" + this.EVENT_DIR + "/" + encodeURIComponent(eventName);
                 // eslint-disable-next-line unused-imports/no-unused-vars
                 const event = thing.events[eventName];
+
+                // Populate forms related to the event
+                for (const address of Helpers.getAddresses()) {
+                    const href = this.scheme + "://" + address + ":" + this.getPort() + path;
+                    const form = new TD.Form(href, ContentSerdes.DEFAULT);
+                    form.op = "subscribeevent";
+                    thing.events[eventName].forms.push(form);
+                    console.debug(
+                        "[binding-websockets]",
+                        `WebSocketServer on port ${this.getPort()} assigns '${href}' to Event '${eventName}'`
+                    );
+                }
 
                 console.debug(
                     "[binding-websockets]",
@@ -357,17 +363,6 @@ export default class WebSocketServer implements ProtocolServer {
                         );
                     });
                 });
-
-                for (const address of Helpers.getAddresses()) {
-                    const href = this.scheme + "://" + address + ":" + this.getPort() + path;
-                    const form = new TD.Form(href, ContentSerdes.DEFAULT);
-                    form.op = "subscribeevent";
-                    thing.events[eventName].forms.push(form);
-                    console.debug(
-                        "[binding-websockets]",
-                        `WebSocketServer on port ${this.getPort()} assigns '${href}' to Event '${eventName}'`
-                    );
-                }
             }
         }
         return new Promise<void>((resolve, reject) => {
