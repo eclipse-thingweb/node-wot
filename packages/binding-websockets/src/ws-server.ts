@@ -27,7 +27,7 @@ import * as WebSocket from "ws";
 import { AddressInfo } from "net";
 
 import * as TD from "@node-wot/td-tools";
-import { ProtocolServer, Servient, ExposedThing, ContentSerdes, Helpers } from "@node-wot/core";
+import { ProtocolServer, Servient, ExposedThing, ContentSerdes, Helpers, Content } from "@node-wot/core";
 import { HttpServer, HttpConfig } from "@node-wot/binding-http";
 import slugify from "slugify";
 
@@ -211,54 +211,36 @@ export default class WebSocketServer implements ProtocolServer {
                         )}:${req.socket.remotePort}`
                     );
 
+                    const observeListener = async (content: Content) => {
+                        console.debug(
+                            "[binding-websockets]",
+                            `WebSocketServer on port ${this.getPort()} publishing to property '${propertyName}' `
+                        );
+
+                        switch (content.type) {
+                            case "application/json":
+                            case "text/plain":
+                                ws.send(content.body.toString());
+                                break;
+                            default:
+                                ws.send(content.body);
+                                break;
+                        }
+                    };
+
                     if (!property.writeOnly) {
-                        thing
-                            .observeProperty(
-                                propertyName,
-                                // let subscription = property.subscribe(
-                                async (data) => {
-                                    let content;
-                                    try {
-                                        content = ContentSerdes.get().valueToContent(
-                                            data,
-                                            thing.properties[propertyName].data
-                                        );
-                                    } catch (err) {
-                                        console.warn(
-                                            "[binding-websockets]",
-                                            `HttpServer on port ${this.getPort()} cannot process data for property '${propertyName}: ${
-                                                err.message
-                                            }'`
-                                        );
-                                        ws.close(-1, err.message);
-                                        thing.unobserveProperty(propertyName);
-                                        return;
-                                    }
-
-                                    console.debug(
-                                        "[binding-websockets]",
-                                        `WebSocketServer on port ${this.getPort()} publishing to property '${propertyName}' `
-                                    );
-
-                                    switch (content.type) {
-                                        case "application/json":
-                                        case "text/plain":
-                                            ws.send(content.body.toString());
-                                            break;
-                                        default:
-                                            ws.send(content.body);
-                                            break;
-                                    }
-                                }
-                                // ,
-                                // (err: Error) => ws.close(-1, err.message),
-                                // () => ws.close(0, "Completed")
-                            )
-                            .then(() => ws.close(0, "Completed"))
-                            .catch((err: Error) => ws.close(-1, err.message));
+                        for (let formIndex = 0; formIndex < thing.properties[propertyName].forms.length; formIndex++) {
+                            thing
+                                .handleObserveProperty(propertyName, observeListener, { formIndex: formIndex })
+                                .then(() => ws.close(0, "Completed"))
+                                .catch((err: Error) => ws.close(-1, err.message));
+                        }
                     }
+
                     ws.on("close", () => {
-                        thing.unobserveProperty(propertyName);
+                        for (let formIndex = 0; formIndex < thing.properties[propertyName].forms.length; formIndex++) {
+                            thing.handleUnobserveProperty(propertyName, observeListener, { formIndex: formIndex });
+                        }
                         console.debug(
                             "[binding-websockets]",
                             `WebSocketServer on port ${this.getPort()} closed connection for '${path}' from ${Helpers.toUriLiteral(
@@ -298,7 +280,7 @@ export default class WebSocketServer implements ProtocolServer {
                     const href = this.scheme + "://" + address + ":" + this.getPort() + path;
                     const form = new TD.Form(href, ContentSerdes.DEFAULT);
                     form.op = "subscribeevent";
-                    thing.events[eventName].forms.push(form);
+                    event.forms.push(form);
                     console.debug(
                         "[binding-websockets]",
                         `WebSocketServer on port ${this.getPort()} assigns '${href}' to Event '${eventName}'`
@@ -317,44 +299,30 @@ export default class WebSocketServer implements ProtocolServer {
                             req.socket.remoteAddress
                         )}:${req.socket.remotePort}`
                     );
-                    thing
-                        .subscribeEvent(
-                            eventName,
-                            // let subscription = thing.events[eventName].subscribe(
-                            (data) => {
-                                let content;
-                                try {
-                                    content = ContentSerdes.get().valueToContent(data, thing.events[eventName].data);
-                                } catch (err) {
-                                    console.warn(
-                                        "[binding-websockets]",
-                                        `HttpServer on port ${this.getPort()} cannot process data for Event '${eventName}: ${
-                                            err.message
-                                        }'`
-                                    );
-                                    ws.close(-1, err.message);
-                                    return;
-                                }
 
-                                switch (content.type) {
-                                    case "application/json":
-                                    case "text/plain":
-                                        ws.send(content.body.toString());
-                                        break;
-                                    default:
-                                        ws.send(content.body);
-                                        break;
-                                }
-                            }
-                            // ,
-                            // (err: Error) => ws.close(-1, err.message),
-                            // () => ws.close(0, "Completed")
-                        )
-                        .then(() => ws.close(0, "Completed"))
-                        .catch((err: Error) => ws.close(-1, err.message));
+                    const eventListener = (content: Content) => {
+                        switch (content.type) {
+                            case "application/json":
+                            case "text/plain":
+                                ws.send(content.body.toString());
+                                break;
+                            default:
+                                ws.send(content.body);
+                                break;
+                        }
+                    };
+
+                    for (let formIndex = 0; formIndex < event.forms.length; formIndex++) {
+                        thing
+                            .handleSubscribeEvent(eventName, eventListener, { formIndex: formIndex })
+                            .then(() => ws.close(0, "Completed"))
+                            .catch((err: Error) => ws.close(-1, err.message));
+                    }
+
                     ws.on("close", () => {
-                        thing.unsubscribeEvent(eventName);
-                        // subscription.unsubscribe();
+                        for (let formIndex = 0; formIndex < event.forms.length; formIndex++) {
+                            thing.handleUnsubscribeEvent(eventName, eventListener, { formIndex: formIndex });
+                        }
                         console.debug(
                             "[binding-websockets]",
                             `WebSocketServer on port ${this.getPort()} closed connection for '${path}' from ${Helpers.toUriLiteral(
