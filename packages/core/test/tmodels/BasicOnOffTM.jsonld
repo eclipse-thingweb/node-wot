@@ -1,0 +1,9 @@
+{
+    "@type": "tm:ThingModel",
+    "title": "Basic On/Off Thing Model",
+    "properties": {
+        "onOff": {
+            "type": "boolean"
+        }
+    }
+}

@@ -1,0 +1,19 @@
+{
+    "@type": "tm:ThingModel",
+    "title": "Smart Lamp Control with Dimming",
+    "links": [
+        {
+            "rel": "tm:extends",
+            "href": "file://./test/tmodels/BasicOnOffTM.jsonld",
+            "type": "application/td+json"
+        }
+    ],
+    "properties": {
+        "dim": {
+            "title": "Dimming level",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+        }
+    }
+}
