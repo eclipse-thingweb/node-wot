@@ -317,15 +317,20 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         );
 
         if (this.properties[name]) {
-            let propertyHandler;
-            if (this.propertyHandlers.has(name)) {
-                propertyHandler = this.propertyHandlers.get(name);
-                propertyHandler.observeHandler = handler;
+            if (!this.properties[name].observable) {
+                throw new Error(
+                    `ExposedThing '${this.title}' cannot set observe handler for property '${name}' due to missing observable flag`
+                );
             } else {
-                propertyHandler = { observeHandler: handler };
+                let propertyHandler;
+                if (this.propertyHandlers.has(name)) {
+                    propertyHandler = this.propertyHandlers.get(name);
+                    propertyHandler.observeHandler = handler;
+                } else {
+                    propertyHandler = { observeHandler: handler };
+                }
+                this.propertyHandlers.set(name, propertyHandler);
             }
-
-            this.propertyHandlers.set(name, propertyHandler);
         } else {
             throw new Error(`ExposedThing '${this.title}' has no Property '${name}'`);
         }
@@ -340,15 +345,20 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         );
 
         if (this.properties[name]) {
-            let propertyHandler;
-            if (this.propertyHandlers.has(name)) {
-                propertyHandler = this.propertyHandlers.get(name);
-                propertyHandler.unobserveHandler = handler;
+            if (!this.properties[name].observable) {
+                throw new Error(
+                    `ExposedThing '${this.title}' cannot set unobserve handler for property '${name}' due to missing observable flag`
+                );
             } else {
-                propertyHandler = { unobserveHandler: handler };
+                let propertyHandler;
+                if (this.propertyHandlers.has(name)) {
+                    propertyHandler = this.propertyHandlers.get(name);
+                    propertyHandler.unobserveHandler = handler;
+                } else {
+                    propertyHandler = { unobserveHandler: handler };
+                }
+                this.propertyHandlers.set(name, propertyHandler);
             }
-
-            this.propertyHandlers.set(name, propertyHandler);
         } else {
             throw new Error(`ExposedThing '${this.title}' has no Property '${name}'`);
         }
