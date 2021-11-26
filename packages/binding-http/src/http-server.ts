@@ -31,7 +31,7 @@ import { HttpConfig, HttpForm, OAuth2ServerConfig } from "./http";
 import createValidator, { Validator } from "./oauth-token-validation";
 import { OAuth2SecurityScheme } from "@node-wot/td-tools";
 import slugify from "slugify";
-import { InteractionOutput } from "wot-typescript-definitions";
+import { InteractionOutput, ThingDescription } from "wot-typescript-definitions";
 import * as acceptLanguageParser from "accept-language-parser";
 
 export default class HttpServer implements ProtocolServer {
@@ -88,7 +88,7 @@ export default class HttpServer implements ProtocolServer {
 
         // TLS
         if (config.serverKey && config.serverCert) {
-            const options: any = {};
+            const options: https.ServerOptions = {};
             options.key = fs.readFileSync(config.serverKey);
             options.cert = fs.readFileSync(config.serverCert);
             this.scheme = "https";
@@ -479,8 +479,8 @@ export default class HttpServer implements ProtocolServer {
         }
     }
 
-    private parseUrlParameters(url: string, uriVariables: { [key: string]: TD.DataSchema }): { [k: string]: any } {
-        const params: { [k: string]: any } = {};
+    private parseUrlParameters(url: string, uriVariables: { [key: string]: TD.DataSchema }): Record<string, unknown> {
+        const params: Record<string, unknown> = {};
         if (url == null || !uriVariables) {
             return params;
         }
@@ -686,7 +686,7 @@ export default class HttpServer implements ProtocolServer {
                                     .readAllProperties()
                                     .then(async (propMap: WoT.PropertyReadMap) => {
                                         // Note we create one object to return, TODO piping response
-                                        const recordResponse: Record<string, any> = {};
+                                        const recordResponse: Record<string, unknown> = {};
                                         for (const key of propMap.keys()) {
                                             const value: WoT.InteractionOutput = propMap.get(key);
                                             value.form = { f: "all" }; // to avoid missing form error
@@ -723,10 +723,7 @@ export default class HttpServer implements ProtocolServer {
                             const property = thing.properties[segments[3]];
                             if (property) {
                                 let options: WoT.InteractionOptions;
-                                const uriVariables: { [k: string]: any } = this.parseUrlParameters(
-                                    req.url,
-                                    property.uriVariables
-                                );
+                                const uriVariables = this.parseUrlParameters(req.url, property.uriVariables);
                                 if (!this.isEmpty(uriVariables)) {
                                     options = { uriVariables: uriVariables };
                                 }
@@ -790,7 +787,7 @@ export default class HttpServer implements ProtocolServer {
                                                 );
                                                 const content = ContentSerdes.get().valueToContent(
                                                     value.data && !value.dataUsed ? value.data : await value.value(),
-                                                    <any>property,
+                                                    property,
                                                     contentType
                                                 );
                                                 res.setHeader("Content-Type", content.type);
@@ -824,7 +821,7 @@ export default class HttpServer implements ProtocolServer {
                                             try {
                                                 value = ContentSerdes.get().contentToValue(
                                                     { type: contentType, body: Buffer.concat(body) },
-                                                    <any>property
+                                                    property
                                                 );
                                             } catch (err) {
                                                 console.warn(
@@ -914,10 +911,7 @@ export default class HttpServer implements ProtocolServer {
                                 res.writeHead(200);
 
                                 let options: WoT.InteractionOptions;
-                                const uriVariables: { [k: string]: any } = this.parseUrlParameters(
-                                    req.url,
-                                    event.uriVariables
-                                );
+                                const uriVariables = this.parseUrlParameters(req.url, event.uriVariables);
                                 if (!this.isEmpty(uriVariables)) {
                                     options = { uriVariables: uriVariables };
                                 }
@@ -979,19 +973,19 @@ export default class HttpServer implements ProtocolServer {
         res.end("Not Found");
     }
 
-    private isEmpty(obj: any) {
+    private isEmpty(obj: Record<string, unknown>): boolean {
         for (const key in obj) {
             if (Object.prototype.hasOwnProperty.call(obj, key)) return false;
         }
         return true;
     }
 
-    private resetMultiLangThing(thing: any, prefLang: string) {
+    private resetMultiLangThing(thing: ThingDescription, prefLang: string) {
         // TODO can we reset "title" to another name given that title is used in URI creation?
 
         // update/set @language in @context
         if (thing["@context"] && Array.isArray(thing["@context"])) {
-            const arrayContext: Array<any> = thing["@context"];
+            const arrayContext: Extract<ThingDescription["@context"], [] | Array<unknown>> = thing["@context"];
             let languageSet = false;
             for (const arrayEntry of arrayContext) {
                 if (arrayEntry instanceof Object) {
@@ -1001,8 +995,9 @@ export default class HttpServer implements ProtocolServer {
                     }
                 }
             }
+
             if (!languageSet) {
-                arrayContext.push({
+                (arrayContext as unknown[]).push({
                     "@language": prefLang,
                 });
             }
@@ -1036,7 +1031,10 @@ export default class HttpServer implements ProtocolServer {
         this.resetMultiLangInteraction(thing.events, prefLang);
     }
 
-    private resetMultiLangInteraction(interactions: any, prefLang: string) {
+    private resetMultiLangInteraction(
+        interactions: ThingDescription["properties"] | ThingDescription["actions"] | ThingDescription["events"],
+        prefLang: string
+    ) {
         if (interactions) {
             for (const interName in interactions) {
                 // unset any current title and/or description

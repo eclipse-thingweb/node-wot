@@ -37,6 +37,7 @@
     "scripts": {
         "build": "tsc -b",
         "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
         "format": "prettier --write \"src/**/*.ts\" \"**/*.json\""
     },
     "bugs": {

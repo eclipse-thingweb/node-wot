@@ -1,3 +1,4 @@
+/* eslint-disable dot-notation -- we are using private functions from HttpClient */
 /********************************************************************************
  * Copyright (c) 2020 - 2021 Contributors to the Eclipse Foundation
  *
@@ -14,9 +15,10 @@
  ********************************************************************************/
 import { HttpClient, HttpForm } from "./http";
 import EventSource from "eventsource";
-import { Subscription } from "rxjs/Subscription";
+import { Content } from "@node-wot/core";
+import { Readable } from "stream";
 export interface InternalSubscription {
-    open(next: (value: any) => void, error?: (error: any) => void, complete?: () => void): Promise<void>;
+    open(next: (value: Content) => void, error?: (error: Error) => void, complete?: () => void): Promise<void>;
     close(): void;
 }
 export class LongPollingSubscription implements InternalSubscription {
@@ -33,9 +35,9 @@ export class LongPollingSubscription implements InternalSubscription {
         this.closed = false;
     }
 
-    open(next: (value: any) => void, error?: (error: any) => void, complete?: () => void): Promise<void> {
+    open(next: (value: Content) => void, error?: (error: Error) => void, complete?: () => void): Promise<void> {
         return new Promise<void>((resolve, reject) => {
-            let polling = async (handshake: boolean) => {
+            const polling = async (handshake: boolean) => {
                 try {
                     if (handshake) {
                         const headRequest = await this.client["generateFetchRequest"](this.form, "HEAD", {
@@ -58,7 +60,6 @@ export class LongPollingSubscription implements InternalSubscription {
 
                     this.client["checkFetchResponse"](result);
 
-                    const buffer = await result.buffer();
                     console.debug("[binding-http]", `HttpClient received ${result.status} from ${request.url}`);
 
                     console.debug(
@@ -71,12 +72,11 @@ export class LongPollingSubscription implements InternalSubscription {
                     );
 
                     if (!this.closed) {
-                        next({ type: result.headers.get("content-type"), body: buffer });
+                        next({ type: result.headers.get("content-type"), body: result.body });
                         polling(false);
                     }
-                    {
-                        complete && complete();
-                    }
+
+                    complete && complete();
                 } catch (e) {
                     error && error(e);
                     complete && complete();
@@ -87,7 +87,7 @@ export class LongPollingSubscription implements InternalSubscription {
         });
     }
 
-    close() {
+    close(): void {
         this.closed = true;
     }
 }
@@ -104,7 +104,7 @@ export class SSESubscription implements InternalSubscription {
         this.closed = false;
     }
 
-    open(next: (value: any) => void, error?: (error: any) => void, complete?: () => void): Promise<void> {
+    open(next: (value: Content) => void, error?: (error: Error) => void, complete?: () => void): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             this.eventSource = new EventSource(this.form.href);
 
@@ -117,18 +117,18 @@ export class SSESubscription implements InternalSubscription {
             };
             this.eventSource.onmessage = (event) => {
                 console.debug("[binding-http]", `HttpClient received ${JSON.stringify(event)} from ${this.form.href}`);
-                let output = { type: this.form.contentType, body: JSON.stringify(event) };
+                const output = { type: this.form.contentType, body: Readable.from(JSON.stringify(event)) };
                 next(output);
             };
             this.eventSource.onerror = function (event) {
-                error(event.toString());
+                error(new Error(event.toString()));
                 complete && complete();
                 reject(event.toString());
             };
         });
     }
 
-    close() {
+    close(): void {
         this.eventSource.close();
     }
 }
