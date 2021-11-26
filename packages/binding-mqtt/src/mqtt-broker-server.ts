@@ -106,7 +106,16 @@ export default class MqttBrokerServer implements ProtocolServer {
             const property = thing.properties[propertyName];
 
             if (!property.writeOnly) {
-                const listener = async (data: Content) => {
+                const href = this.brokerURI + "/" + topic;
+                const form = new TD.Form(href, ContentSerdes.DEFAULT);
+                form.op = ["readproperty", "observeproperty", "unobserveproperty"];
+                property.forms.push(form);
+                console.debug(
+                    "[binding-mqtt]",
+                    `MqttBrokerServer at ${this.brokerURI} assigns '${href}' to property '${propertyName}'`
+                );
+
+                const observeListener = async (data: Content) => {
                     let content;
                     try {
                         content = ContentSerdes.get().valueToContent(data, property.data);
@@ -115,7 +124,7 @@ export default class MqttBrokerServer implements ProtocolServer {
                             "[binding-mqtt]",
                             `MqttServer cannot process data for Property '${propertyName}': ${err.message}`
                         );
-                        thing.handleUnobserveProperty(propertyName, listener, null);
+                        thing.handleUnobserveProperty(propertyName, observeListener, { formIndex: property.forms.length - 1 });
                         return;
                     }
                     console.debug(
@@ -125,16 +134,7 @@ export default class MqttBrokerServer implements ProtocolServer {
                     const buffer = await ProtocolHelpers.readStreamFully(content.body);
                     this.broker.publish(topic, buffer);
                 };
-                thing.handleObserveProperty(propertyName, listener, null);
-
-                const href = this.brokerURI + "/" + topic;
-                const form = new TD.Form(href, ContentSerdes.DEFAULT);
-                form.op = ["readproperty", "observeproperty", "unobserveproperty"];
-                thing.properties[propertyName].forms.push(form);
-                console.debug(
-                    "[binding-mqtt]",
-                    `MqttBrokerServer at ${this.brokerURI} assigns '${href}' to property '${propertyName}'`
-                );
+                thing.handleObserveProperty(propertyName, observeListener, { formIndex: property.forms.length - 1 });
             }
             if (!property.readOnly) {
                 const href = this.brokerURI + "/" + topic + "/writeproperty";
@@ -301,18 +301,22 @@ export default class MqttBrokerServer implements ProtocolServer {
             const topic = encodeURIComponent(name) + "/events/" + encodeURIComponent(eventName);
             const event = thing.events[eventName];
 
-            const listener = async (data: Content) => {
-                let content;
-                try {
-                    content = ContentSerdes.get().valueToContent(data, event.data);
-                } catch (err) {
+            const href = this.brokerURI + "/" + topic;
+            const form = new TD.Form(href, ContentSerdes.DEFAULT);
+            form.op = ["subscribeevent", "unsubscribeevent"];
+            event.forms.push(form);
+            console.debug(
+                "[binding-mqtt]",
+                `MqttBrokerServer at ${this.brokerURI} assigns '${href}' to Event '${eventName}'`
+            );
+
+            const eventListener = async (content: Content) => {
+                if(!content) {
                     console.warn(
                         "[binding-mqtt]",
-                        `HttpServer on port ${this.getPort()} cannot process data for Event '${eventName}: ${
-                            err.message
-                        }'`
+                        `HttpServer on port ${this.getPort()} cannot process data for Event ${eventName}`
                     );
-                    thing.handleUnsubscribeEvent(eventName, listener, null);
+                    thing.handleUnsubscribeEvent(eventName, eventListener, { formIndex: event.forms.length - 1 });
                     return;
                 }
                 console.debug(
@@ -322,16 +326,7 @@ export default class MqttBrokerServer implements ProtocolServer {
                 const buffer = await ProtocolHelpers.readStreamFully(content.body);
                 this.broker.publish(topic, buffer);
             };
-            thing.handleSubscribeEvent(eventName, listener, null);
-
-            const href = this.brokerURI + "/" + topic;
-            const form = new TD.Form(href, ContentSerdes.DEFAULT);
-            form.op = ["subscribeevent", "unsubscribeevent"];
-            event.forms.push(form);
-            console.debug(
-                "[binding-mqtt]",
-                `MqttBrokerServer at ${this.brokerURI} assigns '${href}' to Event '${eventName}'`
-            );
+            thing.handleSubscribeEvent(eventName, eventListener, { formIndex: event.forms.length - 1 });
         }
         this.broker.publish(name, JSON.stringify(thing.getThingDescription()), { retain: true });
     }
