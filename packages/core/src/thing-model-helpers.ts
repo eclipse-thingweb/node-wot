@@ -30,7 +30,7 @@
 import Ajv, { ErrorObject } from "ajv";
 import { LinkElement } from "wot-thing-description-types";
 import TDSchema from "wot-thing-description-types/schema/td-json-schema-validation.json";
-import { ExposedThingInit, ThingDescription } from "wot-typescript-definitions";
+import { DataSchema, ExposedThingInit, ThingDescription } from "wot-typescript-definitions";
 import Servient, { ExposedThing, Helpers } from "./core";
 // import { DataSchemaValue, ExposedThingInit } from "wot-typescript-definitions";
 
@@ -48,6 +48,7 @@ const ajv = new Ajv({ strict: false })
     );
 
 export type LINK_TYPE = 'tm:extends' | 'tm:submodel';
+export type AFFORDANCE_TYPE = 'properties' | 'actions' | 'events';
 
 export default class ThingModelHelpers {
     // static tsSchemaValidator = ajv.compile(Helpers.createExposeThingInitSchema(tdSchema)) as ValidateFunction;
@@ -59,11 +60,16 @@ export default class ThingModelHelpers {
     }
 
 
-    private static getThingModelRef(data: Record<string, unknown>): string[] {
-        const refs = [] as string[];
+    private static getThingModelRef(data: Record<string, unknown>): Record<string, unknown> {
+        const refs = {} as Record<string, unknown>;
+        if (!data) {
+            return refs;
+        }
         for (const key in data) {
-            if (key === "tm:ref") {
-                refs.push(data[key] as string);
+            for (const key1 in (data[key] as Record<string, unknown>)) {
+                if (key1 === 'tm:ref') {
+                    refs[key] = (data[key] as Record<string, unknown>)['tm:ref'] as string;
+                }
             }
         }
         return refs;
@@ -82,7 +88,6 @@ export default class ThingModelHelpers {
         if (this.getThingModelRef(data).length > 0) { // FIXME: different from specifications
             return true;
         }
-
         if ('links' in data && Array.isArray(data.links)) {
             let foundTmExtendsRel = false;
             data.links.forEach((link) => {
@@ -142,6 +147,7 @@ export default class ThingModelHelpers {
     }
 
     private static extendThingModel(sources: ExposedThingInit[], dest: ExposedThingInit): ExposedThingInit {
+        // FIXME: make this function for a single element at time
         let extendedModel = {} as ExposedThingInit;
         for (const s of sources) { // FIFO order
             const properties = 'properties' in extendedModel ? extendedModel.properties : undefined;
@@ -176,16 +182,58 @@ export default class ThingModelHelpers {
         return extendedModel;
     }
 
+    private static importAffordance(affordanceType: AFFORDANCE_TYPE, affordanceName: string, source: DataSchema, dest: ExposedThingInit): ExposedThingInit {
+        const d = dest[affordanceType][affordanceName];
+        dest[affordanceType][affordanceName] = { ...source, ...d };
+        return dest;
+    }
+
+    private parseTmRef(value: string): { uri: string, type: AFFORDANCE_TYPE, name: string} {
+        // TODO: validate?
+        const thingModelUri = value.split('#')[0];
+        const affordaceUri = value.split('#')[1];
+        const affordaceType = affordaceUri.split('/')[1] as AFFORDANCE_TYPE;
+        const affordaceName = affordaceUri.split('/')[2];
+        return { uri: thingModelUri, type: affordaceType, name: affordaceName};
+    }
+
+    private getRefAffordance(obj: { type: AFFORDANCE_TYPE, name: string }, thing: ExposedThingInit): DataSchema {
+        const affordanceType = obj.type;
+        const affordanceKey = obj.name;
+        if (!(affordanceType in thing)) {
+            return null;
+        }
+        const affordances = thing[affordanceType] as DataSchema;
+        if (! (affordanceKey in affordances)) {
+            return null;
+        }
+        return affordances[affordanceKey];
+    }
+
+
     public async composeModel(data: ExposedThingInit): Promise<ExposedThingInit> {
-        const extLinks = ThingModelHelpers.getThingModelLinks(data, 'tm:extends');
-        if (extLinks.length > 0) {
-            const helpers = new Helpers(this.srv);
-            const sources = [] as ExposedThingInit[];
-            for (const s of extLinks) {
-                const source = await helpers.fetch(s.href) as ExposedThingInit;
-                sources.push(source);
+        const helpers = new Helpers(this.srv);
+        // const extLinks = ThingModelHelpers.getThingModelLinks(data, 'tm:extends');
+        // if (extLinks.length > 0) {
+        //     const sources = [] as ExposedThingInit[];
+        //     for (const s of extLinks) {
+        //         const source = await helpers.fetch(s.href) as ExposedThingInit;
+        //         sources.push(source);
+        //     }
+        //     return ThingModelHelpers.extendThingModel(sources, data);
+        // }
+        const propRefs = ThingModelHelpers.getThingModelRef(data.properties);
+        if (Object.keys(propRefs).length > 0) {
+            for (const aff in propRefs) {
+                const ref = propRefs[aff] as string;
+                const refObj = this.parseTmRef(ref);
+                const source = await helpers.fetch(refObj.uri) as ExposedThingInit;
+                delete data.properties[aff]['tm:ref'];
+                const importedAffordance = this.getRefAffordance(refObj, source);
+                console.log(importedAffordance)
+                data = ThingModelHelpers.importAffordance(refObj.type, aff, importedAffordance, data);
+                // console.log(data)
             }
-            return ThingModelHelpers.extendThingModel(sources, data);
         }
         return data;
     }

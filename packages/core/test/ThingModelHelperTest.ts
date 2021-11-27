@@ -43,98 +43,111 @@ class ThingModelHelperTest {
         await this.srv.start();
     }
 
-    @test "should correctly validate tm schema with ThingModel in @type"() {
-        const thing: ExposedThingInit = {
-            title: "thingTest",
-            "@type": 'tm:ThingModel',
-            properties: {
-                myProp: {
-                    type: "number",
-                },
-            },
-        };
+    // @test "should correctly validate tm schema with ThingModel in @type"() {
+    //     const thing: ExposedThingInit = {
+    //         title: "thingTest",
+    //         "@type": 'tm:ThingModel',
+    //         properties: {
+    //             myProp: {
+    //                 type: "number",
+    //             },
+    //         },
+    //     };
 
-        const validated = ThingModelHelpers.validateExposedThingModelInit(thing);
+    //     const validated = ThingModelHelpers.validateExposedThingModelInit(thing);
 
-        expect(thing).to.exist;
-        expect(validated.valid).to.be.true;
-        expect(validated.errors).to.be.undefined;
-    }
+    //     expect(thing).to.exist;
+    //     expect(validated.valid).to.be.true;
+    //     expect(validated.errors).to.be.undefined;
+    // }
 
-    @test "should correctly validate tm schema with ThingModel in @type array "() {
-        const thing: ExposedThingInit = {
-            title: "thingTest",
-            "@type": ['random:Type', 'tm:ThingModel'],
-            properties: {
-                myProp: {
-                    type: "number",
-                },
-            },
-        };
+    // @test "should correctly validate tm schema with ThingModel in @type array "() {
+    //     const thing: ExposedThingInit = {
+    //         title: "thingTest",
+    //         "@type": ['random:Type', 'tm:ThingModel'],
+    //         properties: {
+    //             myProp: {
+    //                 type: "number",
+    //             },
+    //         },
+    //     };
 
-        const validated = ThingModelHelpers.validateExposedThingModelInit(thing);
+    //     const validated = ThingModelHelpers.validateExposedThingModelInit(thing);
 
-        expect(thing).to.exist;
-        expect(validated.valid).to.be.true;
-        expect(validated.errors).to.be.undefined;
-    }
+    //     expect(thing).to.exist;
+    //     expect(validated.valid).to.be.true;
+    //     expect(validated.errors).to.be.undefined;
+    // }
 
-    @test "should reject schema on validation because missing ThingModel definition"() {
-        const thing: ExposedThingInit = {
-            title: "thingTest",
-            "@type": 'random:Type',
-            links: [
-                {
-                    rel: "tm:extend",
-                },
-            ],
-            properties: {
-                myProp: {
-                    "tm:ref": "http://example.com/thingTest.tm.jsonld#/properties/myProp",
-                    type: "number",
-                },
-            },
-        };
+    // @test "should reject schema on validation because missing ThingModel definition"() {
+    //     const thing: ExposedThingInit = {
+    //         title: "thingTest",
+    //         "@type": 'random:Type',
+    //         links: [
+    //             {
+    //                 rel: "tm:extend",
+    //             },
+    //         ],
+    //         properties: {
+    //             myProp: {
+    //                 "tm:ref": "http://example.com/thingTest.tm.jsonld#/properties/myProp",
+    //                 type: "number",
+    //             },
+    //         },
+    //     };
 
-        const validated = ThingModelHelpers.validateExposedThingModelInit(thing);
+    //     const validated = ThingModelHelpers.validateExposedThingModelInit(thing);
 
-        expect(thing).to.exist;
-        expect(validated.valid).to.be.false;
-    }
+    //     expect(thing).to.exist;
+    //     expect(validated.valid).to.be.false;
+    // }
 
-    @test "should correctly return the model version"() {
-        let thing: ExposedThingInit = {
-            title: "thingTest",
-            "@type": ['random:Type', 'tm:ThingModel'],
-            version: { model: '0.0.1'} // TODO: check is version is valid
-        };
+    // @test "should correctly return the model version"() {
+    //     let thing: ExposedThingInit = {
+    //         title: "thingTest",
+    //         "@type": ['random:Type', 'tm:ThingModel'],
+    //         version: { model: '0.0.1'} // TODO: check is version is valid
+    //     };
 
-        let version = ThingModelHelpers.getModelVersion(thing);
+    //     let version = ThingModelHelpers.getModelVersion(thing);
 
-        expect(version).to.be.equal('0.0.1');
+    //     expect(version).to.be.equal('0.0.1');
 
-        thing = {
-            title: "thingTest",
-            "@type": ['random:Type', 'tm:ThingModel'],
-            version: {}
-        };
+    //     thing = {
+    //         title: "thingTest",
+    //         "@type": ['random:Type', 'tm:ThingModel'],
+    //         version: {}
+    //     };
 
-        version = ThingModelHelpers.getModelVersion(thing);
-        expect(version).to.be.null;
+    //     version = ThingModelHelpers.getModelVersion(thing);
+    //     expect(version).to.be.null;
 
-        thing = {
-            title: "thingTest",
-            "@type": ['random:Type', 'tm:ThingModel']
-        };
+    //     thing = {
+    //         title: "thingTest",
+    //         "@type": ['random:Type', 'tm:ThingModel']
+    //     };
 
-        version = ThingModelHelpers.getModelVersion(thing);
-        expect(version).to.be.null;
+    //     version = ThingModelHelpers.getModelVersion(thing);
+    //     expect(version).to.be.null;
 
-    }
+    // }
 
-     @test async "should correctly extend a thing model"() {
-        const modelJSON = await fs.readFile('test/tmodels/SmartLampControlExtend.jsonld');
-        const finalJSON = await fs.readFile('test/tmodels/SmartLampControlExtended.jsonld');
+    //  @test async "should correctly extend a thing model"() {
+    //     const modelJSON = await fs.readFile('test/tmodels/SmartLampControlExtend.jsonld');
+    //     const finalJSON = await fs.readFile('test/tmodels/SmartLampControlExtended.jsonld');
+    //     const model = JSON.parse(modelJSON.toString()) as ExposedThingInit;
+    //     const finalModel = JSON.parse(finalJSON.toString()) as ExposedThingInit;
+    //     const validated = ThingModelHelpers.validateExposedThingModelInit(model);
+    //     const thingModelHelpers = new ThingModelHelpers(this.srv);
+    //     const extendedModel  = await thingModelHelpers.composeModel(model);
+    //     console.log(extendedModel)
+    //     expect(extendedModel).to.be.deep.equal(finalModel);
+
+    // }
+
+    @test async "should correctly import a simple property in a thing model"() {
+        const modelJSON = await fs.readFile('test/tmodels/SmartLampControlImport.jsonld');
+        const finalJSON = await fs.readFile('test/tmodels/SmartLampControlImported.jsonld');
         const model = JSON.parse(modelJSON.toString()) as ExposedThingInit;
         const finalModel = JSON.parse(finalJSON.toString()) as ExposedThingInit;
         const validated = ThingModelHelpers.validateExposedThingModelInit(model);
@@ -144,6 +157,7 @@ class ThingModelHelperTest {
         expect(extendedModel).to.be.deep.equal(finalModel);
 
     }
+
 
     // @test "should correctly verify if it extends another model"() {
     //     let thing: ExposedThingInit = {
