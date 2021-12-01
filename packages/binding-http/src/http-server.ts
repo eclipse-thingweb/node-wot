@@ -786,6 +786,7 @@ export default class HttpServer implements ProtocolServer {
                                             res.writeHead(500);
                                             res.end(err.message);
                                         }
+                                        return;
                                     }
                                 } else if (req.method === "PUT") {
                                     if (!property.readOnly) {
