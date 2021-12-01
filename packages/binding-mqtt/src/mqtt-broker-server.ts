@@ -124,7 +124,9 @@ export default class MqttBrokerServer implements ProtocolServer {
                             "[binding-mqtt]",
                             `MqttServer cannot process data for Property '${propertyName}': ${err.message}`
                         );
-                        thing.handleUnobserveProperty(propertyName, observeListener, { formIndex: property.forms.length - 1 });
+                        thing.handleUnobserveProperty(propertyName, observeListener, {
+                            formIndex: property.forms.length - 1,
+                        });
                         return;
                     }
                     console.debug(
@@ -311,7 +313,7 @@ export default class MqttBrokerServer implements ProtocolServer {
             );
 
             const eventListener = async (content: Content) => {
-                if(!content) {
+                if (!content) {
                     console.warn(
                         "[binding-mqtt]",
                         `HttpServer on port ${this.getPort()} cannot process data for Event ${eventName}`

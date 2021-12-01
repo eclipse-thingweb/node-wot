@@ -319,7 +319,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         if (this.properties[name]) {
             if (!this.properties[name].observable) {
                 throw new Error(
-                    `ExposedThing '${this.title}' cannot set observe handler for property '${name}' due to missing observable flag`
+                    `ExposedThing '${this.title}' cannot set observe handler for property '${name}' since the observable flag is set to false`
                 );
             } else {
                 let propertyHandler;
