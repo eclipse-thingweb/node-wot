@@ -12,7 +12,6 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-const util = require("util");
 
 export function isObject(a: any) {
     return !!a && a.constructor === Object;
