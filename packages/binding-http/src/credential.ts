@@ -33,7 +33,7 @@ export class BasicCredential extends Credential {
     /**
      *
      */
-    constructor({ username, password }: BasicCredentialConfiguration, options: BasicSecurityScheme) {
+    constructor({ username, password }: BasicCredentialConfiguration, options?: BasicSecurityScheme) {
         super();
         if (username === undefined || password === undefined || username === null || password === null) {
             throw new Error(`No Basic credentials for Thing`);
@@ -51,7 +51,7 @@ export class BasicCredential extends Credential {
             "Basic " + Buffer.from(this.username + ":" + this.password).toString("base64")
         );
         let headerName = "authorization";
-        if (this.options.in === "header" && this.options.name !== undefined) {
+        if (this.options !== undefined && this.options.in === "header" && this.options.name !== undefined) {
             headerName = this.options.name;
         }
         result.headers.set(headerName, "Basic " + Buffer.from(this.username + ":" + this.password).toString("base64"));
