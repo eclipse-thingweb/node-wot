@@ -25,7 +25,7 @@ A complementary tutorial is available at http://www.thingweb.io/smart-coffee-mac
     securityDefinitions: {
         oauth2_sc: {
             scheme: "oauth2",
-            flow: "client_credentials",
+            flow: "client",
             token: "https://127.0.0.1:3000/token",
             scopes: ["limited"],
         },

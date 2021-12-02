@@ -29,7 +29,7 @@ import { ProtocolClient, Content } from "@node-wot/core";
 import { HttpForm, HttpHeader, HttpConfig, HTTPMethodName } from "./http";
 import fetch, { Request, RequestInit, Response } from "node-fetch";
 import { Buffer } from "buffer";
-import OAuthManager, { OAuthClientCredentialsConfiguration, OAuthResourceOwnerConfiguration } from "./oauth-manager";
+import OAuthManager, { OAuthClientConfiguration, OAuthResourceOwnerConfiguration } from "./oauth-manager";
 import {
     BasicCredential,
     Credential,
@@ -250,11 +250,8 @@ export default class HttpClient implements ProtocolClient {
             case "oauth2": {
                 const securityOAuth: TD.OAuth2SecurityScheme = <TD.OAuth2SecurityScheme>security;
 
-                if (securityOAuth.flow === "client_credentials") {
-                    this.credential = this.oauth.handleClientCredential(
-                        securityOAuth,
-                        credentials as OAuthClientCredentialsConfiguration
-                    );
+                if (securityOAuth.flow === "client") {
+                    this.credential = this.oauth.handleClient(securityOAuth, credentials as OAuthClientConfiguration);
                 } else if (securityOAuth.flow === "password") {
                     this.credential = this.oauth.handleResourceOwnerCredential(
                         securityOAuth,
