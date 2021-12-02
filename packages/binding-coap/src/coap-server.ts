@@ -412,7 +412,8 @@ export default class CoapServer implements ProtocolServer {
                                 ),
                             };
                             if (!this.isEmpty(action.uriVariables)) {
-                                options.uriVariables = action.uriVariables;
+                                // TODO: build uriVariable object from the req.url
+                                options.uriVariables = {};
                             }
                             try {
                                 const output = await thing.handleInvokeAction(
@@ -477,7 +478,8 @@ export default class CoapServer implements ProtocolServer {
                                 };
 
                                 if (!this.isEmpty(event.uriVariables)) {
-                                    options.uriVariables = event.uriVariables;
+                                    // TODO: build uriVariable object from the req.url
+                                    options.uriVariables = {};
                                 }
 
                                 const listener = async (value: Content) => {
