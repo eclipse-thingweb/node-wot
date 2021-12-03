@@ -46,10 +46,6 @@ export class BasicCredential extends Credential {
 
     async sign(request: Request): Promise<Request> {
         const result = request.clone();
-        result.headers.set(
-            "authorization",
-            "Basic " + Buffer.from(this.username + ":" + this.password).toString("base64")
-        );
         let headerName = "authorization";
         if (this.options !== undefined && this.options.in === "header" && this.options.name !== undefined) {
             headerName = this.options.name;
