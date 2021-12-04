@@ -250,7 +250,7 @@ export default class HttpClient implements ProtocolClient {
             case "oauth2": {
                 const securityOAuth: TD.OAuth2SecurityScheme = <TD.OAuth2SecurityScheme>security;
 
-                if (securityOAuth.flow === "client") {
+                if (securityOAuth.flow === "client_credentials") {
                     this.credential = this.oauth.handleClient(securityOAuth, credentials as OAuthClientConfiguration);
                 } else if (securityOAuth.flow === "password") {
                     this.credential = this.oauth.handleResourceOwnerCredential(

@@ -19,7 +19,7 @@ let td = {
     securityDefinitions: {
         oauth2_sc: {
             scheme: "oauth2",
-            flow: "client",
+            flow: "client_credentials",
             authorization: "https://example.com/authorization",
             token: "https://localhost:3000/token",
             scopes: ["limited", "special"],
