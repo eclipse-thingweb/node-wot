@@ -17,14 +17,14 @@
  * Protocol test suite to test protocol implementations
  */
 
+import { suite, test, timeout } from "@testdeck/mocha";
+import { expect, should } from "chai";
 import { Servient } from "@node-wot/core";
 
 import MqttBrokerServer from "../src/mqtt-broker-server";
 import MqttClientFactory from "../src/mqtt-client-factory";
 import MqttsClientFactory from "../src/mqtts-client-factory";
 
-import { suite, test, timeout } from "@testdeck/mocha";
-import { expect, should } from "chai";
 // should must be called to augment all variables
 should();
 
@@ -116,6 +116,7 @@ class MqttClientSubscribeTest {
                 const eventNumber = Math.floor(Math.random() * 1000000);
                 const eventName: string = "event" + eventNumber;
                 const events: { [key: string]: Record<string, unknown> } = {};
+
                 events[eventName] = { type: "number" };
 
                 WoT.produce({

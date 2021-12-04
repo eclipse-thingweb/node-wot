@@ -31,7 +31,7 @@ export { default as NetconfCodec } from "./codecs/netconf-codec";
 
 // Protocols & Content
 export * from "./protocol-interfaces";
-export { Content } from "./protocol-interfaces";
+export { Content, PropertyContentMap, ContentListener } from "./protocol-interfaces";
 
 // Scripting API objects
 export { default as ConsumedThing } from "./consumed-thing";
