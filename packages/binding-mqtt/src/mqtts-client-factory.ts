@@ -27,11 +27,11 @@ export default class MqttsClientFactory implements ProtocolClientFactory {
 
     // eslint-disable-next-line no-useless-constructor
     constructor(private readonly config: MqttClientConfig) {}
-    getClient = (): ProtocolClient => {
+    getClient(): ProtocolClient {
         const client = new MqttClient(this.config, true);
         this.clients.push(client);
         return client;
-    };
+    }
 
     init(): boolean {
         return true;

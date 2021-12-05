@@ -147,7 +147,7 @@ export default class MqttClient implements ProtocolClient {
         return true;
     }
 
-    private mapQoS = (qos: MqttQoS): QoS => {
+    private mapQoS(qos: MqttQoS): QoS {
         switch (qos) {
             case 2:
                 return (qos = 2);
@@ -157,9 +157,9 @@ export default class MqttClient implements ProtocolClient {
             default:
                 return (qos = 0);
         }
-    };
+    }
 
-    private logError = (message: string): void => {
+    private logError(message: string): void {
         console.error("[binding-mqtt]", `[MqttClient]${message}`);
-    };
+    }
 }
