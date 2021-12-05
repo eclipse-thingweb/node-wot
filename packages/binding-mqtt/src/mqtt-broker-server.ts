@@ -167,109 +167,7 @@ export default class MqttBrokerServer implements ProtocolServer {
             }
 
             // connect incoming messages to Thing
-            this.broker.on("message", (receivedTopic: string, rawPayload: Buffer | string, packet: IPublishPacket) => {
-                // route request
-                const segments = receivedTopic.split("/");
-                let payload: Buffer;
-                if (rawPayload instanceof Buffer) {
-                    payload = rawPayload;
-                } else if (typeof rawPayload === "string") {
-                    payload = Buffer.from(rawPayload);
-                }
-
-                if (segments.length === 4) {
-                    // connecting to the actions
-                    console.debug(
-                        "[binding-mqtt]",
-                        `MqttBrokerServer at ${this.brokerURI} received message for '${receivedTopic}'`
-                    );
-                    const thing = this.things.get(segments[1]);
-                    if (thing) {
-                        if (segments[2] === "actions") {
-                            const action = thing.actions[segments[3]];
-                            let value;
-                            if (action) {
-                                /*
-                                 * Currently, this branch will never be taken. The main reason for that is in the mqtt library we use:
-                                 * https://github.com/mqttjs/MQTT.js/pull/1103
-                                 * For further discussion see https://github.com/eclipse/thingweb.node-wot/pull/253
-                                 */
-                                if ("properties" in packet && "contentType" in packet.properties) {
-                                    try {
-                                        value = ContentSerdes.get().contentToValue(
-                                            { type: packet.properties.contentType, body: payload },
-                                            action.input
-                                        );
-                                    } catch (err) {
-                                        console.warn(
-                                            `MqttBrokerServer at ${this.brokerURI} cannot process received message for '${segments[3]}': ${err.message}`
-                                        );
-                                    }
-                                } else {
-                                    try {
-                                        value = JSON.parse(payload.toString());
-                                    } catch (err) {
-                                        console.warn(
-                                            `MqttBrokerServer at ${this.brokerURI}, packet has no Content Type and does not parse as JSON, relaying raw (string) payload.`
-                                        );
-                                        value = payload.toString();
-                                    }
-                                }
-                            }
-                            thing
-                                .invokeAction(segments[3], value)
-                                .then((output) => {
-                                    // MQTT cannot return results
-                                    if (output) {
-                                        console.warn(
-                                            `MqttBrokerServer at ${this.brokerURI} cannot return output '${segments[3]}'`
-                                        );
-                                    }
-                                })
-                                .catch((err) => {
-                                    console.error(
-                                        `MqttBrokerServer at ${this.brokerURI} got error on invoking '${segments[3]}': ${err.message}`
-                                    );
-                                });
-
-                            // topic found and message processed
-                            return;
-                        } // Action exists?
-                    } // Thing exists?
-                } else if (segments.length === 5 && segments[4] === "writeproperty") {
-                    // connecting to the writeable properties
-                    const thing = this.things.get(segments[1]);
-                    if (thing) {
-                        if (segments[2] === "properties") {
-                            const property = thing.properties[segments[3]];
-                            if (property) {
-                                if (!property.readOnly) {
-                                    thing.writeProperty(segments[3], JSON.parse(payload.toString())).catch((err) => {
-                                        console.error(
-                                            "[binding-mqtt]",
-                                            `MqttBrokerServer at ${this.brokerURI} got error on writing to property '${segments[3]}': ${err.message}`
-                                        );
-                                    });
-                                    // topic found and message processed
-                                    return;
-                                } else {
-                                    console.warn(
-                                        "[binding-mqtt]",
-                                        `MqttBrokerServer at ${this.brokerURI} received message for readOnly property at '${receivedTopic}'`
-                                    );
-                                    return;
-                                } // property is writeable? Not necessary since it didn't actually subscribe to this topic
-                            } // Property exists?
-                        }
-                    }
-                    return;
-                }
-                // topic not found
-                console.warn(
-                    "[binding-mqtt]",
-                    `MqttBrokerServer at ${this.brokerURI} received message for invalid topic '${receivedTopic}'`
-                );
-            });
+            this.broker.on("message", this.handleMessage);
 
             for (const eventName in thing.events) {
                 const topic = encodeURIComponent(name) + "/events/" + encodeURIComponent(eventName);
@@ -317,6 +215,110 @@ export default class MqttBrokerServer implements ProtocolServer {
             this.broker.publish(name, JSON.stringify(thing.getThingDescription()), { retain: true });
             resolve();
         });
+    }
+
+    private handleMessage(receivedTopic: string, rawPayload: Buffer | string, packet: IPublishPacket): void {
+        // route request
+        const segments = receivedTopic.split("/");
+        let payload: Buffer;
+        if (rawPayload instanceof Buffer) {
+            payload = rawPayload;
+        } else if (typeof rawPayload === "string") {
+            payload = Buffer.from(rawPayload);
+        }
+
+        if (segments.length === 4) {
+            // connecting to the actions
+            console.debug(
+                "[binding-mqtt]",
+                `MqttBrokerServer at ${this.brokerURI} received message for '${receivedTopic}'`
+            );
+            const thing = this.things.get(segments[1]);
+            if (thing) {
+                if (segments[2] === "actions") {
+                    const action = thing.actions[segments[3]];
+                    let value;
+                    if (action) {
+                        /*
+                         * Currently, this branch will never be taken. The main reason for that is in the mqtt library we use:
+                         * https://github.com/mqttjs/MQTT.js/pull/1103
+                         * For further discussion see https://github.com/eclipse/thingweb.node-wot/pull/253
+                         */
+                        if ("properties" in packet && "contentType" in packet.properties) {
+                            try {
+                                value = ContentSerdes.get().contentToValue(
+                                    { type: packet.properties.contentType, body: payload },
+                                    action.input
+                                );
+                            } catch (err) {
+                                console.warn(
+                                    `MqttBrokerServer at ${this.brokerURI} cannot process received message for '${segments[3]}': ${err.message}`
+                                );
+                            }
+                        } else {
+                            try {
+                                value = JSON.parse(payload.toString());
+                            } catch (err) {
+                                console.warn(
+                                    `MqttBrokerServer at ${this.brokerURI}, packet has no Content Type and does not parse as JSON, relaying raw (string) payload.`
+                                );
+                                value = payload.toString();
+                            }
+                        }
+                    }
+                    thing
+                        .invokeAction(segments[3], value)
+                        .then((output) => {
+                            // MQTT cannot return results
+                            if (output) {
+                                console.warn(
+                                    `MqttBrokerServer at ${this.brokerURI} cannot return output '${segments[3]}'`
+                                );
+                            }
+                        })
+                        .catch((err) => {
+                            console.error(
+                                `MqttBrokerServer at ${this.brokerURI} got error on invoking '${segments[3]}': ${err.message}`
+                            );
+                        });
+
+                    // topic found and message processed
+                    return;
+                } // Action exists?
+            } // Thing exists?
+        } else if (segments.length === 5 && segments[4] === "writeproperty") {
+            // connecting to the writeable properties
+            const thing = this.things.get(segments[1]);
+            if (thing) {
+                if (segments[2] === "properties") {
+                    const property = thing.properties[segments[3]];
+                    if (property) {
+                        if (!property.readOnly) {
+                            thing.writeProperty(segments[3], JSON.parse(payload.toString())).catch((err) => {
+                                console.error(
+                                    "[binding-mqtt]",
+                                    `MqttBrokerServer at ${this.brokerURI} got error on writing to property '${segments[3]}': ${err.message}`
+                                );
+                            });
+                            // topic found and message processed
+                            return;
+                        } else {
+                            console.warn(
+                                "[binding-mqtt]",
+                                `MqttBrokerServer at ${this.brokerURI} received message for readOnly property at '${receivedTopic}'`
+                            );
+                            return;
+                        } // property is writeable? Not necessary since it didn't actually subscribe to this topic
+                    } // Property exists?
+                }
+            }
+            return;
+        }
+        // topic not found
+        console.warn(
+            "[binding-mqtt]",
+            `MqttBrokerServer at ${this.brokerURI} received message for invalid topic '${receivedTopic}'`
+        );
     }
 
     public destroy(thingId: string): Promise<boolean> {
