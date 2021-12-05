@@ -17,7 +17,7 @@
  * Protocol test suite to test protocol implementations
  */
 
-import { Servient } from "@node-wot/core";
+import { ProtocolHelpers, Servient } from "@node-wot/core";
 
 import MqttBrokerServer from "../src/mqtt-broker-server";
 import MqttClientFactory from "../src/mqtt-client-factory";
@@ -30,7 +30,7 @@ should();
 
 @suite("MQTT implementation")
 class MqttClientSubscribeTest {
-    @test.skip(timeout(10000)) "should expose via broker"(done: Mocha.Done) {
+    @test(timeout(10000)) "should expose via broker"(done: Mocha.Done) {
         try {
             const servient = new Servient();
             const brokerAddress = "test.mosquitto.org";
@@ -70,10 +70,14 @@ class MqttClientSubscribeTest {
                                         counter = 0;
                                         eventReceived = true;
                                     } else {
-                                        expect(x).to.equal(++check);
-                                        if (check === 3) {
-                                            done();
-                                        }
+                                        ProtocolHelpers.readStreamFully(ProtocolHelpers.toNodeStream(x.data)).then(
+                                            (received) => {
+                                                expect(JSON.parse(received.toString())).to.equal(++check);
+                                                if (check === 3) {
+                                                    done();
+                                                }
+                                            }
+                                        );
                                     }
                                 })
                                 .then(() => {
@@ -97,7 +101,7 @@ class MqttClientSubscribeTest {
         }
     }
 
-    @test.skip(timeout(5000)) "should subscribe using mqtts"(done: Mocha.Done) {
+    @test.skip(timeout(10000)) "should subscribe using mqtts"(done: Mocha.Done) {
         try {
             const servient = new Servient();
             const brokerAddress = "test.mosquitto.org";
@@ -108,6 +112,8 @@ class MqttClientSubscribeTest {
             servient.addServer(brokerServer);
 
             servient.addClientFactory(new MqttsClientFactory({ rejectUnauthorized: false }));
+
+            let counter = 0;
 
             servient.start().then((WoT) => {
                 expect(brokerServer.getPort()).to.equal(brokerPort);
@@ -129,13 +135,23 @@ class MqttClientSubscribeTest {
                             let check = 0;
                             client
                                 .subscribeEvent(eventName, (x) => {
-                                    expect(x).to.equal(++check);
-                                    if (check === 3) {
-                                        done();
-                                    }
+                                    ProtocolHelpers.readStreamFully(ProtocolHelpers.toNodeStream(x.data)).then(
+                                        (received) => {
+                                            expect(JSON.parse(received.toString())).to.equal(++check);
+                                            if (check === 3) {
+                                                done();
+                                            }
+                                        }
+                                    );
                                 })
                                 .then(() => {
-                                    /* nothing */
+                                    const job = setInterval(() => {
+                                        ++counter;
+                                        thing.emitEvent(eventName, counter);
+                                        if (counter === 3) {
+                                            clearInterval(job);
+                                        }
+                                    }, 1000);
                                 })
                                 .catch((e) => {
                                     expect(true).to.equal(false);
