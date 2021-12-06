@@ -187,7 +187,7 @@ export default class CoapClient implements ProtocolClient {
     }
 
     public async stop(): Promise<void> {
-        // do nothing TODO: understand how to properly close coap agent
+        this.agent.close();
     }
 
     public setSecurity = (metadata: Array<TD.SecurityScheme>): boolean => true;
