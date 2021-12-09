@@ -61,6 +61,7 @@
         "eslint-plugin-node": "^11.1.0",
         "eslint-plugin-promise": "^5.1.0",
         "eslint-plugin-unused-imports": "^1.1.4",
+        "eslint-plugin-workspaces": "^0.7.0",
         "husky": "^7.0.4",
         "mocha": "^9.1.1",
         "nyc": "^15.1.0",
