@@ -1,12 +1,3 @@
-import { BearerSecurityScheme } from "./../../td-tools/src/thing-description";
-import {
-    BasicCredential,
-    BasicCredentialConfiguration,
-    BearerCredential,
-    BearerCredentialConfiguration,
-    BasicKeyCredential,
-    BasicKeyCredentialConfiguration,
-} from "./../src/credential";
 /********************************************************************************
  * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
  *
@@ -23,10 +14,18 @@ import {
  ********************************************************************************/
 
 import { suite, test } from "@testdeck/mocha";
-import { APIKeySecurityScheme, BasicSecurityScheme } from "@node-wot/td-tools";
+import { APIKeySecurityScheme, BasicSecurityScheme, BearerSecurityScheme } from "@node-wot/td-tools";
 import * as chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { Request } from "node-fetch";
+import {
+    BasicCredential,
+    BasicCredentialConfiguration,
+    BearerCredential,
+    BearerCredentialConfiguration,
+    BasicKeyCredential,
+    BasicKeyCredentialConfiguration,
+} from "./../src/credential";
 
 chai.should();
 chai.use(chaiAsPromised);

@@ -1,5 +1,3 @@
-import { BearerSecurityScheme } from "./../../td-tools/dist/thing-description.d";
-import { BasicSecurityScheme, APIKeySecurityScheme } from "@node-wot/td-tools";
 /********************************************************************************
  * Copyright (c) 2020 - 2021 Contributors to the Eclipse Foundation
  *
@@ -17,7 +15,7 @@ import { BasicSecurityScheme, APIKeySecurityScheme } from "@node-wot/td-tools";
 
 import { Token } from "client-oauth2";
 import { Request } from "node-fetch";
-
+import { BasicSecurityScheme, APIKeySecurityScheme, BearerSecurityScheme } from "@node-wot/td-tools";
 export abstract class Credential {
     abstract sign(request: Request): Promise<Request>;
 }
