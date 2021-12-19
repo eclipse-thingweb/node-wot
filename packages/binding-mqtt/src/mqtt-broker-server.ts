@@ -20,10 +20,12 @@
 import { IPublishPacket } from "mqtt";
 import * as mqtt from "mqtt";
 import * as url from "url";
-
+import { Server } from "aedes";
+import * as net from "net";
 import * as TD from "@node-wot/td-tools";
 import { ProtocolServer, Servient, ExposedThing, ContentSerdes, ProtocolHelpers } from "@node-wot/core";
 
+const broker = Server();
 export default class MqttBrokerServer implements ProtocolServer {
     readonly scheme: string = "mqtt";
 
@@ -44,6 +46,8 @@ export default class MqttBrokerServer implements ProtocolServer {
 
     private broker: mqtt.MqttClient;
     private rejectUnauthorized: boolean;
+    private selfHost: boolean;
+    private hostedBroker: net.Server;
 
     constructor(
         uri: string,
@@ -51,7 +55,8 @@ export default class MqttBrokerServer implements ProtocolServer {
         psw?: string,
         clientId?: string,
         protocolVersion?: number,
-        rejectUnauthorized?: boolean
+        rejectUnauthorized?: boolean,
+        selfHost?: boolean
     ) {
         if (uri !== undefined) {
             // if there is a MQTT protocol indicator missing, add this
@@ -73,7 +78,17 @@ export default class MqttBrokerServer implements ProtocolServer {
         if (protocolVersion !== undefined) {
             this.protocolVersion = protocolVersion;
         }
+        if (selfHost !== undefined) {
+            this.selfHost = selfHost;
 
+            if (this.selfHost) {
+                const server = net.createServer(broker.handle);
+                const parsed = new url.URL(this.brokerURI);
+                const port = parseInt(parsed.port);
+                this.port = port > 0 ? port : 1883;
+                this.hostedBroker = server.listen(port);
+            }
+        }
         this.rejectUnauthorized = rejectUnauthorized;
     }
 
@@ -400,8 +415,8 @@ export default class MqttBrokerServer implements ProtocolServer {
 
     public stop(): Promise<void> {
         return new Promise<void>((resolve, reject) => {
+            if (this.hostedBroker !== undefined) this.hostedBroker.close();
             if (this.broker === undefined) resolve();
-
             this.broker.unsubscribe("*");
         });
     }
