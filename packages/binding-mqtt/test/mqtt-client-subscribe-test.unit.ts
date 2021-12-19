@@ -20,14 +20,19 @@ import { Readable } from "stream";
  */
 
 import { suite, test, timeout } from "@testdeck/mocha";
-import { expect } from "chai";
+import * as chai from "chai";
+import chaiAsPromised from "chai-as-promised";
 import { MqttClient, MqttForm, MqttQoS } from "../src/mqtt";
+import { expect } from "chai";
+
+chai.use(chaiAsPromised);
+
 // should must be called to augment all variables
 
 @suite("MQTT implementation")
 class MqttClientSubscribeTest {
-    @test(timeout(10000)) "should publish and subscribe"(done: Mocha.Done) {
-        const brokerAddress = "test.mosquitto.org";
+    @test.skip(timeout(5000)) "should publish and subscribe"(done: Mocha.Done) {
+        const brokerAddress = "test.moquitto.org";
         const property = "test1";
         const brokerPort = 1883;
         const brokerUri = `mqtt://${brokerAddress}:${brokerPort}`;
@@ -49,5 +54,51 @@ class MqttClientSubscribeTest {
             })
             .then(() => mqttClient.invokeResource(form, { type: "", body: Readable.from(Buffer.from("test")) }))
             .then(() => mqttClient.stop());
+    }
+
+    @test(timeout(5000)) "should not authenticate with basic auth"(done: Mocha.Done) {
+        const brokerAddress = "test.mosquitto.org";
+        const property = "test1";
+        const brokerPort = 1883;
+        const brokerUri = `mqtt://${brokerAddress}:${brokerPort}`;
+
+        const mqttClient = new MqttClient();
+        mqttClient.setSecurity([{ scheme: "basic" }], { username: "user", password: "wrongpass" });
+
+        const form: MqttForm = {
+            href: brokerUri + "/" + property,
+            "mqtt:qos": MqttQoS.QoS1,
+            "mqtt:retain": false,
+        };
+
+        mqttClient
+            .subscribeResource(form, () => {
+                /** */
+            })
+            .then(() => done(new Error("Should not authenticate")))
+            .should.eventually.be.rejectedWith(Error, "Connection refused: Not authorized")
+            .then(() => done());
+    }
+
+    @test(timeout(5000)) "should authenticate with basic auth"(done: Mocha.Done) {
+        const brokerAddress = "test.mosquitto.org";
+        const property = "test1";
+        const brokerPort = 1883;
+        const brokerUri = `mqtt://${brokerAddress}:${brokerPort}`;
+
+        const mqttClient = new MqttClient();
+        mqttClient.setSecurity([{ scheme: "basic" }], { username: "user", password: "pass" });
+
+        const form: MqttForm = {
+            href: brokerUri + "/" + property,
+            "mqtt:qos": MqttQoS.QoS1,
+            "mqtt:retain": false,
+        };
+
+        mqttClient
+            .subscribeResource(form, () => {
+                /** */
+            })
+            .then(() => done());
     }
 }
