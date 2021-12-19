@@ -31,7 +31,7 @@ chai.use(chaiAsPromised);
 
 @suite("MQTT implementation")
 class MqttClientSubscribeTest {
-    @test.skip(timeout(5000)) "should publish and subscribe"(done: Mocha.Done) {
+    @test(timeout(5000)) "should publish and subscribe"(done: Mocha.Done) {
         const brokerAddress = "test.moquitto.org";
         const property = "test1";
         const brokerPort = 1883;

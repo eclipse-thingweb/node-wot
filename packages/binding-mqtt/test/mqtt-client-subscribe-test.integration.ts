@@ -30,7 +30,7 @@ should();
 
 @suite("MQTT implementation")
 class MqttClientSubscribeTest {
-    @test.skip(timeout(10000)) "should expose via broker"(done: Mocha.Done) {
+    @test(timeout(10000)) "should expose via broker"(done: Mocha.Done) {
         try {
             const servient = new Servient();
             const brokerAddress = "test.mosquitto.org";
