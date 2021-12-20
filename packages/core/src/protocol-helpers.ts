@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2020 - 2021 Contributors to the Eclipse Foundation
+ * Copyright (c) 2020 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -278,5 +278,100 @@ export default class ProtocolHelpers {
                 resolve(Buffer.alloc(0));
             }
         });
+    }
+
+    public static findRequestMatchingFormIndex(
+        forms: TD.Form[] | undefined,
+        uriScheme: string,
+        requestUrl: string | undefined,
+        contentType?: string
+    ): number {
+        if (forms === undefined) return 0;
+
+        // first find forms with matching url protocol and path
+        let matchingForms: TD.Form[] = forms.filter((form) => {
+            // remove optional uriVariables from href Form
+            const formUrl = new URL(form.href.replace(/(\{[\S]*\})/, ""));
+
+            // remove uriVariables from request url, if any
+            const reqUrl =
+                requestUrl !== undefined
+                    ? requestUrl.indexOf("?") !== -1
+                        ? requestUrl.split("?")[0]
+                        : requestUrl
+                    : undefined;
+
+            return formUrl.protocol === uriScheme + ":" && (reqUrl === undefined || formUrl.pathname === reqUrl);
+        });
+        // optionally try to match form's content type to the request's one
+        if (contentType) {
+            const contentTypeMatchingForms: TD.Form[] = matchingForms.filter((form) => {
+                return form.contentType === contentType;
+            });
+            if (contentTypeMatchingForms.length > 0) matchingForms = contentTypeMatchingForms;
+        }
+        return matchingForms.length > 0 ? forms.indexOf(matchingForms[0]) : 0;
+    }
+
+    public static getFormIndexForOperation(
+        interaction: TD.ThingInteraction,
+        type: "property" | "action" | "event",
+        operationName?: string,
+        formIndex?: number
+    ): number {
+        let finalFormIndex = -1;
+
+        // Check for default interaction OPs
+        // https://w3c.github.io/wot-thing-description/#sec-default-values
+        let defaultOps: string[] = [];
+        switch (type) {
+            case "property":
+                if (
+                    (interaction.readOnly && operationName === "writeproperty") ||
+                    (interaction.writeOnly && operationName === "readproperty")
+                )
+                    return finalFormIndex;
+                if (interaction.readOnly === undefined || !interaction.readOnly) defaultOps.push("writeproperty");
+                if (interaction.writeOnly === undefined || !interaction.writeOnly) defaultOps.push("readproperty");
+                break;
+            case "action":
+                defaultOps = ["invokeaction"];
+                break;
+            case "event":
+                defaultOps = ["subscribeevent", "unsubscribeevent"];
+                break;
+        }
+
+        if (defaultOps.indexOf(operationName) !== -1) {
+            operationName = undefined;
+        }
+
+        // If a form index hint is gived, you it. Just check the form actually supports the op
+        if (interaction.forms !== undefined && formIndex !== undefined && interaction.forms.length > formIndex) {
+            const form = interaction.forms[formIndex];
+            if (form && (operationName === undefined || form.op?.includes(operationName))) {
+                finalFormIndex = formIndex;
+            }
+        }
+
+        // If no form was found yet, loop through all forms
+        if (interaction.forms !== undefined && finalFormIndex === -1) {
+            if (operationName !== undefined) {
+                interaction.forms.every((form: TD.Form) => {
+                    if (form.op?.includes(operationName)) {
+                        finalFormIndex = interaction.forms.indexOf(form);
+                    }
+                    return finalFormIndex === -1;
+                });
+            } else {
+                interaction.forms.every((form: TD.Form) => {
+                    finalFormIndex = interaction.forms.indexOf(form);
+                    return false;
+                });
+            }
+        }
+
+        // No suitable form found for this operation
+        return finalFormIndex;
     }
 }

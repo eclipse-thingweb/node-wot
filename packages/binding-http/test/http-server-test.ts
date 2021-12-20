@@ -19,12 +19,17 @@
 
 import { suite, test } from "@testdeck/mocha";
 import { expect, should, assert } from "chai";
-
+import * as chai from "chai";
 import fetch from "node-fetch";
 
 import HttpServer from "../src/http-server";
-import { ExposedThing, Helpers } from "@node-wot/core";
-import { DataSchemaValue } from "wot-typescript-definitions";
+import { Content, ExposedThing, Helpers, ProtocolHelpers } from "@node-wot/core";
+import { DataSchemaValue, InteractionInput, InteractionOptions } from "wot-typescript-definitions";
+import chaiAsPromised from "chai-as-promised";
+import { Readable } from "stream";
+
+chai.use(chaiAsPromised);
+
 // should must be called to augment all variables
 should();
 
@@ -80,24 +85,122 @@ class HttpServerTest {
             title: "Test",
             properties: {
                 test: {
-                    type: "string",
+                    forms: [],
+                },
+            },
+            events: {
+                eventTest: {
+                    forms: [],
                 },
             },
             actions: {
                 try: {
                     output: { type: "string" },
+                    forms: [],
                 },
             },
         });
+
         let test: DataSchemaValue;
         testThing.setPropertyReadHandler("test", (_) => Promise.resolve(test));
         testThing.setPropertyWriteHandler("test", async (value) => {
             test = await value.value();
         });
-        await testThing.writeProperty("test", "off");
-        testThing.properties.test.forms = [];
+
         testThing.setActionHandler("try", (input: WoT.InteractionOutput) => {
             return new Promise<string>((resolve, reject) => {
+                resolve("TEST");
+            });
+        });
+
+        await httpServer.expose(testThing);
+
+        testThing.handleSubscribeEvent(
+            "eventTest",
+            async (input: Content) => {
+                const data = await ProtocolHelpers.readStreamFully(input.body);
+                expect(data.toString()).to.equal("'test''");
+            },
+            { formIndex: 0 }
+        );
+        testThing.emitEvent("eventTest", "test");
+
+        await testThing.handleWriteProperty(
+            "test",
+            {
+                type: "text/plain",
+                body: Readable.from(Buffer.from("off", "utf-8")),
+            },
+            { formIndex: 0 }
+        );
+
+        const uri = `http://localhost:${httpServer.getPort()}/test/`;
+        let resp;
+
+        console.log("Testing", uri);
+
+        resp = await (await fetch(uri + "properties/test")).text();
+        expect(resp).to.equal('"off"');
+
+        resp = await (await fetch(uri + "properties")).text();
+        expect(resp).to.equal('{"test":"\\"off\\""}');
+
+        resp = await (await fetch(uri + "properties/test", { method: "PUT", body: "on" })).text();
+        expect(resp).to.equal("");
+
+        resp = await (await fetch(uri + "properties/test")).text();
+        expect(resp).to.equal('"on"');
+
+        resp = await (await fetch(uri + "actions/try", { method: "POST", body: "toggle" })).text();
+        expect(resp).to.equal('"TEST"');
+
+        resp = await (await fetch(uri + "actions/try", { method: "POST", body: undefined })).text();
+        expect(resp).to.equal('"TEST"');
+
+        return httpServer.stop();
+    }
+
+    @test async "should check uriVariables consistency"() {
+        const httpServer = new HttpServer({ port: 0 });
+
+        await httpServer.start(null);
+
+        const testThing = new ExposedThing(null, {
+            title: "Test",
+            properties: {
+                test: {
+                    type: "string",
+                    uriVariables: {
+                        id: {
+                            type: "string",
+                        },
+                    },
+                },
+            },
+            actions: {
+                try: {
+                    output: { type: "string" },
+                    uriVariables: {
+                        step: { type: "integer" },
+                    },
+                },
+            },
+        });
+        let test: DataSchemaValue;
+        testThing.setPropertyReadHandler("test", (options) => {
+            expect(options.uriVariables).to.deep.equal({ id: "testId" });
+            return new Promise<InteractionInput>((resolve, reject) => {
+                resolve(test);
+            });
+        });
+        testThing.setPropertyWriteHandler("test", async (value, options) => {
+            expect(options.uriVariables).to.deep.equal({ id: "testId" });
+            test = await value.value();
+        });
+        testThing.properties.test.forms = [];
+        testThing.setActionHandler("try", (input: WoT.InteractionOutput, params: InteractionOptions) => {
+            return new Promise<string>((resolve, reject) => {
+                expect(params.uriVariables).to.deep.equal({ step: 5 });
                 resolve("TEST");
             });
         });
@@ -108,24 +211,10 @@ class HttpServerTest {
         const uri = `http://localhost:${httpServer.getPort()}/test/`;
         let resp;
 
-        console.log("Testing", uri);
-
-        resp = await (await fetch(uri + "properties/test")).text();
-        expect(resp).to.equal("off");
-
-        resp = await (await fetch(uri + "properties")).text();
-        expect(resp).to.equal('{"test":"off"}');
-
-        resp = await (await fetch(uri + "properties/test", { method: "PUT", body: "on" })).text();
+        resp = await (await fetch(uri + "properties/test?id=testId", { method: "PUT", body: "on" })).text();
         expect(resp).to.equal("");
 
-        resp = await (await fetch(uri + "properties/test")).text();
-        expect(resp).to.equal("on");
-
-        resp = await (await fetch(uri + "actions/try", { method: "POST", body: "toggle" })).text();
-        expect(resp).to.equal('"TEST"');
-
-        resp = await (await fetch(uri + "actions/try", { method: "POST", body: undefined })).text();
+        resp = await (await fetch(uri + "actions/try?step=5", { method: "POST", body: "toggle" })).text();
         expect(resp).to.equal('"TEST"');
 
         return httpServer.stop();
@@ -149,7 +238,7 @@ class HttpServerTest {
                 },
             },
         });
-        let test: DataSchemaValue;
+        let test = {};
         testThing.setPropertyReadHandler("test", (_) => Promise.resolve(test));
         testThing.setPropertyWriteHandler("test", async (value) => {
             test = await value.value();
@@ -177,7 +266,11 @@ class HttpServerTest {
         expect(resp).to.equal('{"test":"{}"}');
 
         resp = await (
-            await fetch(uri + "properties/test", { method: "PUT", body: JSON.stringify({ new: true }) })
+            await fetch(uri + "properties/test", {
+                method: "PUT",
+                body: JSON.stringify({ new: true }),
+                headers: { "Content-Type": "application/json" },
+            })
         ).text();
         expect(resp).to.equal("");
 
