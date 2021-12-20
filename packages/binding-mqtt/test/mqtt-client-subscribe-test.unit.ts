@@ -21,29 +21,32 @@ import { Readable } from "stream";
 
 import * as chai from "chai";
 import chaiAsPromised from "chai-as-promised";
-import { MqttBrokerServer, MqttClient, MqttForm, MqttQoS } from "../src/mqtt";
+import { MqttClient, MqttForm, MqttQoS } from "../src/mqtt";
 import { expect } from "chai";
+import { Server } from "aedes";
+import * as net from "net";
 
 chai.use(chaiAsPromised);
 
 // should must be called to augment all variables
 
-describe("MQTT implementation", () => {
-    let brokerServer: MqttBrokerServer;
+describe("MQTT client implementation", () => {
+    let hostedBroker: net.Server;
     let brokerUri: string;
     const property = "test1";
     const brokerAddress = "localhost";
     const brokerPort = 1889;
 
     describe("tests without authorization", () => {
-        beforeEach(async () => {
+        beforeEach(() => {
             brokerUri = `mqtt://${brokerAddress}:${brokerPort}`;
-            brokerServer = new MqttBrokerServer({ uri: brokerUri, selfHost: true });
-            await brokerServer.start(null);
+            const broker = Server({});
+            const server = net.createServer(broker.handle);
+            hostedBroker = server.listen(brokerPort);
         });
 
         afterEach(async () => {
-            await brokerServer.stop();
+            hostedBroker.close();
         });
 
         it("should publish and subscribe", (done: Mocha.Done) => {
@@ -66,24 +69,27 @@ describe("MQTT implementation", () => {
                 })
                 .then(() => mqttClient.invokeResource(form, { type: "", body: Readable.from(Buffer.from("test")) }))
                 .then(() => mqttClient.stop())
-                .then(() => brokerServer.stop())
                 .catch((err) => done(err));
         });
     });
 
     describe("tests with authorization", () => {
-        beforeEach(async () => {
+        beforeEach(() => {
             brokerUri = `mqtt://${brokerAddress}:${brokerPort}`;
-            brokerServer = new MqttBrokerServer({
-                uri: brokerUri,
-                selfHost: true,
-                selfHostAuthentication: [{ username: "user", password: "pass" }],
-            });
-            await brokerServer.start(null);
+            const broker = Server({});
+            broker.authenticate = function (_client, username: Readonly<string>, password: Readonly<Buffer>, done) {
+                if (username !== undefined) {
+                    done(undefined, username === "user" && password.equals(Buffer.from("pass")));
+                    return;
+                }
+                done(undefined, true);
+            };
+            const server = net.createServer(broker.handle);
+            hostedBroker = server.listen(brokerPort);
         });
 
-        afterEach(async () => {
-            await brokerServer.stop();
+        afterEach(() => {
+            hostedBroker.close();
         });
 
         it("should not authenticate with basic auth", (done: Mocha.Done) => {
@@ -119,6 +125,7 @@ describe("MQTT implementation", () => {
                 .subscribeResource(form, () => {
                     /** */
                 })
+                .catch((err) => done(err))
                 .then(() => done());
         });
     });
