@@ -51,3 +51,13 @@ export interface MqttClientConfig {
     password?: string;
     rejectUnauthorized?: boolean;
 }
+
+export interface MqttBrokerServerConfig {
+    uri: string;
+    user?: string;
+    psw?: string;
+    clientId?: string;
+    protocolVersion?: number;
+    rejectUnauthorized?: boolean;
+    selfHost?: boolean;
+}

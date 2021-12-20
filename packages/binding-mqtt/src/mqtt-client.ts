@@ -28,7 +28,7 @@ import { Readable } from "stream";
 
 declare interface MqttClientSecurityParameters {
     username: string;
-    password: string
+    password: string;
 }
 
 export default class MqttClient implements ProtocolClient {

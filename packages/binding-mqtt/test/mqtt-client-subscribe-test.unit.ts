@@ -37,15 +37,7 @@ class MqttClientSubscribeTest {
         const property = "test1";
         const brokerUri = `mqtt://${brokerAddress}:${brokerPort}`;
 
-        const brokerServer = new MqttBrokerServer(
-            brokerUri,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            true
-        );
+        const brokerServer = new MqttBrokerServer({ uri: brokerUri, selfHost: true });
 
         const mqttClient = new MqttClient();
         const form: MqttForm = {
@@ -102,15 +94,7 @@ class MqttClientSubscribeTest {
         const brokerPort = 1889;
         const brokerUri = `mqtt://${brokerAddress}:${brokerPort}`;
 
-        const brokerServer = new MqttBrokerServer(
-            brokerUri,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            true
-        );
+        const brokerServer = new MqttBrokerServer({ uri: brokerUri, selfHost: true });
 
         await brokerServer.start(null);
 
@@ -135,15 +119,7 @@ class MqttClientSubscribeTest {
         const brokerPort = 1889;
         const brokerUri = `mqtt://${brokerAddress}:${brokerPort}`;
 
-        const brokerServer = new MqttBrokerServer(
-            brokerUri,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            true
-        );
+        const brokerServer = new MqttBrokerServer({ uri: brokerUri, selfHost: true });
 
         await brokerServer.start(null);
         await brokerServer.stop();

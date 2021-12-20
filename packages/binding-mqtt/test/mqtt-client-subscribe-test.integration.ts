@@ -37,7 +37,7 @@ class MqttClientSubscribeTest {
             const brokerPort = 1883;
             const brokerUri = `mqtt://${brokerAddress}:${brokerPort}`;
 
-            const brokerServer = new MqttBrokerServer(brokerUri);
+            const brokerServer = new MqttBrokerServer({ uri: brokerUri });
             servient.addServer(brokerServer);
 
             servient.addClientFactory(new MqttClientFactory());
@@ -108,7 +108,7 @@ class MqttClientSubscribeTest {
             const brokerPort = 8883;
             const brokerUri = `mqtts://${brokerAddress}:${brokerPort}`;
 
-            const brokerServer = new MqttBrokerServer(brokerUri, undefined, undefined, undefined, undefined, false);
+            const brokerServer = new MqttBrokerServer({ uri: brokerUri });
             servient.addServer(brokerServer);
 
             servient.addClientFactory(new MqttsClientFactory({ rejectUnauthorized: false }));

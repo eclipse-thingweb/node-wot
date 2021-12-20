@@ -24,64 +24,34 @@ import { Server } from "aedes";
 import * as net from "net";
 import * as TD from "@node-wot/td-tools";
 import { ProtocolServer, Servient, ExposedThing, ContentSerdes, ProtocolHelpers } from "@node-wot/core";
+import { MqttBrokerServerConfig } from "./mqtt";
 
 const broker = Server();
+
 export default class MqttBrokerServer implements ProtocolServer {
     readonly scheme: string = "mqtt";
 
     private port = -1;
     private address: string = undefined;
 
-    private user: string = undefined; // in the case usesername is required to connect the broker
-
-    private psw: string = undefined; // in the case password is required to connect the broker
-
-    private clientId: string = undefined; // in the case clientId can be used to identify the device
-
-    private protocolVersion: number = undefined;
-
     private brokerURI: string = undefined;
 
     private readonly things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
 
     private broker: mqtt.MqttClient;
-    private rejectUnauthorized: boolean;
-    private selfHost: boolean;
+
     private hostedBroker: net.Server;
 
-    constructor(
-        uri: string,
-        user?: string,
-        psw?: string,
-        clientId?: string,
-        protocolVersion?: number,
-        rejectUnauthorized?: boolean,
-        selfHost?: boolean
-    ) {
-        if (uri !== undefined) {
+    constructor(private readonly config: MqttBrokerServerConfig) {
+        if (config.uri !== undefined) {
             // if there is a MQTT protocol indicator missing, add this
-            if (uri.indexOf("://") === -1) {
-                uri = this.scheme + "://" + uri;
+            if (config.uri.indexOf("://") === -1) {
+                config.uri = this.scheme + "://" + config.uri;
             }
-            this.brokerURI = uri;
+            this.brokerURI = config.uri;
         }
-
-        if (user !== undefined) {
-            this.user = user;
-        }
-        if (psw !== undefined) {
-            this.psw = psw;
-        }
-        if (clientId !== undefined) {
-            this.clientId = clientId;
-        }
-        if (protocolVersion !== undefined) {
-            this.protocolVersion = protocolVersion;
-        }
-        if (selfHost !== undefined) {
-            this.selfHost = selfHost;
-
-            if (this.selfHost) {
+        if (config.selfHost !== undefined) {
+            if (config.selfHost) {
                 const server = net.createServer(broker.handle);
                 const parsed = new url.URL(this.brokerURI);
                 const port = parseInt(parsed.port);
@@ -89,7 +59,6 @@ export default class MqttBrokerServer implements ProtocolServer {
                 this.hostedBroker = server.listen(port);
             }
         }
-        this.rejectUnauthorized = rejectUnauthorized;
     }
 
     public async expose(thing: ExposedThing): Promise<void> {
@@ -363,35 +332,29 @@ export default class MqttBrokerServer implements ProtocolServer {
                 resolve();
             } else {
                 // try to connect to the broker without or with credentials
-                if (this.psw === undefined) {
+                if (this.config.psw === undefined) {
                     console.debug(
                         "[binding-mqtt]",
                         `MqttBrokerServer trying to connect to broker at ${this.brokerURI}`
                     );
-                } else if (this.clientId === undefined) {
+                } else if (this.config.clientId === undefined) {
                     console.debug(
                         "[binding-mqtt]",
                         `MqttBrokerServer trying to connect to secured broker at ${this.brokerURI}`
                     );
-                } else if (this.protocolVersion === undefined) {
+                } else if (this.config.protocolVersion === undefined) {
                     console.debug(
                         "[binding-mqtt]",
-                        `MqttBrokerServer trying to connect to secured broker at ${this.brokerURI} with client ID ${this.clientId}`
+                        `MqttBrokerServer trying to connect to secured broker at ${this.brokerURI} with client ID ${this.config.clientId}`
                     );
                 } else {
                     console.debug(
                         "[binding-mqtt]",
-                        `MqttBrokerServer trying to connect to secured broker at ${this.brokerURI} with client ID ${this.clientId}`
+                        `MqttBrokerServer trying to connect to secured broker at ${this.brokerURI} with client ID ${this.config.clientId}`
                     );
                 }
-                // TODO test if mqtt extracts port from passed URI (this.address)
-                this.broker = mqtt.connect(this.brokerURI, {
-                    username: this.user,
-                    password: this.psw,
-                    clientId: this.clientId,
-                    protocolVersion: this.protocolVersion,
-                    rejectUnauthorized: this.rejectUnauthorized,
-                });
+
+                this.broker = mqtt.connect(this.brokerURI, this.config);
 
                 this.broker.on("connect", () => {
                     console.info("[binding-mqtt]", `MqttBrokerServer connected to broker at ${this.brokerURI}`);
