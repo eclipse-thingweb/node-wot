@@ -22,6 +22,7 @@ import * as mqtt from "mqtt";
 import * as url from "url";
 import { AuthenticateError, Client, Server } from "aedes";
 import * as net from "net";
+import * as tls from "tls";
 import * as TD from "@node-wot/td-tools";
 import { MqttBrokerServerConfig } from "./mqtt";
 import { ProtocolServer, Servient, ExposedThing, ContentSerdes, ProtocolHelpers, Content } from "@node-wot/core";
@@ -56,7 +57,9 @@ export default class MqttBrokerServer implements ProtocolServer {
         if (config.selfHost !== undefined) {
             if (config.selfHost) {
                 const broker = Server({});
-                const server = net.createServer(broker.handle);
+                let server;
+                if (config.key) server = tls.createServer({ key: config.key, cert: config.cert }, broker.handle);
+                else server = net.createServer(broker.handle);
                 const parsed = new url.URL(this.brokerURI);
                 const port = parseInt(parsed.port);
                 this.port = port > 0 ? port : 1883;

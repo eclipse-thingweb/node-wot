@@ -18,6 +18,7 @@
  */
 
 import { Form } from "@node-wot/td-tools";
+import { KeyObject } from "node:tls";
 
 export { default as MqttClient } from "./mqtt-client";
 export { default as MqttClientFactory } from "./mqtt-client-factory";
@@ -60,5 +61,7 @@ export interface MqttBrokerServerConfig {
     protocolVersion?: number;
     rejectUnauthorized?: boolean;
     selfHost?: boolean;
+    key?: Buffer;
+    cert?: Buffer | undefined;
     selfHostAuthentication?: MqttClientConfig[];
 }

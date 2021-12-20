@@ -18,9 +18,7 @@
  */
 
 import { ProtocolHelpers, Servient } from "@node-wot/core";
-import { suite, test, timeout } from "@testdeck/mocha";
 import { expect, should } from "chai";
-
 import MqttBrokerServer from "../src/mqtt-broker-server";
 import MqttClientFactory from "../src/mqtt-client-factory";
 import MqttsClientFactory from "../src/mqtts-client-factory";
@@ -28,141 +26,143 @@ import MqttsClientFactory from "../src/mqtts-client-factory";
 // should must be called to augment all variables
 should();
 
-@suite("MQTT implementation")
-class MqttClientSubscribeTest {
-    @test.skip(timeout(10000)) "should expose via broker"(done: Mocha.Done) {
-        try {
-            const servient = new Servient();
-            const brokerAddress = "test.mosquitto.org";
-            const brokerPort = 1883;
-            const brokerUri = `mqtt://${brokerAddress}:${brokerPort}`;
+describe("MQTT client implementation", () => {
+    let servient: Servient;
+    let brokerServer: MqttBrokerServer;
+    let brokerUri: string;
+    const brokerAddress = "localhost";
+    const brokerPort = 1889;
 
-            const brokerServer = new MqttBrokerServer({ uri: brokerUri });
-            servient.addServer(brokerServer);
+    beforeEach(() => {
+        servient = new Servient();
+        brokerUri = `mqtt://${brokerAddress}:${brokerPort}`;
+    });
 
-            servient.addClientFactory(new MqttClientFactory());
+    afterEach(async () => {
+        await brokerServer.stop();
+    });
 
-            let counter = 0;
+    it("should expose via broker", (done: Mocha.Done) => {
+        brokerServer = new MqttBrokerServer({ uri: brokerUri, selfHost: true });
+        servient.addServer(brokerServer);
 
-            servient.start().then((WoT) => {
-                expect(brokerServer.getPort()).to.equal(brokerPort);
-                expect(brokerServer.getAddress()).to.equal(brokerAddress);
+        servient.addClientFactory(new MqttClientFactory());
 
-                const eventNumber = Math.floor(Math.random() * 1000000);
-                const eventName: string = "event" + eventNumber;
-                const events: { [key: string]: Record<string, unknown> } = {};
-                events[eventName] = { data: { type: "number" } };
+        let counter = 0;
 
-                WoT.produce({
-                    title: "TestWoTMQTT",
-                    events: events,
-                }).then((thing) => {
-                    thing.expose().then(() => {
-                        console.info("Exposed", thing.getThingDescription().title);
+        servient.start().then((WoT) => {
+            expect(brokerServer.getPort()).to.equal(brokerPort);
+            expect(brokerServer.getAddress()).to.equal(brokerAddress);
 
-                        WoT.consume(thing.getThingDescription()).then((client) => {
-                            let check = 0;
-                            let eventReceived = false;
+            const eventNumber = Math.floor(Math.random() * 1000000);
+            const eventName: string = "event" + eventNumber;
+            const events: { [key: string]: Record<string, unknown> } = {};
+            events[eventName] = { data: { type: "number" } };
 
-                            client
-                                .subscribeEvent(eventName, (x) => {
-                                    if (!eventReceived) {
-                                        counter = 0;
-                                        eventReceived = true;
-                                    } else {
-                                        ProtocolHelpers.readStreamFully(ProtocolHelpers.toNodeStream(x.data)).then(
-                                            (received) => {
-                                                expect(JSON.parse(received.toString())).to.equal(++check);
-                                                if (check === 3) {
-                                                    done();
-                                                }
-                                            }
-                                        );
-                                    }
-                                })
-                                .then(() => {
-                                    const job = setInterval(() => {
-                                        ++counter;
-                                        thing.emitEvent(eventName, counter);
-                                        if (counter === 3) {
-                                            clearInterval(job);
-                                        }
-                                    }, 1000);
-                                })
-                                .catch((e) => {
-                                    expect(true).to.equal(false);
-                                });
-                        });
-                    });
-                });
-            });
-        } catch (err) {
-            console.error("ERROR", err);
-        }
-    }
+            WoT.produce({
+                title: "TestWoTMQTT",
+                events: events,
+            }).then((thing) => {
+                thing.expose().then(() => {
+                    console.info("Exposed", thing.getThingDescription().title);
 
-    @test.skip(timeout(10000)) "should subscribe using mqtts"(done: Mocha.Done) {
-        try {
-            const servient = new Servient();
-            const brokerAddress = "test.mosquitto.org";
-            const brokerPort = 8883;
-            const brokerUri = `mqtts://${brokerAddress}:${brokerPort}`;
+                    WoT.consume(thing.getThingDescription()).then((client) => {
+                        let check = 0;
+                        let eventReceived = false;
 
-            const brokerServer = new MqttBrokerServer({ uri: brokerUri });
-            servient.addServer(brokerServer);
-
-            servient.addClientFactory(new MqttsClientFactory({ rejectUnauthorized: false }));
-
-            let counter = 0;
-
-            servient.start().then((WoT) => {
-                expect(brokerServer.getPort()).to.equal(brokerPort);
-                expect(brokerServer.getAddress()).to.equal(brokerAddress);
-
-                const eventNumber = Math.floor(Math.random() * 1000000);
-                const eventName: string = "event" + eventNumber;
-                const events: { [key: string]: Record<string, unknown> } = {};
-
-                events[eventName] = { type: "number" };
-
-                WoT.produce({
-                    title: "TestWoTMQTT",
-                    events: events,
-                }).then((thing) => {
-                    thing.expose().then(() => {
-                        console.info("Exposed", thing.getThingDescription().title);
-
-                        WoT.consume(thing.getThingDescription()).then((client) => {
-                            let check = 0;
-                            client
-                                .subscribeEvent(eventName, (x) => {
+                        client
+                            .subscribeEvent(eventName, (x) => {
+                                if (!eventReceived) {
+                                    counter = 0;
+                                    eventReceived = true;
+                                } else {
                                     ProtocolHelpers.readStreamFully(ProtocolHelpers.toNodeStream(x.data)).then(
                                         (received) => {
                                             expect(JSON.parse(received.toString())).to.equal(++check);
-                                            if (check === 3) {
-                                                done();
-                                            }
+                                            if (check === 3) done();
                                         }
                                     );
-                                })
-                                .then(() => {
-                                    const job = setInterval(() => {
-                                        ++counter;
-                                        thing.emitEvent(eventName, counter);
-                                        if (counter === 3) {
-                                            clearInterval(job);
-                                        }
-                                    }, 1000);
-                                })
-                                .catch((e) => {
-                                    expect(true).to.equal(false);
-                                });
-                        });
+                                }
+                            })
+                            .then(() => {
+                                const job = setInterval(() => {
+                                    ++counter;
+                                    thing.emitEvent(eventName, counter);
+                                    if (counter === 3) {
+                                        clearInterval(job);
+                                    }
+                                }, 1000);
+                            })
+                            .catch((e) => {
+                                expect(true).to.equal(false);
+                            });
                     });
                 });
             });
-        } catch (err) {
-            console.error("ERROR", err);
-        }
-    }
-}
+        });
+    });
+
+    it("should expose via broker using mqtts", (done: Mocha.Done) => {
+        brokerServer = new MqttBrokerServer({
+            uri: brokerUri,
+            selfHost: true,
+            key: undefined /** fs.readFileSync("your_key.pem") */,
+        });
+        servient.addServer(brokerServer);
+
+        servient.addClientFactory(new MqttsClientFactory({ rejectUnauthorized: false }));
+
+        let counter = 0;
+
+        servient.start().then((WoT) => {
+            expect(brokerServer.getPort()).to.equal(brokerPort);
+            expect(brokerServer.getAddress()).to.equal(brokerAddress);
+
+            const eventNumber = Math.floor(Math.random() * 1000000);
+            const eventName: string = "event" + eventNumber;
+            const events: { [key: string]: Record<string, unknown> } = {};
+            events[eventName] = { data: { type: "number" } };
+
+            WoT.produce({
+                title: "TestWoTMQTT",
+                events: events,
+            }).then((thing) => {
+                thing.expose().then(() => {
+                    console.info("Exposed", thing.getThingDescription().title);
+
+                    WoT.consume(thing.getThingDescription()).then((client) => {
+                        let check = 0;
+                        let eventReceived = false;
+
+                        client
+                            .subscribeEvent(eventName, (x) => {
+                                if (!eventReceived) {
+                                    counter = 0;
+                                    eventReceived = true;
+                                } else {
+                                    ProtocolHelpers.readStreamFully(ProtocolHelpers.toNodeStream(x.data)).then(
+                                        (received) => {
+                                            expect(JSON.parse(received.toString())).to.equal(++check);
+                                            if (check === 3) done();
+                                        }
+                                    );
+                                }
+                            })
+                            .then(() => {
+                                const job = setInterval(() => {
+                                    ++counter;
+                                    thing.emitEvent(eventName, counter);
+                                    if (counter === 3) {
+                                        clearInterval(job);
+                                    }
+                                }, 1000);
+                            })
+                            .catch((e) => {
+                                expect(true).to.equal(false);
+                            });
+                    });
+                });
+            });
+        });
+    });
+});
