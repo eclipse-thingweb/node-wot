@@ -415,8 +415,10 @@ export default class MqttBrokerServer implements ProtocolServer {
 
     public stop(): Promise<void> {
         return new Promise<void>((resolve, reject) => {
-            if (this.hostedBroker !== undefined) this.hostedBroker.close();
-            if (this.broker === undefined) resolve();
+            if (this.hostedBroker !== undefined) {
+                this.hostedBroker.close();
+                resolve();
+            } else if (this.broker === undefined) resolve();
             this.broker.unsubscribe("*");
         });
     }

@@ -31,11 +31,21 @@ chai.use(chaiAsPromised);
 
 @suite("MQTT implementation")
 class MqttClientSubscribeTest {
-    @test.skip(timeout(20000)) "should publish and subscribe"(done: Mocha.Done) {
-        const brokerAddress = "test.mosquitto.org";
+    @test(timeout(20000)) "should publish and subscribe"(done: Mocha.Done) {
+        const brokerAddress = "localhost";
+        const brokerPort = 1889;
         const property = "test1";
-        const brokerPort = 1883;
         const brokerUri = `mqtt://${brokerAddress}:${brokerPort}`;
+
+        const brokerServer = new MqttBrokerServer(
+            brokerUri,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            true
+        );
 
         const mqttClient = new MqttClient();
         const form: MqttForm = {
@@ -43,17 +53,23 @@ class MqttClientSubscribeTest {
             "mqtt:qos": MqttQoS.QoS0,
             "mqtt:retain": false,
         };
-        mqttClient
-            .subscribeResource(form, (value: Content) => {
-                ProtocolHelpers.readStreamFully(value.body)
-                    .then((data) => {
+
+        brokerServer.start(null).then(() => {
+            mqttClient
+                .subscribeResource(form, async (value: Content) => {
+                    try {
+                        const data = await ProtocolHelpers.readStreamFully(value.body);
                         expect(data.toString()).to.be.equal("test");
                         done();
-                    })
-                    .catch((err) => done(err));
-            })
-            .then(() => mqttClient.invokeResource(form, { type: "", body: Readable.from(Buffer.from("test")) }))
-            .then(() => mqttClient.stop());
+                    } catch (err) {
+                        done(err);
+                    }
+                })
+                .then(() => mqttClient.invokeResource(form, { type: "", body: Readable.from(Buffer.from("test")) }))
+                .then(() => mqttClient.stop())
+                .then(() => brokerServer.stop())
+                .catch((err) => done(err));
+        });
     }
 
     @test.skip(timeout(5000)) "should not authenticate with basic auth"(done: Mocha.Done) {
@@ -80,32 +96,10 @@ class MqttClientSubscribeTest {
             .then(() => done());
     }
 
-    @test.skip(timeout(5000)) "should authenticate with basic auth"(done: Mocha.Done) {
-        const brokerAddress = "test.mosquitto.org";
-        const property = "test1";
-        const brokerPort = 1883;
-        const brokerUri = `mqtt://${brokerAddress}:${brokerPort}`;
-
-        const mqttClient = new MqttClient();
-        mqttClient.setSecurity([{ scheme: "basic" }], { username: "user", password: "pass" });
-
-        const form: MqttForm = {
-            href: brokerUri + "/" + property,
-            "mqtt:qos": MqttQoS.QoS1,
-            "mqtt:retain": false,
-        };
-
-        mqttClient
-            .subscribeResource(form, () => {
-                /** */
-            })
-            .then(() => done());
-    }
-
-    @test(timeout(10000)) "should self host the broker"(done: Mocha.Done) {
+    @test(timeout(5000)) async "should authenticate with basic auth"() {
         const brokerAddress = "localhost";
-        const brokerPort = 1889;
         const property = "test1";
+        const brokerPort = 1889;
         const brokerUri = `mqtt://${brokerAddress}:${brokerPort}`;
 
         const brokerServer = new MqttBrokerServer(
@@ -118,25 +112,40 @@ class MqttClientSubscribeTest {
             true
         );
 
-        brokerServer.start(null).then(() => {
-            const mqttClient = new MqttClient();
-            const form: MqttForm = {
-                href: brokerUri + "/" + property,
-                "mqtt:qos": MqttQoS.QoS0,
-                "mqtt:retain": false,
-            };
-            mqttClient
-                .subscribeResource(form, (value: Content) => {
-                    ProtocolHelpers.readStreamFully(value.body)
-                        .then((data) => {
-                            expect(data.toString()).to.be.equal("test");
-                            done();
-                        })
-                        .catch((err) => done(err));
-                })
-                .then(() => mqttClient.invokeResource(form, { type: "", body: Readable.from(Buffer.from("test")) }))
-                .then(() => mqttClient.stop())
-                .then(() => brokerServer.stop());
+        await brokerServer.start(null);
+
+        const mqttClient = new MqttClient();
+        mqttClient.setSecurity([{ scheme: "basic" }], { username: "user", password: "pass" });
+
+        const form: MqttForm = {
+            href: brokerUri + "/" + property,
+            "mqtt:qos": MqttQoS.QoS1,
+            "mqtt:retain": false,
+        };
+
+        await mqttClient.subscribeResource(form, () => {
+            /** */
         });
+
+        await brokerServer.stop();
+    }
+
+    @test(timeout(10000)) async "should self host the broker"() {
+        const brokerAddress = "localhost";
+        const brokerPort = 1889;
+        const brokerUri = `mqtt://${brokerAddress}:${brokerPort}`;
+
+        const brokerServer = new MqttBrokerServer(
+            brokerUri,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            true
+        );
+
+        await brokerServer.start(null);
+        await brokerServer.stop();
     }
 }
