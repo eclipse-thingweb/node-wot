@@ -20,13 +20,11 @@
 import { IPublishPacket } from "mqtt";
 import * as mqtt from "mqtt";
 import * as url from "url";
-import { Server } from "aedes";
+import { AuthenticateError, Client, Server } from "aedes";
 import * as net from "net";
 import * as TD from "@node-wot/td-tools";
 import { ProtocolServer, Servient, ExposedThing, ContentSerdes, ProtocolHelpers } from "@node-wot/core";
 import { MqttBrokerServerConfig } from "./mqtt";
-
-const broker = Server();
 
 export default class MqttBrokerServer implements ProtocolServer {
     readonly scheme: string = "mqtt";
@@ -38,11 +36,15 @@ export default class MqttBrokerServer implements ProtocolServer {
 
     private readonly things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
 
+    private readonly config: MqttBrokerServerConfig;
+
     private broker: mqtt.MqttClient;
 
     private hostedBroker: net.Server;
 
-    constructor(private readonly config: MqttBrokerServerConfig) {
+    constructor(config: MqttBrokerServerConfig) {
+        this.config = config;
+
         if (config.uri !== undefined) {
             // if there is a MQTT protocol indicator missing, add this
             if (config.uri.indexOf("://") === -1) {
@@ -52,11 +54,13 @@ export default class MqttBrokerServer implements ProtocolServer {
         }
         if (config.selfHost !== undefined) {
             if (config.selfHost) {
+                const broker = Server({});
                 const server = net.createServer(broker.handle);
                 const parsed = new url.URL(this.brokerURI);
                 const port = parseInt(parsed.port);
                 this.port = port > 0 ? port : 1883;
                 this.hostedBroker = server.listen(port);
+                broker.authenticate = this.selfHostAuthentication.bind(this);
             }
         }
     }
@@ -392,5 +396,27 @@ export default class MqttBrokerServer implements ProtocolServer {
 
     public getAddress(): string {
         return this.address;
+    }
+
+    private selfHostAuthentication(
+        _client: Client,
+        username: Readonly<string>,
+        password: Readonly<Buffer>,
+        done: (error: AuthenticateError | null, success: boolean | null) => void
+    ) {
+        if (this.config.selfHostAuthentication && username !== undefined) {
+            for (let i = 0; i < this.config.selfHostAuthentication.length; i++) {
+                if (
+                    username === this.config.selfHostAuthentication[i].username &&
+                    password.equals(Buffer.from(this.config.selfHostAuthentication[i].password))
+                ) {
+                    done(undefined, true);
+                    return;
+                }
+            }
+            done(undefined, false);
+            return;
+        }
+        done(undefined, true);
     }
 }

@@ -60,4 +60,5 @@ export interface MqttBrokerServerConfig {
     protocolVersion?: number;
     rejectUnauthorized?: boolean;
     selfHost?: boolean;
+    selfHostAuthentication?: MqttClientConfig[];
 }
