@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2020 - 2021 Contributors to the Eclipse Foundation
+ * Copyright (c) 2020 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -13,10 +13,9 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { APIKeySecurityScheme } from "@node-wot/td-tools";
 import { Token } from "client-oauth2";
 import { Request } from "node-fetch";
-
+import { BasicSecurityScheme, APIKeySecurityScheme, BearerSecurityScheme } from "@node-wot/td-tools";
 export abstract class Credential {
     abstract sign(request: Request): Promise<Request>;
 }
@@ -28,10 +27,11 @@ export interface BasicCredentialConfiguration {
 export class BasicCredential extends Credential {
     private readonly username: string;
     private readonly password: string;
+    private readonly options: BasicSecurityScheme;
     /**
      *
      */
-    constructor({ username, password }: BasicCredentialConfiguration) {
+    constructor({ username, password }: BasicCredentialConfiguration, options?: BasicSecurityScheme) {
         super();
         if (username === undefined || password === undefined || username === null || password === null) {
             throw new Error(`No Basic credentials for Thing`);
@@ -39,14 +39,16 @@ export class BasicCredential extends Credential {
 
         this.username = username;
         this.password = password;
+        this.options = options;
     }
 
     async sign(request: Request): Promise<Request> {
         const result = request.clone();
-        result.headers.set(
-            "authorization",
-            "Basic " + Buffer.from(this.username + ":" + this.password).toString("base64")
-        );
+        let headerName = "authorization";
+        if (this.options !== undefined && this.options.in === "header" && this.options.name !== undefined) {
+            headerName = this.options.name;
+        }
+        result.headers.set(headerName, "Basic " + Buffer.from(this.username + ":" + this.password).toString("base64"));
         return result;
     }
 }
@@ -55,18 +57,24 @@ export interface BearerCredentialConfiguration {
 }
 export class BearerCredential extends Credential {
     private readonly token: string;
-    constructor({ token }: BearerCredentialConfiguration) {
+    private readonly options: BearerSecurityScheme;
+    constructor({ token }: BearerCredentialConfiguration, options: BearerSecurityScheme) {
         super();
         if (token === undefined || token === null) {
             throw new Error(`No Bearer credentionals for Thing`);
         }
 
         this.token = token;
+        this.options = options;
     }
 
     async sign(request: Request): Promise<Request> {
         const result = request.clone();
-        result.headers.set("authorization", "Bearer " + this.token);
+        let headerName = "authorization";
+        if (this.options.in === "header" && this.options.name !== undefined) {
+            headerName = this.options.name;
+        }
+        result.headers.set(headerName, "Bearer " + this.token);
         return result;
     }
 }

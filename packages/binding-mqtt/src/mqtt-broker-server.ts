@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2021 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -23,8 +23,9 @@ import * as url from "url";
 import { AuthenticateError, Client, Server } from "aedes";
 import * as net from "net";
 import * as TD from "@node-wot/td-tools";
-import { ProtocolServer, Servient, ExposedThing, ContentSerdes, ProtocolHelpers } from "@node-wot/core";
 import { MqttBrokerServerConfig } from "./mqtt";
+import { ProtocolServer, Servient, ExposedThing, ContentSerdes, ProtocolHelpers, Content } from "@node-wot/core";
+import { InteractionOptions } from "wot-typescript-definitions";
 
 export default class MqttBrokerServer implements ProtocolServer {
     readonly scheme: string = "mqtt";
@@ -85,124 +86,239 @@ export default class MqttBrokerServer implements ProtocolServer {
             "[binding-mqtt]",
             `MqttBrokerServer at ${this.brokerURI} exposes '${thing.title}' as unique '${name}/*'`
         );
-        return new Promise<void>((resolve, reject) => {
-            this.things.set(name, thing);
 
-            for (const propertyName in thing.properties) {
-                const topic = encodeURIComponent(name) + "/properties/" + encodeURIComponent(propertyName);
-                const property = thing.properties[propertyName];
+        this.things.set(name, thing);
 
-                if (!property.writeOnly) {
-                    thing.observeProperty(
-                        propertyName,
-                        // let subscription = property.subscribe(
-                        async (data) => {
-                            let content;
-                            try {
-                                content = ContentSerdes.get().valueToContent(data, property.data);
-                            } catch (err) {
-                                console.warn(
-                                    "[binding-mqtt]",
-                                    `MqttServer cannot process data for Property '${propertyName}': ${err.message}`
-                                );
-                                // subscription.unsubscribe();
-                                thing.unobserveProperty(propertyName);
-                                return;
-                            }
-                            console.debug(
-                                "[binding-mqtt]",
-                                `MqttBrokerServer at ${this.brokerURI} publishing to Property topic '${propertyName}' `
-                            );
-                            const buffer = await ProtocolHelpers.readStreamFully(content.body);
-                            this.broker.publish(topic, buffer);
-                        }
-                    );
+        for (const propertyName in thing.properties) {
+            const topic = encodeURIComponent(name) + "/properties/" + encodeURIComponent(propertyName);
+            const property = thing.properties[propertyName];
 
-                    const href = this.brokerURI + "/" + topic;
-                    const form = new TD.Form(href, ContentSerdes.DEFAULT);
-                    form.op = ["readproperty", "observeproperty", "unobserveproperty"];
-                    thing.properties[propertyName].forms.push(form);
-                    console.debug(
-                        "[binding-mqtt]",
-                        `MqttBrokerServer at ${this.brokerURI} assigns '${href}' to property '${propertyName}'`
-                    );
-                }
-                if (!property.readOnly) {
-                    const href = this.brokerURI + "/" + topic + "/writeproperty";
-                    this.broker.subscribe(topic + "/writeproperty");
-                    const form = new TD.Form(href, ContentSerdes.DEFAULT);
-                    form.op = ["writeproperty"];
-                    thing.properties[propertyName].forms.push(form);
-                    console.debug(
-                        "[binding-mqtt]",
-                        `MqttBrokerServer at ${this.brokerURI} assigns '${href}' to property '${propertyName}'`
-                    );
-                }
-            }
-
-            for (const actionName in thing.actions) {
-                const topic = encodeURIComponent(name) + "/actions/" + encodeURIComponent(actionName);
-                this.broker.subscribe(topic);
-
+            if (!property.writeOnly) {
                 const href = this.brokerURI + "/" + topic;
                 const form = new TD.Form(href, ContentSerdes.DEFAULT);
-                form.op = ["invokeaction"];
-                thing.actions[actionName].forms.push(form);
+                form.op = ["readproperty", "observeproperty", "unobserveproperty"];
+                property.forms.push(form);
                 console.debug(
                     "[binding-mqtt]",
-                    `MqttBrokerServer at ${this.brokerURI} assigns '${href}' to Action '${actionName}'`
+                    `MqttBrokerServer at ${this.brokerURI} assigns '${href}' to property '${propertyName}'`
                 );
-            }
 
-            // connect incoming messages to Thing
-            this.broker.on("message", this.handleMessage);
-
-            for (const eventName in thing.events) {
-                const topic = encodeURIComponent(name) + "/events/" + encodeURIComponent(eventName);
-                const event = thing.events[eventName];
-
-                thing.subscribeEvent(
-                    eventName,
-                    // FIXME store subscription and clean up on stop
-                    // let subscription = event.subscribe(
-
-                    async (data) => {
-                        let content;
-                        try {
-                            content = ContentSerdes.get().valueToContent(data, event.data);
-                        } catch (err) {
-                            console.warn(
-                                "[binding-mqtt]",
-                                `HttpServer on port ${this.getPort()} cannot process data for Event '${eventName}: ${
-                                    err.message
-                                }'`
-                            );
-                            // subscription.unsubscribe();
-                            thing.unsubscribeEvent(eventName);
-                            return;
-                        }
-                        // send event data
-                        console.debug(
+                const observeListener = async (data: Content) => {
+                    let content;
+                    try {
+                        content = ContentSerdes.get().valueToContent(data, property.data);
+                    } catch (err) {
+                        console.warn(
                             "[binding-mqtt]",
-                            `MqttBrokerServer at ${this.brokerURI} publishing to Event topic '${eventName}' `
+                            `MqttServer cannot process data for Property '${propertyName}': ${err.message}`
                         );
-                        const buffer = await ProtocolHelpers.readStreamFully(content.body);
-                        this.broker.publish(topic, buffer);
+                        thing.handleUnobserveProperty(propertyName, observeListener, {
+                            formIndex: property.forms.length - 1,
+                        });
+                        return;
                     }
-                );
-
-                const href = this.brokerURI + "/" + topic;
+                    console.debug(
+                        "[binding-mqtt]",
+                        `MqttBrokerServer at ${this.brokerURI} publishing to Property topic '${propertyName}' `
+                    );
+                    const buffer = await ProtocolHelpers.readStreamFully(content.body);
+                    this.broker.publish(topic, buffer);
+                };
+                thing.handleObserveProperty(propertyName, observeListener, { formIndex: property.forms.length - 1 });
+            }
+            if (!property.readOnly) {
+                const href = this.brokerURI + "/" + topic + "/writeproperty";
+                this.broker.subscribe(topic + "/writeproperty");
                 const form = new TD.Form(href, ContentSerdes.DEFAULT);
-                form.op = ["subscribeevent", "unsubscribeevent"];
-                event.forms.push(form);
+                form.op = ["writeproperty"];
+                thing.properties[propertyName].forms.push(form);
                 console.debug(
                     "[binding-mqtt]",
-                    `MqttBrokerServer at ${this.brokerURI} assigns '${href}' to Event '${eventName}'`
+                    `MqttBrokerServer at ${this.brokerURI} assigns '${href}' to property '${propertyName}'`
                 );
             }
-            this.broker.publish(name, JSON.stringify(thing.getThingDescription()), { retain: true });
-            resolve();
-        });
+        }
+
+        for (const actionName in thing.actions) {
+            const topic = encodeURIComponent(name) + "/actions/" + encodeURIComponent(actionName);
+            this.broker.subscribe(topic);
+
+            const href = this.brokerURI + "/" + topic;
+            const form = new TD.Form(href, ContentSerdes.DEFAULT);
+            form.op = ["invokeaction"];
+            thing.actions[actionName].forms.push(form);
+            console.debug(
+                "[binding-mqtt]",
+                `MqttBrokerServer at ${this.brokerURI} assigns '${href}' to Action '${actionName}'`
+            );
+        }
+
+        // connect incoming messages to Thing
+        this.broker.on(
+            "message",
+            async (receivedTopic: string, rawPayload: Buffer | string, packet: IPublishPacket) => {
+                // route request
+                const segments = receivedTopic.split("/");
+                let payload: Buffer;
+                if (rawPayload instanceof Buffer) {
+                    payload = rawPayload;
+                } else if (typeof rawPayload === "string") {
+                    payload = Buffer.from(rawPayload);
+                }
+
+                if (segments.length === 4) {
+                    // connecting to the actions
+                    console.debug(
+                        "[binding-mqtt]",
+                        `MqttBrokerServer at ${this.brokerURI} received message for '${receivedTopic}'`
+                    );
+                    const thing = this.things.get(segments[1]);
+                    if (thing) {
+                        if (segments[2] === "actions") {
+                            const action = thing.actions[segments[3]];
+                            let value;
+                            if (action) {
+                                /*
+                                 * Currently, this branch will never be taken. The main reason for that is in the mqtt library we use:
+                                 * https://github.com/mqttjs/MQTT.js/pull/1103
+                                 * For further discussion see https://github.com/eclipse/thingweb.node-wot/pull/253
+                                 */
+                                if ("properties" in packet && "contentType" in packet.properties) {
+                                    try {
+                                        value = ContentSerdes.get().contentToValue(
+                                            { type: packet.properties.contentType, body: payload },
+                                            action.input
+                                        );
+                                    } catch (err) {
+                                        console.warn(
+                                            `MqttBrokerServer at ${this.brokerURI} cannot process received message for '${segments[3]}': ${err.message}`
+                                        );
+                                    }
+                                } else {
+                                    try {
+                                        value = JSON.parse(payload.toString());
+                                    } catch (err) {
+                                        console.warn(
+                                            `MqttBrokerServer at ${this.brokerURI}, packet has no Content Type and does not parse as JSON, relaying raw (string) payload.`
+                                        );
+                                        value = payload.toString();
+                                    }
+                                }
+                            }
+
+                            const options: InteractionOptions & { formIndex: number } = {
+                                formIndex: ProtocolHelpers.findRequestMatchingFormIndex(
+                                    action.forms,
+                                    this.scheme,
+                                    this.brokerURI,
+                                    "application/json"
+                                ),
+                            };
+
+                            try {
+                                const output = await thing.handleInvokeAction(segments[3], value, options);
+
+                                // MQTT cannot return results
+                                if (output) {
+                                    console.warn(
+                                        `MqttBrokerServer at ${this.brokerURI} cannot return output '${segments[3]}'`
+                                    );
+                                }
+                            } catch (err) {
+                                console.error(
+                                    `MqttBrokerServer at ${this.brokerURI} got error on invoking '${segments[3]}': ${err.message}`
+                                );
+                            }
+
+                            // topic found and message processed
+                            return;
+                        } // Action exists?
+                    } // Thing exists?
+                } else if (segments.length === 5 && segments[4] === "writeproperty") {
+                    // connecting to the writeable properties
+                    const thing = this.things.get(segments[1]);
+                    if (thing) {
+                        if (segments[2] === "properties") {
+                            const property = thing.properties[segments[3]];
+                            if (property) {
+                                if (!property.readOnly) {
+                                    let contentType = ContentSerdes.DEFAULT;
+                                    if ("contentType" in packet.properties) {
+                                        contentType = packet.properties.contentType;
+                                    }
+
+                                    const options: InteractionOptions & { formIndex: number } = {
+                                        formIndex: ProtocolHelpers.findRequestMatchingFormIndex(
+                                            property.forms,
+                                            this.scheme,
+                                            this.brokerURI,
+                                            contentType
+                                        ),
+                                    };
+
+                                    try {
+                                        thing.handleWriteProperty(segments[3], JSON.parse(payload.toString()), options);
+                                    } catch (err) {
+                                        console.error(
+                                            "[binding-mqtt]",
+                                            `MqttBrokerServer at ${this.brokerURI} got error on writing to property '${segments[3]}': ${err.message}`
+                                        );
+                                    }
+
+                                    // topic found and message processed
+                                    return;
+                                } else {
+                                    console.warn(
+                                        "[binding-mqtt]",
+                                        `MqttBrokerServer at ${this.brokerURI} received message for readOnly property at '${receivedTopic}'`
+                                    );
+                                    return;
+                                } // property is writeable? Not necessary since it didn't actually subscribe to this topic
+                            } // Property exists?
+                        }
+                    }
+                    return;
+                }
+                // topic not found
+                console.warn(
+                    "[binding-mqtt]",
+                    `MqttBrokerServer at ${this.brokerURI} received message for invalid topic '${receivedTopic}'`
+                );
+            }
+        );
+
+        for (const eventName in thing.events) {
+            const topic = encodeURIComponent(name) + "/events/" + encodeURIComponent(eventName);
+            const event = thing.events[eventName];
+
+            const href = this.brokerURI + "/" + topic;
+            const form = new TD.Form(href, ContentSerdes.DEFAULT);
+            form.op = ["subscribeevent", "unsubscribeevent"];
+            event.forms.push(form);
+            console.debug(
+                "[binding-mqtt]",
+                `MqttBrokerServer at ${this.brokerURI} assigns '${href}' to Event '${eventName}'`
+            );
+
+            const eventListener = async (content: Content) => {
+                if (!content) {
+                    console.warn(
+                        "[binding-mqtt]",
+                        `HttpServer on port ${this.getPort()} cannot process data for Event ${eventName}`
+                    );
+                    thing.handleUnsubscribeEvent(eventName, eventListener, { formIndex: event.forms.length - 1 });
+                    return;
+                }
+                console.debug(
+                    "[binding-mqtt]",
+                    `MqttBrokerServer at ${this.brokerURI} publishing to Event topic '${eventName}' `
+                );
+                const buffer = await ProtocolHelpers.readStreamFully(content.body);
+                this.broker.publish(topic, buffer);
+            };
+            thing.handleSubscribeEvent(eventName, eventListener, { formIndex: event.forms.length - 1 });
+        }
+        this.broker.publish(name, JSON.stringify(thing.getThingDescription()), { retain: true });
     }
 
     private handleMessage(receivedTopic: string, rawPayload: Buffer | string, packet: IPublishPacket): void {

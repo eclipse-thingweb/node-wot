@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2021 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -231,13 +231,18 @@ export default class HttpClient implements ProtocolClient {
         // TODO support for multiple security schemes
         const security: TD.SecurityScheme = metadata[0];
         switch (security.scheme) {
-            case "basic":
-                this.credential = new BasicCredential(credentials as BasicCredentialConfiguration);
+            case "basic": {
+                const securityBasic: TD.BasicSecurityScheme = <TD.BasicSecurityScheme>security;
+
+                this.credential = new BasicCredential(credentials as BasicCredentialConfiguration, securityBasic);
                 break;
-            case "bearer":
-                // TODO check security.in and adjust
-                this.credential = new BearerCredential(credentials as BearerCredentialConfiguration);
+            }
+            case "bearer": {
+                const securityBearer: TD.BearerSecurityScheme = <TD.BearerSecurityScheme>security;
+
+                this.credential = new BearerCredential(credentials as BearerCredentialConfiguration, securityBearer);
                 break;
+            }
             case "apikey": {
                 const securityAPIKey: TD.APIKeySecurityScheme = <TD.APIKeySecurityScheme>security;
 
