@@ -27,7 +27,8 @@ import { Subscription } from "rxjs/Subscription";
 import { Readable } from "stream";
 
 declare interface MqttClientSecurityParameters {
-    [value: string]: string;
+    username: string;
+    password: string
 }
 
 export default class MqttClient implements ProtocolClient {
