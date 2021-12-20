@@ -22,7 +22,7 @@ var ajv = new Ajv();
 export class WotDevice {
     public thing: WoT.ExposedThing;
     public deviceWoT: typeof WoT;
-    public td: any;
+    public td: WoT.ThingDescription;
 
     // Thing Model -> fill in the empty quotation marks
     private thingModel: WoT.ThingDescription = {
@@ -75,7 +75,7 @@ export class WotDevice {
     private tdDirectory: string;
 
     // property declarations
-    private myProperty: any;
+    private myProperty: WoT.InteractionInput;
 
     constructor(deviceWoT: typeof WoT, tdDirectory?: string) {
         // initialze WotDevice parameters
@@ -122,7 +122,7 @@ export class WotDevice {
     }
 
     private myPropertyReadHandler() {
-        return new Promise<any>((resolve, reject) => {
+        return new Promise<WoT.InteractionInput>((resolve, reject) => {
             // read something
             resolve(this.myProperty);
         });
@@ -142,7 +142,7 @@ export class WotDevice {
     }
 
     private myActionHandler(inputData?, options?) {
-        return new Promise<any>((resolve, reject) => {
+        return new Promise<WoT.InteractionInput>((resolve, reject) => {
             // do something with inputData if available
             if (inputData) {
                 this.thing.emitEvent("myEvent", null); // Emiting an event (may be removed; only for demonstration purposes)
@@ -154,7 +154,7 @@ export class WotDevice {
             if (outputData) {
                 resolve(outputData);
             } else {
-                resolve();
+                resolve(null);
             }
         });
     }
