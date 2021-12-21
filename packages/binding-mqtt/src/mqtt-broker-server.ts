@@ -54,7 +54,6 @@ export default class MqttBrokerServer implements ProtocolServer {
             }
             this.brokerURI = config.uri;
         }
-        if (config.selfHost !== undefined) {
             if (config.selfHost) {
                 const broker = Server({});
                 let server;
