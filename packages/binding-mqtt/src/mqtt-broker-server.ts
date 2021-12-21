@@ -54,17 +54,16 @@ export default class MqttBrokerServer implements ProtocolServer {
             }
             this.brokerURI = config.uri;
         }
-            if (config.selfHost) {
-                const broker = Server({});
-                let server;
-                if (config.key) server = tls.createServer({ key: config.key, cert: config.cert }, broker.handle);
-                else server = net.createServer(broker.handle);
-                const parsed = new url.URL(this.brokerURI);
-                const port = parseInt(parsed.port);
-                this.port = port > 0 ? port : 1883;
-                this.hostedBroker = server.listen(port);
-                broker.authenticate = this.selfHostAuthentication.bind(this);
-            }
+        if (config.selfHost) {
+            const broker = Server({});
+            let server;
+            if (config.key) server = tls.createServer({ key: config.key, cert: config.cert }, broker.handle);
+            else server = net.createServer(broker.handle);
+            const parsed = new url.URL(this.brokerURI);
+            const port = parseInt(parsed.port);
+            this.port = port > 0 ? port : 1883;
+            this.hostedBroker = server.listen(port);
+            broker.authenticate = this.selfHostAuthentication.bind(this);
         }
     }
 
@@ -322,24 +321,22 @@ export default class MqttBrokerServer implements ProtocolServer {
         );
     }
 
-    public destroy(thingId: string): Promise<boolean> {
+    public async destroy(thingId: string): Promise<boolean> {
         console.debug("[binding-mqtt]", `MqttBrokerServer on port ${this.getPort()} destroying thingId '${thingId}'`);
-        return new Promise<boolean>((resolve, reject) => {
-            let removedThing: ExposedThing;
-            for (const name of Array.from(this.things.keys())) {
-                const expThing = this.things.get(name);
-                if (expThing != null && expThing.id != null && expThing.id === thingId) {
-                    this.things.delete(name);
-                    removedThing = expThing;
-                }
+        let removedThing: ExposedThing;
+        for (const name of Array.from(this.things.keys())) {
+            const expThing = this.things.get(name);
+            if (expThing != null && expThing.id != null && expThing.id === thingId) {
+                this.things.delete(name);
+                removedThing = expThing;
             }
-            if (removedThing) {
-                console.info("[binding-mqtt]", `MqttBrokerServer succesfully destroyed '${removedThing.title}'`);
-            } else {
-                console.info("[binding-mqtt]", `MqttBrokerServer failed to destroy thing with thingId '${thingId}'`);
-            }
-            resolve(removedThing !== undefined);
-        });
+        }
+        if (removedThing) {
+            console.info("[binding-mqtt]", `MqttBrokerServer succesfully destroyed '${removedThing.title}'`);
+        } else {
+            console.info("[binding-mqtt]", `MqttBrokerServer failed to destroy thing with thingId '${thingId}'`);
+        }
+        return removedThing !== undefined;
     }
 
     public start(servient: Servient): Promise<void> {
@@ -393,14 +390,13 @@ export default class MqttBrokerServer implements ProtocolServer {
         });
     }
 
-    public stop(): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            if (this.hostedBroker !== undefined) {
-                this.hostedBroker.close();
-                resolve();
-            } else if (this.broker === undefined) resolve();
+    public async stop(): Promise<void> {
+        if (this.hostedBroker !== undefined) {
+            this.hostedBroker.close();
+        }
+        if (this.broker !== undefined) {
             this.broker.unsubscribe("*");
-        });
+        }
     }
 
     public getPort(): number {
