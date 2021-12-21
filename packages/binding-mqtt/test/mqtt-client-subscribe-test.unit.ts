@@ -70,7 +70,7 @@ describe("MQTT client implementation", () => {
                 .then(() => mqttClient.invokeResource(form, { type: "", body: Readable.from(Buffer.from("test")) }))
                 .then(() => mqttClient.stop())
                 .catch((err) => done(err));
-        });
+        }).timeout(10000);
     });
 
     describe("tests with authorization", () => {
@@ -109,7 +109,7 @@ describe("MQTT client implementation", () => {
                 .then(() => done(new Error("Should not authenticate")))
                 .should.eventually.be.rejectedWith(Error, "Connection refused: Not authorized")
                 .then(() => done());
-        });
+        }).timeout(10000);
 
         it("should authenticate with basic auth", (done: Mocha.Done) => {
             const mqttClient = new MqttClient();
@@ -127,6 +127,6 @@ describe("MQTT client implementation", () => {
                 })
                 .catch((err) => done(err))
                 .then(() => done());
-        });
+        }).timeout(10000);
     });
 });

@@ -100,7 +100,7 @@ describe("MQTT client implementation", () => {
                 });
             });
         });
-    });
+    }).timeout(20000);
 
     it("should expose via broker using mqtts", (done: Mocha.Done) => {
         brokerServer = new MqttBrokerServer({
@@ -110,6 +110,7 @@ describe("MQTT client implementation", () => {
         });
         servient.addServer(brokerServer);
 
+        servient.addClientFactory(new MqttClientFactory());
         servient.addClientFactory(new MqttsClientFactory({ rejectUnauthorized: false }));
 
         let counter = 0;
@@ -164,5 +165,5 @@ describe("MQTT client implementation", () => {
                 });
             });
         });
-    });
+    }).timeout(20000);
 });
