@@ -63,6 +63,7 @@ export type modelImportsInput = {
 export type modelComposeInput = {
     extends?: ExposedThingInit[],
     imports?: (modelImportsInput & { affordance: DataSchema })[]
+    submodel?: Record<string, ExposedThingInit>
 }
 
 export default class ThingModelHelpers {
@@ -75,7 +76,6 @@ export default class ThingModelHelpers {
         this.srv = srv;
         this.helpers = new Helpers(this.srv);
     }
-
 
     private static getThingModelRef(data: Record<string, unknown>): Record<string, unknown> {
         const refs = {} as Record<string, unknown>;
@@ -229,6 +229,21 @@ export default class ThingModelHelpers {
         return dest;
     }
 
+    private static formatSubmodel(source: ExposedThingInit, oldHref: string, newHref: string) {
+        const index = source.links.findIndex(el => el.href === oldHref);
+        const el = source.links[index];
+        if ('instanceName' in el) {
+            delete el.instanceName;
+        }
+        source.links[index] = { 
+                ...el,
+                href: newHref,
+                "type": 'application/td+json',
+                rel: 'item'
+             };
+        return source;
+    }
+
     private parseTmRef(value: string): modelImportsInput {
         // TODO: validate?
         const thingModelUri = value.split('#')[0];
@@ -278,16 +293,32 @@ export default class ThingModelHelpers {
                 }
             }
         }
+        const tmLinks = ThingModelHelpers.getThingModelLinks(data, 'tm:submodel');
+        if (tmLinks.length > 0) {
+            modelInput.submodel = {} as Record<string, ExposedThingInit>;
+            for (const l of tmLinks) {
+                const submodel = await this.helpers.fetch(l.href) as ExposedThingInit;
+                // const link = 
+                // {
+                //     "rel": "item",
+                //     "href": l.href,
+                //     "type": "application/td+json"
+                // };
+                modelInput.submodel[l.href] = submodel;
+            }
+        }
         return modelInput;
     }
 
-
-    public composeModel(data: ExposedThingInit, modelObject: modelComposeInput): ExposedThingInit {
+    
+    public async composeModel(data: ExposedThingInit, modelObject: modelComposeInput, baseUrl?: string): Promise<ExposedThingInit[]> {
+        const partialTDs = [] as ExposedThingInit[];
         if ('extends' in modelObject) {
             const extendObjs = modelObject.extends;
             for (const key in extendObjs) {
                 const el = extendObjs[key];
                 data = ThingModelHelpers.extendThingModel(el, data);
+                partialTDs.push(data);
             }
         }
         if ('imports' in modelObject) {
@@ -295,12 +326,62 @@ export default class ThingModelHelpers {
             for (const key in importObjs) {
                 const el = importObjs[key];
                 data = ThingModelHelpers.importAffordance(el.type, el.name, el.affordance, data);
+                partialTDs.push(data);
             }
         }
-        return data;
+        if ('submodel' in modelObject) {
+            const submodelObj = modelObject.submodel;
+            const title = data.title.replace(/ /g, '');
+            const newTMHref = this.returnNewTMHref(baseUrl, title);
+            const newTDHref = this.returnNewTDHref(baseUrl, title);
+            for (const key in submodelObj) {
+                const sub = submodelObj[key]
+                const subTitle = sub.title.replace(/ /g, '');
+                const subNewHref = this.returnNewTDHref(baseUrl, subTitle);
+                if (!('links' in sub)) {
+                    sub.links = [];
+                }
+                sub.links.push({
+                   "rel": "collection",
+                   "href": newTDHref,
+                   "type": "application/td+json"
+                })
+                const tmpPartialSubTDs = await this.getPartialTDs(sub, baseUrl);
+                
+                console.log(tmpPartialSubTDs)
+                partialTDs.push(...tmpPartialSubTDs);
+                data = ThingModelHelpers.formatSubmodel(data, key, subNewHref);
+            }
+            data.links.push({
+                "rel": "type",
+                "href": newTMHref,
+                "type": "application/tm+json"
+            });
+            partialTDs.unshift(data);
+            // data.links = submodelObjs; 
+        }
+
+        return partialTDs;
+    }
+
+    public async fetchModel(uri: string) : Promise<ExposedThingInit> {
+        return await this.helpers.fetch(uri) as ExposedThingInit;
+    }
+
+    public async getPartialTDs(model: ExposedThingInit, baseUrl?: string): Promise<ExposedThingInit[]> {
+        const modelInput  = await this.fetchAffordances(model);
+        const extendedModels = await this.composeModel(model, modelInput, baseUrl);
+        return extendedModels;
     }
 
 
+    private returnNewTMHref(baseUrl: string, tdname: string) {
+        return `${baseUrl}/${tdname}.tm.jsonld`;
+    }
+
+    private returnNewTDHref(baseUrl: string, tdname: string) {
+        return `${baseUrl}/${tdname}.td.jsonld`;
+    }
 
 
 
