@@ -26,7 +26,7 @@ import MqttsClientFactory from "../src/mqtts-client-factory";
 // should must be called to augment all variables
 should();
 
-describe("MQTT client implementation", () => {
+describe.skip("MQTT client implementation", () => {
     let servient: Servient;
     let brokerServer: MqttBrokerServer;
     let brokerUri: string;
@@ -39,6 +39,7 @@ describe("MQTT client implementation", () => {
     });
 
     afterEach(async () => {
+        await servient.shutdown();
         await brokerServer.stop();
     });
 
@@ -79,7 +80,7 @@ describe("MQTT client implementation", () => {
                                     ProtocolHelpers.readStreamFully(ProtocolHelpers.toNodeStream(x.data)).then(
                                         (received) => {
                                             expect(JSON.parse(received.toString())).to.equal(++check);
-                                            if (check === 3) done();
+                                            if (check === 3) thing.destroy().then(() => done());
                                         }
                                     );
                                 }

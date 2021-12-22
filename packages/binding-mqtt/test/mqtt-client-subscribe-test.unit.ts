@@ -23,7 +23,7 @@ import * as chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { MqttClient, MqttForm, MqttQoS } from "../src/mqtt";
 import { expect } from "chai";
-import { Server } from "aedes";
+import { Aedes, Server } from "aedes";
 import * as net from "net";
 
 chai.use(chaiAsPromised);
@@ -31,21 +31,29 @@ chai.use(chaiAsPromised);
 // should must be called to augment all variables
 
 describe("MQTT client implementation", () => {
+    let aedes: Aedes;
     let hostedBroker: net.Server;
     let brokerUri: string;
     const property = "test1";
     const brokerAddress = "localhost";
     const brokerPort = 1889;
 
+    before(() => {
+        aedes = Server({});
+    });
+
+    after(() => {
+        aedes.close();
+    });
+
     describe("tests without authorization", () => {
         beforeEach(() => {
             brokerUri = `mqtt://${brokerAddress}:${brokerPort}`;
-            const broker = Server({});
-            const server = net.createServer(broker.handle);
-            hostedBroker = server.listen(brokerPort);
+            hostedBroker = net.createServer(aedes.handle);
+            hostedBroker.listen(brokerPort);
         });
 
-        afterEach(async () => {
+        afterEach(() => {
             hostedBroker.close();
         });
 
@@ -76,15 +84,14 @@ describe("MQTT client implementation", () => {
     describe("tests with authorization", () => {
         beforeEach(() => {
             brokerUri = `mqtt://${brokerAddress}:${brokerPort}`;
-            const broker = Server({});
-            broker.authenticate = function (_client, username: Readonly<string>, password: Readonly<Buffer>, done) {
+            aedes.authenticate = function (_client, username: Readonly<string>, password: Readonly<Buffer>, done) {
                 if (username !== undefined) {
                     done(undefined, username === "user" && password.equals(Buffer.from("pass")));
                     return;
                 }
                 done(undefined, true);
             };
-            const server = net.createServer(broker.handle);
+            const server = net.createServer(aedes.handle);
             hostedBroker = server.listen(brokerPort);
         });
 

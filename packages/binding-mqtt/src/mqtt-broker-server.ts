@@ -27,6 +27,7 @@ import * as TD from "@node-wot/td-tools";
 import { MqttBrokerServerConfig } from "./mqtt";
 import { ProtocolServer, Servient, ExposedThing, ContentSerdes, ProtocolHelpers, Content } from "@node-wot/core";
 import { InteractionOptions } from "wot-typescript-definitions";
+import { Aedes } from "aedes";
 
 export default class MqttBrokerServer implements ProtocolServer {
     readonly scheme: string = "mqtt";
@@ -42,6 +43,7 @@ export default class MqttBrokerServer implements ProtocolServer {
 
     private broker: mqtt.MqttClient;
 
+    private hostedServer: Aedes;
     private hostedBroker: net.Server;
 
     constructor(config: MqttBrokerServerConfig) {
@@ -55,15 +57,15 @@ export default class MqttBrokerServer implements ProtocolServer {
             this.brokerURI = config.uri;
         }
         if (config.selfHost) {
-            const broker = Server({});
+            this.hostedServer = Server({});
             let server;
-            if (config.key) server = tls.createServer({ key: config.key, cert: config.cert }, broker.handle);
-            else server = net.createServer(broker.handle);
+            if (config.key) server = tls.createServer({ key: config.key, cert: config.cert }, this.hostedServer.handle);
+            else server = net.createServer(this.hostedServer.handle);
             const parsed = new url.URL(this.brokerURI);
             const port = parseInt(parsed.port);
             this.port = port > 0 ? port : 1883;
             this.hostedBroker = server.listen(port);
-            broker.authenticate = this.selfHostAuthentication.bind(this);
+            this.hostedServer.authenticate = this.selfHostAuthentication.bind(this);
         }
     }
 
@@ -391,12 +393,18 @@ export default class MqttBrokerServer implements ProtocolServer {
     }
 
     public async stop(): Promise<void> {
-        if (this.hostedBroker !== undefined) {
-            this.hostedBroker.close();
-        }
-        if (this.broker !== undefined) {
-            this.broker.unsubscribe("*");
-        }
+        return new Promise<void>((resolve, reject) => {
+            if (this.broker !== undefined) {
+                this.broker.unsubscribe("*");
+            }
+
+            if (this.hostedBroker !== undefined) {
+                this.hostedServer.close();
+                this.hostedBroker.close(() => resolve());
+            }
+
+            resolve();
+        });
     }
 
     public getPort(): number {
