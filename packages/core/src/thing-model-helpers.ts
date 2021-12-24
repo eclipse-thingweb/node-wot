@@ -229,7 +229,7 @@ export default class ThingModelHelpers {
         return dest;
     }
 
-    private static formatSubmodel(source: ExposedThingInit, oldHref: string, newHref: string) {
+    private static formatSubmodelLink(source: ExposedThingInit, oldHref: string, newHref: string) {
         const index = source.links.findIndex(el => el.href === oldHref);
         const el = source.links[index];
         if ('instanceName' in el) {
@@ -310,66 +310,119 @@ export default class ThingModelHelpers {
         return modelInput;
     }
 
+    public fillPlaceholder(data: Record<string, unknown>, map: Record<string, unknown>): Promise<ExposedThingInit> {
+        let dataString = JSON.stringify(data);
+        for (const key in map) {
+            const value = map[key];
+            const word = `{{${key}}}`;
+            dataString = dataString.replace(word, value as string);
+        }
+        return JSON.parse(dataString);
+    }
+
     
-    public async composeModel(data: ExposedThingInit, modelObject: modelComposeInput, baseUrl?: string): Promise<ExposedThingInit[]> {
+    public async composeModel(data: ExposedThingInit, modelObject: modelComposeInput, baseUrl?: string, selfContained?: boolean): Promise<ExposedThingInit[]> {
         const partialTDs = [] as ExposedThingInit[];
+        const title = data.title.replace(/ /g, '');
+        if (!baseUrl) {
+            baseUrl = '.';
+        }
+        const newTMHref = this.returnNewTMHref(baseUrl, title);
+        const newTDHref = this.returnNewTDHref(baseUrl, title);
         if ('extends' in modelObject) {
             const extendObjs = modelObject.extends;
             for (const key in extendObjs) {
                 const el = extendObjs[key];
                 data = ThingModelHelpers.extendThingModel(el, data);
-                partialTDs.push(data);
             }
+            // remove the tm:extends links
+            data.links = data.links.filter(link => link.rel !== 'tm:extends');
         }
         if ('imports' in modelObject) {
             const importObjs = modelObject.imports;
             for (const key in importObjs) {
                 const el = importObjs[key];
                 data = ThingModelHelpers.importAffordance(el.type, el.name, el.affordance, data);
-                partialTDs.push(data);
             }
         }
         if ('submodel' in modelObject) {
             const submodelObj = modelObject.submodel;
-            const title = data.title.replace(/ /g, '');
-            const newTMHref = this.returnNewTMHref(baseUrl, title);
-            const newTDHref = this.returnNewTDHref(baseUrl, title);
+
             for (const key in submodelObj) {
                 const sub = submodelObj[key]
-                const subTitle = sub.title.replace(/ /g, '');
-                const subNewHref = this.returnNewTDHref(baseUrl, subTitle);
-                if (!('links' in sub)) {
-                    sub.links = [];
+                if (selfContained) {
+                    const index = data.links.findIndex(el => el.href === key);
+                    const el = data.links[index];
+                    const instanceName = el.instanceName;
+                    if (!instanceName) {
+                        throw new Error('Self composition is not possible without instance names');
+                    }
+                    // self composition enabled, just one TD expected
+                    const [subPartialTD] = await this.getPartialTDs(sub, baseUrl, true);
+                    const affordanceTypes = ['properties', 'actions', 'events'];
+                    for (const affType of affordanceTypes) {
+                        for (const affKey in subPartialTD[affType] as DataSchema) {
+                            const newAffKey = `${instanceName}_${affKey}`;
+                            if (!(affType in data)) {
+                                data[affType] = {} as DataSchema;
+                            }
+                            (data[affType] as DataSchema)[newAffKey] = (subPartialTD[affType] as DataSchema)[affKey] as DataSchema;
+                        }
+                    }
+
+                } else {
+                    const subTitle = sub.title.replace(/ /g, '');
+                    const subNewHref = this.returnNewTDHref(baseUrl, subTitle);
+                    if (!('links' in sub)) {
+                        sub.links = [];
+                    }
+                    sub.links.push({
+                        "rel": "collection",
+                        "href": newTDHref,
+                        "type": "application/td+json"
+                    })
+                    const tmpPartialSubTDs = await this.getPartialTDs(sub, baseUrl);
+                    // const modelInput  = await this.thingModelHelpers.fetchAffordances(model);
+                    // const extendedModel = await this.thingModelHelpers.composeModel(model, modelInput, 'http://test.com');
+                    console.log(tmpPartialSubTDs)
+                    // partialTDs.push(sub);
+                    partialTDs.push(...tmpPartialSubTDs);
+                    data = ThingModelHelpers.formatSubmodelLink(data, key, subNewHref);
                 }
-                sub.links.push({
-                   "rel": "collection",
-                   "href": newTDHref,
-                   "type": "application/td+json"
-                })
-                const tmpPartialSubTDs = await this.getPartialTDs(sub, baseUrl);
-                
-                console.log(tmpPartialSubTDs)
-                partialTDs.push(...tmpPartialSubTDs);
-                data = ThingModelHelpers.formatSubmodel(data, key, subNewHref);
             }
-            data.links.push({
-                "rel": "type",
-                "href": newTMHref,
-                "type": "application/tm+json"
-            });
-            partialTDs.unshift(data);
+            // partialTDs.unshift(data);
             // data.links = submodelObjs; 
         }
-
+        if (!('links' in data)) {
+            data.links = [];
+        }
+        // add reference to the thing model
+        data.links.push({
+            "rel": "type",
+            "href": newTMHref,
+            "type": "application/tm+json"
+        });
+        // change the @type
+        if (data['@type'] instanceof Array) {
+            data['@type'] = data['@type'].map(el => {
+                if (el === 'tm:ThingModel') {
+                    return 'Thing';
+                }
+                return el;
+            });
+        } else {
+            data['@type'] = 'Thing';
+        }
+        partialTDs.unshift(data); // put itself as first element
         return partialTDs;
     }
 
-    public async fetchModel(uri: string) : Promise<ExposedThingInit> {
+    public async fetchModel(uri: string): Promise<ExposedThingInit> {
         return await this.helpers.fetch(uri) as ExposedThingInit;
     }
 
-    public async getPartialTDs(model: ExposedThingInit, baseUrl?: string): Promise<ExposedThingInit[]> {
-        const modelInput  = await this.fetchAffordances(model);
+    public async getPartialTDs(model: ExposedThingInit, baseUrl?: string, selfComposition?: boolean): Promise<ExposedThingInit[]> {
+        const modelInput = await this.fetchAffordances(model);
         const extendedModels = await this.composeModel(model, modelInput, baseUrl);
         return extendedModels;
     }

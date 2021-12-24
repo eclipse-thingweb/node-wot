@@ -25,14 +25,13 @@ import { suite, test } from "@testdeck/mocha";
 import { expect } from "chai";
 import { ExposedThingInit } from "wot-typescript-definitions";
 
-import Helpers from "../src/helpers";
 import ThingModelHelpers, { modelComposeInput } from "../src/thing-model-helpers";
 import { promises as fs } from 'fs';
 import Servient from "../src/core";
 import { HttpClientFactory } from '@node-wot/binding-http'
 import { FileClientFactory } from '@node-wot/binding-file'
 
-@suite("tests to verify the helpers")
+@suite("tests to verify the Thing Model Helper")
 class ThingModelHelperTest {
 
     private srv: Servient;
@@ -171,42 +170,43 @@ class ThingModelHelperTest {
 
     // }
 
-    // @test async "should correctly extend a thing model with actions"() {
-    //     const modelJSON = await fs.readFile('test/tmodels/SmartLampControlExtend.jsonld');
-    //     const model = JSON.parse(modelJSON.toString()) as ExposedThingInit;
-    //     const finalModel = {
-    //         "@type": "tm:ThingModel",
-    //         "title": "Smart Lamp Control with Dimming",
-    //         "links": [
-    //             {
-    //                 "rel": "tm:extends",
-    //                 "href": "file://./test/tmodels/BasicOnOffTM.jsonld",
-    //                 "type": "application/td+json"
-    //             }
-    //         ],
-    //         properties: {
-    //             "dim": {
-    //                 "title": "Dimming level",
-    //                 "type": "integer",
-    //                 "minimum": 0,
-    //                 "maximum": 100
-    //             }
-    //         },
-    //         actions: {
-    //            toggle: { type: 'boolean'}
-    //         }
-    //     };
-    //     const modelInput: modelComposeInput = {
-    //         extends: [
-    //             {
-    //                 actions: {
-    //                     toggle: { type: 'boolean' }
-    //                 }
-    //             }]
-    //     }
-    //     const extendedModel = await this.thingModelHelpers.composeModel(model, modelInput);
-    //     expect(extendedModel).to.be.deep.equal(finalModel);
-    // }
+    @test async "should correctly extend a thing model with actions"() {
+        const modelJSON = await fs.readFile('test/tmodels/SmartLampControlExtend.jsonld');
+        const model = JSON.parse(modelJSON.toString()) as ExposedThingInit;
+        const finalModel = {
+            "@type": "tm:ThingModel",
+            "title": "Smart Lamp Control with Dimming",
+            "links": [
+                {
+                    "rel": "type",
+                    "href": "./SmartLampControlwithDimming.tm.jsonld",
+                    "type": "application/tm+json"
+                }
+            ],
+            properties: {
+                "dim": {
+                    "title": "Dimming level",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100
+                }
+            },
+            actions: {
+               toggle: { type: 'boolean'}
+            }
+        };
+        const modelInput: modelComposeInput = {
+            extends: [
+                {
+                    actions: {
+                        toggle: { type: 'boolean' }
+                    }
+                }]
+        }
+        const [extendedModel] = await this.thingModelHelpers.composeModel(model, modelInput);
+        console.log(extendedModel.links)
+        expect(extendedModel).to.be.deep.equal(finalModel);
+    }
 
     // @test async "should correctly import a property in a thing model"() {
     //     const modelJSON = await fs.readFile('test/tmodels/SmartLampControlImport.jsonld');
@@ -286,23 +286,66 @@ class ThingModelHelperTest {
 
     // }
 
-    @test async "should correctly extend a thing model with properties"() {
-        // const modelJSON = await fs.readFile('test/tmodels/SmartVentilator.tm.jsonld');
-        // const finalJSON = await fs.readFile('test/tmodels/SmartVentilator.td.jsonld');
-        // const model = JSON.parse(modelJSON.toString()) as ExposedThingInit;
-        // const finalModel = JSON.parse(finalJSON.toString()) as ExposedThingIni]t;
-        const modelUri = 'file://./test/tmodels/SmartVentilator.tm.jsonld';
-        const model = await this.thingModelHelpers.fetchModel(modelUri);
-        const finalModelUri = 'file://./test/tmodels/SmartVentilator.td.jsonld';
-        const finalModel = await this.thingModelHelpers.fetchModel(finalModelUri);
+    // @test async "should correctly extend a thing model with properties"() {
+    //     // const modelJSON = await fs.readFile('test/tmodels/SmartVentilator.tm.jsonld');
+    //     // const finalJSON = await fs.readFile('test/tmodels/SmartVentilator.td.jsonld');
+    //     // const model = JSON.parse(modelJSON.toString()) as ExposedThingInit;
+    //     // const finalModel = JSON.parse(finalJSON.toString()) as ExposedThingIni]t;
+    //     const modelUri = 'file://./test/tmodels/SmartVentilator.tm.jsonld';
+    //     const model = await this.thingModelHelpers.fetchModel(modelUri);
+    //     const finalModelUri = 'file://./test/tmodels/SmartVentilator.td.jsonld';
+    //     const finalModel = await this.thingModelHelpers.fetchModel(finalModelUri);
 
-        const modelInput  = await this.thingModelHelpers.fetchAffordances(model);
-        const extendedModel = await this.thingModelHelpers.composeModel(model, modelInput, 'http://test.com');
-        console.log(extendedModel)   
-        expect(extendedModel[0].links).to.be.deep.equal(finalModel.links);
+    //     const modelInput  = await this.thingModelHelpers.fetchAffordances(model);
+    //     const extendedModel = await this.thingModelHelpers.composeModel(model, modelInput, 'http://test.com', true);
+    //     console.log(extendedModel)   
+    //     expect(extendedModel.length).to.be.equal(3);
+    //     expect(extendedModel[0].links).to.be.deep.equal(finalModel.links);
 
+    // }
+
+    @test "should correctly fill placeholder"() {
+        const thing = {
+            "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
+            "@type": "tm:ThingModel",
+            "title": "Thermostate No. {{THERMOSTATE_NUMBER}}",
+            "base": "mqtt://{{MQTT_BROKER_ADDRESS}}",
+            "properties": {
+                "temperature": {
+                    "description": "Shows the current temperature value",
+                    "type": "number",
+                    "minimum": -20,
+                    "maximum": "{{THERMOSTATE_TEMPERATURE_MAXIMUM}}",
+                    "observable": "{{THERMOSTATE_TEMPERATURE_OBSERVABLE}}"
+                }
+            }
+        };
+        const map = {
+                "THERMOSTATE_NUMBER": 4, 
+                "MQTT_BROKER_ADDRESS" : "192.168.178.72:1883",
+                "THERMOSTATE_TEMPERATURE_MAXIMUM": 47.7, 
+                "THERMOSTATE_TEMPERATURE_OBSERVABLE" : true
+        }
+        const finalJSON = {
+            "@context": ["https://www.w3.org/2022/wot/td/v1.1"], 
+            "@type" : "Thing",
+            "title": "Thermostate No. 4",
+            "base": "mqtt://192.168.178.72:1883",
+            "properties": {
+                "temperature": {
+                    "description": "Shows the current temperature value",
+                    "type": "number",
+                    "minimum": -20.0,
+                    "maximum": 47.7,
+                    "observable" : true
+                }
+            }
+        }
+
+        const finalModel = this.thingModelHelpers.fillPlaceholder(thing, map);
+
+        expect(finalModel).to.be.deep.equal(finalJSON);
     }
-
 
     // @test "should correctly validate schema"() {
     //     const thing: ExposedThingInit = {

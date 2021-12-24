@@ -3,8 +3,8 @@
     "title": "Smart Lamp Control with Dimming",
     "links": [
         {
-            "rel": "tm:extends",
-            "href": "file://./test/tmodels/BasicOnOffTM.jsonld",
+            "rel": "type",
+            "href": "./SmartLampControlwithDimming.tm.jsonld",
             "type": "application/td+json"
         }
     ],
