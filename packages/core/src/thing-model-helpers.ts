@@ -50,10 +50,16 @@ const ajv = new Ajv({ strict: false })
 export type LINK_TYPE = 'tm:extends' | 'tm:submodel';
 export type AFFORDANCE_TYPE = 'properties' | 'actions' | 'events';
 export type COMPOSITION_TYPE = 'extends' | 'imports';
-export type modelImportsInput = {
+export type ModelImportsInput = {
     uri?: string,
     type: AFFORDANCE_TYPE,
     name: string
+}
+
+export type CompositionOptions = {
+    baseUrl?: string,
+    selfComposition?: boolean,
+    map?: Record<string, unknown>
 }
 
 // export type modelComposeInput = {
@@ -62,7 +68,7 @@ export type modelImportsInput = {
 
 export type modelComposeInput = {
     extends?: ExposedThingInit[],
-    imports?: (modelImportsInput & { affordance: DataSchema })[]
+    imports?: (ModelImportsInput & { affordance: DataSchema })[]
     submodel?: Record<string, ExposedThingInit>
 }
 
@@ -163,42 +169,6 @@ export default class ThingModelHelpers {
         return data.version.model as string;
     }
 
-    // TODO: remove
-    // private static extendThingModel(sources: ExposedThingInit[], dest: ExposedThingInit): ExposedThingInit {
-    //     // FIXME: make this function for a single element at time
-    //     let extendedModel = {} as ExposedThingInit;
-    //     for (const s of sources) { // FIFO order
-    //         const properties = 'properties' in extendedModel ? extendedModel.properties : undefined;
-    //         const actions = 'actions' in extendedModel ? extendedModel.actions : undefined;
-    //         const events = 'events' in extendedModel ? extendedModel.events : undefined;
-    //         extendedModel = { ...extendedModel, ...s };
-    //         if (s.properties) {
-    //             extendedModel.properties = { ...properties, ...s.properties }
-    //         }
-    //         if (s.actions) {
-    //             extendedModel.actions = { ...actions, ...s.actions }
-    //         }
-    //         if (s.events) {
-    //             extendedModel.events = { ...events, ...s.events }
-    //         }
-    //     }
-    //     const properties = extendedModel.properties;
-    //     const actions = extendedModel.actions;
-    //     const events = extendedModel.events;
-    //     extendedModel = { ...extendedModel, ...dest };
-    //     if (properties) {
-    //         extendedModel.properties = { ...properties, ...dest.properties };
-    //     }
-    //     if (actions) {
-    //         extendedModel.actions = { ...actions, ...dest.actions };
-    //     }
-    //     if (events) {
-    //         extendedModel.events = { ...events, ...dest.events };
-
-    //     }
-    //     return extendedModel;
-    // }
-
     private static extendThingModel(source: ExposedThingInit, dest: ExposedThingInit): ExposedThingInit {
         let extendedModel = {} as ExposedThingInit;
         const properties = source.properties;
@@ -244,7 +214,7 @@ export default class ThingModelHelpers {
         return source;
     }
 
-    private parseTmRef(value: string): modelImportsInput {
+    private parseTmRef(value: string): ModelImportsInput {
         // TODO: validate?
         const thingModelUri = value.split('#')[0];
         const affordaceUri = value.split('#')[1];
@@ -253,7 +223,7 @@ export default class ThingModelHelpers {
         return { uri: thingModelUri, type: affordaceType, name: affordaceName};
     }
 
-    private getRefAffordance(obj: modelImportsInput, thing: ExposedThingInit): DataSchema {
+    private getRefAffordance(obj: ModelImportsInput, thing: ExposedThingInit): DataSchema {
         const affordanceType = obj.type;
         const affordanceKey = obj.name;
         if (!(affordanceType in thing)) {
@@ -298,37 +268,47 @@ export default class ThingModelHelpers {
             modelInput.submodel = {} as Record<string, ExposedThingInit>;
             for (const l of tmLinks) {
                 const submodel = await this.helpers.fetch(l.href) as ExposedThingInit;
-                // const link = 
-                // {
-                //     "rel": "item",
-                //     "href": l.href,
-                //     "type": "application/td+json"
-                // };
                 modelInput.submodel[l.href] = submodel;
             }
         }
         return modelInput;
     }
 
-    public fillPlaceholder(data: Record<string, unknown>, map: Record<string, unknown>): Promise<ExposedThingInit> {
+    public fillPlaceholder(data: Record<string, unknown>, map: Record<string, unknown>): ExposedThingInit {
         let dataString = JSON.stringify(data);
         for (const key in map) {
             const value = map[key];
-            const word = `{{${key}}}`;
-            dataString = dataString.replace(word, value as string);
+            let word = `{{${key}}}`;
+            const instances = (dataString.match(new RegExp(word, "g")) || []).length;
+            for (let i = 0; i < instances; i++) {
+                word = `{{${key}}}`;
+                const re = `"(${word})"`;
+                const match = dataString.match(re);
+                if (match === null) { // word is included in another string/number/element. Keep that type
+                    dataString = dataString.replace(word, value as string);
+                } else { // keep the new value type
+                    if (typeof value !== "string") {
+                        word = `"{{${key}}}"`;
+                    } 
+                    dataString = dataString.replace(word, value as string);
+                }
+            }
         }
         return JSON.parse(dataString);
     }
 
     
-    public async composeModel(data: ExposedThingInit, modelObject: modelComposeInput, baseUrl?: string, selfContained?: boolean): Promise<ExposedThingInit[]> {
-        const partialTDs = [] as ExposedThingInit[];
+    public async composeModel(data: ExposedThingInit, modelObject: modelComposeInput, options?: CompositionOptions ): Promise<ExposedThingInit[]> {
+        let partialTDs = [] as ExposedThingInit[];
         const title = data.title.replace(/ /g, '');
-        if (!baseUrl) {
-            baseUrl = '.';
+        if (!options) {
+            options = {} as CompositionOptions;
         }
-        const newTMHref = this.returnNewTMHref(baseUrl, title);
-        const newTDHref = this.returnNewTDHref(baseUrl, title);
+        if (!options.baseUrl) {
+            options.baseUrl = '.';
+        }
+        const newTMHref = this.returnNewTMHref(options.baseUrl, title);
+        const newTDHref = this.returnNewTDHref(options.baseUrl, title);
         if ('extends' in modelObject) {
             const extendObjs = modelObject.extends;
             for (const key in extendObjs) {
@@ -350,7 +330,7 @@ export default class ThingModelHelpers {
 
             for (const key in submodelObj) {
                 const sub = submodelObj[key]
-                if (selfContained) {
+                if (options.selfComposition) {
                     const index = data.links.findIndex(el => el.href === key);
                     const el = data.links[index];
                     const instanceName = el.instanceName;
@@ -358,7 +338,7 @@ export default class ThingModelHelpers {
                         throw new Error('Self composition is not possible without instance names');
                     }
                     // self composition enabled, just one TD expected
-                    const [subPartialTD] = await this.getPartialTDs(sub, baseUrl, true);
+                    const [subPartialTD] = await this.getPartialTDs(sub, options);
                     const affordanceTypes = ['properties', 'actions', 'events'];
                     for (const affType of affordanceTypes) {
                         for (const affKey in subPartialTD[affType] as DataSchema) {
@@ -372,7 +352,7 @@ export default class ThingModelHelpers {
 
                 } else {
                     const subTitle = sub.title.replace(/ /g, '');
-                    const subNewHref = this.returnNewTDHref(baseUrl, subTitle);
+                    const subNewHref = this.returnNewTDHref(options.baseUrl, subTitle);
                     if (!('links' in sub)) {
                         sub.links = [];
                     }
@@ -381,7 +361,7 @@ export default class ThingModelHelpers {
                         "href": newTDHref,
                         "type": "application/td+json"
                     })
-                    const tmpPartialSubTDs = await this.getPartialTDs(sub, baseUrl);
+                    const tmpPartialSubTDs = await this.getPartialTDs(sub, options);
                     // const modelInput  = await this.thingModelHelpers.fetchAffordances(model);
                     // const extendedModel = await this.thingModelHelpers.composeModel(model, modelInput, 'http://test.com');
                     console.log(tmpPartialSubTDs)
@@ -393,7 +373,7 @@ export default class ThingModelHelpers {
             // partialTDs.unshift(data);
             // data.links = submodelObjs; 
         }
-        if (!('links' in data)) {
+        if (!('links' in data) || options.selfComposition) {
             data.links = [];
         }
         // add reference to the thing model
@@ -413,7 +393,11 @@ export default class ThingModelHelpers {
         } else {
             data['@type'] = 'Thing';
         }
+        if (options.map) {
+            data = this.fillPlaceholder(data, options.map);
+        }
         partialTDs.unshift(data); // put itself as first element
+        partialTDs = partialTDs.map(el => this.fillPlaceholder(el, options.map)); // TODO: make more efficient, since repeated each recursive call
         return partialTDs;
     }
 
@@ -421,9 +405,9 @@ export default class ThingModelHelpers {
         return await this.helpers.fetch(uri) as ExposedThingInit;
     }
 
-    public async getPartialTDs(model: ExposedThingInit, baseUrl?: string, selfComposition?: boolean): Promise<ExposedThingInit[]> {
+    public async getPartialTDs(model: ExposedThingInit, options?: CompositionOptions): Promise<ExposedThingInit[]> {
         const modelInput = await this.fetchAffordances(model);
-        const extendedModels = await this.composeModel(model, modelInput, baseUrl);
+        const extendedModels = await this.composeModel(model, modelInput, options);
         return extendedModels;
     }
 

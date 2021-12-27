@@ -1,10 +1,18 @@
 {
     "@context": ["http://www.w3.org/ns/td"],
-    "@type" : "tm:ThingModel",
+    "@type" : "Thing",
     "title": "Smart Lamp Control",
     "properties" : {
         "switch" : {
             "type": "boolean"
         }
-   }
+   },
+   "links": [
+        {
+          "href": "./SmartLampControl.tm.jsonld",
+          "rel": "type",
+          "type": "application/tm+json"
+        }
+      ]
+
 }
