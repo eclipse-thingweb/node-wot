@@ -6,13 +6,13 @@
     "links": [
       {
         "rel": "tm:submodel",
-        "href": "file://./test/tmodels/Ventilator.tm.jsonld",
+        "href": "file://./test/thing-model/tmodels/Ventilator.tm.jsonld",
         "type": "application/tm+json",
         "instanceName": "ventilation"
       },
       {
         "rel": "tm:submodel",
-        "href": "file://./test/tmodels/Led.tm.jsonld",
+        "href": "file://./test/thing-model/tmodels/Led.tm.jsonld",
         "type": "application/tm+json",
         "instanceName": "led"
       }

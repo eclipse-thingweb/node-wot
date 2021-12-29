@@ -1,10 +1,17 @@
 {
     "@context": "https://www.w3.org/2022/wot/td/v1.1",
     "@type": "tm:ThingModel",
-    "title": "LED Thing Model",
+    "title": "Led Thing Model Extend",
     "version": {
         "model": "1.0.0"
     },
+    "links": [
+        {
+            "rel": "tm:extends",
+            "href": "file://./test/thing-model/tmodels/LedExtendLoop.tm.jsonld",
+            "type": "application/td+json"
+        }
+    ],
     "properties": {
         "R": {
             "type": "number",
@@ -28,7 +35,7 @@
             }
         },
         "fadeOut": {
-            "title": "fadeIn",
+            "title": "fadeOut",
             "input": {
                 "type": "number",
                 "description": "fadeOut in ms"

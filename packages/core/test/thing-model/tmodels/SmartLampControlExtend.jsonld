@@ -4,7 +4,7 @@
     "links": [
         {
             "rel": "tm:extends",
-            "href": "file://./test/tmodels/BasicOnOffTM.jsonld",
+            "href": "file://./test/thing-model/tmodels/BasicOnOffTM.jsonld",
             "type": "application/td+json"
         }
     ],

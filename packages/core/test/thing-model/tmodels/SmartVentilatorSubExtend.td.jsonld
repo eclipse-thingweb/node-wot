@@ -1,6 +1,7 @@
 {
     "@context": "https://www.w3.org/2022/wot/td/v1.1",
     "title": "Smart Ventilator",
+    "@type": "Thing",
     "links": [
         {
             "rel": "item",
@@ -9,7 +10,7 @@
         },
         {
             "rel": "item",
-            "href": "http://test.com/LEDThingModel.td.jsonld",
+            "href": "http://test.com/LedThingModelExtend.td.jsonld",
             "type": "application/td+json"
         },
         {

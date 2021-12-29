@@ -25,9 +25,9 @@ import { suite, test } from "@testdeck/mocha";
 import { expect } from "chai";
 import { ExposedThingInit } from "wot-typescript-definitions";
 
-import ThingModelHelpers, { CompositionOptions, modelComposeInput } from "../src/thing-model-helpers";
+import ThingModelHelpers, { CompositionOptions, modelComposeInput } from "../../src/thing-model-helpers";
 import { promises as fs } from 'fs';
-import Servient from "../src/core";
+import Servient from "../../src/core";
 import { HttpClientFactory } from '@node-wot/binding-http'
 import { FileClientFactory } from '@node-wot/binding-file'
 
@@ -159,8 +159,8 @@ class ThingModelHelperTest {
     }
 
      @test async "should correctly extend a thing model with properties"() {
-        const modelJSON = await fs.readFile('test/tmodels/SmartLampControlExtend.jsonld');
-        const finalJSON = await fs.readFile('test/tmodels/SmartLampControlExtended.jsonld');
+        const modelJSON = await fs.readFile('test/thing-model/tmodels/SmartLampControlExtend.jsonld');
+        const finalJSON = await fs.readFile('test/thing-model/tmodels/SmartLampControlExtended.jsonld');
         const model = JSON.parse(modelJSON.toString()) as ExposedThingInit;
         const finalModel = JSON.parse(finalJSON.toString()) as ExposedThingInit;
 
@@ -171,7 +171,7 @@ class ThingModelHelperTest {
     }
 
     @test async "should correctly extend a thing model with actions"() {
-        const modelJSON = await fs.readFile('test/tmodels/SmartLampControlExtend.jsonld');
+        const modelJSON = await fs.readFile('test/thing-model/tmodels/SmartLampControlExtend.jsonld');
         const model = JSON.parse(modelJSON.toString()) as ExposedThingInit;
         const finalModel = {
             "@type": "Thing",
@@ -209,8 +209,8 @@ class ThingModelHelperTest {
     }
 
     @test async "should correctly import a property in a thing model"() {
-        const modelJSON = await fs.readFile('test/tmodels/SmartLampControlImport.jsonld');
-        const finalJSON = await fs.readFile('test/tmodels/SmartLampControlImported.jsonld');
+        const modelJSON = await fs.readFile('test/thing-model/tmodels/SmartLampControlImport.jsonld');
+        const finalJSON = await fs.readFile('test/thing-model/tmodels/SmartLampControlImported.jsonld');
         const model = JSON.parse(modelJSON.toString()) as ExposedThingInit;
         const finalModel = JSON.parse(finalJSON.toString()) as ExposedThingInit;
         // const validated = ThingModelHelpers.validateExposedThingModelInit(model);
@@ -228,7 +228,7 @@ class ThingModelHelperTest {
             "@type": ['random:Type', 'tm:ThingModel'],
             properties: {
                 "timestamp1": {
-                    "tm:ref": "file://./test/tmodels/OnOff.jsonld#/properties/timestamp",
+                    "tm:ref": "file://./test/thing-model/tmodels/OnOff.jsonld#/properties/timestamp",
                     "description": null
                 }
             }
@@ -297,50 +297,6 @@ class ThingModelHelperTest {
         };
         const [importedModel] = await this.thingModelHelpers.composeModel(thingModel, modelInput);
         expect(importedModel).to.be.deep.equal(finalThingModel);
-
-    }
-
-    @test async "should correctly compose a Thing Model with multiple partialTDs"() {
-        // const modelJSON = await fs.readFile('test/tmodels/SmartVentilator.tm.jsonld');
-        // const finalJSON = await fs.readFile('test/tmodels/SmartVentilator.td.jsonld');
-        // const model = JSON.parse(modelJSON.toString()) as ExposedThingInit;
-        // const finalModel = JSON.parse(finalJSON.toString()) as ExposedThingIni]t;
-        const modelUri = 'file://./test/tmodels/SmartVentilator.tm.jsonld';
-        const model = await this.thingModelHelpers.fetchModel(modelUri);
-        const finalModelUri = 'file://./test/tmodels/SmartVentilator.td.jsonld';
-        const finalModel = await this.thingModelHelpers.fetchModel(finalModelUri);
-
-        const modelInput = await this.thingModelHelpers.fetchAffordances(model);
-        const options: CompositionOptions = {
-            baseUrl: 'http://test.com',
-            selfComposition: false
-        };
-        const extendedModel = await this.thingModelHelpers.composeModel(model, modelInput, options);
-        expect(extendedModel.length).to.be.equal(3);
-        expect(extendedModel[0].links).to.be.deep.equal(finalModel.links);
-
-    }
-
-    @test async "should correctly compose a Thing Model with multiple partialTDs and selfcomposition enabled"() {
-        const modelUri = 'file://./test/tmodels/SmartVentilator.tm.jsonld';
-        const model = await this.thingModelHelpers.fetchModel(modelUri);
-        const finalModelUri = 'file://./test/tmodels/SmartVentilator.td.jsonld';
-        const finalModel = await this.thingModelHelpers.fetchModel(finalModelUri);
-        finalModel.links = [
-            {
-                "rel": "type",
-                "href": "http://test.com/SmartVentilator.tm.jsonld",
-                "type": "application/tm+json"
-            }
-        ]
-        const options: CompositionOptions = {
-            baseUrl: 'http://test.com',
-            selfComposition: true 
-        };
-        const modelInput = await this.thingModelHelpers.fetchAffordances(model);
-        const extendedModel = await this.thingModelHelpers.composeModel(model, modelInput, options);
-        expect(extendedModel.length).to.be.equal(1);
-        expect(extendedModel[0].links).to.be.deep.equal(finalModel.links);
 
     }
 

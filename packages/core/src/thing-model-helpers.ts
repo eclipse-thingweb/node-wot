@@ -77,6 +77,7 @@ export default class ThingModelHelpers {
 
     private srv: Servient;
     private helpers: Helpers;
+    private deps: string[] = [] as string[];
 
     constructor(srv: Servient) {
         this.srv = srv;
@@ -243,8 +244,11 @@ export default class ThingModelHelpers {
         if (extLinks.length > 0) {
             modelInput.extends = [] as ExposedThingInit[];
             for (const s of extLinks) {
-                const source = await this.helpers.fetch(s.href) as ExposedThingInit;
-                modelInput.extends.push(source);
+                // TODO: compose model?
+                let source = await this.fetchModel(s.href);
+                // only interested in the first one FIXME: possible issues
+                [source] = await this.getPartialTDs(source);
+                modelInput.extends.push(source as ExposedThingInit);
             }
         }
         const affordanceTypes = ['properties', 'actions', 'events'];
@@ -255,7 +259,10 @@ export default class ThingModelHelpers {
                 for (const aff in affRefs) {
                     const affUri = affRefs[aff] as string;
                     const refObj = this.parseTmRef(affUri);
-                    const source = await this.helpers.fetch(refObj.uri) as ExposedThingInit;
+                    // TODO: compose model?
+                    let source = await this.fetchModel(refObj.uri);
+                    // only interested in the first one FIXME: possible issues
+                    [source] = await this.getPartialTDs(source);
                     delete ((data[affType] as DataSchema)[aff])['tm:ref']; // FIXME:
                     const importedAffordance = this.getRefAffordance(refObj, source);
                     refObj.name = aff; // update the name of the affordance
@@ -267,7 +274,7 @@ export default class ThingModelHelpers {
         if (tmLinks.length > 0) {
             modelInput.submodel = {} as Record<string, ExposedThingInit>;
             for (const l of tmLinks) {
-                const submodel = await this.helpers.fetch(l.href) as ExposedThingInit;
+                const submodel = await this.fetchModel(l.href);
                 modelInput.submodel[l.href] = submodel;
             }
         }
@@ -364,7 +371,6 @@ export default class ThingModelHelpers {
                     const tmpPartialSubTDs = await this.getPartialTDs(sub, options);
                     // const modelInput  = await this.thingModelHelpers.fetchAffordances(model);
                     // const extendedModel = await this.thingModelHelpers.composeModel(model, modelInput, 'http://test.com');
-                    console.log(tmpPartialSubTDs)
                     // partialTDs.push(sub);
                     partialTDs.push(...tmpPartialSubTDs);
                     data = ThingModelHelpers.formatSubmodelLink(data, key, subNewHref);
@@ -393,6 +399,9 @@ export default class ThingModelHelpers {
         } else {
             data['@type'] = 'Thing';
         }
+        if ('version' in data) {
+            delete data.version;
+        }
         if (options.map) {
             data = this.fillPlaceholder(data, options.map);
         }
@@ -402,12 +411,14 @@ export default class ThingModelHelpers {
     }
 
     public async fetchModel(uri: string): Promise<ExposedThingInit> {
+        this.addDependency(uri);
         return await this.helpers.fetch(uri) as ExposedThingInit;
     }
 
     public async getPartialTDs(model: ExposedThingInit, options?: CompositionOptions): Promise<ExposedThingInit[]> {
         const modelInput = await this.fetchAffordances(model);
         const extendedModels = await this.composeModel(model, modelInput, options);
+        console.log(this.deps)
         return extendedModels;
     }
 
@@ -418,6 +429,17 @@ export default class ThingModelHelpers {
 
     private returnNewTDHref(baseUrl: string, tdname: string) {
         return `${baseUrl}/${tdname}.td.jsonld`;
+    }
+
+    private addDependency(dep: string) {
+        if (this.deps.indexOf(dep) > -1) {
+            throw new Error(`Circular dependency found for ${dep}`);
+        }
+        this.deps.push(dep);
+    }
+
+    private removeDependency(dep: string) {
+        this.deps = this.deps.filter(el => el !== dep);
     }
 
 

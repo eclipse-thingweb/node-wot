@@ -4,7 +4,7 @@
     "title": "Smart Lamp Control",
     "properties" : {
         "switch" : {
-            "tm:ref" :"file://./test/tmodels/BasicOnOffTM.jsonld#/properties/onOff"
+            "tm:ref" :"file://./test/thing-model/tmodels/BasicOnOffTM.jsonld#/properties/onOff"
         }
    }
 }
