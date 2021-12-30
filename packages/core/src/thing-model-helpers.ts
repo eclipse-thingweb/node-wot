@@ -176,14 +176,36 @@ export default class ThingModelHelpers {
         const actions = source.actions;
         const events = source.events;
         extendedModel = { ...source, ...dest };
+        // TODO: implement validation for extending
         if (properties) {
-            extendedModel.properties = { ...properties, ...dest.properties };
+            for (const key in properties) {
+                if (dest.properties && key in dest.properties) {
+                    extendedModel.properties[key] = { ...properties[key], ...dest.properties[key] };
+                } else {
+                    extendedModel.properties[key] = properties[key];
+                }
+            }
+            // extendedModel.properties = { ...properties, ...dest.properties };
         }
         if (actions) {
-            extendedModel.actions = { ...actions, ...dest.actions };
+            for (const key in actions) {
+                if (dest.actions && key in dest.actions) {
+                    extendedModel.actions[key] = { ...actions[key], ...dest.actions[key] };
+                } else {
+                    extendedModel.actions[key] = actions[key];
+                }
+            }
+            // extendedModel.actions = { ...actions, ...dest.actions };
         }
         if (events) {
-            extendedModel.events = { ...events, ...dest.events };
+            for (const key in events) {
+                if (dest.events && key in dest.events) {
+                    extendedModel.events[key] = { ...events[key], ...dest.events[key] };
+                } else {
+                    extendedModel.events[key] = events[key];
+                }
+            }
+            // extendedModel.events = { ...events, ...dest.events };
         }
         return extendedModel;
     }
@@ -206,12 +228,12 @@ export default class ThingModelHelpers {
         if ('instanceName' in el) {
             delete el.instanceName;
         }
-        source.links[index] = { 
-                ...el,
-                href: newHref,
-                "type": 'application/td+json',
-                rel: 'item'
-             };
+        source.links[index] = {
+            ...el,
+            href: newHref,
+            "type": 'application/td+json',
+            rel: 'item'
+        };
         return source;
     }
 
@@ -221,7 +243,7 @@ export default class ThingModelHelpers {
         const affordaceUri = value.split('#')[1];
         const affordaceType = affordaceUri.split('/')[1] as AFFORDANCE_TYPE;
         const affordaceName = affordaceUri.split('/')[2];
-        return { uri: thingModelUri, type: affordaceType, name: affordaceName};
+        return { uri: thingModelUri, type: affordaceType, name: affordaceName };
     }
 
     private getRefAffordance(obj: ModelImportsInput, thing: ExposedThingInit): DataSchema {
@@ -231,7 +253,7 @@ export default class ThingModelHelpers {
             return null;
         }
         const affordances = thing[affordanceType] as DataSchema;
-        if (! (affordanceKey in affordances)) {
+        if (!(affordanceKey in affordances)) {
             return null;
         }
         return affordances[affordanceKey];
@@ -252,10 +274,10 @@ export default class ThingModelHelpers {
             }
         }
         const affordanceTypes = ['properties', 'actions', 'events'];
+        modelInput.imports = [];
         for (const affType of affordanceTypes) {
             const affRefs = ThingModelHelpers.getThingModelRef(data[affType] as DataSchema);
             if (Object.keys(affRefs).length > 0) {
-                modelInput.imports = [];
                 for (const aff in affRefs) {
                     const affUri = affRefs[aff] as string;
                     const refObj = this.parseTmRef(affUri);
@@ -266,7 +288,7 @@ export default class ThingModelHelpers {
                     delete ((data[affType] as DataSchema)[aff])['tm:ref']; // FIXME:
                     const importedAffordance = this.getRefAffordance(refObj, source);
                     refObj.name = aff; // update the name of the affordance
-                    modelInput.imports.push({affordance: importedAffordance, ...refObj})
+                    modelInput.imports.push({ affordance: importedAffordance, ...refObj })
                 }
             }
         }
@@ -296,7 +318,7 @@ export default class ThingModelHelpers {
                 } else { // keep the new value type
                     if (typeof value !== "string") {
                         word = `"{{${key}}}"`;
-                    } 
+                    }
                     dataString = dataString.replace(word, value as string);
                 }
             }
@@ -304,8 +326,8 @@ export default class ThingModelHelpers {
         return JSON.parse(dataString);
     }
 
-    
-    public async composeModel(data: ExposedThingInit, modelObject: modelComposeInput, options?: CompositionOptions ): Promise<ExposedThingInit[]> {
+
+    public async composeModel(data: ExposedThingInit, modelObject: modelComposeInput, options?: CompositionOptions): Promise<ExposedThingInit[]> {
         let partialTDs = [] as ExposedThingInit[];
         const title = data.title.replace(/ /g, '');
         if (!options) {
@@ -407,6 +429,9 @@ export default class ThingModelHelpers {
         }
         partialTDs.unshift(data); // put itself as first element
         partialTDs = partialTDs.map(el => this.fillPlaceholder(el, options.map)); // TODO: make more efficient, since repeated each recursive call
+        if (this.deps.length > 0) {
+            this.deps.pop();
+        }
         return partialTDs;
     }
 
@@ -418,7 +443,6 @@ export default class ThingModelHelpers {
     public async getPartialTDs(model: ExposedThingInit, options?: CompositionOptions): Promise<ExposedThingInit[]> {
         const modelInput = await this.fetchAffordances(model);
         const extendedModels = await this.composeModel(model, modelInput, options);
-        console.log(this.deps)
         return extendedModels;
     }
 
@@ -433,6 +457,7 @@ export default class ThingModelHelpers {
 
     private addDependency(dep: string) {
         if (this.deps.indexOf(dep) > -1) {
+            console.log(dep, this.deps)
             throw new Error(`Circular dependency found for ${dep}`);
         }
         this.deps.push(dep);

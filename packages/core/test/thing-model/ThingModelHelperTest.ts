@@ -204,7 +204,6 @@ class ThingModelHelperTest {
                 }]
         }
         const [extendedModel] = await this.thingModelHelpers.composeModel(model, modelInput);
-        console.log(extendedModel.links)
         expect(extendedModel).to.be.deep.equal(finalModel);
     }
 
