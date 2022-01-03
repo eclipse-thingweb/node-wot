@@ -187,11 +187,16 @@ export class OpcuaJSONCodec implements ContentCodec {
     }
 
     valueToBytes(
-        dataValue: DataValueJSON | DataValue,
+        dataValue: DataValueJSON | DataValue | string,
         schema: DataSchema,
         parameters?: { [key: string]: string }
     ): Buffer {
-        dataValue = dataValue instanceof DataValue ? opcuaJsonEncodeDataValue(dataValue, true) : dataValue;
+        dataValue =
+            dataValue instanceof DataValue
+                ? opcuaJsonEncodeDataValue(dataValue, true)
+                : typeof dataValue === "string"
+                ? (JSON.parse(dataValue) as DataValueJSON)
+                : dataValue;
 
         dataValue = formatForNodeWoT(dataValue);
 
@@ -199,8 +204,10 @@ export class OpcuaJSONCodec implements ContentCodec {
         switch (type) {
             case "DataValue":
                 return Buffer.from(JSON.stringify(dataValue), "ascii");
-            case "Variant":
-                return Buffer.from(JSON.stringify(dataValue.Value), "ascii");
+            case "Variant": {
+                const str = JSON.stringify(dataValue.Value);
+                return Buffer.from(str, "ascii");
+            }
             case "Value": {
                 const v = dataValue.Value.Body;
                 if (!v) {

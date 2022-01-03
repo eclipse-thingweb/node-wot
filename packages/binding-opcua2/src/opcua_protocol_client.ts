@@ -316,7 +316,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
             const contentType = form.contentType ?? "application/json";
             //   "application/json+opcua;type=Value;dataType=" + DataType[await this._predictDataType(form)];
 
-            // QUESTION: how can we extend the defauilt contentSerDes.valueToContent for application/json,
+            // QUESTION: how can we extend the default contentSerDes.valueToContent for application/json,
             const contentSerDes = ContentSerdes.get();
             if (contentType === "application/json") {
                 const dataValueJSON = formatForNodeWoT(opcuaJsonEncodeDataValue(dataValue, true));
