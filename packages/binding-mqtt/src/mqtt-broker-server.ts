@@ -20,14 +20,13 @@
 import { IPublishPacket } from "mqtt";
 import * as mqtt from "mqtt";
 import * as url from "url";
-import { AuthenticateError, Client, Server } from "aedes";
+import { AuthenticateError, Client, Server, Aedes } from "aedes";
 import * as net from "net";
 import * as tls from "tls";
 import * as TD from "@node-wot/td-tools";
 import { MqttBrokerServerConfig } from "./mqtt";
 import { ProtocolServer, Servient, ExposedThing, ContentSerdes, ProtocolHelpers, Content } from "@node-wot/core";
 import { InteractionOptions } from "wot-typescript-definitions";
-import { Aedes } from "aedes";
 
 export default class MqttBrokerServer implements ProtocolServer {
     readonly scheme: string = "mqtt";
@@ -396,6 +395,7 @@ export default class MqttBrokerServer implements ProtocolServer {
         return new Promise<void>((resolve, reject) => {
             if (this.broker !== undefined) {
                 this.broker.unsubscribe("*");
+                this.broker.end(true);
             }
 
             if (this.hostedBroker !== undefined) {

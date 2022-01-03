@@ -26,7 +26,7 @@ import MqttsClientFactory from "../src/mqtts-client-factory";
 // should must be called to augment all variables
 should();
 
-describe.skip("MQTT client implementation", () => {
+describe("MQTT client implementation", () => {
     let servient: Servient;
     let brokerServer: MqttBrokerServer;
     let brokerUri: string;
