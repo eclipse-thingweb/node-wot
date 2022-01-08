@@ -17,6 +17,7 @@ import { DataSchema } from "@node-wot/td-tools";
 import { DataValue } from "node-opcua-data-value";
 import { DataType } from "node-opcua-variant";
 import Ajv from "ajv";
+import "ajv-formats"; /// to get date again !
 
 // see https://www.w3.org/Protocols/rfc1341/4_Content-Type.html
 import {
@@ -145,9 +146,11 @@ export function formatForNodeWoT(dataValue: DataValueJSON): DataValueJSON {
     delete dataValue.ServerTimestamp;
     return dataValue;
 }
+
+// application/json   => is equivalent to application/opcua+json;type=Value
 export class OpcuaJSONCodec implements ContentCodec {
     getMediaType(): string {
-        return "application/json+opcua";
+        return "application/opcua+json";
     }
 
     bytesToValue(bytes: Buffer, schema: DataSchema, parameters?: { [key: string]: string }): DataValueJSON {
@@ -227,7 +230,7 @@ export function jsonify(a: unknown): unknown {
 }
 export class OpcuaBinaryCodec implements ContentCodec {
     getMediaType(): string {
-        return "application/octet-stream+opcua";
+        return "application/opcua+octet-stream"; // see Ege
     }
 
     bytesToValue(bytes: Buffer, schema: DataSchema, parameters?: { [key: string]: string }): DataValueJSON {

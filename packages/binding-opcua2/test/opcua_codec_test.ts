@@ -41,12 +41,12 @@ describe("OPCUA Binary Serdes ", () => {
         //
         const schema: ObjectSchema = { type: "object", properties: {} };
 
-        it("should encode and decode a dataValue with application/opcua_binary codec " + index, () => {
+        it("should encode and decode a dataValue with application/opcua+binary codec " + index, () => {
             const payload = theOpcuaBinaryCodec.valueToBytes(dataValue, schema);
             const dataValueReloaded = theOpcuaBinaryCodec.bytesToValue(payload, schema);
             expect(dataValue).to.eql(dataValueReloaded);
         });
-        it("should encode and decode a dataValue with application/opcua_json codec " + index, () => {
+        it("should encode and decode a dataValue with application/opcua+json codec " + index, () => {
             const payload = theOpcuaJSONCodec.valueToBytes(dataValue, schema);
             const dataValueReloaded = theOpcuaJSONCodec.bytesToValue(payload, schema);
             expect(dataValue).to.eql(dataValueReloaded);
@@ -60,7 +60,7 @@ describe("OPCUA Binary Serdes ", () => {
     ];
     [dataValue1, dataValue2, dataValue3].forEach((dataValue, index) => {
         it(
-            "should simplify  serialize deserialize with application/json+opcua;type=DataValue  (index = " +
+            "should simplify  serialize deserialize with application/opcua+json;type=DataValue  (index = " +
                 index +
                 ")",
             async () => {
@@ -69,7 +69,7 @@ describe("OPCUA Binary Serdes ", () => {
                 serdes.addCodec(new OpcuaBinaryCodec());
 
                 const schema: WoT.DataSchema = {};
-                const contentType = "application/json+opcua;type=DataValue";
+                const contentType = "application/opcua+json;type=DataValue";
                 exist(ContentSerdes.getMediaType(contentType));
                 const payload = serdes.valueToContent(dataValue, schema, contentType);
                 const body = await ProtocolHelpers.readStreamFully(payload.body);
@@ -82,13 +82,13 @@ describe("OPCUA Binary Serdes ", () => {
             '{"Type":12,"Body":["hello","world"]}',
             '{"Type":21,"Body":[{"Text":"a"},{"Text":"b"}]}',
         ];
-        it("should serialize deserialize with application/json+opcua;type=Variant" + index, async () => {
+        it("should serialize deserialize with application/opcua+json;type=Variant" + index, async () => {
             const serdes = ContentSerdes.get();
             serdes.addCodec(new OpcuaJSONCodec());
             serdes.addCodec(new OpcuaBinaryCodec());
 
             const schema: WoT.DataSchema = {};
-            const contentType = "application/json+opcua;type=Variant";
+            const contentType = "application/opcua+json;type=Variant";
             exist(ContentSerdes.getMediaType(contentType));
             const payload = serdes.valueToContent(dataValue, schema, contentType);
             const body = await ProtocolHelpers.readStreamFully(payload.body);

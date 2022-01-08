@@ -1,6 +1,6 @@
 // node-wot implementation of W3C WoT Servient
 
-import { expect } from "chai";
+import { expect, should } from "chai";
 import { ExposedThing, Servient } from "@node-wot/core";
 import { OPCUAServer, DataType } from "node-opcua";
 
@@ -85,7 +85,7 @@ const thingDescription: WoT.ThingDescription = {
                     href: "/",
                     op: ["readproperty", "observeproperty", "writeproperty"],
                     "opcua:nodeId": { root: "i=84", path: "/Objects/1:MySensor/2:ParameterSet/1:TemperatureSetPoint" },
-                    contentType: "application/json+opcua;type=Value;dataType=Double",
+                    contentType: "application/opcua+json;type=Value;dataType=Double",
                 },
             ],
         },
@@ -198,26 +198,17 @@ describe("Full OPCUA Thing Test", () => {
         let temperature = 10;
         thing.setPropertyReadHandler("temperature", async () => temperature);
 
-        thing.setPropertyWriteHandler(
-            "temperature",
-            async (value: WoT.InteractionOutput, options?: WoT.InteractionOptions) => {
-                temperature = (await value.value()) as number;
-            }
-        );
-
         const expThing = thing as ExposedThing;
-        const propertyState = expThing.properties.temperature.getState();
-
-        const temperatureCheck1 = await propertyState.readHandler();
+        const readHandler = expThing.propertyHandlers.get("temperature")!.readHandler;
+        expect(readHandler, "must have a readHandler");
+        const temperatureCheck1 = await readHandler();
         expect(temperatureCheck1).to.equal(10);
-        /* 
-        
-        TODO: how to make this work ?
 
-                await propertyState.writeHandler(100);
-                const temperatureCheck2 = await propertyState.readHandler();
-                expect(temperatureCheck2).to.equal(100);
-        */
+        temperature = 100;
+
+        const temperatureCheck2 = await readHandler();
+        expect(temperatureCheck2).to.equal(100);
+
         await servient.shutdown();
     });
 
