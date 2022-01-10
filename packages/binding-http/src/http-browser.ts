@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2019 - 2021 Contributors to the Eclipse Foundation
+ * Copyright (c) 2019 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -44,7 +44,7 @@ export interface HttpConfig {
 
 export class HttpHeader {
     public "http:fieldName": number;
-    public "http:fieldValue": any;
+    public "http:fieldValue": unknown;
 }
 
 export class HttpForm extends TD.Form {
@@ -53,9 +53,8 @@ export class HttpForm extends TD.Form {
 }
 
 Headers.prototype.raw = function () {
-    const result: { [key: string]: [string] } = {};
+    const result: { [key: string]: string[] } = {};
     for (const h in this.entries()) {
-        // @ts-ignore
         result[h[0]] = h[1].split(",");
     }
     return result;

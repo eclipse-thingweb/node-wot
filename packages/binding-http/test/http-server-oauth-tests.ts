@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -24,8 +24,11 @@ should();
 class OAuthServerTests {
     private server: HttpServer;
     async before() {
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
         console.debug = () => {};
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
         console.warn = () => {};
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
         console.info = () => {};
 
         const method: IntrospectionEndpoint = {

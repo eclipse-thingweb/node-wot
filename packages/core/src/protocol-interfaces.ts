@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2021 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -23,6 +23,32 @@ export interface Content {
     type: string;
     body: NodeJS.ReadableStream;
 }
+
+export type PropertyContentMap = Map<string, Content>;
+
+export type ContentListener = (data: Content) => void;
+
+export type PropertyHandlers = {
+    readHandler?: WoT.PropertyReadHandler;
+    writeHandler?: WoT.PropertyWriteHandler;
+    observeHandler?: WoT.PropertyReadHandler;
+    unobserveHandler?: WoT.PropertyReadHandler;
+};
+export type PropertyHandlerMap = Map<string, PropertyHandlers>;
+export type ActionHandlerMap = Map<string, WoT.ActionHandler>;
+
+export type EventHandlers = {
+    handler?: WoT.EventListenerHandler;
+    subscribe?: WoT.EventSubscriptionHandler;
+    unsubscribe?: WoT.EventSubscriptionHandler;
+};
+export type EventHandlerMap = Map<string, EventHandlers>;
+
+export type ListenerItem = {
+    [formIndex: number]: ContentListener[];
+};
+
+export type ListenerMap = Map<string, ListenerItem>;
 
 export interface ProtocolClient {
     /** this client is requested to perform a "read" on the resource with the given URI */

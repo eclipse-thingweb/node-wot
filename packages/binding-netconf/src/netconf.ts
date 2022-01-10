@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2019 - 2021 Contributors to the Eclipse Foundation
+ * Copyright (c) 2019 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -13,9 +13,9 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
+import { Form } from "@node-wot/td-tools";
 export { default as NetconfClient } from "./netconf-client";
 export { default as NetconfClientFactory } from "./netconf-client-factory";
-import { Form } from "@node-wot/td-tools";
 export * from "./netconf";
 export * from "./netconf-client-factory";
 export class NetconfForm extends Form {

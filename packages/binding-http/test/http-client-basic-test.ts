@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -21,7 +21,6 @@ import { BasicSecurityScheme } from "@node-wot/td-tools";
 import { ProtocolHelpers } from "@node-wot/core";
 import * as chai from "chai";
 import chaiAsPromised from "chai-as-promised";
-import { promisify } from "util";
 import { fail } from "assert";
 const fs = require("fs");
 

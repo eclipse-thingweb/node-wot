@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2019 - 2021 Contributors to the Eclipse Foundation
+ * Copyright (c) 2019 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -16,7 +16,7 @@ import * as nodeNetconf from "node-netconf";
 import * as xpath2json from "./xpath2json";
 import { promises as fsPromises } from "fs";
 
-let METHOD_OBJ: any = {};
+const METHOD_OBJ: any = {};
 METHOD_OBJ["GET-CONFIG"] = {
     "get-config": {
         $: { xmlns: "urn:ietf:params:xml:ns:netconf:base:1.0" },
@@ -27,8 +27,8 @@ METHOD_OBJ["GET-CONFIG"] = {
 METHOD_OBJ["EDIT-CONFIG"] = {
     "edit-config": { $: { xmlns: "urn:ietf:params:xml:ns:netconf:base:1.0" }, target: { candidate: {} }, config: {} },
 };
-METHOD_OBJ["COMMIT"] = { commit: { $: { xmlns: "urn:ietf:params:xml:ns:netconf:base:1.0" } } };
-METHOD_OBJ["RPC"] = {};
+METHOD_OBJ.COMMIT = { commit: { $: { xmlns: "urn:ietf:params:xml:ns:netconf:base:1.0" } } };
+METHOD_OBJ.RPC = {};
 
 export class Client {
     private router: any;
@@ -47,7 +47,7 @@ export class Client {
 
     async initializeRouter(host: string, port: number, credentials: any) {
         if (this.router && this.router.connected) {
-            //close the old one
+            // close the old one
             this.closeRouter();
         }
         this.router = {};
@@ -66,10 +66,10 @@ export class Client {
     }
 
     openRouter() {
-        let self = this;
+        const self = this;
         return new Promise((resolve, reject) => {
             if (self.router.connected) {
-                //close the old one
+                // close the old one
                 this.closeRouter();
             }
             self.router = new nodeNetconf.Client(this.router);
@@ -88,14 +88,14 @@ export class Client {
     }
 
     rpc(xpath_query: string, method: string, NSs: any, target: string, payload?: any) {
-        let self = this;
+        const self = this;
         return new Promise((resolve, reject) => {
             if (payload) {
                 xpath_query = xpath2json.addLeaves(xpath_query, payload);
             }
-            let obj_request = xpath2json.xpath2json(xpath_query, NSs);
+            const obj_request = xpath2json.xpath2json(xpath_query, NSs);
             let final_request: any = {};
-            final_request = JSON.parse(JSON.stringify(METHOD_OBJ[method])); //clone the METHOD_OBJ
+            final_request = JSON.parse(JSON.stringify(METHOD_OBJ[method])); // clone the METHOD_OBJ
             switch (method) {
                 default:
                 case "GET-CONFIG": {
@@ -117,7 +117,7 @@ export class Client {
                     break;
                 }
                 case "RPC": {
-                    final_request = obj_request; //just take the rpc as was created starting from xpath
+                    final_request = obj_request; // just take the rpc as was created starting from xpath
                     break;
                 }
             }
