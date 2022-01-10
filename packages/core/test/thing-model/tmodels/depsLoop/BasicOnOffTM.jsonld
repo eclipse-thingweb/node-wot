@@ -1,4 +1,5 @@
 {
+    "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
     "@type": "tm:ThingModel",
     "title": "Basic On/Off Thing Model",
     "links": [

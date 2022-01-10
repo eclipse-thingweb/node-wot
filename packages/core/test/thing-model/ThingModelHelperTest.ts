@@ -351,42 +351,35 @@ class ThingModelHelperTest {
         expect(partialTd).to.be.deep.equal(finalJSON);
     }
 
-    // @test "should correctly validate schema"() {
-    //     const thing: ExposedThingInit = {
-    //         title: "thingTest",
-    //         properties: {
-    //             myProp: {
-    //                 type: "number",
-    //             },
-    //         },
-    //     };
+    @test async "should reject fill placeholders because of missing fields in map"() {
+        const thing = {
+            "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
+            "@type": "tm:ThingModel",
+            "title": "Thermostate No. {{THERMOSTATE_NUMBER}}",
+            "base": "mqtt://{{MQTT_BROKER_ADDRESS}}",
+            "properties": {
+                "temperature": {
+                    "description": "Shows the current temperature value",
+                    "type": "number",
+                    "minimum": "{{THERMOSTATE_NUMBER}}",
+                    "maximum": "{{THERMOSTATE_TEMPERATURE_MAXIMUM}}",
+                    "observable": "{{THERMOSTATE_TEMPERATURE_OBSERVABLE}}"
+                }
+            }
+        } as unknown as ExposedThingInit;
+        const map = {
+            // "THERMOSTATE_NUMBER": 4,
+            "MQTT_BROKER_ADDRESS": "192.168.178.72:1883",
+            "THERMOSTATE_TEMPERATURE_MAXIMUM": 47.7,
+            "THERMOSTATE_TEMPERATURE_OBSERVABLE": true
+        }
+        const options: CompositionOptions = {
+            map,
+            selfComposition: false 
+        };
+        const validated = this.thingModelHelpers['checkPlaceholderMap'](thing, options.map);
+        expect(validated.valid).to.be.false;
+        expect(validated.errors).to.be.equal(`Missing required fields in map for model ${thing.title}`);
+    }
 
-    //     const validated = Helpers.validateExposedThingInit(thing);
-
-    //     expect(thing).to.exist;
-    //     expect(validated.valid).to.be.true;
-    //     expect(validated.errors).to.be.undefined;
-    // }
-
-    // @test "should reject ThingModel schema on validation"() {
-    //     const thing: ExposedThingInit = {
-    //         title: "thingTest",
-    //         links: [
-    //             {
-    //                 rel: "tm:extend",
-    //             },
-    //         ],
-    //         properties: {
-    //             myProp: {
-    //                 "tm:ref": "http://example.com/thingTest.tm.jsonld#/properties/myProp",
-    //                 type: "number",
-    //             },
-    //         },
-    //     };
-
-    //     const validated = Helpers.validateExposedThingInit(thing);
-
-    //     expect(thing).to.exist;
-    //     expect(validated.valid).to.be.false;
-    // }
 }

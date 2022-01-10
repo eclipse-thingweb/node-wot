@@ -13,35 +13,27 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-/**
- * Generic helper functions used across the code
- * These Helpers are used like this:
- * ```
- * import Helpers from "@node-wot/core"
- *
- * ...
- * Helpers.foo(bar)
- * ...
- * ```
- */
-
-// import * as os from "os";
-
-import Ajv, { ErrorObject } from "ajv";
+import Ajv, { ValidateFunction, ErrorObject } from "ajv";
 import { LinkElement } from "wot-thing-description-types";
-import TDSchema from "wot-thing-description-types/schema/td-json-schema-validation.json";
-import { DataSchema, ExposedThingInit, ThingDescription } from "wot-typescript-definitions";
-import Servient, { ExposedThing, Helpers } from "./core";
+import TMSchema from "./tm-json-schema-validation.json";
+import { DataSchema, ExposedThingInit } from "wot-typescript-definitions";
+import Servient, { Helpers } from "./core";
+import { SomeJSONSchema } from "ajv/dist/types/json-schema";
 // import { DataSchemaValue, ExposedThingInit } from "wot-typescript-definitions";
 
-const tdSchema = TDSchema;
+const tmSchema = TMSchema;
 // RegExps take from https://github.com/ajv-validator/ajv-formats/blob/master/src/formats.ts
 const ajv = new Ajv({ strict: false })
     .addFormat(
         "iri-reference",
         /^(?:[a-z][a-z0-9+\-.]*:)?(?:\/?\/(?:(?:[a-z0-9\-._~!$&'()*+,;=:]|%[0-9a-f]{2})*@)?(?:\[(?:(?:(?:(?:[0-9a-f]{1,4}:){6}|::(?:[0-9a-f]{1,4}:){5}|(?:[0-9a-f]{1,4})?::(?:[0-9a-f]{1,4}:){4}|(?:(?:[0-9a-f]{1,4}:){0,1}[0-9a-f]{1,4})?::(?:[0-9a-f]{1,4}:){3}|(?:(?:[0-9a-f]{1,4}:){0,2}[0-9a-f]{1,4})?::(?:[0-9a-f]{1,4}:){2}|(?:(?:[0-9a-f]{1,4}:){0,3}[0-9a-f]{1,4})?::[0-9a-f]{1,4}:|(?:(?:[0-9a-f]{1,4}:){0,4}[0-9a-f]{1,4})?::)(?:[0-9a-f]{1,4}:[0-9a-f]{1,4}|(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?))|(?:(?:[0-9a-f]{1,4}:){0,5}[0-9a-f]{1,4})?::[0-9a-f]{1,4}|(?:(?:[0-9a-f]{1,4}:){0,6}[0-9a-f]{1,4})?::)|[Vv][0-9a-f]+\.[a-z0-9\-._~!$&'()*+,;=:]+)\]|(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)|(?:[a-z0-9\-._~!$&'"()*+,;=]|%[0-9a-f]{2})*)(?::\d*)?(?:\/(?:[a-z0-9\-._~!$&'"()*+,;=:@]|%[0-9a-f]{2})*)*|\/(?:(?:[a-z0-9\-._~!$&'"()*+,;=:@]|%[0-9a-f]{2})+(?:\/(?:[a-z0-9\-._~!$&'"()*+,;=:@]|%[0-9a-f]{2})*)*)?|(?:[a-z0-9\-._~!$&'"()*+,;=:@]|%[0-9a-f]{2})+(?:\/(?:[a-z0-9\-._~!$&'"()*+,;=:@]|%[0-9a-f]{2})*)*)?(?:\?(?:[a-z0-9\-._~!$&'"()*+,;=:@/?]|%[0-9a-f]{2})*)?(?:#(?:[a-z0-9\-._~!$&'"()*+,;=:@/?]|%[0-9a-f]{2})*)?$/i
     )
+    .addFormat(
+        "uri-reference",
+        /^(?:[a-z][a-z0-9+\-.]*:)?(?:\/?\/(?:(?:[a-z0-9\-._~!$&'()*+,;=:]|%[0-9a-f]{2})*@)?(?:\[(?:(?:(?:(?:[0-9a-f]{1,4}:){6}|::(?:[0-9a-f]{1,4}:){5}|(?:[0-9a-f]{1,4})?::(?:[0-9a-f]{1,4}:){4}|(?:(?:[0-9a-f]{1,4}:){0,1}[0-9a-f]{1,4})?::(?:[0-9a-f]{1,4}:){3}|(?:(?:[0-9a-f]{1,4}:){0,2}[0-9a-f]{1,4})?::(?:[0-9a-f]{1,4}:){2}|(?:(?:[0-9a-f]{1,4}:){0,3}[0-9a-f]{1,4})?::[0-9a-f]{1,4}:|(?:(?:[0-9a-f]{1,4}:){0,4}[0-9a-f]{1,4})?::)(?:[0-9a-f]{1,4}:[0-9a-f]{1,4}|(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?))|(?:(?:[0-9a-f]{1,4}:){0,5}[0-9a-f]{1,4})?::[0-9a-f]{1,4}|(?:(?:[0-9a-f]{1,4}:){0,6}[0-9a-f]{1,4})?::)|[Vv][0-9a-f]+\.[a-z0-9\-._~!$&'()*+,;=:]+)\]|(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)|(?:[a-z0-9\-._~!$&'"()*+,;=]|%[0-9a-f]{2})*)(?::\d*)?(?:\/(?:[a-z0-9\-._~!$&'"()*+,;=:@]|%[0-9a-f]{2})*)*|\/(?:(?:[a-z0-9\-._~!$&'"()*+,;=:@]|%[0-9a-f]{2})+(?:\/(?:[a-z0-9\-._~!$&'"()*+,;=:@]|%[0-9a-f]{2})*)*)?|(?:[a-z0-9\-._~!$&'"()*+,;=:@]|%[0-9a-f]{2})+(?:\/(?:[a-z0-9\-._~!$&'"()*+,;=:@]|%[0-9a-f]{2})*)*)?(?:\?(?:[a-z0-9\-._~!$&'"()*+,;=:@/?]|%[0-9a-f]{2})*)?(?:#(?:[a-z0-9\-._~!$&'"()*+,;=:@/?]|%[0-9a-f]{2})*)?$/i
+    ) // TODO: check me
     .addFormat("uri", /^(?:[a-z][a-z0-9+\-.]*:)(?:\/?\/)?[^\s]*$/)
+    .addFormat("json-pointer", /^(?:[a-z][a-z0-9+\-.]*:)(?:\/?\/)?[^\s]*$/) // TODO: check me
     .addFormat(
         "date-time",
         /^\d\d\d\d-[0-1]\d-[0-3]\d[t\s](?:[0-2]\d:[0-5]\d:[0-5]\d|23:59:60)(?:\.\d+)?(?:z|[+-]\d\d(?::?\d\d)?)$/
@@ -62,10 +54,6 @@ export type CompositionOptions = {
     map?: Record<string, unknown>
 }
 
-// export type modelComposeInput = {
-//     [k in COMPOSITION_TYPE]?: ((modelImportsInput & { affordance: DataSchema })[]) | ExposedThingInit[]
-// }
-
 export type modelComposeInput = {
     extends?: ExposedThingInit[],
     imports?: (ModelImportsInput & { affordance: DataSchema })[]
@@ -73,7 +61,7 @@ export type modelComposeInput = {
 }
 
 export default class ThingModelHelpers {
-    // static tsSchemaValidator = ajv.compile(Helpers.createExposeThingInitSchema(tdSchema)) as ValidateFunction;
+    static tsSchemaValidator = ajv.compile(ThingModelHelpers.createExposeThingInitSchema(tmSchema)) as ValidateFunction;
 
     private srv: Servient;
     private helpers: Helpers;
@@ -108,67 +96,6 @@ export default class ThingModelHelpers {
     }
 
 
-    public static isThingModelThingDescription(data: Record<string, unknown>): boolean {
-        if (this.getThingModelRef(data).length > 0) { // FIXME: different from specifications
-            return true;
-        }
-        if ('links' in data && Array.isArray(data.links)) {
-            let foundTmExtendsRel = false;
-            data.links.forEach((link) => {
-                if (link.rel !== undefined && link.rel === "tm:extends") foundTmExtendsRel = true;
-            });
-            if (foundTmExtendsRel) return true;
-        }
-
-        if (data.properties !== undefined) {
-            for (const prop in <Record<string, unknown>>data.properties) {
-                const properties = <Record<string, Record<string, unknown>>>data.properties;
-                if (this.isThingModelThingDescription(properties[prop])) return true;
-            }
-        }
-
-        return false;
-    }
-
-    public static validateExposedThingModelInit(data: ExposedThingInit): { valid: boolean; errors: string } {
-        // TODO: check also for the rest of the schema
-        if (Array.isArray(data["@type"])) {
-            const valid = data["@type"].filter(x => x === 'tm:ThingModel').length > 0;
-            if (!valid) {
-                return {
-                    valid: false,
-                    errors: "ThingModel missing in @type array",
-                };
-            }
-        } else if (data["@type"] !== "tm:ThingModel") {
-            return {
-                valid: false,
-                errors: "ThingModel missing in @type definition",
-            };
-        }
-        return {
-            valid: true,
-            errors: undefined,
-        };
-
-        //  && !this.isThingModelThingDescription(data)
-        //         const isValid = Helpers.tsSchemaValidator(data);
-        //         let errors;
-        //         if (!isValid) {
-        //             errors = Helpers.tsSchemaValidator.errors.map((o: ErrorObject) => o.message).join("\n");
-        //         }
-        //         return {
-        //             valid: isValid,
-        //             errors: errors,
-        //         };
-    }
-
-    public static getModelVersion(data: ExposedThingInit): string {
-        if (!('version' in data) || !('model' in data.version)) {
-            return null;
-        }
-        return data.version.model as string;
-    }
 
     private static extendThingModel(source: ExposedThingInit, dest: ExposedThingInit): ExposedThingInit {
         let extendedModel = {} as ExposedThingInit;
@@ -238,7 +165,6 @@ export default class ThingModelHelpers {
     }
 
     private parseTmRef(value: string): ModelImportsInput {
-        // TODO: validate?
         const thingModelUri = value.split('#')[0];
         const affordaceUri = value.split('#')[1];
         const affordaceType = affordaceUri.split('/')[1] as AFFORDANCE_TYPE;
@@ -266,9 +192,7 @@ export default class ThingModelHelpers {
         if (extLinks.length > 0) {
             modelInput.extends = [] as ExposedThingInit[];
             for (const s of extLinks) {
-                // TODO: compose model?
                 let source = await this.fetchModel(s.href);
-                // only interested in the first one FIXME: possible issues
                 [source] = await this.getPartialTDs(source);
                 modelInput.extends.push(source as ExposedThingInit);
             }
@@ -281,11 +205,9 @@ export default class ThingModelHelpers {
                 for (const aff in affRefs) {
                     const affUri = affRefs[aff] as string;
                     const refObj = this.parseTmRef(affUri);
-                    // TODO: compose model?
                     let source = await this.fetchModel(refObj.uri);
-                    // only interested in the first one FIXME: possible issues
                     [source] = await this.getPartialTDs(source);
-                    delete ((data[affType] as DataSchema)[aff])['tm:ref']; // FIXME:
+                    delete ((data[affType] as DataSchema)[aff])['tm:ref'];
                     const importedAffordance = this.getRefAffordance(refObj, source);
                     refObj.name = aff; // update the name of the affordance
                     modelInput.imports.push({ affordance: importedAffordance, ...refObj })
@@ -303,7 +225,7 @@ export default class ThingModelHelpers {
         return modelInput;
     }
 
-    public fillPlaceholder(data: Record<string, unknown>, map: Record<string, unknown>): ExposedThingInit {
+    private fillPlaceholder(data: Record<string, unknown>, map: Record<string, unknown>): ExposedThingInit {
         let dataString = JSON.stringify(data);
         for (const key in map) {
             const value = map[key];
@@ -391,15 +313,10 @@ export default class ThingModelHelpers {
                         "type": "application/td+json"
                     })
                     const tmpPartialSubTDs = await this.getPartialTDs(sub, options);
-                    // const modelInput  = await this.thingModelHelpers.fetchAffordances(model);
-                    // const extendedModel = await this.thingModelHelpers.composeModel(model, modelInput, 'http://test.com');
-                    // partialTDs.push(sub);
                     partialTDs.push(...tmpPartialSubTDs);
                     data = ThingModelHelpers.formatSubmodelLink(data, key, subNewHref);
                 }
             }
-            // partialTDs.unshift(data);
-            // data.links = submodelObjs; 
         }
         if (!('links' in data) || options.selfComposition) {
             data.links = [];
@@ -430,22 +347,142 @@ export default class ThingModelHelpers {
         partialTDs.unshift(data); // put itself as first element
         partialTDs = partialTDs.map(el => this.fillPlaceholder(el, options.map)); // TODO: make more efficient, since repeated each recursive call
         if (this.deps.length > 0) {
-            this.deps.pop();
+            this.removeDependency();
         }
         return partialTDs;
     }
+
+    public async getPartialTDs(model: ExposedThingInit, options?: CompositionOptions): Promise<ExposedThingInit[]> {
+        let isValid = ThingModelHelpers.validateExposedThingModelInit(model);
+        if (isValid.valid === false || isValid.errors !== undefined) {
+            throw new Error(isValid.errors);
+        }
+        isValid = this.checkPlaceholderMap(model, options?.map);
+        if (isValid.valid === false || isValid.errors !== undefined) {
+            throw new Error(isValid.errors);
+        }
+
+        const modelInput = await this.fetchAffordances(model);
+        const extendedModels = await this.composeModel(model, modelInput, options);
+        return extendedModels;
+    }
+
+
+    /**
+     * Helper function to remove reserved keywords in required property of TM JSON Schema
+     */
+    static createExposeThingInitSchema(tmSchema: unknown): SomeJSONSchema { // TODO: check me
+        const tmSchemaCopy = JSON.parse(JSON.stringify(tmSchema));
+
+        if (tmSchemaCopy.required !== undefined) {
+            const reservedKeywords: Array<string> = [
+                "title",
+                "@context",
+                "instance",
+                "forms",
+                "security",
+                "href",
+                "securityDefinitions",
+            ];
+            if (Array.isArray(tmSchemaCopy.required)) {
+                const reqProps: Array<string> = tmSchemaCopy.required;
+                tmSchemaCopy.required = reqProps.filter((n) => !reservedKeywords.includes(n));
+            } else if (typeof tmSchemaCopy.required === "string") {
+                if (reservedKeywords.indexOf(tmSchemaCopy.required) !== -1) delete tmSchemaCopy.required;
+            }
+        }
+
+        if (tmSchemaCopy.definitions !== undefined) {
+            for (const prop in tmSchemaCopy.definitions) {
+                tmSchemaCopy.definitions[prop] = this.createExposeThingInitSchema(tmSchemaCopy.definitions[prop]);
+            }
+        }
+
+        return tmSchemaCopy;
+    }
+
+    public static validateExposedThingModelInit(data: ExposedThingInit): { valid: boolean; errors: string } {
+        if (Array.isArray(data["@type"])) {
+            const valid = data["@type"].filter(x => x === 'tm:ThingModel').length > 0;
+            if (!valid) {
+                return {
+                    valid: false,
+                    errors: "ThingModel missing in @type array",
+                };
+            }
+        } else if (data["@type"] !== "tm:ThingModel") {
+            return {
+                valid: false,
+                errors: "ThingModel missing in @type definition",
+            };
+        }
+        const isValid = ThingModelHelpers.tsSchemaValidator(data);
+        let errors;
+        if (!isValid) {
+            errors = ThingModelHelpers.tsSchemaValidator.errors.map((o: ErrorObject) => o.message).join("\n");
+        }
+        return {
+            valid: isValid,
+            errors: errors,
+        };
+    }
+
+    private checkPlaceholderMap(model: ExposedThingInit, map: Record<string, unknown>): { valid: boolean; errors: string } {
+        const regex = '{{.*?}}';
+        const modelString = JSON.stringify(model);
+        // first check if model needs map
+        let keys = (modelString.match(new RegExp(regex, "g")) || []);
+        keys = keys.map(el => el.replace('{{', '').replace('}}', ''));
+        let isValid = true;
+        let errors;
+        if (keys && keys.length > 0 && (map === undefined || map === null)) {
+            isValid = false;
+            errors = `No map provided for model ${model.title}`;
+        } else if (keys.length > 0) {
+            keys.every(key => {
+                if (!(key in map)) {
+                    errors = `Missing required fields in map for model ${model.title}`;
+                    isValid = false;
+                    return false;
+                }
+                return true;
+            });
+        }
+        return {
+            valid: isValid,
+            errors: errors,
+        };
+
+    }  
+
 
     public async fetchModel(uri: string): Promise<ExposedThingInit> {
         this.addDependency(uri);
         return await this.helpers.fetch(uri) as ExposedThingInit;
     }
 
-    public async getPartialTDs(model: ExposedThingInit, options?: CompositionOptions): Promise<ExposedThingInit[]> {
-        const modelInput = await this.fetchAffordances(model);
-        const extendedModels = await this.composeModel(model, modelInput, options);
-        return extendedModels;
-    }
 
+    public static isThingModelThingDescription(data: Record<string, unknown>): boolean {
+        if (this.getThingModelRef(data).length > 0) { // FIXME: different from specifications
+            return true;
+        }
+        if ('links' in data && Array.isArray(data.links)) {
+            let foundTmExtendsRel = false;
+            data.links.forEach((link) => {
+                if (link.rel !== undefined && link.rel === "tm:extends") foundTmExtendsRel = true;
+            });
+            if (foundTmExtendsRel) return true;
+        }
+
+        if (data.properties !== undefined) {
+            for (const prop in <Record<string, unknown>>data.properties) {
+                const properties = <Record<string, Record<string, unknown>>>data.properties;
+                if (this.isThingModelThingDescription(properties[prop])) return true;
+            }
+        }
+
+        return false;
+    }
 
     private returnNewTMHref(baseUrl: string, tdname: string) {
         return `${baseUrl}/${tdname}.tm.jsonld`;
@@ -455,18 +492,27 @@ export default class ThingModelHelpers {
         return `${baseUrl}/${tdname}.td.jsonld`;
     }
 
+    public static getModelVersion(data: ExposedThingInit): string {
+        if (!('version' in data) || !('model' in data.version)) {
+            return null;
+        }
+        return data.version.model as string;
+    }
+
     private addDependency(dep: string) {
         if (this.deps.indexOf(dep) > -1) {
-            console.log(dep, this.deps)
             throw new Error(`Circular dependency found for ${dep}`);
         }
         this.deps.push(dep);
     }
 
-    private removeDependency(dep: string) {
-        this.deps = this.deps.filter(el => el !== dep);
+    private removeDependency(dep?: string) {
+        if (dep) {
+            this.deps = this.deps.filter(el => el !== dep);
+        } else {
+            this.deps.pop();
+        }
     }
-
 
 
 }
