@@ -1,7 +1,5 @@
-import { DataSchemaValue } from "wot-typescript-definitions";
-
 /********************************************************************************
- * Copyright (c) 2018 - 2021 Contributors to the Eclipse Foundation
+ * Copyright (c) 2021 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -14,6 +12,9 @@ import { DataSchemaValue } from "wot-typescript-definitions";
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
+
+import { DataSchemaValue } from "wot-typescript-definitions";
+
 export class NotReadableError extends Error {
     constructor(message: string) {
         super(message);

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 - 2021 Contributors to the Eclipse Foundation
+ * Copyright (c) 2019 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -163,7 +163,14 @@ export default class OpcuaClient implements ProtocolClient {
         if (result.statusCode === StatusCodes.BadNodeIdUnknown) {
             throw new Error("Invalid nodeId");
         }
-        const body = JSON.stringify(result.toJSON());
+        const body = JSON.stringify(result.toJSON(), (k, v) => {
+            if (ArrayBuffer.isView(v as ArrayLike<unknown>)) {
+                return Array.from(v);
+            } else {
+                return v;
+            }
+        });
+
         return { type: contentType, body: Readable.from(Buffer.from(body)) };
     }
 

@@ -51,6 +51,7 @@
         "start": "ts-node src/cli.ts",
         "debug": "node -r ts-node/register --inspect-brk=9229 src/cli.ts",
         "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
         "format": "prettier --write \"src/**/*.ts\" \"**/*.json\""
     },
     "bugs": {

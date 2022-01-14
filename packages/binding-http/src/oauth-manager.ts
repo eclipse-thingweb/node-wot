@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2020 - 2021 Contributors to the Eclipse Foundation
+ * Copyright (c) 2020 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -16,7 +16,7 @@
 import { OAuth2SecurityScheme } from "@node-wot/td-tools";
 import ClientOAuth2 from "client-oauth2";
 import { request, RequestOptions } from "https";
-import { parse } from "url";
+import { URL } from "url";
 import { OAuthCredential } from "./credential";
 
 function createRequestFunction(rejectUnauthorized: boolean) {
@@ -28,13 +28,13 @@ function createRequestFunction(rejectUnauthorized: boolean) {
         headers: { [key: string]: string | string[] }
     ): Promise<{ status: number; body: string }> => {
         return new Promise((resolve, reject) => {
-            const parsedURL = parse(url);
+            const parsedURL = new URL(url);
 
             const options: RequestOptions = {
                 method: method,
                 host: parsedURL.hostname,
                 port: parseInt(parsedURL.port),
-                path: parsedURL.path,
+                path: parsedURL.pathname + parsedURL.search,
                 headers: headers,
             };
 
@@ -43,7 +43,7 @@ function createRequestFunction(rejectUnauthorized: boolean) {
 
             req.on("response", (response) => {
                 response.setEncoding("utf8");
-                const body: Array<any> = [];
+                const body: Array<unknown> = [];
                 response.on("data", (data) => {
                     body.push(data);
                 });
@@ -64,10 +64,21 @@ function createRequestFunction(rejectUnauthorized: boolean) {
         });
     };
 }
+export interface OAuthClientCredentialsConfiguration {
+    clientId: string;
+    clientSecret: string;
+}
+export interface OAuthResourceOwnerConfiguration extends OAuthClientCredentialsConfiguration {
+    username: string;
+    password: string;
+}
+
 export default class OAuthManager {
     private tokenStore: Map<string, ClientOAuth2.Token> = new Map();
-    constructor() {}
-    handleClientCredential(securityScheme: OAuth2SecurityScheme, credentials: any): OAuthCredential {
+    handleClientCredential(
+        securityScheme: OAuth2SecurityScheme,
+        credentials: OAuthClientCredentialsConfiguration
+    ): OAuthCredential {
         const clientFlow: ClientOAuth2 = new ClientOAuth2(
             {
                 clientId: credentials.clientId,
@@ -87,7 +98,10 @@ export default class OAuthManager {
         return new OAuthCredential(token, clientFlow.credentials.getToken.bind(clientFlow.credentials));
     }
 
-    handleResourceOwnerCredential(securityScheme: OAuth2SecurityScheme, credentials: any): OAuthCredential {
+    handleResourceOwnerCredential(
+        securityScheme: OAuth2SecurityScheme,
+        credentials: OAuthResourceOwnerConfiguration
+    ): OAuthCredential {
         const clientFlow: ClientOAuth2 = new ClientOAuth2(
             {
                 clientId: credentials.clientId,

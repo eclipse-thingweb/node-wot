@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2021 Contributors to the Eclipse Foundation
+ * Copyright (c) <%= YEAR %> Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -12,23 +12,3 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-
-import { ProtocolClientFactory, ProtocolClient } from "@node-wot/core";
-import MBusClient from "./mbus-client";
-
-export default class MBusClientFactory implements ProtocolClientFactory {
-    public readonly scheme: string = "mbus+tcp";
-
-    public getClient(): ProtocolClient {
-        console.info("[binding-mbus]", `MBusClientFactory creating client for '${this.scheme}'`);
-        return new MBusClient();
-    }
-
-    public init(): boolean {
-        return true;
-    }
-
-    public destroy(): boolean {
-        return true;
-    }
-}

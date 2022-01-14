@@ -172,14 +172,19 @@ public class CopyrightFix {
         if (line != null && file != null) {
             Path path = Paths.get(file.getAbsolutePath());
 
+            // Note: we no longer use year ranges since it is optional, see https://www.eclipse.org/projects/handbook/#ip-copyright-headers
+            boolean useYearRange = false;
+
             int yearCreation = getCommitYear(file, true);
-            int yearLastModified = getCommitYear(file, false);
+            int yearLastModified = useYearRange ? getCommitYear(file, false) : yearCreation;
 
             String newLine = getNewLine(line, yearCreation, yearLastModified);
             if (!line.equals(newLine)) {
                 System.out.println(file);
-                // Note: need to re-run newLine call since after commit the yearLastModified changes to current year
-                yearLastModified = LocalDate.now().getYear();
+                if (useYearRange) {
+                    // Note: need to re-run newLine call since after commit the yearLastModified changes to current year
+                    yearLastModified = LocalDate.now().getYear();
+                }
                 newLine = getNewLine(line, yearCreation, yearLastModified);
                 System.out.println("\t change " + line + " --> " + newLine);
                 updateCopyrightLine(path, lineNumber, newLine);

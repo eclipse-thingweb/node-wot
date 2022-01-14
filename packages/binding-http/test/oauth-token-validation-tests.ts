@@ -1,3 +1,18 @@
+/********************************************************************************
+ * Copyright (c) 2021 Contributors to the Eclipse Foundation
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v. 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0, or the W3C Software Notice and
+ * Document License (2015-05-13) which is available at
+ * https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
+ ********************************************************************************/
+
 import { suite, test } from "@testdeck/mocha";
 import express from "express";
 import { should } from "chai";
@@ -29,8 +44,11 @@ describe("OAuth2.0 Validator tests", () => {
         private validator: Validator;
         static server: http.Server;
         static before() {
+            // eslint-disable-next-line @typescript-eslint/no-empty-function
             console.debug = () => {};
+            // eslint-disable-next-line @typescript-eslint/no-empty-function
             console.warn = () => {};
+            // eslint-disable-next-line @typescript-eslint/no-empty-function
             console.info = () => {};
 
             const tokens = ["active", "notActive"];
@@ -212,7 +230,7 @@ describe("OAuth2.0 Validator tests", () => {
             };
 
             try {
-                const valid = await this.validator.validate(req as http.IncomingMessage, [], /.*/g);
+                await this.validator.validate(req as http.IncomingMessage, [], /.*/g);
                 assert(false, "method did not throw");
             } catch (error) {
                 assert(true);
@@ -234,7 +252,7 @@ describe("OAuth2.0 Validator tests", () => {
             };
 
             try {
-                const valid = await this.validator.validate(req as http.IncomingMessage, [], /.*/g);
+                await this.validator.validate(req as http.IncomingMessage, [], /.*/g);
                 assert(false, "method did not throw");
             } catch (error) {
                 assert(true);
@@ -256,7 +274,7 @@ describe("OAuth2.0 Validator tests", () => {
             };
 
             try {
-                const valid = await this.validator.validate(req as http.IncomingMessage, [], /.*/g);
+                await this.validator.validate(req as http.IncomingMessage, [], /.*/g);
                 assert(false, "method did not throw");
             } catch (error) {
                 assert(true);
@@ -278,7 +296,7 @@ describe("OAuth2.0 Validator tests", () => {
             };
 
             try {
-                const valid = await this.validator.validate(req as http.IncomingMessage, [], /.*/g);
+                await this.validator.validate(req as http.IncomingMessage, [], /.*/g);
                 assert(false, "method did not throw");
             } catch (error) {
                 assert(true);
