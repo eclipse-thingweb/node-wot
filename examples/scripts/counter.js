@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
+ * Copyright (c) 2022 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -141,9 +141,9 @@ WoT.produce({
             let fill = "black";
             if (options && typeof options === "object" && "uriVariables" in options) {
                 console.log("options = " + JSON.stringify(options));
-                if ("fill" in options["uriVariables"]) {
-                    let uriVariables = options["uriVariables"];
-                    fill = uriVariables["fill"];
+                if ("fill" in options.uriVariables) {
+                    const uriVariables = options.uriVariables;
+                    fill = uriVariables.fill;
                 }
             }
             return (
@@ -166,12 +166,12 @@ WoT.produce({
             let step = 1;
             if (options && typeof options === "object" && "uriVariables" in options) {
                 console.log("options = " + JSON.stringify(options));
-                if ("step" in options["uriVariables"]) {
-                    let uriVariables = options["uriVariables"];
-                    step = uriVariables["step"];
+                if ("step" in options.uriVariables) {
+                    const uriVariables = options.uriVariables;
+                    step = uriVariables.step;
                 }
             }
-            let newValue = count + step;
+            const newValue = count + step;
             console.log("Incrementing count from " + count + " to " + newValue + " (with step " + step + ")");
             count = newValue;
             lastChange = new Date().toISOString();
@@ -182,12 +182,12 @@ WoT.produce({
             let step = 1;
             if (options && typeof options === "object" && "uriVariables" in options) {
                 console.log("options = " + JSON.stringify(options));
-                if ("step" in options["uriVariables"]) {
-                    let uriVariables = options["uriVariables"];
-                    step = uriVariables["step"];
+                if ("step" in options.uriVariables) {
+                    const uriVariables = options.uriVariables;
+                    step = uriVariables.step;
                 }
             }
-            let newValue = count - step;
+            const newValue = count - step;
             console.log("Decrementing count from " + count + " to " + newValue + " (with step " + step + ")");
             count = newValue;
             lastChange = new Date().toISOString();

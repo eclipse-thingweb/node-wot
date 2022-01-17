@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2020 Contributors to the Eclipse Foundation
+ * Copyright (c) 2022 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -146,7 +146,7 @@ WoT.produce({
             if (options && typeof options === "object" && "uriVariables" in options) {
                 console.log("options = " + JSON.stringify(options));
                 if ("fill" in options.uriVariables) {
-                    const uriVariables: any = options.uriVariables;
+                    const uriVariables = options.uriVariables as Record<string, string>;
                     fill = uriVariables.fill;
                 }
             }
@@ -172,8 +172,8 @@ WoT.produce({
             if (options && typeof options === "object" && "uriVariables" in options) {
                 console.log("options = " + JSON.stringify(options));
                 if ("step" in options.uriVariables) {
-                    const uriVariables: any = options.uriVariables;
-                    step = uriVariables.step;
+                    const uriVariables = options.uriVariables as Record<string, unknown>;
+                    step = uriVariables.step as number;
                 }
             }
             const newValue = count + step;
@@ -188,8 +188,8 @@ WoT.produce({
             if (options && typeof options === "object" && "uriVariables" in options) {
                 console.log("options = " + JSON.stringify(options));
                 if ("step" in options.uriVariables) {
-                    const uriVariables: any = options.uriVariables;
-                    step = uriVariables.step;
+                    const uriVariables = options.uriVariables as Record<string, unknown>;
+                    step = uriVariables.step as number;
                 }
             }
             const newValue = count - step;
