@@ -47,7 +47,7 @@
         "@types/chai-as-promised": "^7.1.4",
         "@types/mocha": "^9.0.0",
         "@types/node": "16.4.13",
-        "@types/readable-stream": "^2.3.11",
+        "@types/readable-stream": "^2.3.13",
         "@types/sinon": "^10.0.2",
         "@typescript-eslint/eslint-plugin": "^4.30.0",
         "@typescript-eslint/parser": "^4.30.0",
