@@ -26,19 +26,18 @@ import { expect } from "chai";
 import { ExposedThingInit } from "wot-typescript-definitions";
 
 import ThingModelHelpers, { CompositionOptions, modelComposeInput } from "../../src/thing-model-helpers";
-import { promises as fs } from 'fs';
+import { promises as fs } from "fs";
 import Servient from "../../src/core";
-import { HttpClientFactory } from '@node-wot/binding-http'
-import { FileClientFactory } from '@node-wot/binding-file'
+import { HttpClientFactory } from "@node-wot/binding-http";
+import { FileClientFactory } from "@node-wot/binding-file";
 
 @suite("tests to verify the Thing Model Helper")
 class ThingModelHelperTest {
-
     private srv: Servient;
     private thingModelHelpers: ThingModelHelpers;
     async before() {
         this.srv = new Servient();
-        this.srv.addClientFactory(new HttpClientFactory())
+        this.srv.addClientFactory(new HttpClientFactory());
         this.srv.addClientFactory(new FileClientFactory());
         this.thingModelHelpers = new ThingModelHelpers(this.srv);
         await this.srv.start();
@@ -47,7 +46,7 @@ class ThingModelHelperTest {
     @test "should correctly validate tm schema with ThingModel in @type"() {
         const thing: ExposedThingInit = {
             title: "thingTest",
-            "@type": 'tm:ThingModel',
+            "@type": "tm:ThingModel",
             properties: {
                 myProp: {
                     type: "number",
@@ -63,34 +62,34 @@ class ThingModelHelperTest {
     }
 
     @test "should correctly return the right links"() {
-            const thing: ExposedThingInit = {
-                title: "thingTest",
-                "@type": 'tm:ThingModel',
-                "links": [
-                    {
-                      "rel": "tm:submodel",
-                      "href": "./Ventilation.tm.jsonld",
-                      "type": "application/tm+json",
-                      "instanceName": "ventilation"
-                    },
-                    {
-                      "rel": "tm:submodel",
-                      "href": "./LED.tm.jsonld",
-                      "type": "application/tm+json",
-                      "instanceName": "led"
-                    }
-                  ], 
-            };
+        const thing: ExposedThingInit = {
+            title: "thingTest",
+            "@type": "tm:ThingModel",
+            links: [
+                {
+                    rel: "tm:submodel",
+                    href: "./Ventilation.tm.jsonld",
+                    type: "application/tm+json",
+                    instanceName: "ventilation",
+                },
+                {
+                    rel: "tm:submodel",
+                    href: "./LED.tm.jsonld",
+                    type: "application/tm+json",
+                    instanceName: "led",
+                },
+            ],
+        };
 
-            const extLinks = ThingModelHelpers['getThingModelLinks'](thing, 'tm:submodel');
-            expect(extLinks).to.have.lengthOf(2);
-            // expect(validated.errors).to.be.undefined;
-        }
+        const extLinks = ThingModelHelpers["getThingModelLinks"](thing, "tm:submodel");
+        expect(extLinks).to.have.lengthOf(2);
+        // expect(validated.errors).to.be.undefined;
+    }
 
     @test "should correctly validate tm schema with ThingModel in @type array "() {
         const thing: ExposedThingInit = {
             title: "thingTest",
-            "@type": ['random:Type', 'tm:ThingModel'],
+            "@type": ["random:Type", "tm:ThingModel"],
             properties: {
                 myProp: {
                     type: "number",
@@ -108,7 +107,7 @@ class ThingModelHelperTest {
     @test "should reject schema on validation because missing ThingModel definition"() {
         const thing: ExposedThingInit = {
             title: "thingTest",
-            "@type": 'random:Type',
+            "@type": "random:Type",
             links: [
                 {
                     rel: "tm:extend",
@@ -131,18 +130,18 @@ class ThingModelHelperTest {
     @test "should correctly return the model version"() {
         let thing: ExposedThingInit = {
             title: "thingTest",
-            "@type": ['random:Type', 'tm:ThingModel'],
-            version: { model: '0.0.1'} // TODO: check is version is valid
+            "@type": ["random:Type", "tm:ThingModel"],
+            version: { model: "0.0.1" }, // TODO: check is version is valid
         };
 
         let version = ThingModelHelpers.getModelVersion(thing);
 
-        expect(version).to.be.equal('0.0.1');
+        expect(version).to.be.equal("0.0.1");
 
         thing = {
             title: "thingTest",
-            "@type": ['random:Type', 'tm:ThingModel'],
-            version: {}
+            "@type": ["random:Type", "tm:ThingModel"],
+            version: {},
         };
 
         version = ThingModelHelpers.getModelVersion(thing);
@@ -150,202 +149,196 @@ class ThingModelHelperTest {
 
         thing = {
             title: "thingTest",
-            "@type": ['random:Type', 'tm:ThingModel']
+            "@type": ["random:Type", "tm:ThingModel"],
         };
 
         version = ThingModelHelpers.getModelVersion(thing);
         expect(version).to.be.null;
-
     }
 
-     @test async "should correctly extend a thing model with properties"() {
-        const modelJSON = await fs.readFile('test/thing-model/tmodels/SmartLampControlExtend.jsonld');
-        const finalJSON = await fs.readFile('test/thing-model/tmodels/SmartLampControlExtended.jsonld');
+    @test async "should correctly extend a thing model with properties"() {
+        const modelJSON = await fs.readFile("test/thing-model/tmodels/SmartLampControlExtend.jsonld");
+        const finalJSON = await fs.readFile("test/thing-model/tmodels/SmartLampControlExtended.jsonld");
         const model = JSON.parse(modelJSON.toString()) as ExposedThingInit;
         const finalModel = JSON.parse(finalJSON.toString()) as ExposedThingInit;
 
-        const modelInput  = await this.thingModelHelpers.fetchAffordances(model);
+        const modelInput = await this.thingModelHelpers.fetchAffordances(model);
         const [extendedModel] = await this.thingModelHelpers.composeModel(model, modelInput);
         expect(extendedModel).to.be.deep.equal(finalModel);
-
     }
 
     @test async "should correctly extend a thing model with actions"() {
-        const modelJSON = await fs.readFile('test/thing-model/tmodels/SmartLampControlExtend.jsonld');
+        const modelJSON = await fs.readFile("test/thing-model/tmodels/SmartLampControlExtend.jsonld");
         const model = JSON.parse(modelJSON.toString()) as ExposedThingInit;
         const finalModel = {
             "@type": "Thing",
-            "title": "Smart Lamp Control with Dimming",
-            "links": [
+            title: "Smart Lamp Control with Dimming",
+            links: [
                 {
-                    "rel": "type",
-                    "href": "./SmartLampControlwithDimming.tm.jsonld",
-                    "type": "application/tm+json"
-                }
+                    rel: "type",
+                    href: "./SmartLampControlwithDimming.tm.jsonld",
+                    type: "application/tm+json",
+                },
             ],
             properties: {
-                "dim": {
-                    "title": "Dimming level",
-                    "type": "integer",
-                    "minimum": 0,
-                    "maximum": 100
-                }
+                dim: {
+                    title: "Dimming level",
+                    type: "integer",
+                    minimum: 0,
+                    maximum: 100,
+                },
             },
             actions: {
-               toggle: { type: 'boolean'}
-            }
+                toggle: { type: "boolean" },
+            },
         };
         const modelInput: modelComposeInput = {
             extends: [
                 {
                     actions: {
-                        toggle: { type: 'boolean' }
-                    }
-                }]
-        }
+                        toggle: { type: "boolean" },
+                    },
+                },
+            ],
+        };
         const [extendedModel] = await this.thingModelHelpers.composeModel(model, modelInput);
         expect(extendedModel).to.be.deep.equal(finalModel);
     }
 
     @test async "should correctly import a property in a thing model"() {
-        const modelJSON = await fs.readFile('test/thing-model/tmodels/SmartLampControlImport.jsonld');
-        const finalJSON = await fs.readFile('test/thing-model/tmodels/SmartLampControlImported.jsonld');
+        const modelJSON = await fs.readFile("test/thing-model/tmodels/SmartLampControlImport.jsonld");
+        const finalJSON = await fs.readFile("test/thing-model/tmodels/SmartLampControlImported.jsonld");
         const model = JSON.parse(modelJSON.toString()) as ExposedThingInit;
         const finalModel = JSON.parse(finalJSON.toString()) as ExposedThingInit;
         // const validated = ThingModelHelpers.validateExposedThingModelInit(model);
-        const modelInput  = await this.thingModelHelpers.fetchAffordances(model);
-        const [importedModel]  = await this.thingModelHelpers.composeModel(model, modelInput);
+        const modelInput = await this.thingModelHelpers.fetchAffordances(model);
+        const [importedModel] = await this.thingModelHelpers.composeModel(model, modelInput);
         expect(importedModel).to.be.deep.equal(finalModel);
     }
-
-
-
 
     @test async "should correctly import a property and remove a field of the property"() {
         const thingModel: ExposedThingInit = {
             title: "thingTest",
-            "@type": ['random:Type', 'tm:ThingModel'],
+            "@type": ["random:Type", "tm:ThingModel"],
             properties: {
-                "timestamp1": {
+                timestamp1: {
                     "tm:ref": "file://./test/thing-model/tmodels/OnOff.jsonld#/properties/timestamp",
-                    "description": null
-                }
-            }
+                    description: null,
+                },
+            },
         };
 
         const finalThingModel = {
             title: "thingTest",
-            "@type": ['random:Type', 'Thing'],
+            "@type": ["random:Type", "Thing"],
             properties: {
-                "timestamp1": {
-                    "type": "number",
-                    "minimum": 0,
-                    "maximum": 300
-                }
+                timestamp1: {
+                    type: "number",
+                    minimum: 0,
+                    maximum: 300,
+                },
             },
-            "links": [
+            links: [
                 {
-                    "rel": "type",
-                    "href": "./thingTest.tm.jsonld",
-                    "type": "application/tm+json"
-                }
-            ]
+                    rel: "type",
+                    href: "./thingTest.tm.jsonld",
+                    type: "application/tm+json",
+                },
+            ],
         };
         const modelInput = await this.thingModelHelpers.fetchAffordances(thingModel);
         const [importedModel] = await this.thingModelHelpers.composeModel(thingModel, modelInput);
         expect(importedModel).to.be.deep.equal(finalThingModel);
-
     }
 
     @test async "should correctly import an action and add a field to the action"() {
         const thingModel: ExposedThingInit = {
             title: "thingTest",
-            "@type": ['random:Type', 'tm:ThingModel'],
+            "@type": ["random:Type", "tm:ThingModel"],
             actions: {
                 toggle1: {
-                    "description": "This is a description",
-                }
-            }
+                    description: "This is a description",
+                },
+            },
         };
         const modelInput: modelComposeInput = {
             imports: [
                 {
-                    affordance: { type: 'boolean' },
-                    type: 'actions',
-                    name: 'toggle1'
-                }
-            ]
-        }
+                    affordance: { type: "boolean" },
+                    type: "actions",
+                    name: "toggle1",
+                },
+            ],
+        };
 
         const finalThingModel = {
             title: "thingTest",
-            "@type": ['random:Type', 'Thing'],
-            "actions": {
-                "toggle1": {
-                    "type": "boolean",
-                    "description": "This is a description",
-                }
+            "@type": ["random:Type", "Thing"],
+            actions: {
+                toggle1: {
+                    type: "boolean",
+                    description: "This is a description",
+                },
             },
-            "links": [
+            links: [
                 {
-                    "rel": "type",
-                    "href": "./thingTest.tm.jsonld",
-                    "type": "application/tm+json"
-                }
-            ]
+                    rel: "type",
+                    href: "./thingTest.tm.jsonld",
+                    type: "application/tm+json",
+                },
+            ],
         };
         const [importedModel] = await this.thingModelHelpers.composeModel(thingModel, modelInput);
         expect(importedModel).to.be.deep.equal(finalThingModel);
-
     }
 
     @test async "should correctly fill placeholders"() {
         const thing = {
             "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
             "@type": "tm:ThingModel",
-            "title": "Thermostate No. {{THERMOSTATE_NUMBER}}",
-            "base": "mqtt://{{MQTT_BROKER_ADDRESS}}",
-            "properties": {
-                "temperature": {
-                    "description": "Shows the current temperature value",
-                    "type": "number",
-                    "minimum": "{{THERMOSTATE_NUMBER}}",
-                    "maximum": "{{THERMOSTATE_TEMPERATURE_MAXIMUM}}",
-                    "observable": "{{THERMOSTATE_TEMPERATURE_OBSERVABLE}}"
-                }
-            }
+            title: "Thermostate No. {{THERMOSTATE_NUMBER}}",
+            base: "mqtt://{{MQTT_BROKER_ADDRESS}}",
+            properties: {
+                temperature: {
+                    description: "Shows the current temperature value",
+                    type: "number",
+                    minimum: "{{THERMOSTATE_NUMBER}}",
+                    maximum: "{{THERMOSTATE_TEMPERATURE_MAXIMUM}}",
+                    observable: "{{THERMOSTATE_TEMPERATURE_OBSERVABLE}}",
+                },
+            },
         } as unknown as ExposedThingInit;
         const map = {
-            "THERMOSTATE_NUMBER": 4,
-            "MQTT_BROKER_ADDRESS": "192.168.178.72:1883",
-            "THERMOSTATE_TEMPERATURE_MAXIMUM": 47.7,
-            "THERMOSTATE_TEMPERATURE_OBSERVABLE": true
-        }
+            THERMOSTATE_NUMBER: 4,
+            MQTT_BROKER_ADDRESS: "192.168.178.72:1883",
+            THERMOSTATE_TEMPERATURE_MAXIMUM: 47.7,
+            THERMOSTATE_TEMPERATURE_OBSERVABLE: true,
+        };
         const finalJSON = {
             "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
             "@type": "Thing",
-            "title": "Thermostate No. 4",
-            "base": "mqtt://192.168.178.72:1883",
-            "links": [
+            title: "Thermostate No. 4",
+            base: "mqtt://192.168.178.72:1883",
+            links: [
                 {
-                    "href": "./ThermostateNo.4.tm.jsonld",
-                    "rel": "type",
-                    "type": "application/tm+json"
-                }
+                    href: "./ThermostateNo.4.tm.jsonld",
+                    rel: "type",
+                    type: "application/tm+json",
+                },
             ],
-            "properties": {
-                "temperature": {
-                    "description": "Shows the current temperature value",
-                    "type": "number",
-                    "minimum": 4,
-                    "maximum": 47.7,
-                    "observable": true
-                }
-            }
-        }
+            properties: {
+                temperature: {
+                    description: "Shows the current temperature value",
+                    type: "number",
+                    minimum: 4,
+                    maximum: 47.7,
+                    observable: true,
+                },
+            },
+        };
         const options: CompositionOptions = {
             map,
-            selfComposition: false 
+            selfComposition: false,
         };
         const [partialTd] = await this.thingModelHelpers.getPartialTDs(thing, options);
         expect(partialTd).to.be.deep.equal(finalJSON);
@@ -355,31 +348,30 @@ class ThingModelHelperTest {
         const thing = {
             "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
             "@type": "tm:ThingModel",
-            "title": "Thermostate No. {{THERMOSTATE_NUMBER}}",
-            "base": "mqtt://{{MQTT_BROKER_ADDRESS}}",
-            "properties": {
-                "temperature": {
-                    "description": "Shows the current temperature value",
-                    "type": "number",
-                    "minimum": "{{THERMOSTATE_NUMBER}}",
-                    "maximum": "{{THERMOSTATE_TEMPERATURE_MAXIMUM}}",
-                    "observable": "{{THERMOSTATE_TEMPERATURE_OBSERVABLE}}"
-                }
-            }
+            title: "Thermostate No. {{THERMOSTATE_NUMBER}}",
+            base: "mqtt://{{MQTT_BROKER_ADDRESS}}",
+            properties: {
+                temperature: {
+                    description: "Shows the current temperature value",
+                    type: "number",
+                    minimum: "{{THERMOSTATE_NUMBER}}",
+                    maximum: "{{THERMOSTATE_TEMPERATURE_MAXIMUM}}",
+                    observable: "{{THERMOSTATE_TEMPERATURE_OBSERVABLE}}",
+                },
+            },
         } as unknown as ExposedThingInit;
         const map = {
             // "THERMOSTATE_NUMBER": 4,
-            "MQTT_BROKER_ADDRESS": "192.168.178.72:1883",
-            "THERMOSTATE_TEMPERATURE_MAXIMUM": 47.7,
-            "THERMOSTATE_TEMPERATURE_OBSERVABLE": true
-        }
+            MQTT_BROKER_ADDRESS: "192.168.178.72:1883",
+            THERMOSTATE_TEMPERATURE_MAXIMUM: 47.7,
+            THERMOSTATE_TEMPERATURE_OBSERVABLE: true,
+        };
         const options: CompositionOptions = {
             map,
-            selfComposition: false 
+            selfComposition: false,
         };
-        const validated = this.thingModelHelpers['checkPlaceholderMap'](thing, options.map);
+        const validated = this.thingModelHelpers["checkPlaceholderMap"](thing, options.map);
         expect(validated.valid).to.be.false;
         expect(validated.errors).to.be.equal(`Missing required fields in map for model ${thing.title}`);
     }
-
 }

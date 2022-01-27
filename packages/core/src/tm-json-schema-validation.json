@@ -53,18 +53,11 @@
         },
         "subprotocol": {
             "type": "string",
-            "examples": [
-                "longpoll",
-                "websub",
-                "sse"
-            ]
+            "examples": ["longpoll", "websub", "sse"]
         },
         "thing-context-w3c-uri": {
             "type": "string",
-            "enum": [
-                "https://www.w3.org/2019/wot/td/v1",
-                "http://www.w3.org/ns/td"
-            ]
+            "enum": ["https://www.w3.org/2019/wot/td/v1", "http://www.w3.org/ns/td"]
         },
         "thing-context": {
             "oneOf": [
@@ -110,15 +103,7 @@
                     "type": "string",
                     "anyOf": [
                         {
-                            "enum": [
-                                "boolean",
-                                "integer",
-                                "number",
-                                "string",
-                                "object",
-                                "array",
-                                "null"
-                            ]
+                            "enum": ["boolean", "integer", "number", "string", "object", "array", "null"]
                         },
                         {
                             "type": "string",
@@ -132,15 +117,7 @@
                         "type": "string",
                         "anyOf": [
                             {
-                                "enum": [
-                                    "boolean",
-                                    "integer",
-                                    "number",
-                                    "string",
-                                    "object",
-                                    "array",
-                                    "null"
-                                ]
+                                "enum": ["boolean", "integer", "number", "string", "object", "array", "null"]
                             },
                             {
                                 "type": "string",
@@ -340,10 +317,7 @@
         "multipleOfDefinition": {
             "anyOf": [
                 {
-                    "type": [
-                        "integer",
-                        "number"
-                    ],
+                    "type": ["integer", "number"],
                     "exclusiveMinimum": 0
                 },
                 {
@@ -417,12 +391,7 @@
                             "type": "string",
                             "anyOf": [
                                 {
-                                    "enum": [
-                                        "readproperty",
-                                        "writeproperty",
-                                        "observeproperty",
-                                        "unobserveproperty"
-                                    ]
+                                    "enum": ["readproperty", "writeproperty", "observeproperty", "unobserveproperty"]
                                 },
                                 {
                                     "type": "string",
@@ -472,11 +441,7 @@
                             "type": "string",
                             "anyOf": [
                                 {
-                                    "enum": [
-                                        "invokeaction",
-                                        "queryaction",
-                                        "cancelaction"
-                                    ]
+                                    "enum": ["invokeaction", "queryaction", "cancelaction"]
                                 },
                                 {
                                     "type": "string",
@@ -490,11 +455,7 @@
                                 "type": "string",
                                 "anyOf": [
                                     {
-                                        "enum": [
-                                            "invokeaction",
-                                            "queryaction",
-                                            "cancelaction"
-                                        ]
+                                        "enum": ["invokeaction", "queryaction", "cancelaction"]
                                     },
                                     {
                                         "type": "string",
@@ -525,10 +486,7 @@
                             "type": "string",
                             "anyOf": [
                                 {
-                                    "enum": [
-                                        "subscribeevent",
-                                        "unsubscribeevent"
-                                    ]
+                                    "enum": ["subscribeevent", "unsubscribeevent"]
                                 },
                                 {
                                     "type": "string",
@@ -542,10 +500,7 @@
                                 "type": "string",
                                 "anyOf": [
                                     {
-                                        "enum": [
-                                            "subscribeevent",
-                                            "unsubscribeevent"
-                                        ]
+                                        "enum": ["subscribeevent", "unsubscribeevent"]
                                     },
                                     {
                                         "type": "string",
@@ -973,9 +928,7 @@
                         "properties": {
                             "sizes": {}
                         },
-                        "required": [
-                            "sizes"
-                        ]
+                        "required": ["sizes"]
                     }
                 },
                 {
@@ -985,9 +938,7 @@
                             "rel": {
                                 "anyOf": [
                                     {
-                                        "enum": [
-                                            "icon"
-                                        ]
+                                        "enum": ["icon"]
                                     },
                                     {
                                         "type": "string",
@@ -996,9 +947,7 @@
                                 ]
                             }
                         },
-                        "required": [
-                            "rel"
-                        ]
+                        "required": ["rel"]
                     }
                 }
             ]
@@ -1018,9 +967,7 @@
                             "pattern": "[0-9]*x[0-9]+"
                         }
                     },
-                    "required": [
-                        "rel"
-                    ]
+                    "required": ["rel"]
                 }
             ]
         },
@@ -1043,9 +990,7 @@
                     "type": "string",
                     "anyOf": [
                         {
-                            "enum": [
-                                "nosec"
-                            ]
+                            "enum": ["nosec"]
                         },
                         {
                             "type": "string",
@@ -1079,9 +1024,7 @@
                             "type": "string",
                             "anyOf": [
                                 {
-                                    "enum": [
-                                        "combo"
-                                    ]
+                                    "enum": ["combo"]
                                 },
                                 {
                                     "type": "string",
@@ -1120,9 +1063,7 @@
                             "type": "string",
                             "anyOf": [
                                 {
-                                    "enum": [
-                                        "combo"
-                                    ]
+                                    "enum": ["combo"]
                                 },
                                 {
                                     "type": "string",
@@ -1163,9 +1104,7 @@
                     "type": "string",
                     "anyOf": [
                         {
-                            "enum": [
-                                "basic"
-                            ]
+                            "enum": ["basic"]
                         },
                         {
                             "type": "string",
@@ -1177,12 +1116,7 @@
                     "type": "string",
                     "anyOf": [
                         {
-                            "enum": [
-                                "header",
-                                "query",
-                                "body",
-                                "cookie"
-                            ]
+                            "enum": ["header", "query", "body", "cookie"]
                         },
                         {
                             "type": "string",
@@ -1217,9 +1151,7 @@
                     "type": "string",
                     "anyOf": [
                         {
-                            "enum": [
-                                "digest"
-                            ]
+                            "enum": ["digest"]
                         },
                         {
                             "type": "string",
@@ -1231,10 +1163,7 @@
                     "type": "string",
                     "anyOf": [
                         {
-                            "enum": [
-                                "auth",
-                                "auth-int"
-                            ]
+                            "enum": ["auth", "auth-int"]
                         },
                         {
                             "type": "string",
@@ -1246,12 +1175,7 @@
                     "type": "string",
                     "anyOf": [
                         {
-                            "enum": [
-                                "header",
-                                "query",
-                                "body",
-                                "cookie"
-                            ]
+                            "enum": ["header", "query", "body", "cookie"]
                         },
                         {
                             "type": "string",
@@ -1286,9 +1210,7 @@
                     "type": "string",
                     "anyOf": [
                         {
-                            "enum": [
-                                "apikey"
-                            ]
+                            "enum": ["apikey"]
                         },
                         {
                             "type": "string",
@@ -1300,12 +1222,7 @@
                     "type": "string",
                     "anyOf": [
                         {
-                            "enum": [
-                                "header",
-                                "query",
-                                "body",
-                                "cookie"
-                            ]
+                            "enum": ["header", "query", "body", "cookie"]
                         },
                         {
                             "type": "string",
@@ -1340,9 +1257,7 @@
                     "type": "string",
                     "anyOf": [
                         {
-                            "enum": [
-                                "bearer"
-                            ]
+                            "enum": ["bearer"]
                         },
                         {
                             "type": "string",
@@ -1363,12 +1278,7 @@
                     "type": "string",
                     "anyOf": [
                         {
-                            "enum": [
-                                "header",
-                                "query",
-                                "body",
-                                "cookie"
-                            ]
+                            "enum": ["header", "query", "body", "cookie"]
                         },
                         {
                             "type": "string",
@@ -1403,9 +1313,7 @@
                     "type": "string",
                     "anyOf": [
                         {
-                            "enum": [
-                                "psk"
-                            ]
+                            "enum": ["psk"]
                         },
                         {
                             "type": "string",
@@ -1440,9 +1348,7 @@
                     "type": "string",
                     "anyOf": [
                         {
-                            "enum": [
-                                "oauth2"
-                            ]
+                            "enum": ["oauth2"]
                         },
                         {
                             "type": "string",
@@ -1481,11 +1387,7 @@
                             "type": "string",
                             "anyOf": [
                                 {
-                                    "enum": [
-                                        "code",
-                                        "client",
-                                        "device"
-                                    ]
+                                    "enum": ["code", "client", "device"]
                                 },
                                 {
                                     "type": "string",
@@ -1671,8 +1573,5 @@
         }
     },
     "additionalProperties": true,
-    "required": [
-        "@context",
-        "@type"
-    ]
+    "required": ["@context", "@type"]
 }

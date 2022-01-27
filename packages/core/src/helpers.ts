@@ -169,8 +169,6 @@ export default class Helpers {
         });
     }
 
-
-
     /**
      *  helper function to extend class
      */
@@ -230,7 +228,6 @@ export default class Helpers {
 
         return tdSchemaCopy;
     }
-
 
     /**
      * Helper function to validate an ExposedThingInit
