@@ -1,0 +1,1678 @@
+{
+    "title": "Thing Model",
+    "version": "1.1-29-December-2021",
+    "description": "JSON Schema for validating Thing Models. This is automatically generated from the WoT TD Schema.",
+    "$schema ": "http://json-schema.org/draft-07/schema#",
+    "definitions": {
+        "anyUri": {
+            "type": "string"
+        },
+        "description": {
+            "type": "string"
+        },
+        "descriptions": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
+        },
+        "title": {
+            "type": "string"
+        },
+        "titles": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
+        },
+        "security": {
+            "oneOf": [
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "type": "string"
+                }
+            ]
+        },
+        "scopes": {
+            "oneOf": [
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "type": "string"
+                }
+            ]
+        },
+        "subprotocol": {
+            "type": "string",
+            "examples": [
+                "longpoll",
+                "websub",
+                "sse"
+            ]
+        },
+        "thing-context-w3c-uri": {
+            "type": "string",
+            "enum": [
+                "https://www.w3.org/2019/wot/td/v1",
+                "http://www.w3.org/ns/td"
+            ]
+        },
+        "thing-context": {
+            "oneOf": [
+                {
+                    "type": "array",
+                    "items": [
+                        {
+                            "$ref": "#/definitions/thing-context-w3c-uri"
+                        }
+                    ],
+                    "additionalItems": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/definitions/anyUri"
+                            },
+                            {
+                                "type": "object"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "$ref": "#/definitions/thing-context-w3c-uri"
+                }
+            ]
+        },
+        "type_declaration": {
+            "oneOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
+        "dataSchema-type": {
+            "oneOf": [
+                {
+                    "type": "string",
+                    "anyOf": [
+                        {
+                            "enum": [
+                                "boolean",
+                                "integer",
+                                "number",
+                                "string",
+                                "object",
+                                "array",
+                                "null"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                        }
+                    ]
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "anyOf": [
+                            {
+                                "enum": [
+                                    "boolean",
+                                    "integer",
+                                    "number",
+                                    "string",
+                                    "object",
+                                    "array",
+                                    "null"
+                                ]
+                            },
+                            {
+                                "type": "string",
+                                "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        "dataSchema": {
+            "type": "object",
+            "properties": {
+                "@type": {
+                    "$ref": "#/definitions/type_declaration"
+                },
+                "description": {
+                    "$ref": "#/definitions/description"
+                },
+                "title": {
+                    "$ref": "#/definitions/title"
+                },
+                "descriptions": {
+                    "$ref": "#/definitions/descriptions"
+                },
+                "titles": {
+                    "$ref": "#/definitions/titles"
+                },
+                "writeOnly": {
+                    "anyOf": [
+                        {
+                            "type": "boolean"
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                        }
+                    ]
+                },
+                "readOnly": {
+                    "anyOf": [
+                        {
+                            "type": "boolean"
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                        }
+                    ]
+                },
+                "oneOf": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dataSchema"
+                    }
+                },
+                "unit": {
+                    "type": "string"
+                },
+                "enum": {
+                    "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true
+                },
+                "format": {
+                    "type": "string"
+                },
+                "const": {},
+                "contentEncoding": {
+                    "type": "string"
+                },
+                "contentMediaType": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/dataSchema-type"
+                },
+                "items": {
+                    "oneOf": [
+                        {
+                            "$ref": "#/definitions/dataSchema"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dataSchema"
+                            }
+                        }
+                    ]
+                },
+                "maxItems": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                        }
+                    ]
+                },
+                "minItems": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                        }
+                    ]
+                },
+                "minimum": {
+                    "anyOf": [
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                        }
+                    ]
+                },
+                "maximum": {
+                    "anyOf": [
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                        }
+                    ]
+                },
+                "minLength": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                        }
+                    ]
+                },
+                "maxLength": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                        }
+                    ]
+                },
+                "multipleOf": {
+                    "$ref": "#/definitions/multipleOfDefinition"
+                },
+                "properties": {
+                    "additionalProperties": {
+                        "$ref": "#/definitions/dataSchema"
+                    }
+                },
+                "required": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "tm:ref": {
+                    "$ref": "#/definitions/tm_ref"
+                }
+            }
+        },
+        "additionalResponsesDefinition": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "contentType": {
+                        "type": "string"
+                    },
+                    "schema": {
+                        "type": "string"
+                    },
+                    "success": {
+                        "type": "boolean"
+                    }
+                }
+            }
+        },
+        "multipleOfDefinition": {
+            "anyOf": [
+                {
+                    "type": [
+                        "integer",
+                        "number"
+                    ],
+                    "exclusiveMinimum": 0
+                },
+                {
+                    "type": "string",
+                    "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                }
+            ]
+        },
+        "expectedResponse": {
+            "type": "object",
+            "properties": {
+                "contentType": {
+                    "type": "string"
+                }
+            }
+        },
+        "form_element_base": {
+            "type": "object",
+            "properties": {
+                "op": {
+                    "oneOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    ]
+                },
+                "href": {
+                    "$ref": "#/definitions/anyUri"
+                },
+                "contentType": {
+                    "type": "string"
+                },
+                "contentCoding": {
+                    "type": "string"
+                },
+                "subprotocol": {
+                    "$ref": "#/definitions/subprotocol"
+                },
+                "security": {
+                    "$ref": "#/definitions/security"
+                },
+                "scopes": {
+                    "$ref": "#/definitions/scopes"
+                },
+                "response": {
+                    "$ref": "#/definitions/expectedResponse"
+                },
+                "additionalResponses": {
+                    "$ref": "#/definitions/additionalResponsesDefinition"
+                }
+            },
+            "additionalProperties": true
+        },
+        "form_element_property": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/form_element_base"
+                }
+            ],
+            "type": "object",
+            "properties": {
+                "op": {
+                    "oneOf": [
+                        {
+                            "type": "string",
+                            "anyOf": [
+                                {
+                                    "enum": [
+                                        "readproperty",
+                                        "writeproperty",
+                                        "observeproperty",
+                                        "unobserveproperty"
+                                    ]
+                                },
+                                {
+                                    "type": "string",
+                                    "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "anyOf": [
+                                    {
+                                        "enum": [
+                                            "readproperty",
+                                            "writeproperty",
+                                            "observeproperty",
+                                            "unobserveproperty"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "tm:ref": {
+                    "$ref": "#/definitions/tm_ref"
+                }
+            },
+            "additionalProperties": true
+        },
+        "form_element_action": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/form_element_base"
+                }
+            ],
+            "type": "object",
+            "properties": {
+                "op": {
+                    "oneOf": [
+                        {
+                            "type": "string",
+                            "anyOf": [
+                                {
+                                    "enum": [
+                                        "invokeaction",
+                                        "queryaction",
+                                        "cancelaction"
+                                    ]
+                                },
+                                {
+                                    "type": "string",
+                                    "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "anyOf": [
+                                    {
+                                        "enum": [
+                                            "invokeaction",
+                                            "queryaction",
+                                            "cancelaction"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "tm:ref": {
+                    "$ref": "#/definitions/tm_ref"
+                }
+            },
+            "additionalProperties": true
+        },
+        "form_element_event": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/form_element_base"
+                }
+            ],
+            "type": "object",
+            "properties": {
+                "op": {
+                    "oneOf": [
+                        {
+                            "type": "string",
+                            "anyOf": [
+                                {
+                                    "enum": [
+                                        "subscribeevent",
+                                        "unsubscribeevent"
+                                    ]
+                                },
+                                {
+                                    "type": "string",
+                                    "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "anyOf": [
+                                    {
+                                        "enum": [
+                                            "subscribeevent",
+                                            "unsubscribeevent"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "tm:ref": {
+                    "$ref": "#/definitions/tm_ref"
+                }
+            },
+            "additionalProperties": true
+        },
+        "form_element_root": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/form_element_base"
+                }
+            ],
+            "type": "object",
+            "properties": {
+                "op": {
+                    "oneOf": [
+                        {
+                            "type": "string",
+                            "anyOf": [
+                                {
+                                    "enum": [
+                                        "readallproperties",
+                                        "writeallproperties",
+                                        "readmultipleproperties",
+                                        "writemultipleproperties",
+                                        "observeallproperties",
+                                        "unobserveallproperties",
+                                        "queryallactions",
+                                        "subscribeallevents",
+                                        "unsubscribeallevents"
+                                    ]
+                                },
+                                {
+                                    "type": "string",
+                                    "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "anyOf": [
+                                    {
+                                        "enum": [
+                                            "readallproperties",
+                                            "writeallproperties",
+                                            "readmultipleproperties",
+                                            "writemultipleproperties",
+                                            "observeallproperties",
+                                            "unobserveallproperties",
+                                            "queryallactions",
+                                            "subscribeallevents",
+                                            "unsubscribeallevents"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "tm:ref": {
+                    "$ref": "#/definitions/tm_ref"
+                }
+            },
+            "additionalProperties": true
+        },
+        "form": {
+            "$comment": "This is NOT for validation purposes but for automatic generation of TS types. For more info, please see: https://github.com/w3c/wot-thing-description/pull/1319#issuecomment-994950057",
+            "oneOf": [
+                {
+                    "$ref": "#/definitions/form_element_property"
+                },
+                {
+                    "$ref": "#/definitions/form_element_action"
+                },
+                {
+                    "$ref": "#/definitions/form_element_event"
+                },
+                {
+                    "$ref": "#/definitions/form_element_root"
+                }
+            ]
+        },
+        "property_element": {
+            "type": "object",
+            "properties": {
+                "@type": {
+                    "$ref": "#/definitions/type_declaration"
+                },
+                "description": {
+                    "$ref": "#/definitions/description"
+                },
+                "descriptions": {
+                    "$ref": "#/definitions/descriptions"
+                },
+                "title": {
+                    "$ref": "#/definitions/title"
+                },
+                "titles": {
+                    "$ref": "#/definitions/titles"
+                },
+                "forms": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/form_element_property"
+                    }
+                },
+                "uriVariables": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/dataSchema"
+                    }
+                },
+                "observable": {
+                    "anyOf": [
+                        {
+                            "type": "boolean"
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                        }
+                    ]
+                },
+                "writeOnly": {
+                    "anyOf": [
+                        {
+                            "type": "boolean"
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                        }
+                    ]
+                },
+                "readOnly": {
+                    "anyOf": [
+                        {
+                            "type": "boolean"
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                        }
+                    ]
+                },
+                "oneOf": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dataSchema"
+                    }
+                },
+                "unit": {
+                    "type": "string"
+                },
+                "enum": {
+                    "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true
+                },
+                "format": {
+                    "type": "string"
+                },
+                "const": {},
+                "type": {
+                    "$ref": "#/definitions/dataSchema-type"
+                },
+                "items": {
+                    "oneOf": [
+                        {
+                            "$ref": "#/definitions/dataSchema"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dataSchema"
+                            }
+                        }
+                    ]
+                },
+                "maxItems": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                        }
+                    ]
+                },
+                "minItems": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                        }
+                    ]
+                },
+                "minimum": {
+                    "anyOf": [
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                        }
+                    ]
+                },
+                "maximum": {
+                    "anyOf": [
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                        }
+                    ]
+                },
+                "minLength": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                        }
+                    ]
+                },
+                "maxLength": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                        }
+                    ]
+                },
+                "multipleOf": {
+                    "$ref": "#/definitions/multipleOfDefinition"
+                },
+                "properties": {
+                    "additionalProperties": {
+                        "$ref": "#/definitions/dataSchema"
+                    }
+                },
+                "required": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "tm:ref": {
+                    "$ref": "#/definitions/tm_ref"
+                }
+            },
+            "additionalProperties": true
+        },
+        "action_element": {
+            "type": "object",
+            "properties": {
+                "@type": {
+                    "$ref": "#/definitions/type_declaration"
+                },
+                "description": {
+                    "$ref": "#/definitions/description"
+                },
+                "descriptions": {
+                    "$ref": "#/definitions/descriptions"
+                },
+                "title": {
+                    "$ref": "#/definitions/title"
+                },
+                "titles": {
+                    "$ref": "#/definitions/titles"
+                },
+                "forms": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/form_element_action"
+                    }
+                },
+                "uriVariables": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/dataSchema"
+                    }
+                },
+                "input": {
+                    "$ref": "#/definitions/dataSchema"
+                },
+                "output": {
+                    "$ref": "#/definitions/dataSchema"
+                },
+                "safe": {
+                    "anyOf": [
+                        {
+                            "type": "boolean"
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                        }
+                    ]
+                },
+                "idempotent": {
+                    "anyOf": [
+                        {
+                            "type": "boolean"
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                        }
+                    ]
+                },
+                "tm:ref": {
+                    "$ref": "#/definitions/tm_ref"
+                }
+            },
+            "additionalProperties": true
+        },
+        "event_element": {
+            "type": "object",
+            "properties": {
+                "@type": {
+                    "$ref": "#/definitions/type_declaration"
+                },
+                "description": {
+                    "$ref": "#/definitions/description"
+                },
+                "descriptions": {
+                    "$ref": "#/definitions/descriptions"
+                },
+                "title": {
+                    "$ref": "#/definitions/title"
+                },
+                "titles": {
+                    "$ref": "#/definitions/titles"
+                },
+                "forms": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/form_element_event"
+                    }
+                },
+                "uriVariables": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/dataSchema"
+                    }
+                },
+                "subscription": {
+                    "$ref": "#/definitions/dataSchema"
+                },
+                "data": {
+                    "$ref": "#/definitions/dataSchema"
+                },
+                "cancellation": {
+                    "$ref": "#/definitions/dataSchema"
+                },
+                "tm:ref": {
+                    "$ref": "#/definitions/tm_ref"
+                }
+            },
+            "additionalProperties": true
+        },
+        "base_link_element": {
+            "type": "object",
+            "properties": {
+                "href": {
+                    "$ref": "#/definitions/anyUri"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "rel": {
+                    "type": "string"
+                },
+                "anchor": {
+                    "$ref": "#/definitions/anyUri"
+                }
+            },
+            "additionalProperties": true
+        },
+        "link_element": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/base_link_element"
+                },
+                {
+                    "not": {
+                        "description": "A basic link element should not contain sizes",
+                        "type": "object",
+                        "properties": {
+                            "sizes": {}
+                        },
+                        "required": [
+                            "sizes"
+                        ]
+                    }
+                },
+                {
+                    "not": {
+                        "description": "A basic link element should not contain icon",
+                        "properties": {
+                            "rel": {
+                                "anyOf": [
+                                    {
+                                        "enum": [
+                                            "icon"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                                    }
+                                ]
+                            }
+                        },
+                        "required": [
+                            "rel"
+                        ]
+                    }
+                }
+            ]
+        },
+        "icon_link_element": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/base_link_element"
+                },
+                {
+                    "properties": {
+                        "rel": {
+                            "const": "icon"
+                        },
+                        "sizes": {
+                            "type": "string",
+                            "pattern": "[0-9]*x[0-9]+"
+                        }
+                    },
+                    "required": [
+                        "rel"
+                    ]
+                }
+            ]
+        },
+        "noSecurityScheme": {
+            "type": "object",
+            "properties": {
+                "@type": {
+                    "$ref": "#/definitions/type_declaration"
+                },
+                "description": {
+                    "$ref": "#/definitions/description"
+                },
+                "descriptions": {
+                    "$ref": "#/definitions/descriptions"
+                },
+                "proxy": {
+                    "$ref": "#/definitions/anyUri"
+                },
+                "scheme": {
+                    "type": "string",
+                    "anyOf": [
+                        {
+                            "enum": [
+                                "nosec"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                        }
+                    ]
+                },
+                "tm:ref": {
+                    "$ref": "#/definitions/tm_ref"
+                }
+            }
+        },
+        "comboSecurityScheme": {
+            "oneOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "@type": {
+                            "$ref": "#/definitions/type_declaration"
+                        },
+                        "description": {
+                            "$ref": "#/definitions/description"
+                        },
+                        "descriptions": {
+                            "$ref": "#/definitions/descriptions"
+                        },
+                        "proxy": {
+                            "$ref": "#/definitions/anyUri"
+                        },
+                        "scheme": {
+                            "type": "string",
+                            "anyOf": [
+                                {
+                                    "enum": [
+                                        "combo"
+                                    ]
+                                },
+                                {
+                                    "type": "string",
+                                    "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                                }
+                            ]
+                        },
+                        "oneOf": {
+                            "type": "array",
+                            "minItems": 2,
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "tm:ref": {
+                            "$ref": "#/definitions/tm_ref"
+                        }
+                    }
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "@type": {
+                            "$ref": "#/definitions/type_declaration"
+                        },
+                        "description": {
+                            "$ref": "#/definitions/description"
+                        },
+                        "descriptions": {
+                            "$ref": "#/definitions/descriptions"
+                        },
+                        "proxy": {
+                            "$ref": "#/definitions/anyUri"
+                        },
+                        "scheme": {
+                            "type": "string",
+                            "anyOf": [
+                                {
+                                    "enum": [
+                                        "combo"
+                                    ]
+                                },
+                                {
+                                    "type": "string",
+                                    "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                                }
+                            ]
+                        },
+                        "allOf": {
+                            "type": "array",
+                            "minItems": 2,
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "tm:ref": {
+                            "$ref": "#/definitions/tm_ref"
+                        }
+                    }
+                }
+            ]
+        },
+        "basicSecurityScheme": {
+            "type": "object",
+            "properties": {
+                "@type": {
+                    "$ref": "#/definitions/type_declaration"
+                },
+                "description": {
+                    "$ref": "#/definitions/description"
+                },
+                "descriptions": {
+                    "$ref": "#/definitions/descriptions"
+                },
+                "proxy": {
+                    "$ref": "#/definitions/anyUri"
+                },
+                "scheme": {
+                    "type": "string",
+                    "anyOf": [
+                        {
+                            "enum": [
+                                "basic"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                        }
+                    ]
+                },
+                "in": {
+                    "type": "string",
+                    "anyOf": [
+                        {
+                            "enum": [
+                                "header",
+                                "query",
+                                "body",
+                                "cookie"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                        }
+                    ]
+                },
+                "name": {
+                    "type": "string"
+                },
+                "tm:ref": {
+                    "$ref": "#/definitions/tm_ref"
+                }
+            }
+        },
+        "digestSecurityScheme": {
+            "type": "object",
+            "properties": {
+                "@type": {
+                    "$ref": "#/definitions/type_declaration"
+                },
+                "description": {
+                    "$ref": "#/definitions/description"
+                },
+                "descriptions": {
+                    "$ref": "#/definitions/descriptions"
+                },
+                "proxy": {
+                    "$ref": "#/definitions/anyUri"
+                },
+                "scheme": {
+                    "type": "string",
+                    "anyOf": [
+                        {
+                            "enum": [
+                                "digest"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                        }
+                    ]
+                },
+                "qop": {
+                    "type": "string",
+                    "anyOf": [
+                        {
+                            "enum": [
+                                "auth",
+                                "auth-int"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                        }
+                    ]
+                },
+                "in": {
+                    "type": "string",
+                    "anyOf": [
+                        {
+                            "enum": [
+                                "header",
+                                "query",
+                                "body",
+                                "cookie"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                        }
+                    ]
+                },
+                "name": {
+                    "type": "string"
+                },
+                "tm:ref": {
+                    "$ref": "#/definitions/tm_ref"
+                }
+            }
+        },
+        "apiKeySecurityScheme": {
+            "type": "object",
+            "properties": {
+                "@type": {
+                    "$ref": "#/definitions/type_declaration"
+                },
+                "description": {
+                    "$ref": "#/definitions/description"
+                },
+                "descriptions": {
+                    "$ref": "#/definitions/descriptions"
+                },
+                "proxy": {
+                    "$ref": "#/definitions/anyUri"
+                },
+                "scheme": {
+                    "type": "string",
+                    "anyOf": [
+                        {
+                            "enum": [
+                                "apikey"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                        }
+                    ]
+                },
+                "in": {
+                    "type": "string",
+                    "anyOf": [
+                        {
+                            "enum": [
+                                "header",
+                                "query",
+                                "body",
+                                "cookie"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                        }
+                    ]
+                },
+                "name": {
+                    "type": "string"
+                },
+                "tm:ref": {
+                    "$ref": "#/definitions/tm_ref"
+                }
+            }
+        },
+        "bearerSecurityScheme": {
+            "type": "object",
+            "properties": {
+                "@type": {
+                    "$ref": "#/definitions/type_declaration"
+                },
+                "description": {
+                    "$ref": "#/definitions/description"
+                },
+                "descriptions": {
+                    "$ref": "#/definitions/descriptions"
+                },
+                "proxy": {
+                    "$ref": "#/definitions/anyUri"
+                },
+                "scheme": {
+                    "type": "string",
+                    "anyOf": [
+                        {
+                            "enum": [
+                                "bearer"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                        }
+                    ]
+                },
+                "authorization": {
+                    "$ref": "#/definitions/anyUri"
+                },
+                "alg": {
+                    "type": "string"
+                },
+                "format": {
+                    "type": "string"
+                },
+                "in": {
+                    "type": "string",
+                    "anyOf": [
+                        {
+                            "enum": [
+                                "header",
+                                "query",
+                                "body",
+                                "cookie"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                        }
+                    ]
+                },
+                "name": {
+                    "type": "string"
+                },
+                "tm:ref": {
+                    "$ref": "#/definitions/tm_ref"
+                }
+            }
+        },
+        "pskSecurityScheme": {
+            "type": "object",
+            "properties": {
+                "@type": {
+                    "$ref": "#/definitions/type_declaration"
+                },
+                "description": {
+                    "$ref": "#/definitions/description"
+                },
+                "descriptions": {
+                    "$ref": "#/definitions/descriptions"
+                },
+                "proxy": {
+                    "$ref": "#/definitions/anyUri"
+                },
+                "scheme": {
+                    "type": "string",
+                    "anyOf": [
+                        {
+                            "enum": [
+                                "psk"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                        }
+                    ]
+                },
+                "identity": {
+                    "type": "string"
+                },
+                "tm:ref": {
+                    "$ref": "#/definitions/tm_ref"
+                }
+            }
+        },
+        "oAuth2SecurityScheme": {
+            "type": "object",
+            "properties": {
+                "@type": {
+                    "$ref": "#/definitions/type_declaration"
+                },
+                "description": {
+                    "$ref": "#/definitions/description"
+                },
+                "descriptions": {
+                    "$ref": "#/definitions/descriptions"
+                },
+                "proxy": {
+                    "$ref": "#/definitions/anyUri"
+                },
+                "scheme": {
+                    "type": "string",
+                    "anyOf": [
+                        {
+                            "enum": [
+                                "oauth2"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                        }
+                    ]
+                },
+                "authorization": {
+                    "$ref": "#/definitions/anyUri"
+                },
+                "token": {
+                    "$ref": "#/definitions/anyUri"
+                },
+                "refresh": {
+                    "$ref": "#/definitions/anyUri"
+                },
+                "scopes": {
+                    "oneOf": [
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ]
+                },
+                "flow": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "string",
+                            "anyOf": [
+                                {
+                                    "enum": [
+                                        "code",
+                                        "client",
+                                        "device"
+                                    ]
+                                },
+                                {
+                                    "type": "string",
+                                    "pattern": "^.*[{]{2}[ -~]+[}]{2}.*$"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "tm:ref": {
+                    "$ref": "#/definitions/tm_ref"
+                }
+            }
+        },
+        "securityScheme": {
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/noSecurityScheme"
+                },
+                {
+                    "$ref": "#/definitions/comboSecurityScheme"
+                },
+                {
+                    "$ref": "#/definitions/basicSecurityScheme"
+                },
+                {
+                    "$ref": "#/definitions/digestSecurityScheme"
+                },
+                {
+                    "$ref": "#/definitions/apiKeySecurityScheme"
+                },
+                {
+                    "$ref": "#/definitions/bearerSecurityScheme"
+                },
+                {
+                    "$ref": "#/definitions/pskSecurityScheme"
+                },
+                {
+                    "$ref": "#/definitions/oAuth2SecurityScheme"
+                }
+            ]
+        },
+        "tm_type_declaration": {
+            "oneOf": [
+                {
+                    "type": "string",
+                    "const": "tm:ThingModel"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "contains": {
+                        "const": "tm:ThingModel"
+                    }
+                }
+            ]
+        },
+        "tm_required": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "format": "json-pointer"
+            }
+        },
+        "tm_ref": {
+            "type": "string",
+            "format": "uri-reference"
+        }
+    },
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "title": {
+            "$ref": "#/definitions/title"
+        },
+        "titles": {
+            "$ref": "#/definitions/titles"
+        },
+        "properties": {
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/definitions/property_element"
+            }
+        },
+        "actions": {
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/definitions/action_element"
+            }
+        },
+        "events": {
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/definitions/event_element"
+            }
+        },
+        "description": {
+            "$ref": "#/definitions/description"
+        },
+        "descriptions": {
+            "$ref": "#/definitions/descriptions"
+        },
+        "version": {
+            "type": "object",
+            "properties": {
+                "instance": {
+                    "type": "string"
+                }
+            }
+        },
+        "links": {
+            "type": "array",
+            "items": {
+                "oneOf": [
+                    {
+                        "$ref": "#/definitions/link_element"
+                    },
+                    {
+                        "$ref": "#/definitions/icon_link_element"
+                    }
+                ]
+            }
+        },
+        "forms": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "$ref": "#/definitions/form_element_root"
+            }
+        },
+        "base": {
+            "$ref": "#/definitions/anyUri"
+        },
+        "securityDefinitions": {
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": {
+                "$ref": "#/definitions/securityScheme"
+            }
+        },
+        "schemaDefinitions": {
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": {
+                "$ref": "#/definitions/dataSchema"
+            }
+        },
+        "support": {
+            "$ref": "#/definitions/anyUri"
+        },
+        "created": {
+            "type": "string"
+        },
+        "modified": {
+            "type": "string"
+        },
+        "security": {
+            "oneOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
+        "@type": {
+            "$ref": "#/definitions/tm_type_declaration"
+        },
+        "@context": {
+            "$ref": "#/definitions/thing-context"
+        },
+        "tm:required": {
+            "$ref": "#/definitions/tm_required"
+        }
+    },
+    "additionalProperties": true,
+    "required": [
+        "@context",
+        "@type"
+    ]
+}
