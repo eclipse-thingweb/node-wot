@@ -155,8 +155,10 @@ class ThingModelHelperTest {
         const model = JSON.parse(modelJSON.toString()) as ExposedThingInit;
         const finalModel = JSON.parse(finalJSON.toString()) as ExposedThingInit;
 
-        const modelInput = await this.thingModelHelpers.fetchAffordances(model);
-        const [extendedModel] = await this.thingModelHelpers.composeModel(model, modelInput);
+        // eslint-disable-next-line dot-notation
+        const modelInput = await this.thingModelHelpers["fetchAffordances"](model);
+        // eslint-disable-next-line dot-notation
+        const [extendedModel] = await this.thingModelHelpers["composeModel"](model, modelInput);
         expect(extendedModel).to.be.deep.equal(finalModel);
     }
 
@@ -194,7 +196,8 @@ class ThingModelHelperTest {
                 },
             ],
         };
-        const [extendedModel] = await this.thingModelHelpers.composeModel(model, modelInput);
+        // eslint-disable-next-line dot-notation
+        const [extendedModel] = await this.thingModelHelpers["composeModel"](model, modelInput);
         expect(extendedModel).to.be.deep.equal(finalModel);
     }
 
@@ -204,8 +207,10 @@ class ThingModelHelperTest {
         const model = JSON.parse(modelJSON.toString()) as ExposedThingInit;
         const finalModel = JSON.parse(finalJSON.toString()) as ExposedThingInit;
         // const validated = ThingModelHelpers.validateExposedThingModelInit(model);
-        const modelInput = await this.thingModelHelpers.fetchAffordances(model);
-        const [importedModel] = await this.thingModelHelpers.composeModel(model, modelInput);
+        // eslint-disable-next-line dot-notation
+        const modelInput = await this.thingModelHelpers["fetchAffordances"](model);
+        // eslint-disable-next-line dot-notation
+        const [importedModel] = await this.thingModelHelpers["composeModel"](model, modelInput);
         expect(importedModel).to.be.deep.equal(finalModel);
     }
 
@@ -239,8 +244,10 @@ class ThingModelHelperTest {
                 },
             ],
         };
-        const modelInput = await this.thingModelHelpers.fetchAffordances(thingModel);
-        const [importedModel] = await this.thingModelHelpers.composeModel(thingModel, modelInput);
+        // eslint-disable-next-line dot-notation
+        const modelInput = await this.thingModelHelpers["fetchAffordances"](thingModel);
+        // eslint-disable-next-line dot-notation
+        const [importedModel] = await this.thingModelHelpers["composeModel"](thingModel, modelInput);
         expect(importedModel).to.be.deep.equal(finalThingModel);
     }
 
@@ -281,7 +288,8 @@ class ThingModelHelperTest {
                 },
             ],
         };
-        const [importedModel] = await this.thingModelHelpers.composeModel(thingModel, modelInput);
+        // eslint-disable-next-line dot-notation
+        const [importedModel] = await this.thingModelHelpers["composeModel"](thingModel, modelInput);
         expect(importedModel).to.be.deep.equal(finalThingModel);
     }
 

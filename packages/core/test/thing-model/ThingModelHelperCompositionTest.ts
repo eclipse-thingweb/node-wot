@@ -46,12 +46,14 @@ class ThingModelHelperCompositionTest {
         const finalModelUri2 = "file://./test/thing-model/tmodels/Led.td.jsonld";
         const finalModel2 = await this.thingModelHelpers.fetchModel(finalModelUri2);
 
-        const modelInput = await this.thingModelHelpers.fetchAffordances(model);
+        // eslint-disable-next-line dot-notation
+        const modelInput = await this.thingModelHelpers["fetchAffordances"](model);
         const options: CompositionOptions = {
             baseUrl: "http://test.com",
             selfComposition: false,
         };
-        const extendedModel = await this.thingModelHelpers.composeModel(model, modelInput, options);
+        // eslint-disable-next-line dot-notation
+        const extendedModel = await this.thingModelHelpers["composeModel"](model, modelInput, options);
         expect(extendedModel.length).to.be.equal(3);
         expect(extendedModel[0]).to.be.deep.equal(finalModel);
         expect(extendedModel[1]).to.be.deep.equal(finalModel1);
@@ -74,8 +76,10 @@ class ThingModelHelperCompositionTest {
             baseUrl: "http://test.com",
             selfComposition: true,
         };
-        const modelInput = await this.thingModelHelpers.fetchAffordances(model);
-        const extendedModel = await this.thingModelHelpers.composeModel(model, modelInput, options);
+        // eslint-disable-next-line dot-notation
+        const modelInput = await this.thingModelHelpers["fetchAffordances"](model);
+        // eslint-disable-next-line dot-notation
+        const extendedModel = await this.thingModelHelpers["composeModel"](model, modelInput, options);
         expect(extendedModel.length).to.be.equal(1);
         expect(extendedModel[0].links).to.be.deep.equal(finalModel.links);
     }
@@ -90,12 +94,14 @@ class ThingModelHelperCompositionTest {
         const finalModelUri2 = "file://./test/thing-model/tmodels/LedExtend.td.jsonld";
         const finalModel2 = await this.thingModelHelpers.fetchModel(finalModelUri2);
 
-        const modelInput = await this.thingModelHelpers.fetchAffordances(model);
+        // eslint-disable-next-line dot-notation
+        const modelInput = await this.thingModelHelpers["fetchAffordances"](model);
         const options: CompositionOptions = {
             baseUrl: "http://test.com",
             selfComposition: false,
         };
-        const extendedModel = await this.thingModelHelpers.composeModel(model, modelInput, options);
+        // eslint-disable-next-line dot-notation
+        const extendedModel = await this.thingModelHelpers["composeModel"](model, modelInput, options);
         expect(extendedModel.length).to.be.equal(3);
         expect(extendedModel[0]).to.be.deep.equal(finalModel);
         expect(extendedModel[1]).to.be.deep.equal(finalModel1);
@@ -112,13 +118,15 @@ class ThingModelHelperCompositionTest {
         const finalModelUri2 = "file://./test/thing-model/tmodels/LedExtend.td.jsonld";
         const finalModel2 = await this.thingModelHelpers.fetchModel(finalModelUri2);
 
-        const modelInput = await this.thingModelHelpers.fetchAffordances(model);
+        // eslint-disable-next-line dot-notation
+        const modelInput = await this.thingModelHelpers["fetchAffordances"](model);
         const options: CompositionOptions = {
             baseUrl: "http://test.com",
             selfComposition: false,
         };
         finalModel2.links[0].href = "http://test.com/VentilatorThingModelRecursive.td.jsonld";
-        const extendedModel = await this.thingModelHelpers.composeModel(model, modelInput, options);
+        // eslint-disable-next-line dot-notation
+        const extendedModel = await this.thingModelHelpers["composeModel"](model, modelInput, options);
         expect(extendedModel.length).to.be.equal(3);
         expect(extendedModel[0]).to.be.deep.equal(finalModel);
         expect(extendedModel[1]).to.be.deep.equal(finalModel1);
