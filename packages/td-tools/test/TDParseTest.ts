@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -122,7 +122,7 @@ const tdSampleLemonbeatBurlingame = `{
 			"readOnly": true,
 			"observable": true,
 			"forms": [{
-				"href" : "sensors/luminance", 
+				"href" : "sensors/luminance",
 				"contentType": "application/json"
 			}]
     },
@@ -133,7 +133,7 @@ const tdSampleLemonbeatBurlingame = `{
 			"readOnly": true,
 			"observable": true,
 			"forms": [{
-				"href" : "sensors/humidity", 
+				"href" : "sensors/humidity",
 				"contentType": "application/json"
 			}]
     },
@@ -144,7 +144,7 @@ const tdSampleLemonbeatBurlingame = `{
 			"readOnly": true,
 			"observable": true,
 			"forms": [{
-				"href" : "sensors/temperature", 
+				"href" : "sensors/temperature",
 				"contentType": "application/json"
 			}]
     },
@@ -165,14 +165,14 @@ const tdSampleLemonbeatBurlingame = `{
 			"forms": [{
 				"href" : "fan/turnon",
 				"contentType": "application/json"
-			}]									
+			}]
     },
     "turnOff": {
 			"@type": ["actuator:turnOff"],
 			"forms": [{
 				"href" : "fan/turnoff",
 				"contentType": "application/json"
-			}]									
+			}]
 		}
   }
 }`;

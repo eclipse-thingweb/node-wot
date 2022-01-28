@@ -17,14 +17,13 @@
 // It considers a fictional smart coffee machine in order to demonstrate the capabilities of Web of Things.
 // An accompanying tutorial is available at http://www.thingweb.io/smart-coffee-machine.html.
 
-import "wot-typescript-definitions";
-import { Helpers } from "@node-wot/core";
 import { ThingDescription } from "wot-typescript-definitions";
+import { Helpers } from "@node-wot/core";
 let WoTHelpers: Helpers;
 
 WoTHelpers.fetch("http://127.0.0.1:8080/smart-coffee-machine").then(async (td) => {
     try {
-        let thing = await WoT.consume(td as ThingDescription);
+        const thing = await WoT.consume(td as ThingDescription);
         log("Thing Description:", td);
 
         // Read property allAvailableResources
@@ -35,7 +34,7 @@ WoTHelpers.fetch("http://127.0.0.1:8080/smart-coffee-machine").then(async (td) =
         await thing.writeProperty("availableResourceLevel", 80, { uriVariables: { id: "water" } });
 
         // And see that the water level has changed
-        let waterLevel = await thing.readProperty("availableResourceLevel", { uriVariables: { id: "water" } });
+        const waterLevel = await thing.readProperty("availableResourceLevel", { uriVariables: { id: "water" } });
         log("waterLevel value after change is:", waterLevel);
 
         // This can also be seen in allAvailableResources property
@@ -48,11 +47,11 @@ WoTHelpers.fetch("http://127.0.0.1:8080/smart-coffee-machine").then(async (td) =
         });
 
         // Now let's make 3 cups of latte!
-        let makeCoffee = await thing.invokeAction("makeDrink", undefined, {
+        const makeCoffee = await thing.invokeAction("makeDrink", undefined, {
             uriVariables: { drinkId: "latte", size: "l", quantity: 3 },
         });
-        let makeCoffeep: any = await Helpers.parseInteractionOutput(makeCoffee);
-        if (makeCoffeep["result"]) {
+        const makeCoffeep: any = await Helpers.parseInteractionOutput(makeCoffee);
+        if (makeCoffeep.result) {
             log("Enjoy your drink!", makeCoffeep);
         } else {
             log("Failed making your drink:", makeCoffeep);
@@ -63,18 +62,18 @@ WoTHelpers.fetch("http://127.0.0.1:8080/smart-coffee-machine").then(async (td) =
         log("allAvailableResources value is:", allAvailableResources);
 
         // Let's add a scheduled task
-        let scheduledTask = await thing.invokeAction("setSchedule", {
+        const scheduledTask = await thing.invokeAction("setSchedule", {
             drinkId: "espresso",
             size: "m",
             quantity: 2,
             time: "10:00",
             mode: "everyday",
         });
-        let scheduledTaskp: any = await Helpers.parseInteractionOutput(scheduledTask);
-        log(scheduledTaskp["message"], scheduledTaskp);
+        const scheduledTaskp: any = await Helpers.parseInteractionOutput(scheduledTask);
+        log(scheduledTaskp.message, scheduledTaskp);
 
         // See how it has been added to the schedules property
-        let schedules = await thing.readProperty("schedules");
+        const schedules = await thing.readProperty("schedules");
         log("schedules value: ", schedules);
 
         // Let's set up a handler for outOfResource event
