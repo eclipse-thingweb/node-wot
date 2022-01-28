@@ -55,7 +55,7 @@
         "basic-auth": "2.0.1",
         "client-oauth2": "^4.2.5",
         "eventsource": "^1.0.7",
-        "node-fetch": "^2.6.0",
+        "node-fetch": "^2.6.7",
         "rxjs": "5.5.11",
         "slugify": "^1.4.5"
     },
