@@ -73,23 +73,25 @@ export default class ThingModelHelpers {
     }
 
     public static isThingModelThingDescription(data: Record<string, unknown>): boolean {
-        if (this.getThingModelRef(data).length > 0) {
+        if (Object.keys(this.getThingModelRef(data)).length > 0) {
             // FIXME: different from specifications
             return true;
         }
         if ("links" in data && Array.isArray(data.links)) {
-            let foundTmExtendsRel = false;
-            data.links.forEach((link) => {
-                if (link.rel !== undefined && link.rel === "tm:extends") foundTmExtendsRel = true;
-            });
+            const foundTmExtendsRel = data.links.find((link) => link.rel === "tm:extends");
             if (foundTmExtendsRel) return true;
         }
 
         if (data.properties !== undefined) {
-            for (const prop in <Record<string, unknown>>data.properties) {
-                const properties = <Record<string, Record<string, unknown>>>data.properties;
-                if (this.isThingModelThingDescription(properties[prop])) return true;
-            }
+            if (this.isThingModelThingDescription(data.properties as Record<string, unknown>)) return true;
+        }
+
+        if (data.actions !== undefined) {
+            if (this.isThingModelThingDescription(data.actions as Record<string, unknown>)) return true;
+        }
+
+        if (data.events !== undefined) {
+            if (this.isThingModelThingDescription(data.events as Record<string, unknown>)) return true;
         }
 
         return false;
