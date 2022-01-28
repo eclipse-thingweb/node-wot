@@ -1,6 +1,5 @@
-/* eslint-disable no-unused-expressions */
 /********************************************************************************
- * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
+ * Copyright (c) 2022 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -14,20 +13,12 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-/**
- * Basic test suite for helper functions
- * uncomment the @skip to see failing tests
- *
- * h0ru5: there is currently some problem with VSC failing to recognize experimentalDecorators option, it is present in both tsconfigs
- */
-
 import { suite, test } from "@testdeck/mocha";
 import * as chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { expect } from "chai";
-import { ExposedThingInit } from "wot-typescript-definitions";
 
-import ThingModelHelpers, { CompositionOptions, modelComposeInput } from "../../src/thing-model-helpers";
+import ThingModelHelpers, { CompositionOptions } from "../../src/thing-model-helpers";
 import Servient from "../../src/core";
 import { HttpClientFactory } from "@node-wot/binding-http";
 import { FileClientFactory } from "@node-wot/binding-file";
@@ -46,10 +37,6 @@ class ThingModelHelperCompositionTest {
     }
 
     @test async "should correctly compose a Thing Model with multiple partialTDs"() {
-        // const modelJSON = await fs.readFile('test/thing-model/tmodels/SmartVentilator.tm.jsonld');
-        // const finalJSON = await fs.readFile('test/thing-model/tmodels/SmartVentilator.td.jsonld');
-        // const model = JSON.parse(modelJSON.toString()) as ExposedThingInit;
-        // const finalModel = JSON.parse(finalJSON.toString()) as ExposedThingIni]t;
         const modelUri = "file://./test/thing-model/tmodels/SmartVentilator.tm.jsonld";
         const model = await this.thingModelHelpers.fetchModel(modelUri);
         const finalModelUri = "file://./test/thing-model/tmodels/SmartVentilator.td.jsonld";
@@ -94,10 +81,6 @@ class ThingModelHelperCompositionTest {
     }
 
     @test async "should correctly compose a Thing Model with multiple partialTDs and extend/import"() {
-        // const modelJSON = await fs.readFile('test/thing-model/tmodels/SmartVentilator.tm.jsonld');
-        // const finalJSON = await fs.readFile('test/thing-model/tmodels/SmartVentilator.td.jsonld');
-        // const model = JSON.parse(modelJSON.toString()) as ExposedThingInit;
-        // const finalModel = JSON.parse(finalJSON.toString()) as ExposedThingIni]t;
         const modelUri = "file://./test/thing-model/tmodels/SmartVentilatorSubExtend.tm.jsonld";
         const model = await this.thingModelHelpers.fetchModel(modelUri);
         const finalModelUri = "file://./test/thing-model/tmodels/SmartVentilatorSubExtend.td.jsonld";
@@ -120,10 +103,6 @@ class ThingModelHelperCompositionTest {
     }
 
     @test async "should correctly compose recursively a Thing Model with multiple partialTDs and extend/import"() {
-        // const modelJSON = await fs.readFile('test/thing-model/tmodels/SmartVentilator.tm.jsonld');
-        // const finalJSON = await fs.readFile('test/thing-model/tmodels/SmartVentilator.td.jsonld');
-        // const model = JSON.parse(modelJSON.toString()) as ExposedThingInit;
-        // const finalModel = JSON.parse(finalJSON.toString()) as ExposedThingIni]t;
         const modelUri = "file://./test/thing-model/tmodels/SmartVentilatorRecursive.tm.jsonld";
         const model = await this.thingModelHelpers.fetchModel(modelUri);
         const finalModelUri = "file://./test/thing-model/tmodels/SmartVentilatorRecursive.td.jsonld";

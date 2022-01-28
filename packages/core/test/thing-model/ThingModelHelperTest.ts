@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-expressions */
 /********************************************************************************
- * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
+ * Copyright (c) 2022 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -13,13 +13,6 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-
-/**
- * Basic test suite for helper functions
- * uncomment the @skip to see failing tests
- *
- * h0ru5: there is currently some problem with VSC failing to recognize experimentalDecorators option, it is present in both tsconfigs
- */
 
 import { suite, test } from "@testdeck/mocha";
 import { expect } from "chai";
@@ -81,9 +74,9 @@ class ThingModelHelperTest {
             ],
         };
 
+        // eslint-disable-next-line dot-notation
         const extLinks = ThingModelHelpers["getThingModelLinks"](thing, "tm:submodel");
         expect(extLinks).to.have.lengthOf(2);
-        // expect(validated.errors).to.be.undefined;
     }
 
     @test "should correctly validate tm schema with ThingModel in @type array "() {
@@ -370,6 +363,7 @@ class ThingModelHelperTest {
             map,
             selfComposition: false,
         };
+        // eslint-disable-next-line dot-notation
         const validated = this.thingModelHelpers["checkPlaceholderMap"](thing, options.map);
         expect(validated.valid).to.be.false;
         expect(validated.errors).to.be.equal(`Missing required fields in map for model ${thing.title}`);
