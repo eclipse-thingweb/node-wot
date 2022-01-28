@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 Contributors to the Eclipse Foundation
+ * Copyright (c) <%= YEAR %> Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -12,26 +12,3 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-
-// global W3C WoT Scripting API definitions
-import * as WoT from "wot-typescript-definitions";
-// node-wot implementation of W3C WoT Servient
-import { Servient } from "@node-wot/core";
-
-import { MBusClientFactory } from "../src/mbus";
-
-export default class DefaultServient extends Servient {
-    public constructor() {
-        super();
-        this.addClientFactory(new MBusClientFactory());
-    }
-
-    /**
-     * start
-     */
-    public start(): Promise<typeof WoT> {
-        return new Promise<typeof WoT>((resolve, reject) => {
-            return super.start();
-        });
-    }
-}

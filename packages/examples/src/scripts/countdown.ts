@@ -13,15 +13,12 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { Helpers } from "@node-wot/core";
-import { type } from "os";
 import { InteractionOptions } from "wot-typescript-definitions";
-let WoTHelpers: Helpers;
 
 function uuidv4(): string {
     return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-        var r = (Math.random() * 16) | 0,
-            v = c == "x" ? r : (r & 0x3) | 0x8;
+        const r = (Math.random() * 16) | 0;
+        const v = c === "x" ? r : (r & 0x3) | 0x8;
         return v.toString(16);
     });
 }
@@ -36,7 +33,7 @@ enum Status {
 interface ActionStatus {
     status: Status;
     output?: number; // any
-    error?: object;
+    error?: Error;
     href?: string;
 }
 
@@ -93,11 +90,11 @@ WoT.produce({
         setInterval(() => {
             if (countdowns.size > 0) {
                 console.log("Update countdowns");
-                let listToDelete: string[] = [];
-                for (let id of countdowns.keys()) {
-                    let as: ActionStatus = countdowns.get(id);
+                const listToDelete: string[] = [];
+                for (const id of countdowns.keys()) {
+                    const as: ActionStatus = countdowns.get(id);
                     if (as.output !== undefined) {
-                        let prev = as.output;
+                        const prev = as.output;
                         as.output--;
                         console.log("\t" + id + ", from " + prev + " to " + as.output);
 
@@ -124,8 +121,8 @@ WoT.produce({
         thing.setPropertyReadHandler(
             "countdowns",
             async (options: InteractionOptions): Promise<WoT.InteractionInput> => {
-                let cts: string[] = [];
-                for (let id of countdowns.keys()) {
+                const cts: string[] = [];
+                for (const id of countdowns.keys()) {
                     cts.push(id);
                 }
                 return cts;
@@ -137,17 +134,17 @@ WoT.produce({
             async (params: WoT.InteractionOutput, options: InteractionOptions): Promise<WoT.InteractionInput> => {
                 let initValue = 100;
                 if (params) {
-                    let value = await params.value();
+                    const value = await params.value();
                     if (typeof value === "number") {
                         initValue = value as number;
                     }
                 }
-                let resp: ActionStatus = {
+                const resp: ActionStatus = {
                     href: uuidv4(),
                     output: initValue,
                     status: initValue > 0 ? Status.pending : Status.completed,
                 };
-                let ii: WoT.InteractionInput = resp;
+                const ii: WoT.InteractionInput = resp;
                 console.log("init countdown value = " + JSON.stringify(resp));
                 countdowns.set(resp.href, resp);
                 return ii;
@@ -157,9 +154,9 @@ WoT.produce({
             "stopCountdown",
             async (params: WoT.InteractionOutput, options: InteractionOptions): Promise<WoT.InteractionInput> => {
                 if (params) {
-                    let value = await params.value();
+                    const value = await params.value();
                     if (typeof value === "string" && countdowns.has(value)) {
-                        let as: ActionStatus = countdowns.get(value);
+                        const as: ActionStatus = countdowns.get(value);
                         as.output = 0;
                         as.status = Status.completed;
                         console.log("Countdown stopped for href: " + value);
@@ -176,9 +173,9 @@ WoT.produce({
             "monitorCountdown",
             async (params: WoT.InteractionOutput, options: InteractionOptions): Promise<WoT.InteractionInput> => {
                 if (params) {
-                    let value = await params.value();
+                    const value = await params.value();
                     if (typeof value === "string" && countdowns.has(value)) {
-                        let as: ActionStatus = countdowns.get(value);
+                        const as: ActionStatus = countdowns.get(value);
                         return JSON.stringify(as);
                     } else {
                         throw Error("Input provided for monitorCountdown is no string or invalid href, " + value);

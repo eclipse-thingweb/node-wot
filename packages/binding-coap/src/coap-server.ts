@@ -30,7 +30,6 @@ import { Socket } from "dgram";
 import { Server, createServer, registerFormat, IncomingMessage, OutgoingMessage } from "coap";
 import slugify from "slugify";
 import { Readable } from "stream";
-import { WriteStream } from "fs";
 
 export default class CoapServer implements ProtocolServer {
     public readonly scheme: string = "coap";
@@ -309,7 +308,7 @@ export default class CoapServer implements ProtocolServer {
                                     const content = await thing.handleReadProperty(segments[3], options);
                                     res.setOption("Content-Format", content.type);
                                     res.code = "2.05";
-                                    content.body.pipe(res as unknown as WriteStream);
+                                    content.body.pipe(res);
                                 } catch (err) {
                                     console.error(
                                         "[binding-coap]",
@@ -327,7 +326,7 @@ export default class CoapServer implements ProtocolServer {
                                         res.setOption("Content-Format", content.type);
                                         res.code = "2.05";
                                         // send event data
-                                        content.body.pipe(res as unknown as WriteStream, { end: true });
+                                        content.body.pipe(res, { end: true });
                                     } catch (err) {
                                         console.error(
                                             "[binding-coap]",
@@ -427,7 +426,7 @@ export default class CoapServer implements ProtocolServer {
                                 if (output) {
                                     res.setOption("Content-Format", output.type);
                                     res.code = "2.05";
-                                    output.body.pipe(res as unknown as WriteStream, { end: true });
+                                    output.body.pipe(res, { end: true });
                                 } else {
                                     res.code = "2.04";
                                     res.end();
@@ -498,7 +497,7 @@ export default class CoapServer implements ProtocolServer {
                                         );
                                         res.setOption("Content-Format", value.type);
                                         res.code = "2.05";
-                                        value.body.pipe(res as unknown as WriteStream);
+                                        value.body.pipe(res);
                                     } catch (err) {
                                         console.debug(
                                             "[binding-coap]",

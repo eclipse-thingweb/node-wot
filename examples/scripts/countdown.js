@@ -15,8 +15,8 @@
 
 function uuidv4() {
     return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-        var r = (Math.random() * 16) | 0,
-            v = c == "x" ? r : (r & 0x3) | 0x8;
+        const r = (Math.random() * 16) | 0;
+        const v = c === "x" ? r : (r & 0x3) | 0x8;
         return v.toString(16);
     });
 }
@@ -53,12 +53,14 @@ WoT.produce({
             },
         },
         stopCountdown: {
+            // SHOULD BE DELETE for WoT-Profile
             description: "Stops countdown",
             input: {
                 type: "string",
             },
         },
         monitorCountdown: {
+            // SHOULD BE GET for WoT-Profile
             description: "Reports current countdown status/value",
             input: {
                 type: "string",
@@ -76,11 +78,11 @@ WoT.produce({
         setInterval(() => {
             if (countdowns.size > 0) {
                 console.log("Update countdowns");
-                let listToDelete = [];
-                for (let id of countdowns.keys()) {
-                    let as = countdowns.get(id);
+                const listToDelete = [];
+                for (const id of countdowns.keys()) {
+                    const as = countdowns.get(id);
                     if (as.output !== undefined) {
-                        let prev = as.output;
+                        const prev = as.output;
                         as.output--;
                         console.log("\t" + id + ", from " + prev + " to " + as.output);
                         if (as.output > 0) {
@@ -102,8 +104,8 @@ WoT.produce({
         }, 1000);
         // set property handlers (using async-await)
         thing.setPropertyReadHandler("countdowns", async (options) => {
-            let cts = [];
-            for (let id of countdowns.keys()) {
+            const cts = [];
+            for (const id of countdowns.keys()) {
                 cts.push(id);
             }
             return cts;
@@ -112,26 +114,26 @@ WoT.produce({
         thing.setActionHandler("startCountdown", async (params, options) => {
             let initValue = 100;
             if (params) {
-                let value = await params.value();
+                const value = await params.value();
                 if (typeof value === "number") {
                     initValue = value;
                 }
             }
-            let resp = {
+            const resp = {
                 href: uuidv4(),
                 output: initValue,
                 status: initValue > 0 ? Status.pending : Status.completed,
             };
-            let ii = resp;
+            const ii = resp;
             console.log("init countdown value = " + JSON.stringify(resp));
             countdowns.set(resp.href, resp);
             return ii;
         });
         thing.setActionHandler("stopCountdown", async (params, options) => {
             if (params) {
-                let value = await params.value();
+                const value = await params.value();
                 if (typeof value === "string" && countdowns.has(value)) {
-                    let as = countdowns.get(value);
+                    const as = countdowns.get(value);
                     as.output = 0;
                     as.status = Status.completed;
                     console.log("Countdown stopped for href: " + value);
@@ -145,9 +147,9 @@ WoT.produce({
         });
         thing.setActionHandler("monitorCountdown", async (params, options) => {
             if (params) {
-                let value = await params.value();
+                const value = await params.value();
                 if (typeof value === "string" && countdowns.has(value)) {
-                    let as = countdowns.get(value);
+                    const as = countdowns.get(value);
                     return JSON.stringify(as);
                 } else {
                     throw Error("Input provided for monitorCountdown is no string or invalid href, " + value);
