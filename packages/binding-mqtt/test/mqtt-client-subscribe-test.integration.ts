@@ -29,13 +29,13 @@ should();
 describe("MQTT client implementation", () => {
     let servient: Servient;
     let brokerServer: MqttBrokerServer;
-    let brokerUri: string;
+
     const brokerAddress = "localhost";
     const brokerPort = 1889;
+    const brokerUri = `mqtt://${brokerAddress}:${brokerPort}`;
 
     beforeEach(() => {
         servient = new Servient();
-        brokerUri = `mqtt://${brokerAddress}:${brokerPort}`;
     });
 
     afterEach(async () => {

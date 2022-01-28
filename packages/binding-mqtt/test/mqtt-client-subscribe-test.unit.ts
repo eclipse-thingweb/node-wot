@@ -1,7 +1,5 @@
-import { ProtocolHelpers, Content } from "@node-wot/core";
-import { Readable } from "stream";
 /********************************************************************************
- * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
+ * Copyright (c) 2022 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -25,6 +23,8 @@ import { MqttClient, MqttForm, MqttQoS } from "../src/mqtt";
 import { expect } from "chai";
 import { Aedes, Server } from "aedes";
 import * as net from "net";
+import { ProtocolHelpers, Content } from "@node-wot/core";
+import { Readable } from "stream";
 
 chai.use(chaiAsPromised);
 
@@ -33,10 +33,10 @@ chai.use(chaiAsPromised);
 describe("MQTT client implementation", () => {
     let aedes: Aedes;
     let hostedBroker: net.Server;
-    let brokerUri: string;
     const property = "test1";
     const brokerAddress = "localhost";
     const brokerPort = 1889;
+    const brokerUri = `mqtt://${brokerAddress}:${brokerPort}`;
 
     before(() => {
         aedes = Server({});
@@ -48,7 +48,6 @@ describe("MQTT client implementation", () => {
 
     describe("tests without authorization", () => {
         beforeEach(() => {
-            brokerUri = `mqtt://${brokerAddress}:${brokerPort}`;
             hostedBroker = net.createServer(aedes.handle);
             hostedBroker.listen(brokerPort);
         });
@@ -83,7 +82,6 @@ describe("MQTT client implementation", () => {
 
     describe("tests with authorization", () => {
         beforeEach(() => {
-            brokerUri = `mqtt://${brokerAddress}:${brokerPort}`;
             aedes.authenticate = function (_client, username: Readonly<string>, password: Readonly<Buffer>, done) {
                 if (username !== undefined) {
                     done(undefined, username === "user" && password.equals(Buffer.from("pass")));

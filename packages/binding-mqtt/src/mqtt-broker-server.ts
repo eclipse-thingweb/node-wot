@@ -338,9 +338,6 @@ export default class MqttBrokerServer implements ProtocolServer {
                     `MqttBrokerServer at ${this.brokerURI} got error on writing to property '${segments[3]}': ${err.message}`
                 );
             }
-
-            // topic found and message processed
-            return;
         } else {
             console.warn(
                 "[binding-mqtt]",
@@ -348,7 +345,6 @@ export default class MqttBrokerServer implements ProtocolServer {
                     "/"
                 )}'`
             );
-            return;
         } // property is writeable? Not necessary since it didn't actually subscribe to this topic
     }
 
