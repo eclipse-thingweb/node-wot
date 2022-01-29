@@ -16,33 +16,33 @@
 /**
  * Netconf protocol binding
  */
-import { ProtocolClient, Content } from "@node-wot/core";
+import { ProtocolClient, Content, ProtocolHelpers } from "@node-wot/core";
 import { NetconfForm } from "./netconf";
 import * as TD from "@node-wot/td-tools";
 import * as AsyncNodeNetcon from "./async-node-netconf";
 import Url from "url-parse";
 import { Readable } from "stream";
-import { ProtocolHelpers } from "@node-wot/core";
+import { Subscription } from "rxjs/Subscription";
 
 const DEFAULT_TARGET = "candidate";
 
 export default class NetconfClient implements ProtocolClient {
     private client: AsyncNodeNetcon.Client;
-    private credentials: any;
+    private credentials: unknown;
     constructor() {
         this.client = new AsyncNodeNetcon.Client();
         this.credentials = null;
     }
 
-    public toString() {
+    public toString(): string {
         return "[NetconfClient]";
     }
 
     public async readResource(form: NetconfForm): Promise<Content> {
         const url = new Url(form.href);
-        const ip_address = url.hostname;
+        const ipAddress = url.hostname;
         const port = parseInt(url.port);
-        const xpath_query = url.pathname;
+        const xpathQuery = url.pathname;
         const method = form["nc:method"] ? form["nc:method"] : "GET-CONFIG"; // default method
         const NSs = form["nc:NSs"] || {};
         const target = form["nc:target"] || DEFAULT_TARGET;
@@ -51,7 +51,7 @@ export default class NetconfClient implements ProtocolClient {
 
         if (this.client.getRouter() === null) {
             try {
-                await this.client.initializeRouter(ip_address, port, this.credentials);
+                await this.client.initializeRouter(ipAddress, port, this.credentials);
                 await this.client.openRouter();
             } catch (err) {
                 this.client.deleteRouter();
@@ -59,70 +59,58 @@ export default class NetconfClient implements ProtocolClient {
             }
         }
 
-        let result: any;
-        try {
-            result = await this.client.rpc(xpath_query, method, NSs, target);
-            result = JSON.stringify(result);
-        } catch (err) {
-            throw err;
-        }
+        let result = await this.client.rpc(xpathQuery, method, NSs, target);
+        result = JSON.stringify(result);
 
         return new Promise<Content>((resolve, reject) => {
             resolve({ type: contentType, body: Readable.from(Buffer.from(result)) });
         });
     }
 
-    public async writeResource(form: NetconfForm, content: Content): Promise<any> {
+    public async writeResource(form: NetconfForm, content: Content): Promise<void> {
         const body = await ProtocolHelpers.readStreamFully(content.body);
-        let payload: any = content ? JSON.parse(body.toString()) : {};
+        let payload = content ? JSON.parse(body.toString()) : {};
         const url = new Url(form.href);
-        const ip_address = url.hostname;
+        const ipAddress = url.hostname;
         const port = parseInt(url.port);
-        const xpath_query = url.pathname;
+        const xpathQuery = url.pathname;
         const method = form["nc:method"] ? form["nc:method"] : "EDIT-CONFIG";
         let NSs = form["nc:NSs"] || {};
         const target = form["nc:target"] || DEFAULT_TARGET;
 
-        const contentType = "application/yang-data+xml";
         if (this.client.getRouter() === null) {
             try {
-                await this.client.initializeRouter(ip_address, port, this.credentials);
+                await this.client.initializeRouter(ipAddress, port, this.credentials);
                 await this.client.openRouter();
             } catch (err) {
                 this.client.deleteRouter();
                 throw err;
             }
         }
-        let result: any;
 
         NSs = { ...NSs, ...payload.NSs };
         payload = payload.payload;
-        try {
-            result = await this.client.rpc(xpath_query, method, NSs, target, payload);
-            result = JSON.stringify(result);
-        } catch (err) {
-            throw err;
-        }
-        return new Promise<any>((resolve, reject) => {
+        await this.client.rpc(xpathQuery, method, NSs, target, payload);
+        return new Promise<void>((resolve, reject) => {
             resolve(undefined);
         });
     }
 
-    public async invokeResource(form: NetconfForm, content: Content): Promise<any> {
+    public async invokeResource(form: NetconfForm, content: Content): Promise<Content> {
         const body = await ProtocolHelpers.readStreamFully(content.body);
-        let payload: any = content ? JSON.parse(body.toString()) : {};
+        let payload = content ? JSON.parse(body.toString()) : {};
         const url = new Url(form.href);
-        const ip_address = url.hostname;
+        const ipAddress = url.hostname;
         const port = parseInt(url.port);
-        const xpath_query = url.pathname;
+        const xpathQuery = url.pathname;
         const method = form["nc:method"] ? form["nc:method"] : "RPC";
         let NSs = form["nc:NSs"] || {};
         const target = form["nc:target"] || DEFAULT_TARGET;
-        let result: any;
+        let result: string;
 
         if (this.client.getRouter() === null) {
             try {
-                await this.client.initializeRouter(ip_address, port, this.credentials);
+                await this.client.initializeRouter(ipAddress, port, this.credentials);
                 await this.client.openRouter();
             } catch (err) {
                 this.client.deleteRouter();
@@ -132,7 +120,7 @@ export default class NetconfClient implements ProtocolClient {
         try {
             NSs = { ...NSs, ...payload.NSs };
             payload = payload.payload;
-            result = await this.client.rpc(xpath_query, method, NSs, target, payload);
+            result = await this.client.rpc(xpathQuery, method, NSs, target, payload);
             result = JSON.stringify(result);
         } catch (err) {
             console.debug("[binding-netconf]", err);
@@ -140,25 +128,26 @@ export default class NetconfClient implements ProtocolClient {
         }
 
         const contentType = "application/yang-data+xml";
-        return new Promise<Object>((resolve, reject) => {
-            resolve({ type: contentType, body: result });
+        return new Promise<Content>((resolve, reject) => {
+            resolve({ type: contentType, body: Readable.from(result) });
         });
     }
 
-    public unlinkResource(form: NetconfForm): Promise<any> {
-        return new Promise<Object>((resolve, reject) => {
+    public unlinkResource(form: NetconfForm): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
             reject(new Error(`NetconfClient does not implement unlink`));
         });
     }
 
-    public subscribeResource(
+    public async subscribeResource(
         form: NetconfForm,
-        next: (value: any) => void,
-        error?: (error: any) => void,
+        next: (content: Content) => void,
+        error?: (error: Error) => void,
         complete?: () => void
-    ): any {
-        error(new Error(`NetconfClient does not implement subscribe`));
-        return null;
+    ): Promise<Subscription> {
+        const unimplementedError = new Error(`NetconfClient does not implement subscribe`);
+        error(unimplementedError);
+        throw unimplementedError;
     }
 
     public async start(): Promise<void> {
@@ -170,7 +159,7 @@ export default class NetconfClient implements ProtocolClient {
     }
 
     public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean {
-        if (metadata === undefined || !Array.isArray(metadata) || metadata.length == 0) {
+        if (metadata === undefined || !Array.isArray(metadata) || metadata.length === 0) {
             console.warn("[binding-netconf]", `NetconfClient without security`);
             return false;
         }

@@ -38,8 +38,8 @@ export default class NetconfCodec {
                 throw new Error(`The href specified in TD is missing the leaf node in the Xpath`);
             }
             const url = new Url(form.href);
-            const xpath_query = url.pathname;
-            const tree = xpath_query.split("/").map((value, index) => {
+            const xpathQuery = url.pathname;
+            const tree = xpathQuery.split("/").map((value, index) => {
                 const val = value.replace(/\[(.*?)\]/g, "").split(":");
                 return val[1] ? val[1] : val[0];
             });
@@ -50,21 +50,21 @@ export default class NetconfCodec {
                 }
                 value = value[el];
             }
-            const tmp_schema = <any>schema;
-            if (!("type" in tmp_schema)) {
+            const tmpSchema = schema;
+            if (!("type" in tmpSchema)) {
                 throw new Error(`TD is missing the schema type`);
             }
-            if (tmp_schema.type === "object") {
+            if (tmpSchema.type === "object") {
                 if (
-                    tmp_schema.properties &&
-                    tmp_schema["xml:container"] &&
-                    tmp_schema.properties.xmlns &&
-                    tmp_schema.properties.xmlns["xml:attribute"]
+                    tmpSchema.properties &&
+                    tmpSchema["xml:container"] &&
+                    tmpSchema.properties.xmlns &&
+                    tmpSchema.properties.xmlns["xml:attribute"]
                 ) {
                     // now check if it contains
                     parsed = {};
-                    const xmlns_key = Object.keys(value.$)[0];
-                    parsed.xmlns = value.$[xmlns_key];
+                    const xmlnsKey = Object.keys(value.$)[0];
+                    parsed.xmlns = value.$[xmlnsKey];
                     parsed.value = value._.split(":")[1];
                 }
             } else {
@@ -73,7 +73,7 @@ export default class NetconfCodec {
             // TODO check the schema!
         } catch (err) {
             if (err instanceof SyntaxError) {
-                if (bytes.byteLength == 0) {
+                if (bytes.byteLength === 0) {
                     // empty payload -> void/undefined
                     parsed = undefined;
                 } else {
@@ -100,8 +100,8 @@ export default class NetconfCodec {
             if (!leaf) {
                 throw new Error(`The href specified in TD is missing the leaf node in the Xpath`);
             }
-            const tmp_obj = this.getPayloadNamespaces(schema, value, NSs, false, leaf);
-            body = JSON.stringify(tmp_obj);
+            const tmpObj = this.getPayloadNamespaces(schema, value, NSs, false, leaf);
+            body = JSON.stringify(tmpObj);
         }
 
         return Buffer.from(body);
@@ -114,8 +114,8 @@ export default class NetconfCodec {
             if (!properties) {
                 throw new Error(`Missing "properties" field in TD`);
             }
-            let ns_found = false;
-            let alias_ns = "";
+            let nsFound = false;
+            let aliasNs = "";
             let value;
             for (const key in properties) {
                 const el = properties[key];
@@ -125,48 +125,48 @@ export default class NetconfCodec {
                 if (el["xml:attribute"] === true && payload[key]) {
                     // if (el.format && el.format === 'urn')
                     const ns = payload[key];
-                    alias_ns = ns.split(":")[ns.split(":").length - 1];
-                    NSs[alias_ns] = payload[key];
-                    ns_found = true;
+                    aliasNs = ns.split(":")[ns.split(":").length - 1];
+                    NSs[aliasNs] = payload[key];
+                    nsFound = true;
                 } else if (payload[key]) {
                     value = payload[key];
                 }
             }
-            if (!ns_found) {
+            if (!nsFound) {
                 throw new Error(`Namespace not found in the payload`);
             } else {
                 // change the payload in order to be parsed by the xpath2json library
-                payload = { [leaf]: alias_ns + "\\" + ":" + value };
+                payload = { [leaf]: aliasNs + "\\" + ":" + value };
             }
             return { payload, NSs }; // return objects
         }
 
         if (schema && schema.type && schema.type === "object" && schema.properties) {
             // nested object, go down
-            const tmp_hasNamespace = false;
-            let tmp_obj: any;
+            const tmpHasNamespace = false;
+            let tmpObj: any;
             if (schema.properties && schema["xml:container"]) {
                 // check the root level
-                tmp_obj = this.getPayloadNamespaces(schema, payload, NSs, true, leaf); // root case
+                tmpObj = this.getPayloadNamespaces(schema, payload, NSs, true, leaf); // root case
             } else {
-                tmp_obj = this.getPayloadNamespaces(schema.properties, payload, NSs, false, leaf);
+                tmpObj = this.getPayloadNamespaces(schema.properties, payload, NSs, false, leaf);
             }
 
-            payload = tmp_obj.payload;
-            NSs = { ...NSs, ...tmp_obj.NSs };
+            payload = tmpObj.payload;
+            NSs = { ...NSs, ...tmpObj.NSs };
         }
 
         // once here schema is properties
         for (const key in schema) {
             if ((schema[key].type && schema[key].type === "object") || hasNamespace) {
                 // go down only if it is a nested object or it has a namespace
-                let tmp_hasNamespace = false;
+                let tmpHasNamespace = false;
                 if (schema[key].properties && schema[key]["xml:container"]) {
-                    tmp_hasNamespace = true;
+                    tmpHasNamespace = true;
                 }
-                const tmp_obj = this.getPayloadNamespaces(schema[key], payload[key], NSs, tmp_hasNamespace, leaf);
-                payload[key] = tmp_obj.payload;
-                NSs = { ...NSs, ...tmp_obj.NSs };
+                const tmpObj = this.getPayloadNamespaces(schema[key], payload[key], NSs, tmpHasNamespace, leaf);
+                payload[key] = tmpObj.payload;
+                NSs = { ...NSs, ...tmpObj.NSs };
             }
         }
 
@@ -174,11 +174,11 @@ export default class NetconfCodec {
     }
 }
 
-function mapJsonToArray(obj: any) {
+export function mapJsonToArray(obj: any): void {
     if (typeof obj === "object") {
         console.debug("[binding-netconf]", obj);
         for (const k in obj) {
-            if (obj.hasOwnProperty(k)) {
+            if (Object.prototype.hasOwnProperty.call(k)) {
                 // recursive call to scan property
                 mapJsonToArray(obj[k]);
             }
