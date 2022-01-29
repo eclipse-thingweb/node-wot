@@ -176,27 +176,21 @@ class CoapServerTest {
         await coapServer.stop();
     }
 
-    // This test has been commented out until further information from node-coap
-    // repo maintainer about having two coap server instances listening to the same port
-    // Issue: https://github.com/mcollina/node-coap/issues/268
-    //
-    // @test async "should cause EADDRINUSE error when already running"() {
-    //     const coapServer1 = new CoapServer(56832);
-    //     await coapServer1.start(null);
+    @test async "should cause EADDRINUSE error when already running"() {
+        const portNumber = 56832;
+        const coapServer1 = new CoapServer(portNumber);
+        await coapServer1.start(null);
 
-    //     expect(coapServer1.getPort()).to.eq(56832);
+        expect(coapServer1.getPort()).to.eq(portNumber);
 
-    //     const coapServer2 = new CoapServer(coapServer1.getPort());
+        const coapServer2 = new CoapServer(coapServer1.getPort());
 
-    //     try {
-    //         await coapServer2.start(null);
-    //     } catch(err) {
-    //         assert(true);
-    //     }
+        try {
+            await coapServer2.start(null);
+        } catch (err) {
+            expect(err.message).to.eql(`bind EADDRINUSE 0.0.0.0:${portNumber}`);
+        }
 
-    //     expect(coapServer2.getPort()).to.eq(56832);
-
-    //     await coapServer1.stop();
-    //     await coapServer2.stop();
-    // }
+        await coapServer1.stop();
+    }
 }
