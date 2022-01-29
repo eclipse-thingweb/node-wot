@@ -28,6 +28,42 @@ const DEFAULT_PORT = 805;
 const DEFAULT_TIMEOUT = 1000;
 const DEFAULT_POLLING = 2000;
 
+class ModbusSubscription {
+    interval: NodeJS.Timeout;
+    complete: () => void;
+    constructor(
+        form: ModbusForm,
+        client: ModbusClient,
+        next: (value: Content) => void,
+        error?: (error: Error) => void,
+        complete?: () => void
+    ) {
+        if (!complete) {
+            complete = () => {
+                // do nothing.
+            };
+        }
+        this.interval = global.setInterval(async () => {
+            try {
+                const result = await client.readResource(form);
+                next(result);
+            } catch (e) {
+                if (error) {
+                    error(e);
+                }
+                clearInterval(this.interval);
+            }
+        }, form["modbus:pollingTime"]);
+
+        this.complete = complete;
+    }
+
+    unsubscribe() {
+        clearInterval(this.interval);
+        this.complete();
+    }
+}
+
 export default class ModbusClient implements ProtocolClient {
     private _connections: Map<string, ModbusConnection>;
 
@@ -41,21 +77,15 @@ export default class ModbusClient implements ProtocolClient {
         return this.performOperation(form) as Promise<Content>;
     }
 
-    writeResource(form: ModbusForm, content: Content): Promise<void> {
-        return this.performOperation(form, content) as Promise<void>;
+    async writeResource(form: ModbusForm, content: Content): Promise<void> {
+        await this.performOperation(form, content);
     }
 
-    invokeResource(form: ModbusForm, content: Content): Promise<Content> {
-        return new Promise(async (resolve, reject) => {
-            try {
-                await this.performOperation(form, content);
+    async invokeResource(form: ModbusForm, content: Content): Promise<Content> {
+        await this.performOperation(form, content);
 
-                // As mqtt there is no response
-                resolve({ type: ContentSerdes.DEFAULT, body: Readable.from("") });
-            } catch (error) {
-                reject(error);
-            }
-        });
+        // As mqtt there is no response
+        return { type: ContentSerdes.DEFAULT, body: Readable.from("") };
     }
 
     unlinkResource(form: ModbusForm): Promise<void> {
@@ -70,8 +100,8 @@ export default class ModbusClient implements ProtocolClient {
 
     public subscribeResource(
         form: ModbusForm,
-        next: (value: any) => void,
-        error?: (error: any) => void,
+        next: (value: Content) => void,
+        error?: (error: Error) => void,
         complete?: () => void
     ): Promise<Subscription> {
         return new Promise<Subscription>((resolve, reject) => {
@@ -104,7 +134,7 @@ export default class ModbusClient implements ProtocolClient {
         });
     }
 
-    setSecurity(metadata: SecurityScheme[], credentials?: any): boolean {
+    setSecurity(metadata: SecurityScheme[], credentials?: unknown): boolean {
         return false;
     }
 
@@ -263,39 +293,5 @@ export default class ModbusClient implements ProtocolClient {
         result["modbus:timeout"] = form["modbus:timeout"] ? form["modbus:timeout"] : DEFAULT_TIMEOUT;
 
         return result;
-    }
-}
-
-class ModbusSubscription {
-    interval: NodeJS.Timeout;
-    complete: () => void;
-    constructor(
-        form: ModbusForm,
-        client: ModbusClient,
-        next: (value: any) => void,
-        error?: (error: any) => void,
-        complete?: () => void
-    ) {
-        if (!complete) {
-            complete = () => {};
-        }
-        this.interval = global.setInterval(async () => {
-            try {
-                const result = await client.readResource(form);
-                next(result);
-            } catch (e) {
-                if (error) {
-                    error(e);
-                }
-                clearInterval(this.interval);
-            }
-        }, form["modbus:pollingTime"]);
-
-        this.complete = complete;
-    }
-
-    unsubscribe() {
-        clearInterval(this.interval);
-        this.complete();
     }
 }

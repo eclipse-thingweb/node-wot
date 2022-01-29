@@ -39,6 +39,7 @@ describe("Modbus connection", () => {
     it("should connect", async () => {
         const connection = new ModbusConnection("127.0.0.1", 8502);
         await connection.connect();
+        // eslint-disable-next-line no-unused-expressions
         connection.client.isOpen.should.be.true;
     });
 

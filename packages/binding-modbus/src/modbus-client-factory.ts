@@ -23,6 +23,6 @@ export default class ModbusClientFactory implements ProtocolClientFactory {
         return new ModbusClient();
     }
 
-    public init = () => true;
-    public destroy = () => true;
+    public init = (): boolean => true;
+    public destroy = (): boolean => true;
 }

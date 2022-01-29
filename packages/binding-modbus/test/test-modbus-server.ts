@@ -20,64 +20,62 @@ export default class ModbusServer {
     registers: Array<number> = [];
     killers: Array<() => void> = [];
     constructor(unitID: number) {
-        const that = this;
-
         const vector = {
-            getInputRegister: function (addr: any, unitID: any) {
+            getInputRegister: (addr: number, unitID: number) => {
                 // Synchronous handling
-                return that.registers[addr];
+                return this.registers[addr];
             },
-            getDiscreteInput: function (addr: any, unitID: any) {
+            getDiscreteInput: (addr: number, unitID: number) => {
                 // Synchronous handling
-                return that.registers[addr];
+                return this.registers[addr];
             },
-            getHoldingRegister: function (addr: number, unitID: any) {
-                return that.registers[addr];
+            getHoldingRegister: (addr: number, unitID: number) => {
+                return this.registers[addr];
             },
-            getCoil: function (addr: number, unitID: any) {
+            getCoil: (addr: number, unitID: number) => {
                 if (addr === 4444) {
                     // promise sleeps for 100 second. Useful for testing long running requests.
-                    return new Promise((resolve) => {
+                    return new Promise<number>((resolve) => {
                         const timeout = setTimeout(() => {
-                            resolve(that.registers[addr]);
+                            resolve(this.registers[addr]);
                         }, 100000);
                         // when stop forcing every connection to close
                         // it seems that the modbus client will not properly
                         // close the connection otherwise
-                        that.killers.push(() => {
+                        this.killers.push(() => {
                             clearTimeout(timeout);
                             resolve(0);
                         });
                     });
                 }
-                return that.registers[addr];
+                return this.registers[addr];
             },
 
-            setRegister: function (addr: any, value: any, unitID: any) {
-                that.registers[addr] = value;
+            setRegister: (addr: number, value: number, unitID: number) => {
+                this.registers[addr] = value;
             },
 
-            setCoil: function (addr: any, value: any, unitID: any) {
-                that.registers[addr] = value;
+            setCoil: (addr: number, value: boolean, unitID: number) => {
+                this.registers[addr] = value as any;
             },
         };
         this.serverTCP = new ServerTCP(vector, { host: "127.0.0.1", port: 8502, debug: true, unitID: unitID });
     }
 
-    setRegisters(data: Array<number>, start = 0) {
+    setRegisters(data: Array<number>, start = 0): void {
         for (let index = 0; index < data.length; index++) {
             const element = data[index];
             this.registers[index + start] = element;
         }
     }
 
-    clear() {
+    clear(): void {
         this.registers = [];
     }
 
-    public start() {
+    public start(): Promise<unknown> {
         return new Promise((resolve) => {
-            this.serverTCP.on("SocketError", function (err: any) {
+            this.serverTCP.on("SocketError", (err: Error) => {
                 // Handle socket error if needed, can be ignored
                 console.error(err);
             });
@@ -89,7 +87,7 @@ export default class ModbusServer {
         });
     }
 
-    public stop() {
+    public stop(): Promise<unknown> {
         return new Promise((resolve) => {
             this.killers.forEach((killer) => {
                 killer();
