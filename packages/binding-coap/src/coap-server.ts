@@ -40,9 +40,12 @@ export default class CoapServer implements ProtocolServer {
 
     private readonly port: number = 5683;
     private readonly address?: string = undefined;
-    private readonly server: Server = createServer((req: IncomingMessage, res: OutgoingMessage) => {
-        this.handleRequest(req, res);
-    });
+    private readonly server: Server = createServer(
+        { reuseAddr: false },
+        (req: IncomingMessage, res: OutgoingMessage) => {
+            this.handleRequest(req, res);
+        }
+    );
 
     private readonly things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
 
