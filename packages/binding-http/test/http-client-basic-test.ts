@@ -22,12 +22,12 @@ import { ProtocolHelpers } from "@node-wot/core";
 import * as chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { fail } from "assert";
-const fs = require("fs");
+import { readFileSync } from "fs";
 
 chai.should();
 chai.use(chaiAsPromised);
 
-function mockService(req: any, res: any, next: any) {
+function mockService(req: express.Request, res: express.Response) {
     // -----------------------------------------------------------------------
     // authentication middleware
 
@@ -65,8 +65,8 @@ class HttpClientBasicTest {
             HttpClientBasicTest.server = https
                 .createServer(
                     {
-                        key: fs.readFileSync("./test/server.key"),
-                        cert: fs.readFileSync("./test/server.cert"),
+                        key: readFileSync("./test/server.key"),
+                        cert: readFileSync("./test/server.cert"),
                     },
                     app
                 )

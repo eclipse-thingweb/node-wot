@@ -22,32 +22,34 @@ import { OAuth2SecurityScheme } from "@node-wot/td-tools";
 import InMemoryModel from "./memory-model";
 import { promisify } from "util";
 import { ProtocolHelpers } from "@node-wot/core";
-const OAuthServer = require("express-oauth-server");
-const bodyParser = require("body-parser");
+import { readFileSync } from "fs";
 
-const fs = require("fs");
+import OAuthServer from "express-oauth-server";
+import bodyParser from "body-parser";
+
+import { AuthorizationCodeModel } from "oauth2-server";
 
 @suite("HTTP oauth client implementation")
 class HttpClientOAuthTest {
     private client: HttpClient;
-    static model: any;
+    static model: AuthorizationCodeModel;
     static server: https.Server;
 
     static before(): Promise<void> {
-        const app: any = express();
-        HttpClientOAuthTest.model = new InMemoryModel();
+        const app: express.Express = express();
+        HttpClientOAuthTest.model = new InMemoryModel() as unknown as AuthorizationCodeModel;
 
-        app.oauth = new OAuthServer({
+        const oauth = new OAuthServer({
             model: HttpClientOAuthTest.model,
             accessTokenLifetime: 1, // One minute; less is not possible
         });
 
         app.use(bodyParser.json());
-        app.use("/resource", app.oauth.authenticate());
+        app.use("/resource", oauth.authenticate());
         app.use("/token", bodyParser.urlencoded({ extended: false }));
-        app.use("/token", app.oauth.token());
+        app.use("/token", oauth.token());
 
-        app.use("/resource", (req: any, res: any) => {
+        app.use("/resource", (req: express.Request, res: express.Response) => {
             res.send("Ok!");
         });
 
@@ -55,8 +57,8 @@ class HttpClientOAuthTest {
             HttpClientOAuthTest.server = https
                 .createServer(
                     {
-                        key: fs.readFileSync("./test/server.key"),
-                        cert: fs.readFileSync("./test/server.cert"),
+                        key: readFileSync("./test/server.key"),
+                        cert: readFileSync("./test/server.cert"),
                     },
                     app
                 )
@@ -118,8 +120,9 @@ class HttpClientOAuthTest {
             token: "https://localhost:3000/token",
             scopes: ["test"],
         };
-        HttpClientOAuthTest.model.expireAllTokens();
-        await this.client.setSecurity([scheme], { clientId: "thom", clientSecret: "nightworld" });
+        const model = HttpClientOAuthTest.model as any;
+        model.expireAllTokens();
+        this.client.setSecurity([scheme], { clientId: "thom", clientSecret: "nightworld" });
         await sleep(1000);
         const resource = await this.client.readResource({
             href: "https://localhost:3000/resource",
@@ -135,8 +138,9 @@ class HttpClientOAuthTest {
             token: "https://localhost:3000/token",
             scopes: ["test"],
         };
+        const model = HttpClientOAuthTest.model as any;
 
-        HttpClientOAuthTest.model.expireAllTokens();
+        model.expireAllTokens();
         this.client.setSecurity([scheme], {
             clientId: "thom",
             clientSecret: "nightworld",
