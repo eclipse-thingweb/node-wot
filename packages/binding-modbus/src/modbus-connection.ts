@@ -30,7 +30,7 @@ const configDefaults = {
 export class ModbusConnection {
     host: string;
     port: number;
-    client: any; // ModbusClient.IModbusRTU
+    client: ModbusRTU;
     connecting: boolean;
     connected: boolean;
     timer: NodeJS.Timer; // connection idle timer
@@ -127,7 +127,7 @@ export class ModbusConnection {
         this.queue.push(transaction);
     }
 
-    async connect() {
+    async connect(): Promise<void> {
         if (!this.connecting && !this.client.isOpen) {
             console.debug("[binding-modbus]", "Trying to connect to", this.host);
             this.connecting = true;
@@ -152,7 +152,7 @@ export class ModbusConnection {
                     if (retry >= this.config.maxRetries - 1) {
                         throw new Error("Max connection retries");
                     }
-                    await new Promise((r) => setTimeout(r, this.config.connectionRetryTime));
+                    await new Promise((resolve) => setTimeout(resolve, this.config.connectionRetryTime));
                 }
             }
         }
@@ -166,7 +166,7 @@ export class ModbusConnection {
      * start the next transaction.
      * Retrigger after success or failure.
      */
-    async trigger() {
+    async trigger(): Promise<void> {
         console.debug("[binding-modbus]", "ModbusConnection:trigger");
         if (!this.connecting && !this.client.isOpen) {
             // connection may be closed due to operation timeout
@@ -198,7 +198,7 @@ export class ModbusConnection {
         }
     }
 
-    public close() {
+    public close(): void {
         this.modbusstop();
     }
 
@@ -255,7 +255,7 @@ export class ModbusConnection {
                 // write multiple coils
                 const coils = new Array<boolean>();
                 transaction.content.forEach((v) => coils.push(v !== 0));
-                const coilsResult = await this.client.writeCoils(transaction.base, coils);
+                const coilsResult: any = await this.client.writeCoils(transaction.base, coils);
                 if (coilsResult.address !== transaction.base && coilsResult.quantity !== transaction.quantity) {
                     throw new Error(`writing ${coils} to ${transaction.base} failed`);
                 }
@@ -281,7 +281,7 @@ export class ModbusConnection {
                     values.push(transaction.content.readUInt16BE(i));
                     i++;
                 }
-                const registers = await this.client.writeRegisters(transaction.base, values);
+                const registers: any = await this.client.writeRegisters(transaction.base, values);
 
                 if (registers.address === transaction.base && transaction.quantity / 2 > registers.quantity) {
                     console.warn(
@@ -441,7 +441,7 @@ export class PropertyOperation {
     endianness: ModbusEndianness;
     transaction: ModbusTransaction; // transaction used to execute this operation
     resolve: (value?: Content | PromiseLike<Content>) => void;
-    reject: (reason?: any) => void;
+    reject: (reason?: Error) => void;
 
     constructor(form: ModbusForm, endianness: ModbusEndianness, content?: Buffer) {
         this.unitId = form["modbus:unitID"];
@@ -517,7 +517,7 @@ export class PropertyOperation {
      *
      * @param reason Reason of failure
      */
-    failed(reason: string) {
+    failed(reason: Error): void {
         console.warn("[binding-modbus]", "Operation failed:", reason);
         // reject the Promise given to the invoking script
         this.reject(reason);

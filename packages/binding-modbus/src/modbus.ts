@@ -18,6 +18,32 @@ export { default as ModbusClient } from "./modbus-client";
 export * from "./modbus-client";
 export * from "./modbus-client-factory";
 
+export type ModbusEntity = "Coil" | "InputRegister" | "HoldingRegister" | "DiscreteInput";
+
+export enum ModbusFunction {
+    "readCoil" = 1,
+    "readDiscreteInput" = 2,
+    "readHoldingRegisters" = 3,
+    "readInputRegister" = 4,
+    "writeSingleCoil" = 5,
+    "writeSingleHoldingRegister" = 6,
+    "writeMultipleCoils" = 15,
+    "writeMultipleHoldingRegisters" = 16,
+}
+
+/**
+ * Different modbus function names as defined in
+ * https://en.wikipedia.org/wiki/Modbus.
+ */
+export type ModbusFunctionName =
+    | "readCoil"
+    | "readDiscreteInput"
+    | "readHoldingRegisters"
+    | "writeSingleCoil"
+    | "writeSingleHoldingRegister"
+    | "writeMultipleCoils"
+    | "writeMultipleHoldingRegisters";
+
 export class ModbusForm extends Form {
     /**
      * The modbus function issued in the request.
@@ -59,30 +85,6 @@ export class ModbusForm extends Form {
     public "modbus:pollingTime"?: number;
 }
 
-/**
- * Different modbus function names as defined in
- * https://en.wikipedia.org/wiki/Modbus.
- */
-export type ModbusFunctionName =
-    | "readCoil"
-    | "readDiscreteInput"
-    | "readHoldingRegisters"
-    | "writeSingleCoil"
-    | "writeSingleHoldingRegister"
-    | "writeMultipleCoils"
-    | "writeMultipleHoldingRegisters";
-
-export type ModbusEntity = "Coil" | "InputRegister" | "HoldingRegister" | "DiscreteInput";
-export enum ModbusFunction {
-    "readCoil" = 1,
-    "readDiscreteInput" = 2,
-    "readHoldingRegisters" = 3,
-    "readInputRegister" = 4,
-    "writeSingleCoil" = 5,
-    "writeSingleHoldingRegister" = 6,
-    "writeMultipleCoils" = 15,
-    "writeMultipleHoldingRegisters" = 16,
-}
 export enum ModbusEndianness {
     BIG_ENDIAN = "BIG_ENDIAN",
     LITTLE_ENDIAN = "LITTLE_ENDIAN",

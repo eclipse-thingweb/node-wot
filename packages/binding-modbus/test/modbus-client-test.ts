@@ -32,8 +32,12 @@ describe("Modbus client test", () => {
 
     before(async () => {
         // Turn off logging to have a clean test log
-        console.debug = () => {};
-        console.warn = () => {};
+        console.debug = () => {
+            // Do nothing.
+        };
+        console.warn = () => {
+            // Do nothing.
+        };
 
         testServer = new ModbusServer(1);
         await testServer.start();
@@ -467,7 +471,9 @@ describe("Modbus client test", () => {
             };
 
             client
-                .subscribeResource(form, (value) => {})
+                .subscribeResource(form, (value) => {
+                    // Do nothing.
+                })
                 .then((subscription) => {
                     client.unlinkResource(form);
                     done();
