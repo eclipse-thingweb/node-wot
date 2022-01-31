@@ -113,6 +113,9 @@ In particular, the decimal numbers `9545` and `22880` will be encoded as follows
 
 For register properties the payload is just the plain sequence of bytes read from or written to the registers. For coils and discrete inputs, the payload is a sequence of bytes, each corresponding to a single coil or discrete input. Each byte contains the value `0` or `1`. So the encoder / decoder should work on this series of bytes and does not have to take care about handling the individual bits. Mapping each coil or discrete input to a single property of type `boolean` works just fine!
 
+Another parameter that can be used in conjunction with `application/octet-stream` is `length`. This parameter specifies the length of the payload in bytes. This is useful to indicate the actual length of the payload when reading or writing a sequence of registers. For example, when reading a property using `readHoldingRegisters`, the payload length can be used to specify the number of registers to be read. Notice that the payload length must always
+be equal to the number of registers multiplied by the registers size in bytes.
+
 ## Security
 
 The protocol does not support security.
