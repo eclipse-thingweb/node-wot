@@ -20,7 +20,7 @@
 import * as chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { MqttClient, MqttForm, MqttQoS } from "../src/mqtt";
-import { expect } from "chai";
+import { expect, should } from "chai";
 import { Aedes, Server } from "aedes";
 import * as net from "net";
 import { ProtocolHelpers, Content } from "@node-wot/core";
@@ -29,6 +29,7 @@ import { Readable } from "stream";
 chai.use(chaiAsPromised);
 
 // should must be called to augment all variables
+should();
 
 describe("MQTT client implementation", () => {
     let aedes: Aedes;
