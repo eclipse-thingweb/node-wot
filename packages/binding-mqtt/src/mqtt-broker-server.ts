@@ -421,19 +421,15 @@ export default class MqttBrokerServer implements ProtocolServer {
     }
 
     public async stop(): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            if (this.broker !== undefined) {
-                this.broker.unsubscribe("*");
-                this.broker.end(true);
-            }
+        if (this.broker !== undefined) {
+            this.broker.unsubscribe("*");
+            this.broker.end(true);
+        }
 
-            if (this.hostedBroker !== undefined) {
-                this.hostedServer.close();
-                this.hostedBroker.close(() => resolve());
-            }
-
-            resolve();
-        });
+        if (this.hostedBroker !== undefined) {
+            await new Promise<void>((resolve) => this.hostedServer.close(() => resolve()));
+            await new Promise<void>((resolve) => this.hostedBroker.close(() => resolve()));
+        }
     }
 
     public getPort(): number {
