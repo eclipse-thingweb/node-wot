@@ -36,7 +36,7 @@ export default class MqttBrokerServer implements ProtocolServer {
 
     private brokerURI: string = undefined;
 
-    private readonly things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
+    private readonly things: Map<string, ExposedThing> = new Map();
 
     private readonly config: MqttBrokerServerConfig;
 
@@ -58,8 +58,11 @@ export default class MqttBrokerServer implements ProtocolServer {
         if (config.selfHost) {
             this.hostedServer = Server({});
             let server;
-            if (config.key) server = tls.createServer({ key: config.key, cert: config.cert }, this.hostedServer.handle);
-            else server = net.createServer(this.hostedServer.handle);
+            if (config.key) {
+                server = tls.createServer({ key: config.key, cert: config.cert }, this.hostedServer.handle);
+            } else {
+                server = net.createServer(this.hostedServer.handle);
+            }
             const parsed = new url.URL(this.brokerURI);
             const port = parseInt(parsed.port);
             this.port = port > 0 ? port : 1883;
