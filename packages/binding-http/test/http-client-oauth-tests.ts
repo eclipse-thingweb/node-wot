@@ -27,17 +27,15 @@ import { readFileSync } from "fs";
 import OAuthServer from "express-oauth-server";
 import bodyParser from "body-parser";
 
-import { AuthorizationCodeModel } from "oauth2-server";
-
 @suite("HTTP oauth client implementation")
 class HttpClientOAuthTest {
     private client: HttpClient;
-    static model: AuthorizationCodeModel;
+    static model: InMemoryModel;
     static server: https.Server;
 
     static before(): Promise<void> {
         const app: express.Express = express();
-        HttpClientOAuthTest.model = new InMemoryModel() as unknown as AuthorizationCodeModel;
+        HttpClientOAuthTest.model = new InMemoryModel();
 
         const oauth = new OAuthServer({
             model: HttpClientOAuthTest.model,
@@ -120,8 +118,8 @@ class HttpClientOAuthTest {
             token: "https://localhost:3000/token",
             scopes: ["test"],
         };
-        const model = HttpClientOAuthTest.model as any;
-        model.expireAllTokens();
+        const model = HttpClientOAuthTest.model;
+        await model.expireAllTokens();
         this.client.setSecurity([scheme], { clientId: "thom", clientSecret: "nightworld" });
         await sleep(1000);
         const resource = await this.client.readResource({
@@ -138,7 +136,7 @@ class HttpClientOAuthTest {
             token: "https://localhost:3000/token",
             scopes: ["test"],
         };
-        const model = HttpClientOAuthTest.model as any;
+        const model = HttpClientOAuthTest.model;
 
         model.expireAllTokens();
         this.client.setSecurity([scheme], {
