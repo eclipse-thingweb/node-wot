@@ -16,15 +16,13 @@
 /**
  * Netconf protocol binding
  */
-import { ProtocolClientFactory, ProtocolClient } from "@node-wot/core";
+import { ProtocolClientFactory, ProtocolClient, ContentSerdes } from "@node-wot/core";
 import NetconfClient from "./netconf-client";
-import { ContentSerdes } from "@node-wot/core";
 import NetconfCodec from "./codecs/netconf-codec";
 
 export default class NetconfClientFactory implements ProtocolClientFactory {
     public readonly scheme: string = "netconf";
     public contentSerdes: ContentSerdes = ContentSerdes.get();
-    constructor() {}
 
     public getClient(): ProtocolClient {
         this.contentSerdes.addCodec(new NetconfCodec()); // add custom codec for NetConf
@@ -32,6 +30,6 @@ export default class NetconfClientFactory implements ProtocolClientFactory {
         return new NetconfClient();
     }
 
-    public init = () => true;
-    public destroy = () => true;
+    public init = (): boolean => true;
+    public destroy = (): boolean => true;
 }

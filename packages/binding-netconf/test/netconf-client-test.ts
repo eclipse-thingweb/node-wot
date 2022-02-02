@@ -17,18 +17,17 @@
  * Protocol test suite to test protocol implementations
  */
 
-import { expect, should } from "chai";
+import chai, { expect, should } from "chai";
 
 import { ContentSerdes } from "@node-wot/core";
 
 import NetconfClient from "../src/netconf-client";
 import * as xpath2json from "../src/xpath2json";
 import { Readable } from "stream";
+import spies from "chai-spies";
+
 // should must be called to augment all variables
 should();
-
-const chai = require("chai");
-const spies = require("chai-spies");
 
 chai.use(spies);
 
@@ -63,7 +62,7 @@ describe("outer describe", function () {
             "nc:method": "GET-CONFIG",
         };
         try {
-            const res = await client.readResource(inputVector.form);
+            await client.readResource(inputVector.form);
         } catch (err) {
             expect(err.message).to.equal("connect ECONNREFUSED 127.0.0.1:6060");
         }
@@ -105,7 +104,7 @@ describe("outer describe", function () {
         } */
 
         try {
-            const res = await client.writeResource(inputVector.form, {
+            await client.writeResource(inputVector.form, {
                 type: ContentSerdes.DEFAULT,
                 body: Readable.from(Buffer.from(JSON.stringify(payload))),
             });
@@ -131,7 +130,7 @@ describe("outer describe", function () {
         const payload = "commit";
 
         try {
-            const res = await client.invokeResource(inputVector.form, {
+            await client.invokeResource(inputVector.form, {
                 type: ContentSerdes.DEFAULT,
                 body: Readable.from(Buffer.from(JSON.stringify(payload))),
             });
@@ -141,45 +140,45 @@ describe("outer describe", function () {
     });
 
     it("should properly add leaves to XPATH", async function () {
-        let xpath_query = "/ietf-interfaces:interfaces/interface/interface"; // the binding automatically adds again the leaf. addLeaves then removes it
+        let xpathQuery = "/ietf-interfaces:interfaces/interface/interface"; // the binding automatically adds again the leaf. addLeaves then removes it
         const payload = { name: "interface100" };
-        const valid_xpath_query = '/ietf-interfaces:interfaces/interface[name="interface100"]';
-        xpath_query = xpath2json.addLeaves(xpath_query, payload);
-        expect(xpath_query).to.equal(valid_xpath_query);
+        const validXpathQuery = '/ietf-interfaces:interfaces/interface[name="interface100"]';
+        xpathQuery = xpath2json.addLeaves(xpathQuery, payload);
+        expect(xpathQuery).to.equal(validXpathQuery);
     });
 
     it("should properly convert XPATH to JSON", async function () {
-        let xpath_query = "ietf-interfaces:interfaces/interface[name=interface100]";
+        let xpathQuery = "ietf-interfaces:interfaces/interface[name=interface100]";
         const NSs = {
             "ietf-interfaces": "urn:ietf:params:xml:ns:yang:ietf-interfaces",
             "iana-if-type": "urn:ietf:params:xml:ns:yang:iana-if-type",
         };
 
-        let obj_request = xpath2json.xpath2json(xpath_query, NSs);
-        let valid_object: any = {
+        let objRequest = xpath2json.xpath2json(xpathQuery, NSs);
+        let validObject: any = {
             "ietf-interfaces:interfaces": { interface: { name: "interface100" } },
         };
-        expect(JSON.stringify(obj_request)).to.equal(JSON.stringify(valid_object));
+        expect(JSON.stringify(objRequest)).to.equal(JSON.stringify(validObject));
 
         const payload = { value: "modem" };
-        xpath_query = xpath2json.addLeaves(xpath_query, payload);
-        obj_request = xpath2json.xpath2json(xpath_query, NSs);
-        valid_object = {
+        xpathQuery = xpath2json.addLeaves(xpathQuery, payload);
+        objRequest = xpath2json.xpath2json(xpathQuery, NSs);
+        validObject = {
             "ietf-interfaces:interfaces": { interface: { name: "interface100", value: "modem" } },
         };
-        expect(JSON.stringify(obj_request)).to.equal(JSON.stringify(valid_object));
+        expect(JSON.stringify(objRequest)).to.equal(JSON.stringify(validObject));
     });
 
     it("should properly convert JSON to XPATH", async function () {
-        const xpath_query = '/ietf-interfaces:interfaces/interface[name="interface100"][value="modem"]';
-        const object: any = {
+        const xpathQuery = '/ietf-interfaces:interfaces/interface[name="interface100"][value="modem"]';
+        const object = {
             "ietf-interfaces:interfaces": { interface: { name: "interface100", value: "modem" } },
         };
-        const json_string = xpath2json.json2xpath(object, 0, []);
-        let json_xpath = json_string[0] !== "[" ? "/" : ""; // let's check if the first argument is a leaf
-        for (let i = 0; i < json_string.length; i++) {
-            json_xpath += json_string[i];
+        const jsonString = xpath2json.json2xpath(object, 0, []);
+        let jsonXpath = jsonString[0] !== "[" ? "/" : ""; // let's check if the first argument is a leaf
+        for (let i = 0; i < jsonString.length; i++) {
+            jsonXpath += jsonString[i];
         }
-        expect(json_xpath).to.equal(xpath_query);
+        expect(jsonXpath).to.equal(xpathQuery);
     });
 });

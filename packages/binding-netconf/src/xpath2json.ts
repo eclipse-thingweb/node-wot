@@ -13,11 +13,11 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-export function isObject(a: any) {
+export function isObject(a: unknown): boolean {
     return !!a && a.constructor === Object;
 }
 
-export function json2xpath(json: any, index: number, str: Array<string>) {
+export function json2xpath(json: any, index: number, str: Array<string>): string[] {
     if (!isObject(json)) {
         return str;
     }
@@ -33,7 +33,7 @@ export function json2xpath(json: any, index: number, str: Array<string>) {
         } else if (json[key] && !isObject(json[key])) {
             // if next child is not an object, final leaf with value
             const val = json[key];
-            if (j == 0) {
+            if (j === 0) {
                 str.pop(); // there was an useless "/"
             }
             str.push("[");
@@ -53,104 +53,104 @@ export function json2xpath(json: any, index: number, str: Array<string>) {
     return str;
 }
 
-export function xpath2json(xpath: string, NSs: any) {
+export function xpath2json(xpath: string, NSs: any): any {
     const subStrings = xpath.split("/");
     let obj: any = {};
-    let tmp_obj: any = {};
+    let tmpObj: any = {};
     for (let i = subStrings.length - 1; i > -1; i--) {
         let sub = subStrings[i];
         if (sub === "") {
             continue;
         }
-        let root_ns = null;
+        let rootNs = null;
         let key = null;
-        tmp_obj = {};
+        tmpObj = {};
         const reg = /\[(.*?)\]/g;
-        if (sub.replace(reg, "").split(":").length > 1 && i == 1) {
+        if (sub.replace(reg, "").split(":").length > 1 && i === 1) {
             // handle the root, without focusing on leaves
-            root_ns = sub.replace(reg, "").split(":")[0];
+            rootNs = sub.replace(reg, "").split(":")[0];
             key = sub.replace(reg, "").split(":")[1]; // remove possible leaves to avoid wrong conversion
-            sub = sub.replace(root_ns + ":", ""); // remove the ns
+            sub = sub.replace(rootNs + ":", ""); // remove the ns
             const $: any = {}; // object for containing namespaces
-            if (!(root_ns in NSs)) {
-                throw new Error(`Namespace for ${root_ns} not specified in the TD`);
+            if (!(rootNs in NSs)) {
+                throw new Error(`Namespace for ${rootNs} not specified in the TD`);
             }
-            $.xmlns = NSs[root_ns];
-            tmp_obj[key] = {};
-            tmp_obj[key].$ = $; // attach all the required namespaces
+            $.xmlns = NSs[rootNs];
+            tmpObj[key] = {};
+            tmpObj[key].$ = $; // attach all the required namespaces
         }
 
         if (sub.match(reg)) {
             // handle elements with values for leaves
             const values = sub.match(reg);
             sub = sub.replace(/\[[^\]]*\]/g, "");
-            if (!tmp_obj[sub]) {
+            if (!tmpObj[sub]) {
                 // create the parent
-                tmp_obj[sub] = {};
+                tmpObj[sub] = {};
             }
             for (let j = 0; j < values.length; j++) {
-                var val = values[j];
-                val = val.replace(/[\[\]']+/g, "");
+                let val = values[j];
+                val = val.replace(/[[\]']+/g, "");
                 key = val.split("=")[0];
                 val = val.split("=")[1];
                 val = val.replace(/['"]+/g, ""); // remove useless ""
-                tmp_obj[sub][key] = val;
+                tmpObj[sub][key] = val;
                 if (val.split("\\:").length > 1 && i > 1) {
-                    const ns_key = val.split("\\:")[0];
+                    const nsKey = val.split("\\:")[0];
                     val = val.replace(/[\\]+/g, ""); // remove escape chars
-                    if (!(ns_key in NSs)) {
-                        throw new Error(`Namespace for ${ns_key} not specified in the TD`);
+                    if (!(nsKey in NSs)) {
+                        throw new Error(`Namespace for ${nsKey} not specified in the TD`);
                     }
-                    const ns = NSs[ns_key];
-                    const xmlns_key = "xmlns:" + ns_key;
-                    tmp_obj[sub][key] = { $: { [xmlns_key]: ns }, _: val };
+                    const ns = NSs[nsKey];
+                    const xmlnsKey = "xmlns:" + nsKey;
+                    tmpObj[sub][key] = { $: { [xmlnsKey]: ns }, _: val };
                 }
             }
         }
         if (sub.split(":").length > 1 && i > 1) {
             // handle all the other cases
-            const ns_key = sub.split(":")[0];
-            val = sub.split(":")[1];
-            if (!(sub in tmp_obj)) {
-                tmp_obj[val] = {}; // the new key is val
+            const nsKey = sub.split(":")[0];
+            const val = sub.split(":")[1];
+            if (!(sub in tmpObj)) {
+                tmpObj[val] = {}; // the new key is val
             } else {
                 // key already existing, let's update it with the new one
                 const newObject = {};
-                delete Object.assign(newObject, tmp_obj, { [val]: tmp_obj[sub] })[sub];
-                tmp_obj = newObject;
+                delete Object.assign(newObject, tmpObj, { [val]: tmpObj[sub] })[sub];
+                tmpObj = newObject;
             }
             sub = val; // since xmlns is going to be add, sub is now just the value
-            tmp_obj[sub].$ = {};
-            if (!(ns_key in NSs)) {
-                throw new Error(`Namespace for ${ns_key} not specified in the TD`);
+            tmpObj[sub].$ = {};
+            if (!(nsKey in NSs)) {
+                throw new Error(`Namespace for ${nsKey} not specified in the TD`);
             }
 
-            tmp_obj[sub].$.xmlns = NSs[ns_key];
+            tmpObj[sub].$.xmlns = NSs[nsKey];
         }
 
-        if (!tmp_obj[sub]) {
-            tmp_obj[sub] = {};
+        if (!tmpObj[sub]) {
+            tmpObj[sub] = {};
         }
-        tmp_obj[sub] = Object.assign(tmp_obj[sub], obj);
-        obj = tmp_obj;
+        tmpObj[sub] = Object.assign(tmpObj[sub], obj);
+        obj = tmpObj;
     }
     return obj;
 }
 
-export function addLeaves(this: any, xpath: string, payload: any) {
-    if (!this.isObject(payload)) {
+export function addLeaves(xpath: string, payload: any): string {
+    if (!isObject(payload)) {
         return xpath;
     }
 
-    const json_string = json2xpath(payload, 0, []);
-    const json_xpath = json_string.join("");
+    const jsonString = json2xpath(payload, 0, []);
+    const jsonXpath = jsonString.join("");
     // remove the leaf from the xpath, since it has been added by the codec again
     // remove only if it is not the only one element in the xpath
     if (xpath.split("/").length > 2) {
         // there is also the '' element in the array to consider
-        const last_el = xpath.split("/").splice(-1, 1);
-        xpath = xpath.replace("/" + last_el[0], "");
+        const lastEl = xpath.split("/").splice(-1, 1);
+        xpath = xpath.replace("/" + lastEl[0], "");
     }
 
-    return xpath + json_xpath;
+    return xpath + jsonXpath;
 }

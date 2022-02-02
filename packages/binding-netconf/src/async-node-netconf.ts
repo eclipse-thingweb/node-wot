@@ -37,15 +37,15 @@ export class Client {
         this.router = null;
     }
 
-    getRouter() {
+    getRouter(): any {
         return this.router;
     }
 
-    deleteRouter() {
+    deleteRouter(): void {
         this.router = null;
     }
 
-    async initializeRouter(host: string, port: number, credentials: any) {
+    async initializeRouter(host: string, port: number, credentials: any): Promise<void> {
         if (this.router && this.router.connected) {
             // close the old one
             this.closeRouter();
@@ -65,21 +65,20 @@ export class Client {
         });
     }
 
-    openRouter() {
-        const self = this;
+    openRouter(): Promise<void> {
         return new Promise((resolve, reject) => {
-            if (self.router.connected) {
+            if (this.router.connected) {
                 // close the old one
                 this.closeRouter();
             }
-            self.router = new nodeNetconf.Client(this.router);
-            self.router.open(function afterOpen(err: string) {
+            this.router = new nodeNetconf.Client(this.router);
+            this.router.open((err?: string) => {
                 if (err) {
                     reject(err);
                 } else {
                     console.debug(
                         "[binding-netconf]",
-                        `New NetConf router opened connection with host ${self.router.host}, port ${self.router.port}, username ${self.router.username}`
+                        `New NetConf router opened connection with host ${this.router.host}, port ${this.router.port}, username ${this.router.username}`
                     );
                     resolve(undefined);
                 }
@@ -87,41 +86,37 @@ export class Client {
         });
     }
 
-    rpc(xpath_query: string, method: string, NSs: any, target: string, payload?: any) {
-        const self = this;
+    rpc(xpathQuery: string, method: string, NSs: any, target: string, payload?: any): any {
         return new Promise((resolve, reject) => {
             if (payload) {
-                xpath_query = xpath2json.addLeaves(xpath_query, payload);
+                xpathQuery = xpath2json.addLeaves(xpathQuery, payload);
             }
-            const obj_request = xpath2json.xpath2json(xpath_query, NSs);
-            let final_request: any = {};
-            final_request = JSON.parse(JSON.stringify(METHOD_OBJ[method])); // clone the METHOD_OBJ
+            const objRequest = xpath2json.xpath2json(xpathQuery, NSs);
+            let finalRequest: any = {};
+            finalRequest = JSON.parse(JSON.stringify(METHOD_OBJ[method])); // clone the METHOD_OBJ
             switch (method) {
-                default:
-                case "GET-CONFIG": {
-                    final_request["get-config"].filter = Object.assign(final_request["get-config"].filter, obj_request);
-                    final_request["get-config"].source = {};
-                    final_request["get-config"].source[target] = {};
-                    break;
-                }
                 case "EDIT-CONFIG": {
-                    final_request["edit-config"].config = Object.assign(
-                        final_request["edit-config"].config,
-                        obj_request
-                    );
-                    final_request["edit-config"].target = {};
-                    final_request["edit-config"].target[target] = {};
+                    finalRequest["edit-config"].config = Object.assign(finalRequest["edit-config"].config, objRequest);
+                    finalRequest["edit-config"].target = {};
+                    finalRequest["edit-config"].target[target] = {};
                     break;
                 }
                 case "COMMIT": {
                     break;
                 }
                 case "RPC": {
-                    final_request = obj_request; // just take the rpc as was created starting from xpath
+                    finalRequest = objRequest; // just take the rpc as was created starting from xpath
+                    break;
+                }
+                case "GET-CONFIG":
+                default: {
+                    finalRequest["get-config"].filter = Object.assign(finalRequest["get-config"].filter, objRequest);
+                    finalRequest["get-config"].source = {};
+                    finalRequest["get-config"].source[target] = {};
                     break;
                 }
             }
-            self.router.rpc(final_request, function (err: string, results: any) {
+            this.router.rpc(finalRequest, (err: string, results: any) => {
                 if (err) {
                     reject(err);
                 }
@@ -130,7 +125,7 @@ export class Client {
         });
     }
 
-    closeRouter() {
+    closeRouter(): void {
         this.router.sshConn.end();
         this.router.connected = false;
     }
