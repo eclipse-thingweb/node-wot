@@ -18,35 +18,37 @@
  */
 
 import { suite, test } from "@testdeck/mocha";
-import { expect, should } from "chai";
+import chai, { expect, should } from "chai";
 
 import * as http from "http";
-import * as url from "url";
 import { AddressInfo } from "net";
 
-import { ContentSerdes, ProtocolHelpers, ProtocolServer } from "@node-wot/core";
+import { Content, ContentSerdes, ProtocolHelpers, ProtocolServer } from "@node-wot/core";
 
 import { Readable } from "stream";
 
 import HttpClient from "../src/http-client";
 import { HttpForm } from "../src/http";
 
+import express from "express";
+import serveStatic from "serve-static";
+import { DataSchema, DataSchemaValue, Form } from "wot-typescript-definitions";
+import SseStream from "ssestream";
+
+// Add spies
+import spies from "chai-spies";
+
 // should must be called to augment all variables
 should();
-// Add spies
-const chai = require("chai");
-const spies = require("chai-spies");
 
 chai.use(spies);
-
-// use(require("chai"));
 
 interface TestVector {
     op: Array<string>;
     method?: string;
-    schema?: any;
-    payload?: any;
-    form: any;
+    schema?: DataSchema;
+    payload?: DataSchemaValue;
+    form: Form;
 }
 
 const port1 = 30001;
@@ -143,11 +145,11 @@ class TestHttpServer implements ProtocolServer {
         if (!this.testVector) throw new Error("No test vector given");
 
         expect(req.method).to.equal(this.testVector.method);
-        expect(req.url).to.equal(url.parse(this.testVector.form.href).path);
+        expect(req.url).to.equal(new URL(this.testVector.form.href).pathname);
 
         if (this.testVector.payload !== undefined) {
             // load payload
-            const body: Array<any> = [];
+            const body: Array<Uint8Array> = [];
             req.on("data", (data) => {
                 body.push(data);
             });
@@ -272,7 +274,7 @@ class HttpClientTest1 {
             payload: "test",
         };
         HttpClientTest1.httpServer.setTestVector(inputVector2);
-        const writeResult = await this.client.writeResource(inputVector2.form, {
+        await this.client.writeResource(inputVector2.form, {
             type: ContentSerdes.DEFAULT,
             body: Readable.from(inputVector2.payload),
         });
@@ -289,7 +291,7 @@ class HttpClientTest1 {
             payload: "test",
         };
         HttpClientTest1.httpServer.setTestVector(inputVector3);
-        const invokeResourceResult = await this.client.invokeResource(inputVector3.form, {
+        await this.client.invokeResource(inputVector3.form, {
             type: ContentSerdes.DEFAULT,
             body: Readable.from(inputVector3.payload),
         });
@@ -305,22 +307,18 @@ class HttpClientTest1 {
             },
         };
         HttpClientTest1.httpServer.setTestVector(inputVector4);
-        const invokeResourceResult2 = await this.client.invokeResource(inputVector4.form);
+        await this.client.invokeResource(inputVector4.form);
     }
 }
 
-const express = require("express");
-const serveStatic = require("serve-static");
-const SseStream = require("ssestream");
-
 @suite("HTTP client subscriptions")
 class HttpClientTest2 {
-    @test "should register to sse server and get server sent event"(done: any) {
+    @test "should register to sse server and get server sent event"(done: Mocha.Done) {
         // create sse server
 
         const app = express();
         app.use(serveStatic(__dirname));
-        app.get("/sse", function (req: any, res: any) {
+        app.get("/sse", function (req: express.Request, res: express.Response) {
             console.log("new connection");
 
             const sseStream = new SseStream(req);
@@ -339,8 +337,7 @@ class HttpClientTest2 {
             });
         });
 
-        const server = app.listen(port1, (err: any) => {
-            if (err) throw err;
+        const server = app.listen(port1, () => {
             console.log(`server ready on http://localhost:${port1}`);
         });
         console.log("client created");
@@ -371,7 +368,9 @@ class HttpClientTest2 {
 
         const errorSpy = chai.spy();
         const completeSpy = chai.spy(() => {
+            // eslint-disable-next-line no-unused-expressions
             errorSpy.should.have.been.called.once;
+            // eslint-disable-next-line no-unused-expressions
             completeSpy.should.have.been.called.once;
             done();
         });
@@ -386,7 +385,7 @@ class HttpClientTest2 {
         );
     }
 
-    @test "should call error() and complete() on subscription with wrong URL"(done: any) {
+    @test "should call error() and complete() on subscription with wrong URL"(done: Mocha.Done) {
         const client = new HttpClient();
 
         // Subscribe to an event
@@ -402,7 +401,9 @@ class HttpClientTest2 {
 
         const errorSpy = chai.spy();
         const completeSpy = chai.spy(function () {
+            // eslint-disable-next-line no-unused-expressions
             errorSpy.should.have.been.called.once;
+            // eslint-disable-next-line no-unused-expressions
             completeSpy.should.have.been.called.once;
             done();
             server.close();
@@ -421,7 +422,7 @@ class HttpClientTest2 {
         });
     }
 
-    @test "should subscribe successfully"(done: any) {
+    @test "should subscribe successfully"(done: Mocha.Done) {
         const client = new HttpClient();
 
         // Subscribe to an event
@@ -437,8 +438,10 @@ class HttpClientTest2 {
 
         const subscribeSpy = chai.spy();
 
-        const eventSpy = chai.spy(async function (data: any) {
+        const eventSpy = chai.spy(async function (data: Content) {
+            // eslint-disable-next-line no-unused-expressions
             eventSpy.should.have.been.called.once;
+            // eslint-disable-next-line no-unused-expressions
             subscribeSpy.should.have.been.called.once;
             server.close();
             done();

@@ -13,42 +13,23 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-interface Client {
-    clientId: string;
-    clientSecret: string;
-    redirectUris: string[];
-    grants: string[];
-}
-
-interface User {
-    id: string;
-    username: string;
-    password: string;
-}
-
-interface Token {
-    accessToken: string;
-    accessTokenExpiresAt?: number;
-    client?: Client;
-    refreshToken: string;
-    refreshTokenExpiresAt?: number;
-    user?: User;
-}
+import { PasswordModel, ClientCredentialsModel, Callback, Token, Falsey, Client, User } from "oauth2-server";
 
 /**
  * oAuth server logic. See https://oauth2-server.readthedocs.io/en/latest/model/overview.html
  */
-export default class InMemoryModel {
+export default class InMemoryModel implements ClientCredentialsModel, PasswordModel {
     clients: Client[];
     tokens: Token[];
     users: User[];
+    tokenGen = 0;
     /**
      *
      */
     constructor() {
         this.clients = [
             {
-                clientId: "thom",
+                id: "thom",
                 clientSecret: "nightworld",
                 redirectUris: [""],
                 grants: ["client_credentials", "password", "refresh_token"],
@@ -56,6 +37,38 @@ export default class InMemoryModel {
         ];
         this.tokens = [];
         this.users = [{ id: "123", username: "thomseddon", password: "nightworld" }];
+    }
+
+    async validateScope?(
+        user: User,
+        client: Client,
+        scope: string | string[],
+        callback?: Callback<string | false | 0>
+    ): Promise<string | false | 0 | string[]> {
+        if (callback) {
+            callback(null, scope.toString());
+        }
+
+        return scope;
+    }
+
+    async generateAccessToken?(
+        client: Client,
+        user: User,
+        scope: string | string[],
+        callback?: Callback<string>
+    ): Promise<string> {
+        if (callback) {
+            callback(null, Buffer.from(Math.random().toString()).toString("base64").substr(10, 5));
+        }
+        return Buffer.from(Math.random().toString()).toString("base64").substr(10, 5);
+    }
+
+    async verifyScope(token: Token, scope: string | string[], callback?: Callback<boolean>): Promise<boolean> {
+        if (callback) {
+            callback(null, true);
+        }
+        return true;
     }
 
     dump(): void {
@@ -68,10 +81,13 @@ export default class InMemoryModel {
      * Get access token.
      */
 
-    getAccessToken(bearerToken: string): Token | false {
+    async getAccessToken(bearerToken: string, callback: Callback<Token>): Promise<Token | Falsey> {
         const tokens = this.tokens.filter(function (token) {
             return token.accessToken === bearerToken;
         });
+        if (callback) {
+            callback(null, tokens[0]);
+        }
 
         return tokens.length ? tokens[0] : false;
     }
@@ -92,11 +108,17 @@ export default class InMemoryModel {
      * Get client.
      */
 
-    getClient(clientId: string, clientSecret: string): Client | false {
+    async getClient(
+        clientId: string,
+        clientSecret: string,
+        callback?: Callback<Falsey | Client>
+    ): Promise<Client | Falsey> {
         const clients = this.clients.filter(function (client) {
-            return client.clientId === clientId && (!clientSecret || client.clientSecret === clientSecret);
+            return client.id === clientId && (!clientSecret || client.clientSecret === clientSecret);
         });
-
+        if (callback) {
+            callback(null, clients.length ? clients[0] : false);
+        }
         return clients.length ? clients[0] : false;
     }
 
@@ -104,7 +126,7 @@ export default class InMemoryModel {
      * Save token.
      */
 
-    saveToken(token: Token, client: Client, user: User): Token {
+    async saveToken(token: Token, client: Client, user: User, callback?: Callback<Token>): Promise<Token> {
         const { accessToken, accessTokenExpiresAt, refreshTokenExpiresAt, refreshToken } = token;
         this.tokens.push({
             accessToken: accessToken,
@@ -114,6 +136,9 @@ export default class InMemoryModel {
             refreshTokenExpiresAt: refreshTokenExpiresAt,
             user: user,
         });
+        if (callback) {
+            callback(null, this.tokens[this.tokens.length - 1]);
+        }
         return this.tokens[this.tokens.length - 1];
     }
 
@@ -121,7 +146,7 @@ export default class InMemoryModel {
      * Get user.
      */
 
-    getUser(username: string, password: string): User | false {
+    async getUser(username: string, password: string): Promise<User | Falsey> {
         const users = this.users.filter(function (user) {
             return user.username === username && user.password === password;
         });
@@ -129,12 +154,11 @@ export default class InMemoryModel {
         return users.length ? users[0] : false;
     }
 
-    getUserFromClient(client: string): User {
+    async getUserFromClient(client: Client, callback?: Callback<Falsey | User>): Promise<Falsey | User> {
+        if (callback) {
+            callback(null, this.users[0]);
+        }
         return this.users[0];
-    }
-
-    saveAuthorizationCode(): void {
-        return undefined;
     }
 
     revokeToken(token: Token): boolean {
@@ -143,7 +167,7 @@ export default class InMemoryModel {
 
     expireAllTokens(): void {
         for (const token of this.tokens) {
-            token.accessTokenExpiresAt = Date.now();
+            token.accessTokenExpiresAt = new Date();
         }
     }
 }
