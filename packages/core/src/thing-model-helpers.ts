@@ -54,7 +54,6 @@ export type CompositionOptions = {
     map?: Record<string, unknown>;
 };
 export type modelComposeInput = {
-
     extends?: ExposedThingInit[];
     imports?: (ModelImportsInput & { affordance: DataSchema })[];
     submodel?: Record<string, ExposedThingInit>;
@@ -73,13 +72,13 @@ export default class ThingModelHelpers {
     }
 
     /**
-   * Checks if the input is a ThingModel.
-   *
-   * @param data - The record to be validated
-   * @returns a boolean: true if the input is a Thing Model, false otherwise
-   *
-   * @experimental
-   */
+     * Checks if the input is a ThingModel.
+     *
+     * @param data - The record to be validated
+     * @returns a boolean: true if the input is a Thing Model, false otherwise
+     *
+     * @experimental
+     */
     public static isThingModelThingDescription(data: Record<string, unknown>): boolean {
         if (Object.keys(this.getThingModelRef(data)).length > 0) {
             // FIXME: different from specifications
@@ -106,13 +105,13 @@ export default class ThingModelHelpers {
     }
 
     /**
-   * Returns the version of the input Thing Model.
-   *
-   * @param data - the Thing Model where to get the version
-   * @returns the version of the Thing Model as string
-   *
-   * @experimental
-   */
+     * Returns the version of the input Thing Model.
+     *
+     * @param data - the Thing Model where to get the version
+     * @returns the version of the Thing Model as string
+     *
+     * @experimental
+     */
     public static getModelVersion(data: ExposedThingInit): string {
         if (!("version" in data) || !("model" in data.version)) {
             return null;
@@ -121,15 +120,15 @@ export default class ThingModelHelpers {
     }
 
     /**
-   * Validates a Thing Model
-   *
-   * @param data - the Thing Model to be checked 
-   * @returns an object with keys:
-   * -valid: the boolean for validity- and
-   * -errors: the string containing the errors occurred. Undefined if valid.
-   *
-   * @experimental
-   */
+     * Validates a Thing Model
+     *
+     * @param data - the Thing Model to be checked
+     * @returns an object with keys:
+     * -valid: the boolean for validity- and
+     * -errors: the string containing the errors occurred. Undefined if valid.
+     *
+     * @experimental
+     */
     public static validateExposedThingModelInit(data: ExposedThingInit): { valid: boolean; errors: string } {
         if (Array.isArray(data["@type"])) {
             const valid = data["@type"].filter((x) => x === "tm:ThingModel").length > 0;
@@ -156,22 +155,21 @@ export default class ThingModelHelpers {
         };
     }
 
-
     /**
-   * builds the partialTDs starting from a Thing Model.
-   *
-   * @param model - The Thing Model to start from
-   * @param options - Optional parameter of type CompositionOptions for passing
-   * further information to the building process.
-   * @returns an array of Partial TDs
-   *
-   * @experimental
-   */
+     * builds the partialTDs starting from a Thing Model.
+     *
+     * @param model - The Thing Model to start from
+     * @param options - Optional parameter of type CompositionOptions for passing
+     * further information to the building process.
+     * @returns an array of Partial TDs
+     *
+     * @experimental
+     */
     public async getPartialTDs(model: ExposedThingInit, options?: CompositionOptions): Promise<ExposedThingInit[]> {
         let isValid = ThingModelHelpers.validateExposedThingModelInit(model);
         if (isValid.valid === false || isValid.errors !== undefined) {
-            console.log(model.title)
-            console.log(isValid.errors)
+            console.log(model.title);
+            console.log(isValid.errors);
             throw new Error(isValid.errors);
         }
         isValid = this.checkPlaceholderMap(model, options?.map);
@@ -185,26 +183,26 @@ export default class ThingModelHelpers {
     }
 
     /**
-      * Retrieves the Thing Model from the given uri.
-      *
-      * @param uri - The uri from where to take the Thing Model
-      * @returns asynchronously a Thing Model
-      *
-      * @experimental
-    */
+     * Retrieves the Thing Model from the given uri.
+     *
+     * @param uri - The uri from where to take the Thing Model
+     * @returns asynchronously a Thing Model
+     *
+     * @experimental
+     */
     public async fetchModel(uri: string): Promise<ExposedThingInit> {
         this.addDependency(uri);
         return (await this.helpers.fetch(uri)) as ExposedThingInit;
     }
 
     /**
-      * Retrieves and fills asynchronously all the external references of a Thing Model.
-      *
-      * @param data - The Thing Model to be filled
-      * @returns asynchronously a modelComposeInput object containing all the retrieved data
-      *
-      * @experimental
-    */
+     * Retrieves and fills asynchronously all the external references of a Thing Model.
+     *
+     * @param data - The Thing Model to be filled
+     * @returns asynchronously a modelComposeInput object containing all the retrieved data
+     *
+     * @experimental
+     */
     private async fetchAffordances(data: ExposedThingInit): Promise<modelComposeInput> {
         const modelInput: modelComposeInput = {};
         const extLinks = ThingModelHelpers.getThingModelLinks(data, "tm:extends");
@@ -351,7 +349,6 @@ export default class ThingModelHelpers {
         }
         return partialTDs;
     }
-
 
     private static getThingModelRef(data: Record<string, unknown>): Record<string, unknown> {
         const refs = {} as Record<string, unknown>;
