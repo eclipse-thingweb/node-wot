@@ -193,7 +193,7 @@ export default class MqttBrokerServer implements ProtocolServer {
             if (!content) {
                 console.warn(
                     "[binding-mqtt]",
-                    `HttpServer on port ${this.getPort()} cannot process data for Event ${eventName}`
+                    `MqttBrokerServer on port ${this.getPort()} cannot process data for Event ${eventName}`
                 );
                 thing.handleUnsubscribeEvent(eventName, eventListener, { formIndex: event.forms.length - 1 });
                 return;
