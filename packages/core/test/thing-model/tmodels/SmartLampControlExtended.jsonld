@@ -1,6 +1,6 @@
 {
-    "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
-    "@type": "Thing",
+    "@context": ["http://www.w3.org/ns/td"],
+    "@type": "tm:ThingModel",
     "title": "Smart Lamp Control with Dimming",
     "links": [
         {

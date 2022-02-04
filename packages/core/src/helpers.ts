@@ -233,7 +233,7 @@ export default class Helpers {
      * Helper function to validate an ExposedThingInit
      */
     public static validateExposedThingInit(data: ExposedThingInit): { valid: boolean; errors: string } {
-        if (data["@type"] === "tm:ThingModel" || ThingModelHelpers.isThingModelThingDescription(data)) {
+        if (data["@type"] === "tm:ThingModel" || ThingModelHelpers.isThingModel(data)) {
             return {
                 valid: false,
                 errors: "ThingModel declaration is not supported",

@@ -1,5 +1,6 @@
 {
     "@type": "tm:ThingModel",
+    "@context": ["http://www.w3.org/ns/td"],
     "title": "Smart Lamp Control with Dimming",
     "links": [
         {

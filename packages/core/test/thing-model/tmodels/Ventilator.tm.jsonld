@@ -1,5 +1,5 @@
 {
-    "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
+    "@context": ["http://www.w3.org/ns/td"],
     "@type": "tm:ThingModel",
     "title": "Ventilator Thing Model",
     "version": {

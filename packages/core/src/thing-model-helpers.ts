@@ -15,11 +15,10 @@
 
 import Ajv, { ValidateFunction, ErrorObject } from "ajv";
 import { LinkElement } from "wot-thing-description-types";
-import TMSchema from "./tm-json-schema-validation.json";
 import { DataSchema, ExposedThingInit } from "wot-typescript-definitions";
 import Servient, { Helpers } from "./core";
-import { SomeJSONSchema } from "ajv/dist/types/json-schema";
-// import { DataSchemaValue, ExposedThingInit } from "wot-typescript-definitions";
+import { ThingModel } from "wot-thing-model-types"
+import TMSchema from "wot-thing-model-types/schema/tm-json-schema-validation.json";
 
 const tmSchema = TMSchema;
 // RegExps take from https://github.com/ajv-validator/ajv-formats/blob/master/src/formats.ts
@@ -54,13 +53,13 @@ export type CompositionOptions = {
     map?: Record<string, unknown>;
 };
 export type modelComposeInput = {
-    extends?: ExposedThingInit[];
+    extends?: ThingModel[];
     imports?: (ModelImportsInput & { affordance: DataSchema })[];
-    submodel?: Record<string, ExposedThingInit>;
+    submodel?: Record<string, ThingModel>;
 };
 
 export default class ThingModelHelpers {
-    static tsSchemaValidator = ajv.compile(ThingModelHelpers.createExposeThingInitSchema(tmSchema)) as ValidateFunction;
+    static tsSchemaValidator = ajv.compile(tmSchema) as ValidateFunction;
 
     private srv: Servient;
     private helpers: Helpers;
@@ -79,7 +78,22 @@ export default class ThingModelHelpers {
      *
      * @experimental
      */
-    public static isThingModelThingDescription(data: Record<string, unknown>): boolean {
+    public static isThingModel(_data: unknown): _data is ThingModel {
+        if (_data === null || _data === undefined) {
+            return false;
+        }
+        if (!(typeof _data === "object") || Array.isArray(_data)) {
+            return false;
+        }
+        const data = _data as Record<string, unknown>;
+        if (Array.isArray(data["@type"])) {
+            const valid = data["@type"].filter((x) => x === "tm:ThingModel").length > 0;
+            if (valid) {
+                return true;
+            }
+        } else if (data["@type"] === "tm:ThingModel") {
+            return true;
+        }
         if (Object.keys(this.getThingModelRef(data)).length > 0) {
             // FIXME: different from specifications
             return true;
@@ -90,17 +104,16 @@ export default class ThingModelHelpers {
         }
 
         if (data.properties !== undefined) {
-            if (this.isThingModelThingDescription(data.properties as Record<string, unknown>)) return true;
+            if (this.isThingModel(data.properties as Record<string, unknown>)) return true;
         }
 
         if (data.actions !== undefined) {
-            if (this.isThingModelThingDescription(data.actions as Record<string, unknown>)) return true;
+            if (this.isThingModel(data.actions as Record<string, unknown>)) return true;
         }
 
         if (data.events !== undefined) {
-            if (this.isThingModelThingDescription(data.events as Record<string, unknown>)) return true;
+            if (this.isThingModel(data.events as Record<string, unknown>)) return true;
         }
-
         return false;
     }
 
@@ -112,7 +125,7 @@ export default class ThingModelHelpers {
      *
      * @experimental
      */
-    public static getModelVersion(data: ExposedThingInit): string {
+    public static getModelVersion(data: ThingModel): string {
         if (!("version" in data) || !("model" in data.version)) {
             return null;
         }
@@ -129,21 +142,7 @@ export default class ThingModelHelpers {
      *
      * @experimental
      */
-    public static validateExposedThingModelInit(data: ExposedThingInit): { valid: boolean; errors: string } {
-        if (Array.isArray(data["@type"])) {
-            const valid = data["@type"].filter((x) => x === "tm:ThingModel").length > 0;
-            if (!valid) {
-                return {
-                    valid: false,
-                    errors: "ThingModel missing in @type array",
-                };
-            }
-        } else if (data["@type"] !== "tm:ThingModel") {
-            return {
-                valid: false,
-                errors: "ThingModel missing in @type definition",
-            };
-        }
+    public static validateExposedThingModelInit(data: ThingModel): { valid: boolean; errors: string } {
         const isValid = ThingModelHelpers.tsSchemaValidator(data);
         let errors;
         if (!isValid) {
@@ -165,23 +164,27 @@ export default class ThingModelHelpers {
      *
      * @experimental
      */
-    public async getPartialTDs(model: ExposedThingInit, options?: CompositionOptions): Promise<ExposedThingInit[]> {
-        let isValid = ThingModelHelpers.validateExposedThingModelInit(model);
-        if (isValid.valid === false || isValid.errors !== undefined) {
-            console.log(model.title);
-            console.log(isValid.errors);
-            throw new Error(isValid.errors);
-        }
-        isValid = this.checkPlaceholderMap(model, options?.map);
-        if (isValid.valid === false || isValid.errors !== undefined) {
-            throw new Error(isValid.errors);
-        }
-
-        const modelInput = await this.fetchAffordances(model);
-        const extendedModels = await this.composeModel(model, modelInput, options);
-        return extendedModels;
+    public async getPartialTDs(model: unknown, options?: CompositionOptions): Promise<ExposedThingInit[]> {
+        const extendedModels = await this._getPartialTDs(model, options);
+        const extendedPartialTDs = extendedModels.map(_data => {
+            const data = _data as ExposedThingInit;
+            // change the @type
+            console.log(data["@type"])
+           if (data["@type"] instanceof Array) {
+               data["@type"] = data["@type"].map((el) => {
+                   if (el === "tm:ThingModel") {
+                       return "Thing";
+                   }
+                   return el;
+               });
+           } else {
+               data["@type"] = "Thing";
+           }
+           return data;
+        });
+        return extendedPartialTDs;
     }
-
+   
     /**
      * Retrieves the Thing Model from the given uri.
      *
@@ -190,10 +193,34 @@ export default class ThingModelHelpers {
      *
      * @experimental
      */
-    public async fetchModel(uri: string): Promise<ExposedThingInit> {
+    public async fetchModel(uri: string): Promise<ThingModel> {
         this.addDependency(uri);
-        return (await this.helpers.fetch(uri)) as ExposedThingInit;
+        const tm = await this.helpers.fetch(uri);
+        if (!ThingModelHelpers.isThingModel(tm)) {
+            throw new Error(`Data at ${uri} is not a Thing Model`);
+        }
+        return tm;
     }
+
+ 
+    private async _getPartialTDs(model: unknown, options?: CompositionOptions): Promise<ThingModel[]> {
+        if (!ThingModelHelpers.isThingModel(model)) {
+            throw new Error(`${model} is not a Thing Model`);
+        }
+        let isValid = ThingModelHelpers.validateExposedThingModelInit(model);
+        if (isValid.valid === false || isValid.errors !== undefined) {
+            throw new Error(isValid.errors);
+        }
+        isValid = this.checkPlaceholderMap(model, options?.map);
+        if (isValid.valid === false || isValid.errors !== undefined) {
+            throw new Error(isValid.errors);
+        }
+    
+        const modelInput = await this.fetchAffordances(model);
+        const extendedModels = await this.composeModel(model, modelInput, options);
+        return extendedModels;
+    }
+
 
     /**
      * Retrieves and fills asynchronously all the external references of a Thing Model.
@@ -203,15 +230,15 @@ export default class ThingModelHelpers {
      *
      * @experimental
      */
-    private async fetchAffordances(data: ExposedThingInit): Promise<modelComposeInput> {
+    private async fetchAffordances(data: ThingModel): Promise<modelComposeInput> {
         const modelInput: modelComposeInput = {};
         const extLinks = ThingModelHelpers.getThingModelLinks(data, "tm:extends");
         if (extLinks.length > 0) {
-            modelInput.extends = [] as ExposedThingInit[];
+            modelInput.extends = [] as ThingModel[];
             for (const s of extLinks) {
                 let source = await this.fetchModel(s.href);
-                [source] = await this.getPartialTDs(source);
-                modelInput.extends.push(source as ExposedThingInit);
+                [source] = await this._getPartialTDs(source);
+                modelInput.extends.push(source);
             }
         }
         const affordanceTypes = ["properties", "actions", "events"];
@@ -223,7 +250,7 @@ export default class ThingModelHelpers {
                     const affUri = affRefs[aff] as string;
                     const refObj = this.parseTmRef(affUri);
                     let source = await this.fetchModel(refObj.uri);
-                    [source] = await this.getPartialTDs(source);
+                    [source] = await this._getPartialTDs(source);
                     delete (data[affType] as DataSchema)[aff]["tm:ref"];
                     const importedAffordance = this.getRefAffordance(refObj, source);
                     refObj.name = aff; // update the name of the affordance
@@ -233,7 +260,7 @@ export default class ThingModelHelpers {
         }
         const tmLinks = ThingModelHelpers.getThingModelLinks(data, "tm:submodel");
         if (tmLinks.length > 0) {
-            modelInput.submodel = {} as Record<string, ExposedThingInit>;
+            modelInput.submodel = {} as Record<string, ThingModel>;
             for (const l of tmLinks) {
                 const submodel = await this.fetchModel(l.href);
                 modelInput.submodel[l.href] = submodel;
@@ -243,11 +270,11 @@ export default class ThingModelHelpers {
     }
 
     private async composeModel(
-        data: ExposedThingInit,
+        data: ThingModel,
         modelObject: modelComposeInput,
         options?: CompositionOptions
-    ): Promise<ExposedThingInit[]> {
-        let partialTDs = [] as ExposedThingInit[];
+    ): Promise<ThingModel[]> {
+        let tmpThingModels = [] as ThingModel[];
         const title = data.title.replace(/ /g, "");
         if (!options) {
             options = {} as CompositionOptions;
@@ -286,7 +313,7 @@ export default class ThingModelHelpers {
                         throw new Error("Self composition is not possible without instance names");
                     }
                     // self composition enabled, just one TD expected
-                    const [subPartialTD] = await this.getPartialTDs(sub, options);
+                    const [subPartialTD] = await this._getPartialTDs(sub, options);
                     const affordanceTypes = ["properties", "actions", "events"];
                     for (const affType of affordanceTypes) {
                         for (const affKey in subPartialTD[affType] as DataSchema) {
@@ -310,8 +337,8 @@ export default class ThingModelHelpers {
                         href: newTDHref,
                         type: "application/td+json",
                     });
-                    const tmpPartialSubTDs = await this.getPartialTDs(sub, options);
-                    partialTDs.push(...tmpPartialSubTDs);
+                    const tmpPartialSubTDs = await this._getPartialTDs(sub, options);
+                    tmpThingModels.push(...tmpPartialSubTDs);
                     data = ThingModelHelpers.formatSubmodelLink(data, key, subNewHref);
                 }
             }
@@ -325,29 +352,19 @@ export default class ThingModelHelpers {
             href: newTMHref,
             type: "application/tm+json",
         });
-        // change the @type
-        if (data["@type"] instanceof Array) {
-            data["@type"] = data["@type"].map((el) => {
-                if (el === "tm:ThingModel") {
-                    return "Thing";
-                }
-                return el;
-            });
-        } else {
-            data["@type"] = "Thing";
-        }
+       
         if ("version" in data) {
             delete data.version;
         }
         if (options.map) {
             data = this.fillPlaceholder(data, options.map);
         }
-        partialTDs.unshift(data); // put itself as first element
-        partialTDs = partialTDs.map((el) => this.fillPlaceholder(el, options.map)); // TODO: make more efficient, since repeated each recursive call
+        tmpThingModels.unshift(data); // put itself as first element
+        tmpThingModels = tmpThingModels.map((el) => this.fillPlaceholder(el, options.map)); // TODO: make more efficient, since repeated each recursive call
         if (this.deps.length > 0) {
             this.removeDependency();
         }
-        return partialTDs;
+        return tmpThingModels;
     }
 
     private static getThingModelRef(data: Record<string, unknown>): Record<string, unknown> {
@@ -373,8 +390,8 @@ export default class ThingModelHelpers {
         return links.filter((el) => el.rel === type);
     }
 
-    private static extendThingModel(source: ExposedThingInit, dest: ExposedThingInit): ExposedThingInit {
-        let extendedModel = {} as ExposedThingInit;
+    private static extendThingModel(source: ThingModel, dest: ThingModel): ThingModel {
+        let extendedModel = {} as ThingModel;
         const properties = source.properties;
         const actions = source.actions;
         const events = source.events;
@@ -417,8 +434,8 @@ export default class ThingModelHelpers {
         affordanceType: AFFORDANCE_TYPE,
         affordanceName: string,
         source: DataSchema,
-        dest: ExposedThingInit
-    ): ExposedThingInit {
+        dest: ThingModel
+    ): ThingModel {
         const d = dest[affordanceType][affordanceName];
         dest[affordanceType][affordanceName] = { ...source, ...d };
         for (const key in dest[affordanceType][affordanceName]) {
@@ -429,7 +446,7 @@ export default class ThingModelHelpers {
         return dest;
     }
 
-    private static formatSubmodelLink(source: ExposedThingInit, oldHref: string, newHref: string) {
+    private static formatSubmodelLink(source: ThingModel, oldHref: string, newHref: string) {
         const index = source.links.findIndex((el) => el.href === oldHref);
         const el = source.links[index];
         if ("instanceName" in el) {
@@ -452,7 +469,7 @@ export default class ThingModelHelpers {
         return { uri: thingModelUri, type: affordaceType, name: affordaceName };
     }
 
-    private getRefAffordance(obj: ModelImportsInput, thing: ExposedThingInit): DataSchema {
+    private getRefAffordance(obj: ModelImportsInput, thing: ThingModel): DataSchema {
         const affordanceType = obj.type;
         const affordanceKey = obj.name;
         if (!(affordanceType in thing)) {
@@ -465,7 +482,7 @@ export default class ThingModelHelpers {
         return affordances[affordanceKey];
     }
 
-    private fillPlaceholder(data: Record<string, unknown>, map: Record<string, unknown>): ExposedThingInit {
+    private fillPlaceholder(data: Record<string, unknown>, map: Record<string, unknown>): ThingModel {
         let dataString = JSON.stringify(data);
         for (const key in map) {
             const value = map[key];
@@ -490,42 +507,8 @@ export default class ThingModelHelpers {
         return JSON.parse(dataString);
     }
 
-    /**
-     * Helper function to remove reserved keywords in required property of TM JSON Schema
-     */
-    private static createExposeThingInitSchema(tmSchema: unknown): SomeJSONSchema {
-        // TODO: check me
-        const tmSchemaCopy = JSON.parse(JSON.stringify(tmSchema));
-
-        if (tmSchemaCopy.required !== undefined) {
-            const reservedKeywords: Array<string> = [
-                "title",
-                "@context",
-                "instance",
-                "forms",
-                "security",
-                "href",
-                "securityDefinitions",
-            ];
-            if (Array.isArray(tmSchemaCopy.required)) {
-                const reqProps: Array<string> = tmSchemaCopy.required;
-                tmSchemaCopy.required = reqProps.filter((n) => !reservedKeywords.includes(n));
-            } else if (typeof tmSchemaCopy.required === "string") {
-                if (reservedKeywords.indexOf(tmSchemaCopy.required) !== -1) delete tmSchemaCopy.required;
-            }
-        }
-
-        if (tmSchemaCopy.definitions !== undefined) {
-            for (const prop in tmSchemaCopy.definitions) {
-                tmSchemaCopy.definitions[prop] = this.createExposeThingInitSchema(tmSchemaCopy.definitions[prop]);
-            }
-        }
-
-        return tmSchemaCopy;
-    }
-
     private checkPlaceholderMap(
-        model: ExposedThingInit,
+        model: ThingModel,
         map: Record<string, unknown>
     ): { valid: boolean; errors: string } {
         const regex = "{{.*?}}";

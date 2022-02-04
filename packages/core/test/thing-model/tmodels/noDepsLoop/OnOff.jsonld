@@ -1,5 +1,6 @@
 {
     "@type": "tm:ThingModel",
+    "@context": ["http://www.w3.org/ns/td"],
     "title": "On/Off Thing Model",
     "links": [
       {

@@ -16,7 +16,7 @@
 
 import { suite, test } from "@testdeck/mocha";
 import { expect } from "chai";
-import { ExposedThingInit } from "wot-typescript-definitions";
+import { ThingModel } from "wot-thing-model-types"
 
 import ThingModelHelpers, { CompositionOptions, modelComposeInput } from "../../src/thing-model-helpers";
 import { promises as fs } from "fs";
@@ -37,7 +37,8 @@ class ThingModelHelperTest {
     }
 
     @test "should correctly validate tm schema with ThingModel in @type"() {
-        const thing: ExposedThingInit = {
+        const model = {
+            "@context": ["http://www.w3.org/ns/td"],
             title: "thingTest",
             "@type": "tm:ThingModel",
             properties: {
@@ -47,16 +48,17 @@ class ThingModelHelperTest {
             },
         };
 
-        const validated = ThingModelHelpers.validateExposedThingModelInit(thing);
+        const validated = ThingModelHelpers.validateExposedThingModelInit(model as unknown as ThingModel);
 
-        expect(thing).to.exist;
+        expect(model).to.exist;
         expect(validated.valid).to.be.true;
         expect(validated.errors).to.be.undefined;
     }
 
     @test "should correctly return the right links"() {
-        const thing: ExposedThingInit = {
+        const thing = {
             title: "thingTest",
+            "@context": ["http://www.w3.org/ns/td"],
             "@type": "tm:ThingModel",
             links: [
                 {
@@ -80,8 +82,9 @@ class ThingModelHelperTest {
     }
 
     @test "should correctly validate tm schema with ThingModel in @type array "() {
-        const thing: ExposedThingInit = {
+        const model = {
             title: "thingTest",
+            "@context": ["http://www.w3.org/ns/td"],
             "@type": ["random:Type", "tm:ThingModel"],
             properties: {
                 myProp: {
@@ -90,16 +93,17 @@ class ThingModelHelperTest {
             },
         };
 
-        const validated = ThingModelHelpers.validateExposedThingModelInit(thing);
+        const validated = ThingModelHelpers.validateExposedThingModelInit(model as unknown as ThingModel);
 
-        expect(thing).to.exist;
+        expect(model).to.exist;
         expect(validated.valid).to.be.true;
         expect(validated.errors).to.be.undefined;
     }
 
     @test "should reject schema on validation because missing ThingModel definition"() {
-        const thing: ExposedThingInit = {
+        const model = {
             title: "thingTest",
+            "@context": ["http://www.w3.org/ns/td"],
             "@type": "random:Type",
             links: [
                 {
@@ -114,15 +118,16 @@ class ThingModelHelperTest {
             },
         };
 
-        const validated = ThingModelHelpers.validateExposedThingModelInit(thing);
+        const validated = ThingModelHelpers.validateExposedThingModelInit(model as unknown as ThingModel);
 
-        expect(thing).to.exist;
+        expect(model).to.exist;
         expect(validated.valid).to.be.false;
     }
 
     @test "should correctly return the model version"() {
-        let thing: ExposedThingInit = {
+        let thing: ThingModel = {
             title: "thingTest",
+            "@context": ["http://www.w3.org/ns/td"],
             "@type": ["random:Type", "tm:ThingModel"],
             version: { model: "0.0.1" }, // TODO: check is version is valid
         };
@@ -133,6 +138,7 @@ class ThingModelHelperTest {
 
         thing = {
             title: "thingTest",
+            "@context": ["http://www.w3.org/ns/td"],
             "@type": ["random:Type", "tm:ThingModel"],
             version: {},
         };
@@ -142,6 +148,7 @@ class ThingModelHelperTest {
 
         thing = {
             title: "thingTest",
+            "@context": ["http://www.w3.org/ns/td"],
             "@type": ["random:Type", "tm:ThingModel"],
         };
 
@@ -152,8 +159,8 @@ class ThingModelHelperTest {
     @test async "should correctly extend a thing model with properties"() {
         const modelJSON = await fs.readFile("test/thing-model/tmodels/SmartLampControlExtend.jsonld");
         const finalJSON = await fs.readFile("test/thing-model/tmodels/SmartLampControlExtended.jsonld");
-        const model = JSON.parse(modelJSON.toString()) as ExposedThingInit;
-        const finalModel = JSON.parse(finalJSON.toString()) as ExposedThingInit;
+        const model = JSON.parse(modelJSON.toString()) as ThingModel;
+        const finalModel = JSON.parse(finalJSON.toString()) as ThingModel;
 
         // eslint-disable-next-line dot-notation
         const modelInput = await this.thingModelHelpers["fetchAffordances"](model);
@@ -164,9 +171,10 @@ class ThingModelHelperTest {
 
     @test async "should correctly extend a thing model with actions"() {
         const modelJSON = await fs.readFile("test/thing-model/tmodels/SmartLampControlExtend.jsonld");
-        const model = JSON.parse(modelJSON.toString()) as ExposedThingInit;
+        const model = JSON.parse(modelJSON.toString()) as ThingModel;
         const finalModel = {
-            "@type": "Thing",
+            "@type": "tm:ThingModel",
+            "@context": ["http://www.w3.org/ns/td"],
             title: "Smart Lamp Control with Dimming",
             links: [
                 {
@@ -190,6 +198,8 @@ class ThingModelHelperTest {
         const modelInput: modelComposeInput = {
             extends: [
                 {
+                    "@type": "tm:ThingModel",
+                    "@context": ["http://www.w3.org/ns/td"],
                     actions: {
                         toggle: { type: "boolean" },
                     },
@@ -204,8 +214,8 @@ class ThingModelHelperTest {
     @test async "should correctly import a property in a thing model"() {
         const modelJSON = await fs.readFile("test/thing-model/tmodels/SmartLampControlImport.jsonld");
         const finalJSON = await fs.readFile("test/thing-model/tmodels/SmartLampControlImported.jsonld");
-        const model = JSON.parse(modelJSON.toString()) as ExposedThingInit;
-        const finalModel = JSON.parse(finalJSON.toString()) as ExposedThingInit;
+        const model = JSON.parse(modelJSON.toString()) as ThingModel;
+        const finalModel = JSON.parse(finalJSON.toString()) as ThingModel;
         // const validated = ThingModelHelpers.validateExposedThingModelInit(model);
         // eslint-disable-next-line dot-notation
         const modelInput = await this.thingModelHelpers["fetchAffordances"](model);
@@ -215,9 +225,10 @@ class ThingModelHelperTest {
     }
 
     @test async "should correctly import a property and remove a field of the property"() {
-        const thingModel: ExposedThingInit = {
+        const thingModel: ThingModel = {
             title: "thingTest",
             "@type": ["random:Type", "tm:ThingModel"],
+            "@context": ["http://www.w3.org/ns/td"],
             properties: {
                 timestamp1: {
                     "tm:ref": "file://./test/thing-model/tmodels/OnOff.jsonld#/properties/timestamp",
@@ -228,7 +239,8 @@ class ThingModelHelperTest {
 
         const finalThingModel = {
             title: "thingTest",
-            "@type": ["random:Type", "Thing"],
+            "@type": ["random:Type", "tm:ThingModel"],
+            "@context": ["http://www.w3.org/ns/td"],
             properties: {
                 timestamp1: {
                     type: "number",
@@ -252,8 +264,9 @@ class ThingModelHelperTest {
     }
 
     @test async "should correctly import an action and add a field to the action"() {
-        const thingModel: ExposedThingInit = {
+        const thingModel: ThingModel = {
             title: "thingTest",
+            "@context": ["http://www.w3.org/ns/td"],
             "@type": ["random:Type", "tm:ThingModel"],
             actions: {
                 toggle1: {
@@ -273,7 +286,8 @@ class ThingModelHelperTest {
 
         const finalThingModel = {
             title: "thingTest",
-            "@type": ["random:Type", "Thing"],
+            "@context": ["http://www.w3.org/ns/td"],
+            "@type": ["random:Type", "tm:ThingModel"],
             actions: {
                 toggle1: {
                     type: "boolean",
@@ -295,7 +309,7 @@ class ThingModelHelperTest {
 
     @test async "should correctly fill placeholders"() {
         const thing = {
-            "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
+            "@context": ["http://www.w3.org/ns/td"],
             "@type": "tm:ThingModel",
             title: "Thermostate No. {{THERMOSTATE_NUMBER}}",
             base: "mqtt://{{MQTT_BROKER_ADDRESS}}",
@@ -308,7 +322,7 @@ class ThingModelHelperTest {
                     observable: "{{THERMOSTATE_TEMPERATURE_OBSERVABLE}}",
                 },
             },
-        } as unknown as ExposedThingInit;
+        } as unknown as ThingModel;
         const map = {
             THERMOSTATE_NUMBER: 4,
             MQTT_BROKER_ADDRESS: "192.168.178.72:1883",
@@ -316,7 +330,7 @@ class ThingModelHelperTest {
             THERMOSTATE_TEMPERATURE_OBSERVABLE: true,
         };
         const finalJSON = {
-            "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
+            "@context": ["http://www.w3.org/ns/td"],
             "@type": "Thing",
             title: "Thermostate No. 4",
             base: "mqtt://192.168.178.72:1883",
@@ -347,7 +361,7 @@ class ThingModelHelperTest {
 
     @test async "should reject fill placeholders because of missing fields in map"() {
         const thing = {
-            "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
+            "@context": ["http://www.w3.org/ns/td"],
             "@type": "tm:ThingModel",
             title: "Thermostate No. {{THERMOSTATE_NUMBER}}",
             base: "mqtt://{{MQTT_BROKER_ADDRESS}}",
@@ -360,7 +374,7 @@ class ThingModelHelperTest {
                     observable: "{{THERMOSTATE_TEMPERATURE_OBSERVABLE}}",
                 },
             },
-        } as unknown as ExposedThingInit;
+        } as unknown as ThingModel;
         const map = {
             // "THERMOSTATE_NUMBER": 4,
             MQTT_BROKER_ADDRESS: "192.168.178.72:1883",
