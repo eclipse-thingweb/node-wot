@@ -46,7 +46,7 @@ export default class MqttBrokerServer implements ProtocolServer {
     private hostedBroker: net.Server;
 
     constructor(config: MqttBrokerServerConfig) {
-        this.config = config;
+        this.config = config ?? { uri: "mqtt://localhost:1883" };
 
         if (config.uri !== undefined) {
             // if there is a MQTT protocol indicator missing, add this
