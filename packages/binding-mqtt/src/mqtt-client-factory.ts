@@ -24,11 +24,11 @@ export default class MqttClientFactory implements ProtocolClientFactory {
     public readonly scheme: string = "mqtt";
     private readonly clients: Array<ProtocolClient> = [];
 
-    getClient = (): ProtocolClient => {
+    getClient(): ProtocolClient {
         const client = new MqttClient();
         this.clients.push(client);
         return client;
-    };
+    }
 
     init(): boolean {
         return true;

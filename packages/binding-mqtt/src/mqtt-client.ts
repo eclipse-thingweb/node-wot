@@ -26,14 +26,15 @@ import * as url from "url";
 import { Subscription } from "rxjs/Subscription";
 import { Readable } from "stream";
 
+declare interface MqttClientSecurityParameters {
+    username: string;
+    password: string;
+}
+
 export default class MqttClient implements ProtocolClient {
-    private user: string = undefined;
-
-    private psw: string = undefined;
     private scheme: string;
-    private rejectUnauthorized: boolean;
 
-    constructor(private readonly config: MqttClientConfig = null, secure = false) {
+    constructor(private config: MqttClientConfig = {}, secure = false) {
         this.scheme = "mqtt" + (secure ? "s" : "");
     }
 
@@ -50,10 +51,10 @@ export default class MqttClient implements ProtocolClient {
             const contentType = form.contentType;
             const requestUri = new url.URL(form.href);
             const topic = requestUri.pathname.slice(1);
-            const brokerUri: string = "mqtt://" + requestUri.host;
+            const brokerUri: string = `${this.scheme}://` + requestUri.host;
 
             if (this.client === undefined) {
-                this.client = mqtt.connect(brokerUri);
+                this.client = mqtt.connect(brokerUri, this.config);
             }
 
             this.client.on("connect", () => {
@@ -79,7 +80,9 @@ export default class MqttClient implements ProtocolClient {
                 }
                 this.client = undefined;
                 // TODO: error handling
-                error(err);
+                if (error) error(err);
+
+                reject(err);
             });
         });
     }
@@ -133,7 +136,7 @@ export default class MqttClient implements ProtocolClient {
         if (this.client) this.client.end();
     }
 
-    public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: never): boolean {
+    public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: MqttClientSecurityParameters): boolean {
         if (metadata === undefined || !Array.isArray(metadata) || metadata.length === 0) {
             console.warn("[binding-mqtt]", `MqttClient received empty security metadata`);
             return false;
@@ -141,13 +144,13 @@ export default class MqttClient implements ProtocolClient {
         const security: TD.SecurityScheme = metadata[0];
 
         if (security.scheme === "basic") {
-            // this.authorization = "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString('base64');
-            //  this.user = mqtt.username;
+            this.config.username = credentials.username;
+            this.config.password = credentials.password;
         }
         return true;
     }
 
-    private mapQoS = (qos: MqttQoS): QoS => {
+    private mapQoS(qos: MqttQoS): QoS {
         switch (qos) {
             case 2:
                 return (qos = 2);
@@ -157,9 +160,9 @@ export default class MqttClient implements ProtocolClient {
             default:
                 return (qos = 0);
         }
-    };
+    }
 
-    private logError = (message: string): void => {
+    private logError(message: string): void {
         console.error("[binding-mqtt]", `[MqttClient]${message}`);
-    };
+    }
 }

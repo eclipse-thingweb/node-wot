@@ -47,5 +47,23 @@ export class MqttForm extends Form {
 }
 
 export interface MqttClientConfig {
+    // username & password are redundated here (also find them in MqttClientSecurityParameters)
+    // because MqttClient.setSecurity() method can inject authentication credentials into this interface
+    // which will be then passed to mqtt.connect() once for all
+    username?: string;
+    password?: string;
     rejectUnauthorized?: boolean;
+}
+
+export interface MqttBrokerServerConfig {
+    uri: string;
+    user?: string;
+    psw?: string;
+    clientId?: string;
+    protocolVersion?: 3 | 4 | 5;
+    rejectUnauthorized?: boolean;
+    selfHost?: boolean;
+    key?: Buffer;
+    cert?: Buffer | undefined;
+    selfHostAuthentication?: MqttClientConfig[];
 }
