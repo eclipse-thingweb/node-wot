@@ -25,8 +25,9 @@ import { AttributeIds } from "node-opcua-data-model";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { StatusCodes } from "node-opcua-status-code";
 
-import { theOpcuaJSONCodec, schemaDataValue } from "./codec";
+import { theOpcuaJSONCodec, schemaDataValue, formatForNodeWoT } from "./codec";
 import { FormElementProperty } from "wot-thing-description-types";
+import { opcuaJsonEncodeDataValue } from "node-opcua-json";
 
 export type Command = "Read" | "Write" | "Subscribe";
 
@@ -65,6 +66,12 @@ export interface OPCUAConnectionEx extends OPCUAConnection {
     pending?: Resolver[];
 }
 
+function codeResolution(contentType: string) {
+    if (contentType === "application/json") {
+        return theOpcuaJSONCodec;
+    }
+    return null;
+}
 export class OPCUAProtocolClient implements ProtocolClient {
     private _connections: Map<string, OPCUAConnectionEx> = new Map<string, OPCUAConnectionEx>();
 
@@ -211,11 +218,17 @@ export class OPCUAProtocolClient implements ProtocolClient {
                 attributeId: AttributeIds.Value,
             });
 
-            const contentType =
-                form.contentType ??
-                "application/opcua-json;type=Value;dataType=" + DataType[await this._predictDataType(form)];
+            const contentType = form.contentType ?? "application/json";
+            //   "application/json+opcua;type=Value;dataType=" + DataType[await this._predictDataType(form)];
 
+            // QUESTION: how can we extend the defauilt contentSerDes.valueToContent for application/json,
             const contentSerDes = ContentSerdes.get();
+            if (contentType === "application/json") {
+                const dataValueJSON = formatForNodeWoT(opcuaJsonEncodeDataValue(dataValue, true));
+                const content = contentSerDes.valueToContent(dataValueJSON, schemaDataValue, contentType);
+                console.debug("[opcua-client|readResource]", "contentType", content.type);
+                return content;
+            }
             const content = contentSerDes.valueToContent(dataValue, schemaDataValue, contentType);
             console.debug("[opcua-client|readResource]", "contentType", content.type);
             return content;

@@ -33,7 +33,7 @@ describe("OPCUA Client", function () {
         await client.stop();
     });
 
-    ["application/opcua-json", "application/opcua-json;type=DataValue", "application/opcua-json;type=Variant"].forEach(
+    ["application/json+opcua", "application/json+opcua;type=DataValue", "application/json+opcua;type=Variant"].forEach(
         (contentType) => {
             it("Y1- should read a topic with contentType= " + contentType, async () => {
                 const readForm: OPCUAForm = {
