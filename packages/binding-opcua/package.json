@@ -12,8 +12,8 @@
         "dist",
         "src"
     ],
-    "main": "dist/src/index.js",
-    "types": "dist/src/index.d.ts",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
     "devDependencies": {
         "@types/chai": "^4.2.18",
         "@types/mocha": "^9.0.0",
