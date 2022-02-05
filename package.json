@@ -25,6 +25,7 @@
         "lint": "npm run lint --silent --workspaces --if-present",
         "lint:fix": "npm run lint:fix --silent --workspaces --if-present",
         "format": "prettier --write . && npm run format --silent --workspaces --if-present",
+        "update:opcua": "npx -y npm-check-updates -u --deep -f \"node-opcua*\" && npm install --workspaces",
         "format:quick": "pretty-quick",
         "prepare": "husky install",
         "publish": "npm publish --workspaces",
