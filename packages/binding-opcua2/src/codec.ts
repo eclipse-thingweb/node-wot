@@ -26,7 +26,19 @@ import {
 import { BinaryStream } from "node-opcua-binary-stream";
 
 export const schemaDataValue = {
-    type: ["object", "number", "integer", "string", "boolean", "array", "null"]
+    type: ["object"], // "number", "integer", "string", "boolean", "array", "null"],
+    properties: {
+        serverPicoseconds: { type: "integer" },
+        sourcePicoseconds: { type: "integer" },
+        serverTimestamp: { type: ["object", "null"] },
+        sourceTimestamp: { type: ["object", "null"] },
+        statusCode: {
+            type: ["object"],
+        },
+        value: {},
+    },
+    //required: [/**  */],
+    additionalProperties: true,
     /*
         type: "object",
         properties: {

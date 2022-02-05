@@ -43,9 +43,9 @@ export interface FormPartialNodeDescription {
     "opcua:nodeId": NodeIdLike | NodeByBrowsePath;
 }
 
-export interface OPCUAForm extends Form, FormPartialNodeDescription { }
+export interface OPCUAForm extends Form, FormPartialNodeDescription {}
 
-export interface OPCUAFormElement extends FormElementProperty, FormPartialNodeDescription { }
+export interface OPCUAFormElement extends FormElementProperty, FormPartialNodeDescription {}
 
 export interface OPCUAFormInvoke extends OPCUAForm {
     "opcua:method": NodeIdLike | NodeByBrowsePath;

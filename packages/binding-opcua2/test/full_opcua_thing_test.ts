@@ -87,9 +87,12 @@ describe("Full OPCUA Thing Test", () => {
         let temperature = 10;
         thing.setPropertyReadHandler("temperature", async () => temperature);
 
-        thing.setPropertyWriteHandler("temperature", async (value: WoT.InteractionOutput, options?: WoT.InteractionOptions) => {
-            temperature = (await value.value()) as number;
-        });
+        thing.setPropertyWriteHandler(
+            "temperature",
+            async (value: WoT.InteractionOutput, options?: WoT.InteractionOptions) => {
+                temperature = (await value.value()) as number;
+            }
+        );
 
         const expThing = thing as ExposedThing;
         const propertyState = expThing.properties.temperature.getState();
