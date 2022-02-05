@@ -12,7 +12,15 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-import { OPCUAServer, Variant, DataType, StatusCodes, MethodFunctorCallback, SessionContext } from "node-opcua";
+import {
+    OPCUAServer,
+    Variant,
+    DataType,
+    StatusCodes,
+    SessionContext,
+    CallMethodResultOptions,
+    CallbackT,
+} from "node-opcua";
 
 export class OpcuaServer {
     server: OPCUAServer;
@@ -153,21 +161,23 @@ export class OpcuaServer {
             ],
         });
 
-        method.bindMethod((inputArguments: Variant[], context: SessionContext, callback: MethodFunctorCallback) => {
-            const a = inputArguments[0].value;
-            const b = inputArguments[1].value;
+        method.bindMethod(
+            (inputArguments: Variant[], context: SessionContext, callback: CallbackT<CallMethodResultOptions>) => {
+                const a = inputArguments[0].value;
+                const b = inputArguments[1].value;
 
-            const res = a / b;
-            const callMethodResult = {
-                statusCode: StatusCodes.Good,
-                outputArguments: [
-                    {
-                        dataType: DataType.Double,
-                        value: res,
-                    },
-                ],
-            };
-            callback(null, callMethodResult);
-        });
+                const res = a / b;
+                const callMethodResult = {
+                    statusCode: StatusCodes.Good,
+                    outputArguments: [
+                        {
+                            dataType: DataType.Double,
+                            value: res,
+                        },
+                    ],
+                };
+                callback(null, callMethodResult);
+            }
+        );
     }
 }
