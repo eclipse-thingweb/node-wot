@@ -42,7 +42,7 @@
         "is-absolute-url": "3.0.3",
         "url-toolkit": "2.1.6",
         "wot-thing-description-types": "^1.1.0-26-July-2021a",
-        "wot-typescript-definitions": "^0.8.0-SNAPSHOT.18"
+        "wot-typescript-definitions": "0.8.0-SNAPSHOT.21"
     },
     "scripts": {
         "build": "tsc -b && webpack",
