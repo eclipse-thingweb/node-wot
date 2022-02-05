@@ -54,7 +54,6 @@ packages/*
 !packages/binding-mqtt
 !packages/binding-modbus
 !packages/binding-opcua
-!packages/binding-opcua2
 !packages/binding-netconf
 !packages/binding-modbus
 !packages/binding-firestore
