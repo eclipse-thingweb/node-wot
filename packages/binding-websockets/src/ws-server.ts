@@ -232,7 +232,6 @@ export default class WebSocketServer implements ProtocolServer {
                         for (let formIndex = 0; formIndex < thing.properties[propertyName].forms.length; formIndex++) {
                             thing
                                 .handleObserveProperty(propertyName, observeListener, { formIndex: formIndex })
-                                .then(() => ws.close(0, "Completed"))
                                 .catch((err: Error) => ws.close(-1, err.message));
                         }
                     }
@@ -315,7 +314,6 @@ export default class WebSocketServer implements ProtocolServer {
                     for (let formIndex = 0; formIndex < event.forms.length; formIndex++) {
                         thing
                             .handleSubscribeEvent(eventName, eventListener, { formIndex: formIndex })
-                            .then(() => ws.close(0, "Completed"))
                             .catch((err: Error) => ws.close(-1, err.message));
                     }
 
