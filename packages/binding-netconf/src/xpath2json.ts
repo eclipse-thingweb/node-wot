@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2019 - 2021 Contributors to the Eclipse Foundation
+ * Copyright (c) 2019 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -12,7 +12,6 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-var util = require("util");
 
 export function isObject(a: any) {
     return !!a && a.constructor === Object;
@@ -22,20 +21,20 @@ export function json2xpath(json: any, index: number, str: Array<string>) {
     if (!isObject(json)) {
         return str;
     }
-    var keys = Object.keys(json);
+    const keys = Object.keys(json);
     for (let j = 0; j < keys.length; j++) {
-        let key = keys[j];
+        const key = keys[j];
         if (key === "$") {
-            var tmp = json[key].xmlns;
-            var ns = tmp.split(":")[tmp.split(":").length - 1];
+            const tmp = json[key].xmlns;
+            const ns = tmp.split(":")[tmp.split(":").length - 1];
             str.splice(index - 3, 0, ns + ":");
             index++;
             continue;
         } else if (json[key] && !isObject(json[key])) {
-            //if next child is not an object, final leaf with value
-            var val = json[key];
+            // if next child is not an object, final leaf with value
+            const val = json[key];
             if (j == 0) {
-                str.pop(); //there was an useless "/"
+                str.pop(); // there was an useless "/"
             }
             str.push("[");
             str.push(key);
@@ -47,7 +46,7 @@ export function json2xpath(json: any, index: number, str: Array<string>) {
             continue;
         }
         str.push(key);
-        str.push("/"); //FIXME does not take into account possible siblings -> it makes them all children
+        str.push("/"); // FIXME does not take into account possible siblings -> it makes them all children
         index++;
         str = json2xpath(json[key], index, str);
     }
@@ -55,38 +54,38 @@ export function json2xpath(json: any, index: number, str: Array<string>) {
 }
 
 export function xpath2json(xpath: string, NSs: any) {
-    let subStrings = xpath.split("/");
-    var obj: any = {};
-    var tmp_obj: any = {};
-    for (var i = subStrings.length - 1; i > -1; i--) {
+    const subStrings = xpath.split("/");
+    let obj: any = {};
+    let tmp_obj: any = {};
+    for (let i = subStrings.length - 1; i > -1; i--) {
         let sub = subStrings[i];
         if (sub === "") {
             continue;
         }
-        var root_ns = null;
-        var key = null;
+        let root_ns = null;
+        let key = null;
         tmp_obj = {};
-        var reg = /\[(.*?)\]/g;
+        const reg = /\[(.*?)\]/g;
         if (sub.replace(reg, "").split(":").length > 1 && i == 1) {
-            //handle the root, without focusing on leaves
+            // handle the root, without focusing on leaves
             root_ns = sub.replace(reg, "").split(":")[0];
-            key = sub.replace(reg, "").split(":")[1]; //remove possible leaves to avoid wrong conversion
-            sub = sub.replace(root_ns + ":", ""); //remove the ns
-            let $: any = {}; //object for containing namespaces
+            key = sub.replace(reg, "").split(":")[1]; // remove possible leaves to avoid wrong conversion
+            sub = sub.replace(root_ns + ":", ""); // remove the ns
+            const $: any = {}; // object for containing namespaces
             if (!(root_ns in NSs)) {
                 throw new Error(`Namespace for ${root_ns} not specified in the TD`);
             }
             $.xmlns = NSs[root_ns];
             tmp_obj[key] = {};
-            tmp_obj[key].$ = $; //attach all the required namespaces
+            tmp_obj[key].$ = $; // attach all the required namespaces
         }
 
         if (sub.match(reg)) {
-            //handle elements with values for leaves
-            let values = sub.match(reg);
+            // handle elements with values for leaves
+            const values = sub.match(reg);
             sub = sub.replace(/\[[^\]]*\]/g, "");
             if (!tmp_obj[sub]) {
-                //create the parent
+                // create the parent
                 tmp_obj[sub] = {};
             }
             for (let j = 0; j < values.length; j++) {
@@ -94,33 +93,33 @@ export function xpath2json(xpath: string, NSs: any) {
                 val = val.replace(/[\[\]']+/g, "");
                 key = val.split("=")[0];
                 val = val.split("=")[1];
-                val = val.replace(/['"]+/g, ""); //remove useless ""
+                val = val.replace(/['"]+/g, ""); // remove useless ""
                 tmp_obj[sub][key] = val;
                 if (val.split("\\:").length > 1 && i > 1) {
-                    let ns_key = val.split("\\:")[0];
-                    val = val.replace(/[\\]+/g, ""); //remove escape chars
+                    const ns_key = val.split("\\:")[0];
+                    val = val.replace(/[\\]+/g, ""); // remove escape chars
                     if (!(ns_key in NSs)) {
                         throw new Error(`Namespace for ${ns_key} not specified in the TD`);
                     }
-                    let ns = NSs[ns_key];
-                    let xmlns_key = "xmlns:" + ns_key;
+                    const ns = NSs[ns_key];
+                    const xmlns_key = "xmlns:" + ns_key;
                     tmp_obj[sub][key] = { $: { [xmlns_key]: ns }, _: val };
                 }
             }
         }
         if (sub.split(":").length > 1 && i > 1) {
-            //handle all the other cases
-            let ns_key = sub.split(":")[0];
+            // handle all the other cases
+            const ns_key = sub.split(":")[0];
             val = sub.split(":")[1];
             if (!(sub in tmp_obj)) {
-                tmp_obj[val] = {}; //the new key is val
+                tmp_obj[val] = {}; // the new key is val
             } else {
-                //key already existing, let's update it with the new one
+                // key already existing, let's update it with the new one
                 const newObject = {};
                 delete Object.assign(newObject, tmp_obj, { [val]: tmp_obj[sub] })[sub];
                 tmp_obj = newObject;
             }
-            sub = val; //since xmlns is going to be add, sub is now just the value
+            sub = val; // since xmlns is going to be add, sub is now just the value
             tmp_obj[sub].$ = {};
             if (!(ns_key in NSs)) {
                 throw new Error(`Namespace for ${ns_key} not specified in the TD`);
@@ -143,13 +142,13 @@ export function addLeaves(this: any, xpath: string, payload: any) {
         return xpath;
     }
 
-    let json_string = json2xpath(payload, 0, []);
-    let json_xpath = json_string.join("");
-    //remove the leaf from the xpath, since it has been added by the codec again
-    //remove only if it is not the only one element in the xpath
+    const json_string = json2xpath(payload, 0, []);
+    const json_xpath = json_string.join("");
+    // remove the leaf from the xpath, since it has been added by the codec again
+    // remove only if it is not the only one element in the xpath
     if (xpath.split("/").length > 2) {
         // there is also the '' element in the array to consider
-        let last_el = xpath.split("/").splice(-1, 1);
+        const last_el = xpath.split("/").splice(-1, 1);
         xpath = xpath.replace("/" + last_el[0], "");
     }
 

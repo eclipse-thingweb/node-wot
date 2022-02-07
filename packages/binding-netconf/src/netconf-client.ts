@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 - 2021 Contributors to the Eclipse Foundation
+ * Copyright (c) 2019 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -16,7 +16,7 @@
 /**
  * Netconf protocol binding
  */
-import { ProtocolClient, Content, ContentSerdes } from "@node-wot/core";
+import { ProtocolClient, Content } from "@node-wot/core";
 import { NetconfForm } from "./netconf";
 import * as TD from "@node-wot/td-tools";
 import * as AsyncNodeNetcon from "./async-node-netconf";
@@ -24,7 +24,7 @@ import Url from "url-parse";
 import { Readable } from "stream";
 import { ProtocolHelpers } from "@node-wot/core";
 
-let DEFAULT_TARGET = "candidate";
+const DEFAULT_TARGET = "candidate";
 
 export default class NetconfClient implements ProtocolClient {
     private client: AsyncNodeNetcon.Client;
@@ -39,15 +39,15 @@ export default class NetconfClient implements ProtocolClient {
     }
 
     public async readResource(form: NetconfForm): Promise<Content> {
-        let url = new Url(form.href);
-        let ip_address = url.hostname;
-        let port = parseInt(url.port);
-        let xpath_query = url.pathname;
-        let method = form["nc:method"] ? form["nc:method"] : "GET-CONFIG"; //default method
-        let NSs = form["nc:NSs"] || {};
-        let target = form["nc:target"] || DEFAULT_TARGET;
+        const url = new Url(form.href);
+        const ip_address = url.hostname;
+        const port = parseInt(url.port);
+        const xpath_query = url.pathname;
+        const method = form["nc:method"] ? form["nc:method"] : "GET-CONFIG"; // default method
+        const NSs = form["nc:NSs"] || {};
+        const target = form["nc:target"] || DEFAULT_TARGET;
 
-        let contentType = "application/yang-data+xml";
+        const contentType = "application/yang-data+xml";
 
         if (this.client.getRouter() === null) {
             try {
@@ -75,15 +75,15 @@ export default class NetconfClient implements ProtocolClient {
     public async writeResource(form: NetconfForm, content: Content): Promise<any> {
         const body = await ProtocolHelpers.readStreamFully(content.body);
         let payload: any = content ? JSON.parse(body.toString()) : {};
-        let url = new Url(form.href);
-        let ip_address = url.hostname;
-        let port = parseInt(url.port);
-        let xpath_query = url.pathname;
-        let method = form["nc:method"] ? form["nc:method"] : "EDIT-CONFIG";
+        const url = new Url(form.href);
+        const ip_address = url.hostname;
+        const port = parseInt(url.port);
+        const xpath_query = url.pathname;
+        const method = form["nc:method"] ? form["nc:method"] : "EDIT-CONFIG";
         let NSs = form["nc:NSs"] || {};
-        let target = form["nc:target"] || DEFAULT_TARGET;
+        const target = form["nc:target"] || DEFAULT_TARGET;
 
-        let contentType = "application/yang-data+xml";
+        const contentType = "application/yang-data+xml";
         if (this.client.getRouter() === null) {
             try {
                 await this.client.initializeRouter(ip_address, port, this.credentials);
@@ -111,13 +111,13 @@ export default class NetconfClient implements ProtocolClient {
     public async invokeResource(form: NetconfForm, content: Content): Promise<any> {
         const body = await ProtocolHelpers.readStreamFully(content.body);
         let payload: any = content ? JSON.parse(body.toString()) : {};
-        let url = new Url(form.href);
-        let ip_address = url.hostname;
-        let port = parseInt(url.port);
-        let xpath_query = url.pathname;
-        let method = form["nc:method"] ? form["nc:method"] : "RPC";
+        const url = new Url(form.href);
+        const ip_address = url.hostname;
+        const port = parseInt(url.port);
+        const xpath_query = url.pathname;
+        const method = form["nc:method"] ? form["nc:method"] : "RPC";
         let NSs = form["nc:NSs"] || {};
-        let target = form["nc:target"] || DEFAULT_TARGET;
+        const target = form["nc:target"] || DEFAULT_TARGET;
         let result: any;
 
         if (this.client.getRouter() === null) {
@@ -139,7 +139,7 @@ export default class NetconfClient implements ProtocolClient {
             throw err;
         }
 
-        let contentType = "application/yang-data+xml";
+        const contentType = "application/yang-data+xml";
         return new Promise<Object>((resolve, reject) => {
             resolve({ type: contentType, body: result });
         });

@@ -14,6 +14,9 @@ All content is the property of the respective authors or their employers. For
 more information regarding authorship of content, please consult the listed
 source code repository logs.
 
+Note: The {year} in the copyright statements is the year in which the content
+was created (e.g. “2004”). A range of years is not used.
+
 ## Declared Project Licenses
 
 This program and the accompanying materials are made available under the terms

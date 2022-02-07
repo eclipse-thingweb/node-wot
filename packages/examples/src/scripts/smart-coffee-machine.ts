@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2020 - 2021 Contributors to the Eclipse Foundation
+ * Copyright (c) 2020 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -16,9 +16,6 @@
 // This is an example of Web of Things producer ("server" mode) Thing script.
 // It considers a fictional smart coffee machine in order to demonstrate the capabilities of Web of Things.
 // An accompanying tutorial is available at http://www.thingweb.io/smart-coffee-machine.html.
-
-import { Helpers } from "@node-wot/core";
-let WoTHelpers: Helpers;
 
 WoT.produce({
     title: "Smart-Coffee-Machine",
@@ -247,7 +244,7 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
 
     // Observe the value of maintenanceNeeded property
     thing.observeProperty('maintenanceNeeded', (data) => {
-        
+
         // Notify a "maintainer" when the value has changed
         // (the notify function here simply logs a message to the console)
         notify('admin@coffeeMachine.com', `maintenanceNeeded property has changed, new value is: ${data}`);
@@ -313,10 +310,10 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
         let drinkId = 'americano';
         let size = 'm';
         let quantity = 1;
-        
+
         // Size quantifiers
         const sizeQuantifiers: any = {'s': 0.1, 'm': 0.2, 'l': 0.3};
-        
+
         // Drink recipes showing the amount of a resource consumed for a particular drink
         const drinkRecipes: any = {
             'espresso': {
@@ -430,7 +427,7 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
     });
 
     // Finally expose the thing
-    thing.expose().then( () => { console.info(`${thing.getThingDescription().title} ready`); } ); 
+    thing.expose().then( () => { console.info(`${thing.getThingDescription().title} ready`); } );
     console.log(`Produced ${thing.getThingDescription().title}`);
     */
     })
@@ -438,14 +435,13 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
         console.log(e);
     });
 
-function readFromSensor(sensorType: any) {
+/* function readFromSensor(sensorType: any) {
     // Actual implementation of reading data from a sensor can go here
     // For the sake of example, let's just return a value
     return 100;
-}
+} */
 
-function notify(subscribers: any, msg: string) {
+/* function notify(subscribers: any, msg: string) {
     // Actual implementation of notifying subscribers with a message can go here
     console.log(msg);
-    return;
-}
+} */

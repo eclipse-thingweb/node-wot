@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2021 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -187,7 +187,7 @@ export default class CoapClient implements ProtocolClient {
     }
 
     public async stop(): Promise<void> {
-        // do nothing TODO: understand how to properly close coap agent
+        this.agent.close();
     }
 
     public setSecurity = (metadata: Array<TD.SecurityScheme>): boolean => true;

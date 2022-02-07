@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2021 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -93,13 +93,15 @@ export default class CoapServer implements ProtocolServer {
 
     /** returns socket to be re-used by CoapClients */
     public getSocket(): Socket {
-        return this.server._sock;
+        // FIXME: node-coap needs an explicit getter for this
+        return this.server._sock as Socket;
     }
 
     /** returns server port number and indicates that server is running when larger than -1  */
     public getPort(): number {
         if (this.server._sock) {
-            return this.server._sock.address().port;
+            const socket = this.server._sock as Socket;
+            return socket.address().port;
         } else {
             return -1;
         }
@@ -412,7 +414,8 @@ export default class CoapServer implements ProtocolServer {
                                 ),
                             };
                             if (!this.isEmpty(action.uriVariables)) {
-                                options.uriVariables = action.uriVariables;
+                                // TODO: build uriVariable object from the req.url
+                                options.uriVariables = {};
                             }
                             try {
                                 const output = await thing.handleInvokeAction(
@@ -477,7 +480,8 @@ export default class CoapServer implements ProtocolServer {
                                 };
 
                                 if (!this.isEmpty(event.uriVariables)) {
-                                    options.uriVariables = event.uriVariables;
+                                    // TODO: build uriVariable object from the req.url
+                                    options.uriVariables = {};
                                 }
 
                                 const listener = async (value: Content) => {
