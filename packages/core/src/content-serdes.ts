@@ -30,7 +30,7 @@ export interface ContentCodec {
     valueToBytes(value: unknown, schema: DataSchema, parameters?: { [key: string]: string }): Buffer;
 }
 
-interface ReadContent {
+export interface ReadContent {
     type: string;
     body: Buffer;
 }
