@@ -66,6 +66,14 @@ export async function startServer(): Promise<OPCUAServer> {
         optionals: ["ParameterSet", "MethodSet"],
     });
 
+    const manufacturingDate = namespace.addVariable({
+        browseName: "ManufacturingDate",
+        nodeId: "s=ManufacturingDate",
+        dataType: "DateTime",
+        componentOf: mySensor,
+    }) as UAVariable2;
+    manufacturingDate.setValueFromSource({ dataType: DataType.DateTime, value: new Date("2022-01-31T10:45:00.000Z") });
+
     const parameterSet = mySensor.getComponentByName("ParameterSet", nsDI);
     if (!parameterSet) {
         throw new Error("cannot find ParameterSet");

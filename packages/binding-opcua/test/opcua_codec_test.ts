@@ -44,12 +44,12 @@ describe("OPCUA Binary Serdes ", () => {
         it("should encode and decode a dataValue with application/opcua+binary codec " + index, () => {
             const payload = theOpcuaBinaryCodec.valueToBytes(dataValue, schema);
             const dataValueReloaded = theOpcuaBinaryCodec.bytesToValue(payload, schema);
-            expect(dataValue).to.eql(dataValueReloaded);
+            expect(dataValue).to.eql(jsonify(dataValueReloaded));
         });
         it("should encode and decode a dataValue with application/opcua+json codec " + index, () => {
             const payload = theOpcuaJSONCodec.valueToBytes(dataValue, schema);
             const dataValueReloaded = theOpcuaJSONCodec.bytesToValue(payload, schema);
-            expect(dataValue).to.eql(dataValueReloaded);
+            expect(dataValue).to.eql(jsonify(dataValueReloaded));
         });
     });
 

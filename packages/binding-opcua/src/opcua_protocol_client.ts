@@ -1,7 +1,8 @@
 import { Subscription } from "rxjs/Subscription";
 import { promisify } from "util";
+import { Readable } from "stream";
 
-import { ProtocolClient, Content, ContentSerdes, ProtocolHelpers } from "@node-wot/core";
+import { ProtocolClient, Content, ContentSerdes, ProtocolHelpers, ReadContent } from "@node-wot/core";
 import { Form, SecurityScheme } from "@node-wot/td-tools";
 
 import {
@@ -19,6 +20,7 @@ import {
     IBasicSession,
     VariantArrayType,
     Variant,
+    VariantOptions,
 } from "node-opcua-client";
 import { ArgumentDefinition, getBuiltInDataType } from "node-opcua-pseudo-session";
 
@@ -37,7 +39,8 @@ import {
     VariantJSON,
 } from "node-opcua-json";
 import { Argument, BrowseDescription, BrowseResult } from "node-opcua-types";
-import { ReferenceTypeIds } from "node-opcua";
+import { ISessionBase, ReferenceTypeIds } from "node-opcua";
+import { VariantJSONBody } from "node-opcua-json/dist2/json_basic_encoding_decoding_variant";
 
 export type Command = "Read" | "Write" | "Subscribe";
 
@@ -115,57 +118,6 @@ export function findBasicDataTypeC(
 }
 const findBasicDataType: (session: IBasicSession, dataTypeId: NodeId) => Promise<DataType> =
     promisify(findBasicDataTypeC);
-
-async function _resolveInputArguments(
-    session: IBasicSession,
-    argumentDefinition: ArgumentDefinition,
-    form: OPCUAFormInvoke,
-    bodyInput: Record<string, unknown>
-): Promise<VariantLike[]> {
-    const inputArguments = (argumentDefinition.inputArguments || []) as unknown as Argument[];
-
-    const variants: VariantLike[] = [];
-    for (let index = 0; index < inputArguments.length; index++) {
-        const argument = inputArguments[index];
-
-        const { name, dataType, /* description, */ arrayDimensions, valueRank } = argument;
-
-        if (bodyInput[name] === undefined) {
-            throw new Error("missing value in bodyInput for argument " + name);
-        }
-        const basicDataType = await findBasicDataType(session, dataType);
-        const arrayType: VariantArrayType =
-            valueRank === -1
-                ? VariantArrayType.Scalar
-                : valueRank === 1
-                ? VariantArrayType.Array
-                : VariantArrayType.Matrix;
-
-        variants.push({
-            dataType: basicDataType,
-            arrayType,
-            dimensions: arrayType === VariantArrayType.Matrix ? arrayDimensions : undefined,
-            value: bodyInput[name],
-        });
-    }
-    return variants;
-}
-async function _resolveOutputArguments(
-    session: IBasicSession,
-    argumentDefinition: ArgumentDefinition,
-    outputVariants: Variant[]
-): Promise<Record<string, unknown>> {
-    const outputArguments = (argumentDefinition.outputArguments || []) as unknown as Argument[];
-
-    const res: Record<string, unknown> = {};
-    for (let index = 0; index < outputArguments.length; index++) {
-        const argument = outputArguments[index];
-        const { name } = argument;
-        res[name] = (opcuaJsonEncodeVariant(outputVariants[index], true) as VariantJSON).Body;
-    }
-
-    return res;
-}
 
 export class OPCUAProtocolClient implements ProtocolClient {
     private _connections: Map<string, OPCUAConnectionEx> = new Map<string, OPCUAConnectionEx>();
@@ -301,7 +253,6 @@ export class OPCUAProtocolClient implements ProtocolClient {
         }
         return this._resolveNodeId2(form, fNodeId);
     }
-    ///
 
     public async readResource(form: OPCUAForm): Promise<Content> {
         console.debug("[opcua-client|readResource]", "reading", form);
@@ -312,40 +263,16 @@ export class OPCUAProtocolClient implements ProtocolClient {
                 nodeId,
                 attributeId: AttributeIds.Value,
             });
-
-            const contentType = form.contentType ?? "application/json";
-            //   "application/opcua+json;type=Value;dataType=" + DataType[await this._predictDataType(form)];
-
-            // QUESTION: how can we extend the default contentSerDes.valueToContent for application/json,
-            const contentSerDes = ContentSerdes.get();
-            if (contentType === "application/json") {
-                const dataValueJSON = formatForNodeWoT(opcuaJsonEncodeDataValue(dataValue, true));
-                const content = contentSerDes.valueToContent(dataValueJSON, schemaDataValue, contentType);
-                console.debug("[opcua-client|readResource]", "contentType", content.type);
-                return content;
-            }
-            const content = contentSerDes.valueToContent(dataValue, schemaDataValue, contentType);
-            console.debug("[opcua-client|readResource]", "contentType", content.type);
-            return content;
+            return this._dataValueToContent(form, dataValue);
         });
+        console.debug("[opcua-client|readResource]", "contentType", content.type);
         return content;
     }
 
     public async writeResource(form: OPCUAForm, content: Content): Promise<void> {
-        const content2 = { ...content, body: await ProtocolHelpers.readStreamFully(content.body) };
-
-        console.debug("[opcua-client|writeResource]", "write", form);
-        console.debug("[opcua-client|writeResource]", "content", {
-            ...content2,
-            body: content2.body.toString("ascii"),
-        });
-
-        const contentSerDes = ContentSerdes.get();
-        const dataValueJSON = contentSerDes.contentToValue(content2, schemaDataValue) as DataValueJSON;
-        const dataValue = opcuaJsonDecodeDataValue(dataValueJSON);
-
         const statusCode = await this._withSession(form, async (session) => {
             const nodeId = await this._resolveNodeId(form);
+            const dataValue = await this._contentToDataValue(form, content);
             const statusCode = await session.write({
                 nodeId,
                 attributeId: AttributeIds.Value,
@@ -360,32 +287,30 @@ export class OPCUAProtocolClient implements ProtocolClient {
     }
 
     public async invokeResource(form: OPCUAFormInvoke, content: Content): Promise<Content> {
-        const content2 = { ...content, body: await ProtocolHelpers.readStreamFully(content.body) };
-
         return await this._withSession(form, async (session) => {
             const objectId = await this._resolveNodeId(form);
             const methodId = await this._resolveMethodNodeId(form);
 
             const argumentDefinition: ArgumentDefinition = await session.getArgumentDefinition(methodId);
 
-            const bodyInput = JSON.parse(content2.body.toString());
-            const inputArguments = await _resolveInputArguments(session, argumentDefinition, form, bodyInput);
+            const inputArguments = await this._resolveInputArguments(session, form, content, argumentDefinition);
 
             const callResult = await session.call({
                 objectId,
                 methodId,
                 inputArguments,
             });
+            // Shall we throw an exception if call failed ?
             if (callResult.statusCode !== StatusCodes.Good) {
-                throw new Error("Error in Calling OPCUA MEthod : " + callResult.statusCode.toString());
+                throw new Error("Error in Calling OPCUA Method : " + callResult.statusCode.toString());
             }
-            const body = await _resolveOutputArguments(session, argumentDefinition, callResult.outputArguments);
-
-            const contentType = "application/json";
-            const contentSerDes = ContentSerdes.get();
-            const content = contentSerDes.valueToContent(body, schemaDataValue, contentType);
-            console.debug("[opcua-client|readResource]", "contentType", content.type);
-            return content;
+            const output = await this._resolveOutputArguments(
+                session,
+                form,
+                argumentDefinition,
+                callResult.outputArguments
+            );
+            return output;
         });
     }
 
@@ -437,13 +362,8 @@ export class OPCUAProtocolClient implements ProtocolClient {
             };
             this._monitoredItems.set(key, m);
             monitoredItem.on("changed", async (dataValue: DataValue) => {
-                const contentSerDes = ContentSerdes.get();
                 try {
-                    const content = contentSerDes.valueToContent(
-                        dataValue,
-                        schemaDataValue,
-                        theOpcuaJSONCodec.getMediaType()
-                    );
+                    const content = await this._dataValueToContent(form, dataValue);
                     m.handlers.forEach((n) => n(content));
                 } catch (err) {
                     console.debug(nodeId.toString(), dataValue.toString());
@@ -506,4 +426,178 @@ export class OPCUAProtocolClient implements ProtocolClient {
             handlers: ((content: Content) => void | Promise<void>)[];
         }
     > = new Map();
+
+    ///
+    private async _dataValueToContent(form: OPCUAForm, dataValue: DataValue): Promise<Content> {
+        const contentType = form.contentType ?? "application/json";
+
+        // QUESTION: how can we extend the default contentSerDes.valueToContent for application/json,
+        const contentSerDes = ContentSerdes.get();
+        if (contentType === "application/json") {
+            const variantInJson = opcuaJsonEncodeVariant(dataValue.value, false) as VariantJSONBody;
+            const content = contentSerDes.valueToContent(variantInJson, schemaDataValue, contentType);
+            return content;
+        }
+        const content = contentSerDes.valueToContent(dataValue, schemaDataValue, contentType);
+        return content;
+    }
+
+    private async _contentToDataValue2(form: OPCUAForm, content2: ReadContent): Promise<DataValue> {
+        const contentSerDes = ContentSerdes.get();
+
+        let contentType = content2.type ? content2.type.split(";")[0] : "application/json";
+
+        switch (contentType) {
+            case "application/json": {
+                const dataType = await this._predictDataType(form);
+                const value = contentSerDes.contentToValue(content2, schemaDataValue);
+                return new DataValue({ value: { dataType, value } });
+            }
+            case "application/opcua+json": {
+                const fullContentType = content2.type + ";to=DataValue";
+                const content3 = {
+                    type: fullContentType,
+                    body: content2.body,
+                };
+                const dataValue = contentSerDes.contentToValue(content3, schemaDataValue) as DataValue;
+                if (!(dataValue instanceof DataValue)) {
+                    contentSerDes.contentToValue(content2, schemaDataValue) as DataValue;
+                    throw new Error("Internal Error, expecting a DataValue here ");
+                }
+                console.debug("[opcua-client|_contentToDataValue]", "write", form);
+                console.debug("[opcua-client|_contentToDataValue]", "content", {
+                    ...content2,
+                    body: content2.body.toString("ascii"),
+                });
+
+                return dataValue;
+            }
+            default: {
+                throw new Error("Unsupported content type here : " + contentType);
+            }
+        }
+    }
+    private async _contentToDataValue(form: OPCUAForm, content: Content): Promise<DataValue> {
+        const content2: { type: string; body: Buffer } = {
+            ...content,
+            body: await ProtocolHelpers.readStreamFully(content.body),
+        };
+
+        return this._contentToDataValue2(form, content2);
+    }
+
+    private async _contentToVariant(
+        contentType: undefined | string,
+        body: Buffer,
+        dataType: DataType
+    ): Promise<Variant> {
+        const contentSerDes = ContentSerdes.get();
+
+        contentType = contentType ? contentType!.split(";")[0] : "application/json";
+
+        switch (contentType) {
+            case "application/json": {
+                const value = contentSerDes.contentToValue({ type: contentType, body }, schemaDataValue);
+                return new Variant({ dataType, value });
+            }
+            case "application/opcua+json": {
+                contentType += ";type=Variant;to=DataValue";
+                const content2 = { type: contentType, body };
+                const dataValue = contentSerDes.contentToValue(content2, schemaDataValue) as DataValue;
+                if (!(dataValue instanceof DataValue)) {
+                    throw new Error("Internal Error, expecting a DataValue here ");
+                }
+                const variant = dataValue.value;
+                if (variant.dataType !== dataType) {
+                    console.debug("[binding-opcua]", " unexpected dataType");
+                }
+                return variant;
+            }
+            default: {
+                throw new Error("Unsupported content type here : " + contentType);
+            }
+        }
+    }
+    private async _findBasicDataType(session: IBasicSession, dataType: NodeId): Promise<DataType> {
+        return await findBasicDataType(session, dataType);
+    }
+
+    private async _resolveInputArguments(
+        session: IBasicSession,
+        form: OPCUAFormInvoke,
+        content: Content,
+        argumentDefinition: ArgumentDefinition
+    ): Promise<VariantOptions[]> {
+        const content2 = { ...content, body: await ProtocolHelpers.readStreamFully(content.body) };
+        const bodyInput = JSON.parse(content2.body.toString());
+
+        const inputArguments = (argumentDefinition.inputArguments || []) as unknown as Argument[];
+
+        const variants: VariantLike[] = [];
+        for (let index = 0; index < inputArguments.length; index++) {
+            const argument = inputArguments[index];
+
+            const { name, dataType, /* description, */ arrayDimensions, valueRank } = argument;
+
+            if (bodyInput[name] === undefined) {
+                throw new Error("missing value in bodyInput for argument " + name);
+            }
+            const basicDataType = await this._findBasicDataType(session, dataType);
+
+            const arrayType: VariantArrayType =
+                valueRank === -1
+                    ? VariantArrayType.Scalar
+                    : valueRank === 1
+                    ? VariantArrayType.Array
+                    : VariantArrayType.Matrix;
+
+            const n = (a: object) => Buffer.from(JSON.stringify(a));
+            const v = await this._contentToVariant(content2.type, n(bodyInput[name]), basicDataType);
+
+            variants.push({
+                dataType: basicDataType,
+                arrayType,
+                dimensions: arrayType === VariantArrayType.Matrix ? arrayDimensions : undefined,
+                value: v.value,
+            });
+        }
+        return variants;
+    }
+
+    private async _resolveOutputArguments(
+        session: IBasicSession,
+        form: OPCUAFormInvoke,
+        argumentDefinition: ArgumentDefinition,
+        outputVariants: Variant[]
+    ): Promise<Content> {
+        const outputArguments = (argumentDefinition.outputArguments || []) as unknown as Argument[];
+
+        const contentSerDes = ContentSerdes.get();
+        const contentType = form.contentType || "application/json";
+
+        const body: Record<string, unknown> = {};
+        for (let index = 0; index < outputArguments.length; index++) {
+            const argument = outputArguments[index];
+            const { name } = argument;
+            const element = _variantToJSON(outputVariants[index], contentType);
+            body[name] = element;
+        }
+
+        return { type: "application/json", body: Readable.from(JSON.stringify(body)) };
+    }
+}
+function _variantToJSON(variant: Variant, contentType: string) {
+    contentType = contentType.split(";")[0];
+
+    switch (contentType) {
+        case "application/opcua+json": {
+            return opcuaJsonEncodeVariant(variant, true);
+        }
+        case "application/json": {
+            return opcuaJsonEncodeVariant(variant, false);
+        }
+        default: {
+            throw new Error("Unsupported content type here : " + contentType);
+        }
+    }
 }

@@ -15,7 +15,7 @@
 import { ContentCodec } from "@node-wot/core";
 import { DataSchema } from "@node-wot/td-tools";
 import { DataValue } from "node-opcua-data-value";
-import { DataType } from "node-opcua-variant";
+import { DataType, decodeVariant, Variant } from "node-opcua-variant";
 import Ajv from "ajv";
 import "ajv-formats"; /// to get date again !
 
@@ -25,8 +25,10 @@ import {
     opcuaJsonDecodeDataValue,
     opcuaJsonDecodeVariant,
     DataValueJSON,
+    opcuaJsonEncodeVariant,
 } from "node-opcua-json";
 import { BinaryStream } from "node-opcua-binary-stream";
+import { DataSchemaValue } from "wot-typescript-definitions";
 
 // Strict mode has a lot of other checks and it prevents runtime unexpected problems
 // TODO: in the future we should use the strict mode
@@ -148,14 +150,18 @@ export function formatForNodeWoT(dataValue: DataValueJSON): DataValueJSON {
 }
 
 // application/json   => is equivalent to application/opcua+json;type=Value
+
 export class OpcuaJSONCodec implements ContentCodec {
     getMediaType(): string {
         return "application/opcua+json";
     }
 
-    bytesToValue(bytes: Buffer, schema: DataSchema, parameters?: { [key: string]: string }): DataValueJSON {
+    bytesToValue(bytes: Buffer, schema: DataSchema, parameters?: { [key: string]: string }): DataSchemaValue {
         const type = parameters?.type ?? "DataValue";
         let parsed = JSON.parse(bytes.toString());
+
+        const wantDataValue = (parameters && parameters.to && parameters.to === "DataValue") || false;
+
         switch (type) {
             case "DataValue": {
                 const isValid = schemaDataValueJSONValidate(parsed);
@@ -164,59 +170,82 @@ export class OpcuaJSONCodec implements ContentCodec {
                     console.log("[OpcuaJSONCodec|bytesToValue]", schemaDataValueJSONValidate.errors);
                     throw new Error("Invalid JSON dataValue : " + JSON.stringify(parsed, null, " "));
                 }
-                // return opcuaJsonEncodeDataValue(opcuaJsonDecodeDataValue(parsed), true);
-                return parsed;
+                if (wantDataValue) {
+                    return opcuaJsonDecodeDataValue(parsed);
+                }
+                return formatForNodeWoT(opcuaJsonEncodeDataValue(opcuaJsonDecodeDataValue(parsed), true));
+                // return parsed;
             }
             case "Variant": {
-                const dataValue = new DataValue({ value: opcuaJsonDecodeVariant(parsed) });
-                return opcuaJsonEncodeDataValue(dataValue, true);
+                if (wantDataValue) {
+                    const dataValue = new DataValue({ value: opcuaJsonDecodeVariant(parsed) });
+                    return dataValue;
+                }
+                const v = opcuaJsonEncodeVariant(opcuaJsonDecodeVariant(parsed), true);
+                console.log(v);
+                return v;
             }
             case "Value": {
-                if (!parameters || !parameters.dataType) {
-                    throw new Error("[OpcuaJSONCodec|bytesToValue]: unknown dataType for Value encoding" + type);
+                if (wantDataValue) {
+                    if (!parameters || !parameters.dataType) {
+                        throw new Error("[OpcuaJSONCodec|bytesToValue]: unknown dataType for Value encoding" + type);
+                    }
+                    if (parameters.dataType === DataType[DataType.DateTime]) {
+                        parsed = new Date(parsed);
+                    }
+                    const value = {
+                        dataType: DataType[parameters.dataType as keyof typeof DataType],
+                        value: parsed,
+                    };
+                    return new DataValue({ value });
+                } else {
+                    if (parameters && parameters.dataType && parameters.dataType === DataType[DataType.DateTime]) {
+                        parsed = new Date(parsed);
+                    }
+                    return parsed;
                 }
-                if (parameters.dataType === DataType[DataType.DateTime]) {
-                    parsed = new Date(parsed);
-                }
-                const value = {
-                    dataType: DataType[parameters.dataType as keyof typeof DataType],
-                    value: parsed,
-                };
-                return opcuaJsonEncodeDataValue(new DataValue({ value }), true);
             }
             default:
                 throw new Error("[OpcuaJSONCodec|bytesToValue]: Invalid type " + type);
         }
     }
 
-    valueToBytes(
-        dataValue: DataValueJSON | DataValue | string,
-        schema: DataSchema,
-        parameters?: { [key: string]: string }
-    ): Buffer {
-        dataValue =
-            dataValue instanceof DataValue
-                ? opcuaJsonEncodeDataValue(dataValue, true)
-                : typeof dataValue === "string"
-                ? (JSON.parse(dataValue) as DataValueJSON)
-                : dataValue;
-
-        dataValue = formatForNodeWoT(dataValue);
-
+    valueToBytes(value: unknown, _schema: DataSchema, parameters?: { [key: string]: string }): Buffer {
         const type = parameters?.type ?? "DataValue";
         switch (type) {
-            case "DataValue":
-                return Buffer.from(JSON.stringify(dataValue), "ascii");
+            case "DataValue": {
+                if (value instanceof DataValue) {
+                    value = opcuaJsonEncodeDataValue(value, true);
+                } else if (value instanceof Variant) {
+                    value = opcuaJsonEncodeDataValue(new DataValue({ value }), true);
+                } else if (typeof value === "string") {
+                    value = JSON.parse(value) as DataValueJSON;
+                } else {
+                    value = opcuaJsonEncodeDataValue(opcuaJsonDecodeDataValue(value as DataValueJSON), true);
+                }
+                value = formatForNodeWoT(value);
+                return Buffer.from(JSON.stringify(value), "ascii");
+            }
             case "Variant": {
-                const str = JSON.stringify(dataValue.Value);
-                return Buffer.from(str, "ascii");
+                if (value instanceof DataValue) {
+                    value = opcuaJsonEncodeVariant(value.value, true);
+                } else if (value instanceof Variant) {
+                    value = opcuaJsonEncodeVariant(value, true);
+                } else if (typeof value === "string") {
+                    value = JSON.parse(value);
+                }
+                return Buffer.from(JSON.stringify(value), "ascii");
             }
             case "Value": {
-                const v = dataValue.Value.Body;
-                if (!v) {
+                if (value === undefined) {
                     return Buffer.alloc(0);
                 }
-                return Buffer.from(JSON.stringify(v), "ascii");
+                if (value instanceof DataValue) {
+                    value = opcuaJsonEncodeVariant(value.value, false);
+                } else if (value instanceof Variant) {
+                    value = opcuaJsonEncodeVariant(value, false);
+                }
+                return Buffer.from(JSON.stringify(value), "ascii");
             }
             default:
                 throw new Error("[OpcuaJSONCodec|valueToBytes]: Invalid type : " + type);

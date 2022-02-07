@@ -9,7 +9,7 @@ import Ajv from "ajv/dist/core";
 import { expect } from "chai";
 
 describe("OPCUA Client", function () {
-    this.timeout(10000);
+    this.timeout(60000);
 
     let opcuaServer: OPCUAServer;
     let endpoint: string;
@@ -35,26 +35,69 @@ describe("OPCUA Client", function () {
         await client.stop();
     });
 
-    ["application/opcua+json", "application/opcua+json;type=DataValue", "application/opcua+json;type=Variant"].forEach(
-        (contentType) => {
-            it("Y1- should read a topic with contentType= " + contentType, async () => {
-                const readForm: OPCUAForm = {
-                    href: endpoint,
-                    "opcua:nodeId": VariableIds.Server_ServerStatus_CurrentTime,
-                    contentType,
-                };
+    [
+        // 0
+        { contentType: "application/json", expected: "2022-01-31T10:45:00.000Z" },
+        // 1
+        {
+            contentType: "application/opcua+json",
+            expected: {
+                SourceTimestamp: "*",
+                Value: {
+                    Type: 13,
+                    Body: new Date("2022-01-31T10:45:00.000Z"),
+                },
+            },
+        },
+        // 2
+        {
+            contentType: "application/opcua+json;type=DataValue",
+            expected: {
+                SourceTimestamp: "*",
+                Value: {
+                    Type: 13,
+                    Body: new Date("2022-01-31T10:45:00.000Z"),
+                },
+            },
+        },
+        // 3
+        {
+            contentType: "application/opcua+json;type=Variant",
+            expected: {
+                Type: 13,
+                Body: new Date("2022-01-31T10:45:00.000Z"),
+            },
+        },
+        // 4
+        {
+            contentType: "application/opcua+json;type=Value;dataType=DateTime",
+            expected: new Date("2022-01-31T10:45:00.000Z"),
+        },
+    ].forEach(({ contentType, expected }, index) => {
+        it(`Y1-${index} should read a topic with contentType= ${contentType}`, async () => {
+            const readForm: OPCUAForm = {
+                href: endpoint,
+                "opcua:nodeId": "ns=1;s=ManufacturingDate",
+                contentType,
+            };
 
-                const content = await client.readResource(readForm);
-                const content2 = { ...content, body: await ProtocolHelpers.readStreamFully(content.body) };
+            const content = await client.readResource(readForm);
+            const content2 = { ...content, body: await ProtocolHelpers.readStreamFully(content.body) };
 
-                console.log(content2.body);
+            console.log("readResource returned: ", content2.body.toString("ascii"));
 
-                const codecSerDes = ContentSerdes.get();
-                const dataValue = codecSerDes.contentToValue(content2, schemaDataValue) as DataValue;
-                console.log(dataValue.toString());
-            });
-        }
-    );
+            const codecSerDes = ContentSerdes.get();
+            const dataValue = codecSerDes.contentToValue(content2, schemaDataValue) as any;
+
+            // (deal with always changing date )
+            if (dataValue.SourceTimestamp) {
+                expect(dataValue.SourceTimestamp).to.be.instanceOf(Date);
+                dataValue.SourceTimestamp = "*";
+            }
+            console.log(dataValue);
+            expect(dataValue).to.eql(expected);
+        });
+    });
 
     it("Y2 - should subscribe to a topic", async () => {
         const form: OPCUAForm = {
