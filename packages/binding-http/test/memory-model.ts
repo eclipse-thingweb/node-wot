@@ -51,7 +51,7 @@ export default class InMemoryModel {
                 clientId: "thom",
                 clientSecret: "nightworld",
                 redirectUris: [""],
-                grants: ["client", "password", "refresh_token"],
+                grants: ["client_credentials", "password", "refresh_token"],
             },
         ];
         this.tokens = [];
