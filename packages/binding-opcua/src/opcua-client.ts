@@ -245,7 +245,7 @@ export default class OpcuaClient implements ProtocolClient {
             };
             const result = await this.session.call(methodToCall);
 
-            console.log("[binding-opcua]", "[invoke]", result.toString());
+            console.debug("[binding-opcua]", "[invoke]", result.toString());
 
             const statusCode = result.statusCode;
             if (statusCode !== StatusCodes.Good) {

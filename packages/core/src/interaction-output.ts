@@ -12,7 +12,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-
+import * as util from "util";
 import * as WoT from "wot-typescript-definitions";
 import { ContentSerdes } from "./content-serdes";
 import { ProtocolHelpers } from "./core";
@@ -85,6 +85,9 @@ export class InteractionOutput implements WoT.InteractionOutput {
 
         // validate the schema
         if (!validate(value)) {
+            console.debug("[core]", "schema = ", util.inspect(this.schema, { depth: 10, colors: true }));
+            console.debug("[core]", "value: ", value);
+            console.debug("[core]", "Errror: ", validate.errors);
             throw new DataSchemaError("Invalid value according to DataSchema", value as WoT.DataSchemaValue);
         }
 
