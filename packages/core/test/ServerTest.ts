@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -21,13 +21,16 @@
  */
 
 import { suite, test } from "@testdeck/mocha";
-import { expect, should } from "chai";
-
+import { expect, should, use as chaiUse, spy } from "chai";
+import spies from "chai-spies";
 import Servient from "../src/servient";
 import { ProtocolServer } from "../src/protocol-interfaces";
 import ExposedThing from "../src/exposed-thing";
+import { Readable } from "stream";
+import { InteractionOutput } from "wot-typescript-definitions";
 // should must be called to augment all variables
 should();
+chaiUse(spies);
 
 // implement a testserver to mock a server
 class TestProtocolServer implements ProtocolServer {
@@ -282,8 +285,8 @@ class WoTServerTest {
 
         // Check internals, how to to check handlers properly with *some* type-safety
         const expThing = thing as ExposedThing;
-        const propertyState = expThing.properties["my number"].getState();
-        const ff = await propertyState.readHandler();
+        const readHandler = expThing.propertyHandlers.get("my number").readHandler;
+        const ff = await readHandler();
         expect(ff).to.equal(1);
     }
 
@@ -817,4 +820,160 @@ class WoTServerTest {
     // TODO add Event and subscribe locally (based on addEvent)
     // TODO add Event and subscribe locally (based on WoT.ThingFragment)
     // TODO add Event and subscribe locally (based on WoT.ThingDescription)
+    @test async "should call read handler"() {
+        const thing = await WoTServerTest.WoT.produce({
+            title: "The Machine",
+            properties: {
+                test: {
+                    type: "string",
+                    forms: [
+                        {
+                            href: "http://example.org/test",
+                            op: ["readproperty"],
+                        },
+                    ],
+                },
+            },
+        });
+        const callback = spy(async () => {
+            return true;
+        });
+        thing.setPropertyReadHandler("test", callback);
+
+        await (<ExposedThing>thing).handleReadProperty("test", { formIndex: 0 });
+
+        callback.should.have.been.called();
+    }
+
+    @test async "should call write handler"() {
+        const thing = await WoTServerTest.WoT.produce({
+            title: "The Machine",
+            properties: {
+                test: {
+                    type: "string",
+                    forms: [
+                        {
+                            href: "http://example.org/test",
+                            op: ["readproperty", "writeproperty"],
+                        },
+                    ],
+                },
+            },
+        });
+        const callback = spy(async () => {
+            /** */
+        });
+        thing.setPropertyWriteHandler("test", callback);
+
+        await (<ExposedThing>thing).handleWriteProperty("test", { type: "", body: undefined }, { formIndex: 0 });
+
+        callback.should.have.been.called();
+    }
+
+    @test async "should be able to subscribe to an event"() {
+        const thing = await WoTServerTest.WoT.produce({
+            title: "The Machine",
+            events: {
+                test: {
+                    forms: [
+                        {
+                            href: "http://example.org/test",
+                            op: ["subscribeevent"],
+                        },
+                    ],
+                },
+            },
+        });
+        const callback = spy();
+        await (<ExposedThing>thing).handleSubscribeEvent("test", callback, { formIndex: 0 });
+        (<ExposedThing>thing).emitEvent("test", undefined);
+
+        callback.should.have.been.called();
+    }
+
+    @test async "should call subscribe handler"() {
+        const thing = await WoTServerTest.WoT.produce({
+            title: "The Machine",
+            events: {
+                test: {
+                    forms: [
+                        {
+                            href: "http://example.org/test",
+                            op: ["subscribeevent"],
+                        },
+                    ],
+                },
+            },
+        });
+        const callback = spy(async () => {
+            /**  */
+        });
+        thing.setEventSubscribeHandler("test", callback);
+        await (<ExposedThing>thing).handleSubscribeEvent("test", callback, { formIndex: 0 });
+
+        callback.should.have.been.called();
+    }
+
+    @test async "should be able to unsubscribe to an event"() {
+        const thing = await WoTServerTest.WoT.produce({
+            title: "The Machine",
+            events: {
+                test: {
+                    forms: [
+                        {
+                            href: "http://example.org/test",
+                            op: ["subscribeevent"],
+                        },
+                    ],
+                },
+            },
+        });
+        const callback = spy(async () => {
+            /**  */
+        });
+        const handler = spy(async () => {
+            /**  */
+        });
+        thing.setEventSubscribeHandler("test", handler);
+        await (<ExposedThing>thing).handleSubscribeEvent("test", callback, { formIndex: 0 });
+        (<ExposedThing>thing).emitEvent("test", undefined);
+        (<ExposedThing>thing).handleUnsubscribeEvent("test", callback, { formIndex: 0 });
+        (<ExposedThing>thing).emitEvent("test", undefined);
+
+        return expect(callback).to.have.been.called.once;
+    }
+
+    @test async "should call action handler"() {
+        const thing = await WoTServerTest.WoT.produce({
+            title: "The Machine",
+            actions: {
+                test: {
+                    type: "string",
+                    input: {
+                        type: "string",
+                    },
+                    forms: [
+                        {
+                            href: "http://example.org/test",
+                            op: ["invokeaction"],
+                        },
+                    ],
+                },
+            },
+        });
+        const callback = spy(async (params: InteractionOutput) => {
+            expect(await params.value()).to.be.equal("ping");
+            return "";
+        });
+
+        thing.setActionHandler("test", callback);
+
+        await (<ExposedThing>thing).handleInvokeAction(
+            "test",
+            { type: "application/json", body: Readable.from(Buffer.from("ping")) },
+            { formIndex: 0 }
+        );
+
+        callback.should.have.been.called();
+    }
 }

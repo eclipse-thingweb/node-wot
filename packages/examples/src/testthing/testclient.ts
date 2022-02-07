@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2020 - 2021 Contributors to the Eclipse Foundation
+ * Copyright (c) 2020 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -17,20 +17,29 @@ import { Helpers } from "@node-wot/core";
 import { ThingDescription } from "wot-typescript-definitions";
 let WoTHelpers: Helpers;
 
-console.log = () => {};
-console.debug = () => {};
+console.log = () => {
+    /* empty */
+};
+console.debug = () => {
+    /* empty */
+};
 
 async function testPropertyRead(thing: WoT.ConsumedThing, name: string) {
     try {
-        let res = await thing.readProperty(name);
-        console.info("PASS " + name + " READ:", res);
+        const res = await thing.readProperty(name);
+        console.info("PASS " + name + " READ:", res.value());
     } catch (err) {
         console.error("FAIL " + name + " READ:", err.message);
     }
 }
 
-async function testPropertyWrite(thing: WoT.ConsumedThing, name: string, value: any, shouldFail: boolean) {
-    let displayValue = JSON.stringify(value);
+async function testPropertyWrite(
+    thing: WoT.ConsumedThing,
+    name: string,
+    value: WoT.InteractionInput,
+    shouldFail: boolean
+) {
+    const displayValue = JSON.stringify(value);
     try {
         await thing.writeProperty(name, value);
         if (!shouldFail) console.info("PASS " + name + " WRITE (" + displayValue + ")");
@@ -45,7 +54,7 @@ WoTHelpers.fetch("http://localhost:8080/testthing")
     .then(async (td) => {
         // using await for serial execution (note 'async' in then() of fetch())
         try {
-            let thing = await WoT.consume(td as ThingDescription);
+            const thing = await WoT.consume(td as ThingDescription);
             console.info("=== TD ===");
             console.info(td);
             console.info("==========");
