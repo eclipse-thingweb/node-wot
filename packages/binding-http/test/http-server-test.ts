@@ -34,10 +34,11 @@ chai.use(chaiAsPromised);
 should();
 
 const port = 32080;
+const port2 = 32081;
 @suite("HTTP server implementation")
 class HttpServerTest {
     @test async "should start and stop a server"() {
-        const httpServer = new HttpServer({ port: port });
+        const httpServer = new HttpServer({ port });
 
         await httpServer.start(null);
         expect(httpServer.getPort()).to.eq(port); // from test
@@ -326,7 +327,7 @@ class HttpServerTest {
     // https://github.com/eclipse/thingweb.node-wot/issues/181
     @test async "should not override a valid security scheme"() {
         const httpServer = new HttpServer({
-            port: 58081,
+            port: port2,
             serverKey: "./test/server.key",
             serverCert: "./test/server.cert",
             security: {
@@ -350,7 +351,7 @@ class HttpServerTest {
     @test async "should not accept an unsupported scheme"() {
         console.log("START SHOULD");
         const httpServer = new HttpServer({
-            port: 58081,
+            port: port2,
             serverKey: "./test/server.key",
             serverCert: "./test/server.cert",
             security: {
