@@ -1,3 +1,18 @@
+/********************************************************************************
+ * Copyright (c) 2021 Contributors to the Eclipse Foundation
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v. 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0, or the W3C Software Notice and
+ * Document License (2015-05-13) which is available at
+ * https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
+ ********************************************************************************/
+
 import { Subscription } from "rxjs/Subscription";
 import { promisify } from "util";
 import { Readable } from "stream";
@@ -29,17 +44,11 @@ import { AttributeIds, BrowseDirection, makeResultMask } from "node-opcua-data-m
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { StatusCodes } from "node-opcua-status-code";
 
-import { theOpcuaJSONCodec, schemaDataValue, formatForNodeWoT } from "./codec";
+import { schemaDataValue } from "./codec";
 import { FormElementProperty } from "wot-thing-description-types";
-import {
-    opcuaJsonEncodeDataValue,
-    opcuaJsonDecodeDataValue,
-    DataValueJSON,
-    opcuaJsonEncodeVariant,
-    VariantJSON,
-} from "node-opcua-json";
+import { opcuaJsonEncodeVariant } from "node-opcua-json";
 import { Argument, BrowseDescription, BrowseResult } from "node-opcua-types";
-import { ISessionBase, ReferenceTypeIds } from "node-opcua";
+import { ReferenceTypeIds } from "node-opcua";
 import { VariantJSONBody } from "node-opcua-json/dist2/json_basic_encoding_decoding_variant";
 
 export type Command = "Read" | "Write" | "Subscribe";
@@ -445,7 +454,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
     private async _contentToDataValue2(form: OPCUAForm, content2: ReadContent): Promise<DataValue> {
         const contentSerDes = ContentSerdes.get();
 
-        let contentType = content2.type ? content2.type.split(";")[0] : "application/json";
+        const contentType = content2.type ? content2.type.split(";")[0] : "application/json";
 
         switch (contentType) {
             case "application/json": {
@@ -477,6 +486,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
             }
         }
     }
+
     private async _contentToDataValue(form: OPCUAForm, content: Content): Promise<DataValue> {
         const content2: { type: string; body: Buffer } = {
             ...content,
@@ -493,7 +503,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
     ): Promise<Variant> {
         const contentSerDes = ContentSerdes.get();
 
-        contentType = contentType ? contentType!.split(";")[0] : "application/json";
+        contentType = contentType ? contentType.split(";")[0] : "application/json";
 
         switch (contentType) {
             case "application/json": {
@@ -518,6 +528,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
             }
         }
     }
+
     private async _findBasicDataType(session: IBasicSession, dataType: NodeId): Promise<DataType> {
         return await findBasicDataType(session, dataType);
     }
@@ -551,7 +562,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
                     ? VariantArrayType.Array
                     : VariantArrayType.Matrix;
 
-            const n = (a: object) => Buffer.from(JSON.stringify(a));
+            const n = (a: unknown) => Buffer.from(JSON.stringify(a));
             const v = await this._contentToVariant(content2.type, n(bodyInput[name]), basicDataType);
 
             variants.push({
@@ -572,7 +583,6 @@ export class OPCUAProtocolClient implements ProtocolClient {
     ): Promise<Content> {
         const outputArguments = (argumentDefinition.outputArguments || []) as unknown as Argument[];
 
-        const contentSerDes = ContentSerdes.get();
         const contentType = form.contentType || "application/json";
 
         const body: Record<string, unknown> = {};

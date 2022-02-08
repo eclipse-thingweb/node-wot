@@ -1,12 +1,26 @@
+/********************************************************************************
+ * Copyright (c) 2021 Contributors to the Eclipse Foundation
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v. 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0, or the W3C Software Notice and
+ * Document License (2015-05-13) which is available at
+ * https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
+ ********************************************************************************/
+
 // node-wot implementation of W3C WoT Servient
 
-import { expect, should } from "chai";
+import { expect } from "chai";
 import { ExposedThing, Servient } from "@node-wot/core";
-import { OPCUAServer, DataType } from "node-opcua";
+import { OPCUAServer } from "node-opcua";
 
 import { OPCUAClientFactory } from "../src";
 import { startServer } from "./fixture/basic_opcua_server";
-import { DataValueJSON } from "node-opcua-json";
 import { InteractionOptions } from "wot-typescript-definitions";
 const endpoint = "opc.tcp://localhost:7890";
 
@@ -39,6 +53,7 @@ const endpoint = "opc.tcp://localhost:7890";
 //     };
 //     return schema;
 // }
+
 const thingDescription: WoT.ThingDescription = {
     "@context": "https://www.w3.org/2019/wot/td/v1",
     "@type": ["Thing"],
