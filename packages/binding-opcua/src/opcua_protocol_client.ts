@@ -164,7 +164,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
                     maxNotificationsPerPublish: 100,
                     publishingEnabled: true,
                     requestedLifetimeCount: 100,
-                    requestedPublishingInterval: 1000,
+                    requestedPublishingInterval: 250,
                     requestedMaxKeepAliveCount: 10,
                     priority: 1,
                 });
@@ -353,9 +353,9 @@ export class OPCUAProtocolClient implements ProtocolClient {
                 attributeId: AttributeIds.Value,
             };
             const parameters: MonitoringParametersOptions = {
-                samplingInterval: 100,
+                samplingInterval: 250,
                 discardOldest: true,
-                queueSize: 10,
+                queueSize: 1,
             };
 
             const monitoredItem = await subscription.monitor(
@@ -536,9 +536,12 @@ export class OPCUAProtocolClient implements ProtocolClient {
     private async _resolveInputArguments(
         session: IBasicSession,
         form: OPCUAFormInvoke,
-        content: Content,
+        content: Content | undefined | null,
         argumentDefinition: ArgumentDefinition
     ): Promise<VariantOptions[]> {
+        if (!content || !content.body) {
+            return [];
+        }
         const content2 = { ...content, body: await ProtocolHelpers.readStreamFully(content.body) };
         const bodyInput = JSON.parse(content2.body.toString());
 
