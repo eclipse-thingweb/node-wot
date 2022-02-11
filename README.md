@@ -83,6 +83,7 @@ cs.addCodec(new JsonCodec("application/calendar+json"));
 cs.addCodec(new MyCodec("application/myType"));
 
 ```
+
 </details>
 
 ## Prerequisites
