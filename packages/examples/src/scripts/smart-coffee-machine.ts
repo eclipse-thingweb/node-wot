@@ -17,6 +17,12 @@
 // It considers a fictional smart coffee machine in order to demonstrate the capabilities of Web of Things.
 // An accompanying tutorial is available at http://www.thingweb.io/smart-coffee-machine.html.
 
+let allAvailableResources: Record<string, number>;
+let possibleDrinks: string[];
+let maintenanceNeeded: boolean;
+let schedules: unknown[];
+let servedCounter: number;
+
 WoT.produce({
     title: "Smart-Coffee-Machine",
     description: `A smart coffee machine with a range of capabilities.
@@ -227,221 +233,191 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
     },
 })
     .then((thing) => {
-        // TODO FIX after v0.8 API changes are in place
-        console.error("TODO FIX after v0.8 API changes are in place");
+        // Initialize the property values
+        allAvailableResources = {
+            water: readFromSensor("water"),
+            milk: readFromSensor("milk"),
+            chocolate: readFromSensor("chocolate"),
+            coffeeBeans: readFromSensor("coffeeBeans"),
+        };
+        possibleDrinks = ["espresso", "americano", "cappuccino", "latte", "hotChocolate", "hotWater"];
+        maintenanceNeeded = false;
+        schedules = [];
 
-        /*
-    // Initialize the property values
-    thing.writeProperty('allAvailableResources', {
-        water: readFromSensor('water'),
-        milk: readFromSensor('milk'),
-        chocolate: readFromSensor('chocolate'),
-        coffeeBeans: readFromSensor('coffeeBeans'),
-    });
-    thing.writeProperty('possibleDrinks', ['espresso', 'americano', 'cappuccino', 'latte', 'hotChocolate', 'hotWater']);
-    thing.writeProperty('maintenanceNeeded', false);
-    thing.writeProperty('schedules', []);
+        thing.setPropertyReadHandler("allAvailableResources", async () => allAvailableResources);
+        thing.setPropertyReadHandler("possibleDrinks", async () => possibleDrinks);
+        thing.setPropertyReadHandler("maintenanceNeeded", async () => maintenanceNeeded);
+        thing.setPropertyReadHandler("schedules", async () => schedules);
 
-    // Observe the value of maintenanceNeeded property
-    thing.observeProperty('maintenanceNeeded', (data) => {
+        // Override a write handler for servedCounter property,
+        // raising maintenanceNeeded flag when the value exceeds 1000 drinks
+        thing.setPropertyWriteHandler("servedCounter", async (val) => {
+            servedCounter = (await val.value()) as number;
+            if (servedCounter > 1000) {
+                maintenanceNeeded = true;
 
-        // Notify a "maintainer" when the value has changed
-        // (the notify function here simply logs a message to the console)
-        notify('admin@coffeeMachine.com', `maintenanceNeeded property has changed, new value is: ${data}`);
-    });
-
-    // Override a write handler for servedCounter property,
-    // raising maintenanceNeeded flag when the value exceeds 1000 drinks
-    thing.setPropertyWriteHandler('servedCounter', async (val) => {
-        let valp = await Helpers.parseInteractionOutput(val);
-        return new Promise((resolve, reject) => {
-            if (valp > 1000) {
-                thing.writeProperty('maintenanceNeeded', true);
+                // Notify a "maintainer" when the value has changed
+                // (the notify function here simply logs a message to the console)
+                notify(
+                    "admin@coffeeMachine.com",
+                    `maintenanceNeeded property has changed, new value is: ${servedCounter}`
+                );
             }
-            resolve(); // valp
         });
-    });
 
-    // Now initialize the servedCounter property
-    thing.writeProperty('servedCounter', readFromSensor('servedCounter'));
+        // Now initialize the servedCounter property
+        servedCounter = readFromSensor("servedCounter");
 
-    // Override a write handler for availableResourceLevel property,
-    // utilizing the uriVariables properly
-    thing.setPropertyWriteHandler('availableResourceLevel', (val, options) => {
-        return new Promise((resolve, reject) => {
+        // Override a write handler for availableResourceLevel property,
+        // utilizing the uriVariables properly
+        thing.setPropertyWriteHandler("availableResourceLevel", async (val, options) => {
             // Check if uriVariables are provided
-            if (options && typeof options === 'object' && 'uriVariables' in options) {
-                const uriVariables: any = options['uriVariables'];
-                if ('id' in uriVariables) {
-                    return thing.readProperty('allAvailableResources').then((resources) => {
-                        const id = uriVariables['id'];
-                        resources[id] = val;
-                        thing.writeProperty('allAvailableResources', resources);
-                        return resolve();
-                    });
+            if (options && typeof options === "object" && "uriVariables" in options) {
+                const uriVariables = options.uriVariables as Record<string, string>;
+                if ("id" in uriVariables) {
+                    const id = uriVariables.id;
+                    allAvailableResources[id] = (await val.value()) as number;
+                    return;
                 }
             }
-            return reject('Please specify id variable as uriVariables.');
+            throw Error("Please specify id variable as uriVariables.");
         });
-    });
 
-    // Override a read handler for availableResourceLevel property,
-    // utilizing the uriVariables properly
-    thing.setPropertyReadHandler('availableResourceLevel', (options) => {
-        return new Promise((resolve, reject) => {
+        // Override a read handler for availableResourceLevel property,
+        // utilizing the uriVariables properly
+        thing.setPropertyReadHandler("availableResourceLevel", async (options) => {
             // Check if uriVariables are provided
-            if (options && typeof options === 'object' && 'uriVariables' in options) {
-                const uriVariables: any = options['uriVariables'];
-                if ('id' in uriVariables) {
-                    return thing.readProperty('allAvailableResources').then((resources) => {
-                        const id = uriVariables['id'];
-                        return resolve(resources[id]);
-                    });
+            if (options && typeof options === "object" && "uriVariables" in options) {
+                const uriVariables = options.uriVariables as Record<string, string>;
+                if ("id" in uriVariables) {
+                    const id = uriVariables.id;
+                    return allAvailableResources[id];
                 }
             }
-            return reject('Please specify id variable as uriVariables.');
+            throw Error("Please specify id variable as uriVariables.");
         });
-    });
 
-    // Set up a handler for makeDrink action
-    thing.setActionHandler('makeDrink', (params, options) => {
+        // Set up a handler for makeDrink action
+        thing.setActionHandler("makeDrink", async (_params, options) => {
+            // Default values
+            let drinkId = "americano";
+            let size = "m";
+            let quantity = 1;
 
-        // Default values
-        let drinkId = 'americano';
-        let size = 'm';
-        let quantity = 1;
+            // Size quantifiers
+            const sizeQuantifiers: Record<string, number> = { s: 0.1, m: 0.2, l: 0.3 };
 
-        // Size quantifiers
-        const sizeQuantifiers: any = {'s': 0.1, 'm': 0.2, 'l': 0.3};
+            // Drink recipes showing the amount of a resource consumed for a particular drink
+            const drinkRecipes: Record<string, Record<string, number>> = {
+                espresso: {
+                    water: 1,
+                    milk: 0,
+                    chocolate: 0,
+                    coffeeBeans: 2,
+                },
+                americano: {
+                    water: 2,
+                    milk: 0,
+                    chocolate: 0,
+                    coffeeBeans: 2,
+                },
+                cappuccino: {
+                    water: 1,
+                    milk: 1,
+                    chocolate: 0,
+                    coffeeBeans: 2,
+                },
+                latte: {
+                    water: 1,
+                    milk: 2,
+                    chocolate: 0,
+                    coffeeBeans: 2,
+                },
+                hotChocolate: {
+                    water: 0,
+                    milk: 0,
+                    chocolate: 1,
+                    coffeeBeans: 0,
+                },
+                hotWater: {
+                    water: 1,
+                    milk: 0,
+                    chocolate: 0,
+                    coffeeBeans: 0,
+                },
+            };
 
-        // Drink recipes showing the amount of a resource consumed for a particular drink
-        const drinkRecipes: any = {
-            'espresso': {
-                'water': 1,
-                'milk': 0,
-                'chocolate': 0,
-                'coffeeBeans': 2,
-            },
-            'americano': {
-                'water': 2,
-                'milk': 0,
-                'chocolate': 0,
-                'coffeeBeans': 2,
-            },
-            'cappuccino': {
-                'water': 1,
-                'milk': 1,
-                'chocolate': 0,
-                'coffeeBeans': 2,
-            },
-            'latte': {
-                'water': 1,
-                'milk': 2,
-                'chocolate': 0,
-                'coffeeBeans': 2,
-            },
-            'hotChocolate': {
-                'water': 0,
-                'milk': 0,
-                'chocolate': 1,
-                'coffeeBeans': 0,
-            },
-            'hotWater': {
-                'water': 1,
-                'milk': 0,
-                'chocolate': 0,
-                'coffeeBeans': 0,
-            },
-        }
+            // Check if uriVariables are provided
+            if (options && typeof options === "object" && "uriVariables" in options) {
+                const uriVariables = options.uriVariables as Record<string, string | number>;
+                drinkId = "drinkId" in uriVariables ? (uriVariables.drinkId as string) : drinkId;
+                size = "size" in uriVariables ? (uriVariables.size as string) : size;
+                quantity = "quantity" in uriVariables ? (uriVariables.quantity as number) : quantity;
+            }
 
-        // Check if uriVariables are provided
-        if (options && typeof options === 'object' && 'uriVariables' in options) {
-            const uriVariables: any = options['uriVariables'];
-            drinkId = ('drinkId' in uriVariables) ? uriVariables['drinkId'] : drinkId;
-            size = ('size' in uriVariables) ? uriVariables['size'] : size;
-            quantity = ('quantity' in uriVariables) ? uriVariables['quantity'] : quantity;
-        }
-
-        // Read the current level of allAvailableResources
-        return thing.readProperty('allAvailableResources').then(async (resources) => {
-            let resourcesp = await Helpers.parseInteractionOutput(resources);
             // Calculate the new level of resources
-            let newResources = Object.assign({}, resourcesp);
-            newResources['water'] -= Math.ceil(quantity * sizeQuantifiers[size] * drinkRecipes[drinkId]['water']);
-            newResources['milk'] -= Math.ceil(quantity * sizeQuantifiers[size] * drinkRecipes[drinkId]['milk']);
-            newResources['chocolate'] -= Math.ceil(quantity * sizeQuantifiers[size] * drinkRecipes[drinkId]['chocolate']);
-            newResources['coffeeBeans'] -= Math.ceil(quantity * sizeQuantifiers[size] * drinkRecipes[drinkId]['coffeeBeans']);
+            const newResources = Object.assign({}, allAvailableResources);
+            newResources.water -= Math.ceil(quantity * sizeQuantifiers[size] * drinkRecipes[drinkId].water);
+            newResources.milk -= Math.ceil(quantity * sizeQuantifiers[size] * drinkRecipes[drinkId].milk);
+            newResources.chocolate -= Math.ceil(quantity * sizeQuantifiers[size] * drinkRecipes[drinkId].chocolate);
+            newResources.coffeeBeans -= Math.ceil(quantity * sizeQuantifiers[size] * drinkRecipes[drinkId].coffeeBeans);
 
             // Check if the amount of available resources is sufficient to make a drink
-            for (let resource in newResources) {
+            for (const resource in newResources) {
                 if (newResources[resource] <= 0) {
                     return new Promise((resolve, reject) => {
-                        thing.emitEvent('outOfResource', `Low level of ${resource}: ${resourcesp[resource]}%`);
-                        resolve({result: false, message: `${resource} level is not sufficient`});
+                        thing.emitEvent("outOfResource", `Low level of ${resource}: ${newResources[resource]}%`);
+                        return { result: false, message: `${resource} level is not sufficient` };
                     });
                 }
             }
 
             // Now store the new level of allAvailableResources
-            return thing.writeProperty('allAvailableResources', newResources).then(() => {
-                return thing.readProperty('servedCounter').then(async (counter) => {
-                    let counterp = await Helpers.parseInteractionOutput(counter);
-                    return new Promise((resolve, reject) => {
-                        thing.writeProperty('servedCounter', counterp + quantity);
+            allAvailableResources = newResources;
+            servedCounter = servedCounter + quantity;
 
-                        // Finally deliver the drink
-                        resolve({result: true, message: `Your ${drinkId} is in progress!`});
-                    });
-                });
+            // Finally deliver the drink
+            return { result: true, message: `Your ${drinkId} is in progress!` };
+        });
+
+        // Set up a handler for setSchedule action
+        thing.setActionHandler("setSchedule", async (params, options) => {
+            const paramsp = (await params.value()) as Record<string, unknown>; //  : any = await Helpers.parseInteractionOutput(params);
+
+            // Check if uriVariables are provided
+            if (paramsp && typeof paramsp === "object" && "time" in paramsp && "mode" in paramsp) {
+                // Use default values if not provided
+                paramsp.drinkId = "drinkId" in paramsp ? paramsp.drinkId : "americano";
+                paramsp.size = "size" in paramsp ? paramsp.size : "m";
+                paramsp.quantity = "quantity" in paramsp ? paramsp.quantity : 1;
+
+                // Now add a new schedule
+                schedules.push(paramsp);
+
+                return { result: true, message: `Your schedule has been set!` };
+            }
+            return new Promise((resolve, reject) => {
+                resolve({ result: false, message: `Please provide all the required parameters: time and mode.` });
             });
         });
-    });
 
-    // Set up a handler for setSchedule action
-    thing.setActionHandler('setSchedule', async (params, options) => {
-        let paramsp : any = await Helpers.parseInteractionOutput(params);
-
-        // Check if uriVariables are provided
-        if (paramsp && typeof paramsp === 'object' && 'time' in paramsp && 'mode' in paramsp) {
-
-            // Use default values if not provided
-            paramsp['drinkId'] = ('drinkId' in paramsp) ? paramsp['drinkId'] : 'americano';
-            paramsp['size'] = ('size' in paramsp) ? paramsp['size'] : 'm';
-            paramsp['quantity'] = ('quantity' in paramsp) ? paramsp['quantity'] : 1;
-
-            // Now read the schedules property, add a new schedule to it and then rewrite the schedules property
-            return thing.readProperty('schedules').then(async (schedules) => {
-                let schedulesp = await Helpers.parseInteractionOutput(schedules);
-                schedulesp.push(paramsp);
-                return thing.writeProperty('schedules', schedulesp).then(() => {
-                    return new Promise((resolve, reject) => {
-                        resolve({result: true, message: `Your schedule has been set!`});
-                    });
-                });
-            });
-
-        }
-        return new Promise((resolve, reject) => {
-            resolve({result: false, message: `Please provide all the required parameters: time and mode.`});
+        // Finally expose the thing
+        thing.expose().then(() => {
+            console.info(`${thing.getThingDescription().title} ready`);
         });
-    });
-
-    // Finally expose the thing
-    thing.expose().then( () => { console.info(`${thing.getThingDescription().title} ready`); } );
-    console.log(`Produced ${thing.getThingDescription().title}`);
-    */
+        console.log(`Produced ${thing.getThingDescription().title}`);
     })
     .catch((e) => {
         console.log(e);
     });
 
-/* function readFromSensor(sensorType: any) {
+function readFromSensor(sensorType: string): number {
     // Actual implementation of reading data from a sensor can go here
     // For the sake of example, let's just return a value
     return 100;
-} */
+}
 
-/* function notify(subscribers: any, msg: string) {
+function notify(subscribers: unknown, msg: string) {
     // Actual implementation of notifying subscribers with a message can go here
     console.log(msg);
-} */
+}
