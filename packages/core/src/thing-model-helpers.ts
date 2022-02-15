@@ -142,7 +142,7 @@ export default class ThingModelHelpers {
      *
      * @experimental
      */
-    public static validateExposedThingModelInit(data: ThingModel): { valid: boolean; errors: string } {
+    public static validateThingModel(data: ThingModel): { valid: boolean; errors: string } {
         const isValid = ThingModelHelpers.tsSchemaValidator(data);
         let errors;
         if (!isValid) {
@@ -206,7 +206,7 @@ export default class ThingModelHelpers {
         if (!ThingModelHelpers.isThingModel(model)) {
             throw new Error(`${model} is not a Thing Model`);
         }
-        let isValid = ThingModelHelpers.validateExposedThingModelInit(model);
+        let isValid = ThingModelHelpers.validateThingModel(model);
         if (isValid.valid === false || isValid.errors !== undefined) {
             throw new Error(isValid.errors);
         }
