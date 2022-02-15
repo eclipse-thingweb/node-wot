@@ -17,7 +17,7 @@ import Ajv, { ValidateFunction, ErrorObject } from "ajv";
 import { LinkElement } from "wot-thing-description-types";
 import { DataSchema, ExposedThingInit } from "wot-typescript-definitions";
 import Servient, { Helpers } from "./core";
-import { ThingModel } from "wot-thing-model-types"
+import { ThingModel } from "wot-thing-model-types";
 import TMSchema from "wot-thing-model-types/schema/tm-json-schema-validation.json";
 
 const tmSchema = TMSchema;
@@ -166,25 +166,25 @@ export default class ThingModelHelpers {
      */
     public async getPartialTDs(model: unknown, options?: CompositionOptions): Promise<ExposedThingInit[]> {
         const extendedModels = await this._getPartialTDs(model, options);
-        const extendedPartialTDs = extendedModels.map(_data => {
+        const extendedPartialTDs = extendedModels.map((_data) => {
             const data = _data as ExposedThingInit;
             // change the @type
-            console.log(data["@type"])
-           if (data["@type"] instanceof Array) {
-               data["@type"] = data["@type"].map((el) => {
-                   if (el === "tm:ThingModel") {
-                       return "Thing";
-                   }
-                   return el;
-               });
-           } else {
-               data["@type"] = "Thing";
-           }
-           return data;
+            console.log(data["@type"]);
+            if (data["@type"] instanceof Array) {
+                data["@type"] = data["@type"].map((el) => {
+                    if (el === "tm:ThingModel") {
+                        return "Thing";
+                    }
+                    return el;
+                });
+            } else {
+                data["@type"] = "Thing";
+            }
+            return data;
         });
         return extendedPartialTDs;
     }
-   
+
     /**
      * Retrieves the Thing Model from the given uri.
      *
@@ -202,7 +202,6 @@ export default class ThingModelHelpers {
         return tm;
     }
 
- 
     private async _getPartialTDs(model: unknown, options?: CompositionOptions): Promise<ThingModel[]> {
         if (!ThingModelHelpers.isThingModel(model)) {
             throw new Error(`${model} is not a Thing Model`);
@@ -215,12 +214,11 @@ export default class ThingModelHelpers {
         if (isValid.valid === false || isValid.errors !== undefined) {
             throw new Error(isValid.errors);
         }
-    
+
         const modelInput = await this.fetchAffordances(model);
         const extendedModels = await this.composeModel(model, modelInput, options);
         return extendedModels;
     }
-
 
     /**
      * Retrieves and fills asynchronously all the external references of a Thing Model.
@@ -352,7 +350,7 @@ export default class ThingModelHelpers {
             href: newTMHref,
             type: "application/tm+json",
         });
-       
+
         if ("version" in data) {
             delete data.version;
         }
@@ -507,10 +505,7 @@ export default class ThingModelHelpers {
         return JSON.parse(dataString);
     }
 
-    private checkPlaceholderMap(
-        model: ThingModel,
-        map: Record<string, unknown>
-    ): { valid: boolean; errors: string } {
+    private checkPlaceholderMap(model: ThingModel, map: Record<string, unknown>): { valid: boolean; errors: string } {
         const regex = "{{.*?}}";
         const modelString = JSON.stringify(model);
         // first check if model needs map

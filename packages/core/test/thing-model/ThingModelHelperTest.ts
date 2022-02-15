@@ -16,7 +16,7 @@
 
 import { suite, test } from "@testdeck/mocha";
 import { expect } from "chai";
-import { ThingModel } from "wot-thing-model-types"
+import { ThingModel } from "wot-thing-model-types";
 
 import ThingModelHelpers, { CompositionOptions, modelComposeInput } from "../../src/thing-model-helpers";
 import { promises as fs } from "fs";

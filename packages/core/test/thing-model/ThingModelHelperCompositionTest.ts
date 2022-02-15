@@ -67,7 +67,7 @@ class ThingModelHelperCompositionTest {
         const modelUri = "file://./test/thing-model/tmodels/SmartVentilator.tm.jsonld";
         const model = await this.thingModelHelpers.fetchModel(modelUri);
         const finalModelUri = "file://./test/thing-model/tmodels/SmartVentilator.composed.tm.jsonld";
-        const finalModel = await this.helpers.fetch(finalModelUri) as ExposedThingInit;
+        const finalModel = (await this.helpers.fetch(finalModelUri)) as ExposedThingInit;
         finalModel.links = [
             {
                 rel: "type",
@@ -119,7 +119,7 @@ class ThingModelHelperCompositionTest {
         const finalModelUri1 = "file://./test/thing-model/tmodels/VentilatorRecursive.composed.tm.jsonld";
         const finalModel1 = await this.helpers.fetch(finalModelUri1);
         const finalModelUri2 = "file://./test/thing-model/tmodels/LedExtend.composed.tm.jsonld";
-        const finalModel2 = await this.helpers.fetch(finalModelUri2) as ExposedThingInit;
+        const finalModel2 = (await this.helpers.fetch(finalModelUri2)) as ExposedThingInit;
 
         // eslint-disable-next-line dot-notation
         const modelInput = await this.thingModelHelpers["fetchAffordances"](model);
