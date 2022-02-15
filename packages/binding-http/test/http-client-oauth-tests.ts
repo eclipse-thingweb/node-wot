@@ -76,10 +76,10 @@ class HttpClientOAuthTest {
         await this.client.stop();
     }
 
-    @test async "should authorize client with client_credentials flow"() {
+    @test async "should authorize client with client flow"() {
         const scheme: OAuth2SecurityScheme = {
             scheme: "oauth2",
-            flow: "client_credentials",
+            flow: "client",
             token: "https://localhost:3000/token",
             scopes: ["test"],
         };
@@ -114,7 +114,7 @@ class HttpClientOAuthTest {
     @test async "should refresh token"() {
         const scheme: OAuth2SecurityScheme = {
             scheme: "oauth2",
-            flow: "client_credentials",
+            flow: "client",
             token: "https://localhost:3000/token",
             scopes: ["test"],
         };
