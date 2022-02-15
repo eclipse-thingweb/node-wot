@@ -1,0 +1,27 @@
+{
+    "@context": ["http://www.w3.org/ns/td"],
+    "@type": "tm:ThingModel",
+    "title": "Ventilator Thing Model Recursive",
+    "version": {
+        "model": "1.0.0"
+    },
+    "links": [
+      {
+        "rel": "tm:submodel",
+        "href": "file://./test/thing-model/tmodels/LedExtend.tm.jsonld",
+        "type": "application/tm+json",
+        "instanceName": "led"
+      }
+    ],
+    "properties": {
+        "switch": {
+            "type": "boolean",
+            "description": "True=On; False=Off"
+        },
+        "adjustRpm": {
+            "type": "number",
+            "minimum": 200,
+            "maximum": 1200
+        }
+    }
+}

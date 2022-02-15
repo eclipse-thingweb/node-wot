@@ -1,0 +1,11 @@
+{
+    "@context": ["http://www.w3.org/ns/td"],
+    "@type": "tm:ThingModel",
+    "title": "Basic On/Off Thing Model",
+    "links": [],
+    "properties": {
+        "onOff": {
+            "type": "boolean"
+        }
+    }
+}

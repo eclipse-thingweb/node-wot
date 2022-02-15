@@ -1,0 +1,18 @@
+{
+    "@context": ["http://www.w3.org/ns/td"],
+    "@type": "tm:ThingModel",
+    "title": "Basic On/Off Thing Model",
+    "links": [
+      {
+        "rel": "tm:submodel",
+        "href": "file://./test/thing-model/tmodels/depsLoop/SmartLampControlImport.jsonld",
+        "type": "application/tm+json",
+        "instanceName": "ventilation"
+      }
+    ],
+    "properties": {
+        "onOff": {
+            "type": "boolean"
+        }
+    }
+}
