@@ -5,6 +5,6 @@
         "outDir": "dist",
         "rootDir": "src"
     },
-    "include": ["src/**/*", "src/tm-json-schema-validation.json"],
+    "include": ["src/**/*"],
     "references": [{ "path": "../td-tools" }]
 }
