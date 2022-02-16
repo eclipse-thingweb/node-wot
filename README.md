@@ -25,8 +25,10 @@ Please also see the additional [notices](NOTICE.md) and [how to contribute](CONT
 
 ## Implemented/supported features
 
+### Protocol Support
+
 <details>
-<summary>Protocol Support</summary>
+<summary>details</summary>
 <br>
 
 -   [HTTP](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-http/README.md) :heavy_check_mark:
@@ -47,8 +49,10 @@ Note: the bindings for [binding-fujitsu](https://github.com/eclipse/thingweb.nod
 
 </details>
 
+### MediaType Support
+
 <details>
-<summary>MediaType Support</summary>
+<summary>details</summary>
 <br>
 
 -   JSON :heavy_check_mark:
@@ -77,8 +81,10 @@ cs.addCodec(new MyCodec("application/myType"));
 
 ## Prerequisites
 
+### To use with Node.js
+
 <details>
-<summary>To use with Node.js</summary>
+<summary>details</summary>
 <br>
 
 All systems require:
@@ -113,8 +119,10 @@ xcode-select --install
 
 </details>
 
+### To use in a browser
+
 <details>
-<summary>To use in a browser</summary>
+<summary>details</summary>
 <br>
 
 To use node-wot as a browser-side JavaScript Library, the browser needs to support ECMAScript 2015.
@@ -131,8 +139,10 @@ Using a browser with only ES5 support (eg. IE 11) might be possible if you add p
 
 ## How to get the library
 
+## As a Node.js dependency
+
 <details>
-<summary>As a Node.js dependency</summary>
+<summary>details</summary>
 <br>
 
 You can install node-wot in the following ways:
@@ -237,8 +247,10 @@ For further details check: `wot-servient --help`
 
 </details>
 
+### As a standalone application
+
 <details>
-<summary>As a standalone application</summary>
+<summary>details</summary>
 <br>
 
 #### Clone and build
@@ -328,8 +340,10 @@ To reduce the size of the installation from about 800 MByte down to about 200 MB
 
 </details>
 
+### As a Docker image
+
 <details>
-<summary>s a Docker image</summary>
+<summary>details</summary>
 <br>
 
 Alternatively, node-wot can be built as a Docker image with the `Dockerfile`.
@@ -362,8 +376,10 @@ docker run --rm wot-servient -h
 
 </details>
 
+### As a browser library
+
 <details>
-<summary>As a browser library</summary>
+<summary>details</summary>
 <br>
 
 node-wot can also be imported as browser-side library. To do so, include the following `script` tag in your html:
@@ -384,8 +400,10 @@ var client = new Wot.Http.HttpClient();
 
 ## No time for explanations - show me a running example!
 
+### Using Node.js
+
 <details>
-<summary>Using Node.js</summary>
+<summary>details</summary>
 <br>
 
 Run all the steps above including "Link Packages" and then run this:
@@ -412,8 +430,10 @@ node packages\cli\dist\cli.js --clientonly examples\scripts\counter-client.js
 
 </details>
 
+### Using Docker
+
 <details>
-<summary>Using Docker</summary>
+<summary>details</summary>
 <br>
 
 First [build the docker image](#as-a-docker-image) and then run the counter example:
@@ -432,8 +452,10 @@ docker run -it --init -v "$(pwd)"/examples:/srv/examples --rm --net=host wot-ser
 
 </details>
 
+### Using a browser
+
 <details>
-<summary>Using a browser</summary>
+<summary>details</summary>
 <br>
 
 An example of how to use node-wot as a browser-side library can be found under `examples/browser/index.html`.
@@ -445,8 +467,10 @@ The JavaScript code that uses node-wot as a library to power this application ca
 
 ## How to use the library
 
+### The API
+
 <details>
-<summary>The API</summary>
+<summary>details</summary>
 <br>
 
 This library implements the WoT Scripting API:
@@ -458,8 +482,10 @@ You can also see `examples/scripts` to have a feeling of how to script a Thing.
 
 </details>
 
+### Logging
+
 <details>
-<summary>Logging</summary>
+<summary>details</summary>
 <br>
 
 We used to have a node-wot-logger package to allow fine-grained logging (by means of Winston). It turned out though that depending on the actual use-case other logging libraries might be better suited. Hence we do not want to prescribe which logging library to use. Having said that, we use console statements which can be easily overriden to use the prefered logging library if needed (see [here](https://gist.github.com/spmason/1670196)).
@@ -473,8 +499,10 @@ Please follows these rules if you are going to contribute to node-wot library.
 
 </details>
 
+### Install new/different versions of NodeJS
+
 <details>
-<summary>Install new/different versions of NodeJS</summary>
+<summary>details</summary>
 <br>
 
 Using NPM, you can install NodeJS independent from the usually outdated package managers such as apt. This is nicely done by n:
