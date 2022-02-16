@@ -1,11 +1,12 @@
 # OPC UA Client Protocol Binding
 
 W3C Web of Things (WoT) Protocol Binding for OPC UA.
-This package uses [nodep-opcua](https://www.npmjs.com/package/node-opcua) as a low level client for OPCUA over TCP.
+This package uses [nodep-opcua](https://www.npmjs.com/package/node-opcua) as a low-level client for OPCUA over TCP.
 
 ## Protocol specifier
 
-The protocol prefix handled by this binding is `opc.tcp`. This is the standard prefix used by OPUCA connection endpoint.
+The protocol prefix handled by this binding is `opc.tcp`.
+This is the standard prefix used by OPC-UA connection endpoint.
 
 ## Getting Started
 
@@ -61,8 +62,8 @@ import { OPCUAClientFactory } from "@node-wot/binding-opcua";
 The `examples/src/opcua` folder contains a set of typescript demo that shows you
 how to define a thing description containing OPCUA Variables and methods.
 
--   `demo-opcua1.ts` shows how to define and read a OPCUA variable in WoT.
--   `demo-opcua2.ts` shows how to subscriibe to OPCUA variable in WoT.
+-   `demo-opcua1.ts` shows how to define and read an OPC-UA variable in WoT.
+-   `demo-opcua2.ts` shows how to subscribe to an OPC-UA variable in WoT.
 -   `opcua-coffee-machine-demo.ts` demonstrates how to define and invoke OPCUA methods as WoT actions.
 
 ### Form extensions
@@ -75,17 +76,17 @@ such as for instance:
 
 #### opcua:nodeId
 
-the form must contain a opc:nodeId property that describe the nodeId of the OPCUA Variable to read/write/subscribe or the nodeId of the OPCUA Object related to the action.
+The form must contain an `opcua:nodeId` property that describes the nodeId of the OPCUA Variable to read/write/subscribe or the nodeId of the OPCUA Object related to the action.
 
 The `opcua:nodeId` can have 2 forms:
 
--   a **NodeId** as a string, such as `"ns=1;i=1234"` ,
+-   a **NodeId** as a string, such as `"ns=1;i=1234"` , for instance:
 
 ```javascript
 "opcua:nodeId": "ns=1;s=\"Machine\".\"Component\""
 ```
 
--   or **browsePath** : The browsePath will be converted into the corresponding nodeId at runtime, when first encourtered.
+-   or **browsePath**: The browse path will be converted into the corresponding nodeId at runtime when first encountered.
 
 ```
 "opcua:nodeId": { root: "i=84", path: "/Objects/2:DeviceSet/1:CoffeeMachine" },
@@ -102,7 +103,6 @@ const thingDescription = {
         brewCoffee: {
             forms: [
                 {
-                    type: "object",
                     href: endpointUrl,
                     op: ["invokeaction"],
                     "opcua:nodeId": { root: "i=84", path: "/Objects/2:DeviceSet/1:CoffeeMachine" },
@@ -140,28 +140,28 @@ const thingDescription = {
 
 ## Advanced
 
-The opcua binding for node-wot offers additionals feature to allow you to interact with
+The OPC-UA binding for node-wot offers additionals feature to allow you to interact with
 OPCUA Variant and DataValue in OPCUA JSON encoded form.
 For an example of use, you can dive into the unit test of the binding-opcua library.
 
 ### Exploring the unit tests
 
-A full set of examples can be found it this unit test: packages\binding-opcua\test\full_opcua_thing_test.ts
+A set of examples can be found in this unit test: packages\binding-opcua\test\full-opcua-thing-test.ts
 
 ## Additional tools
 
-### basic opcua demo server
+### basic OPC-UA demo server
 
-A basic demo OPCUA server can be started using the following command.
+A basic demo OPC-UA server can be started using the following command.
 
 ```
-thingweb.node-wot> ts-node packages/binding-opcua/test/fixture/basic_opcua_server.ts
+thingweb.node-wot> ts-node packages/binding-opcua/test/fixture/basic-opcua-server.ts
 Server started opc.tcp://<YOURMACHINENAME>:7890
 ```
 
 ### awesome WoT - OPCUA tools
 
 the [node-wot-opcua-tools](https://github.com/node-opcua/node-wot-opcua-tools) project provides
-some useful application that are built on top of thingweb.node-wob and the OPCUA binding
+some useful applications built on top of thingweb.node-wob and the OPCUA binding
 
 ref: https://github.com/node-opcua/node-wot-opcua-tools

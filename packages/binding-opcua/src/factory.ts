@@ -15,7 +15,7 @@
 
 import { ProtocolClientFactory, ProtocolClient, ContentSerdes } from "@node-wot/core";
 import { OpcuaJSONCodec, OpcuaBinaryCodec } from "./codec";
-import { OPCUAProtocolClient } from "./opcua_protocol_client";
+import { OPCUAProtocolClient } from "./opcua-protocol-client";
 
 export class OPCUAClientFactory implements ProtocolClientFactory {
     readonly scheme: string = "opc.tcp";

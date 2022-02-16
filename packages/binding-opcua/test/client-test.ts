@@ -12,16 +12,16 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-
-import { VariableIds, OPCUAServer } from "node-opcua";
-import { ContentSerdes, ProtocolHelpers } from "@node-wot/core";
-
-import { OPCUAProtocolClient, OPCUAForm, OPCUAFormInvoke } from "../src/opcua_protocol_client";
-import { OpcuaJSONCodec, schemaDataValue } from "../src/codec";
-
-import { startServer } from "./fixture/basic_opcua_server";
 import Ajv from "ajv/dist/core";
 import { expect } from "chai";
+
+import { ContentSerdes, ProtocolHelpers } from "@node-wot/core";
+
+import { VariableIds, OPCUAServer } from "node-opcua";
+
+import { OPCUAProtocolClient, OPCUAForm, OPCUAFormInvoke } from "../src/opcua-protocol-client";
+import { OpcuaJSONCodec, schemaDataValue } from "../src/codec";
+import { startServer } from "./fixture/basic-opcua-server";
 
 describe("OPCUA Client", function () {
     this.timeout(60000);

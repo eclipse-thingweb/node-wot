@@ -49,7 +49,6 @@ import { FormElementProperty } from "wot-thing-description-types";
 import { opcuaJsonEncodeVariant } from "node-opcua-json";
 import { Argument, BrowseDescription, BrowseResult } from "node-opcua-types";
 import { ReferenceTypeIds } from "node-opcua";
-import { VariantJSONBody } from "node-opcua-json/dist2/json_basic_encoding_decoding_variant";
 
 export type Command = "Read" | "Write" | "Subscribe";
 
@@ -443,7 +442,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
         // QUESTION: how can we extend the default contentSerDes.valueToContent for application/json,
         const contentSerDes = ContentSerdes.get();
         if (contentType === "application/json") {
-            const variantInJson = opcuaJsonEncodeVariant(dataValue.value, false) as VariantJSONBody;
+            const variantInJson = opcuaJsonEncodeVariant(dataValue.value, false);
             const content = contentSerDes.valueToContent(variantInJson, schemaDataValue, contentType);
             return content;
         }

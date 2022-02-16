@@ -14,6 +14,7 @@
  ********************************************************************************/
 
 import { exist } from "should";
+import { expect } from "chai";
 
 import { ContentSerdes, ProtocolHelpers } from "@node-wot/core";
 import { ObjectSchema } from "@node-wot/td-tools";
@@ -21,11 +22,10 @@ import { ObjectSchema } from "@node-wot/td-tools";
 import { DataValue } from "node-opcua-data-value";
 import { DataType, VariantArrayType } from "node-opcua-variant";
 import { coerceLocalizedText } from "node-opcua-data-model";
+import { opcuaJsonEncodeDataValue } from "node-opcua-json";
+import { StatusCodes } from "node-opcua-status-code";
 
 import { jsonify, OpcuaBinaryCodec, OpcuaJSONCodec, theOpcuaBinaryCodec, theOpcuaJSONCodec } from "../src/codec";
-import { opcuaJsonEncodeDataValue } from "node-opcua-json";
-import { expect } from "chai";
-import { StatusCodes } from "node-opcua-status-code";
 
 const dataValue1 = new DataValue({});
 const dataValue2 = new DataValue({

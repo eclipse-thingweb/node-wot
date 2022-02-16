@@ -17,11 +17,12 @@
 
 import { expect } from "chai";
 import { ExposedThing, Servient } from "@node-wot/core";
+import { InteractionOptions } from "wot-typescript-definitions";
+
 import { OPCUAServer } from "node-opcua";
 
 import { OPCUAClientFactory } from "../src";
-import { startServer } from "./fixture/basic_opcua_server";
-import { InteractionOptions } from "wot-typescript-definitions";
+import { startServer } from "./fixture/basic-opcua-server";
 const endpoint = "opc.tcp://localhost:7890";
 
 // function schemaVariantMaker(dataType: DataType) {

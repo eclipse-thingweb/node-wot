@@ -14,8 +14,10 @@
  ********************************************************************************/
 
 import { expect } from "chai";
+
 import { DataType, DataValue, StatusCodes, VariantArrayType } from "node-opcua-client";
 import { opcuaJsonEncodeDataValue } from "node-opcua-json";
+
 import { schemaDataValueValidate, schemaDataValueJSONValidate } from "../src/codec";
 
 const data = {
