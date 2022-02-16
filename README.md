@@ -13,17 +13,6 @@ Useful labels:
 <a href="https://github.com/eclipse/thingweb.node-wot/issues?q=label%3Aquestion+">question</a> |
 <a href="https://github.com/eclipse/thingweb.node-wot/issues?q=label%3A%22good+first+issue%22+">good first issue</a>
 
-### Table of Contents
-
-<!-- https://ecotrust-canada.github.io/markdown-toc/ -->
-
--   [License](#license)
--   [Implemented/supported features](#implementedsupported-features)
--   [Prerequisites](#prerequisites)
--   [How to get the library](#how-to-get-the-library)
--   [No time for explanations - show me a running example!](#no-time-for-explanations---show-me-a-running-example)
--   [How to use the library](#how-to-use-the-library)
-
 ## License
 
 Dual-licensed under both
