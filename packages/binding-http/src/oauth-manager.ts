@@ -64,21 +64,18 @@ function createRequestFunction(rejectUnauthorized: boolean) {
         });
     };
 }
-export interface OAuthClientCredentialsConfiguration {
+export interface OAuthClientConfiguration {
     clientId: string;
     clientSecret: string;
 }
-export interface OAuthResourceOwnerConfiguration extends OAuthClientCredentialsConfiguration {
+export interface OAuthResourceOwnerConfiguration extends OAuthClientConfiguration {
     username: string;
     password: string;
 }
 
 export default class OAuthManager {
     private tokenStore: Map<string, ClientOAuth2.Token> = new Map();
-    handleClientCredential(
-        securityScheme: OAuth2SecurityScheme,
-        credentials: OAuthClientCredentialsConfiguration
-    ): OAuthCredential {
+    handleClient(securityScheme: OAuth2SecurityScheme, credentials: OAuthClientConfiguration): OAuthCredential {
         const clientFlow: ClientOAuth2 = new ClientOAuth2(
             {
                 clientId: credentials.clientId,

@@ -13,31 +13,6 @@ Useful labels:
 <a href="https://github.com/eclipse/thingweb.node-wot/issues?q=label%3Aquestion+">question</a> |
 <a href="https://github.com/eclipse/thingweb.node-wot/issues?q=label%3A%22good+first+issue%22+">good first issue</a>
 
-### Table of Contents
-
-<!-- https://ecotrust-canada.github.io/markdown-toc/ -->
-
--   [License](#license)
--   [Implemented/supported features](#implementedsupported-features)
-    -   [Protocol Support](#protocol-support)
-    -   [MediaType Support](#mediatype-support)
--   [Prerequisites](#prerequisites)
-    -   [To use with Node.js](#to-use-with-nodejs)
-    -   [To use in a browser](#to-use-in-a-browser)
--   [How to get the library](#how-to-get-the-library)
-    -   [As a Node.js dependency](#as-a-nodejs-dependency)
-    -   [As a standalone application](#as-a-standalone-application)
-    -   [As a Docker image](#as-a-docker-image)
-    -   [As a browser library](#as-a-browser-library)
--   [No time for explanations - show me a running example!](#no-time-for-explanations---show-me-a-running-example)
-    -   [Using Node.js](#using-nodejs)
-    -   [Using Docker](#using-docker)
-    -   [Using a browser](#using-a-browser)
--   [How to use the library](#how-to-use-the-library)
-    -   [The API](#the-api)
-    -   [Logging](#logging)
-    -   [Install new/different versions of NodeJS](#install-newdifferent-versions-of-nodejs)
-
 ## License
 
 Dual-licensed under both
@@ -51,6 +26,10 @@ Please also see the additional [notices](NOTICE.md) and [how to contribute](CONT
 ## Implemented/supported features
 
 ### Protocol Support
+
+<details>
+<summary>details</summary>
+<br>
 
 -   [HTTP](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-http/README.md) :heavy_check_mark:
 -   [HTTPS](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-http/README.md) :heavy_check_mark:
@@ -68,7 +47,13 @@ Note: More protocols can be easily added by implementing `ProtocolClient`, `Prot
 
 Note: the bindings for [binding-fujitsu](https://github.com/eclipse/thingweb.node-wot/tree/v0.7.x/packages/binding-fujitsu) and [binding-oracle](https://github.com/eclipse/thingweb.node-wot/tree/v0.7.x/packages/binding-oracle) were removed after `v0.7.x` due to lack of maintainers.
 
+</details>
+
 ### MediaType Support
+
+<details>
+<summary>details</summary>
+<br>
 
 -   JSON :heavy_check_mark:
 -   Text (HTML, CSS, XML, SVG) :heavy_check_mark:
@@ -92,9 +77,15 @@ cs.addCodec(new MyCodec("application/myType"));
 
 ```
 
+</details>
+
 ## Prerequisites
 
 ### To use with Node.js
+
+<details>
+<summary>details</summary>
+<br>
 
 All systems require:
 
@@ -126,7 +117,13 @@ Meet the [node-gyp](https://github.com/nodejs/node-gyp#installation) requirement
 xcode-select --install
 ```
 
+</details>
+
 ### To use in a browser
+
+<details>
+<summary>details</summary>
+<br>
 
 To use node-wot as a browser-side JavaScript Library, the browser needs to support ECMAScript 2015.
 Supported browsers include:
@@ -138,9 +135,15 @@ Supported browsers include:
 
 Using a browser with only ES5 support (eg. IE 11) might be possible if you add polyfills.
 
+</details>
+
 ## How to get the library
 
-### As a Node.js dependency
+## As a Node.js dependency
+
+<details>
+<summary>details</summary>
+<br>
 
 You can install node-wot in the following ways:
 
@@ -242,7 +245,13 @@ Finally, to debug use the option `--inspect` or `--inspect-brk` if you want to h
 
 For further details check: `wot-servient --help`
 
+</details>
+
 ### As a standalone application
+
+<details>
+<summary>details</summary>
+<br>
 
 #### Clone and build
 
@@ -329,7 +338,13 @@ To reduce the size of the installation from about 800 MByte down to about 200 MB
 -   Build error around `prebuild: npm run bootstrap`
     -   This has been seen failing on WSL. Try using Node 12.13.0
 
+</details>
+
 ### As a Docker image
+
+<details>
+<summary>details</summary>
+<br>
 
 Alternatively, node-wot can be built as a Docker image with the `Dockerfile`.
 
@@ -359,7 +374,13 @@ Run the wot-servient as a container:
 docker run --rm wot-servient -h
 ```
 
+</details>
+
 ### As a browser library
+
+<details>
+<summary>details</summary>
+<br>
 
 node-wot can also be imported as browser-side library. To do so, include the following `script` tag in your html:
 
@@ -375,9 +396,15 @@ var servient = new Wot.Core.Servient();
 var client = new Wot.Http.HttpClient();
 ```
 
+</details>
+
 ## No time for explanations - show me a running example!
 
 ### Using Node.js
+
+<details>
+<summary>details</summary>
+<br>
 
 Run all the steps above including "Link Packages" and then run this:
 
@@ -401,7 +428,13 @@ node packages\cli\dist\cli.js --clientonly examples\scripts\counter-client.js
 -   Modify the count via POST on http://localhost:8080/counter/actions/increment and http://localhost:8080/counter/actions/decrement
 -   Application logic is in `examples/scripts/counter.js`
 
+</details>
+
 ### Using Docker
+
+<details>
+<summary>details</summary>
+<br>
 
 First [build the docker image](#as-a-docker-image) and then run the counter example:
 
@@ -417,16 +450,28 @@ docker run -it --init -v "$(pwd)"/examples:/srv/examples --rm --net=host wot-ser
 -   `--init` allows the containers to be killed with SIGINT (e.g., Ctrl+c)
 -   `-v "$(pwd)"/examples:/srv/examples` mounts the `examples` directory to `/srv/examples` on the container so that the node inside the container can read the example scripts.
 
+</details>
+
 ### Using a browser
+
+<details>
+<summary>details</summary>
+<br>
 
 An example of how to use node-wot as a browser-side library can be found under `examples/browser/index.html`.
 To run it, open [`examples/browser/index.html`](http://plugfest.thingweb.io/webui/) in a modern browser, and consume the test Thing available under `http://plugfest.thingweb.io:8083/testthing` to interact with it.
 
 The JavaScript code that uses node-wot as a library to power this application can be found under: `examples/browser/index.js`
 
+</details>
+
 ## How to use the library
 
 ### The API
+
+<details>
+<summary>details</summary>
+<br>
 
 This library implements the WoT Scripting API:
 
@@ -435,7 +480,13 @@ This library implements the WoT Scripting API:
 
 You can also see `examples/scripts` to have a feeling of how to script a Thing.
 
+</details>
+
 ### Logging
+
+<details>
+<summary>details</summary>
+<br>
 
 We used to have a node-wot-logger package to allow fine-grained logging (by means of Winston). It turned out though that depending on the actual use-case other logging libraries might be better suited. Hence we do not want to prescribe which logging library to use. Having said that, we use console statements which can be easily overriden to use the prefered logging library if needed (see [here](https://gist.github.com/spmason/1670196)).
 
@@ -446,7 +497,13 @@ The logs in the library follows those best practice rules (see [here](https://gi
 
 Please follows these rules if you are going to contribute to node-wot library.
 
+</details>
+
 ### Install new/different versions of NodeJS
+
+<details>
+<summary>details</summary>
+<br>
 
 Using NPM, you can install NodeJS independent from the usually outdated package managers such as apt. This is nicely done by n:
 
@@ -472,3 +529,5 @@ Finally, make the node command available through:
 ```
 sudo ln -sf /usr/local/n/versions/node/<VERSION>/bin/node /usr/bin/node
 ```
+
+</details>
