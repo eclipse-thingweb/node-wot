@@ -217,14 +217,8 @@ export default class WebSocketServer implements ProtocolServer {
                             `WebSocketServer on port ${this.getPort()} publishing to property '${propertyName}' `
                         );
 
-                        switch (content.type) {
-                            case "application/json":
-                            case "text/plain":
-                                ws.send(content.body.toString());
-                                break;
-                            default:
-                                ws.send(content.body);
-                                break;
+                        for await (const chunk of content.body) {
+                            ws.send(chunk);
                         }
                     };
 
@@ -299,15 +293,9 @@ export default class WebSocketServer implements ProtocolServer {
                         )}:${req.socket.remotePort}`
                     );
 
-                    const eventListener = (content: Content) => {
-                        switch (content.type) {
-                            case "application/json":
-                            case "text/plain":
-                                ws.send(content.body.toString());
-                                break;
-                            default:
-                                ws.send(content.body);
-                                break;
+                    const eventListener = async (content: Content) => {
+                        for await (const chunk of content.body) {
+                            ws.send(chunk);
                         }
                     };
 
