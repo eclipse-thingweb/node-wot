@@ -231,14 +231,14 @@ export default class WebSocketServer implements ProtocolServer {
                     if (!property.writeOnly) {
                         for (let formIndex = 0; formIndex < thing.properties[propertyName].forms.length; formIndex++) {
                             thing
-                                .handleObserveProperty(propertyName, observeListener, { formIndex: formIndex })
+                                .handleObserveProperty(propertyName, observeListener, { formIndex })
                                 .catch((err: Error) => ws.close(-1, err.message));
                         }
                     }
 
                     ws.on("close", () => {
                         for (let formIndex = 0; formIndex < thing.properties[propertyName].forms.length; formIndex++) {
-                            thing.handleUnobserveProperty(propertyName, observeListener, { formIndex: formIndex });
+                            thing.handleUnobserveProperty(propertyName, observeListener, { formIndex });
                         }
                         console.debug(
                             "[binding-websockets]",
@@ -257,7 +257,7 @@ export default class WebSocketServer implements ProtocolServer {
                 const action = thing.actions[actionName];
 
                 for (const address of Helpers.getAddresses()) {
-                    const href = this.scheme + "://" + address + ":" + this.getPort() + path;
+                    const href = `${this.scheme}://${address}:${this.getPort()}${path}`;
                     const form = new TD.Form(href, ContentSerdes.DEFAULT);
                     form.op = ["invokeaction"];
                     thing.actions[actionName].forms.push(form);
@@ -313,13 +313,13 @@ export default class WebSocketServer implements ProtocolServer {
 
                     for (let formIndex = 0; formIndex < event.forms.length; formIndex++) {
                         thing
-                            .handleSubscribeEvent(eventName, eventListener, { formIndex: formIndex })
+                            .handleSubscribeEvent(eventName, eventListener, { formIndex })
                             .catch((err: Error) => ws.close(-1, err.message));
                     }
 
                     ws.on("close", () => {
                         for (let formIndex = 0; formIndex < event.forms.length; formIndex++) {
-                            thing.handleUnsubscribeEvent(eventName, eventListener, { formIndex: formIndex });
+                            thing.handleUnsubscribeEvent(eventName, eventListener, { formIndex });
                         }
                         console.debug(
                             "[binding-websockets]",
