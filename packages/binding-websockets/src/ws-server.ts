@@ -270,7 +270,7 @@ export default class WebSocketServer implements ProtocolServer {
 
                 // Populate forms related to the event
                 for (const address of Helpers.getAddresses()) {
-                    const href = this.scheme + "://" + address + ":" + this.getPort() + path;
+                    const href = `${this.scheme}://${address}:${this.getPort()}${path}`;
                     const form = new TD.Form(href, ContentSerdes.DEFAULT);
                     form.op = "subscribeevent";
                     event.forms.push(form);
