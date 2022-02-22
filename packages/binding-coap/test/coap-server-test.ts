@@ -20,7 +20,7 @@ import { ProtocolHelpers, ExposedThing } from "@node-wot/core";
 
 import { suite, test } from "@testdeck/mocha";
 import { expect, should } from "chai";
-import { DataSchemaValue } from "wot-typescript-definitions";
+import { DataSchemaValue, InteractionInput } from "wot-typescript-definitions";
 import * as TD from "@node-wot/td-tools";
 import CoapServer from "../src/coap-server";
 import { CoapClient } from "../src/coap";
@@ -192,5 +192,55 @@ class CoapServerTest {
         }
 
         await coapServer1.stop();
+    }
+
+    @test async "should take in account global uriVariables"() {
+        const portNumber = 56833;
+        const coapServer = new CoapServer(portNumber);
+
+        await coapServer.start(null);
+
+        const testThing = new ExposedThing(null, {
+            title: "Test",
+            uriVariables: {
+                globalVarTest: {
+                    type: "string",
+                    enum: ["test1", "test2", "test3"],
+                    description: "test",
+                },
+                id: {
+                    type: "string",
+                    enum: ["test1", "test2", "test3"],
+                },
+            },
+            properties: {
+                test: {
+                    type: "string",
+                    uriVariables: {
+                        id: {
+                            type: "string",
+                        },
+                    },
+                },
+            },
+        });
+        const test: DataSchemaValue = "testValue";
+        testThing.setPropertyReadHandler("test", (options) => {
+            expect(options.uriVariables).to.deep.equal({ id: "testId", globalVarTest: "test1" });
+            return new Promise<InteractionInput>((resolve, reject) => {
+                resolve(test);
+            });
+        });
+        testThing.properties.test.forms = [];
+
+        await coapServer.expose(testThing);
+
+        const uri = `coap://localhost:${coapServer.getPort()}/test/`;
+
+        const coapClient = new CoapClient(coapServer);
+        const resp = await coapClient.readResource(new TD.Form(uri + "properties/test?id=testId&globalVarTest=test1"));
+        expect((await ProtocolHelpers.readStreamFully(resp.body)).toString()).to.equal('"testValue"');
+
+        return coapServer.stop();
     }
 }

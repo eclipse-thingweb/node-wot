@@ -247,7 +247,11 @@ export default class CoapServer implements ProtocolServer {
         }
 
         // route request
-        const segments = decodeURI(requestUri).split("/");
+        let parsedRequestUri = requestUri;
+        if (parsedRequestUri.indexOf("?") !== -1) {
+            parsedRequestUri = parsedRequestUri.substring(0, parsedRequestUri.indexOf("?"));
+        }
+        const segments = decodeURI(parsedRequestUri).split("/");
 
         if (segments[1] === "") {
             // no path -> list all Things
@@ -308,6 +312,14 @@ export default class CoapServer implements ProtocolServer {
                                             contentType
                                         ),
                                     };
+                                    const uriVariables = this.parseUrlParameters(
+                                        req.url,
+                                        thing.uriVariables,
+                                        property.uriVariables
+                                    );
+                                    if (!this.isEmpty(uriVariables)) {
+                                        options.uriVariables = uriVariables;
+                                    }
                                     const content = await thing.handleReadProperty(segments[3], options);
                                     res.setOption("Content-Format", content.type);
                                     res.code = "2.05";
@@ -416,9 +428,13 @@ export default class CoapServer implements ProtocolServer {
                                     contentType
                                 ),
                             };
-                            if (!this.isEmpty(action.uriVariables)) {
-                                // TODO: build uriVariable object from the req.url
-                                options.uriVariables = {};
+                            const uriVariables = this.parseUrlParameters(
+                                req.url,
+                                thing.uriVariables,
+                                action.uriVariables
+                            );
+                            if (!this.isEmpty(uriVariables)) {
+                                options.uriVariables = uriVariables;
                             }
                             try {
                                 const output = await thing.handleInvokeAction(
@@ -481,12 +497,14 @@ export default class CoapServer implements ProtocolServer {
                                         contentType
                                     ),
                                 };
-
-                                if (!this.isEmpty(event.uriVariables)) {
-                                    // TODO: build uriVariable object from the req.url
-                                    options.uriVariables = {};
+                                const uriVariables = this.parseUrlParameters(
+                                    req.url,
+                                    thing.uriVariables,
+                                    event.uriVariables
+                                );
+                                if (!this.isEmpty(uriVariables)) {
+                                    options.uriVariables = uriVariables;
                                 }
-
                                 const listener = async (value: Content) => {
                                     try {
                                         // send event data
@@ -560,6 +578,48 @@ export default class CoapServer implements ProtocolServer {
         // resource not found
         res.code = "4.04";
         res.end("Not Found");
+    }
+
+    private parseUrlParameters(
+        url: string,
+        globalUriVariables: { [key: string]: TD.DataSchema },
+        uriVariables: { [key: string]: TD.DataSchema }
+    ): Record<string, unknown> {
+        const params: Record<string, unknown> = {};
+        if (url == null || !uriVariables) {
+            return params;
+        }
+
+        const queryparams = url.split("?")[1];
+        if (queryparams == null) {
+            return params;
+        }
+        const queries = queryparams.split("&");
+
+        queries.forEach((indexQuery: string) => {
+            const indexPair = indexQuery.split("=");
+
+            const queryKey: string = decodeURIComponent(indexPair[0]);
+            const queryValue: string = decodeURIComponent(indexPair.length > 1 ? indexPair[1] : "");
+
+            if (uriVariables[queryKey]) {
+                if (uriVariables[queryKey].type === "integer" || uriVariables[queryKey].type === "number") {
+                    // *cast* it to number
+                    params[queryKey] = +queryValue;
+                } else {
+                    params[queryKey] = queryValue;
+                }
+            } else if (globalUriVariables[queryKey]) {
+                if (globalUriVariables[queryKey].type === "integer" || globalUriVariables[queryKey].type === "number") {
+                    // *cast* it to number
+                    params[queryKey] = +queryValue;
+                } else {
+                    params[queryKey] = queryValue;
+                }
+            }
+        });
+
+        return params;
     }
 
     private isEmpty(obj: Record<string, unknown>) {

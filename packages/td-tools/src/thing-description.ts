@@ -59,6 +59,10 @@ export default class Thing {
         [key: string]: ThingEvent;
     };
 
+    uriVariables?: {
+        [key: string]: DataSchema;
+    };
+
     links: Array<Link>;
     forms: Array<Form>;
 
