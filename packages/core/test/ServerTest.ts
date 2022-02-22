@@ -28,6 +28,9 @@ import { ProtocolServer } from "../src/protocol-interfaces";
 import ExposedThing from "../src/exposed-thing";
 import { Readable } from "stream";
 import { InteractionOutput } from "wot-typescript-definitions";
+import chaiAsPromised from "chai-as-promised";
+
+chaiUse(chaiAsPromised);
 // should must be called to augment all variables
 should();
 chaiUse(spies);
@@ -975,5 +978,35 @@ class WoTServerTest {
         );
 
         callback.should.have.been.called();
+    }
+
+    @test async "should fail due to wrong uriVariable"() {
+        const thing = await WoTServerTest.WoT.produce({
+            title: "The Machine",
+            properties: {
+                test: {
+                    type: "string",
+                    uriVariables: {
+                        testRight: {
+                            type: "string",
+                        },
+                    },
+                    forms: [
+                        {
+                            href: "http://example.org/test",
+                            op: ["readproperty"],
+                        },
+                    ],
+                },
+            },
+        });
+        const callback = spy(async () => {
+            return true;
+        });
+        thing.setPropertyReadHandler("test", callback);
+
+        expect(
+            (<ExposedThing>thing).handleReadProperty("test", { formIndex: 0, uriVariables: { testWrong: "test" } })
+        ).to.eventually.be.rejectedWith(Error);
     }
 }

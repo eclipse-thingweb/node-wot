@@ -27,6 +27,7 @@ import ContentManager from "./content-serdes";
 import UriTemplate = require("uritemplate");
 import { InteractionOutput } from "./interaction-output";
 import { FormElementEvent, FormElementProperty } from "wot-thing-description-types";
+import { ThingInteraction } from "@node-wot/td-tools";
 
 enum Affordance {
     PropertyAffordance,
@@ -272,7 +273,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         console.debug("[core/consumed-thing]", `ConsumedThing '${this.title}' reading ${form.href}`);
 
         // uriVariables ?
-        form = this.handleUriVariables(form, options);
+        form = this.handleUriVariables(tp, form, options);
 
         const content = await client.readResource(form);
         return new InteractionOutput(content, form, tp);
@@ -340,7 +341,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         const content = ContentManager.valueToContent(value, tp, form.contentType);
 
         // uriVariables ?
-        form = this.handleUriVariables(form, options);
+        form = this.handleUriVariables(tp, form, options);
         await client.writeResource(form, content);
     }
 
@@ -391,7 +392,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         }
 
         // uriVariables ?
-        form = this.handleUriVariables(form, options);
+        form = this.handleUriVariables(ta, form, options);
 
         const content = await client.invokeResource(form, input);
         // infer media type from form if not in response metadata
@@ -439,7 +440,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         console.debug("[core/consumed-thing]", `ConsumedThing '${this.title}' observing to ${form.href}`);
 
         // uriVariables ?
-        form = this.handleUriVariables(form, options);
+        form = this.handleUriVariables(tp, form, options);
 
         await client.subscribeResource(
             form,
@@ -496,7 +497,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         console.debug("[core/consumed-thing]", `ConsumedThing '${this.title}' subscribing to ${form.href}`);
 
         // uriVariables ?
-        form = this.handleUriVariables(form, options);
+        form = this.handleUriVariables(te, form, options);
 
         await client.subscribeResource(
             form,
@@ -527,9 +528,9 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
     // creates new form (if needed) for URI Variables
     // http://192.168.178.24:8080/counter/actions/increment{?step} with options {uriVariables: {'step' : 3}} --> http://192.168.178.24:8080/counter/actions/increment?step=3
     // see RFC6570 (https://tools.ietf.org/html/rfc6570) for URI Template syntax
-    handleUriVariables(form: TD.Form, options?: WoT.InteractionOptions): TD.Form {
+    handleUriVariables(ti: ThingInteraction, form: TD.Form, options?: WoT.InteractionOptions): TD.Form {
         const ut = UriTemplate.parse(form.href);
-        const uriVariables = Helpers.mergeInteractionOptions(this, options).uriVariables;
+        const uriVariables = Helpers.parseInteractionOptions(this, ti, options).uriVariables;
         const updatedHref = ut.expand(uriVariables);
         if (updatedHref !== form.href) {
             // create shallow copy and update href

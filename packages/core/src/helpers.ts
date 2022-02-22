@@ -37,6 +37,7 @@ import Ajv, { ValidateFunction, ErrorObject } from "ajv";
 import TDSchema from "wot-thing-description-types/schema/td-json-schema-validation.json";
 import { DataSchemaValue, ExposedThingInit } from "wot-typescript-definitions";
 import { SomeJSONSchema } from "ajv/dist/types/json-schema";
+import { ThingInteraction } from "@node-wot/td-tools";
 
 const tdSchema = TDSchema;
 // RegExps take from https://github.com/ajv-validator/ajv-formats/blob/master/src/formats.ts
@@ -280,30 +281,41 @@ export default class Helpers {
     }
 
     /**
-     * Merge Thing-level uriVariables to Interaction-level uriVariables.
+     * Merge Thing-level's uriVariables to Interaction-level ones.
      * If a uriVariable is already defined at the Interaction-level, ignore its value at Thing-level.
      * @param options interaction options
-     * @returns
+     * @throws if InteractionOptions contains illegal uriVariables
+     * @returns resulting InteractionOptions
      */
-    public static mergeInteractionOptions(thing: TD.Thing, options?: WoT.InteractionOptions): WoT.InteractionOptions {
+    public static parseInteractionOptions(
+        thing: TD.Thing,
+        ti: ThingInteraction,
+        options?: WoT.InteractionOptions
+    ): WoT.InteractionOptions {
+        const interactionUriVariables = ti.uriVariables !== undefined ? ti.uriVariables : {};
+        const thingUriVariables = thing.uriVariables !== undefined ? thing.uriVariables : {};
         const uriVariables: { [key: string]: unknown } = {};
 
         if (options && options.uriVariables) {
             const entryVariables = Object.entries(options.uriVariables);
             entryVariables.forEach((entry: [string, unknown]) => {
-                uriVariables[entry[0]] = entry[1];
+                if (entry[0] in interactionUriVariables) {
+                    uriVariables[entry[0]] = entry[1];
+                } else if (!(entry[0] in thingUriVariables)) {
+                    throw new Error(
+                        `CoreHelpers uriVariable '${entry[0]}' was not found under neither '${ti.title}' Thing Interaction nor '${thing.title}' Thing`
+                    );
+                }
             });
         } else {
             options = { uriVariables: {} };
         }
 
-        if (thing.uriVariables) {
-            for (const varKey in thing.uriVariables) {
-                const varValue = thing.uriVariables[varKey];
+        for (const varKey in thingUriVariables) {
+            const varValue = thingUriVariables[varKey];
 
-                if (!(varKey in uriVariables) && "default" in varValue) {
-                    uriVariables[varKey] = varValue.default;
-                }
+            if (!(varKey in uriVariables) && "default" in varValue) {
+                uriVariables[varKey] = varValue.default;
             }
         }
 
