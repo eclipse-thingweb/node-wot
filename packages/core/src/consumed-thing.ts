@@ -529,9 +529,8 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
     // see RFC6570 (https://tools.ietf.org/html/rfc6570) for URI Template syntax
     handleUriVariables(form: TD.Form, options?: WoT.InteractionOptions): TD.Form {
         const ut = UriTemplate.parse(form.href);
-        const updatedHref = ut.expand(
-            options === undefined || options.uriVariables === undefined ? {} : options.uriVariables
-        );
+        const uriVariables = Helpers.mergeInteractionOptions(this, options).uriVariables;
+        const updatedHref = ut.expand(uriVariables);
         if (updatedHref !== form.href) {
             // create shallow copy and update href
             const updForm = { ...form };

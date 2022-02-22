@@ -278,4 +278,36 @@ export default class Helpers {
             errors: errors,
         };
     }
+
+    /**
+     * Merge Thing-level uriVariables to Interaction-level uriVariables.
+     * If a uriVariable is already defined at the Interaction-level, ignore its value at Thing-level.
+     * @param options interaction options
+     * @returns
+     */
+    public static mergeInteractionOptions(thing: TD.Thing, options?: WoT.InteractionOptions): WoT.InteractionOptions {
+        const uriVariables: { [key: string]: unknown } = {};
+
+        if (options && options.uriVariables) {
+            const entryVariables = Object.entries(options.uriVariables);
+            entryVariables.forEach((entry: [string, unknown]) => {
+                uriVariables[entry[0]] = entry[1];
+            });
+        } else {
+            options = { uriVariables: {} };
+        }
+
+        if (thing.uriVariables) {
+            for (const varKey in thing.uriVariables) {
+                const varValue = thing.uriVariables[varKey];
+
+                if (!(varKey in uriVariables) && "default" in varValue) {
+                    uriVariables[varKey] = varValue.default;
+                }
+            }
+        }
+
+        options.uriVariables = uriVariables;
+        return options;
+    }
 }
