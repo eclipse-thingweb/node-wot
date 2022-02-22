@@ -1,0 +1,17 @@
+{
+    "@context": [
+        "http://www.w3.org/ns/td"
+    ],
+    "@type": "tm:ThingModel",
+    "title": "Smart Lamp Control",
+    "properties": {
+        "switch": {
+            "tm:ref": "file://./test/thing-model/tmodels/noDepsLoop/OnOff.jsonld#/properties/onOff"
+        }
+    },
+    "actions": {
+        "fade": {
+            "tm:ref": "file://./test/thing-model/tmodels/noDepsLoop/Led.tm.jsonld#/actions/fadeIn"
+        }
+    }
+}

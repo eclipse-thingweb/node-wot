@@ -23,6 +23,7 @@ import ExposedThing from "./exposed-thing";
 import { ProtocolClientFactory, ProtocolServer, ProtocolClient } from "./protocol-interfaces";
 import ContentManager, { ContentCodec } from "./content-serdes";
 import { v4 } from "uuid";
+import ThingModelHelpers from "./thing-model-helpers";
 
 export interface ScriptOptions {
     argv?: Array<string>;
@@ -43,6 +44,7 @@ export default class Servient {
         const context = {
             WoT: new WoTImpl(this),
             WoTHelpers: new Helpers(this),
+            ModelHelpers: new ThingModelHelpers(this),
         };
 
         const vm = new NodeVM({
@@ -70,6 +72,7 @@ export default class Servient {
         const context = {
             WoT: new WoTImpl(this),
             WoTHelpers: new Helpers(this),
+            ModelHelpers: new ThingModelHelpers(this),
         };
 
         const vm = new NodeVM({
