@@ -75,14 +75,14 @@ WoTHelpers.fetch("http://127.0.0.1:8080/smart-coffee-machine").then(async (td) =
         log(scheduledTaskp.message, scheduledTaskp);
 
         // See how it has been added to the schedules property
-        const schedules = await await (await thing.readProperty("schedules")).value();
+        const schedules = await (await thing.readProperty("schedules")).value();
         log("schedules value: ", schedules);
 
         // Let's set up a handler for outOfResource event
-        thing.subscribeEvent("outOfResource", (data) => {
+        thing.subscribeEvent("outOfResource", async (data) => {
             // Here we are simply logging the message when the event is emitted
             // But, of course, could have a much more sophisticated handler
-            log("outOfResource event:", data);
+            log("outOfResource event:", await data.value());
         });
     } catch (err) {
         console.error("Script error:", err);

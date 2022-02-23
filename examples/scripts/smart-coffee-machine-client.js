@@ -33,9 +33,9 @@ WoTHelpers.fetch("http://127.0.0.1:8080/smart-coffee-machine").then(async (td) =
         allAvailableResources = await (await thing.readProperty("allAvailableResources")).value();
         log("allAvailableResources value after change is:", allAvailableResources);
         // It's also possible to set a client-side handler for observable properties
-        /* thing.observeProperty("maintenanceNeeded", async (data) => {
+        thing.observeProperty("maintenanceNeeded", async (data) => {
             log("maintenanceNeeded property has changed! New value is:", data.value());
-        }); */
+        });
         // Now let's make 3 cups of latte!
         const makeCoffee = await thing.invokeAction("makeDrink", undefined, {
             uriVariables: { drinkId: "latte", size: "l", quantity: 3 },
@@ -60,13 +60,13 @@ WoTHelpers.fetch("http://127.0.0.1:8080/smart-coffee-machine").then(async (td) =
         const scheduledTaskp = await scheduledTask.value();
         log(scheduledTaskp.message, scheduledTaskp);
         // See how it has been added to the schedules property
-        const schedules = await await (await thing.readProperty("schedules")).value();
+        const schedules = await (await thing.readProperty("schedules")).value();
         log("schedules value: ", schedules);
         // Let's set up a handler for outOfResource event
-        thing.subscribeEvent("outOfResource", (data) => {
+        thing.subscribeEvent("outOfResource", async (data) => {
             // Here we are simply logging the message when the event is emitted
             // But, of course, could have a much more sophisticated handler
-            log("outOfResource event:", data);
+            log("outOfResource event:", await data.value());
         });
     } catch (err) {
         console.error("Script error:", err);
