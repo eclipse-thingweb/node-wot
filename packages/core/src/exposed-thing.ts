@@ -790,7 +790,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                     "[core/exposed-thing]",
                     `ExposedThing '${this.title}' calls registered handler for Action '${name}'`
                 );
-                Helpers.parseInteractionOptions(this, this.actions[name], options);
+                Helpers.validateInteractionOptions(this, this.actions[name], options);
                 const form = this.actions[name].forms
                     ? this.actions[name].forms[options.formIndex]
                     : { contentType: "application/json" };
@@ -828,7 +828,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                     "[core/exposed-thing]",
                     `ExposedThing '${this.title}' calls registered readHandler for Property '${propertyName}'`
                 );
-                Helpers.parseInteractionOptions(this, this.properties[propertyName], options);
+                Helpers.validateInteractionOptions(this, this.properties[propertyName], options);
                 const result: WoT.InteractionInput | void = await readHandler(options);
                 const form = this.properties[propertyName].forms
                     ? this.properties[propertyName].forms[options.formIndex]
@@ -920,7 +920,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             if (this.properties[propertyName].readOnly && this.properties[propertyName].readOnly === true) {
                 throw new Error(`ExposedThing '${this.title}', property '${propertyName}' is readOnly`);
             }
-            Helpers.parseInteractionOptions(this, this.properties[propertyName], options);
+            Helpers.validateInteractionOptions(this, this.properties[propertyName], options);
             const writeHandler = this.propertyHandlers.get(propertyName)?.writeHandler;
             const form = this.properties[propertyName].forms
                 ? this.properties[propertyName].forms[options.formIndex]
@@ -990,7 +990,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                     `ExposedThing '${this.title}', no property listener from found for '${name}' with form index '${options.formIndex}'`
                 );
             }
-            Helpers.parseInteractionOptions(this, this.events[name], options);
+            Helpers.validateInteractionOptions(this, this.events[name], options);
             const subscribe = this.eventHandlers.get(name)?.subscribe;
             if (subscribe) {
                 subscribe(options);
@@ -1026,7 +1026,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                     `ExposedThing '${this.title}', no event listener from found for '${name}' with form index '${options.formIndex}'`
                 );
             }
-            Helpers.parseInteractionOptions(this, this.events[name], options);
+            Helpers.validateInteractionOptions(this, this.events[name], options);
             const unsubscribe = this.eventHandlers.get(name)?.unsubscribe;
             if (unsubscribe) {
                 unsubscribe(options);
@@ -1064,7 +1064,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                     `ExposedThing '${this.title}', no property listener from found for '${name}' with form index '${options.formIndex}'`
                 );
             }
-            Helpers.parseInteractionOptions(this, this.properties[name], options);
+            Helpers.validateInteractionOptions(this, this.properties[name], options);
             const observeHandler = this.propertyHandlers.get(name)?.observeHandler;
             if (observeHandler) {
                 observeHandler(options);
@@ -1099,7 +1099,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                     `ExposedThing '${this.title}', no property listener from found for '${name}' with form index '${options.formIndex}'`
                 );
             }
-            Helpers.parseInteractionOptions(this, this.properties[name], options);
+            Helpers.validateInteractionOptions(this, this.properties[name], options);
             const unobserveHandler = this.propertyHandlers.get(name)?.unobserveHandler;
             if (unobserveHandler) {
                 unobserveHandler(options);

@@ -284,7 +284,6 @@ export default class Helpers {
      * Merge Thing-level's uriVariables to Interaction-level ones.
      * If a uriVariable is already defined at the Interaction-level, ignore its value at Thing-level.
      * @param options interaction options
-     * @throws if InteractionOptions contains illegal uriVariables
      * @returns resulting InteractionOptions
      */
     public static parseInteractionOptions(
@@ -292,19 +291,16 @@ export default class Helpers {
         ti: ThingInteraction,
         options?: WoT.InteractionOptions
     ): WoT.InteractionOptions {
-        const interactionUriVariables = ti.uriVariables !== undefined ? ti.uriVariables : {};
-        const thingUriVariables = thing.uriVariables !== undefined ? thing.uriVariables : {};
+        this.validateInteractionOptions(thing, ti, options);
+        const interactionUriVariables = ti.uriVariables ?? {};
+        const thingUriVariables = thing.uriVariables ?? {};
         const uriVariables: { [key: string]: unknown } = {};
 
-        if (options && options.uriVariables) {
+        if (options?.uriVariables) {
             const entryVariables = Object.entries(options.uriVariables);
             entryVariables.forEach((entry: [string, unknown]) => {
                 if (entry[0] in interactionUriVariables) {
                     uriVariables[entry[0]] = entry[1];
-                } else if (!(entry[0] in thingUriVariables)) {
-                    throw new Error(
-                        `CoreHelpers uriVariable '${entry[0]}' was not found under neither '${ti.title}' Thing Interaction nor '${thing.title}' Thing`
-                    );
                 }
             });
         } else {
@@ -321,5 +317,25 @@ export default class Helpers {
 
         options.uriVariables = uriVariables;
         return options;
+    }
+
+    public static validateInteractionOptions(
+        thing: TD.Thing,
+        ti: ThingInteraction,
+        options?: WoT.InteractionOptions
+    ): void {
+        const interactionUriVariables = ti.uriVariables ?? {};
+        const thingUriVariables = thing.uriVariables ?? {};
+
+        if (options?.uriVariables) {
+            const entryVariables = Object.entries(options.uriVariables);
+            entryVariables.forEach((entry: [string, unknown]) => {
+                if (!(entry[0] in interactionUriVariables) && !(entry[0] in thingUriVariables)) {
+                    throw new Error(
+                        `CoreHelpers uriVariable '${entry[0]}' was not found under neither '${ti.title}' Thing Interaction nor '${thing.title}' Thing`
+                    );
+                }
+            });
+        }
     }
 }
