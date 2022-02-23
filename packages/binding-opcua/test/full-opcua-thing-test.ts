@@ -356,7 +356,7 @@ describe("Full OPCUA Thing Test", () => {
         thing.setPropertyReadHandler("temperature", async () => temperature);
 
         const expThing = thing as ExposedThing;
-        const readHandler = expThing.propertyHandlers.get("temperature")!.readHandler;
+        const readHandler = expThing.propertyHandlers.get("temperature").readHandler;
         expect(readHandler, "must have a readHandler");
         const temperatureCheck1 = await readHandler();
         expect(temperatureCheck1).to.equal(10);
@@ -429,8 +429,8 @@ describe("Full OPCUA Thing Test", () => {
                 "application/opcua+json;type=DataValue"
             );
             const json3 = await doTest(thing, propertyName, { formIndex: 3 });
-            console.log(json3);
-            expect((json3 as any).Value).to.eql({ Type: 11, Body: 25 });
+            // console.log(json3);
+            expect((json3 as Record<string, unknown>).Value).to.eql({ Type: 11, Body: 25 });
         } finally {
             await servient.shutdown();
         }

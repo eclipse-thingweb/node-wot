@@ -102,7 +102,7 @@ describe("OPCUA Client", function () {
             console.log("readResource returned: ", content2.body.toString("ascii"));
 
             const codecSerDes = ContentSerdes.get();
-            const dataValue = codecSerDes.contentToValue(content2, schemaDataValue) as any;
+            const dataValue = codecSerDes.contentToValue(content2, schemaDataValue) as Record<string, unknown>;
 
             // (deal with always changing date )
             if (dataValue.SourceTimestamp) {

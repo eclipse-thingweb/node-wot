@@ -58,7 +58,8 @@
     },
     "scripts": {
         "build": "tsc -b",
-        "lint": "eslint src test",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
         "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"**/*.json\"",
         "ncu:opcua": "npx -y npm-check-updates -u -f \"node-opcua*\" -t newest",
         "test": "mocha"

@@ -10,7 +10,7 @@ This is the standard prefix used by OPC-UA connection endpoint.
 
 ## Getting Started
 
-You can define nan OPCUA property in a thing description, by using a "opc.tcp://" href.
+You can define an OPCUA property in a thing description, by using an "opc.tcp://" href.
 
 ```js
 const thingDescription = {
@@ -103,7 +103,7 @@ const thingDescription = {
         brewCoffee: {
             forms: [
                 {
-                    href: endpointUrl,
+                    href: "opc.tcp://opcuademo.sterfive.com:26543",
                     op: ["invokeaction"],
                     "opcua:nodeId": { root: "i=84", path: "/Objects/2:DeviceSet/1:CoffeeMachine" },
                     "opcua:method": { root: "i=84", path: "/Objects/2:DeviceSet/1:CoffeeMachine/2:MethodSet/9:Start" },
@@ -128,7 +128,7 @@ const thingDescription = {
             type: "number",
             forms: [
                 {
-                    href: endpointUrl,
+                    href: "opc.tcp://opcuademo.sterfive.com:26543",
                     op: ["readproperty", "observeproperty"],
                     "opcua:nodeId": "ns=1;s=Temperature",
                 },

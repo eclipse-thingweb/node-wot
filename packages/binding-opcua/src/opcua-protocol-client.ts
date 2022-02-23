@@ -17,7 +17,7 @@ import { Subscription } from "rxjs/Subscription";
 import { promisify } from "util";
 import { Readable } from "stream";
 
-import { ProtocolClient, Content, ContentSerdes, ProtocolHelpers, ReadContent } from "@node-wot/core";
+import { ProtocolClient, Content, ContentSerdes, ProtocolHelpers } from "@node-wot/core";
 import { Form, SecurityScheme } from "@node-wot/td-tools";
 
 import {
@@ -48,7 +48,7 @@ import { schemaDataValue } from "./codec";
 import { FormElementProperty } from "wot-thing-description-types";
 import { opcuaJsonEncodeVariant } from "node-opcua-json";
 import { Argument, BrowseDescription, BrowseResult } from "node-opcua-types";
-import { ReferenceTypeIds } from "node-opcua";
+import { isGoodish, ReferenceTypeIds } from "node-opcua";
 
 export type Command = "Read" | "Write" | "Subscribe";
 
@@ -65,9 +65,9 @@ export interface FormPartialNodeDescription {
     "opcua:nodeId": NodeIdLike | NodeByBrowsePath;
 }
 
-export interface OPCUAForm extends Form, FormPartialNodeDescription {}
+export interface OPCUAForm extends Form, FormPartialNodeDescription { }
 
-export interface OPCUAFormElement extends FormElementProperty, FormPartialNodeDescription {}
+export interface OPCUAFormElement extends FormElementProperty, FormPartialNodeDescription { }
 
 export interface OPCUAFormInvoke extends OPCUAForm {
     "opcua:method": NodeIdLike | NodeByBrowsePath;
@@ -76,14 +76,15 @@ export interface OPCUAFormSubscribe extends OPCUAForm {
     "opcua:samplingInterval"?: number;
 }
 
-export interface OPCUAConnection {
+interface OPCUAConnection {
     session: ClientSession;
     client: OPCUAClient;
     subscription: ClientSubscription;
 }
 
-export type Resolver = (...arg: [...unknown[]]) => void;
-export interface OPCUAConnectionEx extends OPCUAConnection {
+type Resolver = (...arg: [...unknown[]]) => void;
+
+interface OPCUAConnectionEx extends OPCUAConnection {
     pending?: Resolver[];
 }
 
@@ -118,7 +119,7 @@ export function findBasicDataTypeC(
                 return callback(new Error("Internal Error"));
             }
 
-            browseResult.references = browseResult.references || /* istanbul ignore next */ [];
+            browseResult.references = browseResult.references || /* istanbul ignore next */[];
             const baseDataType = browseResult.references[0].nodeId;
             return findBasicDataTypeC(session, baseDataType, callback);
         });
@@ -288,9 +289,9 @@ export class OPCUAProtocolClient implements ProtocolClient {
             });
             return statusCode;
         });
-        console.debug("[opcua-client|writeResource]", "statsCode", statusCode.toString());
-        if (statusCode !== StatusCodes.Good) {
-            // [QUESTION] should we return the status code ? or raise an exception if write failed ?
+        console.debug("[opcua-client|writeResource]", "statusCode", statusCode.toString());
+        if (statusCode !== StatusCodes.Good && !isGoodish(statusCode)) {
+            throw new Error("Error in OPCUA Write : " + statusCode.toString());
         }
     }
 
@@ -450,7 +451,13 @@ export class OPCUAProtocolClient implements ProtocolClient {
         return content;
     }
 
-    private async _contentToDataValue2(form: OPCUAForm, content2: ReadContent): Promise<DataValue> {
+    private async _contentToDataValue(form: OPCUAForm, content: Content): Promise<DataValue> {
+
+        const content2: { type: string; body: Buffer } = {
+            ...content,
+            body: await ProtocolHelpers.readStreamFully(content.body),
+        };
+
         const contentSerDes = ContentSerdes.get();
 
         const contentType = content2.type ? content2.type.split(";")[0] : "application/json";
@@ -484,15 +491,6 @@ export class OPCUAProtocolClient implements ProtocolClient {
                 throw new Error("Unsupported content type here : " + contentType);
             }
         }
-    }
-
-    private async _contentToDataValue(form: OPCUAForm, content: Content): Promise<DataValue> {
-        const content2: { type: string; body: Buffer } = {
-            ...content,
-            body: await ProtocolHelpers.readStreamFully(content.body),
-        };
-
-        return this._contentToDataValue2(form, content2);
     }
 
     private async _contentToVariant(
@@ -561,8 +559,8 @@ export class OPCUAProtocolClient implements ProtocolClient {
                 valueRank === -1
                     ? VariantArrayType.Scalar
                     : valueRank === 1
-                    ? VariantArrayType.Array
-                    : VariantArrayType.Matrix;
+                        ? VariantArrayType.Array
+                        : VariantArrayType.Matrix;
 
             const n = (a: unknown) => Buffer.from(JSON.stringify(a));
             const v = await this._contentToVariant(content2.type, n(bodyInput[name]), basicDataType);

@@ -36,7 +36,7 @@ import { DataSchemaValue } from "wot-typescript-definitions";
 const ajv = new Ajv({ strict: false });
 
 /**
- * this schema, describe the node-opcua JSON format for a DataValue objevct
+ * this schema, describe the node-opcua JSON format for a DataValue object
  *
  * const pojo = (new DataValue({})).toString();
  *
@@ -76,9 +76,9 @@ export const schemaDataValue = {
             },
         },
     },
-    // required: [/**  */],
     additionalProperties: true,
 };
+
 
 export const schemaVariantJSONNull = {
     type: "null",
@@ -101,7 +101,7 @@ export const schemaVariantJSON = {
         },
     },
     additionalProperties: false,
-    // required: ["Type", "Body"],
+    required: ["Type", "Body"],
 };
 
 export const schemaDataValueJSON1 = {
@@ -161,7 +161,7 @@ export class OpcuaJSONCodec implements ContentCodec {
         const type = parameters?.type ?? "DataValue";
         let parsed = JSON.parse(bytes.toString());
 
-        const wantDataValue = (parameters && parameters.to && parameters.to === "DataValue") || false;
+        const wantDataValue = (parameters?.to === "DataValue") || false;
 
         switch (type) {
             case "DataValue": {
@@ -200,7 +200,7 @@ export class OpcuaJSONCodec implements ContentCodec {
                     };
                     return new DataValue({ value });
                 } else {
-                    if (parameters && parameters.dataType && parameters.dataType === DataType[DataType.DateTime]) {
+                    if (parameters?.dataType === DataType[DataType.DateTime]) {
                         parsed = new Date(parsed);
                     }
                     return parsed;
