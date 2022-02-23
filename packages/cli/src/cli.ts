@@ -30,7 +30,9 @@ let clientOnly = false;
 
 let flagArgConfigfile = false;
 let flagArgCompilerModule = false;
+let flagArgPort = false;
 let compilerModule: string;
+let servientPort: number;
 let flagScriptArgs = false;
 const scriptArgs: Array<string> = [];
 let confFile: string;
@@ -60,6 +62,24 @@ const readConf = function (filename: string): Promise<unknown> {
                 resolve(config);
             }
         });
+    });
+};
+
+const overrideConfig = function (conf: any): Promise<unknown> {
+    return new Promise((resolve) => {
+        if (flagArgPort) {
+            if (conf?.http) {
+                conf.http.port = servientPort;
+            }
+            if (conf?.mqtt) {
+                conf.mqtt.port = servientPort;
+            }
+            if (conf?.coap) {
+                conf.mqtt.port = servientPort;
+            }
+        }
+
+        resolve(conf);
     });
 };
 
@@ -218,6 +238,12 @@ for (let i = 0; i < argv.length; i++) {
         flagArgConfigfile = true;
         argv.splice(i, 1);
         i--;
+    } else if (argv[i].match(/^(-p|--port|\/p)(\d+)$/i)) {
+        flagArgPort = true;
+        const matches = argv[i].match(/^(-f|--configfile|\/f)$/i);
+        servientPort = parseInt(matches[1]);
+        argv.splice(i, 1);
+        i--;
     } else if (argv[i].match(/^(-i|-ib|--inspect(-brk)?(=([a-z]*|[\d .]*):?(\d*))?|\/i|\/ib)$/i)) {
         const matches = argv[i].match(/^(-i|-ib|--inspect(-brk)?(=([a-z]*|[\d .]*):?(\d*))?|\/i|\/ib)$/i);
         debug = {
@@ -318,6 +344,7 @@ VAR2=Value2`);
 }
 
 readConf(confFile)
+    .then(overrideConfig)
     .then((conf) => {
         return new DefaultServient(clientOnly, conf);
     })
