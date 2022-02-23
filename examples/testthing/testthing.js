@@ -205,11 +205,11 @@ WoT.produce({
         // set action handlers
         thing
             .setActionHandler("void-void", async (parameters) => {
-                checkActionInvocation("void-void", "undefined", typeof parameters.value());
+                checkActionInvocation("void-void", "undefined", typeof (await parameters.value()));
                 return undefined;
             })
             .setActionHandler("void-int", async (parameters) => {
-                checkActionInvocation("void-int", "undefined", typeof parameters.value());
+                checkActionInvocation("void-int", "undefined", typeof (await parameters.value()));
                 return 0;
             })
             .setActionHandler("int-void", async (parameters) => {
@@ -256,14 +256,12 @@ WoT.produce({
                 }
             })
             .setActionHandler("void-obj", async (parameters) => {
-                checkActionInvocation("void-complex", "undefined", typeof parameters.value());
+                checkActionInvocation("void-complex", "undefined", typeof (await parameters.value()));
                 return { prop1: 123, prop2: "abc" };
             })
             .setActionHandler("obj-void", async (parameters) => {
-                return new Promise((resolve, reject) => {
-                    checkActionInvocation("complex-void", "object", typeof parameters.value());
-                    return undefined;
-                });
+                checkActionInvocation("complex-void", "object", typeof (await parameters.value()));
+                return undefined;
             });
         // expose the thing
         thing.expose().then(() => {

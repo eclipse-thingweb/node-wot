@@ -45,7 +45,7 @@ WoTHelpers.fetch("http://127.0.0.1:8080/smart-coffee-machine").then(async (td) =
 
         // It's also possible to set a client-side handler for observable properties
         thing.observeProperty("maintenanceNeeded", async (data) => {
-            log("maintenanceNeeded property has changed! New value is:", data.value());
+            log("maintenanceNeeded property has changed! New value is:", await data.value());
         });
 
         // Now let's make 3 cups of latte!
