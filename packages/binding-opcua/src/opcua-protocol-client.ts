@@ -65,9 +65,9 @@ export interface FormPartialNodeDescription {
     "opcua:nodeId": NodeIdLike | NodeByBrowsePath;
 }
 
-export interface OPCUAForm extends Form, FormPartialNodeDescription { }
+export interface OPCUAForm extends Form, FormPartialNodeDescription {}
 
-export interface OPCUAFormElement extends FormElementProperty, FormPartialNodeDescription { }
+export interface OPCUAFormElement extends FormElementProperty, FormPartialNodeDescription {}
 
 export interface OPCUAFormInvoke extends OPCUAForm {
     "opcua:method": NodeIdLike | NodeByBrowsePath;
@@ -119,7 +119,7 @@ export function findBasicDataTypeC(
                 return callback(new Error("Internal Error"));
             }
 
-            browseResult.references = browseResult.references || /* istanbul ignore next */[];
+            browseResult.references = browseResult.references || /* istanbul ignore next */ [];
             const baseDataType = browseResult.references[0].nodeId;
             return findBasicDataTypeC(session, baseDataType, callback);
         });
@@ -452,7 +452,6 @@ export class OPCUAProtocolClient implements ProtocolClient {
     }
 
     private async _contentToDataValue(form: OPCUAForm, content: Content): Promise<DataValue> {
-
         const content2: { type: string; body: Buffer } = {
             ...content,
             body: await ProtocolHelpers.readStreamFully(content.body),
@@ -559,8 +558,8 @@ export class OPCUAProtocolClient implements ProtocolClient {
                 valueRank === -1
                     ? VariantArrayType.Scalar
                     : valueRank === 1
-                        ? VariantArrayType.Array
-                        : VariantArrayType.Matrix;
+                    ? VariantArrayType.Array
+                    : VariantArrayType.Matrix;
 
             const n = (a: unknown) => Buffer.from(JSON.stringify(a));
             const v = await this._contentToVariant(content2.type, n(bodyInput[name]), basicDataType);

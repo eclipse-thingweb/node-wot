@@ -61,13 +61,19 @@ describe("OPCUA Binary Serdes ", () => {
             const dataValueReloaded = theOpcuaBinaryCodec.bytesToValue(payload, schema);
             expect(dataValue).to.eql(jsonify(dataValueReloaded));
         });
+    });
+});
+
+describe("OPCUA JSON Serdes ", () => {
+    [dataValue1Json, dataValue2Json, dataValue3Json].forEach((dataValue, index) => {
+        const schema: ObjectSchema = { type: "object", properties: {} };
+
         it("should encode and decode a dataValue with application/opcua+json codec " + index, () => {
             const payload = theOpcuaJSONCodec.valueToBytes(dataValue, schema);
             const dataValueReloaded = theOpcuaJSONCodec.bytesToValue(payload, schema);
             expect(dataValue).to.eql(jsonify(dataValueReloaded));
         });
     });
-
     const expected1 = [
         { Value: null },
         { Value: { Type: 12, Body: ["hello", "world"] }, SourceTimestamp: "2021-11-11T00:00:00.000Z" },

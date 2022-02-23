@@ -79,7 +79,6 @@ export const schemaDataValue = {
     additionalProperties: true,
 };
 
-
 export const schemaVariantJSONNull = {
     type: "null",
     nullable: true,
@@ -161,7 +160,7 @@ export class OpcuaJSONCodec implements ContentCodec {
         const type = parameters?.type ?? "DataValue";
         let parsed = JSON.parse(bytes.toString());
 
-        const wantDataValue = (parameters?.to === "DataValue") || false;
+        const wantDataValue = parameters?.to === "DataValue" || false;
 
         switch (type) {
             case "DataValue": {
