@@ -292,7 +292,12 @@ export default class Helpers {
         ti: ThingInteraction,
         options?: WoT.InteractionOptions
     ): WoT.InteractionOptions {
-        this.validateInteractionOptions(thing, ti, options);
+        if (!this.validateInteractionOptions(thing, ti, options)) {
+            throw new Error(
+                `CoreHelpers one or more uriVariables were not found under neither '${ti.title}' Thing Interaction nor '${thing.title}' Thing`
+            );
+        }
+
         const interactionUriVariables = ti.uriVariables ?? {};
         const thingUriVariables = thing.uriVariables ?? {};
         const uriVariables: { [key: string]: unknown } = {};
@@ -330,13 +335,12 @@ export default class Helpers {
 
         if (options?.uriVariables) {
             const entryVariables = Object.entries(options.uriVariables);
-            entryVariables.forEach((entry: [string, unknown]) => {
-                if (!(entry[0] in interactionUriVariables) && !(entry[0] in thingUriVariables)) {
-                    throw new Error(
-                        `CoreHelpers uriVariable '${entry[0]}' was not found under neither '${ti.title}' Thing Interaction nor '${thing.title}' Thing`
-                    );
+            for (let i = 0; i < entryVariables.length; i++) {
+                const entryVariable: [string, unknown] = entryVariables[i];
+                if (!(entryVariable[0] in interactionUriVariables) && !(entryVariable[0] in thingUriVariables)) {
+                    return false;
                 }
-            });
+            }
         }
 
         return true;
