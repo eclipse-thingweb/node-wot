@@ -111,18 +111,17 @@ The Thing Description corresponding to the previous example is shown below:
 This example takes the Thing Description of the previous example and subscribes to the `counterEvent` and resets the counter every 20s via the `resetCounter` action.
 
 ```js
-Servient = require("@node-wot/core").Servient
-MqttClientFactory = require("@node-wot/binding-mqtt").MqttClientFactory
+Servient = require("@node-wot/core").Servient;
+MqttClientFactory = require("@node-wot/binding-mqtt").MqttClientFactory;
 
-Helpers = require("@node-wot/core").Helpers
+Helpers = require("@node-wot/core").Helpers;
 
 // create Servient and add MQTT binding
 let servient = new Servient();
 servient.addClientFactory(new MqttClientFactory(null));
 
 // Thing Description can be also fetched
-let td =
-    `{
+let td = `{
     "@context": "https://www.w3.org/2019/td/v1",
     "title": "MQTT-Test",
     "id": "urn:dev:wot:mqtt:counter",
@@ -153,16 +152,18 @@ try {
             console.info(td);
             console.info("==========");
 
-            source.subscribeEvent("counter",
-                x => console.info("value:", x),
-                e => console.error("Error: %s", e),
+            source.subscribeEvent(
+                "counter",
+                (x) => console.info("value:", x),
+                (e) => console.error("Error: %s", e),
                 () => console.info("Completed")
             );
             console.info("Subscribed");
 
             setInterval(async () => {
-                source.invokeAction("resetCounter")
-                    .then((res) => { })
+                source
+                    .invokeAction("resetCounter")
+                    .then((res) => {})
                     .catch((err) => {
                         console.error("ResetCounter error:", err.message);
                     });
@@ -173,7 +174,6 @@ try {
 } catch (err) {
     console.error("Script error:", err);
 }
-
 ```
 
 ### More Examples
@@ -183,9 +183,9 @@ There are example implementations provided in the [example/scripting folder](htt
 Please setup node-wot as described at the [node-wot main page](https://github.com/eclipse/thingweb.node-wot#as-a-standalone-application).
 
 -   example-mqtt-publish.js: Shows when node-wot acts as a MQTT Client that publishes data (latest counter value) to a broker.
-At the same time, another client can invoke an action, such as `resetCounter`, by sending a publication message to the topic of this action.
-This other client does not have to be node-wot, any MQTT client can interact with this Thing.
-For node-wot clients, make sure to provide MQTT broker details (`host`, `port`, `username`, `password`, `clientId`) in the wot-servient.conf.json:
+    At the same time, another client can invoke an action, such as `resetCounter`, by sending a publication message to the topic of this action.
+    This other client does not have to be node-wot, any MQTT client can interact with this Thing.
+    For node-wot clients, make sure to provide MQTT broker details (`host`, `port`, `username`, `password`, `clientId`) in the wot-servient.conf.json:
 
 ```js
 {

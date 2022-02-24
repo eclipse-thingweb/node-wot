@@ -83,9 +83,9 @@ servient.start().then((WoT) => {
         title: "MyCounter",
         properties: {
             count: {
-                type: "integer"
-            }
-        }
+                type: "integer",
+            },
+        },
     }).then((thing) => {
         console.log("Produced " + thing.getThingDescription().title);
         thing.writeProperty("count", 0);
@@ -119,7 +119,7 @@ servient.addCredentials({
         username: "node-wot",
         password: "hello",
         // token: "1/mZ1edKKACtPAb7zGlwSzvs72PvhAbGmB8K1ZrGxpcNM"
-    }
+    },
 });
 let httpConfig = {
     allowSelfSigned: true, // client configuration
@@ -127,7 +127,7 @@ let httpConfig = {
     serverCert: "certificate.pem",
     security: {
         scheme: "basic", // (username & password)
-    }
+    },
 };
 // add HTTPS binding with configuration
 servient.addServer(new HttpServer(httpConfig));
@@ -139,9 +139,9 @@ servient.start().then((WoT) => {
         title: "MyCounter",
         properties: {
             count: {
-                type: "integer"
-            }
-        }
+                type: "integer",
+            },
+        },
     }).then((thing) => {
         console.log("Produced " + thing.getThingDescription().title);
         thing.writeProperty("count", 0);
