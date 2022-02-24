@@ -1,8 +1,12 @@
 # File Binding of node-wot
 
+## Protocol specifier
+
+The protocol prefix handled by this binding is `file://`.
+
 ## Getting Started
 
-In the following examples it is shown how to use the File binding of node-wot.
+In the following examples, how to use the File binding of node-wot is shown.
 
 ### Prerequisites
 
@@ -12,7 +16,7 @@ In the following examples it is shown how to use the File binding of node-wot.
 
 ### Example 1
 
-The example tries to load an internal TestThing TD and reads a property `fileContent` which exposes the content of the file `test.txt`.
+The example tries to load an internal TestThing TD and reads the `fileContent` property, which exposes the content of the file `test.txt`.
 
 `node example1.js`
 
@@ -69,7 +73,7 @@ try {
 
 ### Example 2
 
-The example tries to load a locally stored TestThing TD and reads a property `fileContent` which exposes the content of the file `test.txt`.
+The example tries to load a locally stored TestThing TD and reads the `fileContent` property, which exposes the content of the file `test.txt`.
 
 ### Prerequisites
 
@@ -113,4 +117,4 @@ wotHelper
 
 ## More Details
 
-see https://github.com/eclipse/thingweb.node-wot/
+See <https://github.com/eclipse/thingweb.node-wot/>

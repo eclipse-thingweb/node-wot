@@ -1,12 +1,14 @@
 # HTTP Protocol Binding of node-wot
 
+W3C WoT Binding Template specification for HTTP can be found [here](https://w3c.github.io/wot-binding-templates/bindings/protocols/http/index.html).
+
 ## Protocol specifier
 
 The protocol prefix handled by this binding is `http://` or `https://`.
 
 ## Getting Started
 
-In the following examples it is shown how to use the HTTP binding of node-wot.
+In the following examples, how to use the HTTP binding of node-wot is shown.
 
 ### Prerequisites
 
@@ -15,7 +17,8 @@ In the following examples it is shown how to use the HTTP binding of node-wot.
 
 ### Client Example
 
-The client example tries to connect to a TestThing via HTTP and reads a property `string`. The ThingDescription is located under the follwing uri http://plugfest.thingweb.io:8083/testthing.
+The client example tries to connect to a TestThing via HTTP and reads the `string` property.
+The Thing Description is located under the following uri <http://plugfest.thingweb.io:8083/testthing>.
 
 `node example-client.js`
 
@@ -55,7 +58,7 @@ wotHelper
 
 ### Server Example
 
-The server example produces a thing that allows for setting a property `count`. The thing is reachable through HTTP. Additional additional handlers could be added.
+The server example produces a thing that allows for setting a property `count`. The thing is reachable through HTTP.
 
 `node example-server.js`
 
@@ -91,14 +94,14 @@ servient.start().then((WoT) => {
             console.info(thing.getThingDescription().title + " ready");
             console.info("TD : " + JSON.stringify(thing.getThingDescription()));
             thing.readProperty("count").then((c) => {
-                console.log("cound is " + c);
+                console.log("count is " + c);
             });
         });
     });
 });
 ```
 
-The _secure_ server example shows how to add credentials and how to setup HTTPS.
+The _secure_ server example shows how to add credentials and how to set up HTTPS.
 
 `node example-server-secure.js`
 
@@ -147,7 +150,7 @@ servient.start().then((WoT) => {
             console.info(thing.getThingDescription().title + " ready");
             console.info("TD : " + JSON.stringify(thing.getThingDescription()));
             thing.readProperty("count").then((c) => {
-                console.log("cound is " + c);
+                console.log("count is " + c);
             });
         });
     });

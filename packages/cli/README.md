@@ -112,6 +112,6 @@ ADDRESS=http://hello.com
 
 See [node-wot examples using Node.js](https://github.com/eclipse/thingweb.node-wot/#no-time-for-explanations---show-me-a-running-example).
 
-### More Details
+## More Details
 
-see https://github.com/eclipse/thingweb.node-wot/
+See <https://github.com/eclipse/thingweb.node-wot/>

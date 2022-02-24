@@ -1,4 +1,4 @@
-# TD (ThingDescription) tools of node-wot
+# TD (Thing Description) tools of node-wot
 
 ## Getting Started
 
@@ -47,6 +47,6 @@ console.log(tdString2);
 console.log("****");
 ```
 
-### More Details
+## More Details
 
-see https://github.com/eclipse/thingweb.node-wot/
+See <https://github.com/eclipse/thingweb.node-wot/>

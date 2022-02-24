@@ -1,16 +1,21 @@
-# Modbus Client Protocol Binding
+# Modbus Client Protocol Binding of node-wot
 
-W3C Web of Things (WoT) Protocol Binding for Modbus TCP [RFC](https://tools.ietf.org/html/draft-dube-modbus-applproto-00). This package uses [modbus-serial](https://www.npmjs.com/package/modbus-serial) as a low level client for Modbus TCP.
+## Overview
+
+W3C Web of Things (WoT) Protocol Binding for [Modbus](https://en.wikipedia.org/wiki/Modbus) TCP [RFC](https://tools.ietf.org/html/draft-dube-modbus-applproto-00).
+This package uses [modbus-serial](https://www.npmjs.com/package/modbus-serial) as a low level client for Modbus TCP.
+W3C WoT Binding Template for Modbus can be found [here](https://w3c.github.io/wot-binding-templates/bindings/protocols/modbus/index.html).
 
 ## Protocol specifier
 
-The protocol prefix handled by this binding is `modbus+tcp:`. This is currently a non-standard prefix.
+The protocol prefix handled by this binding is `modbus+tcp://`.
 
 ## Getting Started
 
 ### Run the Example App
 
-The Binding example in the `./examples` directory provides a TD (`modbus-thing.jsonld`) and an app script (`modbus-example.js`) . To execute the script use the pre-configure servient inside `./examples/servients` folder, as following:
+The Binding example in the `./examples` directory provides a TD (`modbus-thing.jsonld`) and an app script (`modbus-example.js`) .
+To execute the script use the pre-configure servient inside `./examples/servients` folder, as following:
 
 ```bash
 # first init the node package
@@ -25,7 +30,8 @@ cd ../../scripts
 node ../servients/modbus-cli/dist/modbus-cli.js modbus-example.js
 ```
 
-**Rember** to correctly initialize your dev environment as described inside the [repository readme](https://github.com/eclipse/thingweb.node-wot/blob/master/README.md), before to start the example application. In particular, the optional step `sudo npm run link` must be executed.
+**Remember** to correctly initialize your development environment as described inside the [repository readme](https://github.com/eclipse/thingweb.node-wot/blob/master/README.md),
+before starting the example application. In particular, the optional step `sudo npm run link` must be executed.
 
 ## New Form Fields for the Modbus Binding
 
@@ -216,3 +222,7 @@ Polls the 8th holding register of the unit 1 every second.
     -   Impose some limit to the overall number of registers. The MODBUS protocol has such a limit and devices may define even lower values
 -   [ ] When a connection times out, re-connection does not work (see `connectionTimeout` in modbus-client.ts)
 -   [x] When a Modbus device is not reachable, scripts using binding-modbus stop working - corresponding error handling is necessary
+
+## More Details
+
+See <https://github.com/eclipse/thingweb.node-wot/>
