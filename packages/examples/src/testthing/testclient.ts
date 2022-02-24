@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2020 Contributors to the Eclipse Foundation
+ * Copyright (c) 2022 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -27,7 +27,8 @@ console.debug = () => {
 async function testPropertyRead(thing: WoT.ConsumedThing, name: string) {
     try {
         const res = await thing.readProperty(name);
-        console.info("PASS " + name + " READ:", res.value());
+        const value = await res.value();
+        console.info("PASS " + name + " READ:", value);
     } catch (err) {
         console.error("FAIL " + name + " READ:", err.message);
     }
@@ -93,7 +94,7 @@ WoTHelpers.fetch("http://localhost:8080/testthing")
             console.info("========== object");
             await testPropertyRead(thing, "object");
             await testPropertyWrite(thing, "object", { id: 23, name: "illuminated" }, false);
-            await testPropertyWrite(thing, "object", null, false);
+            await testPropertyWrite(thing, "object", null, true);
             await testPropertyWrite(thing, "object", [24, "dark"], true);
         } catch (err) {
             console.error("Script error:", err);
