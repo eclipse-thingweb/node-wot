@@ -283,6 +283,7 @@ export default class Helpers {
     /**
      * Merge Thing-level's uriVariables to Interaction-level ones.
      * If a uriVariable is already defined at the Interaction-level, ignore its value at Thing-level.
+     * @throws if InteractionOptions contains illegal uriVariables
      * @param options interaction options
      * @returns resulting InteractionOptions
      */
@@ -323,7 +324,7 @@ export default class Helpers {
         thing: TD.Thing,
         ti: ThingInteraction,
         options?: WoT.InteractionOptions
-    ): void {
+    ): boolean {
         const interactionUriVariables = ti.uriVariables ?? {};
         const thingUriVariables = thing.uriVariables ?? {};
 
@@ -337,5 +338,7 @@ export default class Helpers {
                 }
             });
         }
+
+        return true;
     }
 }
