@@ -1,4 +1,4 @@
-# Eclipse Thingweb node-wot MQTT Binding
+# MQTT Protocol Binding of node-wot
 
 W3C Web of Things (WoT) Protocol Binding for [MQTT](https://en.wikipedia.org/wiki/MQTT).
 This package uses [mqtt](https://www.npmjs.com/package/mqtt) as a low level library for MQTT.

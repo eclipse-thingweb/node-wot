@@ -1,4 +1,4 @@
-# Firestore Binding of node-wot
+# Firestore Protocol Binding of node-wot
 
 ## Overview
 

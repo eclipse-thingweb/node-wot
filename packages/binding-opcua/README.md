@@ -1,4 +1,4 @@
-# OPC UA Client Protocol Binding
+# OPC UA Client Protocol Binding of node-wot
 
 W3C Web of Things (WoT) Protocol Binding for [OPC UA](https://en.wikipedia.org/wiki/OPC_Unified_Architecture).
 
