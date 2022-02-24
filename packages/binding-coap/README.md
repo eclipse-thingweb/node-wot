@@ -1,5 +1,7 @@
 # CoAP Protocol Binding of node-wot
 
+W3C WoT Binding Template specification for CoAP can be found [here](https://w3c.github.io/wot-binding-templates/bindings/protocols/coap/index.html).
+
 ## Protocol specifier
 
 The protocol prefix handled by this binding is `coap://` or `coaps://`.
