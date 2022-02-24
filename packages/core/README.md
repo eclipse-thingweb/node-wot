@@ -1,6 +1,6 @@
 # Core of node-wot
 
-The `core` of node-wot is the entry point allowing to attach dedicated bindings such as:
+The core of node-wot is the entry point allowing to attach dedicated bindings such as:
 
 -   [HTTP](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-http)
 -   [CoAP](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-coap)
@@ -19,6 +19,6 @@ see binding examples such as
 -   https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-http
 -   https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-coap
 
-### More Details
+## More Details
 
-see https://github.com/eclipse/thingweb.node-wot/
+See <https://github.com/eclipse/thingweb.node-wot/>

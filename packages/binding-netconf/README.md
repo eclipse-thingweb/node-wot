@@ -2,6 +2,9 @@
 
 W3C Web of Things (WoT) Protocol Binding for NETCONF [RFC6241](https://tools.ietf.org/html/rfc6241)
 
+## Protocol specifier
+
+The protocol prefix handled by this binding is `netconf://`.
 ## Getting Started
 
 ### Optional: NETCONF Server Simulator
@@ -125,3 +128,7 @@ Please note that, in order to make this binding work, each href should always co
 -   [ ] Subscriptions implementation (EVENTS)
 -   [x] TEST
 -   [ ] (NETCONF Server Protocol Binding ?)
+
+## More Details
+
+See <https://github.com/eclipse/thingweb.node-wot/>

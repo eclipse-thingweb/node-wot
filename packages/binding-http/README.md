@@ -6,7 +6,7 @@ The protocol prefix handled by this binding is `http://` or `https://`.
 
 ## Getting Started
 
-In the following examples it is shown how to use the HTTP binding of node-wot.
+In the following examples, how to use the HTTP binding of node-wot is shown.
 
 ### Prerequisites
 
@@ -15,7 +15,8 @@ In the following examples it is shown how to use the HTTP binding of node-wot.
 
 ### Client Example
 
-The client example tries to connect to a TestThing via HTTP and reads a property `string`. The ThingDescription is located under the follwing uri http://plugfest.thingweb.io:8083/testthing.
+The client example tries to connect to a TestThing via HTTP and reads the `string` property.
+The Thing Description is located under the following uri <http://plugfest.thingweb.io:8083/testthing>.
 
 `node example-client.js`
 
@@ -55,7 +56,7 @@ wotHelper
 
 ### Server Example
 
-The server example produces a thing that allows for setting a property `count`. The thing is reachable through HTTP. Additional additional handlers could be added.
+The server example produces a thing that allows for setting a property `count`. The thing is reachable through HTTP.
 
 `node example-server.js`
 
@@ -80,9 +81,9 @@ servient.start().then((WoT) => {
         title: "MyCounter",
         properties: {
             count: {
-                type: "integer",
-            },
-        },
+                type: "integer"
+            }
+        }
     }).then((thing) => {
         console.log("Produced " + thing.getThingDescription().title);
         thing.writeProperty("count", 0);
@@ -91,14 +92,14 @@ servient.start().then((WoT) => {
             console.info(thing.getThingDescription().title + " ready");
             console.info("TD : " + JSON.stringify(thing.getThingDescription()));
             thing.readProperty("count").then((c) => {
-                console.log("cound is " + c);
+                console.log("count is " + c);
             });
         });
     });
 });
 ```
 
-The _secure_ server example shows how to add credentials and how to setup HTTPS.
+The _secure_ server example shows how to add credentials and how to set up HTTPS.
 
 `node example-server-secure.js`
 
@@ -116,7 +117,7 @@ servient.addCredentials({
         username: "node-wot",
         password: "hello",
         // token: "1/mZ1edKKACtPAb7zGlwSzvs72PvhAbGmB8K1ZrGxpcNM"
-    },
+    }
 });
 let httpConfig = {
     allowSelfSigned: true, // client configuration
@@ -124,7 +125,7 @@ let httpConfig = {
     serverCert: "certificate.pem",
     security: {
         scheme: "basic", // (username & password)
-    },
+    }
 };
 // add HTTPS binding with configuration
 servient.addServer(new HttpServer(httpConfig));
@@ -136,9 +137,9 @@ servient.start().then((WoT) => {
         title: "MyCounter",
         properties: {
             count: {
-                type: "integer",
-            },
-        },
+                type: "integer"
+            }
+        }
     }).then((thing) => {
         console.log("Produced " + thing.getThingDescription().title);
         thing.writeProperty("count", 0);
@@ -147,7 +148,7 @@ servient.start().then((WoT) => {
             console.info(thing.getThingDescription().title + " ready");
             console.info("TD : " + JSON.stringify(thing.getThingDescription()));
             thing.readProperty("count").then((c) => {
-                console.log("cound is " + c);
+                console.log("count is " + c);
             });
         });
     });

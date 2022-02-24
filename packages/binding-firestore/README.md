@@ -4,13 +4,13 @@
 
 Firestore Binding is an implementation of the [W3C Web of Things](https://www.w3.org/WoT/) Binding using Firestore, which can be used with [Eclipse Thingweb node-wot](https://github.com/eclipse/thingweb.node-wot/) to embody the Web of Things.
 
-Firestore has the ability to subscribe to written data, and Firestore Binding uses this to perform communication between the Thing and the Client.  
+Firestore has the ability to subscribe to written data, and Firestore Binding uses this to perform communication between the Thing and the Client.
 This Binding provides a storage location (Reference) in Firestore for data corresponding to a Thing's properties, actions, and events. By writing data to the Reference, communication between the Thing or Client that subscribes to the data is realized.
 
-In addition, when you do an Expose thing in a Server program that uses this Binding, the exposed Thing Description will be saved in Firestore.  
+In addition, when you do an Expose thing in a Server program that uses this Binding, the exposed Thing Description will be saved in Firestore.
 This Thing Description can be accessed by the Client as follows.
 
-```
+```js
 wotHelper.fetch("firestore://sample-host/MyCounter").then((td) => {
     // do something
 }
@@ -24,7 +24,7 @@ The protocol prefix handled by this binding is `firestore://`.
 
 ## Getting Started
 
-In the following examples it is shown how to use the Firestore binding of node-wot.
+In the following examples, how to use the Firestore binding of node-wot is shown.
 
 You must have a Firebase account to use this binding.
 
@@ -50,7 +50,7 @@ Perform the following setup from the [Firestore console](https://console.firebas
     ```
 1. Select `Project Settings` from the top left gear and confirm the Project ID (B) and Web Api Key (C).
 
-The values defined in (A), (B) and (C) will be written in the configuration file shown in `Confiuration` chapter.
+The values defined in (A), (B) and (C) will be written in the configuration file shown in `Configuration` chapter.
 
 ### Advance preparation
 
@@ -83,8 +83,9 @@ The information needed to create the configuration file can be found at [Firesto
 
 ### Client Example
 
-The client example tries to connect to `MyCounter` thing via Firestore and reads a property `count`. The ThingDescription is stored in Firebase which can be access by client as `firestore://sample-host/MyCounter`.
-The ThingDescription registered by `example-server.js`.
+The client example tries to connect to `MyCounter` thing via Firestore and read the `count` property .
+The Thing Description is stored in Firebase which can be access by client as `firestore://sample-host/MyCounter`.
+The Thing Description is registered by `example-server.js`.
 
 `node example-client.js`
 
@@ -180,17 +181,17 @@ servient.start().then((WoT) => {
 
 This Binding realizes the interaction between Client and Server for Property, Action, and Event by storing data in the following reference.
 
--   things/\<hostName\>%2F\<title of Thing Description\>  
+-   things/\<hostName\>%2F\<title of Thing Description\>
     Stores the Thing Description that the Server program exposes.
--   things/\<hostName\>%2F\<title of Thing Description\>%2Fproperties%2F\<name of property\>  
+-   things/\<hostName\>%2F\<title of Thing Description\>%2Fproperties%2F\<name of property\>
     Stores the value of the Property when it is changed by the Server.
--   things/\<hostName\>%2F\<title of Thing Description\>%2FpropertyWriteReq%2F\<name of property\>  
+-   things/\<hostName\>%2F\<title of Thing Description\>%2FpropertyWriteReq%2F\<name of property\>
     Stores the value of the Property when it is changed by the Client.
--   things/\<hostName\>%2F\<title of Thing Description\>%2Factions%2F\<name of action\>  
+-   things/\<hostName\>%2F\<title of Thing Description\>%2Factions%2F\<name of action\>
     Stores the action calling information when the Client invokes an Action.
--   things/\<hostName\>%2F\<title of Thing Description\>%2FactionResults%2F\<name of action\>  
+-   things/\<hostName\>%2F\<title of Thing Description\>%2FactionResults%2F\<name of action\>
     Stores the result of an Action executed by the Server.
--   things/\<hostName\>%2F\<title of Thing Description\>%events%2F\<name of event\>  
+-   things/\<hostName\>%2F\<title of Thing Description\>%events%2F\<name of event\>
     Stores the emitted events.
 
 Data will always be overwritten and no history will be retained.
@@ -218,3 +219,7 @@ The WoT operations that can be implemented for Client as follows.
 Because communication with Firestore occurs, you may be charged for using Firebase.
 In order to avoid unexpected charges, please check your usage.
 You can check it at [Firebase console](https://console.firebase.google.com/).
+
+## More Details
+
+See <https://github.com/eclipse/thingweb.node-wot/>
