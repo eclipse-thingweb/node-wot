@@ -39,6 +39,7 @@
         "./packages/core",
         "./packages/binding-!(firestore-browser-bundle|firestore)",
         "./packages/cli",
+        "./packages/browser-bundle",
         "./packages/examples"
     ],
     "devDependencies": {
