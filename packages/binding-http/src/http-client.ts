@@ -25,7 +25,7 @@ import { Subscription } from "rxjs/Subscription";
 import * as TD from "@node-wot/td-tools";
 // for Security definition
 
-import { ProtocolClient, Content } from "@node-wot/core";
+import { ProtocolClient, Content, ProtocolHelpers } from "@node-wot/core";
 import { HttpForm, HttpHeader, HttpConfig, HTTPMethodName } from "./http";
 import fetch, { Request, RequestInit, Response } from "node-fetch";
 import { Buffer } from "buffer";
@@ -41,6 +41,7 @@ import {
     BasicKeyCredentialConfiguration,
 } from "./credential";
 import { LongPollingSubscription, SSESubscription, InternalSubscription } from "./subscription-protocols";
+import { Readable } from "stream";
 
 export default class HttpClient implements ProtocolClient {
     private readonly agent: http.Agent;
@@ -127,7 +128,10 @@ export default class HttpClient implements ProtocolClient {
         console.debug("[binding-http]", `HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
         console.debug("[binding-http]", `HttpClient received Content-Type: ${result.headers.get("content-type")}`);
 
-        return { type: result.headers.get("content-type"), body: result.body };
+        // in browsers node-fetch uses the native fetch, which returns a ReadableStream
+        // not complaint with node. Therefore we have to force the conversion here.
+        const body = ProtocolHelpers.toNodeStream(result.body as Readable);
+        return { type: result.headers.get("content-type"), body };
     }
 
     public async writeResource(form: HttpForm, content: Content): Promise<void> {
@@ -199,7 +203,10 @@ export default class HttpClient implements ProtocolClient {
 
         this.checkFetchResponse(result);
 
-        return { type: result.headers.get("content-type"), body: result.body };
+        // in browsers node-fetch uses the native fetch, which returns a ReadableStream
+        // not complaint with node. Therefore we have to force the conversion here.
+        const body = ProtocolHelpers.toNodeStream(result.body as Readable);
+        return { type: result.headers.get("content-type"), body };
     }
 
     public async unlinkResource(form: HttpForm): Promise<void> {

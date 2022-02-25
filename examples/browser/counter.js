@@ -44,12 +44,12 @@ function showInteractions(thing) {
             dtItem.appendChild(link);
             document.getElementById("properties").appendChild(dtItem);
             document.getElementById("properties").appendChild(ddItem);
-
+            console.log("property: " + td.properties[property]);
             dtItem.onclick = (click) => {
                 thing
                     .readProperty(property)
-                    .then((res) => {
-                        ddItem.textContent = res;
+                    .then(async (res) => {
+                        ddItem.textContent = await res.value();
                     })
                     .catch((err) => window.alert("error: " + err));
             };
@@ -103,7 +103,7 @@ function showInteractions(thing) {
             document.getElementById("events").appendChild(item);
 
             eventSubscriptions[evnt] = false;
-
+            let subscription;
             checkbox.onclick = (click) => {
                 if (
                     document.getElementById(evnt).checked &&
@@ -113,12 +113,13 @@ function showInteractions(thing) {
                     console.log("Try subscribing for event: " + evnt);
                     eventSubscriptions[evnt] = true;
                     thing
-                        .subscribeEvent(evnt, function (data) {
-                            console.log("Data:" + data);
+                        .subscribeEvent(evnt, async function (data) {
+                            console.log("Data:" + (await data.value()));
                             updateProperties();
                         })
-                        .then(() => {
-                            // OK
+                        .then((sub) => {
+                            subscription = sub;
+                            console.log("Subscribed for event: " + evnt);
                         })
                         .catch((error) => {
                             window.alert("Event " + evnt + " error\nMessage: " + error);
@@ -126,14 +127,16 @@ function showInteractions(thing) {
                 } else if (!document.getElementById(evnt).checked && eventSubscriptions[evnt]) {
                     console.log("Try to unsubscribing for event: " + evnt);
                     eventSubscriptions[evnt] = false;
-                    thing
-                        .unsubscribeEvent(evnt)
-                        .then(() => {
-                            // OK
-                        })
-                        .catch((error) => {
-                            window.alert("Event " + evnt + " error\nMessage: " + error);
-                        });
+                    if (subscription) {
+                        subscription
+                            .stop()
+                            .then(() => {
+                                console.log("Unsubscribed for event: " + evnt);
+                            })
+                            .catch((error) => {
+                                window.alert("Event " + evnt + " error\nMessage: " + error);
+                            });
+                    }
                 }
             };
         }
