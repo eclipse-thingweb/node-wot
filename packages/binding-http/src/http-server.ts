@@ -914,6 +914,10 @@ export default class HttpServer implements ProtocolServer {
                                 res.setTimeout(60 * 60 * 1000, () =>
                                     thing.handleUnsubscribeEvent(segments[3], listener, options)
                                 );
+                            } else if (req.method === "HEAD") {
+                                // HEAD support for long polling subscription
+                                res.writeHead(202);
+                                res.end();
                             } else {
                                 respondUnallowedMethod(res, "GET");
                             }
