@@ -153,13 +153,13 @@ public class CopyrightFix {
         }
     }
 
-    static String getNewLine(String line, int yearCreation, int yearLastModified) {
+    static String getNewLine(String line, int yearCreation, int yearLastModified, boolean useYearRange) {
         int idx1 = checkMatchIndex(line, COPYRIGHT_HEADER_LINE_START);
         String newLine;
-        if (yearCreation == yearLastModified) {
+        if (yearCreation == yearLastModified || !useYearRange) {
             // one year only
             // e.g., Copyright (c) 2019 Contributors to the Eclipse Foundation
-            newLine = line.substring(0, idx1) + COPYRIGHT_HEADER_LINE_START + " " + yearCreation + " " + COPYRIGHT_HEADER_LINE_END;
+            newLine = line.substring(0, idx1) + COPYRIGHT_HEADER_LINE_START + " " + yearLastModified + " " + COPYRIGHT_HEADER_LINE_END;
         } else {
             // year range
             // e.g., Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
@@ -176,16 +176,16 @@ public class CopyrightFix {
             boolean useYearRange = false;
 
             int yearCreation = getCommitYear(file, true);
-            int yearLastModified = useYearRange ? getCommitYear(file, false) : yearCreation;
+            int yearLastModified = getCommitYear(file, false);
 
-            String newLine = getNewLine(line, yearCreation, yearLastModified);
+            String newLine = getNewLine(line, yearCreation, yearLastModified, useYearRange);
             if (!line.equals(newLine)) {
                 System.out.println(file);
                 if (useYearRange) {
                     // Note: need to re-run newLine call since after commit the yearLastModified changes to current year
                     yearLastModified = LocalDate.now().getYear();
                 }
-                newLine = getNewLine(line, yearCreation, yearLastModified);
+                newLine = getNewLine(line, yearCreation, yearLastModified, useYearRange);
                 System.out.println("\t change " + line + " --> " + newLine);
                 updateCopyrightLine(path, lineNumber, newLine);
             }
