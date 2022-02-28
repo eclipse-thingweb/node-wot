@@ -41,7 +41,7 @@
         "@types/url-parse": "^1.4.3",
         "case-1.5.3": "npm:case@^1.5.3",
         "rxjs": "5.5.11",
-        "url-parse": "^1.5.6",
+        "url-parse": "^1.5.8",
         "wot-typescript-definitions": "0.8.0-SNAPSHOT.21",
         "xml-writer": "^1.7.0"
     },
