@@ -67,16 +67,21 @@ const readConf = function (filename: string): Promise<unknown> {
 
 const overrideConfig = function (conf: any): Promise<unknown> {
     return new Promise((resolve) => {
-        if (flagArgPort) {
-            if (conf?.http) {
-                conf.http.port = servientPort;
+        conf = conf ?? {};
+
+        if (servientPort) {
+            if (!conf.http) {
+                conf.http = {};
             }
-            if (conf?.mqtt) {
-                conf.mqtt.port = servientPort;
+            conf.http.port = servientPort;
+            if (!conf.mqtt) {
+                conf.mqtt = {};
             }
-            if (conf?.coap) {
-                conf.mqtt.port = servientPort;
+            conf.mqtt.port = servientPort;
+            if (!conf.coap) {
+                conf.coap = {};
             }
+            conf.coap.port = servientPort;
         }
 
         resolve(conf);
@@ -221,6 +226,11 @@ for (let i = 0; i < argv.length; i++) {
         compilerModule = argv[i];
         argv.splice(i, 1);
         i--;
+    } else if (flagArgPort) {
+        flagArgPort = false;
+        servientPort = parseInt(argv[i]);
+        argv.splice(i, 1);
+        i--;
     } else if (argv[i] === "--") {
         // next args are script args
         flagScriptArgs = true;
@@ -238,10 +248,8 @@ for (let i = 0; i < argv.length; i++) {
         flagArgConfigfile = true;
         argv.splice(i, 1);
         i--;
-    } else if (argv[i].match(/^(-p|--port|\/p)(\d+)$/i)) {
+    } else if (argv[i].match(/^(-p|--port|\/p)$/i)) {
         flagArgPort = true;
-        const matches = argv[i].match(/^(-f|--configfile|\/f)$/i);
-        servientPort = parseInt(matches[1]);
         argv.splice(i, 1);
         i--;
     } else if (argv[i].match(/^(-i|-ib|--inspect(-brk)?(=([a-z]*|[\d .]*):?(\d*))?|\/i|\/ib)$/i)) {
@@ -351,11 +359,14 @@ readConf(confFile)
     .catch((err) => {
         if (err.code === "ENOENT" && !confFile) {
             console.warn("[cli]", `WoT-Servient using defaults as '${defaultFile}' does not exist`);
-            return new DefaultServient(clientOnly);
         } else {
             console.error("[cli]", "WoT-Servient config file error:", err.message);
             process.exit(err.errno);
         }
+    })
+    .then(overrideConfig)
+    .then((conf) => {
+        return new DefaultServient(clientOnly, conf);
     })
     .then((servient) => {
         servient
