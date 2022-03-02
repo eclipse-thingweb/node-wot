@@ -44,7 +44,6 @@ function showInteractions(thing) {
             dtItem.appendChild(link);
             document.getElementById("properties").appendChild(dtItem);
             document.getElementById("properties").appendChild(ddItem);
-            console.log("property: " + td.properties[property]);
             dtItem.onclick = (click) => {
                 thing
                     .readProperty(property)
