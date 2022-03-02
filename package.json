@@ -14,7 +14,7 @@
         }
     },
     "scripts": {
-        "build": "tsc -b",
+        "build": "tsc -b && npm run build -w packages/browser-bundle",
         "pretest": "npm run build",
         "start": "cd packages/cli && npm run start",
         "debug": "cd packages/cli && npm run debug",
@@ -39,7 +39,8 @@
         "./packages/core",
         "./packages/binding-!(firestore-browser-bundle|firestore)",
         "./packages/cli",
-        "./packages/examples"
+        "./packages/examples",
+        "./packages/browser-bundle"
     ],
     "devDependencies": {
         "@istanbuljs/nyc-config-typescript": "^1.0.1",

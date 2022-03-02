@@ -25,7 +25,6 @@
  * ```
  */
 
-import { URL } from "url";
 import * as os from "os";
 
 // imports for fetchTD

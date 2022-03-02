@@ -15,7 +15,7 @@
  ********************************************************************************/
 import { HttpClient, HttpForm } from "./http";
 import EventSource from "eventsource";
-import { Content } from "@node-wot/core";
+import { Content, ProtocolHelpers } from "@node-wot/core";
 import { Readable } from "stream";
 export interface InternalSubscription {
     open(next: (value: Content) => void, error?: (error: Error) => void, complete?: () => void): Promise<void>;
@@ -72,7 +72,10 @@ export class LongPollingSubscription implements InternalSubscription {
                     );
 
                     if (!this.closed) {
-                        next({ type: result.headers.get("content-type"), body: result.body });
+                        // in browsers node-fetch uses the native fetch, which returns a ReadableStream
+                        // not complaint with node. Therefore we have to force the conversion here.
+                        const body = ProtocolHelpers.toNodeStream(result.body as Readable);
+                        next({ type: result.headers.get("content-type"), body });
                         polling(false);
                     }
 

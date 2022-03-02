@@ -16,7 +16,6 @@
 import { OAuth2SecurityScheme } from "@node-wot/td-tools";
 import ClientOAuth2 from "client-oauth2";
 import { request, RequestOptions } from "https";
-import { URL } from "url";
 import { OAuthCredential } from "./credential";
 
 function createRequestFunction(rejectUnauthorized: boolean) {
