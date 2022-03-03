@@ -10,10 +10,5 @@ The thingweb team will mark them with the according [security](https://github.co
 
 ## Disclosure
 
-Disclosure is initially limited to the reporter and all Eclipse Committers,
-but is expanded to include other individuals, and the general public.
-The timing and manner of disclosure is governed by the
-[Eclipse Security Policy](https://www.eclipse.org/security/policy.php).
-
 Publicly disclosed issues are listed on the
 [Disclosed Vulnerabilities Issues Page](https://github.com/eclipse/thingweb.node-wot/labels/security).
