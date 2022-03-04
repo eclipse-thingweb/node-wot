@@ -25,11 +25,10 @@ import { thingDescription } from "./demo-opcua-thing-description";
     const thing = await wot.consume(thingDescription);
 
     const content = await thing.readProperty("pumpSpeed");
-    const dataSchemaValue = await content.value();
-    const json = dataSchemaValue.valueOf();
+    const pumpSpeed = await content.value();
 
     console.log("------------------------------");
-    console.log("Pump Speed is : ", json, "m/s");
+    console.log("Pump Speed is : ", pumpSpeed, "m/s");
     console.log("------------------------------");
 
     await servient.shutdown();

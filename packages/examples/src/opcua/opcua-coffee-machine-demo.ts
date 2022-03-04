@@ -26,17 +26,15 @@ const pause = async (ms: number) => new Promise((resolve) => setTimeout(resolve,
 
     try {
         thing.observeProperty("waterTankLevel", async (data) => {
-            const dataSchemaValue = await data.value();
-            const json = dataSchemaValue?.valueOf() || "<null>";
+            const waterTankLevel = await data.value();
             console.log("------------------------------");
-            console.log("tankLevel : ", json, "ml");
+            console.log("tankLevel : ", waterTankLevel, "ml");
             console.log("------------------------------");
         });
         thing.observeProperty("coffeeBeanLevel", async (data) => {
-            const dataSchemaValue = await data.value();
-            const json = dataSchemaValue?.valueOf() || "<null>";
+            const coffeBeanLevel = await data.value();
             console.log("------------------------------");
-            console.log("bean level : ", json, "g");
+            console.log("bean level : ", coffeBeanLevel, "g");
             console.log("------------------------------");
         });
         await thing.invokeAction("brewCoffee", { CoffeeType: 1 });

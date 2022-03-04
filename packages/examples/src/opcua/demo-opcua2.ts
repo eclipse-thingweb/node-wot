@@ -14,7 +14,7 @@
  ********************************************************************************/
 import { Servient } from "@node-wot/core";
 import { OPCUAClientFactory } from "@node-wot/binding-opcua";
-import { thingDescription } from "./opcua-coffee-machine-thing-description";
+import { thingDescription } from "./demo-opcua-thing-description";
 
 (async () => {
     const servient = new Servient();
@@ -24,10 +24,9 @@ import { thingDescription } from "./opcua-coffee-machine-thing-description";
     const thing = await wot.consume(thingDescription);
 
     thing.observeProperty("temperature", async (data) => {
-        const dataSchemaValue = await data.value();
-        const json = dataSchemaValue.valueOf();
+        const temperature = await data.value();
         console.log("------------------------------");
-        console.log("temperature : ", json, "m/s");
+        console.log("temperature : ", temperature, "m/s");
         console.log("------------------------------");
     });
 

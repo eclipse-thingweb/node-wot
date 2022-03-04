@@ -388,8 +388,7 @@ describe("Full OPCUA Thing Test", () => {
         console.log("------------------------------------------------------");
         try {
             const content = await thing.readProperty(propertyName, localOptions);
-            const dataSchemaValue = await content.value();
-            const json = dataSchemaValue.valueOf();
+            const json = await content.value();
             console.log(json);
             return json;
         } catch (e) {
@@ -438,7 +437,7 @@ describe("Full OPCUA Thing Test", () => {
 
     const readTemperature = async (thing: WoT.ConsumedThing): Promise<number> => {
         const content = await thing.readProperty("temperatureSetPoint");
-        const value = (await content.value()).valueOf();
+        const value = await content.value();
         console.log("TemperatureSetPoint =", value);
         return value as number;
     };
@@ -504,14 +503,14 @@ describe("Full OPCUA Thing Test", () => {
         try {
             // read temperature before
             const contentA = await thing.invokeAction("setTemperatureSetPoint", { TargetTemperature: 26 });
-            const returnedValue = (await contentA.value()).valueOf();
+            const returnedValue = await contentA.value();
 
             console.log("temperature setpoint Before", returnedValue);
             expect(returnedValue).to.eql({ PreviousSetPoint: 27 });
 
             const contentVerif = await (await thing.readProperty("temperatureSetPoint")).value();
-            console.log("temperature setpoint Before -verified ", contentVerif.valueOf());
-            expect(contentVerif.valueOf()).to.eql(26);
+            console.log("temperature setpoint Before -verified ", contentVerif);
+            expect(contentVerif).to.eql(26);
         } finally {
             await servient.shutdown();
         }
@@ -527,14 +526,14 @@ describe("Full OPCUA Thing Test", () => {
             const contentA = await thing.invokeAction("$OPCUA$setTemperatureSetPoint", {
                 TargetTemperature: { Type: 11, Body: 26 },
             });
-            const returnedValue = (await contentA.value()).valueOf();
+            const returnedValue = await contentA.value();
 
             console.log("temperature setpoint Before", returnedValue);
             expect(returnedValue).to.eql({ PreviousSetPoint: { Type: 11, Body: 27 } });
 
             const contentVerif = await (await thing.readProperty("temperatureSetPoint")).value();
-            console.log("temperature setpoint Before -verified ", contentVerif.valueOf());
-            expect(contentVerif.valueOf()).to.eql(26);
+            console.log("temperature setpoint Before -verified ", contentVerif);
+            expect(contentVerif).to.eql(26);
         } finally {
             await servient.shutdown();
         }
@@ -550,7 +549,7 @@ describe("Full OPCUA Thing Test", () => {
                     Volume: 100,
                 })
             ).value();
-            const returnedValue = content.valueOf();
+            const returnedValue = content;
             // console.log("return value", JSON.stringify(returnedValue, null, " "));
             expect(returnedValue).to.eql({
                 SoundAndLyrics: [
@@ -583,7 +582,7 @@ describe("Full OPCUA Thing Test", () => {
                     Volume: 100,
                 })
             ).value();
-            const returnedValue = content.valueOf();
+            const returnedValue = content;
             // console.log("return value", JSON.stringify(returnedValue, null, " "));
             expect(returnedValue).to.eql({
                 SoundAndLyrics: [
