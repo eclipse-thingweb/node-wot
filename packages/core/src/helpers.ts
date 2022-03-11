@@ -39,7 +39,6 @@ import { SomeJSONSchema } from "ajv/dist/types/json-schema";
 import { ThingInteraction } from "@node-wot/td-tools";
 import ThingModelHelpers from "./thing-model-helpers";
 
-
 const tdSchema = TDSchema;
 // RegExps take from https://github.com/ajv-validator/ajv-formats/blob/master/src/formats.ts
 const ajv = new Ajv({ strict: false })
