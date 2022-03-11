@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 Contributors to the Eclipse Foundation
+ * Copyright (c) 2021 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -937,6 +937,10 @@ export default class HttpServer implements ProtocolServer {
                                 res.setTimeout(60 * 60 * 1000, () =>
                                     thing.handleUnsubscribeEvent(segments[3], listener, options)
                                 );
+                            } else if (req.method === "HEAD") {
+                                // HEAD support for long polling subscription
+                                res.writeHead(202);
+                                res.end();
                             } else {
                                 respondUnallowedMethod(res, "GET");
                             }

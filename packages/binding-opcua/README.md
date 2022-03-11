@@ -1,6 +1,10 @@
-# OPC UA Client Protocol Binding
+# OPC UA Client Protocol Binding of node-wot
 
-W3C Web of Things (WoT) Protocol Binding for OPC UA
+W3C Web of Things (WoT) Protocol Binding for [OPC UA](https://en.wikipedia.org/wiki/OPC_Unified_Architecture).
+
+## Protocol specifier
+
+The protocol prefix handled by this binding is `opc.tcp://`.
 
 ## Getting Started
 
@@ -76,3 +80,7 @@ A basic OPC UA server crawler and a basic OPC UA -> TD translator can be found [
 -   [ ] Subscriptions implementation (EVENTS) with Sub/Pub protocol
 -   [x] TEST
 -   [ ] (OPC UA Server Protocol Binding ?)
+
+## More Details
+
+See <https://github.com/eclipse/thingweb.node-wot/>

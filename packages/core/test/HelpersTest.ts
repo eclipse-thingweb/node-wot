@@ -66,12 +66,12 @@ class HelperTest {
         expect(validated.errors).to.be.undefined;
     }
 
-    @test "should reject ThingModel schema on validation"() {
+    @test "should reject ThingModel with extends on validation"() {
         const thing: ExposedThingInit = {
             title: "thingTest",
             links: [
                 {
-                    rel: "tm:extend",
+                    rel: "tm:extends",
                 },
             ],
             properties: {
@@ -85,6 +85,31 @@ class HelperTest {
         const validated = Helpers.validateExposedThingInit(thing);
 
         expect(thing).to.exist;
+        expect(validated.valid).to.be.false;
+    }
+
+    @test "should reject ThingModel with tm:refs on validation"() {
+        const thing: ExposedThingInit = {
+            title: "thingTest",
+            properties: {
+                myProp: {
+                    "tm:ref": "http://example.com/thingTest.tm.jsonld#/properties/myProp",
+                    type: "number",
+                },
+            },
+        };
+
+        let validated = Helpers.validateExposedThingInit(thing);
+        expect(validated.valid).to.be.false;
+
+        thing.properties = {};
+        thing.actions = { myAction: { "tm:ref": "http://example.com/thingTest.tm.jsonld#/actions/myAction" } };
+        validated = Helpers.validateExposedThingInit(thing);
+        expect(validated.valid).to.be.false;
+
+        thing.actions = {};
+        thing.events = { myEvent: { "tm:ref": "http://example.com/thingTest.tm.jsonld#/actions/myAction" } };
+        validated = Helpers.validateExposedThingInit(thing);
         expect(validated.valid).to.be.false;
     }
 }

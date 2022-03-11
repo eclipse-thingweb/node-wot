@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
+ * Copyright (c) 2022 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -13,18 +13,23 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-console.log = () => {};
-console.debug = () => {};
+console.log = () => {
+    /* empty */
+};
+console.debug = () => {
+    /* empty */
+};
 async function testPropertyRead(thing, name) {
     try {
-        let res = await thing.readProperty(name);
-        console.info("PASS " + name + " READ:", res);
+        const res = await thing.readProperty(name);
+        const value = await res.value();
+        console.info("PASS " + name + " READ:", value);
     } catch (err) {
         console.error("FAIL " + name + " READ:", err.message);
     }
 }
 async function testPropertyWrite(thing, name, value, shouldFail) {
-    let displayValue = JSON.stringify(value);
+    const displayValue = JSON.stringify(value);
     try {
         await thing.writeProperty(name, value);
         if (!shouldFail) console.info("PASS " + name + " WRITE (" + displayValue + ")");
@@ -38,7 +43,7 @@ WoTHelpers.fetch("http://localhost:8080/testthing")
     .then(async (td) => {
         // using await for serial execution (note 'async' in then() of fetch())
         try {
-            let thing = await WoT.consume(td);
+            const thing = await WoT.consume(td);
             console.info("=== TD ===");
             console.info(td);
             console.info("==========");
@@ -71,7 +76,7 @@ WoTHelpers.fetch("http://localhost:8080/testthing")
             console.info("========== object");
             await testPropertyRead(thing, "object");
             await testPropertyWrite(thing, "object", { id: 23, name: "illuminated" }, false);
-            await testPropertyWrite(thing, "object", null, false);
+            await testPropertyWrite(thing, "object", null, true);
             await testPropertyWrite(thing, "object", [24, "dark"], true);
         } catch (err) {
             console.error("Script error:", err);

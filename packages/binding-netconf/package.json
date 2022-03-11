@@ -42,7 +42,7 @@
         "@types/url-parse": "^1.4.3",
         "case-1.5.3": "npm:case@^1.5.3",
         "node-netconf": "^1.1.1",
-        "url-parse": "^1.5.3"
+        "url-parse": "^1.5.8"
     },
     "scripts": {
         "build": "tsc -b",

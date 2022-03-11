@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 Contributors to the Eclipse Foundation
+ * Copyright (c) 2022 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -25,7 +25,6 @@
  * ```
  */
 
-import { URL } from "url";
 import * as os from "os";
 
 // imports for fetchTD
@@ -38,6 +37,8 @@ import TDSchema from "wot-thing-description-types/schema/td-json-schema-validati
 import { DataSchemaValue, ExposedThingInit } from "wot-typescript-definitions";
 import { SomeJSONSchema } from "ajv/dist/types/json-schema";
 import { ThingInteraction } from "@node-wot/td-tools";
+import ThingModelHelpers from "./thing-model-helpers";
+
 
 const tdSchema = TDSchema;
 // RegExps take from https://github.com/ajv-validator/ajv-formats/blob/master/src/formats.ts
@@ -229,41 +230,11 @@ export default class Helpers {
         return tdSchemaCopy;
     }
 
-    private static isThingModelThingDescription(data: Record<string, unknown>): boolean {
-        if (this.containsThingModelRef(data)) {
-            return true;
-        }
-
-        if (data.links !== undefined && Array.isArray(data.links)) {
-            let foundTmExtendsRel = false;
-            data.links.forEach((link) => {
-                if (link.rel !== undefined && link.rel === "tm:extends") foundTmExtendsRel = true;
-            });
-            if (foundTmExtendsRel) return true;
-        }
-
-        if (data.properties !== undefined) {
-            for (const prop in <Record<string, unknown>>data.properties) {
-                const properties = <Record<string, Record<string, unknown>>>data.properties;
-                if (this.isThingModelThingDescription(properties[prop])) return true;
-            }
-        }
-
-        return false;
-    }
-
-    private static containsThingModelRef(data: Record<string, unknown>): boolean {
-        for (const key in data) {
-            if (key === "tm:ref") return true;
-        }
-        return false;
-    }
-
     /**
      * Helper function to validate an ExposedThingInit
      */
     public static validateExposedThingInit(data: ExposedThingInit): { valid: boolean; errors: string } {
-        if (data["@type"] === "tm:ThingModel" || this.isThingModelThingDescription(data)) {
+        if (data["@type"] === "tm:ThingModel" || ThingModelHelpers.isThingModel(data)) {
             return {
                 valid: false,
                 errors: "ThingModel declaration is not supported",

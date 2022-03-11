@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2020 Contributors to the Eclipse Foundation
+ * Copyright (c) 2022 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -27,30 +27,32 @@ WoTHelpers.fetch("http://127.0.0.1:8080/smart-coffee-machine").then(async (td) =
         log("Thing Description:", td);
 
         // Read property allAvailableResources
-        let allAvailableResources = await thing.readProperty("allAvailableResources");
+        let allAvailableResources = await (await thing.readProperty("allAvailableResources")).value();
         log("allAvailableResources value is:", allAvailableResources);
 
         // Now let's change water level to 80
         await thing.writeProperty("availableResourceLevel", 80, { uriVariables: { id: "water" } });
 
         // And see that the water level has changed
-        const waterLevel = await thing.readProperty("availableResourceLevel", { uriVariables: { id: "water" } });
+        const waterLevel = await (
+            await thing.readProperty("availableResourceLevel", { uriVariables: { id: "water" } })
+        ).value();
         log("waterLevel value after change is:", waterLevel);
 
         // This can also be seen in allAvailableResources property
-        allAvailableResources = await thing.readProperty("allAvailableResources");
+        allAvailableResources = await (await thing.readProperty("allAvailableResources")).value();
         log("allAvailableResources value after change is:", allAvailableResources);
 
         // It's also possible to set a client-side handler for observable properties
-        thing.observeProperty("maintenanceNeeded", (data) => {
-            log("maintenanceNeeded property has changed! New value is:", data);
+        thing.observeProperty("maintenanceNeeded", async (data) => {
+            log("maintenanceNeeded property has changed! New value is:", await data.value());
         });
 
         // Now let's make 3 cups of latte!
         const makeCoffee = await thing.invokeAction("makeDrink", undefined, {
             uriVariables: { drinkId: "latte", size: "l", quantity: 3 },
         });
-        const makeCoffeep: any = await Helpers.parseInteractionOutput(makeCoffee);
+        const makeCoffeep = (await makeCoffee.value()) as Record<string, unknown>;
         if (makeCoffeep.result) {
             log("Enjoy your drink!", makeCoffeep);
         } else {
@@ -58,7 +60,7 @@ WoTHelpers.fetch("http://127.0.0.1:8080/smart-coffee-machine").then(async (td) =
         }
 
         // See how allAvailableResources property value has changed
-        allAvailableResources = await thing.readProperty("allAvailableResources");
+        allAvailableResources = await (await thing.readProperty("allAvailableResources")).value();
         log("allAvailableResources value is:", allAvailableResources);
 
         // Let's add a scheduled task
@@ -69,18 +71,18 @@ WoTHelpers.fetch("http://127.0.0.1:8080/smart-coffee-machine").then(async (td) =
             time: "10:00",
             mode: "everyday",
         });
-        const scheduledTaskp: any = await Helpers.parseInteractionOutput(scheduledTask);
+        const scheduledTaskp = (await scheduledTask.value()) as Record<string, string>;
         log(scheduledTaskp.message, scheduledTaskp);
 
         // See how it has been added to the schedules property
-        const schedules = await thing.readProperty("schedules");
+        const schedules = await (await thing.readProperty("schedules")).value();
         log("schedules value: ", schedules);
 
         // Let's set up a handler for outOfResource event
-        thing.subscribeEvent("outOfResource", (data) => {
+        thing.subscribeEvent("outOfResource", async (data) => {
             // Here we are simply logging the message when the event is emitted
             // But, of course, could have a much more sophisticated handler
-            log("outOfResource event:", data);
+            log("outOfResource event:", await data.value());
         });
     } catch (err) {
         console.error("Script error:", err);
@@ -88,7 +90,7 @@ WoTHelpers.fetch("http://127.0.0.1:8080/smart-coffee-machine").then(async (td) =
 });
 
 // Print data and an accompanying message in a distinguishable way
-function log(msg: string, data: any) {
+function log(msg: string, data: unknown) {
     console.info("======================");
     console.info(msg);
     console.dir(data);

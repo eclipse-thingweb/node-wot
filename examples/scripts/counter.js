@@ -121,6 +121,7 @@ WoT.produce({
     events: {
         change: {
             description: "change event",
+            data: { type: "integer" },
             descriptions: {
                 en: "change event",
                 de: "Änderungsnachricht",

@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2020 Contributors to the Eclipse Foundation
+ * Copyright (c) 2021 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -225,23 +225,25 @@ export default class ProtocolHelpers {
         return result;
     }
 
-    public static toNodeStream(stream: ReadableStream | PolyfillStream | IManagedStream): Readable {
+    public static toNodeStream(stream: ReadableStream | PolyfillStream | IManagedStream | Readable): Readable {
         if (isManaged(stream)) {
             return stream.nodeStream;
         }
 
+        if (stream instanceof Readable) {
+            return stream;
+        }
+
+        const reader = stream.getReader();
         const result = new ManagedReadable({
             read: (size) => {
-                stream
-                    .getReader()
-                    .read()
-                    .then((data) => {
-                        result.push(data.value);
-                        if (data.done) {
-                            // signal end
-                            result.push(null);
-                        }
-                    });
+                reader.read().then((data) => {
+                    result.push(data.value);
+                    if (data.done) {
+                        // signal end
+                        result.push(null);
+                    }
+                });
             },
             destroy: (error, callback) => {
                 stream.cancel(error);

@@ -1,6 +1,10 @@
-# M-Bus Client Protocol Binding
+# M-Bus Client Protocol Binding of node-wot
 
-W3C Web of Things (WoT) Protocol Binding for Meter Bus TCP. This package uses [node-mbus](https://www.npmjs.com/package/node-mbus) as a low level client for M-Bus TCP. This implementation only supports reading data.
+## Overview
+
+W3C Web of Things (WoT) Protocol Binding for [Meter Bus](https://en.wikipedia.org/wiki/Meter-Bus) TCP.
+This package uses [node-mbus](https://www.npmjs.com/package/node-mbus) as a low level client for M-Bus TCP.
+This implementation only supports reading data (for WoT Consumer applications).
 
 ## Protocol specifier
 
@@ -8,13 +12,15 @@ The protocol prefix handled by this binding is `mbus+tcp:`. This is currently a 
 
 ## Disclaimer
 
-This binding is currently experimental. Some errors might occur with the use of this binding. The code was tested in a specific situation which might not correspond to your own using.
+This binding is currently experimental. Some errors might occur with the use of this binding.
+The code was tested in a specific situation which might not correspond to your own using.
 
 ## Getting Started
 
 ### Run the Example App
 
-The Binding example in the `./examples` directory provides a TD (`mbus-thing.json`) and an app script (`mbus-example.js`) . To execute the script use the pre-configure servient inside `./examples/servients` folder, as following:
+The Binding example in the `./examples` directory provides a TD (`mbus-thing.json`) and an app script (`mbus-example.js`).
+To execute the script use the pre-configure servient inside `./examples/servients` folder, as following:
 
 ```bash
 # first init the node package
@@ -83,7 +89,7 @@ Here's an example of a payload from a request on `offset=0` :
 
 The protocol does not support security.
 
-# Implementation notes
+## Implementation notes
 
 This implementation handles multiple requests to the same slave by combining them if possible. In the following, the terms **request** and **transaction** are used as follows to describe this:
 
@@ -119,3 +125,7 @@ Reads the data with the id of 1 of the unit 2
 
 -   [ ] TEST
 -   [ ] (M-Bus Server Protocol Binding)
+
+## More Details
+
+See <https://github.com/eclipse/thingweb.node-wot/>

@@ -22,12 +22,17 @@
         "wot-typescript-definitions": "0.8.0-SNAPSHOT.21"
     },
     "scripts": {
-        "build": "browserify -r vm:vm2 index.js --plugin tinyify --external coffee-script -o dist/wot-bundle.min.js",
+        "build": "browserify -r vm:vm2 index.js --external coffee-script -o dist/wot-bundle.min.js",
         "format": "prettier --write index.js \"**/*.json\""
     },
     "bugs": {
         "url": "https://github.com/eclipse/thingweb.node-wot/issues"
     },
     "homepage": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/browser-bundle#readme",
-    "keywords": []
+    "keywords": [],
+    "dependencies": {
+        "inherits": "^2.0.3",
+        "resolve": "^1.1.7",
+        "events": "^2.1.0"
+    }
 }
