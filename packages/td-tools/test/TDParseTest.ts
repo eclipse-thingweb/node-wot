@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 Contributors to the Eclipse Foundation
+ * Copyright (c) 2022 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -20,7 +20,12 @@
 import { suite, test } from "@testdeck/mocha";
 import { expect, should, assert } from "chai";
 
-import Thing, { DEFAULT_CONTEXT, DEFAULT_THING_TYPE, DEFAULT_CONTEXT_LANGUAGE } from "../src/thing-description";
+import Thing, {
+    DEFAULT_CONTEXT_V1,
+    DEFAULT_CONTEXT_V11,
+    DEFAULT_THING_TYPE,
+    DEFAULT_CONTEXT_LANGUAGE,
+} from "../src/thing-description";
 import * as TDParser from "../src/td-parser";
 // should must be called to augment all variables
 should();
@@ -232,6 +237,36 @@ const tdSimple1 = `{
       }}
 }`;
 
+const tdSimple11 = `{
+  "@context": "https://www.w3.org/2022/wot/td/v1.1",
+  "id": "urn:dev:wot:com:example:servient:lamp",
+  "title": "MyLampThing",
+  "properties": {
+      "status": {
+        "readOnly": true,
+       "observable": false,
+       "type": "string",
+       "forms": [{
+           "href": "coaps://mylamp.example.com:5683/status",
+           "contentType": "application/json"
+       }]
+  }},
+  "actions": {
+   "toggle": {
+      "forms": [{
+          "href": "coaps://mylamp.example.com:5683/toggle",
+          "contentType": "application/json"
+      }]}},
+  "events": {
+      "overheating": {
+          "type": "string",
+          "forms": [{
+              "href": "coaps://mylamp.example.com:5683/oh",
+              "contentType": "application/json"
+          }]
+      }}
+}`;
+
 /** Broken TDs */
 const tdBroken1 = `{
   "@context": "https://www.w3.org/2019/wot/td/v1",
@@ -326,9 +361,10 @@ class TDParserTest {
 
         console.dir(thing);
 
-        expect(thing).to.have.property("@context").that.has.length(2);
-        expect(thing["@context"][0]).to.equal(DEFAULT_CONTEXT);
-        expect(thing["@context"][1]).to.have.property("@language").that.equals(DEFAULT_CONTEXT_LANGUAGE);
+        expect(thing).to.have.property("@context").that.has.length(3);
+        expect(thing["@context"][0]).to.equal(DEFAULT_CONTEXT_V1);
+        expect(thing["@context"][1]).to.equal(DEFAULT_CONTEXT_V11);
+        expect(thing["@context"][2]).to.have.property("@language").that.equals(DEFAULT_CONTEXT_LANGUAGE);
         expect(thing).to.have.property("@type").that.equals(DEFAULT_THING_TYPE);
     }
 
@@ -345,7 +381,7 @@ class TDParserTest {
         console.dir(thing);
 
         expect(thing).to.have.property("@context").that.has.length(3);
-        expect(thing["@context"][0]).to.equal(DEFAULT_CONTEXT);
+        expect(thing["@context"][0]).to.equal(DEFAULT_CONTEXT_V1);
         expect(thing["@context"][1]).to.have.property("iot").that.equals("http://example.org/iot");
         expect(thing["@context"][2]).to.have.property("@language").that.equals("de");
         expect(thing).to.have.property("@type").that.equals(DEFAULT_THING_TYPE);
@@ -357,10 +393,11 @@ class TDParserTest {
 
         console.dir(thing);
 
-        expect(thing).to.have.property("@context").that.has.length(3);
-        expect(thing["@context"][0]).to.equal("http://iot.schema.org/");
-        expect(thing["@context"][1]).to.equal(DEFAULT_CONTEXT);
-        expect(thing["@context"][2]).to.have.property("@language").that.equals(DEFAULT_CONTEXT_LANGUAGE);
+        expect(thing).to.have.property("@context").that.has.length(4);
+        expect(thing["@context"][0]).to.equal(DEFAULT_CONTEXT_V1);
+        expect(thing["@context"][1]).to.equal(DEFAULT_CONTEXT_V11);
+        expect(thing["@context"][2]).to.equal("http://iot.schema.org/");
+        expect(thing["@context"][3]).to.have.property("@language").that.equals(DEFAULT_CONTEXT_LANGUAGE);
 
         expect(thing).to.have.property("@type").that.has.length(2);
         expect(thing["@type"][0]).to.equal(DEFAULT_THING_TYPE);
@@ -373,14 +410,52 @@ class TDParserTest {
 
         console.dir(thing);
 
-        expect(thing).to.have.property("@context").that.has.length(3);
-        expect(thing["@context"][0]).to.equal("http://iot.schema.org/");
-        expect(thing["@context"][1]).to.equal(DEFAULT_CONTEXT);
-        expect(thing["@context"][2]).to.have.property("@language").that.equals(DEFAULT_CONTEXT_LANGUAGE);
+        expect(thing).to.have.property("@context").that.has.length(4);
+        expect(thing["@context"][0]).to.equal(DEFAULT_CONTEXT_V1);
+        expect(thing["@context"][1]).to.equal(DEFAULT_CONTEXT_V11);
+        expect(thing["@context"][2]).to.equal("http://iot.schema.org/");
+        expect(thing["@context"][3]).to.have.property("@language").that.equals(DEFAULT_CONTEXT_LANGUAGE);
 
         expect(thing).to.have.property("@type").that.has.length(2);
         expect(thing["@type"][0]).to.equal(DEFAULT_THING_TYPE);
         expect(thing["@type"][1]).to.equal("iot:Sensor");
+    }
+
+    @test "should move default context v1 to be first item in array"() {
+        const testTD = `{ "title": "OtherContext", "@context": ["http://iot.schema.org/", "https://www.w3.org/2019/wot/td/v1"], "@type": ["iot:Sensor"] }`;
+        const thing: Thing = TDParser.parseTD(testTD);
+
+        console.dir(thing);
+
+        expect(thing).to.have.property("@context").that.has.length(3);
+        expect(thing["@context"][0]).to.equal(DEFAULT_CONTEXT_V1);
+        expect(thing["@context"][1]).to.equal("http://iot.schema.org/");
+        expect(thing["@context"][2]).to.have.property("@language").that.equals(DEFAULT_CONTEXT_LANGUAGE);
+    }
+
+    @test "should move default context v1.1 to be first item in array"() {
+        const testTD = `{ "title": "OtherContext", "@context": ["http://iot.schema.org/", "https://www.w3.org/2022/wot/td/v1.1"], "@type": ["iot:Sensor"] }`;
+        const thing: Thing = TDParser.parseTD(testTD);
+
+        console.dir(thing);
+
+        expect(thing).to.have.property("@context").that.has.length(3);
+        expect(thing["@context"][0]).to.equal(DEFAULT_CONTEXT_V11);
+        expect(thing["@context"][1]).to.equal("http://iot.schema.org/");
+        expect(thing["@context"][2]).to.have.property("@language").that.equals(DEFAULT_CONTEXT_LANGUAGE);
+    }
+
+    @test "should move both default contexts to be first items in array"() {
+        const testTD = `{ "title": "OtherContext", "@context": ["http://iot.schema.org/", "https://www.w3.org/2022/wot/td/v1.1", "https://www.w3.org/2019/wot/td/v1"], "@type": ["iot:Sensor"] }`;
+        const thing: Thing = TDParser.parseTD(testTD);
+
+        console.dir(thing);
+
+        expect(thing).to.have.property("@context").that.has.length(4);
+        expect(thing["@context"][0]).to.equal(DEFAULT_CONTEXT_V1);
+        expect(thing["@context"][1]).to.equal(DEFAULT_CONTEXT_V11);
+        expect(thing["@context"][2]).to.equal("http://iot.schema.org/");
+        expect(thing["@context"][3]).to.have.property("@language").that.equals(DEFAULT_CONTEXT_LANGUAGE);
     }
 
     @test "should add context to object"() {
@@ -389,18 +464,20 @@ class TDParserTest {
 
         console.dir(thing);
 
-        expect(thing).to.have.property("@context").that.has.length(3);
-        expect(thing["@context"][0]).to.have.property("iot");
-        expect(thing["@context"][1]).to.equal(DEFAULT_CONTEXT);
-        expect(thing["@context"][2]).to.have.property("@language").that.equals(DEFAULT_CONTEXT_LANGUAGE);
+        expect(thing).to.have.property("@context").that.has.length(4);
+        expect(thing["@context"][0]).to.equal(DEFAULT_CONTEXT_V1);
+        expect(thing["@context"][1]).to.equal(DEFAULT_CONTEXT_V11);
+        expect(thing["@context"][2]).to.have.property("iot");
+        expect(thing["@context"][3]).to.have.property("@language").that.equals(DEFAULT_CONTEXT_LANGUAGE);
     }
 
     @test "should parse the example from spec"() {
         const thing: Thing = TDParser.parseTD(tdSample1);
 
-        expect(thing).to.have.property("@context").that.has.length(2);
-        expect(thing["@context"][0]).to.equal(DEFAULT_CONTEXT);
-        expect(thing["@context"][1]).to.have.property("@language").that.equals(DEFAULT_CONTEXT_LANGUAGE);
+        expect(thing).to.have.property("@context").that.has.length(3);
+        expect(thing["@context"][0]).to.equal(DEFAULT_CONTEXT_V1);
+        expect(thing["@context"][1]).to.equal(DEFAULT_CONTEXT_V11);
+        expect(thing["@context"][2]).to.have.property("@language").that.equals(DEFAULT_CONTEXT_LANGUAGE);
         expect(thing).to.have.property("@type").that.equals("Thing");
         expect(thing).to.have.property("title").that.equals("MyTemperatureThing");
         expect(thing).to.not.have.property("base");
@@ -419,7 +496,7 @@ class TDParserTest {
     @test "should parse writable Property"() {
         const thing: Thing = TDParser.parseTD(tdSample2);
 
-        expect(thing).to.have.property("@context").that.contains(DEFAULT_CONTEXT);
+        expect(thing).to.have.property("@context").that.contains(DEFAULT_CONTEXT_V1);
         expect(thing).to.have.property("@type").that.has.lengthOf(1);
         expect(thing).to.have.property("@type").that.contains("Thing");
         expect(thing).to.have.property("title").that.equals("MyTemperatureThing2");
@@ -440,7 +517,7 @@ class TDParserTest {
         const thing: Thing = TDParser.parseTD(tdSample3);
 
         expect(thing).to.have.property("@context").that.has.lengthOf(2);
-        expect(thing).to.have.property("@context").contains(DEFAULT_CONTEXT);
+        expect(thing).to.have.property("@context").contains(DEFAULT_CONTEXT_V1);
         expect(thing["@context"][1]).to.have.property("@language").that.equals(DEFAULT_CONTEXT_LANGUAGE);
         expect(thing).to.have.property("title").that.equals("MyTemperatureThing3");
         expect(thing).to.have.property("base").that.equals("coap://mytemp.example.com:5683/interactions/");
@@ -511,7 +588,7 @@ class TDParserTest {
         const thing: Thing = TDParser.parseTD(tdSampleMetadata1);
 
         expect(thing).to.have.property("@context").that.has.lengthOf(2);
-        expect(thing).to.have.property("@context").contains(DEFAULT_CONTEXT);
+        expect(thing).to.have.property("@context").contains(DEFAULT_CONTEXT_V1);
         expect(thing["@context"][1]).to.have.property("@language").that.equals(DEFAULT_CONTEXT_LANGUAGE);
         expect(thing).to.have.property("title").that.equals("MyTemperatureThing3");
         expect(thing).to.have.property("base").that.equals("coap://mytemp.example.com:5683/interactions/");
@@ -564,7 +641,26 @@ class TDParserTest {
         const thing: Thing = TDParser.parseTD(tdSimple1);
 
         // simple elements
-        expect(thing).to.have.property("@context").that.equals(DEFAULT_CONTEXT);
+        expect(thing).to.have.property("@context").that.equals(DEFAULT_CONTEXT_V1);
+        expect(thing.id).equals("urn:dev:wot:com:example:servient:lamp");
+        expect(thing.title).equals("MyLampThing");
+
+        // interaction arrays
+        expect(thing).to.have.property("properties");
+        expect(thing).to.have.property("actions");
+        expect(thing).to.have.property("events");
+
+        // console.debug(td["@context"]);
+        expect(thing.properties).to.have.property("status");
+        expect(thing.properties.status.readOnly).equals(true);
+        expect(thing.properties.status.observable).equals(false);
+    }
+
+    @test "simplified TD 1.1"() {
+        const thing: Thing = TDParser.parseTD(tdSimple11);
+
+        // simple elements
+        expect(thing).to.have.property("@context").that.equals(DEFAULT_CONTEXT_V11);
         expect(thing.id).equals("urn:dev:wot:com:example:servient:lamp");
         expect(thing.title).equals("MyLampThing");
 
@@ -645,7 +741,7 @@ class TDParserTest {
         const thing: Thing = TDParser.parseTD(tdTest);
 
         // simple elements
-        expect(thing).to.have.property("@context").that.equals(DEFAULT_CONTEXT);
+        expect(thing).to.have.property("@context").that.equals(DEFAULT_CONTEXT_V1);
         expect(thing.id).equals("urn:dev:wot:com:example:servient:urivarables");
         expect(thing.title).equals("UriVarables");
 
@@ -702,7 +798,7 @@ class TDParserTest {
         const thing: Thing = TDParser.parseTD(tdTest);
 
         // simple elements
-        expect(thing).to.have.property("@context").that.equals(DEFAULT_CONTEXT);
+        expect(thing).to.have.property("@context").that.equals(DEFAULT_CONTEXT_V1);
         expect(thing.id).equals("urn:dev:wot:com:example:servient:urivarables");
         expect(thing.title).equals("UriVarables");
 

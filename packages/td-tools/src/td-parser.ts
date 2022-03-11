@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2021 Contributors to the Eclipse Foundation
+ * Copyright (c) 2022 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -30,16 +30,49 @@ export function parseTD(td: string, normalize?: boolean): Thing {
     // apply defaults as per WoT Thing Description spec
 
     if (thing["@context"] === undefined) {
-        thing["@context"] = [TD.DEFAULT_CONTEXT];
+        thing["@context"] = [TD.DEFAULT_CONTEXT_V1, TD.DEFAULT_CONTEXT_V11];
     } else if (Array.isArray(thing["@context"])) {
-        const semContext: Array<string> = thing["@context"];
-        if (semContext.indexOf(TD.DEFAULT_CONTEXT) === -1) {
-            // insert last
-            semContext.push(TD.DEFAULT_CONTEXT);
+        let semContext: Array<string> = thing["@context"];
+        const indexV1 = semContext.indexOf(TD.DEFAULT_CONTEXT_V1);
+        const indexV11 = semContext.indexOf(TD.DEFAULT_CONTEXT_V11);
+        if (indexV1 === -1 && indexV11 === -1) {
+            // insert default contexts as first entries
+            semContext.unshift(TD.DEFAULT_CONTEXT_V11);
+            semContext.unshift(TD.DEFAULT_CONTEXT_V1);
+        } else {
+            if (indexV1 !== -1 && indexV11 !== -1) {
+                // both default contexts are present (V1 & V11)
+                // -> remove both and add them to the top of the array
+                semContext = semContext.filter(function (e) {
+                    return e !== TD.DEFAULT_CONTEXT_V1;
+                });
+                semContext = semContext.filter(function (e) {
+                    return e !== TD.DEFAULT_CONTEXT_V11;
+                });
+                semContext.unshift(TD.DEFAULT_CONTEXT_V11);
+                semContext.unshift(TD.DEFAULT_CONTEXT_V1);
+            } else {
+                if (indexV1 !== -1 && indexV1 !== 0) {
+                    // V1 present
+                    semContext = semContext.filter(function (e) {
+                        return e !== TD.DEFAULT_CONTEXT_V1;
+                    });
+                    semContext.unshift(TD.DEFAULT_CONTEXT_V1);
+                }
+                if (indexV11 !== -1 && indexV11 !== 0) {
+                    // V11 present
+                    semContext = semContext.filter(function (e) {
+                        return e !== TD.DEFAULT_CONTEXT_V11;
+                    });
+                    semContext.unshift(TD.DEFAULT_CONTEXT_V11);
+                }
+            }
+            thing["@context"] = semContext;
         }
-    } else if (thing["@context"] !== TD.DEFAULT_CONTEXT) {
+    } else if (thing["@context"] !== TD.DEFAULT_CONTEXT_V1 && thing["@context"] !== TD.DEFAULT_CONTEXT_V11) {
         const semContext = thing["@context"];
-        thing["@context"] = [semContext, TD.DEFAULT_CONTEXT];
+        // insert default contexts as first entries
+        thing["@context"] = [TD.DEFAULT_CONTEXT_V1, TD.DEFAULT_CONTEXT_V11, semContext];
     }
     // add @language : "en" if no @language set
     addDefaultLanguage(thing);

@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2021 Contributors to the Eclipse Foundation
+ * Copyright (c) 2022 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -19,7 +19,8 @@
 // global W3C WoT Scripting API definitions
 import * as WoT from "wot-typescript-definitions";
 
-export const DEFAULT_CONTEXT = "https://www.w3.org/2019/wot/td/v1";
+export const DEFAULT_CONTEXT_V1 = "https://www.w3.org/2019/wot/td/v1";
+export const DEFAULT_CONTEXT_V11 = "https://www.w3.org/2022/wot/td/v1.1";
 export const DEFAULT_CONTEXT_LANGUAGE = "en";
 export const DEFAULT_THING_TYPE = "Thing";
 
@@ -66,7 +67,7 @@ export default class Thing {
     [key: string]: any;
 
     constructor() {
-        this["@context"] = DEFAULT_CONTEXT;
+        this["@context"] = [DEFAULT_CONTEXT_V1, DEFAULT_CONTEXT_V11];
         this["@type"] = DEFAULT_THING_TYPE;
         this.security = [];
         this.properties = {};
