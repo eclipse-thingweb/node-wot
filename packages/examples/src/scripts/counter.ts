@@ -39,7 +39,7 @@ WoT.produce({
         it: "Contatore Esempio",
     },
     support: "git://github.com/eclipse/thingweb.node-wot.git",
-    "@context": ["https://www.w3.org/2019/wot/td/v1", { iot: "http://example.org/iot" }],
+    "@context": [{ iot: "http://example.org/iot" }],
     properties: {
         count: {
             type: "integer",
