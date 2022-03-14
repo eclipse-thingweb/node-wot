@@ -113,7 +113,7 @@ function showInteractions(thing) {
                     eventSubscriptions[evnt] = true;
                     thing
                         .subscribeEvent(evnt, async function (data) {
-                            console.log("Data:" + (await data.value()));
+                            console.log('Event "' + evnt + '"');
                             updateProperties();
                         })
                         .then((sub) => {
