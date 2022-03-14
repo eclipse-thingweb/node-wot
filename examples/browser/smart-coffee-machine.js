@@ -34,9 +34,11 @@ function get_td(addr) {
 
 function showProperties(thing) {
     let td = thing.getThingDescription();
+    let row = 0;
     for (let property in td.properties) {
         if (td.properties.hasOwnProperty(property)) {
-            thing.readProperty(property).then((value) => {
+            thing.readProperty(property).then(async (iOutput) => {
+                const value = await iOutput.value();
                 const el = document.getElementById(property);
                 if (!el) {
                     // Create a property record if not found
@@ -47,7 +49,11 @@ function showProperties(thing) {
                         null,
                         2
                     )}</pre></td>`;
+                    if (row % 2 !== 0) {
+                        tr.style.background = "#FFFAF0";
+                    }
                     tbody.appendChild(tr);
+                    row++;
                 } else {
                     // Otherwise just update its value
                     el.innerHTML = `<pre>${JSON.stringify(value, null, 2)}</pre>`;
