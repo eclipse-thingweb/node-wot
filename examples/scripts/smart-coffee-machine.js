@@ -25,7 +25,6 @@ WoT.produce({
     description: `A smart coffee machine with a range of capabilities.
 A complementary tutorial is available at http://www.thingweb.io/smart-coffee-machine.html.`,
     support: "git://github.com/eclipse/thingweb.node-wot.git",
-    "@context": ["https://www.w3.org/2019/wot/td/v1"],
     properties: {
         allAvailableResources: {
             type: "object",

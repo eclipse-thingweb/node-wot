@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2021 Contributors to the Eclipse Foundation
+ * Copyright (c) 2022 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -32,7 +32,6 @@ WoT.produce({
     title: "countdown",
     description: "Countdown example Thing",
     support: "git://github.com/eclipse/thingweb.node-wot.git",
-    "@context": ["https://www.w3.org/2019/wot/td/v1", { iot: "http://example.org/iot" }],
     properties: {
         countdowns: {
             type: "array",
