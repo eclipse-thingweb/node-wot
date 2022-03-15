@@ -90,6 +90,7 @@ cs.addCodec(new MyCodec("application/myType"));
 All systems require:
 
 -   [NodeJS](https://nodejs.org/) version 12+
+-   [npm](https://www.npmjs.com/) version 7+
 
 #### Linux
 
