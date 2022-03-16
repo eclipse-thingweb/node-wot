@@ -315,4 +315,53 @@ export default class Helpers {
 
         return true;
     }
+
+    /**
+     * Parse URL query parameters and validate them against both locally and globally-declared uriVariables
+     * @param url request url
+     * @param globalUriVariables thing-level uriVariables
+     * @param uriVariables interaction-level uriVariables
+     * @returns merged and validated uriVariables
+     */
+    static parseUrlParameters(
+        url: string,
+        globalUriVariables: { [key: string]: TD.DataSchema },
+        uriVariables: { [key: string]: TD.DataSchema }
+    ): Record<string, unknown> {
+        const params: Record<string, unknown> = {};
+        if (url == null || (!uriVariables && !globalUriVariables)) {
+            return params;
+        }
+
+        const queryparams = url.split("?")[1];
+        if (queryparams == null) {
+            return params;
+        }
+        const queries = queryparams.indexOf("&") !== -1 ? queryparams.split("&") : [queryparams];
+
+        queries.forEach((indexQuery: string) => {
+            const indexPair = indexQuery.split("=");
+
+            const queryKey: string = decodeURIComponent(indexPair[0]);
+            const queryValue: string = decodeURIComponent(indexPair.length > 1 ? indexPair[1] : "");
+
+            if (uriVariables && uriVariables[queryKey]) {
+                if (uriVariables[queryKey].type === "integer" || uriVariables[queryKey].type === "number") {
+                    // *cast* it to number
+                    params[queryKey] = +queryValue;
+                } else {
+                    params[queryKey] = queryValue;
+                }
+            } else if (globalUriVariables && globalUriVariables[queryKey]) {
+                if (globalUriVariables[queryKey].type === "integer" || globalUriVariables[queryKey].type === "number") {
+                    // *cast* it to number
+                    params[queryKey] = +queryValue;
+                } else {
+                    params[queryKey] = queryValue;
+                }
+            }
+        });
+
+        return params;
+    }
 }
