@@ -17,7 +17,7 @@ import { ServerTCP } from "modbus-serial";
 
 export default class ModbusServer {
     serverTCP: ServerTCP;
-    registers: Array<number> = [];
+    registers: Array<number | boolean> = [];
     killers: Array<() => void> = [];
     constructor(unitID: number) {
         const vector = {
@@ -35,7 +35,7 @@ export default class ModbusServer {
             getCoil: (addr: number, unitID: number) => {
                 if (addr === 4444) {
                     // promise sleeps for 100 second. Useful for testing long running requests.
-                    return new Promise<number>((resolve) => {
+                    return new Promise<number | boolean>((resolve) => {
                         const timeout = setTimeout(() => {
                             resolve(this.registers[addr]);
                         }, 100000);
@@ -56,7 +56,7 @@ export default class ModbusServer {
             },
 
             setCoil: (addr: number, value: boolean, unitID: number) => {
-                this.registers[addr] = value as any;
+                this.registers[addr] = value;
             },
         };
         this.serverTCP = new ServerTCP(vector, { host: "127.0.0.1", port: 8502, debug: true, unitID: unitID });
