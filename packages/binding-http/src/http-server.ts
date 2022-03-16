@@ -493,7 +493,7 @@ export default class HttpServer implements ProtocolServer {
         uriVariables: { [key: string]: TD.DataSchema }
     ): Record<string, unknown> {
         const params: Record<string, unknown> = {};
-        if (url == null || !uriVariables) {
+        if (url == null || (!uriVariables && !globalUriVariables)) {
             return params;
         }
 
@@ -501,7 +501,7 @@ export default class HttpServer implements ProtocolServer {
         if (queryparams == null) {
             return params;
         }
-        const queries = queryparams.split("&");
+        const queries = queryparams.indexOf("&") !== -1 ? queryparams.split("&") : [queryparams];
 
         queries.forEach((indexQuery: string) => {
             const indexPair = indexQuery.split("=");
@@ -509,14 +509,14 @@ export default class HttpServer implements ProtocolServer {
             const queryKey: string = decodeURIComponent(indexPair[0]);
             const queryValue: string = decodeURIComponent(indexPair.length > 1 ? indexPair[1] : "");
 
-            if (uriVariables[queryKey]) {
+            if (uriVariables && uriVariables[queryKey]) {
                 if (uriVariables[queryKey].type === "integer" || uriVariables[queryKey].type === "number") {
                     // *cast* it to number
                     params[queryKey] = +queryValue;
                 } else {
                     params[queryKey] = queryValue;
                 }
-            } else if (globalUriVariables[queryKey]) {
+            } else if (globalUriVariables && globalUriVariables[queryKey]) {
                 if (globalUriVariables[queryKey].type === "integer" || globalUriVariables[queryKey].type === "number") {
                     // *cast* it to number
                     params[queryKey] = +queryValue;
