@@ -34,7 +34,9 @@ export class ModbusConnection {
     connecting: boolean;
     connected: boolean;
     timer: NodeJS.Timer; // connection idle timer
+    // eslint-disable-next-line no-use-before-define
     currentTransaction: ModbusTransaction; // transaction currently in progress or null
+    // eslint-disable-next-line no-use-before-define
     queue: Array<ModbusTransaction>; // queue of further transactions
     config: {
         connectionTimeout?: number;
@@ -255,8 +257,8 @@ export class ModbusConnection {
                 // write multiple coils
                 const coils = new Array<boolean>();
                 transaction.content.forEach((v) => coils.push(v !== 0));
-                const coilsResult: any = await this.client.writeCoils(transaction.base, coils);
-                if (coilsResult.address !== transaction.base && coilsResult.quantity !== transaction.quantity) {
+                const coilsResult = await this.client.writeCoils(transaction.base, coils);
+                if (coilsResult.address !== transaction.base && coilsResult.length !== transaction.quantity) {
                     throw new Error(`writing ${coils} to ${transaction.base} failed`);
                 }
                 break;
@@ -281,11 +283,11 @@ export class ModbusConnection {
                     values.push(transaction.content.readUInt16BE(i));
                     i++;
                 }
-                const registers: any = await this.client.writeRegisters(transaction.base, values);
+                const registers = await this.client.writeRegisters(transaction.base, values);
 
-                if (registers.address === transaction.base && transaction.quantity / 2 > registers.quantity) {
+                if (registers.address === transaction.base && transaction.quantity / 2 > registers.length) {
                     console.warn(
-                        `short write to registers ${transaction.base} + ${transaction.quantity}, wrote ${values} to ${registers.address} + ${registers.quantity} `
+                        `short write to registers ${transaction.base} + ${transaction.quantity}, wrote ${values} to ${registers.address} + ${registers.length} `
                     );
                 } else if (registers.address !== transaction.base) {
                     throw new Error(
@@ -338,6 +340,7 @@ class ModbusTransaction {
     base: number;
     quantity: number;
     content?: Buffer;
+    // eslint-disable-next-line no-use-before-define
     operations: Array<PropertyOperation>; // operations to be completed when this transaction completes
     endianness: ModbusEndianness;
     constructor(
