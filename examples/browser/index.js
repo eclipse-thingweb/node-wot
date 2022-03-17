@@ -41,7 +41,7 @@ function showInteractions(thing) {
             item.onclick = (click) => {
                 thing
                     .readProperty(property)
-                    .then((res) => window.alert(property + ": " + res))
+                    .then(async (res) => window.alert(property + ": " + (await res.value())))
                     .catch((err) => window.alert("error: " + err));
             };
         }
@@ -76,16 +76,29 @@ function showInteractions(thing) {
 
             checkbox.onclick = (click) => {
                 if (document.getElementById(evnt).checked && !eventSubscriptions[evnt]) {
-                    eventSubscriptions[evnt] = thing.events[evnt].subscribe(
-                        (response) => {
-                            window.alert("Event " + evnt + " detected\nMessage: " + response);
-                        },
-                        (error) => {
+                    console.log("Try subscribing for event: " + evnt);
+                    thing
+                        .subscribeEvent(evnt, async function (data) {
+                            window.alert("Event " + evnt + " detected");
+                        })
+                        .then((sub) => {
+                            eventSubscriptions[evnt] = sub;
+                            console.log("Subscribed for event: " + evnt);
+                        })
+                        .catch((error) => {
                             window.alert("Event " + evnt + " error\nMessage: " + error);
-                        }
-                    );
+                        });
                 } else if (!document.getElementById(evnt).checked && eventSubscriptions[evnt]) {
-                    eventSubscriptions[evnt].unsubscribe();
+                    console.log("Try to unsubscribing for event: " + evnt);
+                    eventSubscriptions[evnt]
+                        .stop()
+                        .then(() => {
+                            console.log("Unsubscribed for event: " + evnt);
+                            eventSubscriptions[evnt] = undefined;
+                        })
+                        .catch((error) => {
+                            window.alert("Event " + evnt + " error\nMessage: " + error);
+                        });
                 }
             };
         }
@@ -126,12 +139,12 @@ function showSchemaEditor(action, thing) {
     placeholder.appendChild(button);
 
     button.onclick = () => {
-        let input = editor ? editor.getValue() : "";
+        let input = editor ? editor.getValue() : undefined;
         thing
             .invokeAction(action, input)
-            .then((res) => {
-                if (res) {
-                    window.alert("Success! Received response: " + res);
+            .then(async (res) => {
+                if (typeof res === "object" && res.schema) {
+                    window.alert("Success! Received response: " + (await res.value()));
                 } else {
                     window.alert("Executed successfully.");
                 }
