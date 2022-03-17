@@ -445,4 +445,54 @@ class HttpServerTest {
         console.log(`Found URL ${expectedUrl} in TD`);
         await httpServer.stop();
     }
+
+    @test async "should take in account global uriVariables"() {
+        const httpServer = new HttpServer({ port: 0 });
+
+        await httpServer.start(null);
+
+        const testThing = new ExposedThing(null, {
+            title: "Test",
+            uriVariables: {
+                globalVarTest: {
+                    type: "string",
+                    enum: ["test1", "test2", "test3"],
+                    description: "test",
+                },
+                id: {
+                    type: "string",
+                    enum: ["test1", "test2", "test3"],
+                },
+            },
+            properties: {
+                test: {
+                    type: "string",
+                    uriVariables: {
+                        id: {
+                            type: "string",
+                        },
+                    },
+                },
+            },
+        });
+        let test: DataSchemaValue;
+        testThing.setPropertyReadHandler("test", (options) => {
+            expect(options.uriVariables).to.deep.equal({ id: "testId", globalVarTest: "test1" });
+            return new Promise<InteractionInput>((resolve, reject) => {
+                resolve(test);
+            });
+        });
+        testThing.properties.test.forms = [];
+
+        await httpServer.expose(testThing);
+
+        const uri = `http://localhost:${httpServer.getPort()}/test/`;
+
+        const resp = await (
+            await fetch(uri + "properties/test?id=testId&globalVarTest=test1", { method: "GET" })
+        ).text();
+        expect(resp).to.equal("");
+
+        return httpServer.stop();
+    }
 }

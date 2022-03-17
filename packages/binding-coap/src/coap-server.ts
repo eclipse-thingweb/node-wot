@@ -247,7 +247,11 @@ export default class CoapServer implements ProtocolServer {
         }
 
         // route request
-        const segments = decodeURI(requestUri).split("/");
+        let parsedRequestUri = requestUri;
+        if (parsedRequestUri.indexOf("?") !== -1) {
+            parsedRequestUri = parsedRequestUri.substring(0, parsedRequestUri.indexOf("?"));
+        }
+        const segments = decodeURI(parsedRequestUri).split("/");
 
         if (segments[1] === "") {
             // no path -> list all Things
@@ -308,6 +312,14 @@ export default class CoapServer implements ProtocolServer {
                                             contentType
                                         ),
                                     };
+                                    const uriVariables = Helpers.parseUrlParameters(
+                                        req.url,
+                                        thing.uriVariables,
+                                        property.uriVariables
+                                    );
+                                    if (!this.isEmpty(uriVariables)) {
+                                        options.uriVariables = uriVariables;
+                                    }
                                     const content = await thing.handleReadProperty(segments[3], options);
                                     res.setOption("Content-Format", content.type);
                                     res.code = "2.05";
@@ -416,9 +428,13 @@ export default class CoapServer implements ProtocolServer {
                                     contentType
                                 ),
                             };
-                            if (!this.isEmpty(action.uriVariables)) {
-                                // TODO: build uriVariable object from the req.url
-                                options.uriVariables = {};
+                            const uriVariables = Helpers.parseUrlParameters(
+                                req.url,
+                                thing.uriVariables,
+                                action.uriVariables
+                            );
+                            if (!this.isEmpty(uriVariables)) {
+                                options.uriVariables = uriVariables;
                             }
                             try {
                                 const output = await thing.handleInvokeAction(
@@ -481,12 +497,14 @@ export default class CoapServer implements ProtocolServer {
                                         contentType
                                     ),
                                 };
-
-                                if (!this.isEmpty(event.uriVariables)) {
-                                    // TODO: build uriVariable object from the req.url
-                                    options.uriVariables = {};
+                                const uriVariables = Helpers.parseUrlParameters(
+                                    req.url,
+                                    thing.uriVariables,
+                                    event.uriVariables
+                                );
+                                if (!this.isEmpty(uriVariables)) {
+                                    options.uriVariables = uriVariables;
                                 }
-
                                 const listener = async (value: Content) => {
                                     try {
                                         // send event data

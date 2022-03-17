@@ -36,6 +36,7 @@ import Ajv, { ValidateFunction, ErrorObject } from "ajv";
 import TDSchema from "wot-thing-description-types/schema/td-json-schema-validation.json";
 import { DataSchemaValue, ExposedThingInit } from "wot-typescript-definitions";
 import { SomeJSONSchema } from "ajv/dist/types/json-schema";
+import { ThingInteraction } from "@node-wot/td-tools";
 import ThingModelHelpers from "./thing-model-helpers";
 
 const tdSchema = TDSchema;
@@ -247,5 +248,120 @@ export default class Helpers {
             valid: isValid,
             errors: errors,
         };
+    }
+
+    /**
+     * Merge Thing-level's uriVariables to Interaction-level ones.
+     * If a uriVariable is already defined at the Interaction-level, ignore its value at Thing-level.
+     * @throws if InteractionOptions contains illegal uriVariables
+     * @param options interaction options
+     * @returns resulting InteractionOptions
+     */
+    public static parseInteractionOptions(
+        thing: TD.Thing,
+        ti: ThingInteraction,
+        options?: WoT.InteractionOptions
+    ): WoT.InteractionOptions {
+        if (!this.validateInteractionOptions(thing, ti, options)) {
+            throw new Error(
+                `CoreHelpers one or more uriVariables were not found under neither '${ti.title}' Thing Interaction nor '${thing.title}' Thing`
+            );
+        }
+
+        const interactionUriVariables = ti.uriVariables ?? {};
+        const thingUriVariables = thing.uriVariables ?? {};
+        const uriVariables: { [key: string]: unknown } = {};
+
+        if (options?.uriVariables) {
+            const entryVariables = Object.entries(options.uriVariables);
+            entryVariables.forEach((entry: [string, unknown]) => {
+                if (entry[0] in interactionUriVariables) {
+                    uriVariables[entry[0]] = entry[1];
+                }
+            });
+        } else {
+            options = { uriVariables: {} };
+        }
+
+        for (const varKey in thingUriVariables) {
+            const varValue = thingUriVariables[varKey];
+
+            if (!(varKey in uriVariables) && "default" in varValue) {
+                uriVariables[varKey] = varValue.default;
+            }
+        }
+
+        options.uriVariables = uriVariables;
+        return options;
+    }
+
+    public static validateInteractionOptions(
+        thing: TD.Thing,
+        ti: ThingInteraction,
+        options?: WoT.InteractionOptions
+    ): boolean {
+        const interactionUriVariables = ti.uriVariables ?? {};
+        const thingUriVariables = thing.uriVariables ?? {};
+
+        if (options?.uriVariables) {
+            const entryVariables = Object.entries(options.uriVariables);
+            for (let i = 0; i < entryVariables.length; i++) {
+                const entryVariable: [string, unknown] = entryVariables[i];
+                if (!(entryVariable[0] in interactionUriVariables) && !(entryVariable[0] in thingUriVariables)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Parse URL query parameters and validate them against both locally and globally-declared uriVariables
+     * @param url request url
+     * @param globalUriVariables thing-level uriVariables
+     * @param uriVariables interaction-level uriVariables
+     * @returns merged and validated uriVariables
+     */
+    static parseUrlParameters(
+        url: string,
+        globalUriVariables: { [key: string]: TD.DataSchema },
+        uriVariables: { [key: string]: TD.DataSchema }
+    ): Record<string, unknown> {
+        const params: Record<string, unknown> = {};
+        if (url == null || (!uriVariables && !globalUriVariables)) {
+            return params;
+        }
+
+        const queryparams = url.split("?")[1];
+        if (queryparams == null) {
+            return params;
+        }
+        const queries = queryparams.indexOf("&") !== -1 ? queryparams.split("&") : [queryparams];
+
+        queries.forEach((indexQuery: string) => {
+            const indexPair = indexQuery.split("=");
+
+            const queryKey: string = decodeURIComponent(indexPair[0]);
+            const queryValue: string = decodeURIComponent(indexPair.length > 1 ? indexPair[1] : "");
+
+            if (uriVariables && uriVariables[queryKey]) {
+                if (uriVariables[queryKey].type === "integer" || uriVariables[queryKey].type === "number") {
+                    // *cast* it to number
+                    params[queryKey] = +queryValue;
+                } else {
+                    params[queryKey] = queryValue;
+                }
+            } else if (globalUriVariables && globalUriVariables[queryKey]) {
+                if (globalUriVariables[queryKey].type === "integer" || globalUriVariables[queryKey].type === "number") {
+                    // *cast* it to number
+                    params[queryKey] = +queryValue;
+                } else {
+                    params[queryKey] = queryValue;
+                }
+            }
+        });
+
+        return params;
     }
 }

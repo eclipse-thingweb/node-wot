@@ -21,7 +21,7 @@
  */
 
 import { suite, test } from "@testdeck/mocha";
-import { expect, should } from "chai";
+import { expect, should, use as chaiUse } from "chai";
 
 import { Subscription } from "rxjs/Subscription";
 
@@ -34,6 +34,10 @@ import Helpers from "../src/helpers";
 import { Readable } from "stream";
 import { ProtocolHelpers } from "../src/core";
 import { ThingDescription } from "wot-typescript-definitions";
+import chaiAsPromised from "chai-as-promised";
+
+chaiUse(chaiAsPromised);
+
 // should must be called to augment all variables
 should();
 class TDClient implements ProtocolClient {
@@ -218,11 +222,27 @@ const myThingDesc = {
     id: "urn:dev:wot:test-thing",
     title: "aThing",
     security: [{ scheme: "nosec" }],
+    uriVariables: {
+        idTestGlobal: {
+            type: "string",
+            default: "test2",
+        },
+    },
     properties: {
         aProperty: {
             type: "integer",
             readOnly: false,
-            forms: [{ href: "testdata://host/athing/properties/aproperty", mediaType: "application/json" }],
+            forms: [
+                {
+                    href: "testdata://host/athing/properties/aproperty{?idTest,idTestGlobal}",
+                    mediaType: "application/json",
+                },
+            ],
+            uriVariables: {
+                idTest: {
+                    type: "string",
+                },
+            },
         },
         aPropertyToObserve: {
             type: "integer",
@@ -642,5 +662,31 @@ class WoTClientTest {
         } catch (err) {
             done(err);
         }
+    }
+
+    @test async "take into account global uriVariables"() {
+        // let the client return 42
+        WoTClientTest.clientFactory.setTrap((form: Form) => {
+            expect(form.href).to.contain("idTest=test");
+            expect(form.href).to.contain("idTestGlobal=test2");
+            return { type: "application/json", body: Readable.from(Buffer.from("42")) };
+        });
+        const td = (await WoTClientTest.WoTHelpers.fetch("td://foo")) as ThingDescription;
+        const thing = await WoTClientTest.WoT.consume(td);
+
+        const result = await thing.readProperty("aProperty", { uriVariables: { idTest: "test" } });
+        // eslint-disable-next-line no-unused-expressions
+        expect(result).not.to.be.null;
+
+        const value = await result.value();
+        expect(value.toString()).to.equal("42");
+    }
+
+    @test async "give error on wrong uriVariable"() {
+        const td = (await WoTClientTest.WoTHelpers.fetch("td://foo")) as ThingDescription;
+        const thing = await WoTClientTest.WoT.consume(td);
+        expect(
+            thing.readProperty("aProperty", { uriVariables: { idTestWrong: "test" } })
+        ).to.eventually.be.rejectedWith(Error);
     }
 }

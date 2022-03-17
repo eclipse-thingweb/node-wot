@@ -487,37 +487,6 @@ export default class HttpServer implements ProtocolServer {
         }
     }
 
-    private parseUrlParameters(url: string, uriVariables: { [key: string]: TD.DataSchema }): Record<string, unknown> {
-        const params: Record<string, unknown> = {};
-        if (url == null || !uriVariables) {
-            return params;
-        }
-
-        const queryparams = url.split("?")[1];
-        if (queryparams == null) {
-            return params;
-        }
-        const queries = queryparams.split("&");
-
-        queries.forEach((indexQuery: string) => {
-            const indexPair = indexQuery.split("=");
-
-            const queryKey: string = decodeURIComponent(indexPair[0]);
-            const queryValue: string = decodeURIComponent(indexPair.length > 1 ? indexPair[1] : "");
-
-            if (uriVariables[queryKey]) {
-                if (uriVariables[queryKey].type === "integer" || uriVariables[queryKey].type === "number") {
-                    // *cast* it to number
-                    params[queryKey] = +queryValue;
-                } else {
-                    params[queryKey] = queryValue;
-                }
-            }
-        });
-
-        return params;
-    }
-
     private async handleRequest(req: http.IncomingMessage, res: http.ServerResponse) {
         // eslint-disable-next-line node/no-deprecated-api
         const requestUri = url.parse(req.url);
@@ -730,7 +699,11 @@ export default class HttpServer implements ProtocolServer {
                                         contentType
                                     ),
                                 };
-                                const uriVariables = this.parseUrlParameters(req.url, property.uriVariables);
+                                const uriVariables = Helpers.parseUrlParameters(
+                                    req.url,
+                                    thing.uriVariables,
+                                    property.uriVariables
+                                );
                                 if (!this.isEmpty(uriVariables)) {
                                     options.uriVariables = uriVariables;
                                 }
@@ -829,7 +802,11 @@ export default class HttpServer implements ProtocolServer {
                                         contentType
                                     ),
                                 };
-                                const uriVariables = this.parseUrlParameters(req.url, action.uriVariables);
+                                const uriVariables = Helpers.parseUrlParameters(
+                                    req.url,
+                                    thing.uriVariables,
+                                    action.uriVariables
+                                );
                                 if (!this.isEmpty(uriVariables)) {
                                     options.uriVariables = uriVariables;
                                 }
@@ -876,7 +853,11 @@ export default class HttpServer implements ProtocolServer {
                                         contentType
                                     ),
                                 };
-                                const uriVariables = this.parseUrlParameters(req.url, event.uriVariables);
+                                const uriVariables = Helpers.parseUrlParameters(
+                                    req.url,
+                                    thing.uriVariables,
+                                    event.uriVariables
+                                );
                                 if (!this.isEmpty(uriVariables)) {
                                     options.uriVariables = uriVariables;
                                 }
