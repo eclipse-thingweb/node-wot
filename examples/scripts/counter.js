@@ -18,7 +18,7 @@
 // It also has two properties that return an image. The SVG property is also influenced by the increment and decrement actions.
 // Features
 // * basic properties, actions, events
-// * uriVariables
+// * local/global uriVariables
 // * multi-language
 // * image contentTypes for properties (Note: the contentType applies to all forms of the property)
 let count;
@@ -42,6 +42,9 @@ WoT.produce({
         "https://www.w3.org/2022/wot/td/v1.1",
         { iot: "http://example.org/iot" },
     ],
+    uriVariables: {
+        step: { type: "integer", minimum: 1, maximum: 250 },
+    },
     properties: {
         count: {
             type: "integer",
@@ -98,9 +101,6 @@ WoT.produce({
                 de: "Zähler erhöhen",
                 it: "incrementare valore",
             },
-            uriVariables: {
-                step: { type: "integer", minimum: 1, maximum: 250 },
-            },
         },
         decrement: {
             description: "Decrementing counter value",
@@ -108,9 +108,6 @@ WoT.produce({
                 en: "Decrementing counter value",
                 de: "Zähler verringern",
                 it: "decrementare valore",
-            },
-            uriVariables: {
-                step: { type: "integer", minimum: 1, maximum: 250 },
             },
         },
         reset: {
