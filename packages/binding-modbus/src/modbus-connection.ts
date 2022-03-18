@@ -135,9 +135,7 @@ export class ModbusConnection {
     connecting: boolean;
     connected: boolean;
     timer: NodeJS.Timer; // connection idle timer
-    // eslint-disable-next-line no-use-before-define
     currentTransaction: ModbusTransaction; // transaction currently in progress or null
-    // eslint-disable-next-line no-use-before-define
     queue: Array<ModbusTransaction>; // queue of further transactions
     config: {
         connectionTimeout?: number;
