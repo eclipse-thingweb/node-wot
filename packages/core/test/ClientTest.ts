@@ -40,6 +40,91 @@ chaiUse(chaiAsPromised);
 
 // should must be called to augment all variables
 should();
+
+const myThingDesc = {
+    "@context": ["https://w3c.github.io/wot/w3c-wot-td-context.jsonld"],
+    "@type": ["Thing"],
+    id: "urn:dev:wot:test-thing",
+    title: "aThing",
+    security: [{ scheme: "nosec" }],
+    uriVariables: {
+        idTestGlobal: {
+            type: "string",
+            default: "test2",
+        },
+    },
+    properties: {
+        aProperty: {
+            type: "integer",
+            readOnly: false,
+            forms: [
+                {
+                    href: "testdata://host/athing/properties/aproperty{?idTest,idTestGlobal}",
+                    mediaType: "application/json",
+                },
+            ],
+            uriVariables: {
+                idTest: {
+                    type: "string",
+                },
+            },
+        },
+        aPropertyToObserve: {
+            type: "integer",
+            readOnly: false,
+            observable: true,
+            forms: [
+                {
+                    href: "testdata://host/athing/properties/apropertytoobserve",
+                    mediaType: "application/json",
+                    op: ["observeproperty", "unobserveproperty"],
+                },
+                {
+                    href: "testdata://host/athing/properties/apropertytoobserve1",
+                    contentType: "application/json",
+                    op: ["observeproperty"],
+                },
+                {
+                    href: "testdata://host/athing/properties/apropertytoobserve1",
+                    contentType: "application/json",
+                    op: ["unobserveproperty"],
+                },
+            ],
+        },
+    },
+    actions: {
+        anAction: {
+            input: { type: "integer" },
+            output: { type: "integer" },
+            forms: [{ href: "testdata://host/athing/actions/anaction", mediaType: "application/json" }],
+        },
+    },
+    events: {
+        anEvent: {
+            data: {
+                type: "string",
+            },
+            forms: [
+                {
+                    href: "testdata://host/athing/events/anevent",
+                    mediaType: "application/json",
+                    op: ["subscribeevent", "unsubscribeevent"],
+                },
+                {
+                    href: "testdata://host/athing/events/anevent",
+                    contentType: "application/json",
+                    op: ["subscribeevent"],
+                },
+                {
+                    href: "testdata://host/athing/events/anevent",
+                    contentType: "application/json",
+                    op: ["unsubscribeevent"],
+                },
+            ],
+        },
+    },
+};
+
 class TDClient implements ProtocolClient {
     public readResource(form: Form): Promise<Content> {
         // Note: this is not a "real" DataClient! Instead it just reports the same TD in any case
@@ -215,90 +300,6 @@ class TestProtocolClient implements ProtocolClient {
         return true;
     }
 }
-
-const myThingDesc = {
-    "@context": ["https://w3c.github.io/wot/w3c-wot-td-context.jsonld"],
-    "@type": ["Thing"],
-    id: "urn:dev:wot:test-thing",
-    title: "aThing",
-    security: [{ scheme: "nosec" }],
-    uriVariables: {
-        idTestGlobal: {
-            type: "string",
-            default: "test2",
-        },
-    },
-    properties: {
-        aProperty: {
-            type: "integer",
-            readOnly: false,
-            forms: [
-                {
-                    href: "testdata://host/athing/properties/aproperty{?idTest,idTestGlobal}",
-                    mediaType: "application/json",
-                },
-            ],
-            uriVariables: {
-                idTest: {
-                    type: "string",
-                },
-            },
-        },
-        aPropertyToObserve: {
-            type: "integer",
-            readOnly: false,
-            observable: true,
-            forms: [
-                {
-                    href: "testdata://host/athing/properties/apropertytoobserve",
-                    mediaType: "application/json",
-                    op: ["observeproperty", "unobserveproperty"],
-                },
-                {
-                    href: "testdata://host/athing/properties/apropertytoobserve1",
-                    contentType: "application/json",
-                    op: ["observeproperty"],
-                },
-                {
-                    href: "testdata://host/athing/properties/apropertytoobserve1",
-                    contentType: "application/json",
-                    op: ["unobserveproperty"],
-                },
-            ],
-        },
-    },
-    actions: {
-        anAction: {
-            input: { type: "integer" },
-            output: { type: "integer" },
-            forms: [{ href: "testdata://host/athing/actions/anaction", mediaType: "application/json" }],
-        },
-    },
-    events: {
-        anEvent: {
-            data: {
-                type: "string",
-            },
-            forms: [
-                {
-                    href: "testdata://host/athing/events/anevent",
-                    mediaType: "application/json",
-                    op: ["subscribeevent", "unsubscribeevent"],
-                },
-                {
-                    href: "testdata://host/athing/events/anevent",
-                    contentType: "application/json",
-                    op: ["subscribeevent"],
-                },
-                {
-                    href: "testdata://host/athing/events/anevent",
-                    contentType: "application/json",
-                    op: ["unsubscribeevent"],
-                },
-            ],
-        },
-    },
-};
 
 @suite("client flow of servient")
 class WoTClientTest {

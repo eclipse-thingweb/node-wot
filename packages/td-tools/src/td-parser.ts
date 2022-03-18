@@ -20,6 +20,26 @@ import isAbsoluteUrl = require("is-absolute-url");
 import URLToolkit = require("url-toolkit");
 
 /** Parses a TD into a Thing object */
+
+function addDefaultLanguage(thing: Thing) {
+    // add @language : "en" if no @language set
+    if (Array.isArray(thing["@context"])) {
+        const arrayContext: Array<string | Record<string, unknown>> = thing["@context"];
+        let languageSet = false;
+        for (const arrayEntry of arrayContext) {
+            if (typeof arrayEntry === "object") {
+                if (arrayEntry["@language"] !== undefined) {
+                    languageSet = true;
+                }
+            }
+        }
+        if (!languageSet) {
+            arrayContext.push({
+                "@language": TD.DEFAULT_CONTEXT_LANGUAGE,
+            });
+        }
+    }
+}
 export function parseTD(td: string, normalize?: boolean): Thing {
     console.debug("[td-tools/td-parser]", `parseTD() parsing\n\`\`\`\n${td}\n\`\`\``);
 
@@ -210,26 +230,6 @@ export function parseTD(td: string, normalize?: boolean): Thing {
     }
 
     return thing;
-}
-
-function addDefaultLanguage(thing: Thing) {
-    // add @language : "en" if no @language set
-    if (Array.isArray(thing["@context"])) {
-        const arrayContext: Array<string | Record<string, unknown>> = thing["@context"];
-        let languageSet = false;
-        for (const arrayEntry of arrayContext) {
-            if (typeof arrayEntry === "object") {
-                if (arrayEntry["@language"] !== undefined) {
-                    languageSet = true;
-                }
-            }
-        }
-        if (!languageSet) {
-            arrayContext.push({
-                "@language": TD.DEFAULT_CONTEXT_LANGUAGE,
-            });
-        }
-    }
 }
 
 /** Serializes a Thing object into a TD */

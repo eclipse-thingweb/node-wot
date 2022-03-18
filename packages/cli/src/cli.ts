@@ -251,7 +251,7 @@ Options:
   -ib, --inspect-brk[=[host:]port] activate inspector on host:port and break at start of user script
   -c,  --clientonly                do not start any servers
                                    (enables multiple instances without port conflicts)
-  -cp,  --compiler <module>        load module as a compiler 
+  -cp,  --compiler <module>        load module as a compiler
                                    (The module must export a create function which returns
                                     an object with a compile method)
   -f,  --configfile <file>         load configuration from specified file
@@ -307,8 +307,8 @@ wot-servient.conf.json fields:
   USERNAME        : string for providing a Basic Auth username
   PASSWORD        : string for providing a Basic Auth password
   ---------------------------------------------------------------------------
- 
-Environment variables must be provided in a .env file in the current working directory. 
+
+Environment variables must be provided in a .env file in the current working directory.
 
 Example:
 VAR1=Value1

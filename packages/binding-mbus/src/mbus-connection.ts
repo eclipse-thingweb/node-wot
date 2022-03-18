@@ -26,6 +26,30 @@ const configDefaults = {
 };
 
 /**
+ * MBusTransaction represents a raw M-Bus operation performed on a MBusConnection
+ */
+class MBusTransaction {
+    unitId: number;
+    base: number;
+    operations: Array<PropertyOperation>; // operations to be completed when this transaction completes
+    constructor(unitId: number, base: number) {
+        this.unitId = unitId;
+        this.base = base;
+        this.operations = new Array<PropertyOperation>();
+    }
+
+    /**
+     * Link PropertyOperation with this transaction, so that operations can be
+     * notified about the result of a transaction.
+     *
+     * @param op the PropertyOperation to link with this transaction
+     */
+    inform(op: PropertyOperation) {
+        this.operations.push(op);
+    }
+}
+
+/**
  * MBusConnection represents a client connected to a specific host and port
  */
 export class MBusConnection {
@@ -36,9 +60,7 @@ export class MBusConnection {
     connecting: boolean;
     connected: boolean;
     timer: NodeJS.Timer; // connection idle timer
-    // eslint-disable-next-line no-use-before-define
     currentTransaction: MBusTransaction; // transaction currently in progress or null
-    // eslint-disable-next-line no-use-before-define
     queue: Array<MBusTransaction>; // queue of further transactions
     config: {
         connectionTimeout?: number;
@@ -230,31 +252,6 @@ export class MBusConnection {
         });
         clearInterval(this.timer);
         this.timer = null;
-    }
-}
-
-/**
- * MBusTransaction represents a raw M-Bus operation performed on a MBusConnection
- */
-class MBusTransaction {
-    unitId: number;
-    base: number;
-    // eslint-disable-next-line no-use-before-define
-    operations: Array<PropertyOperation>; // operations to be completed when this transaction completes
-    constructor(unitId: number, base: number) {
-        this.unitId = unitId;
-        this.base = base;
-        this.operations = new Array<PropertyOperation>();
-    }
-
-    /**
-     * Link PropertyOperation with this transaction, so that operations can be
-     * notified about the result of a transaction.
-     *
-     * @param op the PropertyOperation to link with this transaction
-     */
-    inform(op: PropertyOperation) {
-        this.operations.push(op);
     }
 }
 

@@ -38,6 +38,181 @@ import {
     PropertyHandlers,
 } from "./protocol-interfaces";
 
+/**
+ * @deprecated
+ */
+class PropertyState {
+    public value: WoT.DataSchemaValue;
+    // public subject: Subject<Content>;
+    public scope: unknown;
+
+    public readHandler: WoT.PropertyReadHandler;
+    public writeHandler: WoT.PropertyWriteHandler;
+
+    listeners: WoT.WotListener[];
+
+    constructor(value: WoT.DataSchemaValue = null) {
+        this.value = value;
+        this.listeners = [];
+        // this.subject = new Subject<Content>();
+        this.scope = {};
+        this.writeHandler = null;
+        this.readHandler = null;
+    }
+}
+
+/**
+ * @deprecated
+ */
+class ExposedThingProperty extends TD.ThingProperty implements TD.ThingProperty, TD.BaseSchema {
+    // functions for wrapping internal state
+    getName: () => string;
+    getThing: () => ExposedThing;
+    getState: () => PropertyState;
+
+    constructor(name: string, thing: ExposedThing) {
+        super();
+
+        // wrap internal state into functions to not be stringified in TD
+        this.getName = () => {
+            return name;
+        };
+        this.getThing = () => {
+            return thing;
+        };
+        this.getState = new (class {
+            state: PropertyState = new PropertyState();
+            getInternalState = () => {
+                return this.state;
+            };
+        })().getInternalState;
+
+        // apply defaults
+        this.readOnly = false;
+        this.writeOnly = false;
+        this.observable = false;
+    }
+}
+
+/**
+ * @deprecated
+ */
+class ActionState {
+    public scope: unknown;
+    public handler: WoT.ActionHandler;
+
+    constructor() {
+        this.scope = {};
+        this.handler = null;
+    }
+}
+
+/**
+ * @deprecated
+ */
+class ExposedThingAction extends TD.ThingAction implements TD.ThingAction {
+    // functions for wrapping internal state
+    getName: () => string;
+    getThing: () => ExposedThing;
+    getState: () => ActionState;
+
+    constructor(name: string, thing: ExposedThing) {
+        super();
+
+        // wrap internal state into functions to not be stringified
+        this.getName = () => {
+            return name;
+        };
+        this.getThing = () => {
+            return thing;
+        };
+        this.getState = new (class {
+            state: ActionState = new ActionState();
+            getInternalState = () => {
+                return this.state;
+            };
+        })().getInternalState;
+    }
+}
+
+/**
+ * @deprecated
+ */
+class EventState {
+    // public subject: Subject<any>;
+    legacyListeners: WoT.WotListener[];
+    listeners: ContentListener[];
+    constructor(private event: WoT.ThingDescription["events"][0]) {
+        this.legacyListeners = [];
+        this.listeners = [];
+    }
+
+    public registerSubscription(formIndex: number, listener: ContentListener) {
+        this.listeners[formIndex] = listener;
+    }
+
+    public unRegisterSubscription(formIndex: number, listener: ContentListener) {
+        this.listeners[formIndex] = undefined;
+    }
+
+    public emit(input: WoT.InteractionInput, options?: WoT.InteractionOptions) {
+        const form = this.event.forms[options?.formIndex];
+
+        // send event to all listeners
+        if (form) {
+            if (this.listeners[options.formIndex]) {
+                const content = ContentSerdes.get().valueToContent(input, this.event, form?.contentType);
+                this.listeners[options.formIndex](content);
+            } else {
+                console.warn(
+                    "[core/exposed-thing]",
+                    `Event '${this.event.name}' has no listener for form '${options.formIndex}'`
+                );
+            }
+            return;
+        }
+        for (let formIndex = 0; formIndex < this.listeners.length; formIndex++) {
+            const listener = this.listeners[formIndex];
+            // this.listeners may not have all the elements filled
+            if (listener) {
+                const content = ContentSerdes.get().valueToContent(
+                    input,
+                    this.event,
+                    this.event.forms[formIndex].contentType
+                );
+                listener(content);
+            }
+        }
+    }
+}
+
+/**
+ * @deprecated
+ */
+class ExposedThingEvent extends TD.ThingEvent implements TD.ThingEvent {
+    // functions for wrapping internal state
+    getName: () => string;
+    getThing: () => ExposedThing;
+    getState: () => EventState;
+
+    constructor(name: string, thing: ExposedThing) {
+        super();
+
+        // wrap internal state into functions to not be stringified
+        this.getName = () => {
+            return name;
+        };
+        this.getThing = () => {
+            return thing;
+        };
+        this.getState = new (class {
+            state: EventState = new EventState(thing.events[name] as WoT.ThingDescription["events"][0]);
+            getInternalState = () => {
+                return this.state;
+            };
+        })().getInternalState;
+    }
+}
 export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     security: Array<string>;
     securityDefinitions: { [key: string]: TD.SecurityType };
@@ -1121,176 +1296,5 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             body = Readable.from(Buffer.from(input.toString(), "utf-8"));
         }
         return body;
-    }
-}
-/**
- * @deprecated
- */
-class PropertyState {
-    public value: WoT.DataSchemaValue;
-    // public subject: Subject<Content>;
-    public scope: unknown;
-
-    public readHandler: WoT.PropertyReadHandler;
-    public writeHandler: WoT.PropertyWriteHandler;
-
-    listeners: WoT.WotListener[];
-
-    constructor(value: WoT.DataSchemaValue = null) {
-        this.value = value;
-        this.listeners = [];
-        // this.subject = new Subject<Content>();
-        this.scope = {};
-        this.writeHandler = null;
-        this.readHandler = null;
-    }
-}
-/**
- * @deprecated
- */
-class ActionState {
-    public scope: unknown;
-    public handler: WoT.ActionHandler;
-
-    constructor() {
-        this.scope = {};
-        this.handler = null;
-    }
-}
-/**
- * @deprecated
- */
-class EventState {
-    // public subject: Subject<any>;
-    legacyListeners: WoT.WotListener[];
-    listeners: ContentListener[];
-    constructor(private event: WoT.ThingDescription["events"][0]) {
-        this.legacyListeners = [];
-        this.listeners = [];
-    }
-
-    public registerSubscription(formIndex: number, listener: ContentListener) {
-        this.listeners[formIndex] = listener;
-    }
-
-    public unRegisterSubscription(formIndex: number, listener: ContentListener) {
-        this.listeners[formIndex] = undefined;
-    }
-
-    public emit(input: WoT.InteractionInput, options?: WoT.InteractionOptions) {
-        const form = this.event.forms[options?.formIndex];
-
-        // send event to all listeners
-        if (form) {
-            if (this.listeners[options.formIndex]) {
-                const content = ContentSerdes.get().valueToContent(input, this.event, form?.contentType);
-                this.listeners[options.formIndex](content);
-            } else {
-                console.warn(
-                    "[core/exposed-thing]",
-                    `Event '${this.event.name}' has no listener for form '${options.formIndex}'`
-                );
-            }
-            return;
-        }
-        for (let formIndex = 0; formIndex < this.listeners.length; formIndex++) {
-            const listener = this.listeners[formIndex];
-            // this.listeners may not have all the elements filled
-            if (listener) {
-                const content = ContentSerdes.get().valueToContent(
-                    input,
-                    this.event,
-                    this.event.forms[formIndex].contentType
-                );
-                listener(content);
-            }
-        }
-    }
-}
-/**
- * @deprecated
- */
-class ExposedThingProperty extends TD.ThingProperty implements TD.ThingProperty, TD.BaseSchema {
-    // functions for wrapping internal state
-    getName: () => string;
-    getThing: () => ExposedThing;
-    getState: () => PropertyState;
-
-    constructor(name: string, thing: ExposedThing) {
-        super();
-
-        // wrap internal state into functions to not be stringified in TD
-        this.getName = () => {
-            return name;
-        };
-        this.getThing = () => {
-            return thing;
-        };
-        this.getState = new (class {
-            state: PropertyState = new PropertyState();
-            getInternalState = () => {
-                return this.state;
-            };
-        })().getInternalState;
-
-        // apply defaults
-        this.readOnly = false;
-        this.writeOnly = false;
-        this.observable = false;
-    }
-}
-/**
- * @deprecated
- */
-class ExposedThingAction extends TD.ThingAction implements TD.ThingAction {
-    // functions for wrapping internal state
-    getName: () => string;
-    getThing: () => ExposedThing;
-    getState: () => ActionState;
-
-    constructor(name: string, thing: ExposedThing) {
-        super();
-
-        // wrap internal state into functions to not be stringified
-        this.getName = () => {
-            return name;
-        };
-        this.getThing = () => {
-            return thing;
-        };
-        this.getState = new (class {
-            state: ActionState = new ActionState();
-            getInternalState = () => {
-                return this.state;
-            };
-        })().getInternalState;
-    }
-}
-
-/**
- * @deprecated
- */
-class ExposedThingEvent extends TD.ThingEvent implements TD.ThingEvent {
-    // functions for wrapping internal state
-    getName: () => string;
-    getThing: () => ExposedThing;
-    getState: () => EventState;
-
-    constructor(name: string, thing: ExposedThing) {
-        super();
-
-        // wrap internal state into functions to not be stringified
-        this.getName = () => {
-            return name;
-        };
-        this.getThing = () => {
-            return thing;
-        };
-        this.getState = new (class {
-            state: EventState = new EventState(thing.events[name] as WoT.ThingDescription["events"][0]);
-            getInternalState = () => {
-                return this.state;
-            };
-        })().getInternalState;
     }
 }

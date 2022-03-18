@@ -27,6 +27,10 @@ import { readFileSync } from "fs";
 import OAuthServer from "express-oauth-server";
 import bodyParser from "body-parser";
 
+function sleep(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 @suite("HTTP oauth client implementation")
 class HttpClientOAuthTest {
     private client: HttpClient;
@@ -152,8 +156,4 @@ class HttpClientOAuthTest {
         const body = await ProtocolHelpers.readStreamFully(resource.body);
         body.toString("ascii").should.eql("Ok!");
     }
-}
-
-function sleep(ms: number) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
 }

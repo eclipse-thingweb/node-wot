@@ -25,6 +25,107 @@ const configDefaults = {
 };
 
 /**
+ * ModbusTransaction represents a raw MODBUS operation performed on a ModbusConnection
+ */
+class ModbusTransaction {
+    connection: ModbusConnection;
+    unitId: number;
+    registerType: ModbusEntity;
+    function: ModbusFunction;
+    base: number;
+    quantity: number;
+    content?: Buffer;
+    operations: Array<PropertyOperation>; // operations to be completed when this transaction completes
+    endianness: ModbusEndianness;
+    constructor(
+        connection: ModbusConnection,
+        unitId: number,
+        registerType: ModbusEntity,
+        func: ModbusFunction,
+        base: number,
+        quantity: number,
+        endianness: ModbusEndianness,
+        content?: Buffer
+    ) {
+        this.connection = connection;
+        this.unitId = unitId;
+        this.registerType = registerType;
+        this.function = func;
+        this.base = base;
+        this.quantity = quantity;
+        this.content = content;
+        this.operations = new Array<PropertyOperation>();
+        this.endianness = endianness;
+    }
+
+    /**
+     * Link PropertyOperation with this transaction, so that operations can be
+     * notified about the result of a transaction.
+     *
+     * @param op the PropertyOperation to link with this transaction
+     */
+    inform(op: PropertyOperation) {
+        op.transaction = this;
+        this.operations.push(op);
+    }
+
+    /**
+     * Trigger work on the associated connection.
+     *
+     * @see ModbusConnection.trigger()
+     */
+    trigger() {
+        console.debug("[binding-modbus]", "ModbusTransaction:trigger");
+        this.connection.trigger();
+    }
+
+    /**
+     * Execute this ModbusTransaction and resolve/reject the invoking Promise as well
+     * as the Promises of all associated PropertyOperations.
+     *
+     * @param resolve
+     * @param reject
+     */
+    async execute(): Promise<void> {
+        if (!this.content) {
+            // Read transaction
+            console.debug("[binding-modbus]", "Trigger read operation on", this.base, "len", this.quantity);
+            try {
+                const result = await this.connection.readModbus(this);
+                if (
+                    this.endianness === ModbusEndianness.LITTLE_ENDIAN_BYTE_SWAP ||
+                    this.endianness === ModbusEndianness.LITTLE_ENDIAN
+                )
+                    result.buffer.reverse();
+                if (
+                    this.endianness === ModbusEndianness.LITTLE_ENDIAN_BYTE_SWAP ||
+                    this.endianness === ModbusEndianness.BIG_ENDIAN_BYTE_SWAP
+                )
+                    result.buffer.swap16();
+                console.debug("[binding-modbus]", "Got result from read operation on", this.base, "len", this.quantity);
+                this.operations.forEach((op) => op.done(this.base, result.buffer));
+            } catch (error) {
+                console.warn("[binding-modbus]", "read operation failed on", this.base, "len", this.quantity, error);
+                // inform all operations and the invoker
+                this.operations.forEach((op) => op.failed(error));
+                throw error;
+            }
+        } else {
+            console.debug("[binding-modbus]", "Trigger write operation on", this.base, "len", this.quantity);
+            try {
+                await this.connection.writeModbus(this);
+                this.operations.forEach((op) => op.done());
+            } catch (error) {
+                console.warn("[binding-modbus]", "write operation failed on", this.base, "len", this.quantity, error);
+                // inform all operations and the invoker
+                this.operations.forEach((op) => op.failed(error));
+                throw error;
+            }
+        }
+    }
+}
+
+/**
  * ModbusConnection represents a client connected to a specific host and port
  */
 export class ModbusConnection {
@@ -326,108 +427,6 @@ export class ModbusConnection {
         });
         clearInterval(this.timer);
         this.timer = null;
-    }
-}
-
-/**
- * ModbusTransaction represents a raw MODBUS operation performed on a ModbusConnection
- */
-class ModbusTransaction {
-    connection: ModbusConnection;
-    unitId: number;
-    registerType: ModbusEntity;
-    function: ModbusFunction;
-    base: number;
-    quantity: number;
-    content?: Buffer;
-    // eslint-disable-next-line no-use-before-define
-    operations: Array<PropertyOperation>; // operations to be completed when this transaction completes
-    endianness: ModbusEndianness;
-    constructor(
-        connection: ModbusConnection,
-        unitId: number,
-        registerType: ModbusEntity,
-        func: ModbusFunction,
-        base: number,
-        quantity: number,
-        endianness: ModbusEndianness,
-        content?: Buffer
-    ) {
-        this.connection = connection;
-        this.unitId = unitId;
-        this.registerType = registerType;
-        this.function = func;
-        this.base = base;
-        this.quantity = quantity;
-        this.content = content;
-        this.operations = new Array<PropertyOperation>();
-        this.endianness = endianness;
-    }
-
-    /**
-     * Link PropertyOperation with this transaction, so that operations can be
-     * notified about the result of a transaction.
-     *
-     * @param op the PropertyOperation to link with this transaction
-     */
-    inform(op: PropertyOperation) {
-        op.transaction = this;
-        this.operations.push(op);
-    }
-
-    /**
-     * Trigger work on the associated connection.
-     *
-     * @see ModbusConnection.trigger()
-     */
-    trigger() {
-        console.debug("[binding-modbus]", "ModbusTransaction:trigger");
-        this.connection.trigger();
-    }
-
-    /**
-     * Execute this ModbusTransaction and resolve/reject the invoking Promise as well
-     * as the Promises of all associated PropertyOperations.
-     *
-     * @param resolve
-     * @param reject
-     */
-    async execute(): Promise<void> {
-        if (!this.content) {
-            // Read transaction
-            console.debug("[binding-modbus]", "Trigger read operation on", this.base, "len", this.quantity);
-            try {
-                const result = await this.connection.readModbus(this);
-                if (
-                    this.endianness === ModbusEndianness.LITTLE_ENDIAN_BYTE_SWAP ||
-                    this.endianness === ModbusEndianness.LITTLE_ENDIAN
-                )
-                    result.buffer.reverse();
-                if (
-                    this.endianness === ModbusEndianness.LITTLE_ENDIAN_BYTE_SWAP ||
-                    this.endianness === ModbusEndianness.BIG_ENDIAN_BYTE_SWAP
-                )
-                    result.buffer.swap16();
-                console.debug("[binding-modbus]", "Got result from read operation on", this.base, "len", this.quantity);
-                this.operations.forEach((op) => op.done(this.base, result.buffer));
-            } catch (error) {
-                console.warn("[binding-modbus]", "read operation failed on", this.base, "len", this.quantity, error);
-                // inform all operations and the invoker
-                this.operations.forEach((op) => op.failed(error));
-                throw error;
-            }
-        } else {
-            console.debug("[binding-modbus]", "Trigger write operation on", this.base, "len", this.quantity);
-            try {
-                await this.connection.writeModbus(this);
-                this.operations.forEach((op) => op.done());
-            } catch (error) {
-                console.warn("[binding-modbus]", "write operation failed on", this.base, "len", this.quantity, error);
-                // inform all operations and the invoker
-                this.operations.forEach((op) => op.failed(error));
-                throw error;
-            }
-        }
     }
 }
 

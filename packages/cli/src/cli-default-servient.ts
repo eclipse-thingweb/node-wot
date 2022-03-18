@@ -25,6 +25,35 @@ import { CoapServer, CoapClientFactory, CoapsClientFactory } from "@node-wot/bin
 import { MqttBrokerServer, MqttClientFactory } from "@node-wot/binding-mqtt";
 import { FileClientFactory } from "@node-wot/binding-file";
 
+// Helper function needed for `mergeConfigs` function
+function isObject(item: unknown) {
+    return item && typeof item === "object" && !Array.isArray(item);
+}
+
+/**
+ * Helper function merging default parameters into a custom config file.
+ *
+ * @param {object} target - an object containing default config parameters
+ * @param {object} source - an object containing custom config parameters
+ *
+ * @return {object} The new config file containing both custom and default parameters
+ */
+function mergeConfigs(target: any, source: any): any {
+    const output = Object.assign({}, target);
+    Object.keys(source).forEach((key) => {
+        if (!(key in target)) {
+            Object.assign(output, { [key]: source[key] });
+        } else {
+            if (isObject(target[key]) && isObject(source[key])) {
+                output[key] = mergeConfigs(target[key], source[key]);
+            } else {
+                Object.assign(output, { [key]: source[key] });
+            }
+        }
+    });
+    return output;
+}
+
 export default class DefaultServient extends Servient {
     private static readonly defaultConfig = {
         servient: {
@@ -266,33 +295,4 @@ export default class DefaultServient extends Servient {
             this.logLevel = "info";
         }
     }
-}
-
-/**
- * Helper function merging default parameters into a custom config file.
- *
- * @param {object} target - an object containing default config parameters
- * @param {object} source - an object containing custom config parameters
- *
- * @return {object} The new config file containing both custom and default parameters
- */
-function mergeConfigs(target: any, source: any): any {
-    const output = Object.assign({}, target);
-    Object.keys(source).forEach((key) => {
-        if (!(key in target)) {
-            Object.assign(output, { [key]: source[key] });
-        } else {
-            if (isObject(target[key]) && isObject(source[key])) {
-                output[key] = mergeConfigs(target[key], source[key]);
-            } else {
-                Object.assign(output, { [key]: source[key] });
-            }
-        }
-    });
-    return output;
-}
-
-// Helper function needed for `mergeConfigs` function
-function isObject(item: unknown) {
-    return item && typeof item === "object" && !Array.isArray(item);
 }
