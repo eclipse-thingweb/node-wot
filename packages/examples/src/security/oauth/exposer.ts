@@ -35,7 +35,6 @@ const td = {
     },
 };
 try {
-    // @ts-ignore see https://github.com/w3c/wot-thing-description/issues/1162
     WoT.produce(td).then((thing) => {
         thing.setActionHandler("sayOk", async () => "Ok!");
         thing.expose();
