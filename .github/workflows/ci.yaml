@@ -54,7 +54,6 @@ jobs:
 
             - name: Lint
               run: npm run lint
-              continue-on-error: true
 
     version_consistency:
         name: Check version consistency of packages
