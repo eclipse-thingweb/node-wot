@@ -21,6 +21,14 @@ import { ThingDescription } from "wot-typescript-definitions";
 import { Helpers } from "@node-wot/core";
 let WoTHelpers: Helpers;
 
+// Print data and an accompanying message in a distinguishable way
+function log(msg: string, data: unknown) {
+    console.info("======================");
+    console.info(msg);
+    console.dir(data);
+    console.info("======================");
+}
+
 WoTHelpers.fetch("http://127.0.0.1:8080/smart-coffee-machine").then(async (td) => {
     try {
         const thing = await WoT.consume(td as ThingDescription);
@@ -88,11 +96,3 @@ WoTHelpers.fetch("http://127.0.0.1:8080/smart-coffee-machine").then(async (td) =
         console.error("Script error:", err);
     }
 });
-
-// Print data and an accompanying message in a distinguishable way
-function log(msg: string, data: unknown) {
-    console.info("======================");
-    console.info(msg);
-    console.dir(data);
-    console.info("======================");
-}

@@ -51,21 +51,30 @@ interface TokenInformation {
     client_id?: string;
 }
 
-export default function (method?: Method): EndpointValidator {
-    if (!method || !method?.name) {
-        throw new Error("Undefined oauth token validation method");
-    }
-
-    switch (method.name) {
-        case "introspection_endpoint":
-            return new EndpointValidator(method as IntrospectionEndpoint);
-        default:
-            throw new Error("Unsupported oauth token validation method " + method.name);
-    }
-}
-
 export abstract class Validator {
     abstract validate(tokenRequest: http.IncomingMessage, scopes: Array<string>, clients: RegExp): Promise<boolean>;
+}
+
+function extractTokenFromRequest(request: http.IncomingMessage) {
+    const headerToken = request.headers.authorization;
+    const url = new URL(request.url, `http://${request.headers.host}`);
+    const queryToken = url.searchParams.get("access_token");
+
+    if (!headerToken && !queryToken) {
+        throw new Error("Invalid request: only one authentication method is allowed");
+    }
+
+    if (queryToken) {
+        return queryToken;
+    }
+
+    const matches = headerToken.match(/Bearer\s(\S+)/);
+
+    if (!matches) {
+        throw new Error("Invalid request: malformed authorization header");
+    }
+
+    return matches[1];
 }
 
 export class EndpointValidator extends Validator {
@@ -141,24 +150,15 @@ export class EndpointValidator extends Validator {
     }
 }
 
-function extractTokenFromRequest(request: http.IncomingMessage) {
-    const headerToken = request.headers.authorization;
-    const url = new URL(request.url, `http://${request.headers.host}`);
-    const queryToken = url.searchParams.get("access_token");
-
-    if (!headerToken && !queryToken) {
-        throw new Error("Invalid request: only one authentication method is allowed");
+export default function (method?: Method): EndpointValidator {
+    if (!method || !method?.name) {
+        throw new Error("Undefined oauth token validation method");
     }
 
-    if (queryToken) {
-        return queryToken;
+    switch (method.name) {
+        case "introspection_endpoint":
+            return new EndpointValidator(method as IntrospectionEndpoint);
+        default:
+            throw new Error("Unsupported oauth token validation method " + method.name);
     }
-
-    const matches = headerToken.match(/Bearer\s(\S+)/);
-
-    if (!matches) {
-        throw new Error("Invalid request: malformed authorization header");
-    }
-
-    return matches[1];
 }

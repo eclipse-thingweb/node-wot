@@ -20,6 +20,33 @@ import ExposedThing from "./exposed-thing";
 import ConsumedThing from "./consumed-thing";
 import Helpers from "./helpers";
 
+export class ThingDiscoveryImpl implements WoT.ThingDiscovery {
+    filter?: WoT.ThingFilter;
+    active: boolean;
+    done: boolean;
+    error?: Error;
+    constructor(filter?: WoT.ThingFilter) {
+        this.filter = filter || null;
+        this.active = false;
+        this.done = false;
+        this.error = new Error("not implemented");
+    }
+
+    start(): void {
+        this.active = true;
+    }
+
+    next(): Promise<WoT.ThingDescription> {
+        return new Promise<WoT.ThingDescription>((resolve, reject) => {
+            reject(this.error); // not implemented
+        });
+    }
+
+    stop(): void {
+        this.active = false;
+        this.done = false;
+    }
+}
 export default class WoTImpl {
     private srv: Servient;
     DiscoveryMethod: typeof WoT.DiscoveryMethod;
@@ -89,34 +116,6 @@ export enum DiscoveryMethod {
     "directory",
     /** for discovering Things in the device's network by using a supported multicast protocol  */
     "multicast",
-}
-
-export class ThingDiscoveryImpl implements WoT.ThingDiscovery {
-    filter?: WoT.ThingFilter;
-    active: boolean;
-    done: boolean;
-    error?: Error;
-    constructor(filter?: WoT.ThingFilter) {
-        this.filter = filter || null;
-        this.active = false;
-        this.done = false;
-        this.error = new Error("not implemented");
-    }
-
-    start(): void {
-        this.active = true;
-    }
-
-    next(): Promise<WoT.ThingDescription> {
-        return new Promise<WoT.ThingDescription>((resolve, reject) => {
-            reject(this.error); // not implemented
-        });
-    }
-
-    stop(): void {
-        this.active = false;
-        this.done = false;
-    }
 }
 
 /** Instantiation of the WoT.DataType declaration */

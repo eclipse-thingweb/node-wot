@@ -23,6 +23,17 @@ let maintenanceNeeded: boolean;
 let schedules: unknown[];
 let servedCounter: number;
 
+function readFromSensor(sensorType: string): number {
+    // Actual implementation of reading data from a sensor can go here
+    // For the sake of example, let's just return a value
+    return 100;
+}
+
+function notify(subscribers: unknown, msg: string) {
+    // Actual implementation of notifying subscribers with a message can go here
+    console.log(msg);
+}
+
 WoT.produce({
     title: "Smart-Coffee-Machine",
     description: `A smart coffee machine with a range of capabilities.
@@ -409,14 +420,3 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
     .catch((e) => {
         console.log(e);
     });
-
-function readFromSensor(sensorType: string): number {
-    // Actual implementation of reading data from a sensor can go here
-    // For the sake of example, let's just return a value
-    return 100;
-}
-
-function notify(subscribers: unknown, msg: string) {
-    // Actual implementation of notifying subscribers with a message can go here
-    console.log(msg);
-}

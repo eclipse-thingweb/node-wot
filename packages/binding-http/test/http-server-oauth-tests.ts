@@ -19,6 +19,8 @@ import { IntrospectionEndpoint, EndpointValidator } from "../src/oauth-token-val
 import Servient, { ExposedThing } from "@node-wot/core";
 import fetch from "node-fetch";
 
+class MockServient extends Servient {}
+
 should();
 @suite("OAuth server token validation tests")
 class OAuthServerTests {
@@ -128,5 +130,3 @@ class OAuthServerTests {
         response.status.should.be.equal(401);
     }
 }
-
-class MockServient extends Servient {}

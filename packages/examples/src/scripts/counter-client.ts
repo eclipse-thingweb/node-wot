@@ -18,6 +18,17 @@ import { ThingDescription } from "wot-typescript-definitions";
 
 let WoTHelpers: Helpers;
 
+function getFormIndexForDecrementWithCoAP(thing: WoT.ConsumedThing): number {
+    const forms = thing.getThingDescription().actions.decrement.forms;
+    for (let i = 0; i < forms.length; i++) {
+        if (/^coaps?:\/\/.*/.test(forms[i].href)) {
+            return i;
+        }
+    }
+    // return formIndex: 0 if no CoAP target IRI found
+    return 0;
+}
+
 WoTHelpers.fetch("coap://localhost:5683/counter")
     .then(async (td) => {
         // using await for serial execution (note 'async' in then() of fetch())
@@ -54,14 +65,3 @@ WoTHelpers.fetch("coap://localhost:5683/counter")
     .catch((err) => {
         console.error("Fetch error:", err);
     });
-
-function getFormIndexForDecrementWithCoAP(thing: WoT.ConsumedThing): number {
-    const forms = thing.getThingDescription().actions.decrement.forms;
-    for (let i = 0; i < forms.length; i++) {
-        if (/^coaps?:\/\/.*/.test(forms[i].href)) {
-            return i;
-        }
-    }
-    // return formIndex: 0 if no CoAP target IRI found
-    return 0;
-}
