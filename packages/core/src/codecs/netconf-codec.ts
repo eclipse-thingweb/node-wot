@@ -70,7 +70,7 @@ export default class NetconfCodec implements ContentCodec {
         schema: DataSchema,
         payload: Record<string, unknown>,
         NSs: Record<string, unknown>,
-        hasNamespace: boolean
+        hasNamespace: boolean,
     ) {
         if (hasNamespace) {
             // expect to have xmlns
@@ -130,7 +130,7 @@ export default class NetconfCodec implements ContentCodec {
                     schema[key],
                     payload[key] as Record<string, unknown>,
                     NSs,
-                    tmpHasNamespace
+                    tmpHasNamespace,
                 );
                 payload[key] = tmpObj.payload;
                 NSs = { ...NSs, ...tmpObj.NSs };

@@ -211,13 +211,13 @@ export default class OctetstreamCodec implements ContentCodec {
                 if (signed) {
                     if (value < -limit || value >= limit) {
                         throw new Error(
-                            "Integer overflow when representing signed " + value + " in " + length + " byte(s)"
+                            "Integer overflow when representing signed " + value + " in " + length + " byte(s)",
                         );
                     }
                 } else {
                     if (value < 0 || value >= limit) {
                         throw new Error(
-                            "Integer overflow when representing unsigned " + value + " in " + length + " byte(s)"
+                            "Integer overflow when representing unsigned " + value + " in " + length + " byte(s)",
                         );
                     }
                 }

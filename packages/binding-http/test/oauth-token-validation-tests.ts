@@ -326,7 +326,7 @@ describe("OAuth2.0 Validator tests", () => {
                     key: fs.readFileSync("./test/server.key"),
                     cert: fs.readFileSync("./test/server.cert"),
                 },
-                introspectEndpoint
+                introspectEndpoint,
             );
             const serverStarted = new Promise<void>((resolve, reject) => {
                 server.listen(7778, resolve); // might need to check if there was an error

@@ -68,7 +68,7 @@ class HttpClientBasicTest {
                         key: readFileSync("./test/server.key"),
                         cert: readFileSync("./test/server.cert"),
                     },
-                    app
+                    app,
                 )
                 .listen(3001, "localhost", resolve);
         });

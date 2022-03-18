@@ -77,7 +77,7 @@ export class MBusConnection {
             operationTimeout?: number;
             connectionRetryTime?: number;
             maxRetries?: number;
-        } = configDefaults
+        } = configDefaults,
     ) {
         this.host = host;
         this.port = port;
@@ -139,7 +139,7 @@ export class MBusConnection {
                                 this.host,
                                 "reason",
                                 error,
-                                ` retry in ${this.config.connectionRetryTime}ms`
+                                ` retry in ${this.config.connectionRetryTime}ms`,
                             );
                     })
                 ) {
@@ -278,7 +278,7 @@ export class PropertyOperation {
             (resolve: (value?: Content | PromiseLike<Content>) => void, reject: (reason?: Error) => void) => {
                 this.resolve = resolve;
                 this.reject = reject;
-            }
+            },
         );
     }
 
@@ -292,7 +292,7 @@ export class PropertyOperation {
     done(
         base?: number,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
-        result?: any
+        result?: any,
     ): void {
         console.debug("[binding-mbus]", "Operation done");
 

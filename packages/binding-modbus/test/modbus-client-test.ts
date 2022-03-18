@@ -67,7 +67,7 @@ describe("Modbus client test", () => {
         client["validateAndFillDefaultForm"](form, 1)["modbus:function"].should.be.equal(5, "Wrong write Coil");
         client["validateAndFillDefaultForm"](form, 2)["modbus:function"].should.be.equal(
             15,
-            "Wrong write multiple Coil"
+            "Wrong write multiple Coil",
         );
         /* eslint-enable dot-notation */
     });
@@ -84,11 +84,11 @@ describe("Modbus client test", () => {
         client["validateAndFillDefaultForm"](form)["modbus:function"].should.be.equal(3, "Wrong read Holding register");
         client["validateAndFillDefaultForm"](form, 2)["modbus:function"].should.be.equal(
             6,
-            "Wrong write Holding register"
+            "Wrong write Holding register",
         );
         client["validateAndFillDefaultForm"](form, 4)["modbus:function"].should.be.equal(
             16,
-            "Wrong write multiple Holding register"
+            "Wrong write multiple Holding register",
         );
         /* eslint-enable dot-notation */
     });

@@ -253,7 +253,7 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
                 // (the notify function here simply logs a message to the console)
                 notify(
                     "admin@coffeeMachine.com",
-                    `maintenanceNeeded property has changed, new value is: ${servedCounter}`
+                    `maintenanceNeeded property has changed, new value is: ${servedCounter}`,
                 );
             }
         });

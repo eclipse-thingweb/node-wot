@@ -148,7 +148,7 @@ class TDClient implements ProtocolClient {
         form: Form,
         next: (value: Content) => void,
         error?: (error: Error) => void,
-        complete?: () => void
+        complete?: () => void,
     ): Promise<Subscription> {
         return new Promise<Subscription>((resolve, reject) => {
             resolve(new Subscription());
@@ -215,7 +215,7 @@ class TrapClient implements ProtocolClient {
         form: Form,
         next: (value: Content) => void,
         error?: (error: Error) => void,
-        complete?: () => void
+        complete?: () => void,
     ): Promise<Subscription> {
         return new Promise<Subscription>((resolve, reject) => {
             // send one event
@@ -281,7 +281,7 @@ class TestProtocolClient implements ProtocolClient {
         form: Form,
         next: (content: Content) => void,
         error?: (error: Error) => void,
-        complete?: () => void
+        complete?: () => void,
     ): Promise<Subscription> {
         throw new Error("Method not implemented.");
     }
@@ -492,7 +492,7 @@ class WoTClientTest {
                 /*  */
             },
             undefined,
-            { formIndex: 1 }
+            { formIndex: 1 },
         );
         await subscription.stop();
     }
@@ -512,7 +512,7 @@ class WoTClientTest {
         await expect(
             thing.subscribeEvent("anEvent", () => {
                 /** */
-            })
+            }),
         ).to.be.rejected;
     }
 
@@ -571,7 +571,7 @@ class WoTClientTest {
                 /** */
             },
             undefined,
-            { formIndex: 1 }
+            { formIndex: 1 },
         );
         await subscription.stop();
     }
@@ -591,7 +591,7 @@ class WoTClientTest {
         await expect(
             thing.observeProperty("aPropertyToObserve", () => {
                 /** */
-            })
+            }),
         ).to.be.rejected;
     }
 
@@ -687,7 +687,7 @@ class WoTClientTest {
         const td = (await WoTClientTest.WoTHelpers.fetch("td://foo")) as ThingDescription;
         const thing = await WoTClientTest.WoT.consume(td);
         expect(
-            thing.readProperty("aProperty", { uriVariables: { idTestWrong: "test" } })
+            thing.readProperty("aProperty", { uriVariables: { idTestWrong: "test" } }),
         ).to.eventually.be.rejectedWith(Error);
     }
 }

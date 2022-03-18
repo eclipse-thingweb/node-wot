@@ -74,7 +74,7 @@ let servient = new Servient();
 servient.addServer(
     new HttpServer({
         port: 8081, // (default 8080)
-    })
+    }),
 );
 
 servient.start().then((WoT) => {
@@ -266,7 +266,7 @@ servient.addServer(
     new HttpServer({
         port: 8080, // (default 8080)
         baseUri: "https://coffee.w3.org/things",
-    })
+    }),
 );
 ```
 

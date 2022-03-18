@@ -43,7 +43,7 @@ export default class InMemoryModel implements ClientCredentialsModel, PasswordMo
         user: User,
         client: Client,
         scope: string | string[],
-        callback?: Callback<string | false | 0>
+        callback?: Callback<string | false | 0>,
     ): Promise<string | false | 0 | string[]> {
         if (callback) {
             callback(null, scope.toString());
@@ -56,7 +56,7 @@ export default class InMemoryModel implements ClientCredentialsModel, PasswordMo
         client: Client,
         user: User,
         scope: string | string[],
-        callback?: Callback<string>
+        callback?: Callback<string>,
     ): Promise<string> {
         if (callback) {
             callback(null, Buffer.from(Math.random().toString()).toString("base64").substr(10, 5));
@@ -111,7 +111,7 @@ export default class InMemoryModel implements ClientCredentialsModel, PasswordMo
     async getClient(
         clientId: string,
         clientSecret: string,
-        callback?: Callback<Falsey | Client>
+        callback?: Callback<Falsey | Client>,
     ): Promise<Client | Falsey> {
         const clients = this.clients.filter(function (client) {
             return client.id === clientId && (!clientSecret || client.clientSecret === clientSecret);

@@ -55,7 +55,7 @@ export default class ProtocolHelpers {
     public static updatePropertyFormWithTemplate(
         form: TD.Form,
         tdTemplate: WoT.ExposedThingInit,
-        propertyName: string
+        propertyName: string,
     ): void {
         if (
             form &&
@@ -82,7 +82,7 @@ export default class ProtocolHelpers {
     public static updateActionFormWithTemplate(
         form: TD.Form,
         tdTemplate: WoT.ExposedThingInit,
-        actionName: string
+        actionName: string,
     ): void {
         if (
             form &&
@@ -109,7 +109,7 @@ export default class ProtocolHelpers {
     public static updateEventFormWithTemplate(
         form: TD.Form,
         tdTemplate: WoT.ExposedThingInit,
-        eventName: string
+        eventName: string,
     ): void {
         if (
             form &&
@@ -275,7 +275,7 @@ export default class ProtocolHelpers {
             } else {
                 console.debug(
                     "[core/helpers]",
-                    `Protocol-Helper returns empty buffer for readStreamFully due to undefined stream`
+                    `Protocol-Helper returns empty buffer for readStreamFully due to undefined stream`,
                 );
                 resolve(Buffer.alloc(0));
             }
@@ -286,7 +286,7 @@ export default class ProtocolHelpers {
         forms: TD.Form[] | undefined,
         uriScheme: string,
         requestUrl: string | undefined,
-        contentType?: string
+        contentType?: string,
     ): number {
         if (forms === undefined) return 0;
 
@@ -319,7 +319,7 @@ export default class ProtocolHelpers {
         interaction: TD.ThingInteraction,
         type: "property" | "action" | "event",
         operationName?: string,
-        formIndex?: number
+        formIndex?: number,
     ): number {
         let finalFormIndex = -1;
 

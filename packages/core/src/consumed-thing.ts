@@ -134,7 +134,7 @@ class InternalPropertySubscription extends InternalSubscription {
             tp.forms,
             "unobserveproperty",
             Affordance.PropertyAffordance,
-            options
+            options,
         );
         if (!client) {
             throw new Error(`ConsumedThing '${this.thing.title}' did not get suitable client for ${form.href}`);
@@ -157,7 +157,7 @@ class InternalPropertySubscription extends InternalSubscription {
         const bestFormMatch = this.findFormIndexWithScoring(
             this.formIndex,
             this.thing.properties[this.name].forms,
-            "unobserveproperty"
+            "unobserveproperty",
         );
 
         if (bestFormMatch === -1) {
@@ -174,7 +174,7 @@ class InternalPropertySubscription extends InternalSubscription {
     private findFormIndexWithScoring(
         formIndex: number,
         forms: TD.Form[],
-        operation: "unsubscribeevent" | "unobserveproperty"
+        operation: "unsubscribeevent" | "unobserveproperty",
     ): number {
         const refForm = forms[formIndex];
         let maxScore = 0;
@@ -211,7 +211,7 @@ class InternalPropertySubscription extends InternalSubscription {
 function findFormIndexWithScoring(
     formIndex: number,
     forms: TD.Form[],
-    operation: "unsubscribeevent" | "unobserveproperty"
+    operation: "unsubscribeevent" | "unobserveproperty",
 ): number {
     const refForm = forms[formIndex];
     let maxScore = 0;
@@ -267,7 +267,7 @@ class InternalEventSubscription extends InternalSubscription {
             te.forms,
             "unsubscribeevent",
             Affordance.EventAffordance,
-            options
+            options,
         );
         if (!client) {
             throw new Error(`ConsumedThing '${this.thing.title}' did not get suitable client for ${form.href}`);
@@ -291,7 +291,7 @@ class InternalEventSubscription extends InternalSubscription {
         const bestFormMatch = findFormIndexWithScoring(
             this.formIndex,
             this.thing.events[this.name].forms,
-            "unsubscribeevent"
+            "unsubscribeevent",
         );
 
         if (bestFormMatch === -1) {
@@ -356,7 +356,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         for (const propertyName in this.properties) {
             const newProp = Helpers.extend(
                 this.properties[propertyName],
-                new ConsumedThingProperty(propertyName, this)
+                new ConsumedThingProperty(propertyName, this),
             );
             this.properties[propertyName] = newProp;
         }
@@ -422,20 +422,20 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                 // see https://www.w3.org/TR/wot-thing-description/#security-serialization-json
                 console.debug(
                     "[core/consumed-thing]",
-                    `ConsumedThing '${this.title}' setting credentials for ${client} based on form security`
+                    `ConsumedThing '${this.title}' setting credentials for ${client} based on form security`,
                 );
                 client.setSecurity(
                     this.getSecuritySchemes(form.security),
-                    this.getServient().retrieveCredentials(this.id)
+                    this.getServient().retrieveCredentials(this.id),
                 );
             } else if (this.security && Array.isArray(this.security) && this.security.length > 0) {
                 console.debug(
                     "[core/consumed-thing]",
-                    `ConsumedThing '${this.title}' setting credentials for ${client} based on thing security`
+                    `ConsumedThing '${this.title}' setting credentials for ${client} based on thing security`,
                 );
                 client.setSecurity(
                     this.getSecuritySchemes(this.security as string[]),
-                    this.getServient().getCredentials(this.id)
+                    this.getServient().getCredentials(this.id),
                 );
             }
         }
@@ -446,7 +446,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         forms: Array<TD.Form>,
         op: string,
         affordance: Affordance,
-        options?: WoT.InteractionOptions
+        options?: WoT.InteractionOptions,
     ): ClientAndForm {
         if (forms.length === 0) {
             throw new Error(`ConsumedThing '${this.title}' has no links for this interaction`);
@@ -459,7 +459,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
             // pick provided formIndex (if possible)
             console.debug(
                 "[core/consumed-thing]",
-                `ConsumedThing '${this.title}' asked to use formIndex '${options.formIndex}'`
+                `ConsumedThing '${this.title}' asked to use formIndex '${options.formIndex}'`,
             );
 
             if (options.formIndex >= 0 && options.formIndex < forms.length) {
@@ -489,7 +489,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                 // from cache
                 console.debug(
                     "[core/consumed-thing]",
-                    `ConsumedThing '${this.title}' chose cached client for '${schemes[cacheIdx]}'`
+                    `ConsumedThing '${this.title}' chose cached client for '${schemes[cacheIdx]}'`,
                 );
                 client = this.getClients().get(schemes[cacheIdx]);
                 form = this.findForm(forms, op, affordance, schemes, cacheIdx);
@@ -497,7 +497,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                 // new client
                 console.debug(
                     "[core/consumed-thing]",
-                    `ConsumedThing '${this.title}' has no client in cache (${cacheIdx})`
+                    `ConsumedThing '${this.title}' has no client in cache (${cacheIdx})`,
                 );
                 const srvIdx = schemes.findIndex((scheme) => this.getServient().hasClientFor(scheme));
 
@@ -507,7 +507,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                 client = this.getServient().getClientFor(schemes[srvIdx]);
                 console.debug(
                     "[core/consumed-thing]",
-                    `ConsumedThing '${this.title}' got new client for '${schemes[srvIdx]}'`
+                    `ConsumedThing '${this.title}' got new client for '${schemes[srvIdx]}'`,
                 );
 
                 this.ensureClientSecurity(client, form);
@@ -560,7 +560,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
             return output;
         } catch (err) {
             throw new Error(
-                `ConsumedThing '${this.title}', failed to read properties: ${propertyNames}.\n Error: ${err}`
+                `ConsumedThing '${this.title}', failed to read properties: ${propertyNames}.\n Error: ${err}`,
             );
         }
     }
@@ -585,7 +585,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
     async writeProperty(
         propertyName: string,
         value: WoT.InteractionInput,
-        options?: WoT.InteractionOptions
+        options?: WoT.InteractionOptions,
     ): Promise<void> {
         // TODO pass expected form op to getClientFor()
         const tp: TD.ThingProperty = this.properties[propertyName];
@@ -620,7 +620,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
             await Promise.all(promises);
         } catch (err) {
             throw new Error(
-                `ConsumedThing '${this.title}', failed to write multiple propertes: ${valueMap}\n Error: ${err}`
+                `ConsumedThing '${this.title}', failed to write multiple propertes: ${valueMap}\n Error: ${err}`,
             );
         }
     }
@@ -628,7 +628,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
     public async invokeAction(
         actionName: string,
         parameter?: InteractionInput,
-        options?: WoT.InteractionOptions
+        options?: WoT.InteractionOptions,
     ): Promise<WoT.InteractionOutput> {
         const ta: TD.ThingAction = this.actions[actionName];
         if (!ta) {
@@ -645,7 +645,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
             "[core/consumed-thing]",
             `ConsumedThing '${this.title}' invoking ${form.href}${
                 parameter !== undefined ? " with '" + parameter + "'" : ""
-            }`
+            }`,
         );
 
         let input;
@@ -682,7 +682,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         name: string,
         listener: WoT.WotListener,
         errorListener?: WoT.ErrorListener,
-        options?: WoT.InteractionOptions
+        options?: WoT.InteractionOptions,
     ): Promise<Subscription> {
         const tp: TD.ThingProperty = this.properties[name];
         if (!tp) {
@@ -697,7 +697,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         }
         if (this.observedProperties.has(name)) {
             throw new Error(
-                `ConsumedThing '${this.title}' has already a function subscribed to ${name}. You can only observe once`
+                `ConsumedThing '${this.title}' has already a function subscribed to ${name}. You can only observe once`,
             );
         }
         console.debug("[core/consumed-thing]", `ConsumedThing '${this.title}' observing to ${form.href}`);
@@ -724,7 +724,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
             // complete
             () => {
                 /* TODO: current scripting api cannot handle this */
-            }
+            },
         );
         const subscription = new InternalPropertySubscription(this, name, form as FormElementProperty);
         this.observedProperties.set(name, subscription);
@@ -739,7 +739,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         name: string,
         listener: WoT.WotListener,
         errorListener?: WoT.ErrorListener,
-        options?: WoT.InteractionOptions
+        options?: WoT.InteractionOptions,
     ): Promise<Subscription> {
         const te: TD.ThingEvent = this.events[name];
         if (!te) {
@@ -754,7 +754,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         }
         if (this.subscribedEvents.has(name)) {
             throw new Error(
-                `ConsumedThing '${this.title}' has already a function subscribed to ${name}. You can only subscribe once`
+                `ConsumedThing '${this.title}' has already a function subscribed to ${name}. You can only subscribe once`,
             );
         }
         console.debug("[core/consumed-thing]", `ConsumedThing '${this.title}' subscribing to ${form.href}`);
@@ -780,7 +780,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
             // complete
             () => {
                 /* TODO: current scripting api cannot handle this */
-            }
+            },
         );
 
         const subscription = new InternalEventSubscription(this, name, form as FormElementEvent);

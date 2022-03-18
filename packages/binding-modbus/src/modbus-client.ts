@@ -36,7 +36,7 @@ class ModbusSubscription {
         client: ModbusClient,
         next: (value: Content) => void,
         error?: (error: Error) => void,
-        complete?: () => void
+        complete?: () => void,
     ) {
         if (!complete) {
             complete = () => {
@@ -102,7 +102,7 @@ export default class ModbusClient implements ProtocolClient {
         form: ModbusForm,
         next: (value: Content) => void,
         error?: (error: Error) => void,
-        complete?: () => void
+        complete?: () => void,
     ): Promise<Subscription> {
         return new Promise<Subscription>((resolve, reject) => {
             form = this.validateAndFillDefaultForm(form, 0);
@@ -119,7 +119,7 @@ export default class ModbusClient implements ProtocolClient {
             resolve(
                 new Subscription(() => {
                     subscription.unsubscribe();
-                })
+                }),
             );
         });
     }
@@ -166,7 +166,7 @@ export default class ModbusClient implements ProtocolClient {
             console.debug("[binding-modbus]", "Creating new ModbusConnection for ", hostAndPort);
             this._connections.set(
                 hostAndPort,
-                new ModbusConnection(host, port, { connectionTimeout: form["modbus:timeout"] || DEFAULT_TIMEOUT })
+                new ModbusConnection(host, port, { connectionTimeout: form["modbus:timeout"] || DEFAULT_TIMEOUT }),
             );
             connection = this._connections.get(hostAndPort);
         } else {
@@ -219,7 +219,7 @@ export default class ModbusClient implements ProtocolClient {
                     buffer.length +
                     " bytes for " +
                     quantity +
-                    ` ${mpy === 2 ? "registers" : "coils"}`
+                    ` ${mpy === 2 ? "registers" : "coils"}`,
             );
         }
     }

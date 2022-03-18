@@ -44,7 +44,7 @@ export default class MqttClient implements ProtocolClient {
         form: MqttForm,
         next: (value: Content) => void,
         error?: (error: Error) => void,
-        complete?: () => void
+        complete?: () => void,
     ): Promise<Subscription> {
         return new Promise<Subscription>((resolve, reject) => {
             // get MQTT-based metadata
@@ -62,13 +62,13 @@ export default class MqttClient implements ProtocolClient {
                 resolve(
                     new Subscription(() => {
                         this.client.unsubscribe(topic);
-                    })
+                    }),
                 );
             });
             this.client.on("message", (receivedTopic: string, payload: string, packet: IPublishPacket) => {
                 console.debug(
                     "[binding-mqtt]",
-                    "Received MQTT message (topic, data): (" + receivedTopic + ", " + payload + ")"
+                    "Received MQTT message (topic, data): (" + receivedTopic + ", " + payload + ")",
                 );
                 if (receivedTopic === topic) {
                     next({ type: contentType, body: Readable.from(payload) });

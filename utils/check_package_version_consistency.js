@@ -17,7 +17,7 @@ async function main() {
             const packageJson = JSON.parse(await fs.promises.readFile(packageFilename, "utf8"));
             if (packageJson.dependencies || packageJson.devDependencies) {
                 const modules = Object.entries(packageJson.dependencies || []).concat(
-                    Object.entries(packageJson.devDependencies || [])
+                    Object.entries(packageJson.devDependencies || []),
                 );
                 for (const [moduleName, version] of modules) {
                     dependencies[moduleName] = dependencies[moduleName] || {};
@@ -89,7 +89,7 @@ async function main() {
         //  ---
         console.log("\nSuggestion: now you can manually update the devDependencies section of the main package.json");
         console.log(
-            "with the following packages. Those packages are installed  more than once in one of the sub modules"
+            "with the following packages. Those packages are installed  more than once in one of the sub modules",
         );
 
         console.log("-----------\n");

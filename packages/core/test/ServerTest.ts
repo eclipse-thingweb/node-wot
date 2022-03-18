@@ -974,7 +974,7 @@ class WoTServerTest {
         await (<ExposedThing>thing).handleInvokeAction(
             "test",
             { type: "application/json", body: Readable.from(Buffer.from("ping")) },
-            { formIndex: 0 }
+            { formIndex: 0 },
         );
 
         callback.should.have.been.called();
@@ -1006,7 +1006,7 @@ class WoTServerTest {
         thing.setPropertyReadHandler("test", callback);
 
         expect(
-            (<ExposedThing>thing).handleReadProperty("test", { formIndex: 0, uriVariables: { testWrong: "test" } })
+            (<ExposedThing>thing).handleReadProperty("test", { formIndex: 0, uriVariables: { testWrong: "test" } }),
         ).to.eventually.be.rejectedWith(Error);
     }
 }

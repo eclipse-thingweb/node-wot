@@ -63,7 +63,7 @@ class HttpServerTest {
                     },
                 },
             },
-            testThing
+            testThing,
         );
         // testThing.extendInteractions();
         testThing.properties.test.forms = [];
@@ -122,7 +122,7 @@ class HttpServerTest {
                 const data = await ProtocolHelpers.readStreamFully(input.body);
                 expect(data.toString()).to.equal("'test''");
             },
-            { formIndex: 0 }
+            { formIndex: 0 },
         );
         testThing.emitEvent("eventTest", "test");
 
@@ -132,7 +132,7 @@ class HttpServerTest {
                 type: "text/plain",
                 body: Readable.from(Buffer.from("off", "utf-8")),
             },
-            { formIndex: 0 }
+            { formIndex: 0 },
         );
 
         const uri = `http://localhost:${httpServer.getPort()}/test/`;

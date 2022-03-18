@@ -158,7 +158,7 @@ class TestHttpServer implements ProtocolServer {
                 try {
                     value = ContentSerdes.get().contentToValue(
                         { type: ContentSerdes.DEFAULT, body: Buffer.concat(body) },
-                        this.testVector.schema
+                        this.testVector.schema,
                     );
                 } catch (err) {
                     throw new Error("Cannot deserialize client payload");
@@ -381,7 +381,7 @@ class HttpClientTest2 {
                 /**  */
             },
             errorSpy,
-            completeSpy
+            completeSpy,
         );
     }
 
@@ -417,7 +417,7 @@ class HttpClientTest2 {
                     /**  */
                 },
                 errorSpy,
-                completeSpy
+                completeSpy,
             );
         });
     }
@@ -458,7 +458,7 @@ class HttpClientTest2 {
                     },
                     () => {
                         /** */
-                    }
+                    },
                 )
                 .then(subscribeSpy);
         });

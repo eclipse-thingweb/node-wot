@@ -108,10 +108,10 @@ export default class OpcuaClient implements ProtocolClient {
                 };
             } else if (this.credentials.clientCertificate) {
                 const clientCertificate: cryptoUtils.Certificate = cryptoUtils.readCertificate(
-                    this.credentials.clientCertificate
+                    this.credentials.clientCertificate,
                 );
                 const privateKey: cryptoUtils.PrivateKeyPEM = cryptoUtils.readPrivateKeyPEM(
-                    this.credentials.clientPrivateKey
+                    this.credentials.clientPrivateKey,
                 );
                 this.clientOptions.securityMode = MessageSecurityMode.SignAndEncrypt;
                 this.clientOptions.securityPolicy = SecurityPolicy.Basic256Sha256;
@@ -303,7 +303,7 @@ export default class OpcuaClient implements ProtocolClient {
         form: OpcuaForm,
         next: (value: Content) => void,
         error?: (error?: Error) => void,
-        complete?: () => void
+        complete?: () => void,
     ): Promise<Subscription> {
         const url = new Url(form.href);
         const endpointUrl = `${url.protocol}//${url.host}`;
@@ -334,7 +334,7 @@ export default class OpcuaClient implements ProtocolClient {
                 subscription,
                 itemToMonitor,
                 parameters,
-                TimestampsToReturn.Both
+                TimestampsToReturn.Both,
             );
             monitoredItem.once("err", () => {
                 const err = new Error("Error while subscribing property: " + monitoredItem.statusCode.toString());

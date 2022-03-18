@@ -156,7 +156,7 @@ try {
                 "counter",
                 (x) => console.info("value:", x),
                 (e) => console.error("Error: %s", e),
-                () => console.info("Completed")
+                () => console.info("Completed"),
             );
             console.info("Subscribed");
 

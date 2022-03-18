@@ -24,7 +24,7 @@ function createRequestFunction(rejectUnauthorized: boolean) {
         method: string,
         url: string,
         body: string,
-        headers: { [key: string]: string | string[] }
+        headers: { [key: string]: string | string[] },
     ): Promise<{ status: number; body: string }> => {
         return new Promise((resolve, reject) => {
             const parsedURL = new URL(url);
@@ -88,7 +88,7 @@ export default class OAuthManager {
                     //  client_secret: credentials.clientSecret
                 },
             },
-            createRequestFunction(false)
+            createRequestFunction(false),
         );
         const token = clientFlow.credentials.getToken();
         return new OAuthCredential(token, clientFlow.credentials.getToken.bind(clientFlow.credentials));
@@ -96,7 +96,7 @@ export default class OAuthManager {
 
     handleResourceOwnerCredential(
         securityScheme: OAuth2SecurityScheme,
-        credentials: OAuthResourceOwnerConfiguration
+        credentials: OAuthResourceOwnerConfiguration,
     ): OAuthCredential {
         const clientFlow: ClientOAuth2 = new ClientOAuth2(
             {
@@ -105,7 +105,7 @@ export default class OAuthManager {
                 accessTokenUri: securityScheme.token,
                 scopes: securityScheme.scopes,
             },
-            createRequestFunction(false)
+            createRequestFunction(false),
         );
         const token = clientFlow.owner.getToken(credentials.username, credentials.password);
 

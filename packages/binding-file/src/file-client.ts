@@ -82,7 +82,7 @@ export default class FileClient implements ProtocolClient {
         form: Form,
         next: (value: Content) => void,
         error?: (error: Error) => void,
-        complete?: () => void
+        complete?: () => void,
     ): Promise<Subscription> {
         error(new Error(`FileClient does not implement subscribe`));
         return null;

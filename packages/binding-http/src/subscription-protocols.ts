@@ -53,7 +53,7 @@ export class LongPollingSubscription implements InternalSubscription {
                     });
                     console.debug(
                         "[binding-http]",
-                        `HttpClient (subscribeResource) sending ${request.method} to ${request.url}`
+                        `HttpClient (subscribeResource) sending ${request.method} to ${request.url}`,
                     );
 
                     const result = await this.client["fetch"](request);
@@ -64,11 +64,11 @@ export class LongPollingSubscription implements InternalSubscription {
 
                     console.debug(
                         "[binding-http]",
-                        `HttpClient received headers: ${JSON.stringify(result.headers.raw())}`
+                        `HttpClient received headers: ${JSON.stringify(result.headers.raw())}`,
                     );
                     console.debug(
                         "[binding-http]",
-                        `HttpClient received Content-Type: ${result.headers.get("content-type")}`
+                        `HttpClient received Content-Type: ${result.headers.get("content-type")}`,
                     );
 
                     if (!this.closed) {
@@ -114,7 +114,7 @@ export class SSESubscription implements InternalSubscription {
             this.eventSource.onopen = (event) => {
                 console.debug(
                     "[binding-http]",
-                    `HttpClient (subscribeResource) Server-Sent Event connection is opened to ${this.form.href}`
+                    `HttpClient (subscribeResource) Server-Sent Event connection is opened to ${this.form.href}`,
                 );
                 resolve();
             };

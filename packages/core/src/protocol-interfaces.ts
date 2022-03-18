@@ -67,7 +67,7 @@ export interface ProtocolClient {
         form: TD.Form,
         next: (content: Content) => void,
         error?: (error: Error) => void,
-        complete?: () => void
+        complete?: () => void,
     ): Promise<Subscription>;
 
     /** start the client (ensure it is ready to send requests) */

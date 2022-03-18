@@ -115,7 +115,7 @@ export default class NetconfCodec {
         payload: any,
         namespaces: Record<string, string>,
         hasNamespace: boolean,
-        leaf: string
+        leaf: string,
     ): PayloadNamespaces {
         if (hasNamespace) {
             // expect to have xmlns

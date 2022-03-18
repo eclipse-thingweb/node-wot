@@ -117,7 +117,7 @@ export class EndpointValidator extends Validator {
 
         if (contentType !== "application/json") {
             throw new Error(
-                "Introspection response is not a json file. Content-Type: " + response.headers.get("content-type")
+                "Introspection response is not a json file. Content-Type: " + response.headers.get("content-type"),
             );
         }
 

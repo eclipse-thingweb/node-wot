@@ -38,7 +38,7 @@ async function testPropertyWrite(
     thing: WoT.ConsumedThing,
     name: string,
     value: WoT.InteractionInput,
-    shouldFail: boolean
+    shouldFail: boolean,
 ) {
     const displayValue = JSON.stringify(value);
     try {

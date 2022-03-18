@@ -30,7 +30,10 @@ should();
 const checkJsonToJs = (value: unknown): void => {
     const jsonBuffer = Buffer.from(JSON.stringify(value));
     expect(
-        ContentSerdes.contentToValue({ type: "application/json", body: jsonBuffer }, { type: "object", properties: {} })
+        ContentSerdes.contentToValue(
+            { type: "application/json", body: jsonBuffer },
+            { type: "object", properties: {} },
+        ),
     ).to.deep.equal(value);
 };
 
@@ -46,8 +49,8 @@ const checkStreamToValue = (value: number[], match: unknown, type?: string): voi
     expect(
         ContentSerdes.contentToValue(
             { type: "application/octet-stream", body: octectBuffer },
-            { type: type ?? "integer", properties: {} }
-        )
+            { type: type ?? "integer", properties: {} },
+        ),
     ).to.deep.equal(match);
 };
 
@@ -111,12 +114,12 @@ class SerdesOctetTests {
         // @ts-ignore new dataschema types are not yet supported in the td type definitions
         expect(() => ContentSerdes.valueToContent(2345, { type: "int8" }, "application/octet-stream")).to.throw(
             Error,
-            "Integer overflow when representing signed 2345 in 1 byte(s)"
+            "Integer overflow when representing signed 2345 in 1 byte(s)",
         );
         // @ts-ignore new dataschema types are not yet supported in the td type definitions
         expect(() => ContentSerdes.valueToContent(23450000, { type: "int16" }, "application/octet-stream")).to.throw(
             Error,
-            "Integer overflow when representing signed 23450000 in 2 byte(s)"
+            "Integer overflow when representing signed 23450000 in 2 byte(s)",
         );
     }
 }
@@ -157,7 +160,7 @@ class SerdesCodecTests {
     @test "new codec should deserialize"() {
         const buffer = Buffer.from("Some actual meaningful stuff");
         ContentSerdes.contentToValue({ type: "text/hodor", body: buffer }, { type: "string" }).should.deep.equal(
-            "Hodor"
+            "Hodor",
         );
     }
 }

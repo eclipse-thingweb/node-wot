@@ -150,7 +150,7 @@ export default class NetconfClient implements ProtocolClient {
         form: NetconfForm,
         next: (content: Content) => void,
         error?: (error: Error) => void,
-        complete?: () => void
+        complete?: () => void,
     ): Promise<Subscription> {
         const unimplementedError = new Error(`NetconfClient does not implement subscribe`);
         error(unimplementedError);

@@ -69,7 +69,7 @@ export default class WoTImpl {
                 "[core/wot-impl]",
                 `WoTImpl consuming TD ${
                     newThing.id ? "'" + newThing.id + "'" : "without id"
-                } to instantiate ConsumedThing '${newThing.title}'`
+                } to instantiate ConsumedThing '${newThing.title}'`,
             );
             return newThing;
         } catch (err) {

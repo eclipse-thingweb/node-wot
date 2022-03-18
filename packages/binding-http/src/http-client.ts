@@ -66,17 +66,17 @@ export default class HttpClient implements ProtocolClient {
                 )
                     console.warn(
                         "[binding-http]",
-                        `HttpClient client configured for basic proxy auth, but no username/password given`
+                        `HttpClient client configured for basic proxy auth, but no username/password given`,
                     );
                 this.proxyRequest.headers.set(
                     "proxy-authorization",
-                    "Basic " + Buffer.from(config.proxy.username + ":" + config.proxy.password).toString("base64")
+                    "Basic " + Buffer.from(config.proxy.username + ":" + config.proxy.password).toString("base64"),
                 );
             } else if (config.proxy.scheme === "bearer") {
                 if (!Object.prototype.hasOwnProperty.call(config.proxy, "token"))
                     console.warn(
                         "[binding-http]",
-                        `HttpClient client configured for bearer proxy auth, but no token given`
+                        `HttpClient client configured for bearer proxy auth, but no token given`,
                     );
                 this.proxyRequest.headers.set("proxy-authorization", "Bearer " + config.proxy.token);
             }
@@ -89,7 +89,7 @@ export default class HttpClient implements ProtocolClient {
                 "[binding-http]",
                 `HttpClient using ${secure ? "secure " : ""}proxy ${this.proxyRequest.hostname}:${
                     this.proxyRequest.port
-                }`
+                }`,
             );
         }
 
@@ -98,7 +98,7 @@ export default class HttpClient implements ProtocolClient {
             this.allowSelfSigned = config.allowSelfSigned;
             console.warn(
                 "[binding-http]",
-                `HttpClient allowing self-signed/untrusted certificates -- USE FOR TESTING ONLY`
+                `HttpClient allowing self-signed/untrusted certificates -- USE FOR TESTING ONLY`,
             );
         }
 
@@ -144,7 +144,7 @@ export default class HttpClient implements ProtocolClient {
             "[binding-http]",
             `HttpClient (writeResource) sending ${request.method} with '${request.headers.get("Content-Type")}' to ${
                 request.url
-            }`
+            }`,
         );
         const result = await this.fetch(request);
 
@@ -159,7 +159,7 @@ export default class HttpClient implements ProtocolClient {
         form: HttpForm,
         next: (value: Content) => void,
         error?: (error: Error) => void,
-        complete?: () => void
+        complete?: () => void,
     ): Promise<Subscription> {
         return new Promise<Subscription>((resolve, reject) => {
             let internalSubscription: InternalSubscription;
@@ -193,7 +193,7 @@ export default class HttpClient implements ProtocolClient {
             "[binding-http]",
             `HttpClient (invokeResource) sending ${request.method} ${
                 content ? "with '" + request.headers.get("Content-Type") + "' " : " "
-            }to ${request.url}`
+            }to ${request.url}`,
         );
 
         const result = await this.fetch(request);
@@ -255,7 +255,7 @@ export default class HttpClient implements ProtocolClient {
 
                 this.credential = new BasicKeyCredential(
                     credentials as BasicKeyCredentialConfiguration,
-                    securityAPIKey
+                    securityAPIKey,
                 );
                 break;
             }
@@ -268,7 +268,7 @@ export default class HttpClient implements ProtocolClient {
                 } else if (securityOAuth.flow === "password") {
                     this.credential = this.oauth.handleResourceOwnerCredential(
                         securityOAuth,
-                        credentials as OAuthResourceOwnerConfiguration
+                        credentials as OAuthResourceOwnerConfiguration,
                     );
                 }
 
@@ -286,7 +286,7 @@ export default class HttpClient implements ProtocolClient {
             if (this.proxyRequest !== null) {
                 console.debug(
                     "[binding-http]",
-                    `HttpClient overriding client-side proxy with security proxy '${security.proxy}`
+                    `HttpClient overriding client-side proxy with security proxy '${security.proxy}`,
                 );
             }
 
@@ -305,7 +305,8 @@ export default class HttpClient implements ProtocolClient {
 
                 this.proxyRequest.headers.set(
                     "proxy-authorization",
-                    "Basic " + Buffer.from(basicCredential.username + ":" + basicCredential.password).toString("base64")
+                    "Basic " +
+                        Buffer.from(basicCredential.username + ":" + basicCredential.password).toString("base64"),
                 );
             } else if (security.scheme === "bearer") {
                 const tokenCredentials: BearerCredentialConfiguration = credentials as BearerCredentialConfiguration;
@@ -323,7 +324,7 @@ export default class HttpClient implements ProtocolClient {
     private async generateFetchRequest(
         form: HttpForm,
         defaultMethod: HTTPMethodName,
-        additionalOptions: RequestInit = {}
+        additionalOptions: RequestInit = {},
     ) {
         const requestInit: RequestInit = additionalOptions;
 
@@ -385,13 +386,13 @@ export default class HttpClient implements ProtocolClient {
 
         if (statusCode < 200) {
             throw new Error(
-                `HttpClient received ${statusCode} and cannot continue (not implemented, open GitHub Issue)`
+                `HttpClient received ${statusCode} and cannot continue (not implemented, open GitHub Issue)`,
             );
         } else if (statusCode < 300) {
             // No error
         } else if (statusCode < 400) {
             throw new Error(
-                `HttpClient received ${statusCode} and cannot continue (not implemented, open GitHub Issue)`
+                `HttpClient received ${statusCode} and cannot continue (not implemented, open GitHub Issue)`,
             );
         } else if (statusCode < 500) {
             throw new Error(`Client error: ${response.statusText}`);

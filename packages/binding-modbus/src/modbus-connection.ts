@@ -45,7 +45,7 @@ class ModbusTransaction {
         base: number,
         quantity: number,
         endianness: ModbusEndianness,
-        content?: Buffer
+        content?: Buffer,
     ) {
         this.connection = connection;
         this.unitId = unitId;
@@ -152,7 +152,7 @@ export class ModbusConnection {
             operationTimeout?: number;
             connectionRetryTime?: number;
             maxRetries?: number;
-        } = configDefaults
+        } = configDefaults,
     ) {
         this.host = host;
         this.port = port;
@@ -222,7 +222,7 @@ export class ModbusConnection {
             op.base,
             op.quantity,
             op.endianness,
-            op.content
+            op.content,
         );
         transaction.inform(op);
         this.queue.push(transaction);
@@ -247,7 +247,7 @@ export class ModbusConnection {
                         this.host,
                         "reason",
                         error,
-                        ` retry in ${this.config.connectionRetryTime}ms`
+                        ` retry in ${this.config.connectionRetryTime}ms`,
                     );
                     this.connecting = false;
                     if (retry >= this.config.maxRetries - 1) {
@@ -386,11 +386,11 @@ export class ModbusConnection {
 
                 if (registers.address === transaction.base && transaction.quantity / 2 > registers.length) {
                     console.warn(
-                        `short write to registers ${transaction.base} + ${transaction.quantity}, wrote ${values} to ${registers.address} + ${registers.length} `
+                        `short write to registers ${transaction.base} + ${transaction.quantity}, wrote ${values} to ${registers.address} + ${registers.length} `,
                     );
                 } else if (registers.address !== transaction.base) {
                     throw new Error(
-                        `writing ${values} to registers ${transaction.base} + ${transaction.quantity} failed, wrote to ${registers.address}`
+                        `writing ${values} to registers ${transaction.base} + ${transaction.quantity} failed, wrote to ${registers.address}`,
                     );
                 }
                 break;
@@ -469,7 +469,7 @@ export class PropertyOperation {
                 } else {
                     this.transaction.trigger();
                 }
-            }
+            },
         );
     }
 

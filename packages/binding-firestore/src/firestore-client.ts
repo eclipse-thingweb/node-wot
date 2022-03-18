@@ -143,7 +143,7 @@ export default class FirestoreClient implements ProtocolClient {
                         body: undefined,
                         type: "",
                     },
-                    reqId
+                    reqId,
                 );
             }
         });
@@ -161,7 +161,7 @@ export default class FirestoreClient implements ProtocolClient {
         form: FirestoreForm,
         next: (value: Content) => void,
         error?: (error: Error) => void,
-        complete?: () => void
+        complete?: () => void,
     ): any {
         // TODO: Return Promise<Subscription>
         const pointerInfo = this.makePointerInfo(form);
@@ -180,7 +180,7 @@ export default class FirestoreClient implements ProtocolClient {
                         } else {
                             next(content);
                         }
-                    }
+                    },
                 );
             })
             .catch((err) => {

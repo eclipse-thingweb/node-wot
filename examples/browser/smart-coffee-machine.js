@@ -47,7 +47,7 @@ function showProperties(thing) {
                     tr.innerHTML = `<td><pre>${property}</pre></td><td id="${property}" class="property-value"><pre>${JSON.stringify(
                         value,
                         null,
-                        2
+                        2,
                     )}</pre></td>`;
                     if (row % 2 !== 0) {
                         tr.style.background = "#FFFAF0";

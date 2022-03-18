@@ -189,7 +189,7 @@ export default class Servient {
             } else {
                 console.warn(
                     "[core/servient]",
-                    `Servient was asked to destroy thing but failed to find thing with id '${thingId}'`
+                    `Servient was asked to destroy thing but failed to find thing with id '${thingId}'`,
                 );
                 resolve(false);
             }
@@ -232,7 +232,7 @@ export default class Servient {
     public hasClientFor(scheme: string): boolean {
         console.debug(
             "[core/servient]",
-            `Servient checking for '${scheme}' scheme in ${this.clientFactories.size} ClientFactories`
+            `Servient checking for '${scheme}' scheme in ${this.clientFactories.size} ClientFactories`,
         );
         return this.clientFactories.has(scheme);
     }

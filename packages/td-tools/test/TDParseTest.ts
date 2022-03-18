@@ -681,21 +681,21 @@ class TDParserTest {
                 TDParser.parseTD(tdBroken1);
             },
             Error,
-            "Property 'status' has no forms field"
+            "Property 'status' has no forms field",
         );
         assert.throws(
             () => {
                 TDParser.parseTD(tdBroken2);
             },
             Error,
-            "Form of Action 'toggle' has no href field"
+            "Form of Action 'toggle' has no href field",
         );
         assert.throws(
             () => {
                 TDParser.parseTD(tdBroken3);
             },
             Error,
-            "Form of Event 'overheating' has relative URI while TD has no base field"
+            "Form of Event 'overheating' has relative URI while TD has no base field",
         );
     }
 

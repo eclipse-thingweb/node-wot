@@ -96,7 +96,7 @@ export class Client {
                 } else {
                     console.debug(
                         "[binding-netconf]",
-                        `New NetConf router opened connection with host ${this.routerParams.host}, port ${this.routerParams.port}, username ${this.routerParams.username}`
+                        `New NetConf router opened connection with host ${this.routerParams.host}, port ${this.routerParams.port}, username ${this.routerParams.username}`,
                     );
                     this.connected = true;
                     resolve(undefined);
@@ -110,7 +110,7 @@ export class Client {
         method: RpcMethod,
         NSs: Record<string, string>,
         target: string,
-        payload?: unknown
+        payload?: unknown,
     ): Promise<unknown> {
         return new Promise((resolve, reject) => {
             if (payload) {

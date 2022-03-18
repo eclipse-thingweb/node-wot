@@ -125,7 +125,7 @@ WoT.produce({
                     cts.push(id);
                 }
                 return cts;
-            }
+            },
         );
         // set action handlers (using async-await)
         thing.setActionHandler(
@@ -147,7 +147,7 @@ WoT.produce({
                 console.log("init countdown value = " + JSON.stringify(resp));
                 countdowns.set(resp.href, resp);
                 return ii;
-            }
+            },
         );
         thing.setActionHandler(
             "stopCountdown",
@@ -166,7 +166,7 @@ WoT.produce({
                 } else {
                     throw Error("No input specified for stopCountdown");
                 }
-            }
+            },
         );
         thing.setActionHandler(
             "monitorCountdown",
@@ -182,7 +182,7 @@ WoT.produce({
                 } else {
                     throw Error("No input specified for monitorCountdown");
                 }
-            }
+            },
         );
 
         // expose the thing

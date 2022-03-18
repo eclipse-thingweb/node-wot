@@ -81,7 +81,7 @@ describe("MQTT client implementation", () => {
                                         (received) => {
                                             expect(JSON.parse(received.toString())).to.equal(++check);
                                             if (check === 3) thing.destroy().then(() => done());
-                                        }
+                                        },
                                     );
                                 }
                             })
@@ -146,7 +146,7 @@ describe("MQTT client implementation", () => {
                                         (received) => {
                                             expect(JSON.parse(received.toString())).to.equal(++check);
                                             if (check === 3) done();
-                                        }
+                                        },
                                     );
                                 }
                             })

@@ -75,7 +75,7 @@ https
             key: fs.readFileSync("../privatekey.pem"),
             cert: fs.readFileSync("../certificate.pem"),
         },
-        app
+        app,
     )
     .listen(3000, "localhost", () => {
         console.log("listening");

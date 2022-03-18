@@ -145,7 +145,7 @@ class ThingModelHelperCompositionTest {
             selfComposition: false,
         };
         await expect(this.thingModelHelpers.getPartialTDs(model, options)).be.rejectedWith(
-            `Circular dependency found for ${modelUri}`
+            `Circular dependency found for ${modelUri}`,
         );
     }
 
@@ -158,7 +158,7 @@ class ThingModelHelperCompositionTest {
             selfComposition: false,
         };
         await expect(this.thingModelHelpers.getPartialTDs(model, options)).be.rejectedWith(
-            `Circular dependency found for ${modelUri}`
+            `Circular dependency found for ${modelUri}`,
         );
     }
 

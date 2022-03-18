@@ -33,7 +33,7 @@ export default class HttpsClientFactory implements ProtocolClientFactory {
         // HTTPS over HTTP proxy requires HttpClient
         if (this.config && this.config.proxy && this.config.proxy.href && this.config.proxy.href.startsWith("http:")) {
             console.warn(
-                `"[binding-http]",HttpsClientFactory creating client for 'http' due to insecure proxy configuration`
+                `"[binding-http]",HttpsClientFactory creating client for 'http' due to insecure proxy configuration`,
             );
             return new HttpClient(this.config);
         } else {

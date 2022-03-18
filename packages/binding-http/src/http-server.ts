@@ -82,7 +82,7 @@ export default class HttpServer implements ProtocolServer {
         if (environmentObj) {
             console.info(
                 "[binding-http]",
-                `HttpServer Port Overridden to ${environmentObj.value} by Environment Variable ${environmentObj.key}`
+                `HttpServer Port Overridden to ${environmentObj.value} by Environment Variable ${environmentObj.key}`,
             );
             this.port = +environmentObj.value;
         }
@@ -143,7 +143,7 @@ export default class HttpServer implements ProtocolServer {
     public start(servient: Servient): Promise<void> {
         console.info(
             "[binding-http]",
-            `HttpServer starting on ${this.address !== undefined ? this.address + " " : ""}port ${this.port}`
+            `HttpServer starting on ${this.address !== undefined ? this.address + " " : ""}port ${this.port}`,
         );
         return new Promise<void>((resolve, reject) => {
             // store servient to get credentials
@@ -206,7 +206,7 @@ export default class HttpServer implements ProtocolServer {
 
     private updateInteractionNameWithUriVariablePattern(
         interactionName: string,
-        uriVariables: { [key: string]: TD.DataSchema }
+        uriVariables: { [key: string]: TD.DataSchema },
     ): string {
         if (uriVariables && Object.keys(uriVariables).length > 0) {
             let pattern = "{?";
@@ -235,7 +235,7 @@ export default class HttpServer implements ProtocolServer {
         if (this.getPort() !== -1) {
             console.debug(
                 "[binding-http]",
-                `HttpServer on port ${this.getPort()} exposes '${thing.title}' as unique '/${urlPath}'`
+                `HttpServer on port ${this.getPort()} exposes '${thing.title}' as unique '/${urlPath}'`,
             );
             this.things.set(urlPath, thing);
 
@@ -317,7 +317,7 @@ export default class HttpServer implements ProtocolServer {
             for (const propertyName in thing.properties) {
                 const propertyNamePattern = this.updateInteractionNameWithUriVariablePattern(
                     propertyName,
-                    thing.properties[propertyName].uriVariables
+                    thing.properties[propertyName].uriVariables,
                 );
                 const href = base + "/" + this.PROPERTY_DIR + "/" + propertyNamePattern;
                 const form = new TD.Form(href, type);
@@ -341,7 +341,7 @@ export default class HttpServer implements ProtocolServer {
                 thing.properties[propertyName].forms.push(form);
                 console.debug(
                     "[binding-http]",
-                    `HttpServer on port ${this.getPort()} assigns '${href}' to Property '${propertyName}'`
+                    `HttpServer on port ${this.getPort()} assigns '${href}' to Property '${propertyName}'`,
                 );
 
                 // if property is observable add an additional form with a observable href
@@ -360,7 +360,7 @@ export default class HttpServer implements ProtocolServer {
                     thing.properties[propertyName].forms.push(form);
                     console.debug(
                         "[binding-http]",
-                        `HttpServer on port ${this.getPort()} assigns '${href}' to observable Property '${propertyName}'`
+                        `HttpServer on port ${this.getPort()} assigns '${href}' to observable Property '${propertyName}'`,
                     );
                 }
             }
@@ -368,7 +368,7 @@ export default class HttpServer implements ProtocolServer {
             for (const actionName in thing.actions) {
                 const actionNamePattern = this.updateInteractionNameWithUriVariablePattern(
                     actionName,
-                    thing.actions[actionName].uriVariables
+                    thing.actions[actionName].uriVariables,
                 );
                 const href = base + "/" + this.ACTION_DIR + "/" + actionNamePattern;
                 const form = new TD.Form(href, type);
@@ -381,14 +381,14 @@ export default class HttpServer implements ProtocolServer {
                 thing.actions[actionName].forms.push(form);
                 console.debug(
                     "[binding-http]",
-                    `HttpServer on port ${this.getPort()} assigns '${href}' to Action '${actionName}'`
+                    `HttpServer on port ${this.getPort()} assigns '${href}' to Action '${actionName}'`,
                 );
             }
 
             for (const eventName in thing.events) {
                 const eventNamePattern = this.updateInteractionNameWithUriVariablePattern(
                     eventName,
-                    thing.events[eventName].uriVariables
+                    thing.events[eventName].uriVariables,
                 );
                 const href = base + "/" + this.EVENT_DIR + "/" + eventNamePattern;
                 const form = new TD.Form(href, type);
@@ -398,7 +398,7 @@ export default class HttpServer implements ProtocolServer {
                 thing.events[eventName].forms.push(form);
                 console.debug(
                     "[binding-http]",
-                    `HttpServer on port ${this.getPort()} assigns '${href}' to Event '${eventName}'`
+                    `HttpServer on port ${this.getPort()} assigns '${href}' to Event '${eventName}'`,
                 );
             }
         }
@@ -470,7 +470,7 @@ export default class HttpServer implements ProtocolServer {
                     "Servient does not support thing security schemes. Current scheme supported: " +
                         this.httpSecurityScheme +
                         " secCandidate " +
-                        Object.keys(thing.securityDefinitions).join(", ")
+                        Object.keys(thing.securityDefinitions).join(", "),
                 );
             }
 
@@ -495,14 +495,14 @@ export default class HttpServer implements ProtocolServer {
             "[binding-http]",
             `HttpServer on port ${this.getPort()} received '${req.method} ${
                 requestUri.pathname
-            }' from ${Helpers.toUriLiteral(req.socket.remoteAddress)}:${req.socket.remotePort}`
+            }' from ${Helpers.toUriLiteral(req.socket.remoteAddress)}:${req.socket.remotePort}`,
         );
         res.on("finish", () => {
             console.debug(
                 "[binding-http]",
                 `HttpServer on port ${this.getPort()} replied with '${res.statusCode}' to ${Helpers.toUriLiteral(
-                    req.socket.remoteAddress
-                )}:${req.socket.remotePort}`
+                    req.socket.remoteAddress,
+                )}:${req.socket.remotePort}`,
             );
         });
 
@@ -516,8 +516,8 @@ export default class HttpServer implements ProtocolServer {
                 console.debug(
                     "[binding-http]",
                     `HttpServer received an CORS preflight request from ${Helpers.toUriLiteral(
-                        req.socket.remoteAddress
-                    )}:${req.socket.remotePort}`
+                        req.socket.remoteAddress,
+                    )}:${req.socket.remotePort}`,
                 );
                 res.setHeader("Access-Control-Allow-Methods", allowed);
                 res.setHeader("Access-Control-Allow-Headers", "content-type, authorization, *");
@@ -543,8 +543,8 @@ export default class HttpServer implements ProtocolServer {
                 console.warn(
                     "[binding-http]",
                     `HttpServer on port ${this.getPort()} received no Content-Type from ${Helpers.toUriLiteral(
-                        req.socket.remoteAddress
-                    )}:${req.socket.remotePort}`
+                        req.socket.remoteAddress,
+                    )}:${req.socket.remotePort}`,
                 );
                 contentType = ContentSerdes.DEFAULT;
             } else if (
@@ -564,7 +564,7 @@ export default class HttpServer implements ProtocolServer {
             // catch URIError, see https://github.com/eclipse/thingweb.node-wot/issues/389
             console.warn(
                 "[binding-http]",
-                `HttpServer on port ${this.getPort()} cannot decode URI for '${requestUri.pathname}'`
+                `HttpServer on port ${this.getPort()} cannot decode URI for '${requestUri.pathname}'`,
             );
             res.writeHead(400);
             res.end("decodeURI error for " + requestUri.pathname);
@@ -589,7 +589,7 @@ export default class HttpServer implements ProtocolServer {
                                     ":" +
                                     this.getPort() +
                                     "/" +
-                                    encodeURIComponent(name)
+                                    encodeURIComponent(name),
                             );
                         }
                     }
@@ -625,14 +625,14 @@ export default class HttpServer implements ProtocolServer {
                                 const prefLang = acceptLanguageParser.pick(
                                     supportedLanguagesArray,
                                     req.headers["accept-language"],
-                                    { loose: true }
+                                    { loose: true },
                                 );
 
                                 if (prefLang) {
                                     // if a preferred language can be found use it
                                     console.debug(
                                         "[binding-http]",
-                                        `TD language negotiation through the Accept-Language header field of HTTP leads to "${prefLang}"`
+                                        `TD language negotiation through the Accept-Language header field of HTTP leads to "${prefLang}"`,
                                     );
                                     this.resetMultiLangThing(td, prefLang);
                                 }
@@ -677,7 +677,7 @@ export default class HttpServer implements ProtocolServer {
                                         "[binding-http]",
                                         `HttpServer on port ${this.getPort()} got internal error on invoke '${
                                             requestUri.pathname
-                                        }': ${err.message}`
+                                        }': ${err.message}`,
                                     );
                                     res.writeHead(500);
                                     res.end(err.message);
@@ -696,13 +696,13 @@ export default class HttpServer implements ProtocolServer {
                                         property.forms,
                                         this.scheme,
                                         req.url,
-                                        contentType
+                                        contentType,
                                     ),
                                 };
                                 const uriVariables = Helpers.parseUrlParameters(
                                     req.url,
                                     thing.uriVariables,
-                                    property.uriVariables
+                                    property.uriVariables,
                                 );
                                 if (!this.isEmpty(uriVariables)) {
                                     options.uriVariables = uriVariables;
@@ -724,7 +724,7 @@ export default class HttpServer implements ProtocolServer {
                                                     "[binding-http]",
                                                     `HttpServer on port ${this.getPort()} cannot process data for Event '${
                                                         segments[3]
-                                                    }: ${err.message}'`
+                                                    }: ${err.message}'`,
                                                 );
                                                 res.writeHead(500);
                                                 res.end("Invalid Event Data");
@@ -736,12 +736,12 @@ export default class HttpServer implements ProtocolServer {
                                         res.on("finish", () => {
                                             console.debug(
                                                 "[binding-http]",
-                                                `HttpServer on port ${this.getPort()} closed connection`
+                                                `HttpServer on port ${this.getPort()} closed connection`,
                                             );
                                             thing.handleUnobserveProperty(segments[3], listener, options);
                                         });
                                         res.setTimeout(60 * 60 * 1000, () =>
-                                            thing.handleUnobserveProperty(segments[3], listener, options)
+                                            thing.handleUnobserveProperty(segments[3], listener, options),
                                         );
                                     } else {
                                         try {
@@ -754,7 +754,7 @@ export default class HttpServer implements ProtocolServer {
                                                 "[binding-http]",
                                                 `HttpServer on port ${this.getPort()} got internal error on read '${
                                                     requestUri.pathname
-                                                }': ${err.message}`
+                                                }': ${err.message}`,
                                             );
                                             res.writeHead(500);
                                             res.end(err.message);
@@ -767,7 +767,7 @@ export default class HttpServer implements ProtocolServer {
                                             await thing.handleWriteProperty(
                                                 segments[3],
                                                 { body: req, type: contentType },
-                                                options
+                                                options,
                                             );
                                             res.writeHead(204);
                                             res.end("Changed");
@@ -776,7 +776,7 @@ export default class HttpServer implements ProtocolServer {
                                                 "[binding-http]",
                                                 `HttpServer on port ${this.getPort()} got internal error on invoke '${
                                                     requestUri.pathname
-                                                }': ${err.message}`
+                                                }': ${err.message}`,
                                             );
                                             res.writeHead(500);
                                             res.end(err.message);
@@ -799,13 +799,13 @@ export default class HttpServer implements ProtocolServer {
                                         action.forms,
                                         this.scheme,
                                         req.url,
-                                        contentType
+                                        contentType,
                                     ),
                                 };
                                 const uriVariables = Helpers.parseUrlParameters(
                                     req.url,
                                     thing.uriVariables,
-                                    action.uriVariables
+                                    action.uriVariables,
                                 );
                                 if (!this.isEmpty(uriVariables)) {
                                     options.uriVariables = uriVariables;
@@ -814,7 +814,7 @@ export default class HttpServer implements ProtocolServer {
                                     const output = await thing.handleInvokeAction(
                                         segments[3],
                                         { body: req, type: contentType },
-                                        options
+                                        options,
                                     );
                                     if (output) {
                                         res.setHeader("Content-Type", output.type);
@@ -829,7 +829,7 @@ export default class HttpServer implements ProtocolServer {
                                         "[binding-http]",
                                         `HttpServer on port ${this.getPort()} got internal error on invoke '${
                                             requestUri.pathname
-                                        }': ${err.message}`
+                                        }': ${err.message}`,
                                     );
                                     res.writeHead(500);
                                     res.end(err.message);
@@ -850,13 +850,13 @@ export default class HttpServer implements ProtocolServer {
                                         event.forms,
                                         this.scheme,
                                         req.url,
-                                        contentType
+                                        contentType,
                                     ),
                                 };
                                 const uriVariables = Helpers.parseUrlParameters(
                                     req.url,
                                     thing.uriVariables,
-                                    event.uriVariables
+                                    event.uriVariables,
                                 );
                                 if (!this.isEmpty(uriVariables)) {
                                     options.uriVariables = uriVariables;
@@ -877,7 +877,7 @@ export default class HttpServer implements ProtocolServer {
                                             "[binding-http]",
                                             `HttpServer on port ${this.getPort()} cannot process data for Event '${
                                                 segments[3]
-                                            }: ${err.message}'`
+                                            }: ${err.message}'`,
                                         );
                                         res.writeHead(500);
                                         res.end("Invalid Event Data");
@@ -888,12 +888,12 @@ export default class HttpServer implements ProtocolServer {
                                 res.on("finish", () => {
                                     console.debug(
                                         "[binding-http]",
-                                        `HttpServer on port ${this.getPort()} closed Event connection`
+                                        `HttpServer on port ${this.getPort()} closed Event connection`,
                                     );
                                     thing.handleUnsubscribeEvent(segments[3], listener, options);
                                 });
                                 res.setTimeout(60 * 60 * 1000, () =>
-                                    thing.handleUnsubscribeEvent(segments[3], listener, options)
+                                    thing.handleUnsubscribeEvent(segments[3], listener, options),
                                 );
                             } else if (req.method === "HEAD") {
                                 // HEAD support for long polling subscription
@@ -975,7 +975,7 @@ export default class HttpServer implements ProtocolServer {
 
     private resetMultiLangInteraction(
         interactions: ThingDescription["properties"] | ThingDescription["actions"] | ThingDescription["events"],
-        prefLang: string
+        prefLang: string,
     ) {
         if (interactions) {
             for (const interName in interactions) {

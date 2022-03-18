@@ -106,7 +106,7 @@ export default class CoapsClient implements ProtocolClient {
         form: CoapForm,
         next: (value: Content) => void,
         error?: (error: Error) => void,
-        complete?: () => void
+        complete?: () => void,
     ): Promise<Subscription> {
         return new Promise<Subscription>((resolve, reject) => {
             const requestUri = new URL(form.href.replace(/$coaps/, "https"));
@@ -125,7 +125,7 @@ export default class CoapsClient implements ProtocolClient {
                         new Subscription(() => {
                             coaps.stopObserving(form.href);
                             complete();
-                        })
+                        }),
                     );
                 })
                 .catch((err) => {
@@ -192,12 +192,12 @@ export default class CoapsClient implements ProtocolClient {
         } else if (isValidCoapMethod(formMethod)) {
             console.debug(
                 `[binding-coap] Method ${formMethod} is not supported yet.`,
-                `Using default method ${defaultMethod} instead.`
+                `Using default method ${defaultMethod} instead.`,
             );
         } else {
             console.debug(
                 `[binding-coap] Unknown method ${formMethod} found.`,
-                `Using default method ${defaultMethod} instead.`
+                `Using default method ${defaultMethod} instead.`,
             );
         }
 
@@ -207,7 +207,7 @@ export default class CoapsClient implements ProtocolClient {
     private async generateRequest(
         form: CoapForm,
         defaultMethod: CoapMethodName,
-        content?: Content
+        content?: Content,
     ): Promise<CoapResponse> {
         // url only works with http*
         const requestUri = new URL(form.href.replace(/$coaps/, "https"));
@@ -230,7 +230,7 @@ export default class CoapsClient implements ProtocolClient {
         const req = coaps.request(
             form.href /* string */,
             method.toLowerCase() as RequestMethod /* "get" | "post" | "put" | "delete" */,
-            body
+            body,
         );
 
         return req;

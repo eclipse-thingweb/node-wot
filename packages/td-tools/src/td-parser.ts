@@ -221,7 +221,7 @@ export function parseTD(td: string, normalize?: boolean): Thing {
                 if (!form.href.match(/^([a-z0-9+-.]+:).+/i)) {
                     console.debug(
                         "[td-tools/td-parser]",
-                        `parseTDString() applying base '${thing.base}' to '${form.href}'`
+                        `parseTDString() applying base '${thing.base}' to '${form.href}'`,
                     );
                     form.href = URLToolkit.buildAbsoluteURL(thing.base, form.href);
                 }

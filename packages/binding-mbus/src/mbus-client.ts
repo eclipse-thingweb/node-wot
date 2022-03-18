@@ -60,7 +60,7 @@ export default class MBusClient implements ProtocolClient {
         form: MBusForm,
         next: (value: Content) => void,
         error?: (error: Error) => void,
-        complete?: () => void
+        complete?: () => void,
     ): Promise<Subscription> {
         return new Promise<Subscription>((resolve, reject) => {
             throw new Error("Method not implemented.");
@@ -100,7 +100,7 @@ export default class MBusClient implements ProtocolClient {
             console.debug("[binding-mbus]", "Creating new MbusConnection for ", hostAndPort);
             this._connections.set(
                 hostAndPort,
-                new MBusConnection(host, port, { connectionTimeout: form["mbus:timeout"] || DEFAULT_TIMEOUT })
+                new MBusConnection(host, port, { connectionTimeout: form["mbus:timeout"] || DEFAULT_TIMEOUT }),
             );
             connection = this._connections.get(hostAndPort);
         } else {

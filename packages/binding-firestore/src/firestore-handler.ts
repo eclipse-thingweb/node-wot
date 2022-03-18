@@ -62,7 +62,7 @@ export const writeDataToFirestore = (
     firestore: any,
     topic: string,
     content: Content,
-    reqId: string = null
+    reqId: string = null,
 ): Promise<void> => {
     return new Promise((resolve, reject) => {
         console.debug("[debug] writeDataToFirestore topic:", topic, " value:", content, reqId);
@@ -123,7 +123,7 @@ export const subscribeToFirestore = async (
     firestore: any,
     firestoreObservers: any,
     topic: string,
-    callback: (err: Error | string | null, content?: Content, reqId?: string) => void
+    callback: (err: Error | string | null, content?: Content, reqId?: string) => void,
 ): Promise<void> => {
     console.debug("[debug] subscribeToFirestore topic:", topic);
     let firstFlg = true;
@@ -168,7 +168,7 @@ export const subscribeToFirestore = async (
         (err: Error) => {
             console.error("[error] failed to subscribe data from firestore: ", err, " topic: ", topic);
             callback(err, null, reqId);
-        }
+        },
     );
     firestoreObservers[topic] = observer;
 };

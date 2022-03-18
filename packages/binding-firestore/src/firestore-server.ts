@@ -148,7 +148,7 @@ export default class FirestoreServer implements ProtocolServer {
                     content = ContentSerdes.get().valueToContent(data, <any>property, this.DEFAULT_CONTENT_TYPE);
                 } catch (err) {
                     console.warn(
-                        `[warn] FirestoreServer cannot process data for Property '${propertyName}': ${err.message}`
+                        `[warn] FirestoreServer cannot process data for Property '${propertyName}': ${err.message}`,
                     );
                     // stop to handle writing property
                     thing.setPropertyWriteHandler(propertyName, async (data) => {
@@ -186,7 +186,7 @@ export default class FirestoreServer implements ProtocolServer {
             }
             thing.properties[propertyName].forms.push(form);
             console.debug(
-                `[debug] FirestoreServer at ${this.FIRESTORE_HREF_BASE} assigns '${href}' to property '${propertyName}'`
+                `[debug] FirestoreServer at ${this.FIRESTORE_HREF_BASE} assigns '${href}' to property '${propertyName}'`,
             );
 
             if (thing.properties[propertyName].observable) {
@@ -196,7 +196,7 @@ export default class FirestoreServer implements ProtocolServer {
                 thing.properties[propertyName].forms.push(form);
                 console.debug(
                     "[binding-http]",
-                    `HttpServer on port ${this.getPort()} assigns '${href}' to observable Property '${propertyName}'`
+                    `HttpServer on port ${this.getPort()} assigns '${href}' to observable Property '${propertyName}'`,
                 );
             }
             /*      subscribeToFirestore(
@@ -234,13 +234,13 @@ export default class FirestoreServer implements ProtocolServer {
                             return;
                         }
                         console.debug(
-                            `[debug] FirestoreServer at ${this.getHostName()} received message for '${topic}'`
+                            `[debug] FirestoreServer at ${this.getHostName()} received message for '${topic}'`,
                         );
 
                         content.type = this.DEFAULT_CONTENT_TYPE;
                         console.debug(`[debug] getting property(${propertyName}) data: `);
                         thing.writeProperty(propertyName, content);
-                    }
+                    },
                 );
             }
         }
@@ -277,33 +277,33 @@ export default class FirestoreServer implements ProtocolServer {
                                 console.error(
                                     `[error] FirestoreServer at ${this.getHostName()} got error on invoking '${actionName}': ${
                                         err.message
-                                    }`
+                                    }`,
                                 );
                             });
                             // Firestore cannot return results
                             console.warn(
-                                `[warn] FirestoreServer at ${this.getHostName()} cannot return output '${actionName}'`
+                                `[warn] FirestoreServer at ${this.getHostName()} cannot return output '${actionName}'`,
                             );
                             // TODO: How do we find the type of output that is the result of Action?
                             const outContent: Content = ContentSerdes.get().valueToContent(
                                 output as DataSchemaValue, // FIXME
                                 action.output,
-                                this.DEFAULT_CONTENT_TYPE
+                                this.DEFAULT_CONTENT_TYPE,
                             );
 
                             await writeDataToFirestore(this.firestore, actionResultTopic, outContent, reqId).catch(
                                 (err) => {
                                     console.error(err);
-                                }
+                                },
                             );
                             // topic found and message processed
                             return;
                         }
                     } // Thing exists?
                     console.warn(
-                        `[warn] FirestoreServer at ${this.getHostName()} received message for invalid topic '${topic}'`
+                        `[warn] FirestoreServer at ${this.getHostName()} received message for invalid topic '${topic}'`,
                     );
-                }
+                },
             );
 
             const href = this.FIRESTORE_HREF_BASE + topic;
@@ -311,7 +311,7 @@ export default class FirestoreServer implements ProtocolServer {
             form.op = ["invokeaction"];
             thing.actions[actionName].forms.push(form);
             console.debug(
-                `[debug] FirestoreServer at ${this.FIRESTORE_HREF_BASE} assigns '${href}' to Action '${actionName}'`
+                `[debug] FirestoreServer at ${this.FIRESTORE_HREF_BASE} assigns '${href}' to Action '${actionName}'`,
             );
         }
 
@@ -335,19 +335,19 @@ export default class FirestoreServer implements ProtocolServer {
                         console.warn(
                             `[warn] FirestoreServer on ${this.getHostName()} cannot process data for Event '${eventName}: ${
                                 err.message
-                            }'`
+                            }'`,
                         );
                         thing.unsubscribeEvent(eventName);
                         return;
                     }
                     // send event data
                     console.debug(
-                        `[debug] FirestoreServer at ${this.getHostName()} publishing to Event topic '${eventName}' `
+                        `[debug] FirestoreServer at ${this.getHostName()} publishing to Event topic '${eventName}' `,
                     );
                     await writeDataToFirestore(this.firestore, topic, content).catch((err) => {
                         console.error(`[error] failed to write event(${eventName})`, err);
                     });
-                }
+                },
             );
 
             const href = this.FIRESTORE_HREF_BASE + topic;
@@ -361,7 +361,7 @@ export default class FirestoreServer implements ProtocolServer {
         const tdContent: Content = ContentSerdes.get().valueToContent(
             JSON.stringify(thing.getThingDescription()),
             null,
-            "application/td+json"
+            "application/td+json",
         );
         await writeDataToFirestore(this.firestore, `${this.getHostName()}/${name}`, tdContent);
         this.topics.push(`${this.getHostName()}/${name}`);

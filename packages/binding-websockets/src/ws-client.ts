@@ -59,7 +59,7 @@ export default class WebSocketClient implements ProtocolClient {
         form: Form,
         next: (content: Content) => void,
         error?: (error: Error) => void,
-        complete?: () => void
+        complete?: () => void,
     ): Promise<Subscription> {
         return null;
     }

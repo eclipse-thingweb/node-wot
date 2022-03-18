@@ -145,7 +145,7 @@ export default class CoapClient implements ProtocolClient {
         form: CoapForm,
         next: (value: Content) => void,
         error?: (error: Error) => void,
-        complete?: () => void
+        complete?: () => void,
     ): Promise<Subscription> {
         return new Promise<Subscription>((resolve, reject) => {
             const req = this.generateRequest(form, "GET", true);
@@ -168,7 +168,7 @@ export default class CoapClient implements ProtocolClient {
                     new Subscription(() => {
                         res.close();
                         if (complete) complete();
-                    })
+                    }),
                 );
             });
 
@@ -223,12 +223,12 @@ export default class CoapClient implements ProtocolClient {
             //       released
             console.debug(
                 `[binding-coap] Method ${formMethod} is not supported yet.`,
-                `Using default method ${defaultMethod} instead.`
+                `Using default method ${defaultMethod} instead.`,
             );
         } else {
             console.debug(
                 `[binding-coap] Unknown method ${formMethod} found.`,
-                `Using default method ${defaultMethod} instead.`
+                `Using default method ${defaultMethod} instead.`,
             );
         }
 

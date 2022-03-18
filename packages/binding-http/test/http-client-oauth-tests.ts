@@ -62,7 +62,7 @@ class HttpClientOAuthTest {
                         key: readFileSync("./test/server.key"),
                         cert: readFileSync("./test/server.cert"),
                     },
-                    app
+                    app,
                 )
                 .listen(3000, "localhost", resolve);
         });

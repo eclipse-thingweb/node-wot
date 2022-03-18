@@ -109,7 +109,7 @@ const runScripts = async function (servient: DefaultServient, scripts: Array<str
                         "[cli]",
                         `WoT-Servient running script '${data.substr(0, data.indexOf("\n")).replace("\r", "")}'... (${
                             data.split(/\r\n|\r|\n/).length
-                        } lines)`
+                        } lines)`,
                     );
 
                     fname = path.resolve(fname);
@@ -151,7 +151,7 @@ const runScripts = async function (servient: DefaultServient, scripts: Array<str
                         console.warn("[cli]", error);
                     }
                     launchScripts(scripts);
-                }
+                },
             );
         });
     } else {
@@ -174,13 +174,13 @@ const runAllScripts = function (servient: DefaultServient, debug?: DebugParams) 
         });
         console.info(
             "[cli]",
-            `WoT-Servient using current directory with ${scripts.length} script${scripts.length > 1 ? "s" : ""}`
+            `WoT-Servient using current directory with ${scripts.length} script${scripts.length > 1 ? "s" : ""}`,
         );
 
         runScripts(
             servient,
             scripts.map((filename) => path.resolve(path.join(baseDir, filename))),
-            debug
+            debug,
         );
     });
 };
@@ -337,7 +337,7 @@ readConf(confFile)
                 if (argv.length > 0) {
                     console.info(
                         "[cli]",
-                        `WoT-Servient loading ${argv.length} command line script${argv.length > 1 ? "s" : ""}`
+                        `WoT-Servient loading ${argv.length} command line script${argv.length > 1 ? "s" : ""}`,
                     );
                     return runScripts(servient, argv, debug);
                 } else {

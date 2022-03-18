@@ -147,7 +147,7 @@ export class ContentSerdes {
     public valueToContent(
         value: DataSchemaValue | ReadableStream,
         schema: DataSchema,
-        contentType = ContentSerdes.DEFAULT
+        contentType = ContentSerdes.DEFAULT,
     ): Content {
         if (value === undefined) console.warn("[core/content-serdes]", "ContentSerdes valueToContent got no value");
 
@@ -169,7 +169,7 @@ export class ContentSerdes {
         } else {
             console.warn(
                 "[core/content-serdes]",
-                `ContentSerdes passthrough due to unsupported serialization format '${contentType}'`
+                `ContentSerdes passthrough due to unsupported serialization format '${contentType}'`,
             );
             bytes = Buffer.from(value.toString());
         }
