@@ -14,7 +14,8 @@
         "fbemutest": "mocha --require ts-node/register test/**/*.ts --timeout 10000 --exit",
         "codestyle": "standard --pretty",
         "lint": "eslint .",
-        "lint:fix": "eslint . --fix"
+        "lint:fix": "eslint . --fix",
+        "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"**/*.json\""
     },
     "author": "hidetak",
     "license": "EPL-2.0",
