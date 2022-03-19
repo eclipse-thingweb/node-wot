@@ -1,20 +1,34 @@
-// test-thing.ts
+/********************************************************************************
+ * Copyright (c) 2021 Contributors to the Eclipse Foundation
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v. 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0, or the W3C Software Notice and
+ * Document License (2015-05-13) which is available at
+ * https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
+ ********************************************************************************/
+
 import Servient from "@node-wot/core";
 import FirestoreServer from "../src/firestore-server";
 import FirestoreCodec from "../src/codecs/firestore-codec";
-const firebase = require("firebase");
+import firebase from "firebase";
 
-const firestoreConfig = require("./firestore-config.json");
+import firestoreConfig from "./firestore-config.json";
 
-export const launchTestThing = async () => {
+export const launchTestThing = async (): Promise<any> => {
     // setup for emulator
     try {
-        //process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8088'
+        // process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8088'
         firebase.initializeApp(firestoreConfig.firebaseConfig);
         const isEmulating = true;
         if (isEmulating) {
             firebase.auth().useEmulator("http://localhost:9099");
-            //firebase.firestore().useEmulator('localhost', 8088)
+            // firebase.firestore().useEmulator('localhost', 8088)
             firebase.firestore().settings({
                 host: "localhost:8088",
                 ssl: false,
@@ -33,7 +47,7 @@ export const launchTestThing = async () => {
         const server = new FirestoreServer(firestoreConfig);
 
         // create Servient add Firebase binding
-        let servient = new Servient();
+        const servient = new Servient();
         servient.addServer(server);
 
         const codec = new FirestoreCodec();
@@ -42,9 +56,9 @@ export const launchTestThing = async () => {
         const WoT = await servient.start();
 
         // init property values
-        let objectProperty = { testNum: 0, testStr: "abc" };
-        let stringProperty = "";
-        let integerProperty = 0;
+        const objectProperty = { testNum: 0, testStr: "abc" };
+        const stringProperty = "";
+        const integerProperty = 0;
 
         const thing = await WoT.produce({
             title: "test-thing",
@@ -163,8 +177,7 @@ export const launchTestThing = async () => {
         // expose the thing
         await thing.expose();
 
-        //@ts-ignore
-        console.log("Produced " + thing.getThingDescription().title);
+        // console.log("Produced " + thing.getThingDescription().title);
 
         // set property handlers (using async-await)
         thing.setPropertyReadHandler("objectProperty", async () => objectProperty);

@@ -1,8 +1,20 @@
-var fs = require("fs");
+/********************************************************************************
+ * Copyright (c) 2022 Contributors to the Eclipse Foundation
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v. 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0, or the W3C Software Notice and
+ * Document License (2015-05-13) which is available at
+ * https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
+ ********************************************************************************/
 import { suite, test } from "@testdeck/mocha";
 import * as chai from "chai";
 import chaiAsPromised from "chai-as-promised";
-import { promisify } from "util";
 import FirestoreClient from "../src/firestore-client";
 import Servient, { Helpers } from "@node-wot/core";
 import FirestoreClientFactory from "../src/firestore-client-factory";
@@ -10,15 +22,18 @@ import FirestoreCodec from "../src/codecs/firestore-codec";
 import firebase from "firebase";
 import { launchTestThing } from "./test-thing";
 
-//chai.should()
+// process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8088'
+
+import { ThingDescription } from "wot-typescript-definitions";
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const firestoreConfig = require("./firestore-config.json");
+
+// chai.should()
 chai.use(chaiAsPromised);
 const assert = chai.assert;
 
-//process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8088'
-
-const firestoreConfig = require("./firestore-config.json");
-
-const wait = async (msec) => {
+const wait = async (msec: number) => {
     await new Promise((resolve, reject) => {
         setTimeout(() => {
             resolve(null);
@@ -29,8 +44,8 @@ const wait = async (msec) => {
 @suite("Firestore client basic test implementation")
 class FirestoreClientBasicTest {
     private client: FirestoreClient;
-    private thing;
-    private static serverThing;
+    private thing: any;
+    private static serverThing: any;
 
     static async before() {
         this.serverThing = await launchTestThing();
@@ -43,7 +58,7 @@ class FirestoreClientBasicTest {
             const isEmulating = true;
             if (isEmulating) {
                 firebase.auth().useEmulator("http://localhost:9099");
-                //firebase.firestore().useEmulator('localhost', 8088)
+                // firebase.firestore().useEmulator('localhost', 8088)
                 firebase.firestore().settings({
                     host: "localhost:8088",
                     ssl: false,
@@ -51,17 +66,17 @@ class FirestoreClientBasicTest {
             }
         }
 
-        let servient = new Servient();
+        const servient = new Servient();
         const clientFactory = new FirestoreClientFactory(firestoreConfig);
         servient.addClientFactory(clientFactory);
 
         const codec = new FirestoreCodec();
         servient.addMediaType(codec);
 
-        let wotHelper = new Helpers(servient);
+        const wotHelper = new Helpers(servient);
         await wotHelper
             .fetch(`firestore://${firestoreConfig.hostName}/test-thing`)
-            .then(async (td) => {
+            .then(async (td: ThingDescription) => {
                 try {
                     servient.start().then((WoT) => {
                         WoT.consume(td).then(async (thing) => {
@@ -78,7 +93,7 @@ class FirestoreClientBasicTest {
     }
 
     static after() {
-        //return promisify(HttpClientBasicTest.server.close)
+        // return promisify(HttpClientBasicTest.server.close)
     }
 
     @test.skip async "[client] check initial property"() {
@@ -153,7 +168,7 @@ class FirestoreClientBasicTest {
     @test.skip async "[client] subscribe and unsubscribe event with integer"() {
         let subscribeFlg = true;
         let errorMes = null;
-        this.thing.subscribeEvent("eventInteger", (event) => {
+        this.thing.subscribeEvent("eventInteger", (event: number) => {
             if (subscribeFlg) {
                 assert.equal(event, 200);
             } else {
@@ -173,7 +188,7 @@ class FirestoreClientBasicTest {
     @test.skip async "[client] subscribe and unsubscribe event with string"() {
         let subscribeFlg = true;
         let errorMes = null;
-        this.thing.subscribeEvent("eventString", (event) => {
+        this.thing.subscribeEvent("eventString", (event: string) => {
             if (subscribeFlg) {
                 assert.equal(event, "string123");
             } else {
@@ -193,7 +208,7 @@ class FirestoreClientBasicTest {
     @test.skip async "[client] subscribe and unsubscribe event with object"() {
         let subscribeFlg = true;
         let errorMes = null;
-        this.thing.subscribeEvent("eventObject", (event) => {
+        this.thing.subscribeEvent("eventObject", (event: unknown) => {
             if (subscribeFlg) {
                 assert.deepEqual(event, { eventStr: "event1", eventNum: 123 });
             } else {
@@ -219,7 +234,7 @@ class FirestoreClientBasicTest {
     @test.skip async "[client] observe and unobserve property"() {
         let observeFlg = true;
         let errorMes = null;
-        this.thing.observeProperty("stringProperty", (str) => {
+        this.thing.observeProperty("stringProperty", (str: string) => {
             if (observeFlg) {
                 assert.equal(str, "test-string-888");
             } else {
@@ -258,5 +273,5 @@ class FirestoreClientBasicTest {
     await wait(1000)
     const obj = await this.thing.readProperty('objectProperty')
     assert.deepEqual(obj, { testKey1: 'testString', testKey2: 123 })
-  }*/
+  } */
 }

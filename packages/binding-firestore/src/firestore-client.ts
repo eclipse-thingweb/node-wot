@@ -32,9 +32,9 @@ import {
 import * as TD from "@node-wot/td-tools";
 
 export default class FirestoreClient implements ProtocolClient {
-    private firestore = null;
+    private firestore: any = null;
     private firestoreObservers = {};
-    private fbConfig = null;
+    private fbConfig: FirestoreConfig = null;
 
     constructor(config: FirestoreConfig = null) {
         if (typeof config !== "object") {
@@ -78,22 +78,21 @@ export default class FirestoreClient implements ProtocolClient {
         const firestore = await initFirestore(this.fbConfig, this.firestore);
         this.firestore = firestore;
         const pointerInfo = this.makePointerInfo(form);
-        //TODO: thingに問い合わせるように修正
+        // TODO: thingに問い合わせるように修正
         const content = await readDataFromFirestore(this.firestore, pointerInfo.topic);
         return content;
     }
 
-    public async writeResource(form: FirestoreForm, content: Content): Promise<any> {
+    public async writeResource(form: FirestoreForm, content: Content): Promise<void> {
         const pointerInfo = this.makePointerInfo(form);
         const firestore = await initFirestore(this.fbConfig, this.firestore);
         this.firestore = firestore;
-        let splittedTopic = pointerInfo.topic.split("/");
+        const splittedTopic = pointerInfo.topic.split("/");
         if (splittedTopic && splittedTopic[2] === "properties") {
             splittedTopic[2] = "propertyWriteReq";
             pointerInfo.topic = splittedTopic.join("/");
         }
-        const value = await writeDataToFirestore(this.firestore, pointerInfo.topic, content);
-        return value;
+        await writeDataToFirestore(this.firestore, pointerInfo.topic, content);
     }
 
     public async invokeResource(form: FirestoreForm, content?: Content): Promise<Content> {
@@ -109,7 +108,7 @@ export default class FirestoreClient implements ProtocolClient {
             "/actionResults/" +
             encodeURIComponent(pointerInfo.resource);
         const reqId = uuidv4();
-        let timeoutId;
+        let timeoutId: NodeJS.Timeout;
         const retContent: Content = await new Promise((resolve, reject) => {
             subscribeToFirestore(this.firestore, this.firestoreObservers, actionResultTopic, (err, content, resId) => {
                 console.debug("[debug] return action and unsubscribe");
@@ -151,7 +150,7 @@ export default class FirestoreClient implements ProtocolClient {
         return retContent;
     }
 
-    public async unlinkResource(form: FirestoreForm): Promise<any> {
+    public async unlinkResource(form: FirestoreForm): Promise<void> {
         const firestore = await initFirestore(this.fbConfig, this.firestore);
         this.firestore = firestore;
         const pointerInfo = this.makePointerInfo(form);
@@ -160,23 +159,29 @@ export default class FirestoreClient implements ProtocolClient {
 
     public subscribeResource(
         form: FirestoreForm,
-        next: (value: any) => void,
-        error?: (error: any) => void,
+        next: (value: Content) => void,
+        error?: (error: Error) => void,
         complete?: () => void
     ): any {
+        // TODO: Return Promise<Subscription>
         const pointerInfo = this.makePointerInfo(form);
         // subscrbe for results
         initFirestore(this.fbConfig, this.firestore)
             .then((firestore) => {
                 this.firestore = firestore;
-                subscribeToFirestore(this.firestore, this.firestoreObservers, pointerInfo.topic, (err, content) => {
-                    if (err) {
-                        console.error("[error] failed to subscribe resource: ", err);
-                        error(err);
-                    } else {
-                        next(content);
+                subscribeToFirestore(
+                    this.firestore,
+                    this.firestoreObservers,
+                    pointerInfo.topic,
+                    (err: Error, content) => {
+                        if (err) {
+                            console.error("[error] failed to subscribe resource: ", err);
+                            error(err);
+                        } else {
+                            next(content);
+                        }
                     }
-                });
+                );
             })
             .catch((err) => {
                 console.error("[error] failed to init firestore: ", err);
@@ -192,7 +197,7 @@ export default class FirestoreClient implements ProtocolClient {
         // do nothing
     }
 
-    public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean {
+    public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: unknown): boolean {
         // Firestore provides security for the communication channel
         // Should we be able to set security on a per-Thing basis in the future?
         return true;

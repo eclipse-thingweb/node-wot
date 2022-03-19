@@ -15,10 +15,11 @@
 
 import * as TD from "@node-wot/td-tools";
 import { Buffer } from "buffer";
+import { DataSchemaValue } from "wot-typescript-definitions";
+import util from "util";
 
-let textDecoder;
+let textDecoder: TextDecoder;
 try {
-    const util = require("util");
     textDecoder = new util.TextDecoder("utf-8");
 } catch (err) {
     textDecoder = new TextDecoder("utf-8");
@@ -29,14 +30,10 @@ export default class FirestoreCodec {
         return "application/firestore";
     }
 
-    bytesToValue(bytes: Buffer, schema: TD.DataSchema, parameters: { [key: string]: string }): any {
-        let parsed: any;
+    bytesToValue(bytes: Buffer, schema: TD.DataSchema, parameters: { [key: string]: string }): DataSchemaValue {
+        let parsed: DataSchemaValue;
         if (bytes) {
-            if (bytes["type"] === "Buffer" && bytes["data"]) {
-                parsed = textDecoder.decode(new Uint8Array(bytes["data"]));
-            } else {
-                parsed = bytes.toString();
-            }
+            parsed = textDecoder.decode(bytes.buffer);
             if (!schema) return parsed;
             if (schema.type === "boolean") {
                 if (parsed === "true" || parsed === "false") {
@@ -56,7 +53,7 @@ export default class FirestoreCodec {
         return parsed;
     }
 
-    valueToBytes(value: any, schema: TD.DataSchema, parameters?: { [key: string]: string }): Buffer {
+    valueToBytes(value: unknown, schema: TD.DataSchema, parameters?: { [key: string]: string }): Buffer {
         let body = "";
         if (value !== null && value !== undefined) {
             if (schema && (schema.type === "object" || schema.type === "array")) {
