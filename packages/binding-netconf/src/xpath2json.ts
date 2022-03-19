@@ -53,7 +53,7 @@ export function json2xpath(json: any, index: number, str: Array<string>): string
     return str;
 }
 
-export function xpath2json(xpath: string, NSs: any): any {
+export function xpath2json(xpath: string, namespaces: Record<string, string>): Record<string, unknown> {
     const subStrings = xpath.split("/");
     let obj: any = {};
     let tmpObj: any = {};
@@ -62,20 +62,20 @@ export function xpath2json(xpath: string, NSs: any): any {
         if (sub === "") {
             continue;
         }
-        let rootNs = null;
-        let key = null;
+        let rootNamespace: string = null;
+        let key: string = null;
         tmpObj = {};
         const reg = /\[(.*?)\]/g;
         if (sub.replace(reg, "").split(":").length > 1 && i === 1) {
             // handle the root, without focusing on leaves
-            rootNs = sub.replace(reg, "").split(":")[0];
+            rootNamespace = sub.replace(reg, "").split(":")[0];
             key = sub.replace(reg, "").split(":")[1]; // remove possible leaves to avoid wrong conversion
-            sub = sub.replace(rootNs + ":", ""); // remove the ns
-            const $: any = {}; // object for containing namespaces
-            if (!(rootNs in NSs)) {
-                throw new Error(`Namespace for ${rootNs} not specified in the TD`);
+            sub = sub.replace(rootNamespace + ":", ""); // remove the ns
+            const $: Record<string, string> = {}; // object for containing namespaces
+            if (!(rootNamespace in namespaces)) {
+                throw new Error(`Namespace for ${rootNamespace} not specified in the TD`);
             }
-            $.xmlns = NSs[rootNs];
+            $.xmlns = namespaces[rootNamespace];
             tmpObj[key] = {};
             tmpObj[key].$ = $; // attach all the required namespaces
         }
@@ -98,10 +98,10 @@ export function xpath2json(xpath: string, NSs: any): any {
                 if (val.split("\\:").length > 1 && i > 1) {
                     const nsKey = val.split("\\:")[0];
                     val = val.replace(/[\\]+/g, ""); // remove escape chars
-                    if (!(nsKey in NSs)) {
+                    if (!(nsKey in namespaces)) {
                         throw new Error(`Namespace for ${nsKey} not specified in the TD`);
                     }
-                    const ns = NSs[nsKey];
+                    const ns = namespaces[nsKey];
                     const xmlnsKey = "xmlns:" + nsKey;
                     tmpObj[sub][key] = { $: { [xmlnsKey]: ns }, _: val };
                 }
@@ -121,11 +121,11 @@ export function xpath2json(xpath: string, NSs: any): any {
             }
             sub = val; // since xmlns is going to be add, sub is now just the value
             tmpObj[sub].$ = {};
-            if (!(nsKey in NSs)) {
+            if (!(nsKey in namespaces)) {
                 throw new Error(`Namespace for ${nsKey} not specified in the TD`);
             }
 
-            tmpObj[sub].$.xmlns = NSs[nsKey];
+            tmpObj[sub].$.xmlns = namespaces[nsKey];
         }
 
         if (!tmpObj[sub]) {
@@ -137,7 +137,7 @@ export function xpath2json(xpath: string, NSs: any): any {
     return obj;
 }
 
-export function addLeaves(xpath: string, payload: any): string {
+export function addLeaves(xpath: string, payload: unknown): string {
     if (!isObject(payload)) {
         return xpath;
     }

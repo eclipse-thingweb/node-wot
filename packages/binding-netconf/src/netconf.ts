@@ -19,7 +19,20 @@ export { default as NetconfClientFactory } from "./netconf-client-factory";
 export * from "./netconf";
 export * from "./netconf-client-factory";
 export class NetconfForm extends Form {
-    public "nc:NSs"?: any;
+    public "nc:NSs"?: Record<string, string>;
     public "nc:method"?: string;
     public "nc:target"?: string;
+}
+
+export type RpcMethod = "GET-CONFIG" | "EDIT-CONFIG" | "COMMIT" | "RPC";
+
+export interface NetConfCredentials {
+    username: string;
+    password?: string;
+
+    privateKey?: string;
+}
+
+export function isRpcMethod(method: string): method is RpcMethod {
+    return ["GET-CONFIG", "EDIT-CONFIG", "COMMIT", "RPC"].includes(method);
 }
