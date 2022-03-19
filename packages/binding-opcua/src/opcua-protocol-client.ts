@@ -128,6 +128,22 @@ export function findBasicDataTypeC(
 const findBasicDataType: (session: IBasicSession, dataTypeId: NodeId) => Promise<DataType> =
     promisify(findBasicDataTypeC);
 
+function _variantToJSON(variant: Variant, contentType: string) {
+    contentType = contentType.split(";")[0];
+
+    switch (contentType) {
+        case "application/opcua+json": {
+            return opcuaJsonEncodeVariant(variant, true);
+        }
+        case "application/json": {
+            return opcuaJsonEncodeVariant(variant, false);
+        }
+        default: {
+            throw new Error("Unsupported content type here : " + contentType);
+        }
+    }
+}
+
 export class OPCUAProtocolClient implements ProtocolClient {
     private _connections: Map<string, OPCUAConnectionEx> = new Map<string, OPCUAConnectionEx>();
 
@@ -593,20 +609,5 @@ export class OPCUAProtocolClient implements ProtocolClient {
         }
 
         return { type: "application/json", body: Readable.from(JSON.stringify(body)) };
-    }
-}
-function _variantToJSON(variant: Variant, contentType: string) {
-    contentType = contentType.split(";")[0];
-
-    switch (contentType) {
-        case "application/opcua+json": {
-            return opcuaJsonEncodeVariant(variant, true);
-        }
-        case "application/json": {
-            return opcuaJsonEncodeVariant(variant, false);
-        }
-        default: {
-            throw new Error("Unsupported content type here : " + contentType);
-        }
     }
 }
