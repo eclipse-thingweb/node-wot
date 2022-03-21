@@ -17,13 +17,12 @@ import { Content } from "@node-wot/core";
 import firebase from "firebase/app";
 import "firebase/auth";
 import "firebase/firestore";
-import { Buffer } from "buffer";
 import { Readable } from "stream";
 
 /**
  * initialize firestore.
  */
-export const initFirestore = async (fbConfig, fstore): Promise<any> => {
+export const initFirestore = async (fbConfig: any, fstore: any): Promise<any> => {
     if (fstore != null) {
         return fstore;
     }
@@ -32,9 +31,9 @@ export const initFirestore = async (fbConfig, fstore): Promise<any> => {
         firebase.initializeApp(fbConfig.firebaseConfig);
     }
     // Sign In
-    const currentUser = await new Promise<any>((res, rej) => {
-        firebase.auth().onAuthStateChanged((user) => {
-            res(user);
+    const currentUser = await new Promise((resolve, reject) => {
+        firebase.auth().onAuthStateChanged((user: any) => {
+            resolve(user);
         });
     });
     if (!currentUser) {
@@ -49,8 +48,8 @@ export const initFirestore = async (fbConfig, fstore): Promise<any> => {
                     const firestore = firebase.firestore();
                     resolve(firestore);
                 })
-                .catch(function (error) {
-                    reject(`firebase auth error: ${error}`);
+                .catch(function (error: Error) {
+                    reject(error);
                 });
         });
         return firestore;
@@ -59,38 +58,43 @@ export const initFirestore = async (fbConfig, fstore): Promise<any> => {
     }
 };
 
-export const writeDataToFirestore = (firestore, topic: string, content: Content, reqId = null): Promise<any> => {
+export const writeDataToFirestore = (
+    firestore: any,
+    topic: string,
+    content: Content,
+    reqId: string = null
+): Promise<void> => {
     return new Promise((resolve, reject) => {
         console.debug("[debug] writeDataToFirestore topic:", topic, " value:", content, reqId);
         const ref = firestore.collection("things").doc(encodeURIComponent(topic));
-        let data = { updatedTime: Date.now(), reqId };
+        const data: any = { updatedTime: Date.now(), reqId };
         if (content) {
-            data["content"] = JSON.stringify(content);
+            data.content = JSON.stringify(content);
         }
         ref.set(data)
-            .then((value) => {
-                resolve(value);
+            .then((value: unknown) => {
+                resolve();
             })
-            .catch((err) => {
+            .catch((err: Error) => {
                 console.error("[error] failed to write data to firestore: ", err, " topic: ", topic, " data: ", data);
                 reject(err);
             });
     });
 };
 
-export const readDataFromFirestore = (firestore, topic: string): Promise<Content> => {
+export const readDataFromFirestore = (firestore: any, topic: string): Promise<Content> => {
     return new Promise<Content>((resolve, reject) => {
         console.debug("[debug] readDataFromFirestore topic:", topic);
         const ref = firestore.collection("things").doc(encodeURIComponent(topic));
         ref.get()
-            .then((doc) => {
+            .then((doc: any) => {
                 if (doc.exists) {
                     const data = doc.data();
                     let content: Content = null;
-                    //console.debug('[debug] readDataToFirestore gotten data:', data)
+                    // console.debug('[debug] readDataToFirestore gotten data:', data)
                     if (data && data.content) {
                         // XXX TODO change the way content is reported
-                        let obj: any = JSON.parse(data.content);
+                        const obj = JSON.parse(data.content);
                         if (!obj) {
                             reject(new Error(`invalid ${topic} content:${content}`));
                         }
@@ -104,11 +108,11 @@ export const readDataFromFirestore = (firestore, topic: string): Promise<Content
                     }
                     resolve(content);
                 } else {
-                    reject("no contents");
+                    reject(Error("no contents"));
                     console.debug("[debug] read data from firestore but no contents topic:", topic);
                 }
             })
-            .catch((err) => {
+            .catch((err: Error) => {
                 console.error("[error] failed read data from firestore: ", err, " topic: ", topic);
                 reject(err);
             });
@@ -116,21 +120,21 @@ export const readDataFromFirestore = (firestore, topic: string): Promise<Content
 };
 
 export const subscribeToFirestore = async (
-    firestore,
-    firestoreObservers,
+    firestore: any,
+    firestoreObservers: any,
     topic: string,
-    callback: (err: string | null, content?: Content, reqId?: string) => void
-) => {
+    callback: (err: Error | string | null, content?: Content, reqId?: string) => void
+): Promise<void> => {
     console.debug("[debug] subscribeToFirestore topic:", topic);
     let firstFlg = true;
     const ref = firestore.collection("things").doc(encodeURIComponent(topic));
-    let reqId;
+    let reqId: string;
     const observer = ref.onSnapshot(
-        (doc) => {
+        (doc: any) => {
             const data = doc.data();
             // If reqId is included and Topic contains actionResults,
             // return the value regardless of whether it is the first acquisition because it is a return value.
-            let dividedTopic = topic.split("/");
+            const dividedTopic = topic.split("/");
             if (data && data.reqId) {
                 reqId = data.reqId;
                 if (dividedTopic && dividedTopic.length > 2 && dividedTopic[2] === "actionResults") {
@@ -145,9 +149,9 @@ export const subscribeToFirestore = async (
 
             let content: Content = null;
             if (data && data.content) {
-                let obj: any = JSON.parse(data.content);
+                const obj = JSON.parse(data.content);
                 if (!obj) {
-                    callback(`invalid ${topic} content: ${content}`, null, reqId);
+                    callback(Error(`invalid ${topic} content: ${content}`), null, reqId);
                     return;
                 }
                 content = {
@@ -161,7 +165,7 @@ export const subscribeToFirestore = async (
             }
             callback(null, content, reqId);
         },
-        (err) => {
+        (err: Error) => {
             console.error("[error] failed to subscribe data from firestore: ", err, " topic: ", topic);
             callback(err, null, reqId);
         }
@@ -169,7 +173,7 @@ export const subscribeToFirestore = async (
     firestoreObservers[topic] = observer;
 };
 
-export const unsubscribeToFirestore = (firestoreObservers, topic: string) => {
+export const unsubscribeToFirestore = (firestoreObservers: any, topic: string) => {
     console.debug("    unsubscribeToFirestore topic:", topic);
     const observer = firestoreObservers[topic];
     if (observer) {
@@ -177,7 +181,7 @@ export const unsubscribeToFirestore = (firestoreObservers, topic: string) => {
     }
 };
 
-export const removeDataFromFirestore = (firestore, topic: string): Promise<void> => {
+export const removeDataFromFirestore = (firestore: any, topic: string): Promise<void> => {
     return new Promise((resolve, reject) => {
         console.debug("[debug] removeDataFromFirestore topic: ", topic);
         const ref = firestore.collection("things").doc(encodeURIComponent(topic));
@@ -186,48 +190,48 @@ export const removeDataFromFirestore = (firestore, topic: string): Promise<void>
                 console.log("removed topic: ", topic);
                 resolve();
             })
-            .catch((err) => {
+            .catch((err: Error) => {
                 console.error("error removing topic: ", topic, "error: ", err);
                 reject(err);
             });
     });
 };
 
-export const writeMetaDataToFirestore = (firestore, hostName: string, content: Object): Promise<any> => {
+export const writeMetaDataToFirestore = (firestore: any, hostName: string, content: unknown): Promise<any> => {
     return new Promise((resolve, reject) => {
         console.debug("[debug] writeMetaDataToFirestore hostName: ", hostName, " value: ", content);
         const ref = firestore.collection("hostsMetaData").doc(hostName);
-        let data = { updatedTime: Date.now() };
+        const data: any = { updatedTime: Date.now() };
         if (content) {
-            data["content"] = JSON.stringify(content);
+            data.content = JSON.stringify(content);
         }
         ref.set(data)
-            .then((value) => {
+            .then((value: any) => {
                 resolve(value);
             })
-            .catch((err) => {
+            .catch((err: Error) => {
                 console.error("[error] failed to write meta data: ", err, " data: ", data, " hostName: ", hostName);
                 reject(err);
             });
     });
 };
 
-export const readMetaDataFromFirestore = (firestore, hostName: string): Promise<Object> => {
-    return new Promise<Object>((resolve, reject) => {
+export const readMetaDataFromFirestore = (firestore: any, hostName: string): Promise<any> => {
+    return new Promise<any>((resolve, reject) => {
         console.debug("[debug] readMetaDataFromFirestore hostName:", hostName);
         const ref = firestore.collection("hostsMetaData").doc(hostName);
         ref.get()
-            .then((doc) => {
+            .then((doc: any) => {
                 if (doc.exists) {
                     const data = doc.data();
-                    const content: Object = JSON.parse(data);
-                    resolve(content["body"]);
+                    const content = JSON.parse(data);
+                    resolve(content.body);
                 } else {
                     console.debug("[debug] read meta data from firestore but no contents");
-                    reject("no contents");
+                    reject(Error("no contents"));
                 }
             })
-            .catch((err) => {
+            .catch((err: Error) => {
                 console.error("[error] failed to read meta data: ", err, " hostName: ", hostName);
                 reject(err);
             });
@@ -235,7 +239,7 @@ export const readMetaDataFromFirestore = (firestore, hostName: string): Promise<
 };
 
 // Remove the MetaData corresponding to the hostname from Firestore.
-export const removeMetaDataFromFirestore = (firestore, hostName: string): Promise<void> => {
+export const removeMetaDataFromFirestore = (firestore: any, hostName: string): Promise<void> => {
     return new Promise((resolve, reject) => {
         console.debug("[debug] removeMetaDataFromFirestore hostName: ", hostName);
         const ref = firestore.collection("hostsMetaData").doc(hostName);
@@ -244,7 +248,7 @@ export const removeMetaDataFromFirestore = (firestore, hostName: string): Promis
                 console.log("removed hostName: ", hostName);
                 resolve();
             })
-            .catch((err) => {
+            .catch((err: Error) => {
                 console.error("error removing hostName: ", hostName, "error: ", err);
                 reject(err);
             });
