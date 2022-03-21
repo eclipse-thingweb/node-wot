@@ -331,7 +331,21 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     }
 
     public getThingDescription(): WoT.ThingDescription {
-        return JSON.parse(TD.serializeTD(this));
+        return JSON.parse(TD.serializeTD(this), (key, value) => {
+            // Check if key matches internals like "propertyHandlers", "actionHandlers", ...
+            // if matched return value "undefined"
+            if (
+                key === "propertyHandlers" ||
+                key === "actionHandlers" ||
+                key === "eventHandlers" ||
+                key === "propertyListeners" ||
+                key === "eventListeners"
+            ) {
+                return undefined;
+            }
+            // else return the value itself
+            return value;
+        });
     }
 
     public emitEvent(name: string, data: WoT.InteractionInput): void {
