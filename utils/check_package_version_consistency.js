@@ -43,7 +43,6 @@ async function main() {
     await exploreModule(rootFolder);
     await exploreFolder(path.join(rootFolder, "packages"));
     await exploreFolder(path.join(rootFolder, "examples"));
-    await exploreFolder(path.join(rootFolder, "examples/servients"));
     await exploreFolder(path.join(rootFolder, "examples/templates"));
     await exploreFolder(path.join(rootFolder, "examples/security"));
 
@@ -100,4 +99,11 @@ async function main() {
     process.exit(0);
 }
 
-main();
+(async () => {
+    try {
+        await main();
+    } catch (e) {
+        console.error(e);
+        process.exit(3);
+    }
+})();
