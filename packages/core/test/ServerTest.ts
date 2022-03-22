@@ -106,11 +106,11 @@ class WoTServerTest {
         expect(thing.getThingDescription()).to.have.property("support").that.equals("none");
         expect(thing.getThingDescription()).to.have.property("test:custom").that.equals("test");
         // should not share internals
-        expect(thing.getThingDescription()).to.not.have.property("propertyHandlers");
-        expect(thing.getThingDescription()).to.not.have.property("actionHandlers");
-        expect(thing.getThingDescription()).to.not.have.property("eventHandlers");
-        expect(thing.getThingDescription()).to.not.have.property("propertyListeners");
-        expect(thing.getThingDescription()).to.not.have.property("eventListeners");
+        expect(thing.getThingDescription()).to.not.have.property("__propertyHandlers");
+        expect(thing.getThingDescription()).to.not.have.property("__actionHandlers");
+        expect(thing.getThingDescription()).to.not.have.property("__eventHandlers");
+        expect(thing.getThingDescription()).to.not.have.property("__propertyListeners");
+        expect(thing.getThingDescription()).to.not.have.property("__eventListeners");
         // direct access
         expect(thing).to.have.property("title").that.equals("myFragmentThing");
         expect(thing).to.have.property("support").that.equals("none");
