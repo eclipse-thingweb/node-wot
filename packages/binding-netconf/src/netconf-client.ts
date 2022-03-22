@@ -17,7 +17,7 @@
  * Netconf protocol binding
  */
 import { ProtocolClient, Content, ProtocolHelpers } from "@node-wot/core";
-import { NetconfForm } from "./netconf";
+import { NetconfForm, NetConfCredentials, RpcMethod, isRpcMethod } from "./netconf";
 import * as TD from "@node-wot/td-tools";
 import * as AsyncNodeNetcon from "./async-node-netconf";
 import Url from "url-parse";
@@ -28,7 +28,7 @@ const DEFAULT_TARGET = "candidate";
 
 export default class NetconfClient implements ProtocolClient {
     private client: AsyncNodeNetcon.Client;
-    private credentials: unknown;
+    private credentials: NetConfCredentials;
     constructor() {
         this.client = new AsyncNodeNetcon.Client();
         this.credentials = null;
@@ -38,14 +38,23 @@ export default class NetconfClient implements ProtocolClient {
         return "[NetconfClient]";
     }
 
+    private methodFromForm(form: NetconfForm, defaultMethod: RpcMethod): RpcMethod {
+        const method = form["nc:method"];
+        if (isRpcMethod(method)) {
+            return method;
+        }
+
+        return defaultMethod;
+    }
+
     public async readResource(form: NetconfForm): Promise<Content> {
         const url = new Url(form.href);
         const ipAddress = url.hostname;
         const port = parseInt(url.port);
         const xpathQuery = url.pathname;
-        const method = form["nc:method"] ? form["nc:method"] : "GET-CONFIG"; // default method
-        const NSs = form["nc:NSs"] || {};
-        const target = form["nc:target"] || DEFAULT_TARGET;
+        const method = this.methodFromForm(form, "GET-CONFIG");
+        const NSs = form["nc:NSs"] ?? {};
+        const target = form["nc:target"] ?? DEFAULT_TARGET;
 
         const contentType = "application/yang-data+xml";
 
@@ -59,8 +68,7 @@ export default class NetconfClient implements ProtocolClient {
             }
         }
 
-        let result = await this.client.rpc(xpathQuery, method, NSs, target);
-        result = JSON.stringify(result);
+        const result = JSON.stringify(await this.client.rpc(xpathQuery, method, NSs, target));
 
         return new Promise<Content>((resolve, reject) => {
             resolve({ type: contentType, body: Readable.from(Buffer.from(result)) });
@@ -74,7 +82,7 @@ export default class NetconfClient implements ProtocolClient {
         const ipAddress = url.hostname;
         const port = parseInt(url.port);
         const xpathQuery = url.pathname;
-        const method = form["nc:method"] ? form["nc:method"] : "EDIT-CONFIG";
+        const method = this.methodFromForm(form, "EDIT-CONFIG");
         let NSs = form["nc:NSs"] || {};
         const target = form["nc:target"] || DEFAULT_TARGET;
 
@@ -103,7 +111,7 @@ export default class NetconfClient implements ProtocolClient {
         const ipAddress = url.hostname;
         const port = parseInt(url.port);
         const xpathQuery = url.pathname;
-        const method = form["nc:method"] ? form["nc:method"] : "RPC";
+        const method = this.methodFromForm(form, "RPC");
         let NSs = form["nc:NSs"] || {};
         const target = form["nc:target"] || DEFAULT_TARGET;
         let result: string;
@@ -120,8 +128,7 @@ export default class NetconfClient implements ProtocolClient {
         try {
             NSs = { ...NSs, ...payload.NSs };
             payload = payload.payload;
-            result = await this.client.rpc(xpathQuery, method, NSs, target, payload);
-            result = JSON.stringify(result);
+            result = JSON.stringify(await this.client.rpc(xpathQuery, method, NSs, target, payload));
         } catch (err) {
             console.debug("[binding-netconf]", err);
             throw err;
@@ -158,7 +165,7 @@ export default class NetconfClient implements ProtocolClient {
         // do nothing
     }
 
-    public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: any): boolean {
+    public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: NetConfCredentials): boolean {
         if (metadata === undefined || !Array.isArray(metadata) || metadata.length === 0) {
             console.warn("[binding-netconf]", `NetconfClient without security`);
             return false;

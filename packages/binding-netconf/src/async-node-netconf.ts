@@ -15,29 +15,47 @@
 import * as nodeNetconf from "node-netconf";
 import * as xpath2json from "./xpath2json";
 import { promises as fsPromises } from "fs";
+import { NetConfCredentials, RpcMethod } from "./netconf";
 
-const METHOD_OBJ: any = {};
-METHOD_OBJ["GET-CONFIG"] = {
-    "get-config": {
-        $: { xmlns: "urn:ietf:params:xml:ns:netconf:base:1.0" },
-        source: { candidate: {} },
-        filter: { $: { type: "subtree" } },
+type RouterParams = {
+    host: string;
+    username: string;
+    port?: number;
+    password?: string;
+    pkey?: string;
+};
+
+const METHOD_OBJ = {
+    "GET-CONFIG": {
+        "get-config": {
+            $: { xmlns: "urn:ietf:params:xml:ns:netconf:base:1.0" },
+            source: { candidate: {} },
+            filter: { $: { type: "subtree" } },
+        },
     },
+    "EDIT-CONFIG": {
+        "edit-config": {
+            $: { xmlns: "urn:ietf:params:xml:ns:netconf:base:1.0" },
+            target: { candidate: {} },
+            config: {},
+        },
+    },
+    COMMIT: { commit: { $: { xmlns: "urn:ietf:params:xml:ns:netconf:base:1.0" } } },
+    RPC: {},
 };
-METHOD_OBJ["EDIT-CONFIG"] = {
-    "edit-config": { $: { xmlns: "urn:ietf:params:xml:ns:netconf:base:1.0" }, target: { candidate: {} }, config: {} },
-};
-METHOD_OBJ.COMMIT = { commit: { $: { xmlns: "urn:ietf:params:xml:ns:netconf:base:1.0" } } };
-METHOD_OBJ.RPC = {};
-
 export class Client {
-    private router: any;
+    private router: nodeNetconf.Client;
+
+    private connected: boolean;
+
+    private routerParams: RouterParams;
 
     constructor() {
         this.router = null;
+        this.connected = false;
     }
 
-    getRouter(): any {
+    getRouter(): nodeNetconf.Client {
         return this.router;
     }
 
@@ -45,21 +63,21 @@ export class Client {
         this.router = null;
     }
 
-    async initializeRouter(host: string, port: number, credentials: any): Promise<void> {
-        if (this.router && this.router.connected) {
+    async initializeRouter(host: string, port: number, credentials: NetConfCredentials): Promise<void> {
+        if (this.connected) {
             // close the old one
             this.closeRouter();
         }
-        this.router = {};
-        this.router.host = host;
-        this.router.port = port;
-        this.router.username = credentials.username;
+        this.routerParams = {
+            host,
+            port,
+            username: credentials.username,
+            password: credentials?.password,
+        };
         if (credentials.privateKey) {
-            this.router.pkey = await fsPromises.readFile(credentials.privateKey, { encoding: "utf8" });
+            this.routerParams.pkey = await fsPromises.readFile(credentials.privateKey, { encoding: "utf8" });
         }
-        if (credentials.password) {
-            this.router.password = credentials.password;
-        }
+
         return new Promise((resolve, reject) => {
             resolve(undefined);
         });
@@ -67,33 +85,39 @@ export class Client {
 
     openRouter(): Promise<void> {
         return new Promise((resolve, reject) => {
-            if (this.router.connected) {
+            if (this.connected) {
                 // close the old one
                 this.closeRouter();
             }
-            this.router = new nodeNetconf.Client(this.router);
+            this.router = new nodeNetconf.Client(this.routerParams);
             this.router.open((err?: string) => {
                 if (err) {
                     reject(err);
                 } else {
                     console.debug(
                         "[binding-netconf]",
-                        `New NetConf router opened connection with host ${this.router.host}, port ${this.router.port}, username ${this.router.username}`
+                        `New NetConf router opened connection with host ${this.routerParams.host}, port ${this.routerParams.port}, username ${this.routerParams.username}`
                     );
+                    this.connected = true;
                     resolve(undefined);
                 }
             });
         });
     }
 
-    rpc(xpathQuery: string, method: string, NSs: any, target: string, payload?: any): any {
+    rpc(
+        xpathQuery: string,
+        method: RpcMethod,
+        NSs: Record<string, string>,
+        target: string,
+        payload?: unknown
+    ): Promise<unknown> {
         return new Promise((resolve, reject) => {
             if (payload) {
                 xpathQuery = xpath2json.addLeaves(xpathQuery, payload);
             }
             const objRequest = xpath2json.xpath2json(xpathQuery, NSs);
-            let finalRequest: any = {};
-            finalRequest = JSON.parse(JSON.stringify(METHOD_OBJ[method])); // clone the METHOD_OBJ
+            let finalRequest = JSON.parse(JSON.stringify(METHOD_OBJ[method])); // clone the METHOD_OBJ
             switch (method) {
                 case "EDIT-CONFIG": {
                     finalRequest["edit-config"].config = Object.assign(finalRequest["edit-config"].config, objRequest);
@@ -116,7 +140,7 @@ export class Client {
                     break;
                 }
             }
-            this.router.rpc(finalRequest, (err: string, results: any) => {
+            this.router.rpc(finalRequest, (err: string, results: unknown) => {
                 if (err) {
                     reject(err);
                 }
@@ -126,7 +150,7 @@ export class Client {
     }
 
     closeRouter(): void {
-        this.router.sshConn.end();
-        this.router.connected = false;
+        this.router.close();
+        this.connected = false;
     }
 }

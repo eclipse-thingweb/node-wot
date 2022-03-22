@@ -155,18 +155,18 @@ describe("outer describe", function () {
         };
 
         let objRequest = xpath2json.xpath2json(xpathQuery, NSs);
-        let validObject: any = {
+        const validObject1 = {
             "ietf-interfaces:interfaces": { interface: { name: "interface100" } },
         };
-        expect(JSON.stringify(objRequest)).to.equal(JSON.stringify(validObject));
+        expect(JSON.stringify(objRequest)).to.equal(JSON.stringify(validObject1));
 
         const payload = { value: "modem" };
         xpathQuery = xpath2json.addLeaves(xpathQuery, payload);
         objRequest = xpath2json.xpath2json(xpathQuery, NSs);
-        validObject = {
+        const validObject2 = {
             "ietf-interfaces:interfaces": { interface: { name: "interface100", value: "modem" } },
         };
-        expect(JSON.stringify(objRequest)).to.equal(JSON.stringify(validObject));
+        expect(JSON.stringify(objRequest)).to.equal(JSON.stringify(validObject2));
     });
 
     it("should properly convert JSON to XPATH", async function () {

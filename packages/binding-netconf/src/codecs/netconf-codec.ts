@@ -15,6 +15,12 @@
 
 import * as TD from "@node-wot/td-tools";
 import Url from "url-parse";
+import { DataSchemaValue } from "wot-typescript-definitions";
+
+interface PayloadNamespaces {
+    payload: unknown;
+    namespaces: Record<string, string>;
+}
 
 /** default implementation offering JSON de-/serialisation */
 export default class NetconfCodec {
@@ -22,15 +28,14 @@ export default class NetconfCodec {
         return "application/yang-data+xml";
     }
 
-    bytesToValue(bytes: Buffer, schema: TD.DataSchema, parameters: { [key: string]: string }): any {
+    bytesToValue(bytes: Buffer, schema: TD.DataSchema, parameters: { [key: string]: string }): DataSchemaValue {
         // console.debug(`NetconfCodec parsing '${bytes.toString()}'`);
 
-        let parsed: any;
         try {
-            parsed = JSON.parse(bytes.toString());
+            let parsed = JSON.parse(bytes.toString());
             // get data reply
             const reply = parsed.rpc_reply.data;
-            let leaf = <any>schema;
+            let leaf = schema;
             const form = leaf.forms[0];
             leaf = form.href.split("/").splice(-1, 1); // take the first one, since there is no difference for the leaf
             leaf = leaf[0].replace(/\[(.*?)\]/g, ""); // clean the leaf from possible values
@@ -43,7 +48,7 @@ export default class NetconfCodec {
                 const val = value.replace(/\[(.*?)\]/g, "").split(":");
                 return val[1] ? val[1] : val[0];
             });
-            let value: any = reply;
+            let value = reply;
             for (const el of tree) {
                 if (el === "") {
                     continue;
@@ -70,32 +75,30 @@ export default class NetconfCodec {
             } else {
                 parsed = value;
             }
+
+            return parsed;
             // TODO check the schema!
         } catch (err) {
             if (err instanceof SyntaxError) {
                 if (bytes.byteLength === 0) {
                     // empty payload -> void/undefined
-                    parsed = undefined;
+                    return undefined;
                 } else {
                     // be relaxed about what is received -> string without quotes
-                    parsed = bytes.toString();
+                    return bytes.toString();
                 }
             } else {
                 throw err;
             }
         }
-
-        return parsed;
     }
 
-    valueToBytes(value: any, schema: TD.DataSchema, parameters?: { [key: string]: string }): Buffer {
+    valueToBytes(value: unknown, schema: TD.DataSchema, parameters?: { [key: string]: string }): Buffer {
         // console.debug("NetconfCodec serializing", value);
         let body = "";
         if (value !== undefined) {
             const NSs = {};
-            // let leaf = value.leaf;
-            let leaf = <any>schema;
-            leaf = leaf.forms[0].href.split("/").splice(-1, 1); // take the first one, since there is no difference for the leaf
+            let leaf = schema.forms[0].href.split("/").splice(-1, 1); // take the first one, since there is no difference for the leaf
             leaf = leaf[0].replace(/\[(.*?)\]/g, ""); // clean the leaf from possible values
             if (!leaf) {
                 throw new Error(`The href specified in TD is missing the leaf node in the Xpath`);
@@ -107,7 +110,13 @@ export default class NetconfCodec {
         return Buffer.from(body);
     }
 
-    private getPayloadNamespaces(schema: any, payload: any, NSs: any, hasNamespace: boolean, leaf: string) {
+    private getPayloadNamespaces(
+        schema: any,
+        payload: any,
+        namespaces: Record<string, string>,
+        hasNamespace: boolean,
+        leaf: string
+    ): PayloadNamespaces {
         if (hasNamespace) {
             // expect to have xmlns
             const properties = schema.properties;
@@ -126,7 +135,7 @@ export default class NetconfCodec {
                     // if (el.format && el.format === 'urn')
                     const ns = payload[key];
                     aliasNs = ns.split(":")[ns.split(":").length - 1];
-                    NSs[aliasNs] = payload[key];
+                    namespaces[aliasNs] = payload[key];
                     nsFound = true;
                 } else if (payload[key]) {
                     value = payload[key];
@@ -138,22 +147,21 @@ export default class NetconfCodec {
                 // change the payload in order to be parsed by the xpath2json library
                 payload = { [leaf]: aliasNs + "\\" + ":" + value };
             }
-            return { payload, NSs }; // return objects
+            return { payload, namespaces }; // return objects
         }
 
         if (schema && schema.type && schema.type === "object" && schema.properties) {
             // nested object, go down
-            const tmpHasNamespace = false;
-            let tmpObj: any;
+            let tmpObj: PayloadNamespaces;
             if (schema.properties && schema["xml:container"]) {
                 // check the root level
-                tmpObj = this.getPayloadNamespaces(schema, payload, NSs, true, leaf); // root case
+                tmpObj = this.getPayloadNamespaces(schema, payload, namespaces, true, leaf); // root case
             } else {
-                tmpObj = this.getPayloadNamespaces(schema.properties, payload, NSs, false, leaf);
+                tmpObj = this.getPayloadNamespaces(schema.properties, payload, namespaces, false, leaf);
             }
 
             payload = tmpObj.payload;
-            NSs = { ...NSs, ...tmpObj.NSs };
+            namespaces = { ...namespaces, ...tmpObj.namespaces };
         }
 
         // once here schema is properties
@@ -164,27 +172,12 @@ export default class NetconfCodec {
                 if (schema[key].properties && schema[key]["xml:container"]) {
                     tmpHasNamespace = true;
                 }
-                const tmpObj = this.getPayloadNamespaces(schema[key], payload[key], NSs, tmpHasNamespace, leaf);
+                const tmpObj = this.getPayloadNamespaces(schema[key], payload[key], namespaces, tmpHasNamespace, leaf);
                 payload[key] = tmpObj.payload;
-                NSs = { ...NSs, ...tmpObj.NSs };
+                namespaces = { ...namespaces, ...tmpObj.namespaces };
             }
         }
 
-        return { payload, NSs }; // return objects
-    }
-}
-
-export function mapJsonToArray(obj: any): void {
-    if (typeof obj === "object") {
-        console.debug("[binding-netconf]", obj);
-        for (const k in obj) {
-            if (Object.prototype.hasOwnProperty.call(k)) {
-                // recursive call to scan property
-                mapJsonToArray(obj[k]);
-            }
-        }
-    } else {
-        // not an Object so obj[k] here is a value
-        console.debug("[binding-netconf]", obj);
+        return { payload, namespaces }; // return objects
     }
 }
