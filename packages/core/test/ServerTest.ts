@@ -105,6 +105,12 @@ class WoTServerTest {
         expect(thing.getThingDescription()).to.have.property("title").that.equals("myFragmentThing");
         expect(thing.getThingDescription()).to.have.property("support").that.equals("none");
         expect(thing.getThingDescription()).to.have.property("test:custom").that.equals("test");
+        // should not share internals
+        expect(thing.getThingDescription()).to.not.have.property("__propertyHandlers");
+        expect(thing.getThingDescription()).to.not.have.property("__actionHandlers");
+        expect(thing.getThingDescription()).to.not.have.property("__eventHandlers");
+        expect(thing.getThingDescription()).to.not.have.property("__propertyListeners");
+        expect(thing.getThingDescription()).to.not.have.property("__eventListeners");
         // direct access
         expect(thing).to.have.property("title").that.equals("myFragmentThing");
         expect(thing).to.have.property("support").that.equals("none");
@@ -288,7 +294,7 @@ class WoTServerTest {
 
         // Check internals, how to to check handlers properly with *some* type-safety
         const expThing = thing as ExposedThing;
-        const readHandler = expThing.propertyHandlers.get("my number").readHandler;
+        const readHandler = expThing.__propertyHandlers.get("my number").readHandler;
         const ff = await readHandler();
         expect(ff).to.equal(1);
     }
