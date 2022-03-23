@@ -350,10 +350,6 @@ VAR2=Value2`);
 }
 
 readConf(confFile)
-    .then(overrideConfig)
-    .then((conf) => {
-        return new DefaultServient(clientOnly, conf);
-    })
     .catch((err) => {
         if (err.code === "ENOENT" && !confFile) {
             console.warn("[cli]", `WoT-Servient using defaults as '${defaultFile}' does not exist`);
