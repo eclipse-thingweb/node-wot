@@ -356,7 +356,7 @@ describe("Full OPCUA Thing Test", () => {
         thing.setPropertyReadHandler("temperature", async () => temperature);
 
         const expThing = thing as ExposedThing;
-        const readHandler = expThing.propertyHandlers.get("temperature").readHandler;
+        const readHandler = expThing.__propertyHandlers.get("temperature").readHandler;
         expect(readHandler, "must have a readHandler");
         const temperatureCheck1 = await readHandler();
         expect(temperatureCheck1).to.equal(10);
