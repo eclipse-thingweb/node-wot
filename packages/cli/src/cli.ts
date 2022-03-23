@@ -32,10 +32,11 @@ let flagArgConfigfile = false;
 let flagArgCompilerModule = false;
 let flagArgPort = false;
 let compilerModule: string;
-let servientPort: number;
 let flagScriptArgs = false;
 const scriptArgs: Array<string> = [];
 let confFile: string;
+const servientPorts: Map<string, number> = new Map<string, number>();
+let currentProtocolPort: string;
 
 interface DebugParams {
     shouldBreak: boolean;
@@ -69,20 +70,14 @@ const overrideConfig = function (conf: any): Promise<unknown> {
     return new Promise((resolve) => {
         conf = conf ?? {};
 
-        if (servientPort) {
-            if (!conf.http) {
-                conf.http = {};
+        servientPorts.forEach((port, protocol) => {
+            if (port !== 0) {
+                if (!(protocol in conf)) {
+                    conf[protocol] = {};
+                }
+                conf[protocol].port = port;
             }
-            conf.http.port = servientPort;
-            if (!conf.mqtt) {
-                conf.mqtt = {};
-            }
-            conf.mqtt.port = servientPort;
-            if (!conf.coap) {
-                conf.coap = {};
-            }
-            conf.coap.port = servientPort;
-        }
+        });
 
         resolve(conf);
     });
@@ -228,7 +223,7 @@ for (let i = 0; i < argv.length; i++) {
         i--;
     } else if (flagArgPort) {
         flagArgPort = false;
-        servientPort = parseInt(argv[i]);
+        servientPorts.set(currentProtocolPort, parseInt(argv[i]));
         argv.splice(i, 1);
         i--;
     } else if (argv[i] === "--") {
@@ -248,8 +243,11 @@ for (let i = 0; i < argv.length; i++) {
         flagArgConfigfile = true;
         argv.splice(i, 1);
         i--;
-    } else if (argv[i].match(/^(-p|--port|\/p)$/i)) {
+    } else if (argv[i].match(/^--(http|coap|mqtt)\.port$/i)) {
         flagArgPort = true;
+        const matches = argv[i].match(/^--(http|coap|mqtt)\.port$/i);
+        currentProtocolPort = matches[1];
+        servientPorts.set(currentProtocolPort, 0);
         argv.splice(i, 1);
         i--;
     } else if (argv[i].match(/^(-i|-ib|--inspect(-brk)?(=([a-z]*|[\d .]*):?(\d*))?|\/i|\/ib)$/i)) {
@@ -280,16 +278,17 @@ If one or more SCRIPT is given, these files are loaded instead of the directory.
 If the file 'wot-servient.conf.json' exists, that configuration is applied.
 
 Options:
-  -v,  --version                   display node-wot version
-  -i,  --inspect[=[host:]port]     activate inspector on host:port (default: 127.0.0.1:9229)
-  -ib, --inspect-brk[=[host:]port] activate inspector on host:port and break at start of user script
-  -c,  --clientonly                do not start any servers
-                                   (enables multiple instances without port conflicts)
-  -cp,  --compiler <module>        load module as a compiler
-                                   (The module must export a create function which returns
+  -v,   --version                   display node-wot version
+  -i,   --inspect[=[host:]port]     activate inspector on host:port (default: 127.0.0.1:9229)
+  -ib,  --inspect-brk[=[host:]port] activate inspector on host:port and break at start of user script
+  -c,   --clientonly                do not start any servers
+                                    (enables multiple instances without port conflicts)
+  -cp,  --compiler <module>         load module as a compiler
+                                    (The module must export a create function which returns
                                     an object with a compile method)
-  -f,  --configfile <file>         load configuration from specified file
-  -h,  --help                      show this help
+  -f,   --configfile <file>         load configuration from specified file
+  -h,   --help                      show this help
+        --[protocol].port           specify the port to expose the server for a specific protocol
 
 wot-servient.conf.json syntax:
 {
