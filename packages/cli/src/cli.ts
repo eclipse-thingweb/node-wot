@@ -71,7 +71,7 @@ const overrideConfig = function (conf: any): Promise<unknown> {
         conf = conf ?? {};
 
         servientPorts.forEach((port, protocol) => {
-            if (port !== 0) {
+            if (port !== undefined) {
                 if (!(protocol in conf)) {
                     conf[protocol] = {};
                 }
@@ -247,7 +247,6 @@ for (let i = 0; i < argv.length; i++) {
         flagArgPort = true;
         const matches = argv[i].match(/^--(http|coap|mqtt)\.port$/i);
         currentProtocolPort = matches[1];
-        servientPorts.set(currentProtocolPort, 0);
         argv.splice(i, 1);
         i--;
     } else if (argv[i].match(/^(-i|-ib|--inspect(-brk)?(=([a-z]*|[\d .]*):?(\d*))?|\/i|\/ib)$/i)) {
