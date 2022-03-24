@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2022 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -23,7 +23,7 @@ import ExposedThing from "./exposed-thing";
 import { ProtocolClientFactory, ProtocolServer, ProtocolClient } from "./protocol-interfaces";
 import ContentManager, { ContentCodec } from "./content-serdes";
 import { v4 } from "uuid";
-import ThingModelHelpers from "./thing-model-helpers";
+import ThingModelHelpers from "@node-wot/td-tools/src/thing-model-helpers";
 
 export interface ScriptOptions {
     argv?: Array<string>;
@@ -41,10 +41,11 @@ export default class Servient {
 
     /** runs the script in a new sandbox */
     public runScript(code: string, filename = "script"): unknown {
+        const helpers = new Helpers(this)
         const context = {
             WoT: new WoTImpl(this),
-            WoTHelpers: new Helpers(this),
-            ModelHelpers: new ThingModelHelpers(this),
+            WoTHelpers: helpers,
+            ModelHelpers: new ThingModelHelpers(helpers),
         };
 
         const vm = new NodeVM({
@@ -69,10 +70,11 @@ export default class Servient {
 
     /** runs the script in privileged context (dangerous) - means here: scripts can require */
     public runPrivilegedScript(code: string, filename = "script", options: ScriptOptions = {}): unknown {
+        const helpers = new Helpers(this)
         const context = {
             WoT: new WoTImpl(this),
-            WoTHelpers: new Helpers(this),
-            ModelHelpers: new ThingModelHelpers(this),
+            WoTHelpers: helpers,
+            ModelHelpers: new ThingModelHelpers(helpers),
         };
 
         const vm = new NodeVM({
