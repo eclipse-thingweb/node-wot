@@ -16,11 +16,9 @@
 import Ajv, { ValidateFunction, ErrorObject } from "ajv";
 import * as http from "http";
 import * as https from "https";
-// import { promises as fsPromises } from 'fs';
 import * as fs from 'fs';
 import { LinkElement } from "wot-thing-description-types";
 import { DataSchema, ExposedThingInit } from "wot-typescript-definitions";
-// import Servient, { Helpers } from "../../core/src/core";
 import { ThingModel } from "wot-thing-model-types";
 import TMSchema from "wot-thing-model-types/schema/tm-json-schema-validation.json";
 import { Resolver } from "./resolver-interface";
@@ -66,14 +64,8 @@ export type modelComposeInput = {
 export default class ThingModelHelpers {
     static tsSchemaValidator = ajv.compile(tmSchema) as ValidateFunction;
 
-    // private srv: Servient;
-    // private helpers: Helpers;
     private deps: string[] = [] as string[];
     private resolver: Resolver = undefined;
-    // constructor(srv: Servient) {
-        // this.srv = srv;
-        // this.helpers = new Helpers(this.srv);
-    // }
 
     constructor(_resolver?: Resolver) {
         if (_resolver) {

@@ -20,20 +20,10 @@ import { ThingModel } from "wot-thing-model-types";
 
 import ThingModelHelpers, { CompositionOptions, modelComposeInput } from "../src/thing-model-helpers";
 import { promises as fs } from "fs";
-// import Servient from "@node-wot/core/src/core";
-// import { HttpClientFactory } from "@node-wot/binding-http";
-// import { FileClientFactory } from "@node-wot/binding-file";
-
 @suite("tests to verify the Thing Model Helper")
 class ThingModelHelperTest {
-    // private srv: Servient;
     private thingModelHelpers: ThingModelHelpers;
     async before() {
-        // this.srv = new Servient();
-        // this.srv.addClientFactory(new HttpClientFactory());
-        // this.srv.addClientFactory(new FileClientFactory());
-        // this.thingModelHelpers = new ThingModelHelpers(this.srv);
-        // await this.srv.start();
         this.thingModelHelpers = new ThingModelHelpers();
     }
 

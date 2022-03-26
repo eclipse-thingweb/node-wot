@@ -20,26 +20,14 @@ import { expect } from "chai";
 import { promises as fsPromises } from 'fs';
 
 import ThingModelHelpers, { CompositionOptions } from "../src/thing-model-helpers";
-// import Servient, { Helpers } from "@node-wot/core/src/core";
-// import { HttpClientFactory } from "@node-wot/binding-http";
-// import { FileClientFactory } from "@node-wot/binding-file";
 import { ExposedThingInit } from "wot-typescript-definitions";
-import { ThingModel } from "wot-thing-model-types";
 
 
 chai.use(chaiAsPromised);
 @suite("tests to verify the composition feature of Thing Model Helper")
 class ThingModelHelperCompositionTest {
-    // private srv: Servient;
     private thingModelHelpers: ThingModelHelpers;
-    // private helpers: Helpers;
     async before() {
-        // this.srv = new Servient();
-        // this.srv.addClientFactory(new HttpClientFactory());
-        // this.srv.addClientFactory(new FileClientFactory());
-        // this.thingModelHelpers = new ThingModelHelpers(this.srv);
-        // this.helpers = new Helpers(this.srv);
-        // await this.srv.start();
         this.thingModelHelpers = new ThingModelHelpers();
     }
 
