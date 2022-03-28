@@ -13,22 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { Form } from "@node-wot/td-tools";
-export { default as OpcuaClient } from "./opcua-client";
-export { default as OpcuaClientFactory } from "./opcua-client-factory";
-export * from "./opcua";
-export * from "./opcua-client-factory";
-
-export interface OpcuaConfig {
-    subscriptionOptions: {
-        requestedPublishingInterval?: number;
-        requestedLifetimeCount?: number;
-        requestedMaxKeepAliveCount?: number;
-        maxNotificationsPerPublish?: number;
-        publishingEnabled?: boolean;
-        priority?: number;
-    };
-}
-export class OpcuaForm extends Form {
-    "opc:method": string;
-}
+export * from "./factory";
+export * from "./codec";
+export * from "./opcua-protocol-client";
+// no protocol_client here => get access from factor

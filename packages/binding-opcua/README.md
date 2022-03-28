@@ -1,86 +1,165 @@
-# OPC UA Client Protocol Binding of node-wot
+# OPC UA Client Protocol Binding
 
-W3C Web of Things (WoT) Protocol Binding for [OPC UA](https://en.wikipedia.org/wiki/OPC_Unified_Architecture).
+W3C Web of Things (WoT) Protocol Binding for OPC UA.
+This package uses [nodep-opcua](https://www.npmjs.com/package/node-opcua) as a low-level client for OPCUA over TCP.
 
 ## Protocol specifier
 
-The protocol prefix handled by this binding is `opc.tcp://`.
+The protocol prefix handled by this binding is `opc.tcp`.
+This is the standard prefix used by OPC-UA connection endpoint.
 
 ## Getting Started
 
-### Optional: OPC UA Server Simulator
+You can define an OPCUA property in a thing description, by using an "opc.tcp://" href.
 
-If an OPC UA server is needed, the simulator provided [here](https://github.com/lukesmolo/wot-utils/tree/master/binding-opcua) can be used.
-It is based on [node-opcua](https://github.com/node-opcua).
-
-```bash
-$ npm install node-opcua
-$ node opcua-server.js
+```js
+const thingDescription = {
+    "@context": "https://www.w3.org/2019/wot/td/v1",
+    "@type": ["Thing"],
+    securityDefinitions: { nosec_sc: { scheme: "nosec" } },
+    security: "nosec_sc",
+    title: "servient",
+    description: "node-wot CLI Servient",
+    properties: {
+        pumpSpeed: {
+            description: "the pump speed",
+            type: "number",
+            forms: [
+                {
+                    href: "opc.tcp://opcuademo.sterfive.com:26543", // endpoint,
+                    op: ["readproperty", "observeproperty"],
+                    "opcua:nodeId": "ns=1;s=PumpSpeed",
+                },
+            ],
+        },
+    },
+};
 ```
 
-Depending on the Authorization method required, the `auth` global variable should be set accordingly in the `opcua-server.js` script.
-Possible values are `null` for disabling the authorized connection to the server, `password` for enabling the `username-password` authorization, and `certificate` for the authorization through certificates.
-By default, `user` is set to **root** as well as the `password`. Feel free to modify them in the `isValidUser` function in the script according to your needs.
+```javascript
+// examples/src/opcua/dempo-opcua1.ts
+import { Servient } from "@node-wot/core";
+import { OPCUAClientFactory } from "@node-wot/binding-opcua";
+
+(async () => {
+    const servient = new Servient();
+    servient.addClientFactory(new OPCUAClientFactory());
+
+    const wot = await servient.start();
+    const thing = await wot.consume(thingDescription);
+
+    const content = await thing.readProperty("pumpSpeed");
+    const json = (await content.value()).valueOf();
+
+    console.log("Pump Speed is", json);
+
+    await servient.shutdown();
+})();
+```
 
 ### Run the Example App
 
-The Binding example in the `./examples` directory provides a TD (`opcua-thing.jsonld`) and an app script (`opcua-example.js`) .
+The `examples/src/opcua` folder contains a set of typescript demo that shows you
+how to define a thing description containing OPCUA Variables and methods.
 
-Depending on which OPC UA server is used, the following might have to be changed:
+-   `demo-opcua1.ts` shows how to define and read an OPC-UA variable in WoT.
+-   `demo-opcua2.ts` shows how to subscribe to an OPC-UA variable in WoT.
+-   `opcua-coffee-machine-demo.ts` demonstrates how to define and invoke OPCUA methods as WoT actions.
 
--   credentials for the OPC UA Thing (id `urn:dev:wot:org:eclipse:opcua-example`) have to be changed in `wot-servient.conf.json`. An example of how to configure them is already provided, both for the user/password and the certificate authentication.
+### Form extensions
 
-Also parameters for the Client can be passed to the `wot-servient.conf.json`. For the available parameters, please take a look at the official repository of [node-opcua](https://github.com/node-opcua/node-opcua), while for creating the certificates needed by client and server just follow [this](https://github.com/node-opcua/node-opcua/blob/master/documentation/notes_on_certificates.md).
+#### href
 
-## New Form Fields for the OPC UA Binding
+the `href` property must contains a OPCUA endpoint url in the form `opc.tcp://MACHINE:PORT/Application`
+such as for instance:
+`opc.tcp://opcuademo.sterfive.com:26543` or `opc.tcp://localhost:48010`
 
-### href
+#### opcua:nodeId
 
-The `href` field is actually not new, only new URIs with the scheme `opc.tcp` are now supported through the Binding.
-The href contains: URI schema + IP address + port + NodeID
+The form must contain an `opcua:nodeId` property that describes the nodeId of the OPCUA Variable to read/write/subscribe or the nodeId of the OPCUA Object related to the action.
 
--   URI schema: the schema for OPC UA is not registered with IANA; the Binding is using `opc.tcp`.
--   IP address and port: IP address and port of the OPC UA server. The credentials for connecting to the server can be added into the `wot-servient.configuration.json`.
--   NodeID: the NodeID of the node addressed by the given InteractionAffordance. The NodeID follows the [XML notation](https://documentation.unified-automation.com/uasdkhp/1.0.0/html/_l2_ua_node_ids.html), like several Graphical tools for exploring OPC UA devices. The NodeID is composed by the namespace index, the identifier type, and the node Identifier. If a method has to be addressed, since it requires to be attached to a device, both the DeviceId and the MethodId must be included to the NodeID. In particular, for convenience, the DeviceId comes before the MethodId.
+The `opcua:nodeId` can have 2 forms:
 
-This is a valid `href` example for addressing a node:
-`opc.tcp://localhost:5050/ns=1;s=mynode`
+-   a **NodeId** as a string, such as `"ns=1;i=1234"` , for instance:
 
-For a method, two nodes need to be given (one for the node on which to call the method, one for the method definition):
-`opc.tcp://localhost:5050/ns=1;s=mydevice;mns=1;ms=9997FFAA`
+```javascript
+"opcua:nodeId": "ns=1;s=\"Machine\".\"Component\""
+```
 
-where `ns=1;s=mydevice` is the nodeId of the Device, while `mns=1;ms=9997FFAA` is the nodeId of the method to apply.
+-   or **browsePath**: The browse path will be converted into the corresponding nodeId at runtime when first encountered.
 
-### opc:method
+```
+"opcua:nodeId": { root: "i=84", path: "/Objects/2:DeviceSet/1:CoffeeMachine" },
+```
 
-The optional attribute `opc:method` specifies which kind of call should be used in the request.
-For the state of this implementation, it is still not used.
-These are the default values for this Binding:
+### opcua:method
 
--   readproperty is set to `READ`
--   writepropery is set to `WRITE`
--   invokeaction is set to `CALL_METHOD`
+for example:
 
-## New DataSchema Fields for the OPC UA Binding
+```typescript
+const thingDescription = {
+    // ...
+    actions: {
+        brewCoffee: {
+            forms: [
+                {
+                    href: "opc.tcp://opcuademo.sterfive.com:26543",
+                    op: ["invokeaction"],
+                    "opcua:nodeId": { root: "i=84", path: "/Objects/2:DeviceSet/1:CoffeeMachine" },
+                    "opcua:method": { root: "i=84", path: "/Objects/2:DeviceSet/1:CoffeeMachine/2:MethodSet/9:Start" },
+                },
+            ],
+        },
+    },
+};
+```
 
-OPC UA uses custom Datatypes on the wire, which requires additional translations from the JSON model used at WoT application level.
-To enable support for a proper Datatype translation, the DataSchema information has to be extended with the following terms, and the schema also be passed down to the Binding.
+### defining a property
 
-### opc:DataType
+```javascript
+const thingDescription = {
+    // ...
+    properties: {
+        temperature: {
+            description: "the temperature",
+            observable: true,
+            readOnly: true,
+            unit: "m/s",
+            type: "number",
+            forms: [
+                {
+                    href: "opc.tcp://opcuademo.sterfive.com:26543",
+                    op: ["readproperty", "observeproperty"],
+                    "opcua:nodeId": "ns=1;s=Temperature",
+                },
+            ],
+        },
+    },
+};
+```
 
-Among all the possible OPC UA Datatypes, at the moment all the ones supported by [node-wot](https://github.com/node-opcua/node-opcua/blob/master/packages/node-opcua-variant/source/DataType_enum.ts) can be used.
-The binding uses a new custom ContentSerdes in order to handle the proper OPC UA Datatype and adjust the OPC UA request accordingly. Please note that this binding does not directly handle OPC UA raw bytes but instead an intermediate format to be passed to another NodeJS library ([node-opcua](https://github.com/node-opcua)) that is in charge of making the raw conversion. In this sense, the new ContentSerdes strongly depends on the Nodejs library used behind.
+## Advanced
+
+The OPC-UA binding for node-wot offers additionals feature to allow you to interact with
+OPCUA Variant and DataValue in OPCUA JSON encoded form.
+For an example of use, you can dive into the unit test of the binding-opcua library.
+
+### Exploring the unit tests
+
+A set of examples can be found in this unit test: packages\binding-opcua\test\full-opcua-thing-test.ts
 
 ## Additional tools
 
-A basic OPC UA server crawler and a basic OPC UA -> TD translator can be found [here](https://github.com/lukesmolo/wot-utils/tree/master/opcua-crawler)
+### basic OPC-UA demo server
 
-## TODO
+A basic demo OPC-UA server can be started using the following command.
 
--   [ ] Subscriptions implementation (EVENTS) with Sub/Pub protocol
--   [x] TEST
--   [ ] (OPC UA Server Protocol Binding ?)
+```
+thingweb.node-wot> ts-node packages/binding-opcua/test/fixture/basic-opcua-server.ts
+Server started opc.tcp://<YOURMACHINENAME>:7890
+```
 
-## More Details
+### awesome WoT - OPCUA tools
 
-See <https://github.com/eclipse/thingweb.node-wot/>
+the [node-wot-opcua-tools](https://github.com/node-opcua/node-wot-opcua-tools) project provides
+some useful applications built on top of thingweb.node-wob and the OPCUA binding.

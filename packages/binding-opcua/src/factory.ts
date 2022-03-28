@@ -13,33 +13,46 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-/**
- * Opcua protocol binding
- */
 import { ProtocolClientFactory, ProtocolClient, ContentSerdes } from "@node-wot/core";
-import { OpcuaConfig } from "./opcua";
-import OpcuaClient from "./opcua-client";
-import OpcuaCodec from "./codecs/opcua-codec";
+import { OpcuaJSONCodec, OpcuaBinaryCodec } from "./codec";
+import { OPCUAProtocolClient } from "./opcua-protocol-client";
 
-export default class OpcuaClientFactory implements ProtocolClientFactory {
-    public readonly scheme: string = "opc.tcp";
-    private config: OpcuaConfig = null;
+export class OPCUAClientFactory implements ProtocolClientFactory {
+    readonly scheme: string = "opc.tcp";
+
+    private _clients: OPCUAProtocolClient[] = [];
+
     public contentSerdes: ContentSerdes = ContentSerdes.get();
-    constructor(config: OpcuaConfig = null) {
-        this.config = config;
-        this.contentSerdes.addCodec(new OpcuaCodec());
+
+    constructor() {
+        this.contentSerdes.addCodec(new OpcuaJSONCodec());
+        this.contentSerdes.addCodec(new OpcuaBinaryCodec());
     }
 
-    public getClient(): ProtocolClient {
+    getClient(): ProtocolClient {
         console.debug("[binding-opcua]", `OpcuaClientFactory creating client for '${this.scheme}'`);
-        return new OpcuaClient(this.config);
+        if (this._clients[0]) {
+            return this._clients[0];
+        }
+        this._clients[0] = new OPCUAProtocolClient();
+        return this._clients[0];
     }
 
-    public init(): boolean {
+    init(): boolean {
+        console.debug("[binding-opcua]", "init");
         return true;
     }
 
-    public destroy(): boolean {
+    destroy(): boolean {
+        console.debug("[binding-opcua]", "destroy");
+
+        const clients = this._clients;
+        this._clients = [];
+        (async () => {
+            for (const client of clients) {
+                await client.stop();
+            }
+        })();
         return true;
     }
 }
