@@ -14,11 +14,14 @@
  ********************************************************************************/
 
 import Ajv, { ValidateFunction, ErrorObject } from "ajv";
+import * as http from "http";
+import * as https from "https";
+import * as fs from "fs";
 import { LinkElement } from "wot-thing-description-types";
 import { DataSchema, ExposedThingInit } from "wot-typescript-definitions";
-import Servient, { Helpers } from "./core";
 import { ThingModel } from "wot-thing-model-types";
 import TMSchema from "wot-thing-model-types/schema/tm-json-schema-validation.json";
+import { Resolver } from "./resolver-interface";
 
 const tmSchema = TMSchema;
 // RegExps take from https://github.com/ajv-validator/ajv-formats/blob/master/src/formats.ts
@@ -58,16 +61,16 @@ export type modelComposeInput = {
     submodel?: Record<string, ThingModel>;
 };
 
-export default class ThingModelHelpers {
+export class ThingModelHelpers {
     static tsSchemaValidator = ajv.compile(tmSchema) as ValidateFunction;
 
-    private srv: Servient;
-    private helpers: Helpers;
     private deps: string[] = [] as string[];
+    private resolver: Resolver = undefined;
 
-    constructor(srv: Servient) {
-        this.srv = srv;
-        this.helpers = new Helpers(this.srv);
+    constructor(_resolver?: Resolver) {
+        if (_resolver) {
+            this.resolver = _resolver;
+        }
     }
 
     /**
@@ -169,7 +172,6 @@ export default class ThingModelHelpers {
         const extendedPartialTDs = extendedModels.map((_data) => {
             const data = _data as ExposedThingInit;
             // change the @type
-            console.log(data["@type"]);
             if (data["@type"] instanceof Array) {
                 data["@type"] = data["@type"].map((el) => {
                     if (el === "tm:ThingModel") {
@@ -195,11 +197,83 @@ export default class ThingModelHelpers {
      */
     public async fetchModel(uri: string): Promise<ThingModel> {
         this.addDependency(uri);
-        const tm = await this.helpers.fetch(uri);
+        let tm: ThingModel;
+        if (this.resolver) {
+            tm = (await this.resolver.fetch(uri)) as ThingModel;
+        } else {
+            tm = (await this.localFetch(uri)) as ThingModel;
+        }
         if (!ThingModelHelpers.isThingModel(tm)) {
             throw new Error(`Data at ${uri} is not a Thing Model`);
         }
         return tm;
+    }
+
+    private localFetch(uri: string): unknown {
+        const proto = uri.split("://")[0];
+        switch (proto) {
+            case "file": {
+                const file = uri.split("://")[1];
+                return new Promise((resolve, reject) => {
+                    fs.readFile(file, { encoding: "utf-8" }, function (err, data) {
+                        if (!err) {
+                            resolve(JSON.parse(data));
+                        } else {
+                            reject(err);
+                        }
+                    });
+                });
+            }
+            case "http": {
+                return new Promise((resolve, reject) => {
+                    http.get(uri, (res) => {
+                        res.setEncoding("utf8");
+                        let rawData = "";
+                        res.on("data", (chunk) => {
+                            rawData += chunk;
+                        });
+                        res.on("end", () => {
+                            try {
+                                const parsedData = JSON.parse(rawData);
+                                console.debug("[td-tools]", "http fetched:", parsedData);
+                                resolve(parsedData);
+                            } catch (e) {
+                                console.error(e.message);
+                            }
+                        });
+                    }).on("error", (e) => {
+                        reject(e);
+                    });
+                });
+            }
+            case "https": {
+                return new Promise((resolve, reject) => {
+                    https
+                        .get(uri, (res) => {
+                            res.setEncoding("utf8");
+                            let rawData = "";
+                            res.on("data", (chunk) => {
+                                rawData += chunk;
+                            });
+                            res.on("end", () => {
+                                try {
+                                    const parsedData = JSON.parse(rawData);
+                                    console.debug("[td-tools]", "https fetched:", parsedData);
+                                    resolve(parsedData);
+                                } catch (e) {
+                                    console.error(e.message);
+                                }
+                            });
+                        })
+                        .on("error", (e) => {
+                            reject(e);
+                        });
+                });
+            }
+            default:
+                break;
+        }
+        return null;
     }
 
     private async _getPartialTDs(model: unknown, options?: CompositionOptions): Promise<ThingModel[]> {
@@ -403,7 +477,6 @@ export default class ThingModelHelpers {
                     extendedModel.properties[key] = properties[key];
                 }
             }
-            // extendedModel.properties = { ...properties, ...dest.properties };
         }
         if (actions) {
             for (const key in actions) {
@@ -413,7 +486,6 @@ export default class ThingModelHelpers {
                     extendedModel.actions[key] = actions[key];
                 }
             }
-            // extendedModel.actions = { ...actions, ...dest.actions };
         }
         if (events) {
             for (const key in events) {
@@ -423,7 +495,6 @@ export default class ThingModelHelpers {
                     extendedModel.events[key] = events[key];
                 }
             }
-            // extendedModel.events = { ...events, ...dest.events };
         }
         return extendedModel;
     }

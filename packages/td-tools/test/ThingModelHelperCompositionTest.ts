@@ -17,37 +17,33 @@ import { suite, test } from "@testdeck/mocha";
 import * as chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { expect } from "chai";
+import { promises as fsPromises } from "fs";
 
-import ThingModelHelpers, { CompositionOptions } from "../../src/thing-model-helpers";
-import Servient, { Helpers } from "../../src/core";
-import { HttpClientFactory } from "@node-wot/binding-http";
-import { FileClientFactory } from "@node-wot/binding-file";
+import { CompositionOptions, ThingModelHelpers } from "../src/thing-model-helpers";
 import { ExposedThingInit } from "wot-typescript-definitions";
 
 chai.use(chaiAsPromised);
 @suite("tests to verify the composition feature of Thing Model Helper")
 class ThingModelHelperCompositionTest {
-    private srv: Servient;
     private thingModelHelpers: ThingModelHelpers;
-    private helpers: Helpers;
     async before() {
-        this.srv = new Servient();
-        this.srv.addClientFactory(new HttpClientFactory());
-        this.srv.addClientFactory(new FileClientFactory());
-        this.thingModelHelpers = new ThingModelHelpers(this.srv);
-        this.helpers = new Helpers(this.srv);
-        await this.srv.start();
+        this.thingModelHelpers = new ThingModelHelpers();
+    }
+
+    async fetch(uri: string): Promise<unknown> {
+        const data = await fsPromises.readFile(uri, "utf-8");
+        return JSON.parse(data);
     }
 
     @test async "should correctly compose a Thing Model with multiple partialTDs"() {
         const modelUri = "file://./test/thing-model/tmodels/SmartVentilator.tm.jsonld";
         const model = await this.thingModelHelpers.fetchModel(modelUri);
         const finalModelUri = "file://./test/thing-model/tmodels/SmartVentilator.composed.tm.jsonld";
-        const finalModel = await this.helpers.fetch(finalModelUri);
+        const finalModel = await this.thingModelHelpers.fetchModel(finalModelUri);
         const finalModelUri1 = "file://./test/thing-model/tmodels/Ventilator.composed.tm.jsonld";
-        const finalModel1 = await this.helpers.fetch(finalModelUri1);
+        const finalModel1 = await this.thingModelHelpers.fetchModel(finalModelUri1);
         const finalModelUri2 = "file://./test/thing-model/tmodels/Led.composed.tm.jsonld";
-        const finalModel2 = await this.helpers.fetch(finalModelUri2);
+        const finalModel2 = await this.thingModelHelpers.fetchModel(finalModelUri2);
 
         // eslint-disable-next-line dot-notation
         const modelInput = await this.thingModelHelpers["fetchAffordances"](model);
@@ -67,7 +63,7 @@ class ThingModelHelperCompositionTest {
         const modelUri = "file://./test/thing-model/tmodels/SmartVentilator.tm.jsonld";
         const model = await this.thingModelHelpers.fetchModel(modelUri);
         const finalModelUri = "file://./test/thing-model/tmodels/SmartVentilator.composed.tm.jsonld";
-        const finalModel = (await this.helpers.fetch(finalModelUri)) as ExposedThingInit;
+        const finalModel = (await this.thingModelHelpers.fetchModel(finalModelUri)) as ExposedThingInit;
         finalModel.links = [
             {
                 rel: "type",
@@ -91,11 +87,11 @@ class ThingModelHelperCompositionTest {
         const modelUri = "file://./test/thing-model/tmodels/SmartVentilatorSubExtend.tm.jsonld";
         const model = await this.thingModelHelpers.fetchModel(modelUri);
         const finalModelUri = "file://./test/thing-model/tmodels/SmartVentilatorSubExtend.composed.tm.jsonld";
-        const finalModel = await this.helpers.fetch(finalModelUri);
+        const finalModel = await this.thingModelHelpers.fetchModel(finalModelUri);
         const finalModelUri1 = "file://./test/thing-model/tmodels/Ventilator.composed.tm.jsonld";
-        const finalModel1 = await this.helpers.fetch(finalModelUri1);
+        const finalModel1 = await this.thingModelHelpers.fetchModel(finalModelUri1);
         const finalModelUri2 = "file://./test/thing-model/tmodels/LedExtend.composed.tm.jsonld";
-        const finalModel2 = await this.helpers.fetch(finalModelUri2);
+        const finalModel2 = await this.thingModelHelpers.fetchModel(finalModelUri2);
 
         // eslint-disable-next-line dot-notation
         const modelInput = await this.thingModelHelpers["fetchAffordances"](model);
@@ -115,11 +111,11 @@ class ThingModelHelperCompositionTest {
         const modelUri = "file://./test/thing-model/tmodels/SmartVentilatorRecursive.tm.jsonld";
         const model = await this.thingModelHelpers.fetchModel(modelUri);
         const finalModelUri = "file://./test/thing-model/tmodels/SmartVentilatorRecursive.composed.tm.jsonld";
-        const finalModel = await this.helpers.fetch(finalModelUri);
+        const finalModel = await this.thingModelHelpers.fetchModel(finalModelUri);
         const finalModelUri1 = "file://./test/thing-model/tmodels/VentilatorRecursive.composed.tm.jsonld";
-        const finalModel1 = await this.helpers.fetch(finalModelUri1);
+        const finalModel1 = await this.thingModelHelpers.fetchModel(finalModelUri1);
         const finalModelUri2 = "file://./test/thing-model/tmodels/LedExtend.composed.tm.jsonld";
-        const finalModel2 = (await this.helpers.fetch(finalModelUri2)) as ExposedThingInit;
+        const finalModel2 = (await this.thingModelHelpers.fetchModel(finalModelUri2)) as ExposedThingInit;
 
         // eslint-disable-next-line dot-notation
         const modelInput = await this.thingModelHelpers["fetchAffordances"](model);
@@ -165,8 +161,8 @@ class ThingModelHelperCompositionTest {
     @test async "should correctly compose a model that does not have circular dependency"() {
         const modelUri = "file://./test/thing-model/tmodels/noDepsLoop/SmartLampControlImport.jsonld";
         const model = await this.thingModelHelpers.fetchModel(modelUri);
-        const finalModelUri = "file://./test/thing-model/tmodels/noDepsLoop/SmartLampControlImport.td.jsonld";
-        const finalModel = await this.helpers.fetch(finalModelUri);
+        const finalModelUri = "./test/thing-model/tmodels/noDepsLoop/SmartLampControlImport.td.jsonld";
+        const finalModel = await this.fetch(finalModelUri);
         const options: CompositionOptions = {
             baseUrl: "http://test.com",
             selfComposition: false,

@@ -18,22 +18,13 @@ import { suite, test } from "@testdeck/mocha";
 import { expect } from "chai";
 import { ThingModel } from "wot-thing-model-types";
 
-import ThingModelHelpers, { CompositionOptions, modelComposeInput } from "../../src/thing-model-helpers";
+import { ThingModelHelpers, CompositionOptions, modelComposeInput } from "../src/thing-model-helpers";
 import { promises as fs } from "fs";
-import Servient from "../../src/core";
-import { HttpClientFactory } from "@node-wot/binding-http";
-import { FileClientFactory } from "@node-wot/binding-file";
-
 @suite("tests to verify the Thing Model Helper")
 class ThingModelHelperTest {
-    private srv: Servient;
     private thingModelHelpers: ThingModelHelpers;
     async before() {
-        this.srv = new Servient();
-        this.srv.addClientFactory(new HttpClientFactory());
-        this.srv.addClientFactory(new FileClientFactory());
-        this.thingModelHelpers = new ThingModelHelpers(this.srv);
-        await this.srv.start();
+        this.thingModelHelpers = new ThingModelHelpers();
     }
 
     @test "should correctly validate tm schema with ThingModel in @type"() {
@@ -48,7 +39,7 @@ class ThingModelHelperTest {
             },
         };
 
-        const validated = ThingModelHelpers.validateExposedThingModelInit(model as unknown as ThingModel);
+        const validated = ThingModelHelpers.validateThingModel(model as unknown as ThingModel);
 
         expect(model).to.exist;
         expect(validated.valid).to.be.true;
@@ -93,7 +84,7 @@ class ThingModelHelperTest {
             },
         };
 
-        const validated = ThingModelHelpers.validateExposedThingModelInit(model as unknown as ThingModel);
+        const validated = ThingModelHelpers.validateThingModel(model as unknown as ThingModel);
 
         expect(model).to.exist;
         expect(validated.valid).to.be.true;
@@ -118,7 +109,7 @@ class ThingModelHelperTest {
             },
         };
 
-        const validated = ThingModelHelpers.validateExposedThingModelInit(model as unknown as ThingModel);
+        const validated = ThingModelHelpers.validateThingModel(model as unknown as ThingModel);
 
         expect(model).to.exist;
         expect(validated.valid).to.be.false;
