@@ -14,5 +14,5 @@
  ********************************************************************************/
 
 export interface Resolver {
-    fetch(uri: string): Promise<unknown>
+    fetch(uri: string): Promise<unknown>;
 }

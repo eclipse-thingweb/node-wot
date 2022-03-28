@@ -172,7 +172,6 @@ export class ThingModelHelpers {
         const extendedPartialTDs = extendedModels.map((_data) => {
             const data = _data as ExposedThingInit;
             // change the @type
-            console.log(data["@type"]);
             if (data["@type"] instanceof Array) {
                 data["@type"] = data["@type"].map((el) => {
                     if (el === "tm:ThingModel") {
@@ -236,7 +235,7 @@ export class ThingModelHelpers {
                         res.on("end", () => {
                             try {
                                 const parsedData = JSON.parse(rawData);
-                                console.log(parsedData);
+                                console.debug("[td-tools]", "http fetched:", parsedData);
                                 resolve(parsedData);
                             } catch (e) {
                                 console.error(e.message);
@@ -259,7 +258,7 @@ export class ThingModelHelpers {
                             res.on("end", () => {
                                 try {
                                     const parsedData = JSON.parse(rawData);
-                                    console.log(parsedData);
+                                    console.debug("[td-tools]", "https fetched:", parsedData);
                                     resolve(parsedData);
                                 } catch (e) {
                                     console.error(e.message);
@@ -478,7 +477,6 @@ export class ThingModelHelpers {
                     extendedModel.properties[key] = properties[key];
                 }
             }
-            // extendedModel.properties = { ...properties, ...dest.properties };
         }
         if (actions) {
             for (const key in actions) {
@@ -488,7 +486,6 @@ export class ThingModelHelpers {
                     extendedModel.actions[key] = actions[key];
                 }
             }
-            // extendedModel.actions = { ...actions, ...dest.actions };
         }
         if (events) {
             for (const key in events) {
@@ -498,7 +495,6 @@ export class ThingModelHelpers {
                     extendedModel.events[key] = events[key];
                 }
             }
-            // extendedModel.events = { ...events, ...dest.events };
         }
         return extendedModel;
     }
