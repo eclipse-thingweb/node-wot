@@ -36,8 +36,7 @@ import Ajv, { ValidateFunction, ErrorObject } from "ajv";
 import TDSchema from "wot-thing-description-types/schema/td-json-schema-validation.json";
 import { DataSchemaValue, ExposedThingInit } from "wot-typescript-definitions";
 import { SomeJSONSchema } from "ajv/dist/types/json-schema";
-import { ThingInteraction } from "@node-wot/td-tools";
-import ThingModelHelpers from "@node-wot/td-tools/src/thing-model-helpers";
+import { ThingInteraction, ThingModelHelpers } from "@node-wot/td-tools";
 import { Resolver } from "@node-wot/td-tools/src/resolver-interface";
 
 const tdSchema = TDSchema;

@@ -17,11 +17,10 @@ import { suite, test } from "@testdeck/mocha";
 import * as chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { expect } from "chai";
-import { promises as fsPromises } from 'fs';
+import { promises as fsPromises } from "fs";
 
-import ThingModelHelpers, { CompositionOptions } from "../src/thing-model-helpers";
+import { CompositionOptions, ThingModelHelpers } from "../src/thing-model-helpers";
 import { ExposedThingInit } from "wot-typescript-definitions";
-
 
 chai.use(chaiAsPromised);
 @suite("tests to verify the composition feature of Thing Model Helper")
@@ -32,7 +31,7 @@ class ThingModelHelperCompositionTest {
     }
 
     async fetch(uri: string): Promise<unknown> {
-        const data = await fsPromises.readFile(uri, 'utf-8');
+        const data = await fsPromises.readFile(uri, "utf-8");
         return JSON.parse(data);
     }
 

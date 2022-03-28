@@ -23,7 +23,7 @@ import ExposedThing from "./exposed-thing";
 import { ProtocolClientFactory, ProtocolServer, ProtocolClient } from "./protocol-interfaces";
 import ContentManager, { ContentCodec } from "./content-serdes";
 import { v4 } from "uuid";
-import ThingModelHelpers from "@node-wot/td-tools/src/thing-model-helpers";
+import { ThingModelHelpers } from "@node-wot/td-tools";
 
 export interface ScriptOptions {
     argv?: Array<string>;
@@ -41,7 +41,7 @@ export default class Servient {
 
     /** runs the script in a new sandbox */
     public runScript(code: string, filename = "script"): unknown {
-        const helpers = new Helpers(this)
+        const helpers = new Helpers(this);
         const context = {
             WoT: new WoTImpl(this),
             WoTHelpers: helpers,
@@ -70,7 +70,7 @@ export default class Servient {
 
     /** runs the script in privileged context (dangerous) - means here: scripts can require */
     public runPrivilegedScript(code: string, filename = "script", options: ScriptOptions = {}): unknown {
-        const helpers = new Helpers(this)
+        const helpers = new Helpers(this);
         const context = {
             WoT: new WoTImpl(this),
             WoTHelpers: helpers,

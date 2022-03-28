@@ -16,7 +16,7 @@
 import Ajv, { ValidateFunction, ErrorObject } from "ajv";
 import * as http from "http";
 import * as https from "https";
-import * as fs from 'fs';
+import * as fs from "fs";
 import { LinkElement } from "wot-thing-description-types";
 import { DataSchema, ExposedThingInit } from "wot-typescript-definitions";
 import { ThingModel } from "wot-thing-model-types";
@@ -61,7 +61,7 @@ export type modelComposeInput = {
     submodel?: Record<string, ThingModel>;
 };
 
-export default class ThingModelHelpers {
+export class ThingModelHelpers {
     static tsSchemaValidator = ajv.compile(tmSchema) as ValidateFunction;
 
     private deps: string[] = [] as string[];
@@ -200,9 +200,9 @@ export default class ThingModelHelpers {
         this.addDependency(uri);
         let tm: ThingModel;
         if (this.resolver) {
-            tm = await this.resolver.fetch(uri) as ThingModel;
+            tm = (await this.resolver.fetch(uri)) as ThingModel;
         } else {
-            tm = await this.localFetch(uri) as ThingModel;
+            tm = (await this.localFetch(uri)) as ThingModel;
         }
         if (!ThingModelHelpers.isThingModel(tm)) {
             throw new Error(`Data at ${uri} is not a Thing Model`);
@@ -211,66 +211,70 @@ export default class ThingModelHelpers {
     }
 
     private localFetch(uri: string): unknown {
-        const proto = uri.split('://')[0];
+        const proto = uri.split("://")[0];
         switch (proto) {
-            case 'file': {
-                const file = uri.split('://')[1];
+            case "file": {
+                const file = uri.split("://")[1];
                 return new Promise((resolve, reject) => {
-                    fs.readFile(file, { encoding: 'utf-8' }, function (err, data) {
+                    fs.readFile(file, { encoding: "utf-8" }, function (err, data) {
                         if (!err) {
                             resolve(JSON.parse(data));
                         } else {
                             reject(err);
                         }
                     });
-                })
+                });
             }
-            case 'http': {
+            case "http": {
                 return new Promise((resolve, reject) => {
                     http.get(uri, (res) => {
-                        res.setEncoding('utf8');
-                        let rawData = '';
-                        res.on('data', (chunk) => { rawData += chunk; });
-                        res.on('end', () => {
+                        res.setEncoding("utf8");
+                        let rawData = "";
+                        res.on("data", (chunk) => {
+                            rawData += chunk;
+                        });
+                        res.on("end", () => {
                             try {
                                 const parsedData = JSON.parse(rawData);
                                 console.log(parsedData);
-                                resolve(parsedData)
+                                resolve(parsedData);
                             } catch (e) {
                                 console.error(e.message);
                             }
                         });
-                    }).on('error', (e) => {
+                    }).on("error", (e) => {
                         reject(e);
                     });
                 });
             }
-            case 'https': {
-
+            case "https": {
                 return new Promise((resolve, reject) => {
-                    https.get(uri, (res) => {
-                        res.setEncoding('utf8');
-                        let rawData = '';
-                        res.on('data', (chunk) => { rawData += chunk; });
-                        res.on('end', () => {
-                            try {
-                                const parsedData = JSON.parse(rawData);
-                                console.log(parsedData);
-                                resolve(parsedData)
-                            } catch (e) {
-                                console.error(e.message);
-                            }
+                    https
+                        .get(uri, (res) => {
+                            res.setEncoding("utf8");
+                            let rawData = "";
+                            res.on("data", (chunk) => {
+                                rawData += chunk;
+                            });
+                            res.on("end", () => {
+                                try {
+                                    const parsedData = JSON.parse(rawData);
+                                    console.log(parsedData);
+                                    resolve(parsedData);
+                                } catch (e) {
+                                    console.error(e.message);
+                                }
+                            });
+                        })
+                        .on("error", (e) => {
+                            reject(e);
                         });
-                    }).on('error', (e) => {
-                        reject(e);
-                    });
-                })
+                });
             }
             default:
                 break;
         }
         return null;
-
     }
 
     private async _getPartialTDs(model: unknown, options?: CompositionOptions): Promise<ThingModel[]> {
