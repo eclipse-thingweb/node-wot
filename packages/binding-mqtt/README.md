@@ -24,54 +24,52 @@ In addition, the Thing subscribes to the `resetCounter` topic (via its action ha
 it can handle requests to reset the counter value.
 
 ```js
-Servient = require("@node-wot/core").Servient
-MqttBrokerServer = require("@node-wot/binding-mqtt").MqttBrokerServer
+Servient = require("@node-wot/core").Servient;
+MqttBrokerServer = require("@node-wot/binding-mqtt").MqttBrokerServer;
 
 // create Servient add MQTT binding
 let servient = new Servient();
 servient.addServer(new MqttBrokerServer("mqtt://test.mosquitto.org"));
 
 servient.start().then((WoT) => {
-
-    var counter  = 0;
+    var counter = 0;
 
     WoT.produce({
         title: "MQTT-Test",
         id: "urn:dev:wot:mqtt:counter",
         actions: {
             resetCounter: {
-                description: "Reset counter"
-            }
+                description: "Reset counter",
+            },
         },
         events: {
             counterEvent: {
-                description: "Counter Value"
-                data:{
-                    type:"integer"
-                }
-            }
-        }
+                description: "Counter Value",
+                data: {
+                    type: "integer",
+                },
+            },
+        },
     })
-    .then((thing) => {
+        .then((thing) => {
+            thing.setActionHandler("resetCounter", async () => {
+                console.log("Resetting counter");
+                counter = 0;
+            });
 
-        thing.setActionHandler("resetCounter", () => {
-            console.log("Resetting counter");
-            counter = 0;
+            thing.expose().then(() => {
+                console.info(thing.title + " ready");
+
+                setInterval(() => {
+                    ++counter;
+                    thing.emitEvent("counterEvent", counter);
+                    console.info("New count ", counter);
+                }, 1000);
+            });
+        })
+        .catch((e) => {
+            console.log(e);
         });
-
-        thing.expose().then(() => {
-            console.info(thing.title + " ready");
-
-            setInterval(() => {
-                ++counter;
-                thing.emitEvent("counterEvent ", counter);
-                console.info("New count ", counter);
-            }, 1000);
-        });
-    })
-    .catch((e) => {
-        console.log(e)
-    });
 });
 ```
 
@@ -153,12 +151,14 @@ try {
             console.info("==========");
 
             source.subscribeEvent(
-                "counter",
+                "counterEvent",
                 (x) => console.info("value:", x),
                 (e) => console.error("Error: %s", e),
                 () => console.info("Completed")
             );
             console.info("Subscribed");
+
+            source.invokeAction("resetCounter");
 
             setInterval(async () => {
                 source
