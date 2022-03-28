@@ -145,8 +145,6 @@ export default class Helpers {
             client
                 .readResource(new TD.Form(uri, ContentSerdes.TD))
                 .then(async (content) => {
-                    client.stop();
-
                     if (content.type !== ContentSerdes.TD && content.type !== ContentSerdes.JSON_LD) {
                         console.warn(
                             "[core/helpers]",
@@ -162,6 +160,10 @@ export default class Helpers {
                     } catch (err) {
                         reject(new Error(`WoTImpl fetched invalid JSON from '${uri}': ${err.message}`));
                     }
+                })
+                .then(async (td) => {
+                    await client.stop();
+                    return td;
                 })
                 .catch((err) => {
                     reject(err);
