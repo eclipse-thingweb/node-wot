@@ -39,14 +39,12 @@ wotHelper
     .then(async (td) => {
         // using await for serial execution (note 'async' in then() of fetch())
         try {
-            servient.start().then((WoT) => {
-                WoT.consume(td).then((thing) => {
-                    // read a property "string" and print the value
-                    thing.readProperty("string").then((s) => {
-                        console.log(s);
-                    });
-                });
-            });
+            const WoT = await servient.start();
+            const thing = await WoT.consume(td);
+
+            // read property
+            const read1 = await thing.readProperty("string");
+            console.log("string value is: ", await read1.value());
         } catch (err) {
             console.error("Script error:", err);
         }
@@ -73,9 +71,10 @@ Helpers = require("@node-wot/core").Helpers;
 let servient = new Servient();
 servient.addServer(new CoapServer());
 
+let count;
+
 servient.start().then((WoT) => {
     WoT.produce({
-        "@context": "https://www.w3.org/2019/wot/td/v1",
         title: "MyCounter",
         properties: {
             count: {
@@ -84,14 +83,19 @@ servient.start().then((WoT) => {
         },
     }).then((thing) => {
         console.log("Produced " + thing.getThingDescription().title);
-        thing.writeProperty("count", 0);
+
+        // init property value
+        count = 0;
+        // set property handlers (using async-await)
+        thing.setPropertyReadHandler("count", async () => count);
+        thing.setPropertyWriteHandler("count", async (intOutput, options) => {
+            count = await intOutput.value();
+            return undefined;
+        });
 
         thing.expose().then(() => {
             console.info(thing.getThingDescription().title + " ready");
             console.info("TD : " + JSON.stringify(thing.getThingDescription()));
-            thing.readProperty("count").then((c) => {
-                console.log("count is " + c);
-            });
         });
     });
 });
