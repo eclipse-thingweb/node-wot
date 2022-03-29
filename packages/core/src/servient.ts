@@ -13,111 +13,19 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { NodeVM, CompilerFunction } from "vm2";
-
 import * as WoT from "wot-typescript-definitions";
 
 import WoTImpl from "./wot-impl";
-import Helpers from "./helpers";
 import ExposedThing from "./exposed-thing";
 import { ProtocolClientFactory, ProtocolServer, ProtocolClient } from "./protocol-interfaces";
 import ContentManager, { ContentCodec } from "./content-serdes";
 import { v4 } from "uuid";
-import { ThingModelHelpers } from "@node-wot/td-tools";
-
-export interface ScriptOptions {
-    argv?: Array<string>;
-    compiler?: CompilerFunction;
-    env?: Record<string, string>;
-}
 
 export default class Servient {
     private servers: Array<ProtocolServer> = [];
     private clientFactories: Map<string, ProtocolClientFactory> = new Map<string, ProtocolClientFactory>();
     private things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
     private credentialStore: Map<string, Array<unknown>> = new Map<string, Array<unknown>>();
-
-    private uncaughtListeners: Array<(...args: unknown[]) => void> = [];
-
-    /** runs the script in a new sandbox */
-    public runScript(code: string, filename = "script"): unknown {
-        const helpers = new Helpers(this);
-        const context = {
-            WoT: new WoTImpl(this),
-            WoTHelpers: helpers,
-            ModelHelpers: new ThingModelHelpers(helpers),
-        };
-
-        const vm = new NodeVM({
-            sandbox: context,
-        });
-
-        const listener = (err: Error) => {
-            this.logScriptError(`Asynchronous script error '${filename}'`, err);
-            // TODO: clean up script resources
-            process.exit(1);
-        };
-        process.prependListener("uncaughtException", listener);
-        this.uncaughtListeners.push(listener);
-
-        try {
-            return vm.run(code, filename);
-        } catch (err) {
-            this.logScriptError(`Servient found error in privileged script '${filename}'`, err);
-            return undefined;
-        }
-    }
-
-    /** runs the script in privileged context (dangerous) - means here: scripts can require */
-    public runPrivilegedScript(code: string, filename = "script", options: ScriptOptions = {}): unknown {
-        const helpers = new Helpers(this);
-        const context = {
-            WoT: new WoTImpl(this),
-            WoTHelpers: helpers,
-            ModelHelpers: new ThingModelHelpers(helpers),
-        };
-
-        const vm = new NodeVM({
-            sandbox: context,
-            require: {
-                external: true,
-                builtin: ["*"],
-            },
-            argv: options.argv,
-            compiler: options.compiler,
-            env: options.env,
-        });
-
-        const listener = (err: Error) => {
-            this.logScriptError(`Asynchronous script error '${filename}'`, err);
-            // TODO: clean up script resources
-            process.exit(1);
-        };
-        process.prependListener("uncaughtException", listener);
-        this.uncaughtListeners.push(listener);
-
-        try {
-            return vm.run(code, filename);
-        } catch (err) {
-            this.logScriptError(`Servient found error in privileged script '${filename}'`, err);
-            return undefined;
-        }
-    }
-
-    private logScriptError(description: string, error: Error): void {
-        let message: string;
-        if (typeof error === "object" && error.stack) {
-            const match = error.stack.match(/evalmachine\.<anonymous>:([0-9]+:[0-9]+)/);
-            if (Array.isArray(match)) {
-                message = `and halted at line ${match[1]}\n    ${error}`;
-            } else {
-                message = `and halted with ${error.stack}`;
-            }
-        } else {
-            message = `that threw ${typeof error} instead of Error\n    ${error}`;
-        }
-        console.error("[core/servient]", `Servient caught ${description} ${message}`);
-    }
 
     /** add a new codec to support a mediatype; offered mediatypes are listed in TDs */
     public addMediaType(codec: ContentCodec, offered = false): void {
@@ -304,9 +212,5 @@ export default class Servient {
 
         const promises = this.servers.map((server) => server.stop());
         await Promise.all(promises);
-
-        this.uncaughtListeners.forEach((listener) => {
-            process.removeListener("uncaughtException", listener);
-        });
     }
 }

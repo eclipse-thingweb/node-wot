@@ -22,26 +22,30 @@
 
 import { suite, test } from "@testdeck/mocha";
 import { should, assert } from "chai";
+import DefaultServient from "../src/cli-default-servient";
 
-import Servient from "../src/servient";
 import fs from "fs";
 // should must be called to augment all variables
 should();
 
-@suite("the runtime of servient")
+@suite("Test suite for script runtime")
 class WoTRuntimeTest {
-    static servient: Servient;
+    static servient: DefaultServient;
 
     static WoT: typeof WoT;
 
     exit: (code?: number) => never;
 
-    static before() {
+    static async before() {
         // We need to disable this check for killing servient logs
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        /* eslint-disable @typescript-eslint/no-empty-function */
         console.error = () => {};
-        this.servient = new Servient();
-        console.log("before starting test suite");
+        console.debug = () => {};
+        console.warn = () => {};
+        console.info = () => {};
+        /* eslint-enable @typescript-eslint/no-empty-function */
+        this.servient = new DefaultServient(true);
+        await this.servient.start();
     }
 
     beforeEach() {
@@ -53,7 +57,6 @@ class WoTRuntimeTest {
     }
 
     static async after(): Promise<void> {
-        console.log("after finishing test suite");
         await this.servient.shutdown();
     }
 

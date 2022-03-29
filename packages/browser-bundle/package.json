@@ -22,7 +22,7 @@
         "wot-typescript-definitions": "0.8.0-SNAPSHOT.22"
     },
     "scripts": {
-        "build": "browserify -r vm:vm2 index.js --external coffee-script -o dist/wot-bundle.min.js",
+        "build": "browserify index.js -o dist/wot-bundle.min.js",
         "format": "prettier --write index.js \"**/*.json\""
     },
     "bugs": {
