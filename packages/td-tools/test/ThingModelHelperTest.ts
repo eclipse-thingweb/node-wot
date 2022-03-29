@@ -354,21 +354,20 @@ class ThingModelHelperTest {
         const thing = {
             "@context": ["http://www.w3.org/ns/td"],
             "@type": "tm:ThingModel",
-            "arrayField": "{{ARRAY}}",
+            arrayField: "{{ARRAY}}",
             title: "Thermostate No. 4",
-            "versionInfo": "{{VERSION_INFO}}"
-
+            versionInfo: "{{VERSION_INFO}}",
         } as unknown as ThingModel;
         const map = {
             ARRAY: ["random", "random1", "random2"],
-            VERSION_INFO: { "instance": "xyz", "model": "ABC" },
+            VERSION_INFO: { instance: "xyz", model: "ABC" },
         };
         const finalJSON = {
             "@context": ["http://www.w3.org/ns/td"],
             "@type": "Thing",
             title: "Thermostate No. 4",
-            "arrayField": ["random", "random1", "random2"],
-            "versionInfo": { "instance": "xyz", "model": "ABC" },
+            arrayField: ["random", "random1", "random2"],
+            versionInfo: { instance: "xyz", model: "ABC" },
             links: [
                 {
                     href: "./ThermostateNo.4.tm.jsonld",

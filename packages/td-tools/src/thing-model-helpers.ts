@@ -147,7 +147,6 @@ export class ThingModelHelpers {
      * @experimental
      */
     public static validateThingModel(data: ThingModel): { valid: boolean; errors: string } {
-        console.log(data)
         const isValid = ThingModelHelpers.tsSchemaValidator(data);
         let errors;
         if (!isValid) {
