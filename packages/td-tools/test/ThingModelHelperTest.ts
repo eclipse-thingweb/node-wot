@@ -350,6 +350,41 @@ class ThingModelHelperTest {
         expect(partialTd).to.be.deep.equal(finalJSON);
     }
 
+    @test async "should correctly fill placeholders with composed types"() {
+        const thing = {
+            "@context": ["http://www.w3.org/ns/td"],
+            "@type": "tm:ThingModel",
+            "arrayField": "{{ARRAY}}",
+            title: "Thermostate No. 4",
+            "versionInfo": "{{VERSION_INFO}}"
+
+        } as unknown as ThingModel;
+        const map = {
+            ARRAY: ["random", "random1", "random2"],
+            VERSION_INFO: { "instance": "xyz", "model": "ABC" },
+        };
+        const finalJSON = {
+            "@context": ["http://www.w3.org/ns/td"],
+            "@type": "Thing",
+            title: "Thermostate No. 4",
+            "arrayField": ["random", "random1", "random2"],
+            "versionInfo": { "instance": "xyz", "model": "ABC" },
+            links: [
+                {
+                    href: "./ThermostateNo.4.tm.jsonld",
+                    rel: "type",
+                    type: "application/tm+json",
+                },
+            ],
+        };
+        const options: CompositionOptions = {
+            map,
+            selfComposition: false,
+        };
+        const [partialTd] = await this.thingModelHelpers.getPartialTDs(thing, options);
+        expect(partialTd).to.be.deep.equal(finalJSON);
+    }
+
     @test async "should reject fill placeholders because of missing fields in map"() {
         const thing = {
             "@context": ["http://www.w3.org/ns/td"],

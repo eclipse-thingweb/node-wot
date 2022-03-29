@@ -17,6 +17,7 @@ import Ajv, { ValidateFunction, ErrorObject } from "ajv";
 import * as http from "http";
 import * as https from "https";
 import * as fs from "fs";
+import { JsonPlaceholderReplacer } from "json-placeholder-replacer";
 import { LinkElement } from "wot-thing-description-types";
 import { DataSchema, ExposedThingInit } from "wot-typescript-definitions";
 import { ThingModel } from "wot-thing-model-types";
@@ -146,6 +147,7 @@ export class ThingModelHelpers {
      * @experimental
      */
     public static validateThingModel(data: ThingModel): { valid: boolean; errors: string } {
+        console.log(data)
         const isValid = ThingModelHelpers.tsSchemaValidator(data);
         let errors;
         if (!isValid) {
@@ -552,28 +554,9 @@ export class ThingModelHelpers {
     }
 
     private fillPlaceholder(data: Record<string, unknown>, map: Record<string, unknown>): ThingModel {
-        let dataString = JSON.stringify(data);
-        for (const key in map) {
-            const value = map[key];
-            let word = `{{${key}}}`;
-            const instances = (dataString.match(new RegExp(word, "g")) || []).length;
-            for (let i = 0; i < instances; i++) {
-                word = `{{${key}}}`;
-                const re = `"(${word})"`;
-                const match = dataString.match(re);
-                if (match === null) {
-                    // word is included in another string/number/element. Keep that type
-                    dataString = dataString.replace(word, value as string);
-                } else {
-                    // keep the new value type
-                    if (typeof value !== "string") {
-                        word = `"{{${key}}}"`;
-                    }
-                    dataString = dataString.replace(word, value as string);
-                }
-            }
-        }
-        return JSON.parse(dataString);
+        const placeHolderReplacer = new JsonPlaceholderReplacer();
+        placeHolderReplacer.addVariableMap(map);
+        return placeHolderReplacer.replace(data) as ThingModel;
     }
 
     private checkPlaceholderMap(model: ThingModel, map: Record<string, unknown>): { valid: boolean; errors: string } {
