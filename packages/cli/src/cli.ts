@@ -45,7 +45,7 @@ interface DebugParams {
 }
 let debug: DebugParams;
 
-const readConf = function (filename: string): Promise<unknown> {
+function readConf(filename: string): Promise<Record<string, unknown>> {
     return new Promise((resolve, reject) => {
         const open = filename || path.join(baseDir, defaultFile);
         fs.readFile(open, "utf-8", (err, data) => {
@@ -56,6 +56,9 @@ const readConf = function (filename: string): Promise<unknown> {
                 let config;
                 try {
                     config = JSON.parse(data);
+                    if (typeof config !== "object" || Array.isArray(config)) {
+                        throw new Error("Invalid configuration file");
+                    }
                 } catch (err) {
                     reject(err);
                 }
@@ -64,24 +67,21 @@ const readConf = function (filename: string): Promise<unknown> {
             }
         });
     });
-};
+}
 
-const overrideConfig = function (conf: any): Promise<unknown> {
-    return new Promise((resolve) => {
-        conf = conf ?? {};
+function overrideConfig(conf: Record<string, unknown>) {
+    conf = conf ?? {};
 
-        servientPorts.forEach((port, protocol) => {
-            if (port !== undefined) {
-                if (!(protocol in conf)) {
-                    conf[protocol] = {};
-                }
-                conf[protocol].port = port;
+    servientPorts.forEach((port, protocol) => {
+        if (port !== undefined) {
+            if (!(protocol in conf)) {
+                conf[protocol] = {};
             }
-        });
-
-        resolve(conf);
+            (conf[protocol] as { port: number }).port = port;
+        }
     });
-};
+    return conf;
+}
 
 const loadCompilerFunction = function (compilerModule: string | undefined) {
     if (compilerModule) {
