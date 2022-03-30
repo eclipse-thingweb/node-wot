@@ -288,6 +288,7 @@ Options:
   -f,   --configfile <file>         load configuration from specified file
   -h,   --help                      show this help
         --[protocol].port           specify the port to expose the server for a specific protocol
+                                    (examples: --http.port 8888, --coap.port 3333)
 
 wot-servient.conf.json syntax:
 {
