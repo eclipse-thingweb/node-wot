@@ -30,10 +30,13 @@ let clientOnly = false;
 
 let flagArgConfigfile = false;
 let flagArgCompilerModule = false;
+let flagArgPort = false;
 let compilerModule: string;
 let flagScriptArgs = false;
 const scriptArgs: Array<string> = [];
 let confFile: string;
+const servientPorts: Map<string, number> = new Map<string, number>();
+let currentProtocolPort: string;
 
 interface DebugParams {
     shouldBreak: boolean;
@@ -42,7 +45,7 @@ interface DebugParams {
 }
 let debug: DebugParams;
 
-const readConf = function (filename: string): Promise<unknown> {
+function readConf(filename: string): Promise<Record<string, unknown>> {
     return new Promise((resolve, reject) => {
         const open = filename || path.join(baseDir, defaultFile);
         fs.readFile(open, "utf-8", (err, data) => {
@@ -53,6 +56,9 @@ const readConf = function (filename: string): Promise<unknown> {
                 let config;
                 try {
                     config = JSON.parse(data);
+                    if (typeof config !== "object" || Array.isArray(config)) {
+                        throw new Error("Invalid configuration file");
+                    }
                 } catch (err) {
                     reject(err);
                 }
@@ -61,7 +67,21 @@ const readConf = function (filename: string): Promise<unknown> {
             }
         });
     });
-};
+}
+
+function overrideConfig(conf: Record<string, unknown>) {
+    conf = conf ?? {};
+
+    servientPorts.forEach((port, protocol) => {
+        if (port !== undefined) {
+            if (!(protocol in conf)) {
+                conf[protocol] = {};
+            }
+            (conf[protocol] as { port: number }).port = port;
+        }
+    });
+    return conf;
+}
 
 const loadCompilerFunction = function (compilerModule: string | undefined) {
     if (compilerModule) {
@@ -201,6 +221,11 @@ for (let i = 0; i < argv.length; i++) {
         compilerModule = argv[i];
         argv.splice(i, 1);
         i--;
+    } else if (flagArgPort) {
+        flagArgPort = false;
+        servientPorts.set(currentProtocolPort, parseInt(argv[i]));
+        argv.splice(i, 1);
+        i--;
     } else if (argv[i] === "--") {
         // next args are script args
         flagScriptArgs = true;
@@ -216,6 +241,12 @@ for (let i = 0; i < argv.length; i++) {
         i--;
     } else if (argv[i].match(/^(-f|--configfile|\/f)$/i)) {
         flagArgConfigfile = true;
+        argv.splice(i, 1);
+        i--;
+    } else if (argv[i].match(/^--(http|coap|mqtt)\.port$/i)) {
+        flagArgPort = true;
+        const matches = argv[i].match(/^--(http|coap|mqtt)\.port$/i);
+        currentProtocolPort = matches[1];
         argv.splice(i, 1);
         i--;
     } else if (argv[i].match(/^(-i|-ib|--inspect(-brk)?(=([a-z]*|[\d .]*):?(\d*))?|\/i|\/ib)$/i)) {
@@ -246,16 +277,18 @@ If one or more SCRIPT is given, these files are loaded instead of the directory.
 If the file 'wot-servient.conf.json' exists, that configuration is applied.
 
 Options:
-  -v,  --version                   display node-wot version
-  -i,  --inspect[=[host:]port]     activate inspector on host:port (default: 127.0.0.1:9229)
-  -ib, --inspect-brk[=[host:]port] activate inspector on host:port and break at start of user script
-  -c,  --clientonly                do not start any servers
-                                   (enables multiple instances without port conflicts)
-  -cp,  --compiler <module>        load module as a compiler
-                                   (The module must export a create function which returns
+  -v,   --version                   display node-wot version
+  -i,   --inspect[=[host:]port]     activate inspector on host:port (default: 127.0.0.1:9229)
+  -ib,  --inspect-brk[=[host:]port] activate inspector on host:port and break at start of user script
+  -c,   --clientonly                do not start any servers
+                                    (enables multiple instances without port conflicts)
+  -cp,  --compiler <module>         load module as a compiler
+                                    (The module must export a create function which returns
                                     an object with a compile method)
-  -f,  --configfile <file>         load configuration from specified file
-  -h,  --help                      show this help
+  -f,   --configfile <file>         load configuration from specified file
+  -h,   --help                      show this help
+        --[protocol].port           specify the port to expose the server for a specific protocol
+                                    (examples: --http.port 8888, --coap.port 3333)
 
 wot-servient.conf.json syntax:
 {
@@ -318,17 +351,17 @@ VAR2=Value2`);
 }
 
 readConf(confFile)
-    .then((conf) => {
-        return new DefaultServient(clientOnly, conf);
-    })
     .catch((err) => {
         if (err.code === "ENOENT" && !confFile) {
             console.warn("[cli]", `WoT-Servient using defaults as '${defaultFile}' does not exist`);
-            return new DefaultServient(clientOnly);
         } else {
             console.error("[cli]", "WoT-Servient config file error:", err.message);
             process.exit(err.errno);
         }
+    })
+    .then(overrideConfig)
+    .then((conf) => {
+        return new DefaultServient(clientOnly, conf);
     })
     .then((servient) => {
         servient
