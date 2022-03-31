@@ -15,7 +15,9 @@
     "types": "dist/coap.d.ts",
     "devDependencies": {
         "@testdeck/mocha": "^0.1.2",
+        "@types/bl": "^5.0.2",
         "@types/chai": "^4.2.18",
+        "@types/lru-cache": "^5.1.1",
         "@types/node": "16.4.13",
         "@typescript-eslint/eslint-plugin": "^4.30.0",
         "@typescript-eslint/parser": "^4.30.0",
