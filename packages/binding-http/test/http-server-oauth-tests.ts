@@ -67,7 +67,6 @@ class OAuthServerTests {
             },
         });
         testThing.extendInteractions();
-        await testThing.writeProperty("test", "off");
         testThing.properties.test.forms = [];
 
         await this.server.expose(testThing);
