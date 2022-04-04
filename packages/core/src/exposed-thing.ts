@@ -636,48 +636,6 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     }
 
     /**
-     * @deprecated
-     */
-    public async invokeAction(
-        actionName: string,
-        parameter?: WoT.InteractionInput,
-        options?: WoT.InteractionOptions
-    ): Promise<InteractionOutput> {
-        if (this.actions[actionName]) {
-            console.debug("[core/exposed-thing]", `ExposedThing '${this.title}' has Action state of '${actionName}'`);
-
-            const as: ActionState = this.actions[actionName].getState();
-            if (as.handler != null) {
-                console.debug(
-                    "[core/exposed-thing]",
-                    `ExposedThing '${this.title}' calls registered handler for Action '${actionName}'`
-                );
-                let bodyInput;
-                if (parameter) {
-                    bodyInput = ExposedThing.interactionInputToReadable(parameter);
-                }
-
-                const cInput: Content = { body: bodyInput, type: "application/json" };
-                const result = await as.handler(
-                    new InteractionOutput(cInput, undefined, this.actions[actionName].input),
-                    options
-                );
-
-                let bodyOutput;
-                if (result) {
-                    bodyOutput = ExposedThing.interactionInputToReadable(result);
-                }
-                const cOutput: Content = { body: bodyOutput, type: "application/json" };
-                return new InteractionOutput(cOutput, undefined, this.actions[actionName].output);
-            } else {
-                throw new Error(`ExposedThing '${this.title}' has no handler for Action '${actionName}'`);
-            }
-        } else {
-            throw new Error(`ExposedThing '${this.title}', no action found for '${actionName}'`);
-        }
-    }
-
-    /**
      * Handle the request of an action invocation form the protocol binding level
      * @experimental
      */
