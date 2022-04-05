@@ -1,0 +1,99 @@
+{
+    "definitions": {},
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+        "servient": {
+            "$id": "#root/servient",
+            "type": "object",
+            "required": ["clientOnly", "scriptAction"],
+            "properties": {
+                "clientOnly": {
+                    "$id": "#root/servient/clientOnly",
+                    "type": "boolean",
+                    "default": false
+                },
+                "staticAddress": {
+                    "$id": "#root/servient/staticAddress",
+                    "type": "string"
+                },
+                "scriptAction": {
+                    "$id": "#root/servient/scriptAction",
+                    "type": "boolean",
+                    "default": false
+                }
+            }
+        },
+        "http": {
+            "$id": "#root/http",
+            "type": "object",
+            "properties": {
+                "port": {
+                    "$id": "#root/http/port",
+                    "type": "integer"
+                },
+                "proxy": {
+                    "$id": "#root/http/proxy",
+                    "type": "object",
+                    "properties": {}
+                },
+                "allowSelfSigned": {
+                    "$id": "#root/http/allowSelfSigned",
+                    "type": "boolean"
+                }
+            }
+        },
+        "mqtt": {
+            "$id": "#root/mqtt",
+            "type": "object",
+            "properties": {
+                "broker": {
+                    "$id": "#root/mqtt/broker",
+                    "type": "string"
+                },
+                "username": {
+                    "$id": "#root/mqtt/username",
+                    "type": "string"
+                },
+                "password": {
+                    "$id": "#root/mqtt/password",
+                    "type": "string"
+                },
+                "clientId": {
+                    "$id": "#root/mqtt/clientId",
+                    "type": "string"
+                },
+                "protocolVersion": {
+                    "$id": "#root/mqtt/protocolVersion",
+                    "type": "integer",
+                    "examples": [3, 4, 5],
+                    "default": 5
+                }
+            }
+        },
+        "credentials": {
+            "$id": "#root/credentials",
+            "type": "object",
+            "patternProperties": {
+                "^([a-zA-Z0-9_]+)$": {
+                    "type": "object",
+                    "properties": {
+                        "token": {
+                            "$id": "#root/credentials/([a-zA-Z]+)/token",
+                            "type": "string"
+                        },
+                        "username": {
+                            "$id": "#root/credentials/([a-zA-Z]+)/username",
+                            "type": "string"
+                        },
+                        "password": {
+                            "$id": "#root/credentials/([a-zA-Z]+)/password",
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "additionalProperties": false
+}
