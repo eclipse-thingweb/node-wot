@@ -38,73 +38,6 @@ import {
     PropertyHandlers,
 } from "./protocol-interfaces";
 
-/**
- * @deprecated
- */
-class ExposedThingProperty extends TD.ThingProperty implements TD.ThingProperty, TD.BaseSchema {
-    // functions for wrapping internal state
-    getName: () => string;
-    getThing: () => ExposedThing;
-
-    constructor(name: string, thing: ExposedThing) {
-        super();
-
-        // wrap internal state into functions to not be stringified in TD
-        this.getName = () => {
-            return name;
-        };
-        this.getThing = () => {
-            return thing;
-        };
-
-        // apply defaults
-        this.readOnly = false;
-        this.writeOnly = false;
-        this.observable = false;
-    }
-}
-
-/**
- * @deprecated
- */
-class ExposedThingAction extends TD.ThingAction implements TD.ThingAction {
-    // functions for wrapping internal state
-    getName: () => string;
-    getThing: () => ExposedThing;
-
-    constructor(name: string, thing: ExposedThing) {
-        super();
-
-        // wrap internal state into functions to not be stringified
-        this.getName = () => {
-            return name;
-        };
-        this.getThing = () => {
-            return thing;
-        };
-    }
-}
-
-/**
- * @deprecated
- */
-class ExposedThingEvent extends TD.ThingEvent implements TD.ThingEvent {
-    // functions for wrapping internal state
-    getName: () => string;
-    getThing: () => ExposedThing;
-
-    constructor(name: string, thing: ExposedThing) {
-        super();
-
-        // wrap internal state into functions to not be stringified
-        this.getName = () => {
-            return name;
-        };
-        this.getThing = () => {
-            return thing;
-        };
-    }
-}
 export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     security: Array<string>;
     securityDefinitions: { [key: string]: TD.SecurityType };
@@ -182,7 +115,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         } */
         // set default language
         this.addDefaultLanguage(this);
-        // extend interactions
+        // extend interactions (e.g., defaults)
         this.extendInteractions();
     }
 
@@ -208,18 +141,30 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     }
 
     extendInteractions(): void {
+        // property defaults
         for (const propertyName in this.properties) {
-            const newProp = Helpers.extend(this.properties[propertyName], new ExposedThingProperty(propertyName, this));
-            this.properties[propertyName] = newProp;
+            const prop: TD.ThingProperty = this.properties[propertyName];
+            if (prop.readOnly === undefined || typeof prop.readOnly !== "boolean") {
+                prop.readOnly = false;
+            }
+            if (prop.writeOnly === undefined || typeof prop.writeOnly !== "boolean") {
+                prop.writeOnly = false;
+            }
+            if (prop.observable === undefined || typeof prop.observable !== "boolean") {
+                prop.observable = false;
+            }
         }
+        // action defaults
         for (const actionName in this.actions) {
-            const newAction = Helpers.extend(this.actions[actionName], new ExposedThingAction(actionName, this));
-            this.actions[actionName] = newAction;
+            const act: TD.ThingAction = this.actions[actionName];
+            if (act.safe === undefined || typeof act.safe !== "boolean") {
+                act.safe = false;
+            }
+            if (act.idempotent === undefined || typeof act.idempotent !== "boolean") {
+                act.idempotent = false;
+            }
         }
-        for (const eventName in this.events) {
-            const newEvent = Helpers.extend(this.events[eventName], new ExposedThingEvent(eventName, this));
-            this.events[eventName] = newEvent;
-        }
+        // event defaults -> none
     }
 
     public getThingDescription(): WoT.ThingDescription {
