@@ -36,7 +36,7 @@ const dotEnvConfigParamters: DotEnvConfigParameter = {};
 
 // General commands
 program
-    .name("Node WoT CLI")
+    .name("node-wot CLI")
     .helpOption("-h, --help", "show this help")
     .version(require("@node-wot/core/package.json").version, "-v, --version", "display node-wot version");
 
@@ -44,13 +44,11 @@ program
 program.addHelpText(
     "before",
     `
-Usage: wot-servient [options] [SCRIPT]... -- [ARGS]...
-
 wot-servient
 wot-servient examples/scripts/counter.js examples/scripts/example-event.js
 wot-servient -c counter-client.js
 wot-servient -f ~/mywot.conf.json examples/testthing/testthing.js
-wot-servient examples/testthing/testthing.js -- script_arg1 script_arg2
+wot-servient examples/testthing/testthing.js script_arg1 script_arg2
 
 Run a WoT Servient in the current directory.
 If no SCRIPT is given, all .js files in the current directory are loaded.
@@ -103,7 +101,7 @@ wot-servient.conf.json fields:
                                 corresponding credential fields as defined below
   ALLOW           : boolean whether self-signed certificates should be allowed
   BROKER-URL      : URL to an MQTT broker that publisher and subscribers will use
-  BROKER-UNIQUEID : unique id set by mqtt client while connecting to broker
+  BROKER-UNIQUEID : unique id set by MQTT client while connecting to the broker
   MQTT_VERSION    : number indicating the MQTT protocol version to be used (3, 4, or 5)
   THING_IDx       : string with TD "id" for which credentials should be configured
   TOKEN           : string for providing a Bearer token
@@ -363,10 +361,6 @@ buildConfig()
             console.error("[cli]", "WoT-Servient config file error:", err.message);
             process.exit(err.errno);
         }
-    })
-    .then(overrideConfig)
-    .then((conf) => {
-        return new DefaultServient(clientOnly, conf);
     })
     .then((servient) => {
         servient
