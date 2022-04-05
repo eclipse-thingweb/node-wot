@@ -21,6 +21,14 @@
                     "$id": "#root/servient/scriptAction",
                     "type": "boolean",
                     "default": false
+                },
+                "serverKey": {
+                    "$id": "#root/servient/serverKey",
+                    "type": "string"
+                },
+                "serverCert": {
+                    "$id": "#root/servient/serverCert",
+                    "type": "string"
                 }
             }
         },
@@ -35,7 +43,28 @@
                 "proxy": {
                     "$id": "#root/http/proxy",
                     "type": "object",
-                    "properties": {}
+                    "properties": {
+                        "href": {
+                            "$id": "#root/http/proxy/href",
+                            "type": "string"
+                        },
+                        "scheme": {
+                            "$id": "#root/http/proxy/scheme",
+                            "enum": ["basic", "bearer"]
+                        },
+                        "token": {
+                            "$id": "#root/http/proxy/token",
+                            "type": "string"
+                        },
+                        "username": {
+                            "$id": "#root/http/proxy/username",
+                            "type": "string"
+                        },
+                        "password": {
+                            "$id": "#root/http/proxy/password",
+                            "type": "string"
+                        }
+                    }
                 },
                 "allowSelfSigned": {
                     "$id": "#root/http/allowSelfSigned",
@@ -71,11 +100,21 @@
                 }
             }
         },
+        "coap": {
+            "$id": "#root/coap",
+            "type": "object",
+            "properties": {
+                "port": {
+                    "$id": "#root/coap/port",
+                    "type": "integer"
+                }
+            }
+        },
         "credentials": {
             "$id": "#root/credentials",
             "type": "object",
             "patternProperties": {
-                "^([a-zA-Z0-9_]+)$": {
+                "^THING_ID([a-zA-Z0-9_]+)$": {
                     "type": "object",
                     "properties": {
                         "token": {
