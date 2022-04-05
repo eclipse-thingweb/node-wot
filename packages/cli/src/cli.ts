@@ -34,7 +34,6 @@ const baseDir = ".";
 
 const dotEnvConfigParamters: DotEnvConfigParameter = {};
 
-
 // General commands
 program
     .name("Node WoT CLI")
@@ -351,7 +350,6 @@ const runAllScripts = function (servient: DefaultServient, debug?: DebugParams) 
         );
     });
 };
-
 
 buildConfig()
     .then((conf) => {

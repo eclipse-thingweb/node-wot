@@ -48,7 +48,7 @@
         "@node-wot/core": "0.8.0",
         "commander": "^9.1.0",
         "dotenv": "^8.6.0",
-        "loadash": "^1.0.0"
+        "loadash": "^1.0.0",
         "@node-wot/td-tools": "^0.8.0",
         "vm2": "^3.9.9"
     },
