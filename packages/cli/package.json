@@ -17,6 +17,7 @@
         "wot-servient": "bin/index.js"
     },
     "devDependencies": {
+        "@testdeck/mocha": "^0.1.2",
         "@types/node": "16.4.13",
         "@typescript-eslint/eslint-plugin": "^4.30.0",
         "@typescript-eslint/parser": "^4.30.0",
@@ -27,6 +28,7 @@
         "eslint-plugin-node": "^11.1.0",
         "eslint-plugin-promise": "^5.1.0",
         "eslint-plugin-unused-imports": "^1.1.4",
+        "mocha": "^9.2.2",
         "prettier": "^2.3.2",
         "ts-node": "10.1.0",
         "typescript": "4.4.3",
@@ -47,6 +49,8 @@
         "commander": "^9.1.0",
         "dotenv": "^8.6.0",
         "loadash": "^1.0.0"
+        "@node-wot/td-tools": "^0.8.0",
+        "vm2": "^3.9.9"
     },
     "scripts": {
         "build": "tsc -b",
@@ -54,7 +58,8 @@
         "debug": "node -r ts-node/register --inspect-brk=9229 src/cli.ts",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
-        "format": "prettier --write \"src/**/*.ts\" \"**/*.json\""
+        "format": "prettier --write \"src/**/*.ts\" \"**/*.json\"",
+        "test": "mocha --require ts-node/register --extension ts"
     },
     "bugs": {
         "url": "https://github.com/eclipse/thingweb.node-wot/issues"

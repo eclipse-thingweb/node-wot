@@ -32,7 +32,6 @@ servient.addClientFactory(new FileClientFactory(null));
 td = {
     id: "urn:dev:wot:org:w3:testthing:file",
     title: "TestThing",
-    "@context": "https://www.w3.org/2019/wot/td/v1",
     "@type": "Thing",
     security: ["nosec_sc"],
     properties: {
@@ -58,13 +57,12 @@ td = {
 
 // try to read property that exposes the content of file test.txt
 try {
-    servient.start().then((WoT) => {
-        WoT.consume(td).then((thing) => {
-            // read property "fileContent" and print the content
-            thing.readProperty("fileContent").then((s) => {
-                console.log("Content of File:\n" + s);
-            });
-        });
+    servient.start().then(async (WoT) => {
+        const thing = await WoT.consume(td);
+
+        // read property "fileContent" and print the content
+        const read1 = await thing.readProperty("fileContent");
+        console.log("Content of File:\n", await read1.value());
     });
 } catch (err) {
     console.error("Script error:", err);
@@ -98,14 +96,12 @@ wotHelper
     .then(async (td) => {
         // using await for serial execution (note 'async' in then() of fetch())
         try {
-            servient.start().then((WoT) => {
-                WoT.consume(td).then((thing) => {
-                    // read property "fileContent" and print the content
-                    thing.readProperty("fileContent").then((s) => {
-                        console.log("Content of File:\n" + s);
-                    });
-                });
-            });
+            const WoT = await servient.start();
+            const thing = await WoT.consume(td);
+
+            // read property "fileContent" and print the content
+            const read1 = await thing.readProperty("fileContent");
+            console.log("Content of File:\n" + (await read1.value()));
         } catch (err) {
             console.error("Script error:", err);
         }

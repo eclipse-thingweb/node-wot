@@ -9,6 +9,11 @@ module.exports = {
         library: "TDTools",
     },
     resolve: {
+        fallback: {
+            http: require.resolve("stream-http"),
+            https: require.resolve("https-browserify"),
+            fs: false,
+        },
         extensions: [".ts", ".js"],
     },
     module: {

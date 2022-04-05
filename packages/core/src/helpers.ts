@@ -36,8 +36,8 @@ import Ajv, { ValidateFunction, ErrorObject } from "ajv";
 import TDSchema from "wot-thing-description-types/schema/td-json-schema-validation.json";
 import { DataSchemaValue, ExposedThingInit } from "wot-typescript-definitions";
 import { SomeJSONSchema } from "ajv/dist/types/json-schema";
-import { ThingInteraction } from "@node-wot/td-tools";
-import ThingModelHelpers from "./thing-model-helpers";
+import { ThingInteraction, ThingModelHelpers } from "@node-wot/td-tools";
+import { Resolver } from "@node-wot/td-tools/src/resolver-interface";
 
 const tdSchema = TDSchema;
 // RegExps take from https://github.com/ajv-validator/ajv-formats/blob/master/src/formats.ts
@@ -51,8 +51,7 @@ const ajv = new Ajv({ strict: false })
         "date-time",
         /^\d\d\d\d-[0-1]\d-[0-3]\d[t\s](?:[0-2]\d:[0-5]\d:[0-5]\d|23:59:60)(?:\.\d+)?(?:z|[+-]\d\d(?::?\d\d)?)$/
     );
-
-export default class Helpers {
+export default class Helpers implements Resolver {
     static tsSchemaValidator = ajv.compile(Helpers.createExposeThingInitSchema(tdSchema)) as ValidateFunction;
 
     private srv: Servient;

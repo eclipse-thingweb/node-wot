@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /********************************************************************************
- * Copyright (c) 2021 Contributors to the Eclipse Foundation
+ * Copyright (c) 2022 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -33,6 +33,7 @@ const defaultFile = "wot-servient.conf.json";
 const baseDir = ".";
 
 const dotEnvConfigParamters: DotEnvConfigParameter = {};
+
 
 // General commands
 program
@@ -351,6 +352,7 @@ const runAllScripts = function (servient: DefaultServient, debug?: DebugParams) 
     });
 };
 
+
 buildConfig()
     .then((conf) => {
         return new DefaultServient(options.clientOnly, conf);
@@ -363,6 +365,10 @@ buildConfig()
             console.error("[cli]", "WoT-Servient config file error:", err.message);
             process.exit(err.errno);
         }
+    })
+    .then(overrideConfig)
+    .then((conf) => {
+        return new DefaultServient(clientOnly, conf);
     })
     .then((servient) => {
         servient

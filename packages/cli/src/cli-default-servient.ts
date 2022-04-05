@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /********************************************************************************
- * Copyright (c) 2021 Contributors to the Eclipse Foundation
+ * Copyright (c) 2022 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -24,6 +24,8 @@ import { HttpServer, HttpClientFactory, HttpsClientFactory } from "@node-wot/bin
 import { CoapServer, CoapClientFactory, CoapsClientFactory } from "@node-wot/binding-coap";
 import { MqttBrokerServer, MqttClientFactory } from "@node-wot/binding-mqtt";
 import { FileClientFactory } from "@node-wot/binding-file";
+import { CompilerFunction, NodeVM } from "vm2";
+import { ThingModelHelpers } from "@node-wot/td-tools";
 
 // Helper function needed for `mergeConfigs` function
 function isObject(item: unknown) {
@@ -53,7 +55,11 @@ function mergeConfigs(target: any, source: any): any {
     });
     return output;
 }
-
+export interface ScriptOptions {
+    argv?: Array<string>;
+    compiler?: CompilerFunction;
+    env?: Record<string, string>;
+}
 export default class DefaultServient extends Servient {
     private static readonly defaultConfig = {
         servient: {
@@ -72,6 +78,8 @@ export default class DefaultServient extends Servient {
         },
     };
 
+    private uncaughtListeners: Array<(...args: unknown[]) => void> = [];
+    private runtime: typeof WoT | undefined;
     public readonly config: any;
     // current log level
     public logLevel: string;
@@ -152,6 +160,102 @@ export default class DefaultServient extends Servient {
     }
 
     /**
+     * Runs the script in a new sandbox
+     * @param {string} code - the script to run
+     * @param {string} filename - the filename of the script
+     */
+    public runScript(code: string, filename = "script"): unknown {
+        if (!this.runtime) {
+            throw new Error("WoT runtime not loaded; have you called start()?");
+        }
+        const helpers = new Helpers(this);
+        const context = {
+            WoT: this.runtime,
+            WoTHelpers: helpers,
+            ModelHelpers: new ThingModelHelpers(helpers),
+        };
+
+        const vm = new NodeVM({
+            sandbox: context,
+        });
+
+        const listener = (err: Error) => {
+            this.logScriptError(`Asynchronous script error '${filename}'`, err);
+            // TODO: clean up script resources
+            process.exit(1);
+        };
+        process.prependListener("uncaughtException", listener);
+        this.uncaughtListeners.push(listener);
+
+        try {
+            return vm.run(code, filename);
+        } catch (err) {
+            this.logScriptError(`Servient found error in privileged script '${filename}'`, err);
+            return undefined;
+        }
+    }
+
+    /**
+     * Runs the script in privileged context (dangerous). In practice, this means that the script can
+     * require system modules.
+     * @param {string} code - the script to run
+     * @param {string} filename - the filename of the script
+     * @param {object} options - pass cli variables or envs to the script
+     */
+    public runPrivilegedScript(code: string, filename = "script", options: ScriptOptions = {}): unknown {
+        if (!this.runtime) {
+            throw new Error("WoT runtime not loaded; have you called start()?");
+        }
+        const helpers = new Helpers(this);
+        const context = {
+            WoT: this.runtime,
+            WoTHelpers: helpers,
+            ModelHelpers: new ThingModelHelpers(helpers),
+        };
+
+        const vm = new NodeVM({
+            sandbox: context,
+            require: {
+                external: true,
+                builtin: ["*"],
+            },
+            argv: options.argv,
+            compiler: options.compiler,
+            env: options.env,
+        });
+
+        const listener = (err: Error) => {
+            this.logScriptError(`Asynchronous script error '${filename}'`, err);
+            // TODO: clean up script resources
+            process.exit(1);
+        };
+        process.prependListener("uncaughtException", listener);
+        this.uncaughtListeners.push(listener);
+
+        try {
+            return vm.run(code, filename);
+        } catch (err) {
+            this.logScriptError(`Servient found error in privileged script '${filename}'`, err);
+            return undefined;
+        }
+    }
+
+    private logScriptError(description: string, error: Error): void {
+        let message: string;
+        if (typeof error === "object" && error.stack) {
+            const match = error.stack.match(/evalmachine\.<anonymous>:([0-9]+:[0-9]+)/);
+            if (Array.isArray(match)) {
+                message = `and halted at line ${match[1]}\n    ${error}`;
+            } else {
+                message = `and halted with ${error.stack}`;
+            }
+        } else {
+            message = `that threw ${typeof error} instead of Error\n    ${error}`;
+        }
+        console.error("[core/servient]", `Servient caught ${description} ${message}`);
+    }
+
+    /**
      * start
      */
     public start(): Promise<typeof WoT> {
@@ -160,7 +264,7 @@ export default class DefaultServient extends Servient {
                 .start()
                 .then((myWoT) => {
                     console.info("[cli/default-servient]", "DefaultServient started");
-
+                    this.runtime = myWoT;
                     // TODO think about builder pattern that starts with produce() ends with expose(), which exposes/publishes the Thing
                     myWoT
                         .produce({
@@ -237,6 +341,14 @@ export default class DefaultServient extends Servient {
                         });
                 })
                 .catch((err) => reject(err));
+        });
+    }
+
+    public async shutdown(): Promise<void> {
+        await super.shutdown();
+
+        this.uncaughtListeners.forEach((listener) => {
+            process.removeListener("uncaughtException", listener);
         });
     }
 
