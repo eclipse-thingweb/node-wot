@@ -713,21 +713,21 @@ export default class HttpServer implements ProtocolServer {
                                     if (segments[4] === this.OBSERVABLE_DIR) {
                                         const listener = async (value: Content) => {
                                             try {
-                                                // send event data
+                                                // send property data
                                                 value.body.pipe(res);
                                             } catch (err) {
                                                 if (err?.code === "ERR_HTTP_HEADERS_SENT") {
-                                                    thing.handleUnsubscribeEvent(segments[3], listener, options);
+                                                    thing.handleUnobserveProperty(segments[3], listener, options);
                                                     return;
                                                 }
                                                 console.warn(
                                                     "[binding-http]",
-                                                    `HttpServer on port ${this.getPort()} cannot process data for Event '${
+                                                    `HttpServer on port ${this.getPort()} cannot process data for Property '${
                                                         segments[3]
                                                     }: ${err.message}'`
                                                 );
                                                 res.writeHead(500);
-                                                res.end("Invalid Event Data");
+                                                res.end("Invalid Property Data");
                                             }
                                         };
 
