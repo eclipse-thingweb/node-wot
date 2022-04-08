@@ -176,7 +176,7 @@ program
     )
     .option(
         "-p, --config-params <param...>",
-        "override configuration paramters [key1:=value1 key2:=value2 ...] (e.g. http.port=8080)",
+        "override configuration paramters [key1:=value1 key2:=value2 ...] (e.g. http.port:=8080)",
         parseConfigParams
     );
 
