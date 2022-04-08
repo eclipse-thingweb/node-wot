@@ -21,7 +21,7 @@ import DefaultServient from "./cli-default-servient";
 import fs = require("fs");
 import * as dotenv from "dotenv";
 import * as path from "path";
-import { Command, InvalidArgumentError } from "commander";
+import { Command, InvalidArgumentError, Argument } from "commander";
 import Ajv, { ValidateFunction, ErrorObject } from "ajv";
 import ConfigSchema from "./wot-servient-schema.conf.json";
 import _ from "lodash";
@@ -37,25 +37,16 @@ const dotEnvConfigParamters: DotEnvConfigParameter = {};
 
 // General commands
 program
-    .name("node-wot CLI")
+    .name("wot-servient")
+    .description(
+        `
+Run a WoT Servient in the current directory.
+    `
+    )
     .helpOption("-h, --help", "show this help")
     .version(version, "-v, --version", "display node-wot version");
 
 // Help infos
-program.addHelpText(
-    "before",
-    `
-wot-servient
-wot-servient examples/scripts/counter.js examples/scripts/example-event.js
-wot-servient -c counter-client.js
-wot-servient -f ~/mywot.conf.json examples/testthing/testthing.js
-wot-servient examples/testthing/testthing.js script_arg1 script_arg2
-
-Run a WoT Servient in the current directory.
-If no SCRIPT is given, all .js files in the current directory are loaded.
-If one or more SCRIPT is given, these files are loaded instead of the directory.
-If the file 'wot-servient.conf.json' exists, that configuration is applied.`
-);
 program.addHelpText(
     "after",
     `
@@ -177,12 +168,25 @@ program
     .option("-ib, --inspect-brk [host]:[port]", "activate inspector on host:port (default: 127.0.0.1:9229)", parseIp)
     .option("-c, --client-only", "do not start any servers (enables multiple instances without port conflicts)")
     .option("-cp, --compiler <module>", "load module as a compiler")
-    .option("-f, --config-file <file>", "load configuration from specified file", parseConfigFile)
+    .option(
+        "-f, --config-file <file>",
+        "load configuration from specified file",
+        parseConfigFile,
+        "wot-servient.conf.json"
+    )
     .option(
         "-p, --config-params <param...>",
         "override configuration paramters [key1:=value1 key2:=value2 ...] (e.g. http.port=8080)",
         parseConfigParams
     );
+
+// CLI arguments
+program.addArgument(
+    new Argument(
+        "[files...]",
+        "script files to execute. If no script is given, all .js files in the current directory are loaded. If one or more script is given, these files are loaded instead of the directory."
+    )
+);
 
 program.parse(process.argv);
 const options = program.opts();
