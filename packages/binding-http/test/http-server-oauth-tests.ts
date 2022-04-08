@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 Contributors to the Eclipse Foundation
+ * Copyright (c) 2022 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -66,7 +66,6 @@ class OAuthServerTests {
                 },
             },
         });
-        testThing.extendInteractions();
         testThing.properties.test.forms = [];
 
         await this.server.expose(testThing);

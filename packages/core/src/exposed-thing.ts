@@ -115,8 +115,6 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         } */
         // set default language
         this.addDefaultLanguage(this);
-        // extend interactions (e.g., defaults)
-        this.extendInteractions();
     }
 
     // Note: copy from td-parser.ts
@@ -138,33 +136,6 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                 });
             }
         }
-    }
-
-    extendInteractions(): void {
-        // property defaults
-        for (const propertyName in this.properties) {
-            const prop: TD.ThingProperty = this.properties[propertyName];
-            if (prop.readOnly === undefined || typeof prop.readOnly !== "boolean") {
-                prop.readOnly = false;
-            }
-            if (prop.writeOnly === undefined || typeof prop.writeOnly !== "boolean") {
-                prop.writeOnly = false;
-            }
-            if (prop.observable === undefined || typeof prop.observable !== "boolean") {
-                prop.observable = false;
-            }
-        }
-        // action defaults
-        for (const actionName in this.actions) {
-            const act: TD.ThingAction = this.actions[actionName];
-            if (act.safe === undefined || typeof act.safe !== "boolean") {
-                act.safe = false;
-            }
-            if (act.idempotent === undefined || typeof act.idempotent !== "boolean") {
-                act.idempotent = false;
-            }
-        }
-        // event defaults -> none
     }
 
     public getThingDescription(): WoT.ThingDescription {
