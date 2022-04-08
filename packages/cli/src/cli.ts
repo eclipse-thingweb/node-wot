@@ -25,6 +25,7 @@ import { Command, InvalidArgumentError } from "commander";
 import Ajv, { ValidateFunction, ErrorObject } from "ajv";
 import ConfigSchema from "./wot-servient-schema.conf.json";
 import _ from "lodash";
+import { version } from "@node-wot/core/package.json";
 
 const program = new Command();
 const ajv = new Ajv({ strict: true });
@@ -38,7 +39,7 @@ const dotEnvConfigParamters: DotEnvConfigParameter = {};
 program
     .name("node-wot CLI")
     .helpOption("-h, --help", "show this help")
-    .version(require("@node-wot/core/package.json").version, "-v, --version", "display node-wot version");
+    .version(version, "-v, --version", "display node-wot version");
 
 // Help infos
 program.addHelpText(
