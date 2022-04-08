@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 Contributors to the Eclipse Foundation
+ * Copyright (c) 2022 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -281,16 +281,6 @@ class WoTServerTest {
         });
 
         expect(thing).to.have.property("properties").to.have.property("my number");
-        expect(thing)
-            .to.have.property("properties")
-            .to.have.property("my number")
-            .to.have.property("readOnly")
-            .that.equals(false);
-        expect(thing)
-            .to.have.property("properties")
-            .to.have.property("my number")
-            .to.have.property("observable")
-            .that.equals(false);
 
         // Check internals, how to to check handlers properly with *some* type-safety
         const expThing = thing as ExposedThing;
