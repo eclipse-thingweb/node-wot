@@ -149,10 +149,8 @@ function parseConfigParams(param: string, previous: any) {
     let fieldNameValueCast;
     if (Number(fieldNameValue)) {
         fieldNameValueCast = +fieldNameValue;
-    } else if (fieldNameValue == "true") {
-        fieldNameValueCast = true;
-    } else if (fieldNameValue == "false") {
-        fieldNameValueCast = false;
+    } else if (fieldNameValue === "true" || fieldNameValue === "false") {
+        fieldNameValueCast = Boolean(fieldNameValue);
     } else {
         fieldNameValueCast = fieldNamePath;
     }
