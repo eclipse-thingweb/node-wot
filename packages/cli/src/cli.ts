@@ -145,10 +145,20 @@ function parseConfigParams(param: string, previous: any) {
         throw new InvalidArgumentError("Invalid key-value pair");
     }
     const fieldNamePath = param.split(":=")[0];
-    const fieldNameValue = Number(param.split(":=")[1]) ? +param.split(":=")[1] : param.split(":=")[1];
+    const fieldNameValue = param.split(":=")[1];
+    let fieldNameValueCast;
+    if (Number(fieldNameValue)) {
+        fieldNameValueCast = +fieldNameValue;
+    } else if (fieldNameValue == "true") {
+        fieldNameValueCast = true;
+    } else if (fieldNameValue == "false") {
+        fieldNameValueCast = false;
+    } else {
+        fieldNameValueCast = fieldNamePath;
+    }
 
     // Build object using dot-notation JSON path
-    const obj = _.set({}, fieldNamePath, fieldNameValue);
+    const obj = _.set({}, fieldNamePath, fieldNameValueCast);
     if (!schemaValidator(obj)) {
         throw new InvalidArgumentError(
             `Config parameter '${param}' is not valid: ${(schemaValidator.errors ?? [])
