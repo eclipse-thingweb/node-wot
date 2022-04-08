@@ -21,68 +21,210 @@ import DefaultServient from "./cli-default-servient";
 import fs = require("fs");
 import * as dotenv from "dotenv";
 import * as path from "path";
+import { Command, InvalidArgumentError } from "commander";
+import Ajv, { ValidateFunction, ErrorObject } from "ajv";
+import ConfigSchema from "./wot-servient-schema.conf.json";
+import _ from "lodash";
 
-const argv = process.argv.slice(2); // remove "node" and executable
+const program = new Command();
+const ajv = new Ajv({ strict: true });
+const schemaValidator = ajv.compile(ConfigSchema) as ValidateFunction;
 const defaultFile = "wot-servient.conf.json";
 const baseDir = ".";
 
-let clientOnly = false;
+const dotEnvConfigParamters: DotEnvConfigParameter = {};
 
-let flagArgConfigfile = false;
-let flagArgCompilerModule = false;
-let flagArgPort = false;
-let compilerModule: string;
-let flagScriptArgs = false;
-const scriptArgs: Array<string> = [];
-let confFile: string;
-const servientPorts: Map<string, number> = new Map<string, number>();
-let currentProtocolPort: string;
+// General commands
+program
+    .name("node-wot CLI")
+    .helpOption("-h, --help", "show this help")
+    .version(require("@node-wot/core/package.json").version, "-v, --version", "display node-wot version");
 
+// Help infos
+program.addHelpText(
+    "before",
+    `
+wot-servient
+wot-servient examples/scripts/counter.js examples/scripts/example-event.js
+wot-servient -c counter-client.js
+wot-servient -f ~/mywot.conf.json examples/testthing/testthing.js
+wot-servient examples/testthing/testthing.js script_arg1 script_arg2
+
+Run a WoT Servient in the current directory.
+If no SCRIPT is given, all .js files in the current directory are loaded.
+If one or more SCRIPT is given, these files are loaded instead of the directory.
+If the file 'wot-servient.conf.json' exists, that configuration is applied.`
+);
+program.addHelpText(
+    "after",
+    `
+wot-servient.conf.json syntax:
+{
+    "servient": {
+        "clientOnly": CLIENTONLY,
+        "staticAddress": STATIC,
+        "scriptAction": RUNSCRIPT
+    },
+    "http": {
+        "port": HPORT,
+        "proxy": PROXY,
+        "allowSelfSigned": ALLOW
+    },
+    "mqtt" : {
+        "broker": BROKER-URL,
+        "username": BROKER-USERNAME,
+        "password": BROKER-PASSWORD,
+        "clientId": BROKER-UNIQUEID,
+        "protocolVersion": MQTT_VERSION
+    },
+    "credentials": {
+        THING_ID1: {
+            "token": TOKEN
+        },
+        THING_ID2: {
+            "username": USERNAME,
+            "password": PASSWORD
+        }
+    }
+}
+
+wot-servient.conf.json fields:
+  CLIENTONLY      : boolean setting if no servers shall be started (default=false)
+  STATIC          : string with hostname or IP literal for static address config
+  RUNSCRIPT       : boolean to activate the 'runScript' Action (default=false)
+  HPORT           : integer defining the HTTP listening port
+  PROXY           : object with "href" field for the proxy URI,
+                                "scheme" field for either "basic" or "bearer", and
+                                corresponding credential fields as defined below
+  ALLOW           : boolean whether self-signed certificates should be allowed
+  BROKER-URL      : URL to an MQTT broker that publisher and subscribers will use
+  BROKER-UNIQUEID : unique id set by MQTT client while connecting to the broker
+  MQTT_VERSION    : number indicating the MQTT protocol version to be used (3, 4, or 5)
+  THING_IDx       : string with TD "id" for which credentials should be configured
+  TOKEN           : string for providing a Bearer token
+  USERNAME        : string for providing a Basic Auth username
+  PASSWORD        : string for providing a Basic Auth password
+  ---------------------------------------------------------------------------
+
+Environment variables must be provided in a .env file in the current working directory.
+
+Example:
+VAR1=Value1
+VAR2=Value2`
+);
+
+// Typings
+type DotEnvConfigParameter = {
+    [key: string]: unknown;
+};
 interface DebugParams {
     shouldBreak: boolean;
     host: string;
     port: number;
 }
-let debug: DebugParams;
 
-function readConf(filename: string): Promise<Record<string, unknown>> {
-    return new Promise((resolve, reject) => {
+// Parsers & validators
+function parseIp(value: string, previous: string) {
+    if (!/^([a-z]*|[\d.]*)(:[0-9]{2,5})?$/.test(value)) {
+        throw new InvalidArgumentError("Invalid host:port combo");
+    }
+
+    return value;
+}
+function parseConfigFile(filename: string, previous: string) {
+    try {
         const open = filename || path.join(baseDir, defaultFile);
-        fs.readFile(open, "utf-8", (err, data) => {
-            if (err) {
-                reject(err);
-            }
-            if (data) {
-                let config;
-                try {
-                    config = JSON.parse(data);
-                    if (typeof config !== "object" || Array.isArray(config)) {
-                        throw new Error("Invalid configuration file");
-                    }
-                } catch (err) {
-                    reject(err);
-                }
-                console.info("[cli]", `WoT-Servient using config file '${open}'`);
-                resolve(config);
-            }
-        });
-    });
-}
-
-function overrideConfig(conf: Record<string, unknown>) {
-    conf = conf ?? {};
-
-    servientPorts.forEach((port, protocol) => {
-        if (port !== undefined) {
-            if (!(protocol in conf)) {
-                conf[protocol] = {};
-            }
-            (conf[protocol] as { port: number }).port = port;
+        const data = fs.readFileSync(open, "utf-8");
+        if (!schemaValidator(JSON.parse(data))) {
+            throw new InvalidArgumentError(
+                `Config file contains invalid an JSON: ${(schemaValidator.errors ?? [])
+                    .map((o: ErrorObject) => o.message)
+                    .join("\n")}`
+            );
         }
-    });
-    return conf;
+        return filename;
+    } catch (err) {
+        throw new InvalidArgumentError(`Error reading config file: ${err}`);
+    }
+}
+function parseConfigParams(param: string, previous: any) {
+    // Validate key-value pair
+    if (!/^([a-zA-Z0-9_.]+):=([a-zA-Z0-9_]+)$/.test(param)) {
+        throw new InvalidArgumentError("Invalid key-value pair");
+    }
+    const fieldNamePath = param.split(":=")[0];
+    const fieldNameValue = Number(param.split(":=")[1]) ? +param.split(":=")[1] : param.split(":=")[1];
+
+    // Build object using dot-notation JSON path
+    const obj = _.set({}, fieldNamePath, fieldNameValue);
+    if (!schemaValidator(obj)) {
+        throw new InvalidArgumentError(
+            `Config parameter '${param}' is not valid: ${(schemaValidator.errors ?? [])
+                .map((o: ErrorObject) => o.message)
+                .join("\n")}`
+        );
+    }
+    // Concatenate validated paramters
+    let result = previous ?? {};
+    result = _.merge(result, obj);
+    return result;
 }
 
+// CLI options declaration
+program
+    .option("-i, --inspect [host]:[port]", "activate inspector on host:port (default: 127.0.0.1:9229)", parseIp)
+    .option("-ib, --inspect-brk [host]:[port]", "activate inspector on host:port (default: 127.0.0.1:9229)", parseIp)
+    .option("-c, --client-only", "do not start any servers (enables multiple instances without port conflicts)")
+    .option("-cp, --compiler <module>", "load module as a compiler")
+    .option("-f, --config-file <file>", "load configuration from specified file", parseConfigFile)
+    .option(
+        "-p, --config-params <param...>",
+        "override configuration paramters [key1:=value1 key2:=value2 ...] (e.g. http.port=8080)",
+        parseConfigParams
+    );
+
+program.parse(process.argv);
+const options = program.opts();
+const args = program.args;
+
+// .env parsing
+const env: dotenv.DotenvConfigOutput = dotenv.config();
+if (env.error && (env.error as any).code && (env.error as any).code !== "ENOENT") {
+    throw env.error;
+} else if (env.parsed) {
+    for (const [key, value] of Object.entries(env.parsed)) {
+        // Parse and validate on configfile-related entries
+        if (key.startsWith("config.")) {
+            dotEnvConfigParamters[key.replace("config.", "")] = value;
+        }
+    }
+}
+
+// Functions
+async function buildConfig(): Promise<unknown> {
+    const fileToOpen = options.configFile || path.join(baseDir, defaultFile);
+    let configFileData = {};
+
+    // JSON config file
+    try {
+        configFileData = JSON.parse(await fs.promises.readFile(fileToOpen, "utf-8"));
+    } catch (err) {
+        console.error("[cli]", "WoT-Servient config file error:", err.message);
+    }
+
+    // .env file
+    for (const [key, value] of Object.entries(dotEnvConfigParamters)) {
+        const obj = _.set({}, key, value);
+        configFileData = _.merge(configFileData, obj);
+    }
+
+    // CLI arguments
+    if (options.configParams) {
+        configFileData = _.merge(configFileData, options.configParams);
+    }
+
+    return configFileData;
+}
 const loadCompilerFunction = function (compilerModule: string | undefined) {
     if (compilerModule) {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -101,7 +243,6 @@ const loadCompilerFunction = function (compilerModule: string | undefined) {
     }
     return undefined;
 };
-
 const loadEnvVariables = function () {
     const env: dotenv.DotenvConfigOutput = dotenv.config();
 
@@ -117,7 +258,7 @@ const runScripts = async function (servient: DefaultServient, scripts: Array<str
     const env = loadEnvVariables();
 
     const launchScripts = (scripts: Array<string>) => {
-        const compile = loadCompilerFunction(compilerModule);
+        const compile = loadCompilerFunction(options.compiler);
         scripts.forEach((fname: string) => {
             console.info("[cli]", "WoT-Servient reading script", fname);
             fs.readFile(fname, "utf8", (err, data) => {
@@ -134,7 +275,7 @@ const runScripts = async function (servient: DefaultServient, scripts: Array<str
 
                     fname = path.resolve(fname);
                     servient.runPrivilegedScript(data, fname, {
-                        argv: scriptArgs,
+                        argv: args,
                         env: env.parsed,
                         compiler: compile,
                     });
@@ -205,176 +346,31 @@ const runAllScripts = function (servient: DefaultServient, debug?: DebugParams) 
     });
 };
 
-// main
-for (let i = 0; i < argv.length; i++) {
-    if (flagArgConfigfile) {
-        flagArgConfigfile = false;
-        confFile = argv[i];
-        argv.splice(i, 1);
-        i--;
-    } else if (flagScriptArgs) {
-        scriptArgs.push(argv[i]);
-        argv.splice(i, 1);
-        i--;
-    } else if (flagArgCompilerModule) {
-        flagArgCompilerModule = false;
-        compilerModule = argv[i];
-        argv.splice(i, 1);
-        i--;
-    } else if (flagArgPort) {
-        flagArgPort = false;
-        servientPorts.set(currentProtocolPort, parseInt(argv[i]));
-        argv.splice(i, 1);
-        i--;
-    } else if (argv[i] === "--") {
-        // next args are script args
-        flagScriptArgs = true;
-        argv.splice(i, 1);
-        i--;
-    } else if (argv[i].match(/^(-c|--clientonly|\/c)$/i)) {
-        clientOnly = true;
-        argv.splice(i, 1);
-        i--;
-    } else if (argv[i].match(/^(-cp|--compiler|\/cp)$/i)) {
-        flagArgCompilerModule = true;
-        argv.splice(i, 1);
-        i--;
-    } else if (argv[i].match(/^(-f|--configfile|\/f)$/i)) {
-        flagArgConfigfile = true;
-        argv.splice(i, 1);
-        i--;
-    } else if (argv[i].match(/^--(http|coap|mqtt)\.port$/i)) {
-        flagArgPort = true;
-        const matches = argv[i].match(/^--(http|coap|mqtt)\.port$/i);
-        currentProtocolPort = matches[1];
-        argv.splice(i, 1);
-        i--;
-    } else if (argv[i].match(/^(-i|-ib|--inspect(-brk)?(=([a-z]*|[\d .]*):?(\d*))?|\/i|\/ib)$/i)) {
-        const matches = argv[i].match(/^(-i|-ib|--inspect(-brk)?(=([a-z]*|[\d .]*):?(\d*))?|\/i|\/ib)$/i);
-        debug = {
-            shouldBreak: matches[2] === "-brk" || matches[1] === "-ib" || matches[1] === "/ib",
-            host: matches[4] ? matches[4] : "127.0.0.1", // default host
-            port: matches[5] ? parseInt(matches[5]) : 9229, // default port
-        };
-
-        argv.splice(i, 1);
-        i--;
-    } else if (argv[i].match(/^(-v|--version|\/c)$/i)) {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        console.log(require("@node-wot/core/package.json").version);
-        process.exit(0);
-    } else if (argv[i].match(/^(-h|--help|\/?|\/h)$/i)) {
-        console.log(`Usage: wot-servient [options] [SCRIPT]... -- [ARGS]...
-       wot-servient
-       wot-servient examples/scripts/counter.js examples/scripts/example-event.js
-       wot-servient -c counter-client.js
-       wot-servient -f ~/mywot.conf.json examples/testthing/testthing.js
-       wot-servient examples/testthing/testthing.js -- script_arg1 script_arg2
-
-Run a WoT Servient in the current directory.
-If no SCRIPT is given, all .js files in the current directory are loaded.
-If one or more SCRIPT is given, these files are loaded instead of the directory.
-If the file 'wot-servient.conf.json' exists, that configuration is applied.
-
-Options:
-  -v,   --version                   display node-wot version
-  -i,   --inspect[=[host:]port]     activate inspector on host:port (default: 127.0.0.1:9229)
-  -ib,  --inspect-brk[=[host:]port] activate inspector on host:port and break at start of user script
-  -c,   --clientonly                do not start any servers
-                                    (enables multiple instances without port conflicts)
-  -cp,  --compiler <module>         load module as a compiler
-                                    (The module must export a create function which returns
-                                    an object with a compile method)
-  -f,   --configfile <file>         load configuration from specified file
-  -h,   --help                      show this help
-        --[protocol].port           specify the port to expose the server for a specific protocol
-                                    (examples: --http.port 8888, --coap.port 3333)
-
-wot-servient.conf.json syntax:
-{
-    "servient": {
-        "clientOnly": CLIENTONLY,
-        "staticAddress": STATIC,
-        "scriptAction": RUNSCRIPT
-    },
-    "http": {
-        "port": HPORT,
-        "proxy": PROXY,
-        "allowSelfSigned": ALLOW
-    },
-    "mqtt" : {
-        "broker": BROKER-URL,
-        "username": BROKER-USERNAME,
-        "password": BROKER-PASSWORD,
-        "clientId": BROKER-UNIQUEID,
-        "protocolVersion": MQTT_VERSION
-    },
-    "credentials": {
-        THING_ID1: {
-            "token": TOKEN
-        },
-        THING_ID2: {
-            "username": USERNAME,
-            "password": PASSWORD
-        }
-    }
-}
-
-wot-servient.conf.json fields:
-  ---------------------------------------------------------------------------
-  All entries in the config file structure are optional
-  ---------------------------------------------------------------------------
-  CLIENTONLY      : boolean setting if no servers shall be started (default=false)
-  STATIC          : string with hostname or IP literal for static address config
-  RUNSCRIPT       : boolean to activate the 'runScript' Action (default=false)
-  HPORT           : integer defining the HTTP listening port
-  PROXY           : object with "href" field for the proxy URI,
-                                "scheme" field for either "basic" or "bearer", and
-                                corresponding credential fields as defined below
-  ALLOW           : boolean whether self-signed certificates should be allowed
-  BROKER-URL      : URL to an MQTT broker that publisher and subscribers will use
-  BROKER-UNIQUEID : unique id set by mqtt client while connecting to broker
-  MQTT_VERSION    : number indicating the MQTT protocol version to be used (3, 4, or 5)
-  THING_IDx       : string with TD "id" for which credentials should be configured
-  TOKEN           : string for providing a Bearer token
-  USERNAME        : string for providing a Basic Auth username
-  PASSWORD        : string for providing a Basic Auth password
-  ---------------------------------------------------------------------------
-
-Environment variables must be provided in a .env file in the current working directory.
-
-Example:
-VAR1=Value1
-VAR2=Value2`);
-        process.exit(0);
-    }
-}
-
-readConf(confFile)
+buildConfig()
+    .then((conf) => {
+        return new DefaultServient(options.clientOnly, conf);
+    })
     .catch((err) => {
-        if (err.code === "ENOENT" && !confFile) {
+        if (err.code === "ENOENT" && !options.configFile) {
             console.warn("[cli]", `WoT-Servient using defaults as '${defaultFile}' does not exist`);
+            return new DefaultServient(options.clientOnly);
         } else {
             console.error("[cli]", "WoT-Servient config file error:", err.message);
             process.exit(err.errno);
         }
     })
-    .then(overrideConfig)
-    .then((conf) => {
-        return new DefaultServient(clientOnly, conf);
-    })
     .then((servient) => {
         servient
             .start()
             .then(() => {
-                if (argv.length > 0) {
+                if (args.length > 0) {
                     console.info(
                         "[cli]",
-                        `WoT-Servient loading ${argv.length} command line script${argv.length > 1 ? "s" : ""}`
+                        `WoT-Servient loading ${args.length} command line script${args.length > 1 ? "s" : ""}`
                     );
-                    return runScripts(servient, argv, debug);
+                    return runScripts(servient, args, options.inspect || options.inspectBrk);
                 } else {
-                    return runAllScripts(servient, debug);
+                    return runAllScripts(servient, options.inspect || options.inspectBrk);
                 }
             })
             .catch((err) => {
