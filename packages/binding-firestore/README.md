@@ -151,6 +151,8 @@ servient.addServer(server);
 const codec = new FirestoreCodec();
 servient.addMediaType(codec);
 
+let count = 0;
+
 servient.start().then((WoT) => {
     WoT.produce({
         "@context": "https://www.w3.org/2019/wot/td/v1",
@@ -164,18 +166,18 @@ servient.start().then((WoT) => {
         },
     }).then((thing) => {
         console.log("Produced " + thing.getThingDescription().title);
-        thing.writeProperty("count", 0);
-
         thing.expose().then(() => {
             console.info(thing.getThingDescription().title + " ready");
             console.info("TD : " + JSON.stringify(thing.getThingDescription()));
-            thing.readProperty("count").then((c) => {
-                console.log("count is " + c);
-            });
+            thing.setPropertyReadHandler("count", async () => count);
         });
     });
 });
 ```
+
+### Other examples
+
+We will store another example in the `packages/binding-firestore/examples/` folder, so please refer to that as well.
 
 ## How to use Firestore
 
@@ -183,8 +185,10 @@ This Binding realizes the interaction between Client and Server for Property, Ac
 
 -   things/\<hostName\>%2F\<title of Thing Description\>
     Stores the Thing Description that the Server program exposes.
--   things/\<hostName\>%2F\<title of Thing Description\>%2Fproperties%2F\<name of property\>
-    Stores the value of the Property when it is changed by the Server.
+-   things/\<hostName\>%2F\<title of Thing Description\>%2FpropertyReadReq%2F\<name of property\>
+    Stores the read request of the Property when it is requested by the Client.
+-   things/\<hostName\>%2F\<title of Thing Description\>%2FpropertyReadResult/%2F\<name of property\>
+    Stores the value of the requested Property from the Client.
 -   things/\<hostName\>%2F\<title of Thing Description\>%2FpropertyWriteReq%2F\<name of property\>
     Stores the value of the Property when it is changed by the Client.
 -   things/\<hostName\>%2F\<title of Thing Description\>%2Factions%2F\<name of action\>
@@ -207,8 +211,8 @@ The WoT operations that can be implemented for Client as follows.
 | readMultipleProperties  | -      |
 | writeProperty           | ✓      |
 | writeMultipleProperties | -      |
-| observeProperty         | ✓      |
-| unobserveProperty       | ✓      |
+| observeProperty         | -      |
+| unobserveProperty       | -      |
 | invokeAction            | ✓      |
 | emitEvent               | N/A    |
 | subscribeEvent          | ✓      |

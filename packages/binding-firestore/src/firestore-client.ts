@@ -19,6 +19,7 @@
 import { ProtocolClient, Content } from "@node-wot/core";
 import { FirestoreForm, FirestoreConfig } from "./firestore";
 import { v4 as uuidv4 } from "uuid";
+import { Readable } from "stream";
 
 import "firebase/auth";
 import "firebase/firestore";
@@ -78,9 +79,68 @@ export default class FirestoreClient implements ProtocolClient {
         const firestore = await initFirestore(this.fbConfig, this.firestore);
         this.firestore = firestore;
         const pointerInfo = this.makePointerInfo(form);
-        // TODO: thingに問い合わせるように修正
-        const content = await readDataFromFirestore(this.firestore, pointerInfo.topic);
-        return content;
+
+        // request td
+        if (!pointerInfo.resource) {
+            // thing description is gotten from firebase directly
+            const td = await readDataFromFirestore(this.firestore, pointerInfo.topic);
+            return td;
+        }
+
+        // request topic
+        const propertyReadReqTopic =
+            pointerInfo.hostName +
+            "/" +
+            pointerInfo.name +
+            "/propertyReadReq" +
+            (pointerInfo.resource ? "/" + pointerInfo.resource : "");
+        // result topic
+        const propertyReadResultTopic =
+            pointerInfo.hostName +
+            "/" +
+            pointerInfo.name +
+            "/propertyReadResults" +
+            (pointerInfo.resource ? "/" + pointerInfo.resource : "");
+        const reqId = uuidv4();
+        let timeoutId: any;
+        const retContent: Content = await new Promise(async (resolve, reject) => {
+            subscribeToFirestore(
+                this.firestore,
+                this.firestoreObservers,
+                propertyReadResultTopic,
+                (err, content, resId) => {
+                    console.debug("[debug] return read property result");
+                    console.debug(`[debug] reqId ${reqId}, resId ${resId}`);
+                    if (reqId !== resId) {
+                        // Ignored because reqId and resId do not match
+                        return;
+                    }
+                    unsubscribeToFirestore(this.firestoreObservers, propertyReadResultTopic);
+                    clearTimeout(timeoutId);
+                    if (err) {
+                        console.error("[error] failed to get reading property result:", err);
+                        reject(err);
+                    } else {
+                        resolve(content);
+                    }
+                }
+            );
+            timeoutId = setTimeout(() => {
+                unsubscribeToFirestore(this.firestoreObservers, propertyReadResultTopic);
+                reject(new Error(`timeout error topic: ${pointerInfo.topic}`));
+            }, 10 * 1000); // timeout judgment
+            // Execute the getting property (the result will be returned to the above Callback)
+            await writeDataToFirestore(
+                this.firestore,
+                propertyReadReqTopic,
+                {
+                    body: undefined,
+                    type: "",
+                },
+                reqId
+            );
+        });
+        return retContent;
     }
 
     public async writeResource(form: FirestoreForm, content: Content): Promise<void> {
@@ -92,7 +152,8 @@ export default class FirestoreClient implements ProtocolClient {
             splittedTopic[2] = "propertyWriteReq";
             pointerInfo.topic = splittedTopic.join("/");
         }
-        await writeDataToFirestore(this.firestore, pointerInfo.topic, content);
+        const value = await writeDataToFirestore(this.firestore, pointerInfo.topic, content);
+        return value;
     }
 
     public async invokeResource(form: FirestoreForm, content?: Content): Promise<Content> {
@@ -102,14 +163,10 @@ export default class FirestoreClient implements ProtocolClient {
         const pointerInfo = this.makePointerInfo(form);
         // subscrbe for results
         const actionResultTopic =
-            pointerInfo.hostName +
-            "/" +
-            encodeURIComponent(pointerInfo.name) +
-            "/actionResults/" +
-            encodeURIComponent(pointerInfo.resource);
+            pointerInfo.hostName + "/" + pointerInfo.name + "/actionResults/" + pointerInfo.resource;
         const reqId = uuidv4();
         let timeoutId: NodeJS.Timeout;
-        const retContent: Content = await new Promise((resolve, reject) => {
+        const retContent: Content = await new Promise(async (resolve, reject) => {
             subscribeToFirestore(this.firestore, this.firestoreObservers, actionResultTopic, (err, content, resId) => {
                 console.debug("[debug] return action and unsubscribe");
                 console.debug(`[debug] reqId ${reqId}, resId ${resId}`);
@@ -133,10 +190,10 @@ export default class FirestoreClient implements ProtocolClient {
             // if not input was provided, set up an own body otherwise take input as body
             if (content !== undefined) {
                 // Execute the action (the result will be returned to the above Callback)
-                writeDataToFirestore(this.firestore, pointerInfo.topic, content, reqId);
+                await writeDataToFirestore(this.firestore, pointerInfo.topic, content, reqId);
             } else {
                 // Execute the action (the result will be returned to the above Callback)
-                writeDataToFirestore(
+                await writeDataToFirestore(
                     this.firestore,
                     pointerInfo.topic,
                     {

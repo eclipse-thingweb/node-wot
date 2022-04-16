@@ -12,6 +12,7 @@
         "rebuild": "tsc -b && npm rebuild --unsafe-perm --build-from-source",
         "test": "firebase emulators:exec -c test/firebase.json \"npm run fbemutest\" && kill-port 4000 8088 9099",
         "fbemutest": "mocha --require ts-node/register test/**/*.ts --timeout 10000 --exit",
+        "onlystartemu": "firebase emulators:start -c test/firebase.json",
         "codestyle": "standard --pretty",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",

@@ -26,7 +26,7 @@ export default class FirestoreClientFactory implements ProtocolClientFactory {
     public readonly scheme: string = "firestore";
     private config: FirestoreConfig = null;
     public contentSerdes: ContentSerdes = ContentSerdes.get();
-    private firestoreClient = null;
+    private firestoreClient: FirestoreClient = null;
 
     constructor(config: FirestoreConfig = null) {
         this.config = config;

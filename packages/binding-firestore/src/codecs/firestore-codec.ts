@@ -33,7 +33,7 @@ export default class FirestoreCodec {
     bytesToValue(bytes: Buffer, schema: TD.DataSchema, parameters: { [key: string]: string }): DataSchemaValue {
         let parsed: DataSchemaValue;
         if (bytes) {
-            parsed = textDecoder.decode(bytes.buffer);
+            parsed = textDecoder.decode(bytes);
             if (!schema) return parsed;
             if (schema.type === "boolean") {
                 if (parsed === "true" || parsed === "false") {

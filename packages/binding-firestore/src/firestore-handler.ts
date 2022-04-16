@@ -14,10 +14,20 @@
  ********************************************************************************/
 
 import { Content } from "@node-wot/core";
-import firebase from "firebase/app";
-import "firebase/auth";
-import "firebase/firestore";
+import tempfirebase from "firebase/compat/app";
+import "firebase/compat/auth";
+import "firebase/compat/firestore";
 import { Readable } from "stream";
+
+let firebase: any;
+if (tempfirebase.apps) {
+    // for NodeJS
+    firebase = tempfirebase;
+} else {
+    // for Web browser
+    //@ts-ignore
+    firebase = window.firebase;
+}
 
 /**
  * initialize firestore.
@@ -68,12 +78,22 @@ export const writeDataToFirestore = (
         console.debug("[debug] writeDataToFirestore topic:", topic, " value:", content, reqId);
         const ref = firestore.collection("things").doc(encodeURIComponent(topic));
         const data: any = { updatedTime: Date.now(), reqId };
-        if (content) {
-            data.content = JSON.stringify(content);
+        if (content && content.body) {
+            if (content.body instanceof Readable) {
+                const body = content.body.read();
+                const contentForWrite = { type: content.type, body };
+                data["content"] = JSON.stringify(contentForWrite);
+            } else {
+                data["content"] = JSON.stringify(content);
+            }
+        } else {
+            const contentForWrite: any = { type: null, body: null };
+            data["content"] = JSON.stringify(contentForWrite);
         }
+        console.debug("[debug] writeDataToFirestore topic:", topic, " data:", data, reqId);
         ref.set(data)
-            .then((value: unknown) => {
-                resolve();
+            .then((value: any) => {
+                resolve(value);
             })
             .catch((err: Error) => {
                 console.error("[error] failed to write data to firestore: ", err, " topic: ", topic, " data: ", data);
@@ -91,7 +111,7 @@ export const readDataFromFirestore = (firestore: any, topic: string): Promise<Co
                 if (doc.exists) {
                     const data = doc.data();
                     let content: Content = null;
-                    // console.debug('[debug] readDataToFirestore gotten data:', data)
+                    console.debug("[debug] readDataToFirestore gotten data:", data);
                     if (data && data.content) {
                         // XXX TODO change the way content is reported
                         const obj = JSON.parse(data.content);
@@ -130,14 +150,18 @@ export const subscribeToFirestore = async (
     const ref = firestore.collection("things").doc(encodeURIComponent(topic));
     let reqId: string;
     const observer = ref.onSnapshot(
-        (doc: any) => {
-            const data = doc.data();
+        async (doc: any) => {
+            const data = await doc.data();
             // If reqId is included and Topic contains actionResults,
             // return the value regardless of whether it is the first acquisition because it is a return value.
             const dividedTopic = topic.split("/");
-            if (data && data.reqId) {
+            if (data?.reqId) {
                 reqId = data.reqId;
-                if (dividedTopic && dividedTopic.length > 2 && dividedTopic[2] === "actionResults") {
+                if (
+                    dividedTopic &&
+                    dividedTopic.length > 2 &&
+                    (dividedTopic[2] === "actionResults" || dividedTopic[2] === "propertyReadResults")
+                ) {
                     firstFlg = false;
                 }
             }
@@ -148,20 +172,17 @@ export const subscribeToFirestore = async (
             }
 
             let content: Content = null;
-            if (data && data.content) {
+            if (data?.content) {
                 const obj = JSON.parse(data.content);
                 if (!obj) {
                     callback(Error(`invalid ${topic} content: ${content}`), null, reqId);
                     return;
                 }
+                const buf = Buffer.from(obj?.body?.data || []);
                 content = {
-                    type: null, // If you set the data type to td, it won't work, so set it to null.
-                    body:
-                        obj && obj.body && obj.body.type === "Buffer"
-                            ? Readable.from(obj.body.data)
-                            : Readable.from(""),
+                    type: obj.type,
+                    body: obj?.body?.type === "Buffer" ? Readable.from(buf) : Readable.from(""),
                 };
-                content = obj;
             }
             callback(null, content, reqId);
         },
@@ -187,7 +208,6 @@ export const removeDataFromFirestore = (firestore: any, topic: string): Promise<
         const ref = firestore.collection("things").doc(encodeURIComponent(topic));
         ref.delete()
             .then(() => {
-                console.log("removed topic: ", topic);
                 resolve();
             })
             .catch((err: Error) => {
