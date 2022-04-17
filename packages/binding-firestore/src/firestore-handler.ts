@@ -14,25 +14,25 @@
  ********************************************************************************/
 
 import { Content } from "@node-wot/core";
-import tempfirebase from "firebase/compat/app";
+import Firebase from "firebase/compat/app";
 import "firebase/compat/auth";
 import "firebase/compat/firestore";
 import { Readable } from "stream";
+import { BindingFirestoreConfig } from "./firestore";
 
 let firebase: any;
-if (tempfirebase.apps) {
+if (Firebase.apps) {
     // for NodeJS
-    firebase = tempfirebase;
+    firebase = Firebase;
 } else {
-    // for Web browser
-    //@ts-ignore
+    // for Web browser (We'll deal with it later.)
     firebase = window.firebase;
 }
 
 /**
  * initialize firestore.
  */
-export const initFirestore = async (fbConfig: any, fstore: any): Promise<any> => {
+export const initFirestore = async (fbConfig: BindingFirestoreConfig, fstore: any): Promise<any> => {
     if (fstore != null) {
         return fstore;
     }
@@ -82,13 +82,13 @@ export const writeDataToFirestore = (
             if (content.body instanceof Readable) {
                 const body = content.body.read();
                 const contentForWrite = { type: content.type, body };
-                data["content"] = JSON.stringify(contentForWrite);
+                data.content = JSON.stringify(contentForWrite);
             } else {
-                data["content"] = JSON.stringify(content);
+                data.content = JSON.stringify(content);
             }
         } else {
             const contentForWrite: any = { type: null, body: null };
-            data["content"] = JSON.stringify(contentForWrite);
+            data.content = JSON.stringify(contentForWrite);
         }
         console.debug("[debug] writeDataToFirestore topic:", topic, " data:", data, reqId);
         ref.set(data)
@@ -194,7 +194,7 @@ export const subscribeToFirestore = async (
     firestoreObservers[topic] = observer;
 };
 
-export const unsubscribeToFirestore = (firestoreObservers: any, topic: string) => {
+export const unsubscribeToFirestore = (firestoreObservers: any, topic: string): void => {
     console.debug("    unsubscribeToFirestore topic:", topic);
     const observer = firestoreObservers[topic];
     if (observer) {

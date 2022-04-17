@@ -20,7 +20,7 @@ import firebase from "firebase/compat/app";
 
 import firestoreConfig from "./firestore-config.json";
 
-export const launchTestThing = async (): Promise<any> => {
+export const launchTestThing = async (): Promise<WoT.ExposedThing | void> => {
     // setup for emulator
     try {
         // process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8088'
@@ -56,7 +56,7 @@ export const launchTestThing = async (): Promise<any> => {
         const WoT = await servient.start();
 
         // init property values
-        let objectProperty = { testNum: 0, testStr: "abc" };
+        let objectProperty: Record<string, unknown> = { testNum: 0, testStr: "abc" };
         let stringProperty = "";
         let integerProperty = 0;
 
@@ -190,18 +190,15 @@ export const launchTestThing = async (): Promise<any> => {
             return integerProperty;
         });
         thing.setPropertyWriteHandler("objectProperty", async (value) => {
-            const v = await value.value();
-            //@ts-ignore
+            const v = (await value.value()) as Record<string, unknown>;
             objectProperty = v;
         });
         thing.setPropertyWriteHandler("stringProperty", async (value) => {
-            const v = await value.value();
-            //@ts-ignore
+            const v = (await value.value()) as string;
             stringProperty = v;
         });
         thing.setPropertyWriteHandler("integerProperty", async (value) => {
-            const v = await value.value();
-            //@ts-ignore
+            const v = (await value.value()) as number;
             integerProperty = v;
         });
 

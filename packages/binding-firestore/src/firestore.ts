@@ -23,7 +23,7 @@ export * from "./firestore-server";
 export * from "./firestore-client";
 export * from "./firestore-client-factory";
 
-export interface FirestoreConfig {
+export interface BindingFirestoreConfig {
     hostName?: string;
     firebaseConfig?: {
         apiKey?: string;

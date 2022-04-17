@@ -17,12 +17,11 @@
  * Firestore client
  */
 import { ProtocolClient, Content } from "@node-wot/core";
-import { FirestoreForm, FirestoreConfig } from "./firestore";
+import { FirestoreForm, BindingFirestoreConfig } from "./firestore";
 import { v4 as uuidv4 } from "uuid";
-import { Readable } from "stream";
 
 import "firebase/auth";
-import "firebase/firestore";
+import { Firestore } from "firebase/firestore";
 import {
     initFirestore,
     writeDataToFirestore,
@@ -31,13 +30,14 @@ import {
     unsubscribeToFirestore,
 } from "./firestore-handler";
 import * as TD from "@node-wot/td-tools";
+import { Subscription } from "rxjs/Subscription";
 
 export default class FirestoreClient implements ProtocolClient {
-    private firestore: any = null;
+    private firestore: Firestore = null;
     private firestoreObservers = {};
-    private fbConfig: FirestoreConfig = null;
+    private fbConfig: BindingFirestoreConfig = null;
 
-    constructor(config: FirestoreConfig = null) {
+    constructor(config: BindingFirestoreConfig = null) {
         if (typeof config !== "object") {
             throw new Error(`Firestore requires config object (got ${typeof config})`);
         }
@@ -102,8 +102,8 @@ export default class FirestoreClient implements ProtocolClient {
             "/propertyReadResults" +
             (pointerInfo.resource ? "/" + pointerInfo.resource : "");
         const reqId = uuidv4();
-        let timeoutId: any;
-        const retContent: Content = await new Promise(async (resolve, reject) => {
+        let timeoutId: NodeJS.Timeout;
+        const retContent: Content = await new Promise((resolve, reject) => {
             subscribeToFirestore(
                 this.firestore,
                 this.firestoreObservers,
@@ -130,7 +130,7 @@ export default class FirestoreClient implements ProtocolClient {
                 reject(new Error(`timeout error topic: ${pointerInfo.topic}`));
             }, 10 * 1000); // timeout judgment
             // Execute the getting property (the result will be returned to the above Callback)
-            await writeDataToFirestore(
+            writeDataToFirestore(
                 this.firestore,
                 propertyReadReqTopic,
                 {
@@ -166,7 +166,7 @@ export default class FirestoreClient implements ProtocolClient {
             pointerInfo.hostName + "/" + pointerInfo.name + "/actionResults/" + pointerInfo.resource;
         const reqId = uuidv4();
         let timeoutId: NodeJS.Timeout;
-        const retContent: Content = await new Promise(async (resolve, reject) => {
+        const retContent: Content = await new Promise((resolve, reject) => {
             subscribeToFirestore(this.firestore, this.firestoreObservers, actionResultTopic, (err, content, resId) => {
                 console.debug("[debug] return action and unsubscribe");
                 console.debug(`[debug] reqId ${reqId}, resId ${resId}`);
@@ -190,10 +190,10 @@ export default class FirestoreClient implements ProtocolClient {
             // if not input was provided, set up an own body otherwise take input as body
             if (content !== undefined) {
                 // Execute the action (the result will be returned to the above Callback)
-                await writeDataToFirestore(this.firestore, pointerInfo.topic, content, reqId);
+                writeDataToFirestore(this.firestore, pointerInfo.topic, content, reqId);
             } else {
                 // Execute the action (the result will be returned to the above Callback)
-                await writeDataToFirestore(
+                writeDataToFirestore(
                     this.firestore,
                     pointerInfo.topic,
                     {
@@ -219,31 +219,37 @@ export default class FirestoreClient implements ProtocolClient {
         next: (value: Content) => void,
         error?: (error: Error) => void,
         complete?: () => void
-    ): any {
-        // TODO: Return Promise<Subscription>
-        const pointerInfo = this.makePointerInfo(form);
-        // subscrbe for results
-        initFirestore(this.fbConfig, this.firestore)
-            .then((firestore) => {
-                this.firestore = firestore;
-                subscribeToFirestore(
-                    this.firestore,
-                    this.firestoreObservers,
-                    pointerInfo.topic,
-                    (err: Error, content) => {
-                        if (err) {
-                            console.error("[error] failed to subscribe resource: ", err);
-                            error(err);
-                        } else {
-                            next(content);
+    ): Promise<Subscription> {
+        return new Promise<Subscription>((resolve, reject) => {
+            const pointerInfo = this.makePointerInfo(form);
+            // subscrbe for results
+            initFirestore(this.fbConfig, this.firestore)
+                .then((firestore) => {
+                    this.firestore = firestore;
+                    subscribeToFirestore(
+                        this.firestore,
+                        this.firestoreObservers,
+                        pointerInfo.topic,
+                        (err: Error, content) => {
+                            if (err) {
+                                console.error("[error] failed to subscribe resource: ", err);
+                                error(err);
+                            } else {
+                                next(content);
+                            }
                         }
-                    }
-                );
-            })
-            .catch((err) => {
-                console.error("[error] failed to init firestore: ", err);
-                error(err);
-            });
+                    );
+                    resolve(
+                        new Subscription(() => {
+                            unsubscribeToFirestore(this.firestoreObservers, pointerInfo.topic);
+                        })
+                    );
+                })
+                .catch((err) => {
+                    console.error("[error] failed to init firestore: ", err);
+                    error(err);
+                });
+        });
     }
 
     public async start(): Promise<void> {

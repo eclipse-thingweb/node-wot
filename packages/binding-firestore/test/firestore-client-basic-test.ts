@@ -15,7 +15,6 @@
 import { suite, test } from "@testdeck/mocha";
 import * as chai from "chai";
 import chaiAsPromised from "chai-as-promised";
-import FirestoreClient from "../src/firestore-client";
 import Servient, { Helpers } from "@node-wot/core";
 import FirestoreClientFactory from "../src/firestore-client-factory";
 import FirestoreCodec from "../src/codecs/firestore-codec";
@@ -43,12 +42,10 @@ const wait = async (msec: number) => {
 
 @suite("Firestore client basic test implementation")
 class FirestoreClientBasicTest {
-    private client: FirestoreClient;
-    private thing: any;
-    private static serverThing: any;
+    private thing: WoT.ConsumedThing;
 
     static async before() {
-        this.serverThing = await launchTestThing();
+        await launchTestThing();
         await wait(3500);
     }
 
@@ -173,10 +170,10 @@ class FirestoreClientBasicTest {
     @test async "[client] subscribe and unsubscribe event with integer"() {
         let subscribeFlg = true;
         let errorMes = null;
-        const sub = await this.thing.subscribeEvent("eventInteger", async (event: any) => {
+        const sub = await this.thing.subscribeEvent("eventInteger", async (event) => {
             if (subscribeFlg) {
                 const v = await event.value();
-                assert.equal(event, 200);
+                assert.equal(v, 200);
             } else {
                 errorMes = "called but unsubscribed";
             }
@@ -184,7 +181,7 @@ class FirestoreClientBasicTest {
         await wait(500);
         await this.thing.invokeAction("actionEventInteger", 200);
         await wait(500);
-        sub.unsubscribeEvent();
+        sub.stop();
         subscribeFlg = false;
         await this.thing.invokeAction("actionEventInteger", 18);
         await wait(500);
@@ -194,10 +191,10 @@ class FirestoreClientBasicTest {
     @test async "[client] subscribe and unsubscribe event with string"() {
         let subscribeFlg = true;
         let errorMes = null;
-        const sub = await this.thing.subscribeEvent("eventString", async (event: any) => {
+        const sub = await this.thing.subscribeEvent("eventString", async (event) => {
             if (subscribeFlg) {
                 const v = await event.value();
-                assert.equal(event, "string123");
+                assert.equal(v, "string123");
             } else {
                 errorMes = "called but unsubscribed";
             }
@@ -205,7 +202,7 @@ class FirestoreClientBasicTest {
         await wait(500);
         await this.thing.invokeAction("actionEventString", "string123");
         await wait(500);
-        sub.unsubscribeEvent();
+        sub.stop();
         subscribeFlg = false;
         await this.thing.invokeAction("actionEventString", "string987");
         await wait(500);
@@ -215,10 +212,10 @@ class FirestoreClientBasicTest {
     @test async "[client] subscribe and unsubscribe event with object"() {
         let subscribeFlg = true;
         let errorMes = null;
-        const sub = await this.thing.subscribeEvent("eventObject", async (event: any) => {
+        const sub = await this.thing.subscribeEvent("eventObject", async (event) => {
             if (subscribeFlg) {
                 const v = await event.value();
-                assert.deepEqual(event, { eventStr: "event1", eventNum: 123 });
+                assert.deepEqual(v, { eventStr: "event1", eventNum: 123 });
             } else {
                 errorMes = "called but unsubscribed";
             }
@@ -229,7 +226,7 @@ class FirestoreClientBasicTest {
             eventNum: 123,
         });
         await wait(500);
-        sub.unsubscribeEvent();
+        sub.stop();
         subscribeFlg = false;
         await this.thing.invokeAction("actionEventObject", {
             eventStr: "event2",
@@ -242,10 +239,10 @@ class FirestoreClientBasicTest {
     @test.skip async "[client] observe and unobserve property *observeProperty is currently unavailable"() {
         let observeFlg = true;
         let errorMes = null;
-        const ob = await this.thing.observeProperty("stringProperty", async (str: any) => {
+        const ob = await this.thing.observeProperty("stringProperty", async (str) => {
             if (observeFlg) {
                 const v = await str.value();
-                assert.equal(str, "test-string-888");
+                assert.equal(v, "test-string-888");
             } else {
                 errorMes = "called but unobserved";
             }
@@ -253,7 +250,7 @@ class FirestoreClientBasicTest {
         await wait(500);
         await this.thing.writeProperty("stringProperty", "test-string-888");
         await wait(500);
-        ob.unobserveProperty();
+        ob.stop();
         observeFlg = false;
         await this.thing.writeProperty("stringProperty", "test-string-889");
         await wait(500);
