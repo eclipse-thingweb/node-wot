@@ -13,8 +13,8 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-const Servient = require('@node-wot/core').Servient;
-const { FirestoreServer, FirestoreCodec } = require('@node-wot/binding-firestore');
+const Servient = require("@node-wot/core").Servient;
+const { FirestoreServer, FirestoreCodec } = require("@node-wot/binding-firestore");
 const firestoreConfig = require("./firestore-config.json");
 
 // for firebase emulator settings
@@ -28,17 +28,14 @@ const initFirebaseEmu = async () => {
     });
     try {
         // add test user
-        await firebase
-            .auth()
-            .createUserWithEmailAndPassword(firestoreConfig.user.email, firestoreConfig.user.password);
+        await firebase.auth().createUserWithEmailAndPassword(firestoreConfig.user.email, firestoreConfig.user.password);
     } catch (e) {
         // is not error
         console.log("user ia already created err: ", e);
     }
-}
+};
 
 const main = async () => {
-
     // if you don't want to use emulator, plese remove this line
     await initFirebaseEmu();
 
@@ -128,8 +125,8 @@ const main = async () => {
                     it: "resettare valore",
                 },
                 data: {
-                    type: "integer"
-                }
+                    type: "integer",
+                },
             },
         },
     });
@@ -185,9 +182,9 @@ const main = async () => {
         thing.expose().then(() => {
             console.info(thing.getThingDescription().title + " ready");
         });
-    } catch(e) {
+    } catch (e) {
         console.log(e);
     }
-}
+};
 
 main();

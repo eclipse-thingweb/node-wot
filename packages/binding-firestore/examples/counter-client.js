@@ -14,7 +14,7 @@
  ********************************************************************************/
 
 const { Servient, Helpers } = require("@node-wot/core");
-const { FirestoreClientFactory, FirestoreCodec } = require('@node-wot/binding-firestore');
+const { FirestoreClientFactory, FirestoreCodec } = require("@node-wot/binding-firestore");
 const firestoreConfig = require("./firestore-config.json");
 
 // for firebase emulator settings
@@ -27,10 +27,9 @@ const initFirebaseEmu = async () => {
         host: "localhost:8088",
         ssl: false,
     });
-}
+};
 
 const main = async () => {
-
     // if you don't want to use emulator, plese remove this line
     await initFirebaseEmu();
 
@@ -44,7 +43,7 @@ const main = async () => {
     const WoT = await servient.start();
 
     try {
-        const td = await WoTHelpers.fetch(`firestore://${firestoreConfig.hostName}/counter`)
+        const td = await WoTHelpers.fetch(`firestore://${firestoreConfig.hostName}/counter`);
         try {
             const thing = await WoT.consume(td);
             console.info("=== TD ===");
@@ -73,9 +72,9 @@ const main = async () => {
         } catch (err) {
             console.error("Script error:", err);
         }
-    } catch(err) {
+    } catch (err) {
         console.error("Fetch error:", err);
     }
-}
+};
 
 main();
