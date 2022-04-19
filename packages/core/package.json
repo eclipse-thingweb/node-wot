@@ -1,6 +1,6 @@
 {
     "name": "@node-wot/core",
-    "version": "0.8.0",
+    "version": "0.8.1",
     "description": "W3C Web of Things (WoT) Servient framework",
     "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
     "license": "EPL-2.0 OR W3C-20150513",
@@ -43,7 +43,7 @@
         "wot-typescript-definitions": "^0.8.0-SNAPSHOT.22"
     },
     "dependencies": {
-        "@node-wot/td-tools": "0.8.0",
+        "@node-wot/td-tools": "0.8.1",
         "@petamoriken/float16": "^3.1.1",
         "ajv": "^7.0.4",
         "rxjs": "5.5.11",
