@@ -43,7 +43,7 @@ export class WotDevice {
                 description: "A longer string for humans to read and understand",
                 unit: "",
                 type: "null",
-            }
+            },
         },
         actions: {
             myAction: {
@@ -57,7 +57,7 @@ export class WotDevice {
                     unit: "",
                     type: "string",
                 },
-            }
+            },
         },
         events: {
             myEvent: {
@@ -67,7 +67,7 @@ export class WotDevice {
                     unit: "",
                     type: "null",
                 },
-            }
+            },
         },
     };
 
@@ -127,18 +127,18 @@ export class WotDevice {
     }
 
     private async myPropertyWriteHandler(inputData: WoT.InteractionOutput, options?: WoT.InteractionOptions) {
-            // write something to property
-            this.myProperty = await inputData.value();
+        // write something to property
+        this.myProperty = await inputData.value();
     }
 
     private async myActionHandler(inputData?: WoT.InteractionOutput, options?: WoT.InteractionOptions) {
         // do something with inputData if available
         let dataValue: string | number | boolean | object | WoT.DataSchemaValue[];
         if (inputData) {
-            dataValue = await inputData.value()
+            dataValue = await inputData.value();
         }
 
-        if(dataValue) {
+        if (dataValue) {
             this.thing.emitEvent("myEvent", null); // Emiting an event (may be removed; only for demonstration purposes)
         }
 
@@ -148,7 +148,7 @@ export class WotDevice {
         if (outputData) {
             return outputData;
         } else {
-            return null
+            return null;
         }
     }
 
