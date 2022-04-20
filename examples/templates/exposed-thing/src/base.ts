@@ -14,18 +14,18 @@
  ********************************************************************************/
 import * as WoT from "wot-typescript-definitions";
 
-var request = require("request");
+import request = require("request");
 
-const Ajv = require("ajv");
+import Ajv = require("ajv");
 var ajv = new Ajv();
 
 export class WotDevice {
     public thing: WoT.ExposedThing;
     public deviceWoT: typeof WoT;
-    public td: WoT.ThingDescription;
+    public td: WoT.ExposedThingInit;
 
     // Thing Model -> fill in the empty quotation marks
-    private thingModel: WoT.ThingDescription = {
+    private thingModel: WoT.ExposedThingInit = {
         "@context": ["https://www.w3.org/2019/wot/td/v1", { "@language": "en" }],
         "@type": "",
         id: "new:thing",
@@ -33,7 +33,7 @@ export class WotDevice {
         description: "",
         securityDefinitions: {
             "": {
-                scheme: "",
+                scheme: "nosec",
             },
         },
         security: "",
@@ -42,7 +42,7 @@ export class WotDevice {
                 title: "A short title for User Interfaces",
                 description: "A longer string for humans to read and understand",
                 unit: "",
-                type: "",
+                type: "null",
             },
         },
         actions: {
@@ -65,7 +65,7 @@ export class WotDevice {
                 description: "A longer string for humans to read and understand",
                 data: {
                     unit: "",
-                    type: "",
+                    type: "null",
                 },
             },
         },
@@ -121,42 +121,35 @@ export class WotDevice {
         });
     }
 
-    private myPropertyReadHandler() {
-        return new Promise<WoT.InteractionInput>((resolve, reject) => {
-            // read something
-            resolve(this.myProperty);
-        });
+    private async myPropertyReadHandler(options?: WoT.InteractionOptions) {
+        // read something
+        return this.myProperty;
     }
 
-    private myPropertyWriteHandler(inputData, options?) {
-        return new Promise<void>((resolve, reject) => {
-            // write something to property
-            this.myProperty = inputData;
-
-            // uncomment to emit property changed event for observers
-            // this.emitPropertyChange("myProperty")
-
-            // resolve that write was succesful without returning anything
-            resolve();
-        });
+    private async myPropertyWriteHandler(inputData: WoT.InteractionOutput, options?: WoT.InteractionOptions) {
+        // write something to property
+        this.myProperty = await inputData.value();
     }
 
-    private myActionHandler(inputData?, options?) {
-        return new Promise<WoT.InteractionInput>((resolve, reject) => {
-            // do something with inputData if available
-            if (inputData) {
-                this.thing.emitEvent("myEvent", null); // Emiting an event (may be removed; only for demonstration purposes)
-            }
+    private async myActionHandler(inputData?: WoT.InteractionOutput, options?: WoT.InteractionOptions) {
+        // do something with inputData if available
+        let dataValue: string | number | boolean | object | WoT.DataSchemaValue[];
+        if (inputData) {
+            dataValue = await inputData.value();
+        }
 
-            let outputData = "";
+        if (dataValue) {
+            this.thing.emitEvent("myEvent", null); // Emiting an event (may be removed; only for demonstration purposes)
+        }
 
-            // resolve that with outputData if available, else resolve that action was successful without returning anything
-            if (outputData) {
-                resolve(outputData);
-            } else {
-                resolve(null);
-            }
-        });
+        let outputData = "";
+
+        // resolve that with outputData if available, else resolve that action was successful without returning anything
+        if (outputData) {
+            return outputData;
+        } else {
+            return null;
+        }
     }
 
     private listenToMyEvent() {
@@ -177,14 +170,13 @@ export class WotDevice {
 
     private initializeActions() {
         //fill in add actions
-        this.thing.setActionHandler("myAction", (inputData) => {
-            return new Promise((resolve, reject) => {
-                if (!ajv.validate(this.td.actions.myAction.input, inputData)) {
-                    reject(new Error("Invalid input"));
-                } else {
-                    resolve(this.myActionHandler(inputData));
-                }
-            });
+        this.thing.setActionHandler("myAction", async (inputData) => {
+            let dataValue = await inputData.value();
+            if (!ajv.validate(this.td.actions.myAction.input, dataValue)) {
+                throw new Error("Invalid input");
+            } else {
+                return this.myActionHandler(inputData);
+            }
         });
     }
 }
