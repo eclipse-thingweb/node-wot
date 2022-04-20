@@ -244,7 +244,6 @@ class HttpServerTest {
         testThing.setPropertyWriteHandler("test", async (value) => {
             test = await value.value();
         });
-        await testThing.writeProperty("test", {});
         testThing.properties.test.forms = [];
         testThing.setActionHandler("try", (input: WoT.InteractionOutput) => {
             return new Promise<string>((resolve, reject) => {

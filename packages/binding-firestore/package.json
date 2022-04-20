@@ -1,6 +1,6 @@
 {
     "name": "@node-wot/binding-firestore",
-    "version": "0.8.0",
+    "version": "0.8.1",
     "description": "Firestore binding for node-wot",
     "repository": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-firestore",
     "publishConfig": {
@@ -20,8 +20,8 @@
     "author": "hidetak",
     "license": "EPL-2.0",
     "dependencies": {
-        "@node-wot/core": "0.8.0",
-        "@node-wot/td-tools": "0.8.0",
+        "@node-wot/core": "0.8.1",
+        "@node-wot/td-tools": "0.8.1",
         "buffer": "^5.5.0",
         "firebase": "^9.0.1",
         "uuid": "^7.0.3"
