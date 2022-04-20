@@ -13,7 +13,9 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-const td = {
+import { ExposedThingInit } from "wot-typescript-definitions";
+
+const td: ExposedThingInit = {
     "@context": "https://www.w3.org/2019/wot/td/v1",
     title: "OAuth",
     id: "urn:dev:wot:oauth:test",
