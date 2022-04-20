@@ -24,9 +24,9 @@ import CoapServer from "./coap-server";
 export default class CoapClientFactory implements ProtocolClientFactory {
     public readonly scheme: string = "coap";
 
-    private readonly server: CoapServer;
+    private readonly server?: CoapServer;
 
-    constructor(server: CoapServer) {
+    constructor(server?: CoapServer) {
         this.server = server;
     }
 
