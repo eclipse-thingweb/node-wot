@@ -71,22 +71,17 @@ class FirestoreClientBasicTest {
         servient.addMediaType(codec);
 
         const wotHelper = new Helpers(servient);
-        await wotHelper
-            .fetch(`firestore://${firestoreConfig.hostName}/test-thing`)
-            .then(async (td: ThingDescription) => {
-                try {
-                    servient.start().then((WoT) => {
-                        WoT.consume(td).then(async (thing) => {
-                            this.thing = thing;
-                        });
-                    });
-                } catch (err) {
-                    console.error("Script error:", err);
-                }
-            })
-            .catch((err) => {
-                console.error("Fetch error:", err);
-            });
+        try {
+            const td = await wotHelper.fetch(`firestore://${firestoreConfig.hostName}/test-thing`);
+            try {
+                const WoT = await servient.start();
+                this.thing = await WoT.consume(td as ThingDescription);
+            } catch (err) {
+                console.error("Script error:", err);
+            }
+        } catch (err) {
+            console.error("Fetch error:", err);
+        }
     }
 
     static after() {

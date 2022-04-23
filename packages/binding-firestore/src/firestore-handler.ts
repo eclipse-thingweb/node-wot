@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { Content } from "@node-wot/core";
+import { Content, ProtocolHelpers } from "@node-wot/core";
 import Firebase from "firebase/compat/app";
 import "firebase/compat/auth";
 import "firebase/compat/firestore";
@@ -68,75 +68,68 @@ export const initFirestore = async (fbConfig: BindingFirestoreConfig, fstore: an
     }
 };
 
-export const writeDataToFirestore = (
+export const writeDataToFirestore = async (
     firestore: any,
     topic: string,
     content: Content,
     reqId: string = null
 ): Promise<void> => {
-    return new Promise((resolve, reject) => {
-        console.debug("[debug] writeDataToFirestore topic:", topic, " value:", content, reqId);
-        const ref = firestore.collection("things").doc(encodeURIComponent(topic));
-        const data: any = { updatedTime: Date.now(), reqId };
-        if (content && content.body) {
-            if (content.body instanceof Readable) {
-                const body = content.body.read();
-                const contentForWrite = { type: content.type, body };
-                data.content = JSON.stringify(contentForWrite);
-            } else {
-                data.content = JSON.stringify(content);
-            }
-        } else {
-            const contentForWrite: any = { type: null, body: null };
+    console.debug("[debug] writeDataToFirestore topic:", topic, " value:", content, reqId);
+    const ref = firestore.collection("things").doc(encodeURIComponent(topic));
+    const data = { updatedTime: Date.now(), reqId, content: "" };
+    if (content && content.body) {
+        if (content.body instanceof Readable) {
+            const body = await ProtocolHelpers.readStreamFully(content.body);
+            const contentForWrite = { type: content.type, body };
             data.content = JSON.stringify(contentForWrite);
+        } else {
+            data.content = JSON.stringify(content);
         }
-        console.debug("[debug] writeDataToFirestore topic:", topic, " data:", data, reqId);
-        ref.set(data)
-            .then((value: any) => {
-                resolve(value);
-            })
-            .catch((err: Error) => {
-                console.error("[error] failed to write data to firestore: ", err, " topic: ", topic, " data: ", data);
-                reject(err);
-            });
-    });
+    } else {
+        const contentForWrite: any = { type: null, body: null };
+        data.content = JSON.stringify(contentForWrite);
+    }
+    console.debug("[debug] writeDataToFirestore topic:", topic, " data:", data, reqId);
+    try {
+        return await ref.set(data);
+    } catch (err) {
+        console.error("[error] failed to write data to firestore: ", err, " topic: ", topic, " data: ", data);
+        throw err;
+    }
 };
 
-export const readDataFromFirestore = (firestore: any, topic: string): Promise<Content> => {
-    return new Promise<Content>((resolve, reject) => {
-        console.debug("[debug] readDataFromFirestore topic:", topic);
-        const ref = firestore.collection("things").doc(encodeURIComponent(topic));
-        ref.get()
-            .then((doc: any) => {
-                if (doc.exists) {
-                    const data = doc.data();
-                    let content: Content = null;
-                    console.debug("[debug] readDataToFirestore gotten data:", data);
-                    if (data && data.content) {
-                        // XXX TODO change the way content is reported
-                        const obj = JSON.parse(data.content);
-                        if (!obj) {
-                            reject(new Error(`invalid ${topic} content:${content}`));
-                        }
-                        content = {
-                            type: obj.type,
-                            body:
-                                obj && obj.body && obj.body.type === "Buffer"
-                                    ? Readable.from(obj.body.data)
-                                    : Readable.from(""),
-                        };
-                    }
-                    resolve(content);
-                } else {
-                    reject(Error("no contents"));
-                    console.debug("[debug] read data from firestore but no contents topic:", topic);
+export const readDataFromFirestore = async (firestore: any, topic: string): Promise<Content> => {
+    console.debug("[debug] readDataFromFirestore topic:", topic);
+    const ref = firestore.collection("things").doc(encodeURIComponent(topic));
+    try {
+        const doc = await ref.get();
+        if (doc.exists) {
+            const data = doc.data();
+            let content: Content = null;
+            console.debug("[debug] readDataToFirestore gotten data:", data);
+            if (data && data.content) {
+                // XXX TODO change the way content is reported
+                const obj = JSON.parse(data.content);
+                if (!obj) {
+                    throw new Error(`invalid ${topic} content:${content}`);
                 }
-            })
-            .catch((err: Error) => {
-                console.error("[error] failed read data from firestore: ", err, " topic: ", topic);
-                reject(err);
-            });
-    });
+                content = {
+                    type: obj.type,
+                    body:
+                        obj && obj.body && obj.body.type === "Buffer"
+                            ? Readable.from(obj.body.data)
+                            : Readable.from(""),
+                };
+            }
+            return content;
+        } else {
+            console.debug("[debug] read data from firestore but no contents topic:", topic);
+            throw new Error("no contents");
+        }
+    } catch (err) {
+        console.error("[error] failed read data from firestore: ", err, " topic: ", topic);
+        throw err;
+    }
 };
 
 export const subscribeToFirestore = async (
@@ -202,75 +195,62 @@ export const unsubscribeToFirestore = (firestoreObservers: any, topic: string): 
     }
 };
 
-export const removeDataFromFirestore = (firestore: any, topic: string): Promise<void> => {
-    return new Promise((resolve, reject) => {
-        console.debug("[debug] removeDataFromFirestore topic: ", topic);
-        const ref = firestore.collection("things").doc(encodeURIComponent(topic));
-        ref.delete()
-            .then(() => {
-                resolve();
-            })
-            .catch((err: Error) => {
-                console.error("error removing topic: ", topic, "error: ", err);
-                reject(err);
-            });
-    });
+export const removeDataFromFirestore = async (firestore: any, topic: string): Promise<void> => {
+    console.debug("[debug] removeDataFromFirestore topic: ", topic);
+    const ref = firestore.collection("things").doc(encodeURIComponent(topic));
+    try {
+        await ref.delete();
+    } catch (err) {
+        console.error("error removing topic: ", topic, "error: ", err);
+        throw err;
+    }
 };
 
-export const writeMetaDataToFirestore = (firestore: any, hostName: string, content: unknown): Promise<any> => {
-    return new Promise((resolve, reject) => {
-        console.debug("[debug] writeMetaDataToFirestore hostName: ", hostName, " value: ", content);
+export const writeMetaDataToFirestore = async (firestore: any, hostName: string, content: unknown): Promise<any> => {
+    console.debug("[debug] writeMetaDataToFirestore hostName: ", hostName, " value: ", content);
+    const data = { updatedTime: Date.now(), content: "" };
+    try {
         const ref = firestore.collection("hostsMetaData").doc(hostName);
-        const data: any = { updatedTime: Date.now() };
         if (content) {
             data.content = JSON.stringify(content);
         }
-        ref.set(data)
-            .then((value: any) => {
-                resolve(value);
-            })
-            .catch((err: Error) => {
-                console.error("[error] failed to write meta data: ", err, " data: ", data, " hostName: ", hostName);
-                reject(err);
-            });
-    });
+        const value = await ref.set(data);
+        return value;
+    } catch (err) {
+        console.error("[error] failed to write meta data: ", err, " data: ", data, " hostName: ", hostName);
+        throw err;
+    }
 };
 
-export const readMetaDataFromFirestore = (firestore: any, hostName: string): Promise<any> => {
-    return new Promise<any>((resolve, reject) => {
-        console.debug("[debug] readMetaDataFromFirestore hostName:", hostName);
+export const readMetaDataFromFirestore = async (firestore: any, hostName: string): Promise<any> => {
+    console.debug("[debug] readMetaDataFromFirestore hostName:", hostName);
+    try {
         const ref = firestore.collection("hostsMetaData").doc(hostName);
-        ref.get()
-            .then((doc: any) => {
-                if (doc.exists) {
-                    const data = doc.data();
-                    const content = JSON.parse(data);
-                    resolve(content.body);
-                } else {
-                    console.debug("[debug] read meta data from firestore but no contents");
-                    reject(Error("no contents"));
-                }
-            })
-            .catch((err: Error) => {
-                console.error("[error] failed to read meta data: ", err, " hostName: ", hostName);
-                reject(err);
-            });
-    });
+        const doc = ref.get();
+        if (doc.exists) {
+            const data = doc.data();
+            const content = JSON.parse(data);
+            return content.body;
+        } else {
+            console.debug("[debug] read meta data from firestore but no contents");
+            throw new Error("no contents");
+        }
+    } catch (err) {
+        console.error("[error] failed to read meta data: ", err, " hostName: ", hostName);
+        throw err;
+    }
 };
 
 // Remove the MetaData corresponding to the hostname from Firestore.
-export const removeMetaDataFromFirestore = (firestore: any, hostName: string): Promise<void> => {
-    return new Promise((resolve, reject) => {
-        console.debug("[debug] removeMetaDataFromFirestore hostName: ", hostName);
+export const removeMetaDataFromFirestore = async (firestore: any, hostName: string): Promise<void> => {
+    console.debug("[debug] removeMetaDataFromFirestore hostName: ", hostName);
+    try {
         const ref = firestore.collection("hostsMetaData").doc(hostName);
-        ref.delete()
-            .then(() => {
-                console.log("removed hostName: ", hostName);
-                resolve();
-            })
-            .catch((err: Error) => {
-                console.error("error removing hostName: ", hostName, "error: ", err);
-                reject(err);
-            });
-    });
+        await ref.delete();
+        console.log("removed hostName: ", hostName);
+        return;
+    } catch (err) {
+        console.error("error removing hostName: ", hostName, "error: ", err);
+        throw err;
+    }
 };
