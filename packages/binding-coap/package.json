@@ -15,9 +15,7 @@
     "types": "dist/coap.d.ts",
     "devDependencies": {
         "@testdeck/mocha": "^0.1.2",
-        "@types/bl": "^5.0.2",
         "@types/chai": "^4.2.18",
-        "@types/lru-cache": "^5.1.1",
         "@types/node": "16.4.13",
         "@typescript-eslint/eslint-plugin": "^4.30.0",
         "@typescript-eslint/parser": "^4.30.0",
@@ -39,7 +37,7 @@
         "@node-wot/core": "0.8.1",
         "@node-wot/td-tools": "0.8.1",
         "@types/node": "16.4.13",
-        "coap": "^1.0.3",
+        "coap": "^1.0.8",
         "node-coap-client": "1.0.8",
         "rxjs": "5.5.11",
         "slugify": "^1.4.5",
