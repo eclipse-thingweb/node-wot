@@ -39,7 +39,8 @@
         { "path": "./packages/binding-websockets" },
         { "path": "./packages/cli" },
         { "path": "./packages/core" },
-        { "path": "./packages/td-tools" }
+        { "path": "./packages/td-tools" },
+        { "path": "./packages/examples" }
     ],
     "include": [
         /** specifically nothing here */
