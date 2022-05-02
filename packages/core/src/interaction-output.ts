@@ -16,7 +16,7 @@ import * as util from "util";
 import * as WoT from "wot-typescript-definitions";
 import { ContentSerdes } from "./content-serdes";
 import { ProtocolHelpers } from "./core";
-import { DataSchemaError, NotReadableError, NotSupportedError } from "./errors";
+import { DataSchemaError, NotSupportedError } from "./errors";
 import { Content } from "./protocol-interfaces";
 import Ajv from "ajv";
 
