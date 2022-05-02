@@ -63,9 +63,9 @@ export class InteractionOutput implements WoT.InteractionOutput {
         // the value has been already read?
         if (this.parsedValue) return this.parsedValue as T;
 
-        // is data schema valid?
+        // any data (schema)?
         if (!this.schema) {
-            throw new NotReadableError("Cannot read value: missing schema");
+            return undefined; // no value expected
         }
 
         const validate = ajv.compile<T>(this.schema);
