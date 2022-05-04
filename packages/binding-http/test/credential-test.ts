@@ -25,7 +25,11 @@ import {
     BearerCredentialConfiguration,
     BasicKeyCredential,
     BasicKeyCredentialConfiguration,
+    TuyaCustomBearer,
+    TuyaCustomBearerCredentialConfiguration,
 } from "./../src/credential";
+import timekeeper from "timekeeper";
+import { TuyaCustomBearerSecurityScheme } from "../src/http";
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -90,5 +94,33 @@ class CredentialTest {
         const response = await basic.sign(request);
 
         response.headers.get(scheme.name).should.be.equal(config.apiKey);
+    }
+
+    @test async "should sign in with TuyaCustomBearer"(): Promise<void> {
+        timekeeper.freeze(new Date("2021-12-15T00:00:00.000Z"));
+
+        class MockTuyaCustomBearer extends TuyaCustomBearer {
+            protected async requestAndRefreshToken(refresh: boolean) {
+                this.token = "AccessToken";
+                this.refreshToken = "RefreshToken";
+                this.expireTime = new Date(Date.now() + Date.now() * 1000);
+            }
+        }
+
+        const sign = "B052CABF5F47E7AD3E1EDFFFD920E27FA7D44969F8082CA9FB94DE2315CC74EA";
+        const credentialsConfig: TuyaCustomBearerCredentialConfiguration = {
+            key: "key",
+            secret: "secret",
+        };
+        const scheme: TuyaCustomBearerSecurityScheme = {
+            scheme: "TuyaCustomBearer",
+            baseUri: "base",
+        };
+        const request = new Request("http://test.com");
+        const credentials = new MockTuyaCustomBearer(credentialsConfig, scheme);
+
+        const response = await credentials.sign(request);
+        timekeeper.reset();
+        response.headers.get("sign").should.be.equal(sign);
     }
 }

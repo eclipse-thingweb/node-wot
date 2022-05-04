@@ -26,7 +26,7 @@ import * as TD from "@node-wot/td-tools";
 // for Security definition
 
 import { ProtocolClient, Content, ProtocolHelpers } from "@node-wot/core";
-import { HttpForm, HttpHeader, HttpConfig, HTTPMethodName } from "./http";
+import { HttpForm, HttpHeader, HttpConfig, HTTPMethodName, TuyaCustomBearerSecurityScheme } from "./http";
 import fetch, { Request, RequestInit, Response } from "node-fetch";
 import { Buffer } from "buffer";
 import OAuthManager, { OAuthClientConfiguration, OAuthResourceOwnerConfiguration } from "./oauth-manager";
@@ -39,6 +39,8 @@ import {
     BasicCredentialConfiguration,
     BearerCredentialConfiguration,
     BasicKeyCredentialConfiguration,
+    TuyaCustomBearer,
+    TuyaCustomBearerCredentialConfiguration,
 } from "./credential";
 import { LongPollingSubscription, SSESubscription, InternalSubscription } from "./subscription-protocols";
 import { Readable } from "stream";
@@ -272,6 +274,13 @@ export default class HttpClient implements ProtocolClient {
                     );
                 }
 
+                break;
+            }
+            case "TuyaCustomBearer": {
+                this.credential = new TuyaCustomBearer(
+                    credentials as TuyaCustomBearerCredentialConfiguration,
+                    security as TuyaCustomBearerSecurityScheme
+                );
                 break;
             }
             case "nosec":

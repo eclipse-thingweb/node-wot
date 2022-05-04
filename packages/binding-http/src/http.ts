@@ -52,6 +52,15 @@ export interface OAuth2ServerConfig extends TD.SecurityScheme {
     allowedClients?: string;
 }
 
+export interface TuyaCustomBearerSecurityScheme extends TD.SecurityScheme {
+    /**
+     * This scheme is necessary because of the Tuya binding.
+     * The Tuya Apis are implementing a custom security protocol that needs a custom handling
+     */
+    scheme: "TuyaCustomBearer";
+    baseUri: string;
+}
+
 export type HTTPMethodName = "GET" | "PUT" | "POST" | "DELETE" | "PATCH" | "HEAD";
 
 export class HttpHeader {
