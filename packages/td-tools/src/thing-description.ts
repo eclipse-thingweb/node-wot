@@ -65,33 +65,25 @@ export interface ThingInteraction {
 }
 
 /** Implements the Interaction Form description */
-export class Form implements Form {
-    href: string;
-    subprotocol?: string;
-    op?: string | Array<string>;
+export class Form implements TDT.FormElementBase {
+    op?: string | string[];
+    href: TDT.AnyUri;
     contentType?: string;
-    security?: Array<string>; // WoT.Security;
-    scopes?: Array<string>;
-    response?: ExpectedResponse;
+    contentCoding?: string;
+    subprotocol?: TDT.Subprotocol;
+    security?: TDT.Security;
+    scopes?: TDT.Scopes;
+    response?: TDT.ExpectedResponse;
+    additionalResponses?: TDT.AdditionalResponsesDefinition;
+    [k: string]: unknown;
 
     constructor(href: string, contentType?: string) {
         this.href = href;
         if (contentType) this.contentType = contentType;
     }
 }
-
 export interface ExpectedResponse {
     contentType?: string;
-}
-
-export interface Form {
-    href: string;
-    subprotocol?: string;
-    op?: string | Array<string>;
-    contentType?: string; // media type + parameter(s), e.g., text/plain;charset=utf8
-    security?: Array<string>; // Set of security definition names, chosen from those defined in securityDefinitions  // Security;
-    scopes?: Array<string>;
-    response?: ExpectedResponse;
 }
 
 export type DataSchema = WoT.DataSchema &

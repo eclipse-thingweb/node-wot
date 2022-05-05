@@ -158,7 +158,7 @@ export function parseTD(td: string, normalize?: boolean): Thing {
     }
 
     // collect all forms for normalization and use iterations also for checking
-    const allForms: TD.Form[] = [];
+    const allForms = [];
     // properties
     for (const propName in thing.properties) {
         const prop: TD.ThingProperty = thing.properties[propName];
