@@ -14,6 +14,7 @@
  ********************************************************************************/
 
 import { OAuth2SecurityScheme } from "@node-wot/td-tools";
+import { Helpers } from "@node-wot/core";
 import ClientOAuth2 from "client-oauth2";
 import { request, RequestOptions } from "https";
 import { OAuthCredential } from "./credential";
@@ -80,7 +81,7 @@ export default class OAuthManager {
                 clientId: credentials.clientId,
                 clientSecret: credentials.clientSecret,
                 accessTokenUri: securityScheme.token,
-                scopes: securityScheme.scopes,
+                scopes: Helpers.toStringArray(securityScheme.scopes),
                 body: {
                     // TODO: some server implementation may require client_id and secret inside
                     // the request body
@@ -103,7 +104,7 @@ export default class OAuthManager {
                 clientId: credentials.clientId,
                 clientSecret: credentials.clientSecret,
                 accessTokenUri: securityScheme.token,
-                scopes: securityScheme.scopes,
+                scopes: Helpers.toStringArray(securityScheme.scopes),
             },
             createRequestFunction(false)
         );

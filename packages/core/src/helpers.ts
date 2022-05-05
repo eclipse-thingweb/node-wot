@@ -136,6 +136,18 @@ export default class Helpers implements Resolver {
         }
     }
 
+    public static toStringArray(input: string[] | string): string[] {
+        if (input) {
+            if (typeof input === "string") {
+                return [input];
+            } else {
+                return input;
+            }
+        } else {
+            return [];
+        }
+    }
+
     // TODO: specialize fetch to retrieve just thing descriptions
     public fetch(uri: string): Promise<unknown> {
         return new Promise<unknown>((resolve, reject) => {
