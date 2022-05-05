@@ -15,54 +15,23 @@
 
 // global W3C WoT Scripting API definitions
 import * as WoT from "wot-typescript-definitions";
+import * as TDT from "wot-thing-description-types";
 
 export const DEFAULT_CONTEXT_V1 = "https://www.w3.org/2019/wot/td/v1";
 export const DEFAULT_CONTEXT_V11 = "https://www.w3.org/2022/wot/td/v1.1";
 export const DEFAULT_CONTEXT_LANGUAGE = "en";
 export const DEFAULT_THING_TYPE = "Thing";
 
-/* TODOs / Questions
- ~ In Thing index structure could be read-only (sanitizing needs write access)
-*/
-
-export declare type MultiLanguage = Record<string, unknown>; // object?
-
 /** Implements the Thing Description as software object */
-export default class Thing {
-    id: string;
-    title: string;
-    titles: MultiLanguage;
-    description: string;
-    descriptions: MultiLanguage;
-    support: string;
-    modified: string;
-    created: string;
-    version: VersionInfo;
+export default class Thing implements TDT.ThingDescription {
+    title: TDT.Title;
     securityDefinitions: {
-        [key: string]: SecurityType;
+        [key: string]: TDT.SecurityScheme;
     };
 
-    security: Array<string>;
-    base: string;
+    security: string | [string, ...string[]];
 
-    properties: {
-        [key: string]: ThingProperty;
-    };
-
-    actions: {
-        [key: string]: ThingAction;
-    };
-
-    events: {
-        [key: string]: ThingEvent;
-    };
-
-    uriVariables?: {
-        [key: string]: DataSchema;
-    };
-
-    links: Array<Link>;
-    forms: Array<Form>;
+    "@context": TDT.ThingContext;
 
     // eslint-disable-next-line  @typescript-eslint/no-explicit-any
     [key: string]: any;
@@ -70,7 +39,7 @@ export default class Thing {
     constructor() {
         this["@context"] = [DEFAULT_CONTEXT_V1, DEFAULT_CONTEXT_V11];
         this["@type"] = DEFAULT_THING_TYPE;
-        this.security = [];
+        this.security = "";
         this.properties = {};
         this.actions = {};
         this.events = {};
@@ -80,10 +49,10 @@ export default class Thing {
 
 /** Basis from implementing the Thing Interaction descriptions for Property, Action, and Event */
 export interface ThingInteraction {
-    title?: string;
-    titles?: MultiLanguage;
-    description?: string;
-    descriptions?: MultiLanguage;
+    title?: TDT.Title;
+    titles?: TDT.Titles;
+    description?: TDT.Description;
+    descriptions?: TDT.Descriptions;
     scopes?: Array<string>;
     uriVariables?: {
         [key: string]: DataSchema;
@@ -146,10 +115,10 @@ export type DataSchema = WoT.DataSchema &
 
 export class BaseSchema {
     type?: string;
-    title?: string;
-    titles?: MultiLanguage;
-    description?: string;
-    descriptions?: MultiLanguage;
+    title?: TDT.Title;
+    titles?: TDT.Titles;
+    description?: TDT.Description;
+    descriptions?: TDT.Descriptions;
     writeOnly?: boolean;
     readOnly?: boolean;
     oneOf?: Array<DataSchema>;
@@ -286,10 +255,10 @@ export abstract class ThingProperty extends BaseSchema implements ThingInteracti
 
     // ThingInteraction
     forms?: Array<Form>;
-    title?: string;
-    titles?: MultiLanguage;
-    description?: string;
-    descriptions?: MultiLanguage;
+    title?: TDT.Title;
+    titles?: TDT.Titles;
+    description?: TDT.Description;
+    descriptions?: TDT.Descriptions;
     scopes?: Array<string>;
     uriVariables?: {
         [key: string]: DataSchema;
@@ -310,10 +279,10 @@ export abstract class ThingAction implements ThingInteraction {
 
     // ThingInteraction
     forms?: Array<Form>;
-    title?: string;
-    titles?: MultiLanguage;
-    description?: string;
-    descriptions?: MultiLanguage;
+    title?: TDT.Title;
+    titles?: TDT.Titles;
+    description?: TDT.Description;
+    descriptions?: TDT.Descriptions;
     scopes?: Array<string>;
     uriVariables?: {
         [key: string]: DataSchema;
@@ -332,10 +301,10 @@ export abstract class ThingEvent implements ThingInteraction {
 
     // ThingInteraction
     forms?: Array<Form>;
-    title?: string;
-    titles?: MultiLanguage;
-    description?: string;
-    descriptions?: MultiLanguage;
+    title?: TDT.Title;
+    titles?: TDT.Titles;
+    description?: TDT.Description;
+    descriptions?: TDT.Descriptions;
     scopes?: Array<string>;
     uriVariables?: {
         [key: string]: DataSchema;

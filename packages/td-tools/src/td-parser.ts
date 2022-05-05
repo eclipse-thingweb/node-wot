@@ -18,6 +18,7 @@ import * as TD from "./thing-description";
 
 import isAbsoluteUrl = require("is-absolute-url");
 import URLToolkit = require("url-toolkit");
+import { ThingContext } from "wot-thing-description-types";
 
 /** Parses a TD into a Thing object */
 
@@ -52,7 +53,7 @@ export function parseTD(td: string, normalize?: boolean): Thing {
     if (thing["@context"] === undefined) {
         thing["@context"] = [TD.DEFAULT_CONTEXT_V1, TD.DEFAULT_CONTEXT_V11];
     } else if (Array.isArray(thing["@context"])) {
-        let semContext: Array<string> = thing["@context"];
+        let semContext = thing["@context"] as Array<string>;
         const indexV1 = semContext.indexOf(TD.DEFAULT_CONTEXT_V1);
         const indexV11 = semContext.indexOf(TD.DEFAULT_CONTEXT_V11);
         if (indexV1 === -1 && indexV11 === -1) {
@@ -87,7 +88,7 @@ export function parseTD(td: string, normalize?: boolean): Thing {
                     semContext.unshift(TD.DEFAULT_CONTEXT_V11);
                 }
             }
-            thing["@context"] = semContext;
+            thing["@context"] = semContext as ThingContext;
         }
     } else if (thing["@context"] !== TD.DEFAULT_CONTEXT_V1 && thing["@context"] !== TD.DEFAULT_CONTEXT_V11) {
         const semContext = thing["@context"];
