@@ -64,10 +64,6 @@ export interface ThingInteraction {
     [key: string]: any;
 }
 
-export class ExpectedResponse implements ExpectedResponse {
-    contentType?: string;
-}
-
 /** Implements the Interaction Form description */
 export class Form implements Form {
     href: string;
@@ -82,18 +78,6 @@ export class Form implements Form {
         this.href = href;
         if (contentType) this.contentType = contentType;
     }
-}
-
-/** Carries version information about the TD instance. If required, additional version information such as firmware and hardware version (term definitions outside of the TD namespace) can be extended here. */
-export interface VersionInfo {
-    instance?: string;
-}
-
-export interface Link {
-    href: string;
-    rel?: string | Array<string>;
-    type?: string; // media type hint, no media type parameters
-    anchor?: string;
 }
 
 export interface ExpectedResponse {
