@@ -1,0 +1,136 @@
+{
+    "definitions": {},
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+        "servient": {
+            "type": "object",
+            "properties": {
+                "clientOnly": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "staticAddress": {
+                    "type": "string"
+                },
+                "scriptAction": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "serverKey": {
+                    "type": "string"
+                },
+                "serverCert": {
+                    "type": "string"
+                }
+            },
+            "dependencies": {
+                "serverKey": ["serverCert"],
+                "serverCert": ["serverKey"]
+            }
+        },
+        "http": {
+            "type": "object",
+            "properties": {
+                "port": {
+                    "type": "integer"
+                },
+                "proxy": {
+                    "type": "object",
+                    "required": ["href"],
+                    "properties": {
+                        "href": {
+                            "type": "string"
+                        },
+                        "scheme": {
+                            "enum": ["basic", "bearer"]
+                        },
+                        "token": {
+                            "type": "string"
+                        },
+                        "username": {
+                            "type": "string"
+                        },
+                        "password": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "allowSelfSigned": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "mqtt": {
+            "type": "object",
+            "properties": {
+                "broker": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "clientId": {
+                    "type": "string"
+                },
+                "protocolVersion": {
+                    "type": "integer",
+                    "examples": [3, 4, 5],
+                    "default": 5
+                }
+            }
+        },
+        "coap": {
+            "type": "object",
+            "properties": {
+                "port": {
+                    "type": "integer"
+                }
+            }
+        },
+        "credentials": {
+            "type": "object",
+            "patternProperties": {
+                "^THING_ID([a-zA-Z0-9_]+)$": {
+                    "type": "object",
+                    "properties": {
+                        "token": {
+                            "type": "string"
+                        },
+                        "username": {
+                            "type": "string"
+                        },
+                        "password": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "log": {
+            "type": "object",
+            "oneOf": [
+                {
+                    "properties": {
+                        "level": {
+                            "type": "integer",
+                            "enum": [0, 1, 2, 3]
+                        }
+                    }
+                },
+                {
+                    "properties": {
+                        "level": {
+                            "type": "string",
+                            "enum": ["debug", "info", "warn", "error"]
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "additionalProperties": false
+}
