@@ -177,7 +177,7 @@ servient.start().then((WoT) => {
 
 ### Other examples
 
-We will store another example in the `packages/binding-firestore/examples/` folder, so please refer to that as well.
+We will store another example in the `packages/examples/src/bindings/firestore/` folder, so please refer to that as well.
 
 ## How to use Firestore
 
