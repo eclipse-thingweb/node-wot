@@ -16,6 +16,6 @@
         "firebase-tools": "^9.17.0"
     },
     "dependencies": {
-        "@node-wot/binding-firestore": "file:.."
+        "@node-wot/binding-firestore": "file:../../../binding-firestore/"
     }
 }
