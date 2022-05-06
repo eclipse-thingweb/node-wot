@@ -14,8 +14,12 @@
  ********************************************************************************/
 
 import { Token } from "client-oauth2";
-import { Request } from "node-fetch";
+import fetch, { Request } from "node-fetch";
 import { BasicSecurityScheme, APIKeySecurityScheme, BearerSecurityScheme } from "@node-wot/td-tools";
+import * as crypto from "crypto";
+import * as queryString from "query-string";
+import { TuyaCustomBearerSecurityScheme } from "./http";
+
 export abstract class Credential {
     abstract sign(request: Request): Promise<Request>;
 }
@@ -151,5 +155,110 @@ export class OAuthCredential extends Credential {
             newToken = await this.token.refresh();
         }
         return new OAuthCredential(newToken, this.refresh);
+    }
+}
+
+export interface TuyaCustomBearerCredentialConfiguration {
+    key: string;
+    secret: string;
+}
+
+export class TuyaCustomBearer extends Credential {
+    protected key: string;
+    protected secret: string;
+    protected baseUri: string;
+    protected token: string;
+    protected refreshToken: string;
+    protected expireTime: Date;
+
+    constructor(credentials: TuyaCustomBearerCredentialConfiguration, scheme: TuyaCustomBearerSecurityScheme) {
+        super();
+        this.key = credentials.key;
+        this.secret = credentials.secret;
+        this.baseUri = scheme.baseUri;
+    }
+
+    async sign(request: Request): Promise<Request> {
+        const isTokenExpired: boolean = this.isTokenExpired();
+        if (this.token === undefined || this.token === "" || isTokenExpired)
+            await this.requestAndRefreshToken(isTokenExpired);
+
+        const url: string = request.url;
+        const body = request.body ? request.body.read().toString() : "";
+        const headers = this.getHeaders(true, request.headers.raw(), body, url, request.method);
+        Object.assign(headers, request.headers.raw());
+        return new Request(url, { method: request.method, body: body !== "" ? body : null, headers: headers });
+    }
+
+    protected async requestAndRefreshToken(refresh: boolean): Promise<void> {
+        const headers = this.getHeaders(false, {}, "", null, null);
+        const request = {
+            headers: headers,
+            method: "GET",
+        };
+        let url = `${this.baseUri}/token?grant_type=1`;
+        if (refresh) {
+            url = `${this.baseUri}/token/${this.refreshToken}`;
+        }
+        const data = await (await fetch(url, request)).json();
+        if (data.success) {
+            this.token = data.result.access_token;
+            this.refreshToken = data.result.refresh_token;
+            this.expireTime = new Date(Date.now() + data.result.expire_time * 1000);
+        } else {
+            throw new Error("token fetch failed");
+        }
+    }
+
+    private getHeaders(NormalRequest: boolean, headers: unknown, body: string, url: string, method: string) {
+        const requestTime = Date.now().toString();
+        const replaceUri = this.baseUri.replace("/v1.0", "");
+        const _url = url ? url.replace(`${replaceUri}`, "") : null;
+        const sign = this.requestSign(NormalRequest, requestTime, body, headers, _url, method);
+        return {
+            t: requestTime,
+            client_id: this.key,
+            sign_method: "HMAC-SHA256",
+            sign,
+            access_token: this.token || "",
+        };
+    }
+
+    private requestSign(
+        NormalRequest: boolean,
+        requestTime: string,
+        body: string,
+        headers: unknown,
+        path: string,
+        method: string
+    ): string {
+        const bodyHash = crypto.createHash("sha256").update(body).digest("hex");
+        let signUrl = "/v1.0/token?grant_type=1";
+        const headerString = "";
+        let useToken = "";
+        const _method = method || "GET";
+        if (NormalRequest) {
+            useToken = this.token;
+            const pathQuery = queryString.parse(path.split("?")[1]);
+            let query: Record<string, string> = {};
+            query = Object.assign(query, pathQuery);
+            const sortedQuery: { [k: string]: string } = {};
+            Object.keys(query)
+                .sort()
+                .forEach((i) => {
+                    sortedQuery[i] = query[i];
+                });
+            const qs = queryString.stringify(sortedQuery);
+            signUrl = decodeURIComponent(qs ? `${path.split("?")[0]}?${qs}` : path);
+        }
+        const endStr = [this.key, useToken, requestTime, [_method, bodyHash, headerString, signUrl].join("\n")].join(
+            ""
+        );
+        const sign = crypto.createHmac("sha256", this.secret).update(endStr).digest("hex").toUpperCase();
+        return sign;
+    }
+
+    private isTokenExpired(): boolean {
+        return this.expireTime ? Date.now() > this.expireTime.getTime() : false;
     }
 }

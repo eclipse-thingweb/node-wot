@@ -24,16 +24,14 @@ The Thing Description is located under the following CoAP URI `coap://plugfest.t
 
 ```js
 // example-client.js
-Servient = require("@node-wot/core").Servient;
-CoapClientFactory = require("@node-wot/binding-coap").CoapClientFactory;
-
-Helpers = require("@node-wot/core").Helpers;
+const { Servient, Helpers } = require("@node-wot/core");
+const { CoapClientFactory } = require("@node-wot/binding-coap");
 
 // create Servient and add CoAP binding
-let servient = new Servient();
-servient.addClientFactory(new CoapClientFactory(null));
+const servient = new Servient();
+servient.addClientFactory(new CoapClientFactory());
 
-let wotHelper = new Helpers(servient);
+const wotHelper = new Helpers(servient);
 wotHelper
     .fetch("coap://plugfest.thingweb.io:5683/testthing")
     .then(async (td) => {
@@ -62,16 +60,12 @@ The server example produces a thing that allows for setting a property `count`. 
 
 ```js
 // example-server.js
-Servient = require("@node-wot/core").Servient;
-CoapServer = require("@node-wot/binding-coap").CoapServer;
-
-Helpers = require("@node-wot/core").Helpers;
+const { Servient } = require("@node-wot/core");
+const { CoapServer } = require("@node-wot/binding-coap");
 
 // create Servient add HTTP binding
-let servient = new Servient();
+const servient = new Servient();
 servient.addServer(new CoapServer());
-
-let count;
 
 servient.start().then((WoT) => {
     WoT.produce({
@@ -84,13 +78,12 @@ servient.start().then((WoT) => {
     }).then((thing) => {
         console.log("Produced " + thing.getThingDescription().title);
 
-        // init property value
-        count = 0;
+        let count = 0;
+
         // set property handlers (using async-await)
         thing.setPropertyReadHandler("count", async () => count);
-        thing.setPropertyWriteHandler("count", async (intOutput, options) => {
+        thing.setPropertyWriteHandler("count", async (intOutput) => {
             count = await intOutput.value();
-            return undefined;
         });
 
         thing.expose().then(() => {
