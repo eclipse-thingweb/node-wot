@@ -47,7 +47,10 @@
         "@node-wot/binding-websockets": "0.8.1",
         "@node-wot/core": "0.8.1",
         "@node-wot/td-tools": "0.8.1",
+        "ajv": "^8.11.0",
+        "commander": "^9.1.0",
         "dotenv": "^8.6.0",
+        "lodash": "^4.17.21",
         "vm2": "^3.9.9"
     },
     "scripts": {
