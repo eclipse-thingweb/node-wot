@@ -63,35 +63,34 @@ export class InteractionOutput implements WoT.InteractionOutput {
         // the value has been already read?
         if (this.parsedValue) return this.parsedValue as T;
 
-        // any data (schema)?
-        if (!this.schema) {
-            return undefined; // no value expected
-        }
-
-        const validate = ajv.compile<T>(this.schema);
-
         // is content type valid?
         if (!this.form || !ContentSerdes.get().isSupported(this.content.type)) {
             const message = !this.form ? "Missing form" : `Content type ${this.content.type} not supported`;
             throw new NotSupportedError(message);
         }
-        // read fully the stream
 
+        // read fully the stream
         const data = await ProtocolHelpers.readStreamFully(this.content.body);
         this.dataUsed = true;
         this.buffer = data;
+
         // call the contentToValue
         const value = ContentSerdes.get().contentToValue({ type: this.content.type, body: data }, this.schema);
 
-        // validate the schema
-        if (!validate(value)) {
-            console.debug("[core]", "schema = ", util.inspect(this.schema, { depth: 10, colors: true }));
-            console.debug("[core]", "value: ", value);
-            console.debug("[core]", "Errror: ", validate.errors);
-            throw new DataSchemaError("Invalid value according to DataSchema", value as WoT.DataSchemaValue);
+        // any data (schema)?
+        if (this.schema) {
+            // validate the schema
+            const validate = ajv.compile<T>(this.schema);
+
+            if (!validate(value)) {
+                console.debug("[core]", "schema = ", util.inspect(this.schema, { depth: 10, colors: true }));
+                console.debug("[core]", "value: ", value);
+                console.debug("[core]", "Errror: ", validate.errors);
+                throw new DataSchemaError("Invalid value according to DataSchema", value as WoT.DataSchemaValue);
+            }
         }
 
         this.parsedValue = value;
-        return value;
+        return this.parsedValue as T;
     }
 }
