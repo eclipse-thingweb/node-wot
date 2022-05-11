@@ -140,11 +140,11 @@ If you don't need to understand everything in the code, just make sure you do th
 -   Get the latest node.js:
 
 ```bash
-curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
 sudo apt-get install -y nodejs
 ```
 
-You will need to change 10.x to a newer version if needed
+You will need to change 16.x to a newer version if needed
 
 -   To install dependencies: `npm install`
 -   To build (transcompiling Typescript to javascript): `npm run build`
