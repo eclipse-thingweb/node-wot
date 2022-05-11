@@ -150,6 +150,13 @@ You will need to change 10.x to a newer version if needed
 -   To build (transcompiling Typescript to javascript): `npm run build`
 -   To run the code: `npm run start`
 
+## Change from Version 0.7.X to 0.8.X for Exposed Things
+
+Version 0.8.X handles properties and interaction inputs differently than previous versions. Below is the list of changes:
+
+-   Properties are not handled internally by node-wot anymore. Property handlers need to read and write to variables or class members that are explicitly defined in the code for the Exposed Things
+-   The value of interaction inputs cannot be accessed directly. `WoT.InteractionInput` objects have a member function `value()` that returns a promise that will resolve to the value of the input when available. You can either use `input.value().then(...)` or `await input.value()` in an `async` function.
+
 ## Change from Version 0.6.X to 0.7.X for Exposed Things
 
 Resulting from the discussions in the Scripting API, the API has changed on 28.10.2019. This was a rather big change that also resulted changes in node-wot. Below is a list of changes:
