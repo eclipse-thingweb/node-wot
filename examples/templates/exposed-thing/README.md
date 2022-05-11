@@ -87,53 +87,34 @@ Upon start, a WoT object will be created and passed to the `base.ts` (or `base.j
 
 This is where the logic of the ExposedThing is implemented and its TD can be seen.
 
--   WoT object: The WoT object allows the use of methods such as `produce()` which are used with a servient. As it can be seen, in `base.ts` there is no link to a servient that is created in the `index.js` file and used to pass a WoT object. Similar to the CLI, this file relies on the WoT object which is defined using the `wot-typescript-definitions` in line 1.
--   request and TD registration: [request](https://www.npmjs.com/package/request) is a very simple library for HTTP requests. In this script, we use it to send an HTTP POST request to a TD directory with its TD as the payload. When the ExposedThing is exposed, in line 81 the registrer method is called with its TD. Lines 84-98 implement the registration methods to the given TD Directory address. We wait 10 seconds before trying again, which recursively calls itself, meaning that every 10 seconds it will try to register its TD. If the `TD_DIRECTORY` is not defined in `index.js` this method will not be executed.
--   JSON Schema Validation: We use [ajv](https://www.npmjs.com/package/ajv) for JSON Schema validation, which is to this date the fastest and the most up-to-date JSON Schema validation library in npm. You can use it in the handlers of action invokes or property writes in order to validate the data sent by the Consumer. In order to use ajv, we include it in line 5 and instantiate in line 6. How it can be used is seen in line 133 where an invalid data is responded with "Invalid input" error.
--   WoTDevice class: WoTDevice gets the WoT object from the servient and TD Directory address for its constructor. It has attributes `thing`, `WoT` and `td`. `thing` is instantiated as a result of the `produce()` method in lines 65 and 66. `td` is available from an ExposedThing using the `getThingDescription()` method. To avoid multiple calls to this method, we save it as the `td` attribute. `WoT` attribute is assigned from the `WoT` argument passed in the constructor is used for instantiating everything. Once the constructor gets an ExposedThing, methods for adding different interaction affordances are called, such as `add_properties()`.
+-   WoT object: The WoT object allows the use of methods such as `produce()` which are used with a servient. As it can be seen, in `base.ts` there is no link to a servient that is created in the `index.js` file and used to pass a WoT object. Similar to the CLI, this file relies on the WoT object which is defined using the `wot-typescript-definitions`.
+-   request and TD registration: [request](https://www.npmjs.com/package/request) is a very simple library for HTTP requests. In this script, we use it to send an HTTP POST request to a TD directory with its TD as the payload. When the ExposedThing is exposed, the registrer method is called with its TD. Code lines implement the registration methods to the given TD Directory address. We wait 10 seconds before trying again, which recursively calls itself, meaning that every 10 seconds it will try to register its TD. If the `TD_DIRECTORY` is not defined in `index.js` this method will not be executed.
+-   JSON Schema Validation: We use [ajv](https://www.npmjs.com/package/ajv) for JSON Schema validation, which is to this date the fastest and the most up-to-date JSON Schema validation library in npm. You can use it in the handlers of action invokes or property writes in order to validate the data sent by the Consumer. In order to use ajv, we include it and instantiate it. How it can be used is seen where an invalid data is responded with "Invalid input" error.
+-   WoTDevice class: WoTDevice gets the WoT object from the servient and TD Directory address for its constructor. It has attributes `thing`, `WoT` and `td`. `thing` is instantiated as a result of the `produce()` method. `td` is available from an ExposedThing using the `getThingDescription()` method. To avoid multiple calls to this method, we save it as the `td` attribute.
 -   Thing Description: `WoT.produce()` takes as TD as argument and returns an ExposedThing. In this script, we use a TD with 1 property, 1 action and 1 event in order to demonstrate scripting for all interaction affordances. They are all named `myX` with X being an Interaction Affordance like property, action or event.
--   `add_properties()` method (line 115: This method exists in order to cleanly separate where the property handlers are created versus where they are assigned to properties. In this function, we assign an initial value for all the properties and assign their read handler. For a writeable property, the input validation would also happen here. By assigning the read handler to `this.myPropertyHandler`, we call a specific read handler that can be easily encapsulated, allowing easy reusability.
--   `add_actions()` method (line 122): This method exists in order to cleanly separate where the action handlers are created versus where they are assigned to actions. For an action with input data, the input validation would also happen here. By assigning the invoke handler to `this.myActionHandler`, we call a specific action invoke handler that can be easily encapsulated, allowing easy reusability.
--   `add_events()` method (line 135): This method should be removed! It is added to show that events cannot have handlers in an exposed thing but that they should be simply emitted when needed.
--   `myPropertyHandler()` (line 92): This is read handler that can be called from any setPropertyReadHandler. The logic of reading, like reading a GPIO pin, should happen here. The value of the property will be then returned in `resolve(myPropertyValue)`. Use of promises allows easier programming of asynchronous operations happening inside a property handler.
--   `myActionHandler()` (line 99): This is action invoke handler that can be called from any setActionHandler. The logic of the action handling, like rotating a robot arm, should happen here. The result of the action will be then returned in `resolve(myActionOutputData)`. Note that there should be no outputData returned if the action has no `output` member. Use of promises allows easier programming of asynchronous operations happening inside an action handler.
--   `listen_to_myEvent()` (line 106): This method shows how to listen to events asynchronously and emit them. The library you use can already provide eventing in which case you can emit it like shown in the `base.ts`. However, you can also do polling internally and emit an event when something is detected. Below is an example which polls every second if a variable is `isTrue` and emits an event if it is:
-
-```js
-    private listen_to_myEvent() {
-      let eventPolling = setInterval(function() {
-        if (isTrue) {
-          this.thing.emitEvent("myEvent",myPayload);
-        }
-      }, 1000);
-    }
-
-```
+-   `initializeProperties()`
+-   `initializeActions()`
+-   ...
 
 ## What to change and get running
 
 If you don't need to understand everything in the code, just make sure you do the following at least before installing, building and running:
 
 -   `package.json`:
-    -   Change `package.json` to include the bindings you want, e.g. add ` "@node-wot/binding-coap": "0.7.0-SNAPSHOT.3",` to dependencies.
+    -   Change `package.json` to include the bindings you want, e.g. add ` "@node-wot/binding-coap": "0.8.0",` to dependencies.
     -   Change npm related information such as `name`, `version` etc.
 -   `index.js`:
     -   Add the required bindings in `index.js` in 3 locations:
-        -   `CoapServer = require("@node-wot/binding-coap").CoapServer` (line 15)
-        -   `var coapServer = new CoapServer({port: 5683});` (line 20)
-        -   `servient.addServer(coapServer);` (line 28)
-    -   Change or remove the TD_DIRECTORY value in `index.js` (line 9)
+        -   `CoapServer = require("@node-wot/binding-coap").CoapServer`
+        -   `var coapServer = new CoapServer({port: 5683});`
+        -   `servient.addServer(coapServer);`
+    -   Change or remove the TD_DIRECTORY value in `index.js`
 -   `base.ts`:
-    -   Change the TD passed to `this.WoT.produce()` method in line 15
-    -   Write a property handler for different properties, like in line 92
-    -   Write an action invoke handler for different actions, like in line 99
-    -   Decide when to emit events and adat `listen_to_myEvent()` in line 106
-    -   Adapt `add_properties()` of line 115:
-        -   Assign an initial value for each property via `this.thing.writeProperty("myProperty",myInitialValue);`
-        -   Set the Read Property handler for each property by adapting line 125 for you property.
-    -   Adapt `add_actions()` of line 122:
-        -   set an Action Handler for each action you have, like in lines 131-139. You can use ajv for input validation.
-    -   Remove `add_events()` of line 135-137. This is to remind that events are not added like the other interaction affordances.
+    -   Change the TD passed to `produce()` method
+    -   Write a property handler for different properties
+    -   Write an action invoke handler for different actions
+    -   Decide when to emit events
+    -   ...
 
 ### Installation and Running
 
