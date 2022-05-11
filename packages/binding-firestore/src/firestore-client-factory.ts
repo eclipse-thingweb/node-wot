@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2021 Contributors to the Eclipse Foundation
+ * Copyright (c) 2022 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -18,17 +18,17 @@
  */
 
 import { ProtocolClientFactory, ProtocolClient, ContentSerdes } from "@node-wot/core";
-import { FirestoreConfig } from "./firestore";
+import { BindingFirestoreConfig } from "./firestore";
 import FirestoreClient from "./firestore-client";
 import FirestoreCodec from "./codecs/firestore-codec";
 
 export default class FirestoreClientFactory implements ProtocolClientFactory {
     public readonly scheme: string = "firestore";
-    private config: FirestoreConfig = null;
+    private config: BindingFirestoreConfig = null;
     public contentSerdes: ContentSerdes = ContentSerdes.get();
-    private firestoreClient = null;
+    private firestoreClient: FirestoreClient = null;
 
-    constructor(config: FirestoreConfig = null) {
+    constructor(config: BindingFirestoreConfig = null) {
         this.config = config;
         this.contentSerdes.addCodec(new FirestoreCodec());
     }

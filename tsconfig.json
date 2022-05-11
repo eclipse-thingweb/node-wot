@@ -29,7 +29,7 @@
     "references": [
         { "path": "./packages/binding-coap" },
         { "path": "./packages/binding-file" },
-        // { "path": "./packages/binding-firestore" },
+        { "path": "./packages/binding-firestore" },
         { "path": "./packages/binding-http" },
         { "path": "./packages/binding-mbus" },
         { "path": "./packages/binding-modbus" },
