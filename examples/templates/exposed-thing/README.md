@@ -33,7 +33,7 @@ Here, we will explain what every (or most!) of the lines do. If you just want to
 
 ### package.json
 
--   devDependencies (lines 12-17): These are the dependencies that will be used during development time.
+-   `devDependencies`: These are the dependencies that will be used during development time.
     Most importantly, `wot-typescript-definitions` is needed in order for TypeScript to understand what is `WoT`, `ExposedThing` etc.
 
 ```js
@@ -49,7 +49,7 @@ Here, we will explain what every (or most!) of the lines do. If you just want to
 }
 ```
 
--   dependencies (lines 18-23): These are dependencies that will be used in development and runtime.
+-   `dependencies`: These are dependencies that will be used in development and runtime.
     Here you will put the bindings that are required. `@node-wot/core` is always needed so that functions like `produce()`, `start()` are available.
     We also use the [request](https://www.npmjs.com/package/request) library for registration of the TD to a directory via HTTP and the [ajv](https://www.npmjs.com/package/ajv) for validation of inputs with the DataSchema of the TD.
     Below is an example with the HTTP binding but you can change it to [CoAP](https://www.npmjs.com/package/@node-wot/binding-coap) or [MQTT](https://www.npmjs.com/package/@node-wot/binding-mqtt) or anything else that node-wot supports.
@@ -67,7 +67,7 @@ Here, we will explain what every (or most!) of the lines do. If you just want to
 }
 ```
 
--   scripts (lines 25-30): These are the scripts that are used to build, run and clean the repository.
+-   `scripts`: These are the scripts that are used to build, run and clean the repository.
     Other than the `clean` script, they are cross-platform, i.e. can run on Linux, macOS or Windows.
 
 -   others: You can also change your package name, description, author, license etc. and adapt to your needs.
@@ -77,11 +77,11 @@ Here, we will explain what every (or most!) of the lines do. If you just want to
 `index.js` is the entry point of the script. Here we create and add the necessary servers such as HTTP, CoAP or MQTT to the servient and then start it.
 Upon start, a WoT object will be created and passed to the `base.ts` (or `base.js` when transcompiled) where the actual device implementation is.
 
--   `WotDevice = require("./dist/base.js").WotDevice` (line 2) links to the actual device implementation. In case you change `base.ts` with another name, you should adapt this line.
--   `const TD_DIRECTORY = ""` (line 9) specifies the TD directory URI. You can comment it out to remove the registration function.
--   `Servient = require("@node-wot/core").Servient` (line 11) and `var servient = new Servient();` (line 23) are responsible for creating a servient. Then different servers (bindings) can be added before starting it. A servient can even contain multiple exposed things.
--   Bindings: Lines 13-15, 18-20 and 25-27 does linking, creating and adding of different bindings to the servient, respectively. If you want to change the bindings, you can comment them out. For each binding, the `package.json` file should be also changed and `npm install` should be run to ensure that the dependencies are installed. A change on the bindings should not cause any change in the `base.ts` file.
--   Starting the servient (lines 29-31): After starting the servient, which does nothing without any ExposedThing, exposed thing(s) should be added. As you can see in line 30, this is where we make the reference to the `WoTDevice` created in the second line. You can add more than one `WoTDevice` (could be called anything). node-wot puts multiple ExposedThings under one servient differentiating them by their names. Thus, one can have `http://localhost:8080/counter/` and `http://localhost:8080/mywotdevice/` served from the servient.
+-   `WotDevice = require("./dist/base.js").WotDevice` links to the actual device implementation. In case you change `base.ts` with another name, you should adapt this line.
+-   `const TD_DIRECTORY = ""` specifies the TD directory URI. You can comment it out to remove the registration function.
+-   `Servient = require("@node-wot/core").Servient` and `var servient = new Servient();` are responsible for creating a servient. Then different servers (bindings) can be added before starting it. A servient can even contain multiple exposed things.
+-   Bindings: Does linking, creating and adding of different bindings to the servient, respectively. If you want to change the bindings, you can comment them out. For each binding, the `package.json` file should be also changed and `npm install` should be run to ensure that the dependencies are installed. A change on the bindings should not cause any change in the `base.ts` file.
+-   Starting the servient: After starting the servient, which does nothing without any ExposedThing, exposed thing(s) should be added. As you can see, this is where we make the reference to the `WoTDevice` created previously. You can add more than one `WoTDevice` (could be called anything). node-wot puts multiple ExposedThings under one servient differentiating them by their names. Thus, one can have `http://localhost:8080/counter/` and `http://localhost:8080/mywotdevice/` served from the servient.
 
 ### base.ts
 
