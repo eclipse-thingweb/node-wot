@@ -22,7 +22,7 @@ export default class NetconfCodec implements ContentCodec {
         return "application/netconf";
     }
 
-    bytesToValue(bytes: Buffer, schema: DataSchema, parameters: { [key: string]: string }): DataSchemaValue {
+    bytesToValue(bytes: Buffer, schema?: DataSchema, parameters?: { [key: string]: string }): DataSchemaValue {
         // console.debug(`NetconfCodec parsing '${bytes.toString()}'`);
 
         let parsed;
@@ -42,7 +42,7 @@ export default class NetconfCodec implements ContentCodec {
             }
         }
 
-        // TODO validate using schema
+        // TODO validate using schema (if provided)
 
         // remove legacy wrapping and use RFC 7159
         // TODO remove once dropped from all PlugFest implementation
@@ -53,7 +53,7 @@ export default class NetconfCodec implements ContentCodec {
         return parsed;
     }
 
-    valueToBytes(value: unknown, schema: DataSchema, parameters?: { [key: string]: string }): Buffer {
+    valueToBytes(value: unknown, schema?: DataSchema, parameters?: { [key: string]: string }): Buffer {
         // console.debug("NetconfCodec serializing", value);
         let body = "";
         if (value !== undefined) {
@@ -72,6 +72,9 @@ export default class NetconfCodec implements ContentCodec {
         NSs: Record<string, unknown>,
         hasNamespace: boolean
     ) {
+        if (!schema) {
+            throw new Error(`Missing "schema" field in TD`);
+        }
         if (hasNamespace) {
             // expect to have xmlns
             const properties = schema.properties;

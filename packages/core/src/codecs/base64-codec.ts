@@ -27,12 +27,12 @@ export default class Base64Codec implements ContentCodec {
         return this.subMediaType;
     }
 
-    bytesToValue(bytes: Buffer, schema: DataSchema, parameters: { [key: string]: string }): string {
+    bytesToValue(bytes: Buffer, schema?: DataSchema, parameters?: { [key: string]: string }): string {
         const parsed = bytes.toString("ascii");
         return parsed;
     }
 
-    valueToBytes(value: unknown, schema: DataSchema, parameters?: { [key: string]: string }): Buffer {
+    valueToBytes(value: unknown, schema?: DataSchema, parameters?: { [key: string]: string }): Buffer {
         let body = "";
         if (value !== undefined) {
             body = value.toString();

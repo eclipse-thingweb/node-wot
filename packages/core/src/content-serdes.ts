@@ -26,8 +26,8 @@ import { ReadableStream } from "web-streams-polyfill/ponyfill/es2018";
 /** is a plugin for ContentSerdes for a specific format (such as JSON or EXI) */
 export interface ContentCodec {
     getMediaType(): string;
-    bytesToValue(bytes: Buffer, schema: DataSchema, parameters?: { [key: string]: string }): DataSchemaValue;
-    valueToBytes(value: unknown, schema: DataSchema, parameters?: { [key: string]: string }): Buffer;
+    bytesToValue(bytes: Buffer, schema?: DataSchema, parameters?: { [key: string]: string }): DataSchemaValue;
+    valueToBytes(value: unknown, schema?: DataSchema, parameters?: { [key: string]: string }): Buffer;
 }
 
 interface ReadContent {

@@ -31,17 +31,17 @@ export default class TextCodec implements ContentCodec {
         return this.subMediaType;
     }
 
-    bytesToValue(bytes: Buffer, schema: DataSchema, parameters: { [key: string]: string }): DataSchemaValue {
+    bytesToValue(bytes: Buffer, schema?: DataSchema, parameters?: { [key: string]: string }): DataSchemaValue {
         // console.debug(`TextCodec parsing '${bytes.toString()}'`);
 
         const parsed = bytes.toString(parameters.charset as BufferEncoding);
 
-        // TODO apply schema to convert string to real type
+        // TODO apply schema (if provided) to convert string to real type
 
         return parsed;
     }
 
-    valueToBytes(value: unknown, schema: DataSchema, parameters?: { [key: string]: string }): Buffer {
+    valueToBytes(value: unknown, schema?: DataSchema, parameters?: { [key: string]: string }): Buffer {
         // console.debug(`TextCodec serializing '${value}'`);
         let body = "";
         if (value !== undefined) {

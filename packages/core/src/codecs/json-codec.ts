@@ -32,7 +32,7 @@ export default class JsonCodec implements ContentCodec {
         return this.subMediaType;
     }
 
-    bytesToValue(bytes: Buffer, schema: DataSchema, parameters: { [key: string]: string }): DataSchemaValue {
+    bytesToValue(bytes: Buffer, schema?: DataSchema, parameters?: { [key: string]: string }): DataSchemaValue {
         // console.debug(`JsonCodec parsing '${bytes.toString()}'`);
 
         let parsed;
@@ -52,7 +52,7 @@ export default class JsonCodec implements ContentCodec {
             }
         }
 
-        // TODO validate using schema
+        // TODO validate using schema (if provided)
 
         // remove legacy wrapping and use RFC 7159
         // TODO remove once dropped from all PlugFest implementation
@@ -63,7 +63,7 @@ export default class JsonCodec implements ContentCodec {
         return parsed;
     }
 
-    valueToBytes(value: unknown, schema: DataSchema, parameters?: { [key: string]: string }): Buffer {
+    valueToBytes(value: unknown, schema?: DataSchema, parameters?: { [key: string]: string }): Buffer {
         // console.debug("JsonCodec serializing", value);
         let body = "";
         if (value !== undefined) {

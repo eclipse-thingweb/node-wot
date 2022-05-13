@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /********************************************************************************
- * Copyright (c) 2018 Contributors to the Eclipse Foundation
+ * Copyright (c) 2022 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -107,7 +107,7 @@ class SerdesOctetTests {
         expect(body).to.deep.equal(Buffer.from([0x44, 0x80]));
     }
 
-    @test "value to OctetStream should throw for overflow"() {
+    @test "value to OctetStream should throw"() {
         // @ts-ignore new dataschema types are not yet supported in the td type definitions
         expect(() => ContentSerdes.valueToContent(2345, { type: "int8" }, "application/octet-stream")).to.throw(
             Error,
@@ -117,6 +117,10 @@ class SerdesOctetTests {
         expect(() => ContentSerdes.valueToContent(23450000, { type: "int16" }, "application/octet-stream")).to.throw(
             Error,
             "Integer overflow when representing signed 23450000 in 2 byte(s)"
+        );
+        expect(() => ContentSerdes.valueToContent(2345, undefined, "application/octet-stream")).to.throw(
+            Error,
+            "Unable to handle dataType undefined"
         );
     }
 }
