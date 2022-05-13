@@ -47,9 +47,6 @@ class FirestoreClientBasicTest {
     static async before() {
         await launchTestThing();
         await wait(3500);
-    }
-
-    async before() {
         if (!firebase) {
             firebase.initializeApp(firestoreConfig.firebaseConfig);
             const isEmulating = true;
@@ -62,7 +59,9 @@ class FirestoreClientBasicTest {
                 });
             }
         }
+    }
 
+    async before() {
         const servient = new Servient();
         const clientFactory = new FirestoreClientFactory(firestoreConfig);
         servient.addClientFactory(clientFactory);
