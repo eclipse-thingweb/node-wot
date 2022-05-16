@@ -134,9 +134,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                 }
             }
             if (!languageSet) {
-(arrayContext as Exclude<typeof arrayContext, []>).push({
-                    "@language": TD.DEFAULT_CONTEXT_LANGUAGE,
-                });
+                (arrayContext as Exclude<typeof arrayContext, []>).push({
                     "@language": TD.DEFAULT_CONTEXT_LANGUAGE,
                 });
             }
