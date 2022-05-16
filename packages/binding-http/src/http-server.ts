@@ -428,7 +428,7 @@ export default class HttpServer implements ProtocolServer {
                 const oAuthScheme = thing.securityDefinitions[thing.security[0] as string] as OAuth2SecurityScheme;
 
                 // TODO: Support security schemes defined at affordance level
-                const scopes = oAuthScheme.scopes ?? [];
+                const scopes = Helpers.toStringArray(oAuthScheme.scopes); // validate call requires array of strings while oAuthScheme.scopes can be string or array of strings
                 let valid = false;
 
                 try {
