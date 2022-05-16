@@ -32,6 +32,8 @@ const firestoreConfig = require("./firestore-config.json");
 chai.use(chaiAsPromised);
 const assert = chai.assert;
 
+let thing: WoT.ConsumedThing;
+
 const wait = async (msec: number) => {
     await new Promise((resolve, reject) => {
         setTimeout(() => {
@@ -42,14 +44,9 @@ const wait = async (msec: number) => {
 
 @suite("Firestore client basic test implementation")
 class FirestoreClientBasicTest {
-    private thing: WoT.ConsumedThing;
-
     static async before() {
         await launchTestThing();
         await wait(3500);
-    }
-
-    async before() {
         if (!firebase) {
             firebase.initializeApp(firestoreConfig.firebaseConfig);
             const isEmulating = true;
@@ -62,7 +59,6 @@ class FirestoreClientBasicTest {
                 });
             }
         }
-
         const servient = new Servient();
         const clientFactory = new FirestoreClientFactory(firestoreConfig);
         servient.addClientFactory(clientFactory);
@@ -75,7 +71,7 @@ class FirestoreClientBasicTest {
             const td = await wotHelper.fetch(`firestore://${firestoreConfig.hostName}/test-thing`);
             try {
                 const WoT = await servient.start();
-                this.thing = await WoT.consume(td as ThingDescription);
+                thing = await WoT.consume(td as ThingDescription);
             } catch (err) {
                 console.error("Script error:", err);
             }
@@ -89,57 +85,57 @@ class FirestoreClientBasicTest {
     }
 
     @test async "[client] check initial property"() {
-        const int = await (await this.thing.readProperty("integerProperty")).value();
+        const int = await (await thing.readProperty("integerProperty")).value();
         assert.equal(int, 0);
-        const str = await (await this.thing.readProperty("stringProperty")).value();
+        const str = await (await thing.readProperty("stringProperty")).value();
         assert.equal(str, "");
-        const obj = await (await this.thing.readProperty("objectProperty")).value();
+        const obj = await (await thing.readProperty("objectProperty")).value();
         assert.deepEqual(obj, { testNum: 0, testStr: "abc" });
     }
 
     @test async "[client] property read / write for integer"() {
-        await this.thing.writeProperty("integerProperty", 333);
+        await thing.writeProperty("integerProperty", 333);
         await wait(1000);
-        const int = await (await this.thing.readProperty("integerProperty")).value();
+        const int = await (await thing.readProperty("integerProperty")).value();
         assert.equal(int, 333);
     }
 
     @test async "[client] property read / write for string"() {
-        await this.thing.writeProperty("stringProperty", "test-string");
+        await thing.writeProperty("stringProperty", "test-string");
         await wait(1000);
-        const str = await (await this.thing.readProperty("stringProperty")).value();
+        const str = await (await thing.readProperty("stringProperty")).value();
         assert.equal(str, "test-string");
     }
 
     @test async "[client] property read / write for object"() {
-        await this.thing.writeProperty("objectProperty", {
+        await thing.writeProperty("objectProperty", {
             testKey1: "testString",
             testKey2: 123,
         });
         await wait(1000);
-        const obj = await (await this.thing.readProperty("objectProperty")).value();
+        const obj = await (await thing.readProperty("objectProperty")).value();
         assert.deepEqual(obj, { testKey1: "testString", testKey2: 123 });
     }
 
     @test async "[client] action without args and response"() {
-        await this.thing.invokeAction("actionWithoutArgsResponse");
+        await thing.invokeAction("actionWithoutArgsResponse");
         assert.ok(true);
     }
 
     @test async "[client] action about number"() {
-        const v = await this.thing.invokeAction("actionNum", 123);
+        const v = await thing.invokeAction("actionNum", 123);
         const num = await v.value();
         assert.equal(num, 123);
     }
 
     @test async "[client] action about string"() {
-        const str = await (await this.thing.invokeAction("actionString", "string")).value();
+        const str = await (await thing.invokeAction("actionString", "string")).value();
         assert.equal(str, "string");
     }
 
     @test async "[client] action about object"() {
         const obj = await (
-            await this.thing.invokeAction("actionObject", {
+            await thing.invokeAction("actionObject", {
                 testkey3: 111,
                 testkey4: "abc",
             })
@@ -148,13 +144,13 @@ class FirestoreClientBasicTest {
     }
 
     @test async "[client] action string to object"() {
-        const obj = await (await this.thing.invokeAction("actionStringToObj", "teststr")).value();
+        const obj = await (await thing.invokeAction("actionStringToObj", "teststr")).value();
         assert.deepEqual(obj, { test: "teststr" });
     }
 
     @test async "[client] action object to number"() {
         const num = await (
-            await this.thing.invokeAction("actionObjToNum", {
+            await thing.invokeAction("actionObjToNum", {
                 testkey5: 5,
                 testkey6: "test6",
             })
@@ -165,7 +161,7 @@ class FirestoreClientBasicTest {
     @test async "[client] subscribe and unsubscribe event with integer"() {
         let subscribeFlg = true;
         let errorMes = null;
-        const sub = await this.thing.subscribeEvent("eventInteger", async (event) => {
+        const sub = await thing.subscribeEvent("eventInteger", async (event) => {
             if (subscribeFlg) {
                 const v = await event.value();
                 assert.equal(v, 200);
@@ -174,11 +170,11 @@ class FirestoreClientBasicTest {
             }
         });
         await wait(500);
-        await this.thing.invokeAction("actionEventInteger", 200);
+        await thing.invokeAction("actionEventInteger", 200);
         await wait(500);
         sub.stop();
         subscribeFlg = false;
-        await this.thing.invokeAction("actionEventInteger", 18);
+        await thing.invokeAction("actionEventInteger", 18);
         await wait(500);
         assert.equal(errorMes, null);
     }
@@ -186,7 +182,7 @@ class FirestoreClientBasicTest {
     @test async "[client] subscribe and unsubscribe event with string"() {
         let subscribeFlg = true;
         let errorMes = null;
-        const sub = await this.thing.subscribeEvent("eventString", async (event) => {
+        const sub = await thing.subscribeEvent("eventString", async (event) => {
             if (subscribeFlg) {
                 const v = await event.value();
                 assert.equal(v, "string123");
@@ -195,11 +191,11 @@ class FirestoreClientBasicTest {
             }
         });
         await wait(500);
-        await this.thing.invokeAction("actionEventString", "string123");
+        await thing.invokeAction("actionEventString", "string123");
         await wait(500);
         sub.stop();
         subscribeFlg = false;
-        await this.thing.invokeAction("actionEventString", "string987");
+        await thing.invokeAction("actionEventString", "string987");
         await wait(500);
         assert.equal(errorMes, null);
     }
@@ -207,7 +203,7 @@ class FirestoreClientBasicTest {
     @test async "[client] subscribe and unsubscribe event with object"() {
         let subscribeFlg = true;
         let errorMes = null;
-        const sub = await this.thing.subscribeEvent("eventObject", async (event) => {
+        const sub = await thing.subscribeEvent("eventObject", async (event) => {
             if (subscribeFlg) {
                 const v = await event.value();
                 assert.deepEqual(v, { eventStr: "event1", eventNum: 123 });
@@ -216,14 +212,14 @@ class FirestoreClientBasicTest {
             }
         });
         await wait(500);
-        await this.thing.invokeAction("actionEventObject", {
+        await thing.invokeAction("actionEventObject", {
             eventStr: "event1",
             eventNum: 123,
         });
         await wait(500);
         sub.stop();
         subscribeFlg = false;
-        await this.thing.invokeAction("actionEventObject", {
+        await thing.invokeAction("actionEventObject", {
             eventStr: "event2",
             eventNum: 987,
         });
@@ -234,7 +230,7 @@ class FirestoreClientBasicTest {
     @test.skip async "[client] observe and unobserve property *observeProperty is currently unavailable"() {
         let observeFlg = true;
         let errorMes = null;
-        const ob = await this.thing.observeProperty("stringProperty", async (str) => {
+        const ob = await thing.observeProperty("stringProperty", async (str) => {
             if (observeFlg) {
                 const v = await str.value();
                 assert.equal(v, "test-string-888");
@@ -243,11 +239,11 @@ class FirestoreClientBasicTest {
             }
         });
         await wait(500);
-        await this.thing.writeProperty("stringProperty", "test-string-888");
+        await thing.writeProperty("stringProperty", "test-string-888");
         await wait(500);
         ob.stop();
         observeFlg = false;
-        await this.thing.writeProperty("stringProperty", "test-string-889");
+        await thing.writeProperty("stringProperty", "test-string-889");
         await wait(500);
         assert.equal(errorMes, null);
     }
