@@ -17,6 +17,9 @@ import * as TD from "@node-wot/td-tools";
 import { Readable } from "stream";
 import { ReadableStream as PolyfillStream } from "web-streams-polyfill/ponyfill/es2018";
 import { ActionElement, EventElement, PropertyElement } from "wot-thing-description-types";
+import { createLoggers } from "./logger";
+
+const { debug } = createLoggers("core", "protocol-helpers");
 
 export interface IManagedStream {
     nodeStream: Readable;
@@ -254,10 +257,7 @@ export default class ProtocolHelpers {
                     }
                 });
             } else {
-                console.debug(
-                    "[core/helpers]",
-                    `Protocol-Helper returns empty buffer for readStreamFully due to undefined stream`
-                );
+                debug(`Protocol-Helper returns empty buffer for readStreamFully due to undefined stream`);
                 resolve(Buffer.alloc(0));
             }
         });

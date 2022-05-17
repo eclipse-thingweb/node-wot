@@ -15,6 +15,9 @@
 
 import { ContentCodec } from "../content-serdes";
 import { DataSchema, DataSchemaValue } from "wot-typescript-definitions";
+import { createLoggers } from "../logger";
+
+const { debug } = createLoggers("core", "netconf-codec");
 
 /** default implementation offering JSON de-/serialisation */
 export default class NetconfCodec implements ContentCodec {
@@ -23,7 +26,7 @@ export default class NetconfCodec implements ContentCodec {
     }
 
     bytesToValue(bytes: Buffer, schema: DataSchema, parameters: { [key: string]: string }): DataSchemaValue {
-        // console.debug(`NetconfCodec parsing '${bytes.toString()}'`);
+        debug(`NetconfCodec parsing '${bytes.toString()}'`);
 
         let parsed;
         try {
@@ -46,7 +49,7 @@ export default class NetconfCodec implements ContentCodec {
     }
 
     valueToBytes(value: unknown, schema: DataSchema, parameters?: { [key: string]: string }): Buffer {
-        // console.debug("NetconfCodec serializing", value);
+        debug("NetconfCodec serializing", value);
         let body = "";
         if (value !== undefined) {
             const NSs = {};
