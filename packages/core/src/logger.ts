@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-export enum LogLevel {
+enum InternalLogLevel {
     Info,
     Debug,
     Warn,
@@ -21,47 +21,87 @@ export enum LogLevel {
     None,
 }
 
-let currentLogLevel: LogLevel = LogLevel.None;
+export enum LogLevel {
+    Info,
+    Debug,
+    Warn,
+    Error,
+}
+
+let currentLogLevel: InternalLogLevel = InternalLogLevel.None;
 
 export function setLogLevel(logLevel: LogLevel): void {
-    currentLogLevel = logLevel;
+    switch (logLevel) {
+        case LogLevel.Info:
+            currentLogLevel = InternalLogLevel.Info;
+            break;
+        case LogLevel.Debug:
+            currentLogLevel = InternalLogLevel.Debug;
+            break;
+        case LogLevel.Warn:
+            currentLogLevel = InternalLogLevel.Warn;
+            break;
+        case LogLevel.Error:
+            currentLogLevel = InternalLogLevel.Error;
+            break;
+    }
 }
 
-function logInfo(message: string) {
+export function disableLogging(): void {
+    currentLogLevel = InternalLogLevel.None;
+}
+
+function printInfo(message: string) {
     console.log(message);
 }
 
-function logDebug(message: string) {
+function printDebug(message: string) {
     console.log(message);
 }
 
-function logWarn(message: string) {
+function printWarn(message: string) {
     console.log(message);
 }
 
-function logError(message: string) {
+function printError(message: string) {
     console.log(message);
 }
 
-export function log(logLevel: LogLevel, prefix: string, message: string): void {
-    if (currentLogLevel > logLevel || logLevel === LogLevel.None) {
+function log(logLevel: InternalLogLevel, prefix: string, message: string): void {
+    if (currentLogLevel > logLevel || logLevel === InternalLogLevel.None) {
         return;
     }
 
     const logMessage = `[${prefix}] ${message}`;
 
     switch (logLevel) {
-        case LogLevel.Info:
-            logInfo(logMessage);
+        case InternalLogLevel.Info:
+            printInfo(logMessage);
             break;
-        case LogLevel.Debug:
-            logDebug(logMessage);
+        case InternalLogLevel.Debug:
+            printDebug(logMessage);
             break;
-        case LogLevel.Warn:
-            logWarn(logMessage);
+        case InternalLogLevel.Warn:
+            printWarn(logMessage);
             break;
-        case LogLevel.Error:
-            logError(logMessage);
+        case InternalLogLevel.Error:
+            printError(logMessage);
             break;
     }
+}
+
+export function logInfo(prefix: string, message: string): void {
+    log(InternalLogLevel.Info, prefix, message);
+}
+
+export function logDebug(prefix: string, message: string): void {
+    log(InternalLogLevel.Debug, prefix, message);
+}
+
+export function logWarn(prefix: string, message: string): void {
+    log(InternalLogLevel.Warn, prefix, message);
+}
+
+export function logError(prefix: string, message: string): void {
+    log(InternalLogLevel.Error, prefix, message);
 }
