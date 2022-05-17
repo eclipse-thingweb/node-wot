@@ -52,7 +52,7 @@ export function disableLogging(): void {
 }
 
 function printInfo(message: string) {
-    console.log(message);
+    console.info(message);
 }
 
 function printDebug(message: string) {
@@ -60,11 +60,11 @@ function printDebug(message: string) {
 }
 
 function printWarn(message: string) {
-    console.log(message);
+    console.warn(message);
 }
 
 function printError(message: string) {
-    console.log(message);
+    console.error(message);
 }
 
 function log(logLevel: InternalLogLevel, prefix: string, message: string): void {
