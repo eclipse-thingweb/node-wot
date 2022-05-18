@@ -28,27 +28,64 @@ export enum LogLevel {
     Error,
 }
 
-let currentLogLevel: InternalLogLevel = InternalLogLevel.None;
+let globalLogLevel: InternalLogLevel = InternalLogLevel.None;
 
-export function setLogLevel(logLevel: LogLevel): void {
-    switch (logLevel) {
-        case LogLevel.Info:
-            currentLogLevel = InternalLogLevel.Info;
-            break;
-        case LogLevel.Debug:
-            currentLogLevel = InternalLogLevel.Debug;
-            break;
-        case LogLevel.Warn:
-            currentLogLevel = InternalLogLevel.Warn;
-            break;
-        case LogLevel.Error:
-            currentLogLevel = InternalLogLevel.Error;
-            break;
+const logLevelsByPrefix: Record<string, InternalLogLevel> = {};
+
+function updateLogLevel(logLevel: InternalLogLevel, prefix?: string): void {
+    if (prefix == null) {
+        globalLogLevel = logLevel;
+    } else {
+        logLevelsByPrefix[prefix] = logLevel;
     }
 }
 
-export function disableLogging(): void {
-    currentLogLevel = InternalLogLevel.None;
+/**
+ * Sets a new log level either globally or, when defined, for a specific prefix.
+ *
+ * @param logLevel The new log level value.
+ * @param prefix The optional prefix for which the log level should be set.
+ */
+export function setLogLevel(logLevel: LogLevel, prefix?: string): void {
+    let internalLogLevel: InternalLogLevel;
+    switch (logLevel) {
+        case LogLevel.Info:
+            internalLogLevel = InternalLogLevel.Info;
+            break;
+        case LogLevel.Debug:
+            internalLogLevel = InternalLogLevel.Debug;
+            break;
+        case LogLevel.Warn:
+            internalLogLevel = InternalLogLevel.Warn;
+            break;
+        case LogLevel.Error:
+            internalLogLevel = InternalLogLevel.Error;
+            break;
+    }
+    updateLogLevel(internalLogLevel, prefix);
+}
+
+/**
+ * Disables logging either globally or, when defined,
+ * for a specific prefix.
+ *
+ * @param prefix The optional prefix for which the log level should be reset.
+ */
+export function disableLogging(prefix?: string): void {
+    if (logLevelsByPrefix[prefix] != null) {
+        logLevelsByPrefix[prefix] = InternalLogLevel.None;
+    } else {
+        globalLogLevel = InternalLogLevel.None;
+    }
+}
+
+/**
+ * Resets the log level for a given prefix to the global log level.
+ *
+ * @param prefix The prefix for which the log level should be reset.
+ */
+export function resetLoglevelForPrefix(prefix: string): void {
+    logLevelsByPrefix[prefix] = undefined;
 }
 
 function printInfo(message: string) {
@@ -68,7 +105,9 @@ function printError(message: string) {
 }
 
 function log(logLevel: InternalLogLevel, prefix: string, message: string): void {
-    if (currentLogLevel > logLevel || logLevel === InternalLogLevel.None) {
+    const logLevelToCheck = logLevelsByPrefix[prefix] ?? globalLogLevel;
+
+    if (logLevelToCheck > logLevel || logLevel === InternalLogLevel.None) {
         return;
     }
 
@@ -90,18 +129,50 @@ function log(logLevel: InternalLogLevel, prefix: string, message: string): void 
     }
 }
 
+/**
+ * Creates a new log message with log level `Info`.
+ *
+ * The prefix will be wrapped in square brackets in the resulting log message.
+ *
+ * @param prefix The prefix used for the message.
+ * @param message The actual content of the log message.
+ */
 export function logInfo(prefix: string, message: string): void {
     log(InternalLogLevel.Info, prefix, message);
 }
 
+/**
+ * Creates a new log message with log level `Debug`.
+ *
+ * The prefix will be wrapped in square brackets in the resulting log message.
+ *
+ * @param prefix The prefix used for the message.
+ * @param message The actual content of the log message.
+ */
 export function logDebug(prefix: string, message: string): void {
     log(InternalLogLevel.Debug, prefix, message);
 }
 
+/**
+ * Creates a new log message with log level `Warn`.
+ *
+ * The prefix will be wrapped in square brackets in the resulting log message.
+ *
+ * @param prefix The prefix used for the message.
+ * @param message The actual content of the log message.
+ */
 export function logWarn(prefix: string, message: string): void {
     log(InternalLogLevel.Warn, prefix, message);
 }
 
+/**
+ * Creates a new log message with log level `Error`.
+ *
+ * The prefix will be wrapped in square brackets in the resulting log message.
+ *
+ * @param prefix The prefix used for the message.
+ * @param message The actual content of the log message.
+ */
 export function logError(prefix: string, message: string): void {
     log(InternalLogLevel.Error, prefix, message);
 }
