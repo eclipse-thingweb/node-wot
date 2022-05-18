@@ -13,14 +13,6 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-enum InternalLogLevel {
-    Info,
-    Debug,
-    Warn,
-    Error,
-    None,
-}
-
 /**
  * The four possible log levels, which have a strict hierachy, where
  * `Info` is the lowest value and `Error` is the highest one.
@@ -42,15 +34,15 @@ export enum LogLevel {
     Error,
 }
 
-let globalLogLevel: InternalLogLevel = InternalLogLevel.None;
+let globalLogLevel: LogLevel | null = null;
 
-const logLevelsByPrefix: Record<string, InternalLogLevel> = {};
+const logLevelsByPrefix = new Map<string, LogLevel | null>();
 
-function updateLogLevel(logLevel: InternalLogLevel, prefix?: string): void {
+function updateLogLevel(logLevel: LogLevel, prefix?: string): void {
     if (prefix == null) {
         globalLogLevel = logLevel;
     } else {
-        logLevelsByPrefix[prefix] = logLevel;
+        logLevelsByPrefix.set(prefix, logLevel);
     }
 }
 
@@ -61,22 +53,7 @@ function updateLogLevel(logLevel: InternalLogLevel, prefix?: string): void {
  * @param prefix The optional prefix for which the log level should be set.
  */
 export function setLogLevel(logLevel: LogLevel, prefix?: string): void {
-    let internalLogLevel: InternalLogLevel;
-    switch (logLevel) {
-        case LogLevel.Info:
-            internalLogLevel = InternalLogLevel.Info;
-            break;
-        case LogLevel.Debug:
-            internalLogLevel = InternalLogLevel.Debug;
-            break;
-        case LogLevel.Warn:
-            internalLogLevel = InternalLogLevel.Warn;
-            break;
-        case LogLevel.Error:
-            internalLogLevel = InternalLogLevel.Error;
-            break;
-    }
-    updateLogLevel(internalLogLevel, prefix);
+    updateLogLevel(logLevel, prefix);
 }
 
 /**
@@ -86,10 +63,10 @@ export function setLogLevel(logLevel: LogLevel, prefix?: string): void {
  * @param prefix The optional prefix for which the log level should be reset.
  */
 export function disableLogging(prefix?: string): void {
-    if (logLevelsByPrefix[prefix] != null) {
-        logLevelsByPrefix[prefix] = InternalLogLevel.None;
-    } else {
-        globalLogLevel = InternalLogLevel.None;
+    if (prefix == null) {
+        globalLogLevel = null;
+    } else if (logLevelsByPrefix.has(prefix)) {
+        logLevelsByPrefix.set(prefix, null);
     }
 }
 
@@ -99,46 +76,80 @@ export function disableLogging(prefix?: string): void {
  * @param prefix The prefix for which the log level should be reset.
  */
 export function resetLoglevelForPrefix(prefix: string): void {
-    logLevelsByPrefix[prefix] = undefined;
+    logLevelsByPrefix.delete(prefix);
 }
 
-function printInfo(message: string) {
-    console.info(message);
+/**
+ * Type signature of a logger function.
+ */
+export type LoggerFunction = (message: string) => void;
+
+let infoLogger: LoggerFunction = (message: string) => console.info(message);
+
+let debugLogger: LoggerFunction = (message: string) => console.debug(message);
+
+let warnLogger: LoggerFunction = (message: string) => console.warn(message);
+
+let errorLogger: LoggerFunction = (message: string) => console.error(message);
+
+/**
+ * Type signature of functions that can be used for formatting log messages.
+ */
+export type LogMessageFormatter = (logLevel: LogLevel, prefix: string, message: string) => string;
+
+let messageFormatter: LogMessageFormatter = (loglevel: LogLevel, prefix: string, message: string) =>
+    `[${prefix}] ${message}`;
+
+export function setLogger(logLevel: LogLevel, loggerFunction: LoggerFunction): void {
+    switch (logLevel) {
+        case LogLevel.Info:
+            infoLogger = loggerFunction;
+            break;
+        case LogLevel.Debug:
+            debugLogger = loggerFunction;
+            break;
+        case LogLevel.Warn:
+            warnLogger = loggerFunction;
+            break;
+        case LogLevel.Error:
+            errorLogger = loggerFunction;
+            break;
+    }
 }
 
-function printDebug(message: string) {
-    console.log(message);
+/**
+ * Overrides the default formatting function with a custom one.
+ *
+ * This allows users to define custom format (e.g., different colors) based
+ * on the log level.
+ *
+ * @param messageFormatterFunction The new message formatting function.
+ */
+export function setMessageFormatter(messageFormatterFunction: LogMessageFormatter): void {
+    messageFormatter = messageFormatterFunction;
 }
 
-function printWarn(message: string) {
-    console.warn(message);
-}
+function log(logLevel: LogLevel, prefix: string, message: string): void {
+    const logLevelToCheck = logLevelsByPrefix.get(prefix) ?? globalLogLevel;
 
-function printError(message: string) {
-    console.error(message);
-}
-
-function log(logLevel: InternalLogLevel, prefix: string, message: string): void {
-    const logLevelToCheck = logLevelsByPrefix[prefix] ?? globalLogLevel;
-
-    if (logLevelToCheck > logLevel || logLevelToCheck === InternalLogLevel.None) {
+    if (logLevelToCheck > logLevel || logLevelToCheck == null) {
         return;
     }
 
-    const logMessage = `[${prefix}] ${message}`;
+    const logMessage = messageFormatter(logLevelToCheck, prefix, message);
 
     switch (logLevel) {
-        case InternalLogLevel.Info:
-            printInfo(logMessage);
+        case LogLevel.Info:
+            infoLogger(logMessage);
             break;
-        case InternalLogLevel.Debug:
-            printDebug(logMessage);
+        case LogLevel.Debug:
+            debugLogger(logMessage);
             break;
-        case InternalLogLevel.Warn:
-            printWarn(logMessage);
+        case LogLevel.Warn:
+            warnLogger(logMessage);
             break;
-        case InternalLogLevel.Error:
-            printError(logMessage);
+        case LogLevel.Error:
+            errorLogger(logMessage);
             break;
     }
 }
@@ -152,7 +163,7 @@ function log(logLevel: InternalLogLevel, prefix: string, message: string): void 
  * @param message The actual content of the log message.
  */
 export function logInfo(prefix: string, message: string): void {
-    log(InternalLogLevel.Info, prefix, message);
+    log(LogLevel.Info, prefix, message);
 }
 
 /**
@@ -164,7 +175,7 @@ export function logInfo(prefix: string, message: string): void {
  * @param message The actual content of the log message.
  */
 export function logDebug(prefix: string, message: string): void {
-    log(InternalLogLevel.Debug, prefix, message);
+    log(LogLevel.Debug, prefix, message);
 }
 
 /**
@@ -176,7 +187,7 @@ export function logDebug(prefix: string, message: string): void {
  * @param message The actual content of the log message.
  */
 export function logWarn(prefix: string, message: string): void {
-    log(InternalLogLevel.Warn, prefix, message);
+    log(LogLevel.Warn, prefix, message);
 }
 
 /**
@@ -188,5 +199,5 @@ export function logWarn(prefix: string, message: string): void {
  * @param message The actual content of the log message.
  */
 export function logError(prefix: string, message: string): void {
-    log(InternalLogLevel.Error, prefix, message);
+    log(LogLevel.Error, prefix, message);
 }
