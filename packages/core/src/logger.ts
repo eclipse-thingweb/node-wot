@@ -21,6 +21,20 @@ enum InternalLogLevel {
     None,
 }
 
+/**
+ * The four possible log levels, which have a strict hierachy, where
+ * `Info` is the lowest value and `Error` is the highest one.
+ *
+ * Calling a logging function will only result in a processed
+ * log message if the current log level or the log level defined
+ * for a prefix is at least as high as the log level associated with
+ * the logging function.
+ *
+ * For example, calling `logInfo` when the the current log level is set
+ * to `Debug` will result in no operation. Calling `logDebug` when the
+ * log level is set to `Info`, however, will result in a processed debug
+ * message.
+ */
 export enum LogLevel {
     Info,
     Debug,
