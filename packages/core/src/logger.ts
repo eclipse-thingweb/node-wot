@@ -121,7 +121,7 @@ function printError(message: string) {
 function log(logLevel: InternalLogLevel, prefix: string, message: string): void {
     const logLevelToCheck = logLevelsByPrefix[prefix] ?? globalLogLevel;
 
-    if (logLevelToCheck > logLevel || logLevel === InternalLogLevel.None) {
+    if (logLevelToCheck > logLevel || logLevelToCheck === InternalLogLevel.None) {
         return;
     }
 
