@@ -157,8 +157,6 @@ function log(logLevel: LogLevel, prefix: string, message: string): void {
 /**
  * Creates a new log message with log level `Info`.
  *
- * The prefix will be wrapped in square brackets in the resulting log message.
- *
  * @param prefix The prefix used for the message.
  * @param message The actual content of the log message.
  */
@@ -168,8 +166,6 @@ export function logInfo(prefix: string, message: string): void {
 
 /**
  * Creates a new log message with log level `Debug`.
- *
- * The prefix will be wrapped in square brackets in the resulting log message.
  *
  * @param prefix The prefix used for the message.
  * @param message The actual content of the log message.
@@ -181,8 +177,6 @@ export function logDebug(prefix: string, message: string): void {
 /**
  * Creates a new log message with log level `Warn`.
  *
- * The prefix will be wrapped in square brackets in the resulting log message.
- *
  * @param prefix The prefix used for the message.
  * @param message The actual content of the log message.
  */
@@ -192,8 +186,6 @@ export function logWarn(prefix: string, message: string): void {
 
 /**
  * Creates a new log message with log level `Error`.
- *
- * The prefix will be wrapped in square brackets in the resulting log message.
  *
  * @param prefix The prefix used for the message.
  * @param message The actual content of the log message.
