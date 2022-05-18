@@ -38,14 +38,6 @@ let globalLogLevel: LogLevel | null = null;
 
 const logLevelsByPrefix = new Map<string, LogLevel | null>();
 
-function updateLogLevel(logLevel: LogLevel, prefix?: string): void {
-    if (prefix == null) {
-        globalLogLevel = logLevel;
-    } else {
-        logLevelsByPrefix.set(prefix, logLevel);
-    }
-}
-
 /**
  * Sets a new log level either globally or, when defined, for a specific prefix.
  *
@@ -53,7 +45,11 @@ function updateLogLevel(logLevel: LogLevel, prefix?: string): void {
  * @param prefix The optional prefix for which the log level should be set.
  */
 export function setLogLevel(logLevel: LogLevel, prefix?: string): void {
-    updateLogLevel(logLevel, prefix);
+    if (prefix == null) {
+        globalLogLevel = logLevel;
+    } else {
+        logLevelsByPrefix.set(prefix, logLevel);
+    }
 }
 
 /**
@@ -92,14 +88,6 @@ let warnLogger: LoggerFunction = (message: string) => console.warn(message);
 
 let errorLogger: LoggerFunction = (message: string) => console.error(message);
 
-/**
- * Type signature of functions that can be used for formatting log messages.
- */
-export type LogMessageFormatter = (logLevel: LogLevel, prefix: string, message: string) => string;
-
-let messageFormatter: LogMessageFormatter = (loglevel: LogLevel, prefix: string, message: string) =>
-    `[${prefix}] ${message}`;
-
 export function setLogger(logLevel: LogLevel, loggerFunction: LoggerFunction): void {
     switch (logLevel) {
         case LogLevel.Info:
@@ -116,6 +104,14 @@ export function setLogger(logLevel: LogLevel, loggerFunction: LoggerFunction): v
             break;
     }
 }
+
+/**
+ * Type signature of functions that can be used for formatting log messages.
+ */
+export type LogMessageFormatter = (logLevel: LogLevel, prefix: string, message: string) => string;
+
+let messageFormatter: LogMessageFormatter = (loglevel: LogLevel, prefix: string, message: string) =>
+    `[${prefix}] ${message}`;
 
 /**
  * Overrides the default formatting function with a custom one.
