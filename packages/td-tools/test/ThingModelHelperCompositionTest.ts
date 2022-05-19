@@ -25,10 +25,7 @@ import { ExposedThingInit } from "wot-typescript-definitions";
 chai.use(chaiAsPromised);
 @suite("tests to verify the composition feature of Thing Model Helper")
 class ThingModelHelperCompositionTest {
-    private thingModelHelpers: ThingModelHelpers;
-    async before() {
-        this.thingModelHelpers = new ThingModelHelpers();
-    }
+    private thingModelHelpers: ThingModelHelpers = new ThingModelHelpers();
 
     async fetch(uri: string): Promise<unknown> {
         const data = await fsPromises.readFile(uri, "utf-8");
@@ -102,9 +99,9 @@ class ThingModelHelperCompositionTest {
         // eslint-disable-next-line dot-notation
         const extendedModel = await this.thingModelHelpers["composeModel"](model, modelInput, options);
         expect(extendedModel.length).to.be.equal(3);
-        expect(extendedModel[0]).to.be.deep.equal(finalModel);
-        expect(extendedModel[1]).to.be.deep.equal(finalModel1);
-        expect(extendedModel[2]).to.be.deep.equal(finalModel2);
+        expect(extendedModel[0]).to.be.deep.equal(finalModel, "FinalModel is not deep equal");
+        expect(extendedModel[1]).to.be.deep.equal(finalModel1, "FinalModel1 is not deep equal");
+        expect(extendedModel[2]).to.be.deep.equal(finalModel2, "FinalModel2 is not deep equal");
     }
 
     @test async "should correctly compose recursively a Thing Model with multiple partialTDs and extend/import"() {
@@ -123,7 +120,9 @@ class ThingModelHelperCompositionTest {
             baseUrl: "http://test.com",
             selfComposition: false,
         };
-        finalModel2.links[0].href = "http://test.com/VentilatorThingModelRecursive.td.jsonld";
+
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- the links in the model are not null
+        finalModel2.links![0]!.href = "http://test.com/VentilatorThingModelRecursive.td.jsonld";
         // eslint-disable-next-line dot-notation
         const extendedModel = await this.thingModelHelpers["composeModel"](model, modelInput, options);
         expect(extendedModel.length).to.be.equal(3);

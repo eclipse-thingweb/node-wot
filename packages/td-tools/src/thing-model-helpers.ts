@@ -66,7 +66,7 @@ export class ThingModelHelpers {
     static tsSchemaValidator = ajv.compile(tmSchema) as ValidateFunction;
 
     private deps: string[] = [] as string[];
-    private resolver: Resolver = undefined;
+    private resolver?: Resolver = undefined;
 
     constructor(_resolver?: Resolver) {
         if (_resolver) {
@@ -129,9 +129,9 @@ export class ThingModelHelpers {
      *
      * @experimental
      */
-    public static getModelVersion(data: ThingModel): string {
-        if (!("version" in data) || !("model" in data.version)) {
-            return null;
+    public static getModelVersion(data: ThingModel): string | undefined {
+        if (!("version" in data) || !(data.version && "model" in data.version)) {
+            return undefined;
         }
         return data.version.model as string;
     }
@@ -146,11 +146,11 @@ export class ThingModelHelpers {
      *
      * @experimental
      */
-    public static validateThingModel(data: ThingModel): { valid: boolean; errors: string } {
+    public static validateThingModel(data: ThingModel): { valid: boolean; errors?: string } {
         const isValid = ThingModelHelpers.tsSchemaValidator(data);
         let errors;
         if (!isValid) {
-            errors = ThingModelHelpers.tsSchemaValidator.errors.map((o: ErrorObject) => o.message).join("\n");
+            errors = ThingModelHelpers.tsSchemaValidator.errors?.map((o: ErrorObject) => o.message).join("\n");
         }
         return {
             valid: isValid,
@@ -239,7 +239,7 @@ export class ThingModelHelpers {
                                 console.debug("[td-tools]", "http fetched:", parsedData);
                                 resolve(parsedData);
                             } catch (e) {
-                                console.error(e.message);
+                                console.error("[td-tools]", (e as Error).message);
                             }
                         });
                     }).on("error", (e) => {
@@ -262,7 +262,7 @@ export class ThingModelHelpers {
                                     console.debug("[td-tools]", "https fetched:", parsedData);
                                     resolve(parsedData);
                                 } catch (e) {
-                                    console.error(e.message);
+                                    console.error("[td-tools]", (e as Error).message);
                                 }
                             });
                         })
@@ -322,10 +322,13 @@ export class ThingModelHelpers {
                 for (const aff in affRefs) {
                     const affUri = affRefs[aff] as string;
                     const refObj = this.parseTmRef(affUri);
+                    if (!refObj.uri) {
+                        throw new Error(`Missing remote path in ${affUri}`);
+                    }
                     let source = await this.fetchModel(refObj.uri);
                     [source] = await this._getPartialTDs(source);
                     delete (data[affType] as DataSchema)[aff]["tm:ref"];
-                    const importedAffordance = this.getRefAffordance(refObj, source);
+                    const importedAffordance = this.getRefAffordance(refObj, source) ?? {};
                     refObj.name = aff; // update the name of the affordance
                     modelInput.imports.push({ affordance: importedAffordance, ...refObj });
                 }
@@ -348,7 +351,7 @@ export class ThingModelHelpers {
         options?: CompositionOptions
     ): Promise<ThingModel[]> {
         let tmpThingModels = [] as ThingModel[];
-        const title = data.title.replace(/ /g, "");
+        const title = (data.title ?? "").replace(/ /g, "");
         if (!options) {
             options = {} as CompositionOptions;
         }
@@ -358,19 +361,22 @@ export class ThingModelHelpers {
         const newTMHref = this.returnNewTMHref(options.baseUrl, title);
         const newTDHref = this.returnNewTDHref(options.baseUrl, title);
         if ("extends" in modelObject) {
-            const extendObjs = modelObject.extends;
-            for (const key in extendObjs) {
-                const el = extendObjs[key];
-                data = ThingModelHelpers.extendThingModel(el, data);
+            const extendObjs = modelObject.extends ?? [];
+            for (const extendObj of extendObjs) {
+                data = ThingModelHelpers.extendThingModel(extendObj, data);
             }
             // remove the tm:extends links
-            data.links = data.links.filter((link) => link.rel !== "tm:extends");
+            data.links = data.links?.filter((link) => link.rel !== "tm:extends");
         }
         if ("imports" in modelObject) {
-            const importObjs = modelObject.imports;
-            for (const key in importObjs) {
-                const el = importObjs[key];
-                data = ThingModelHelpers.importAffordance(el.type, el.name, el.affordance, data);
+            const importObjs = modelObject.imports ?? [];
+            for (const importedObj of importObjs) {
+                data = ThingModelHelpers.importAffordance(
+                    importedObj.type,
+                    importedObj.name,
+                    importedObj.affordance,
+                    data
+                );
             }
         }
         if ("submodel" in modelObject) {
@@ -379,6 +385,12 @@ export class ThingModelHelpers {
             for (const key in submodelObj) {
                 const sub = submodelObj[key];
                 if (options.selfComposition) {
+                    if (!data.links) {
+                        throw new Error(
+                            "You used self composition but links are missing; they are needed to extract the instance name"
+                        );
+                    }
+
                     const index = data.links.findIndex((el) => el.href === key);
                     const el = data.links[index];
                     const instanceName = el.instanceName;
@@ -400,9 +412,9 @@ export class ThingModelHelpers {
                         }
                     }
                 } else {
-                    const subTitle = sub.title.replace(/ /g, "");
+                    const subTitle = (sub.title ?? "").replace(/ /g, "");
                     const subNewHref = this.returnNewTDHref(options.baseUrl, subTitle);
-                    if (!("links" in sub)) {
+                    if (!sub.links) {
                         sub.links = [];
                     }
                     sub.links.push({
@@ -416,7 +428,7 @@ export class ThingModelHelpers {
                 }
             }
         }
-        if (!("links" in data) || options.selfComposition) {
+        if (!data.links || options.selfComposition) {
             data.links = [];
         }
         // add reference to the thing model
@@ -433,7 +445,7 @@ export class ThingModelHelpers {
             data = this.fillPlaceholder(data, options.map);
         }
         tmpThingModels.unshift(data); // put itself as first element
-        tmpThingModels = tmpThingModels.map((el) => this.fillPlaceholder(el, options.map)); // TODO: make more efficient, since repeated each recursive call
+        tmpThingModels = tmpThingModels.map((el) => this.fillPlaceholder(el, options?.map)); // TODO: make more efficient, since repeated each recursive call
         if (this.deps.length > 0) {
             this.removeDependency();
         }
@@ -471,8 +483,11 @@ export class ThingModelHelpers {
         extendedModel = { ...source, ...dest };
         // TODO: implement validation for extending
         if (properties) {
+            if (!extendedModel.properties) {
+                extendedModel.properties = {};
+            }
             for (const key in properties) {
-                if (dest.properties && key in dest.properties) {
+                if (dest.properties && dest.properties[key]) {
                     extendedModel.properties[key] = { ...properties[key], ...dest.properties[key] };
                 } else {
                     extendedModel.properties[key] = properties[key];
@@ -480,6 +495,9 @@ export class ThingModelHelpers {
             }
         }
         if (actions) {
+            if (!extendedModel.actions) {
+                extendedModel.actions = {};
+            }
             for (const key in actions) {
                 if (dest.actions && key in dest.actions) {
                     extendedModel.actions[key] = { ...actions[key], ...dest.actions[key] };
@@ -489,6 +507,9 @@ export class ThingModelHelpers {
             }
         }
         if (events) {
+            if (!extendedModel.events) {
+                extendedModel.events = {};
+            }
             for (const key in events) {
                 if (dest.events && key in dest.events) {
                     extendedModel.events[key] = { ...events[key], ...dest.events[key] };
@@ -506,18 +527,32 @@ export class ThingModelHelpers {
         source: DataSchema,
         dest: ThingModel
     ): ThingModel {
-        const d = dest[affordanceType][affordanceName];
-        dest[affordanceType][affordanceName] = { ...source, ...d };
-        for (const key in dest[affordanceType][affordanceName]) {
-            if (dest[affordanceType][affordanceName][key] === null) {
-                delete dest[affordanceType][affordanceName][key];
+        if (!dest[affordanceType]) {
+            dest[affordanceType] = {};
+        }
+        /* eslint-disable @typescript-eslint/no-non-null-assertion */
+        // tsc doesn't know that dest[affordanceType] is not null
+        const d = dest[affordanceType]![affordanceName];
+        dest[affordanceType]![affordanceName] = { ...source, ...d };
+        for (const key in dest[affordanceType]![affordanceName]) {
+            if (dest[affordanceType]![affordanceName][key] === undefined) {
+                delete dest[affordanceType]![affordanceName][key];
             }
         }
+        /* eslint-enable @typescript-eslint/no-non-null-assertion */
         return dest;
     }
 
     private static formatSubmodelLink(source: ThingModel, oldHref: string, newHref: string) {
+        if (!source.links) {
+            throw new Error("Links are missing");
+        }
+
         const index = source.links.findIndex((el) => el.href === oldHref);
+        if (index === -1) {
+            throw new Error("Link not found");
+        }
+
         const el = source.links[index];
         if ("instanceName" in el) {
             delete el.instanceName;
@@ -539,26 +574,29 @@ export class ThingModelHelpers {
         return { uri: thingModelUri, type: affordaceType, name: affordaceName };
     }
 
-    private getRefAffordance(obj: ModelImportsInput, thing: ThingModel): DataSchema {
+    private getRefAffordance(obj: ModelImportsInput, thing: ThingModel): DataSchema | undefined {
         const affordanceType = obj.type;
         const affordanceKey = obj.name;
         if (!(affordanceType in thing)) {
-            return null;
+            return undefined;
         }
         const affordances = thing[affordanceType] as DataSchema;
         if (!(affordanceKey in affordances)) {
-            return null;
+            return undefined;
         }
         return affordances[affordanceKey];
     }
 
-    private fillPlaceholder(data: Record<string, unknown>, map: Record<string, unknown>): ThingModel {
+    private fillPlaceholder(data: Record<string, unknown>, map: Record<string, unknown> = {}): ThingModel {
         const placeHolderReplacer = new JsonPlaceholderReplacer();
         placeHolderReplacer.addVariableMap(map);
         return placeHolderReplacer.replace(data) as ThingModel;
     }
 
-    private checkPlaceholderMap(model: ThingModel, map: Record<string, unknown>): { valid: boolean; errors: string } {
+    private checkPlaceholderMap(
+        model: ThingModel,
+        map: Record<string, unknown> = {}
+    ): { valid: boolean; errors?: string } {
         const regex = "{{.*?}}";
         const modelString = JSON.stringify(model);
         // first check if model needs map

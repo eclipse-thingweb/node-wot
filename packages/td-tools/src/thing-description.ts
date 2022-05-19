@@ -39,6 +39,8 @@ export default class Thing implements TDT.ThingDescription {
     constructor() {
         this["@context"] = [DEFAULT_CONTEXT_V1, DEFAULT_CONTEXT_V11];
         this["@type"] = DEFAULT_THING_TYPE;
+        this.title = "";
+        this.securityDefinitions = {};
         this.security = "";
         this.properties = {};
         this.actions = {};
