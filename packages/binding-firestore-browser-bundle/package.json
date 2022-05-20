@@ -1,6 +1,6 @@
 {
     "name": "@node-wot/binding-firestore-browser-bundle",
-    "version": "0.8.1",
+    "version": "0.8.2",
     "description": "A binding-firestore bundle that can run in a web browser",
     "repository": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-firestore-browser-bundle",
     "publishConfig": {
@@ -17,7 +17,7 @@
         "tinyify": "2.5.2"
     },
     "dependencies": {
-        "@node-wot/binding-firestore": "0.8.1"
+        "@node-wot/binding-firestore": "0.8.2"
     },
     "scripts": {
         "build": "browserify -r vm:vm2 index.js --external coffee-script -o dist/binding-firestore-bundle.js"
