@@ -50,21 +50,7 @@ export default class Thing implements TDT.ThingDescription {
 }
 
 /** Basis from implementing the Thing Interaction descriptions for Property, Action, and Event */
-export interface ThingInteraction {
-    title?: TDT.Title;
-    titles?: TDT.Titles;
-    description?: TDT.Description;
-    descriptions?: TDT.Descriptions;
-    scopes?: Array<string>;
-    uriVariables?: {
-        [key: string]: DataSchema;
-    };
-    security?: Array<string>;
-    forms?: Array<Form>;
-
-    // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-    [key: string]: any;
-}
+export type ThingInteraction = TDT.PropertyElement | TDT.ActionElement | TDT.EventElement;
 
 /** Implements the Interaction Form description */
 export class Form implements TDT.FormElementBase {
@@ -190,7 +176,7 @@ export interface OAuth2SecurityScheme extends SecurityScheme, TDT.OAuth2Security
 }
 
 /** Implements the Thing Property description */
-export abstract class ThingProperty extends BaseSchema implements ThingInteraction {
+export abstract class ThingProperty extends BaseSchema {
     // writable: boolean;
     observable?: boolean;
     type?: string;
@@ -213,7 +199,7 @@ export abstract class ThingProperty extends BaseSchema implements ThingInteracti
 }
 
 /** Implements the Thing Action description */
-export abstract class ThingAction implements ThingInteraction {
+export abstract class ThingAction {
     input?: DataSchema;
     output?: DataSchema;
     safe?: boolean;
@@ -236,7 +222,7 @@ export abstract class ThingAction implements ThingInteraction {
     [key: string]: any;
 }
 /** Implements the Thing Event description */
-export abstract class ThingEvent implements ThingInteraction {
+export abstract class ThingEvent {
     subscription?: DataSchema;
     data?: DataSchema;
     cancellation?: DataSchema;

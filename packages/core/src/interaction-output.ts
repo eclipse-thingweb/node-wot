@@ -31,7 +31,7 @@ const ajv = new Ajv({ strict: false });
 export class InteractionOutput implements WoT.InteractionOutput {
     private content: Content;
     private parsedValue: unknown;
-    private buffer: ArrayBuffer;
+    private buffer?: ArrayBuffer;
     data?: ReadableStream;
     dataUsed: boolean;
     form?: WoT.Form;
@@ -41,6 +41,7 @@ export class InteractionOutput implements WoT.InteractionOutput {
         this.content = content;
         this.form = form;
         this.schema = schema;
+        this.dataUsed = false;
 
         if (content && content.body) {
             this.data = ProtocolHelpers.toWoTStream(content.body) as ReadableStream;
@@ -75,7 +76,8 @@ export class InteractionOutput implements WoT.InteractionOutput {
         this.buffer = data;
 
         // call the contentToValue
-        const value = ContentSerdes.get().contentToValue({ type: this.content.type, body: data }, this.schema);
+        // TODO: should be fixed contentToValue MUST define schema as nullable
+        const value = ContentSerdes.get().contentToValue({ type: this.content.type, body: data }, this.schema ?? {});
 
         // any data (schema)?
         if (this.schema) {

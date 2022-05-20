@@ -47,11 +47,15 @@ export default class OctetstreamCodec implements ContentCodec {
         return "application/octet-stream";
     }
 
-    bytesToValue(bytes: Buffer, schema: DataSchema, parameters?: { [key: string]: string }): DataSchemaValue {
+    bytesToValue(
+        bytes: Buffer,
+        schema: DataSchema,
+        parameters: { [key: string]: string | undefined } = {}
+    ): DataSchemaValue {
         // console.debug(`OctetstreamCodec parsing '${bytes.toString()}'`);
 
-        const bigendian = parameters.byteorder ? parameters.byteorder === "bigendian" : true;
-        let signed = parameters.signed ? parameters.signed === "true" : false;
+        const bigendian = parameters.byteorder !== "littleendian"; // default to big endian
+        let signed = parameters.signed !== "false"; // default to signed
 
         // check length if specified
         if (parameters.length && parseInt(parameters.length) !== bytes.length) {
@@ -160,15 +164,15 @@ export default class OctetstreamCodec implements ContentCodec {
         }
     }
 
-    valueToBytes(value: unknown, schema: DataSchema, parameters?: { [key: string]: string }): Buffer {
+    valueToBytes(value: unknown, schema: DataSchema, parameters: { [key: string]: string | undefined } = {}): Buffer {
         // console.debug(`OctetstreamCodec serializing '${value}'`);
 
         if (!parameters.length) {
             console.warn("[core/octetstream-codec]", "Missing 'length' parameter necessary for write. I'll do my best");
         }
 
-        const bigendian = parameters.byteorder ? parameters.byteorder === "bigendian" : true;
-        let signed = parameters.signed ? parameters.signed === "true" : true; // default is signed
+        const bigendian = parameters.byteorder !== "littleendian"; // default to bigendian
+        let signed = parameters.signed !== "false"; // if signed is undefined -> true (default)
         let length = parameters.length ? parseInt(parameters.length) : undefined;
         let buf: Buffer;
 
@@ -192,7 +196,7 @@ export default class OctetstreamCodec implements ContentCodec {
 
         switch (dataType) {
             case "boolean":
-                return Buffer.alloc(length, value ? 255 : 0);
+                return Buffer.alloc(length ?? 1, value ? 255 : 0);
             case "byte":
             case "short":
             case "int":
@@ -302,7 +306,7 @@ export default class OctetstreamCodec implements ContentCodec {
                 throw new Error("Unable to handle object type " + dataType);
 
             case "null":
-                return null;
+                return Buffer.alloc(0);
             default:
                 throw new Error("Unable to handle object type " + dataType);
         }

@@ -284,8 +284,8 @@ class WoTServerTest {
 
         // Check internals, how to to check handlers properly with *some* type-safety
         const expThing = thing as ExposedThing;
-        const readHandler = expThing.__propertyHandlers.get("my number").readHandler;
-        const ff = await readHandler();
+        const readHandler = expThing.__propertyHandlers.get("my number")?.readHandler;
+        const ff = await readHandler?.();
         expect(ff).to.equal(1);
     }
 
@@ -864,7 +864,11 @@ class WoTServerTest {
         });
         thing.setPropertyWriteHandler("test", callback);
 
-        await (<ExposedThing>thing).handleWriteProperty("test", { type: "", body: undefined }, { formIndex: 0 });
+        await (<ExposedThing>thing).handleWriteProperty(
+            "test",
+            { type: "", body: Readable.from(Buffer.alloc(0)) },
+            { formIndex: 0 }
+        );
 
         callback.should.have.been.called();
     }
@@ -885,7 +889,7 @@ class WoTServerTest {
         });
         const callback = spy();
         await (<ExposedThing>thing).handleSubscribeEvent("test", callback, { formIndex: 0 });
-        (<ExposedThing>thing).emitEvent("test", undefined);
+        (<ExposedThing>thing).emitEvent("test", null);
 
         callback.should.have.been.called();
     }
@@ -935,9 +939,9 @@ class WoTServerTest {
         });
         thing.setEventSubscribeHandler("test", handler);
         await (<ExposedThing>thing).handleSubscribeEvent("test", callback, { formIndex: 0 });
-        (<ExposedThing>thing).emitEvent("test", undefined);
+        (<ExposedThing>thing).emitEvent("test", null);
         (<ExposedThing>thing).handleUnsubscribeEvent("test", callback, { formIndex: 0 });
-        (<ExposedThing>thing).emitEvent("test", undefined);
+        (<ExposedThing>thing).emitEvent("test", null);
 
         return expect(callback).to.have.been.called.once;
     }

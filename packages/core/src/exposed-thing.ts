@@ -47,22 +47,22 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 
     id: string;
     title: string;
-    base: string;
-    forms: Array<TD.Form>;
+    base?: string;
+    forms?: Array<TD.Form>;
 
     /** A map of interactable Thing Properties with read()/write()/subscribe() functions */
     properties: {
-        [key: string]: TD.ThingProperty;
+        [key: string]: TDT.PropertyElement;
     };
 
     /** A map of interactable Thing Actions with invoke() function */
     actions: {
-        [key: string]: TD.ThingAction;
+        [key: string]: TDT.ActionElement;
     };
 
     /** A map of interactable Thing Events with emit() function */
     events: {
-        [key: string]: TD.ThingEvent;
+        [key: string]: TDT.EventElement;
     };
 
     /** A map of property (read & write) handler callback functions */
@@ -95,7 +95,15 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                 return this.subjectTDChange;
             };
         })().getSubject;
-
+        // The init object might still have undefined values, so initialize them here.
+        // TODO: who checks that those are valid?
+        this.id = thingModel.id || "";
+        this.title = thingModel.title || "";
+        this.security = "";
+        this.securityDefinitions = {};
+        this.properties = {};
+        this.actions = {};
+        this.events = {};
         // Deep clone the Thing Model
         // without functions or methods
         const clonedModel = JSON.parse(JSON.stringify(thingModel));
@@ -235,7 +243,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                     }
                 } */
                     // inform TD observers that thing is gone
-                    this.getSubjectTD().next(null);
+                    this.getSubjectTD().next();
                     // resolve with success
                     resolve();
                 })
@@ -257,9 +265,8 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                     `ExposedThing '${this.title}' cannot set read handler for property '${propertyName}' due to writeOnly flag`
                 );
             } else {
-                let propertyHandler;
-                if (this.__propertyHandlers.has(propertyName)) {
-                    propertyHandler = this.__propertyHandlers.get(propertyName);
+                let propertyHandler = this.__propertyHandlers.get(propertyName);
+                if (propertyHandler) {
                     propertyHandler.readHandler = handler;
                 } else {
                     propertyHandler = { readHandler: handler };
@@ -286,9 +293,8 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                     `ExposedThing '${this.title}' cannot set write handler for property '${propertyName}' due to readOnly flag`
                 );
             } else {
-                let propertyHandler;
-                if (this.__propertyHandlers.has(propertyName)) {
-                    propertyHandler = this.__propertyHandlers.get(propertyName);
+                let propertyHandler = this.__propertyHandlers.get(propertyName);
+                if (propertyHandler) {
                     propertyHandler.writeHandler = handler;
                 } else {
                     propertyHandler = { writeHandler: handler };
@@ -315,9 +321,8 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                     `ExposedThing '${this.title}' cannot set observe handler for property '${name}' since the observable flag is set to false`
                 );
             } else {
-                let propertyHandler;
-                if (this.__propertyHandlers.has(name)) {
-                    propertyHandler = this.__propertyHandlers.get(name);
+                let propertyHandler = this.__propertyHandlers.get(name);
+                if (propertyHandler) {
                     propertyHandler.observeHandler = handler;
                 } else {
                     propertyHandler = { observeHandler: handler };
@@ -343,9 +348,8 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                     `ExposedThing '${this.title}' cannot set unobserve handler for property '${name}' due to missing observable flag`
                 );
             } else {
-                let propertyHandler;
-                if (this.__propertyHandlers.has(name)) {
-                    propertyHandler = this.__propertyHandlers.get(name);
+                let propertyHandler = this.__propertyHandlers.get(name);
+                if (propertyHandler) {
                     propertyHandler.unobserveHandler = handler;
                 } else {
                     propertyHandler = { unobserveHandler: handler };
@@ -381,9 +385,8 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         );
 
         if (this.events[name]) {
-            let eventHandler;
-            if (this.__eventHandlers.has(name)) {
-                eventHandler = this.__eventHandlers.get(name);
+            let eventHandler = this.__eventHandlers.get(name);
+            if (eventHandler) {
                 eventHandler.subscribe = handler;
             } else {
                 eventHandler = { subscribe: handler };
@@ -404,9 +407,8 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         );
 
         if (this.events[name]) {
-            let eventHandler;
-            if (this.__eventHandlers.has(name)) {
-                eventHandler = this.__eventHandlers.get(name);
+            let eventHandler = this.__eventHandlers.get(name);
+            if (eventHandler) {
                 eventHandler.unsubscribe = handler;
             } else {
                 eventHandler = { unsubscribe: handler };
@@ -424,9 +426,8 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         console.debug("[core/exposed-thing]", `ExposedThing '${this.title}' setting event handler for '${name}'`);
 
         if (this.events[name]) {
-            let eventHandler;
-            if (this.__eventHandlers.has(name)) {
-                eventHandler = this.__eventHandlers.get(name);
+            let eventHandler = this.__eventHandlers.get(name);
+            if (eventHandler) {
                 eventHandler.handler = handler;
             } else {
                 eventHandler = { handler: handler };
@@ -622,12 +623,15 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             if (!form) {
                 continue;
             }
-            promises.push(this.handleWriteProperty(propertyName, valueMap.get(propertyName), options));
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- we know that the property exists
+            promises.push(this.handleWriteProperty(propertyName, valueMap.get(propertyName)!, options));
         }
         try {
             await Promise.all(promises);
         } catch (error) {
-            throw new Error(`ExposedThing '${this.title}', failed to write multiple properties. ${error.message}`);
+            throw new Error(
+                `ExposedThing '${this.title}', failed to write multiple properties. ${(<Error>error).message}`
+            );
         }
     }
 

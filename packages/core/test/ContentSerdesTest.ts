@@ -156,7 +156,7 @@ class SerdesCodecTests {
 
     @test "new codec should deserialize"() {
         const buffer = Buffer.from("Some actual meaningful stuff");
-        ContentSerdes.contentToValue({ type: "text/hodor", body: buffer }, { type: "string" }).should.deep.equal(
+        expect(ContentSerdes.contentToValue({ type: "text/hodor", body: buffer }, { type: "string" })).to.be.deep.equal(
             "Hodor"
         );
     }

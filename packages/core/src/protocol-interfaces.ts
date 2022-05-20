@@ -58,7 +58,7 @@ export interface ProtocolClient {
     writeResource(form: TD.Form, content: Content): Promise<void>;
 
     /** this client is requested to perform an "invoke" on the resource with the given URI */
-    invokeResource(form: TD.Form, content: Content): Promise<Content>;
+    invokeResource(form: TD.Form, content?: Content): Promise<Content>;
 
     /** this client is requested to perform an "unlink" on the resource with the given URI */
     unlinkResource(form: TD.Form): Promise<void>;

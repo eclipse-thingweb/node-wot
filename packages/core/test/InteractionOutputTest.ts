@@ -39,10 +39,12 @@ class InteractionOutputTests {
 
         const out = new InteractionOutput(content, {});
         const result = [];
-        const reader = out.data.getReader();
+        const reader = out.data?.getReader();
+        expect(reader).not.to.be.undefined;
         let read;
         do {
-            read = await reader.read();
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- we know it's defined: expect(reader).not.to.be.undefined
+            read = await reader!.read();
             !read.done && result.push(read.value);
         } while (read.done !== true);
 

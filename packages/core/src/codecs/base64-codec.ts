@@ -35,7 +35,7 @@ export default class Base64Codec implements ContentCodec {
     valueToBytes(value: unknown, schema: DataSchema, parameters?: { [key: string]: string }): Buffer {
         let body = "";
         if (value !== undefined) {
-            body = value.toString();
+            body = JSON.stringify(value);
         }
         return Buffer.from(body, "base64");
     }

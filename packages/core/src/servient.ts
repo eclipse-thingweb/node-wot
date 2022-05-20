@@ -48,12 +48,18 @@ export default class Servient {
         // initializing forms fields
         thing.forms = [];
         for (const name in thing.properties) {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
             thing.properties[name].forms = [];
         }
         for (const name in thing.actions) {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
             thing.actions[name].forms = [];
         }
         for (const name in thing.events) {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
             thing.events[name].forms = [];
         }
 
@@ -70,7 +76,7 @@ export default class Servient {
     }
 
     public addThing(thing: ExposedThing): boolean {
-        if (thing.id === undefined) {
+        if (thing.id === undefined || thing.id === null || thing.id.length === 0) {
             thing.id = "urn:uuid:" + v4();
             console.warn("[core/servient]", `Servient generating ID for '${thing.title}': '${thing.id}'`);
         }
@@ -106,10 +112,10 @@ export default class Servient {
         });
     }
 
-    public getThing(id: string): ExposedThing {
+    public getThing(id: string): ExposedThing | undefined {
         if (this.things.has(id)) {
             return this.things.get(id);
-        } else return null;
+        } else return undefined;
     }
 
     // FIXME should be getThingDescriptions (breaking change)
@@ -148,9 +154,10 @@ export default class Servient {
     }
 
     public getClientFor(scheme: string): ProtocolClient {
-        if (this.clientFactories.has(scheme)) {
+        const clientFactory = this.clientFactories.get(scheme);
+        if (clientFactory) {
             console.debug("[core/servient]", `Servient creating client for scheme '${scheme}'`);
-            return this.clientFactories.get(scheme).getClient();
+            return clientFactory.getClient();
         } else {
             // FIXME returning null was bad - Error or Promise?
             // h0ru5: caller cannot react gracefully - I'd throw Error
@@ -166,7 +173,7 @@ export default class Servient {
         if (typeof credentials === "object") {
             for (const i in credentials) {
                 console.debug("[core/servient]", `Servient storing credentials for '${i}'`);
-                let currentCredentials: Array<unknown> = this.credentialStore.get(i);
+                let currentCredentials = this.credentialStore.get(i);
                 if (!currentCredentials) {
                     currentCredentials = [];
                     this.credentialStore.set(i, currentCredentials);
@@ -183,7 +190,7 @@ export default class Servient {
      */
     public getCredentials(identifier: string): unknown {
         console.debug("[core/servient]", `Servient looking up credentials for '${identifier}' (@deprecated)`);
-        const currentCredentials: Array<unknown> = this.credentialStore.get(identifier);
+        const currentCredentials = this.credentialStore.get(identifier);
         if (currentCredentials && currentCredentials.length > 0) {
             // return first
             return currentCredentials[0];
@@ -192,7 +199,7 @@ export default class Servient {
         }
     }
 
-    public retrieveCredentials(identifier: string): Array<unknown> {
+    public retrieveCredentials(identifier: string): Array<unknown> | undefined {
         console.debug("[core/servient]", `Servient looking up credentials for '${identifier}'`);
         return this.credentialStore.get(identifier);
     }
