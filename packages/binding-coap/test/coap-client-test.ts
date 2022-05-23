@@ -67,7 +67,7 @@ class CoapClientTest {
         // read with POST instead of GET
         await client.readResource({
             href: "coap://localhost:56833/",
-            "coap:methodCode": 2 // POST
+            "cov:method": "POST"
         });
         expect(testThing.expect).to.equal("POST");
         testVector.expect = "UNSET";
@@ -75,7 +75,7 @@ class CoapClientTest {
         // write with POST instead of PUT
         representation = await client.writeResource({
             href: "coap://localhost:56833/",
-            "coap:methodCode": 2 // POST
+            "cov:method": "POST"
         }, { contentType: ContentSerdes.DEFAULT, body: Buffer.from("test") });
         expect(testVector.expect).to.equal("POST");
         testVector.expect = "UNSET";
@@ -83,7 +83,7 @@ class CoapClientTest {
         // invoke with PUT instead of POST
         representation = await client.invokeResource({
             href: "coap://localhost:56833/",
-            "coap:methodCode": 3 // PUT
+            "cov:method": "PUT"
         }, { contentType: ContentSerdes.DEFAULT, body: Buffer.from("test") });
         expect(testVector.expect).to.equal("PUT");
         testVector.expect = "UNSET";
@@ -91,7 +91,7 @@ class CoapClientTest {
         // invoke with DELETE instead of POST
         representation = await client.invokeResource({
             href: "coap://localhost:56833/",
-            "coap:methodCode": 4 // DELETE
+            "cov:method": "DELETE"
         }, { contentType: ContentSerdes.DEFAULT, body: Buffer.from("test") });
         expect(testVector.expect).to.equal("DELETE");
         testVector.expect = "UNSET";
@@ -117,7 +117,7 @@ class CoapClientTest {
         const coapClient = new CoapClient(coapServer);
         const form: CoapForm = {
             href: `coap://127.0.0.1:${port2}`,
-            "cov:methodName": "GET",
+            "cov:method": "GET",
         };
         const subscription = await coapClient.subscribeResource(form, (value) => {
             /**  */

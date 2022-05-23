@@ -211,8 +211,8 @@ export default class CoapsClient implements ProtocolClient {
 
         let method;
 
-        if (form["cov:methodName"] != null) {
-            const formMethodName = form["cov:methodName"];
+        if (form["cov:method"] != null) {
+            const formMethodName = form["cov:method"];
             debug(`CoapClient got Form "methodName" ${formMethodName}`);
             method = this.determineRequestMethod(formMethodName, defaultMethod);
         } else {
