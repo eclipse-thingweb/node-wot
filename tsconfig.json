@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "target": "es6",
+        "target": "es2018",
         "lib": ["dom"],
         "skipLibCheck": false,
         "module": "commonjs",
