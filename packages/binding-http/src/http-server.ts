@@ -744,6 +744,7 @@ export default class HttpServer implements ProtocolServer {
                                         res.setTimeout(60 * 60 * 1000, () =>
                                             thing.handleUnobserveProperty(segments[3], listener, options)
                                         );
+                                        return;
                                     } else {
                                         try {
                                             const content = await thing.handleReadProperty(segments[3], options);
