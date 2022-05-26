@@ -43,6 +43,7 @@ class ThingDiscoveryImpl implements AsyncIterable<ThingDescription> {
                 }
                 const response = await fetch(this.filter.url);
                 const parsedTd = await response.json();
+                this.active = false;
                 yield new Promise<ThingDescription>(resolve => resolve(parsedTd));
                 break;
             }
