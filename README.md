@@ -210,7 +210,7 @@ Then, you don't need to specify any further node-wot dependencies and can implem
 (e.g., `main.js`) without explicitly requiring node-wot dependencies:
 
 ```JavaScript
-//No need to require node-wot componets
+// No need to require node-wot components
 // WoT runtime is provided as global object
 
 WoT.produce({/*.....*/})
