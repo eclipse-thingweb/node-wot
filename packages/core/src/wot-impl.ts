@@ -23,6 +23,7 @@ import { ThingDescription } from "wot-thing-description-types";
 import { createLoggers } from "./logger";
 
 const { debug } = createLoggers("core", "wot-impl");
+import fetch from "node-fetch";
 
 class ThingDiscoveryImpl implements AsyncIterable<ThingDescription> {
 
@@ -40,7 +41,6 @@ class ThingDiscoveryImpl implements AsyncIterable<ThingDescription> {
                 if (!this.active) {
                     return;
                 }
-
                 const response = await fetch(this.filter.url);
                 const parsedTd = await response.json();
                 yield new Promise<ThingDescription>(resolve => resolve(parsedTd));
@@ -81,8 +81,8 @@ export default class WoTImpl {
     }
 
     /** @inheritDoc */
-     discover(filter?: WoT.ThingFilter): ThingDiscoveryImpl {
-        return new ThingDiscoveryImpl(filter);
+    discover(filter?: WoT.ThingFilter): WoT.ThingDiscovery {
+        return new ThingDiscoveryImpl(filter) as unknown as WoT.ThingDiscovery;
     }
 
     /** @inheritDoc */

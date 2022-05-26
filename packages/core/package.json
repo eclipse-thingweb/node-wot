@@ -48,6 +48,7 @@
         "@petamoriken/float16": "^3.1.1",
         "ajv": "^7.0.4",
         "debug": "^4.3.4",
+        "node-fetch": "^2.6.7",
         "rxjs": "5.5.11",
         "uritemplate": "0.3.4",
         "uuid": "^7.0.3",
