@@ -31,6 +31,7 @@ import {
 } from "./firestore-handler";
 import * as TD from "@node-wot/td-tools";
 import { Subscription } from "rxjs/Subscription";
+import { ThingDescription } from "wot-typescript-definitions";
 
 type Firestore = Firebase.firestore.Firestore;
 
@@ -268,5 +269,9 @@ export default class FirestoreClient implements ProtocolClient {
         // Firestore provides security for the communication channel
         // Should we be able to set security on a per-Thing basis in the future?
         return true;
+    }
+
+    discoverDirectly(uri: string): Promise<ThingDescription> {
+        throw new Error("Method not implemented.");
     }
 }

@@ -23,6 +23,7 @@ import { SecurityScheme } from "@node-wot/td-tools";
 import { MBusConnection, PropertyOperation } from "./mbus-connection";
 
 import { Subscription } from "rxjs/Subscription";
+import { ThingDescription } from "wot-typescript-definitions";
 
 const debug = createDebugLogger("binding-mbus", "mbus-client");
 
@@ -141,5 +142,9 @@ export default class MBusClient implements ProtocolClient {
         result["mbus:timeout"] = form["mbus:timeout"] ? form["mbus:timeout"] : DEFAULT_TIMEOUT;
 
         return result;
+    }
+
+    discoverDirectly(uri: string): Promise<ThingDescription> {
+        throw new Error("Method not implemented.");
     }
 }

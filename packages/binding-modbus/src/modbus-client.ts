@@ -23,6 +23,7 @@ import { modbusFunctionToEntity } from "./utils";
 import { ModbusConnection, PropertyOperation } from "./modbus-connection";
 import { Readable } from "stream";
 import { Subscription } from "rxjs/Subscription";
+import { ThingDescription } from "wot-typescript-definitions";
 
 const debug = createDebugLogger("binding-modbus", "modbus-client");
 
@@ -295,5 +296,9 @@ export default class ModbusClient implements ProtocolClient {
         result["modbus:timeout"] = form["modbus:timeout"] ? form["modbus:timeout"] : DEFAULT_TIMEOUT;
 
         return result;
+    }
+
+    discoverDirectly(uri: string): Promise<ThingDescription> {
+        throw new Error("Method not implemented.");
     }
 }

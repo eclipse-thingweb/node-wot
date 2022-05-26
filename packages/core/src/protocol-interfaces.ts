@@ -19,6 +19,8 @@ import { Subscription } from "rxjs/Subscription";
 
 import Servient from "./servient";
 import ExposedThing from "./exposed-thing";
+import { ThingDescription } from "wot-typescript-definitions";
+
 export interface Content {
     type: string;
     body: NodeJS.ReadableStream;
@@ -62,6 +64,8 @@ export interface ProtocolClient {
 
     /** this client is requested to perform an "unlink" on the resource with the given URI */
     unlinkResource(form: TD.Form): Promise<void>;
+
+    discoverDirectly(uri: string): Promise<ThingDescription>;
 
     subscribeResource(
         form: TD.Form,
