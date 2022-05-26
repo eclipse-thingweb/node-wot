@@ -7,7 +7,7 @@
             "request": "launch",
             "name": "Launch Counter-Client",
             "program": "${workspaceRoot}/packages/cli/dist/cli.js",
-            "args": ["--clientonly", "counter-client.js"],
+            "args": ["--client-only", "counter-client.js"],
             "cwd": "${workspaceRoot}/examples/scripts/"
         },
         {

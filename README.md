@@ -394,7 +394,7 @@ Without the "Link Packages" step, the `wot-servient` command is not available an
 # expose
 node packages\cli\dist\cli.js examples\scripts\counter.js
 # consume
-node packages\cli\dist\cli.js --clientonly examples\scripts\counter-client.js
+node packages\cli\dist\cli.js --client-only examples\scripts\counter-client.js
 ```
 
 -   Go to http://localhost:8080/counter and you'll find a thing description
@@ -410,7 +410,7 @@ First [build the docker image](#as-a-docker-image) and then run the counter exam
 # expose
 docker run -it --init -p 8080:8080/tcp -p 5683:5683/udp -v "$(pwd)"/examples:/srv/examples --rm wot-servient /srv/examples/scripts/counter.js
 # consume
-docker run -it --init -v "$(pwd)"/examples:/srv/examples --rm --net=host wot-servient /srv/examples/scripts/counter-client.js --clientonly
+docker run -it --init -v "$(pwd)"/examples:/srv/examples --rm --net=host wot-servient /srv/examples/scripts/counter-client.js --client-only
 ```
 
 -   The counter exposes the HTTP endpoint at 8080/tcp and the CoAP endpoint at 5683/udp and they are bound to the host machine (with `-p 8080:8080/tcp -p 5683:5683/udp`).
