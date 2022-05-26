@@ -19,9 +19,57 @@ import Servient from "./servient";
 import ExposedThing from "./exposed-thing";
 import ConsumedThing from "./consumed-thing";
 import Helpers from "./helpers";
+import { ThingDescription } from "wot-thing-description-types";
 import { createLoggers } from "./logger";
 
 const { debug } = createLoggers("core", "wot-impl");
+
+class ThingDiscoveryImpl implements AsyncIterable<ThingDescription> {
+
+    filter: WoT.ThingFilter;
+
+    active = true;
+
+    constructor(filter: WoT.ThingFilter) {
+        this.filter = filter;
+    }
+
+    async*[Symbol.asyncIterator](): AsyncIterator<ThingDescription> {
+        switch (this.filter.method) {
+            case "direct": {
+                if (!this.active) {
+                    return;
+                }
+
+                const response = await fetch(this.filter.url);
+                const parsedTd = await response.json();
+                yield new Promise<ThingDescription>(resolve => resolve(parsedTd));
+                break;
+            }
+            default:
+                throw Error("Only the direct discovery method has been implemented yet.");
+        }
+    }
+
+    public stop(): void {
+        this.active = false;
+    }
+}
+/**
+ * wot-type-definitions does not contain a implementation of Discovery method enums
+ * so we need to create them here. Sadly, we should keep this enum in sync with
+ * WoT.DiscoveryMethod
+ */
+export enum DiscoveryMethod {
+    /** does not provide any restriction */
+    "any",
+    /** for discovering Things defined in the same device */
+    "local",
+    /** for discovery based on a service provided by a directory or repository of Things  */
+    "directory",
+    /** for discovering Things in the device's network by using a supported multicast protocol  */
+    "multicast",
+}
 
 export default class WoTImpl {
     private srv: Servient;
@@ -30,17 +78,8 @@ export default class WoTImpl {
     }
 
     /** @inheritDoc */
-    async discover(filter?: WoT.ThingFilter): Promise<WoT.ThingDiscoveryProcess> {
-        throw new Error("not implemented");
-    }
-
-    /** @inheritDoc */
-    async exploreDirectory(url: string, filter?: WoT.ThingFilter): Promise<WoT.ThingDiscoveryProcess> {
-        throw new Error("not implemented");
-    }
-
-    async requestThingDescription(url: string): Promise<WoT.ThingDescription> {
-        throw new Error("not implemented");
+     discover(filter?: WoT.ThingFilter): ThingDiscoveryImpl {
+        return new ThingDiscoveryImpl(filter);
     }
 
     /** @inheritDoc */
