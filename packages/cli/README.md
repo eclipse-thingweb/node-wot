@@ -26,9 +26,9 @@ Options:
   -v,  --version                   display node-wot version
   -i,  --inspect[=[host:]port]     activate inspector on host:port (default: 127.0.0.1:9229)
   -ib, --inspect-brk[=[host:]port] activate inspector on host:port and break at start of user script
-  -c,  --clientonly                do not start any servers
+  -c,  --client-only                do not start any servers
                                    (enables multiple instances without port conflicts)
-  -f,  --configfile <file>         load configuration from specified file
+  -f,  --config-file <file>         load configuration from specified file
   -h,  --help                      show this help
 
 wot-servient.conf.json syntax:
