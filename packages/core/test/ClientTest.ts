@@ -170,6 +170,10 @@ class TDClient implements ProtocolClient {
     public toString(): string {
         return "TDClient";
     }
+
+    discoverDirectly(uri: string): Promise<ThingDescription> {
+        return Promise.reject(new Error("discoverDirectly not implemented"));
+    }
 }
 
 class TDClientFactory implements ProtocolClientFactory {
@@ -244,6 +248,10 @@ class TrapClient implements ProtocolClient {
     }
 
     public setSecurity = (metadata: SecurityScheme[]) => false;
+
+    discoverDirectly(uri: string): Promise<ThingDescription> {
+        return Promise.reject(new Error("discoverDirectly not implemented"));
+    }
 }
 
 class TrapClientFactory implements ProtocolClientFactory {
@@ -306,6 +314,10 @@ class TestProtocolClient implements ProtocolClient {
     setSecurity(securitySchemes: SecurityScheme[], credentials?: Record<string, unknown>): boolean {
         this.securitySchemes = securitySchemes;
         return true;
+    }
+
+    discoverDirectly(uri: string): Promise<ThingDescription> {
+        return Promise.reject(new Error("discoverDirectly not implemented"));
     }
 }
 
