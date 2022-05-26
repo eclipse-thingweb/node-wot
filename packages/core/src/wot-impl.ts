@@ -23,28 +23,31 @@ import { ThingDescription } from "wot-thing-description-types";
 import { createLoggers } from "./logger";
 
 const { debug } = createLoggers("core", "wot-impl");
-import fetch from "node-fetch";
 
 class ThingDiscoveryImpl implements AsyncIterable<ThingDescription> {
-
     filter: WoT.ThingFilter;
 
     active = true;
 
-    constructor(filter: WoT.ThingFilter) {
+    private servient: Servient;
+
+    constructor(filter: WoT.ThingFilter, servient: Servient) {
         this.filter = filter;
+        this.servient = servient;
     }
 
-    async*[Symbol.asyncIterator](): AsyncIterator<ThingDescription> {
+    async *[Symbol.asyncIterator](): AsyncIterator<ThingDescription> {
         switch (this.filter.method) {
             case "direct": {
                 if (!this.active) {
                     return;
                 }
-                const response = await fetch(this.filter.url);
-                const parsedTd = await response.json();
+                // TODO: This needs to refactored
+                const uriScheme = new URL(this.filter.url).protocol.split(":")[0];
+                const client = this.servient.getClientFor(uriScheme);
+                const thingDescription = client.discoverDirectly(this.filter.url);
                 this.active = false;
-                yield new Promise<ThingDescription>(resolve => resolve(parsedTd));
+                yield new Promise<ThingDescription>((resolve) => resolve(thingDescription));
                 break;
             }
             default:
@@ -80,7 +83,7 @@ export default class WoTImpl {
 
     /** @inheritDoc */
     discover(filter?: WoT.ThingFilter): WoT.ThingDiscovery {
-        return new ThingDiscoveryImpl(filter) as unknown as WoT.ThingDiscovery;
+        return new ThingDiscoveryImpl(filter, this.srv) as unknown as WoT.ThingDiscovery;
     }
 
     /** @inheritDoc */

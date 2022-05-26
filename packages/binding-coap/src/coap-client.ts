@@ -38,6 +38,7 @@ import {
     OutgoingMessage,
     ObserveReadStream,
 } from "coap";
+import { ThingDescription } from "wot-thing-description-types";
 
 const { debug, warn } = createLoggers("binding-coap", "coap-client");
 
@@ -53,6 +54,10 @@ export default class CoapClient implements ProtocolClient {
 
         // WoT-specific content formats
         registerFormat(ContentSerdes.JSON_LD, 2100);
+    }
+
+    discoverDirectly(uri: string): Promise<ThingDescription> {
+        throw new Error("Method not implemented.");
     }
 
     public toString(): string {

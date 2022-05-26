@@ -409,4 +409,14 @@ export default class HttpClient implements ProtocolClient {
 
         return url;
     }
+
+    async discoverDirectly(uri: string): Promise<ThingDescription> {
+        // Note: This is still work in progress
+        const headers: HeadersInit = {
+            Accept: "application/td+json",
+        };
+        const response = await fetch(uri, { headers });
+        // TODO: Result should be validated
+        return await response.json();
+    }
 }

@@ -23,6 +23,7 @@ import * as AsyncNodeNetcon from "./async-node-netconf";
 import Url from "url-parse";
 import { Readable } from "stream";
 import { Subscription } from "rxjs/Subscription";
+import { ThingDescription } from "wot-typescript-definitions";
 
 const { debug, warn } = createLoggers("binding-netconf", "netconf-client");
 
@@ -174,5 +175,9 @@ export default class NetconfClient implements ProtocolClient {
 
         this.credentials = credentials;
         return true;
+    }
+
+    discoverDirectly(uri: string): Promise<ThingDescription> {
+        throw new Error("Method not implemented.");
     }
 }
