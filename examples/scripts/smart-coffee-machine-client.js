@@ -68,6 +68,8 @@ WoTHelpers.fetch("http://127.0.0.1:8080/smart-coffee-machine").then(async (td) =
             // But, of course, could have a much more sophisticated handler
             log("outOfResource event:", await data.value());
         });
+        // fire property change for maintenanceNeeded
+        await thing.writeProperty("servedCounter", 1001);
     } catch (err) {
         console.error("Script error:", err);
     }

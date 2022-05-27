@@ -203,7 +203,28 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     }
 
     public emitPropertyChange(name: string): void {
-        throw new Error("NotImplemented emitPropertyChange() method");
+        if (this.properties[name]) {
+            const propertyListener = this.__propertyListeners.get(name);
+            const formIndex = ProtocolHelpers.getFormIndexForOperation(
+                this.properties[name],
+                "property",
+                "observeproperty"
+            );
+
+            if (propertyListener) {
+                if (formIndex !== -1 && propertyListener[formIndex]) {
+                    if (propertyListener[formIndex].length < 1) {
+                        return;
+                    }
+                    propertyListener[formIndex].forEach((listener) => listener(null));
+                } else {
+                    throw new Error("NotFound observe form for property '" + name + "'");
+                }
+            }
+        } else {
+            // NotFoundError
+            throw new Error("NotFoundError for property '" + name + "'");
+        }
     }
 
     /** @inheritDoc */
