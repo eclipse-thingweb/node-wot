@@ -51,7 +51,7 @@ describe("OAuth2.0 Validator tests", () => {
             // eslint-disable-next-line @typescript-eslint/no-empty-function
             console.info = () => {};
 
-            const tokens = ["active", "notActive"];
+            const tokens = ["active", "noScopes", "notActive"];
 
             const introspectEndpoint: express.Express = express();
             introspectEndpoint.use(express.urlencoded({ extended: true }));
@@ -84,23 +84,31 @@ describe("OAuth2.0 Validator tests", () => {
                 if (!token) {
                     return res.status(400).end();
                 }
-
-                if (token === tokens[0]) {
-                    return res
-                        .status(200)
-                        .json({
-                            active: true,
-                            scope: "1 2",
-                            client_id: "coolClient",
-                        })
-                        .end();
-                } else {
-                    return res
-                        .status(200)
-                        .json({
-                            active: false,
-                        })
-                        .end();
+                switch (token) {
+                    case tokens[0]:
+                        return res
+                            .status(200)
+                            .json({
+                                active: true,
+                                scope: "1 2",
+                                client_id: "coolClient",
+                            })
+                            .end();
+                    case tokens[1]:
+                        return res
+                            .status(200)
+                            .json({
+                                active: true,
+                                client_id: "coolClient",
+                            })
+                            .end();
+                    default:
+                        return res
+                            .status(200)
+                            .json({
+                                active: false,
+                            })
+                            .end();
                 }
             });
 
@@ -161,6 +169,26 @@ describe("OAuth2.0 Validator tests", () => {
             valid.should.eql(true);
         }
 
+        @test async "should validate if no scopes are required"() {
+            const req = {
+                headers: {},
+                url: "http://test?access_token=active",
+            };
+
+            const valid = await this.validator.validate(req as http.IncomingMessage, [], /.*/g);
+            valid.should.eql(true);
+        }
+
+        @test async "should validate if no scopes are required and no scopes are returned"() {
+            const req = {
+                headers: {},
+                url: "http://test?access_token=noScopes",
+            };
+
+            const valid = await this.validator.validate(req as http.IncomingMessage, [], /.*/g);
+            valid.should.eql(true);
+        }
+
         @test async "should validate cliedId"() {
             const req = {
                 headers: {},
@@ -210,6 +238,18 @@ describe("OAuth2.0 Validator tests", () => {
             };
 
             const valid = await this.validator.validate(req as http.IncomingMessage, [], /.*/g);
+            valid.should.eql(false);
+        }
+
+        @test async "should reject if no scopes are returned"() {
+            const req = {
+                headers: {
+                    authorization: "Bearer noScopes",
+                },
+                url: "http://test",
+            };
+
+            const valid = await this.validator.validate(req as http.IncomingMessage, ["1", "2"], /.*/g);
             valid.should.eql(false);
         }
 
