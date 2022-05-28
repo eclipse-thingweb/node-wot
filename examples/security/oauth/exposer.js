@@ -12,7 +12,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-let td = {
+const td = {
     "@context": "https://www.w3.org/2019/wot/td/v1",
     title: "OAuth",
     id: "urn:dev:wot:oauth:test",
@@ -22,7 +22,7 @@ let td = {
             flow: "client",
             authorization: "https://example.com/authorization",
             token: "https://localhost:3000/token",
-            scopes: ["limited", "special"],
+            scopes: ["user", "admin"],
         },
     },
     security: ["oauth2_sc"],

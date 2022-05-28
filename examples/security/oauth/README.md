@@ -37,7 +37,7 @@ oAuth token was Ok!
 ```
 
 This confirm that the oAuth flow was completed successfully. Now you can have fun revoking the access to the consumer script. Go
-to `./memory-model.js` and try to remove the string `"limited"` from the grants. Run again the example and you will see that the action is not executed and an error is returned by the client.
+to `./exposer.js` and try to remove the string `"user"` from the grants. Run again the example and you will see that the action is not executed and an error is returned by the client.
 
 ## Where is a TS version?
 
