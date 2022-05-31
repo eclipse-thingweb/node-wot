@@ -39,7 +39,7 @@ you should see the following line at the end of consumer log:
 oAuth token was Ok!
 ```
 
-This confirm that the oAuth flow was completed successfully. Now you can have fun revoking the access to the consumer script. Go
+This confirms that the oAuth flow was completed successfully. Now you can have fun revoking the access to the consumer script. Go
 to `./exposer.ts` and try to remove the string `"user"` from the scopes. Run again the example and you will see that the action is not executed and an error is returned by the client.
 
 ## Where is a JS version?
