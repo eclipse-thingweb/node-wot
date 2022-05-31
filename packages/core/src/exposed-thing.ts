@@ -97,8 +97,8 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         })().getSubject;
         // The init object might still have undefined values, so initialize them here.
         // TODO: who checks that those are valid?
-        this.id = thingModel.id || "";
-        this.title = thingModel.title || "";
+        this.id = thingModel.id ?? "";
+        this.title = thingModel.title ?? "";
         this.security = "";
         this.securityDefinitions = {};
         this.properties = {};

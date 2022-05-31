@@ -90,7 +90,7 @@ export default class WoTImpl {
             );
             return newThing;
         } catch (err) {
-            throw new Error("Cannot consume TD because " + (err instanceof Error ? err.message : err));
+            throw new Error(`Cannot consume TD because ${err instanceof Error ? err.message : err}`);
         }
     }
 
@@ -118,7 +118,9 @@ export default class WoTImpl {
                     throw new Error("Thing already exists: " + newThing.title);
                 }
             } catch (err) {
-                reject(new Error("Cannot produce ExposedThing because " + (err instanceof Error ? err.message : err)));
+                reject(
+                    new Error(`Cannot produce ExposedThing because " + ${err instanceof Error ? err.message : err}`)
+                );
             }
         });
     }

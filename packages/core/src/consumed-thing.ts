@@ -474,7 +474,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
             throw new Error(`ConsumedThing '${this.title}' has no links for this interaction`);
         }
 
-        let form;
+        let form: TD.Form | undefined;
         let client: ProtocolClient;
 
         if (options && options.formIndex) {

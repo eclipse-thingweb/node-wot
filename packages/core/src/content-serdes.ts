@@ -164,7 +164,7 @@ export class ContentSerdes {
             return { type: contentType, body: ProtocolHelpers.toNodeStream(value) };
         }
 
-        let bytes = null;
+        let bytes: Buffer;
 
         // split into media type and parameters
         const mt = ContentSerdes.getMediaType(contentType);
@@ -180,6 +180,7 @@ export class ContentSerdes {
                 "[core/content-serdes]",
                 `ContentSerdes passthrough due to unsupported serialization format '${contentType}'`
             );
+            // TODO: doing a toString is not actually the right way
             bytes = Buffer.from(value === null ? "" : value.toString());
         }
         // http server does not like Readable.from(bytes)

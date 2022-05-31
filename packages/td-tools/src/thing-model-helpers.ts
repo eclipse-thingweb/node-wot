@@ -239,7 +239,7 @@ export class ThingModelHelpers {
                                 console.debug("[td-tools]", "http fetched:", parsedData);
                                 resolve(parsedData);
                             } catch (e) {
-                                console.error("[td-tools]", (e as Error).message);
+                                console.error("[td-tools]", e instanceof Error ? e.message : e);
                             }
                         });
                     }).on("error", (e) => {

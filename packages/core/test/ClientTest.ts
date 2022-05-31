@@ -194,6 +194,7 @@ class TrapClient implements ProtocolClient {
         type: "application/json",
         body: Readable.from(Buffer.from("")),
     });
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public setTrap(callback: (...args: any[]) => Content | Promise<Content>) {
         this.trap = callback;

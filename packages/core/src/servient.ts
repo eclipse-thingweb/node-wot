@@ -76,7 +76,7 @@ export default class Servient {
     }
 
     public addThing(thing: ExposedThing): boolean {
-        if (thing.id === undefined || thing.id === null || thing.id.length === 0) {
+        if (!thing.id) {
             thing.id = "urn:uuid:" + v4();
             console.warn("[core/servient]", `Servient generating ID for '${thing.title}': '${thing.id}'`);
         }

@@ -16,6 +16,7 @@
 import * as TD from "@node-wot/td-tools";
 import { Readable } from "stream";
 import { ReadableStream as PolyfillStream } from "web-streams-polyfill/ponyfill/es2018";
+import { ActionElement, EventElement, PropertyElement } from "wot-thing-description-types";
 
 export interface IManagedStream {
     nodeStream: Readable;
@@ -58,71 +59,44 @@ function isManaged(obj: unknown): obj is IManagedStream {
 }
 export default class ProtocolHelpers {
     // set contentType (extend with more?)
-    public static updatePropertyFormWithTemplate(
-        form: TD.Form,
-        tdTemplate: WoT.ExposedThingInit,
-        propertyName: string
-    ): void {
-        if (form && tdTemplate.properties?.[propertyName]) {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- we know that tdTemplate.properties[propertyName] is not null
-            const property = tdTemplate.properties[propertyName]!;
-            for (const formTemplate of property.forms ?? []) {
-                // 1. Try to find match with correct href scheme
-                if (formTemplate.href) {
-                    // TODO match for example http only?
-                }
-
-                // 2. Use any form
-                if (formTemplate.contentType) {
-                    form.contentType = formTemplate.contentType;
-                    return; // abort loop
-                }
+    public static updatePropertyFormWithTemplate(form: TD.Form, property: PropertyElement): void {
+        for (const formTemplate of property.forms ?? []) {
+            // 1. Try to find match with correct href scheme
+            if (formTemplate.href) {
+                // TODO match for example http only?
+            }
+            // 2. Use any form
+            if (formTemplate.contentType) {
+                form.contentType = formTemplate.contentType;
+                return; // abort loop
             }
         }
     }
 
-    public static updateActionFormWithTemplate(
-        form: TD.Form,
-        tdTemplate: WoT.ExposedThingInit,
-        actionName: string
-    ): void {
-        if (form && tdTemplate.actions?.[actionName]) {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- we know that tdTemplate.actions[actionName] is not null
-            const action = tdTemplate.actions[actionName]!;
-            for (const formTemplate of action.forms ?? []) {
-                // 1. Try to find match with correct href scheme
-                if (formTemplate.href) {
-                    // TODO match for example http only?
-                }
-
-                // 2. Use any form
-                if (formTemplate.contentType) {
-                    form.contentType = formTemplate.contentType;
-                    return; // abort loop
-                }
+    public static updateActionFormWithTemplate(form: TD.Form, action: ActionElement): void {
+        for (const formTemplate of action.forms ?? []) {
+            // 1. Try to find match with correct href scheme
+            if (formTemplate.href) {
+                // TODO match for example http only?
+            }
+            // 2. Use any form
+            if (formTemplate.contentType) {
+                form.contentType = formTemplate.contentType;
+                return; // abort loop
             }
         }
     }
 
-    public static updateEventFormWithTemplate(
-        form: TD.Form,
-        tdTemplate: WoT.ExposedThingInit,
-        eventName: string
-    ): void {
-        if (form && tdTemplate.events?.[eventName]) {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- we know that tdTemplate.events[eventName] is not null
-            const event = tdTemplate.events[eventName]!;
-            for (const formTemplate of event.forms ?? []) {
-                // 1. Try to find match with correct href scheme
-                if (formTemplate.href) {
-                    // TODO match for example http only?
-                }
-
-                // 2. Use any form
-                if (formTemplate.contentType) {
-                    form.contentType = formTemplate.contentType;
-                    return; // abort loop
-                }
+    public static updateEventFormWithTemplate(form: TD.Form, event: EventElement): void {
+        for (const formTemplate of event.forms ?? []) {
+            // 1. Try to find match with correct href scheme
+            if (formTemplate.href) {
+                // TODO match for example http only?
+            }
+            // 2. Use any form
+            if (formTemplate.contentType) {
+                form.contentType = formTemplate.contentType;
+                return; // abort loop
             }
         }
     }
