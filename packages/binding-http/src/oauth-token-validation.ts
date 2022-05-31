@@ -142,14 +142,12 @@ export class EndpointValidator extends Validator {
         }
 
         // Check if the token's scopes are allowed by the Thing Descriptor
-        if (validationResult.scope) {
-            const tokenScopes = validationResult.scope.split(" ");
-            const validScope = tokenScopes.some((tokenScope) => {
-                return scopes.some((thingScope) => tokenScope === thingScope);
-            });
+        const tokenScopes = validationResult.scope.split(" ");
+        const validScope = tokenScopes.some((tokenScope) => {
+            return scopes.some((thingScope) => tokenScope === thingScope);
+        });
 
-            if (!validScope) return false;
-        }
+        if (!validScope) return false;
 
         // Check if the client was allowed in the servient configuration file
         if (validationResult.client_id && !validationResult.client_id.match(clients)) {
