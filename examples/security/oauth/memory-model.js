@@ -26,7 +26,8 @@ module.exports = class InMemoryModel {
                 clientId: "node-wot",
                 clientSecret: "isgreat!",
                 redirectUris: [""],
-                grants: ["client", "limited"],
+                grants: ["client_credentials"],
+                scopes: ["user"],
             },
         ];
         this.tokens = [];

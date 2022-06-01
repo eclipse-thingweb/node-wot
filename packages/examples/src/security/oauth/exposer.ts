@@ -25,7 +25,7 @@ const td: ExposedThingInit = {
             flow: "client",
             authorization: "https://example.com/authorization",
             token: "https://localhost:3000/token",
-            scopes: ["limited", "special"],
+            scopes: ["user", "admin"],
         },
     },
     security: ["oauth2_sc"],

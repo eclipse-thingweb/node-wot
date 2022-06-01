@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "outDir": "../../../dist/security/oauth"
+        "outDir": "../../../dist"
     },
     "extends": "../../../tsconfig.json",
     "include": [],

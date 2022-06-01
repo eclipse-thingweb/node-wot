@@ -20,7 +20,7 @@ let WoTHelpers: Helpers;
 WoTHelpers.fetch("https://localhost:8080/oauth").then((td) => {
     WoT.consume(td as ThingDescription).then(async (thing) => {
         try {
-            const result = await thing.invokeAction("sayOk");
+            const result = await (await thing.invokeAction("sayOk")).value();
             console.log("oAuth token was", result);
         } catch (error) {
             console.log("It seems that I couldn't access the resource");

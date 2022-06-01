@@ -56,7 +56,7 @@ app.use("/introspect", (req, res) => {
     console.log("Token was", token ? "Ok" : "not Ok");
     res.json({
         active: !!token,
-        scope: token.client.grants.join(" "),
+        scope: token.client.scopes.join(" "),
         client_id: token.client.clientId,
     }).end();
 });
