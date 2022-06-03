@@ -51,7 +51,7 @@ export default class JsonCodec implements ContentCodec {
                 throw err;
             }
         }
-		
+
         return parsed;
     }
 
