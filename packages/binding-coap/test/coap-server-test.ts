@@ -177,7 +177,7 @@ class CoapServerTest {
     }
 
     @test async "should cause EADDRINUSE error when already running"() {
-        const portNumber = 56832;
+        const portNumber = 9000;
         const coapServer1 = new CoapServer(portNumber);
         await coapServer1.start(null);
 
@@ -195,7 +195,7 @@ class CoapServerTest {
     }
 
     @test async "should take in account global uriVariables"() {
-        const portNumber = 56833;
+        const portNumber = 9001;
         const coapServer = new CoapServer(portNumber);
 
         await coapServer.start(null);
