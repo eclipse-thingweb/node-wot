@@ -66,6 +66,8 @@ class HttpServerTest {
             testThing
         );
         // testThing.extendInteractions();
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         testThing.properties.test.forms = [];
 
         await httpServer.expose(testThing);
@@ -198,6 +200,8 @@ class HttpServerTest {
             expect(options.uriVariables).to.deep.equal({ id: "testId" });
             test = await value.value();
         });
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         testThing.properties.test.forms = [];
         testThing.setActionHandler("try", (input: WoT.InteractionOutput, params: InteractionOptions) => {
             return new Promise<string>((resolve, reject) => {
@@ -205,6 +209,8 @@ class HttpServerTest {
                 resolve("TEST");
             });
         });
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         testThing.actions.try.forms = [];
 
         await httpServer.expose(testThing);
@@ -244,12 +250,16 @@ class HttpServerTest {
         testThing.setPropertyWriteHandler("test", async (value) => {
             test = await value.value();
         });
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         testThing.properties.test.forms = [];
         testThing.setActionHandler("try", (input: WoT.InteractionOutput) => {
             return new Promise<string>((resolve, reject) => {
                 resolve("TEST");
             });
         });
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         testThing.actions.try.forms = [];
 
         await httpServer.expose(testThing);
@@ -430,7 +440,11 @@ class HttpServerTest {
                 },
             },
         });
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         testThing.properties.maintenanceNeeded.forms = [];
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         testThing.actions.makeDrink.forms = [];
 
         await httpServer.expose(testThing);
@@ -481,6 +495,8 @@ class HttpServerTest {
                 resolve(test);
             });
         });
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         testThing.properties.test.forms = [];
 
         await httpServer.expose(testThing);
