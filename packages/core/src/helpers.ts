@@ -38,6 +38,7 @@ import { DataSchemaValue, ExposedThingInit } from "wot-typescript-definitions";
 import { SomeJSONSchema } from "ajv/dist/types/json-schema";
 import { ThingInteraction, ThingModelHelpers } from "@node-wot/td-tools";
 import { Resolver } from "@node-wot/td-tools/src/resolver-interface";
+import { DataSchema } from "wot-thing-description-types";
 
 const tdSchema = TDSchema;
 // RegExps take from https://github.com/ajv-validator/ajv-formats/blob/master/src/formats.ts
@@ -344,7 +345,7 @@ export default class Helpers implements Resolver {
     static parseUrlParameters(
         url: string,
         globalUriVariables: { [key: string]: TD.DataSchema },
-        uriVariables: { [key: string]: TD.DataSchema }
+        uriVariables: { [k: string]: DataSchema }
     ): Record<string, unknown> {
         const params: Record<string, unknown> = {};
         if (url == null || (!uriVariables && !globalUriVariables)) {

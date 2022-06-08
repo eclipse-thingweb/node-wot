@@ -134,7 +134,7 @@ export default class CoapServer implements ProtocolServer {
                     for (const propertyName in thing.properties) {
                         const href = base + "/" + this.PROPERTY_DIR + "/" + encodeURIComponent(propertyName);
                         const form = new TD.Form(href, type);
-                        ProtocolHelpers.updatePropertyFormWithTemplate(form, tdTemplate, propertyName);
+                        ProtocolHelpers.updatePropertyFormWithTemplate(form, thing.properties[propertyName]);
                         if (thing.properties[propertyName].readOnly) {
                             form.op = ["readproperty"];
                         } else if (thing.properties[propertyName].writeOnly) {
@@ -160,7 +160,7 @@ export default class CoapServer implements ProtocolServer {
                     for (const actionName in thing.actions) {
                         const href = base + "/" + this.ACTION_DIR + "/" + encodeURIComponent(actionName);
                         const form = new TD.Form(href, type);
-                        ProtocolHelpers.updateActionFormWithTemplate(form, tdTemplate, actionName);
+                        ProtocolHelpers.updateActionFormWithTemplate(form, thing.actions[actionName]);
                         form.op = "invokeaction";
                         thing.actions[actionName].forms.push(form);
                         console.debug(
@@ -172,7 +172,7 @@ export default class CoapServer implements ProtocolServer {
                     for (const eventName in thing.events) {
                         const href = base + "/" + this.EVENT_DIR + "/" + encodeURIComponent(eventName);
                         const form = new TD.Form(href, type);
-                        ProtocolHelpers.updateEventFormWithTemplate(form, tdTemplate, eventName);
+                        ProtocolHelpers.updateEventFormWithTemplate(form, thing.events[eventName]);
                         form.op = ["subscribeevent", "unsubscribeevent"];
                         thing.events[eventName].forms.push(form);
                         console.debug(
