@@ -66,6 +66,8 @@ class OAuthServerTests {
                 },
             },
         });
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         testThing.properties.test.forms = [];
 
         await this.server.expose(testThing);

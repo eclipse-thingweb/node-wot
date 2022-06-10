@@ -27,6 +27,7 @@ import * as TD from "@node-wot/td-tools";
 import { MqttBrokerServerConfig } from "./mqtt";
 import { ProtocolServer, Servient, ExposedThing, ContentSerdes, ProtocolHelpers, Content } from "@node-wot/core";
 import { InteractionOptions } from "wot-typescript-definitions";
+import { ActionElement, PropertyElement } from "wot-thing-description-types";
 
 export default class MqttBrokerServer implements ProtocolServer {
     readonly scheme: string = "mqtt";
@@ -255,7 +256,7 @@ export default class MqttBrokerServer implements ProtocolServer {
     }
 
     private handleAction(
-        action: TD.ThingAction,
+        action: ActionElement,
         packet: IPublishPacket,
         payload: Buffer,
         segments: string[],
@@ -312,7 +313,7 @@ export default class MqttBrokerServer implements ProtocolServer {
     }
 
     private handlePropertyWrite(
-        property: TD.ThingProperty,
+        property: PropertyElement,
         packet: IPublishPacket,
         payload: Buffer,
         segments: string[],

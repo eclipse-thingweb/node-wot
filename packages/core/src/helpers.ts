@@ -38,6 +38,7 @@ import { DataSchemaValue, ExposedThingInit } from "wot-typescript-definitions";
 import { SomeJSONSchema } from "ajv/dist/types/json-schema";
 import { ThingInteraction, ThingModelHelpers } from "@node-wot/td-tools";
 import { Resolver } from "@node-wot/td-tools/src/resolver-interface";
+import { DataSchema } from "wot-thing-description-types";
 
 const tdSchema = TDSchema;
 // RegExps take from https://github.com/ajv-validator/ajv-formats/blob/master/src/formats.ts
@@ -60,7 +61,7 @@ export default class Helpers implements Resolver {
         this.srv = srv;
     }
 
-    private static staticAddress: string = undefined;
+    private static staticAddress?: string = undefined;
 
     public static extractScheme(uri: string): string {
         const parsed = new URL(uri);
@@ -90,7 +91,7 @@ export default class Helpers implements Resolver {
             const interfaces = os.networkInterfaces();
 
             for (const iface in interfaces) {
-                interfaces[iface].forEach((entry) => {
+                interfaces[iface]?.forEach((entry) => {
                     console.debug("[core/helpers]", `AddressHelper found ${entry.address}`);
                     if (entry.internal === false) {
                         if (entry.family === "IPv4") {
@@ -169,7 +170,13 @@ export default class Helpers implements Resolver {
                         const jo = JSON.parse(td);
                         resolve(jo);
                     } catch (err) {
-                        reject(new Error(`WoTImpl fetched invalid JSON from '${uri}': ${err.message}`));
+                        reject(
+                            new Error(
+                                `WoTImpl fetched invalid JSON from '${uri}': ${
+                                    err instanceof Error ? err.message : err
+                                }`
+                            )
+                        );
                     }
                 })
                 .then(async (td) => {
@@ -199,14 +206,13 @@ export default class Helpers implements Resolver {
     }
 
     public static async parseInteractionOutput(response: WoT.InteractionOutput): Promise<DataSchemaValue> {
-        let value;
         try {
-            value = await response.value();
+            return await response.value();
         } catch (err) {
             // TODO if response.value() fails, try low-level stream read
             console.error("[core/helpers]", "parseInteractionOutput low-level stream not implemented");
+            throw new Error("parseInteractionOutput low-level stream not implemented");
         }
-        return value;
     }
 
     /**
@@ -245,7 +251,7 @@ export default class Helpers implements Resolver {
     /**
      * Helper function to validate an ExposedThingInit
      */
-    public static validateExposedThingInit(data: ExposedThingInit): { valid: boolean; errors: string } {
+    public static validateExposedThingInit(data: ExposedThingInit): { valid: boolean; errors?: string } {
         if (data["@type"] === "tm:ThingModel" || ThingModelHelpers.isThingModel(data)) {
             return {
                 valid: false,
@@ -255,7 +261,7 @@ export default class Helpers implements Resolver {
         const isValid = Helpers.tsSchemaValidator(data);
         let errors;
         if (!isValid) {
-            errors = Helpers.tsSchemaValidator.errors.map((o: ErrorObject) => o.message).join("\n");
+            errors = Helpers.tsSchemaValidator.errors?.map((o: ErrorObject) => o.message).join("\n");
         }
         return {
             valid: isValid,
@@ -339,7 +345,7 @@ export default class Helpers implements Resolver {
     static parseUrlParameters(
         url: string,
         globalUriVariables: { [key: string]: TD.DataSchema },
-        uriVariables: { [key: string]: TD.DataSchema }
+        uriVariables: { [k: string]: DataSchema }
     ): Record<string, unknown> {
         const params: Record<string, unknown> = {};
         if (url == null || (!uriVariables && !globalUriVariables)) {

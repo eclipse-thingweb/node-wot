@@ -24,6 +24,7 @@ import { suite, test } from "@testdeck/mocha";
 import * as TD from "@node-wot/td-tools";
 import { expect } from "chai";
 import { ProtocolHelpers } from "@node-wot/core";
+import { ActionElement, EventElement, PropertyElement } from "wot-thing-description-types";
 
 @suite("Protocol Helpers")
 class ProtocolHelpersTest {
@@ -62,7 +63,7 @@ class ProtocolHelpersTest {
     }
 
     @test "should get form index with defaults for property"() {
-        const tp: TD.ThingProperty = {
+        const tp: PropertyElement = {
             title: "test",
             forms: [
                 {
@@ -114,7 +115,7 @@ class ProtocolHelpersTest {
     }
 
     @test "should get form index with defaults for action"() {
-        const ta: TD.ThingAction = {
+        const ta: ActionElement = {
             title: "test",
             forms: [
                 {
@@ -139,7 +140,7 @@ class ProtocolHelpersTest {
     }
 
     @test "should get form index with defaults for event"() {
-        const te: TD.ThingEvent = {
+        const te: EventElement = {
             title: "test",
             forms: [
                 {

@@ -57,6 +57,8 @@ class CoapServerTest {
 
         const test: DataSchemaValue = "testValue";
         testThing.setPropertyReadHandler("test", (_) => Promise.resolve(test));
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         testThing.properties.test.forms = [];
 
         await coapServer.expose(testThing);
@@ -89,6 +91,8 @@ class CoapServerTest {
         testThing.setPropertyWriteHandler("test", async (value) => {
             test = await value.value();
         });
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         testThing.properties.test.forms = [];
 
         await coapServer.expose(testThing);
@@ -126,6 +130,8 @@ class CoapServerTest {
                 resolve("TEST");
             });
         });
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         testThing.actions.try.forms = [];
 
         await coapServer.expose(testThing);
@@ -231,6 +237,8 @@ class CoapServerTest {
                 resolve(test);
             });
         });
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         testThing.properties.test.forms = [];
 
         await coapServer.expose(testThing);

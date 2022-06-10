@@ -41,6 +41,7 @@ import { OAuth2SecurityScheme } from "@node-wot/td-tools";
 import slugify from "slugify";
 import { ThingDescription } from "wot-typescript-definitions";
 import * as acceptLanguageParser from "accept-language-parser";
+import { PropertyElement } from "wot-thing-description-types";
 
 export default class HttpServer implements ProtocolServer {
     public readonly scheme: "http" | "https";
@@ -206,7 +207,7 @@ export default class HttpServer implements ProtocolServer {
 
     private updateInteractionNameWithUriVariablePattern(
         interactionName: string,
-        uriVariables: { [key: string]: TD.DataSchema }
+        uriVariables: PropertyElement["uriVariables"]
     ): string {
         if (uriVariables && Object.keys(uriVariables).length > 0) {
             let pattern = "{?";
@@ -321,7 +322,7 @@ export default class HttpServer implements ProtocolServer {
                 );
                 const href = base + "/" + this.PROPERTY_DIR + "/" + propertyNamePattern;
                 const form = new TD.Form(href, type);
-                ProtocolHelpers.updatePropertyFormWithTemplate(form, tdTemplate, propertyName);
+                ProtocolHelpers.updatePropertyFormWithTemplate(form, thing.properties[propertyName]);
                 if (thing.properties[propertyName].readOnly) {
                     form.op = ["readproperty"];
                     const hform: HttpForm = form;
@@ -372,7 +373,7 @@ export default class HttpServer implements ProtocolServer {
                 );
                 const href = base + "/" + this.ACTION_DIR + "/" + actionNamePattern;
                 const form = new TD.Form(href, type);
-                ProtocolHelpers.updateActionFormWithTemplate(form, tdTemplate, actionName);
+                ProtocolHelpers.updateActionFormWithTemplate(form, thing.actions[actionName]);
                 form.op = ["invokeaction"];
                 const hform: HttpForm = form;
                 if (hform["htv:methodName"] === undefined) {
@@ -392,7 +393,7 @@ export default class HttpServer implements ProtocolServer {
                 );
                 const href = base + "/" + this.EVENT_DIR + "/" + eventNamePattern;
                 const form = new TD.Form(href, type);
-                ProtocolHelpers.updateEventFormWithTemplate(form, tdTemplate, eventName);
+                ProtocolHelpers.updateEventFormWithTemplate(form, thing.events[eventName]);
                 form.subprotocol = "longpoll";
                 form.op = ["subscribeevent", "unsubscribeevent"];
                 thing.events[eventName].forms.push(form);
@@ -791,7 +792,7 @@ export default class HttpServer implements ProtocolServer {
                         }
                     } else if (segments[2] === this.ACTION_DIR) {
                         // sub-path -> select Action
-                        const action: TD.ThingAction = thing.actions[segments[3]];
+                        const action = thing.actions[segments[3]];
                         if (action) {
                             if (req.method === "POST") {
                                 const options: WoT.InteractionOptions & { formIndex: number } = {

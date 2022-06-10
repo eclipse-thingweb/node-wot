@@ -22,10 +22,7 @@ import { ThingModelHelpers, CompositionOptions, modelComposeInput } from "../src
 import { promises as fs } from "fs";
 @suite("tests to verify the Thing Model Helper")
 class ThingModelHelperTest {
-    private thingModelHelpers: ThingModelHelpers;
-    async before() {
-        this.thingModelHelpers = new ThingModelHelpers();
-    }
+    private thingModelHelpers = new ThingModelHelpers();
 
     @test "should correctly validate tm schema with ThingModel in @type"() {
         const model = {
@@ -135,7 +132,7 @@ class ThingModelHelperTest {
         };
 
         version = ThingModelHelpers.getModelVersion(thing);
-        expect(version).to.be.null;
+        expect(version).to.be.undefined;
 
         thing = {
             title: "thingTest",
@@ -144,7 +141,7 @@ class ThingModelHelperTest {
         };
 
         version = ThingModelHelpers.getModelVersion(thing);
-        expect(version).to.be.null;
+        expect(version).to.be.undefined;
     }
 
     @test async "should correctly extend a thing model with properties"() {
@@ -223,7 +220,7 @@ class ThingModelHelperTest {
             properties: {
                 timestamp1: {
                     "tm:ref": "file://./test/thing-model/tmodels/OnOff.jsonld#/properties/timestamp",
-                    description: null,
+                    description: undefined,
                 },
             },
         };

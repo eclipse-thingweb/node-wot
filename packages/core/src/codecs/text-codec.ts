@@ -45,11 +45,11 @@ export default class TextCodec implements ContentCodec {
         // console.debug(`TextCodec serializing '${value}'`);
         let body = "";
         if (value !== undefined) {
-            body = value.toString();
+            body = JSON.stringify(value);
         }
 
         // type BufferEncoding = "ascii" | "utf8" | "utf-8" | "utf16le" | "ucs2" | "ucs-2" | "base64" | "latin1" | "binary" | "hex";
-        let be: BufferEncoding;
+        let be: BufferEncoding | undefined;
         if (parameters && parameters.charset) {
             switch (parameters.charset) {
                 case "ascii":

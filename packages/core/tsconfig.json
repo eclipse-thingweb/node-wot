@@ -1,6 +1,8 @@
 {
     "extends": "../../tsconfig.json",
     "compilerOptions": {
+        "strict": true,
+        "strictFunctionTypes": true,
         "resolveJsonModule": true,
         "outDir": "dist",
         "rootDir": "src"

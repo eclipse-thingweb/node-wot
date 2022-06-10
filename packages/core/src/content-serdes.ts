@@ -26,8 +26,16 @@ import { ReadableStream } from "web-streams-polyfill/ponyfill/es2018";
 /** is a plugin for ContentSerdes for a specific format (such as JSON or EXI) */
 export interface ContentCodec {
     getMediaType(): string;
-    bytesToValue(bytes: Buffer, schema: DataSchema, parameters?: { [key: string]: string }): DataSchemaValue;
-    valueToBytes(value: unknown, schema: DataSchema, parameters?: { [key: string]: string }): Buffer;
+    bytesToValue(
+        bytes: Buffer,
+        schema: DataSchema,
+        parameters?: { [key: string]: string | undefined }
+    ): DataSchemaValue;
+    valueToBytes(
+        value: unknown,
+        schema: DataSchema | undefined,
+        parameters?: { [key: string]: string | undefined }
+    ): Buffer;
 }
 
 interface ReadContent {
@@ -76,11 +84,11 @@ export class ContentSerdes {
         return parts[0].trim();
     }
 
-    public static getMediaTypeParameters(contentType: string): { [key: string]: string } {
+    public static getMediaTypeParameters(contentType: string): { [key: string]: string | undefined } {
         const parts = contentType.split(";").slice(1);
 
         // parse parameters into object
-        const params: { [key: string]: string } = {};
+        const params: { [key: string]: string | undefined } = {};
         parts.forEach((p) => {
             const eq = p.indexOf("=");
 
@@ -88,7 +96,7 @@ export class ContentSerdes {
                 params[p.substr(0, eq).trim()] = p.substr(eq + 1).trim();
             } else {
                 // handle parameters without value
-                params[p.trim()] = null;
+                params[p.trim()] = undefined;
             }
         });
 
@@ -113,7 +121,7 @@ export class ContentSerdes {
         return this.codecs.has(mt);
     }
 
-    public contentToValue(content: ReadContent, schema: DataSchema): DataSchemaValue {
+    public contentToValue(content: ReadContent, schema: DataSchema): DataSchemaValue | undefined {
         if (content.type === undefined) {
             if (content.body.byteLength > 0) {
                 // default to application/json
@@ -135,7 +143,8 @@ export class ContentSerdes {
             const codec = this.codecs.get(mt);
 
             // use codec to deserialize
-            const res = codec.bytesToValue(content.body, schema, par);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- this.codecs.has(mt) is true
+            const res = codec!.bytesToValue(content.body, schema, par);
 
             return res;
         } else {
@@ -146,7 +155,7 @@ export class ContentSerdes {
 
     public valueToContent(
         value: DataSchemaValue | ReadableStream,
-        schema: DataSchema,
+        schema: DataSchema | undefined,
         contentType = ContentSerdes.DEFAULT
     ): Content {
         if (value === undefined) console.warn("[core/content-serdes]", "ContentSerdes valueToContent got no value");
@@ -155,23 +164,24 @@ export class ContentSerdes {
             return { type: contentType, body: ProtocolHelpers.toNodeStream(value) };
         }
 
-        let bytes = null;
+        let bytes: Buffer;
 
         // split into media type and parameters
         const mt = ContentSerdes.getMediaType(contentType);
         const par = ContentSerdes.getMediaTypeParameters(contentType);
 
         // choose codec based on mediaType
-        if (this.codecs.has(mt)) {
+        const codec = this.codecs.get(mt);
+        if (codec) {
             console.debug("[core/content-serdes]", `ContentSerdes serializing to ${contentType}`);
-            const codec = this.codecs.get(mt);
             bytes = codec.valueToBytes(value, schema, par);
         } else {
             console.warn(
                 "[core/content-serdes]",
                 `ContentSerdes passthrough due to unsupported serialization format '${contentType}'`
             );
-            bytes = Buffer.from(value.toString());
+            // TODO: doing a toString is not actually the right way
+            bytes = Buffer.from(value === null ? "" : value.toString());
         }
         // http server does not like Readable.from(bytes)
         // it works only with Arrays or strings

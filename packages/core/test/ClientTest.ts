@@ -189,9 +189,14 @@ class TDClientFactory implements ProtocolClientFactory {
 }
 
 class TrapClient implements ProtocolClient {
-    private trap: (...args: unknown[]) => Content | Promise<Content>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    private trap: (...args: any[]) => Content | Promise<Content> = () => ({
+        type: "application/json",
+        body: Readable.from(Buffer.from("")),
+    });
 
-    public setTrap(callback: (...args: unknown[]) => Content | Promise<Content>) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    public setTrap(callback: (...args: any[]) => Content | Promise<Content>) {
         this.trap = callback;
     }
 
@@ -222,7 +227,7 @@ class TrapClient implements ProtocolClient {
             next(this.trap(form) as Content);
             // then complete
             setImmediate(() => {
-                complete();
+                complete?.();
             });
             resolve(new Subscription());
         });
@@ -243,7 +248,8 @@ class TrapClientFactory implements ProtocolClientFactory {
     public scheme = "testdata";
     client = new TrapClient();
 
-    public setTrap(callback: (...args: unknown[]) => Content | Promise<Content>) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    public setTrap(callback: (...args: any[]) => Content | Promise<Content>) {
         this.client.setTrap(callback);
     }
 
@@ -294,7 +300,7 @@ class TestProtocolClient implements ProtocolClient {
         throw new Error("Method not implemented.");
     }
 
-    public securitySchemes: SecurityScheme[];
+    public securitySchemes: SecurityScheme[] = [];
     setSecurity(securitySchemes: SecurityScheme[], credentials?: Record<string, unknown>): boolean {
         this.securitySchemes = securitySchemes;
         return true;
@@ -342,7 +348,7 @@ class WoTClientTest {
         expect(result).not.to.be.null;
 
         const value = await result.value();
-        expect(value.toString()).to.equal("42");
+        expect(value?.toString()).to.equal("42");
     }
 
     @test async "read all properties"() {
@@ -365,8 +371,8 @@ class WoTClientTest {
         // eslint-disable-next-line no-unused-expressions
         expect(result.get("aPropertyToObserve")).to.be.undefined;
 
-        const io: WoT.InteractionOutput = result.get("aProperty");
-        const value = await io.value();
+        const io = result.get("aProperty");
+        const value = await io?.value();
         expect(value).to.equal(42);
     }
 
@@ -439,7 +445,7 @@ class WoTClientTest {
         const result = await thing.invokeAction("anAction", 23);
         // eslint-disable-next-line no-unused-expressions
         expect(result).not.to.be.null;
-        const value = await result.value();
+        const value = await result?.value();
         expect(value).to.equal(42);
     }
 
@@ -597,8 +603,8 @@ class WoTClientTest {
 
     @test "observe property should fail"(done: Mocha.Done) {
         WoTClientTest.WoTHelpers.fetch("td://foo")
-            .then((td: ThingDescription) => {
-                return WoTClientTest.WoT.consume(td);
+            .then((td) => {
+                return WoTClientTest.WoT.consume(td as ThingDescription);
             })
             .then((thing) => {
                 expect(thing).to.have.property("title").that.equals("aThing");
@@ -680,7 +686,7 @@ class WoTClientTest {
         expect(result).not.to.be.null;
 
         const value = await result.value();
-        expect(value.toString()).to.equal("42");
+        expect(value?.toString()).to.equal("42");
     }
 
     @test async "give error on wrong uriVariable"() {

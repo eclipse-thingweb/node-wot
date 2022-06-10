@@ -16,6 +16,7 @@
 import * as TD from "@node-wot/td-tools";
 import { Readable } from "stream";
 import { ReadableStream as PolyfillStream } from "web-streams-polyfill/ponyfill/es2018";
+import { ActionElement, EventElement, PropertyElement } from "wot-thing-description-types";
 
 export interface IManagedStream {
     nodeStream: Readable;
@@ -24,13 +25,16 @@ export interface IManagedStream {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/ban-types
 function ManagedStream<TBase extends new (...args: any[]) => {}>(Base: TBase) {
     return class extends Base implements IManagedStream {
-        _nodeStream: Readable;
-        _wotStream: ReadableStream;
+        _nodeStream?: Readable;
+        _wotStream?: ReadableStream;
         set nodeStream(nodeStream: Readable) {
             this._nodeStream = nodeStream;
         }
 
         get nodeStream(): Readable {
+            if (!this._nodeStream) {
+                throw new Error("ManagedStream not correctly initialized nodeStream is undefined");
+            }
             return this._nodeStream;
         }
 
@@ -39,6 +43,9 @@ function ManagedStream<TBase extends new (...args: any[]) => {}>(Base: TBase) {
         }
 
         get wotStream(): ReadableStream {
+            if (!this._wotStream) {
+                throw new Error("ManagedStream not correctly initialized wotStream is undefined");
+            }
             return this._wotStream;
         }
     };
@@ -52,88 +59,53 @@ function isManaged(obj: unknown): obj is IManagedStream {
 }
 export default class ProtocolHelpers {
     // set contentType (extend with more?)
-    public static updatePropertyFormWithTemplate(
-        form: TD.Form,
-        tdTemplate: WoT.ExposedThingInit,
-        propertyName: string
-    ): void {
-        if (
-            form &&
-            tdTemplate &&
-            tdTemplate.properties &&
-            tdTemplate.properties[propertyName] &&
-            tdTemplate.properties[propertyName].forms
-        ) {
-            for (const formTemplate of tdTemplate.properties[propertyName].forms) {
-                // 1. Try to find match with correct href scheme
-                if (formTemplate.href) {
-                    // TODO match for example http only?
-                }
-
-                // 2. Use any form
-                if (formTemplate.contentType) {
-                    form.contentType = formTemplate.contentType;
-                    return; // abort loop
-                }
+    public static updatePropertyFormWithTemplate(form: TD.Form, property: PropertyElement): void {
+        for (const formTemplate of property.forms ?? []) {
+            // 1. Try to find match with correct href scheme
+            if (formTemplate.href) {
+                // TODO match for example http only?
+            }
+            // 2. Use any form
+            if (formTemplate.contentType) {
+                form.contentType = formTemplate.contentType;
+                return; // abort loop
             }
         }
     }
 
-    public static updateActionFormWithTemplate(
-        form: TD.Form,
-        tdTemplate: WoT.ExposedThingInit,
-        actionName: string
-    ): void {
-        if (
-            form &&
-            tdTemplate &&
-            tdTemplate.actions &&
-            tdTemplate.actions[actionName] &&
-            tdTemplate.actions[actionName].forms
-        ) {
-            for (const formTemplate of tdTemplate.actions[actionName].forms) {
-                // 1. Try to find match with correct href scheme
-                if (formTemplate.href) {
-                    // TODO match for example http only?
-                }
-
-                // 2. Use any form
-                if (formTemplate.contentType) {
-                    form.contentType = formTemplate.contentType;
-                    return; // abort loop
-                }
+    public static updateActionFormWithTemplate(form: TD.Form, action: ActionElement): void {
+        for (const formTemplate of action.forms ?? []) {
+            // 1. Try to find match with correct href scheme
+            if (formTemplate.href) {
+                // TODO match for example http only?
+            }
+            // 2. Use any form
+            if (formTemplate.contentType) {
+                form.contentType = formTemplate.contentType;
+                return; // abort loop
             }
         }
     }
 
-    public static updateEventFormWithTemplate(
-        form: TD.Form,
-        tdTemplate: WoT.ExposedThingInit,
-        eventName: string
-    ): void {
-        if (
-            form &&
-            tdTemplate &&
-            tdTemplate.events &&
-            tdTemplate.events[eventName] &&
-            tdTemplate.events[eventName].forms
-        ) {
-            for (const formTemplate of tdTemplate.events[eventName].forms) {
-                // 1. Try to find match with correct href scheme
-                if (formTemplate.href) {
-                    // TODO match for example http only?
-                }
-
-                // 2. Use any form
-                if (formTemplate.contentType) {
-                    form.contentType = formTemplate.contentType;
-                    return; // abort loop
-                }
+    public static updateEventFormWithTemplate(form: TD.Form, event: EventElement): void {
+        for (const formTemplate of event.forms ?? []) {
+            // 1. Try to find match with correct href scheme
+            if (formTemplate.href) {
+                // TODO match for example http only?
+            }
+            // 2. Use any form
+            if (formTemplate.contentType) {
+                form.contentType = formTemplate.contentType;
+                return; // abort loop
             }
         }
     }
 
-    public static getPropertyContentType(td: WoT.ThingDescription, propertyName: string, uriScheme: string): string {
+    public static getPropertyContentType(
+        td: WoT.ThingDescription,
+        propertyName: string,
+        uriScheme: string
+    ): string | undefined {
         // try to find contentType (How to do this better)
         // Should interaction methods like readProperty() return an encapsulated value container with value&contenType
         // as sketched in https://github.com/w3c/wot-scripting-api/issues/201#issuecomment-573702999
@@ -156,7 +128,11 @@ export default class ProtocolHelpers {
         return undefined; // not found
     }
 
-    public static getActionContentType(td: WoT.ThingDescription, actionName: string, uriScheme: string): string {
+    public static getActionContentType(
+        td: WoT.ThingDescription,
+        actionName: string,
+        uriScheme: string
+    ): string | undefined {
         // try to find contentType
         if (
             td &&
@@ -177,7 +153,11 @@ export default class ProtocolHelpers {
         return undefined; // not found
     }
 
-    public static getEventContentType(td: WoT.ThingDescription, eventName: string, uriScheme: string): string {
+    public static getEventContentType(
+        td: WoT.ThingDescription,
+        eventName: string,
+        uriScheme: string
+    ): string | undefined {
         // try to find contentType
         if (
             td &&
@@ -198,7 +178,7 @@ export default class ProtocolHelpers {
         return undefined; // not found
     }
 
-    public static toWoTStream(stream: NodeJS.ReadableStream | IManagedStream): ReadableStream | PolyfillStream {
+    public static toWoTStream(stream: NodeJS.ReadableStream): ReadableStream | PolyfillStream {
         if (isManaged(stream)) {
             return stream.wotStream;
         }
@@ -250,7 +230,7 @@ export default class ProtocolHelpers {
             },
         });
         result.wotStream = stream as ReadableStream;
-
+        result.nodeStream = result;
         return result;
     }
 
@@ -318,14 +298,34 @@ export default class ProtocolHelpers {
     public static getFormIndexForOperation(
         interaction: TD.ThingInteraction,
         type: "property" | "action" | "event",
-        operationName?: string,
+        operationName?:
+            | "writeproperty"
+            | "readproperty"
+            | "invokeaction"
+            | "subscribeevent"
+            | "unsubscribeevent"
+            | "unobserveproperty"
+            | "observeproperty"
+            | "readallproperties"
+            | "readmultipleproperties",
         formIndex?: number
     ): number {
         let finalFormIndex = -1;
 
         // Check for default interaction OPs
         // https://w3c.github.io/wot-thing-description/#sec-default-values
-        let defaultOps: string[] = [];
+        let defaultOps: (
+            | "writeproperty"
+            | "readproperty"
+            | "invokeaction"
+            | "subscribeevent"
+            | "unsubscribeevent"
+            | "unobserveproperty"
+            | "observeproperty"
+            | "readallproperties"
+            | "readmultipleproperties"
+            | undefined
+        )[] = [];
         switch (type) {
             case "property":
                 if (
@@ -360,14 +360,17 @@ export default class ProtocolHelpers {
         if (interaction.forms !== undefined && finalFormIndex === -1) {
             if (operationName !== undefined) {
                 interaction.forms.every((form: TD.Form) => {
-                    if (form.op?.includes(operationName)) {
-                        finalFormIndex = interaction.forms.indexOf(form);
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- operationName !== undefined
+                    if (form.op?.includes(operationName!)) {
+                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- interaction.forms  !== undefined
+                        finalFormIndex = interaction.forms!.indexOf(form);
                     }
                     return finalFormIndex === -1;
                 });
             } else {
                 interaction.forms.every((form: TD.Form) => {
-                    finalFormIndex = interaction.forms.indexOf(form);
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- interaction.forms  !== undefined
+                    finalFormIndex = interaction.forms!.indexOf(form);
                     return false;
                 });
             }
