@@ -25,36 +25,6 @@ import { OPCUAClientFactory } from "../src";
 import { startServer } from "./fixture/basic-opcua-server";
 const endpoint = "opc.tcp://localhost:7890";
 
-// function schemaVariantMaker(dataType: DataType) {
-//     const valueType = (() => {
-//         switch (dataType) {
-//             case DataType.Boolean:
-//                 return "boolean";
-//             case DataType.Byte:
-//             case DataType.SByte:
-//             case DataType.Float:
-//             case DataType.Double:
-//                 return "number";
-//         }
-//         return "object";
-//     })();
-
-//     const schema = {
-//         type: "object",
-//         properties: {
-//             Type: {
-//                 type: "number",
-//                 minimum: dataType,
-//                 maximum: dataType,
-//             },
-//             Value: {
-//                 type: "object",
-//             },
-//         },
-//     };
-//     return schema;
-// }
-
 const thingDescription: WoT.ThingDescription = {
     "@context": "https://www.w3.org/2019/wot/td/v1",
     "@type": ["Thing"],
