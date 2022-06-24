@@ -202,7 +202,32 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         }
     }
 
-    // TODO: Missing https://w3c.github.io/wot-scripting-api/#the-emitpropertychange-method
+    public async emitPropertyChange(name: string): Promise<void> {
+        if (this.properties[name]) {
+            const formIndex = ProtocolHelpers.getFormIndexForOperation(
+                this.properties[name],
+                "property",
+                "observeproperty"
+            );
+            // retrieve the latest value
+            const content = await this.handleReadProperty(name, { formIndex });
+            const propertyListener = this.__propertyListeners.get(name);
+
+            if (propertyListener) {
+                // notify all the protocol listeners
+                for (const formIndex in propertyListener) {
+                    const listeners = propertyListener[formIndex];
+                    // listeners may not have all the elements filled
+                    if (listeners) {
+                        listeners.forEach((listener) => listener(content));
+                    }
+                }
+            }
+        } else {
+            // NotFoundError
+            throw new Error("NotFoundError for property '" + name + "'");
+        }
+    }
 
     /** @inheritDoc */
     expose(): Promise<void> {

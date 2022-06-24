@@ -249,11 +249,12 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
             servedCounter = await val.value();
             if (servedCounter > 1000) {
                 maintenanceNeeded = true;
+                thing.emitPropertyChange("maintenanceNeeded");
                 // Notify a "maintainer" when the value has changed
                 // (the notify function here simply logs a message to the console)
                 notify(
                     "admin@coffeeMachine.com",
-                    `maintenanceNeeded property has changed, new value is: ${servedCounter}`
+                    `maintenanceNeeded property has changed, new value is: ${maintenanceNeeded}`
                 );
             }
         });
