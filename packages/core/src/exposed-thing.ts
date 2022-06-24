@@ -202,7 +202,9 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         }
     }
 
-    // TODO: Missing https://w3c.github.io/wot-scripting-api/#the-emitpropertychange-method
+    public emitPropertyChange(name: string): void {
+        throw new Error("NotImplemented emitPropertyChange() method");
+    }
 
     /** @inheritDoc */
     expose(): Promise<void> {
