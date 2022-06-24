@@ -202,23 +202,25 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         }
     }
 
-    public emitPropertyChange(name: string): void {
+    public async emitPropertyChange(name: string): Promise<void> {
         if (this.properties[name]) {
-            const propertyListener = this.__propertyListeners.get(name);
             const formIndex = ProtocolHelpers.getFormIndexForOperation(
                 this.properties[name],
                 "property",
                 "observeproperty"
             );
+            // retrieve the latest value
+            const content = await this.handleReadProperty(name, { formIndex });
+            const propertyListener = this.__propertyListeners.get(name);
 
             if (propertyListener) {
-                if (formIndex !== -1 && propertyListener[formIndex]) {
-                    if (propertyListener[formIndex].length < 1) {
-                        return;
+                // notify all the protocol listeners
+                for (const formIndex in propertyListener) {
+                    const listeners = propertyListener[formIndex];
+                    // listeners may not have all the elements filled
+                    if (listeners) {
+                        listeners.forEach((listener) => listener(content));
                     }
-                    propertyListener[formIndex].forEach((listener) => listener(null));
-                } else {
-                    throw new Error("NotFound observe form for property '" + name + "'");
                 }
             }
         } else {

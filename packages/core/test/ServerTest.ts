@@ -24,11 +24,12 @@ import { suite, test } from "@testdeck/mocha";
 import { expect, should, use as chaiUse, spy } from "chai";
 import spies from "chai-spies";
 import Servient from "../src/servient";
-import { ProtocolServer } from "../src/protocol-interfaces";
+import { Content, ProtocolServer } from "../src/protocol-interfaces";
 import ExposedThing from "../src/exposed-thing";
 import { Readable } from "stream";
-import { InteractionOutput } from "wot-typescript-definitions";
+import { InteractionInput, InteractionOptions, InteractionOutput } from "wot-typescript-definitions";
 import chaiAsPromised from "chai-as-promised";
+import ProtocolHelpers from "../src/protocol-helpers";
 
 chaiUse(chaiAsPromised);
 // should must be called to augment all variables
@@ -871,6 +872,46 @@ class WoTServerTest {
         );
 
         callback.should.have.been.called();
+    }
+
+    @test async "should call read handler and emit an event"() {
+        const thing = await WoTServerTest.WoT.produce({
+            title: "The Machine",
+            properties: {
+                test: {
+                    type: "string",
+                    forms: [
+                        {
+                            href: "http://example.org/test",
+                            op: ["readproperty", "observeproperty"],
+                        },
+                    ],
+                },
+            },
+        });
+
+        const callback = spy(async (options?: InteractionOptions): Promise<InteractionInput> => {
+            return "newValue";
+        });
+
+        const protocolListener = spy(async (content: Content) => {
+            // eslint-disable-next-line no-unused-expressions
+            expect(content.type).not.to.be.undefined;
+            // eslint-disable-next-line no-unused-expressions
+            expect(content.body).not.to.be.undefined;
+
+            const body = await ProtocolHelpers.readStreamFully(content.body);
+            body.should.be.eq('"test"');
+        });
+
+        thing.setPropertyReadHandler("test", callback);
+
+        (thing as ExposedThing).handleObserveProperty("test", protocolListener, { formIndex: 0 });
+
+        await (<ExposedThing>thing).emitPropertyChange("test");
+
+        callback.should.have.been.called();
+        protocolListener.should.have.been.called();
     }
 
     @test async "should be able to subscribe to an event"() {
