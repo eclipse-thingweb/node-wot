@@ -25,13 +25,13 @@ class ProtocolHelpersStreamTest {
     emptyNodeStream!: Readable;
     emptyWebStream!: ReadableStream<void>;
     testNodeStream!: Readable;
-    testWebtream!: ReadableStream<string>;
+    testWebStream!: ReadableStream<string>;
 
     before() {
         this.emptyNodeStream = Readable.from([]);
         this.emptyWebStream = new ReadableStream();
         this.testNodeStream = Readable.from(["test"]);
-        this.testWebtream = new ReadableStream({
+        this.testWebStream = new ReadableStream({
             pull: (controller) => {
                 controller.enqueue("test");
                 controller.close();
@@ -80,7 +80,7 @@ class ProtocolHelpersStreamTest {
     }
 
     @test async "should convert to an usable Node Readable"() {
-        const result = ProtocolHelpers.toNodeStream(this.testWebtream);
+        const result = ProtocolHelpers.toNodeStream(this.testWebStream);
 
         let payload = "";
         for await (const data of result) {
@@ -91,12 +91,12 @@ class ProtocolHelpersStreamTest {
     }
 
     @test async "should Node Readable be destroyable"() {
-        const result = ProtocolHelpers.toNodeStream(this.testWebtream);
+        const result = ProtocolHelpers.toNodeStream(this.testWebStream);
         const promise = once(result, "close");
         result.destroy();
 
         await promise;
-        expect(this.testWebtream.locked).not.be.true;
+        expect(this.testWebStream.locked).not.be.true;
     }
 
     @test "should cache ReadableStream"() {
