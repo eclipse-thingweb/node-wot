@@ -16,13 +16,14 @@
         "@node-wot/binding-http": "0.8.2",
         "@node-wot/binding-websockets": "0.8.2",
         "@node-wot/core": "0.8.2",
-        "browserify": "16.5.0",
+        "browserify": "^17.0.0",
+        "readable-stream4": "npm:readable-stream@^4.0.0",
         "tinyify": "2.5.2",
         "typescript": "4.4.3",
         "wot-typescript-definitions": "0.8.0-SNAPSHOT.22"
     },
     "scripts": {
-        "build": "browserify index.js -o dist/wot-bundle.min.js",
+        "build": "node build.js",
         "format": "prettier --write index.js \"**/*.json\""
     },
     "bugs": {
@@ -31,8 +32,8 @@
     "homepage": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/browser-bundle#readme",
     "keywords": [],
     "dependencies": {
+        "events": "^2.1.0",
         "inherits": "^2.0.3",
-        "resolve": "^1.1.7",
-        "events": "^2.1.0"
+        "resolve": "^1.1.7"
     }
 }
