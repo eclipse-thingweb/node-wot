@@ -24,5 +24,9 @@ builder.add("./index.js");
 
 const bundleStream = builder.bundle();
 
+if (!fs.existsSync("./dist")) {
+    fs.mkdirSync("./dist");
+}
+
 const output = fs.createWriteStream("./dist/wot-bundle.min.js");
 bundleStream.pipe(output, { end: true });
