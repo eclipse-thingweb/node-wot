@@ -477,7 +477,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         let form: TD.Form | undefined;
         let client: ProtocolClient;
 
-        if (options && options.formIndex) {
+        if (options?.formIndex !== undefined) {
             // pick provided formIndex (if possible)
             console.debug(
                 "[core/consumed-thing]",
