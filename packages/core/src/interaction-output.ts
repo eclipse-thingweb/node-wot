@@ -32,20 +32,23 @@ export class InteractionOutput implements WoT.InteractionOutput {
     private content: Content;
     private parsedValue: unknown;
     private buffer?: ArrayBuffer;
-    data?: ReadableStream;
+    private _stream?: ReadableStream;
     dataUsed: boolean;
     form?: WoT.Form;
     schema?: WoT.DataSchema;
+
+    public get data(): ReadableStream {
+        if (this._stream) {
+            return this._stream;
+        }
+        return (this._stream = ProtocolHelpers.toWoTStream(this.content.body) as ReadableStream);
+    }
 
     constructor(content: Content, form?: WoT.Form, schema?: WoT.DataSchema) {
         this.content = content;
         this.form = form;
         this.schema = schema;
         this.dataUsed = false;
-
-        if (content && content.body) {
-            this.data = ProtocolHelpers.toWoTStream(content.body) as ReadableStream;
-        }
     }
 
     async arrayBuffer(): Promise<ArrayBuffer> {
@@ -68,6 +71,10 @@ export class InteractionOutput implements WoT.InteractionOutput {
         if (!this.form || !ContentSerdes.get().isSupported(this.content.type)) {
             const message = !this.form ? "Missing form" : `Content type ${this.content.type} not supported`;
             throw new NotSupportedError(message);
+        }
+
+        if (this._stream) {
+            throw new Error("Can't call value function after retrieving the stream");
         }
 
         // read fully the stream

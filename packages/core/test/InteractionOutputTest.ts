@@ -21,6 +21,9 @@ import { Readable } from "stream";
 import { InteractionOutput } from "../src/interaction-output";
 
 use(promised);
+const delay = (ms: number) => {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+};
 
 @suite("testing Interaction Output")
 class InteractionOutputTests {
@@ -39,7 +42,7 @@ class InteractionOutputTests {
 
         const out = new InteractionOutput(content, {});
         const result = [];
-        const reader = out.data?.getReader();
+        const reader = out.data.getReader();
         expect(reader).not.to.be.undefined;
         let read;
         do {
@@ -51,11 +54,39 @@ class InteractionOutputTests {
         expect(result).be.deep.equals([1, 2, 3]);
     }
 
+    @test async "should throw if the stream was accessed before calling value"() {
+        const stream = Readable.from([1, 2, 3]);
+        const content = { body: stream, type: "application/json" };
+
+        const out = new InteractionOutput(content, {});
+        const result = [];
+        const reader = out.data.getReader();
+        expect(reader).not.to.be.undefined;
+        let read;
+        do {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- we know it's defined: expect(reader).not.to.be.undefined
+            read = await reader!.read();
+            !read.done && result.push(read.value);
+        } while (read.done !== true);
+
+        return expect(out.value()).to.be.rejected;
+    }
+
     @test async "should return the value"() {
         const stream = Readable.from(Buffer.from("true", "utf-8"));
         const content = { body: stream, type: "application/json" };
 
         const out = new InteractionOutput(content, {}, { type: "boolean" });
+        const result = await out.value<boolean>();
+        expect(result).be.true;
+    }
+
+    @test async "should return the value after delay"() {
+        const stream = Readable.from(Buffer.from("true", "utf-8"));
+        const content = { body: stream, type: "application/json" };
+
+        const out = new InteractionOutput(content, {}, { type: "boolean" });
+        await delay(100);
         const result = await out.value<boolean>();
         expect(result).be.true;
     }
