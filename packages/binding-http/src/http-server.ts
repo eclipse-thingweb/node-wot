@@ -788,6 +788,9 @@ export default class HttpServer implements ProtocolServer {
                                     }
                                     // resource found and response sent
                                     return;
+                                } else {
+                                    respondUnallowedMethod(res, "GET, PUT");
+                                    return;
                                 } // Property exists?
                             }
                         }

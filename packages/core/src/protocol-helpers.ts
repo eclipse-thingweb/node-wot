@@ -226,7 +226,8 @@ export default class ProtocolHelpers {
                 });
             },
             destroy: (error, callback) => {
-                stream.cancel(error);
+                reader.releaseLock();
+                stream.cancel(error).then(() => callback(error));
             },
         });
         result.wotStream = stream as ReadableStream;

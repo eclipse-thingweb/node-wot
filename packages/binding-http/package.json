@@ -13,7 +13,10 @@
     ],
     "main": "dist/http.js",
     "types": "dist/http.d.ts",
-    "browser": "dist/http-browser.js",
+    "browser": {
+        "./dist/http.js": "./dist/http-browser.js",
+        "./dist/http-client.js": "./dist/http-client-browser.js"
+    },
     "devDependencies": {
         "@testdeck/mocha": "^0.1.2",
         "@types/accept-language-parser": "^1.5.2",
