@@ -26,18 +26,17 @@ import { InteractionOutput } from "./interaction-output";
 import { Readable } from "stream";
 import ProtocolHelpers from "./protocol-helpers";
 import { ReadableStream as PolyfillStream } from "web-streams-polyfill/ponyfill/es2018";
-import { Content, ContentSerdes, PropertyContentMap } from "./core";
+import { Content, PropertyContentMap } from "./core";
 import ContentManager from "./content-serdes";
 import {
     ActionHandlerMap,
     ContentListener,
     EventHandlerMap,
     EventHandlers,
-    ListenerItem,
-    ListenerMap,
     PropertyHandlerMap,
     PropertyHandlers,
 } from "./protocol-interfaces";
+import ProtocolListenerRegistry from "./protocol-listener-registry";
 
 export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     security: string | [string, ...string[]];
@@ -75,10 +74,10 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     __eventHandlers: EventHandlerMap = new Map<string, EventHandlers>();
 
     /** A map of property listener callback functions */
-    __propertyListeners: ListenerMap = new Map<string, ListenerItem>();
+    __propertyListeners: ProtocolListenerRegistry = new ProtocolListenerRegistry();
 
     /** A map of event listener callback functions */
-    __eventListeners: ListenerMap = new Map<string, ListenerItem>();
+    __eventListeners: ProtocolListenerRegistry = new ProtocolListenerRegistry();
 
     private getServient: () => Servient;
     private getSubjectTD: () => Subject<WoT.ThingDescription>;
@@ -169,33 +168,8 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 
     public emitEvent(name: string, data: WoT.InteractionInput): void {
         if (this.events[name]) {
-            const eventListener = this.__eventListeners.get(name);
-            const formIndex = ProtocolHelpers.getFormIndexForOperation(this.events[name], "event", "subscribeevent");
-
-            if (eventListener) {
-                if (formIndex !== -1 && eventListener[formIndex]) {
-                    if (eventListener[formIndex].length < 1) {
-                        return;
-                    }
-
-                    const form = this.events[name].forms[formIndex];
-                    const content = ContentSerdes.get().valueToContent(data, this.event, form.contentType);
-                    eventListener[formIndex].forEach((listener) => listener(content));
-                } else {
-                    for (let formIndex = 0; formIndex < this.eventListener.length; formIndex++) {
-                        const listener = this.eventListener[formIndex];
-                        // this.listeners may not have all the elements filled
-                        if (listener) {
-                            const content = ContentSerdes.get().valueToContent(
-                                data,
-                                this.event,
-                                this.event.forms[formIndex].contentType
-                            );
-                            listener(content);
-                        }
-                    }
-                }
-            }
+            const eventAffordance = this.events[name];
+            this.__eventListeners.notify(eventAffordance, data, eventAffordance.data);
         } else {
             // NotFoundError
             throw new Error("NotFoundError for event '" + name + "'");
@@ -204,25 +178,17 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 
     public async emitPropertyChange(name: string): Promise<void> {
         if (this.properties[name]) {
-            const formIndex = ProtocolHelpers.getFormIndexForOperation(
-                this.properties[name],
-                "property",
-                "observeproperty"
-            );
-            // retrieve the latest value
-            const content = await this.handleReadProperty(name, { formIndex });
-            const propertyListener = this.__propertyListeners.get(name);
+            const property = this.properties[name];
+            const readHandler = this.__propertyHandlers.get(name)?.readHandler;
 
-            if (propertyListener) {
-                // notify all the protocol listeners
-                for (const formIndex in propertyListener) {
-                    const listeners = propertyListener[formIndex];
-                    // listeners may not have all the elements filled
-                    if (listeners) {
-                        listeners.forEach((listener) => listener(content));
-                    }
-                }
+            if (!readHandler) {
+                throw new Error(
+                    "Can't read property readHandler is not defined. Did you forget to register a readHandler?"
+                );
             }
+
+            const data = await readHandler();
+            this.__propertyListeners.notify(property, data, property);
         } else {
             // NotFoundError
             throw new Error("NotFoundError for property '" + name + "'");
@@ -247,33 +213,18 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     }
 
     /** @inheritDoc */
-    destroy(): Promise<void> {
+    async destroy(): Promise<void> {
         console.debug("[core/exposed-thing]", `ExposedThing '${this.title}' destroying the thing and its interactions`);
 
-        return new Promise<void>((resolve, reject) => {
-            this.getServient()
-                .destroyThing(this.id)
-                .then(() => {
-                    // indicate to possible subscriptions that subject has been completed
-                    /* for (let propertyName in this.properties) {
-                    let ps: PropertyState = this.properties[propertyName].getState();
-                    if (ps.subject) {
-                        ps.subject.complete();
-                    }
-                }
-                for (let eventName in this.events) {
-                    let es: EventState = this.events[eventName].getState();
-                    if (es.subject) {
-                        es.subject.complete();
-                    }
-                } */
-                    // inform TD observers that thing is gone
-                    this.getSubjectTD().next();
-                    // resolve with success
-                    resolve();
-                })
-                .catch((err) => reject(err));
-        });
+        await this.getServient().destroyThing(this.id);
+
+        this.__eventListeners.unregisterAll();
+        this.__propertyListeners.unregisterAll();
+        this.__eventHandlers.clear();
+        this.__propertyHandlers.clear();
+        this.__eventHandlers.clear();
+        // inform TD observers that thing is gone
+        this.getSubjectTD().next();
     }
 
     /** @inheritDoc */
@@ -670,27 +621,27 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         options: WoT.InteractionOptions & { formIndex: number }
     ): Promise<void> {
         if (this.events[name]) {
-            const eventListener = this.__eventListeners.get(name) ?? {};
+            Helpers.validateInteractionOptions(this, this.events[name], options);
+
             const formIndex = ProtocolHelpers.getFormIndexForOperation(
                 this.events[name],
                 "event",
                 "subscribeevent",
                 options.formIndex
             );
+
             if (formIndex !== -1) {
-                if (!eventListener[formIndex]) eventListener[formIndex] = [];
-                eventListener[formIndex].push(listener);
-                this.__eventListeners.set(name, eventListener);
+                this.__eventListeners.register(this.events[name], formIndex, listener);
                 console.debug("[core/exposed-thing]", `ExposedThing '${this.title}' subscribes to event '${name}'`);
             } else {
                 throw new Error(
                     `ExposedThing '${this.title}', no property listener from found for '${name}' with form index '${options.formIndex}'`
                 );
             }
-            Helpers.validateInteractionOptions(this, this.events[name], options);
+
             const subscribe = this.__eventHandlers.get(name)?.subscribe;
             if (subscribe) {
-                subscribe(options);
+                await subscribe(options);
             }
             console.debug("[core/exposed-thing]", `ExposedThing '${this.title}' subscribes to event '${name}'`);
         } else {
@@ -708,22 +659,21 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         options: WoT.InteractionOptions & { formIndex: number }
     ): void {
         if (this.events[name]) {
-            const eventListener = this.__eventListeners.get(name) ?? {};
+            Helpers.validateInteractionOptions(this, this.events[name], options);
+
             const formIndex = ProtocolHelpers.getFormIndexForOperation(
                 this.events[name],
                 "event",
                 "unsubscribeevent",
                 options.formIndex
             );
-            if (formIndex !== -1 && eventListener[formIndex] && eventListener[formIndex].indexOf(listener) !== -1) {
-                eventListener[formIndex].splice(eventListener[formIndex].indexOf(listener), 1);
-                this.__eventListeners.set(name, eventListener);
+            if (formIndex !== -1) {
+                this.__eventListeners.unregister(this.events[name], formIndex, listener);
             } else {
                 throw new Error(
                     `ExposedThing '${this.title}', no event listener from found for '${name}' with form index '${options.formIndex}'`
                 );
             }
-            Helpers.validateInteractionOptions(this, this.events[name], options);
             const unsubscribe = this.__eventHandlers.get(name)?.unsubscribe;
             if (unsubscribe) {
                 unsubscribe(options);
@@ -744,27 +694,26 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         options: WoT.InteractionOptions & { formIndex: number }
     ): Promise<void> {
         if (this.properties[name]) {
-            const propertyListener = this.__propertyListeners.get(name) ?? {};
+            Helpers.validateInteractionOptions(this, this.properties[name], options);
             const formIndex = ProtocolHelpers.getFormIndexForOperation(
                 this.properties[name],
                 "property",
                 "observeproperty",
                 options.formIndex
             );
+
             if (formIndex !== -1) {
-                if (!propertyListener[formIndex]) propertyListener[formIndex] = [];
-                propertyListener[formIndex].push(listener);
-                this.__propertyListeners.set(name, propertyListener);
+                this.__propertyListeners.register(this.properties[name], formIndex, listener);
                 console.debug("[core/exposed-thing]", `ExposedThing '${this.title}' subscribes to property '${name}'`);
             } else {
                 throw new Error(
                     `ExposedThing '${this.title}', no property listener from found for '${name}' with form index '${options.formIndex}'`
                 );
             }
-            Helpers.validateInteractionOptions(this, this.properties[name], options);
+
             const observeHandler = this.__propertyHandlers.get(name)?.observeHandler;
             if (observeHandler) {
-                observeHandler(options);
+                await observeHandler(options);
             }
         } else {
             throw new Error(`ExposedThing '${this.title}', no property found for '${name}'`);
@@ -777,26 +726,22 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         options: WoT.InteractionOptions & { formIndex: number }
     ): void {
         if (this.properties[name]) {
-            const propertyListener = this.__propertyListeners.get(name) ?? {};
+            Helpers.validateInteractionOptions(this, this.properties[name], options);
             const formIndex = ProtocolHelpers.getFormIndexForOperation(
                 this.properties[name],
                 "property",
                 "unobserveproperty",
                 options.formIndex
             );
-            if (
-                formIndex !== -1 &&
-                propertyListener[formIndex] &&
-                propertyListener[formIndex].indexOf(listener) !== -1
-            ) {
-                propertyListener[formIndex].splice(propertyListener[formIndex].indexOf(listener), 1);
-                this.__propertyListeners.set(name, propertyListener);
+
+            if (formIndex !== -1) {
+                this.__propertyListeners.unregister(this.properties[name], formIndex, listener);
             } else {
                 throw new Error(
                     `ExposedThing '${this.title}', no property listener from found for '${name}' with form index '${options.formIndex}'`
                 );
             }
-            Helpers.validateInteractionOptions(this, this.properties[name], options);
+
             const unobserveHandler = this.__propertyHandlers.get(name)?.unobserveHandler;
             if (unobserveHandler) {
                 unobserveHandler(options);
