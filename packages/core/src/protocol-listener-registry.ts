@@ -83,7 +83,7 @@ export default class ProtocolListenerRegistry {
                 // formIndex satisfied
                 return;
             }
-            // we couldn't found any listener for formIndex, defaulting to notify all forms
+            // we couldn't find any listener for formIndex, defaulting to notify all forms
         }
 
         for (const [index, value] of formMap) {
