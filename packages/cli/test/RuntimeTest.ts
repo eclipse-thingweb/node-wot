@@ -34,7 +34,9 @@ class WoTRuntimeTest {
 
     static WoT: typeof WoT;
 
-    exit: (code?: number) => never;
+    exit: (code?: number) => never = () => {
+        throw new Error("");
+    };
 
     static async before() {
         // We need to disable this check for killing servient logs
@@ -176,7 +178,7 @@ class WoTRuntimeTest {
         return listeners;
     }
 
-    private restoreUncaughtListeners(listeners: Array<(...args: unknown[]) => void>) {
+    private restoreUncaughtListeners(listeners: Array<NodeJS.UncaughtExceptionListener>) {
         listeners.forEach((element) => {
             process.on("uncaughtException", element);
         });

@@ -222,7 +222,7 @@ async function buildConfig(): Promise<unknown> {
     try {
         configFileData = JSON.parse(await fs.promises.readFile(fileToOpen, "utf-8"));
     } catch (err) {
-        console.error("[cli]", "WoT-Servient config file error:", err.message);
+        console.error("[cli]", "WoT-Servient config file error:", (<Error>err).message);
     }
 
     // .env file

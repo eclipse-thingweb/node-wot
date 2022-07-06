@@ -78,11 +78,11 @@ export default class DefaultServient extends Servient {
         },
     };
 
-    private uncaughtListeners: Array<(...args: unknown[]) => void> = [];
+    private uncaughtListeners: Array<NodeJS.UncaughtExceptionListener> = [];
     private runtime: typeof WoT | undefined;
     public readonly config: any;
     // current log level
-    public logLevel: string;
+    public logLevel = "info";
 
     // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     public constructor(clientOnly: boolean, config?: any) {
@@ -190,7 +190,11 @@ export default class DefaultServient extends Servient {
         try {
             return vm.run(code, filename);
         } catch (err) {
-            this.logScriptError(`Servient found error in privileged script '${filename}'`, err);
+            if (err instanceof Error) {
+                this.logScriptError(`Servient found error in script '${filename}'`, err);
+            } else {
+                console.error("[core/servient]", `Servient found error in script '${filename}' ${err}`);
+            }
             return undefined;
         }
     }
@@ -235,7 +239,11 @@ export default class DefaultServient extends Servient {
         try {
             return vm.run(code, filename);
         } catch (err) {
-            this.logScriptError(`Servient found error in privileged script '${filename}'`, err);
+            if (err instanceof Error) {
+                this.logScriptError(`Servient found error in privileged script '${filename}'`, err);
+            } else {
+                console.error("[core/servient]", `Servient found error in privileged script '${filename}' ${err}`);
+            }
             return undefined;
         }
     }
