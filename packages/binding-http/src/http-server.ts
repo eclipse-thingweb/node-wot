@@ -58,6 +58,7 @@ export default class HttpServer implements ProtocolServer {
     private readonly port: number = 8080;
     private readonly address: string = undefined;
     private readonly baseUri: string = undefined;
+    private readonly urlRewrite: Record<string, string> = undefined;
     private readonly httpSecurityScheme: string = "NoSec"; // HTTP header compatible string
     private readonly validOAuthClients: RegExp = /.*/g;
     private readonly server: http.Server | https.Server = null;
@@ -93,6 +94,9 @@ export default class HttpServer implements ProtocolServer {
         }
         if (config.baseUri !== undefined) {
             this.baseUri = config.baseUri;
+        }
+        if (config.urlRewrite !== undefined) {
+            this.urlRewrite = config.urlRewrite;
         }
 
         // TLS
@@ -602,6 +606,15 @@ export default class HttpServer implements ProtocolServer {
             // resource found and response sent
             return;
         } else {
+            // url-rewrite feature in use ?
+            if (this.urlRewrite) {
+                const entryUrl = segments.slice(1, segments.length).join("/");
+                const internalUrl = this.urlRewrite[entryUrl];
+                if (internalUrl) {
+                    segments = decodeURI(internalUrl).split("/");
+                }
+            }
+
             // path -> select Thing
             const thing: ExposedThing = this.things.get(segments[1]);
             if (thing) {

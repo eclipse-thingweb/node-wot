@@ -37,6 +37,7 @@ export interface HttpConfig {
     port?: number;
     address?: string;
     baseUri?: string;
+    urlRewrite?: Record<string, string>;
     proxy?: HttpProxyConfig;
     allowSelfSigned?: boolean;
     serverKey?: string;
