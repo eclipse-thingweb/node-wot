@@ -203,6 +203,8 @@ You can then start the applications with node by running `node server.js` and `n
 
 #### CLI Tool
 
+You can alternatively use node-wot via its command line interface (CLI). Please visit the [CLI tool's Readme]([url](https://github.com/eclipse/thingweb.node-wot/tree/master/packages/cli)) to find out more.
+
 You can alternatively install the node-wot CLI, either globally (`npm i @node-wot/cli -g`) or as
 a (dev) dependency (`npm i @node-wot/cli --save` or `npm i @node-wot/cli --save-dev`).
 
@@ -226,6 +228,7 @@ If you do so, anyway, you can specify the entry point as follows:
 ```
 
 There are several ways to start the application:
+
 a. Execute `npm start`.
 b. Execute `./node_modules/.bin/wot-servient main.js`.
 c. Execute `node ./node_modules/@node-wot/cli/dist/cli.js main.js`.
