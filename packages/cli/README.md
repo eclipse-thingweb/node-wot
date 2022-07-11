@@ -4,9 +4,9 @@
 
 ### Installation
 
-- `npm install @node-wot/cli`
-- You can alternatively install the node-wot CLI, either globally (`npm i @node-wot/cli -g`) or as
-a (dev) dependency (`npm i @node-wot/cli --save` or `npm i @node-wot/cli --save-dev`).
+-   `npm install @node-wot/cli`
+-   You can alternatively install the node-wot CLI, either globally (`npm i @node-wot/cli -g`) or as
+    a (dev) dependency (`npm i @node-wot/cli --save` or `npm i @node-wot/cli --save-dev`).
 
 ### Usage
 
@@ -145,6 +145,7 @@ ADDRESS=http://hello.com
 To debug, use the option `--inspect` or `--inspect-brk` if you want to hang until your debug client is connected. Then start [Chrome Dev Tools](chrome://inspect) or [vscode debugger](https://code.visualstudio.com/docs/nodejs/nodejs-debugging#_attaching-to-nodejs) or your preferred v8 inspector to debug your code.
 
 For further details check: `wot-servient --help`
+
 ### Examples
 
 See [node-wot examples using Node.js](https://github.com/eclipse/thingweb.node-wot/#no-time-for-explanations---show-me-a-running-example).
