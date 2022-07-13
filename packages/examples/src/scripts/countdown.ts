@@ -42,7 +42,7 @@ let countdowns: Map<string, ActionStatus>;
 WoT.produce({
     title: "countdown",
     description: "Countdown example Thing",
-    support: "git://github.com/eclipse/thingweb.node-wot.git",
+    support: "https://github.com/eclipse/thingweb.node-wot/",
     properties: {
         countdowns: {
             type: "array",

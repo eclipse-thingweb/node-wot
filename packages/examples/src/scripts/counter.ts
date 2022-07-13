@@ -38,7 +38,7 @@ WoT.produce({
         de: "Zähler Beispiel Ding",
         it: "Contatore Esempio",
     },
-    support: "git://github.com/eclipse/thingweb.node-wot.git",
+    support: "https://github.com/eclipse/thingweb.node-wot/",
     "@context": [
         "https://www.w3.org/2019/wot/td/v1",
         "https://www.w3.org/2022/wot/td/v1.1",
