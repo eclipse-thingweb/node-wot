@@ -100,6 +100,15 @@ class InteractionOutputTests {
         expect(out.dataUsed).be.true;
     }
 
+    @test async "should data be used after data"() {
+        const stream = Readable.from(Buffer.from("true", "utf-8"));
+        const content = { body: stream, type: "application/json" };
+
+        const out = new InteractionOutput(content, {}, { type: "boolean" });
+        const TestOutputStream = out.data;
+        expect(out.dataUsed).be.true;
+    }
+
     @test async "should data be used after value"() {
         const stream = Readable.from(Buffer.from("true", "utf-8"));
         const content = { body: stream, type: "application/json" };
@@ -107,6 +116,35 @@ class InteractionOutputTests {
         const out = new InteractionOutput(content, {}, { type: "boolean" });
         await out.value<boolean>();
         expect(out.dataUsed).be.true;
+    }
+
+    @test async "should throw if data is used by data getter"() {
+        const stream = Readable.from(Buffer.from("true", "utf-8"));
+        const content = { body: stream, type: "application/json" };
+
+        const out = new InteractionOutput(content, {}, { type: "boolean" });
+        const TestOutputStream = out.data;
+        await expect(out.arrayBuffer()).eventually.to.be.rejected;
+        await expect(out.value()).eventually.to.be.rejected;
+    }
+
+    @test async "should throw if data is used by arrayBuffer()"() {
+        const stream = Readable.from(Buffer.from("true", "utf-8"));
+        const content = { body: stream, type: "application/json" };
+
+        const out = new InteractionOutput(content, {}, { type: "boolean" });
+        await out.arrayBuffer();
+        expect(() => out.data).to.throw;
+        await expect(out.value()).eventually.to.be.rejected;
+    }
+
+    @test async "should throw if data is used by value()"() {
+        const stream = Readable.from(Buffer.from("true", "utf-8"));
+        const content = { body: stream, type: "application/json" };
+
+        const out = new InteractionOutput(content, {}, { type: "boolean" });
+        await out.value();
+        expect(() => out.data).to.throw;
     }
 
     @test async "should return value multiple times"() {

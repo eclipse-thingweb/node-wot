@@ -41,6 +41,13 @@ export class InteractionOutput implements WoT.InteractionOutput {
         if (this._stream) {
             return this._stream;
         }
+
+        if (this.dataUsed) {
+            throw new Error("Can't read the stream once it has been already used");
+        }
+        // Once the stream is created data might be pulled unpredictably
+        // therefore we assume that it is going to be used to be safe.
+        this.dataUsed = true;
         return (this._stream = ProtocolHelpers.toWoTStream(this.content.body) as ReadableStream);
     }
 
@@ -56,6 +63,10 @@ export class InteractionOutput implements WoT.InteractionOutput {
             return this.buffer;
         }
 
+        if (this.dataUsed) {
+            throw new Error("Can't read the stream once it has been already used");
+        }
+
         const data = await ProtocolHelpers.readStreamFully(this.content.body);
         this.dataUsed = true;
         this.buffer = data;
@@ -67,14 +78,14 @@ export class InteractionOutput implements WoT.InteractionOutput {
         // the value has been already read?
         if (this.parsedValue) return this.parsedValue as T;
 
+        if (this.dataUsed) {
+            throw new Error("Can't read the stream once it has been already used");
+        }
+
         // is content type valid?
         if (!this.form || !ContentSerdes.get().isSupported(this.content.type)) {
             const message = !this.form ? "Missing form" : `Content type ${this.content.type} not supported`;
             throw new NotSupportedError(message);
-        }
-
-        if (this._stream) {
-            throw new Error("Can't call value function after retrieving the stream");
         }
 
         // read fully the stream
