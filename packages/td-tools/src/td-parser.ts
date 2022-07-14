@@ -25,17 +25,17 @@ import { ThingContext } from "wot-thing-description-types";
 function addDefaultLanguage(thing: Thing) {
     // add @language : "en" if no @language set
     if (Array.isArray(thing["@context"])) {
-        const arrayContext: Array<string | Record<string, unknown>> = thing["@context"];
+        const arrayContext: ThingContext = thing["@context"];
         let languageSet = false;
         for (const arrayEntry of arrayContext) {
             if (typeof arrayEntry === "object") {
-                if (arrayEntry["@language"] !== undefined) {
+                if ((arrayEntry as Record<string, unknown>)["@language"] !== undefined) {
                     languageSet = true;
                 }
             }
         }
         if (!languageSet) {
-            arrayContext.push({
+            (arrayContext as unknown[]).push({
                 "@language": TD.DEFAULT_CONTEXT_LANGUAGE,
             });
         }

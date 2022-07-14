@@ -135,13 +135,13 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             let languageSet = false;
             for (const arrayEntry of arrayContext) {
                 if (typeof arrayEntry === "object") {
-                    if (arrayEntry["@language"] !== undefined) {
+                    if ((arrayEntry as Record<string, unknown>)["@language"] !== undefined) {
                         languageSet = true;
                     }
                 }
             }
             if (!languageSet) {
-                (arrayContext as Exclude<typeof arrayContext, []>).push({
+                (arrayContext as unknown[]).push({
                     "@language": TD.DEFAULT_CONTEXT_LANGUAGE,
                 });
             }
