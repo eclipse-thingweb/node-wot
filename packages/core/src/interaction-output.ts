@@ -32,25 +32,39 @@ export class InteractionOutput implements WoT.InteractionOutput {
     private content: Content;
     private parsedValue: unknown;
     private buffer?: ArrayBuffer;
-    data?: ReadableStream;
+    private _stream?: ReadableStream;
     dataUsed: boolean;
     form?: WoT.Form;
     schema?: WoT.DataSchema;
+
+    public get data(): ReadableStream {
+        if (this._stream) {
+            return this._stream;
+        }
+
+        if (this.dataUsed) {
+            throw new Error("Can't read the stream once it has been already used");
+        }
+        // Once the stream is created data might be pulled unpredictably
+        // therefore we assume that it is going to be used to be safe.
+        this.dataUsed = true;
+        return (this._stream = ProtocolHelpers.toWoTStream(this.content.body) as ReadableStream);
+    }
 
     constructor(content: Content, form?: WoT.Form, schema?: WoT.DataSchema) {
         this.content = content;
         this.form = form;
         this.schema = schema;
         this.dataUsed = false;
-
-        if (content && content.body) {
-            this.data = ProtocolHelpers.toWoTStream(content.body) as ReadableStream;
-        }
     }
 
     async arrayBuffer(): Promise<ArrayBuffer> {
         if (this.buffer) {
             return this.buffer;
+        }
+
+        if (this.dataUsed) {
+            throw new Error("Can't read the stream once it has been already used");
         }
 
         const data = await ProtocolHelpers.readStreamFully(this.content.body);
@@ -63,6 +77,10 @@ export class InteractionOutput implements WoT.InteractionOutput {
     async value<T>(): Promise<T> {
         // the value has been already read?
         if (this.parsedValue) return this.parsedValue as T;
+
+        if (this.dataUsed) {
+            throw new Error("Can't read the stream once it has been already used");
+        }
 
         // is content type valid?
         if (!this.form || !ContentSerdes.get().isSupported(this.content.type)) {
