@@ -15,32 +15,13 @@
 
 import Thing from "./thing-description";
 import * as TD from "./thing-description";
+import * as TDHelpers from "./td-helpers";
 
 import isAbsoluteUrl = require("is-absolute-url");
 import URLToolkit = require("url-toolkit");
 import { ThingContext } from "wot-thing-description-types";
 
 /** Parses a TD into a Thing object */
-
-function addDefaultLanguage(thing: Thing) {
-    // add @language : "en" if no @language set
-    if (Array.isArray(thing["@context"])) {
-        const arrayContext: ThingContext = thing["@context"];
-        let languageSet = false;
-        for (const arrayEntry of arrayContext) {
-            if (typeof arrayEntry === "object") {
-                if ((arrayEntry as Record<string, unknown>)["@language"] !== undefined) {
-                    languageSet = true;
-                }
-            }
-        }
-        if (!languageSet) {
-            (arrayContext as unknown[]).push({
-                "@language": TD.DEFAULT_CONTEXT_LANGUAGE,
-            });
-        }
-    }
-}
 export function parseTD(td: string, normalize?: boolean): Thing {
     console.debug("[td-tools/td-parser]", `parseTD() parsing\n\`\`\`\n${td}\n\`\`\``);
 
@@ -95,8 +76,8 @@ export function parseTD(td: string, normalize?: boolean): Thing {
         // insert default contexts as first entries
         thing["@context"] = [TD.DEFAULT_CONTEXT_V1, TD.DEFAULT_CONTEXT_V11, semContext];
     }
-    // add @language : "en" if no @language set
-    addDefaultLanguage(thing);
+    // set @language to "en" if no @language available
+    TDHelpers.setContextLanguage(thing, TD.DEFAULT_CONTEXT_LANGUAGE, false);
 
     if (thing["@type"] === undefined) {
         thing["@type"] = TD.DEFAULT_THING_TYPE;

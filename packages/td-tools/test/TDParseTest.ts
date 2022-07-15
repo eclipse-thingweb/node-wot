@@ -27,6 +27,7 @@ import Thing, {
     DEFAULT_CONTEXT_LANGUAGE,
 } from "../src/thing-description";
 import * as TDParser from "../src/td-parser";
+import * as TDHelpers from "../src/td-helpers";
 // should must be called to augment all variables
 should();
 
@@ -384,6 +385,26 @@ class TDParserTest {
         expect(thing["@context"][0]).to.equal(DEFAULT_CONTEXT_V1);
         expect(thing["@context"][1]).to.have.property("iot").that.equals("http://example.org/iot");
         expect(thing["@context"][2]).to.have.property("@language").that.equals("de");
+        expect(thing).to.have.property("@type").that.equals(DEFAULT_THING_TYPE);
+    }
+
+    @test "should ovverride existing @language in context"() {
+        const testTD = `{ "title": "NoContext",
+      "@context": ["https://www.w3.org/2019/wot/td/v1", {
+          "iot": "http://example.org/iot"
+        },
+        { "@language" : "de" }
+      ]
+    }`;
+        const thing: Thing = TDParser.parseTD(testTD);
+        TDHelpers.setContextLanguage(thing, "en", true);
+
+        console.dir(thing);
+
+        expect(thing).to.have.property("@context").that.has.length(3);
+        expect(thing["@context"][0]).to.equal(DEFAULT_CONTEXT_V1);
+        expect(thing["@context"][1]).to.have.property("iot").that.equals("http://example.org/iot");
+        expect(thing["@context"][2]).to.have.property("@language").that.equals("en");
         expect(thing).to.have.property("@type").that.equals(DEFAULT_THING_TYPE);
     }
 

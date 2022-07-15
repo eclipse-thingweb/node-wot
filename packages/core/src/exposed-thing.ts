@@ -123,29 +123,8 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                 }
             }
         } */
-        // set default language
-        this.addDefaultLanguage(this);
-    }
-
-    // Note: copy from td-parser.ts
-    addDefaultLanguage(thing: ExposedThing): void {
-        // add @language : "en" if no @language set
-        if (Array.isArray(thing["@context"])) {
-            const arrayContext: TDT.ThingContext = thing["@context"];
-            let languageSet = false;
-            for (const arrayEntry of arrayContext) {
-                if (typeof arrayEntry === "object") {
-                    if ((arrayEntry as Record<string, unknown>)["@language"] !== undefined) {
-                        languageSet = true;
-                    }
-                }
-            }
-            if (!languageSet) {
-                (arrayContext as unknown[]).push({
-                    "@language": TD.DEFAULT_CONTEXT_LANGUAGE,
-                });
-            }
-        }
+        // set @language to "en" if no @language available
+        TD.setContextLanguage(this, TD.DEFAULT_CONTEXT_LANGUAGE, false);
     }
 
     public getThingDescription(): WoT.ThingDescription {
