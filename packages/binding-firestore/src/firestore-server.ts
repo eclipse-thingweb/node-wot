@@ -198,7 +198,7 @@ export default class FirestoreServer implements ProtocolServer {
                         console.debug(
                             `[debug] FirestoreServer at ${this.getHostName()} received message for '${topic}'`
                         );
-                        console.debug(`[debug] writing property(${propertyName}) content: `, content);
+                        console.debug(`[debug] writing property(${propertyName})`);
                         const options: WoT.InteractionOptions & { formIndex: number } = {
                             formIndex: ProtocolHelpers.findRequestMatchingFormIndex(
                                 property.forms,
@@ -247,7 +247,7 @@ export default class FirestoreServer implements ProtocolServer {
                     }
 
                     const retContent = await thing.handleReadProperty(propertyName, options);
-                    console.debug(`[debug] getting property(${propertyName}) data: `, retContent);
+                    console.debug(`[debug] getting property(${propertyName})`);
                     await writeDataToFirestore(this.firestore, propertyReadResultTopic, retContent, reqId);
                 }
             );
@@ -294,16 +294,15 @@ export default class FirestoreServer implements ProtocolServer {
                             const outContent = await thing
                                 .handleInvokeAction(actionName, content, options)
                                 .catch((err) => {
+                                    // when data is registered in the firestore, the callback may be called multiple times,
+                                    // in which case here is called
                                     console.error(
-                                        `[error] FirestoreServer at ${this.getHostName()} got error on invoking '${actionName}': ${
+                                        `[warn] FirestoreServer at ${this.getHostName()} got error on invoking '${actionName}': ${
                                             err.message
                                         }`
                                     );
+                                    console.error(err);
                                 });
-                            // Firestore cannot return results
-                            console.warn(
-                                `[warn] FirestoreServer at ${this.getHostName()} cannot return output '${actionName}'`
-                            );
                             await writeDataToFirestore(
                                 this.firestore,
                                 actionResultTopic,

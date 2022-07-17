@@ -74,7 +74,7 @@ export const writeDataToFirestore = async (
     content: Content,
     reqId: string = null
 ): Promise<void> => {
-    console.debug("[debug] writeDataToFirestore topic:", topic, " value:", content, reqId);
+    console.debug("[debug] writeDataToFirestore topic:", topic, reqId);
     const ref = firestore.collection("things").doc(encodeURIComponent(topic));
     const data = { updatedTime: Date.now(), reqId, content: "" };
     if (content && content.body) {
