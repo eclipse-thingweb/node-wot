@@ -203,10 +203,11 @@ class FirestoreClientBasicTest {
     @test async "[client] subscribe and unsubscribe event with object"() {
         let subscribeFlg = true;
         let errorMes = null;
+        let retVal = null;
         const sub = await thing.subscribeEvent("eventObject", async (event) => {
             if (subscribeFlg) {
                 const v = await event.value();
-                assert.deepEqual(v, { eventStr: "event1", eventNum: 123 });
+                retVal = v;
             } else {
                 errorMes = "called but unsubscribed";
             }
@@ -217,6 +218,7 @@ class FirestoreClientBasicTest {
             eventNum: 123,
         });
         await wait(500);
+        assert.deepEqual(retVal, { eventStr: "event1", eventNum: 123 });
         sub.stop();
         subscribeFlg = false;
         await thing.invokeAction("actionEventObject", {
@@ -227,13 +229,14 @@ class FirestoreClientBasicTest {
         assert.equal(errorMes, null);
     }
 
-    @test.skip async "[client] observe and unobserve property *observeProperty is currently unavailable"() {
+    @test async "[client] observe and unobserve property"() {
         let observeFlg = true;
         let errorMes = null;
+        let retVal = null;
         const ob = await thing.observeProperty("stringProperty", async (str) => {
             if (observeFlg) {
                 const v = await str.value();
-                assert.equal(v, "test-string-888");
+                retVal = v;
             } else {
                 errorMes = "called but unobserved";
             }
@@ -241,6 +244,7 @@ class FirestoreClientBasicTest {
         await wait(500);
         await thing.writeProperty("stringProperty", "test-string-888");
         await wait(500);
+        assert.strictEqual(retVal, "test-string-888");
         ob.stop();
         observeFlg = false;
         await thing.writeProperty("stringProperty", "test-string-889");

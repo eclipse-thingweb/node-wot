@@ -249,10 +249,6 @@ export default class FirestoreServer implements ProtocolServer {
                     const retContent = await thing.handleReadProperty(propertyName, options);
                     console.debug(`[debug] getting property(${propertyName}) data: `, retContent);
                     await writeDataToFirestore(this.firestore, propertyReadResultTopic, retContent, reqId);
-                    if (thing.properties[propertyName].observable) {
-                        // TODO: Currently, observeProperty is not supported, so it will be implemented after it is supported.
-                        // await writeDataToFirestore(this.firestore, topic, retContent, reqId);
-                    }
                 }
             );
         }

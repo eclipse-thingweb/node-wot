@@ -192,14 +192,17 @@ export const launchTestThing = async (): Promise<WoT.ExposedThing | void> => {
         thing.setPropertyWriteHandler("objectProperty", async (value) => {
             const v = (await value.value()) as Record<string, unknown>;
             objectProperty = v;
+            await thing.emitPropertyChange("objectProperty");
         });
         thing.setPropertyWriteHandler("stringProperty", async (value) => {
             const v = (await value.value()) as string;
             stringProperty = v;
+            await thing.emitPropertyChange("stringProperty");
         });
         thing.setPropertyWriteHandler("integerProperty", async (value) => {
             const v = (await value.value()) as number;
             integerProperty = v;
+            await thing.emitPropertyChange("integerProperty");
         });
 
         // set action handlers
