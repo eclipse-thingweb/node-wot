@@ -21,6 +21,7 @@
 // * local/global uriVariables
 // * multi-language
 // * image contentTypes for properties (Note: the contentType applies to all forms of the property)
+// * links with entry containing rel and sizes
 let count;
 let lastChange;
 WoT.produce({
@@ -37,6 +38,13 @@ WoT.produce({
         it: "Contatore Esempio",
     },
     support: "https://github.com/eclipse/thingweb.node-wot/",
+    links: [
+        {
+            href: "https://www.thingweb.io/img/favicon/favicon.png",
+            sizes: "16x14",
+            rel: "icon",
+        },
+    ],
     "@context": [
         "https://www.w3.org/2019/wot/td/v1",
         "https://www.w3.org/2022/wot/td/v1.1",
