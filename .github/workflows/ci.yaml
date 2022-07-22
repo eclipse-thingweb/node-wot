@@ -29,7 +29,7 @@ jobs:
               run: npm run build
 
             - name: Test with coverage report
-              run: npm run coverage
+              run: npm run coverage:only
 
             - name: Upload to codecov.io
               uses: codecov/codecov-action@v2
