@@ -930,25 +930,8 @@ export default class HttpServer implements ProtocolServer {
     private resetMultiLangThing(thing: ThingDescription, prefLang: string) {
         // TODO can we reset "title" to another name given that title is used in URI creation?
 
-        // update/set @language in @context
-        if (thing["@context"] && Array.isArray(thing["@context"])) {
-            const arrayContext: Extract<ThingDescription["@context"], [] | Array<unknown>> = thing["@context"];
-            let languageSet = false;
-            for (const arrayEntry of arrayContext) {
-                if (arrayEntry instanceof Object) {
-                    if (arrayEntry["@language"] !== undefined) {
-                        arrayEntry["@language"] = prefLang;
-                        languageSet = true;
-                    }
-                }
-            }
-
-            if (!languageSet) {
-                (arrayContext as unknown[]).push({
-                    "@language": prefLang,
-                });
-            }
-        }
+        // set @language in @context
+        TD.setContextLanguage(thing, prefLang, true);
 
         // use new language title
         if (thing.titles) {

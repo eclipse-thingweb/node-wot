@@ -63,7 +63,7 @@
         "query-string": "^7.1.1",
         "rxjs": "5.5.11",
         "slugify": "^1.4.5",
-        "wot-thing-description-types": "^1.1.0-06-July-2022"
+        "wot-thing-description-types": "^1.1.0-13-July-2022"
     },
     "scripts": {
         "build": "tsc -b",
