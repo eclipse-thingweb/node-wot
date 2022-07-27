@@ -561,10 +561,21 @@ export default class HttpServer implements ProtocolServer {
             }
         }
 
+        // url-rewrite feature in use ?
+        let pathname = requestUri.pathname;
+        if (this.urlRewrite) {
+            const entryUrl = pathname;
+            const internalUrl = this.urlRewrite[entryUrl];
+            if (internalUrl) {
+                pathname = internalUrl;
+                console.debug("[binding-http]", `URL "${entryUrl}" has been rewritten to "${pathname}"`);
+            }
+        }
+
         // route request
         let segments: string[];
         try {
-            segments = decodeURI(requestUri.pathname).split("/");
+            segments = decodeURI(pathname).split("/");
         } catch (ex) {
             // catch URIError, see https://github.com/eclipse/thingweb.node-wot/issues/389
             console.warn(
@@ -606,15 +617,6 @@ export default class HttpServer implements ProtocolServer {
             // resource found and response sent
             return;
         } else {
-            // url-rewrite feature in use ?
-            if (this.urlRewrite) {
-                const entryUrl = segments.slice(1, segments.length).join("/");
-                const internalUrl = this.urlRewrite[entryUrl];
-                if (internalUrl) {
-                    segments = decodeURI(internalUrl).split("/");
-                }
-            }
-
             // path -> select Thing
             const thing: ExposedThing = this.things.get(segments[1]);
             if (thing) {
