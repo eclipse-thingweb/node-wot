@@ -40,7 +40,7 @@
         "aedes": "^0.46.2",
         "mqtt": "^4.2.8",
         "rxjs": "5.5.11",
-        "wot-thing-description-types": "^1.1.0-13-July-2022"
+        "wot-thing-description-types": "^1.1.0-20-July-2022"
     },
     "scripts": {
         "build": "tsc -b",
