@@ -19,6 +19,9 @@ import { ProtocolHelpers } from "./core";
 import { DataSchemaError, NotSupportedError } from "./errors";
 import { Content } from "./protocol-interfaces";
 import Ajv from "ajv";
+import { createLoggers } from "./logger";
+
+const { debug } = createLoggers("core", "interaction-output");
 
 // Problem: strict mode ajv does not accept unknown keywords in schemas
 // however property affordances could contain all sort of fields
@@ -103,9 +106,9 @@ export class InteractionOutput implements WoT.InteractionOutput {
             const validate = ajv.compile<T>(this.schema);
 
             if (!validate(value)) {
-                console.debug("[core]", "schema = ", util.inspect(this.schema, { depth: 10, colors: true }));
-                console.debug("[core]", "value: ", value);
-                console.debug("[core]", "Errror: ", validate.errors);
+                debug(`schema = ${util.inspect(this.schema, { depth: 10, colors: true })}`);
+                debug(`value: ${value}`);
+                debug(`Errror: ${validate.errors}`);
                 throw new DataSchemaError("Invalid value according to DataSchema", value as WoT.DataSchemaValue);
             }
         }

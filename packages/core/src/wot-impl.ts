@@ -19,6 +19,9 @@ import Servient from "./servient";
 import ExposedThing from "./exposed-thing";
 import ConsumedThing from "./consumed-thing";
 import Helpers from "./helpers";
+import { createLoggers } from "./logger";
+
+const { debug } = createLoggers("core", "wot-impl");
 
 export class ThingDiscoveryImpl implements WoT.ThingDiscovery {
     filter?: WoT.ThingFilter;
@@ -82,8 +85,7 @@ export default class WoTImpl {
             const thing = TD.parseTD(JSON.stringify(td), true);
             const newThing: ConsumedThing = new ConsumedThing(this.srv, thing);
 
-            console.debug(
-                "[core/wot-impl]",
+            debug(
                 `WoTImpl consuming TD ${
                     newThing.id ? "'" + newThing.id + "'" : "without id"
                 } to instantiate ConsumedThing '${newThing.title}'`
@@ -110,7 +112,7 @@ export default class WoTImpl {
 
                 const newThing = new ExposedThing(this.srv, init);
 
-                console.debug("[core/servient]", `WoTImpl producing new ExposedThing '${newThing.title}'`);
+                debug(`WoTImpl producing new ExposedThing '${newThing.title}'`);
 
                 if (this.srv.addThing(newThing)) {
                     resolve(newThing);

@@ -15,6 +15,9 @@
 
 import { ContentCodec } from "../content-serdes";
 import { DataSchema, DataSchemaValue } from "wot-typescript-definitions";
+import { createLoggers } from "../logger";
+
+const { debug } = createLoggers("core", "text-codec");
 
 export default class TextCodec implements ContentCodec {
     private subMediaType: string;
@@ -32,7 +35,7 @@ export default class TextCodec implements ContentCodec {
     }
 
     bytesToValue(bytes: Buffer, schema: DataSchema, parameters: { [key: string]: string }): DataSchemaValue {
-        // console.debug(`TextCodec parsing '${bytes.toString()}'`);
+        debug(`TextCodec parsing '${bytes.toString()}'`);
 
         const parsed = bytes.toString(parameters.charset as BufferEncoding);
 
@@ -42,7 +45,7 @@ export default class TextCodec implements ContentCodec {
     }
 
     valueToBytes(value: unknown, schema: DataSchema, parameters?: { [key: string]: string }): Buffer {
-        // console.debug(`TextCodec serializing '${value}'`);
+        debug(`TextCodec serializing '${value}'`);
         let body = "";
         if (value !== undefined) {
             body = JSON.stringify(value);

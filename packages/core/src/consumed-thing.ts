@@ -34,6 +34,9 @@ import {
     PropertyElement,
 } from "wot-thing-description-types";
 import { ThingInteraction } from "@node-wot/td-tools";
+import { createLoggers } from "./logger";
+
+const { debug, warn } = createLoggers("core", "consumed-thing");
 
 enum Affordance {
     PropertyAffordance,
@@ -152,7 +155,7 @@ class InternalPropertySubscription extends InternalSubscription {
         if (!client) {
             throw new Error(`ConsumedThing '${this.thing.title}' did not get suitable client for ${form.href}`);
         }
-        console.debug("[core/consumed-thing]", `ConsumedThing '${this.thing.title}' unobserving to ${form.href}`);
+        debug(`ConsumedThing '${this.thing.title}' unobserving to ${form.href}`);
         await client.unlinkResource(form);
         this.active = false;
     }
@@ -289,7 +292,7 @@ class InternalEventSubscription extends InternalSubscription {
         if (!client) {
             throw new Error(`ConsumedThing '${this.thing.title}' did not get suitable client for ${form.href}`);
         }
-        console.debug("[core/consumed-thing]", `ConsumedThing '${this.thing.title}' unsubscribing to ${form.href}`);
+        debug(`ConsumedThing '${this.thing.title}' unsubscribing to ${form.href}`);
         client.unlinkResource(form);
         this.active = false;
     }
@@ -365,7 +368,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
     }
 
     public emitEvent(name: string, data: InteractionInput): void {
-        console.warn("[core/consumed-thing]", "not implemented");
+        warn("not implemented");
     }
 
     extendInteractions(): void {
@@ -439,22 +442,20 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
 
     ensureClientSecurity(client: ProtocolClient, form: TD.Form | undefined): void {
         if (this.securityDefinitions) {
+            const logStatement = () =>
+                debug(`ConsumedThing '${this.title}' setting credentials for ${client} based on thing security`);
+
             if (form && Array.isArray(form.security) && form.security.length > 0) {
                 // Note security member in form objects overrides (i.e., completely replace) all definitions activated at the Thing level
                 // see https://www.w3.org/TR/wot-thing-description/#security-serialization-json
-                console.debug(
-                    "[core/consumed-thing]",
-                    `ConsumedThing '${this.title}' setting credentials for ${client} based on form security`
-                );
+
+                logStatement();
                 client.setSecurity(
                     this.getSecuritySchemes(form.security),
                     this.getServient().retrieveCredentials(this.id)
                 );
             } else if (this.security && Array.isArray(this.security) && this.security.length > 0) {
-                console.debug(
-                    "[core/consumed-thing]",
-                    `ConsumedThing '${this.title}' setting credentials for ${client} based on thing security`
-                );
+                logStatement();
                 client.setSecurity(
                     this.getSecuritySchemes(this.security as string[]),
                     this.getServient().getCredentials(this.id)
@@ -479,17 +480,14 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
 
         if (options?.formIndex !== undefined) {
             // pick provided formIndex (if possible)
-            console.debug(
-                "[core/consumed-thing]",
-                `ConsumedThing '${this.title}' asked to use formIndex '${options.formIndex}'`
-            );
+            debug(`ConsumedThing '${this.title}' asked to use formIndex '${options.formIndex}'`);
 
             if (options.formIndex >= 0 && options.formIndex < forms.length) {
                 form = forms[options.formIndex];
                 const scheme = Helpers.extractScheme(form.href);
 
                 if (this.getServient().hasClientFor(scheme)) {
-                    console.debug("[core/consumed-thing]", `ConsumedThing '${this.title}' got client for '${scheme}'`);
+                    debug(`ConsumedThing '${this.title}' got client for '${scheme}'`);
                     client = this.getServient().getClientFor(scheme);
 
                     if (!this.getClients().get(scheme)) {
@@ -509,29 +507,21 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
 
             if (cacheIdx !== -1) {
                 // from cache
-                console.debug(
-                    "[core/consumed-thing]",
-                    `ConsumedThing '${this.title}' chose cached client for '${schemes[cacheIdx]}'`
-                );
+                debug(`ConsumedThing '${this.title}' chose cached client for '${schemes[cacheIdx]}'`);
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- if cacheIdx is valid, then clients *contains* schemes[cacheIdx]
                 client = this.getClients().get(schemes[cacheIdx])!;
                 form = this.findForm(forms, op, affordance, schemes, cacheIdx);
             } else {
                 // new client
-                console.debug(
-                    "[core/consumed-thing]",
-                    `ConsumedThing '${this.title}' has no client in cache (${cacheIdx})`
-                );
+                debug(`ConsumedThing '${this.title}' has no client in cache (${cacheIdx})`);
                 const srvIdx = schemes.findIndex((scheme) => this.getServient().hasClientFor(scheme));
 
                 if (srvIdx === -1)
                     throw new Error(`ConsumedThing '${this.title}' missing ClientFactory for '${schemes}'`);
 
                 client = this.getServient().getClientFor(schemes[srvIdx]);
-                console.debug(
-                    "[core/consumed-thing]",
-                    `ConsumedThing '${this.title}' got new client for '${schemes[srvIdx]}'`
-                );
+
+                debug(`ConsumedThing '${this.title}' got new client for '${schemes[srvIdx]}'`);
 
                 this.getClients().set(schemes[srvIdx], client);
 
@@ -556,7 +546,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         if (!client) {
             throw new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`);
         }
-        console.debug("[core/consumed-thing]", `ConsumedThing '${this.title}' reading ${form.href}`);
+        debug(`ConsumedThing '${this.title}' reading ${form.href}`);
 
         // uriVariables ?
         form = this.handleUriVariables(tp, form, options);
@@ -622,7 +612,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         if (!client) {
             throw new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`);
         }
-        console.debug("[core/consumed-thing]", `ConsumedThing '${this.title}' writing ${form.href} with '${value}'`);
+        debug(`ConsumedThing '${this.title}' writing ${form.href} with '${value}'`);
 
         const content = ContentManager.valueToContent(value, tp, form.contentType);
 
@@ -665,8 +655,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         if (!client) {
             throw new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`);
         }
-        console.debug(
-            "[core/consumed-thing]",
+        debug(
             `ConsumedThing '${this.title}' invoking ${form.href}${
                 parameter !== undefined ? " with '" + parameter + "'" : ""
             }`
@@ -724,7 +713,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                 `ConsumedThing '${this.title}' has already a function subscribed to ${name}. You can only observe once`
             );
         }
-        console.debug("[core/consumed-thing]", `ConsumedThing '${this.title}' observing to ${form.href}`);
+        debug(`ConsumedThing '${this.title}' observing to ${form.href}`);
 
         // uriVariables ?
         form = this.handleUriVariables(tp, form, options);
@@ -738,8 +727,8 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                 try {
                     listener(new InteractionOutput(content, form, tp));
                 } catch (e) {
-                    console.warn("[core/consumed-thing]", "Error while processing observe event for", tp.title);
-                    console.warn("[core/consumed-thing]", e);
+                    warn(`Error while processing observe event for ${tp.title}`);
+                    warn(e);
                 }
             },
             // error
@@ -782,7 +771,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                 `ConsumedThing '${this.title}' has already a function subscribed to ${name}. You can only subscribe once`
             );
         }
-        console.debug("[core/consumed-thing]", `ConsumedThing '${this.title}' subscribing to ${form.href}`);
+        debug(`ConsumedThing '${this.title}' subscribing to ${form.href}`);
 
         // uriVariables ?
         form = this.handleUriVariables(te, form, options);
@@ -795,8 +784,8 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                 try {
                     listener(new InteractionOutput(content, form, te.data));
                 } catch (e) {
-                    console.warn("[core/consumed-thing]", "Error while processing event for", te.title);
-                    console.warn("[core/consumed-thing]", e);
+                    warn(`Error while processing event for ${te.title}`);
+                    warn(e);
                 }
             },
             // error
@@ -826,7 +815,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
             const updForm = { ...form };
             updForm.href = updatedHref;
             form = updForm;
-            console.debug("[core/consumed-thing]", `ConsumedThing '${this.title}' update form URI to ${form.href}`);
+            debug(`ConsumedThing '${this.title}' update form URI to ${form.href}`);
         }
 
         return form;

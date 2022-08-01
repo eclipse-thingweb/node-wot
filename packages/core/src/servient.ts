@@ -20,6 +20,9 @@ import ExposedThing from "./exposed-thing";
 import { ProtocolClientFactory, ProtocolServer, ProtocolClient } from "./protocol-interfaces";
 import ContentManager, { ContentCodec } from "./content-serdes";
 import { v4 } from "uuid";
+import { createLoggers } from "./logger";
+
+const { debug, warn } = createLoggers("core", "servient");
 
 export default class Servient {
     private servers: Array<ProtocolServer> = [];
@@ -34,13 +37,13 @@ export default class Servient {
 
     public expose(thing: ExposedThing): Promise<void> {
         if (this.servers.length === 0) {
-            console.warn("[core/servient]", `Servient has no servers to expose Things`);
+            warn(`Servient has no servers to expose Things`);
             return new Promise<void>((resolve) => {
                 resolve();
             });
         }
 
-        console.debug("[core/servient]", `Servient exposing '${thing.title}'`);
+        debug(`Servient exposing '${thing.title}'`);
 
         // What is a good way to to convey forms information like contentType et cetera for interactions
         const tdTemplate: WoT.ThingDescription = JSON.parse(JSON.stringify(thing));
@@ -78,12 +81,12 @@ export default class Servient {
     public addThing(thing: ExposedThing): boolean {
         if (!thing.id) {
             thing.id = "urn:uuid:" + v4();
-            console.warn("[core/servient]", `Servient generating ID for '${thing.title}': '${thing.id}'`);
+            warn(`Servient generating ID for '${thing.title}': '${thing.id}'`);
         }
 
         if (!this.things.has(thing.id)) {
             this.things.set(thing.id, thing);
-            console.debug("[core/servient]", `Servient reset ID '${thing.id}' with '${thing.title}'`);
+            debug(`Servient reset ID '${thing.id}' with '${thing.title}'`);
             return true;
         } else {
             return false;
@@ -93,7 +96,7 @@ export default class Servient {
     public destroyThing(thingId: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             if (this.things.has(thingId)) {
-                console.debug("[core/servient]", `Servient destroying thing with id '${thingId}'`);
+                debug(`Servient destroying thing with id '${thingId}'`);
                 this.things.delete(thingId);
                 const serverPromises: Promise<boolean>[] = [];
                 this.servers.forEach((server) => {
@@ -103,10 +106,7 @@ export default class Servient {
                     .then(() => resolve(true))
                     .catch((err) => reject(err));
             } else {
-                console.warn(
-                    "[core/servient]",
-                    `Servient was asked to destroy thing but failed to find thing with id '${thingId}'`
-                );
+                warn(`Servient was asked to destroy thing but failed to find thing with id '${thingId}'`);
                 resolve(false);
             }
         });
@@ -120,7 +120,7 @@ export default class Servient {
 
     // FIXME should be getThingDescriptions (breaking change)
     public getThings(): Record<string, WoT.ThingDescription> {
-        console.debug("[core/servient]", `Servient getThings size == '${this.things.size}'`);
+        debug(`Servient getThings size == '${this.things.size}'`);
         const ts: { [key: string]: WoT.ThingDescription } = {};
         this.things.forEach((thing, id) => {
             ts[id] = thing.getThingDescription();
@@ -146,17 +146,14 @@ export default class Servient {
     }
 
     public hasClientFor(scheme: string): boolean {
-        console.debug(
-            "[core/servient]",
-            `Servient checking for '${scheme}' scheme in ${this.clientFactories.size} ClientFactories`
-        );
+        debug(`Servient checking for '${scheme}' scheme in ${this.clientFactories.size} ClientFactories`);
         return this.clientFactories.has(scheme);
     }
 
     public getClientFor(scheme: string): ProtocolClient {
         const clientFactory = this.clientFactories.get(scheme);
         if (clientFactory) {
-            console.debug("[core/servient]", `Servient creating client for scheme '${scheme}'`);
+            debug(`Servient creating client for scheme '${scheme}'`);
             return clientFactory.getClient();
         } else {
             // FIXME returning null was bad - Error or Promise?
@@ -172,7 +169,7 @@ export default class Servient {
     public addCredentials(credentials: Record<string, unknown>): void {
         if (typeof credentials === "object") {
             for (const i in credentials) {
-                console.debug("[core/servient]", `Servient storing credentials for '${i}'`);
+                debug(`Servient storing credentials for '${i}'`);
                 let currentCredentials = this.credentialStore.get(i);
                 if (!currentCredentials) {
                     currentCredentials = [];
@@ -189,7 +186,7 @@ export default class Servient {
      * @param identifier id
      */
     public getCredentials(identifier: string): unknown {
-        console.debug("[core/servient]", `Servient looking up credentials for '${identifier}' (@deprecated)`);
+        debug(`Servient looking up credentials for '${identifier}' (@deprecated)`);
         const currentCredentials = this.credentialStore.get(identifier);
         if (currentCredentials && currentCredentials.length > 0) {
             // return first
@@ -200,7 +197,7 @@ export default class Servient {
     }
 
     public retrieveCredentials(identifier: string): Array<unknown> | undefined {
-        console.debug("[core/servient]", `Servient looking up credentials for '${identifier}'`);
+        debug(`Servient looking up credentials for '${identifier}'`);
         return this.credentialStore.get(identifier);
     }
 

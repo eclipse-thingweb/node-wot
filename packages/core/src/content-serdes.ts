@@ -22,6 +22,9 @@ import { DataSchema, DataSchemaValue } from "wot-typescript-definitions";
 import { Readable } from "stream";
 import { ProtocolHelpers } from "./core";
 import { ReadableStream } from "web-streams-polyfill/ponyfill/es2018";
+import { createLoggers } from "./logger";
+
+const { debug, warn } = createLoggers("core", "content-serdes");
 
 /** is a plugin for ContentSerdes for a specific format (such as JSON or EXI) */
 export interface ContentCodec {
@@ -138,7 +141,7 @@ export class ContentSerdes {
 
         // choose codec based on mediaType
         if (this.codecs.has(mt)) {
-            console.debug("[core/content-serdes]", `ContentSerdes deserializing from ${content.type}`);
+            debug(`ContentSerdes deserializing from ${content.type}`);
 
             const codec = this.codecs.get(mt);
 
@@ -148,7 +151,7 @@ export class ContentSerdes {
 
             return res;
         } else {
-            console.warn("[core/content-serdes]", `ContentSerdes passthrough due to unsupported media type '${mt}'`);
+            warn(`ContentSerdes passthrough due to unsupported media type '${mt}'`);
             return content.body.toString();
         }
     }
@@ -158,7 +161,7 @@ export class ContentSerdes {
         schema: DataSchema | undefined,
         contentType = ContentSerdes.DEFAULT
     ): Content {
-        if (value === undefined) console.warn("[core/content-serdes]", "ContentSerdes valueToContent got no value");
+        if (value === undefined) warn("ContentSerdes valueToContent got no value");
 
         if (value instanceof ReadableStream) {
             return { type: contentType, body: ProtocolHelpers.toNodeStream(value) };
@@ -173,13 +176,10 @@ export class ContentSerdes {
         // choose codec based on mediaType
         const codec = this.codecs.get(mt);
         if (codec) {
-            console.debug("[core/content-serdes]", `ContentSerdes serializing to ${contentType}`);
+            debug(`ContentSerdes serializing to ${contentType}`);
             bytes = codec.valueToBytes(value, schema, par);
         } else {
-            console.warn(
-                "[core/content-serdes]",
-                `ContentSerdes passthrough due to unsupported serialization format '${contentType}'`
-            );
+            warn(`ContentSerdes passthrough due to unsupported serialization format '${contentType}'`);
             // TODO: doing a toString is not actually the right way
             bytes = Buffer.from(value === null ? "" : value.toString());
         }
