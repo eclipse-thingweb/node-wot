@@ -17,11 +17,13 @@
  * Protocol test suite to test protocol implementations
  */
 
-import { ProtocolHelpers, Servient } from "@node-wot/core";
+import { createInfoLogger, ProtocolHelpers, Servient } from "@node-wot/core";
 import { expect, should } from "chai";
 import MqttBrokerServer from "../src/mqtt-broker-server";
 import MqttClientFactory from "../src/mqtt-client-factory";
 import MqttsClientFactory from "../src/mqtts-client-factory";
+
+const info = createInfoLogger("binding-mqtt", "mqtt-client-subscribe-test.integration");
 
 // should must be called to augment all variables
 should();
@@ -65,7 +67,7 @@ describe("MQTT client implementation", () => {
                 events: events,
             }).then((thing) => {
                 thing.expose().then(() => {
-                    console.info("Exposed", thing.getThingDescription().title);
+                    info(`Exposed ${thing.getThingDescription().title}`);
 
                     WoT.consume(thing.getThingDescription()).then((client) => {
                         let check = 0;
@@ -130,7 +132,7 @@ describe("MQTT client implementation", () => {
                 events: events,
             }).then((thing) => {
                 thing.expose().then(() => {
-                    console.info("Exposed", thing.getThingDescription().title);
+                    info(`Exposed ${thing.getThingDescription().title}`);
 
                     WoT.consume(thing.getThingDescription()).then((client) => {
                         let check = 0;

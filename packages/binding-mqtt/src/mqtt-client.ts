@@ -17,7 +17,7 @@
  * Protocol test suite to test protocol implementations
  */
 
-import { ProtocolClient, Content, ContentSerdes, ProtocolHelpers } from "@node-wot/core";
+import { ProtocolClient, Content, ContentSerdes, ProtocolHelpers, createLoggers } from "@node-wot/core";
 import * as TD from "@node-wot/td-tools";
 import * as mqtt from "mqtt";
 import { MqttClientConfig, MqttForm, MqttQoS } from "./mqtt";
@@ -25,6 +25,8 @@ import { IPublishPacket, QoS } from "mqtt";
 import * as url from "url";
 import { Subscription } from "rxjs/Subscription";
 import { Readable } from "stream";
+
+const { debug, warn } = createLoggers("binding-mqtt", "mqtt-client");
 
 declare interface MqttClientSecurityParameters {
     username: string;
@@ -66,10 +68,7 @@ export default class MqttClient implements ProtocolClient {
                 );
             });
             this.client.on("message", (receivedTopic: string, payload: string, packet: IPublishPacket) => {
-                console.debug(
-                    "[binding-mqtt]",
-                    "Received MQTT message (topic, data): (" + receivedTopic + ", " + payload + ")"
-                );
+                debug(`Received MQTT message (topic: ${receivedTopic}, data: ${payload})`);
                 if (receivedTopic === topic) {
                     next({ type: contentType, body: Readable.from(payload) });
                 }
@@ -122,7 +121,7 @@ export default class MqttClient implements ProtocolClient {
         return new Promise<void>((resolve, reject) => {
             if (this.client && this.client.connected) {
                 this.client.unsubscribe(topic);
-                console.debug("[binding-mqtt]", `MqttClient unsubscribed from topic '${topic}'`);
+                debug(`MqttClient unsubscribed from topic '${topic}'`);
             }
             resolve();
         });
@@ -138,7 +137,7 @@ export default class MqttClient implements ProtocolClient {
 
     public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: MqttClientSecurityParameters): boolean {
         if (metadata === undefined || !Array.isArray(metadata) || metadata.length === 0) {
-            console.warn("[binding-mqtt]", `MqttClient received empty security metadata`);
+            warn(`MqttClient received empty security metadata`);
             return false;
         }
         const security: TD.SecurityScheme = metadata[0];
@@ -160,9 +159,5 @@ export default class MqttClient implements ProtocolClient {
             default:
                 return (qos = 0);
         }
-    }
-
-    private logError(message: string): void {
-        console.error("[binding-mqtt]", `[MqttClient]${message}`);
     }
 }

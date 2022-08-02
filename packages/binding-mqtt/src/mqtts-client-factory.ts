@@ -17,9 +17,11 @@
  * Protocol test suite to test protocol implementations
  */
 
-import { ProtocolClientFactory, ProtocolClient } from "@node-wot/core";
+import { ProtocolClientFactory, ProtocolClient, createDebugLogger } from "@node-wot/core";
 import { MqttClientConfig } from "./mqtt";
 import MqttClient from "./mqtt-client";
+
+const debug = createDebugLogger("binding-mqtt", "mqtts-client-factory");
 
 export default class MqttsClientFactory implements ProtocolClientFactory {
     public readonly scheme: string = "mqtts";
@@ -38,7 +40,7 @@ export default class MqttsClientFactory implements ProtocolClientFactory {
     }
 
     destroy(): boolean {
-        console.debug("[binding-mqtt]", `MqttClientFactory stopping all clients for '${this.scheme}'`);
+        debug(`MqttClientFactory stopping all clients for '${this.scheme}'`);
         this.clients.forEach((client) => client.stop());
         return true;
     }
