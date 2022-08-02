@@ -23,7 +23,7 @@ import chai, { expect, should } from "chai";
 import * as http from "http";
 import { AddressInfo } from "net";
 
-import { Content, ContentSerdes, ProtocolHelpers, ProtocolServer } from "@node-wot/core";
+import { Content, ContentSerdes, createLoggers, ProtocolHelpers, ProtocolServer } from "@node-wot/core";
 
 import { Readable } from "stream";
 
@@ -37,6 +37,8 @@ import SseStream from "ssestream";
 
 // Add spies
 import spies from "chai-spies";
+
+const { debug } = createLoggers("binding-http", "http-client-test");
 
 // should must be called to augment all variables
 should();
@@ -319,7 +321,7 @@ class HttpClientTest2 {
         const app = express();
         app.use(serveStatic(__dirname));
         app.get("/sse", function (req: express.Request, res: express.Response) {
-            console.log("new connection");
+            debug("new connection");
 
             const sseStream = new SseStream(req);
             sseStream.pipe(res);
@@ -330,7 +332,7 @@ class HttpClientTest2 {
             }, 300);
 
             res.on("close", () => {
-                console.log("lost connection");
+                debug("lost connection");
                 clearInterval(pusher);
                 sseStream.unpipe(res);
                 done();
@@ -338,9 +340,9 @@ class HttpClientTest2 {
         });
 
         const server = app.listen(port1, () => {
-            console.log(`server ready on http://localhost:${port1}`);
+            debug(`server ready on http://localhost:${port1}`);
         });
-        console.log("client created");
+        debug("client created");
         const client = new HttpClient();
 
         // Subscribe to a resource with sse

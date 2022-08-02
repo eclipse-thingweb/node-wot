@@ -17,9 +17,11 @@
  * HTTPS client Factory
  */
 
-import { ProtocolClientFactory, ProtocolClient } from "@node-wot/core";
+import { ProtocolClientFactory, ProtocolClient, createLoggers } from "@node-wot/core";
 import { HttpConfig } from "./http";
 import HttpClient from "./http-client";
+
+const { debug, warn } = createLoggers("binding-http", "https-client-factory");
 
 export default class HttpsClientFactory implements ProtocolClientFactory {
     public readonly scheme: string = "https";
@@ -32,24 +34,22 @@ export default class HttpsClientFactory implements ProtocolClientFactory {
     public getClient(): ProtocolClient {
         // HTTPS over HTTP proxy requires HttpClient
         if (this.config && this.config.proxy && this.config.proxy.href && this.config.proxy.href.startsWith("http:")) {
-            console.warn(
-                `"[binding-http]",HttpsClientFactory creating client for 'http' due to insecure proxy configuration`
-            );
+            warn("HttpsClientFactory creating client for 'http' due to insecure proxy configuration");
             return new HttpClient(this.config);
         } else {
-            console.debug("[binding-http]", `HttpsClientFactory creating client for '${this.scheme}'`);
+            debug(`HttpsClientFactory creating client for '${this.scheme}'`);
             return new HttpClient(this.config, true);
         }
     }
 
     public init(): boolean {
-        // console.info(`HttpsClientFactory for '${HttpsClientFactory.scheme}' initializing`);
+        // info(`HttpsClientFactory for '${HttpsClientFactory.scheme}' initializing`);
         // TODO uncomment info if something is executed here
         return true;
     }
 
     public destroy(): boolean {
-        // console.info(`HttpsClientFactory for '${HttpsClientFactory.scheme}' destroyed`);
+        // info(`HttpsClientFactory for '${HttpsClientFactory.scheme}' destroyed`);
         // TODO uncomment info if something is executed here
         return true;
     }
