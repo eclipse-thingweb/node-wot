@@ -12,14 +12,16 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-import { ProtocolClientFactory, ProtocolClient } from "@node-wot/core";
+import { ProtocolClientFactory, ProtocolClient, createDebugLogger } from "@node-wot/core";
 import ModbusClient from "./modbus-client";
+
+const debug = createDebugLogger("binding-modbus", "modbus-client-factory");
 
 export default class ModbusClientFactory implements ProtocolClientFactory {
     public readonly scheme: string = "modbus+tcp";
 
     public getClient(): ProtocolClient {
-        console.log(`ModbusClientFactory creating client for '${this.scheme}'`);
+        debug(`Creating client for '${this.scheme}'`);
         return new ModbusClient();
     }
 
