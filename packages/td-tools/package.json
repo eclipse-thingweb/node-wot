@@ -41,6 +41,7 @@
     },
     "dependencies": {
         "ajv": "^7.0.4",
+        "debug": "^4.3.4",
         "is-absolute-url": "3.0.3",
         "json-placeholder-replacer": "^1.0.35",
         "url-toolkit": "2.1.6",

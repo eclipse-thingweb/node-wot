@@ -24,6 +24,12 @@ import { ThingModel } from "wot-thing-model-types";
 import TMSchema from "wot-thing-model-types/schema/tm-json-schema-validation.json";
 import { Resolver } from "./resolver-interface";
 
+// TODO: Refactor and reuse debug solution from core package
+import debug from "debug";
+const namespace = "node-wot:td-tools:thing-model-helpers";
+const logDebug = debug(`${namespace}:debug`);
+const logError = debug(`${namespace}:error`);
+
 const tmSchema = TMSchema;
 // RegExps take from https://github.com/ajv-validator/ajv-formats/blob/master/src/formats.ts
 const ajv = new Ajv({ strict: false })
@@ -236,10 +242,10 @@ export class ThingModelHelpers {
                         res.on("end", () => {
                             try {
                                 const parsedData = JSON.parse(rawData);
-                                console.debug("[td-tools]", "http fetched:", parsedData);
+                                logDebug(`https fetched: ${parsedData}`);
                                 resolve(parsedData);
-                            } catch (e) {
-                                console.error("[td-tools]", e instanceof Error ? e.message : e);
+                            } catch (error) {
+                                logError(error);
                             }
                         });
                     }).on("error", (e) => {
@@ -259,10 +265,10 @@ export class ThingModelHelpers {
                             res.on("end", () => {
                                 try {
                                     const parsedData = JSON.parse(rawData);
-                                    console.debug("[td-tools]", "https fetched:", parsedData);
+                                    logDebug(`https fetched: ${parsedData}`);
                                     resolve(parsedData);
-                                } catch (e) {
-                                    console.error("[td-tools]", (e as Error).message);
+                                } catch (error) {
+                                    logError(error);
                                 }
                             });
                         })

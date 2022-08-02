@@ -21,9 +21,15 @@ import isAbsoluteUrl = require("is-absolute-url");
 import URLToolkit = require("url-toolkit");
 import { ThingContext } from "wot-thing-description-types";
 
+// TODO: Refactor and reuse debug solution from core package
+import debug from "debug";
+const namespace = "node-wot:td-tools:td-parser";
+const logDebug = debug(`${namespace}:debug`);
+const logWarn = debug(`${namespace}:warn`);
+
 /** Parses a TD into a Thing object */
 export function parseTD(td: string, normalize?: boolean): Thing {
-    console.debug("[td-tools/td-parser]", `parseTD() parsing\n\`\`\`\n${td}\n\`\`\``);
+    logDebug(`parseTD() parsing\n\`\`\`\n${td}\n\`\`\``);
 
     // remove a potential Byte Order Mark (BOM)
     // see https://github.com/eclipse/thingweb.node-wot/issues/109
@@ -131,7 +137,7 @@ export function parseTD(td: string, normalize?: boolean): Thing {
     }
 
     if (thing.security === undefined) {
-        console.warn("[td-tools/td-parser]", `parseTD() found no security metadata`);
+        logWarn("parseTD() found no security metadata");
     }
     // wrap in array for later simplification
     if (typeof thing.security === "string") {
@@ -197,14 +203,11 @@ export function parseTD(td: string, normalize?: boolean): Thing {
 
     if (Object.prototype.hasOwnProperty.call(thing, "base")) {
         if (normalize === undefined || normalize === true) {
-            console.debug("[td-tools/td-parser]", `parseTD() normalizing 'base' into 'forms'`);
+            logDebug("parseTD() normalizing 'base' into 'forms'");
 
             for (const form of allForms) {
                 if (!form.href.match(/^([a-z0-9+-.]+:).+/i)) {
-                    console.debug(
-                        "[td-tools/td-parser]",
-                        `parseTDString() applying base '${thing.base}' to '${form.href}'`
-                    );
+                    logDebug(`parseTDString() applying base '${thing.base}' to '${form.href}'`);
                     form.href = URLToolkit.buildAbsoluteURL(thing.base, form.href);
                 }
             }
