@@ -17,7 +17,7 @@
 // global W3C WoT Scripting API definitions
 import * as WoT from "wot-typescript-definitions";
 // node-wot implementation of W3C WoT Servient
-import { Servient, Helpers } from "@node-wot/core";
+import { Servient, Helpers, createLoggers } from "@node-wot/core";
 // protocols used
 import { HttpServer, HttpClientFactory, HttpsClientFactory } from "@node-wot/binding-http";
 // import { WebSocketServer } from "@node-wot/binding-websockets";
@@ -26,6 +26,8 @@ import { MqttBrokerServer, MqttClientFactory } from "@node-wot/binding-mqtt";
 import { FileClientFactory } from "@node-wot/binding-file";
 import { CompilerFunction, NodeVM } from "vm2";
 import { ThingModelHelpers } from "@node-wot/td-tools";
+
+const { debug, error, info } = createLoggers("cli", "cli-default-servient");
 
 // Helper function needed for `mergeConfigs` function
 function isObject(item: unknown) {
@@ -112,8 +114,8 @@ export default class DefaultServient extends Servient {
         if (this.config.credentials) delete this.config.credentials;
 
         // display
-        console.debug("[cli/default-servient]", "DefaultServient configured with");
-        console.dir(this.config);
+        debug("DefaultServient configured with");
+        debug(`${this.config}`);
 
         // apply config
         if (typeof this.config.servient.staticAddress === "string") {
@@ -193,7 +195,7 @@ export default class DefaultServient extends Servient {
             if (err instanceof Error) {
                 this.logScriptError(`Servient found error in script '${filename}'`, err);
             } else {
-                console.error("[core/servient]", `Servient found error in script '${filename}' ${err}`);
+                error(`Servient found error in script '${filename}' ${err}`);
             }
             return undefined;
         }
@@ -242,25 +244,25 @@ export default class DefaultServient extends Servient {
             if (err instanceof Error) {
                 this.logScriptError(`Servient found error in privileged script '${filename}'`, err);
             } else {
-                console.error("[core/servient]", `Servient found error in privileged script '${filename}' ${err}`);
+                error(`Servient found error in privileged script '${filename}' ${err}`);
             }
             return undefined;
         }
     }
 
-    private logScriptError(description: string, error: Error): void {
+    private logScriptError(description: string, err: Error): void {
         let message: string;
-        if (typeof error === "object" && error.stack) {
-            const match = error.stack.match(/evalmachine\.<anonymous>:([0-9]+:[0-9]+)/);
+        if (typeof err === "object" && err.stack) {
+            const match = err.stack.match(/evalmachine\.<anonymous>:([0-9]+:[0-9]+)/);
             if (Array.isArray(match)) {
-                message = `and halted at line ${match[1]}\n    ${error}`;
+                message = `and halted at line ${match[1]}\n    ${err}`;
             } else {
-                message = `and halted with ${error.stack}`;
+                message = `and halted with ${err.stack}`;
             }
         } else {
-            message = `that threw ${typeof error} instead of Error\n    ${error}`;
+            message = `that threw ${typeof err} instead of Error\n    ${err}`;
         }
-        console.error("[core/servient]", `Servient caught ${description} ${message}`);
+        error(`Servient caught ${description} ${message}`);
     }
 
     /**
@@ -271,7 +273,7 @@ export default class DefaultServient extends Servient {
             super
                 .start()
                 .then((myWoT) => {
-                    console.info("[cli/default-servient]", "DefaultServient started");
+                    info("DefaultServient started");
                     this.runtime = myWoT;
                     // TODO think about builder pattern that starts with produce() ends with expose(), which exposes/publishes the Thing
                     myWoT
@@ -320,7 +322,7 @@ export default class DefaultServient extends Servient {
                             });
                             thing.setActionHandler("shutdown", () => {
                                 return new Promise((resolve, reject) => {
-                                    console.debug("[cli/default-servient]", "shutting down by remote");
+                                    debug("shutting down by remote");
                                     this.shutdown();
                                     resolve(undefined);
                                 });
@@ -328,14 +330,14 @@ export default class DefaultServient extends Servient {
                             thing.setActionHandler("runScript", async (script) => {
                                 const scriptv = await Helpers.parseInteractionOutput(script);
                                 return new Promise((resolve, reject) => {
-                                    console.debug("[cli/default-servient]", "running script", scriptv);
+                                    debug("running script", scriptv);
                                     this.runScript(scriptv as string);
                                     resolve(undefined);
                                 });
                             });
                             thing.setPropertyReadHandler("things", () => {
                                 return new Promise((resolve, reject) => {
-                                    console.debug("[cli/default-servient]", "returnings things");
+                                    debug("returnings things");
                                     resolve(this.getThings());
                                 });
                             });
