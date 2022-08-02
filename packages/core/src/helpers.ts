@@ -68,7 +68,7 @@ export default class Helpers implements Resolver {
 
     public static extractScheme(uri: string): string {
         const parsed = new URL(uri);
-        // console.log(parsed)
+        debug(parsed);
         // remove trailing ':'
         if (parsed.protocol === null) {
             throw new Error(`Protocol in url "${uri}" must be valid`);
