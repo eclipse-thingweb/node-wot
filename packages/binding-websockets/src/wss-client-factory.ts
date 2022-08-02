@@ -32,13 +32,13 @@ export default class WssClientFactory implements ProtocolClientFactory {
     }
 
     public init(): boolean {
-        // console.info(`HttpsClientFactory for '${HttpsClientFactory.scheme}' initializing`);
+        // info(`HttpsClientFactory for '${HttpsClientFactory.scheme}' initializing`);
         // TODO uncomment info if something is executed here
         return true;
     }
 
     public destroy(): boolean {
-        // console.info(`HttpsClientFactory for '${HttpsClientFactory.scheme}' destroyed`);
+        // info(`HttpsClientFactory for '${HttpsClientFactory.scheme}' destroyed`);
         // TODO uncomment info if something is executed here
         return true;
     }
