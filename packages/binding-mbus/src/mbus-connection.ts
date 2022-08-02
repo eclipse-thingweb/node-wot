@@ -14,10 +14,12 @@
  ********************************************************************************/
 
 import { MBusForm } from "./mbus";
-import { Content } from "@node-wot/core";
+import { Content, createLoggers } from "@node-wot/core";
 import { Readable } from "stream";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MbusMaster = require("node-mbus");
+
+const { debug, warn, error } = createLoggers("binding-mbus", "mbus-connection");
 
 const configDefaults = {
     operationTimeout: 10000,
@@ -126,26 +128,22 @@ export class MBusConnection {
 
     async connect(): Promise<void> {
         if (!this.connecting && !this.connected) {
-            console.debug("[binding-mbus]", "Trying to connect to", this.host);
+            debug(`Trying to connect to ${this.host}`);
             this.connecting = true;
 
             for (let retry = 0; retry < this.config.maxRetries; retry++) {
                 if (
-                    this.client.connect((error: string) => {
-                        if (error != null)
-                            console.warn(
-                                "[binding-mbus]",
-                                "Cannot connect to",
-                                this.host,
-                                "reason",
-                                error,
-                                ` retry in ${this.config.connectionRetryTime}ms`
+                    this.client.connect((err: string) => {
+                        if (err != null) {
+                            warn(
+                                `Cannot connect to ${this.host}. Reason: ${err}. Retry in ${this.config.connectionRetryTime}ms.`
                             );
+                        }
                     })
                 ) {
                     this.connecting = false;
                     this.connected = true;
-                    console.debug("[binding-mbus]", "MBus connected to " + this.host);
+                    debug(`MBus connected to ${this.host}`);
                     return;
                 } else {
                     this.connecting = false;
@@ -172,7 +170,7 @@ export class MBusConnection {
      * Retrigger after success or failure.
      */
     async trigger(): Promise<void> {
-        console.debug("[binding-mbus]", "MBusConnection:trigger");
+        debug("MBusConnection:trigger");
         if (!this.connecting && !this.connected) {
             // connection may be closed due to operation timeout
             // try to reconnect again
@@ -180,7 +178,7 @@ export class MBusConnection {
                 await this.connect();
                 this.trigger();
             } catch (error) {
-                console.warn("[binding-mbus]", "cannot reconnect to m-bus server");
+                warn("Cannot reconnect to m-bus server");
                 // inform all the operations that the connection cannot be recovered
                 this.queue.forEach((transaction) => {
                     transaction.operations.forEach((op) => {
@@ -195,8 +193,8 @@ export class MBusConnection {
                 await this.executeTransaction(this.currentTransaction);
                 this.currentTransaction = null;
                 this.trigger();
-            } catch (error) {
-                console.warn("[binding-mbus]", "transaction failed:", error);
+            } catch (err) {
+                warn(`Transaction failed: ${err}`);
                 this.currentTransaction = null;
                 this.trigger();
             }
@@ -205,16 +203,16 @@ export class MBusConnection {
 
     async executeTransaction(transaction: MBusTransaction): Promise<void> {
         // Read transaction
-        console.debug("[binding-mbus]", "Execute read operation on unit", transaction.unitId);
+        debug("Execute read operation on unit", transaction.unitId);
         try {
             const result = await this.readMBus(transaction);
-            console.debug("[binding-mbus]", "Got result from read operation on unit", transaction.unitId);
+            debug(`Got result from read operation on unit ${transaction.unitId}"`);
             transaction.operations.forEach((op) => op.done(op.base, result));
-        } catch (error) {
-            console.warn("[binding-mbus]", "read operation failed on unit", transaction.unitId, error);
+        } catch (err) {
+            warn(`Read operation failed on unit ${transaction.unitId}. ${err}.`);
             // inform all operations and the invoker
-            transaction.operations.forEach((op) => op.failed(error));
-            throw error;
+            transaction.operations.forEach((op) => op.failed(err));
+            throw err;
         }
     }
 
@@ -224,7 +222,7 @@ export class MBusConnection {
 
     async readMBus(transaction: MBusTransaction): Promise<unknown> {
         return new Promise<unknown>((resolve, reject) => {
-            console.debug("[binding-mbus]", "Invoking read transaction");
+            debug("Invoking read transaction");
             // reset connection idle timer
             if (this.timer) {
                 clearTimeout(this.timer);
@@ -240,14 +238,14 @@ export class MBusConnection {
     }
 
     private mbusstop() {
-        console.debug("[binding-mbus]", "Closing unused connection");
+        debug("Closing unused connection");
         this.client.close((err: string) => {
             if (err === null) {
-                console.debug("[binding-mbus]", "session closed");
+                debug("session closed");
                 this.connecting = false;
                 this.connected = false;
             } else {
-                console.error("[binding-mbus]", "cannot close session " + err);
+                error(`Cannot close session. ${err}`);
             }
         });
         clearInterval(this.timer);
@@ -294,7 +292,7 @@ export class PropertyOperation {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
         result?: any
     ): void {
-        console.debug("[binding-mbus]", "Operation done");
+        debug("Operation done");
 
         // extract the proper part from the result and resolve promise
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -325,7 +323,7 @@ export class PropertyOperation {
      * @param reason Reason of failure
      */
     failed(reason: string): void {
-        console.warn("[binding-mbus]", "Operation failed:", reason);
+        warn("Operation failed:", reason);
         // reject the Promise given to the invoking script
         this.reject(new Error(reason));
     }
