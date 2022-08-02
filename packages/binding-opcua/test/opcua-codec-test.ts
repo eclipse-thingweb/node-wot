@@ -16,7 +16,7 @@
 import { exist } from "should";
 import { expect } from "chai";
 
-import { ContentSerdes, ProtocolHelpers } from "@node-wot/core";
+import { ContentSerdes, ProtocolHelpers, createLoggers } from "@node-wot/core";
 import { ObjectSchema } from "@node-wot/td-tools";
 
 import { DataValue } from "node-opcua-data-value";
@@ -26,6 +26,8 @@ import { opcuaJsonEncodeDataValue } from "node-opcua-json";
 import { StatusCodes } from "node-opcua-status-code";
 
 import { jsonify, OpcuaBinaryCodec, OpcuaJSONCodec, theOpcuaBinaryCodec, theOpcuaJSONCodec } from "../src/codec";
+
+const { debug } = createLoggers("binding-opcua", "opcua-codec-test");
 
 const dataValue1 = new DataValue({});
 const dataValue2 = new DataValue({
@@ -94,7 +96,7 @@ describe("OPCUA JSON Serdes ", () => {
                 exist(ContentSerdes.getMediaType(contentType));
                 const payload = serdes.valueToContent(dataValue, schema, contentType);
                 const body = await ProtocolHelpers.readStreamFully(payload.body);
-                console.log(body.toString("ascii"));
+                debug(body.toString("ascii"));
                 JSON.parse(body.toString()).should.eql(expected1[index]);
             }
         );
@@ -113,7 +115,7 @@ describe("OPCUA JSON Serdes ", () => {
             exist(ContentSerdes.getMediaType(contentType));
             const payload = serdes.valueToContent(dataValue, schema, contentType);
             const body = await ProtocolHelpers.readStreamFully(payload.body);
-            console.log(body.toString("ascii"));
+            debug(body.toString("ascii"));
             body.toString().should.eql(expected2[index]);
         });
     });

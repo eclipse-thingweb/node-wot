@@ -13,9 +13,11 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { ProtocolClientFactory, ProtocolClient, ContentSerdes } from "@node-wot/core";
+import { ProtocolClientFactory, ProtocolClient, ContentSerdes, createLoggers } from "@node-wot/core";
 import { OpcuaJSONCodec, OpcuaBinaryCodec } from "./codec";
 import { OPCUAProtocolClient } from "./opcua-protocol-client";
+
+const { debug } = createLoggers("binding-opcua", "factory");
 
 export class OPCUAClientFactory implements ProtocolClientFactory {
     readonly scheme: string = "opc.tcp";
@@ -30,7 +32,7 @@ export class OPCUAClientFactory implements ProtocolClientFactory {
     }
 
     getClient(): ProtocolClient {
-        console.debug("[binding-opcua]", `OpcuaClientFactory creating client for '${this.scheme}'`);
+        debug(`OpcuaClientFactory creating client for '${this.scheme}'`);
         if (this._clients[0]) {
             return this._clients[0];
         }
@@ -39,12 +41,12 @@ export class OPCUAClientFactory implements ProtocolClientFactory {
     }
 
     init(): boolean {
-        console.debug("[binding-opcua]", "init");
+        debug("init");
         return true;
     }
 
     destroy(): boolean {
-        console.debug("[binding-opcua]", "destroy");
+        debug("destroy");
 
         const clients = this._clients;
         this._clients = [];
