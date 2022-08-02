@@ -35,7 +35,7 @@ export default class JsonCodec implements ContentCodec {
         return this.subMediaType;
     }
 
-    bytesToValue(bytes: Buffer, schema: DataSchema, parameters: { [key: string]: string }): DataSchemaValue {
+    bytesToValue(bytes: Buffer, schema?: DataSchema, parameters?: { [key: string]: string }): DataSchemaValue {
         debug(`JsonCodec parsing '${bytes.toString()}'`);
 
         let parsed;
@@ -58,7 +58,7 @@ export default class JsonCodec implements ContentCodec {
         return parsed;
     }
 
-    valueToBytes(value: unknown, schema: DataSchema, parameters?: { [key: string]: string }): Buffer {
+    valueToBytes(value: unknown, schema?: DataSchema, parameters?: { [key: string]: string }): Buffer {
         debug("JsonCodec serializing", value);
         let body = "";
         if (value !== undefined) {

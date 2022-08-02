@@ -52,7 +52,7 @@ export default class OctetstreamCodec implements ContentCodec {
 
     bytesToValue(
         bytes: Buffer,
-        schema: DataSchema,
+        schema?: DataSchema,
         parameters: { [key: string]: string | undefined } = {}
     ): DataSchemaValue {
         debug(`OctetstreamCodec parsing '${bytes.toString()}'`);
@@ -66,7 +66,7 @@ export default class OctetstreamCodec implements ContentCodec {
         }
 
         let dataLength = bytes.length;
-        let dataType: string = schema.type;
+        let dataType: string = schema ? schema.type : "undefined";
 
         // Check type specification
         // according paragraph 3.3.3 of https://datatracker.ietf.org/doc/rfc8927/
@@ -158,16 +158,16 @@ export default class OctetstreamCodec implements ContentCodec {
 
             case "array":
             case "object":
-                throw new Error("Unable to handle object type " + dataType);
+                throw new Error("Unable to handle dataType " + dataType);
 
             case "null":
                 return null;
             default:
-                throw new Error("Unable to handle object type " + dataType);
+                throw new Error("Unable to handle dataType " + dataType);
         }
     }
 
-    valueToBytes(value: unknown, schema: DataSchema, parameters: { [key: string]: string | undefined } = {}): Buffer {
+    valueToBytes(value: unknown, schema?: DataSchema, parameters: { [key: string]: string | undefined } = {}): Buffer {
         debug(`OctetstreamCodec serializing '${value}'`);
 
         if (!parameters.length) {
@@ -183,7 +183,7 @@ export default class OctetstreamCodec implements ContentCodec {
             throw new Error("Undefined value");
         }
 
-        let dataType: string = schema.type;
+        let dataType: string = schema ? schema.type : "undefined";
 
         // Check type specification
         // according paragraph 3.3.3 of https://datatracker.ietf.org/doc/rfc8927/
@@ -306,12 +306,13 @@ export default class OctetstreamCodec implements ContentCodec {
 
             case "array":
             case "object":
-                throw new Error("Unable to handle object type " + dataType);
+            case "undefined":
+                throw new Error("Unable to handle dataType " + dataType);
 
             case "null":
                 return Buffer.alloc(0);
             default:
-                throw new Error("Unable to handle object type " + dataType);
+                throw new Error("Unable to handle dataType " + dataType);
         }
     }
 }

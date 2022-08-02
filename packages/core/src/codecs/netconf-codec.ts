@@ -25,7 +25,7 @@ export default class NetconfCodec implements ContentCodec {
         return "application/netconf";
     }
 
-    bytesToValue(bytes: Buffer, schema: DataSchema, parameters: { [key: string]: string }): DataSchemaValue {
+    bytesToValue(bytes: Buffer, schema?: DataSchema, parameters?: { [key: string]: string }): DataSchemaValue {
         debug(`NetconfCodec parsing '${bytes.toString()}'`);
 
         let parsed;
@@ -48,7 +48,7 @@ export default class NetconfCodec implements ContentCodec {
         return parsed;
     }
 
-    valueToBytes(value: unknown, schema: DataSchema, parameters?: { [key: string]: string }): Buffer {
+    valueToBytes(value: unknown, schema?: DataSchema, parameters?: { [key: string]: string }): Buffer {
         debug("NetconfCodec serializing", value);
         let body = "";
         if (value !== undefined) {
@@ -62,11 +62,14 @@ export default class NetconfCodec implements ContentCodec {
     }
 
     private getPayloadNamespaces(
-        schema: DataSchema,
+        schema: DataSchema | undefined,
         payload: Record<string, unknown>,
         NSs: Record<string, unknown>,
         hasNamespace: boolean
     ) {
+        if (!schema) {
+            throw new Error(`Missing "schema" field in TD`);
+        }
         if (hasNamespace) {
             // expect to have xmlns
             const properties = schema.properties;
