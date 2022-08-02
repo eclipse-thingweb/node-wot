@@ -17,25 +17,27 @@
  * CoAPS client Factory
  */
 
-import { ProtocolClientFactory, ProtocolClient } from "@node-wot/core";
+import { ProtocolClientFactory, ProtocolClient, createLoggers } from "@node-wot/core";
 import CoapsClient from "./coaps-client";
+
+const { debug } = createLoggers("binding-coap", "coaps-client-factory");
 
 export default class CoapsClientFactory implements ProtocolClientFactory {
     public readonly scheme: string = "coaps";
 
     public getClient(): ProtocolClient {
-        console.debug("[binding-coap]", `CoapsClientFactory creating client for '${this.scheme}'`);
+        debug(`CoapsClientFactory creating client for '${this.scheme}'`);
         return new CoapsClient();
     }
 
     public init(): boolean {
-        // console.info(`CoapsClientFactory for '${this.scheme}' initializing`);
+        // info(`CoapsClientFactory for '${this.scheme}' initializing`);
         // TODO uncomment info if something is executed here
         return true;
     }
 
     public destroy(): boolean {
-        // console.info(`CoapsClientFactory for '${this.scheme}' destroyed`);
+        // info(`CoapsClientFactory for '${this.scheme}' destroyed`);
         // TODO uncomment info if something is executed here
         return true;
     }

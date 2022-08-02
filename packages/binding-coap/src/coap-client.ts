@@ -25,7 +25,7 @@ import { Subscription } from "rxjs/Subscription";
 // for Security definition
 import * as TD from "@node-wot/td-tools";
 
-import { ProtocolClient, Content, ContentSerdes, ProtocolHelpers } from "@node-wot/core";
+import { ProtocolClient, Content, ContentSerdes, ProtocolHelpers, createLoggers } from "@node-wot/core";
 import { CoapForm, CoapOption, CoapMethodName, isSupportedCoapMethod, isValidCoapMethod } from "./coap";
 import CoapServer from "./coap-server";
 import { Readable } from "stream";
@@ -38,6 +38,8 @@ import {
     OutgoingMessage,
     ObserveReadStream,
 } from "coap";
+
+const { debug, warn } = createLoggers("binding-coap", "coap-client");
 
 export default class CoapClient implements ProtocolClient {
     // FIXME coap Agent closes socket when no messages in flight -> new socket with every request
@@ -59,11 +61,11 @@ export default class CoapClient implements ProtocolClient {
 
     public async readResource(form: CoapForm): Promise<Content> {
         const req = await this.generateRequest(form, "GET");
-        console.debug("[binding-coap]", `CoapClient sending ${req.statusCode} to ${form.href}`);
+        debug(`CoapClient sending ${req.statusCode} to ${form.href}`);
         return new Promise<Content>((resolve, reject) => {
             req.on("response", (res: ObserveReadStream) => {
-                console.debug("[binding-coap]", `CoapClient received ${res.code} from ${form.href}`);
-                console.debug("[binding-coap]", `CoapClient received Content-Format: ${res.headers["Content-Format"]}`);
+                debug(`CoapClient received ${res.code} from ${form.href}`);
+                debug(`CoapClient received Content-Format: ${res.headers["Content-Format"]}`);
 
                 // FIXME does not work with blockwise because of node-coap
                 let contentType = res.headers["Content-Format"] as string;
@@ -84,11 +86,11 @@ export default class CoapClient implements ProtocolClient {
 
                     // TODO set Content-FOrmat
 
-                    console.debug("[binding-coap]", `CoapClient sending ${req.statusCode} to ${form.href}`);
+                    debug(`CoapClient sending ${req.statusCode} to ${form.href}`);
 
                     req.on("response", (res: IncomingMessage) => {
-                        console.debug("[binding-coap]", `CoapClient received ${res.code} from ${form.href}`);
-                        console.debug("[binding-coap]", `CoapClient received headers: ${JSON.stringify(res.headers)}`);
+                        debug(`CoapClient received ${res.code} from ${form.href}`);
+                        debug(`CoapClient received headers: ${JSON.stringify(res.headers)}`);
                         resolve();
                     });
                     req.on("error", (err: Error) => reject(err));
@@ -104,12 +106,12 @@ export default class CoapClient implements ProtocolClient {
         return new Promise<Content>((resolve, reject) => {
             const req = this.generateRequest(form, "POST");
 
-            console.debug("[binding-coap]", `CoapClient sending ${req.statusCode} to ${form.href}`);
+            debug(`CoapClient sending ${req.statusCode} to ${form.href}`);
 
             req.on("response", (res: IncomingMessage) => {
-                console.debug("[binding-coap]", `CoapClient received ${res.code} from ${form.href}`);
-                console.debug("[binding-coap]", `CoapClient received Content-Format: ${res.headers["Content-Format"]}`);
-                console.debug("[binding-coap]", `CoapClient received headers: ${JSON.stringify(res.headers)}`);
+                debug(`CoapClient received ${res.code} from ${form.href}`);
+                debug(`CoapClient received Content-Format: ${res.headers["Content-Format"]}`);
+                debug(`CoapClient received headers: ${JSON.stringify(res.headers)}`);
                 const contentType = res.headers["Content-Format"] as string;
                 resolve({ type: contentType ?? "", body: Readable.from(res.payload) });
             });
@@ -129,11 +131,11 @@ export default class CoapClient implements ProtocolClient {
         return new Promise<void>((resolve, reject) => {
             const req = this.generateRequest(form, "GET", false);
 
-            console.debug("[binding-coap]", `CoapClient sending ${req.statusCode} to ${form.href}`);
+            debug(`CoapClient sending ${req.statusCode} to ${form.href}`);
 
             req.on("response", (res: IncomingMessage) => {
-                console.debug("[binding-coap]", `CoapClient received ${res.code} from ${form.href}`);
-                console.debug("[binding-coap]", `CoapClient received headers: ${JSON.stringify(res.headers)}`);
+                debug(`CoapClient received ${res.code} from ${form.href}`);
+                debug(`CoapClient received headers: ${JSON.stringify(res.headers)}`);
                 resolve();
             });
             req.on("error", (err: Error) => reject(err));
@@ -150,11 +152,11 @@ export default class CoapClient implements ProtocolClient {
         return new Promise<Subscription>((resolve, reject) => {
             const req = this.generateRequest(form, "GET", true);
 
-            console.debug("[binding-coap]", `CoapClient sending ${req.statusCode} to ${form.href}`);
+            debug(`CoapClient sending ${req.statusCode} to ${form.href}`);
 
             req.on("response", (res: ObserveReadStream) => {
-                console.debug("[binding-coap]", `CoapClient received ${res.code} from ${form.href}`);
-                console.debug("[binding-coap]", `CoapClient received Content-Format: ${res.headers["Content-Format"]}`);
+                debug(`CoapClient received ${res.code} from ${form.href}`);
+                debug(`CoapClient received Content-Format: ${res.headers["Content-Format"]}`);
 
                 // FIXME does not work with blockwise because of node-coap
                 let contentType = res.headers["Content-Format"];
@@ -221,15 +223,9 @@ export default class CoapClient implements ProtocolClient {
         } else if (isValidCoapMethod(formMethod)) {
             // TODO: Merge with condition above when a new version of node-coap is
             //       released
-            console.debug(
-                `[binding-coap] Method ${formMethod} is not supported yet.`,
-                `Using default method ${defaultMethod} instead.`
-            );
+            debug(`Method ${formMethod} is not supported yet. Using default method ${defaultMethod} instead.`);
         } else {
-            console.debug(
-                `[binding-coap] Unknown method ${formMethod} found.`,
-                `Using default method ${defaultMethod} instead.`
-            );
+            debug(`Unknown method ${formMethod} found. Using default method ${defaultMethod} instead.`);
         }
 
         return defaultMethod;
@@ -240,7 +236,7 @@ export default class CoapClient implements ProtocolClient {
 
         if (form["cov:methodName"] != null) {
             const formMethodName = form["cov:methodName"];
-            console.debug(`[binding-coap] CoapClient got Form "methodName" ${formMethodName}`);
+            debug(`CoapClient got Form "methodName" ${formMethodName}`);
             options.method = this.determineRequestMethod(formMethodName, defaultMethod);
         } else {
             options.method = defaultMethod;
@@ -252,17 +248,17 @@ export default class CoapClient implements ProtocolClient {
 
         // apply form data
         if (typeof form.contentType === "string") {
-            console.debug("[binding-coap]", "CoapClient got Form 'contentType'", form.contentType);
+            debug("CoapClient got Form 'contentType'", form.contentType);
             req.setOption("Accept", form.contentType);
         }
         if (Array.isArray(form["cov:options"])) {
-            console.debug("[binding-coap]", "CoapClient got Form 'options'", form["cov:options"]);
+            debug("CoapClient got Form 'options'", form["cov:options"]);
             const options = form["cov:options"] as Array<CoapOption>;
             for (const option of options) {
                 req.setOption(option["cov:optionName"], option["cov:optionValue"]);
             }
         } else if (typeof form["cov:options"] === "object") {
-            console.warn("[binding-coap]", "CoapClient got Form SINGLE-ENTRY 'options'", form["cov:options"]);
+            warn("CoapClient got Form SINGLE-ENTRY 'options'", form["cov:options"]);
             const option = form["cov:options"] as CoapOption;
             req.setHeader(option["cov:optionName"], option["cov:optionValue"]);
         }
