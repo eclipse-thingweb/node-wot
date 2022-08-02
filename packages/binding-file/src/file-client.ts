@@ -17,10 +17,12 @@
  * File protocol binding
  */
 import { Form, SecurityScheme } from "@node-wot/td-tools";
-import { ProtocolClient, Content } from "@node-wot/core";
+import { ProtocolClient, Content, createLoggers } from "@node-wot/core";
 import { Subscription } from "rxjs/Subscription";
 import fs = require("fs");
 import path = require("path");
+
+const { debug, warn } = createLoggers("binding-file", "file-client");
 
 export default class FileClient implements ProtocolClient {
     public toString(): string {
@@ -32,7 +34,7 @@ export default class FileClient implements ProtocolClient {
             const filepath = form.href.split("//");
             const resource = fs.createReadStream(filepath[1]);
             const extension = path.extname(filepath[1]);
-            console.debug("[binding-file]", `FileClient found '${extension}' extension`);
+            debug(`FileClient found '${extension}' extension`);
             let contentType;
             if (form.contentType) {
                 contentType = form.contentType;
@@ -53,7 +55,7 @@ export default class FileClient implements ProtocolClient {
                         contentType = "application/ld+json";
                         break;
                     default:
-                        console.warn("[binding-file]", `FileClient cannot determine media type of '${form.href}'`);
+                        warn(`FileClient cannot determine media type of '${form.href}'`);
                 }
             }
             resolve({ type: contentType, body: resource });
