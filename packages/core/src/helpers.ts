@@ -41,7 +41,7 @@ import { Resolver } from "@node-wot/td-tools/src/resolver-interface";
 import { DataSchema } from "wot-thing-description-types";
 import { createLoggers } from "./logger";
 
-const { debug, error } = createLoggers("core", "helpers");
+const { debug, error, warn } = createLoggers("core", "helpers");
 
 const tdSchema = TDSchema;
 // RegExps take from https://github.com/ajv-validator/ajv-formats/blob/master/src/formats.ts
@@ -161,10 +161,7 @@ export default class Helpers implements Resolver {
                 .readResource(new TD.Form(uri, ContentSerdes.TD))
                 .then(async (content) => {
                     if (content.type !== ContentSerdes.TD && content.type !== ContentSerdes.JSON_LD) {
-                        console.warn(
-                            "[core/helpers]",
-                            `WoTImpl received TD with media type '${content.type}' from ${uri}`
-                        );
+                        warn(`WoTImpl received TD with media type '${content.type}' from ${uri}`);
                     }
 
                     const td = (await ProtocolHelpers.readStreamFully(content.body)).toString("utf-8");
