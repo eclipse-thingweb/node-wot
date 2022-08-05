@@ -285,6 +285,23 @@ export default class HttpServer implements ProtocolServer {
         });
     }
 
+    private addUrlRewriteEndpoints(form: TD.Form, forms: Array<TD.Form>): void {
+        if (this.urlRewrite) {
+            for (const inUri in this.urlRewrite) {
+                const toUri = this.urlRewrite[inUri];
+                if (form.href.endsWith(toUri)) {
+                    const form2: TD.Form = JSON.parse(JSON.stringify(form)); // deep copy
+                    form2.href = form2.href.substring(0, form.href.lastIndexOf(toUri)) + inUri;
+                    forms.push(form2);
+                    console.debug(
+                        "[binding-http]",
+                        `HttpServer on port ${this.getPort()} assigns urlRewrite '${form2.href}' for '${form.href}'`
+                    );
+                }
+            }
+        }
+    }
+
     public addEndpoint(thing: ExposedThing, tdTemplate: WoT.ExposedThingInit, base: string): void {
         for (const type of ContentSerdes.get().getOfferedMediaTypes()) {
             let allReadOnly = true;
@@ -317,6 +334,7 @@ export default class HttpServer implements ProtocolServer {
                     thing.forms = [];
                 }
                 thing.forms.push(form);
+                this.addUrlRewriteEndpoints(form, thing.forms);
             }
 
             for (const propertyName in thing.properties) {
@@ -348,6 +366,7 @@ export default class HttpServer implements ProtocolServer {
                     "[binding-http]",
                     `HttpServer on port ${this.getPort()} assigns '${href}' to Property '${propertyName}'`
                 );
+                this.addUrlRewriteEndpoints(form, thing.properties[propertyName].forms);
 
                 // if property is observable add an additional form with a observable href
                 if (thing.properties[propertyName].observable) {
@@ -367,6 +386,7 @@ export default class HttpServer implements ProtocolServer {
                         "[binding-http]",
                         `HttpServer on port ${this.getPort()} assigns '${href}' to observable Property '${propertyName}'`
                     );
+                    this.addUrlRewriteEndpoints(form, thing.properties[propertyName].forms);
                 }
             }
 
@@ -388,6 +408,7 @@ export default class HttpServer implements ProtocolServer {
                     "[binding-http]",
                     `HttpServer on port ${this.getPort()} assigns '${href}' to Action '${actionName}'`
                 );
+                this.addUrlRewriteEndpoints(form, thing.actions[actionName].forms);
             }
 
             for (const eventName in thing.events) {
@@ -405,6 +426,7 @@ export default class HttpServer implements ProtocolServer {
                     "[binding-http]",
                     `HttpServer on port ${this.getPort()} assigns '${href}' to Event '${eventName}'`
                 );
+                this.addUrlRewriteEndpoints(form, thing.events[eventName].forms);
             }
         }
     }
