@@ -21,7 +21,9 @@ import ConsumedThing from "./consumed-thing";
 import Helpers from "./helpers";
 import { ThingDescription } from "wot-thing-description-types";
 import { createLoggers } from "./logger";
-import contentSerdes from "./content-serdes";
+import ContentManager from "./content-serdes";
+import { InteractionOutput } from "./interaction-output";
+import ProtocolHelpers from "./protocol-helpers";
 
 const { debug } = createLoggers("core", "wot-impl");
 
@@ -40,17 +42,21 @@ class ThingDiscoveryImpl implements AsyncIterable<ThingDescription> {
     async *[Symbol.asyncIterator](): AsyncIterator<ThingDescription> {
         switch (this.filter.method) {
             case "direct": {
-                if (!this.active) {
+                const url = this.filter.url;
+                if (!this.active || url == null) {
                     return;
                 }
-                // TODO: This needs to refactored
-                const uriScheme = new URL(this.filter.url).protocol.split(":")[0];
+                const uriScheme = new URL(url).protocol.split(":")[0];
                 const client = this.servient.getClientFor(uriScheme);
-                const result = await client.discoverDirectly(this.filter.url);
+                const result = await client.discoverDirectly(url);
+                const data = await ProtocolHelpers.readStreamFully(result.body);
+
                 // TODO: Add TD validation
-                const thingDescription = contentSerdes.contentToValue(result as any, {});
+                // FIXME: application/td+json can't be handled at the moment
+
+                const value = ContentManager.contentToValue({ type: "application/json", body: data }, {});
                 this.active = false;
-                yield new Promise<ThingDescription>((resolve) => resolve(thingDescription as ThingDescription));
+                yield new Promise<ThingDescription>((resolve) => resolve(value as ThingDescription));
                 break;
             }
             default:
@@ -86,7 +92,8 @@ export default class WoTImpl {
 
     /** @inheritDoc */
     discover(filter?: WoT.ThingFilter): WoT.ThingDiscovery {
-        return new ThingDiscoveryImpl(filter, this.srv) as unknown as WoT.ThingDiscovery;
+        // TODO: Should filter really be nullable?
+        return new ThingDiscoveryImpl(filter as any, this.srv) as unknown as WoT.ThingDiscovery;
     }
 
     /** @inheritDoc */
