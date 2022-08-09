@@ -21,6 +21,7 @@ import ConsumedThing from "./consumed-thing";
 import Helpers from "./helpers";
 import { ThingDescription } from "wot-thing-description-types";
 import { createLoggers } from "./logger";
+import contentSerdes from "./content-serdes";
 
 const { debug } = createLoggers("core", "wot-impl");
 
@@ -45,9 +46,11 @@ class ThingDiscoveryImpl implements AsyncIterable<ThingDescription> {
                 // TODO: This needs to refactored
                 const uriScheme = new URL(this.filter.url).protocol.split(":")[0];
                 const client = this.servient.getClientFor(uriScheme);
-                const thingDescription = client.discoverDirectly(this.filter.url);
+                const result = await client.discoverDirectly(this.filter.url);
+                // TODO: Add TD validation
+                const thingDescription = contentSerdes.contentToValue(result as any, {});
                 this.active = false;
-                yield new Promise<ThingDescription>((resolve) => resolve(thingDescription));
+                yield new Promise<ThingDescription>((resolve) => resolve(thingDescription as ThingDescription));
                 break;
             }
             default:

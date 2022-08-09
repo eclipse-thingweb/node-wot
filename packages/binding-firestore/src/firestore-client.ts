@@ -31,7 +31,6 @@ import {
 } from "./firestore-handler";
 import * as TD from "@node-wot/td-tools";
 import { Subscription } from "rxjs/Subscription";
-import { ThingDescription } from "wot-typescript-definitions";
 
 type Firestore = Firebase.firestore.Firestore;
 
@@ -271,7 +270,7 @@ export default class FirestoreClient implements ProtocolClient {
         return true;
     }
 
-    discoverDirectly(uri: string): Promise<ThingDescription> {
+    discoverDirectly(uri: string): Promise<Content> {
         return Promise.reject(new Error("Method not implemented."));
     }
 }

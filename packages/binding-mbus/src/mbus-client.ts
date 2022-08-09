@@ -23,7 +23,6 @@ import { SecurityScheme } from "@node-wot/td-tools";
 import { MBusConnection, PropertyOperation } from "./mbus-connection";
 
 import { Subscription } from "rxjs/Subscription";
-import { ThingDescription } from "wot-typescript-definitions";
 
 const debug = createDebugLogger("binding-mbus", "mbus-client");
 
@@ -144,7 +143,7 @@ export default class MBusClient implements ProtocolClient {
         return result;
     }
 
-    discoverDirectly(uri: string): Promise<ThingDescription> {
+    discoverDirectly(uri: string): Promise<Content> {
         return Promise.reject(new Error("Method not implemented."));
     }
 }

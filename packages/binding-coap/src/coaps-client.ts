@@ -25,7 +25,6 @@ import { ProtocolClient, Content, ProtocolHelpers, createLoggers } from "@node-w
 import { CoapForm, CoapMethodName, isValidCoapMethod, isSupportedCoapMethod } from "./coap";
 import { CoapClient as coaps, CoapResponse, RequestMethod, SecurityParameters } from "node-coap-client";
 import { Readable } from "stream";
-import { ThingDescription } from "wot-thing-description-types";
 
 const { debug, warn, error } = createLoggers("binding-coap", "coaps-client");
 
@@ -233,7 +232,7 @@ export default class CoapsClient implements ProtocolClient {
         return req;
     }
 
-    discoverDirectly(uri: string): Promise<ThingDescription> {
+    discoverDirectly(uri: string): Promise<Content> {
         return Promise.reject(new Error("Method not implemented."));
     }
 }

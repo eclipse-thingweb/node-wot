@@ -23,7 +23,6 @@ import { modbusFunctionToEntity } from "./utils";
 import { ModbusConnection, PropertyOperation } from "./modbus-connection";
 import { Readable } from "stream";
 import { Subscription } from "rxjs/Subscription";
-import { ThingDescription } from "wot-typescript-definitions";
 
 const debug = createDebugLogger("binding-modbus", "modbus-client");
 
@@ -298,7 +297,7 @@ export default class ModbusClient implements ProtocolClient {
         return result;
     }
 
-    discoverDirectly(uri: string): Promise<ThingDescription> {
+    discoverDirectly(uri: string): Promise<Content> {
         return Promise.reject(new Error("Method not implemented."));
     }
 }

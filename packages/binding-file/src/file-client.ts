@@ -21,7 +21,6 @@ import { ProtocolClient, Content, createLoggers } from "@node-wot/core";
 import { Subscription } from "rxjs/Subscription";
 import fs = require("fs");
 import path = require("path");
-import { ThingDescription } from "wot-typescript-definitions";
 
 const { debug, warn } = createLoggers("binding-file", "file-client");
 
@@ -101,7 +100,7 @@ export default class FileClient implements ProtocolClient {
 
     public setSecurity = (metadata: Array<SecurityScheme>): boolean => false;
 
-    discoverDirectly(uri: string): Promise<ThingDescription> {
+    discoverDirectly(uri: string): Promise<Content> {
         return Promise.reject(new Error("Method not implemented."));
     }
 }
