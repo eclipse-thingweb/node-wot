@@ -211,8 +211,8 @@ The WoT operations that can be implemented for Client as follows.
 | readMultipleProperties  | -      |
 | writeProperty           | ✓      |
 | writeMultipleProperties | -      |
-| observeProperty         | -      |
-| unobserveProperty       | -      |
+| observeProperty         | ✓      |
+| unobserveProperty       | ✓      |
 | invokeAction            | ✓      |
 | emitEvent               | N/A    |
 | subscribeEvent          | ✓      |

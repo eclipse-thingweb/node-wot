@@ -34,7 +34,7 @@ export default class FirestoreClientFactory implements ProtocolClientFactory {
     }
 
     public getClient(): ProtocolClient {
-        console.warn(`[warn] firebaseClientFactory creating client`);
+        console.warn(`[binding-firestore] firebaseClientFactory creating client`);
         if (this.firestoreClient === null) {
             this.firestoreClient = new FirestoreClient(this.config);
         }

@@ -54,6 +54,11 @@ const main = async () => {
                 let c = await event.value();
                 console.info("count from event is ", c);
             });
+            // observe property
+            const obProperty = await thing.observeProperty("count", async (count) => {
+                let c = await count.value();
+                console.info("count from observe property is ", c);
+            });
             // read property #1
             const read1 = await thing.readProperty("count");
             console.log("count value is", await read1.value());

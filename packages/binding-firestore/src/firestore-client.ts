@@ -20,8 +20,8 @@ import { ProtocolClient, Content } from "@node-wot/core";
 import { FirestoreForm, BindingFirestoreConfig } from "./firestore";
 import { v4 as uuidv4 } from "uuid";
 
-import "firebase/auth";
-import { Firestore } from "firebase/firestore";
+import "firebase/compat/auth";
+import Firebase from "firebase/compat/app";
 import {
     initFirestore,
     writeDataToFirestore,
@@ -32,9 +32,11 @@ import {
 import * as TD from "@node-wot/td-tools";
 import { Subscription } from "rxjs/Subscription";
 
+type Firestore = Firebase.firestore.Firestore;
+
 export default class FirestoreClient implements ProtocolClient {
     private firestore: Firestore = null;
-    private firestoreObservers = {};
+    private firestoreObservers: { [key: string]: () => void } = {};
     private fbConfig: BindingFirestoreConfig = null;
 
     constructor(config: BindingFirestoreConfig = null) {
@@ -109,8 +111,8 @@ export default class FirestoreClient implements ProtocolClient {
                 this.firestoreObservers,
                 propertyReadResultTopic,
                 (err, content, resId) => {
-                    console.debug("[debug] return read property result");
-                    console.debug(`[debug] reqId ${reqId}, resId ${resId}`);
+                    console.debug("[binding-firestore] return read property result");
+                    console.debug(`[binding-firestore] reqId ${reqId}, resId ${resId}`);
                     if (reqId !== resId) {
                         // Ignored because reqId and resId do not match
                         return;
@@ -118,7 +120,7 @@ export default class FirestoreClient implements ProtocolClient {
                     unsubscribeToFirestore(this.firestoreObservers, propertyReadResultTopic);
                     clearTimeout(timeoutId);
                     if (err) {
-                        console.error("[error] failed to get reading property result:", err);
+                        console.error("[binding-firestore] failed to get reading property result:", err);
                         reject(err);
                     } else {
                         resolve(content);
@@ -168,8 +170,8 @@ export default class FirestoreClient implements ProtocolClient {
         let timeoutId: NodeJS.Timeout;
         const retContent: Content = await new Promise((resolve, reject) => {
             subscribeToFirestore(this.firestore, this.firestoreObservers, actionResultTopic, (err, content, resId) => {
-                console.debug("[debug] return action and unsubscribe");
-                console.debug(`[debug] reqId ${reqId}, resId ${resId}`);
+                console.debug("[binding-firestore] return action and unsubscribe");
+                console.debug(`[binding-firestore] reqId ${reqId}, resId ${resId}`);
                 if (reqId !== resId) {
                     // Ignored because reqId and resId do not match
                     return;
@@ -177,7 +179,7 @@ export default class FirestoreClient implements ProtocolClient {
                 unsubscribeToFirestore(this.firestoreObservers, actionResultTopic);
                 clearTimeout(timeoutId);
                 if (err) {
-                    console.error("[error] failed to get action result:", err);
+                    console.error("[binding-firestore] failed to get action result:", err);
                     reject(err);
                 } else {
                     resolve(content);
@@ -232,7 +234,7 @@ export default class FirestoreClient implements ProtocolClient {
                         pointerInfo.topic,
                         (err: Error, content) => {
                             if (err) {
-                                console.error("[error] failed to subscribe resource: ", err);
+                                console.error("[binding-firestore] failed to subscribe resource: ", err);
                                 error(err);
                             } else {
                                 next(content);
@@ -246,7 +248,7 @@ export default class FirestoreClient implements ProtocolClient {
                     );
                 })
                 .catch((err) => {
-                    console.error("[error] failed to init firestore: ", err);
+                    console.error("[binding-firestore] failed to init firestore: ", err);
                     error(err);
                 });
         });

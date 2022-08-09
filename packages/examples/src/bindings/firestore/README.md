@@ -4,13 +4,13 @@
    `npm install`
 1. start firebase emulator
    example is executed using the firebase emulator.
-   `$ npm start fbemu`
+   `$ npm run fbemu`
 1. start counter-thing
    Start the counter-thing example.
-   `$ npm start example:counter-thing`
+   `$ npm run example:counter-thing`
 1. start counter-client
    Start counter-client and access counter-thing.
-   `$ npm start example:counter-client`
+   `$ npm run example:counter-client`
 
 If you would like to run the program in Firebase instead of in the Firebase emulator, please do the following.
 

@@ -33,7 +33,6 @@ import {
 } from "@node-wot/core";
 
 import "firebase/compat/auth";
-import * as Firestore from "firebase/compat/firestore";
 import {
     initFirestore,
     writeDataToFirestore,
@@ -42,6 +41,9 @@ import {
     writeMetaDataToFirestore,
     removeMetaDataFromFirestore,
 } from "./firestore-handler";
+import Firebase from "firebase/compat/app";
+
+type Firestore = Firebase.firestore.Firestore;
 
 export default class FirestoreServer implements ProtocolServer {
     public readonly scheme: "firestore";
@@ -52,7 +54,7 @@ export default class FirestoreServer implements ProtocolServer {
     private FIRESTORE_HREF_BASE = "firestore://";
     private DEFAULT_CONTENT_TYPE = "application/firestore";
 
-    private firestore: typeof Firestore = null;
+    private firestore: Firestore = null;
     private firestoreObservers: { [key: string]: () => void } = {};
 
     private static metaData: { hostName: string; things: string[] } = { hostName: "", things: [] };
@@ -71,18 +73,18 @@ export default class FirestoreServer implements ProtocolServer {
     }
 
     public async start(servient: Servient): Promise<void> {
-        console.info(`[info] WoT Firestore start`);
+        console.info(`[binding-firestore] WoT Firestore start`);
         const firestore = await initFirestore(this.fbConfig, null);
-        console.info("[info] firebase auth success");
+        console.info("[binding-firestore] firebase auth success");
         this.firestore = firestore;
         // store servient to get credentials
         this.servient = servient;
     }
 
     public async stop(): Promise<void> {
-        console.info(`[info] WoT Firestore stop`);
+        console.info(`[binding-firestore] WoT Firestore stop`);
         for (const key in this.firestoreObservers) {
-            console.debug("[debug] unsubscribe: ", key);
+            console.debug("[binding-firestore] unsubscribe: ", key);
             this.firestoreObservers[key]();
         }
     }
@@ -111,20 +113,20 @@ export default class FirestoreServer implements ProtocolServer {
             }
         }
 
-        console.info(`[info] FirestoreServer exposes '${thing.title}' as unique '/${name}/*'`);
+        console.info(`[binding-firestore] FirestoreServer exposes '${thing.title}' as unique '/${name}/*'`);
         this.things.set(name, thing);
 
         try {
             FirestoreServer.metaData.hostName = this.getHostName();
             if (!FirestoreServer.metaData.things.includes(name)) {
                 FirestoreServer.metaData.things.push(name);
-                console.debug("[debug] write metaData:", FirestoreServer.metaData);
+                console.debug("[binding-firestore] write metaData:", FirestoreServer.metaData);
             }
         } finally {
             await writeMetaDataToFirestore(this.firestore, this.getHostName(), FirestoreServer.metaData);
         }
 
-        console.info("[info] setup properties");
+        console.info("[binding-firestore] setup properties");
         for (const propertyName in thing.properties) {
             const topic = this.getHostName() + "/" + name + "/properties/" + propertyName;
             const propertyWriteReqTopic = this.getHostName() + "/" + name + "/propertyWriteReq/" + propertyName;
@@ -137,7 +139,7 @@ export default class FirestoreServer implements ProtocolServer {
             this.topics.push(propertyReadResultTopic);
 
             const property = thing.properties[propertyName];
-            console.info("  properties topic:", topic);
+            console.info("[binding-firestore] properties topic:", topic);
 
             if (!name) {
                 name = "no_name";
@@ -158,7 +160,7 @@ export default class FirestoreServer implements ProtocolServer {
             }
             thing.properties[propertyName].forms.push(form);
             console.debug(
-                `[debug] FirestoreServer at ${this.FIRESTORE_HREF_BASE} assigns '${href}' to property '${propertyName}'`
+                `[binding-firestore] FirestoreServer at ${this.FIRESTORE_HREF_BASE} assigns '${href}' to property '${propertyName}'`
             );
 
             if (thing.properties[propertyName].observable) {
@@ -177,10 +179,13 @@ export default class FirestoreServer implements ProtocolServer {
                 const propertyListener = async (content: Content) => {
                     // get property data
                     console.debug(
-                        `[debug] FirestoreServer at ${this.getHostName()} publishing to property topic '${propertyName}' `
+                        `[binding-firestore] FirestoreServer at ${this.getHostName()} publishing to property topic '${propertyName}' `
                     );
                     await writeDataToFirestore(this.firestore, topic, content).catch((err) => {
-                        console.error(`[error] failed to write property(${propertyName}) for observer`, err);
+                        console.error(
+                            `[binding-firestore] failed to write property(${propertyName}) for observer`,
+                            err
+                        );
                     });
                 };
                 thing.handleObserveProperty(propertyName, propertyListener, options);
@@ -192,13 +197,13 @@ export default class FirestoreServer implements ProtocolServer {
                     propertyWriteReqTopic,
                     async (err, content: Content, reqId) => {
                         if (err) {
-                            console.error(`[error] failed to receive property (${propertyName}): `, err);
+                            console.error(`[binding-firestore] failed to receive property (${propertyName}): `, err);
                             return;
                         }
                         console.debug(
-                            `[debug] FirestoreServer at ${this.getHostName()} received message for '${topic}'`
+                            `[binding-firestore] FirestoreServer at ${this.getHostName()} received message for '${topic}'`
                         );
-                        console.debug(`[debug] writing property(${propertyName}) content: `, content);
+                        console.debug(`[binding-firestore] writing property(${propertyName})`);
                         const options: WoT.InteractionOptions & { formIndex: number } = {
                             formIndex: ProtocolHelpers.findRequestMatchingFormIndex(
                                 property.forms,
@@ -225,10 +230,12 @@ export default class FirestoreServer implements ProtocolServer {
                 propertyReadReqTopic,
                 async (err, content: Content, reqId) => {
                     if (err) {
-                        console.error(`[error] failed to receive read request (${propertyName}): `, err);
+                        console.error(`[binding-firestore] failed to receive read request (${propertyName}): `, err);
                         return;
                     }
-                    console.debug(`[debug] FirestoreServer at ${this.getHostName()} received message for '${topic}'`);
+                    console.debug(
+                        `[binding-firestore] FirestoreServer at ${this.getHostName()} received message for '${topic}'`
+                    );
                     const options: WoT.InteractionOptions & { formIndex: number } = {
                         formIndex: ProtocolHelpers.findRequestMatchingFormIndex(
                             property.forms,
@@ -247,17 +254,13 @@ export default class FirestoreServer implements ProtocolServer {
                     }
 
                     const retContent = await thing.handleReadProperty(propertyName, options);
-                    console.debug(`[debug] getting property(${propertyName}) data: `, retContent);
+                    console.debug(`[binding-firestore] getting property(${propertyName})`);
                     await writeDataToFirestore(this.firestore, propertyReadResultTopic, retContent, reqId);
-                    if (thing.properties[propertyName].observable) {
-                        // TODO: Currently, observeProperty is not supported, so it will be implemented after it is supported.
-                        // await writeDataToFirestore(this.firestore, topic, retContent, reqId);
-                    }
                 }
             );
         }
 
-        console.info("[info] setup actions");
+        console.info("[binding-firestore] setup actions");
         for (const actionName in thing.actions) {
             const topic = this.getHostName() + "/" + name + "/actions/" + actionName;
             // Create a topic for writing results.
@@ -272,10 +275,12 @@ export default class FirestoreServer implements ProtocolServer {
                 topic,
                 async (err, content: Content, reqId: string) => {
                     if (err) {
-                        console.error(`[error] failed to receive action(${actionName}): `, err);
+                        console.error(`[binding-firestore] failed to receive action(${actionName}): `, err);
                         return;
                     }
-                    console.debug(`[debug] FirestoreServer at ${this.getHostName()} received message for '${topic}'`);
+                    console.debug(
+                        `[binding-firestore] FirestoreServer at ${this.getHostName()} received message for '${topic}'`
+                    );
                     if (thing) {
                         const action = thing.actions[actionName];
                         if (action) {
@@ -298,30 +303,34 @@ export default class FirestoreServer implements ProtocolServer {
                             const outContent = await thing
                                 .handleInvokeAction(actionName, content, options)
                                 .catch((err) => {
+                                    // when data is registered in the firestore, the callback may be called multiple times,
+                                    // in which case here is called
                                     console.error(
-                                        `[error] FirestoreServer at ${this.getHostName()} got error on invoking '${actionName}': ${
+                                        `[binding-firestore] FirestoreServer at ${this.getHostName()} got error on invoking '${actionName}': ${
                                             err.message
-                                        }`
+                                        }`,
+                                        err
                                     );
                                 });
-                            // Firestore cannot return results
-                            console.warn(
-                                `[warn] FirestoreServer at ${this.getHostName()} cannot return output '${actionName}'`
-                            );
                             await writeDataToFirestore(
                                 this.firestore,
                                 actionResultTopic,
                                 outContent as Content,
                                 reqId
                             ).catch((err) => {
-                                console.error(err);
+                                console.error(
+                                    `[binding-firestore] FirestoreServer at ${this.getHostName()} got error on resonsing for '${actionName}': ${
+                                        err.message
+                                    }`,
+                                    err
+                                );
                             });
                             // topic found and message processed
                             return;
                         }
                     } // Thing exists?
                     console.warn(
-                        `[warn] FirestoreServer at ${this.getHostName()} received message for invalid topic '${topic}'`
+                        `[binding-firestore] FirestoreServer at ${this.getHostName()} received message for invalid topic '${topic}'`
                     );
                 }
             );
@@ -331,11 +340,11 @@ export default class FirestoreServer implements ProtocolServer {
             form.op = ["invokeaction"];
             thing.actions[actionName].forms.push(form);
             console.debug(
-                `[debug] FirestoreServer at ${this.FIRESTORE_HREF_BASE} assigns '${href}' to Action '${actionName}'`
+                `[binding-firestore] FirestoreServer at ${this.FIRESTORE_HREF_BASE} assigns '${href}' to Action '${actionName}'`
             );
         }
 
-        console.info("[info] setup events");
+        console.info("[binding-firestore] setup events");
         for (const eventName in thing.events) {
             const topic = this.getHostName() + "/" + name + "/events/" + eventName;
 
@@ -360,10 +369,10 @@ export default class FirestoreServer implements ProtocolServer {
             const eventListener = async (value: Content) => {
                 // get event data
                 console.debug(
-                    `[debug] FirestoreServer at ${this.getHostName()} publishing to Event topic '${eventName}' `
+                    `[binding-firestore] FirestoreServer at ${this.getHostName()} publishing to Event topic '${eventName}' `
                 );
                 await writeDataToFirestore(this.firestore, topic, value).catch((err) => {
-                    console.error(`[error] failed to write event(${eventName})`, err);
+                    console.error(`[binding-firestore] failed to write event(${eventName})`, err);
                 });
             };
             const href = this.FIRESTORE_HREF_BASE + topic;
@@ -373,7 +382,9 @@ export default class FirestoreServer implements ProtocolServer {
             // FIXME store subscription and clean up on stop
             thing.handleSubscribeEvent(eventName, eventListener, options);
 
-            console.debug(`[debug] FirestoreServer at ${this.getHostName()} assigns '${href}' to Event '${eventName}'`);
+            console.debug(
+                `[binding-firestore] FirestoreServer at ${this.getHostName()} assigns '${href}' to Event '${eventName}'`
+            );
         }
 
         // Registration of TD
@@ -384,11 +395,11 @@ export default class FirestoreServer implements ProtocolServer {
         );
         await writeDataToFirestore(this.firestore, `${this.getHostName()}/${name}`, tdContent);
         this.topics.push(`${this.getHostName()}/${name}`);
-        console.log(`**************************************`);
-        console.log(`***** exposed thing descriptioon *****`);
+        console.log(`[binding-firestore] **************************************`);
+        console.log(`[binding-firestore] ***** exposed thing descriptioon *****`);
         console.log(JSON.stringify(thing.getThingDescription(), null, "  "));
-        console.log(`**************************************`);
-        console.log(`**************************************`);
+        console.log(`[binding-firestore] **************************************`);
+        console.log(`[binding-firestore] **************************************`);
     }
 
     public destroy(thingId: string): Promise<boolean> {
