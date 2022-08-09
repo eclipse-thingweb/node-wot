@@ -57,7 +57,7 @@ export default class CoapClient implements ProtocolClient {
     }
 
     discoverDirectly(uri: string): Promise<ThingDescription> {
-        throw new Error("Method not implemented.");
+        return Promise.reject(new Error("Method not implemented."));
     }
 
     public toString(): string {

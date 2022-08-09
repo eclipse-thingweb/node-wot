@@ -163,6 +163,6 @@ export default class MqttClient implements ProtocolClient {
     }
 
     discoverDirectly(uri: string): Promise<ThingDescription> {
-        throw new Error("Method not implemented.");
+        return Promise.reject(new Error("Method not implemented."));
     }
 }
