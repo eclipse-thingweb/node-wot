@@ -13,12 +13,15 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
+import { createLoggers } from "@node-wot/core";
 import { expect } from "chai";
 
 import { DataType, DataValue, StatusCodes, VariantArrayType } from "node-opcua-client";
 import { opcuaJsonEncodeDataValue } from "node-opcua-json";
 
 import { schemaDataValueValidate, schemaDataValueJSONValidate } from "../src/codec";
+
+const { debug } = createLoggers("binding-opcua", "schema-validation-test");
 
 const data = {
     uint32: new DataValue({
@@ -71,11 +74,10 @@ describe("schemas", () => {
                 const obj1 = new DataValue({}).toJSON();
                 const isValid = validate(obj1);
                 if (!isValid) {
-                    console.log(isValid);
-                    console.log(validate.errors);
-                    console.log(obj1);
+                    debug(`Valid: ${isValid}`);
+                    debug(`Errors: ${validate.errors}`);
                 }
-                // console.log(obj1);
+                debug(`${obj1}`);
                 expect(isValid).equal(true);
             });
         });
@@ -89,9 +91,9 @@ describe("schemas", () => {
 
                 const isValid = validate(dataValueJSON);
                 if (!isValid) {
-                    console.log(isValid);
-                    console.log(validate.errors);
-                    console.log(dataValueJSON);
+                    debug(`Valid: ${isValid}`);
+                    debug(`Errors: ${validate.errors}`);
+                    debug(`dataValueJSON: ${dataValueJSON}`);
                 }
 
                 expect(isValid).eql(true);

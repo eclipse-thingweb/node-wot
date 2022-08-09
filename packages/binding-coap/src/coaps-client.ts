@@ -21,10 +21,12 @@ import * as TD from "@node-wot/td-tools";
 
 import { Subscription } from "rxjs/Subscription";
 
-import { ProtocolClient, Content, ProtocolHelpers } from "@node-wot/core";
+import { ProtocolClient, Content, ProtocolHelpers, createLoggers } from "@node-wot/core";
 import { CoapForm, CoapMethodName, isValidCoapMethod, isSupportedCoapMethod } from "./coap";
 import { CoapClient as coaps, CoapResponse, RequestMethod, SecurityParameters } from "node-coap-client";
 import { Readable } from "stream";
+
+const { debug, warn, error } = createLoggers("binding-coap", "coaps-client");
 
 declare interface pskSecurityParameters {
     [identity: string]: string;
@@ -42,7 +44,7 @@ export default class CoapsClient implements ProtocolClient {
         return new Promise<Content>((resolve, reject) => {
             this.generateRequest(form, "GET")
                 .then((res: CoapResponse) => {
-                    console.debug("[binding-coap]", `CoapsClient received ${res.code} from ${form.href}`);
+                    debug(`CoapsClient received ${res.code} from ${form.href}`);
 
                     // FIXME node-coap-client does not support options
                     let contentType; // = res.format[...]
@@ -60,7 +62,7 @@ export default class CoapsClient implements ProtocolClient {
         return new Promise<void>((resolve, reject) => {
             this.generateRequest(form, "PUT", content)
                 .then((res: CoapResponse) => {
-                    console.debug("[binding-coap]", `CoapsClient received ${res.code} from ${form.href}`);
+                    debug(`CoapsClient received ${res.code} from ${form.href}`);
 
                     resolve();
                 })
@@ -74,7 +76,7 @@ export default class CoapsClient implements ProtocolClient {
         return new Promise<Content>((resolve, reject) => {
             this.generateRequest(form, "POST", content)
                 .then((res: CoapResponse) => {
-                    console.debug("[binding-coap]", `CoapsClient received ${res.code} from ${form.href}`);
+                    debug(`CoapsClient received ${res.code} from ${form.href}`);
 
                     // FIXME node-coap-client does not support options
                     let contentType; // = res.format[...]
@@ -92,8 +94,8 @@ export default class CoapsClient implements ProtocolClient {
         return new Promise<void>((resolve, reject) => {
             this.generateRequest(form, "DELETE")
                 .then((res: CoapResponse) => {
-                    console.debug("[binding-coap]", `CoapsClient received ${res.code} from ${form.href}`);
-                    console.debug("[binding-coap]", `CoapsClient received headers: ${JSON.stringify(res.format)}`);
+                    debug(`CoapsClient received ${res.code} from ${form.href}`);
+                    debug(`CoapsClient received headers: ${JSON.stringify(res.format)}`);
                     resolve();
                 })
                 .catch((err: Error) => {
@@ -145,7 +147,7 @@ export default class CoapsClient implements ProtocolClient {
 
     public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: pskSecurityParameters): boolean {
         if (metadata === undefined || !Array.isArray(metadata) || metadata.length === 0) {
-            console.warn("[binding-coap]", `CoapsClient received empty security metadata`);
+            warn(`CoapsClient received empty security metadata`);
             return false;
         }
 
@@ -155,11 +157,11 @@ export default class CoapsClient implements ProtocolClient {
             this.authorization = { psk: {} };
             this.authorization.psk[credentials.identity] = credentials.psk;
         } else if (security.scheme === "apikey") {
-            console.error("[binding-coap]", `CoapsClient cannot use Apikey: Not implemented`);
+            error(`CoapsClient cannot use Apikey: Not implemented`);
             return false;
         } else {
-            console.error("[binding-coap]", `CoapsClient cannot set security scheme '${security.scheme}'`);
-            console.dir(metadata);
+            error(`CoapsClient cannot set security scheme '${security.scheme}'`);
+            error(`${metadata}`);
             return false;
         }
 
@@ -167,7 +169,7 @@ export default class CoapsClient implements ProtocolClient {
         /*
     if (security.proxyURI) {
       if (this.proxyOptions !== null) {
-        console.info(`HttpClient overriding client-side proxy with security proxyURI '${security.proxyURI}`);
+        info(`HttpClient overriding client-side proxy with security proxyURI '${security.proxyURI}`);
       }
 
       this.proxyOptions = this.uriToOptions(security.proxyURI);
@@ -182,7 +184,7 @@ export default class CoapsClient implements ProtocolClient {
     }
     */
 
-        console.debug("[binding-coap]", `CoapsClient using security scheme '${security.scheme}'`);
+        debug(`CoapsClient using security scheme '${security.scheme}'`);
         return true;
     }
 
@@ -190,15 +192,9 @@ export default class CoapsClient implements ProtocolClient {
         if (isSupportedCoapMethod(formMethod)) {
             return formMethod;
         } else if (isValidCoapMethod(formMethod)) {
-            console.debug(
-                `[binding-coap] Method ${formMethod} is not supported yet.`,
-                `Using default method ${defaultMethod} instead.`
-            );
+            debug(`Method ${formMethod} is not supported yet.`, `Using default method ${defaultMethod} instead.`);
         } else {
-            console.debug(
-                `[binding-coap] Unknown method ${formMethod} found.`,
-                `Using default method ${defaultMethod} instead.`
-            );
+            debug(`Unknown method ${formMethod} found.`, `Using default method ${defaultMethod} instead.`);
         }
 
         return defaultMethod;
@@ -217,13 +213,13 @@ export default class CoapsClient implements ProtocolClient {
 
         if (form["cov:methodName"] != null) {
             const formMethodName = form["cov:methodName"];
-            console.debug(`[binding-coap] CoapClient got Form "methodName" ${formMethodName}`);
+            debug(`CoapClient got Form "methodName" ${formMethodName}`);
             method = this.determineRequestMethod(formMethodName, defaultMethod);
         } else {
             method = defaultMethod;
         }
 
-        console.debug("[binding-coap]", `CoapsClient sending ${method} to ${form.href}`);
+        debug(`CoapsClient sending ${method} to ${form.href}`);
 
         const body = content.body ? await ProtocolHelpers.readStreamFully(content.body) : undefined;
 

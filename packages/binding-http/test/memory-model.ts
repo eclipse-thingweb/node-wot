@@ -13,7 +13,10 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
+import { createDebugLogger } from "@node-wot/core";
 import { PasswordModel, ClientCredentialsModel, Callback, Token, Falsey, Client, User } from "oauth2-server";
+
+const debug = createDebugLogger("binding-http", "memory-model");
 
 /**
  * oAuth server logic. See https://oauth2-server.readthedocs.io/en/latest/model/overview.html
@@ -72,9 +75,9 @@ export default class InMemoryModel implements ClientCredentialsModel, PasswordMo
     }
 
     dump(): void {
-        console.log("clients", this.clients);
-        console.log("tokens", this.tokens);
-        console.log("users", this.users);
+        debug(`Clients: ${this.clients}`);
+        debug(`Tokens: ${this.tokens}`);
+        debug(`Users: ${this.users}`);
     }
 
     /*

@@ -39,6 +39,9 @@ import { SomeJSONSchema } from "ajv/dist/types/json-schema";
 import { ThingInteraction, ThingModelHelpers } from "@node-wot/td-tools";
 import { Resolver } from "@node-wot/td-tools/src/resolver-interface";
 import { DataSchema } from "wot-thing-description-types";
+import { createLoggers } from "./logger";
+
+const { debug, error, warn } = createLoggers("core", "helpers");
 
 const tdSchema = TDSchema;
 // RegExps take from https://github.com/ajv-validator/ajv-formats/blob/master/src/formats.ts
@@ -65,13 +68,13 @@ export default class Helpers implements Resolver {
 
     public static extractScheme(uri: string): string {
         const parsed = new URL(uri);
-        // console.log(parsed)
+        debug(parsed);
         // remove trailing ':'
         if (parsed.protocol === null) {
             throw new Error(`Protocol in url "${uri}" must be valid`);
         }
         const scheme = parsed.protocol.slice(0, -1);
-        console.debug("[core/helpers]", `Helpers found scheme '${scheme}'`);
+        debug(`Helpers found scheme '${scheme}'`);
         return scheme;
     }
 
@@ -85,14 +88,14 @@ export default class Helpers implements Resolver {
         if (Helpers.staticAddress !== undefined) {
             addresses.push(Helpers.staticAddress);
 
-            console.debug("[core/helpers]", `AddressHelper uses static ${addresses}`);
+            debug(`AddressHelper uses static ${addresses}`);
             return addresses;
         } else {
             const interfaces = os.networkInterfaces();
 
             for (const iface in interfaces) {
                 interfaces[iface]?.forEach((entry) => {
-                    console.debug("[core/helpers]", `AddressHelper found ${entry.address}`);
+                    debug(`AddressHelper found ${entry.address}`);
                     if (entry.internal === false) {
                         if (entry.family === "IPv4") {
                             addresses.push(entry.address);
@@ -108,7 +111,7 @@ export default class Helpers implements Resolver {
                 addresses.push("localhost");
             }
 
-            console.debug("[core/helpers]", `AddressHelper identified ${addresses}`);
+            debug(`AddressHelper identified ${addresses}`);
 
             return addresses;
         }
@@ -118,7 +121,7 @@ export default class Helpers implements Resolver {
         // Due to crash logged with:
         // TypeError: Cannot read property 'indexOf' of undefined at Function.Helpers.toUriLiteral
         if (!address) {
-            console.error("[core/helpers]", `AddressHelper received invalid address '${address}'`);
+            error(`AddressHelper received invalid address '${address}'`);
             return "{invalid address}";
         }
 
@@ -153,15 +156,12 @@ export default class Helpers implements Resolver {
     public fetch(uri: string): Promise<unknown> {
         return new Promise<unknown>((resolve, reject) => {
             const client = this.srv.getClientFor(Helpers.extractScheme(uri));
-            console.debug("[core/helpers]", `WoTImpl fetching TD from '${uri}' with ${client}`);
+            debug(`WoTImpl fetching TD from '${uri}' with ${client}`);
             client
                 .readResource(new TD.Form(uri, ContentSerdes.TD))
                 .then(async (content) => {
                     if (content.type !== ContentSerdes.TD && content.type !== ContentSerdes.JSON_LD) {
-                        console.warn(
-                            "[core/helpers]",
-                            `WoTImpl received TD with media type '${content.type}' from ${uri}`
-                        );
+                        warn(`WoTImpl received TD with media type '${content.type}' from ${uri}`);
                     }
 
                     const td = (await ProtocolHelpers.readStreamFully(content.body)).toString("utf-8");
@@ -210,7 +210,7 @@ export default class Helpers implements Resolver {
             return await response.value();
         } catch (err) {
             // TODO if response.value() fails, try low-level stream read
-            console.error("[core/helpers]", "parseInteractionOutput low-level stream not implemented");
+            error("parseInteractionOutput low-level stream not implemented");
             throw new Error("parseInteractionOutput low-level stream not implemented");
         }
     }

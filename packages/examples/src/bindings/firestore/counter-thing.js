@@ -153,6 +153,7 @@ const main = async () => {
             count = newValue;
             lastChange = new Date().toISOString();
             thing.emitEvent("change", count);
+            thing.emitPropertyChange("count");
             return undefined;
         });
         thing.setActionHandler("decrement", async (params, options) => {
@@ -169,6 +170,7 @@ const main = async () => {
             count = newValue;
             lastChange = new Date().toISOString();
             thing.emitEvent("change", count);
+            thing.emitPropertyChange("count");
             return undefined;
         });
         thing.setActionHandler("reset", async (params, options) => {
@@ -176,6 +178,7 @@ const main = async () => {
             count = 0;
             lastChange = new Date().toISOString();
             thing.emitEvent("change", count);
+            thing.emitPropertyChange("count");
             return undefined;
         });
         // expose the thing

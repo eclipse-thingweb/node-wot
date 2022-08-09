@@ -37,3 +37,27 @@ export function findPort(td: ThingDescription): number {
     const returnString: string = base.substring(columnLoc + 1, divLoc);
     return parseInt(returnString);
 }
+
+export function setContextLanguage(thing: ThingDescription, language: string, forceOverride: boolean): void {
+    // forceOverride == false -> set @language if no @language set
+    // forceOverride == true  -> set/override @language in any case
+    if (Array.isArray(thing["@context"])) {
+        const arrayContext = thing["@context"];
+        let languageSet = false;
+        for (const arrayEntry of arrayContext) {
+            if (typeof arrayEntry === "object") {
+                if ((arrayEntry as Record<string, unknown>)["@language"] !== undefined) {
+                    if (forceOverride) {
+                        (arrayEntry as Record<string, unknown>)["@language"] = language;
+                    }
+                    languageSet = true;
+                }
+            }
+        }
+        if (!languageSet) {
+            (arrayContext as unknown[]).push({
+                "@language": language,
+            });
+        }
+    }
+}

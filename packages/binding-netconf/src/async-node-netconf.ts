@@ -16,6 +16,9 @@ import * as nodeNetconf from "node-netconf";
 import * as xpath2json from "./xpath2json";
 import { promises as fsPromises } from "fs";
 import { NetConfCredentials, RpcMethod } from "./netconf";
+import { createDebugLogger } from "@node-wot/core";
+
+const debug = createDebugLogger("binding-netconf", "async-node-netconf");
 
 type RouterParams = {
     host: string;
@@ -94,8 +97,7 @@ export class Client {
                 if (err) {
                     reject(err);
                 } else {
-                    console.debug(
-                        "[binding-netconf]",
+                    debug(
                         `New NetConf router opened connection with host ${this.routerParams.host}, port ${this.routerParams.port}, username ${this.routerParams.username}`
                     );
                     this.connected = true;

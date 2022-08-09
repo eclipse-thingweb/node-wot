@@ -203,45 +203,7 @@ You can then start the applications with node by running `node server.js` and `n
 
 #### CLI Tool
 
-You can alternatively install the node-wot CLI, either globally (`npm i @node-wot/cli -g`) or as
-a (dev) dependency (`npm i @node-wot/cli --save` or `npm i @node-wot/cli --save-dev`).
-
-Then, you don't need to specify any further node-wot dependencies and can implement your application
-(e.g., `main.js`) without explicitly requiring node-wot dependencies:
-
-```JavaScript
-// No need to require node-wot components
-// WoT runtime is provided as global object
-
-WoT.produce({/*.....*/})
-```
-
-If the CLI is globally installed, you don't need to set up a Node.js project.
-If you do so, anyway, you can specify the entry point as follows:
-
-```JavaScript
-"scripts":{
-   "start": "wot-servient main.js"
-}
-```
-
-There are several ways to start the application:
-a. Execute `npm start`.
-b. Execute `./node_modules/.bin/wot-servient main.js`.
-c. Execute `node ./node_modules/@node-wot/cli/dist/cli.js main.js`.
-d. If you have installed `@node-wot/cli` globally you can even start the application right
-away using this command `wot-servient main.js`. However, in the current implementation, the
-import of local dependencies is not supported in this case.
-
-wot-servient can execute multiple files at once, for example as follows:
-
-```
-wot-servient script1.js ./src/script2.js
-```
-
-Finally, to debug use the option `--inspect` or `--inspect-brk` if you want to hang until your debug client is connected. Then start [Chrome Dev Tools](chrome://inspect) or [vscode debugger](https://code.visualstudio.com/docs/nodejs/nodejs-debugging#_attaching-to-nodejs) or your preferred v8 inspector to debug your code.
-
-For further details check: `wot-servient --help`
+You can alternatively use node-wot via its command line interface (CLI). Please visit the [CLI tool's Readme](<[url](https://github.com/eclipse/thingweb.node-wot/tree/master/packages/cli)>) to find out more.
 
 ### As a standalone application
 
@@ -434,7 +396,9 @@ This library implements the WoT Scripting API:
 -   [Editors Draft](w3c.github.io/wot-scripting-api/) in [master](https://github.com/eclipse/thingweb.node-wot)
 -   [Working Draft](https://www.w3.org/TR/wot-scripting-api/) corresponding to node-wot [release versions](https://github.com/eclipse/thingweb.node-wot/releases)
 
-You can also see `examples/scripts` to have a feeling of how to script a Thing.
+Additionally, you can have a look at our [API Documentation](API.md).
+
+To learn by examples, see `examples/scripts` to have a feeling of how to script a Thing or a Consumer.
 
 ### Logging
 

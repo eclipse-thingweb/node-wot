@@ -15,13 +15,15 @@
 import Ajv from "ajv/dist/core";
 import { expect } from "chai";
 
-import { ContentSerdes, ProtocolHelpers } from "@node-wot/core";
+import { ContentSerdes, ProtocolHelpers, createLoggers } from "@node-wot/core";
 
 import { VariableIds, OPCUAServer } from "node-opcua";
 
 import { OPCUAProtocolClient, OPCUAForm, OPCUAFormInvoke } from "../src/opcua-protocol-client";
 import { OpcuaJSONCodec, schemaDataValue } from "../src/codec";
 import { startServer } from "./fixture/basic-opcua-server";
+
+const { debug } = createLoggers("binding-opcua", "opcua-protocol-client");
 
 describe("OPCUA Client", function () {
     this.timeout(60000);
@@ -31,7 +33,7 @@ describe("OPCUA Client", function () {
     before(async () => {
         opcuaServer = await startServer();
         endpoint = opcuaServer.getEndpointUrl();
-        console.log("endpoint = ", endpoint);
+        debug(`endpoint = ${endpoint}`);
     });
     before(() => {
         // ensure codec is loaded
@@ -99,7 +101,7 @@ describe("OPCUA Client", function () {
             const content = await client.readResource(readForm);
             const content2 = { ...content, body: await ProtocolHelpers.readStreamFully(content.body) };
 
-            console.log("readResource returned: ", content2.body.toString("ascii"));
+            debug(`readResource returned: ${content2.body.toString("ascii")}`);
 
             const codecSerDes = ContentSerdes.get();
             const dataValue = codecSerDes.contentToValue(content2, schemaDataValue) as Record<string, unknown>;
@@ -109,7 +111,7 @@ describe("OPCUA Client", function () {
                 expect(dataValue.SourceTimestamp).to.be.instanceOf(Date);
                 dataValue.SourceTimestamp = "*";
             }
-            console.log(dataValue);
+            debug(`${dataValue}`);
             expect(dataValue).to.eql(expected);
         });
     });
@@ -180,7 +182,7 @@ describe("OPCUA Client", function () {
         const contentResult2 = { ...contentResult, body: await ProtocolHelpers.readStreamFully(contentResult.body) };
         const codecSerDes = ContentSerdes.get();
         const outputArguments = codecSerDes.contentToValue(contentResult2, schemaDataValue);
-        console.log("Y4: outputArguments:", outputArguments);
+        debug(`Y4: outputArguments: ${outputArguments}`);
 
         outputArguments.should.eql({ PreviousSetPoint: 27 });
     });

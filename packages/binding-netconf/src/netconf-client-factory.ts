@@ -16,9 +16,11 @@
 /**
  * Netconf protocol binding
  */
-import { ProtocolClientFactory, ProtocolClient, ContentSerdes } from "@node-wot/core";
+import { ProtocolClientFactory, ProtocolClient, ContentSerdes, createDebugLogger } from "@node-wot/core";
 import NetconfClient from "./netconf-client";
 import NetconfCodec from "./codecs/netconf-codec";
+
+const debug = createDebugLogger("binding-netconf", "netconf-client-factory");
 
 export default class NetconfClientFactory implements ProtocolClientFactory {
     public readonly scheme: string = "netconf";
@@ -26,7 +28,7 @@ export default class NetconfClientFactory implements ProtocolClientFactory {
 
     public getClient(): ProtocolClient {
         this.contentSerdes.addCodec(new NetconfCodec()); // add custom codec for NetConf
-        console.debug("[binding-netconf]", `NetconfClientFactory creating client for '${this.scheme}'`);
+        debug(`NetconfClientFactory creating client for '${this.scheme}'`);
         return new NetconfClient();
     }
 

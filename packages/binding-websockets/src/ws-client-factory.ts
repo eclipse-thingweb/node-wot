@@ -17,8 +17,10 @@
  * HTTP client Factory
  */
 
-import { ProtocolClientFactory, ProtocolClient } from "@node-wot/core";
+import { ProtocolClientFactory, ProtocolClient, createLoggers } from "@node-wot/core";
 import WebSocketClient from "./ws-client";
+
+const { debug } = createLoggers("binding-websockets", "ws-client-factory");
 
 export default class WebSocketClientFactory implements ProtocolClientFactory {
     public readonly scheme: string = "ws";
@@ -29,18 +31,18 @@ export default class WebSocketClientFactory implements ProtocolClientFactory {
     }
 
     public getClient(): ProtocolClient {
-        console.debug("[binding-websockets]", `HttpClientFactory creating client for '${this.scheme}'`);
+        debug(`HttpClientFactory creating client for '${this.scheme}'`);
         return new WebSocketClient();
     }
 
     public init(): boolean {
-        // console.info(`HttpClientFactory for '${HttpClientFactory.scheme}' initializing`);
+        // info(`HttpClientFactory for '${HttpClientFactory.scheme}' initializing`);
         // TODO uncomment info if something is executed here
         return true;
     }
 
     public destroy(): boolean {
-        // console.info(`HttpClientFactory for '${HttpClientFactory.scheme}' destroyed`);
+        // info(`HttpClientFactory for '${HttpClientFactory.scheme}' destroyed`);
         // TODO uncomment info if something is executed here
         return true;
     }

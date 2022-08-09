@@ -27,6 +27,13 @@ import Thing, {
     DEFAULT_CONTEXT_LANGUAGE,
 } from "../src/thing-description";
 import * as TDParser from "../src/td-parser";
+import * as TDHelpers from "../src/td-helpers";
+
+// TODO: Refactor and reuse debug solution from core package
+import debug from "debug";
+const namespace = "node-wot:td-tools:TDParseTest";
+const logDebug = debug(`${namespace}:debug`);
+
 // should must be called to augment all variables
 should();
 
@@ -359,7 +366,7 @@ class TDParserTest {
         const testTD = `{ "title": "NoContext" }`;
         const thing: Thing = TDParser.parseTD(testTD);
 
-        console.dir(thing);
+        logDebug(`${thing}`);
 
         expect(thing).to.have.property("@context").that.has.length(3);
         expect(thing["@context"][0]).to.equal(DEFAULT_CONTEXT_V1);
@@ -378,7 +385,7 @@ class TDParserTest {
     }`;
         const thing: Thing = TDParser.parseTD(testTD);
 
-        console.dir(thing);
+        logDebug(`${thing}`);
 
         expect(thing).to.have.property("@context").that.has.length(3);
         expect(thing["@context"][0]).to.equal(DEFAULT_CONTEXT_V1);
@@ -387,11 +394,31 @@ class TDParserTest {
         expect(thing).to.have.property("@type").that.equals(DEFAULT_THING_TYPE);
     }
 
+    @test "should ovverride existing @language in context"() {
+        const testTD = `{ "title": "NoContext",
+      "@context": ["https://www.w3.org/2019/wot/td/v1", {
+          "iot": "http://example.org/iot"
+        },
+        { "@language" : "de" }
+      ]
+    }`;
+        const thing: Thing = TDParser.parseTD(testTD);
+        TDHelpers.setContextLanguage(thing, "en", true);
+
+        logDebug(`${thing}`);
+
+        expect(thing).to.have.property("@context").that.has.length(3);
+        expect(thing["@context"][0]).to.equal(DEFAULT_CONTEXT_V1);
+        expect(thing["@context"][1]).to.have.property("iot").that.equals("http://example.org/iot");
+        expect(thing["@context"][2]).to.have.property("@language").that.equals("en");
+        expect(thing).to.have.property("@type").that.equals(DEFAULT_THING_TYPE);
+    }
+
     @test "should add context to single string"() {
         const testTD = `{ "title": "OtherContext", "@context": "http://iot.schema.org/", "@type": "iot:Sensor" }`;
         const thing: Thing = TDParser.parseTD(testTD);
 
-        console.dir(thing);
+        logDebug(`${thing}`);
 
         expect(thing).to.have.property("@context").that.has.length(4);
         expect(thing["@context"][0]).to.equal(DEFAULT_CONTEXT_V1);
@@ -408,7 +435,7 @@ class TDParserTest {
         const testTD = `{ "title": "OtherContext", "@context": ["http://iot.schema.org/"], "@type": ["iot:Sensor"] }`;
         const thing: Thing = TDParser.parseTD(testTD);
 
-        console.dir(thing);
+        logDebug(`${thing}`);
 
         expect(thing).to.have.property("@context").that.has.length(4);
         expect(thing["@context"][0]).to.equal(DEFAULT_CONTEXT_V1);
@@ -425,7 +452,7 @@ class TDParserTest {
         const testTD = `{ "title": "OtherContext", "@context": ["http://iot.schema.org/", "https://www.w3.org/2019/wot/td/v1"], "@type": ["iot:Sensor"] }`;
         const thing: Thing = TDParser.parseTD(testTD);
 
-        console.dir(thing);
+        logDebug(`${thing}`);
 
         expect(thing).to.have.property("@context").that.has.length(3);
         expect(thing["@context"][0]).to.equal(DEFAULT_CONTEXT_V1);
@@ -437,7 +464,7 @@ class TDParserTest {
         const testTD = `{ "title": "OtherContext", "@context": ["http://iot.schema.org/", "https://www.w3.org/2022/wot/td/v1.1"], "@type": ["iot:Sensor"] }`;
         const thing: Thing = TDParser.parseTD(testTD);
 
-        console.dir(thing);
+        logDebug(`${thing}`);
 
         expect(thing).to.have.property("@context").that.has.length(3);
         expect(thing["@context"][0]).to.equal(DEFAULT_CONTEXT_V11);
@@ -449,7 +476,7 @@ class TDParserTest {
         const testTD = `{ "title": "OtherContext", "@context": ["http://iot.schema.org/", "https://www.w3.org/2022/wot/td/v1.1", "https://www.w3.org/2019/wot/td/v1"], "@type": ["iot:Sensor"] }`;
         const thing: Thing = TDParser.parseTD(testTD);
 
-        console.dir(thing);
+        logDebug(`${thing}`);
 
         expect(thing).to.have.property("@context").that.has.length(4);
         expect(thing["@context"][0]).to.equal(DEFAULT_CONTEXT_V1);
@@ -462,7 +489,7 @@ class TDParserTest {
         const testTD = `{ "title": "OtherContext", "@context": { "iot": "http://iot.schema.org/" } }`;
         const thing: Thing = TDParser.parseTD(testTD);
 
-        console.dir(thing);
+        logDebug(`${thing}`);
 
         expect(thing).to.have.property("@context").that.has.length(4);
         expect(thing["@context"][0]).to.equal(DEFAULT_CONTEXT_V1);
@@ -650,7 +677,7 @@ class TDParserTest {
         expect(thing).to.have.property("actions");
         expect(thing).to.have.property("events");
 
-        // console.debug(td["@context"]);
+        logDebug(`${thing["@context"]}`);
         expect(thing.properties).to.have.property("status");
         expect(thing.properties.status.readOnly).equals(true);
         expect(thing.properties.status.observable).equals(false);
@@ -669,7 +696,7 @@ class TDParserTest {
         expect(thing).to.have.property("actions");
         expect(thing).to.have.property("events");
 
-        // console.debug(td["@context"]);
+        logDebug(`${thing["@context"]}`);
         expect(thing.properties).to.have.property("status");
         expect(thing.properties.status.readOnly).equals(true);
         expect(thing.properties.status.observable).equals(false);

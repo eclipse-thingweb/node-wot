@@ -16,14 +16,16 @@
 /**
  * File protocol binding
  */
-import { ProtocolClientFactory, ProtocolClient } from "@node-wot/core";
+import { ProtocolClientFactory, ProtocolClient, createLoggers } from "@node-wot/core";
 import FileClient from "./file-client";
+
+const { debug } = createLoggers("binding-file", "file-client-factory");
 
 export default class FileClientFactory implements ProtocolClientFactory {
     public readonly scheme: string = "file";
 
     public getClient(): ProtocolClient {
-        console.debug("[binding-file]", `FileClientFactory creating client for '${this.scheme}'`);
+        debug(`FileClientFactory creating client for '${this.scheme}'`);
         return new FileClient();
     }
 

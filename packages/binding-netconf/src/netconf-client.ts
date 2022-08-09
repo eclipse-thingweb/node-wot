@@ -16,13 +16,15 @@
 /**
  * Netconf protocol binding
  */
-import { ProtocolClient, Content, ProtocolHelpers } from "@node-wot/core";
+import { ProtocolClient, Content, ProtocolHelpers, createLoggers } from "@node-wot/core";
 import { NetconfForm, NetConfCredentials, RpcMethod, isRpcMethod } from "./netconf";
 import * as TD from "@node-wot/td-tools";
 import * as AsyncNodeNetcon from "./async-node-netconf";
 import Url from "url-parse";
 import { Readable } from "stream";
 import { Subscription } from "rxjs/Subscription";
+
+const { debug, warn } = createLoggers("binding-netconf", "netconf-client");
 
 const DEFAULT_TARGET = "candidate";
 
@@ -130,7 +132,7 @@ export default class NetconfClient implements ProtocolClient {
             payload = payload.payload;
             result = JSON.stringify(await this.client.rpc(xpathQuery, method, NSs, target, payload));
         } catch (err) {
-            console.debug("[binding-netconf]", err);
+            debug(err.toString());
             throw err;
         }
 
@@ -167,7 +169,7 @@ export default class NetconfClient implements ProtocolClient {
 
     public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: NetConfCredentials): boolean {
         if (metadata === undefined || !Array.isArray(metadata) || metadata.length === 0) {
-            console.warn("[binding-netconf]", `NetconfClient without security`);
+            warn(`NetconfClient without security`);
             return false;
         }
         if (!credentials || (!credentials.password && !credentials.privateKey)) {

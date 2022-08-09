@@ -17,9 +17,11 @@
  * WebSockets client
  */
 
-import { ProtocolClient, Content } from "@node-wot/core";
+import { ProtocolClient, Content, createLoggers } from "@node-wot/core";
 import { Form, SecurityScheme } from "@node-wot/td-tools";
 import { Subscription } from "rxjs/Subscription";
+
+const { debug, warn } = createLoggers("binding-websockets", "ws-client");
 
 export default class WebSocketClient implements ProtocolClient {
     // eslint-disable-next-line no-useless-constructor
@@ -74,13 +76,13 @@ export default class WebSocketClient implements ProtocolClient {
 
     public setSecurity(metadata: Array<SecurityScheme>, credentials?: unknown): boolean {
         if (metadata === undefined || !Array.isArray(metadata) || metadata.length === 0) {
-            console.warn("[binding-websockets]", `WebSocketClient received empty security metadata`);
+            warn("WebSocketClient received empty security metadata");
             return false;
         }
         // TODO support for multiple security schemes (see http-client.ts)
         const security: SecurityScheme = metadata[0];
 
-        console.debug("[binding-websockets]", `WebSocketClient using security scheme '${security.scheme}'`);
+        debug(`WebSocketClient using security scheme '${security.scheme}'`);
         return true;
     }
 }

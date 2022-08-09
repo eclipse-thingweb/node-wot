@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { ContentCodec } from "@node-wot/core";
+import { ContentCodec, createLoggers } from "@node-wot/core";
 import { DataSchema } from "@node-wot/td-tools";
 import { DataValue } from "node-opcua-data-value";
 import { DataType, Variant } from "node-opcua-variant";
@@ -30,6 +30,8 @@ import {
 } from "node-opcua-json";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { DataSchemaValue } from "wot-typescript-definitions";
+
+const { debug } = createLoggers("binding-opcua", "codec");
 
 // Strict mode has a lot of other checks and it prevents runtime unexpected problems
 // TODO: in the future we should use the strict mode
@@ -166,8 +168,8 @@ export class OpcuaJSONCodec implements ContentCodec {
             case "DataValue": {
                 const isValid = schemaDataValueJSONValidate(parsed);
                 if (!isValid) {
-                    console.log("[OpcuaJSONCodec|bytesToValue] parsed =", parsed);
-                    console.log("[OpcuaJSONCodec|bytesToValue]", schemaDataValueJSONValidate.errors);
+                    debug(`bytesToValue: parsed = ${parsed}`);
+                    debug(`bytesToValue: ${schemaDataValueJSONValidate.errors}`);
                     throw new Error("Invalid JSON dataValue : " + JSON.stringify(parsed, null, " "));
                 }
                 if (wantDataValue) {
@@ -182,7 +184,7 @@ export class OpcuaJSONCodec implements ContentCodec {
                     return dataValue;
                 }
                 const v = opcuaJsonEncodeVariant(opcuaJsonDecodeVariant(parsed), true);
-                console.log(v);
+                debug(`${v}`);
                 return v;
             }
             case "Value": {

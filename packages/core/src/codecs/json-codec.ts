@@ -15,6 +15,9 @@
 
 import { ContentSerdes, ContentCodec } from "../content-serdes";
 import { DataSchema, DataSchemaValue } from "wot-typescript-definitions";
+import { createLoggers } from "../logger";
+
+const { debug } = createLoggers("core", "json-codec");
 
 /** default implementation offering JSON de-/serialisation */
 export default class JsonCodec implements ContentCodec {
@@ -33,7 +36,7 @@ export default class JsonCodec implements ContentCodec {
     }
 
     bytesToValue(bytes: Buffer, schema: DataSchema, parameters: { [key: string]: string }): DataSchemaValue {
-        // console.debug(`JsonCodec parsing '${bytes.toString()}'`);
+        debug(`JsonCodec parsing '${bytes.toString()}'`);
 
         let parsed;
         try {
@@ -56,7 +59,7 @@ export default class JsonCodec implements ContentCodec {
     }
 
     valueToBytes(value: unknown, schema: DataSchema, parameters?: { [key: string]: string }): Buffer {
-        // console.debug("JsonCodec serializing", value);
+        debug("JsonCodec serializing", value);
         let body = "";
         if (value !== undefined) {
             body = JSON.stringify(value);

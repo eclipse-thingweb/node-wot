@@ -11,13 +11,15 @@ const _stream_writable = require.resolve("readable-stream4/lib/_stream_writable"
 const fs = require("fs");
 
 const builder = browserify({
-    ...builtIns,
-    stream,
-    _stream_duplex,
-    _stream_passthrough,
-    _stream_readable,
-    _stream_transform,
-    _stream_writable,
+    builtins: {
+        ...builtIns,
+        stream,
+        _stream_duplex,
+        _stream_passthrough,
+        _stream_readable,
+        _stream_transform,
+        _stream_writable,
+    },
 });
 
 builder.add("./index.js");

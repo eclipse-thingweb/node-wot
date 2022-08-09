@@ -13,12 +13,14 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import Servient from "@node-wot/core";
+import { Servient, createLoggers } from "@node-wot/core";
 import FirestoreServer from "../src/firestore-server";
 import FirestoreCodec from "../src/codecs/firestore-codec";
 import firebase from "firebase/compat/app";
 
 import firestoreConfig from "./firestore-config.json";
+
+const { debug, info, error } = createLoggers("binding-firestore", "test-thing");
 
 export const launchTestThing = async (): Promise<WoT.ExposedThing | void> => {
     // setup for emulator
@@ -40,7 +42,7 @@ export const launchTestThing = async (): Promise<WoT.ExposedThing | void> => {
                     .createUserWithEmailAndPassword(firestoreConfig.user.email, firestoreConfig.user.password);
             } catch (e) {
                 // is not error
-                console.log("user ia already created err: ", e);
+                error(`user ia already created err: ${e}`);
             }
         }
         // create server
@@ -177,7 +179,7 @@ export const launchTestThing = async (): Promise<WoT.ExposedThing | void> => {
         // expose the thing
         await thing.expose();
 
-        // console.log("Produced " + thing.getThingDescription().title);
+        debug(`Produced ${thing.getThingDescription().title}`);
 
         // set property handlers (using async-await)
         thing.setPropertyReadHandler("objectProperty", async () => {
@@ -192,79 +194,82 @@ export const launchTestThing = async (): Promise<WoT.ExposedThing | void> => {
         thing.setPropertyWriteHandler("objectProperty", async (value) => {
             const v = (await value.value()) as Record<string, unknown>;
             objectProperty = v;
+            await thing.emitPropertyChange("objectProperty");
         });
         thing.setPropertyWriteHandler("stringProperty", async (value) => {
             const v = (await value.value()) as string;
             stringProperty = v;
+            await thing.emitPropertyChange("stringProperty");
         });
         thing.setPropertyWriteHandler("integerProperty", async (value) => {
             const v = (await value.value()) as number;
             integerProperty = v;
+            await thing.emitPropertyChange("integerProperty");
         });
 
         // set action handlers
         thing.setActionHandler("actionWithoutArgsResponse", async (params) => {
-            console.log("actionWithoutArgsResponse", params);
+            debug(`actionWithoutArgsResponse ${params}`);
             return undefined;
         });
         thing.setActionHandler("actionNum", async (params) => {
             const v = await params.value();
-            console.log("actionNum", v);
+            debug(`actionNum ${v}`);
             return v;
         });
         thing.setActionHandler("actionString", async (params) => {
             const v = await params.value();
-            console.log("actionString", v);
+            debug(`actionString ${v}`);
             return v;
         });
         thing.setActionHandler("actionObject", async (params) => {
             const v = await params.value();
-            console.log("actionObject", v);
+            debug(`actionObject ${v}`);
             return v;
         });
         thing.setActionHandler("actionStringToObj", async (params) => {
             const v = await params.value();
-            console.log("actionStringToObj", v);
+            debug(`actionStringToObj ${v}`);
             return { test: v };
         });
         thing.setActionHandler("actionObjToNum", async (params) => {
             const v = await params.value();
-            console.log("actionObjToNum", v);
+            debug(`actionObjToNum ${v}`);
             return 1;
         });
         thing.setActionHandler("actionStringToObj", async (params) => {
             const v = await params.value();
-            console.log("actionStringToObj", v);
+            debug(`actionStringToObj ${v}`);
             return { test: v };
         });
         thing.setActionHandler("actionObjToNum", async (params) => {
             const v = await params.value();
-            console.log("actionObjToNum", v);
+            debug(`actionObjToNum ${v}`);
             return 1;
         });
         // actions for event
         thing.setActionHandler("actionEventInteger", async (params) => {
             const v = await params.value();
-            console.log("actionEventInteger", v);
+            debug(`actionEventInteger ${v}`);
             thing.emitEvent("eventInteger", v);
             return undefined;
         });
         thing.setActionHandler("actionEventString", async (params) => {
             const v = await params.value();
-            console.log("actionEventString", v);
+            debug(`actionEventString ${v}`);
             thing.emitEvent("eventString", v);
             return undefined;
         });
         thing.setActionHandler("actionEventObject", async (params) => {
             const v = await params.value();
-            console.log("actionEventObject", v);
+            debug(`actionEventObject ${v}`);
             thing.emitEvent("eventObject", v);
             return undefined;
         });
 
-        console.info(thing.getThingDescription().title + " ready");
+        info(`${thing.getThingDescription().title} ready`);
         return thing;
     } catch (err) {
-        console.log(err);
+        debug(err);
     }
 };

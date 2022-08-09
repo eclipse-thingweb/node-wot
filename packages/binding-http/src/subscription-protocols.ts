@@ -15,8 +15,11 @@
  ********************************************************************************/
 import { HttpClient, HttpForm } from "./http";
 import EventSource from "eventsource";
-import { Content, ProtocolHelpers } from "@node-wot/core";
+import { Content, ProtocolHelpers, createLoggers } from "@node-wot/core";
 import { Readable } from "stream";
+
+const { debug } = createLoggers("binding-http", "subscription-protocols");
+
 export interface InternalSubscription {
     open(next: (value: Content) => void, error?: (error: Error) => void, complete?: () => void): Promise<void>;
     close(): void;
@@ -51,25 +54,16 @@ export class LongPollingSubscription implements InternalSubscription {
                     const request = await this.client["generateFetchRequest"](this.form, "GET", {
                         timeout: 60 * 60 * 1000,
                     });
-                    console.debug(
-                        "[binding-http]",
-                        `HttpClient (subscribeResource) sending ${request.method} to ${request.url}`
-                    );
+                    debug(`HttpClient (subscribeResource) sending ${request.method} to ${request.url}`);
 
                     const result = await this.client["fetch"](request);
 
                     this.client["checkFetchResponse"](result);
 
-                    console.debug("[binding-http]", `HttpClient received ${result.status} from ${request.url}`);
+                    debug(`HttpClient received ${result.status} from ${request.url}`);
 
-                    console.debug(
-                        "[binding-http]",
-                        `HttpClient received headers: ${JSON.stringify(result.headers.raw())}`
-                    );
-                    console.debug(
-                        "[binding-http]",
-                        `HttpClient received Content-Type: ${result.headers.get("content-type")}`
-                    );
+                    debug(`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
+                    debug(`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
 
                     if (!this.closed) {
                         // in browsers node-fetch uses the native fetch, which returns a ReadableStream
@@ -112,14 +106,11 @@ export class SSESubscription implements InternalSubscription {
             this.eventSource = new EventSource(this.form.href);
 
             this.eventSource.onopen = (event) => {
-                console.debug(
-                    "[binding-http]",
-                    `HttpClient (subscribeResource) Server-Sent Event connection is opened to ${this.form.href}`
-                );
+                debug(`HttpClient (subscribeResource) Server-Sent Event connection is opened to ${this.form.href}`);
                 resolve();
             };
             this.eventSource.onmessage = (event) => {
-                console.debug("[binding-http]", `HttpClient received ${JSON.stringify(event)} from ${this.form.href}`);
+                debug(`HttpClient received ${JSON.stringify(event)} from ${this.form.href}`);
                 const output = { type: this.form.contentType, body: Readable.from(JSON.stringify(event)) };
                 next(output);
             };

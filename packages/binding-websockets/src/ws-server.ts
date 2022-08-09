@@ -27,9 +27,11 @@ import * as WebSocket from "ws";
 import { AddressInfo } from "net";
 
 import * as TD from "@node-wot/td-tools";
-import { ProtocolServer, Servient, ExposedThing, ContentSerdes, Helpers, Content } from "@node-wot/core";
+import { ProtocolServer, Servient, ExposedThing, ContentSerdes, Helpers, Content, createLoggers } from "@node-wot/core";
 import { HttpServer, HttpConfig } from "@node-wot/binding-http";
 import slugify from "slugify";
+
+const { debug, info, error } = createLoggers("binding-websockets", "ws-server");
 
 export default class WebSocketServer implements ProtocolServer {
     public readonly scheme: string;
@@ -80,10 +82,7 @@ export default class WebSocketServer implements ProtocolServer {
     }
 
     public start(servient: Servient): Promise<void> {
-        console.debug(
-            "[binding-websockets]",
-            `WebSocketServer starting on ${this.address !== undefined ? this.address + " " : ""}port ${this.port}`
-        );
+        debug(`WebSocketServer starting on ${this.address !== undefined ? this.address + " " : ""}port ${this.port}`);
         return new Promise<void>((resolve, reject) => {
             // handle incoming WebScoket connections
             this.httpServer.on("upgrade", (request, socket, head) => {
@@ -107,10 +106,7 @@ export default class WebSocketServer implements ProtocolServer {
                 this.httpServer.once("listening", () => {
                     // once started, console "handles" errors
                     this.httpServer.on("error", (err: Error) => {
-                        console.error(
-                            "[binding-websockets]",
-                            `WebSocketServer on port ${this.port} failed: ${err.message}`
-                        );
+                        error(`WebSocketServer on port ${this.port} failed: ${err.message}`);
                     });
                     resolve();
                 });
@@ -122,7 +118,7 @@ export default class WebSocketServer implements ProtocolServer {
     }
 
     public stop(): Promise<void> {
-        console.debug("[binding-websockets]", `WebSocketServer stopping on port ${this.port}`);
+        debug(`WebSocketServer stopping on port ${this.port}`);
         return new Promise<void>((resolve, reject) => {
             for (const pathSocket in this.socketServers) {
                 this.socketServers[pathSocket].close();
@@ -130,7 +126,7 @@ export default class WebSocketServer implements ProtocolServer {
 
             // stop promise handles all errors from now on
             if (this.ownServer) {
-                console.debug("[binding-websockets]", `WebSocketServer stopping own HTTP server`);
+                debug("WebSocketServer stopping own HTTP server");
                 this.httpServer.once("error", (err: Error) => {
                     reject(err);
                 });
@@ -159,10 +155,7 @@ export default class WebSocketServer implements ProtocolServer {
         }
 
         if (this.getPort() !== -1) {
-            console.debug(
-                "[binding-websockets]",
-                `WebSocketServer on port ${this.getPort()} exposes '${thing.title}' as unique '/${urlPath}/*'`
-            );
+            debug(`WebSocketServer on port ${this.getPort()} exposes '${thing.title}' as unique '/${urlPath}/*'`);
 
             this.thingNames.add(urlPath);
             this.thingPaths.set(thing.id, urlPath);
@@ -192,30 +185,20 @@ export default class WebSocketServer implements ProtocolServer {
                     }
                     form.op = ops;
                     thing.properties[propertyName].forms.push(form);
-                    console.debug(
-                        "[binding-websockets]",
-                        `WebSocketServer on port ${this.getPort()} assigns '${href}' to Property '${propertyName}'`
-                    );
+                    debug(`WebSocketServer on port ${this.getPort()} assigns '${href}' to Property '${propertyName}'`);
                 }
 
-                console.debug(
-                    "[binding-websockets]",
-                    `WebSocketServer on port ${this.getPort()} adding socketServer for '${path}'`
-                );
+                debug(`WebSocketServer on port ${this.getPort()} adding socketServer for '${path}'`);
                 this.socketServers[path] = new WebSocket.Server({ noServer: true });
                 this.socketServers[path].on("connection", (ws, req) => {
-                    console.debug(
-                        "[binding-websockets]",
+                    debug(
                         `WebSocketServer on port ${this.getPort()} received connection for '${path}' from ${Helpers.toUriLiteral(
                             req.socket.remoteAddress
                         )}:${req.socket.remotePort}`
                     );
 
                     const observeListener = async (content: Content) => {
-                        console.debug(
-                            "[binding-websockets]",
-                            `WebSocketServer on port ${this.getPort()} publishing to property '${propertyName}' `
-                        );
+                        debug(`WebSocketServer on port ${this.getPort()} publishing to property '${propertyName}' `);
 
                         for await (const chunk of content.body) {
                             ws.send(chunk);
@@ -234,8 +217,7 @@ export default class WebSocketServer implements ProtocolServer {
                         for (let formIndex = 0; formIndex < thing.properties[propertyName].forms.length; formIndex++) {
                             thing.handleUnobserveProperty(propertyName, observeListener, { formIndex });
                         }
-                        console.debug(
-                            "[binding-websockets]",
+                        debug(
                             `WebSocketServer on port ${this.getPort()} closed connection for '${path}' from ${Helpers.toUriLiteral(
                                 req.socket.remoteAddress
                             )}:${req.socket.remotePort}`
@@ -255,10 +237,7 @@ export default class WebSocketServer implements ProtocolServer {
                     const form = new TD.Form(href, ContentSerdes.DEFAULT);
                     form.op = ["invokeaction"];
                     thing.actions[actionName].forms.push(form);
-                    console.debug(
-                        "[binding-websockets]",
-                        `WebSocketServer on port ${this.getPort()} assigns '${href}' to Action '${actionName}'`
-                    );
+                    debug(`WebSocketServer on port ${this.getPort()} assigns '${href}' to Action '${actionName}'`);
                 }
             }
 
@@ -274,20 +253,13 @@ export default class WebSocketServer implements ProtocolServer {
                     const form = new TD.Form(href, ContentSerdes.DEFAULT);
                     form.op = "subscribeevent";
                     event.forms.push(form);
-                    console.debug(
-                        "[binding-websockets]",
-                        `WebSocketServer on port ${this.getPort()} assigns '${href}' to Event '${eventName}'`
-                    );
+                    debug(`WebSocketServer on port ${this.getPort()} assigns '${href}' to Event '${eventName}'`);
                 }
 
-                console.debug(
-                    "[binding-websockets]",
-                    `WebSocketServer on port ${this.getPort()} adding socketServer for '${path}'`
-                );
+                debug(`WebSocketServer on port ${this.getPort()} adding socketServer for '${path}'`);
                 this.socketServers[path] = new WebSocket.Server({ noServer: true });
                 this.socketServers[path].on("connection", (ws, req) => {
-                    console.debug(
-                        "[binding-websockets]",
+                    debug(
                         `WebSocketServer on port ${this.getPort()} received connection for '${path}' from ${Helpers.toUriLiteral(
                             req.socket.remoteAddress
                         )}:${req.socket.remotePort}`
@@ -309,8 +281,7 @@ export default class WebSocketServer implements ProtocolServer {
                         for (let formIndex = 0; formIndex < event.forms.length; formIndex++) {
                             thing.handleUnsubscribeEvent(eventName, eventListener, { formIndex });
                         }
-                        console.debug(
-                            "[binding-websockets]",
+                        debug(
                             `WebSocketServer on port ${this.getPort()} closed connection for '${path}' from ${Helpers.toUriLiteral(
                                 req.socket.remoteAddress
                             )}:${req.socket.remotePort}`
@@ -325,10 +296,7 @@ export default class WebSocketServer implements ProtocolServer {
     }
 
     public destroy(thingId: string): Promise<boolean> {
-        console.debug(
-            "[binding-websockets]",
-            `WebSocketServer on port ${this.getPort()} destroying thingId '${thingId}'`
-        );
+        debug(`WebSocketServer on port ${this.getPort()} destroying thingId '${thingId}'`);
         return new Promise<boolean>((resolve, reject) => {
             let removedThing = false;
             for (const name of Array.from(this.thingPaths.keys())) {
@@ -336,12 +304,9 @@ export default class WebSocketServer implements ProtocolServer {
                 removedThing = this.thingNames.delete(thingPath);
             }
             if (removedThing) {
-                console.info("[binding-websockets]", `WebSocketServer succesfully destroyed '${thingId}'`);
+                info(`WebSocketServer succesfully destroyed '${thingId}'`);
             } else {
-                console.info(
-                    "[binding-websockets]",
-                    `WebSocketServer failed to destroy thing with thingId '${thingId}'`
-                );
+                info(`WebSocketServer failed to destroy thing with thingId '${thingId}'`);
             }
             resolve(removedThing !== undefined);
         });

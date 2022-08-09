@@ -16,6 +16,9 @@
 import { ContentCodec } from "../content-serdes";
 import { DataSchema, DataSchemaValue } from "wot-typescript-definitions";
 import { getFloat16, setFloat16 } from "@petamoriken/float16";
+import { createLoggers } from "../logger";
+
+const { debug, warn } = createLoggers("core", "octetstream-codec");
 
 /**
  * Codec to produce and consume simple data items and deserialize and serialize
@@ -52,7 +55,7 @@ export default class OctetstreamCodec implements ContentCodec {
         schema: DataSchema,
         parameters: { [key: string]: string | undefined } = {}
     ): DataSchemaValue {
-        // console.debug(`OctetstreamCodec parsing '${bytes.toString()}'`);
+        debug(`OctetstreamCodec parsing '${bytes.toString()}'`);
 
         const bigendian = parameters.byteorder !== "littleendian"; // default to big endian
         let signed = parameters.signed !== "false"; // default to signed
@@ -127,7 +130,7 @@ export default class OctetstreamCodec implements ContentCodec {
 
                         // warn about numbers being too big to be represented as safe integers
                         if (!Number.isSafeInteger(result)) {
-                            console.warn("[core/octetstream-codec]", "Result is not a safe integer");
+                            warn("Result is not a safe integer");
                         }
 
                         return result;
@@ -165,10 +168,10 @@ export default class OctetstreamCodec implements ContentCodec {
     }
 
     valueToBytes(value: unknown, schema: DataSchema, parameters: { [key: string]: string | undefined } = {}): Buffer {
-        // console.debug(`OctetstreamCodec serializing '${value}'`);
+        debug(`OctetstreamCodec serializing '${value}'`);
 
         if (!parameters.length) {
-            console.warn("[core/octetstream-codec]", "Missing 'length' parameter necessary for write. I'll do my best");
+            warn("Missing 'length' parameter necessary for write. I'll do my best");
         }
 
         const bigendian = parameters.byteorder !== "littleendian"; // default to bigendian
@@ -208,7 +211,7 @@ export default class OctetstreamCodec implements ContentCodec {
 
                 // warn about numbers being too big to be represented as safe integers
                 if (!Number.isSafeInteger(value)) {
-                    console.warn("[core/octetstream-codec]", "Value is not a safe integer");
+                    warn("Value is not a safe integer");
                 }
                 const limit = Math.pow(2, 8 * length) - 1;
                 // throw error on overflow

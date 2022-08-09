@@ -25,7 +25,7 @@ import { Subscription } from "rxjs/Subscription";
 import * as TD from "@node-wot/td-tools";
 // for Security definition
 
-import { ProtocolClient, Content, ProtocolHelpers } from "@node-wot/core";
+import { ProtocolClient, Content, ProtocolHelpers, createLoggers } from "@node-wot/core";
 import { HttpForm, HttpHeader, HttpConfig, HTTPMethodName, TuyaCustomBearerSecurityScheme } from "./http";
 import fetch, { Request, RequestInit, Response } from "node-fetch";
 import { Buffer } from "buffer";
@@ -44,6 +44,8 @@ import {
 } from "./credential";
 import { LongPollingSubscription, SSESubscription, InternalSubscription } from "./subscription-protocols";
 import { Readable } from "stream";
+
+const { debug, warn, error } = createLoggers("binding-http", "http-client-impl");
 
 export default class HttpClient implements ProtocolClient {
     private readonly agent: http.Agent;
@@ -66,20 +68,14 @@ export default class HttpClient implements ProtocolClient {
                     !Object.prototype.hasOwnProperty.call(config.proxy, "username") ||
                     !Object.prototype.hasOwnProperty.call(config.proxy, "password")
                 )
-                    console.warn(
-                        "[binding-http]",
-                        `HttpClient client configured for basic proxy auth, but no username/password given`
-                    );
+                    warn("HttpClient client configured for basic proxy auth, but no username/password given");
                 this.proxyRequest.headers.set(
                     "proxy-authorization",
                     "Basic " + Buffer.from(config.proxy.username + ":" + config.proxy.password).toString("base64")
                 );
             } else if (config.proxy.scheme === "bearer") {
                 if (!Object.prototype.hasOwnProperty.call(config.proxy, "token"))
-                    console.warn(
-                        "[binding-http]",
-                        `HttpClient client configured for bearer proxy auth, but no token given`
-                    );
+                    warn("HttpClient client configured for bearer proxy auth, but no token given");
                 this.proxyRequest.headers.set("proxy-authorization", "Bearer " + config.proxy.token);
             }
             // security for hop to proxy
@@ -87,8 +83,7 @@ export default class HttpClient implements ProtocolClient {
                 secure = true;
             }
 
-            console.debug(
-                "[binding-http]",
+            debug(
                 `HttpClient using ${secure ? "secure " : ""}proxy ${this.proxyRequest.hostname}:${
                     this.proxyRequest.port
                 }`
@@ -98,10 +93,7 @@ export default class HttpClient implements ProtocolClient {
         // config certificate checks
         if (config !== null && config.allowSelfSigned !== undefined) {
             this.allowSelfSigned = config.allowSelfSigned;
-            console.warn(
-                "[binding-http]",
-                `HttpClient allowing self-signed/untrusted certificates -- USE FOR TESTING ONLY`
-            );
+            warn(`HttpClient allowing self-signed/untrusted certificates -- USE FOR TESTING ONLY`);
         }
 
         // using one client impl for both HTTP and HTTPS
@@ -121,14 +113,14 @@ export default class HttpClient implements ProtocolClient {
 
     public async readResource(form: HttpForm): Promise<Content> {
         const request = await this.generateFetchRequest(form, "GET");
-        console.debug("[binding-http]", `HttpClient (readResource) sending ${request.method} to ${request.url}`);
+        debug(`HttpClient (readResource) sending ${request.method} to ${request.url}`);
 
         const result = await this.fetch(request);
 
         this.checkFetchResponse(result);
 
-        console.debug("[binding-http]", `HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
-        console.debug("[binding-http]", `HttpClient received Content-Type: ${result.headers.get("content-type")}`);
+        debug(`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
+        debug(`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
 
         // in browsers node-fetch uses the native fetch, which returns a ReadableStream
         // not complaint with node. Therefore we have to force the conversion here.
@@ -142,19 +134,18 @@ export default class HttpClient implements ProtocolClient {
             body: content.body,
         });
 
-        console.debug(
-            "[binding-http]",
+        debug(
             `HttpClient (writeResource) sending ${request.method} with '${request.headers.get("Content-Type")}' to ${
                 request.url
             }`
         );
         const result = await this.fetch(request);
 
-        console.debug("[binding-http]", `HttpClient received ${result.status} from ${result.url}`);
+        debug(`HttpClient received ${result.status} from ${result.url}`);
 
         this.checkFetchResponse(result);
 
-        console.debug("[binding-http]", `HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
+        debug(`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
     }
 
     public subscribeResource(
@@ -191,8 +182,7 @@ export default class HttpClient implements ProtocolClient {
             body: content?.body,
         });
 
-        console.debug(
-            "[binding-http]",
+        debug(
             `HttpClient (invokeResource) sending ${request.method} ${
                 content ? "with '" + request.headers.get("Content-Type") + "' " : " "
             }to ${request.url}`
@@ -200,8 +190,8 @@ export default class HttpClient implements ProtocolClient {
 
         const result = await this.fetch(request);
 
-        console.debug("[binding-http]", `HttpClient received ${result.status} from ${request.url}`);
-        console.debug("[binding-http]", `HttpClient received Content-Type: ${result.headers.get("content-type")}`);
+        debug(`HttpClient received ${result.status} from ${request.url}`);
+        debug(`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
 
         this.checkFetchResponse(result);
 
@@ -212,13 +202,13 @@ export default class HttpClient implements ProtocolClient {
     }
 
     public async unlinkResource(form: HttpForm): Promise<void> {
-        console.debug("[binding-http]", `HttpClient (unlinkResource) ${form.href}`);
+        debug(`HttpClient (unlinkResource) ${form.href}`);
         const internalSub = this.activeSubscriptions.get(form.href);
 
         if (internalSub) {
             this.activeSubscriptions.get(form.href).close();
         } else {
-            console.warn("[binding-http]", `HttpClient cannot unlink ${form.href} no subscription found`);
+            warn(`HttpClient cannot unlink ${form.href} no subscription found`);
         }
     }
 
@@ -233,7 +223,7 @@ export default class HttpClient implements ProtocolClient {
 
     public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: unknown): boolean {
         if (metadata === undefined || !Array.isArray(metadata) || metadata.length === 0) {
-            console.warn("[binding-http]", `HttpClient without security`);
+            warn("HttpClient without security");
             return false;
         }
 
@@ -286,17 +276,13 @@ export default class HttpClient implements ProtocolClient {
             case "nosec":
                 break;
             default:
-                console.error("[binding-http]", `HttpClient cannot set security scheme '${security.scheme}'`);
-                console.dir(metadata);
+                error(`HttpClient cannot set security scheme '${security.scheme}'. ${metadata}`);
                 return false;
         }
 
         if (security.proxy) {
             if (this.proxyRequest !== null) {
-                console.debug(
-                    "[binding-http]",
-                    `HttpClient overriding client-side proxy with security proxy '${security.proxy}`
-                );
+                debug(`HttpClient overriding client-side proxy with security proxy '${security.proxy}`);
             }
 
             this.proxyRequest = new Request(HttpClient.fixLocalhostName(security.proxy));
@@ -325,7 +311,7 @@ export default class HttpClient implements ProtocolClient {
             }
         }
 
-        console.debug("[binding-http]", `HttpClient using security scheme '${security.scheme}'`);
+        debug(`HttpClient using security scheme '${security.scheme}'`);
         return true;
     }
 
@@ -344,14 +330,14 @@ export default class HttpClient implements ProtocolClient {
         requestInit.headers = requestInit.headers as string[][];
 
         if (Array.isArray(form["htv:headers"])) {
-            console.debug("[binding-http]", "HttpClient got Form 'headers'", form["htv:headers"]);
+            debug(`HttpClient got Form 'headers' ${form["htv:headers"]}`);
 
             const headers = form["htv:headers"] as Array<HttpHeader>;
             for (const option of headers) {
                 requestInit.headers.push([option["htv:fieldName"], option["htv:fieldValue"]]);
             }
         } else if (typeof form["htv:headers"] === "object") {
-            console.debug("[binding-http]", "HttpClient got Form SINGLE-ENTRY 'headers'", form["htv:headers"]);
+            debug(`HttpClient got Form SINGLE-ENTRY 'headers' ${form["htv:headers"]}`);
 
             const option = form["htv:headers"] as HttpHeader;
             requestInit.headers.push([option["htv:fieldName"], option["htv:fieldValue"]]);
@@ -370,7 +356,7 @@ export default class HttpClient implements ProtocolClient {
             const parsedBaseURL = new URL(url);
             request.url = request.url + parsedBaseURL.pathname;
 
-            console.debug("[binding-http]", "HttpClient proxy request URL:", request.url);
+            debug(`HttpClient proxy request URL: ${request.url}`);
 
             request.headers.set("host", parsedBaseURL.hostname);
         }
@@ -417,7 +403,7 @@ export default class HttpClient implements ProtocolClient {
         const localhostPresent = /^(https?:)?(\/\/)?(?:[^@\n]+@)?(www\.)?(localhost)/gm;
 
         if (localhostPresent.test(url)) {
-            console.warn("[binding-http]", "LOCALHOST FIX");
+            warn("LOCALHOST FIX");
             return url.replace(localhostPresent, "$1$2127.0.0.1");
         }
 
