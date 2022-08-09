@@ -567,7 +567,7 @@ export default class HttpServer implements ProtocolServer {
             const internalUrl = this.urlRewrite[entryUrl];
             if (internalUrl) {
                 pathname = internalUrl;
-                console.debug("[binding-http]", `URL "${entryUrl}" has been rewritten to "${pathname}"`);
+                debug("[binding-http]", `URL "${entryUrl}" has been rewritten to "${pathname}"`);
             }
         }
 
