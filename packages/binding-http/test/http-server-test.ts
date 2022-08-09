@@ -23,10 +23,12 @@ import * as chai from "chai";
 import fetch from "node-fetch";
 
 import HttpServer from "../src/http-server";
-import { Content, ExposedThing, Helpers, ProtocolHelpers } from "@node-wot/core";
+import { Content, createLoggers, ExposedThing, Helpers, ProtocolHelpers } from "@node-wot/core";
 import { DataSchemaValue, InteractionInput, InteractionOptions } from "wot-typescript-definitions";
 import chaiAsPromised from "chai-as-promised";
 import { Readable } from "stream";
+
+const { debug, error } = createLoggers("binding-http", "http-server-test");
 
 chai.use(chaiAsPromised);
 
@@ -140,7 +142,7 @@ class HttpServerTest {
         const uri = `http://localhost:${httpServer.getPort()}/test/`;
         let resp;
 
-        console.log("Testing", uri);
+        debug(`Testing ${uri}`);
 
         resp = await (await fetch(uri + "properties/test")).text();
         expect(resp).to.equal('"off"');
@@ -267,7 +269,7 @@ class HttpServerTest {
         const uri = `http://localhost:${httpServer.getPort()}/test/`;
         let resp;
 
-        console.log("Testing", uri);
+        debug(`Testing ${uri}`);
 
         resp = await (await fetch(uri + "properties/test")).text();
         expect(resp).to.equal("{}");
@@ -307,7 +309,7 @@ class HttpServerTest {
         try {
             await httpServer2.start(null); // should fail
         } catch (err) {
-            console.log("HttpServer failed correctly on EADDRINUSE");
+            error(`HttpServer failed correctly on EADDRINUSE. ${err}`);
             assert(true);
         }
 
@@ -358,7 +360,7 @@ class HttpServerTest {
     }
 
     @test async "should not accept an unsupported scheme"() {
-        console.log("START SHOULD");
+        debug("START SHOULD");
         const httpServer = new HttpServer({
             port: port2,
             serverKey: "./test/server.key",
@@ -455,7 +457,7 @@ class HttpServerTest {
         const expectedUrl = `${theBaseUri}/smart-coffee-machine/actions/makeDrink`;
 
         expect(body).to.include(expectedUrl);
-        console.log(`Found URL ${expectedUrl} in TD`);
+        debug(`Found URL ${expectedUrl} in TD`);
         await httpServer.stop();
     }
 

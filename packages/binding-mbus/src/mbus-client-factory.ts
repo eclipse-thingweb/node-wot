@@ -13,14 +13,16 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { ProtocolClientFactory, ProtocolClient } from "@node-wot/core";
+import { ProtocolClientFactory, ProtocolClient, createInfoLogger } from "@node-wot/core";
 import MBusClient from "./mbus-client";
+
+const info = createInfoLogger("binding-mbus", "mbus-client-factory");
 
 export default class MBusClientFactory implements ProtocolClientFactory {
     public readonly scheme: string = "mbus+tcp";
 
     public getClient(): ProtocolClient {
-        console.info("[binding-mbus]", `MBusClientFactory creating client for '${this.scheme}'`);
+        info(`MBusClientFactory creating client for '${this.scheme}'`);
         return new MBusClient();
     }
 

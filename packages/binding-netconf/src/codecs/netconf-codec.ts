@@ -13,9 +13,12 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
+import { createDebugLogger } from "@node-wot/core";
 import * as TD from "@node-wot/td-tools";
 import Url from "url-parse";
 import { DataSchemaValue } from "wot-typescript-definitions";
+
+const debug = createDebugLogger("binding-netconf", "netconf-codec");
 
 interface PayloadNamespaces {
     payload: unknown;
@@ -29,7 +32,7 @@ export default class NetconfCodec {
     }
 
     bytesToValue(bytes: Buffer, schema: TD.DataSchema, parameters: { [key: string]: string }): DataSchemaValue {
-        // console.debug(`NetconfCodec parsing '${bytes.toString()}'`);
+        debug(`NetconfCodec parsing '${bytes.toString()}'`);
 
         try {
             let parsed = JSON.parse(bytes.toString());
@@ -94,7 +97,7 @@ export default class NetconfCodec {
     }
 
     valueToBytes(value: unknown, schema: TD.DataSchema, parameters?: { [key: string]: string }): Buffer {
-        // console.debug("NetconfCodec serializing", value);
+        debug(`NetconfCodec serializing ${value}`);
         let body = "";
         if (value !== undefined) {
             const NSs = {};

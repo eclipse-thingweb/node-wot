@@ -17,10 +17,12 @@
  * WoT Firestore client Factory
  */
 
-import { ProtocolClientFactory, ProtocolClient, ContentSerdes } from "@node-wot/core";
+import { ProtocolClientFactory, ProtocolClient, ContentSerdes, createLoggers } from "@node-wot/core";
 import { BindingFirestoreConfig } from "./firestore";
 import FirestoreClient from "./firestore-client";
 import FirestoreCodec from "./codecs/firestore-codec";
+
+const { warn } = createLoggers("binding-firestore", "firestore-client-factory");
 
 export default class FirestoreClientFactory implements ProtocolClientFactory {
     public readonly scheme: string = "firestore";
@@ -34,7 +36,7 @@ export default class FirestoreClientFactory implements ProtocolClientFactory {
     }
 
     public getClient(): ProtocolClient {
-        console.warn(`[binding-firestore] firebaseClientFactory creating client`);
+        warn(`Creating client`);
         if (this.firestoreClient === null) {
             this.firestoreClient = new FirestoreClient(this.config);
         }

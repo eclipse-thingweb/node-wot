@@ -16,7 +16,7 @@
 // node-wot implementation of W3C WoT Servient
 
 import { expect } from "chai";
-import { ExposedThing, Servient } from "@node-wot/core";
+import { ExposedThing, Servient, createLoggers } from "@node-wot/core";
 import { InteractionOptions } from "wot-typescript-definitions";
 
 import { OPCUAServer } from "node-opcua";
@@ -24,6 +24,8 @@ import { OPCUAServer } from "node-opcua";
 import { OPCUAClientFactory } from "../src";
 import { startServer } from "./fixture/basic-opcua-server";
 const endpoint = "opc.tcp://localhost:7890";
+
+const { debug } = createLoggers("binding-opcua", "full-opcua-thing-test");
 
 const thingDescription: WoT.ThingDescription = {
     "@context": "https://www.w3.org/2019/wot/td/v1",
@@ -305,7 +307,7 @@ describe("Full OPCUA Thing Test", () => {
     before(async () => {
         opcuaServer = await startServer();
         endpoint = opcuaServer.getEndpointUrl();
-        console.log("endpoint = ", endpoint);
+        debug(`endpoint =  ${endpoint}`);
     });
     after(async () => {
         await opcuaServer.shutdown();
@@ -350,19 +352,19 @@ describe("Full OPCUA Thing Test", () => {
 
         const thing: WoT.ConsumedThing = await wot.consume(thingDescription);
 
-        console.debug(thing.getThingDescription().properties);
+        debug(`${thing.getThingDescription().properties}`);
 
         return { thing, servient };
     }
     async function doTest(thing: WoT.ConsumedThing, propertyName: string, localOptions: InteractionOptions) {
-        console.log("------------------------------------------------------");
+        debug("------------------------------------------------------");
         try {
             const content = await thing.readProperty(propertyName, localOptions);
             const json = await content.value();
-            console.log(json);
+            debug(json?.toString());
             return json;
         } catch (e) {
-            console.log(e);
+            debug(e.toString());
             return { err: e.message };
         }
     }
@@ -398,7 +400,7 @@ describe("Full OPCUA Thing Test", () => {
                 "application/opcua+json;type=DataValue"
             );
             const json3 = await doTest(thing, propertyName, { formIndex: 3 });
-            // console.log(json3);
+            debug(json3?.toString());
             expect((json3 as Record<string, unknown>).Value).to.eql({ Type: 11, Body: 25 });
         } finally {
             await servient.shutdown();
@@ -408,7 +410,7 @@ describe("Full OPCUA Thing Test", () => {
     const readTemperature = async (thing: WoT.ConsumedThing): Promise<number> => {
         const content = await thing.readProperty("temperatureSetPoint");
         const value = await content.value();
-        console.log("TemperatureSetPoint =", value);
+        debug(`TemperatureSetPoint = ${value}`);
         return value as number;
     };
 
@@ -475,11 +477,11 @@ describe("Full OPCUA Thing Test", () => {
             const contentA = await thing.invokeAction("setTemperatureSetPoint", { TargetTemperature: 26 });
             const returnedValue = await contentA.value();
 
-            console.log("temperature setpoint Before", returnedValue);
+            debug(`Temperature setpoint before ${returnedValue}`);
             expect(returnedValue).to.eql({ PreviousSetPoint: 27 });
 
             const contentVerif = await (await thing.readProperty("temperatureSetPoint")).value();
-            console.log("temperature setpoint Before -verified ", contentVerif);
+            debug(`Temperature setpoint before -verified ${contentVerif}`);
             expect(contentVerif).to.eql(26);
         } finally {
             await servient.shutdown();
@@ -498,11 +500,11 @@ describe("Full OPCUA Thing Test", () => {
             });
             const returnedValue = await contentA.value();
 
-            console.log("temperature setpoint Before", returnedValue);
+            debug(`Temperature setpoint before ${returnedValue}`);
             expect(returnedValue).to.eql({ PreviousSetPoint: { Type: 11, Body: 27 } });
 
             const contentVerif = await (await thing.readProperty("temperatureSetPoint")).value();
-            console.log("temperature setpoint Before -verified ", contentVerif);
+            debug(`Temperature setpoint before -verified ${contentVerif}`);
             expect(contentVerif).to.eql(26);
         } finally {
             await servient.shutdown();
@@ -520,7 +522,7 @@ describe("Full OPCUA Thing Test", () => {
                 })
             ).value();
             const returnedValue = content;
-            // console.log("return value", JSON.stringify(returnedValue, null, " "));
+            debug(`Return value ${JSON.stringify(returnedValue, null, " ")}`);
             expect(returnedValue).to.eql({
                 SoundAndLyrics: [
                     {
@@ -553,7 +555,7 @@ describe("Full OPCUA Thing Test", () => {
                 })
             ).value();
             const returnedValue = content;
-            // console.log("return value", JSON.stringify(returnedValue, null, " "));
+            debug(`Return value ${JSON.stringify(returnedValue, null, " ")}`);
             expect(returnedValue).to.eql({
                 SoundAndLyrics: [
                     {

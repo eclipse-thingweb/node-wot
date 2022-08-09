@@ -13,7 +13,10 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
+import { createLoggers } from "@node-wot/core";
 import { ServerTCP } from "modbus-serial";
+
+const { error, debug } = createLoggers("binding-modbus", "test-modbus-server");
 
 export default class ModbusServer {
     serverTCP: ServerTCP;
@@ -77,10 +80,10 @@ export default class ModbusServer {
         return new Promise((resolve) => {
             this.serverTCP.on("SocketError", (err: Error) => {
                 // Handle socket error if needed, can be ignored
-                console.error(err);
+                error(err.toString());
             });
-            this.serverTCP.on("error", (e) => {
-                console.log(e);
+            this.serverTCP.on("error", (err) => {
+                debug(err.toString());
             });
 
             this.serverTCP.on("initialized", resolve);

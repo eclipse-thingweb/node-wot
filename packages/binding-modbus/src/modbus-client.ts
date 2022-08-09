@@ -17,12 +17,14 @@
  */
 import { ModbusForm, ModbusFunction, ModbusEndianness } from "./modbus";
 
-import { ProtocolClient, Content, ContentSerdes, ProtocolHelpers } from "@node-wot/core";
+import { ProtocolClient, Content, ContentSerdes, ProtocolHelpers, createDebugLogger } from "@node-wot/core";
 import { SecurityScheme } from "@node-wot/td-tools";
 import { modbusFunctionToEntity } from "./utils";
 import { ModbusConnection, PropertyOperation } from "./modbus-connection";
 import { Readable } from "stream";
 import { Subscription } from "rxjs/Subscription";
+
+const debug = createDebugLogger("binding-modbus", "modbus-client");
 
 const DEFAULT_PORT = 805;
 const DEFAULT_TIMEOUT = 1000;
@@ -163,14 +165,14 @@ export default class ModbusClient implements ProtocolClient {
         let connection = this._connections.get(hostAndPort);
 
         if (!connection) {
-            console.debug("[binding-modbus]", "Creating new ModbusConnection for ", hostAndPort);
+            debug(`Creating new ModbusConnection for ${hostAndPort}`);
             this._connections.set(
                 hostAndPort,
                 new ModbusConnection(host, port, { connectionTimeout: form["modbus:timeout"] || DEFAULT_TIMEOUT })
             );
             connection = this._connections.get(hostAndPort);
         } else {
-            console.debug("[binding-modbus]", "Reusing ModbusConnection for ", hostAndPort);
+            debug(`Reusing ModbusConnection for ${hostAndPort}`);
         }
         // create operation
         const operation = new PropertyOperation(form, endianness, body);

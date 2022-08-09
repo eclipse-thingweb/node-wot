@@ -15,7 +15,7 @@
 import { suite, test } from "@testdeck/mocha";
 import * as chai from "chai";
 import chaiAsPromised from "chai-as-promised";
-import Servient, { Helpers } from "@node-wot/core";
+import Servient, { Helpers, createLoggers } from "@node-wot/core";
 import FirestoreClientFactory from "../src/firestore-client-factory";
 import FirestoreCodec from "../src/codecs/firestore-codec";
 import firebase from "firebase/compat/app";
@@ -27,6 +27,7 @@ import { ThingDescription } from "wot-typescript-definitions";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const firestoreConfig = require("./firestore-config.json");
+const { error } = createLoggers("binding-firestore", "firestore-client-basic-test");
 
 // chai.should()
 chai.use(chaiAsPromised);
@@ -73,10 +74,10 @@ class FirestoreClientBasicTest {
                 const WoT = await servient.start();
                 thing = await WoT.consume(td as ThingDescription);
             } catch (err) {
-                console.error("Script error:", err);
+                error(`Script error: ${err}`);
             }
         } catch (err) {
-            console.error("Fetch error:", err);
+            error(`Fetch error: ${err}`);
         }
     }
 

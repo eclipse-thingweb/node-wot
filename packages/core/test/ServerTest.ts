@@ -30,6 +30,9 @@ import { Readable } from "stream";
 import { InteractionInput, InteractionOptions, InteractionOutput } from "wot-typescript-definitions";
 import chaiAsPromised from "chai-as-promised";
 import ProtocolHelpers from "../src/protocol-helpers";
+import { createLoggers } from "../src/core";
+
+const { debug } = createLoggers("core", "ServerTest");
 
 chaiUse(chaiAsPromised);
 // should must be called to augment all variables
@@ -82,12 +85,12 @@ class WoTServerTest {
         this.servient.start().then((WoTruntime) => {
             this.WoT = WoTruntime;
         });
-        console.log("started test suite");
+        debug("started test suite");
     }
 
     static async after(): Promise<void> {
         await this.servient.shutdown();
-        console.log("finished test suite");
+        debug("finished test suite");
     }
 
     @test async "should be able to add a Thing based on WoT.ThingFragment"() {
@@ -527,7 +530,7 @@ class WoTServerTest {
                     if (!this.counter) {
                         // init counter the first time
                         this.counter = 0;
-                        console.log("local counter state initialized with 0");
+                        debug("local counter state initialized with 0");
                     } else {
                         expect(typeof this.counter).equals("number");
                         expect(this.counter).greaterThan(0);

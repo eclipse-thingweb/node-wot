@@ -13,14 +13,17 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { Content, ProtocolHelpers } from "@node-wot/core";
+import { Content, ProtocolHelpers, createLoggers } from "@node-wot/core";
 import Firebase from "firebase/compat/app";
 import "firebase/compat/auth";
 import "firebase/compat/firestore";
 import { Readable } from "stream";
 import { BindingFirestoreConfig } from "./firestore";
 
+const { debug, error } = createLoggers("binding-firestore", "firestore-handler");
+
 let firebase: typeof Firebase;
+
 if (Firebase.apps) {
     // for NodeJS
     firebase = Firebase;
@@ -76,7 +79,7 @@ export const writeDataToFirestore = async (
     content: Content,
     reqId: string = null
 ): Promise<void> => {
-    console.debug("[binding-firestore] writeDataToFirestore topic:", topic, reqId);
+    debug(`writeDataToFirestore topic: ${topic}, value: ${content}, reqId: ${reqId}`);
     const ref = firestore.collection("things").doc(encodeURIComponent(topic));
     const data = { updatedTime: Date.now(), reqId, content: "" };
     if (content && content.body) {
@@ -95,31 +98,24 @@ export const writeDataToFirestore = async (
             };
         data.content = JSON.stringify(contentForWrite);
     }
-    console.debug("[binding-firestore] writeDataToFirestore topic:", topic, " data:", data, reqId);
+    debug(`writeDataToFirestore topic: ${topic}, data: ${data} ${reqId}`);
     try {
         return await ref.set(data);
     } catch (err) {
-        console.error(
-            "[binding-firestore] failed to write data to firestore: ",
-            err,
-            " topic: ",
-            topic,
-            " data: ",
-            data
-        );
+        debug(`failed to write data to firestore: ${err}, topic: ${topic}, data: ${data}`);
         throw err;
     }
 };
 
 export const readDataFromFirestore = async (firestore: Firestore, topic: string): Promise<Content> => {
-    console.debug("[binding-firestore] readDataFromFirestore topic:", topic);
+    debug(`readDataFromFirestore topic: ${topic}`);
     const ref = firestore.collection("things").doc(encodeURIComponent(topic));
     try {
         const doc = await ref.get();
         if (doc.exists) {
             const data = doc.data();
             let content: Content = null;
-            console.debug("[binding-firestore] readDataToFirestore gotten data:", data);
+            debug(`readDataToFirestore got data: ${data}`);
             if (data && data.content) {
                 // XXX TODO change the way content is reported
                 const obj = JSON.parse(data.content);
@@ -136,11 +132,11 @@ export const readDataFromFirestore = async (firestore: Firestore, topic: string)
             }
             return content;
         } else {
-            console.debug("[binding-firestore] read data from firestore but no contents topic:", topic);
+            debug(`read data from firestore but no contents topic: ${topic}`);
             throw new Error("no contents");
         }
     } catch (err) {
-        console.error("[binding-firestore] failed read data from firestore: ", err, " topic: ", topic);
+        error(`failed to read data from firestore: ${err}, topic: ${topic}`);
         throw err;
     }
 };
@@ -151,7 +147,7 @@ export const subscribeToFirestore = async (
     topic: string,
     callback: (err: Error | string | null, content?: Content, reqId?: string) => void
 ): Promise<void> => {
-    console.debug("[binding-firestore] subscribeToFirestore topic:", topic);
+    debug(`subscribeToFirestore topic: ${topic}`);
     let firstFlg = true;
     const ref = firestore.collection("things").doc(encodeURIComponent(topic));
     let reqId: string;
@@ -173,7 +169,7 @@ export const subscribeToFirestore = async (
             }
             if (firstFlg) {
                 firstFlg = false;
-                console.debug("[binding-firestore] ignore because first calling: " + topic);
+                debug(`ignore because first calling: ${topic}`);
                 return;
             }
 
@@ -193,7 +189,7 @@ export const subscribeToFirestore = async (
             callback(null, content, reqId);
         },
         (err: Error) => {
-            console.error("[binding-firestore] failed to subscribe data from firestore: ", err, " topic: ", topic);
+            error(`failed to subscribe data from firestore: ${err}. topic: ${topic}`);
             callback(err, null, reqId);
         }
     );
@@ -201,7 +197,7 @@ export const subscribeToFirestore = async (
 };
 
 export const unsubscribeToFirestore = (firestoreObservers: { [key: string]: () => void }, topic: string): void => {
-    console.debug("[binding-firestore] unsubscribeToFirestore topic:", topic);
+    debug(`unsubscribeToFirestore topic: ${topic}`);
     const observer = firestoreObservers[topic];
     if (observer) {
         observer();
@@ -209,12 +205,12 @@ export const unsubscribeToFirestore = (firestoreObservers: { [key: string]: () =
 };
 
 export const removeDataFromFirestore = async (firestore: Firestore, topic: string): Promise<void> => {
-    console.debug("[binding-firestore] removeDataFromFirestore topic: ", topic);
+    debug(`removeDataFromFirestore topic: ${topic}`);
     const ref = firestore.collection("things").doc(encodeURIComponent(topic));
     try {
         await ref.delete();
     } catch (err) {
-        console.error("[binding-firestore] error removing topic: ", topic, "error: ", err);
+        error(`error removing topic: ${topic}, error: ${err}`);
         throw err;
     }
 };
@@ -224,7 +220,7 @@ export const writeMetaDataToFirestore = async (
     hostName: string,
     content: unknown
 ): Promise<void> => {
-    console.debug("[binding-firestore] writeMetaDataToFirestore hostName: ", hostName, " value: ", content);
+    debug(`writeMetaDataToFirestore hostName: ${hostName}, value: ${content}`);
     const data = { updatedTime: Date.now(), content: "" };
     try {
         const ref = firestore.collection("hostsMetaData").doc(hostName);
@@ -234,7 +230,7 @@ export const writeMetaDataToFirestore = async (
         const value = await ref.set(data);
         return value;
     } catch (err) {
-        console.error("[binding-firestore] failed to write meta data: ", err, " data: ", data, " hostName: ", hostName);
+        error(`failed to write meta data: ${err}, hostName: ${hostName}`);
         throw err;
     }
 };
@@ -243,7 +239,8 @@ export const readMetaDataFromFirestore = async (
     firestore: Firestore,
     hostName: string
 ): Promise<{ hostName: string; things: string[] } | undefined> => {
-    console.debug("[binding-firestore] readMetaDataFromFirestore hostName:", hostName);
+    debug(`readMetaDataFromFirestore, hostName: ${hostName}`);
+
     try {
         const ref = firestore.collection("hostsMetaData").doc(hostName);
         const doc = await ref.get();
@@ -256,25 +253,25 @@ export const readMetaDataFromFirestore = async (
                 return null;
             }
         } else {
-            console.debug("[binding-firestore] read meta data from firestore but no contents");
+            debug("read meta data from firestore but no contents");
             throw new Error("no contents");
         }
     } catch (err) {
-        console.error("[binding-firestore] failed to read meta data: ", err, " hostName: ", hostName);
+        error(`failed to read meta data: ${hostName}, error: ${err}`);
         throw err;
     }
 };
 
 // Remove the MetaData corresponding to the hostname from Firestore.
 export const removeMetaDataFromFirestore = async (firestore: Firestore, hostName: string): Promise<void> => {
-    console.debug("[binding-firestore] removeMetaDataFromFirestore hostName: ", hostName);
+    debug(`removeMetaDataFromFirestore hostName: ${hostName}`);
     try {
         const ref = firestore.collection("hostsMetaData").doc(hostName);
         await ref.delete();
-        console.debug("[binding-firestore] removed hostName: ", hostName);
+        debug(`removed hostName: ${hostName}`);
         return;
     } catch (err) {
-        console.error("[binding-firestore] error removing hostName: ", hostName, "error: ", err);
+        error(`error removing hostName: ${hostName}, error: ${err}`);
         throw err;
     }
 };

@@ -18,11 +18,13 @@
  */
 import { MBusForm } from "./mbus";
 
-import { ProtocolClient, Content } from "@node-wot/core";
+import { ProtocolClient, Content, createDebugLogger } from "@node-wot/core";
 import { SecurityScheme } from "@node-wot/td-tools";
 import { MBusConnection, PropertyOperation } from "./mbus-connection";
 
 import { Subscription } from "rxjs/Subscription";
+
+const debug = createDebugLogger("binding-mbus", "mbus-client");
 
 const DEFAULT_PORT = 805;
 const DEFAULT_TIMEOUT = 1000;
@@ -97,14 +99,14 @@ export default class MBusClient implements ProtocolClient {
         let connection = this._connections.get(hostAndPort);
 
         if (!connection) {
-            console.debug("[binding-mbus]", "Creating new MbusConnection for ", hostAndPort);
+            debug(`Creating new MbusConnection for ${hostAndPort}`);
             this._connections.set(
                 hostAndPort,
                 new MBusConnection(host, port, { connectionTimeout: form["mbus:timeout"] || DEFAULT_TIMEOUT })
             );
             connection = this._connections.get(hostAndPort);
         } else {
-            console.debug("[binding-mbus]", "Reusing MbusConnection for ", hostAndPort);
+            debug(`Reusing MbusConnection for ${hostAndPort}`);
         }
         // create operation
         const operation = new PropertyOperation(form);

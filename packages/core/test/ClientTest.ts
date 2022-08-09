@@ -32,9 +32,11 @@ import { ProtocolClient, ProtocolClientFactory, Content } from "../src/protocol-
 import { ContentSerdes } from "../src/content-serdes";
 import Helpers from "../src/helpers";
 import { Readable } from "stream";
-import { ProtocolHelpers } from "../src/core";
+import { createLoggers, ProtocolHelpers } from "../src/core";
 import { ThingDescription } from "wot-typescript-definitions";
 import chaiAsPromised from "chai-as-promised";
+
+const { debug } = createLoggers("core", "ClientTest");
 
 chaiUse(chaiAsPromised);
 
@@ -323,12 +325,12 @@ class WoTClientTest {
         this.servient.start().then((myWoT) => {
             this.WoT = myWoT;
         });
-        console.log("started test suite");
+        debug("started test suite");
     }
 
     static async after(): Promise<void> {
         await this.servient.shutdown();
-        console.log("finished test suite");
+        debug("finished test suite");
     }
 
     @test async "read a Property"() {

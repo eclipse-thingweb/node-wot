@@ -25,11 +25,14 @@ import Servient, {
     Helpers,
     ProtocolHelpers,
     Content,
+    createLoggers,
 } from "@node-wot/core";
 import { Socket } from "dgram";
 import { Server, createServer, registerFormat, IncomingMessage, OutgoingMessage } from "coap";
 import slugify from "slugify";
 import { Readable } from "stream";
+
+const { debug, warn, info, error } = createLoggers("binding-coap", "coap-server");
 
 export default class CoapServer implements ProtocolServer {
     public readonly scheme: string = "coap";
@@ -62,10 +65,7 @@ export default class CoapServer implements ProtocolServer {
     }
 
     public start(servient: Servient): Promise<void> {
-        console.info(
-            "[binding-coap]",
-            `CoapServer starting on ${this.address !== undefined ? this.address + " " : ""}port ${this.port}`
-        );
+        info(`CoapServer starting on ${this.address !== undefined ? this.address + " " : ""}port ${this.port}`);
         return new Promise<void>((resolve, reject) => {
             // start promise handles all errors until successful start
             this.server.once("error", (err: Error) => {
@@ -74,7 +74,7 @@ export default class CoapServer implements ProtocolServer {
             this.server.listen(this.port, this.address, () => {
                 // once started, console "handles" errors
                 this.server.on("error", (err: Error) => {
-                    console.error("[binding-coap]", `CoapServer for port ${this.port} failed: ${err.message}`);
+                    error(`CoapServer for port ${this.port} failed: ${err.message}`);
                 });
                 resolve();
             });
@@ -82,7 +82,7 @@ export default class CoapServer implements ProtocolServer {
     }
 
     public stop(): Promise<void> {
-        console.info("[binding-coap]", `CoapServer stopping on port ${this.getPort()}`);
+        info(`CoapServer stopping on port ${this.getPort()}`);
         return new Promise<void>((resolve, reject) => {
             // stop promise handles all errors from now on
             this.server.once("error", (err: Error) => {
@@ -117,10 +117,7 @@ export default class CoapServer implements ProtocolServer {
             urlPath = Helpers.generateUniqueName(urlPath);
         }
 
-        console.debug(
-            "[binding-coap]",
-            `CoapServer on port ${this.getPort()} exposes '${thing.title}' as unique '/${urlPath}'`
-        );
+        debug(`CoapServer on port ${this.getPort()} exposes '${thing.title}' as unique '/${urlPath}'`);
 
         if (this.getPort() !== -1) {
             this.things.set(urlPath, thing);
@@ -151,10 +148,7 @@ export default class CoapServer implements ProtocolServer {
                         }
 
                         thing.properties[propertyName].forms.push(form);
-                        console.debug(
-                            "[binding-coap]",
-                            `CoapServer on port ${this.getPort()} assigns '${href}' to Property '${propertyName}'`
-                        );
+                        debug(`CoapServer on port ${this.getPort()} assigns '${href}' to Property '${propertyName}'`);
                     }
 
                     for (const actionName in thing.actions) {
@@ -163,10 +157,7 @@ export default class CoapServer implements ProtocolServer {
                         ProtocolHelpers.updateActionFormWithTemplate(form, thing.actions[actionName]);
                         form.op = "invokeaction";
                         thing.actions[actionName].forms.push(form);
-                        console.debug(
-                            "[binding-coap]",
-                            `CoapServer on port ${this.getPort()} assigns '${href}' to Action '${actionName}'`
-                        );
+                        debug(`CoapServer on port ${this.getPort()} assigns '${href}' to Action '${actionName}'`);
                     }
 
                     for (const eventName in thing.events) {
@@ -175,10 +166,7 @@ export default class CoapServer implements ProtocolServer {
                         ProtocolHelpers.updateEventFormWithTemplate(form, thing.events[eventName]);
                         form.op = ["subscribeevent", "unsubscribeevent"];
                         thing.events[eventName].forms.push(form);
-                        console.debug(
-                            "[binding-coap]",
-                            `CoapServer on port ${this.getPort()} assigns '${href}' to Event '${eventName}'`
-                        );
+                        debug(`CoapServer on port ${this.getPort()} assigns '${href}' to Event '${eventName}'`);
                     }
                 } // media types
             } // addresses
@@ -190,7 +178,7 @@ export default class CoapServer implements ProtocolServer {
     }
 
     public destroy(thingId: string): Promise<boolean> {
-        console.debug("[binding-coap]", `CoapServer on port ${this.getPort()} destroying thingId '${thingId}'`);
+        debug(`CoapServer on port ${this.getPort()} destroying thingId '${thingId}'`);
         return new Promise<boolean>((resolve, reject) => {
             let removedThing: ExposedThing;
             for (const name of Array.from(this.things.keys())) {
@@ -201,24 +189,22 @@ export default class CoapServer implements ProtocolServer {
                 }
             }
             if (removedThing) {
-                console.info("[binding-coap]", `CoapServer succesfully destroyed '${removedThing.title}'`);
+                info(`CoapServer succesfully destroyed '${removedThing.title}'`);
             } else {
-                console.info("[binding-coap]", `CoapServer failed to destroy thing with thingId '${thingId}'`);
+                info(`CoapServer failed to destroy thing with thingId '${thingId}'`);
             }
             resolve(removedThing !== undefined);
         });
     }
 
     private async handleRequest(req: IncomingMessage, res: OutgoingMessage) {
-        console.debug(
-            "[binding-coap]",
+        debug(
             `CoapServer on port ${this.getPort()} received '${req.method}(${req._packet.messageId}) ${
                 req.url
             }' from ${Helpers.toUriLiteral(req.rsinfo.address)}:${req.rsinfo.port}`
         );
         res.on("finish", () => {
-            console.debug(
-                "[binding-coap]",
+            debug(
                 `CoapServer replied with '${res.code}' to ${Helpers.toUriLiteral(req.rsinfo.address)}:${
                     req.rsinfo.port
                 }`
@@ -230,8 +216,7 @@ export default class CoapServer implements ProtocolServer {
 
         if (req.method === "PUT" || req.method === "POST") {
             if (!contentType && req.payload) {
-                console.warn(
-                    "[binding-coap]",
+                warn(
                     `CoapServer on port ${this.getPort()} received no Content-Format from ${Helpers.toUriLiteral(
                         req.rsinfo.address
                     )}:${req.rsinfo.port}`
@@ -325,8 +310,7 @@ export default class CoapServer implements ProtocolServer {
                                     res.code = "2.05";
                                     content.body.pipe(res);
                                 } catch (err) {
-                                    console.error(
-                                        "[binding-coap]",
+                                    error(
                                         `CoapServer on port ${this.getPort()} got internal error on read '${requestUri}': ${
                                             err.message
                                         }`
@@ -343,8 +327,7 @@ export default class CoapServer implements ProtocolServer {
                                         // send event data
                                         content.body.pipe(res, { end: true });
                                     } catch (err) {
-                                        console.error(
-                                            "[binding-coap]",
+                                        error(
                                             `CoapServer on port ${this.getPort()} got internal error on read '${requestUri}': ${
                                                 err.message
                                             }`
@@ -361,10 +344,7 @@ export default class CoapServer implements ProtocolServer {
 
                                 res.on("finish", (err: Error) => {
                                     if (err) {
-                                        console.error(
-                                            "[binding-coap]",
-                                            `CoapServer on port ${this.port} failed on observe with: ${err.message}`
-                                        );
+                                        error(`CoapServer on port ${this.port} failed on observe with: ${err.message}`);
                                     }
                                     thing.handleUnobserveProperty(segments[3], listener, null);
                                 });
@@ -394,8 +374,7 @@ export default class CoapServer implements ProtocolServer {
                                     res.code = "2.04";
                                     res.end("Changed");
                                 } catch (err) {
-                                    console.error(
-                                        "[binding-coap]",
+                                    error(
                                         `CoapServer on port ${this.getPort()} got internal error on write '${requestUri}': ${
                                             err.message
                                         }`
@@ -451,8 +430,7 @@ export default class CoapServer implements ProtocolServer {
                                     res.end();
                                 }
                             } catch (err) {
-                                console.error(
-                                    "[binding-coap]",
+                                error(
                                     `CoapServer on port ${this.getPort()} got internal error on invoke '${requestUri}': ${
                                         err.message
                                     }`
@@ -508,8 +486,7 @@ export default class CoapServer implements ProtocolServer {
                                 const listener = async (value: Content) => {
                                     try {
                                         // send event data
-                                        console.debug(
-                                            "[binding-coap]",
+                                        debug(
                                             `CoapServer on port ${this.getPort()} sends '${
                                                 segments[3]
                                             }' notification to ${Helpers.toUriLiteral(req.rsinfo.address)}:${
@@ -520,8 +497,7 @@ export default class CoapServer implements ProtocolServer {
                                         res.code = "2.05";
                                         value.body.pipe(res);
                                     } catch (err) {
-                                        console.debug(
-                                            "[binding-coap]",
+                                        debug(
                                             `CoapServer on port ${this.getPort()} failed '${segments[3]}' subscription`
                                         );
                                         res.code = "5.00";
@@ -534,8 +510,7 @@ export default class CoapServer implements ProtocolServer {
                                     .then(() => res.end())
                                     .catch(() => res.end());
                                 res.on("finish", () => {
-                                    console.debug(
-                                        "[binding-coap]",
+                                    debug(
                                         `CoapServer on port ${this.getPort()} ends '${
                                             segments[3]
                                         }' observation from ${Helpers.toUriLiteral(req.rsinfo.address)}:${
@@ -545,8 +520,7 @@ export default class CoapServer implements ProtocolServer {
                                     thing.handleUnsubscribeEvent(segments[3], listener, options);
                                 });
                             } else if (req.headers.Observe > 0) {
-                                console.debug(
-                                    "[binding-coap]",
+                                debug(
                                     `CoapServer on port ${this.getPort()} sends '${
                                         segments[3]
                                     }' response to ${Helpers.toUriLiteral(req.rsinfo.address)}:${req.rsinfo.port}`
@@ -555,8 +529,7 @@ export default class CoapServer implements ProtocolServer {
                                 res.code = "5.01";
                                 res.end("node-coap issue: no GET cancellation, send RST");
                             } else {
-                                console.debug(
-                                    "[binding-coap]",
+                                debug(
                                     `CoapServer on port ${this.getPort()} rejects '${
                                         segments[3]
                                     }' read from ${Helpers.toUriLiteral(req.rsinfo.address)}:${req.rsinfo.port}`

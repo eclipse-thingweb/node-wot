@@ -35,6 +35,9 @@ import {
     CallMethodResultOptions,
 } from "node-opcua";
 import { KeyValuePair } from "node-opcua-types";
+import { createLoggers } from "@node-wot/core";
+
+const { info } = createLoggers("binding-opcua", "basic-opcua-server");
 
 interface UAVariable2 extends UAVariable {
     setValueFromSource(value: VariantLike, statusCode?: StatusCode, sourceTimestamp?: Date): void;
@@ -193,7 +196,7 @@ export async function startServer(): Promise<OPCUAServer> {
     );
 
     await server.start();
-    console.log("Server started", server.getEndpointUrl());
+    info(`Server started: ${server.getEndpointUrl()}`);
     return server;
 }
 

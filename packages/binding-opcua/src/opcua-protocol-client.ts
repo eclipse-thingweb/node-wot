@@ -17,7 +17,7 @@ import { Subscription } from "rxjs/Subscription";
 import { promisify } from "util";
 import { Readable } from "stream";
 
-import { ProtocolClient, Content, ContentSerdes, ProtocolHelpers } from "@node-wot/core";
+import { ProtocolClient, Content, ContentSerdes, ProtocolHelpers, createLoggers } from "@node-wot/core";
 import { Form, SecurityScheme } from "@node-wot/td-tools";
 
 import {
@@ -49,6 +49,8 @@ import { FormElementProperty } from "wot-thing-description-types";
 import { opcuaJsonEncodeVariant } from "node-opcua-json";
 import { Argument, BrowseDescription, BrowseResult } from "node-opcua-types";
 import { isGoodish, ReferenceTypeIds } from "node-opcua";
+
+const { debug } = createLoggers("binding-opcua", "opcua-protocol-client");
 
 export type Command = "Read" | "Write" | "Subscribe";
 
@@ -150,7 +152,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
     private async _withConnection<T>(form: OPCUAForm, next: (connection: OPCUAConnection) => Promise<T>): Promise<T> {
         const endpoint = form.href;
         if (!endpoint || !endpoint.match(/^opc.tcp:\/\//)) {
-            console.debug("OPCUAProtocolClient", "invalid opcua:endpoint specified", endpoint);
+            debug(`invalid opcua:endpoint ${endpoint} specified`);
             throw new Error("Invalid OPCUA endpoint " + endpoint);
         }
         let c: OPCUAConnectionEx | undefined = this._connections.get(endpoint);
@@ -162,7 +164,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
                 },
             });
             client.on("backoff", () => {
-                console.debug("[OPCUAProtocolClient:connection:backoff", "cannot connection to ", endpoint);
+                debug(`connection:backoff: cannot connection to  ${endpoint}`);
             });
 
             c = {
@@ -229,7 +231,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
                 const path = makeBrowsePath(rootNodeId, f.path);
                 const result = await session.translateBrowsePath(path);
                 if (result.statusCode !== StatusCodes.Good || !result.targets) {
-                    console.debug("[OPCUAProtocolClient|_resolveNodeId", "failed to extract " + f.path);
+                    debug(`resolveNodeId: failed to extract  ${f.path}`);
                     throw new Error(`cannot resolve nodeId from path
                     root       =${f.root}
                     path       =${f.path}
@@ -246,7 +248,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
     private async _resolveNodeId(form: OPCUAForm): Promise<NodeId> {
         const fNodeId = form["opcua:nodeId"];
         if (!fNodeId) {
-            console.debug("[OPCUAProtocolClient|resolveNodeId]", " form =", form);
+            debug(`resolveNodeId: form = ${form}`);
             throw new Error("form must expose a 'opcua:nodeId'");
         }
         return this._resolveNodeId2(form, fNodeId);
@@ -256,7 +258,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
     private async _predictDataType(form: OPCUAForm): Promise<DataType> {
         const fNodeId = form["opcua:nodeId"];
         if (!fNodeId) {
-            console.debug("[OPCUAProtocolClient|resolveNodeId]", " form =", form);
+            debug(`resolveNodeId: form = ${form}`);
             throw new Error("form must expose a 'opcua:nodeId'");
         }
         const nodeId = await this._resolveNodeId2(form, fNodeId);
@@ -273,14 +275,14 @@ export class OPCUAProtocolClient implements ProtocolClient {
         //  const objectNode = this._resolveNodeId(form);
         const fNodeId = form["opcua:method"];
         if (!fNodeId) {
-            console.debug("[OPCUAProtocolClient|resolveNodeId]", " form =", form);
+            debug(`resolveNodeId: form = ${form}`);
             throw new Error("form must expose a 'opcua:nodeId'");
         }
         return this._resolveNodeId2(form, fNodeId);
     }
 
     public async readResource(form: OPCUAForm): Promise<Content> {
-        console.debug("[opcua-client|readResource]", "reading", form);
+        debug(`readResource: reading ${form}`);
 
         const content = await this._withSession(form, async (session) => {
             const nodeId = await this._resolveNodeId(form);
@@ -290,7 +292,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
             });
             return this._dataValueToContent(form, dataValue);
         });
-        console.debug("[opcua-client|readResource]", "contentType", content.type);
+        debug(`readResource: contentType ${content.type}`);
         return content;
     }
 
@@ -305,7 +307,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
             });
             return statusCode;
         });
-        console.debug("[opcua-client|writeResource]", "statusCode", statusCode.toString());
+        debug(`writeResource: statusCode ${statusCode}`);
         if (statusCode !== StatusCodes.Good && !isGoodish(statusCode)) {
             throw new Error("Error in OPCUA Write : " + statusCode.toString());
         }
@@ -345,7 +347,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
         error?: (error: Error) => void,
         complete?: () => void
     ): Promise<Subscription> {
-        console.debug("[opcua-client|subscribeResource] : form", form["opcua:nodeId"]);
+        debug(`subscribeResource: form ${form["opcua:nodeId"]}`);
 
         return this._withSubscription<Subscription>(form, async (session, subscription) => {
             const nodeId = await this._resolveNodeId(form);
@@ -391,8 +393,8 @@ export class OPCUAProtocolClient implements ProtocolClient {
                     const content = await this._dataValueToContent(form, dataValue);
                     m.handlers.forEach((n) => n(content));
                 } catch (err) {
-                    console.debug(nodeId.toString(), dataValue.toString());
-                    console.log((err as Error).message);
+                    debug(`${nodeId}: ${dataValue}`);
+                    error(err.toString());
                 }
                 if (complete) {
                     complete();
@@ -418,7 +420,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
     }
 
     async unlinkResource(form: OPCUAForm): Promise<void> {
-        console.debug("[opcua-client|unlinkResource] : form", form["opcua:nodeId"]);
+        debug(`unlinkResource: form ${form["opcua:nodeId"]}`);
         this._withSubscription<void>(form, async (session, subscription) => {
             const nodeId = await this._resolveNodeId(form);
             await this._unmonitor(nodeId);
@@ -426,12 +428,12 @@ export class OPCUAProtocolClient implements ProtocolClient {
     }
 
     start(): Promise<void> {
-        console.debug("[opcua-client|start] : Sorry not implemented");
+        debug("start: Sorry not implemented");
         throw new Error("Method not implemented.");
     }
 
     async stop(): Promise<void> {
-        console.debug("[opcua-client|stop]");
+        debug("stop");
         for (const c of this._connections.values()) {
             await c.subscription.terminate();
             await c.session.close();
@@ -494,11 +496,13 @@ export class OPCUAProtocolClient implements ProtocolClient {
                     contentSerDes.contentToValue(content2, schemaDataValue) as DataValue;
                     throw new Error("Internal Error, expecting a DataValue here ");
                 }
-                console.debug("[opcua-client|_contentToDataValue]", "write", form);
-                console.debug("[opcua-client|_contentToDataValue]", "content", {
-                    ...content2,
-                    body: content2.body.toString("ascii"),
-                });
+                debug(`_contentToDataValue: write ${form}`);
+                debug(
+                    `_contentToDataValue: content ${{
+                        ...content2,
+                        body: content2.body.toString("ascii"),
+                    }}`
+                );
 
                 return dataValue;
             }
@@ -531,7 +535,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
                 }
                 const variant = dataValue.value;
                 if (variant.dataType !== dataType) {
-                    console.debug("[binding-opcua]", " unexpected dataType");
+                    debug(`Unexpected dataType ${variant.dataType}`);
                 }
                 return variant;
             }

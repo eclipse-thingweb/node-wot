@@ -17,9 +17,12 @@
  * Protocol test suite to test protocol implementations
  */
 
+import { createLoggers } from "@node-wot/core";
 import { suite, test } from "@testdeck/mocha";
 import { expect, should } from "chai";
 import WebSocketServer from "../src/ws-server";
+
+const { info } = createLoggers("binding-websockets", "ws-tests");
 
 // should must be called to augment all variables
 should();
@@ -33,7 +36,7 @@ class WebSocketsTest {
         await wsServer.start(null);
         expect(wsServer.getPort()).to.eq(port); // from test
 
-        console.log("Test stopping WebSocket server");
+        info("Test stopping WebSocket server");
 
         await wsServer.stop();
         expect(wsServer.getPort()).to.eq(-1); // from getPort() when not listening
