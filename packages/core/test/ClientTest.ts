@@ -171,7 +171,7 @@ class TDClient implements ProtocolClient {
         return "TDClient";
     }
 
-    discoverDirectly(uri: string): Promise<ThingDescription> {
+    discoverDirectly(uri: string): Promise<Content> {
         return Promise.reject(new Error("discoverDirectly not implemented"));
     }
 }
@@ -249,7 +249,7 @@ class TrapClient implements ProtocolClient {
 
     public setSecurity = (metadata: SecurityScheme[]) => false;
 
-    discoverDirectly(uri: string): Promise<ThingDescription> {
+    discoverDirectly(uri: string): Promise<Content> {
         return Promise.reject(new Error("discoverDirectly not implemented"));
     }
 }
@@ -316,7 +316,7 @@ class TestProtocolClient implements ProtocolClient {
         return true;
     }
 
-    discoverDirectly(uri: string): Promise<ThingDescription> {
+    discoverDirectly(uri: string): Promise<Content> {
         return Promise.reject(new Error("discoverDirectly not implemented"));
     }
 }
