@@ -22,7 +22,6 @@ import Helpers from "./helpers";
 import { ThingDescription } from "wot-thing-description-types";
 import { createLoggers } from "./logger";
 import ContentManager from "./content-serdes";
-import { InteractionOutput } from "./interaction-output";
 import ProtocolHelpers from "./protocol-helpers";
 
 const { debug } = createLoggers("core", "wot-impl");
