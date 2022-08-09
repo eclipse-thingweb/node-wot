@@ -25,7 +25,6 @@ import { IPublishPacket, QoS } from "mqtt";
 import * as url from "url";
 import { Subscription } from "rxjs/Subscription";
 import { Readable } from "stream";
-import { ThingDescription } from "wot-typescript-definitions";
 
 const { debug, warn } = createLoggers("binding-mqtt", "mqtt-client");
 
@@ -201,7 +200,7 @@ export default class MqttClient implements ProtocolClient {
         }
     }
 
-    discoverDirectly(uri: string): Promise<ThingDescription> {
+    discoverDirectly(uri: string): Promise<Content> {
         return Promise.reject(new Error("Method not implemented."));
     }
 }

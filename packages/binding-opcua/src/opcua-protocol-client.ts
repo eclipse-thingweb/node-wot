@@ -45,7 +45,7 @@ import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { StatusCodes } from "node-opcua-status-code";
 
 import { schemaDataValue } from "./codec";
-import { FormElementProperty, ThingDescription } from "wot-thing-description-types";
+import { FormElementProperty } from "wot-thing-description-types";
 import { opcuaJsonEncodeVariant } from "node-opcua-json";
 import { Argument, BrowseDescription, BrowseResult } from "node-opcua-types";
 import { isGoodish2, ReferenceTypeIds } from "node-opcua";
@@ -621,7 +621,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
         return new Content("application/json", Readable.from(JSON.stringify(body)));
     }
 
-    discoverDirectly(uri: string): Promise<ThingDescription> {
+    discoverDirectly(uri: string): Promise<Content> {
         return Promise.reject(new Error("Method not implemented."));
     }
 }

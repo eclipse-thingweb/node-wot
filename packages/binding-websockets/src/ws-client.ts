@@ -20,7 +20,6 @@
 import { ProtocolClient, Content, createLoggers } from "@node-wot/core";
 import { Form, SecurityScheme } from "@node-wot/td-tools";
 import { Subscription } from "rxjs/Subscription";
-import { ThingDescription } from "wot-thing-description-types";
 
 const { debug, warn } = createLoggers("binding-websockets", "ws-client");
 
@@ -30,7 +29,7 @@ export default class WebSocketClient implements ProtocolClient {
         // TODO: implement and remove eslint-ignore-useless-constructor
     }
 
-    discoverDirectly(uri: string): Promise<ThingDescription> {
+    discoverDirectly(uri: string): Promise<Content> {
         return Promise.reject(new Error("Method not implemented."));
     }
 

@@ -38,7 +38,6 @@ import {
     OutgoingMessage,
     ObserveReadStream,
 } from "coap";
-import { ThingDescription } from "wot-thing-description-types";
 
 const { debug, warn } = createLoggers("binding-coap", "coap-client");
 
@@ -56,8 +55,22 @@ export default class CoapClient implements ProtocolClient {
         registerFormat(ContentSerdes.JSON_LD, 2100);
     }
 
-    discoverDirectly(uri: string): Promise<ThingDescription> {
-        return Promise.reject(new Error("Method not implemented."));
+    discoverDirectly(uri: string): Promise<Content> {
+        const options: CoapRequestParams = this.uriToOptions(uri);
+        const req = this.agent.request(options);
+
+        req.setOption("Accept", "application/td+json");
+        return new Promise<Content>((resolve, reject) => {
+            req.on("response", (res: IncomingMessage) => {
+                let contentType = res.headers["Content-Format"];
+                if (typeof contentType !== "string") {
+                    contentType = "application/td+json";
+                }
+                resolve({ type: contentType, body: Readable.from(res.payload) });
+            });
+            req.on("error", (err: Error) => reject(err));
+            req.end();
+        });
     }
 
     public toString(): string {

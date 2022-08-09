@@ -60,7 +60,7 @@ export interface ProtocolClient {
     /** this client is requested to perform an "unlink" on the resource with the given URI */
     unlinkResource(form: TD.Form): Promise<void>;
 
-    discoverDirectly(uri: string): Promise<ThingDescription>;
+    discoverDirectly(uri: string): Promise<Content>;
 
     subscribeResource(
         form: TD.Form,
