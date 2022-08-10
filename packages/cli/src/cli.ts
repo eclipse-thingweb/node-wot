@@ -142,7 +142,7 @@ function parseConfigFile(filename: string, previous: string) {
         throw new InvalidArgumentError(`Error reading config file: ${err}`);
     }
 }
-function parseConfigParams(param: string, previous: any) {
+function parseConfigParams(param: string, previous: unknown) {
     // Validate key-value pair
     if (!/^([a-zA-Z0-9_.]+):=([a-zA-Z0-9_]+)$/.test(param)) {
         throw new InvalidArgumentError("Invalid key-value pair");
@@ -205,6 +205,7 @@ const args = program.args;
 
 // .env parsing
 const env: dotenv.DotenvConfigOutput = dotenv.config();
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 if (env.error && (env.error as any).code && (env.error as any).code !== "ENOENT") {
     throw env.error;
 } else if (env.parsed) {
