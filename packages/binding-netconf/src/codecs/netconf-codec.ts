@@ -114,7 +114,9 @@ export default class NetconfCodec {
     }
 
     private getPayloadNamespaces(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         schema: any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         payload: any,
         namespaces: Record<string, string>,
         hasNamespace: boolean,

@@ -17,6 +17,7 @@ export function isObject(a: unknown): boolean {
     return !!a && a.constructor === Object;
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
 export function json2xpath(json: any, index: number, str: Array<string>): string[] {
     if (!isObject(json)) {
         return str;
@@ -55,7 +56,8 @@ export function json2xpath(json: any, index: number, str: Array<string>): string
 
 export function xpath2json(xpath: string, namespaces: Record<string, string>): Record<string, unknown> {
     const subStrings = xpath.split("/");
-    let obj: any = {};
+    let obj = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let tmpObj: any = {};
     for (let i = subStrings.length - 1; i > -1; i--) {
         let sub = subStrings[i];
