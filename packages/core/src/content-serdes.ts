@@ -31,14 +31,10 @@ export interface ContentCodec {
     getMediaType(): string;
     bytesToValue(
         bytes: Buffer,
-        schema: DataSchema,
+        schema?: DataSchema,
         parameters?: { [key: string]: string | undefined }
     ): DataSchemaValue;
-    valueToBytes(
-        value: unknown,
-        schema: DataSchema | undefined,
-        parameters?: { [key: string]: string | undefined }
-    ): Buffer;
+    valueToBytes(value: unknown, schema?: DataSchema, parameters?: { [key: string]: string | undefined }): Buffer;
 }
 
 interface ReadContent {
