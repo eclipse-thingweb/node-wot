@@ -277,7 +277,7 @@ export default class MqttBrokerServer implements ProtocolServer {
 
         thing
             .handleInvokeAction(segments[3], value, options)
-            .then((output: any) => {
+            .then((output: unknown) => {
                 if (output) {
                     warn(`MqttBrokerServer at ${this.brokerURI} cannot return output '${segments[3]}'`);
                 }
