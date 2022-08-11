@@ -45,8 +45,8 @@
         "is-absolute-url": "3.0.3",
         "json-placeholder-replacer": "^1.0.35",
         "url-toolkit": "2.1.6",
-        "wot-thing-description-types": "^1.1.0-20-July-2022",
-        "wot-thing-model-types": "^1.1.0-27-July-2022",
+        "wot-thing-description-types": "^1.1.0-10-August-2022",
+        "wot-thing-model-types": "^1.1.0-10-August-2022",
         "wot-typescript-definitions": "0.8.0-SNAPSHOT.23"
     },
     "scripts": {
