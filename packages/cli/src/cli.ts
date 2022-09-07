@@ -16,6 +16,7 @@
 
 // default implementation of W3C WoT Servient (http(s) and file bindings)
 import DefaultServient from "./cli-default-servient";
+import ErrnoException = NodeJS.ErrnoException;
 
 // tools
 import fs = require("fs");
@@ -205,8 +206,7 @@ const args = program.args;
 
 // .env parsing
 const env: dotenv.DotenvConfigOutput = dotenv.config();
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-if (env.error && (env.error as any).code && (env.error as any).code !== "ENOENT") {
+if (env.error && (env.error as ErrnoException).code && (env.error as ErrnoException).code !== "ENOENT") {
     throw env.error;
 } else if (env.parsed) {
     for (const [key, value] of Object.entries(env.parsed)) {
