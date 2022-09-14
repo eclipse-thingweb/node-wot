@@ -138,6 +138,10 @@ class TDClient implements ProtocolClient {
         return Promise.reject(new Error("writeResource not implemented"));
     }
 
+    public deleteResource(form: Form): Promise<void> {
+        return Promise.reject(new Error("deleteResource not implemented"));
+    }
+
     public invokeResource(form: Form, content: Content): Promise<Content> {
         return Promise.reject(new Error("invokeResource not implemented"));
     }
@@ -210,6 +214,10 @@ class TrapClient implements ProtocolClient {
         await this.trap(form, content);
     }
 
+    public async deleteResource(form: Form): Promise<void> {
+        await this.trap(form);
+    }
+
     public async invokeResource(form: Form, content: Content): Promise<Content> {
         return await this.trap(form, content);
     }
@@ -274,6 +282,10 @@ class TestProtocolClient implements ProtocolClient {
     }
 
     writeResource(form: Form, content: Content): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+
+    deleteResource(form: Form): Promise<void> {
         throw new Error("Method not implemented.");
     }
 
