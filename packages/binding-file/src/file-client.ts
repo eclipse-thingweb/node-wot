@@ -68,6 +68,10 @@ export default class FileClient implements ProtocolClient {
         });
     }
 
+    public async deleteResource(form: Form): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+
     public invokeResource(form: Form, content: Content): Promise<Content> {
         return new Promise<Content>((resolve, reject) => {
             reject(new Error(`FileClient does not implement invoke`));

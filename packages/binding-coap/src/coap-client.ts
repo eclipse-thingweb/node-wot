@@ -102,6 +102,10 @@ export default class CoapClient implements ProtocolClient {
         });
     }
 
+    public async deleteResource(form: CoapForm): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+
     public invokeResource(form: CoapForm, content?: Content): Promise<Content> {
         return new Promise<Content>((resolve, reject) => {
             const req = this.generateRequest(form, "POST");

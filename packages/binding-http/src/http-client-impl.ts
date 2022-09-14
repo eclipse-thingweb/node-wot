@@ -148,6 +148,10 @@ export default class HttpClient implements ProtocolClient {
         debug(`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
     }
 
+    public async deleteResource(form: HttpForm): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+
     public subscribeResource(
         form: HttpForm,
         next: (value: Content) => void,

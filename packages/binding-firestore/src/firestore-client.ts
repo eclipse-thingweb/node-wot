@@ -160,6 +160,10 @@ export default class FirestoreClient implements ProtocolClient {
         return value;
     }
 
+    public async deleteResource(form: FirestoreForm): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+
     public async invokeResource(form: FirestoreForm, content?: Content): Promise<Content> {
         const firestore = await initFirestore(this.fbConfig, this.firestore);
         this.firestore = firestore;

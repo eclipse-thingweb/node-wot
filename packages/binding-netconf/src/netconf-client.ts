@@ -106,6 +106,10 @@ export default class NetconfClient implements ProtocolClient {
         });
     }
 
+    public async deleteResource(form: NetconfForm): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+
     public async invokeResource(form: NetconfForm, content: Content): Promise<Content> {
         const body = await ProtocolHelpers.readStreamFully(content.body);
         let payload = content ? JSON.parse(body.toString()) : {};

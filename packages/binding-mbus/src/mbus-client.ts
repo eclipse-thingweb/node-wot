@@ -46,6 +46,10 @@ export default class MBusClient implements ProtocolClient {
         });
     }
 
+    async deleteResource(form: MBusForm): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+
     invokeResource(form: MBusForm, content: Content): Promise<Content> {
         return new Promise<Content>((resolve, reject) => {
             throw new Error("Method not implemented.");

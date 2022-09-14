@@ -313,6 +313,10 @@ export class OPCUAProtocolClient implements ProtocolClient {
         }
     }
 
+    public async deleteResource(form: OPCUAForm): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+
     public async invokeResource(form: OPCUAFormInvoke, content: Content): Promise<Content> {
         return await this._withSession(form, async (session) => {
             const objectId = await this._resolveNodeId(form);

@@ -83,6 +83,10 @@ export default class ModbusClient implements ProtocolClient {
         await this.performOperation(form, content);
     }
 
+    async deleteResource(form: ModbusForm): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+
     async invokeResource(form: ModbusForm, content: Content): Promise<Content> {
         await this.performOperation(form, content);
 

@@ -94,6 +94,10 @@ export default class MqttClient implements ProtocolClient {
         throw new Error("Method not implemented.");
     }
 
+    public async deleteResource(form: MqttForm): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+
     public async invokeResource(form: MqttForm, content: Content): Promise<Content> {
         const requestUri = new url.URL(form.href);
         const topic = requestUri.pathname.slice(1);

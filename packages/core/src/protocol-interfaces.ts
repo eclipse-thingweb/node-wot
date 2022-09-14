@@ -57,6 +57,9 @@ export interface ProtocolClient {
     /** this client is requested to perform a "write" on the resource with the given URI  */
     writeResource(form: TD.Form, content: Content): Promise<void>;
 
+    /** this client is requested to perform a "delete" on the resource with the given URI  */
+    deleteResource(form: TD.Form): Promise<void>;
+
     /** this client is requested to perform an "invoke" on the resource with the given URI */
     invokeResource(form: TD.Form, content?: Content): Promise<Content>;
 
