@@ -13,10 +13,11 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { ConsumedThing as IConsumedThing, InteractionInput, Subscription } from "wot-typescript-definitions";
+import { InteractionInput, Subscription } from "wot-typescript-definitions";
 
 import * as TD from "@node-wot/td-tools";
 
+import { ProfileConsumedThing } from "./consumed-thing-profile";
 import Servient from "./servient";
 import Helpers from "./helpers";
 
@@ -319,7 +320,7 @@ class InternalEventSubscription extends InternalSubscription {
     }
 }
 
-export default class ConsumedThing extends TD.Thing implements IConsumedThing {
+export default class ConsumedThing extends TD.Thing implements ProfileConsumedThing {
     /** A map of interactable Thing Properties with read()/write()/subscribe() functions */
     properties: {
         [key: string]: PropertyElement;
@@ -674,17 +675,50 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         // infer media type from form if not in response metadata
         if (!content.type) content.type = form.contentType ?? "application/json";
 
-        // check if returned media type is the same as expected media type (from TD)
-        if (form.response) {
-            if (content.type !== form.response.contentType) {
-                throw new Error(`Unexpected type in response`);
+        if (ta.synchronous !== undefined && ta.synchronous === false) {
+            // check if returned media type is the same as expected media type (from TD)
+            if (form.response) {
+                if (content.type !== form.response.contentType) {
+                    throw new Error(`Unexpected type in response`);
+                }
+            }
+            try {
+                return new InteractionOutput(content, form, ta.output);
+            } catch {
+                throw new Error(`Received invalid content from Thing`);
+            }
+        } else {
+            // lack of synchronous keyword means that no claim on the synchronicity of the action can be made
+            // shall we check whether we deal with ActionStatus object from Profile?
+            // for the time being we simply return what we get (may be ActionStatus object)
+            try {
+                return new InteractionOutput(content, form, undefined);
+            } catch {
+                throw new Error(`Failed to create InteractionOutput from content`);
             }
         }
-        try {
-            return new InteractionOutput(content, form, ta.output);
-        } catch {
-            throw new Error(`Received invalid content from Thing`);
+    }
+
+    public async queryAction(href: string): Promise<unknown> {
+        // e.g., HTTP GET /things/lamp/actions/fade/123e4567-e89b-12d3-a456-426655
+        // Note: In the case of Profile report ActionStatus
+        const absoluteUrl = TD.getAbsoluteUrl(this.thing.base, href);
+
+        const form: TD.Form = { href: absoluteUrl };
+        const clientAndForm = this.getClientFor(new Array(form), "invokeaction", Affordance.ActionAffordance);
+
+        if (!clientAndForm.client) {
+            throw new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`);
         }
+
+        const content = await clientAndForm.client.readResource(form);
+        return new InteractionOutput(content);
+    }
+
+    public async cancelAction(href: string): Promise<undefined> {
+        // e.g., HTTP DELETE /things/lamp/actions/fade/123e4567-e89b-12d3-a456-426655
+        // Note: In the case of Profile report 204 No Content
+        throw new Error(`cancelAction not yet implemented`);
     }
 
     /**

@@ -23,6 +23,9 @@
 
 import ThingDescription from "./thing-description";
 
+import isAbsoluteUrl = require("is-absolute-url");
+import URLToolkit = require("url-toolkit");
+
 // need two tests
 export function findProtocol(td: ThingDescription): string {
     const base: string = td.base;
@@ -36,6 +39,18 @@ export function findPort(td: ThingDescription): number {
     const divLoc: number = base.indexOf("/", columnLoc);
     const returnString: string = base.substring(columnLoc + 1, divLoc);
     return parseInt(returnString);
+}
+
+export function getAbsoluteUrl(base: string, href: string): string {
+    if (isAbsoluteUrl(href)) {
+        return href;
+    } else {
+        if (base) {
+            return URLToolkit.buildAbsoluteURL(base, href);
+        } else {
+            return href;
+        }
+    }
 }
 
 export function setContextLanguage(thing: ThingDescription, language: string, forceOverride: boolean): void {
