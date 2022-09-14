@@ -18,5 +18,5 @@ import { ConsumedThing } from "wot-typescript-definitions";
 export interface ProfileConsumedThing extends ConsumedThing {
     queryAction(href: string): Promise<unknown>;
 
-    cancelAction(href: string): Promise<undefined>;
+    cancelAction(href: string): Promise<void>;
 }

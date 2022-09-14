@@ -715,10 +715,19 @@ export default class ConsumedThing extends TD.Thing implements ProfileConsumedTh
         return new InteractionOutput(content);
     }
 
-    public async cancelAction(href: string): Promise<undefined> {
+    public async cancelAction(href: string): Promise<void> {
         // e.g., HTTP DELETE /things/lamp/actions/fade/123e4567-e89b-12d3-a456-426655
         // Note: In the case of Profile report 204 No Content
-        throw new Error(`cancelAction not yet implemented`);
+        const absoluteUrl = TD.getAbsoluteUrl(this.thing.base, href);
+
+        const form: TD.Form = { href: absoluteUrl };
+        const clientAndForm = this.getClientFor(new Array(form), "invokeaction", Affordance.ActionAffordance);
+
+        if (!clientAndForm.client) {
+            throw new Error(`ConsumedThing '${this.title}' did not get suitable client for ${form.href}`);
+        }
+
+        await clientAndForm.client.deleteResource(form);
     }
 
     /**
