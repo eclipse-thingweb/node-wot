@@ -16,6 +16,7 @@
 
 // default implementation of W3C WoT Servient (http(s) and file bindings)
 import DefaultServient from "./cli-default-servient";
+import ErrnoException = NodeJS.ErrnoException;
 
 // tools
 import fs = require("fs");
@@ -142,7 +143,7 @@ function parseConfigFile(filename: string, previous: string) {
         throw new InvalidArgumentError(`Error reading config file: ${err}`);
     }
 }
-function parseConfigParams(param: string, previous: any) {
+function parseConfigParams(param: string, previous: unknown) {
     // Validate key-value pair
     if (!/^([a-zA-Z0-9_.]+):=([a-zA-Z0-9_]+)$/.test(param)) {
         throw new InvalidArgumentError("Invalid key-value pair");
@@ -205,7 +206,7 @@ const args = program.args;
 
 // .env parsing
 const env: dotenv.DotenvConfigOutput = dotenv.config();
-if (env.error && (env.error as any).code && (env.error as any).code !== "ENOENT") {
+if (env.error && (env.error as ErrnoException).code && (env.error as ErrnoException).code !== "ENOENT") {
     throw env.error;
 } else if (env.parsed) {
     for (const [key, value] of Object.entries(env.parsed)) {
