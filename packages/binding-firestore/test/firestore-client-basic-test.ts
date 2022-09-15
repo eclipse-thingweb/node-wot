@@ -21,7 +21,7 @@ import FirestoreCodec from "../src/codecs/firestore-codec";
 import firebase from "firebase/compat/app";
 import { launchTestThing } from "./test-thing";
 
-// process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8088'
+// process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8088'
 
 import { ThingDescription } from "wot-typescript-definitions";
 
@@ -52,10 +52,10 @@ class FirestoreClientBasicTest {
             firebase.initializeApp(firestoreConfig.firebaseConfig);
             const isEmulating = true;
             if (isEmulating) {
-                firebase.auth().useEmulator("http://localhost:9099");
-                // firebase.firestore().useEmulator('localhost', 8088)
+                firebase.auth().useEmulator("http://127.0.0.1:9099");
+                // firebase.firestore().useEmulator('127.0.0.1', 8088)
                 firebase.firestore().settings({
-                    host: "localhost:8088",
+                    host: "127.0.0.1:8088",
                     ssl: false,
                 });
             }
