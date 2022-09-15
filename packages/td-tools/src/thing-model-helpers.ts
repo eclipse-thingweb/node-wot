@@ -136,10 +136,17 @@ export class ThingModelHelpers {
      * @experimental
      */
     public static getModelVersion(data: ThingModel): string | undefined {
-        if (!("version" in data) || !(data.version && "model" in data.version)) {
+        if (
+            "version" in data &&
+            data.version &&
+            typeof data.version === "object" &&
+            "model" in data.version &&
+            typeof data.version.model === "string"
+        ) {
+            return data.version.model;
+        } else {
             return undefined;
         }
-        return data.version.model as string;
     }
 
     /**
