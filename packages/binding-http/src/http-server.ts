@@ -61,6 +61,7 @@ export default class HttpServer implements ProtocolServer {
     private readonly port: number = 8080;
     private readonly address: string = undefined;
     private readonly baseUri: string = undefined;
+    private readonly urlRewrite: Record<string, string> = undefined;
     private readonly httpSecurityScheme: string = "NoSec"; // HTTP header compatible string
     private readonly validOAuthClients: RegExp = /.*/g;
     private readonly server: http.Server | https.Server = null;
@@ -93,6 +94,9 @@ export default class HttpServer implements ProtocolServer {
         }
         if (config.baseUri !== undefined) {
             this.baseUri = config.baseUri;
+        }
+        if (config.urlRewrite !== undefined) {
+            this.urlRewrite = config.urlRewrite;
         }
 
         // TLS
@@ -275,6 +279,20 @@ export default class HttpServer implements ProtocolServer {
         });
     }
 
+    private addUrlRewriteEndpoints(form: TD.Form, forms: Array<TD.Form>): void {
+        if (this.urlRewrite) {
+            for (const inUri in this.urlRewrite) {
+                const toUri = this.urlRewrite[inUri];
+                if (form.href.endsWith(toUri)) {
+                    const form2: TD.Form = JSON.parse(JSON.stringify(form)); // deep copy
+                    form2.href = form2.href.substring(0, form.href.lastIndexOf(toUri)) + inUri;
+                    forms.push(form2);
+                    debug(`HttpServer on port ${this.getPort()} assigns urlRewrite '${form2.href}' for '${form.href}'`);
+                }
+            }
+        }
+    }
+
     public addEndpoint(thing: ExposedThing, tdTemplate: WoT.ExposedThingInit, base: string): void {
         for (const type of ContentSerdes.get().getOfferedMediaTypes()) {
             let allReadOnly = true;
@@ -307,6 +325,7 @@ export default class HttpServer implements ProtocolServer {
                     thing.forms = [];
                 }
                 thing.forms.push(form);
+                this.addUrlRewriteEndpoints(form, thing.forms);
             }
 
             for (const propertyName in thing.properties) {
@@ -335,6 +354,7 @@ export default class HttpServer implements ProtocolServer {
 
                 thing.properties[propertyName].forms.push(form);
                 debug(`HttpServer on port ${this.getPort()} assigns '${href}' to Property '${propertyName}'`);
+                this.addUrlRewriteEndpoints(form, thing.properties[propertyName].forms);
 
                 // if property is observable add an additional form with a observable href
                 if (thing.properties[propertyName].observable) {
@@ -353,6 +373,7 @@ export default class HttpServer implements ProtocolServer {
                     debug(
                         `HttpServer on port ${this.getPort()} assigns '${href}' to observable Property '${propertyName}'`
                     );
+                    this.addUrlRewriteEndpoints(form, thing.properties[propertyName].forms);
                 }
             }
 
@@ -371,6 +392,7 @@ export default class HttpServer implements ProtocolServer {
                 }
                 thing.actions[actionName].forms.push(form);
                 debug(`HttpServer on port ${this.getPort()} assigns '${href}' to Action '${actionName}'`);
+                this.addUrlRewriteEndpoints(form, thing.actions[actionName].forms);
             }
 
             for (const eventName in thing.events) {
@@ -385,6 +407,7 @@ export default class HttpServer implements ProtocolServer {
                 form.op = ["subscribeevent", "unsubscribeevent"];
                 thing.events[eventName].forms.push(form);
                 debug(`HttpServer on port ${this.getPort()} assigns '${href}' to Event '${eventName}'`);
+                this.addUrlRewriteEndpoints(form, thing.events[eventName].forms);
             }
         }
     }
@@ -537,10 +560,21 @@ export default class HttpServer implements ProtocolServer {
             }
         }
 
+        // url-rewrite feature in use ?
+        let pathname = requestUri.pathname;
+        if (this.urlRewrite) {
+            const entryUrl = pathname;
+            const internalUrl = this.urlRewrite[entryUrl];
+            if (internalUrl) {
+                pathname = internalUrl;
+                debug("[binding-http]", `URL "${entryUrl}" has been rewritten to "${pathname}"`);
+            }
+        }
+
         // route request
         let segments: string[];
         try {
-            segments = decodeURI(requestUri.pathname).split("/");
+            segments = decodeURI(pathname).split("/");
         } catch (ex) {
             // catch URIError, see https://github.com/eclipse/thingweb.node-wot/issues/389
             warn(`HttpServer on port ${this.getPort()} cannot decode URI for '${requestUri.pathname}'`);

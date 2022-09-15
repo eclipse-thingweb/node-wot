@@ -512,4 +512,43 @@ class HttpServerTest {
 
         return httpServer.stop();
     }
+
+    @test async "should allow url rewrite"() {
+        const httpServer = new HttpServer({ port: 0, urlRewrite: { "/myroot/foo": "/test/properties/test" } });
+
+        await httpServer.start(null);
+
+        const testThing = new ExposedThing(null, {
+            title: "Test",
+            properties: {
+                test: {
+                    type: "object",
+                },
+            },
+        });
+        let test = {};
+        testThing.setPropertyReadHandler("test", (_) => Promise.resolve(test));
+        testThing.setPropertyWriteHandler("test", async (value) => {
+            test = await value.value();
+        });
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.test.forms = [];
+        await httpServer.expose(testThing);
+
+        const uriWithoutThing = `http://localhost:${httpServer.getPort()}/`;
+        let resp;
+
+        resp = await (await fetch(uriWithoutThing + "test/properties/test")).text();
+        expect(resp).to.equal("{}");
+
+        resp = await (await fetch(uriWithoutThing + "myroot/foo")).text();
+        expect(resp).to.equal("{}");
+
+        resp = await (await fetch(uriWithoutThing + "my-entry/does-not-exist")).text();
+        expect(resp).to.not.equal("{}"); // i.e., returns 'Not Found'
+
+        return httpServer.stop();
+    }
 }
