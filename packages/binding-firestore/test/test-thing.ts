@@ -25,14 +25,14 @@ const { debug, info, error } = createLoggers("binding-firestore", "test-thing");
 export const launchTestThing = async (): Promise<WoT.ExposedThing | void> => {
     // setup for emulator
     try {
-        // process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8088'
+        // process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8088'
         firebase.initializeApp(firestoreConfig.firebaseConfig);
         const isEmulating = true;
         if (isEmulating) {
-            firebase.auth().useEmulator("http://localhost:9099");
-            // firebase.firestore().useEmulator('localhost', 8088)
+            firebase.auth().useEmulator("http://127.0.0.1:9099");
+            // firebase.firestore().useEmulator('127.0.0.1', 8088)
             firebase.firestore().settings({
-                host: "localhost:8088",
+                host: "127.0.0.1:8088",
                 ssl: false,
             });
             try {
