@@ -15,9 +15,10 @@ jobs:
               uses: actions/checkout@v2
 
             - name: Use Node.js ${{ matrix.os }} ${{ matrix.node-version }}
-              uses: actions/setup-node@v1
+              uses: actions/setup-node@v3
               with:
                   node-version: ${{ matrix.node-version }}
+                  cache: "npm"
             - name: npm 7
               # npm workspaces requires npm v7 or higher
               run: npm i -g npm@7 --registry=https://registry.npmjs.org
@@ -28,7 +29,7 @@ jobs:
               run: npm run build
 
             - name: Test with coverage report
-              run: npm run coverage
+              run: npm run coverage:only
 
             - name: Upload to codecov.io
               uses: codecov/codecov-action@v2
