@@ -42,7 +42,7 @@ export const launchTestThing = async (): Promise<WoT.ExposedThing | void> => {
                     .createUserWithEmailAndPassword(firestoreConfig.user.email, firestoreConfig.user.password);
             } catch (e) {
                 // is not error
-                error(`user ia already created err: ${e}`);
+                info(`user is already created err: ${e}`);
             }
         }
         // create server
@@ -270,6 +270,6 @@ export const launchTestThing = async (): Promise<WoT.ExposedThing | void> => {
         info(`${thing.getThingDescription().title} ready`);
         return thing;
     } catch (err) {
-        debug(err);
+        error(err);
     }
 };
