@@ -53,7 +53,6 @@ class FirestoreClientBasicTest {
             const isEmulating = true;
             if (isEmulating) {
                 firebase.auth().useEmulator("http://127.0.0.1:9099");
-                // firebase.firestore().useEmulator('127.0.0.1', 8088)
                 firebase.firestore().settings({
                     host: "127.0.0.1:8088",
                     ssl: false,

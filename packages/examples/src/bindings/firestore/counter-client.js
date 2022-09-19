@@ -21,10 +21,9 @@ const firestoreConfig = require("./firestore-config.json");
 const initFirebaseEmu = async () => {
     const firebase = require("firebase/compat/app");
     firebase.initializeApp(firestoreConfig.firebaseConfig);
-    firebase.auth().useEmulator("http://localhost:9099");
-    // firebase.firestore().useEmulator('localhost', 8088)
+    firebase.auth().useEmulator("http://127.0.0.1:9099");
     firebase.firestore().settings({
-        host: "localhost:8088",
+        host: "127.0.0.1:8088",
         ssl: false,
     });
 };
