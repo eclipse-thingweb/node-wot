@@ -21,8 +21,6 @@ import FirestoreCodec from "../src/codecs/firestore-codec";
 import firebase from "firebase/compat/app";
 import { launchTestThing } from "./test-thing";
 
-// process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8088'
-
 import { ThingDescription } from "wot-typescript-definitions";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
