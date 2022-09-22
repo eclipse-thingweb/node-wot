@@ -64,7 +64,7 @@ class HttpClientOAuthTest {
                     },
                     app
                 )
-                .listen(3000, "localhost", resolve);
+                .listen(3000, "127.0.0.1", resolve);
         });
     }
 
@@ -84,12 +84,12 @@ class HttpClientOAuthTest {
         const scheme: OAuth2SecurityScheme = {
             scheme: "oauth2",
             flow: "client",
-            token: "https://localhost:3000/token",
+            token: "https://127.0.0.1:3000/token",
             scopes: ["test"],
         };
         this.client.setSecurity([scheme], { clientId: "thom", clientSecret: "nightworld" });
         const resource = await this.client.readResource({
-            href: "https://localhost:3000/resource",
+            href: "https://127.0.0.1:3000/resource",
         });
         const body = await ProtocolHelpers.readStreamFully(resource.body);
         body.toString("ascii").should.eql("Ok!");
@@ -99,7 +99,7 @@ class HttpClientOAuthTest {
         const scheme: OAuth2SecurityScheme = {
             scheme: "oauth2",
             flow: "password",
-            token: "https://localhost:3000/token",
+            token: "https://127.0.0.1:3000/token",
             scopes: ["test"],
         };
         this.client.setSecurity([scheme], {
@@ -109,7 +109,7 @@ class HttpClientOAuthTest {
             password: "nightworld",
         });
         const resource = await this.client.readResource({
-            href: "https://localhost:3000/resource",
+            href: "https://127.0.0.1:3000/resource",
         });
         const body = await ProtocolHelpers.readStreamFully(resource.body);
         body.toString("ascii").should.eql("Ok!");
@@ -119,7 +119,7 @@ class HttpClientOAuthTest {
         const scheme: OAuth2SecurityScheme = {
             scheme: "oauth2",
             flow: "client",
-            token: "https://localhost:3000/token",
+            token: "https://127.0.0.1:3000/token",
             scopes: ["test"],
         };
         const model = HttpClientOAuthTest.model;
@@ -127,7 +127,7 @@ class HttpClientOAuthTest {
         this.client.setSecurity([scheme], { clientId: "thom", clientSecret: "nightworld" });
         await sleep(1000);
         const resource = await this.client.readResource({
-            href: "https://localhost:3000/resource",
+            href: "https://127.0.0.1:3000/resource",
         });
         const body = await ProtocolHelpers.readStreamFully(resource.body);
         body.toString("ascii").should.eql("Ok!");
@@ -137,7 +137,7 @@ class HttpClientOAuthTest {
         const scheme: OAuth2SecurityScheme = {
             scheme: "oauth2",
             flow: "password",
-            token: "https://localhost:3000/token",
+            token: "https://127.0.0.1:3000/token",
             scopes: ["test"],
         };
         const model = HttpClientOAuthTest.model;
@@ -151,7 +151,7 @@ class HttpClientOAuthTest {
         });
         await sleep(1000);
         const resource = await this.client.readResource({
-            href: "https://localhost:3000/resource",
+            href: "https://127.0.0.1:3000/resource",
         });
         const body = await ProtocolHelpers.readStreamFully(resource.body);
         body.toString("ascii").should.eql("Ok!");

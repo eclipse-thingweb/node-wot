@@ -7,8 +7,8 @@ jobs:
 
         strategy:
             matrix:
-                os: [macos-latest, ubuntu-latest, windows-2019]
-                node-version: [12.x, 14.x, 16.x]
+                os: [macos-latest, ubuntu-latest, windows-latest]
+                node-version: [14.x, 16.x, 18.x]
 
         steps:
             - name: Checkout
@@ -61,10 +61,10 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v1
-            - name: install node v12
+            - name: install node v14
               uses: actions/setup-node@v1
               with:
-                  node-version: 12
+                  node-version: 14
             - name: verify packages version consistency accross sub-modules
               run: npm run check:versions
 
