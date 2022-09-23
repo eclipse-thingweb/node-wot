@@ -148,13 +148,13 @@ class FirestoreClientBasicTest {
             })
         ).value();
         console.log("---------- obj", obj);
-        assert.deepEqual(obj, JSON.stringify({ testkey3: 111, testkey4: "abc" }));
+        assert.deepEqual(obj, { testkey3: 111, testkey4: "abc" });
     }
 
     @test async "[client] action string to object"() {
         const obj = await (await thing.invokeAction("actionStringToObj", "teststr")).value();
         console.log("---------- obj", obj);
-        assert.deepEqual(obj, JSON.stringify({ test: "teststr" }));
+        assert.deepEqual(obj, { test: "teststr" });
     }
 
     @test async "[client] action object to number"() {
