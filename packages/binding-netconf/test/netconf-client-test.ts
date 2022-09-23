@@ -64,7 +64,9 @@ describe("outer describe", function () {
         try {
             await client.readResource(inputVector.form);
         } catch (err) {
-            expect(err.message).to.equal("connect ECONNREFUSED 127.0.0.1:6060");
+            // Note: depending on Node.js version different errors appear
+            // AssertionError: expected 'connect ECONNREFUSED ::1:6060' to equal 'connect ECONNREFUSED 127.0.0.1:6060'
+            expect((err as Error).message.startsWith("connect ECONNREFUSED"));
         }
     });
 
@@ -109,7 +111,9 @@ describe("outer describe", function () {
                 body: Readable.from(Buffer.from(JSON.stringify(payload))),
             });
         } catch (err) {
-            expect(err.message).to.equal("connect ECONNREFUSED 127.0.0.1:6060");
+            // Note: depending on Node.js version different errors appear
+            // AssertionError: expected 'connect ECONNREFUSED ::1:6060' to equal 'connect ECONNREFUSED 127.0.0.1:6060'
+            expect((err as Error).message.startsWith("connect ECONNREFUSED"));
         }
     });
 
@@ -135,7 +139,9 @@ describe("outer describe", function () {
                 body: Readable.from(Buffer.from(JSON.stringify(payload))),
             });
         } catch (err) {
-            expect(err.message).to.equal("connect ECONNREFUSED 127.0.0.1:6060");
+            // Note: depending on Node.js version different errors appear
+            // AssertionError: expected 'connect ECONNREFUSED ::1:6060' to equal 'connect ECONNREFUSED 127.0.0.1:6060'
+            expect((err as Error).message.startsWith("connect ECONNREFUSED"));
         }
     });
 

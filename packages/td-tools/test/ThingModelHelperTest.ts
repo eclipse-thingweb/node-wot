@@ -26,7 +26,7 @@ class ThingModelHelperTest {
 
     @test "should correctly validate tm schema with ThingModel in @type"() {
         const model = {
-            "@context": ["http://www.w3.org/ns/td"],
+            "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
             title: "thingTest",
             "@type": "tm:ThingModel",
             properties: {
@@ -46,7 +46,7 @@ class ThingModelHelperTest {
     @test "should correctly return the right links"() {
         const thing = {
             title: "thingTest",
-            "@context": ["http://www.w3.org/ns/td"],
+            "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
             "@type": "tm:ThingModel",
             links: [
                 {
@@ -72,7 +72,7 @@ class ThingModelHelperTest {
     @test "should correctly validate tm schema with ThingModel in @type array "() {
         const model = {
             title: "thingTest",
-            "@context": ["http://www.w3.org/ns/td"],
+            "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
             "@type": ["random:Type", "tm:ThingModel"],
             properties: {
                 myProp: {
@@ -91,7 +91,7 @@ class ThingModelHelperTest {
     @test "should reject schema on validation because missing ThingModel definition"() {
         const model = {
             title: "thingTest",
-            "@context": ["http://www.w3.org/ns/td"],
+            "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
             "@type": "random:Type",
             links: [
                 {
@@ -115,7 +115,7 @@ class ThingModelHelperTest {
     @test "should correctly return the model version"() {
         let thing: ThingModel = {
             title: "thingTest",
-            "@context": ["http://www.w3.org/ns/td"],
+            "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
             "@type": ["random:Type", "tm:ThingModel"],
             version: { model: "0.0.1" }, // TODO: check is version is valid
         };
@@ -126,7 +126,7 @@ class ThingModelHelperTest {
 
         thing = {
             title: "thingTest",
-            "@context": ["http://www.w3.org/ns/td"],
+            "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
             "@type": ["random:Type", "tm:ThingModel"],
             version: {},
         };
@@ -136,7 +136,7 @@ class ThingModelHelperTest {
 
         thing = {
             title: "thingTest",
-            "@context": ["http://www.w3.org/ns/td"],
+            "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
             "@type": ["random:Type", "tm:ThingModel"],
         };
 
@@ -162,7 +162,7 @@ class ThingModelHelperTest {
         const model = JSON.parse(modelJSON.toString()) as ThingModel;
         const finalModel = {
             "@type": "tm:ThingModel",
-            "@context": ["http://www.w3.org/ns/td"],
+            "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
             title: "Smart Lamp Control with Dimming",
             links: [
                 {
@@ -187,7 +187,7 @@ class ThingModelHelperTest {
             extends: [
                 {
                     "@type": "tm:ThingModel",
-                    "@context": ["http://www.w3.org/ns/td"],
+                    "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
                     actions: {
                         toggle: { type: "boolean" },
                     },
@@ -216,7 +216,7 @@ class ThingModelHelperTest {
         const thingModel: ThingModel = {
             title: "thingTest",
             "@type": ["random:Type", "tm:ThingModel"],
-            "@context": ["http://www.w3.org/ns/td"],
+            "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
             properties: {
                 timestamp1: {
                     "tm:ref": "file://./test/thing-model/tmodels/OnOff.jsonld#/properties/timestamp",
@@ -228,7 +228,7 @@ class ThingModelHelperTest {
         const finalThingModel = {
             title: "thingTest",
             "@type": ["random:Type", "tm:ThingModel"],
-            "@context": ["http://www.w3.org/ns/td"],
+            "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
             properties: {
                 timestamp1: {
                     type: "number",
@@ -254,7 +254,7 @@ class ThingModelHelperTest {
     @test async "should correctly import an action and add a field to the action"() {
         const thingModel: ThingModel = {
             title: "thingTest",
-            "@context": ["http://www.w3.org/ns/td"],
+            "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
             "@type": ["random:Type", "tm:ThingModel"],
             actions: {
                 toggle1: {
@@ -274,7 +274,7 @@ class ThingModelHelperTest {
 
         const finalThingModel = {
             title: "thingTest",
-            "@context": ["http://www.w3.org/ns/td"],
+            "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
             "@type": ["random:Type", "tm:ThingModel"],
             actions: {
                 toggle1: {
@@ -297,7 +297,7 @@ class ThingModelHelperTest {
 
     @test async "should correctly fill placeholders"() {
         const thing = {
-            "@context": ["http://www.w3.org/ns/td"],
+            "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
             "@type": "tm:ThingModel",
             title: "Thermostate No. {{THERMOSTATE_NUMBER}}",
             base: "mqtt://{{MQTT_BROKER_ADDRESS}}",
@@ -318,7 +318,7 @@ class ThingModelHelperTest {
             THERMOSTATE_TEMPERATURE_OBSERVABLE: true,
         };
         const finalJSON = {
-            "@context": ["http://www.w3.org/ns/td"],
+            "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
             "@type": "Thing",
             title: "Thermostate No. 4",
             base: "mqtt://192.168.178.72:1883",
@@ -349,7 +349,7 @@ class ThingModelHelperTest {
 
     @test async "should correctly fill placeholders with composed types"() {
         const thing = {
-            "@context": ["http://www.w3.org/ns/td"],
+            "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
             "@type": "tm:ThingModel",
             arrayField: "{{ARRAY}}",
             title: "Thermostate No. 4",
@@ -360,7 +360,7 @@ class ThingModelHelperTest {
             VERSION_INFO: { instance: "xyz", model: "ABC" },
         };
         const finalJSON = {
-            "@context": ["http://www.w3.org/ns/td"],
+            "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
             "@type": "Thing",
             title: "Thermostate No. 4",
             arrayField: ["random", "random1", "random2"],
@@ -383,7 +383,7 @@ class ThingModelHelperTest {
 
     @test async "should correctly fill placeholders with composed types in strings"() {
         const thing = {
-            "@context": ["http://www.w3.org/ns/td"],
+            "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
             "@type": "tm:ThingModel",
             data: "data: {{ARRAY}}",
             title: "Thermostate No. 4",
@@ -394,7 +394,7 @@ class ThingModelHelperTest {
             VERSION_INFO: { instance: "xyz", model: "ABC" },
         };
         const finalJSON = {
-            "@context": ["http://www.w3.org/ns/td"],
+            "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
             "@type": "Thing",
             title: "Thermostate No. 4",
             data: "data: [1,2,3]",
@@ -417,7 +417,7 @@ class ThingModelHelperTest {
 
     @test async "should reject fill placeholders because of missing fields in map"() {
         const thing = {
-            "@context": ["http://www.w3.org/ns/td"],
+            "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
             "@type": "tm:ThingModel",
             title: "Thermostate No. {{THERMOSTATE_NUMBER}}",
             base: "mqtt://{{MQTT_BROKER_ADDRESS}}",

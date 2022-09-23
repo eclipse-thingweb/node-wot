@@ -1,6 +1,6 @@
 {
     "@type": "tm:ThingModel",
-    "@context": ["http://www.w3.org/ns/td"],
+    "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
     "title": "On/Off Thing Model",
     "links": [
       {

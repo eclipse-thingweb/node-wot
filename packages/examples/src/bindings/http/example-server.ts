@@ -21,6 +21,10 @@ const servient = new Servient();
 servient.addServer(
     new HttpServer({
         port: 8081, // (default 8080)
+        urlRewrite: {
+            "/myroot/foo/cnt": "/mycounter/properties/count",
+            "/mysecondURL/for/the/same/resource": "/mycounter/properties/count",
+        },
     })
 );
 

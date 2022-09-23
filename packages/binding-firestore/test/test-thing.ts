@@ -25,14 +25,12 @@ const { debug, info, error } = createLoggers("binding-firestore", "test-thing");
 export const launchTestThing = async (): Promise<WoT.ExposedThing | void> => {
     // setup for emulator
     try {
-        // process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8088'
         firebase.initializeApp(firestoreConfig.firebaseConfig);
         const isEmulating = true;
         if (isEmulating) {
-            firebase.auth().useEmulator("http://localhost:9099");
-            // firebase.firestore().useEmulator('localhost', 8088)
+            firebase.auth().useEmulator("http://127.0.0.1:9099");
             firebase.firestore().settings({
-                host: "localhost:8088",
+                host: "127.0.0.1:8088",
                 ssl: false,
             });
             try {
@@ -42,7 +40,7 @@ export const launchTestThing = async (): Promise<WoT.ExposedThing | void> => {
                     .createUserWithEmailAndPassword(firestoreConfig.user.email, firestoreConfig.user.password);
             } catch (e) {
                 // is not error
-                error(`user ia already created err: ${e}`);
+                info(`user is already created err: ${e}`);
             }
         }
         // create server
@@ -270,6 +268,6 @@ export const launchTestThing = async (): Promise<WoT.ExposedThing | void> => {
         info(`${thing.getThingDescription().title} ready`);
         return thing;
     } catch (err) {
-        debug(err);
+        error(err);
     }
 };
