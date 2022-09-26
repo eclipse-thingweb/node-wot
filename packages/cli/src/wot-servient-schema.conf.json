@@ -35,6 +35,16 @@
                 "port": {
                     "type": "integer"
                 },
+                "address": {
+                    "type": "string"
+                },
+                "baseUri": {
+                    "type": "string"
+                },
+                "urlRewrite": {
+                    "type": "object",
+                    "additionalProperties": { "type": "string" }
+                },
                 "proxy": {
                     "type": "object",
                     "required": ["href"],
