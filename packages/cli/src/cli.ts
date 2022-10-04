@@ -63,6 +63,9 @@ wot-servient.conf.json syntax:
     },
     "http": {
         "port": HPORT,
+        "address": HADDRESS,
+        "baseUri": HBASEURI,
+        "urlRewrite": HURLREWRITE,
         "proxy": PROXY,
         "allowSelfSigned": ALLOW
     },
@@ -89,6 +92,9 @@ wot-servient.conf.json fields:
   STATIC          : string with hostname or IP literal for static address config
   RUNSCRIPT       : boolean to activate the 'runScript' Action (default=false)
   HPORT           : integer defining the HTTP listening port
+  HADDRESS        : string defining HTTP address
+  HBASEURI        : string defining HTTP base URI
+  HURLREWRITE     : map (from URL -> to URL) defining HTTP URL rewrites
   PROXY           : object with "href" field for the proxy URI,
                                 "scheme" field for either "basic" or "bearer", and
                                 corresponding credential fields as defined below
