@@ -131,17 +131,7 @@ export default class MqttBrokerServer implements ProtocolServer {
             property.forms.push(form);
             debug(`MqttBrokerServer at ${this.brokerURI} assigns '${href}' to property '${propertyName}'`);
 
-            const observeListener = async (data: Content) => {
-                let content;
-                try {
-                    content = ContentSerdes.get().valueToContent(data, property.data);
-                } catch (err) {
-                    warn(`MqttServer cannot process data for Property '${propertyName}': ${err.message}`);
-                    thing.handleUnobserveProperty(propertyName, observeListener, {
-                        formIndex: property.forms.length - 1,
-                    });
-                    return;
-                }
+            const observeListener = async (content: Content) => {
                 debug(`MqttBrokerServer at ${this.brokerURI} publishing to Property topic '${propertyName}' `);
                 const buffer = await ProtocolHelpers.readStreamFully(content.body);
                 this.broker.publish(topic, buffer);
