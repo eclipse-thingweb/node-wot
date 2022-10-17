@@ -251,4 +251,27 @@ class CoapServerTest {
 
         return coapServer.stop();
     }
+
+    @test async "should support /.well-known/core"() {
+        const portNumber = 9001;
+        const coapServer = new CoapServer(portNumber);
+
+        await coapServer.start(null);
+
+        const testThing = new ExposedThing(null, {
+            title: "Test",
+        });
+
+        await coapServer.expose(testThing);
+
+        const uri = `coap://localhost:${coapServer.getPort()}/.well-known/core`;
+
+        const coapClient = new CoapClient(coapServer);
+        const resp = await coapClient.readResource(new TD.Form(uri));
+        expect((await ProtocolHelpers.readStreamFully(resp.body)).toString()).to.equal(
+            '</test>;rt="wot.thing";ct="50 432"'
+        );
+
+        return coapServer.stop();
+    }
 }
