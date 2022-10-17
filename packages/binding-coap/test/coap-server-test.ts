@@ -319,4 +319,30 @@ class CoapServerTest {
             req.end();
         }
     }
+
+    @test async "should supply Size2 option when fetching a TD"() {
+        const portNumber = 9002;
+        const coapServer = new CoapServer(portNumber);
+
+        await coapServer.start(null);
+
+        const testThing = new ExposedThing(null, {
+            title: "Test",
+            description: "This is a test!".repeat(100),
+        });
+
+        await coapServer.expose(testThing);
+
+        const req = request({
+            host: "localhost",
+            pathname: "test",
+            port: coapServer.getPort(),
+        });
+        req.setOption("Size2", 0);
+        req.on("response", (res) => {
+            expect(res.headers.Size2).to.equal(JSON.stringify(testThing.getThingDescription()).length);
+            coapServer.stop();
+        });
+        req.end();
+    }
 }
