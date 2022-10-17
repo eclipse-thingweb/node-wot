@@ -244,6 +244,25 @@ export default class CoapServer implements ProtocolServer {
         }
     }
 
+    private negotiateContentFormat(
+        req: IncomingMessage,
+        res: OutgoingMessage,
+        availableContentFormats: string[],
+        defaultContentFormat: string
+    ) {
+        const accept = req.headers.Accept;
+
+        if (typeof accept === "string" && availableContentFormats.includes(accept)) {
+            debug(`Received available Content-Format ${accept} in Accept option.`);
+            res.setHeader("Content-Format", accept);
+            return;
+        }
+
+        debug("Request did not contain an accept option or Content-Format is not supported.");
+
+        res.setHeader("Content-Format", defaultContentFormat);
+    }
+
     private async handleRequest(req: IncomingMessage, res: OutgoingMessage) {
         debug(
             `CoapServer on port ${this.getPort()} received '${req.method}(${req._packet.messageId}) ${
@@ -322,7 +341,12 @@ export default class CoapServer implements ProtocolServer {
                 if (segments.length === 2 || segments[2] === "") {
                     // Thing root -> send TD
                     if (req.method === "GET") {
-                        res.setOption("Content-Format", ContentSerdes.TD);
+                        this.negotiateContentFormat(
+                            req,
+                            res,
+                            [ContentSerdes.DEFAULT, ContentSerdes.TD],
+                            ContentSerdes.TD
+                        );
                         res.code = "2.05";
                         res.end(JSON.stringify(thing.getThingDescription()));
                     } else {
