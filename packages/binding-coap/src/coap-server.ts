@@ -34,6 +34,20 @@ import { Readable } from "stream";
 
 const { debug, warn, info, error } = createLoggers("binding-coap", "coap-server");
 
+type CoreLinkFormatParameters = Map<string, string[] | number[]>;
+
+const thingDescriptionParameters: CoreLinkFormatParameters = new Map(
+    Object.entries({
+        rt: ["wot.thing"],
+        ct: [50, 432],
+    })
+);
+
+interface CoreLinkFormatResource {
+    urlPath: string;
+    parameters?: CoreLinkFormatParameters;
+}
+
 export default class CoapServer implements ProtocolServer {
     public readonly scheme: string = "coap";
 
@@ -51,6 +65,8 @@ export default class CoapServer implements ProtocolServer {
     );
 
     private readonly things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
+
+    private readonly coreResources = new Map<string, CoreLinkFormatResource>();
 
     constructor(port?: number, address?: string) {
         if (port !== undefined) {
@@ -116,6 +132,7 @@ export default class CoapServer implements ProtocolServer {
         if (this.things.has(urlPath)) {
             urlPath = Helpers.generateUniqueName(urlPath);
         }
+        this.coreResources.set(urlPath, { urlPath, parameters: thingDescriptionParameters });
 
         debug(`CoapServer on port ${this.getPort()} exposes '${thing.title}' as unique '/${urlPath}'`);
 
@@ -185,6 +202,7 @@ export default class CoapServer implements ProtocolServer {
                 const expThing = this.things.get(name);
                 if (expThing?.id === thingId) {
                     this.things.delete(name);
+                    this.coreResources.delete(name);
                     removedThing = expThing;
                 }
             }
@@ -195,6 +213,54 @@ export default class CoapServer implements ProtocolServer {
             }
             resolve(removedThing !== undefined);
         });
+    }
+
+    private formatCoreLinkFormatResources() {
+        return Array.from(this.coreResources.values())
+            .map((resource) => {
+                const formattedPath = `</${resource.urlPath}>`;
+                const parameters = Array.from(resource.parameters?.entries() ?? []);
+
+                const parameterValues = parameters.map((parameter) => {
+                    const key = parameter[0];
+                    const values = parameter[1].join(" ");
+                    return `${key}="${values}"`;
+                });
+
+                return [formattedPath, ...parameterValues].join(";");
+            })
+            .join("");
+    }
+
+    private handleWellKnownCore(req: IncomingMessage, res: OutgoingMessage) {
+        if (req.method === "GET") {
+            res.setOption("Content-Format", "application/link-format");
+            res.code = "2.05";
+            const payload = this.formatCoreLinkFormatResources();
+            res.end(payload);
+        } else {
+            res.code = "4.05";
+            res.end("Method Not Allowed");
+        }
+    }
+
+    private negotiateContentFormat(
+        req: IncomingMessage,
+        res: OutgoingMessage,
+        availableContentFormats: string[],
+        defaultContentFormat: string
+    ) {
+        const accept = req.headers.Accept;
+
+        if (typeof accept === "string" && availableContentFormats.includes(accept)) {
+            debug(`Received available Content-Format ${accept} in Accept option.`);
+            res.setHeader("Content-Format", accept);
+            return;
+        }
+
+        debug("Request did not contain an accept option or Content-Format is not supported.");
+
+        res.setHeader("Content-Format", defaultContentFormat);
     }
 
     private async handleRequest(req: IncomingMessage, res: OutgoingMessage) {
@@ -265,6 +331,9 @@ export default class CoapServer implements ProtocolServer {
             }
             // resource found and response sent
             return;
+        } else if (parsedRequestUri === "/.well-known/core") {
+            this.handleWellKnownCore(req, res);
+            return;
         } else {
             // path -> select Thing
             const thing = this.things.get(segments[1]);
@@ -272,7 +341,12 @@ export default class CoapServer implements ProtocolServer {
                 if (segments.length === 2 || segments[2] === "") {
                     // Thing root -> send TD
                     if (req.method === "GET") {
-                        res.setOption("Content-Format", ContentSerdes.TD);
+                        this.negotiateContentFormat(
+                            req,
+                            res,
+                            [ContentSerdes.DEFAULT, ContentSerdes.TD],
+                            ContentSerdes.TD
+                        );
                         res.code = "2.05";
                         res.end(JSON.stringify(thing.getThingDescription()));
                     } else {

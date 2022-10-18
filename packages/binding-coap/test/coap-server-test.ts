@@ -25,6 +25,8 @@ import * as TD from "@node-wot/td-tools";
 import CoapServer from "../src/coap-server";
 import { CoapClient } from "../src/coap";
 import { Readable } from "stream";
+import { request } from "coap";
+
 // should must be called to augment all variables
 should();
 
@@ -250,5 +252,67 @@ class CoapServerTest {
         expect((await ProtocolHelpers.readStreamFully(resp.body)).toString()).to.equal('"testValue"');
 
         return coapServer.stop();
+    }
+
+    @test async "should support /.well-known/core"() {
+        const portNumber = 9001;
+        const coapServer = new CoapServer(portNumber);
+
+        await coapServer.start(null);
+
+        const testThing = new ExposedThing(null, {
+            title: "Test",
+        });
+
+        await coapServer.expose(testThing);
+
+        const uri = `coap://localhost:${coapServer.getPort()}/.well-known/core`;
+
+        const coapClient = new CoapClient(coapServer);
+        const resp = await coapClient.readResource(new TD.Form(uri));
+        expect((await ProtocolHelpers.readStreamFully(resp.body)).toString()).to.equal(
+            '</test>;rt="wot.thing";ct="50 432"'
+        );
+
+        return coapServer.stop();
+    }
+
+    @test async "should support TD Content-Format negotiation"() {
+        const portNumber = 5683;
+        const coapServer = new CoapServer(portNumber);
+
+        await coapServer.start(null);
+
+        const testThing = new ExposedThing(null, {
+            title: "Test",
+        });
+
+        await coapServer.expose(testThing);
+
+        const uri = `coap://localhost:${coapServer.getPort()}/test`;
+        let responseCounter = 0;
+
+        const defaultContentFormat = "application/td+json";
+        const unsupportedContentFormat = "application/cbor";
+        const contentFormats = [defaultContentFormat, "application/json", unsupportedContentFormat];
+
+        for (const contentFormat of contentFormats) {
+            const req = request(uri);
+            req.setHeader("Accept", contentFormat);
+            req.on("response", (res) => {
+                const requestContentFormat = res.headers["Content-Format"];
+
+                if (contentFormat === unsupportedContentFormat) {
+                    expect(requestContentFormat).to.equal(defaultContentFormat);
+                } else {
+                    expect(requestContentFormat).to.equal(contentFormat);
+                }
+
+                if (++responseCounter >= contentFormats.length) {
+                    coapServer.stop();
+                }
+            });
+            req.end();
+        }
     }
 }
