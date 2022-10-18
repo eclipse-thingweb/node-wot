@@ -229,7 +229,7 @@ export default class CoapServer implements ProtocolServer {
 
                 return [formattedPath, ...parameterValues].join(";");
             })
-            .join("");
+            .join(",");
     }
 
     private handleWellKnownCore(req: IncomingMessage, res: OutgoingMessage) {
