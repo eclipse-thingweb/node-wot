@@ -25,7 +25,7 @@ import * as TD from "@node-wot/td-tools";
 import CoapServer from "../src/coap-server";
 import { CoapClient } from "../src/coap";
 import { Readable } from "stream";
-import { request } from "coap";
+import { IncomingMessage, request } from "coap";
 
 // should must be called to augment all variables
 should();
@@ -297,19 +297,32 @@ class CoapServerTest {
         let responseCounter = 0;
 
         const defaultContentFormat = "application/td+json";
-        const unsupportedContentFormat = "application/cbor";
-        const contentFormats = [defaultContentFormat, "application/json", unsupportedContentFormat];
+        const unsupportedContentFormat = "application/foobar";
+        const contentFormats = [
+            defaultContentFormat,
+            "application/json",
+            "application/xml",
+            unsupportedContentFormat,
+            null,
+        ];
 
         for (const contentFormat of contentFormats) {
             const req = request(uri);
-            req.setHeader("Accept", contentFormat);
-            req.on("response", (res) => {
+
+            if (contentFormat != null) {
+                req.setHeader("Accept", contentFormat);
+            }
+
+            req.on("response", (res: IncomingMessage) => {
                 const requestContentFormat = res.headers["Content-Format"];
 
                 if (contentFormat === unsupportedContentFormat) {
-                    expect(requestContentFormat).to.equal(defaultContentFormat);
+                    expect(res.code).to.equal("4.06");
+                    expect(res.payload.toString()).to.equal(
+                        `Content-Format ${unsupportedContentFormat} is not supported by this resource.`
+                    );
                 } else {
-                    expect(requestContentFormat).to.equal(contentFormat);
+                    expect(requestContentFormat).to.equal(contentFormat ?? defaultContentFormat);
                 }
 
                 if (++responseCounter >= contentFormats.length) {
