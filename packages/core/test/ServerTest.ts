@@ -24,12 +24,12 @@ import { suite, test } from "@testdeck/mocha";
 import { expect, should, use as chaiUse, spy } from "chai";
 import spies from "chai-spies";
 import Servient from "../src/servient";
-import { Content, ProtocolServer } from "../src/protocol-interfaces";
+import { Content } from "../src/content";
+import { ProtocolServer } from "../src/protocol-interfaces";
 import ExposedThing from "../src/exposed-thing";
 import { Readable } from "stream";
 import { InteractionInput, InteractionOptions, InteractionOutput } from "wot-typescript-definitions";
 import chaiAsPromised from "chai-as-promised";
-import ProtocolHelpers from "../src/protocol-helpers";
 import { createLoggers } from "../src/core";
 
 const { debug } = createLoggers("core", "ServerTest");
@@ -868,11 +868,9 @@ class WoTServerTest {
         });
         thing.setPropertyWriteHandler("test", callback);
 
-        await (<ExposedThing>thing).handleWriteProperty(
-            "test",
-            { type: "", body: Readable.from(Buffer.alloc(0)) },
-            { formIndex: 0 }
-        );
+        await (<ExposedThing>thing).handleWriteProperty("test", new Content("", Readable.from(Buffer.alloc(0))), {
+            formIndex: 0,
+        });
 
         callback.should.have.been.called();
     }
@@ -903,7 +901,7 @@ class WoTServerTest {
             // eslint-disable-next-line no-unused-expressions
             expect(content.body).not.to.be.undefined;
 
-            const body = await ProtocolHelpers.readStreamFully(content.body);
+            const body = await content.toBuffer();
             body.should.be.eq('"test"');
         });
 
@@ -1017,7 +1015,7 @@ class WoTServerTest {
 
         await (<ExposedThing>thing).handleInvokeAction(
             "test",
-            { type: "application/json", body: Readable.from(Buffer.from("ping")) },
+            new Content("application/json", Readable.from(Buffer.from("ping"))),
             { formIndex: 0 }
         );
 

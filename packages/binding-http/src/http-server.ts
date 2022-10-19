@@ -679,7 +679,7 @@ export default class HttpServer implements ProtocolServer {
                                     const recordResponse: Record<string, unknown> = {};
                                     for (const key of propMap.keys()) {
                                         const content: Content = propMap.get(key);
-                                        const data = await ProtocolHelpers.readStreamFully(content.body);
+                                        const data = await content.toBuffer();
                                         recordResponse[key] = data.toString();
                                     }
                                     res.end(JSON.stringify(recordResponse));
@@ -772,7 +772,7 @@ export default class HttpServer implements ProtocolServer {
                                         try {
                                             await thing.handleWriteProperty(
                                                 segments[3],
-                                                { body: req, type: contentType },
+                                                new Content(contentType, req),
                                                 options
                                             );
                                             res.writeHead(204);
@@ -821,7 +821,7 @@ export default class HttpServer implements ProtocolServer {
                                 try {
                                     const output = await thing.handleInvokeAction(
                                         segments[3],
-                                        { body: req, type: contentType },
+                                        new Content(contentType, req),
                                         options
                                     );
                                     if (output) {

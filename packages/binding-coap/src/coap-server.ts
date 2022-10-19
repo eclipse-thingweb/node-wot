@@ -442,7 +442,7 @@ export default class CoapServer implements ProtocolServer {
                                     };
                                     await thing.handleWriteProperty(
                                         segments[3],
-                                        { body: Readable.from(req.payload), type: contentType },
+                                        new Content(contentType, Readable.from(req.payload)),
                                         options
                                     );
                                     res.code = "2.04";
@@ -492,7 +492,7 @@ export default class CoapServer implements ProtocolServer {
                             try {
                                 const output = await thing.handleInvokeAction(
                                     segments[3],
-                                    { body: Readable.from(req.payload), type: contentType },
+                                    new Content(contentType, Readable.from(req.payload)),
                                     options
                                 );
                                 if (output) {

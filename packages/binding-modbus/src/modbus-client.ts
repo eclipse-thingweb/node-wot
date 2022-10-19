@@ -17,7 +17,7 @@
  */
 import { ModbusForm, ModbusFunction, ModbusEndianness } from "./modbus";
 
-import { ProtocolClient, Content, ContentSerdes, ProtocolHelpers, createDebugLogger } from "@node-wot/core";
+import { ProtocolClient, Content, DefaultContent, createDebugLogger } from "@node-wot/core";
 import { SecurityScheme } from "@node-wot/td-tools";
 import { modbusFunctionToEntity } from "./utils";
 import { ModbusConnection, PropertyOperation } from "./modbus-connection";
@@ -87,7 +87,7 @@ export default class ModbusClient implements ProtocolClient {
         await this.performOperation(form, content);
 
         // As mqtt there is no response
-        return { type: ContentSerdes.DEFAULT, body: Readable.from("") };
+        return new DefaultContent(Readable.from(""));
     }
 
     unlinkResource(form: ModbusForm): Promise<void> {
@@ -146,7 +146,7 @@ export default class ModbusClient implements ProtocolClient {
         const port = parsed.port ? parseInt(parsed.port, 10) : DEFAULT_PORT;
         let body;
         if (content) {
-            body = await ProtocolHelpers.readStreamFully(content.body);
+            body = await content.toBuffer();
         }
         form = this.validateAndFillDefaultForm(form, body?.byteLength);
 

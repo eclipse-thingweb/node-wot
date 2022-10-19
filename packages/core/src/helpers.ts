@@ -31,7 +31,6 @@ import * as os from "os";
 import Servient from "./servient";
 import * as TD from "@node-wot/td-tools";
 import { ContentSerdes } from "./content-serdes";
-import { ProtocolHelpers } from "./core";
 import Ajv, { ValidateFunction, ErrorObject } from "ajv";
 import TDSchema from "wot-thing-description-types/schema/td-json-schema-validation.json";
 import { DataSchemaValue, ExposedThingInit } from "wot-typescript-definitions";
@@ -164,7 +163,7 @@ export default class Helpers implements Resolver {
                         warn(`WoTImpl received TD with media type '${content.type}' from ${uri}`);
                     }
 
-                    const td = (await ProtocolHelpers.readStreamFully(content.body)).toString("utf-8");
+                    const td = (await content.toBuffer()).toString("utf-8");
 
                     try {
                         const jo = JSON.parse(td);

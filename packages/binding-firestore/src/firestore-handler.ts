@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { Content, ProtocolHelpers, createLoggers } from "@node-wot/core";
+import { Content, createLoggers } from "@node-wot/core";
 import Firebase from "firebase/compat/app";
 import "firebase/compat/auth";
 import "firebase/compat/firestore";
@@ -84,7 +84,7 @@ export const writeDataToFirestore = async (
     const data = { updatedTime: Date.now(), reqId, content: "" };
     if (content && content.body) {
         if (content.body instanceof Readable) {
-            const body = await ProtocolHelpers.readStreamFully(content.body);
+            const body = await content.toBuffer();
             const contentForWrite = { type: content.type, body };
             data.content = JSON.stringify(contentForWrite);
         } else {
@@ -122,13 +122,10 @@ export const readDataFromFirestore = async (firestore: Firestore, topic: string)
                 if (!obj) {
                     throw new Error(`invalid ${topic} content:${content}`);
                 }
-                content = {
-                    type: obj.type,
-                    body:
-                        obj && obj.body && obj.body.type === "Buffer"
-                            ? Readable.from(obj.body.data)
-                            : Readable.from(""),
-                };
+                content = new Content(
+                    obj.type,
+                    obj && obj.body && obj.body.type === "Buffer" ? Readable.from(obj.body.data) : Readable.from("")
+                );
             }
             return content;
         } else {
@@ -181,10 +178,7 @@ export const subscribeToFirestore = async (
                     return;
                 }
                 const buf = Buffer.from(obj?.body?.data || []);
-                content = {
-                    type: obj.type,
-                    body: obj?.body?.type === "Buffer" ? Readable.from(buf) : Readable.from(""),
-                };
+                content = new Content(obj.type, obj?.body?.type === "Buffer" ? Readable.from(buf) : Readable.from(""));
             }
             callback(null, content, reqId);
         },

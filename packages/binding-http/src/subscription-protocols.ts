@@ -69,7 +69,7 @@ export class LongPollingSubscription implements InternalSubscription {
                         // in browsers node-fetch uses the native fetch, which returns a ReadableStream
                         // not complaint with node. Therefore we have to force the conversion here.
                         const body = ProtocolHelpers.toNodeStream(result.body as Readable);
-                        next({ type: result.headers.get("content-type"), body });
+                        next(new Content(result.headers.get("content-type"), body));
                         polling(false);
                     }
 
@@ -111,7 +111,7 @@ export class SSESubscription implements InternalSubscription {
             };
             this.eventSource.onmessage = (event) => {
                 debug(`HttpClient received ${JSON.stringify(event)} from ${this.form.href}`);
-                const output = { type: this.form.contentType, body: Readable.from(JSON.stringify(event)) };
+                const output = new Content(this.form.contentType, Readable.from(JSON.stringify(event)));
                 next(output);
             };
             this.eventSource.onerror = function (event) {

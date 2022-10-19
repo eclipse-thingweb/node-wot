@@ -15,7 +15,7 @@
 import Ajv from "ajv/dist/core";
 import { expect } from "chai";
 
-import { ContentSerdes, ProtocolHelpers, createLoggers } from "@node-wot/core";
+import { ContentSerdes, createLoggers } from "@node-wot/core";
 
 import { VariableIds, OPCUAServer } from "node-opcua";
 
@@ -99,7 +99,7 @@ describe("OPCUA Client", function () {
             };
 
             const content = await client.readResource(readForm);
-            const content2 = { ...content, body: await ProtocolHelpers.readStreamFully(content.body) };
+            const content2 = { ...content, body: await content.toBuffer() };
 
             debug(`readResource returned: ${content2.body.toString("ascii")}`);
 
@@ -179,7 +179,7 @@ describe("OPCUA Client", function () {
 
         const contentResult = await client.invokeResource(form, content);
 
-        const contentResult2 = { ...contentResult, body: await ProtocolHelpers.readStreamFully(contentResult.body) };
+        const contentResult2 = { ...contentResult, body: await contentResult.toBuffer() };
         const codecSerDes = ContentSerdes.get();
         const outputArguments = codecSerDes.contentToValue(contentResult2, schemaDataValue);
         debug(`Y4: outputArguments: ${outputArguments}`);

@@ -23,7 +23,7 @@ import * as chai from "chai";
 import fetch from "node-fetch";
 
 import HttpServer from "../src/http-server";
-import { Content, createLoggers, ExposedThing, Helpers, ProtocolHelpers } from "@node-wot/core";
+import { Content, createLoggers, ExposedThing, Helpers } from "@node-wot/core";
 import { DataSchemaValue, InteractionInput, InteractionOptions } from "wot-typescript-definitions";
 import chaiAsPromised from "chai-as-promised";
 import { Readable } from "stream";
@@ -123,7 +123,7 @@ class HttpServerTest {
         testThing.handleSubscribeEvent(
             "eventTest",
             async (input: Content) => {
-                const data = await ProtocolHelpers.readStreamFully(input.body);
+                const data = await input.toBuffer();
                 expect(data.toString()).to.equal("'test''");
             },
             { formIndex: 0 }
@@ -132,10 +132,7 @@ class HttpServerTest {
 
         await testThing.handleWriteProperty(
             "test",
-            {
-                type: "text/plain",
-                body: Readable.from(Buffer.from("off", "utf-8")),
-            },
+            new Content("text/plain", Readable.from(Buffer.from("off", "utf-8"))),
             { formIndex: 0 }
         );
 

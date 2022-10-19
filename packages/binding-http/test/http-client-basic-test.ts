@@ -18,7 +18,6 @@ import express from "express";
 import { HttpClient } from "../src/http";
 import * as https from "https";
 import { BasicSecurityScheme } from "@node-wot/td-tools";
-import { ProtocolHelpers } from "@node-wot/core";
 import * as chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { fail } from "assert";
@@ -98,7 +97,7 @@ class HttpClientBasicTest {
         const resource = await this.client.readResource({
             href: "https://127.0.0.1:3001",
         });
-        const body = await ProtocolHelpers.readStreamFully(resource.body);
+        const body = await resource.toBuffer();
         body.toString("ascii").should.eql("Access granted");
     }
 
