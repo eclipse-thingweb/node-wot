@@ -260,18 +260,22 @@ class CoapServerTest {
 
         await coapServer.start(null);
 
-        const testThing = new ExposedThing(null, {
-            title: "Test",
-        });
+        const testTitles = ["Test1", "Test2"];
 
-        await coapServer.expose(testThing);
+        for (const title of testTitles) {
+            const thing = new ExposedThing(null, {
+                title,
+            });
+
+            await coapServer.expose(thing);
+        }
 
         const uri = `coap://localhost:${coapServer.getPort()}/.well-known/core`;
 
         const coapClient = new CoapClient(coapServer);
         const resp = await coapClient.readResource(new TD.Form(uri));
         expect((await ProtocolHelpers.readStreamFully(resp.body)).toString()).to.equal(
-            '</test>;rt="wot.thing";ct="50 432"'
+            '</test1>;rt="wot.thing";ct="50 432",</test2>;rt="wot.thing";ct="50 432"'
         );
 
         return coapServer.stop();
