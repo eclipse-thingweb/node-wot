@@ -271,7 +271,7 @@ export default class HttpServer implements ProtocolServer {
                 }
             }
             if (removedThing) {
-                info(`HttpServer succesfully destroyed '${removedThing.title}'`);
+                info(`HttpServer successfully destroyed '${removedThing.title}'`);
             } else {
                 info(`HttpServer failed to destroy thing with thingId '${thingId}'`);
             }
