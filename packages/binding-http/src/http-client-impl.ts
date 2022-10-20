@@ -295,7 +295,7 @@ export default class HttpClient implements ProtocolClient {
                     basicCredential.username === undefined ||
                     basicCredential.password === undefined
                 ) {
-                    throw new Error(`No Basic credentionals for Thing`);
+                    throw new Error(`No Basic credentials for Thing`);
                 }
 
                 this.proxyRequest.headers.set(
@@ -305,7 +305,7 @@ export default class HttpClient implements ProtocolClient {
             } else if (security.scheme === "bearer") {
                 const tokenCredentials: BearerCredentialConfiguration = credentials as BearerCredentialConfiguration;
                 if (credentials === undefined || tokenCredentials.token === undefined) {
-                    throw new Error(`No Bearer credentionals for Thing`);
+                    throw new Error(`No Bearer credentials for Thing`);
                 }
                 this.proxyRequest.headers.set("proxy-authorization", "Bearer " + tokenCredentials.token);
             }
