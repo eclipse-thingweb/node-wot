@@ -406,11 +406,11 @@ Logging in node-wot is implemented via the [`debug`](https://www.npmjs.com/packa
 This allows users to enable log messages for specific logging levels (`info`, `debug`, `warn`, or `error`) or packages.
 Which log messages are emitted is controlled by the `DEBUG` environment variable.
 
-#### Examples
-
 In the following, we will show a couple of examples for its usage using wildcard characters (`*`).
 Note, however, that the syntax for setting an environment variable depends on your operating system and the terminal you use.
 See the `debug` documentation linked above for more details on platform-specific differences.
+
+#### Examples
 
 First, you can enable all log messages by setting `DEBUG` to a wildcard like so:
 
