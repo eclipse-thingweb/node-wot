@@ -402,14 +402,69 @@ To learn by examples, see `examples/scripts` to have a feeling of how to script 
 
 ### Logging
 
-We used to have a node-wot-logger package to allow fine-grained logging (by means of Winston). It turned out though that depending on the actual use-case other logging libraries might be better suited. Hence we do not want to prescribe which logging library to use. Having said that, we use console statements which can be easily overriden to use the prefered logging library if needed (see [here](https://gist.github.com/spmason/1670196)).
+Logging in node-wot is implemented via the [`debug`](https://www.npmjs.com/package/debug) package.
+This allows users to enable log messages for specific logging levels (`info`, `debug`, `warn`, or `error`) or packages.
+Which log messages are emitted is controlled by the `DEBUG` environment variable.
 
-The logs in the library follows those best practice rules (see [here](https://github.com/eclipse/thingweb.node-wot/issues/229)):
+#### Examples
 
-1. Tag log messages with the package as following: `console.debug("[package-name]", "log message)`. This is useful to identify which package generated the log.
-2. Avoid to use `info` and `log` in packages other than the cli package.
+In the following, we will show a couple of examples for its usage using wildcard characters (`*`).
+Note, however, that the syntax for setting an environment variable depends on your operating system and the terminal you use.
+See the `debug` documentation linked above for more details on platform-specific differences.
 
-Please follows these rules if you are going to contribute to node-wot library.
+First, you can enable all log messages by setting `DEBUG` to a wildcard like so:
+
+```sh
+DEBUG=* npm start
+```
+
+To only show `node-wot`-specific logging messages, prefix the wildcard with `node-wot`:
+
+```sh
+DEBUG=node-wot* npm start
+```
+
+To only show a specific log level, use one of `info`, `debug`, `warn`, or `error` as the suffix.
+Note in this context that you can provide multiple values for `DEBUG`.
+For example, if you want to show only `debug` and `info` messages, you can use the following:
+
+```sh
+DEBUG='*debug,*info' npm start
+```
+
+Finally, you can choose to only display log messages from a specific `node-wot` package.
+For example, if you only want to see log messages for the `core` package, use the following:
+
+```sh
+DEBUG=node-wot:core* npm start
+```
+
+Using the log levels above, you can also apply more fine-grained parameters for logging.
+For instance, if you only want to see `error` messages from the `binding-coap` package, use this:
+
+```sh
+DEBUG=node-wot:binding-coap*debug npm start
+```
+
+#### Adding logging functionality to a package
+
+If you are contributing a new binding, please use the `createLoggers` function from the `core` package for adding logging functionality to your package.
+The function accepts an arbitrary number of arguments that will be mapped to `debug` namespaces.
+In the example below, the `createLoggers` function will map its arguments `binding-foo` and `foo-server` to the namespace `node-wot:binding-foo:foo-server`.
+The resulting functions `debug`, `info`, `warn`, and `error` will append their log-level to this namespace when creating the actual log message.
+This enables filtering as described in the section before.
+
+```ts
+import { createLoggers } from "@node-wot/core";
+const { debug, info, warn, error } = createLoggers("binding-foo", "foo-server");
+
+function startFoo() {
+    info("This is an info message!");
+    debug("This is a debug message!");
+    warn("This is a warn message!");
+    error("This is an error message!");
+}
+```
 
 ### Install new/different versions of NodeJS
 
