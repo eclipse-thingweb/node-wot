@@ -408,7 +408,7 @@ Which log messages are emitted is controlled by the `DEBUG` environment variable
 
 In the following, we will show a couple of examples for its usage using wildcard characters (`*`).
 Note, however, that the syntax for setting an environment variable depends on your operating system and the terminal you use.
-See the `debug` documentation linked above for more details on platform-specific differences.
+See the [`debug` documentation](https://www.npmjs.com/package/debug) for more details on platform-specific differences.
 
 #### Examples
 
