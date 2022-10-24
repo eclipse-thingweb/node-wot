@@ -443,7 +443,7 @@ Using the log levels above, you can also apply more fine-grained parameters for 
 For instance, if you only want to see `error` messages from the `binding-coap` package, use this:
 
 ```sh
-DEBUG=node-wot:binding-coap*debug npm start
+DEBUG=node-wot:binding-coap*error npm start
 ```
 
 #### Adding logging functionality to a package
