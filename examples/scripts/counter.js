@@ -109,6 +109,9 @@ WoT.produce({
                 de: "Zähler erhöhen",
                 it: "incrementare valore",
             },
+            uriVariables: {
+                step: { type: "number" },
+            },
         },
         decrement: {
             description: "Decrementing counter value",
@@ -116,6 +119,9 @@ WoT.produce({
                 en: "Decrementing counter value",
                 de: "Zähler verringern",
                 it: "decrementare valore",
+            },
+            uriVariables: {
+                step: { type: "number" },
             },
         },
         reset: {
