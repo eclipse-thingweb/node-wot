@@ -30,6 +30,7 @@ import * as os from "os";
 // imports for fetchTD
 import Servient from "./servient";
 import * as TD from "@node-wot/td-tools";
+import * as TDT from "wot-thing-description-types";
 import { ContentSerdes } from "./content-serdes";
 import { ProtocolHelpers } from "./core";
 import Ajv, { ValidateFunction, ErrorObject } from "ajv";
@@ -277,7 +278,7 @@ export default class Helpers implements Resolver {
      * @returns resulting InteractionOptions
      */
     public static parseInteractionOptions(
-        thing: TD.Thing,
+        thing: TDT.ThingDescription,
         ti: ThingInteraction,
         options?: WoT.InteractionOptions
     ): WoT.InteractionOptions {
@@ -295,6 +296,8 @@ export default class Helpers implements Resolver {
             const entryVariables = Object.entries(options.uriVariables);
             entryVariables.forEach((entry: [string, unknown]) => {
                 if (entry[0] in interactionUriVariables) {
+                    uriVariables[entry[0]] = entry[1];
+                } else if (entry[0] in thingUriVariables) {
                     uriVariables[entry[0]] = entry[1];
                 }
             });
