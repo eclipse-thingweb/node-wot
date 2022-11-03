@@ -410,8 +410,6 @@ In the following, we will show a couple of examples for its usage using wildcard
 Note, however, that the syntax for setting an environment variable depends on your operating system and the terminal you use.
 See the [`debug` documentation](https://www.npmjs.com/package/debug) for more details on platform-specific differences.
 
-#### Examples
-
 First, you can enable all log messages by setting `DEBUG` to a wildcard like so:
 
 ```sh
@@ -444,26 +442,6 @@ For instance, if you only want to see `error` messages from the `binding-coap` p
 
 ```sh
 DEBUG=node-wot:binding-coap*error npm start
-```
-
-#### Adding logging functionality to a package
-
-If you are contributing a new binding, please use the `createLoggers` function from the `core` package for adding logging functionality to your package.
-The function accepts an arbitrary number of arguments that will be mapped to `debug` namespaces.
-In the example below, the `createLoggers` function will map its arguments `binding-foo` and `foo-server` to the namespace `node-wot:binding-foo:foo-server`.
-The resulting functions `debug`, `info`, `warn`, and `error` will append their log-level to this namespace when creating the actual log message.
-This enables filtering as described in the section before.
-
-```ts
-import { createLoggers } from "@node-wot/core";
-const { debug, info, warn, error } = createLoggers("binding-foo", "foo-server");
-
-function startFoo() {
-    info("This is an info message!");
-    debug("This is a debug message!");
-    warn("This is a warn message!");
-    error("This is an error message!");
-}
 ```
 
 ### Install new/different versions of NodeJS
