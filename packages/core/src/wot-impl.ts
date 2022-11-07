@@ -43,7 +43,11 @@ class ThingDiscovery {
         // FIXME: application/td+json can't be handled at the moment
 
         const value = ContentManager.contentToValue({ type: "application/json", body: data }, {});
-        return new Promise<ThingDescription>((resolve) => resolve(value as ThingDescription));
+        if (value instanceof Object) {
+            return value as ThingDescription;
+        }
+
+        throw Error(`Could not parse Thing Description obtained from ${url}`);
     }
 
     // Alternative approach.
