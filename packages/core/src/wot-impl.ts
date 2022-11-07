@@ -27,7 +27,6 @@ import ProtocolHelpers from "./protocol-helpers";
 const { debug } = createLoggers("core", "wot-impl");
 
 class ThingDiscovery {
-
     private servient: Servient;
     constructor(servient: Servient) {
         this.servient = servient;
