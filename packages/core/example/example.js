@@ -14,11 +14,13 @@ async function discover() {
     const coapUrl = "coap://plugfest.thingweb.io:5683/smart-coffee-machine";
 
     for (const url of [httpUrl, coapUrl]) {
-        for await (const td of wot.discover({
-            url,
-            method: "direct",
-        })) {
-            console.log(td);
+        console.log(await wot.discovery.direct(url));
+    }
+
+    // Alternative approach
+    for (const url of [httpUrl, coapUrl]) {
+        for await (const result of wot.discovery.directIterator(url)) {
+            console.log(result);
         }
     }
 }

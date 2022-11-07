@@ -26,47 +26,48 @@ import ProtocolHelpers from "./protocol-helpers";
 
 const { debug } = createLoggers("core", "wot-impl");
 
-class ThingDiscoveryImpl implements AsyncIterable<ThingDescription> {
-    filter: WoT.ThingFilter;
-
-    active = true;
+class ThingDiscovery {
 
     private servient: Servient;
-
-    constructor(filter: WoT.ThingFilter, servient: Servient) {
-        this.filter = filter;
+    constructor(servient: Servient) {
         this.servient = servient;
     }
 
-    async *[Symbol.asyncIterator](): AsyncIterator<ThingDescription> {
-        switch (this.filter.method) {
-            case "direct": {
-                const url = this.filter.url;
-                if (!this.active || url == null) {
-                    return;
-                }
-                const uriScheme = new URL(url).protocol.split(":")[0];
-                const client = this.servient.getClientFor(uriScheme);
-                const result = await client.discoverDirectly(url);
-                const data = await ProtocolHelpers.readStreamFully(result.body);
+    async direct(url: string, filter?: WoT.ThingFilter): Promise<ThingDescription> {
+        const uriScheme = new URL(url).protocol.split(":")[0];
+        const client = this.servient.getClientFor(uriScheme);
+        const result = await client.discoverDirectly(url);
+        const data = await ProtocolHelpers.readStreamFully(result.body);
 
-                // TODO: Add TD validation
-                // FIXME: application/td+json can't be handled at the moment
+        // TODO: Add TD validation
+        // FIXME: application/td+json can't be handled at the moment
 
-                const value = ContentManager.contentToValue({ type: "application/json", body: data }, {});
-                this.active = false;
-                yield new Promise<ThingDescription>((resolve) => resolve(value as ThingDescription));
-                break;
-            }
-            default:
-                throw Error("Only the direct discovery method has been implemented yet.");
+        const value = ContentManager.contentToValue({ type: "application/json", body: data }, {});
+        return new Promise<ThingDescription>((resolve) => resolve(value as ThingDescription));
+    }
+
+    // Alternative approach.
+    async *directIterator(url: string, filter?: WoT.ThingFilter): AsyncGenerator<ThingDescription> {
+        const uriScheme = new URL(url).protocol.split(":")[0];
+        const client = this.servient.getClientFor(uriScheme);
+        const result = await client.discoverDirectly(url);
+        const data = await ProtocolHelpers.readStreamFully(result.body);
+
+        // TODO: Add TD validation
+        // FIXME: application/td+json can't be handled at the moment
+
+        const value = ContentManager.contentToValue({ type: "application/json", body: data }, {});
+
+        if (value instanceof Object) {
+            yield value as ThingDescription;
         }
     }
 
-    public stop(): void {
-        this.active = false;
+    async *directory(url: string, filter?: WoT.ThingFilter): AsyncGenerator<ThingDescription> {
+        // Not implemented, do nothing
     }
 }
+
 /**
  * wot-type-definitions does not contain a implementation of Discovery method enums
  * so we need to create them here. Sadly, we should keep this enum in sync with
@@ -85,14 +86,20 @@ export enum DiscoveryMethod {
 
 export default class WoTImpl {
     private srv: Servient;
+    DiscoveryMethod: typeof WoT.DiscoveryMethod;
+
+    discovery: ThingDiscovery;
+
     constructor(srv: Servient) {
         this.srv = srv;
+        // force casting cause tsc does not allow to use DiscoveryMethod as WoT.DiscoveryMethod even if they are the same
+        this.DiscoveryMethod = DiscoveryMethod as unknown as typeof WoT.DiscoveryMethod;
+
+        this.discovery = new ThingDiscovery(srv);
     }
 
-    /** @inheritDoc */
     discover(filter?: WoT.ThingFilter): WoT.ThingDiscovery {
-        // TODO: Should filter really be nullable?
-        return new ThingDiscoveryImpl(filter as any, this.srv) as unknown as WoT.ThingDiscovery;
+        throw new Error("REMOVE ME.");
     }
 
     /** @inheritDoc */
