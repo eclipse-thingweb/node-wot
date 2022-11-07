@@ -29,8 +29,8 @@ export default class WebSocketClient implements ProtocolClient {
         // TODO: implement and remove eslint-ignore-useless-constructor
     }
 
-    discoverDirectly(uri: string): Promise<Content> {
-        return Promise.reject(new Error("Method not implemented."));
+    async discoverDirectly(uri: string): Promise<Content> {
+        throw new Error("Method not implemented.");
     }
 
     public toString(): string {

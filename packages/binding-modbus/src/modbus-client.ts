@@ -310,7 +310,7 @@ export default class ModbusClient implements ProtocolClient {
         return result as ModbusFormWithDefaults;
     }
 
-    discoverDirectly(uri: string): Promise<Content> {
-        return Promise.reject(new Error("Method not implemented."));
+    async discoverDirectly(uri: string): Promise<Content> {
+        throw new Error("Method not implemented.");
     }
 }

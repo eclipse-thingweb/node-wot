@@ -176,7 +176,7 @@ export default class NetconfClient implements ProtocolClient {
         return true;
     }
 
-    discoverDirectly(uri: string): Promise<Content> {
-        return Promise.reject(new Error("Method not implemented."));
+    async discoverDirectly(uri: string): Promise<Content> {
+        throw new Error("Method not implemented.");
     }
 }
