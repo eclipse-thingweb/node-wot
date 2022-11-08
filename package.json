@@ -37,7 +37,7 @@
     "workspaces": [
         "./packages/td-tools",
         "./packages/core",
-        "./packages/binding-!(firestore-browser-bundle)",
+        "./packages/binding-!(firestore-browser-bundle|firestore)",
         "./packages/cli",
         "./packages/examples",
         "./packages/browser-bundle"
