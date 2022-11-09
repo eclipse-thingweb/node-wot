@@ -19,17 +19,6 @@ jobs:
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "npm"
-
-            - name: Update node-gyp
-              if: matrix.os == 'windows-latest'
-              # if: runner.os == 'Windows'
-              run: |
-                  $WhereNode = Get-Command node | Select-Object -ExpandProperty Definition
-                  $NodeDirPath = Split-Path $WhereNode -Parent
-                  $NodeModulesPath = $NodeDirPath + "\node_modules\npm\node_modules\npm-lifecycle"
-                  cd $NodeModulesPath
-                  npm install node-gyp@8.x
-
             - name: npm 7
               # npm workspaces requires npm v7 or higher
               run: npm i -g npm@7 --registry=https://registry.npmjs.org
