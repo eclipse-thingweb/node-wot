@@ -21,6 +21,8 @@ jobs:
                   cache: "npm"
 
             - name: Update node-gyp
+              if: matrix.os == 'windows-latest'
+              # if: runner.os == 'Windows'
               run: |
                   $WhereNode = Get-Command node | Select-Object -ExpandProperty Definition
                   $NodeDirPath = Split-Path $WhereNode -Parent
