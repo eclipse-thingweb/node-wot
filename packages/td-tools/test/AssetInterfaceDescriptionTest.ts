@@ -29,5 +29,7 @@ class ThingModelHelperTest {
 
         const tdObj = JSON.parse(td);
         expect(tdObj).to.have.property("@context").that.equals("https://www.w3.org/2022/wot/td/v1.1");
+        expect(tdObj).to.have.property("properties").to.have.property("voltage");
+        // TODO check forms
     }
 }
