@@ -14,7 +14,7 @@
  ********************************************************************************/
 
 import Thing from "../thing-description";
-// import * as TD from "../thing-description";
+import * as TD from "../thing-description";
 
 /** Utilities around Asset Interface Description
  * https://github.com/admin-shell-io/submodel-templates/tree/main/development/Asset%20Interface%20Description/1/0
@@ -41,16 +41,45 @@ const TD_TEMPLATE = `{
  *
  */
 
+interface AASInteraction {
+    endpointMetadata?: Record<string, unknown>;
+    interaction: Record<string, unknown>;
+}
+
 export class AssetInterfaceDescriptionUtil {
     // TODO allow to set options
+
+    private getBaseFromEndpointMetadata(endpointMetadata?: Record<string, unknown>): string {
+        if (endpointMetadata?.value && endpointMetadata.value instanceof Array) {
+            for (const v of endpointMetadata.value) {
+                if (v.idShort === "base") {
+                    // e.g., "value": "modbus+tcp://192.168.1.187:502"
+                    return v.value;
+                }
+            }
+        }
+        return "undefined"; // TODO what is teh right value if setting cannot be found
+    }
+
+    private getContentTypeFromEndpointMetadata(endpointMetadata?: Record<string, unknown>): string {
+        if (endpointMetadata?.value && endpointMetadata.value instanceof Array) {
+            for (const v of endpointMetadata.value) {
+                if (v.idShort === "contentType") {
+                    // e.g., "value": "application/octet-stream;byteSeq=BIG_ENDIAN"
+                    return v.value;
+                }
+            }
+        }
+        return ""; // TODO what is the right value if setting cannot be found
+    }
 
     public transformToTD(aid: string): string {
         const thing: Thing = JSON.parse(TD_TEMPLATE);
         const aidModel = JSON.parse(aid);
 
-        const properties: Map<string, Array<unknown>> = new Map<string, Array<unknown>>();
-        const actions: Map<string, Array<unknown>> = new Map<string, Array<unknown>>();
-        const events: Map<string, Array<unknown>> = new Map<string, Array<unknown>>();
+        const properties: Map<string, Array<AASInteraction>> = new Map<string, Array<AASInteraction>>();
+        const actions: Map<string, Array<AASInteraction>> = new Map<string, Array<AASInteraction>>();
+        const events: Map<string, Array<AASInteraction>> = new Map<string, Array<AASInteraction>>();
 
         if (aidModel instanceof Object && aidModel.submodels) {
             if (aidModel.submodels instanceof Array) {
@@ -64,16 +93,26 @@ export class AssetInterfaceDescriptionUtil {
                         // console.log(submodel);
                         if (submodel.submodelElements && submodel.submodelElements instanceof Array) {
                             for (const submodelElement of submodel.submodelElements) {
-                                console.log("D");
                                 if (submodelElement instanceof Object) {
                                     console.log("\tSubmodelElement.idShort: " + submodelElement.idShort);
+
                                     // EndpointMetadata vs. InterfaceMetadata
                                     if (submodelElement.value && submodelElement.value instanceof Array) {
+                                        // Note: iterate twice ove to collect first EndpointMetadata
+                                        let endpointMetadata: Record<string, unknown> = {};
                                         for (const smValue of submodelElement.value) {
                                             if (smValue instanceof Object) {
                                                 if (smValue.idShort === "EndpointMetadata") {
                                                     console.log("\t\t EndpointMetadata");
-                                                } else if (smValue.idShort === "InterfaceMetadata") {
+                                                    endpointMetadata = smValue;
+                                                    // e.g., idShort: base , contentType, securityDefinitions, alternativeEndpointDescriptor?
+                                                }
+                                            }
+                                        }
+                                        // the 2nd time look for InterfaceMetadata that *need* EndpointMetadata
+                                        for (const smValue of submodelElement.value) {
+                                            if (smValue instanceof Object) {
+                                                if (smValue.idShort === "InterfaceMetadata") {
                                                     console.log("\t\t InterfaceMetadata");
                                                     if (smValue.value && smValue.value instanceof Array) {
                                                         for (const interactionValue of smValue.value) {
@@ -86,7 +125,11 @@ export class AssetInterfaceDescriptionUtil {
                                                                         if (!properties.has(iValue.idShort)) {
                                                                             properties.set(iValue.idShort, []);
                                                                         }
-                                                                        properties.get(iValue.idShort)?.push(iValue);
+                                                                        const propInter: AASInteraction = {
+                                                                            endpointMetadata: endpointMetadata,
+                                                                            interaction: iValue,
+                                                                        };
+                                                                        properties.get(iValue.idShort)?.push(propInter);
                                                                     }
                                                                 }
                                                             } else if (interactionValue.idShort === "Operations") {
@@ -96,7 +139,11 @@ export class AssetInterfaceDescriptionUtil {
                                                                         if (!actions.has(iValue.idShort)) {
                                                                             actions.set(iValue.idShort, []);
                                                                         }
-                                                                        actions.get(iValue.idShort)?.push(iValue);
+                                                                        const actInter: AASInteraction = {
+                                                                            endpointMetadata: endpointMetadata,
+                                                                            interaction: iValue,
+                                                                        };
+                                                                        actions.get(iValue.idShort)?.push(actInter);
                                                                     }
                                                                 }
                                                             } else if (interactionValue.idShort === "Events") {
@@ -106,7 +153,11 @@ export class AssetInterfaceDescriptionUtil {
                                                                         if (!events.has(iValue.idShort)) {
                                                                             events.set(iValue.idShort, []);
                                                                         }
-                                                                        events.get(iValue.idShort)?.push(iValue);
+                                                                        const evInter: AASInteraction = {
+                                                                            endpointMetadata: endpointMetadata,
+                                                                            interaction: iValue,
+                                                                        };
+                                                                        events.get(iValue.idShort)?.push(evInter);
                                                                     }
                                                                 }
                                                             }
@@ -124,30 +175,87 @@ export class AssetInterfaceDescriptionUtil {
             }
         }
 
+        // add interactions
+        // 1. properties
         console.log("########### PROPERTIES (" + properties.size + ")");
         if (properties.size > 0) {
             thing.properties = {};
 
             for (const entry of properties.entries()) {
                 const key = entry[0];
-                const value: unknown[] = entry[1];
+                const value: AASInteraction[] = entry[1];
                 console.log(key + " = " + value);
 
                 thing.properties[key] = {};
+                thing.properties[key].forms = [];
+
                 for (const vi of value) {
-                    // TODO different protocol
-                    // console.log(vi);
+                    const form: TD.Form = {
+                        href: this.getBaseFromEndpointMetadata(vi.endpointMetadata),
+                        contentType: this.getContentTypeFromEndpointMetadata(vi.endpointMetadata),
+                    };
+                    thing.properties[key].forms.push(form);
+                    if (vi.interaction.value instanceof Array) {
+                        for (const v of vi.interaction.value) {
+                            // Binding HTTP
+                            if (v.idShort === "href") {
+                                if (form.href && form.href.length > 0) {
+                                    form.href = form.href + v.value; // TODO handle leading/trailing slashes
+                                } else {
+                                    form.href = v.value;
+                                }
+                            } else if (v.idShort === "htv:methodName") {
+                                console.log("TODO htv:methodName");
+                            } else if (v.idShort === "contentType") {
+                                console.log("TODO contentType");
+                            } else if (v.idShort === "subprotocol") {
+                                console.log("TODO subprotocol");
+                            } else if (v.idShort === "dataMapping") {
+                                console.log("TODO dataMapping");
+                            }
+                            // Binding Modbus
+                            if (v.idShort === "modbus:function") {
+                                console.log("TODO modbus:function"); // e.g., value": "readHoldingRegisters"
+                            } else if (v.idShort === "modbus:address") {
+                                console.log("TODO modbus:address"); // e.g., "value": "40001"
+                            } else if (v.idShort === "modbus:quantity") {
+                                console.log("TODO modbus:quantity"); // e.g., "value": "2"
+                            }
+                            // OPC
+                            if (v.idShort === "ua:nodeId") {
+                                console.log("TODO ua:nodeId"); // e.g., "value": "\"ns=3;i=29\""
+                            } else if (v.idShort === "ua:expandedNodeId") {
+                                console.log("TODO ua:expandedNodeId"); // e.g.,  "value": " \"nsu=http://example.com/OPCUAServer/energy;i=29\""
+                            } else if (v.idShort === "ua:method") {
+                                console.log("TODO ua:method"); // e.g., "value": "READ"
+                            }
+                            // MQTT
+                            if (v.idShort === "mqv:topic") {
+                                console.log("TODO mqv:topic"); // e.g., "value": "/devices/thing1/properties/voltage"
+                            } else if (v.idShort === "mqv:controlPacket") {
+                                console.log("TODO mqv:controlPacket"); // e.g.,  "value": "mqv:subscribe"
+                            } else if (v.idShort === "mqv:retain") {
+                                console.log("TODO mqv:retain"); // e.g., "value": "true"
+                            }
+
+                            // GENERIC
+                            if (v.idShort === "dataMapping") {
+                                console.log("TODO dataMapping");
+                            }
+                        }
+                    }
                 }
             }
         }
 
+        // 2. actions
         console.log("########### ACTIONS (" + actions.size + ")");
         if (actions.size > 0) {
             thing.actions = {};
 
             for (const entry of actions.entries()) {
                 const key = entry[0];
-                const value: unknown[] = entry[1];
+                const value: AASInteraction[] = entry[1];
                 console.log(key + " = " + value);
 
                 thing.actions[key] = {};
@@ -158,13 +266,14 @@ export class AssetInterfaceDescriptionUtil {
             }
         }
 
+        // 3. events
         console.log("########### EVENTS (" + events.size + ")");
         if (events.size > 0) {
             thing.events = {};
 
             for (const entry of events.entries()) {
                 const key = entry[0];
-                const value: unknown[] = entry[1];
+                const value: AASInteraction[] = entry[1];
                 console.log(key + " = " + value);
 
                 thing.events[key] = {};
@@ -174,11 +283,6 @@ export class AssetInterfaceDescriptionUtil {
                 }
             }
         }
-
-        // TODO add interactions
-        // 1. properties
-        // 2. actions
-        // 3. events
 
         return JSON.stringify(thing);
     }

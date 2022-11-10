@@ -30,6 +30,31 @@ class ThingModelHelperTest {
         const tdObj = JSON.parse(td);
         expect(tdObj).to.have.property("@context").that.equals("https://www.w3.org/2022/wot/td/v1.1");
         expect(tdObj).to.have.property("properties").to.have.property("voltage");
-        // TODO check forms
+
+        // form entries
+        expect(tdObj)
+            .to.have.property("properties")
+            .to.have.property("voltage")
+            .to.have.property("forms")
+            .to.be.an("array")
+            .to.have.lengthOf(4);
+        // Modbus
+        expect(tdObj.properties.voltage.forms[0]).to.have.property("href").to.eql("modbus+tcp://192.168.1.187:502");
+        expect(tdObj.properties.voltage.forms[0])
+            .to.have.property("contentType")
+            .to.eql("application/octet-stream;byteSeq=BIG_ENDIAN");
+        // HTTP
+        expect(tdObj.properties.voltage.forms[1])
+            .to.have.property("href")
+            .to.eql("https://192.168.1.187" + "/properties/voltage");
+        expect(tdObj.properties.voltage.forms[1]).to.have.property("contentType").to.eql("application/json");
+        // OPC
+        expect(tdObj.properties.voltage.forms[2])
+            .to.have.property("href")
+            .to.eql("opc.tcp://192.168.1.187:4840/UAserver");
+        expect(tdObj.properties.voltage.forms[2]).to.have.property("contentType").to.eql("application/x.opcua.binary");
+        // MQTT
+        expect(tdObj.properties.voltage.forms[3]).to.have.property("href").to.eql("mqtt://test.mosquitto:1884");
+        expect(tdObj.properties.voltage.forms[3]).to.have.property("contentType").to.eql("application/json");
     }
 }
