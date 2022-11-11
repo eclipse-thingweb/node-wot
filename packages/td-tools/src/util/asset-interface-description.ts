@@ -77,6 +77,16 @@ export class AssetInterfaceDescriptionUtil {
         const thing: Thing = JSON.parse(TD_TEMPLATE);
         const aidModel = JSON.parse(aid);
 
+        // TODO required fields in AID
+        thing.title = "?TODO?";
+        // Security in AID is defined for each submodel except Modbus -> how to integrate it, globally or for each interaction?
+        thing.securityDefinitions = {
+            todo_sc: {
+                scheme: "basic",
+            },
+        };
+        thing.security = ["todo_sc"];
+
         const properties: Map<string, Array<AASInteraction>> = new Map<string, Array<AASInteraction>>();
         const actions: Map<string, Array<AASInteraction>> = new Map<string, Array<AASInteraction>>();
         const events: Map<string, Array<AASInteraction>> = new Map<string, Array<AASInteraction>>();
@@ -206,51 +216,11 @@ export class AssetInterfaceDescriptionUtil {
                                 }
                             } else if (typeof v.idShort === "string" && v.idShort.length > 0) {
                                 // pick *any* value (and possibly override, e.g, contentType)
-                                // TODO Should we add all value's ?
+                                // TODO Should we add all value's (e.g., dataMapping might be empty array) ?
                                 // if (typeof v.value === "string" ||typeof v.value === "number" || typeof v.value === "boolean") {
                                 if (v.value) {
                                     form[v.idShort] = v.value;
                                 }
-                            }
-                            /*
-                            } else if (v.idShort === "htv:methodName") {
-                                console.log("TODO htv:methodName");
-                            } else if (v.idShort === "contentType") {
-                                console.log("TODO contentType");
-                            } else if (v.idShort === "subprotocol") {
-                                console.log("TODO subprotocol");
-                            } else if (v.idShort === "dataMapping") {
-                                console.log("TODO dataMapping");
-                            }
-                            // Binding Modbus
-                            if (v.idShort === "modbus:function") {
-                                console.log("TODO modbus:function"); // e.g., value": "readHoldingRegisters"
-                            } else if (v.idShort === "modbus:address") {
-                                console.log("TODO modbus:address"); // e.g., "value": "40001"
-                            } else if (v.idShort === "modbus:quantity") {
-                                console.log("TODO modbus:quantity"); // e.g., "value": "2"
-                            }
-                            // OPC
-                            if (v.idShort === "ua:nodeId") {
-                                console.log("TODO ua:nodeId"); // e.g., "value": "\"ns=3;i=29\""
-                            } else if (v.idShort === "ua:expandedNodeId") {
-                                console.log("TODO ua:expandedNodeId"); // e.g.,  "value": " \"nsu=http://example.com/OPCUAServer/energy;i=29\""
-                            } else if (v.idShort === "ua:method") {
-                                console.log("TODO ua:method"); // e.g., "value": "READ"
-                            }
-                            // MQTT
-                            if (v.idShort === "mqv:topic") {
-                                console.log("TODO mqv:topic"); // e.g., "value": "/devices/thing1/properties/voltage"
-                            } else if (v.idShort === "mqv:controlPacket") {
-                                console.log("TODO mqv:controlPacket"); // e.g.,  "value": "mqv:subscribe"
-                            } else if (v.idShort === "mqv:retain") {
-                                console.log("TODO mqv:retain"); // e.g., "value": "true"
-                            }
-                            */
-
-                            // GENERIC
-                            if (v.idShort === "dataMapping") {
-                                console.log("TODO dataMapping");
                             }
                         }
                     }

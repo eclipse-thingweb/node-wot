@@ -28,6 +28,7 @@ class ThingModelHelperTest {
         const td = this.assetInterfaceDescriptionUtil.transformToTD(modelAID);
 
         const tdObj = JSON.parse(td);
+        console.log(JSON.stringify(tdObj, null, 2));
         // TODO proper TD validation based on playground and/or JSON schema?
         expect(tdObj).to.have.property("@context").that.equals("https://www.w3.org/2022/wot/td/v1.1");
         expect(tdObj).to.have.property("properties").to.have.property("voltage");
