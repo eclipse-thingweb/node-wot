@@ -204,6 +204,15 @@ export class AssetInterfaceDescriptionUtil {
                                 } else {
                                     form.href = v.value;
                                 }
+                            } else if (typeof v.idShort === "string" && v.idShort.length > 0) {
+                                // pick *any* value (and possibly override, e.g, contentType)
+                                // TODO Should we add all value's ?
+                                // if (typeof v.value === "string" ||typeof v.value === "number" || typeof v.value === "boolean") {
+                                if (v.value) {
+                                    form[v.idShort] = v.value;
+                                }
+                            }
+                            /*
                             } else if (v.idShort === "htv:methodName") {
                                 console.log("TODO htv:methodName");
                             } else if (v.idShort === "contentType") {
@@ -237,6 +246,7 @@ export class AssetInterfaceDescriptionUtil {
                             } else if (v.idShort === "mqv:retain") {
                                 console.log("TODO mqv:retain"); // e.g., "value": "true"
                             }
+                            */
 
                             // GENERIC
                             if (v.idShort === "dataMapping") {
