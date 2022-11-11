@@ -73,6 +73,33 @@ export class AssetInterfaceDescriptionUtil {
         return ""; // TODO what is the right value if setting cannot be found
     }
 
+    private createInteractionForm(vi: AASInteraction): TD.Form {
+        const form: TD.Form = {
+            href: this.getBaseFromEndpointMetadata(vi.endpointMetadata),
+            contentType: this.getContentTypeFromEndpointMetadata(vi.endpointMetadata),
+        };
+        if (vi.interaction.value instanceof Array) {
+            for (const v of vi.interaction.value) {
+                // Binding HTTP
+                if (v.idShort === "href") {
+                    if (form.href && form.href.length > 0) {
+                        form.href = form.href + v.value; // TODO handle leading/trailing slashes
+                    } else {
+                        form.href = v.value;
+                    }
+                } else if (typeof v.idShort === "string" && v.idShort.length > 0) {
+                    // pick *any* value (and possibly override, e.g, contentType)
+                    // TODO Should we add all value's (e.g., dataMapping might be empty array) ?
+                    // if (typeof v.value === "string" ||typeof v.value === "number" || typeof v.value === "boolean") {
+                    if (v.value) {
+                        form[v.idShort] = v.value;
+                    }
+                }
+            }
+        }
+        return form;
+    }
+
     public transformToTD(aid: string): string {
         const thing: Thing = JSON.parse(TD_TEMPLATE);
         const aidModel = JSON.parse(aid);
@@ -200,30 +227,8 @@ export class AssetInterfaceDescriptionUtil {
                 thing.properties[key].forms = [];
 
                 for (const vi of value) {
-                    const form: TD.Form = {
-                        href: this.getBaseFromEndpointMetadata(vi.endpointMetadata),
-                        contentType: this.getContentTypeFromEndpointMetadata(vi.endpointMetadata),
-                    };
+                    const form = this.createInteractionForm(vi);
                     thing.properties[key].forms.push(form);
-                    if (vi.interaction.value instanceof Array) {
-                        for (const v of vi.interaction.value) {
-                            // Binding HTTP
-                            if (v.idShort === "href") {
-                                if (form.href && form.href.length > 0) {
-                                    form.href = form.href + v.value; // TODO handle leading/trailing slashes
-                                } else {
-                                    form.href = v.value;
-                                }
-                            } else if (typeof v.idShort === "string" && v.idShort.length > 0) {
-                                // pick *any* value (and possibly override, e.g, contentType)
-                                // TODO Should we add all value's (e.g., dataMapping might be empty array) ?
-                                // if (typeof v.value === "string" ||typeof v.value === "number" || typeof v.value === "boolean") {
-                                if (v.value) {
-                                    form[v.idShort] = v.value;
-                                }
-                            }
-                        }
-                    }
                 }
             }
         }
@@ -239,9 +244,11 @@ export class AssetInterfaceDescriptionUtil {
                 console.log(key + " = " + value);
 
                 thing.actions[key] = {};
+                thing.actions[key].forms = [];
+
                 for (const vi of value) {
-                    // TODO different protocol
-                    console.log(vi);
+                    const form = this.createInteractionForm(vi);
+                    thing.properties[key].forms.push(form);
                 }
             }
         }
@@ -257,9 +264,11 @@ export class AssetInterfaceDescriptionUtil {
                 console.log(key + " = " + value);
 
                 thing.events[key] = {};
+                thing.events[key].forms = [];
+
                 for (const vi of value) {
-                    // TODO different protocol
-                    console.log(vi);
+                    const form = this.createInteractionForm(vi);
+                    thing.properties[key].forms.push(form);
                 }
             }
         }
