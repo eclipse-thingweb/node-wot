@@ -47,7 +47,7 @@ class ThingModelHelperTest {
             .to.eql("application/octet-stream;byteSeq=BIG_ENDIAN");
         expect(tdObj.properties.voltage.forms[0]).to.have.property("modbus:function").to.eql("readHoldingRegisters");
         expect(tdObj.properties.voltage.forms[0]).to.have.property("modbus:address").to.eql("40001");
-        expect(tdObj.properties.voltage.forms[0]).to.have.property("modbus:quantity").to.eql("2"); // TODO why not proper number in AID
+        expect(tdObj.properties.voltage.forms[0]).to.have.property("modbus:quantity").to.eql("2"); // not a proper number in AID -> valueType *not* set
         // HTTP
         expect(tdObj.properties.voltage.forms[1])
             .to.have.property("href")
@@ -72,6 +72,6 @@ class ThingModelHelperTest {
             .to.have.property("mqv:topic")
             .to.eql("/devices/thing1/properties/voltage");
         expect(tdObj.properties.voltage.forms[3]).to.have.property("mqv:controlPacket").to.eql("mqv:subscribe");
-        expect(tdObj.properties.voltage.forms[3]).to.have.property("mqv:retain").to.eql("true"); // TODO why not proper boolean in AID
+        expect(tdObj.properties.voltage.forms[3]).to.have.property("mqv:retain").to.eql(true); // value is string but valueType states boolean
     }
 }

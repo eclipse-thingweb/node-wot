@@ -93,6 +93,40 @@ export class AssetInterfaceDescriptionUtil {
                     // if (typeof v.value === "string" ||typeof v.value === "number" || typeof v.value === "boolean") {
                     if (v.value) {
                         form[v.idShort] = v.value;
+                        // use valueType to convert the string value
+                        if (
+                            v.valueType &&
+                            v.valueType &&
+                            v.valueType.dataObjectType &&
+                            v.valueType.dataObjectType.name &&
+                            typeof v.valueType.dataObjectType.name === "string"
+                        ) {
+                            // XSD schemaTypes, https://www.w3.org/TR/xmlschema-2/#built-in-datatypes
+                            switch (v.valueType.dataObjectType.name) {
+                                case "boolean":
+                                    form[v.idShort] = form[v.idShort] === "true";
+                                    break;
+                                case "float":
+                                case "double":
+                                case "decimal":
+                                case "integer":
+                                case "nonPositiveInteger":
+                                case "negativeInteger":
+                                case "long":
+                                case "int":
+                                case "short":
+                                case "byte":
+                                case "nonNegativeInteger":
+                                case "unsignedLong":
+                                case "unsignedInt":
+                                case "unsignedShort":
+                                case "unsignedByte":
+                                case "positiveInteger":
+                                    form[v.idShort] = Number(form[v.idShort]);
+                                    break;
+                                // TODO more types
+                            }
+                        }
                     }
                 }
             }
