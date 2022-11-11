@@ -23,17 +23,13 @@ import * as TD from "../thing-description";
  *
  */
 
-// "id": "urn:uuid:0804d572-cce8-422a-bb7c-4412fcd56f06",
-// "title": "MyAssetInterfaceDescriptionThing",
-// "securityDefinitions": {
-//     "basic_sc": { "scheme": "basic", "in": "header"}
-// },
-// "security": "basic_sc",
-
 /*
  * TODOs
  * - what is the desired input/output? string, object, ... ?
- * - what are options that would be desired? (context version, id, security, ...)
+ * - what are options that would be desired? (context version, id, security, ...) -> template mechanism fine?
+ * - Security in AID is defined for each submodel except Modbus -> how to integrate it, globally or for each interaction?
+ * - Fields like @context, id, .. etc representable in AID?
+ * - More test-data for action & events, data input and output, ...
  *
  */
 
@@ -43,8 +39,6 @@ interface AASInteraction {
 }
 
 export class AssetInterfaceDescriptionUtil {
-    // TODO allow to set options
-
     private getBaseFromEndpointMetadata(endpointMetadata?: Record<string, unknown>): string {
         if (endpointMetadata?.value && endpointMetadata.value instanceof Array) {
             for (const v of endpointMetadata.value) {
@@ -54,7 +48,7 @@ export class AssetInterfaceDescriptionUtil {
                 }
             }
         }
-        return "undefined"; // TODO what is teh right value if setting cannot be found
+        return "undefined"; // TODO what is th right value if information cannot be found
     }
 
     private getContentTypeFromEndpointMetadata(endpointMetadata?: Record<string, unknown>): string {
@@ -66,7 +60,7 @@ export class AssetInterfaceDescriptionUtil {
                 }
             }
         }
-        return ""; // TODO what is the right value if setting cannot be found
+        return ""; // TODO what is the right value if information cannot be found
     }
 
     private createInteractionForm(vi: AASInteraction): TD.Form {
@@ -120,7 +114,7 @@ export class AssetInterfaceDescriptionUtil {
                                 case "positiveInteger":
                                     form[v.idShort] = Number(form[v.idShort]);
                                     break;
-                                // TODO more types
+                                // TODO handle more XSD types ?
                             }
                         }
                     }
@@ -134,7 +128,7 @@ export class AssetInterfaceDescriptionUtil {
         const thing: Thing = template ? JSON.parse(template) : {};
         const aidModel = JSON.parse(aid);
 
-        // TODO required fields in AID?
+        // TODO required fields possible in AID also?
         if (!thing["@context"]) {
             thing["@context"] = "https://www.w3.org/2022/wot/td/v1.1";
         }
