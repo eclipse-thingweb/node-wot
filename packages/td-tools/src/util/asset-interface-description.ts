@@ -23,10 +23,6 @@ import * as TD from "../thing-description";
  *
  */
 
-const TD_TEMPLATE = `{
-    "@context": "https://www.w3.org/2022/wot/td/v1.1"
-}`;
-
 // "id": "urn:uuid:0804d572-cce8-422a-bb7c-4412fcd56f06",
 // "title": "MyAssetInterfaceDescriptionThing",
 // "securityDefinitions": {
@@ -134,19 +130,28 @@ export class AssetInterfaceDescriptionUtil {
         return form;
     }
 
-    public transformToTD(aid: string): string {
-        const thing: Thing = JSON.parse(TD_TEMPLATE);
+    public transformToTD(aid: string, template?: string): string {
+        const thing: Thing = template ? JSON.parse(template) : {};
         const aidModel = JSON.parse(aid);
 
-        // TODO required fields in AID
-        thing.title = "?TODO?";
+        // TODO required fields in AID?
+        if (!thing["@context"]) {
+            thing["@context"] = "https://www.w3.org/2022/wot/td/v1.1";
+        }
+        if (!thing.title) {
+            thing.title = "?TODO?"; // generate one?
+        }
         // Security in AID is defined for each submodel except Modbus -> how to integrate it, globally or for each interaction?
-        thing.securityDefinitions = {
-            todo_sc: {
-                scheme: "basic",
-            },
-        };
-        thing.security = ["todo_sc"];
+        if (!thing.securityDefinitions) {
+            thing.securityDefinitions = {
+                todo_sc: {
+                    scheme: "basic",
+                },
+            };
+        }
+        if (!thing.security) {
+            thing.security = ["todo_sc"];
+        }
 
         const properties: Map<string, Array<AASInteraction>> = new Map<string, Array<AASInteraction>>();
         const actions: Map<string, Array<AASInteraction>> = new Map<string, Array<AASInteraction>>();

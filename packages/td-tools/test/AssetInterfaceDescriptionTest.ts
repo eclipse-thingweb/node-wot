@@ -25,12 +25,15 @@ class ThingModelHelperTest {
 
     @test async "should correctly transform sample JSON AID_v03 into a TD"() {
         const modelAID = (await fs.readFile("test/util/AID_v03.json")).toString();
-        const td = this.assetInterfaceDescriptionUtil.transformToTD(modelAID);
+        const td = this.assetInterfaceDescriptionUtil.transformToTD(modelAID, `{"title": "myTitle", "id": "myId"}`);
 
         const tdObj = JSON.parse(td);
         console.log(JSON.stringify(tdObj, null, 2));
         // TODO proper TD validation based on playground and/or JSON schema?
         expect(tdObj).to.have.property("@context").that.equals("https://www.w3.org/2022/wot/td/v1.1");
+        expect(tdObj).to.have.property("title").that.equals("myTitle");
+        expect(tdObj).to.have.property("id").that.equals("myId");
+
         expect(tdObj).to.have.property("properties").to.have.property("voltage");
 
         // form entries
