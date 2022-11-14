@@ -211,10 +211,8 @@ export default class HttpServer implements ProtocolServer {
         uriVariables: PropertyElement["uriVariables"] = {},
         thingVariables: PropertyElement["uriVariables"]= {}
     ): string {
-        if (
-            (uriVariables && Object.keys(uriVariables).length > 0) ||
-            (thingVariables && Object.keys(thingVariables).length > 0)
-        ) {
+      const variables = Object.assign({},uriVariables, thingVariables)
+        if ( Object.keys(variables).length > 0 ) {
             let pattern = "{?";
             let index = 0;
             if (uriVariables) {
