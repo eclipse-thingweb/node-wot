@@ -208,8 +208,8 @@ export default class HttpServer implements ProtocolServer {
 
     private updateInteractionNameWithUriVariablePattern(
         interactionName: string,
-        uriVariables: PropertyElement["uriVariables"],
-        thingVariables: PropertyElement["uriVariables"]
+        uriVariables: PropertyElement["uriVariables"] = {},
+        thingVariables: PropertyElement["uriVariables"]= {}
     ): string {
         if (
             (uriVariables && Object.keys(uriVariables).length > 0) ||
