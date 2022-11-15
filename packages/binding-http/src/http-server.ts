@@ -209,10 +209,10 @@ export default class HttpServer implements ProtocolServer {
     private updateInteractionNameWithUriVariablePattern(
         interactionName: string,
         uriVariables: PropertyElement["uriVariables"] = {},
-        thingVariables: PropertyElement["uriVariables"]= {}
+        thingVariables: PropertyElement["uriVariables"] = {}
     ): string {
-      const variables = Object.assign({},uriVariables, thingVariables)
-        if ( Object.keys(variables).length > 0 ) {
+        const variables = Object.assign({}, uriVariables, thingVariables);
+        if (Object.keys(variables).length > 0) {
             let pattern = "{?";
             let index = 0;
             if (uriVariables) {
