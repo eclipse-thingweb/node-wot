@@ -134,15 +134,7 @@ export default class FirestoreClient implements ProtocolClient {
                 reject(new Error(`timeout error topic: ${pointerInfo.topic}`));
             }, 10 * 1000); // timeout judgment
             // Execute the getting property (the result will be returned to the above Callback)
-            writeDataToFirestore(
-                this.firestore,
-                propertyReadReqTopic,
-                {
-                    body: undefined,
-                    type: "",
-                },
-                reqId
-            );
+            writeDataToFirestore(this.firestore, propertyReadReqTopic, new Content("", undefined), reqId);
         });
         return retContent;
     }
@@ -197,15 +189,7 @@ export default class FirestoreClient implements ProtocolClient {
                 writeDataToFirestore(this.firestore, pointerInfo.topic, content, reqId);
             } else {
                 // Execute the action (the result will be returned to the above Callback)
-                writeDataToFirestore(
-                    this.firestore,
-                    pointerInfo.topic,
-                    {
-                        body: undefined,
-                        type: "",
-                    },
-                    reqId
-                );
+                writeDataToFirestore(this.firestore, pointerInfo.topic, new Content("", undefined), reqId);
             }
         });
         return retContent;

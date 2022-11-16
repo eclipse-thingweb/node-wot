@@ -19,7 +19,7 @@
 
 import chai, { expect, should } from "chai";
 
-import { ContentSerdes } from "@node-wot/core";
+import { DefaultContent } from "@node-wot/core";
 
 import NetconfClient from "../src/netconf-client";
 import * as xpath2json from "../src/xpath2json";
@@ -106,10 +106,10 @@ describe("outer describe", function () {
         } */
 
         try {
-            await client.writeResource(inputVector.form, {
-                type: ContentSerdes.DEFAULT,
-                body: Readable.from(Buffer.from(JSON.stringify(payload))),
-            });
+            await client.writeResource(
+                inputVector.form,
+                new DefaultContent(Readable.from(Buffer.from(JSON.stringify(payload))))
+            );
         } catch (err) {
             // Note: depending on Node.js version different errors appear
             // AssertionError: expected 'connect ECONNREFUSED ::1:6060' to equal 'connect ECONNREFUSED 127.0.0.1:6060'
@@ -134,10 +134,10 @@ describe("outer describe", function () {
         const payload = "commit";
 
         try {
-            await client.invokeResource(inputVector.form, {
-                type: ContentSerdes.DEFAULT,
-                body: Readable.from(Buffer.from(JSON.stringify(payload))),
-            });
+            await client.invokeResource(
+                inputVector.form,
+                new DefaultContent(Readable.from(Buffer.from(JSON.stringify(payload))))
+            );
         } catch (err) {
             // Note: depending on Node.js version different errors appear
             // AssertionError: expected 'connect ECONNREFUSED ::1:6060' to equal 'connect ECONNREFUSED 127.0.0.1:6060'

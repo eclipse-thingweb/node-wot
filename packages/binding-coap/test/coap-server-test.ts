@@ -1,4 +1,4 @@
-import { ProtocolHelpers, ExposedThing } from "@node-wot/core";
+import { ExposedThing, Content } from "@node-wot/core";
 /********************************************************************************
  * Copyright (c) 2018 Contributors to the Eclipse Foundation
  *
@@ -69,7 +69,7 @@ class CoapServerTest {
 
         const coapClient = new CoapClient(coapServer);
         const resp = await coapClient.readResource(new TD.Form(uri + "properties/test"));
-        expect((await ProtocolHelpers.readStreamFully(resp.body)).toString()).to.equal('"testValue"');
+        expect((await resp.toBuffer()).toString()).to.equal('"testValue"');
 
         await coapServer.stop();
     }
@@ -102,12 +102,12 @@ class CoapServerTest {
         const uri = `coap://localhost:${coapServer.getPort()}/test/`;
 
         const coapClient = new CoapClient(coapServer);
-        await coapClient.writeResource(new TD.Form(uri + "properties/test"), {
-            type: "text/plain",
-            body: Readable.from(Buffer.from("testValue1", "utf-8")),
-        });
+        await coapClient.writeResource(
+            new TD.Form(uri + "properties/test"),
+            new Content("text/plain", Readable.from(Buffer.from("testValue1", "utf-8")))
+        );
         const resp = await coapClient.readResource(new TD.Form(uri + "properties/test"));
-        const data = (await ProtocolHelpers.readStreamFully(resp.body)).toString();
+        const data = (await resp.toBuffer()).toString();
         expect(data).to.equal('"testValue1"');
 
         await coapServer.stop();
@@ -141,11 +141,11 @@ class CoapServerTest {
         const uri = `coap://localhost:${coapServer.getPort()}/test/`;
 
         const coapClient = new CoapClient(coapServer);
-        const resp = await coapClient.invokeResource(new TD.Form(uri + "actions/try"), {
-            type: "text/plain",
-            body: Readable.from(Buffer.from("testValue1", "utf-8")),
-        });
-        expect((await ProtocolHelpers.readStreamFully(resp.body)).toString()).to.equal('"TEST"');
+        const resp = await coapClient.invokeResource(
+            new TD.Form(uri + "actions/try"),
+            new Content("text/plain", Readable.from(Buffer.from("testValue1", "utf-8")))
+        );
+        expect((await resp.toBuffer()).toString()).to.equal('"TEST"');
 
         await coapServer.stop();
     }
@@ -249,7 +249,7 @@ class CoapServerTest {
 
         const coapClient = new CoapClient(coapServer);
         const resp = await coapClient.readResource(new TD.Form(uri + "properties/test?id=testId&globalVarTest=test1"));
-        expect((await ProtocolHelpers.readStreamFully(resp.body)).toString()).to.equal('"testValue"');
+        expect((await resp.toBuffer()).toString()).to.equal('"testValue"');
 
         return coapServer.stop();
     }
@@ -274,7 +274,7 @@ class CoapServerTest {
 
         const coapClient = new CoapClient(coapServer);
         const resp = await coapClient.readResource(new TD.Form(uri));
-        expect((await ProtocolHelpers.readStreamFully(resp.body)).toString()).to.equal(
+        expect((await resp.toBuffer()).toString()).to.equal(
             '</test1>;rt="wot.thing";ct="50 432",</test2>;rt="wot.thing";ct="50 432"'
         );
 

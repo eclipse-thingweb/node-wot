@@ -17,7 +17,7 @@ import * as WoT from "wot-typescript-definitions";
 import { ContentSerdes } from "./content-serdes";
 import { ProtocolHelpers } from "./core";
 import { DataSchemaError, NotSupportedError } from "./errors";
-import { Content } from "./protocol-interfaces";
+import { Content } from "./content";
 import Ajv from "ajv";
 import { createLoggers } from "./logger";
 
@@ -70,7 +70,7 @@ export class InteractionOutput implements WoT.InteractionOutput {
             throw new Error("Can't read the stream once it has been already used");
         }
 
-        const data = await ProtocolHelpers.readStreamFully(this.content.body);
+        const data = await this.content.toBuffer();
         this.dataUsed = true;
         this.buffer = data;
 
@@ -92,7 +92,7 @@ export class InteractionOutput implements WoT.InteractionOutput {
         }
 
         // read fully the stream
-        const data = await ProtocolHelpers.readStreamFully(this.content.body);
+        const data = await this.content.toBuffer();
         this.dataUsed = true;
         this.buffer = data;
 

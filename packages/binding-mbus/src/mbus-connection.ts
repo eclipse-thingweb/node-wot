@@ -308,10 +308,7 @@ export class PropertyOperation {
             });
         }
 
-        const resp: Content = {
-            body: Readable.from(JSON.stringify(payload)),
-            type: "application/json",
-        };
+        const resp = new Content("application/json", Readable.from(JSON.stringify(payload)));
 
         // resolve the Promise given to the invoking script
         this.resolve(resp);

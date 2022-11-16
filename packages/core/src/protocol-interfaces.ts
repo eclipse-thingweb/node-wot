@@ -19,10 +19,7 @@ import { Subscription } from "rxjs/Subscription";
 
 import Servient from "./servient";
 import ExposedThing from "./exposed-thing";
-export interface Content {
-    type: string;
-    body: NodeJS.ReadableStream;
-}
+import { Content } from "./content";
 
 export type PropertyContentMap = Map<string, Content>;
 

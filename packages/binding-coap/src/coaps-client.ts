@@ -21,7 +21,7 @@ import * as TD from "@node-wot/td-tools";
 
 import { Subscription } from "rxjs/Subscription";
 
-import { ProtocolClient, Content, ProtocolHelpers, createLoggers } from "@node-wot/core";
+import { ProtocolClient, Content, createLoggers } from "@node-wot/core";
 import { CoapForm, CoapMethodName, isValidCoapMethod, isSupportedCoapMethod } from "./coap";
 import { CoapClient as coaps, CoapResponse, RequestMethod, SecurityParameters } from "node-coap-client";
 import { Readable } from "stream";
@@ -50,7 +50,7 @@ export default class CoapsClient implements ProtocolClient {
                     let contentType; // = res.format[...]
                     if (!contentType) contentType = form.contentType;
 
-                    resolve({ type: contentType, body: Readable.from(res.payload) });
+                    resolve(new Content(contentType, Readable.from(res.payload)));
                 })
                 .catch((err: Error) => {
                     reject(err);
@@ -82,7 +82,7 @@ export default class CoapsClient implements ProtocolClient {
                     let contentType; // = res.format[...]
                     if (!contentType) contentType = form.contentType;
 
-                    resolve({ type: contentType, body: Readable.from(res.payload) });
+                    resolve(new Content(contentType, Readable.from(res.payload)));
                 })
                 .catch((err: Error) => {
                     reject(err);
@@ -116,7 +116,7 @@ export default class CoapsClient implements ProtocolClient {
 
             const callback = (resp: CoapResponse) => {
                 if (resp.payload != null) {
-                    next({ type: form?.contentType, body: Readable.from(resp.payload) });
+                    next(new Content(form?.contentType, Readable.from(resp.payload)));
                 }
             };
 
@@ -221,7 +221,7 @@ export default class CoapsClient implements ProtocolClient {
 
         debug(`CoapsClient sending ${method} to ${form.href}`);
 
-        const body = content.body ? await ProtocolHelpers.readStreamFully(content.body) : undefined;
+        const body = content.body ? await content.toBuffer() : undefined;
 
         const req = coaps.request(
             form.href /* string */,
