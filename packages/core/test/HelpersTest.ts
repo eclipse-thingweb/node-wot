@@ -24,8 +24,11 @@
 import { suite, test } from "@testdeck/mocha";
 import { expect } from "chai";
 import { ExposedThingInit } from "wot-typescript-definitions";
+import * as TDT from "wot-thing-description-types";
 
 import Helpers from "../src/helpers";
+
+import UriTemplate = require("uritemplate");
 
 @suite("tests to verify the helpers")
 class HelperTest {
@@ -111,5 +114,89 @@ class HelperTest {
         thing.events = { myEvent: { "tm:ref": "http://example.com/thingTest.tm.jsonld#/actions/myAction" } };
         validated = Helpers.validateExposedThingInit(thing);
         expect(validated.valid).to.be.false;
+    }
+
+    @test "should merge global and local uriVariables"() {
+        const thing: TDT.ThingDescription = {
+            "@context": "https://www.w3.org/2022/wot/td/v1.1",
+            title: "thingTest",
+            securityDefinitions: {
+                basic_sc: { scheme: "basic", in: "header" },
+            },
+            security: "basic_sc",
+            uriVariables: {
+                uvGlobal: { type: "integer" },
+            },
+            properties: {
+                myProp: {
+                    "tm:ref": "http://example.com/thingTest.tm.jsonld#/properties/myProp",
+                    type: "number",
+                    uriVariables: {
+                        uvLocal: { type: "integer" },
+                    },
+                    forms: [{ href: "myProp" }],
+                },
+            },
+        };
+
+        if (thing.properties) {
+            const ti: TDT.PropertyElement = thing.properties.myProp as TDT.PropertyElement;
+            const options: WoT.InteractionOptions = {
+                uriVariables: {
+                    uvLocal: 123,
+                },
+            };
+
+            const io: WoT.InteractionOptions = Helpers.parseInteractionOptions(thing, ti, options);
+
+            expect(io).not.to.be.undefined;
+            expect(io.uriVariables).not.to.be.undefined;
+
+            const ut = UriTemplate.parse("blix{?uvLocal}");
+            const updatedHref = ut.expand(io.uriVariables ?? {});
+            expect(updatedHref).to.equal("blix?uvLocal=123");
+        } else {
+            expect.fail("not properly set-up");
+        }
+    }
+
+    @test "should use global uriVariables even if there are no local uriVariables"() {
+        const thing: TDT.ThingDescription = {
+            "@context": "https://www.w3.org/2022/wot/td/v1.1",
+            title: "thingTest",
+            securityDefinitions: {
+                basic_sc: { scheme: "basic", in: "header" },
+            },
+            security: "basic_sc",
+            uriVariables: {
+                uvGlobal: { type: "integer" },
+            },
+            properties: {
+                myProp: {
+                    "tm:ref": "http://example.com/thingTest.tm.jsonld#/properties/myProp",
+                    type: "number",
+                    forms: [{ href: "myProp" }],
+                },
+            },
+        };
+
+        if (thing.properties) {
+            const ti: TDT.PropertyElement = thing.properties.myProp as TDT.PropertyElement;
+            const options: WoT.InteractionOptions = {
+                uriVariables: {
+                    uvGlobal: 456,
+                },
+            };
+
+            const io: WoT.InteractionOptions = Helpers.parseInteractionOptions(thing, ti, options);
+
+            expect(io).not.to.be.undefined;
+
+            const ut = UriTemplate.parse("bla{?uvGlobal}");
+            const updatedHref = ut.expand(io.uriVariables ?? {});
+            expect(updatedHref).to.equal("bla?uvGlobal=456");
+        } else {
+            expect.fail("not properly set-up");
+        }
     }
 }
