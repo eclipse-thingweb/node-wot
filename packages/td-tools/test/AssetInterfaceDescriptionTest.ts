@@ -80,4 +80,33 @@ class ThingModelHelperTest {
         expect(tdObj.properties.voltage.forms[3]).to.have.property("mqv:controlPacket").to.eql("mqv:subscribe");
         expect(tdObj.properties.voltage.forms[3]).to.have.property("mqv:retain").to.eql(true); // value is string but valueType states boolean
     }
+
+    @test async "should correctly transform sample JSON AID_v03 for counter into a TD"() {
+        const modelAID = (await fs.readFile("test/util/AID_v03_counter.json")).toString();
+        const td = this.assetInterfaceDescriptionUtil.transformToTD(modelAID, `{"title": "counter"}`);
+
+        const tdObj = JSON.parse(td);
+        console.log(JSON.stringify(tdObj, null, 2));
+        // TODO proper TD validation based on playground and/or JSON schema?
+        expect(tdObj).to.have.property("@context").that.equals("https://www.w3.org/2022/wot/td/v1.1");
+        expect(tdObj).to.have.property("title").that.equals("counter");
+
+        expect(tdObj).to.have.property("properties").to.have.property("count");
+
+        // form entries
+        expect(tdObj)
+            .to.have.property("properties")
+            .to.have.property("count")
+            .to.have.property("forms")
+            .to.be.an("array")
+            .to.have.lengthOf(1);
+        // HTTP
+        expect(tdObj.properties.count.forms[0])
+            .to.have.property("href")
+            .to.eql("http://plugfest.thingweb.io:8083/counter" + "/properties/count");
+        expect(tdObj.properties.count.forms[0]).to.have.property("htv:methodName").to.eql("GET");
+        expect(tdObj.properties.count.forms[0]).to.have.property("contentType").to.eql("application/json");
+
+        // TODO actions and events for counter thing
+    }
 }
