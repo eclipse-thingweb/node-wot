@@ -79,6 +79,30 @@ class ThingModelHelperTest {
             .to.eql("/devices/thing1/properties/voltage");
         expect(tdObj.properties.voltage.forms[3]).to.have.property("mqv:controlPacket").to.eql("mqv:subscribe");
         expect(tdObj.properties.voltage.forms[3]).to.have.property("mqv:retain").to.eql(true); // value is string but valueType states boolean
+
+        // filter HTTP submodel only
+        const td2 = this.assetInterfaceDescriptionUtil.transformToTD(modelAID, `{"title": "myTitle"}`, "HTTP");
+        const td2Obj = JSON.parse(td2);
+        expect(td2Obj).to.have.property("properties").to.have.property("voltage");
+        // form entries limited to 1
+        expect(td2Obj)
+            .to.have.property("properties")
+            .to.have.property("voltage")
+            .to.have.property("forms")
+            .to.be.an("array")
+            .to.have.lengthOf(1);
+
+        // filter Modbus and HTTP and submodel only
+        const td3 = this.assetInterfaceDescriptionUtil.transformToTD(modelAID, `{"title": "myTitle"}`, "Modbus|HTTP");
+        const td3Obj = JSON.parse(td3);
+        expect(td3Obj).to.have.property("properties").to.have.property("voltage");
+        // form entries limited to 2
+        expect(td3Obj)
+            .to.have.property("properties")
+            .to.have.property("voltage")
+            .to.have.property("forms")
+            .to.be.an("array")
+            .to.have.lengthOf(2);
     }
 
     @test async "should correctly transform sample JSON AID_v03 for counter into a TD"() {
@@ -108,5 +132,20 @@ class ThingModelHelperTest {
         expect(tdObj.properties.count.forms[0]).to.have.property("contentType").to.eql("application/json");
 
         // TODO actions and events for counter thing
+
+        // check RegEx capability with fully qualified submodel
+        const td2 = this.assetInterfaceDescriptionUtil.transformToTD(modelAID, `{"title": "counter"}`, "InterfaceHTTP");
+        const td2Obj = JSON.parse(td2);
+        expect(tdObj).to.deep.equal(td2Obj);
+
+        // check RegEx capability with search pattern for submodel
+        const td3 = this.assetInterfaceDescriptionUtil.transformToTD(modelAID, `{"title": "counter"}`, "HTTP*");
+        const td3Obj = JSON.parse(td3);
+        expect(tdObj).to.deep.equal(td3Obj);
+
+        // check RegEx capability with fully unknown submodel
+        const td4 = this.assetInterfaceDescriptionUtil.transformToTD(modelAID, `{"title": "counter"}`, "OPC*");
+        const td4Obj = JSON.parse(td4);
+        expect(td4Obj).to.not.have.property("properties");
     }
 }

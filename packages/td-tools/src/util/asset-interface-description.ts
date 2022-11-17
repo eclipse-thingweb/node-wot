@@ -124,7 +124,15 @@ export class AssetInterfaceDescriptionUtil {
         return form;
     }
 
-    public transformToTD(aid: string, template?: string): string {
+    /**
+     * Transform AID JSON format to a WoT ThingDescription (TD)
+     *
+     * @param aid input AID JSON format
+     * @param template TD template with basic desired TD template
+     * @param submodelRegex allows to filter submodels based on regex expression (e.g, "HTTP*") or full text based on idShort (e.g., "InterfaceHTTP")
+     * @returns transformed
+     */
+    public transformToTD(aid: string, template?: string, submodelRegex?: string): string {
         const thing: Thing = template ? JSON.parse(template) : {};
         const aidModel = JSON.parse(aid);
 
@@ -165,6 +173,17 @@ export class AssetInterfaceDescriptionUtil {
                             for (const submodelElement of submodel.submodelElements) {
                                 if (submodelElement instanceof Object) {
                                     console.log("\tSubmodelElement.idShort: " + submodelElement.idShort);
+                                    if (
+                                        submodelRegex &&
+                                        typeof submodelRegex === "string" &&
+                                        submodelRegex.length > 0
+                                    ) {
+                                        const regex = new RegExp(submodelRegex);
+                                        if (!regex.test(submodelElement.idShort)) {
+                                            console.log("\t\tNot of interest");
+                                            continue;
+                                        }
+                                    }
 
                                     // EndpointMetadata vs. InterfaceMetadata
                                     if (submodelElement.value && submodelElement.value instanceof Array) {
