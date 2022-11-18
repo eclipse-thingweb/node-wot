@@ -83,6 +83,13 @@ export class AssetInterfaceDescriptionUtil {
                                 const ss : SecurityScheme = { scheme: secValue.idShort};
                                 securitySchemes.push(ss);
                             } */
+                            if (secValue.value && secValue.value instanceof Array) {
+                                for (const v of secValue.value) {
+                                    if (v.idShort && typeof v.idShort === "string" && v.idShort.length > 0 && v.value) {
+                                        ss[v.idShort] = v.value;
+                                    }
+                                }
+                            }
                         }
                     }
                     return securitySchemes;

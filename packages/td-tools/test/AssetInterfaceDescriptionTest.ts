@@ -42,11 +42,24 @@ class ThingModelHelperTest {
         expect(tdObj.securityDefinitions[tdObj.security[0]]).to.have.property("scheme").that.equals("nosec");
         // Security HTTP
         expect(tdObj.securityDefinitions[tdObj.security[1]]).to.have.property("scheme").that.equals("basic");
+        expect(tdObj.securityDefinitions[tdObj.security[1]]).to.have.property("in").that.equals("header");
         expect(tdObj.securityDefinitions[tdObj.security[2]]).to.have.property("scheme").that.equals("oauth2");
+        expect(tdObj.securityDefinitions[tdObj.security[2]]).to.have.property("flow").that.equals("client");
+        expect(tdObj.securityDefinitions[tdObj.security[2]])
+            .to.have.property("token")
+            .that.equals("https://example.com/token");
+        expect(tdObj.securityDefinitions[tdObj.security[2]]).to.have.property("scopes").that.equals("limited");
         // Security OPC
         expect(tdObj.securityDefinitions[tdObj.security[3]]).to.have.property("scheme").that.equals("uasec");
+        expect(tdObj.securityDefinitions[tdObj.security[3]])
+            .to.have.property("mode")
+            .that.equals('["none", "Sign", "Sign & Encrypt"]');
+        expect(tdObj.securityDefinitions[tdObj.security[3]])
+            .to.have.property("policy")
+            .that.equals('["none", "Basic128RSA15", "Basic256", "Basic256SHA256"]');
         // Security MQTT
         expect(tdObj.securityDefinitions[tdObj.security[4]]).to.have.property("scheme").that.equals("basic");
+        expect(tdObj.securityDefinitions[tdObj.security[4]]).to.have.property("in").that.equals("header");
 
         expect(tdObj).to.have.property("properties").to.have.property("voltage");
 
