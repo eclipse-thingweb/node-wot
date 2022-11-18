@@ -15,6 +15,7 @@
 
 import Thing from "../thing-description";
 import * as TD from "../thing-description";
+import { SecurityScheme } from "wot-thing-description-types";
 
 /** Utilities around Asset Interface Description
  * https://github.com/admin-shell-io/submodel-templates/tree/main/development/Asset%20Interface%20Description/1/0
@@ -27,7 +28,6 @@ import * as TD from "../thing-description";
  * TODOs
  * - what is the desired input/output? string, object, ... ?
  * - what are options that would be desired? (context version, id, security, ...) -> template mechanism fine?
- * - Security in AID is defined for each submodel except Modbus -> how to integrate it, globally or for each interaction?
  * - Fields like @context, id, .. etc representable in AID?
  * - More test-data for action & events, data input and output, ...
  *
@@ -61,6 +61,31 @@ export class AssetInterfaceDescriptionUtil {
             }
         }
         return ""; // TODO what is the right value if information cannot be found
+    }
+
+    private getSecuritySchemesFromEndpointMetadata(
+        endpointMetadata?: Record<string, unknown>
+    ): Array<SecurityScheme> | undefined {
+        if (endpointMetadata?.value && endpointMetadata.value instanceof Array) {
+            for (const v of endpointMetadata.value) {
+                if (v.idShort === "securityDefinitions") {
+                    const securitySchemes: Array<SecurityScheme> = [];
+                    if (v.value && v.value instanceof Array) {
+                        for (const secValue of v.value) {
+                            // allow all *other* security schemes like "uasec" as welll
+                            const ss: SecurityScheme = { scheme: secValue.idShort };
+                            securitySchemes.push(ss);
+                            /* if (secValue.idShort === "nosec" || secValue.idShort === "auto" || secValue.idShort === "combo" || secValue.idShort === "basic" || secValue.idShort === "digest" || secValue.idShort === "apikey" || secValue.idShort === "bearer" || secValue.idShort === "psk" || secValue.idShort === "oauth2" ) {
+                                const ss : SecurityScheme = { scheme: secValue.idShort};
+                                securitySchemes.push(ss);
+                            } */
+                        }
+                    }
+                    return securitySchemes;
+                }
+            }
+        }
+        return undefined;
     }
 
     private createInteractionForm(vi: AASInteraction): TD.Form {
@@ -143,21 +168,12 @@ export class AssetInterfaceDescriptionUtil {
         if (!thing.title) {
             thing.title = "?TODO?"; // generate one?
         }
-        // Security in AID is defined for each submodel except Modbus -> how to integrate it, globally or for each interaction?
-        if (!thing.securityDefinitions) {
-            thing.securityDefinitions = {
-                todo_sc: {
-                    scheme: "basic",
-                },
-            };
-        }
-        if (!thing.security) {
-            thing.security = ["todo_sc"];
-        }
 
         const properties: Map<string, Array<AASInteraction>> = new Map<string, Array<AASInteraction>>();
         const actions: Map<string, Array<AASInteraction>> = new Map<string, Array<AASInteraction>>();
         const events: Map<string, Array<AASInteraction>> = new Map<string, Array<AASInteraction>>();
+
+        const endpointMetadataArray: Array<Record<string, unknown>> = [];
 
         if (aidModel instanceof Object && aidModel.submodels) {
             if (aidModel.submodels instanceof Array) {
@@ -187,14 +203,15 @@ export class AssetInterfaceDescriptionUtil {
 
                                     // EndpointMetadata vs. InterfaceMetadata
                                     if (submodelElement.value && submodelElement.value instanceof Array) {
-                                        // Note: iterate twice ove to collect first EndpointMetadata
+                                        // Note: iterate twice over to collect first EndpointMetadata
                                         let endpointMetadata: Record<string, unknown> = {};
                                         for (const smValue of submodelElement.value) {
                                             if (smValue instanceof Object) {
                                                 if (smValue.idShort === "EndpointMetadata") {
                                                     console.log("\t\t EndpointMetadata");
-                                                    endpointMetadata = smValue;
                                                     // e.g., idShort: base , contentType, securityDefinitions, alternativeEndpointDescriptor?
+                                                    endpointMetadata = smValue;
+                                                    endpointMetadataArray.push(endpointMetadata);
                                                 }
                                             }
                                         }
@@ -264,6 +281,44 @@ export class AssetInterfaceDescriptionUtil {
             }
         }
 
+        // Security in AID is defined for each submodel
+        // add "securityDefinitions" globally and add them on form level if necessary
+        // Note: possible collisions for "security" names handled by cnt
+        if (!thing.securityDefinitions) {
+            thing.securityDefinitions = {};
+        }
+        let cnt = 1;
+        const noSecSS: SecurityScheme = { scheme: "nosec" };
+        const noSecName = 0 + "_sc";
+        const secSchemeNamesAll = new Array<string>();
+        const secNamesForEndpointMetadata = new Map<Record<string, unknown>, string[]>();
+        for (const endpointMetadata of endpointMetadataArray) {
+            const secNames: Array<string> = [];
+            const securitySchemes = this.getSecuritySchemesFromEndpointMetadata(endpointMetadata);
+            if (securitySchemes === undefined) {
+                // we need "nosec" scheme
+                thing.securityDefinitions[noSecName] = noSecSS;
+                secSchemeNamesAll.push(noSecName);
+                secNames.push(noSecName);
+            } else {
+                // iterate over securitySchemes
+                for (const secScheme of securitySchemes) {
+                    const secName = cnt + "_sc";
+                    thing.securityDefinitions[secName] = secScheme;
+                    secSchemeNamesAll.push(secName);
+                    secNames.push(secName);
+                    cnt++;
+                }
+            }
+            secNamesForEndpointMetadata.set(endpointMetadata, secNames);
+        }
+        if (secSchemeNamesAll.length === 0) {
+            thing.securityDefinitions.nosec_sc = noSecSS;
+            thing.security = [noSecName];
+        } else {
+            thing.security = secSchemeNamesAll as [string, ...string[]];
+        }
+
         // add interactions
         // 1. properties
         console.log("########### PROPERTIES (" + properties.size + ")");
@@ -280,6 +335,18 @@ export class AssetInterfaceDescriptionUtil {
 
                 for (const vi of value) {
                     const form = this.createInteractionForm(vi);
+                    // need add security at form level at all ?
+                    if (endpointMetadataArray.length > 1) {
+                        const securitySchemes = this.getSecuritySchemesFromEndpointMetadata(vi.endpointMetadata);
+                        if (securitySchemes === undefined) {
+                            form.security = [noSecName];
+                        } else {
+                            if (vi.endpointMetadata) {
+                                const formSecurity = secNamesForEndpointMetadata.get(vi.endpointMetadata);
+                                form.security = formSecurity as [string, ...string[]];
+                            }
+                        }
+                    }
                     thing.properties[key].forms.push(form);
                 }
             }

@@ -37,6 +37,17 @@ class ThingModelHelperTest {
         expect(tdObj).to.have.property("title").that.equals("myTitle");
         expect(tdObj).to.have.property("id").that.equals("urn:uuid:3deca264-4f90-4321-a5ea-f197e6a1c7cf");
 
+        expect(tdObj).to.have.property("security").to.be.an("array").to.have.lengthOf(5);
+        // Security Modbus
+        expect(tdObj.securityDefinitions[tdObj.security[0]]).to.have.property("scheme").that.equals("nosec");
+        // Security HTTP
+        expect(tdObj.securityDefinitions[tdObj.security[1]]).to.have.property("scheme").that.equals("basic");
+        expect(tdObj.securityDefinitions[tdObj.security[2]]).to.have.property("scheme").that.equals("oauth2");
+        // Security OPC
+        expect(tdObj.securityDefinitions[tdObj.security[3]]).to.have.property("scheme").that.equals("uasec");
+        // Security MQTT
+        expect(tdObj.securityDefinitions[tdObj.security[4]]).to.have.property("scheme").that.equals("basic");
+
         expect(tdObj).to.have.property("properties").to.have.property("voltage");
 
         // form entries
@@ -54,6 +65,7 @@ class ThingModelHelperTest {
         expect(tdObj.properties.voltage.forms[0]).to.have.property("modbus:function").to.eql("readHoldingRegisters");
         expect(tdObj.properties.voltage.forms[0]).to.have.property("modbus:address").to.eql("40001");
         expect(tdObj.properties.voltage.forms[0]).to.have.property("modbus:quantity").to.eql("2"); // not a proper number in AID -> valueType *not* set
+        expect(tdObj.properties.voltage.forms[0]).to.have.property("security").to.deep.equal(["0_sc"]);
         // HTTP
         expect(tdObj.properties.voltage.forms[1])
             .to.have.property("href")
@@ -61,6 +73,7 @@ class ThingModelHelperTest {
         expect(tdObj.properties.voltage.forms[1]).to.have.property("htv:methodName").to.eql("GET");
         expect(tdObj.properties.voltage.forms[1]).to.have.property("contentType").to.eql("text/xml"); // Note: "application/json" overridden locally
         expect(tdObj.properties.voltage.forms[1]).to.have.property("subprotocol").to.eql("longpoll");
+        expect(tdObj.properties.voltage.forms[1]).to.have.property("security").to.deep.equal(["1_sc", "2_sc"]);
         // OPC
         expect(tdObj.properties.voltage.forms[2])
             .to.have.property("href")
@@ -71,6 +84,7 @@ class ThingModelHelperTest {
             .to.have.property("ua:expandedNodeId")
             .to.eql(' "nsu=http://example.com/OPCUAServer/energy;i=29"');
         expect(tdObj.properties.voltage.forms[2]).to.have.property("ua:method").to.eql("READ");
+        expect(tdObj.properties.voltage.forms[2]).to.have.property("security").to.deep.equal(["3_sc"]);
         // MQTT
         expect(tdObj.properties.voltage.forms[3]).to.have.property("href").to.eql("mqtt://test.mosquitto:1884");
         expect(tdObj.properties.voltage.forms[3]).to.have.property("contentType").to.eql("application/json");
@@ -79,12 +93,17 @@ class ThingModelHelperTest {
             .to.eql("/devices/thing1/properties/voltage");
         expect(tdObj.properties.voltage.forms[3]).to.have.property("mqv:controlPacket").to.eql("mqv:subscribe");
         expect(tdObj.properties.voltage.forms[3]).to.have.property("mqv:retain").to.eql(true); // value is string but valueType states boolean
+        expect(tdObj.properties.voltage.forms[3]).to.have.property("security").to.deep.equal(["4_sc"]);
 
         // filter HTTP submodel only
         const td2 = this.assetInterfaceDescriptionUtil.transformToTD(modelAID, `{"title": "myTitle"}`, "HTTP");
         const td2Obj = JSON.parse(td2);
-        expect(td2Obj).to.have.property("properties").to.have.property("voltage");
+        // security
+        expect(td2Obj).to.have.property("security").to.be.an("array").to.have.lengthOf(2);
+        expect(td2Obj.securityDefinitions[td2Obj.security[0]]).to.have.property("scheme").that.equals("basic");
+        expect(td2Obj.securityDefinitions[td2Obj.security[1]]).to.have.property("scheme").that.equals("oauth2");
         // form entries limited to 1
+        expect(td2Obj).to.have.property("properties").to.have.property("voltage");
         expect(td2Obj)
             .to.have.property("properties")
             .to.have.property("voltage")
@@ -95,8 +114,13 @@ class ThingModelHelperTest {
         // filter Modbus and HTTP and submodel only
         const td3 = this.assetInterfaceDescriptionUtil.transformToTD(modelAID, `{"title": "myTitle"}`, "Modbus|HTTP");
         const td3Obj = JSON.parse(td3);
-        expect(td3Obj).to.have.property("properties").to.have.property("voltage");
+        // security
+        expect(td3Obj).to.have.property("security").to.be.an("array").to.have.lengthOf(3);
+        expect(td3Obj.securityDefinitions[td3Obj.security[0]]).to.have.property("scheme").that.equals("nosec");
+        expect(td3Obj.securityDefinitions[td3Obj.security[1]]).to.have.property("scheme").that.equals("basic");
+        expect(td3Obj.securityDefinitions[td3Obj.security[2]]).to.have.property("scheme").that.equals("oauth2");
         // form entries limited to 2
+        expect(td3Obj).to.have.property("properties").to.have.property("voltage");
         expect(td3Obj)
             .to.have.property("properties")
             .to.have.property("voltage")
@@ -115,6 +139,9 @@ class ThingModelHelperTest {
         expect(tdObj).to.have.property("@context").that.equals("https://www.w3.org/2022/wot/td/v1.1");
         expect(tdObj).to.have.property("title").that.equals("counter");
 
+        expect(tdObj).to.have.property("security").to.be.an("array").to.have.lengthOf(1);
+        expect(tdObj.securityDefinitions[tdObj.security[0]]).to.have.property("scheme").that.equals("nosec");
+
         expect(tdObj).to.have.property("properties").to.have.property("count");
 
         // form entries
@@ -130,6 +157,8 @@ class ThingModelHelperTest {
             .to.eql("http://plugfest.thingweb.io:8083/counter" + "/properties/count");
         expect(tdObj.properties.count.forms[0]).to.have.property("htv:methodName").to.eql("GET");
         expect(tdObj.properties.count.forms[0]).to.have.property("contentType").to.eql("application/json");
+        // security not needed at form level in this case
+        expect(tdObj.properties.count.forms[0]).not.to.have.property("security");
 
         // TODO actions and events for counter thing
 
