@@ -20,7 +20,7 @@ import { AssetInterfaceDescriptionUtil } from "../src/util/asset-interface-descr
 import { promises as fs } from "fs";
 
 @suite("tests to verify the Asset Interface Description Utils")
-class ThingModelHelperTest {
+class AssetInterfaceDescriptionUtilTest {
     private assetInterfaceDescriptionUtil = new AssetInterfaceDescriptionUtil();
 
     @test async "should correctly transform sample JSON AID_v03 into a TD"() {
