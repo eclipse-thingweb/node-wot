@@ -17,6 +17,11 @@ import Thing from "../thing-description";
 import * as TD from "../thing-description";
 import { SecurityScheme } from "wot-thing-description-types";
 
+import debug from "debug";
+const namespace = "node-wot:td-tools:asset-interface-description-util";
+const logDebug = debug(`${namespace}:debug`);
+const logInfo = debug(`${namespace}:info`);
+
 /** Utilities around Asset Interface Description
  * https://github.com/admin-shell-io/submodel-templates/tree/main/development/Asset%20Interface%20Description/1/0
  *
@@ -199,18 +204,16 @@ export class AssetInterfaceDescriptionUtil {
 
         if (aidModel instanceof Object && aidModel.submodels) {
             if (aidModel.submodels instanceof Array) {
-                console.log("### SUBMODELS");
                 for (const submodel of aidModel.submodels) {
                     if (
                         submodel instanceof Object &&
                         submodel.idShort &&
                         submodel.idShort === "AssetInterfaceDescription"
                     ) {
-                        // console.log(submodel);
                         if (submodel.submodelElements && submodel.submodelElements instanceof Array) {
                             for (const submodelElement of submodel.submodelElements) {
                                 if (submodelElement instanceof Object) {
-                                    console.log("\tSubmodelElement.idShort: " + submodelElement.idShort);
+                                    logDebug("SubmodelElement.idShort: " + submodelElement.idShort);
                                     if (
                                         submodelRegex &&
                                         typeof submodelRegex === "string" &&
@@ -218,7 +221,7 @@ export class AssetInterfaceDescriptionUtil {
                                     ) {
                                         const regex = new RegExp(submodelRegex);
                                         if (!regex.test(submodelElement.idShort)) {
-                                            console.log("\t\tNot of interest");
+                                            logInfo("submodel not of interest");
                                             continue;
                                         }
                                     }
@@ -230,7 +233,7 @@ export class AssetInterfaceDescriptionUtil {
                                         for (const smValue of submodelElement.value) {
                                             if (smValue instanceof Object) {
                                                 if (smValue.idShort === "EndpointMetadata") {
-                                                    console.log("\t\t EndpointMetadata");
+                                                    logInfo("EndpointMetadata");
                                                     // e.g., idShort: base , contentType, securityDefinitions, alternativeEndpointDescriptor?
                                                     endpointMetadata = smValue;
                                                     endpointMetadataArray.push(endpointMetadata);
@@ -241,15 +244,13 @@ export class AssetInterfaceDescriptionUtil {
                                         for (const smValue of submodelElement.value) {
                                             if (smValue instanceof Object) {
                                                 if (smValue.idShort === "InterfaceMetadata") {
-                                                    console.log("\t\t InterfaceMetadata");
+                                                    logInfo("InterfaceMetadata");
                                                     if (smValue.value && smValue.value instanceof Array) {
                                                         for (const interactionValue of smValue.value) {
                                                             if (interactionValue.idShort === "Properties") {
                                                                 if (interactionValue.value instanceof Array) {
                                                                     for (const iValue of interactionValue.value) {
-                                                                        console.log(
-                                                                            "\t\t\t Property: " + iValue.idShort
-                                                                        );
+                                                                        logInfo("Property: " + iValue.idShort);
                                                                         if (!properties.has(iValue.idShort)) {
                                                                             properties.set(iValue.idShort, []);
                                                                         }
@@ -263,7 +264,7 @@ export class AssetInterfaceDescriptionUtil {
                                                             } else if (interactionValue.idShort === "Operations") {
                                                                 if (interactionValue.value instanceof Array) {
                                                                     for (const iValue of interactionValue.value) {
-                                                                        console.log("\t\t\t Action: " + iValue.idShort);
+                                                                        logInfo("Action: " + iValue.idShort);
                                                                         if (!actions.has(iValue.idShort)) {
                                                                             actions.set(iValue.idShort, []);
                                                                         }
@@ -277,7 +278,7 @@ export class AssetInterfaceDescriptionUtil {
                                                             } else if (interactionValue.idShort === "Events") {
                                                                 if (interactionValue.value instanceof Array) {
                                                                     for (const iValue of interactionValue.value) {
-                                                                        console.log("\t\t\t Event: " + iValue.idShort);
+                                                                        logInfo("Event: " + iValue.idShort);
                                                                         if (!events.has(iValue.idShort)) {
                                                                             events.set(iValue.idShort, []);
                                                                         }
@@ -341,14 +342,14 @@ export class AssetInterfaceDescriptionUtil {
 
         // add interactions
         // 1. properties
-        console.log("########### PROPERTIES (" + properties.size + ")");
+        logDebug("########### PROPERTIES (" + properties.size + ")");
         if (properties.size > 0) {
             thing.properties = {};
 
             for (const entry of properties.entries()) {
                 const key = entry[0];
                 const value: AASInteraction[] = entry[1];
-                console.log(key + " = " + value);
+                logInfo("Property" + key + " = " + value);
 
                 thing.properties[key] = {};
                 thing.properties[key].forms = [];
@@ -364,14 +365,14 @@ export class AssetInterfaceDescriptionUtil {
         }
 
         // 2. actions
-        console.log("########### ACTIONS (" + actions.size + ")");
+        logDebug("########### ACTIONS (" + actions.size + ")");
         if (actions.size > 0) {
             thing.actions = {};
 
             for (const entry of actions.entries()) {
                 const key = entry[0];
                 const value: AASInteraction[] = entry[1];
-                console.log(key + " = " + value);
+                logInfo("Action" + key + " = " + value);
 
                 thing.actions[key] = {};
                 thing.actions[key].forms = [];
@@ -387,14 +388,14 @@ export class AssetInterfaceDescriptionUtil {
         }
 
         // 3. events
-        console.log("########### EVENTS (" + events.size + ")");
+        logDebug("########### EVENTS (" + events.size + ")");
         if (events.size > 0) {
             thing.events = {};
 
             for (const entry of events.entries()) {
                 const key = entry[0];
                 const value: AASInteraction[] = entry[1];
-                console.log(key + " = " + value);
+                logInfo("Event " + key + " = " + value);
 
                 thing.events[key] = {};
                 thing.events[key].forms = [];
