@@ -35,8 +35,12 @@ import { SecurityScheme } from "wot-thing-description-types";
 
 interface AASInteraction {
     endpointMetadata?: Record<string, unknown>;
+    secNamesForEndpoint?: Array<string>;
     interaction: Record<string, unknown>;
 }
+
+const noSecSS: SecurityScheme = { scheme: "nosec" };
+const noSecName = 0 + "_sc";
 
 export class AssetInterfaceDescriptionUtil {
     private getBaseFromEndpointMetadata(endpointMetadata?: Record<string, unknown>): string {
@@ -88,11 +92,22 @@ export class AssetInterfaceDescriptionUtil {
         return undefined;
     }
 
-    private createInteractionForm(vi: AASInteraction): TD.Form {
+    private createInteractionForm(vi: AASInteraction, addSecurity: boolean): TD.Form {
         const form: TD.Form = {
             href: this.getBaseFromEndpointMetadata(vi.endpointMetadata),
             contentType: this.getContentTypeFromEndpointMetadata(vi.endpointMetadata),
         };
+        // need to add security at form level at all ?
+        if (addSecurity) {
+            const securitySchemes = this.getSecuritySchemesFromEndpointMetadata(vi.endpointMetadata);
+            if (securitySchemes === undefined) {
+                form.security = [noSecName];
+            } else {
+                if (vi.secNamesForEndpoint) {
+                    form.security = vi.secNamesForEndpoint as [string, ...string[]];
+                }
+            }
+        }
         if (vi.interaction.value instanceof Array) {
             for (const v of vi.interaction.value) {
                 // Binding HTTP
@@ -288,8 +303,6 @@ export class AssetInterfaceDescriptionUtil {
             thing.securityDefinitions = {};
         }
         let cnt = 1;
-        const noSecSS: SecurityScheme = { scheme: "nosec" };
-        const noSecName = 0 + "_sc";
         const secSchemeNamesAll = new Array<string>();
         const secNamesForEndpointMetadata = new Map<Record<string, unknown>, string[]>();
         for (const endpointMetadata of endpointMetadataArray) {
@@ -334,19 +347,10 @@ export class AssetInterfaceDescriptionUtil {
                 thing.properties[key].forms = [];
 
                 for (const vi of value) {
-                    const form = this.createInteractionForm(vi);
-                    // need add security at form level at all ?
-                    if (endpointMetadataArray.length > 1) {
-                        const securitySchemes = this.getSecuritySchemesFromEndpointMetadata(vi.endpointMetadata);
-                        if (securitySchemes === undefined) {
-                            form.security = [noSecName];
-                        } else {
-                            if (vi.endpointMetadata) {
-                                const formSecurity = secNamesForEndpointMetadata.get(vi.endpointMetadata);
-                                form.security = formSecurity as [string, ...string[]];
-                            }
-                        }
+                    if (vi.endpointMetadata) {
+                        vi.secNamesForEndpoint = secNamesForEndpointMetadata.get(vi.endpointMetadata);
                     }
+                    const form = this.createInteractionForm(vi, endpointMetadataArray.length > 1);
                     thing.properties[key].forms.push(form);
                 }
             }
@@ -366,7 +370,10 @@ export class AssetInterfaceDescriptionUtil {
                 thing.actions[key].forms = [];
 
                 for (const vi of value) {
-                    const form = this.createInteractionForm(vi);
+                    if (vi.endpointMetadata) {
+                        vi.secNamesForEndpoint = secNamesForEndpointMetadata.get(vi.endpointMetadata);
+                    }
+                    const form = this.createInteractionForm(vi, endpointMetadataArray.length > 1);
                     thing.properties[key].forms.push(form);
                 }
             }
@@ -386,7 +393,10 @@ export class AssetInterfaceDescriptionUtil {
                 thing.events[key].forms = [];
 
                 for (const vi of value) {
-                    const form = this.createInteractionForm(vi);
+                    if (vi.endpointMetadata) {
+                        vi.secNamesForEndpoint = secNamesForEndpointMetadata.get(vi.endpointMetadata);
+                    }
+                    const form = this.createInteractionForm(vi, endpointMetadataArray.length > 1);
                     thing.properties[key].forms.push(form);
                 }
             }
