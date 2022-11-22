@@ -1,4 +1,4 @@
-FROM node:12.16.1-alpine3.11 as BUILD
+FROM docker.io/library/node:12.16.1-alpine3.11 as BUILD
 RUN apk add --no-cache \
 	gcc \
     g++ \
@@ -12,6 +12,7 @@ RUN npm install -g npm@7
 ARG BUILD_ENV=production
 WORKDIR /app
 COPY ./package.json ./
+COPY ./package-lock.json ./
 COPY ./tsconfig.json ./
 COPY ./packages packages/
 
@@ -21,7 +22,7 @@ RUN npm install && npm run build
 # this wil reduce the size of the image built in next steps significantly
 RUN if [ "${BUILD_ENV}" = "production" ]; then npm prune --production; fi
 
-FROM node:12.16.1-alpine3.11
+FROM docker.io/library/node:12.16.1-alpine3.11
 
 COPY --from=BUILD  /app /app
 
