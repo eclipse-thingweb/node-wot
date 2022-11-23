@@ -1,13 +1,13 @@
-name: Default CI Pipeline
+name: Full CI Pipeline
 
-on: [push, pull_request]
+on: workflow_dispatch
 jobs:
     setup-and-test:
         runs-on: ${{ matrix.os }}
 
         strategy:
             matrix:
-                os: [ubuntu-latest]
+                os: [macos-latest, ubuntu-latest, windows-latest]
                 node-version: [14.x, 16.x, 18.x]
 
         steps:
