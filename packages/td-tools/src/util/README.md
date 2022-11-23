@@ -43,6 +43,11 @@ async function example() {
         });
         // transform AID to WoT TD
         let tdAID = assetInterfaceDescriptionUtil.transformToTD(aid, `{"title": "counter"}`);
+        // Note: transformToTD() may have up to 3 input parameters
+        // * aid (required):           AID input
+        // * template (optional):      Initial TD template
+        // * submodelRegex (optional): Submodel filter based on regular expression
+        //                             e.g., filtering HTTP only by calling transformToTD(aid, `{}`, "HTTP")
 
         // do work as usual
         const WoT = await servient.start();
