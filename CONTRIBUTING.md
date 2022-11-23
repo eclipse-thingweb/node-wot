@@ -33,6 +33,58 @@ Thus, before your contribution can be accepted by the project team, contributors
 For more information, please see the Eclipse Committer Handbook:
 https://www.eclipse.org/projects/handbook/#resources-commit
 
+## Adding a New Protocol Binding
+
+In order to add support for a new protocol binding, you need to implement the protocol interfaces defined in the `core` package.
+For the protocol to be usable via a `ConsumedThing` object, you need to implement the `ProtocolClientFactory` and the `ProtocolClient` interfaces.
+For the protocol to be usable via an `ExposedThing` object, you need to implement the `ProtocolServer` interface.
+The resulting `ProtocolClientFactory` and `ProtocolServer` implementations can then be used to enhance a given `Servient` with support for the protocol in question.
+
+<!-- TODO: Add more instructions and guidelines -->
+
+In the following, we will give a couple of guidelines and examples for how to add specific features (such as logging) to your protocol binding implementation, keeping it consistent with the already existing packages.
+
+### Starting a New Binding Implementation
+
+`node-wot` is structured as a mono repo with a separate package (or "workspace") for each binding.
+If you want to add a new package for a protocol called `foo`, you can use the following command for initialization in the repository's top-level directory:
+
+```sh
+npm init -w ./packages/binding-foo
+```
+
+Since node-wot uses a single lock file (`package-lock.json`) for tracking all packages' dependencies, adding a new dependency to your binding also requires you to run the `npm install` command with the `-w` option.
+For instance, if you need the `foobaz` package to implement your protocol binding, you can install it like so:
+
+```sh
+npm install foobaz -w ./packages/binding-foo
+```
+
+In order to support linting and typescript transpilation, you should add both an `.eslintrc.json` and a `tsconfig.json` file to your package.
+Examples for these can be found in the already existing binding packages.
+
+<!-- TODO: Mention npm scripts -->
+
+### Adding Logging Functionality
+
+Please use the `createLoggers` function from the `core` package for adding logging functionality to your package.
+The function accepts an arbitrary number of arguments that will be mapped to `debug` namespaces.
+In the example below, the `createLoggers` function will map its arguments `binding-foo` and `foo-server` to the namespace `node-wot:binding-foo:foo-server`.
+The resulting functions `debug`, `info`, `warn`, and `error` will append their log-level to this namespace when creating the actual log message.
+This enables filtering as described in the `README` section on logging.
+
+```ts
+import { createLoggers } from "@node-wot/core";
+const { debug, info, warn, error } = createLoggers("binding-foo", "foo-server");
+
+function startFoo() {
+    info("This is an info message!");
+    debug("This is a debug message!");
+    warn("This is a warn message!");
+    error("This is an error message!");
+}
+```
+
 ## Commits
 
 Eclipse Thingweb uses Conventional Changelog, which structure Git commit messages in a way that allows automatic generation of changelogs.

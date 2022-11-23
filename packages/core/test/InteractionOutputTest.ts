@@ -19,6 +19,7 @@ import promised from "chai-as-promised";
 import { expect, use } from "chai";
 import { Readable } from "stream";
 import { InteractionOutput } from "../src/interaction-output";
+import { Content } from "@node-wot/core";
 
 use(promised);
 const delay = (ms: number) => {
@@ -29,7 +30,7 @@ const delay = (ms: number) => {
 class InteractionOutputTests {
     @test async "should read to a Buffer"() {
         const stream = Readable.from([1, 2, 3]);
-        const content = { body: stream, type: "" };
+        const content = new Content("", stream);
 
         const out = new InteractionOutput(content, {});
         const result = await out.arrayBuffer();
@@ -38,7 +39,7 @@ class InteractionOutputTests {
 
     @test async "should be readable with Streams"() {
         const stream = Readable.from([1, 2, 3]);
-        const content = { body: stream, type: "" };
+        const content = new Content("", stream);
 
         const out = new InteractionOutput(content, {});
         const result = [];
@@ -56,7 +57,7 @@ class InteractionOutputTests {
 
     @test async "should throw if the stream was accessed before calling value"() {
         const stream = Readable.from([1, 2, 3]);
-        const content = { body: stream, type: "application/json" };
+        const content = new Content("application/json", stream);
 
         const out = new InteractionOutput(content, {});
         const result = [];
@@ -74,7 +75,7 @@ class InteractionOutputTests {
 
     @test async "should return the value"() {
         const stream = Readable.from(Buffer.from("true", "utf-8"));
-        const content = { body: stream, type: "application/json" };
+        const content = new Content("application/json", stream);
 
         const out = new InteractionOutput(content, {}, { type: "boolean" });
         const result = await out.value<boolean>();
@@ -83,7 +84,7 @@ class InteractionOutputTests {
 
     @test async "should return the value after delay"() {
         const stream = Readable.from(Buffer.from("true", "utf-8"));
-        const content = { body: stream, type: "application/json" };
+        const content = new Content("application/json", stream);
 
         const out = new InteractionOutput(content, {}, { type: "boolean" });
         await delay(100);
@@ -93,7 +94,7 @@ class InteractionOutputTests {
 
     @test async "should data be used after arrayBuffer"() {
         const stream = Readable.from(Buffer.from("true", "utf-8"));
-        const content = { body: stream, type: "application/json" };
+        const content = new Content("application/json", stream);
 
         const out = new InteractionOutput(content, {}, { type: "boolean" });
         await out.arrayBuffer();
@@ -102,7 +103,7 @@ class InteractionOutputTests {
 
     @test async "should data be used after data"() {
         const stream = Readable.from(Buffer.from("true", "utf-8"));
-        const content = { body: stream, type: "application/json" };
+        const content = new Content("application/json", stream);
 
         const out = new InteractionOutput(content, {}, { type: "boolean" });
         const TestOutputStream = out.data;
@@ -111,7 +112,7 @@ class InteractionOutputTests {
 
     @test async "should data be used after value"() {
         const stream = Readable.from(Buffer.from("true", "utf-8"));
-        const content = { body: stream, type: "application/json" };
+        const content = new Content("application/json", stream);
 
         const out = new InteractionOutput(content, {}, { type: "boolean" });
         await out.value<boolean>();
@@ -120,7 +121,7 @@ class InteractionOutputTests {
 
     @test async "should throw if data is used by data getter"() {
         const stream = Readable.from(Buffer.from("true", "utf-8"));
-        const content = { body: stream, type: "application/json" };
+        const content = new Content("application/json", stream);
 
         const out = new InteractionOutput(content, {}, { type: "boolean" });
         const TestOutputStream = out.data;
@@ -130,7 +131,7 @@ class InteractionOutputTests {
 
     @test async "should throw if data is used by arrayBuffer()"() {
         const stream = Readable.from(Buffer.from("true", "utf-8"));
-        const content = { body: stream, type: "application/json" };
+        const content = new Content("application/json", stream);
 
         const out = new InteractionOutput(content, {}, { type: "boolean" });
         await out.arrayBuffer();
@@ -140,7 +141,7 @@ class InteractionOutputTests {
 
     @test async "should throw if data is used by value()"() {
         const stream = Readable.from(Buffer.from("true", "utf-8"));
-        const content = { body: stream, type: "application/json" };
+        const content = new Content("application/json", stream);
 
         const out = new InteractionOutput(content, {}, { type: "boolean" });
         await out.value();
@@ -149,7 +150,7 @@ class InteractionOutputTests {
 
     @test async "should return value multiple times"() {
         const stream = Readable.from(Buffer.from("true", "utf-8"));
-        const content = { body: stream, type: "application/json" };
+        const content = new Content("application/json", stream);
 
         const out = new InteractionOutput(content, {}, { type: "boolean" });
         const result = await out.value<boolean>();
@@ -161,7 +162,7 @@ class InteractionOutputTests {
 
     @test async "should fail validation"() {
         const stream = Readable.from(Buffer.from("true", "utf-8"));
-        const content = { body: stream, type: "application/json" };
+        const content = new Content("application/json", stream);
 
         const out = new InteractionOutput(content, {}, { type: "number" });
         const result = out.value<number>();
@@ -170,7 +171,7 @@ class InteractionOutputTests {
 
     @test async "should recognize wrong data schemas"() {
         const stream = Readable.from(Buffer.from("true", "utf-8"));
-        const content = { body: stream, type: "application/json" };
+        const content = new Content("application/json", stream);
 
         const out = new InteractionOutput(content, {}, { type: { wrong: "schema" } });
         const result = out.value<number>();

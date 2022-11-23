@@ -17,7 +17,7 @@
  * Protocol test suite to test protocol implementations
  */
 
-import { ProtocolClient, Content, ContentSerdes, ProtocolHelpers, createLoggers } from "@node-wot/core";
+import { ProtocolClient, Content, DefaultContent, createLoggers } from "@node-wot/core";
 import * as TD from "@node-wot/td-tools";
 import * as mqtt from "mqtt";
 import { MqttClientConfig, MqttForm, MqttQoS } from "./mqtt";
@@ -70,7 +70,7 @@ export default class MqttClient implements ProtocolClient {
             this.client.on("message", (receivedTopic: string, payload: string, packet: IPublishPacket) => {
                 debug(`Received MQTT message (topic: ${receivedTopic}, data: ${payload})`);
                 if (receivedTopic === topic) {
-                    next({ type: contentType, body: Readable.from(payload) });
+                    next(new Content(contentType, Readable.from(payload)));
                 }
             });
             this.client.on("error", (err: Error) => {
@@ -107,11 +107,11 @@ export default class MqttClient implements ProtocolClient {
         if (content === undefined) {
             this.client.publish(topic, JSON.stringify(Buffer.from("")));
         } else {
-            const buffer = await ProtocolHelpers.readStreamFully(content.body);
+            const buffer = await content.toBuffer();
             this.client.publish(topic, buffer);
         }
         // there will bo no response
-        return { type: ContentSerdes.DEFAULT, body: Readable.from([]) };
+        return new DefaultContent(Readable.from([]));
     }
 
     public async unlinkResource(form: TD.Form): Promise<void> {

@@ -190,6 +190,7 @@ WoT.produce({
             count = newValue;
             lastChange = new Date().toISOString();
             thing.emitEvent("change", count);
+            thing.emitPropertyChange("count");
             return undefined;
         });
         thing.setActionHandler("decrement", async (params, options) => {
@@ -206,6 +207,7 @@ WoT.produce({
             count = newValue;
             lastChange = new Date().toISOString();
             thing.emitEvent("change", count);
+            thing.emitPropertyChange("count");
             return undefined;
         });
         thing.setActionHandler("reset", async (params, options) => {
@@ -213,6 +215,7 @@ WoT.produce({
             count = 0;
             lastChange = new Date().toISOString();
             thing.emitEvent("change", count);
+            thing.emitPropertyChange("count");
             return undefined;
         });
 

@@ -17,7 +17,7 @@ import { Subscription } from "rxjs/Subscription";
 import { promisify } from "util";
 import { Readable } from "stream";
 
-import { ProtocolClient, Content, ContentSerdes, ProtocolHelpers, createLoggers } from "@node-wot/core";
+import { ProtocolClient, Content, ContentSerdes, createLoggers } from "@node-wot/core";
 import { Form, SecurityScheme } from "@node-wot/td-tools";
 
 import {
@@ -472,7 +472,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
     private async _contentToDataValue(form: OPCUAForm, content: Content): Promise<DataValue> {
         const content2: { type: string; body: Buffer } = {
             ...content,
-            body: await ProtocolHelpers.readStreamFully(content.body),
+            body: await content.toBuffer(),
         };
 
         const contentSerDes = ContentSerdes.get();
@@ -558,7 +558,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
         if (!content || !content.body) {
             return [];
         }
-        const content2 = { ...content, body: await ProtocolHelpers.readStreamFully(content.body) };
+        const content2 = { ...content, body: await content.toBuffer() };
         const bodyInput = JSON.parse(content2.body.toString());
 
         const inputArguments = (argumentDefinition.inputArguments || []) as unknown as Argument[];
@@ -612,6 +612,6 @@ export class OPCUAProtocolClient implements ProtocolClient {
             body[name] = element;
         }
 
-        return { type: "application/json", body: Readable.from(JSON.stringify(body)) };
+        return new Content("application/json", Readable.from(JSON.stringify(body)));
     }
 }

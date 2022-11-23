@@ -16,7 +16,7 @@
 import { exist } from "should";
 import { expect } from "chai";
 
-import { ContentSerdes, ProtocolHelpers, createLoggers } from "@node-wot/core";
+import { ContentSerdes, createLoggers } from "@node-wot/core";
 import { ObjectSchema } from "@node-wot/td-tools";
 
 import { DataValue } from "node-opcua-data-value";
@@ -95,7 +95,7 @@ describe("OPCUA JSON Serdes ", () => {
                 const contentType = "application/opcua+json;type=DataValue";
                 exist(ContentSerdes.getMediaType(contentType));
                 const payload = serdes.valueToContent(dataValue, schema, contentType);
-                const body = await ProtocolHelpers.readStreamFully(payload.body);
+                const body = await payload.toBuffer();
                 debug(body.toString("ascii"));
                 JSON.parse(body.toString()).should.eql(expected1[index]);
             }
@@ -114,7 +114,7 @@ describe("OPCUA JSON Serdes ", () => {
             const contentType = "application/opcua+json;type=Variant";
             exist(ContentSerdes.getMediaType(contentType));
             const payload = serdes.valueToContent(dataValue, schema, contentType);
-            const body = await ProtocolHelpers.readStreamFully(payload.body);
+            const body = await payload.toBuffer();
             debug(body.toString("ascii"));
             body.toString().should.eql(expected2[index]);
         });

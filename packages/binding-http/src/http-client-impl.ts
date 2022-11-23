@@ -125,7 +125,7 @@ export default class HttpClient implements ProtocolClient {
         // in browsers node-fetch uses the native fetch, which returns a ReadableStream
         // not complaint with node. Therefore we have to force the conversion here.
         const body = ProtocolHelpers.toNodeStream(result.body as Readable);
-        return { type: result.headers.get("content-type"), body };
+        return new Content(result.headers.get("content-type"), body);
     }
 
     public async writeResource(form: HttpForm, content: Content): Promise<void> {
@@ -198,7 +198,7 @@ export default class HttpClient implements ProtocolClient {
         // in browsers node-fetch uses the native fetch, which returns a ReadableStream
         // not complaint with node. Therefore we have to force the conversion here.
         const body = ProtocolHelpers.toNodeStream(result.body as Readable);
-        return { type: result.headers.get("content-type"), body };
+        return new Content(result.headers.get("content-type"), body);
     }
 
     public async unlinkResource(form: HttpForm): Promise<void> {
@@ -295,7 +295,7 @@ export default class HttpClient implements ProtocolClient {
                     basicCredential.username === undefined ||
                     basicCredential.password === undefined
                 ) {
-                    throw new Error(`No Basic credentionals for Thing`);
+                    throw new Error(`No Basic credentials for Thing`);
                 }
 
                 this.proxyRequest.headers.set(
@@ -305,7 +305,7 @@ export default class HttpClient implements ProtocolClient {
             } else if (security.scheme === "bearer") {
                 const tokenCredentials: BearerCredentialConfiguration = credentials as BearerCredentialConfiguration;
                 if (credentials === undefined || tokenCredentials.token === undefined) {
-                    throw new Error(`No Bearer credentionals for Thing`);
+                    throw new Error(`No Bearer credentials for Thing`);
                 }
                 this.proxyRequest.headers.set("proxy-authorization", "Bearer " + tokenCredentials.token);
             }

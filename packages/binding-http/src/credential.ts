@@ -65,7 +65,7 @@ export class BearerCredential extends Credential {
     constructor({ token }: BearerCredentialConfiguration, options: BearerSecurityScheme) {
         super();
         if (token === undefined || token === null) {
-            throw new Error(`No Bearer credentionals for Thing`);
+            throw new Error(`No Bearer credentials for Thing`);
         }
 
         this.token = token;

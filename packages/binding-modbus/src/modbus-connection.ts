@@ -494,15 +494,9 @@ export class PropertyOperation {
             const bufstart = 2 * address;
             const bufend = 2 * (address + this.quantity);
 
-            resp = {
-                body: Readable.from(buffer.slice(bufstart, bufend)),
-                type: "application/octet-stream",
-            };
+            resp = new Content("application/octet-stream", Readable.from(buffer.slice(bufstart, bufend)));
         } else {
-            resp = {
-                body: Readable.from(buffer.slice(address, this.quantity)),
-                type: "application/octet-stream",
-            };
+            resp = new Content("application/octet-stream", Readable.from(buffer.slice(address, this.quantity)));
         }
 
         // resolve the Promise given to the invoking script

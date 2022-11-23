@@ -34,6 +34,20 @@ import { Readable } from "stream";
 
 const { debug, warn, info, error } = createLoggers("binding-coap", "coap-server");
 
+type CoreLinkFormatParameters = Map<string, string[] | number[]>;
+
+const thingDescriptionParameters: CoreLinkFormatParameters = new Map(
+    Object.entries({
+        rt: ["wot.thing"],
+        ct: [50, 432],
+    })
+);
+
+interface CoreLinkFormatResource {
+    urlPath: string;
+    parameters?: CoreLinkFormatParameters;
+}
+
 export default class CoapServer implements ProtocolServer {
     public readonly scheme: string = "coap";
 
@@ -51,6 +65,8 @@ export default class CoapServer implements ProtocolServer {
     );
 
     private readonly things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
+
+    private readonly coreResources = new Map<string, CoreLinkFormatResource>();
 
     constructor(port?: number, address?: string) {
         if (port !== undefined) {
@@ -116,6 +132,7 @@ export default class CoapServer implements ProtocolServer {
         if (this.things.has(urlPath)) {
             urlPath = Helpers.generateUniqueName(urlPath);
         }
+        this.coreResources.set(urlPath, { urlPath, parameters: thingDescriptionParameters });
 
         debug(`CoapServer on port ${this.getPort()} exposes '${thing.title}' as unique '/${urlPath}'`);
 
@@ -185,6 +202,7 @@ export default class CoapServer implements ProtocolServer {
                 const expThing = this.things.get(name);
                 if (expThing?.id === thingId) {
                     this.things.delete(name);
+                    this.coreResources.delete(name);
                     removedThing = expThing;
                 }
             }
@@ -195,6 +213,80 @@ export default class CoapServer implements ProtocolServer {
             }
             resolve(removedThing !== undefined);
         });
+    }
+
+    private formatCoreLinkFormatResources() {
+        return Array.from(this.coreResources.values())
+            .map((resource) => {
+                const formattedPath = `</${resource.urlPath}>`;
+                const parameters = Array.from(resource.parameters?.entries() ?? []);
+
+                const parameterValues = parameters.map((parameter) => {
+                    const key = parameter[0];
+                    const values = parameter[1].join(" ");
+                    return `${key}="${values}"`;
+                });
+
+                return [formattedPath, ...parameterValues].join(";");
+            })
+            .join(",");
+    }
+
+    private handleWellKnownCore(req: IncomingMessage, res: OutgoingMessage) {
+        if (req.method === "GET") {
+            res.setOption("Content-Format", "application/link-format");
+            res.code = "2.05";
+            const payload = this.formatCoreLinkFormatResources();
+            res.end(payload);
+        } else {
+            res.code = "4.05";
+            res.end("Method Not Allowed");
+        }
+    }
+
+    /**
+     * Handles a CoAP request for an ExposedThing, negotiates the TD Content-Format and sends
+     * a response.
+     *
+     * If a specific Content-Format for the TD is requested by a client, as indicated by
+     * an Accept option, it will be set for the outgoing response if it is supported.
+     * If no Accept option is set, the default Content-Format will be used as a fallback.
+     *
+     * If an Accept option is present but the Content-Format is not supported, the response
+     * will be sent with a status code `4.06` (Not Acceptable) and an error
+     * message as a diagnostic payload in accordance with RFC 7252, sections 5.10.4 and
+     * 5.5.2.
+     *
+     * @param req The incoming request.
+     * @param res The outgoing response.
+     * @param thing The ExposedThing whose TD is requested.
+     */
+    private async handleTdRequest(req: IncomingMessage, res: OutgoingMessage, thing: ExposedThing) {
+        if (req.method !== "GET") {
+            res.code = "4.05";
+            res.end("Method Not Allowed");
+            return;
+        }
+
+        const accept = req.headers.Accept;
+
+        const contentSerdes = ContentSerdes.get();
+
+        if (accept == null || (typeof accept === "string" && contentSerdes.isSupported(accept))) {
+            debug(`Received an available or no Content-Format (${accept}) in Accept option.`);
+            const contentFormat = (accept as string) ?? ContentSerdes.TD;
+            res.setHeader("Content-Format", contentFormat);
+            res.code = "2.05";
+
+            const content = contentSerdes.valueToContent(thing.getThingDescription(), undefined, contentFormat);
+            const payload = await ProtocolHelpers.readStreamFully(content.body);
+            debug(`Sending CoAP response for TD with Content-Format ${contentFormat}.`);
+            res.end(payload);
+        } else {
+            debug(`Request contained an accept option with value ${accept} which is not supported.`);
+            res.code = "4.06";
+            res.end(`Content-Format ${accept} is not supported by this resource.`);
+        }
     }
 
     private async handleRequest(req: IncomingMessage, res: OutgoingMessage) {
@@ -265,21 +357,16 @@ export default class CoapServer implements ProtocolServer {
             }
             // resource found and response sent
             return;
+        } else if (parsedRequestUri === "/.well-known/core") {
+            this.handleWellKnownCore(req, res);
+            return;
         } else {
             // path -> select Thing
             const thing = this.things.get(segments[1]);
             if (thing) {
                 if (segments.length === 2 || segments[2] === "") {
                     // Thing root -> send TD
-                    if (req.method === "GET") {
-                        res.setOption("Content-Format", ContentSerdes.TD);
-                        res.code = "2.05";
-                        res.end(JSON.stringify(thing.getThingDescription()));
-                    } else {
-                        res.code = "4.05";
-                        res.end("Method Not Allowed");
-                    }
-                    // resource found and response sent
+                    await this.handleTdRequest(req, res, thing);
                     return;
                 } else if (segments[2] === this.PROPERTY_DIR) {
                     // sub-path -> select Property
@@ -368,7 +455,7 @@ export default class CoapServer implements ProtocolServer {
                                     };
                                     await thing.handleWriteProperty(
                                         segments[3],
-                                        { body: Readable.from(req.payload), type: contentType },
+                                        new Content(contentType, Readable.from(req.payload)),
                                         options
                                     );
                                     res.code = "2.04";
@@ -418,7 +505,7 @@ export default class CoapServer implements ProtocolServer {
                             try {
                                 const output = await thing.handleInvokeAction(
                                     segments[3],
-                                    { body: Readable.from(req.payload), type: contentType },
+                                    new Content(contentType, Readable.from(req.payload)),
                                     options
                                 );
                                 if (output) {
