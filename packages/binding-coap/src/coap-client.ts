@@ -25,7 +25,7 @@ import { Subscription } from "rxjs/Subscription";
 // for Security definition
 import * as TD from "@node-wot/td-tools";
 
-import { ProtocolClient, Content, ContentSerdes, ProtocolHelpers, createLoggers } from "@node-wot/core";
+import { ProtocolClient, Content, ContentSerdes, createLoggers } from "@node-wot/core";
 import { CoapForm, CoapOption, CoapMethodName, isSupportedCoapMethod, isValidCoapMethod } from "./coap";
 import CoapServer from "./coap-server";
 import { Readable } from "stream";
@@ -71,7 +71,7 @@ export default class CoapClient implements ProtocolClient {
                 let contentType = res.headers["Content-Format"] as string;
                 if (!contentType) contentType = form.contentType;
 
-                resolve({ type: contentType, body: Readable.from(res.payload) });
+                resolve(new Content(contentType, Readable.from(res.payload)));
             });
             req.on("error", (err: Error) => reject(err));
             req.end();
@@ -80,7 +80,8 @@ export default class CoapClient implements ProtocolClient {
 
     public writeResource(form: CoapForm, content: Content): Promise<void> {
         return new Promise<void>((resolve, reject) => {
-            ProtocolHelpers.readStreamFully(content.body)
+            content
+                .toBuffer()
                 .then((buffer) => {
                     const req = this.generateRequest(form, "PUT");
 
@@ -113,12 +114,12 @@ export default class CoapClient implements ProtocolClient {
                 debug(`CoapClient received Content-Format: ${res.headers["Content-Format"]}`);
                 debug(`CoapClient received headers: ${JSON.stringify(res.headers)}`);
                 const contentType = res.headers["Content-Format"] as string;
-                resolve({ type: contentType ?? "", body: Readable.from(res.payload) });
+                resolve(new Content(contentType ?? "", Readable.from(res.payload)));
             });
             req.on("error", (err: Error) => reject(err));
             (async () => {
                 if (content && content.body) {
-                    const buffer = await ProtocolHelpers.readStreamFully(content.body);
+                    const buffer = await content.toBuffer();
                     req.setOption("Content-Format", content.type);
                     req.write(buffer);
                 }
@@ -163,7 +164,7 @@ export default class CoapClient implements ProtocolClient {
                 if (!contentType) contentType = form.contentType;
 
                 res.on("data", (data: Buffer) => {
-                    next({ type: `${contentType}`, body: Readable.from(res.payload) });
+                    next(new Content(`${contentType}`, Readable.from(res.payload)));
                 });
 
                 resolve(

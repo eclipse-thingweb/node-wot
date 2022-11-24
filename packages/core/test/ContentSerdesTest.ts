@@ -23,7 +23,6 @@ import { expect, should } from "chai";
 import { DataSchemaValue } from "wot-typescript-definitions";
 
 import ContentSerdes, { ContentCodec } from "../src/content-serdes";
-import { ProtocolHelpers } from "../src/core";
 // should must be called to augment all variables
 should();
 
@@ -36,7 +35,7 @@ const checkJsonToJs = (value: unknown): void => {
 
 const checkJsToJson = async (value: DataSchemaValue) => {
     const jsonContent = ContentSerdes.valueToContent(value, { type: "object", properties: {} });
-    const body = await ProtocolHelpers.readStreamFully(jsonContent.body);
+    const body = await jsonContent.toBuffer();
     const reparsed = JSON.parse(body.toString());
     expect(reparsed).to.deep.equal(value);
 };
@@ -83,27 +82,27 @@ class SerdesOctetTests {
 
     @test async "value to OctetStream"() {
         let content = ContentSerdes.valueToContent(2345, { type: "integer" }, "application/octet-stream");
-        let body = await ProtocolHelpers.readStreamFully(content.body);
+        let body = await content.toBuffer();
         expect(body).to.deep.equal(Buffer.from([0x00, 0x00, 0x09, 0x29]));
         // should default to signed
         content = ContentSerdes.valueToContent(-2345, { type: "integer" }, "application/octet-stream");
-        body = await ProtocolHelpers.readStreamFully(content.body);
+        body = await content.toBuffer();
         expect(body).to.deep.equal(Buffer.from([0xff, 0xff, 0xf6, 0xd7]));
 
         // @ts-ignore new dataschema types are not yet supported in the td type definitions
         content = ContentSerdes.valueToContent(2345, { type: "int16" }, "application/octet-stream");
-        body = await ProtocolHelpers.readStreamFully(content.body);
+        body = await content.toBuffer();
         expect(body).to.deep.equal(Buffer.from([0x09, 0x29]));
 
         // @ts-ignore new dataschema types are not yet supported in the td type definitions
         content = ContentSerdes.valueToContent(10, { type: "int8" }, "application/octet-stream");
-        body = await ProtocolHelpers.readStreamFully(content.body);
+        body = await content.toBuffer();
         expect(body).to.deep.equal(Buffer.from([0x0a]));
 
         // should serialize a number as a float16
         // @ts-ignore new dataschema types are not yet supported in the td type definitions
         content = ContentSerdes.valueToContent(4.5, { type: "float16" }, "application/octet-stream");
-        body = await ProtocolHelpers.readStreamFully(content.body);
+        body = await content.toBuffer();
         expect(body).to.deep.equal(Buffer.from([0x44, 0x80]));
     }
 
@@ -154,7 +153,7 @@ class SerdesCodecTests {
 
     @test async "new codec should serialize"() {
         const content = ContentSerdes.valueToContent("The meaning of Life", { type: "string" }, "text/hodor");
-        const body = await ProtocolHelpers.readStreamFully(content.body);
+        const body = await content.toBuffer();
         body.toString().should.equal("Hodor");
     }
 

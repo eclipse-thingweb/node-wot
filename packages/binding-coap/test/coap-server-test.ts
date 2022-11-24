@@ -1,4 +1,4 @@
-import { ProtocolHelpers, ExposedThing } from "@node-wot/core";
+import { ExposedThing, Content } from "@node-wot/core";
 /********************************************************************************
  * Copyright (c) 2018 Contributors to the Eclipse Foundation
  *
@@ -25,7 +25,7 @@ import * as TD from "@node-wot/td-tools";
 import CoapServer from "../src/coap-server";
 import { CoapClient } from "../src/coap";
 import { Readable } from "stream";
-import { request } from "coap";
+import { IncomingMessage, registerFormat, request } from "coap";
 
 // should must be called to augment all variables
 should();
@@ -69,7 +69,7 @@ class CoapServerTest {
 
         const coapClient = new CoapClient(coapServer);
         const resp = await coapClient.readResource(new TD.Form(uri + "properties/test"));
-        expect((await ProtocolHelpers.readStreamFully(resp.body)).toString()).to.equal('"testValue"');
+        expect((await resp.toBuffer()).toString()).to.equal('"testValue"');
 
         await coapServer.stop();
     }
@@ -102,12 +102,12 @@ class CoapServerTest {
         const uri = `coap://localhost:${coapServer.getPort()}/test/`;
 
         const coapClient = new CoapClient(coapServer);
-        await coapClient.writeResource(new TD.Form(uri + "properties/test"), {
-            type: "text/plain",
-            body: Readable.from(Buffer.from("testValue1", "utf-8")),
-        });
+        await coapClient.writeResource(
+            new TD.Form(uri + "properties/test"),
+            new Content("text/plain", Readable.from(Buffer.from("testValue1", "utf-8")))
+        );
         const resp = await coapClient.readResource(new TD.Form(uri + "properties/test"));
-        const data = (await ProtocolHelpers.readStreamFully(resp.body)).toString();
+        const data = (await resp.toBuffer()).toString();
         expect(data).to.equal('"testValue1"');
 
         await coapServer.stop();
@@ -141,11 +141,11 @@ class CoapServerTest {
         const uri = `coap://localhost:${coapServer.getPort()}/test/`;
 
         const coapClient = new CoapClient(coapServer);
-        const resp = await coapClient.invokeResource(new TD.Form(uri + "actions/try"), {
-            type: "text/plain",
-            body: Readable.from(Buffer.from("testValue1", "utf-8")),
-        });
-        expect((await ProtocolHelpers.readStreamFully(resp.body)).toString()).to.equal('"TEST"');
+        const resp = await coapClient.invokeResource(
+            new TD.Form(uri + "actions/try"),
+            new Content("text/plain", Readable.from(Buffer.from("testValue1", "utf-8")))
+        );
+        expect((await resp.toBuffer()).toString()).to.equal('"TEST"');
 
         await coapServer.stop();
     }
@@ -249,7 +249,7 @@ class CoapServerTest {
 
         const coapClient = new CoapClient(coapServer);
         const resp = await coapClient.readResource(new TD.Form(uri + "properties/test?id=testId&globalVarTest=test1"));
-        expect((await ProtocolHelpers.readStreamFully(resp.body)).toString()).to.equal('"testValue"');
+        expect((await resp.toBuffer()).toString()).to.equal('"testValue"');
 
         return coapServer.stop();
     }
@@ -274,7 +274,7 @@ class CoapServerTest {
 
         const coapClient = new CoapClient(coapServer);
         const resp = await coapClient.readResource(new TD.Form(uri));
-        expect((await ProtocolHelpers.readStreamFully(resp.body)).toString()).to.equal(
+        expect((await resp.toBuffer()).toString()).to.equal(
             '</test1>;rt="wot.thing";ct="50 432",</test2>;rt="wot.thing";ct="50 432"'
         );
 
@@ -296,20 +296,35 @@ class CoapServerTest {
         const uri = `coap://localhost:${coapServer.getPort()}/test`;
         let responseCounter = 0;
 
+        registerFormat("application/foobar", 65000);
+
         const defaultContentFormat = "application/td+json";
-        const unsupportedContentFormat = "application/cbor";
-        const contentFormats = [defaultContentFormat, "application/json", unsupportedContentFormat];
+        const unsupportedContentFormat = "application/foobar";
+        const contentFormats = [
+            defaultContentFormat,
+            "application/json",
+            "application/xml",
+            unsupportedContentFormat,
+            null,
+        ];
 
         for (const contentFormat of contentFormats) {
             const req = request(uri);
-            req.setHeader("Accept", contentFormat);
-            req.on("response", (res) => {
+
+            if (contentFormat != null) {
+                req.setHeader("Accept", contentFormat);
+            }
+
+            req.on("response", (res: IncomingMessage) => {
                 const requestContentFormat = res.headers["Content-Format"];
 
                 if (contentFormat === unsupportedContentFormat) {
-                    expect(requestContentFormat).to.equal(defaultContentFormat);
+                    expect(res.code).to.equal("4.06");
+                    expect(res.payload.toString()).to.equal(
+                        `Content-Format ${unsupportedContentFormat} is not supported by this resource.`
+                    );
                 } else {
-                    expect(requestContentFormat).to.equal(contentFormat);
+                    expect(requestContentFormat).to.equal(contentFormat ?? defaultContentFormat);
                 }
 
                 if (++responseCounter >= contentFormats.length) {

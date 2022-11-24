@@ -133,7 +133,7 @@ export default class MqttBrokerServer implements ProtocolServer {
 
             const observeListener = async (content: Content) => {
                 debug(`MqttBrokerServer at ${this.brokerURI} publishing to Property topic '${propertyName}' `);
-                const buffer = await ProtocolHelpers.readStreamFully(content.body);
+                const buffer = await content.toBuffer();
                 this.broker.publish(topic, buffer);
             };
             thing.handleObserveProperty(propertyName, observeListener, { formIndex: property.forms.length - 1 });
@@ -176,7 +176,7 @@ export default class MqttBrokerServer implements ProtocolServer {
                 return;
             }
             debug(`MqttBrokerServer at ${this.brokerURI} publishing to Event topic '${eventName}' `);
-            const buffer = await ProtocolHelpers.readStreamFully(content.body);
+            const buffer = await content.toBuffer();
             this.broker.publish(topic, buffer);
         };
         thing.handleSubscribeEvent(eventName, eventListener, { formIndex: event.forms.length - 1 });

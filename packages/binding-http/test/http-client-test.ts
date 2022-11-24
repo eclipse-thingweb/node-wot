@@ -23,7 +23,7 @@ import chai, { expect, should } from "chai";
 import * as http from "http";
 import { AddressInfo } from "net";
 
-import { Content, ContentSerdes, createLoggers, ProtocolHelpers, ProtocolServer } from "@node-wot/core";
+import { Content, DefaultContent, ContentSerdes, createLoggers, ProtocolServer } from "@node-wot/core";
 
 import { Readable } from "stream";
 
@@ -207,7 +207,7 @@ class HttpClientTest1 {
         };
         HttpClientTest1.httpServer.setTestVector(inputVector1);
         const resource = await this.client.readResource(inputVector1.form);
-        const body = await ProtocolHelpers.readStreamFully(resource.body);
+        const body = await resource.toBuffer();
         body.toString("ascii").should.eql("");
     }
 
@@ -222,10 +222,7 @@ class HttpClientTest1 {
         };
         HttpClientTest1.httpServer.setTestVector(inputVector2);
 
-        await this.client.writeResource(inputVector2.form, {
-            type: ContentSerdes.DEFAULT,
-            body: Readable.from(inputVector2.payload),
-        });
+        await this.client.writeResource(inputVector2.form, new DefaultContent(Readable.from(inputVector2.payload)));
     }
 
     @test async "should apply defaults - invoke with default"() {
@@ -239,13 +236,13 @@ class HttpClientTest1 {
         };
         HttpClientTest1.httpServer.setTestVector(inputVector3);
 
-        const resource = await this.client.invokeResource(inputVector3.form, {
-            type: ContentSerdes.DEFAULT,
-            body: Readable.from(inputVector3.payload),
-        });
+        const resource = await this.client.invokeResource(
+            inputVector3.form,
+            new DefaultContent(Readable.from(inputVector3.payload))
+        );
 
         expect(resource.type).eql(null);
-        const body = await ProtocolHelpers.readStreamFully(resource.body);
+        const body = await resource.toBuffer();
         body.toString("ascii").should.eql("");
     }
 
@@ -261,7 +258,7 @@ class HttpClientTest1 {
         HttpClientTest1.httpServer.setTestVector(inputVector1);
         const resource = await this.client.readResource(inputVector1.form);
         expect(resource.type).eql(null);
-        const body = await ProtocolHelpers.readStreamFully(resource.body);
+        const body = await resource.toBuffer();
         body.toString("ascii").should.eql("");
     }
 
@@ -276,10 +273,7 @@ class HttpClientTest1 {
             payload: "test",
         };
         HttpClientTest1.httpServer.setTestVector(inputVector2);
-        await this.client.writeResource(inputVector2.form, {
-            type: ContentSerdes.DEFAULT,
-            body: Readable.from(inputVector2.payload),
-        });
+        await this.client.writeResource(inputVector2.form, new DefaultContent(Readable.from(inputVector2.payload)));
     }
 
     @test async "should apply form information - read with PUT instead of GET"() {
@@ -293,10 +287,7 @@ class HttpClientTest1 {
             payload: "test",
         };
         HttpClientTest1.httpServer.setTestVector(inputVector3);
-        await this.client.invokeResource(inputVector3.form, {
-            type: ContentSerdes.DEFAULT,
-            body: Readable.from(inputVector3.payload),
-        });
+        await this.client.invokeResource(inputVector3.form, new DefaultContent(Readable.from(inputVector3.payload)));
     }
 
     @test async "should apply form information - read with DELETE instead of POST"() {

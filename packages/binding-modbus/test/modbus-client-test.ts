@@ -20,7 +20,7 @@ import { ModbusForm } from "../src/modbus";
 import ModbusServer from "./test-modbus-server";
 import chaiAsPromised from "chai-as-promised";
 import { Readable } from "stream";
-import { ProtocolHelpers } from "@node-wot/core";
+import { Content } from "@node-wot/core";
 
 // should must be called to augment all variables
 should();
@@ -150,10 +150,10 @@ describe("Modbus client test", () => {
             };
 
             let result = await client.readResource(form);
-            let body = await ProtocolHelpers.readStreamFully(result.body);
+            let body = await result.toBuffer();
             body.should.deep.equal(Buffer.from([1]), "Wrong data");
             result = await client.readResource(form);
-            body = await ProtocolHelpers.readStreamFully(result.body);
+            body = await result.toBuffer();
             body.should.deep.equal(Buffer.from([1]), "Wrong data");
         });
         it("should fail for timeout", async () => {
@@ -182,7 +182,7 @@ describe("Modbus client test", () => {
             };
 
             const result = await client.readResource(form);
-            const body = await ProtocolHelpers.readStreamFully(result.body);
+            const body = await result.toBuffer();
             body.should.deep.equal(Buffer.from([1]), "Wrong data");
         });
 
@@ -198,7 +198,7 @@ describe("Modbus client test", () => {
             };
 
             const result = await client.readResource(form);
-            const body = await ProtocolHelpers.readStreamFully(result.body);
+            const body = await result.toBuffer();
             body.should.deep.equal(Buffer.from([6]), "Wrong data"); // 0x110 is 6
         });
 
@@ -214,7 +214,7 @@ describe("Modbus client test", () => {
             };
 
             const result = await client.readResource(form);
-            const body = await ProtocolHelpers.readStreamFully(result.body);
+            const body = await result.toBuffer();
             body.should.deep.equal(Buffer.from([1]), "Wrong data");
         });
 
@@ -230,7 +230,7 @@ describe("Modbus client test", () => {
             };
 
             const result = await client.readResource(form);
-            const body = await ProtocolHelpers.readStreamFully(result.body);
+            const body = await result.toBuffer();
             body.should.deep.equal(Buffer.from([6]), "Wrong data"); // 0x110 is 6
         });
 
@@ -246,7 +246,7 @@ describe("Modbus client test", () => {
             };
 
             const result = await client.readResource(form);
-            const body = await ProtocolHelpers.readStreamFully(result.body);
+            const body = await result.toBuffer();
             body.should.deep.equal(Buffer.from([0, 3]), "Wrong data");
         });
 
@@ -262,7 +262,7 @@ describe("Modbus client test", () => {
             };
 
             const result = await client.readResource(form);
-            const body = await ProtocolHelpers.readStreamFully(result.body);
+            const body = await result.toBuffer();
             body.should.deep.equal(Buffer.from([0, 3, 0, 2, 0, 1]), "Wrong data");
         });
 
@@ -278,7 +278,7 @@ describe("Modbus client test", () => {
             };
 
             const result = await client.readResource(form);
-            const body = await ProtocolHelpers.readStreamFully(result.body);
+            const body = await result.toBuffer();
             body.should.deep.equal(Buffer.from([0, 3]), "Wrong data");
         });
 
@@ -294,7 +294,7 @@ describe("Modbus client test", () => {
             };
 
             const result = await client.readResource(form);
-            const body = await ProtocolHelpers.readStreamFully(result.body);
+            const body = await result.toBuffer();
             body.should.deep.equal(Buffer.from([0, 3, 0, 2, 0, 1]), "Wrong data");
         });
 
@@ -311,7 +311,7 @@ describe("Modbus client test", () => {
             };
 
             const result = await client.readResource(form);
-            const body = await ProtocolHelpers.readStreamFully(result.body);
+            const body = await result.toBuffer();
             body.should.deep.equal(Buffer.from([0, 0, 1, 0, 2, 0, 3, 0]), "Wrong data");
         });
 
@@ -328,7 +328,7 @@ describe("Modbus client test", () => {
             };
 
             const result = await client.readResource(form);
-            const body = await ProtocolHelpers.readStreamFully(result.body);
+            const body = await result.toBuffer();
             body.should.deep.equal(Buffer.from([0, 0, 0, 1, 0, 2, 0, 3]), "Wrong data");
         });
 
@@ -368,7 +368,7 @@ describe("Modbus client test", () => {
                 "modbus:unitID": 1,
             };
 
-            await client.writeResource(form, { type: "", body: Readable.from([1]) });
+            await client.writeResource(form, new Content("", Readable.from([1])));
             testServer.registers[0].should.be.equal(true, "wrong coil value");
         });
         it("should write a resource using multiple write coil function", async () => {
@@ -379,7 +379,7 @@ describe("Modbus client test", () => {
                 "modbus:unitID": 1,
             };
 
-            await client.writeResource(form, { type: "", body: Readable.from([1, 0, 1]) });
+            await client.writeResource(form, new Content("", Readable.from([1, 0, 1])));
             testServer.registers.should.be.deep.equal([true, false, true], "wrong coil value");
         });
 
@@ -391,7 +391,7 @@ describe("Modbus client test", () => {
                 "modbus:unitID": 1,
             };
 
-            await client.writeResource(form, { type: "", body: Readable.from([1, 1]) });
+            await client.writeResource(form, new Content("", Readable.from([1, 1])));
             testServer.registers[0].should.be.equal(257, "wrong register value");
         });
 
@@ -403,7 +403,7 @@ describe("Modbus client test", () => {
                 "modbus:unitID": 1,
             };
 
-            await client.writeResource(form, { type: "", body: Readable.from([1, 2, 1, 1]) }); // writes 0x0101 and 0x0100
+            await client.writeResource(form, new Content("", Readable.from([1, 2, 1, 1])));
             testServer.registers.should.be.deep.equal([258, 257], "wrong register value");
         });
 
@@ -416,7 +416,7 @@ describe("Modbus client test", () => {
                 "modbus:unitID": 1,
             };
 
-            await client.writeResource(form, { type: "", body: Readable.from([0x25, 0x49, 0x59, 0x60]) });
+            await client.writeResource(form, new Content("", Readable.from([0x25, 0x49, 0x59, 0x60])));
             testServer.registers.should.be.deep.equal([9545, 22880], "wrong coil value");
         });
 
@@ -429,7 +429,7 @@ describe("Modbus client test", () => {
                 "modbus:unitID": 1,
             };
 
-            await client.writeResource(form, { type: "", body: Readable.from([0x60, 0x59, 0x49, 0x25]) });
+            await client.writeResource(form, new Content("", Readable.from([0x60, 0x59, 0x49, 0x25])));
             testServer.registers.should.be.deep.equal([9545, 22880], "wrong coil value");
         });
 
@@ -442,7 +442,7 @@ describe("Modbus client test", () => {
                 "modbus:unitID": 1,
             };
 
-            await client.writeResource(form, { type: "", body: Readable.from([0x49, 0x25, 0x60, 0x59]) });
+            await client.writeResource(form, new Content("", Readable.from([0x49, 0x25, 0x60, 0x59])));
             testServer.registers.should.be.deep.equal([9545, 22880], "wrong coil value");
         });
 
@@ -455,7 +455,7 @@ describe("Modbus client test", () => {
                 "modbus:unitID": 1,
             };
 
-            await client.writeResource(form, { type: "", body: Readable.from([0x59, 0x60, 0x25, 0x49]) });
+            await client.writeResource(form, new Content("", Readable.from([0x59, 0x60, 0x25, 0x49])));
             testServer.registers.should.be.deep.equal([9545, 22880], "wrong coil value");
         });
     });
@@ -491,7 +491,7 @@ describe("Modbus client test", () => {
             };
 
             client.subscribeResource(form, async (value) => {
-                const body = await ProtocolHelpers.readStreamFully(value.body);
+                const body = await value.toBuffer();
                 body.should.deep.equal(Buffer.from([1]), "Wrong data");
                 client.unlinkResource(form);
                 done();
@@ -514,7 +514,7 @@ describe("Modbus client test", () => {
                     done();
                     client.unlinkResource(form);
                 }
-                const body = await ProtocolHelpers.readStreamFully(value.body);
+                const body = await value.toBuffer();
                 body.should.deep.equal(Buffer.from([1]), "Wrong data");
             });
         });

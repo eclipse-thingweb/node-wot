@@ -208,17 +208,30 @@ export default class HttpServer implements ProtocolServer {
 
     private updateInteractionNameWithUriVariablePattern(
         interactionName: string,
-        uriVariables: PropertyElement["uriVariables"]
+        uriVariables: PropertyElement["uriVariables"] = {},
+        thingVariables: PropertyElement["uriVariables"] = {}
     ): string {
-        if (uriVariables && Object.keys(uriVariables).length > 0) {
+        const variables = Object.assign({}, uriVariables, thingVariables);
+        if (Object.keys(variables).length > 0) {
             let pattern = "{?";
             let index = 0;
-            for (const key in uriVariables) {
-                if (index !== 0) {
-                    pattern += ",";
+            if (uriVariables) {
+                for (const key in uriVariables) {
+                    if (index !== 0) {
+                        pattern += ",";
+                    }
+                    pattern += encodeURIComponent(key);
+                    index++;
                 }
-                pattern += encodeURIComponent(key);
-                index++;
+            }
+            if (thingVariables) {
+                for (const key in thingVariables) {
+                    if (index !== 0) {
+                        pattern += ",";
+                    }
+                    pattern += encodeURIComponent(key);
+                    index++;
+                }
             }
             pattern += "}";
             return encodeURIComponent(interactionName) + pattern;
@@ -331,7 +344,8 @@ export default class HttpServer implements ProtocolServer {
             for (const propertyName in thing.properties) {
                 const propertyNamePattern = this.updateInteractionNameWithUriVariablePattern(
                     propertyName,
-                    thing.properties[propertyName].uriVariables
+                    thing.properties[propertyName].uriVariables,
+                    thing.uriVariables
                 );
                 const href = base + "/" + this.PROPERTY_DIR + "/" + propertyNamePattern;
                 const form = new TD.Form(href, type);
@@ -380,7 +394,8 @@ export default class HttpServer implements ProtocolServer {
             for (const actionName in thing.actions) {
                 const actionNamePattern = this.updateInteractionNameWithUriVariablePattern(
                     actionName,
-                    thing.actions[actionName].uriVariables
+                    thing.actions[actionName].uriVariables,
+                    thing.uriVariables
                 );
                 const href = base + "/" + this.ACTION_DIR + "/" + actionNamePattern;
                 const form = new TD.Form(href, type);
@@ -398,7 +413,8 @@ export default class HttpServer implements ProtocolServer {
             for (const eventName in thing.events) {
                 const eventNamePattern = this.updateInteractionNameWithUriVariablePattern(
                     eventName,
-                    thing.events[eventName].uriVariables
+                    thing.events[eventName].uriVariables,
+                    thing.uriVariables
                 );
                 const href = base + "/" + this.EVENT_DIR + "/" + eventNamePattern;
                 const form = new TD.Form(href, type);
@@ -679,7 +695,7 @@ export default class HttpServer implements ProtocolServer {
                                     const recordResponse: Record<string, unknown> = {};
                                     for (const key of propMap.keys()) {
                                         const content: Content = propMap.get(key);
-                                        const data = await ProtocolHelpers.readStreamFully(content.body);
+                                        const data = await content.toBuffer();
                                         recordResponse[key] = data.toString();
                                     }
                                     res.end(JSON.stringify(recordResponse));
@@ -772,7 +788,7 @@ export default class HttpServer implements ProtocolServer {
                                         try {
                                             await thing.handleWriteProperty(
                                                 segments[3],
-                                                { body: req, type: contentType },
+                                                new Content(contentType, req),
                                                 options
                                             );
                                             res.writeHead(204);
@@ -821,7 +837,7 @@ export default class HttpServer implements ProtocolServer {
                                 try {
                                     const output = await thing.handleInvokeAction(
                                         segments[3],
-                                        { body: req, type: contentType },
+                                        new Content(contentType, req),
                                         options
                                     );
                                     if (output) {

@@ -23,7 +23,7 @@ import { MqttClient, MqttForm, MqttQoS } from "../src/mqtt";
 import { expect, should } from "chai";
 import { Aedes, Server } from "aedes";
 import * as net from "net";
-import { ProtocolHelpers, Content } from "@node-wot/core";
+import { Content } from "@node-wot/core";
 import { Readable } from "stream";
 
 chai.use(chaiAsPromised);
@@ -68,14 +68,14 @@ describe("MQTT client implementation", () => {
             mqttClient
                 .subscribeResource(form, async (value: Content) => {
                     try {
-                        const data = await ProtocolHelpers.readStreamFully(value.body);
+                        const data = await value.toBuffer();
                         expect(data.toString()).to.be.equal("test");
                         done();
                     } catch (err) {
                         done(err);
                     }
                 })
-                .then(() => mqttClient.invokeResource(form, { type: "", body: Readable.from(Buffer.from("test")) }))
+                .then(() => mqttClient.invokeResource(form, new Content("", Readable.from(Buffer.from("test")))))
                 .then(() => mqttClient.stop())
                 .catch((err) => done(err));
         }).timeout(10000);

@@ -244,23 +244,49 @@ export default class CoapServer implements ProtocolServer {
         }
     }
 
-    private negotiateContentFormat(
-        req: IncomingMessage,
-        res: OutgoingMessage,
-        availableContentFormats: string[],
-        defaultContentFormat: string
-    ) {
-        const accept = req.headers.Accept;
-
-        if (typeof accept === "string" && availableContentFormats.includes(accept)) {
-            debug(`Received available Content-Format ${accept} in Accept option.`);
-            res.setHeader("Content-Format", accept);
+    /**
+     * Handles a CoAP request for an ExposedThing, negotiates the TD Content-Format and sends
+     * a response.
+     *
+     * If a specific Content-Format for the TD is requested by a client, as indicated by
+     * an Accept option, it will be set for the outgoing response if it is supported.
+     * If no Accept option is set, the default Content-Format will be used as a fallback.
+     *
+     * If an Accept option is present but the Content-Format is not supported, the response
+     * will be sent with a status code `4.06` (Not Acceptable) and an error
+     * message as a diagnostic payload in accordance with RFC 7252, sections 5.10.4 and
+     * 5.5.2.
+     *
+     * @param req The incoming request.
+     * @param res The outgoing response.
+     * @param thing The ExposedThing whose TD is requested.
+     */
+    private async handleTdRequest(req: IncomingMessage, res: OutgoingMessage, thing: ExposedThing) {
+        if (req.method !== "GET") {
+            res.code = "4.05";
+            res.end("Method Not Allowed");
             return;
         }
 
-        debug("Request did not contain an accept option or Content-Format is not supported.");
+        const accept = req.headers.Accept;
 
-        res.setHeader("Content-Format", defaultContentFormat);
+        const contentSerdes = ContentSerdes.get();
+
+        if (accept == null || (typeof accept === "string" && contentSerdes.isSupported(accept))) {
+            debug(`Received an available or no Content-Format (${accept}) in Accept option.`);
+            const contentFormat = (accept as string) ?? ContentSerdes.TD;
+            res.setHeader("Content-Format", contentFormat);
+            res.code = "2.05";
+
+            const content = contentSerdes.valueToContent(thing.getThingDescription(), undefined, contentFormat);
+            const payload = await ProtocolHelpers.readStreamFully(content.body);
+            debug(`Sending CoAP response for TD with Content-Format ${contentFormat}.`);
+            res.end(payload);
+        } else {
+            debug(`Request contained an accept option with value ${accept} which is not supported.`);
+            res.code = "4.06";
+            res.end(`Content-Format ${accept} is not supported by this resource.`);
+        }
     }
 
     private async handleRequest(req: IncomingMessage, res: OutgoingMessage) {
@@ -340,20 +366,7 @@ export default class CoapServer implements ProtocolServer {
             if (thing) {
                 if (segments.length === 2 || segments[2] === "") {
                     // Thing root -> send TD
-                    if (req.method === "GET") {
-                        this.negotiateContentFormat(
-                            req,
-                            res,
-                            [ContentSerdes.DEFAULT, ContentSerdes.TD],
-                            ContentSerdes.TD
-                        );
-                        res.code = "2.05";
-                        res.end(JSON.stringify(thing.getThingDescription()));
-                    } else {
-                        res.code = "4.05";
-                        res.end("Method Not Allowed");
-                    }
-                    // resource found and response sent
+                    await this.handleTdRequest(req, res, thing);
                     return;
                 } else if (segments[2] === this.PROPERTY_DIR) {
                     // sub-path -> select Property
@@ -442,7 +455,7 @@ export default class CoapServer implements ProtocolServer {
                                     };
                                     await thing.handleWriteProperty(
                                         segments[3],
-                                        { body: Readable.from(req.payload), type: contentType },
+                                        new Content(contentType, Readable.from(req.payload)),
                                         options
                                     );
                                     res.code = "2.04";
@@ -492,7 +505,7 @@ export default class CoapServer implements ProtocolServer {
                             try {
                                 const output = await thing.handleInvokeAction(
                                     segments[3],
-                                    { body: Readable.from(req.payload), type: contentType },
+                                    new Content(contentType, Readable.from(req.payload)),
                                     options
                                 );
                                 if (output) {

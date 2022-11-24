@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { Content } from "./protocol-interfaces";
+import { Content } from "./content";
 import JsonCodec from "./codecs/json-codec";
 import TextCodec from "./codecs/text-codec";
 import Base64Codec from "./codecs/base64-codec";
@@ -61,6 +61,7 @@ export class ContentSerdes {
             // JSON
             this.instance.addCodec(new JsonCodec(), true);
             this.instance.addCodec(new JsonCodec("application/senml+json"));
+            this.instance.addCodec(new JsonCodec("application/td+json"));
             // Text
             this.instance.addCodec(new TextCodec());
             this.instance.addCodec(new TextCodec("text/html"));
@@ -160,7 +161,7 @@ export class ContentSerdes {
         if (value === undefined) warn("ContentSerdes valueToContent got no value");
 
         if (value instanceof ReadableStream) {
-            return { type: contentType, body: ProtocolHelpers.toNodeStream(value) };
+            return new Content(contentType, ProtocolHelpers.toNodeStream(value));
         }
 
         let bytes: Buffer;
@@ -181,7 +182,7 @@ export class ContentSerdes {
         }
         // http server does not like Readable.from(bytes)
         // it works only with Arrays or strings
-        return { type: contentType, body: Readable.from([bytes]) };
+        return new Content(contentType, Readable.from([bytes]));
     }
 }
 

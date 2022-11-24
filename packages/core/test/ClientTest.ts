@@ -28,7 +28,8 @@ import { Subscription } from "rxjs/Subscription";
 import Servient from "../src/servient";
 import ConsumedThing from "../src/consumed-thing";
 import { Form, SecurityScheme } from "@node-wot/td-tools";
-import { ProtocolClient, ProtocolClientFactory, Content } from "../src/protocol-interfaces";
+import { ProtocolClient, ProtocolClientFactory } from "../src/protocol-interfaces";
+import { Content } from "../src/content";
 import { ContentSerdes } from "../src/content-serdes";
 import Helpers from "../src/helpers";
 import { Readable } from "stream";
@@ -130,7 +131,7 @@ const myThingDesc = {
 class TDClient implements ProtocolClient {
     public readResource(form: Form): Promise<Content> {
         // Note: this is not a "real" DataClient! Instead it just reports the same TD in any case
-        const c: Content = { type: ContentSerdes.TD, body: Readable.from(Buffer.from(JSON.stringify(myThingDesc))) };
+        const c: Content = new Content(ContentSerdes.TD, Readable.from(Buffer.from(JSON.stringify(myThingDesc))));
         return Promise.resolve(c);
     }
 
@@ -192,10 +193,8 @@ class TDClientFactory implements ProtocolClientFactory {
 
 class TrapClient implements ProtocolClient {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private trap: (...args: any[]) => Content | Promise<Content> = () => ({
-        type: "application/json",
-        body: Readable.from(Buffer.from("")),
-    });
+    private trap: (...args: any[]) => Content | Promise<Content> = () =>
+        new Content("application/json", Readable.from(Buffer.from("")));
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public setTrap(callback: (...args: any[]) => Content | Promise<Content>) {
@@ -336,7 +335,7 @@ class WoTClientTest {
     @test async "read a Property"() {
         // let the client return 42
         WoTClientTest.clientFactory.setTrap(() => {
-            return { type: "application/json", body: Readable.from(Buffer.from("42")) };
+            return new Content("application/json", Readable.from(Buffer.from("42")));
         });
         const td = (await WoTClientTest.WoTHelpers.fetch("td://foo")) as ThingDescription;
         const thing = await WoTClientTest.WoT.consume(td);
@@ -356,7 +355,7 @@ class WoTClientTest {
     @test async "read all properties"() {
         // let the client return 42
         WoTClientTest.clientFactory.setTrap(() => {
-            return { type: "application/json", body: Readable.from(Buffer.from("42")) };
+            return new Content("application/json", Readable.from(Buffer.from("42")));
         });
 
         const td = (await WoTClientTest.WoTHelpers.fetch("td://foo")) as ThingDescription;
@@ -381,7 +380,7 @@ class WoTClientTest {
     @test async "write a Property with raw readable stream"() {
         // verify the value transmitted
         WoTClientTest.clientFactory.setTrap(async (form: Form, content: Content) => {
-            const valueData = await ProtocolHelpers.readStreamFully(content.body);
+            const valueData = await content.toBuffer();
             expect(valueData.toString()).to.equal("23");
             return content;
         });
@@ -398,7 +397,7 @@ class WoTClientTest {
     @test async "write a Property with data schema value"() {
         // verify the value transmitted
         WoTClientTest.clientFactory.setTrap(async (form: Form, content: Content) => {
-            const valueData = await ProtocolHelpers.readStreamFully(content.body);
+            const valueData = await content.toBuffer();
             expect(valueData.toString()).to.equal("58");
             return content;
         });
@@ -414,7 +413,7 @@ class WoTClientTest {
     @test async "write multiple property new api"() {
         // verify the value transmitted
         WoTClientTest.clientFactory.setTrap(async (form: Form, content: Content) => {
-            const valueData = await ProtocolHelpers.readStreamFully(content.body);
+            const valueData = await content.toBuffer();
             expect(valueData.toString()).to.equal("66");
             return content;
         });
@@ -435,9 +434,9 @@ class WoTClientTest {
     @test async "call an action"() {
         // an action
         WoTClientTest.clientFactory.setTrap(async (form: Form, content: Content) => {
-            const valueData = await ProtocolHelpers.readStreamFully(content.body);
+            const valueData = await content.toBuffer();
             expect(valueData.toString()).to.equal("23");
-            return { type: "application/json", body: Readable.from(Buffer.from("42")) };
+            return new Content("application/json", Readable.from(Buffer.from("42")));
         });
         const td = (await WoTClientTest.WoTHelpers.fetch("td://foo")) as ThingDescription;
         const thing = await WoTClientTest.WoT.consume(td);
@@ -453,7 +452,7 @@ class WoTClientTest {
 
     @test async "subscribe to event"() {
         WoTClientTest.clientFactory.setTrap(() => {
-            return { type: "application/json", body: Readable.from(Buffer.from("triggered")) };
+            return new Content("application/json", Readable.from(Buffer.from("triggered")));
         });
         const td = (await WoTClientTest.WoTHelpers.fetch("td://foo")) as ThingDescription;
         const thing = await WoTClientTest.WoT.consume(td);
@@ -470,7 +469,7 @@ class WoTClientTest {
 
     @test async "should unsubscribe to event"() {
         WoTClientTest.clientFactory.setTrap(() => {
-            return { type: "application/json", body: Readable.from(Buffer.from("triggered")) };
+            return new Content("application/json", Readable.from(Buffer.from("triggered")));
         });
         const td = (await WoTClientTest.WoTHelpers.fetch("td://foo")) as ThingDescription;
         const thing = await WoTClientTest.WoT.consume(td);
@@ -487,7 +486,7 @@ class WoTClientTest {
 
     @test async "subscribe to event with formIndex"() {
         WoTClientTest.clientFactory.setTrap(() => {
-            return { type: "application/json", body: Readable.from(Buffer.from("triggered")) };
+            return new Content("application/json", Readable.from(Buffer.from("triggered")));
         });
         const td = (await WoTClientTest.WoTHelpers.fetch("td://foo")) as ThingDescription;
         const thing = await WoTClientTest.WoT.consume(td);
@@ -507,7 +506,7 @@ class WoTClientTest {
 
     @test async "should not subscribe twice to event"() {
         WoTClientTest.clientFactory.setTrap(() => {
-            return { type: "application/json", body: Readable.from(Buffer.from("triggered")) };
+            return new Content("application/json", Readable.from(Buffer.from("triggered")));
         });
         const td = (await WoTClientTest.WoTHelpers.fetch("td://foo")) as ThingDescription;
         const thing = await WoTClientTest.WoT.consume(td);
@@ -526,7 +525,7 @@ class WoTClientTest {
 
     @test async "should be able to subscribe again after unsubscribe to event"() {
         WoTClientTest.clientFactory.setTrap(() => {
-            return { type: "application/json", body: Readable.from(Buffer.from("triggered")) };
+            return new Content("application/json", Readable.from(Buffer.from("triggered")));
         });
         const td = (await WoTClientTest.WoTHelpers.fetch("td://foo")) as ThingDescription;
         const thing = await WoTClientTest.WoT.consume(td);
@@ -549,7 +548,7 @@ class WoTClientTest {
 
     @test async "observe property"() {
         WoTClientTest.clientFactory.setTrap(() => {
-            return { type: "application/json", body: Readable.from(Buffer.from("12")) };
+            return new Content("application/json", Readable.from(Buffer.from("12")));
         });
         const td = (await WoTClientTest.WoTHelpers.fetch("td://foo")) as ThingDescription;
         const thing = await WoTClientTest.WoT.consume(td);
@@ -566,7 +565,7 @@ class WoTClientTest {
 
     @test async "observe property with formIndex"() {
         WoTClientTest.clientFactory.setTrap(() => {
-            return { type: "application/json", body: Readable.from(Buffer.from("12")) };
+            return new Content("application/json", Readable.from(Buffer.from("12")));
         });
         const td = (await WoTClientTest.WoTHelpers.fetch("td://foo")) as ThingDescription;
         const thing = await WoTClientTest.WoT.consume(td);
@@ -586,7 +585,7 @@ class WoTClientTest {
 
     @test async "should not observe twice a property"() {
         WoTClientTest.clientFactory.setTrap(() => {
-            return { type: "application/json", body: Readable.from(Buffer.from("triggered")) };
+            return new Content("application/json", Readable.from(Buffer.from("triggered")));
         });
         const td = (await WoTClientTest.WoTHelpers.fetch("td://foo")) as ThingDescription;
         const thing = await WoTClientTest.WoT.consume(td);
@@ -678,7 +677,7 @@ class WoTClientTest {
         WoTClientTest.clientFactory.setTrap((form: Form) => {
             expect(form.href).to.contain("idTest=test");
             expect(form.href).to.contain("idTestGlobal=test2");
-            return { type: "application/json", body: Readable.from(Buffer.from("42")) };
+            return new Content("application/json", Readable.from(Buffer.from("42")));
         });
         const td = (await WoTClientTest.WoTHelpers.fetch("td://foo")) as ThingDescription;
         const thing = await WoTClientTest.WoT.consume(td);

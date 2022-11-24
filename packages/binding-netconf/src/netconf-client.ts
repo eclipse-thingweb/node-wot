@@ -16,7 +16,7 @@
 /**
  * Netconf protocol binding
  */
-import { ProtocolClient, Content, ProtocolHelpers, createLoggers } from "@node-wot/core";
+import { ProtocolClient, Content, createLoggers } from "@node-wot/core";
 import { NetconfForm, NetConfCredentials, RpcMethod, isRpcMethod } from "./netconf";
 import * as TD from "@node-wot/td-tools";
 import * as AsyncNodeNetcon from "./async-node-netconf";
@@ -73,12 +73,12 @@ export default class NetconfClient implements ProtocolClient {
         const result = JSON.stringify(await this.client.rpc(xpathQuery, method, NSs, target));
 
         return new Promise<Content>((resolve, reject) => {
-            resolve({ type: contentType, body: Readable.from(Buffer.from(result)) });
+            resolve(new Content(contentType, Readable.from(Buffer.from(result))));
         });
     }
 
     public async writeResource(form: NetconfForm, content: Content): Promise<void> {
-        const body = await ProtocolHelpers.readStreamFully(content.body);
+        const body = await content.toBuffer();
         let payload = content ? JSON.parse(body.toString()) : {};
         const url = new Url(form.href);
         const ipAddress = url.hostname;
@@ -107,7 +107,7 @@ export default class NetconfClient implements ProtocolClient {
     }
 
     public async invokeResource(form: NetconfForm, content: Content): Promise<Content> {
-        const body = await ProtocolHelpers.readStreamFully(content.body);
+        const body = await content.toBuffer();
         let payload = content ? JSON.parse(body.toString()) : {};
         const url = new Url(form.href);
         const ipAddress = url.hostname;
@@ -138,7 +138,7 @@ export default class NetconfClient implements ProtocolClient {
 
         const contentType = "application/yang-data+xml";
         return new Promise<Content>((resolve, reject) => {
-            resolve({ type: contentType, body: Readable.from(result) });
+            resolve(new Content(contentType, Readable.from(result)));
         });
     }
 

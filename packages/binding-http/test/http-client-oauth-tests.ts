@@ -21,7 +21,6 @@ import { OAuth2SecurityScheme } from "@node-wot/td-tools";
 
 import InMemoryModel from "./memory-model";
 import { promisify } from "util";
-import { ProtocolHelpers } from "@node-wot/core";
 import { readFileSync } from "fs";
 
 import OAuthServer from "express-oauth-server";
@@ -91,7 +90,7 @@ class HttpClientOAuthTest {
         const resource = await this.client.readResource({
             href: "https://127.0.0.1:3000/resource",
         });
-        const body = await ProtocolHelpers.readStreamFully(resource.body);
+        const body = await resource.toBuffer();
         body.toString("ascii").should.eql("Ok!");
     }
 
@@ -111,7 +110,7 @@ class HttpClientOAuthTest {
         const resource = await this.client.readResource({
             href: "https://127.0.0.1:3000/resource",
         });
-        const body = await ProtocolHelpers.readStreamFully(resource.body);
+        const body = await resource.toBuffer();
         body.toString("ascii").should.eql("Ok!");
     }
 
@@ -129,7 +128,7 @@ class HttpClientOAuthTest {
         const resource = await this.client.readResource({
             href: "https://127.0.0.1:3000/resource",
         });
-        const body = await ProtocolHelpers.readStreamFully(resource.body);
+        const body = await resource.toBuffer();
         body.toString("ascii").should.eql("Ok!");
     }
 
@@ -153,7 +152,7 @@ class HttpClientOAuthTest {
         const resource = await this.client.readResource({
             href: "https://127.0.0.1:3000/resource",
         });
-        const body = await ProtocolHelpers.readStreamFully(resource.body);
+        const body = await resource.toBuffer();
         body.toString("ascii").should.eql("Ok!");
     }
 }
