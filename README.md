@@ -35,6 +35,7 @@ Useful labels:
     -   [Using a browser](#using-a-browser)
 -   [How to use the library](#how-to-use-the-library)
     -   [The API](#the-api)
+    -   [TD Tooling](#td-tooling)
     -   [Logging](#logging)
     -   [Install new/different versions of NodeJS](#install-newdifferent-versions-of-nodejs)
 
@@ -399,6 +400,15 @@ This library implements the WoT Scripting API:
 Additionally, you can have a look at our [API Documentation](API.md).
 
 To learn by examples, see `examples/scripts` to have a feeling of how to script a Thing or a Consumer.
+
+### TD Tooling
+
+The package [td-tools](https://github.com/eclipse/thingweb.node-wot/tree/master/packages/td-tools) provides utilties around ThingDescription (TD) tooling:
+
+-   ThingDescription (TD) parsing
+-   ThingModel (TM) tooling
+-   [Asset Interface Description (AID)](https://github.com/eclipse/thingweb.node-wot/tree/master/packages/td-tools/src/util) utility
+-   ...
 
 ### Logging
 
