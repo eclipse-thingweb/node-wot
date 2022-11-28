@@ -18,8 +18,6 @@ The file `AID_v03_counter.json` describes the counter sample in AID format. The 
 
 The example tries to load an AID file in AID format and transforms it to a regular WoT TD.
 
-`node aid-client.js`
-
 ```js
 // aid-client.js
 const fs = require("fs/promises"); // to read JSON file in AID format
