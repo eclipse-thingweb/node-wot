@@ -25,7 +25,7 @@ import * as TD from "@node-wot/td-tools";
 import CoapServer from "../src/coap-server";
 import { CoapClient } from "../src/coap";
 import { Readable } from "stream";
-import { IncomingMessage, request } from "coap";
+import { IncomingMessage, registerFormat, request } from "coap";
 
 // should must be called to augment all variables
 should();
@@ -295,6 +295,8 @@ class CoapServerTest {
 
         const uri = `coap://localhost:${coapServer.getPort()}/test`;
         let responseCounter = 0;
+
+        registerFormat("application/foobar", 65000);
 
         const defaultContentFormat = "application/td+json";
         const unsupportedContentFormat = "application/foobar";
