@@ -16,8 +16,8 @@
         "tslint": "5.12.1"
     },
     "dependencies": {
-        "@node-wot/binding-http": "^0.8.2",
-        "@node-wot/core": "^0.8.2",
+        "@node-wot/binding-http": "0.8.x",
+        "@node-wot/core": "0.8.x",
         "request": "2.88.0",
         "ajv": "^6.12.6"
     },
