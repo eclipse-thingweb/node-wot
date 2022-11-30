@@ -115,7 +115,7 @@ export default class MqttBrokerServer implements ProtocolServer {
         }
 
         // connect incoming messages to Thing
-        this.broker.on("message", this.handleMessage);
+        this.broker.on("message", this.handleMessage.bind(this));
 
         this.broker.publish(name, JSON.stringify(thing.getThingDescription()), { retain: true });
     }
