@@ -99,7 +99,7 @@ cs.addCodec(new MyCodec("application/myType"));
 
 All systems require:
 
--   [NodeJS](https://nodejs.org/) version 12+
+-   [NodeJS](https://nodejs.org/) version 14+
 -   [npm](https://www.npmjs.com/) version 7+
 
 #### Linux
@@ -275,9 +275,6 @@ To reduce the size of the installation from about 800 MByte down to about 200 MB
 
 #### Trouble shooting
 
--   Build error around `node-aead-crypto`
-    -   node-gyp has been seen failing on MacOS
-    -   try node 10+, which does not require the crypto polyfill
 -   Build error about `No matching version found for @node-wot/...` or something about `match`
     -   try `npm run unlock` from project root before building
 -   `sudo npm run link` does not work
@@ -291,7 +288,7 @@ To reduce the size of the installation from about 800 MByte down to about 200 MB
     4. Run `npm i` again
     5. Install the packages with `npm link @node-wot/<module>`
 -   Build error around `prebuild: npm run bootstrap`
-    -   This has been seen failing on WSL. Try using Node 12.13.0
+    -   This has been seen failing on WSL. Try using a more recent NodeJS version
 
 ### As a Docker image
 
