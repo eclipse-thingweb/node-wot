@@ -277,7 +277,6 @@ To reduce the size of the installation from about 800 MByte down to about 200 MB
 
 -   Build error around `node-aead-crypto`
     -   node-gyp has been seen failing on MacOS
-    -   try node 10+, which does not require the crypto polyfill
 -   Build error about `No matching version found for @node-wot/...` or something about `match`
     -   try `npm run unlock` from project root before building
 -   `sudo npm run link` does not work
