@@ -275,8 +275,6 @@ To reduce the size of the installation from about 800 MByte down to about 200 MB
 
 #### Trouble shooting
 
--   Build error around `node-aead-crypto`
-    -   node-gyp has been seen failing on MacOS
 -   Build error about `No matching version found for @node-wot/...` or something about `match`
     -   try `npm run unlock` from project root before building
 -   `sudo npm run link` does not work
