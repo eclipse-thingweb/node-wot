@@ -175,7 +175,8 @@ export default class HttpClient implements ProtocolClient {
     }
 
     public async invokeResource(form: HttpForm, content?: Content): Promise<Content> {
-        const headers = content ? [["content-type", content.type]] : [];
+        const headers = content ? [["content-type", content.type],
+                                   ["content-length", content.length.toString()]] : [];
 
         const request = await this.generateFetchRequest(form, "POST", {
             headers: headers,

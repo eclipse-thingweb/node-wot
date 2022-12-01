@@ -19,10 +19,12 @@ import ProtocolHelpers from "./protocol-helpers";
 export class Content {
     type: string;
     body: NodeJS.ReadableStream;
+    length: number;
 
-    constructor(type: string, body: NodeJS.ReadableStream) {
+    constructor(type: string, body: NodeJS.ReadableStream, length: number = -1) {
         this.type = type;
         this.body = body;
+        this.length = length;
     }
 
     toBuffer(): Promise<Buffer> {

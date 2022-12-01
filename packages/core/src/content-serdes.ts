@@ -182,7 +182,7 @@ export class ContentSerdes {
         }
         // http server does not like Readable.from(bytes)
         // it works only with Arrays or strings
-        return new Content(contentType, Readable.from([bytes]));
+        return new Content(contentType, Readable.from([bytes]), bytes.length);
     }
 }
 
