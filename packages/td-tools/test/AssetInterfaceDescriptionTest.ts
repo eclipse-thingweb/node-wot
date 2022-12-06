@@ -23,15 +23,43 @@ import { promises as fs } from "fs";
 class AssetInterfaceDescriptionUtilTest {
     private assetInterfaceDescriptionUtil = new AssetInterfaceDescriptionUtil();
 
+    @test async "should correctly transform sample JSON AID_submodel HTTP v03 into a TD"() {
+        const modelFullString = await (await fs.readFile("test/util/AID_v03.json")).toString();
+        const modelFull = JSON.parse(modelFullString);
+        const modelSub = modelFull.submodels[1];
+
+        // submodel only + HTTP only
+        const td = this.assetInterfaceDescriptionUtil.transformSM2TD(
+            JSON.stringify(modelSub),
+            `{"title": "myTitle", "id": "urn:uuid:3deca264-4f90-4321-a5ea-f197e6a1c7cf"}`,
+            "HTTP"
+        );
+        const tdObj = JSON.parse(td);
+        // console.log(JSON.stringify(tdObj, null, 2));
+
+        // security
+        expect(tdObj).to.have.property("security").to.be.an("array").to.have.lengthOf(2);
+        expect(tdObj.securityDefinitions[tdObj.security[0]]).to.have.property("scheme").that.equals("basic");
+        expect(tdObj.securityDefinitions[tdObj.security[1]]).to.have.property("scheme").that.equals("oauth2");
+        // form entries limited to 1
+        expect(tdObj).to.have.property("properties").to.have.property("voltage");
+        expect(tdObj)
+            .to.have.property("properties")
+            .to.have.property("voltage")
+            .to.have.property("forms")
+            .to.be.an("array")
+            .to.have.lengthOf(1);
+    }
+
     @test async "should correctly transform sample JSON AID_v03 into a TD"() {
         const modelAID = (await fs.readFile("test/util/AID_v03.json")).toString();
-        const td = this.assetInterfaceDescriptionUtil.transformToTD(
+        const td = this.assetInterfaceDescriptionUtil.transformAAS2TD(
             modelAID,
             `{"title": "myTitle", "id": "urn:uuid:3deca264-4f90-4321-a5ea-f197e6a1c7cf"}`
         );
 
         const tdObj = JSON.parse(td);
-        console.log(JSON.stringify(tdObj, null, 2));
+        // console.log(JSON.stringify(tdObj, null, 2));
         // TODO proper TD validation based on playground and/or JSON schema?
         expect(tdObj).to.have.property("@context").that.equals("https://www.w3.org/2022/wot/td/v1.1");
         expect(tdObj).to.have.property("title").that.equals("myTitle");
@@ -109,7 +137,7 @@ class AssetInterfaceDescriptionUtilTest {
         expect(tdObj.properties.voltage.forms[3]).to.have.property("security").to.deep.equal(["4_sc"]);
 
         // filter HTTP submodel only
-        const td2 = this.assetInterfaceDescriptionUtil.transformToTD(modelAID, `{"title": "myTitle"}`, "HTTP");
+        const td2 = this.assetInterfaceDescriptionUtil.transformAAS2TD(modelAID, `{"title": "myTitle"}`, "HTTP");
         const td2Obj = JSON.parse(td2);
         // security
         expect(td2Obj).to.have.property("security").to.be.an("array").to.have.lengthOf(2);
@@ -125,7 +153,7 @@ class AssetInterfaceDescriptionUtilTest {
             .to.have.lengthOf(1);
 
         // filter Modbus and HTTP and submodel only
-        const td3 = this.assetInterfaceDescriptionUtil.transformToTD(modelAID, `{"title": "myTitle"}`, "Modbus|HTTP");
+        const td3 = this.assetInterfaceDescriptionUtil.transformAAS2TD(modelAID, `{"title": "myTitle"}`, "Modbus|HTTP");
         const td3Obj = JSON.parse(td3);
         // security
         expect(td3Obj).to.have.property("security").to.be.an("array").to.have.lengthOf(3);
@@ -144,10 +172,10 @@ class AssetInterfaceDescriptionUtilTest {
 
     @test async "should correctly transform sample JSON AID_v03 for counter into a TD"() {
         const modelAID = (await fs.readFile("test/util/AID_v03_counter.json")).toString();
-        const td = this.assetInterfaceDescriptionUtil.transformToTD(modelAID, `{"title": "counter"}`);
+        const td = this.assetInterfaceDescriptionUtil.transformAAS2TD(modelAID, `{"title": "counter"}`);
 
         const tdObj = JSON.parse(td);
-        console.log(JSON.stringify(tdObj, null, 2));
+        // console.log(JSON.stringify(tdObj, null, 2));
         // TODO proper TD validation based on playground and/or JSON schema?
         expect(tdObj).to.have.property("@context").that.equals("https://www.w3.org/2022/wot/td/v1.1");
         expect(tdObj).to.have.property("title").that.equals("counter");
@@ -176,17 +204,21 @@ class AssetInterfaceDescriptionUtilTest {
         // TODO actions and events for counter thing
 
         // check RegEx capability with fully qualified submodel
-        const td2 = this.assetInterfaceDescriptionUtil.transformToTD(modelAID, `{"title": "counter"}`, "InterfaceHTTP");
+        const td2 = this.assetInterfaceDescriptionUtil.transformAAS2TD(
+            modelAID,
+            `{"title": "counter"}`,
+            "InterfaceHTTP"
+        );
         const td2Obj = JSON.parse(td2);
         expect(tdObj).to.deep.equal(td2Obj);
 
         // check RegEx capability with search pattern for submodel
-        const td3 = this.assetInterfaceDescriptionUtil.transformToTD(modelAID, `{"title": "counter"}`, "HTTP*");
+        const td3 = this.assetInterfaceDescriptionUtil.transformAAS2TD(modelAID, `{"title": "counter"}`, "HTTP*");
         const td3Obj = JSON.parse(td3);
         expect(tdObj).to.deep.equal(td3Obj);
 
         // check RegEx capability with fully unknown submodel
-        const td4 = this.assetInterfaceDescriptionUtil.transformToTD(modelAID, `{"title": "counter"}`, "OPC*");
+        const td4 = this.assetInterfaceDescriptionUtil.transformAAS2TD(modelAID, `{"title": "counter"}`, "OPC*");
         const td4Obj = JSON.parse(td4);
         expect(td4Obj).to.not.have.property("properties");
     }
