@@ -1,0 +1,29 @@
+{
+    "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
+    "@type": "tm:ThingModel",
+    "title": "Lamp Thing Model",
+    "id": "urn:example:{{RANDOM_ID_PATTERN}}",
+    "description": "Lamp Thing Model Description",
+    "version" : {"model" : "1.0.0" },
+    "tm:optional": [
+        "/events/overheating"
+    ],
+    "properties": {
+        "status": {
+            "description": "current status of the lamp (on|off)",
+            "type": "string",
+            "readOnly": true
+        }
+    },
+    "actions": {
+        "toggle": {
+            "description": "Turn the lamp on or off"
+        }
+    },
+    "events": {
+        "overheating": {
+            "description": "Lamp reaches a critical temperature (overheating)",
+            "data": {"type": "string"}
+        }
+    }
+}

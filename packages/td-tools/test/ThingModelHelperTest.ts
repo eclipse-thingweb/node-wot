@@ -446,4 +446,55 @@ class ThingModelHelperTest {
         expect(validated.valid).to.be.false;
         expect(validated.errors).to.be.equal(`Missing required fields in map for model ${thing.title}`);
     }
+
+    @test async "should respect tm:optional"() {
+        const modelUri = "file://./test/thing-model/tmodels/TmOptional.tm.jsonld";
+        const model = await this.thingModelHelpers.fetchModel(modelUri);
+
+        const map = {
+            RANDOM_ID_PATTERN: "1234",
+        };
+        const tdNoOptional = {
+            "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
+            "@type": "Thing",
+            title: "Lamp Thing Model",
+            id: "urn:example:1234",
+            description: "Lamp Thing Model Description",
+            properties: {
+                status: {
+                    description: "current status of the lamp (on|off)",
+                    type: "string",
+                    readOnly: true,
+                },
+            },
+            actions: { toggle: { description: "Turn the lamp on or off" } },
+            events: {},
+            links: [
+                {
+                    rel: "type",
+                    href: "./LampThingModel.tm.jsonld",
+                    type: "application/tm+json",
+                },
+            ],
+        };
+
+        const tdOptional = {
+            ...tdNoOptional,
+            events: {
+                overheating: {
+                    description: "Lamp reaches a critical temperature (overheating)",
+                    data: { type: "string" },
+                },
+            },
+        };
+
+        const options: CompositionOptions = {
+            map,
+            selfComposition: false,
+        };
+
+        const partialTDs = await this.thingModelHelpers.getPartialTDs(model, options);
+        expect(partialTDs[0]).to.be.deep.equal(tdOptional);
+        expect(partialTDs[1]).to.be.deep.equal(tdNoOptional);
+    }
 }

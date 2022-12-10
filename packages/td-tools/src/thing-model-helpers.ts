@@ -458,6 +458,42 @@ export class ThingModelHelpers {
             data = this.fillPlaceholder(data, options.map);
         }
         tmpThingModels.unshift(data); // put itself as first element
+
+        if (data["tm:optional"]) {
+            // Collect optional affordances
+
+            const optionalAffordances = {
+                properties: [],
+                actions: [],
+                events: [],
+            } as Record<string, string[]>;
+
+            for (const optional of data["tm:optional"]) {
+                const [_, type, name] = optional.split("/");
+                optionalAffordances[type].push(name);
+            }
+
+            delete data["tm:optional"];
+
+            // Add a version of partial td without an optional affordance
+            for (const type in optionalAffordances) {
+                for (const affordance of optionalAffordances[type]) {
+                    const newAffordance = Object.keys(data[type] as DataSchema)
+                        .filter((key) => key !== affordance)
+                        .reduce((obj, key) => {
+                            obj[key] = (data[type] as DataSchema)[key];
+                            return obj;
+                        }, {} as DataSchema);
+
+                    const newData = {
+                        ...data,
+                        [type]: newAffordance,
+                    };
+                    tmpThingModels.push(newData);
+                }
+            }
+        }
+
         tmpThingModels = tmpThingModels.map((el) => this.fillPlaceholder(el, options?.map)); // TODO: make more efficient, since repeated each recursive call
         if (this.deps.length > 0) {
             this.removeDependency();
