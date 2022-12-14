@@ -542,6 +542,35 @@ export default class HttpServer implements ProtocolServer {
         }
     }
 
+    private async handleTdRequest(thing: ExposedThing, req: http.IncomingMessage, res: http.ServerResponse) {
+        const td = thing.getThingDescription();
+        let accept = req.headers.accept;
+        const contentSerdes = ContentSerdes.get();
+
+        // TODO: Better handling of wildcard values
+        if (accept === "*/*") {
+            accept = null;
+        }
+
+        if (accept == null || contentSerdes.isSupported(accept)) {
+            const contentType = accept ?? ContentSerdes.TD;
+            const content = contentSerdes.valueToContent(thing.getThingDescription(), undefined, contentType);
+            const payload = await content.toBuffer();
+
+            this.negotiateLanguage(td, thing, req);
+            res.setHeader("Content-Type", contentType);
+            res.writeHead(200);
+            debug(`Sending HTTP response for TD with Content-Type ${contentType}.`);
+            res.end(payload);
+            return;
+        }
+
+        debug(`Request contained an accept header with value ${accept} which is not supported.`);
+
+        res.writeHead(406);
+        res.end(`Content-Type ${accept} is not supported by this resource.`);
+    }
+
     private async handleRequest(req: http.IncomingMessage, res: http.ServerResponse) {
         // eslint-disable-next-line node/no-deprecated-api
         const requestUri = url.parse(req.url);
@@ -666,11 +695,7 @@ export default class HttpServer implements ProtocolServer {
                 if (segments.length === 2 || segments[2] === "") {
                     // Thing root -> send TD
                     if (req.method === "GET") {
-                        const td = thing.getThingDescription();
-                        this.negotiateLanguage(td, thing, req);
-                        res.setHeader("Content-Type", ContentSerdes.TD);
-                        res.writeHead(200);
-                        res.end(JSON.stringify(td));
+                        this.handleTdRequest(thing, req, res);
                     } else {
                         respondUnallowedMethod(res, "GET");
                     }

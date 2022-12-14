@@ -548,4 +548,54 @@ class HttpServerTest {
 
         return httpServer.stop();
     }
+
+    @test async "should support TD content negotiation"() {
+        const httpServer = new HttpServer({ port: 0 });
+
+        await httpServer.start(null);
+
+        const testThing = new ExposedThing(null, {
+            title: "Test",
+        });
+
+        await httpServer.expose(testThing);
+
+        const uri = `http://localhost:${httpServer.getPort()}/test/`;
+
+        const defaultContentTypeResponse = await fetch(uri);
+        expect(defaultContentTypeResponse.headers.get("Content-Type")).to.equal("application/td+json");
+
+        const negotiatedContentTypeResponse = await fetch(uri, {
+            headers: {
+                Accept: "application/json",
+            },
+        });
+        expect(negotiatedContentTypeResponse.headers.get("Content-Type")).to.equal("application/json");
+
+        return httpServer.stop();
+    }
+
+    @test async "should not support unknown Content-Types during TD content negotiation"() {
+        const httpServer = new HttpServer({ port: 0 });
+
+        await httpServer.start(null);
+
+        const testThing = new ExposedThing(null, {
+            title: "Test",
+        });
+
+        await httpServer.expose(testThing);
+
+        const uri = `http://localhost:${httpServer.getPort()}/test/`;
+
+        const failedNegotiationResponse = await fetch(uri, {
+            headers: {
+                Accept: "foo/bar",
+            },
+        });
+        expect(failedNegotiationResponse.headers.get("Content-Type")).to.equal(null);
+        expect(failedNegotiationResponse.status).to.equal(406);
+
+        return httpServer.stop();
+    }
 }
