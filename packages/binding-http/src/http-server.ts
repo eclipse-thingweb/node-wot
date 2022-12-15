@@ -511,6 +511,66 @@ export default class HttpServer implements ProtocolServer {
         }
     }
 
+    /**
+     * Look for language negotiation through the Accept-Language header field of HTTP (e.g., "de", "de-CH", "en-US,en;q=0.5")
+     * Note: "title" on thing level is mandatory term --> check whether "titles" exists for multi-languages
+     * Note: HTTP header names are case-insensitive and req.headers seems to contain them in lowercase
+     *
+     *
+     * @param td
+     * @param thing
+     * @param req
+     */
+    private negotiateLanguage(td: ThingDescription, thing: ExposedThing, req: http.IncomingMessage) {
+        if (req.headers["accept-language"] && req.headers["accept-language"] !== "*") {
+            if (thing.titles) {
+                const supportedLanguages = Object.keys(thing.titles); // e.g., ['fr', 'en']
+
+                // the loose option allows partial matching on supported languages (e.g., returns "de" for "de-CH")
+                const prefLang = acceptLanguageParser.pick(supportedLanguages, req.headers["accept-language"], {
+                    loose: true,
+                });
+
+                if (prefLang) {
+                    // if a preferred language can be found use it
+                    debug(
+                        `TD language negotiation through the Accept-Language header field of HTTP leads to "${prefLang}"`
+                    );
+                    this.resetMultiLangThing(td, prefLang);
+                }
+            }
+        }
+    }
+
+    private async handleTdRequest(thing: ExposedThing, req: http.IncomingMessage, res: http.ServerResponse) {
+        const td = thing.getThingDescription();
+        let accept = req.headers.accept;
+        const contentSerdes = ContentSerdes.get();
+
+        // TODO: Better handling of wildcard values
+        if (accept === "*/*") {
+            accept = null;
+        }
+
+        if (accept == null || contentSerdes.isSupported(accept)) {
+            const contentType = accept ?? ContentSerdes.TD;
+            const content = contentSerdes.valueToContent(thing.getThingDescription(), undefined, contentType);
+            const payload = await content.toBuffer();
+
+            this.negotiateLanguage(td, thing, req);
+            res.setHeader("Content-Type", contentType);
+            res.writeHead(200);
+            debug(`Sending HTTP response for TD with Content-Type ${contentType}.`);
+            res.end(payload);
+            return;
+        }
+
+        debug(`Request contained an accept header with value ${accept} which is not supported.`);
+
+        res.writeHead(406);
+        res.end(`Content-Type ${accept} is not supported by this resource.`);
+    }
+
     private async handleRequest(req: http.IncomingMessage, res: http.ServerResponse) {
         // eslint-disable-next-line node/no-deprecated-api
         const requestUri = url.parse(req.url);
@@ -635,39 +695,7 @@ export default class HttpServer implements ProtocolServer {
                 if (segments.length === 2 || segments[2] === "") {
                     // Thing root -> send TD
                     if (req.method === "GET") {
-                        const td = thing.getThingDescription();
-
-                        // look for language negotiation through the Accept-Language header field of HTTP (e.g., "de", "de-CH", "en-US,en;q=0.5")
-                        // Note: "title" on thing level is mandatory term --> check whether "titles" exists for multi-languages
-                        // Note: HTTP header names are case-insensitive and req.headers seems to contain them in lowercase
-                        if (req.headers["accept-language"] && req.headers["accept-language"] !== "*") {
-                            if (thing.titles) {
-                                const supportedLanguagesArray: string[] = []; // e.g., ['fr', 'en']
-
-                                // collect supported languages by checking titles (given title is the only mandatory multi-lang term)
-                                for (const lang in thing.titles) {
-                                    supportedLanguagesArray.push(lang);
-                                }
-
-                                // the loose option allows partial matching on supported languages (e.g., returns "de" for "de-CH")
-                                const prefLang = acceptLanguageParser.pick(
-                                    supportedLanguagesArray,
-                                    req.headers["accept-language"],
-                                    { loose: true }
-                                );
-
-                                if (prefLang) {
-                                    // if a preferred language can be found use it
-                                    debug(
-                                        `TD language negotiation through the Accept-Language header field of HTTP leads to "${prefLang}"`
-                                    );
-                                    this.resetMultiLangThing(td, prefLang);
-                                }
-                            }
-                        }
-                        res.setHeader("Content-Type", ContentSerdes.TD);
-                        res.writeHead(200);
-                        res.end(JSON.stringify(td));
+                        this.handleTdRequest(thing, req, res);
                     } else {
                         respondUnallowedMethod(res, "GET");
                     }
