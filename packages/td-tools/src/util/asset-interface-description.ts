@@ -44,6 +44,14 @@ interface AASInteraction {
     interaction: Record<string, unknown>;
 }
 
+interface SubmodelInformation {
+    properties: Map<string, Array<AASInteraction>>;
+    actions: Map<string, Array<AASInteraction>>;
+    events: Map<string, Array<AASInteraction>>;
+
+    endpointMetadataArray: Array<Record<string, unknown>>;
+}
+
 const noSecSS: SecurityScheme = { scheme: "nosec" };
 const noSecName = 0 + "_sc";
 
@@ -176,124 +184,93 @@ export class AssetInterfaceDescriptionUtil {
         return form;
     }
 
-    /**
-     * Transform AID JSON format to a WoT ThingDescription (TD)
-     *
-     * @param aid input AID JSON format
-     * @param template TD template with basic desired TD template
-     * @param submodelRegex allows to filter submodels based on regex expression (e.g, "HTTP*") or full text based on idShort (e.g., "InterfaceHTTP")
-     * @returns transformed
-     */
-    public transformToTD(aid: string, template?: string, submodelRegex?: string): string {
-        const thing: Thing = template ? JSON.parse(template) : {};
-        const aidModel = JSON.parse(aid);
+    private processSubmodel(
+        smInformation: SubmodelInformation,
+        submodel: Record<string, unknown>,
+        submodelRegex?: string
+    ): void {
+        if (submodel instanceof Object && submodel.idShort && submodel.idShort === "AssetInterfaceDescription") {
+            if (submodel.submodelElements && submodel.submodelElements instanceof Array) {
+                for (const submodelElement of submodel.submodelElements) {
+                    if (submodelElement instanceof Object) {
+                        logDebug("SubmodelElement.idShort: " + submodelElement.idShort);
+                        if (submodelRegex && typeof submodelRegex === "string" && submodelRegex.length > 0) {
+                            const regex = new RegExp(submodelRegex);
+                            if (!regex.test(submodelElement.idShort)) {
+                                logInfo("submodel not of interest");
+                                continue;
+                            }
+                        }
 
-        // TODO required fields possible in AID also?
-        if (!thing["@context"]) {
-            thing["@context"] = "https://www.w3.org/2022/wot/td/v1.1";
+                        this.processSubmodelElement(smInformation, submodelElement);
+                    }
+                }
+            }
         }
-        if (!thing.title) {
-            thing.title = "?TODO?"; // generate one?
-        }
+    }
 
-        const properties: Map<string, Array<AASInteraction>> = new Map<string, Array<AASInteraction>>();
-        const actions: Map<string, Array<AASInteraction>> = new Map<string, Array<AASInteraction>>();
-        const events: Map<string, Array<AASInteraction>> = new Map<string, Array<AASInteraction>>();
-
-        const endpointMetadataArray: Array<Record<string, unknown>> = [];
-
-        if (aidModel instanceof Object && aidModel.submodels) {
-            if (aidModel.submodels instanceof Array) {
-                for (const submodel of aidModel.submodels) {
-                    if (
-                        submodel instanceof Object &&
-                        submodel.idShort &&
-                        submodel.idShort === "AssetInterfaceDescription"
-                    ) {
-                        if (submodel.submodelElements && submodel.submodelElements instanceof Array) {
-                            for (const submodelElement of submodel.submodelElements) {
-                                if (submodelElement instanceof Object) {
-                                    logDebug("SubmodelElement.idShort: " + submodelElement.idShort);
-                                    if (
-                                        submodelRegex &&
-                                        typeof submodelRegex === "string" &&
-                                        submodelRegex.length > 0
-                                    ) {
-                                        const regex = new RegExp(submodelRegex);
-                                        if (!regex.test(submodelElement.idShort)) {
-                                            logInfo("submodel not of interest");
-                                            continue;
+    private processSubmodelElement(smInformation: SubmodelInformation, submodelElement: Record<string, unknown>): void {
+        // EndpointMetadata vs. InterfaceMetadata
+        if (submodelElement.value && submodelElement.value instanceof Array) {
+            // Note: iterate twice over to collect first EndpointMetadata
+            let endpointMetadata: Record<string, unknown> = {};
+            for (const smValue of submodelElement.value) {
+                if (smValue instanceof Object) {
+                    if (smValue.idShort === "EndpointMetadata") {
+                        logInfo("EndpointMetadata");
+                        // e.g., idShort: base , contentType, securityDefinitions, alternativeEndpointDescriptor?
+                        endpointMetadata = smValue;
+                        smInformation.endpointMetadataArray.push(endpointMetadata);
+                    }
+                }
+            }
+            // the 2nd time look for InterfaceMetadata that *need* EndpointMetadata
+            for (const smValue of submodelElement.value) {
+                if (smValue instanceof Object) {
+                    if (smValue.idShort === "InterfaceMetadata") {
+                        logInfo("InterfaceMetadata");
+                        if (smValue.value && smValue.value instanceof Array) {
+                            for (const interactionValue of smValue.value) {
+                                if (interactionValue.idShort === "Properties") {
+                                    if (interactionValue.value instanceof Array) {
+                                        for (const iValue of interactionValue.value) {
+                                            logInfo("Property: " + iValue.idShort);
+                                            if (!smInformation.properties.has(iValue.idShort)) {
+                                                smInformation.properties.set(iValue.idShort, []);
+                                            }
+                                            const propInter: AASInteraction = {
+                                                endpointMetadata: endpointMetadata,
+                                                interaction: iValue,
+                                            };
+                                            smInformation.properties.get(iValue.idShort)?.push(propInter);
                                         }
                                     }
-
-                                    // EndpointMetadata vs. InterfaceMetadata
-                                    if (submodelElement.value && submodelElement.value instanceof Array) {
-                                        // Note: iterate twice over to collect first EndpointMetadata
-                                        let endpointMetadata: Record<string, unknown> = {};
-                                        for (const smValue of submodelElement.value) {
-                                            if (smValue instanceof Object) {
-                                                if (smValue.idShort === "EndpointMetadata") {
-                                                    logInfo("EndpointMetadata");
-                                                    // e.g., idShort: base , contentType, securityDefinitions, alternativeEndpointDescriptor?
-                                                    endpointMetadata = smValue;
-                                                    endpointMetadataArray.push(endpointMetadata);
-                                                }
+                                } else if (interactionValue.idShort === "Operations") {
+                                    if (interactionValue.value instanceof Array) {
+                                        for (const iValue of interactionValue.value) {
+                                            logInfo("Action: " + iValue.idShort);
+                                            if (!smInformation.actions.has(iValue.idShort)) {
+                                                smInformation.actions.set(iValue.idShort, []);
                                             }
+                                            const actInter: AASInteraction = {
+                                                endpointMetadata: endpointMetadata,
+                                                interaction: iValue,
+                                            };
+                                            smInformation.actions.get(iValue.idShort)?.push(actInter);
                                         }
-                                        // the 2nd time look for InterfaceMetadata that *need* EndpointMetadata
-                                        for (const smValue of submodelElement.value) {
-                                            if (smValue instanceof Object) {
-                                                if (smValue.idShort === "InterfaceMetadata") {
-                                                    logInfo("InterfaceMetadata");
-                                                    if (smValue.value && smValue.value instanceof Array) {
-                                                        for (const interactionValue of smValue.value) {
-                                                            if (interactionValue.idShort === "Properties") {
-                                                                if (interactionValue.value instanceof Array) {
-                                                                    for (const iValue of interactionValue.value) {
-                                                                        logInfo("Property: " + iValue.idShort);
-                                                                        if (!properties.has(iValue.idShort)) {
-                                                                            properties.set(iValue.idShort, []);
-                                                                        }
-                                                                        const propInter: AASInteraction = {
-                                                                            endpointMetadata: endpointMetadata,
-                                                                            interaction: iValue,
-                                                                        };
-                                                                        properties.get(iValue.idShort)?.push(propInter);
-                                                                    }
-                                                                }
-                                                            } else if (interactionValue.idShort === "Operations") {
-                                                                if (interactionValue.value instanceof Array) {
-                                                                    for (const iValue of interactionValue.value) {
-                                                                        logInfo("Action: " + iValue.idShort);
-                                                                        if (!actions.has(iValue.idShort)) {
-                                                                            actions.set(iValue.idShort, []);
-                                                                        }
-                                                                        const actInter: AASInteraction = {
-                                                                            endpointMetadata: endpointMetadata,
-                                                                            interaction: iValue,
-                                                                        };
-                                                                        actions.get(iValue.idShort)?.push(actInter);
-                                                                    }
-                                                                }
-                                                            } else if (interactionValue.idShort === "Events") {
-                                                                if (interactionValue.value instanceof Array) {
-                                                                    for (const iValue of interactionValue.value) {
-                                                                        logInfo("Event: " + iValue.idShort);
-                                                                        if (!events.has(iValue.idShort)) {
-                                                                            events.set(iValue.idShort, []);
-                                                                        }
-                                                                        const evInter: AASInteraction = {
-                                                                            endpointMetadata: endpointMetadata,
-                                                                            interaction: iValue,
-                                                                        };
-                                                                        events.get(iValue.idShort)?.push(evInter);
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
+                                    }
+                                } else if (interactionValue.idShort === "Events") {
+                                    if (interactionValue.value instanceof Array) {
+                                        for (const iValue of interactionValue.value) {
+                                            logInfo("Event: " + iValue.idShort);
+                                            if (!smInformation.events.has(iValue.idShort)) {
+                                                smInformation.events.set(iValue.idShort, []);
                                             }
+                                            const evInter: AASInteraction = {
+                                                endpointMetadata: endpointMetadata,
+                                                interaction: iValue,
+                                            };
+                                            smInformation.events.get(iValue.idShort)?.push(evInter);
                                         }
                                     }
                                 }
@@ -302,6 +279,39 @@ export class AssetInterfaceDescriptionUtil {
                     }
                 }
             }
+        }
+    }
+
+    private getSubmodelInformation(aas: string, submodelRegex?: string): SubmodelInformation {
+        const aidModel = JSON.parse(aas);
+
+        const smInformation: SubmodelInformation = {
+            actions: new Map<string, Array<AASInteraction>>(),
+            events: new Map<string, Array<AASInteraction>>(),
+            properties: new Map<string, Array<AASInteraction>>(),
+            endpointMetadataArray: [],
+        };
+
+        if (aidModel instanceof Object && aidModel.submodels) {
+            if (aidModel.submodels instanceof Array) {
+                for (const submodel of aidModel.submodels) {
+                    this.processSubmodel(smInformation, submodel, submodelRegex);
+                }
+            }
+        }
+
+        return smInformation;
+    }
+
+    private _transform(smInformation: SubmodelInformation, template?: string): string {
+        const thing: Thing = template ? JSON.parse(template) : {};
+
+        // TODO required fields possible in AID also?
+        if (!thing["@context"]) {
+            thing["@context"] = "https://www.w3.org/2022/wot/td/v1.1";
+        }
+        if (!thing.title) {
+            thing.title = "?TODO?"; // generate one?
         }
 
         // Security in AID is defined for each submodel
@@ -313,7 +323,7 @@ export class AssetInterfaceDescriptionUtil {
         let cnt = 1;
         const secSchemeNamesAll = new Array<string>();
         const secNamesForEndpointMetadata = new Map<Record<string, unknown>, string[]>();
-        for (const endpointMetadata of endpointMetadataArray) {
+        for (const endpointMetadata of smInformation.endpointMetadataArray) {
             const secNames: Array<string> = [];
             const securitySchemes = this.getSecuritySchemesFromEndpointMetadata(endpointMetadata);
             if (securitySchemes === undefined) {
@@ -342,11 +352,11 @@ export class AssetInterfaceDescriptionUtil {
 
         // add interactions
         // 1. properties
-        logDebug("########### PROPERTIES (" + properties.size + ")");
-        if (properties.size > 0) {
+        logDebug("########### PROPERTIES (" + smInformation.properties.size + ")");
+        if (smInformation.properties.size > 0) {
             thing.properties = {};
 
-            for (const entry of properties.entries()) {
+            for (const entry of smInformation.properties.entries()) {
                 const key = entry[0];
                 const value: AASInteraction[] = entry[1];
                 logInfo("Property" + key + " = " + value);
@@ -358,18 +368,18 @@ export class AssetInterfaceDescriptionUtil {
                     if (vi.endpointMetadata) {
                         vi.secNamesForEndpoint = secNamesForEndpointMetadata.get(vi.endpointMetadata);
                     }
-                    const form = this.createInteractionForm(vi, endpointMetadataArray.length > 1);
+                    const form = this.createInteractionForm(vi, smInformation.endpointMetadataArray.length > 1);
                     thing.properties[key].forms.push(form);
                 }
             }
         }
 
         // 2. actions
-        logDebug("########### ACTIONS (" + actions.size + ")");
-        if (actions.size > 0) {
+        logDebug("########### ACTIONS (" + smInformation.actions.size + ")");
+        if (smInformation.actions.size > 0) {
             thing.actions = {};
 
-            for (const entry of actions.entries()) {
+            for (const entry of smInformation.actions.entries()) {
                 const key = entry[0];
                 const value: AASInteraction[] = entry[1];
                 logInfo("Action" + key + " = " + value);
@@ -381,18 +391,18 @@ export class AssetInterfaceDescriptionUtil {
                     if (vi.endpointMetadata) {
                         vi.secNamesForEndpoint = secNamesForEndpointMetadata.get(vi.endpointMetadata);
                     }
-                    const form = this.createInteractionForm(vi, endpointMetadataArray.length > 1);
+                    const form = this.createInteractionForm(vi, smInformation.endpointMetadataArray.length > 1);
                     thing.properties[key].forms.push(form);
                 }
             }
         }
 
         // 3. events
-        logDebug("########### EVENTS (" + events.size + ")");
-        if (events.size > 0) {
+        logDebug("########### EVENTS (" + smInformation.events.size + ")");
+        if (smInformation.events.size > 0) {
             thing.events = {};
 
-            for (const entry of events.entries()) {
+            for (const entry of smInformation.events.entries()) {
                 const key = entry[0];
                 const value: AASInteraction[] = entry[1];
                 logInfo("Event " + key + " = " + value);
@@ -404,12 +414,53 @@ export class AssetInterfaceDescriptionUtil {
                     if (vi.endpointMetadata) {
                         vi.secNamesForEndpoint = secNamesForEndpointMetadata.get(vi.endpointMetadata);
                     }
-                    const form = this.createInteractionForm(vi, endpointMetadataArray.length > 1);
+                    const form = this.createInteractionForm(vi, smInformation.endpointMetadataArray.length > 1);
                     thing.properties[key].forms.push(form);
                 }
             }
         }
 
         return JSON.stringify(thing);
+    }
+
+    /** @deprecated use transformAAS2TD method instead */
+    public transformToTD(aid: string, template?: string, submodelRegex?: string): string {
+        return this.transformAAS2TD(aid, submodelRegex);
+    }
+
+    /**
+     * Transform AAS in JSON format to a WoT ThingDescription (TD)
+     *
+     * @param aas input AAS in JSON format
+     * @param template TD template with basic desired TD template
+     * @param submodelRegex allows to filter submodel elements based on regex expression (e.g, "HTTP*") or full text based on idShort (e.g., "InterfaceHTTP")
+     * @returns transformed TD
+     */
+    public transformAAS2TD(aas: string, template?: string, submodelRegex?: string): string {
+        const smInformation = this.getSubmodelInformation(aas, submodelRegex);
+        return this._transform(smInformation, template);
+    }
+
+    /**
+     * Transform AID submodel definition in JSON format to a WoT ThingDescription (TD)
+     *
+     * @param aid input AID submodel in JSON format
+     * @param template TD template with basic desired TD template
+     * @param submodelRegex allows to filter submodel elements based on regex expression (e.g, "HTTP*") or full text based on idShort (e.g., "InterfaceHTTP")
+     * @returns transformed TD
+     */
+    public transformSM2TD(aid: string, template?: string, submodelRegex?: string): string {
+        const submodel = JSON.parse(aid);
+
+        const smInformation: SubmodelInformation = {
+            actions: new Map<string, Array<AASInteraction>>(),
+            events: new Map<string, Array<AASInteraction>>(),
+            properties: new Map<string, Array<AASInteraction>>(),
+            endpointMetadataArray: [],
+        };
+
+        this.processSubmodel(smInformation, submodel, submodelRegex);
+
+        return this._transform(smInformation, template);
     }
 }
