@@ -14,8 +14,6 @@
  ********************************************************************************/
 
 import { Form } from "@node-wot/td-tools";
-import { OptionName } from "coap-packet";
-import { OptionValue } from "coap";
 
 export { default as CoapServer } from "./coap-server";
 export { default as CoapClientFactory } from "./coap-client-factory";
@@ -29,16 +27,29 @@ export * from "./coap-client";
 export * from "./coaps-client-factory";
 export * from "./coaps-client";
 
-export class CoapOption {
-    public "cov:optionName": OptionName;
-    public "cov:optionValue": OptionValue;
-}
-
 export type CoapMethodName = "GET" | "POST" | "PUT" | "DELETE" | "FETCH" | "PATCH" | "iPATCH";
 
+export type BlockSize = 16 | 32 | 64 | 128 | 256 | 512 | 1024;
+
+export type BlockSizeOptionValue = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+
+export interface BlockWiseTransferParameters {
+    "cov:block2SZX"?: BlockSize;
+    "cov:block1SZX"?: BlockSize;
+}
+
 export class CoapForm extends Form {
-    public "cov:methodName"?: CoapMethodName;
-    public "cov:options"?: Array<CoapOption> | CoapOption;
+    public "cov:method"?: CoapMethodName;
+
+    public "cov:hopLimit"?: number;
+
+    public "cov:blockwise"?: BlockWiseTransferParameters;
+
+    public "cov:qblockwise"?: BlockWiseTransferParameters;
+
+    public "cov:contentFormat"?: number;
+
+    public "cov:accept"?: number;
 }
 
 /**
@@ -63,4 +74,36 @@ export function isValidCoapMethod(methodName: CoapMethodName): methodName is Coa
  */
 export function isSupportedCoapMethod(methodName: CoapMethodName): methodName is CoapMethodName {
     return ["GET", "POST", "PUT", "DELETE"].includes(methodName);
+}
+
+/**
+ * Encodes block size values for blockwise transfer to CoAP-specific values.
+ *
+ * Maps the values 16, 32, 64, 128, 256, 512, and 1024 to 0, 1, 2, 3, 4, 5, and 6,
+ * respectively.
+ *
+ * Throws an `Error` if an invalid value `blockSize` is passed.
+ *
+ * @param blockSize The original block size value.
+ * @returns A mapped block size value usable by CoAP.
+ */
+export function blockSizeToOptionValue(blockSize: BlockSize): BlockSizeOptionValue {
+    switch (blockSize) {
+        case 16:
+            return 0;
+        case 32:
+            return 1;
+        case 64:
+            return 2;
+        case 128:
+            return 3;
+        case 256:
+            return 4;
+        case 512:
+            return 5;
+        case 1024:
+            return 6;
+        default:
+            throw Error(`Expected one of 16, 32, 64, 128, 256, 512, or 1024 as blockSize value, got ${blockSize}.`);
+    }
 }
