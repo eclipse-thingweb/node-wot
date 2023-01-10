@@ -168,7 +168,11 @@ export default class HttpClient implements ProtocolClient {
                 .open(next, error, complete)
                 .then(() => {
                     this.activeSubscriptions.set(form.href, internalSubscription);
-                    resolve(new Subscription(null));
+                    resolve(
+                        new Subscription(() => {
+                            internalSubscription.close();
+                        })
+                    );
                 })
                 .catch((err) => reject(err));
         });
