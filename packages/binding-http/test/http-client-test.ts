@@ -56,6 +56,7 @@ interface TestVector {
 const port1 = 30001;
 const port2 = 30002;
 const port3 = 30001;
+const port4 = 30003;
 
 class TestHttpServer implements ProtocolServer {
     public readonly scheme: string = "test";
@@ -454,6 +455,52 @@ class HttpClientTest2 {
                     }
                 )
                 .then(subscribeSpy);
+        });
+    }
+
+    @test "should unsubscribe successfully"(done: Mocha.Done) {
+        const client = new HttpClient();
+
+        // Subscribe to an event
+        const form: HttpForm = {
+            op: ["subscribeevent"],
+            href: `http://localhost:${port4}/`,
+        };
+
+        const app = express();
+        const server = http.createServer({}, app);
+
+        app.get("/", async (req, res) => {
+            res.send("Emitted Event!");
+        });
+
+        const eventSpy = chai.spy();
+
+        server.listen(port4, "0.0.0.0");
+        server.once("listening", async () => {
+            let counter = 0;
+            const sub = await client.subscribeResource(
+                form,
+                async () => {
+                    counter++;
+                    eventSpy();
+                    if (counter === 2) {
+                        sub.unsubscribe();
+                        // wait 100 ms, so that tests fail if unsubscribe didn't work
+                        await new Promise((resolve) => setTimeout(resolve, 100));
+                        // eslint-disable-next-line no-unused-expressions
+                        eventSpy.should.have.been.called.twice;
+                        server.close();
+                        done();
+                    }
+                },
+                () => {
+                    /** */
+                },
+                () => {
+                    /** */
+                }
+            );
         });
     }
 }
