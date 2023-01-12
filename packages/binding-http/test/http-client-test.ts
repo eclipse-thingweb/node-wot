@@ -492,7 +492,10 @@ class HttpClientTest2 {
                         eventSpy.should.have.been.called.twice;
                         server.close();
                         done();
-                    }
+                    } else if (counter > 2) {
+                        server.close();
+                        done(new Error("unsubscribe didn't work as expected"));
+                     }
                 },
                 () => {
                     /** */
