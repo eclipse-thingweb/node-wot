@@ -495,7 +495,7 @@ class HttpClientTest2 {
                     } else if (counter > 2) {
                         server.close();
                         done(new Error("unsubscribe didn't work as expected"));
-                     }
+                    }
                 },
                 () => {
                     /** */
