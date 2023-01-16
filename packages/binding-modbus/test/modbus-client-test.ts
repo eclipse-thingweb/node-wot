@@ -239,6 +239,7 @@ describe("Modbus client test", () => {
 
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
+                contentType: "application/octet-stream",
                 "modbus:function": 3,
                 "modbus:address": 0,
                 "modbus:quantity": 1,
@@ -248,6 +249,7 @@ describe("Modbus client test", () => {
             const result = await client.readResource(form);
             const body = await result.toBuffer();
             body.should.deep.equal(Buffer.from([0, 3]), "Wrong data");
+            result.type.should.be.equal("application/octet-stream", "Wrong content type");
         });
 
         it("should read a resource using read multiple holding registers function", async () => {
@@ -255,6 +257,7 @@ describe("Modbus client test", () => {
 
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
+                contentType: "application/octet-stream; length=6",
                 "modbus:function": 3,
                 "modbus:address": 0,
                 "modbus:quantity": 3,
@@ -264,6 +267,7 @@ describe("Modbus client test", () => {
             const result = await client.readResource(form);
             const body = await result.toBuffer();
             body.should.deep.equal(Buffer.from([0, 3, 0, 2, 0, 1]), "Wrong data");
+            result.type.should.be.equal("application/octet-stream; length=6", "Wrong content type");
         });
 
         it("should read a resource using read input registers function", async () => {
