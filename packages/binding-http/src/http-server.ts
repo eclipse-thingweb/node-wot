@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2022 Contributors to the Eclipse Foundation
+ * Copyright (c) 2023 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -42,7 +42,7 @@ import { OAuth2SecurityScheme } from "@node-wot/td-tools";
 import slugify from "slugify";
 import { ThingDescription } from "wot-typescript-definitions";
 import * as acceptLanguageParser from "accept-language-parser";
-import { PropertyElement } from "wot-thing-description-types";
+import { ActionElement, EventElement, PropertyElement } from "wot-thing-description-types";
 
 const { debug, info, warn, error } = createLoggers("binding-http", "http-server");
 
@@ -349,7 +349,10 @@ export default class HttpServer implements ProtocolServer {
                 );
                 const href = base + "/" + this.PROPERTY_DIR + "/" + propertyNamePattern;
                 const form = new TD.Form(href, type);
-                ProtocolHelpers.updatePropertyFormWithTemplate(form, thing.properties[propertyName]);
+                ProtocolHelpers.updatePropertyFormWithTemplate(
+                    form,
+                    (tdTemplate?.properties[propertyName] ?? {}) as PropertyElement
+                );
                 if (thing.properties[propertyName].readOnly) {
                     form.op = ["readproperty"];
                     const hform: HttpForm = form;
@@ -399,7 +402,10 @@ export default class HttpServer implements ProtocolServer {
                 );
                 const href = base + "/" + this.ACTION_DIR + "/" + actionNamePattern;
                 const form = new TD.Form(href, type);
-                ProtocolHelpers.updateActionFormWithTemplate(form, thing.actions[actionName]);
+                ProtocolHelpers.updateActionFormWithTemplate(
+                    form,
+                    (tdTemplate?.actions[actionName] ?? {}) as ActionElement
+                );
                 form.op = ["invokeaction"];
                 const hform: HttpForm = form;
                 if (hform["htv:methodName"] === undefined) {
@@ -418,7 +424,10 @@ export default class HttpServer implements ProtocolServer {
                 );
                 const href = base + "/" + this.EVENT_DIR + "/" + eventNamePattern;
                 const form = new TD.Form(href, type);
-                ProtocolHelpers.updateEventFormWithTemplate(form, thing.events[eventName]);
+                ProtocolHelpers.updateEventFormWithTemplate(
+                    form,
+                    (tdTemplate?.events[eventName] ?? {}) as EventElement
+                );
                 form.subprotocol = "longpoll";
                 form.op = ["subscribeevent", "unsubscribeevent"];
                 thing.events[eventName].forms.push(form);

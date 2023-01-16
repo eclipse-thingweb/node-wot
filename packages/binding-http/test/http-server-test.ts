@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 Contributors to the Eclipse Foundation
+ * Copyright (c) 2023 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -545,6 +545,77 @@ class HttpServerTest {
 
         resp = await (await fetch(uriWithoutThing + "my-entry/does-not-exist")).text();
         expect(resp).to.not.equal("{}"); // i.e., returns 'Not Found'
+
+        return httpServer.stop();
+    }
+
+    @test async "should support setting SVG contentType"() {
+        const httpServer = new HttpServer({ port: 0 });
+
+        await httpServer.start(null);
+
+        const tdTemplate = {
+            title: "Test",
+            properties: {
+                image: {
+                    forms: [
+                        {
+                            contentType: "image/svg+xml",
+                        },
+                    ],
+                },
+            },
+        };
+        const testThing = new ExposedThing(null, tdTemplate);
+
+        const image = "<svg xmlns='http://www.w3.org/2000/svg'><text>FOO</text></svg>";
+        testThing.setPropertyReadHandler("image", (_) => Promise.resolve(image));
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.image.forms = [];
+        await httpServer.expose(testThing, tdTemplate);
+
+        const uri = `http://localhost:${httpServer.getPort()}/test/properties/image`;
+
+        const contentTypeResponse = await fetch(uri);
+        expect(contentTypeResponse.headers.get("Content-Type")).to.equal("image/svg+xml");
+
+        return httpServer.stop();
+    }
+
+    @test async "should support setting PNG contentType"() {
+        const httpServer = new HttpServer({ port: 0 });
+
+        await httpServer.start(null);
+
+        const tdTemplate = {
+            title: "Test",
+            properties: {
+                image: {
+                    forms: [
+                        {
+                            contentType: "image/png",
+                        },
+                    ],
+                },
+            },
+        };
+        const testThing = new ExposedThing(null, tdTemplate);
+
+        const image =
+            "iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==";
+        testThing.setPropertyReadHandler("image", (_) => Promise.resolve(image));
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.image.forms = [];
+        await httpServer.expose(testThing, tdTemplate);
+
+        const uri = `http://localhost:${httpServer.getPort()}/test/properties/image`;
+
+        const contentTypeResponse = await fetch(uri);
+        expect(contentTypeResponse.headers.get("Content-Type")).to.equal("image/png");
 
         return httpServer.stop();
     }
