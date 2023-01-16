@@ -544,16 +544,27 @@ export default class HttpServer implements ProtocolServer {
 
     private async handleTdRequest(thing: ExposedThing, req: http.IncomingMessage, res: http.ServerResponse) {
         const td = thing.getThingDescription();
-        let accept = req.headers.accept;
         const contentSerdes = ContentSerdes.get();
 
-        // TODO: Better handling of wildcard values
-        if (accept === "*/*") {
-            accept = null;
-        }
+        // TODO: Parameters need to be considered here as well
+        const acceptValues = req.headers.accept?.split(",").map((acceptValue) => acceptValue.split(";")[0]) ?? [
+            ContentSerdes.TD,
+        ];
 
-        if (accept == null || contentSerdes.isSupported(accept)) {
-            const contentType = accept ?? ContentSerdes.TD;
+        // TODO: Better handling of wildcard values
+        const filteredAcceptValues = acceptValues
+            .map((acceptValue) => {
+                if (acceptValue === "*/*") {
+                    return ContentSerdes.TD;
+                }
+
+                return acceptValue;
+            })
+            .filter((acceptValue) => contentSerdes.isSupported(acceptValue));
+
+        if (filteredAcceptValues.length > 0) {
+            const contentType = filteredAcceptValues[0];
+
             const content = contentSerdes.valueToContent(thing.getThingDescription(), undefined, contentType);
             const payload = await content.toBuffer();
 
@@ -565,10 +576,10 @@ export default class HttpServer implements ProtocolServer {
             return;
         }
 
-        debug(`Request contained an accept header with value ${accept} which is not supported.`);
+        debug(`Request contained an accept header with the values ${acceptValues}, none of which are supported.`);
 
         res.writeHead(406);
-        res.end(`Content-Type ${accept} is not supported by this resource.`);
+        res.end(`Accept header contained no Content-Types supported by this resource. (Was ${acceptValues})`);
     }
 
     private async handleRequest(req: http.IncomingMessage, res: http.ServerResponse) {
