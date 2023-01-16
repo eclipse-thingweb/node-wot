@@ -56,7 +56,8 @@ export default class OctetstreamCodec implements ContentCodec {
         schema?: DataSchema,
         parameters: { [key: string]: string | undefined } = {}
     ): DataSchemaValue {
-        debug(`OctetstreamCodec parsing '${bytes.toString()}'`);
+        debug("OctetstreamCodec parsing", bytes);
+        debug("Parameters", parameters);
 
         const bigendian = !parameters.byteSeq?.includes(Endianness.LITTLE_ENDIAN); // default to big endian
         let signed = parameters.signed !== "false"; // default to signed
@@ -146,6 +147,7 @@ export default class OctetstreamCodec implements ContentCodec {
             case "float":
             case "double":
             case "number":
+                debug("qui", bigendian);
                 switch (dataLength) {
                     case 2:
                         return getFloat16(new DataView(bytes.buffer), bytes.byteOffset, !bigendian);
