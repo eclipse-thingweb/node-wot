@@ -562,15 +562,46 @@ class HttpServerTest {
 
         const uri = `http://localhost:${httpServer.getPort()}/test/`;
 
-        const defaultContentTypeResponse = await fetch(uri);
-        expect(defaultContentTypeResponse.headers.get("Content-Type")).to.equal("application/td+json");
-
-        const negotiatedContentTypeResponse = await fetch(uri, {
-            headers: {
-                Accept: "application/json",
+        const testCases = [
+            {
+                inputHeaders: {},
+                expected: "application/td+json",
+                expectedResponseCode: 200,
             },
-        });
-        expect(negotiatedContentTypeResponse.headers.get("Content-Type")).to.equal("application/json");
+            {
+                inputHeaders: { Accept: "application/json" },
+                expected: "application/json",
+                expectedResponseCode: 200,
+            },
+            {
+                inputHeaders: { Accept: "*/*,application/json" },
+                expected: "application/td+json",
+                expectedResponseCode: 200,
+            },
+            {
+                inputHeaders: { Accept: "*/*" },
+                expected: "application/td+json",
+                expectedResponseCode: 200,
+            },
+            {
+                inputHeaders: { Accept: "foo/cbar;baz=fuzz,application/json,foo/cbar" },
+                expected: "application/json",
+                expectedResponseCode: 200,
+            },
+            {
+                inputHeaders: { Accept: "foo/cbar;baz=fuzz,foo/cbar" },
+                expected: null,
+                expectedResponseCode: 406,
+            },
+        ];
+
+        for (const testCase of testCases) {
+            const negotiatedContentTypeResponse = await fetch(uri, {
+                headers: testCase.inputHeaders,
+            });
+            expect(negotiatedContentTypeResponse.headers.get("Content-Type")).to.equal(testCase.expected);
+            expect(negotiatedContentTypeResponse.status).to.equal(testCase.expectedResponseCode);
+        }
 
         return httpServer.stop();
     }
