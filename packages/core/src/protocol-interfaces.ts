@@ -96,3 +96,10 @@ export interface ProtocolServer {
     stop(): Promise<void>;
     getPort(): number;
 }
+
+export enum Endianness {
+    BIG_ENDIAN = "BIG_ENDIAN",
+    LITTLE_ENDIAN = "LITTLE_ENDIAN",
+    BIG_ENDIAN_BYTE_SWAP = "BIG_ENDIAN_BYTE_SWAP",
+    LITTLE_ENDIAN_BYTE_SWAP = "LITTLE_ENDIAN_BYTE_SWAP",
+}

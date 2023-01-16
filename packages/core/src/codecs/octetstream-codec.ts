@@ -17,6 +17,7 @@ import { ContentCodec } from "../content-serdes";
 import { DataSchema, DataSchemaValue } from "wot-typescript-definitions";
 import { getFloat16, setFloat16 } from "@petamoriken/float16";
 import { createLoggers } from "../logger";
+import { Endianness } from "../protocol-interfaces";
 
 const { debug, warn } = createLoggers("core", "octetstream-codec");
 
@@ -57,7 +58,7 @@ export default class OctetstreamCodec implements ContentCodec {
     ): DataSchemaValue {
         debug(`OctetstreamCodec parsing '${bytes.toString()}'`);
 
-        const bigendian = parameters.byteorder !== "littleendian"; // default to big endian
+        const bigendian = !parameters.byteSeq?.includes(Endianness.LITTLE_ENDIAN); // default to big endian
         let signed = parameters.signed !== "false"; // default to signed
 
         // check length if specified
@@ -78,6 +79,11 @@ export default class OctetstreamCodec implements ContentCodec {
                 dataType = typeSem[2];
                 dataLength = +typeSem[3] / 8 ?? bytes.length;
             }
+        }
+
+        // Handle byte swapping
+        if (parameters.byteSeq?.includes("BYTE_SWAP") && dataLength > 1) {
+            bytes.swap16();
         }
 
         // determine return type
@@ -174,7 +180,7 @@ export default class OctetstreamCodec implements ContentCodec {
             warn("Missing 'length' parameter necessary for write. I'll do my best");
         }
 
-        const bigendian = parameters.byteorder !== "littleendian"; // default to bigendian
+        const bigendian = !parameters.byteSeq?.includes(Endianness.LITTLE_ENDIAN); // default to bigendian
         let signed = parameters.signed !== "false"; // if signed is undefined -> true (default)
         let length = parameters.length ? parseInt(parameters.length) : undefined;
         let buf: Buffer;
@@ -230,7 +236,10 @@ export default class OctetstreamCodec implements ContentCodec {
                 }
 
                 buf = Buffer.alloc(length);
-
+                // Handle byte swapping
+                if (parameters.byteSeq?.includes("BYTE_SwAP") && length > 1) {
+                    buf.swap16();
+                }
                 switch (length) {
                     case 1:
                         signed ? buf.writeInt8(value, 0) : buf.writeUInt8(value, 0);
@@ -280,7 +289,10 @@ export default class OctetstreamCodec implements ContentCodec {
 
                 length = length ?? 8;
                 buf = Buffer.alloc(length);
-
+                // Handle byte swapping
+                if (parameters.byteSeq?.includes("BYTE_SwAP") && length > 1) {
+                    buf.swap16();
+                }
                 switch (length) {
                     case 2:
                         setFloat16(new DataView(buf.buffer), 0, value, !bigendian);

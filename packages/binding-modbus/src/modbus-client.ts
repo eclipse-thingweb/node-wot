@@ -15,9 +15,9 @@
 /**
  * Modbus master based on modbus-serial
  */
-import { ModbusForm, ModbusFunction, ModbusEndianness } from "./modbus";
+import { ModbusForm, ModbusFunction } from "./modbus";
 
-import { ProtocolClient, Content, DefaultContent, createDebugLogger } from "@node-wot/core";
+import { ProtocolClient, Content, DefaultContent, createDebugLogger, Endianness } from "@node-wot/core";
 import { SecurityScheme } from "@node-wot/td-tools";
 import { modbusFunctionToEntity } from "./utils";
 import { ModbusConnection, PropertyOperation } from "./modbus-connection";
@@ -184,14 +184,14 @@ export default class ModbusClient implements ProtocolClient {
         return operation.execute();
     }
 
-    private validateEndianness(form: ModbusForm): ModbusEndianness {
-        let endianness = ModbusEndianness.BIG_ENDIAN;
+    private validateEndianness(form: ModbusForm): Endianness {
+        let endianness = Endianness.BIG_ENDIAN;
         if (form.contentType) {
             const contentValues: string[] = form.contentType.split(";") ?? [];
             // Check endian-ness
             const byteSeq = contentValues.find((value) => /^byteSeq=/.test(value));
             if (byteSeq) {
-                const guessEndianness = ModbusEndianness[byteSeq.split("=")[1] as keyof typeof ModbusEndianness];
+                const guessEndianness = Endianness[byteSeq.split("=")[1] as keyof typeof Endianness];
                 if (guessEndianness) {
                     endianness = guessEndianness;
                 } else {
