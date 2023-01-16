@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2022 Contributors to the Eclipse Foundation
+ * Copyright (c) 2023 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -168,7 +168,11 @@ export default class HttpClient implements ProtocolClient {
                 .open(next, error, complete)
                 .then(() => {
                     this.activeSubscriptions.set(form.href, internalSubscription);
-                    resolve(new Subscription(null));
+                    resolve(
+                        new Subscription(() => {
+                            internalSubscription.close();
+                        })
+                    );
                 })
                 .catch((err) => reject(err));
         });
