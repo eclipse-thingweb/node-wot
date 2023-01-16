@@ -19,12 +19,26 @@ const debug = createDebugLogger("binding-modbus", "modbus-client-factory");
 
 export default class ModbusClientFactory implements ProtocolClientFactory {
     public readonly scheme: string = "modbus+tcp";
+    private singleton: ModbusClient;
 
     public getClient(): ProtocolClient {
-        debug(`Creating client for '${this.scheme}'`);
-        return new ModbusClient();
+        debug(`Get client for '${this.scheme}'`);
+        if (!this.singleton) {
+            this.init();
+        }
+        return this.singleton;
     }
 
-    public init = (): boolean => true;
-    public destroy = (): boolean => true;
+    public init(): boolean {
+        debug(`Initializing client for '${this.scheme}'`);
+        this.singleton = new ModbusClient();
+        return true;
+    }
+
+    public destroy(): boolean {
+        debug(`Destroying client for '${this.scheme}'`);
+        this.singleton.stop();
+        this.singleton = undefined;
+        return true;
+    }
 }
