@@ -202,6 +202,35 @@ class CoapServerTest {
         await coapServer1.stop();
     }
 
+    @test async "should support IPv6"() {
+        const coapServer = new CoapServer(PORT, "::");
+        await coapServer.start(null);
+
+        const testThing = new ExposedThing(null, {
+            title: "Test",
+            properties: {
+                test: {
+                    type: "string",
+                    forms: [],
+                },
+            },
+        });
+
+        const test: DataSchemaValue = "testValue";
+        testThing.setPropertyReadHandler("test", (_) => Promise.resolve(test));
+
+        await coapServer.expose(testThing);
+
+        const uri = `coap://[::1]:${coapServer.getPort()}/test/`;
+
+        const coapClient = new CoapClient(coapServer);
+        const resp = await coapClient.readResource(new TD.Form(uri + "properties/test"));
+        expect((await resp.toBuffer()).toString()).to.equal('"testValue"');
+
+        await coapClient.stop();
+        await coapServer.stop();
+    }
+
     @test async "should take in account global uriVariables"() {
         const portNumber = 9001;
         const coapServer = new CoapServer(portNumber);
