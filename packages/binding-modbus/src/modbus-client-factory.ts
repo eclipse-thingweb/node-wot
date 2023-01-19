@@ -12,19 +12,38 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-import { ProtocolClientFactory, ProtocolClient, createDebugLogger } from "@node-wot/core";
+import { ProtocolClientFactory, ProtocolClient, createDebugLogger, createWarnLogger } from "@node-wot/core";
 import ModbusClient from "./modbus-client";
 
 const debug = createDebugLogger("binding-modbus", "modbus-client-factory");
+const warn = createWarnLogger("binding-modbus", "modbus-client-factory");
 
 export default class ModbusClientFactory implements ProtocolClientFactory {
     public readonly scheme: string = "modbus+tcp";
+    private singleton: ModbusClient;
 
     public getClient(): ProtocolClient {
-        debug(`Creating client for '${this.scheme}'`);
-        return new ModbusClient();
+        debug(`Get client for '${this.scheme}'`);
+        this.init();
+        return this.singleton;
     }
 
-    public init = (): boolean => true;
-    public destroy = (): boolean => true;
+    public init(): boolean {
+        if (!this.singleton) {
+            debug(`Initializing client for '${this.scheme}'`);
+            this.singleton = new ModbusClient();
+        }
+        return true;
+    }
+
+    public destroy(): boolean {
+        debug(`Destroying client for '${this.scheme}'`);
+        if (!this.singleton) {
+            warn(`Destroying a not initialized client factory for '${this.scheme}'`);
+            return true; // do not cause an error
+        }
+        this.singleton.stop();
+        this.singleton = undefined;
+        return true;
+    }
 }
