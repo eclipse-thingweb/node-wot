@@ -244,18 +244,19 @@ public class CopyrightFix {
                     }
                 } else {
                     if (isFileOfInterest(fileEntry)) {
-                        // limit to "src" files
-                        // Q1: what about test files
-                        // Q2: what about deeper nesting in src folder
+                        // limit to "src" and "test" folders
+                        List<String> lFolders = List.of("src", "test");
                         File fileOfInterest = null;
-                        // 1 level nesting
-                        if (fileEntry.getParentFile() != null && fileEntry.getParentFile().getName().equals("src")) {
+                        // 1. level nesting
+                        if (fileEntry.getParentFile() != null && lFolders.contains(fileEntry.getParentFile().getName())) {
                             fileOfInterest = fileEntry;
                         }
-                        // 2 level nesting
-                        if (fileEntry.getParentFile() != null && fileEntry.getParentFile().getParentFile() != null && fileEntry.getParentFile().getParentFile().getName().equals("src")) {
+                        // 2. level nesting
+                        if (fileEntry.getParentFile() != null && fileEntry.getParentFile().getParentFile() != null
+                                && lFolders.contains(fileEntry.getParentFile().getParentFile().getName())) {
                             fileOfInterest = fileEntry;
                         }
+                        // TODO what about deeper nesting in folders
                         if (fileOfInterest != null) {
                             try (BufferedReader br = new BufferedReader(new FileReader(fileOfInterest))) {
                                 // check first lines only
