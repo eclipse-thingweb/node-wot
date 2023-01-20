@@ -31,7 +31,7 @@ should();
 
 chai.use(spies);
 
-describe("outer describe", function () {
+describe("Netconf client implementation", function () {
     this.timeout(10000);
     let client: NetconfClient;
 
