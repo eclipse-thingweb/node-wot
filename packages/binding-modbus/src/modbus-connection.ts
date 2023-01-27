@@ -414,7 +414,7 @@ export class ModbusConnection {
         debug("Closing unused connection");
         this.client.close((err: string) => {
             if (!err) {
-                error("Session closed");
+                debug("Session closed");
                 this.connecting = false;
             } else {
                 error(`Cannot close session. ${err}`);
