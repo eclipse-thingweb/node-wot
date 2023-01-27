@@ -155,8 +155,6 @@ export default class ModbusClient implements ProtocolClient {
         const host = parsed.hostname;
         const hostAndPort = host + ":" + port;
 
-        this.overrideFormFromURLPath(form);
-
         if (body) {
             this.validateBufferLength(form, body);
         }
@@ -203,12 +201,11 @@ export default class ModbusClient implements ProtocolClient {
     }
 
     private overrideFormFromURLPath(input: ModbusForm) {
-        const parsed = new URL(input.href);
-        const pathComp = parsed.pathname.split("/");
-        const query = parsed.searchParams;
+        const { pathname, searchParams: query } = new URL(input.href);
+        const pathComp = pathname.split("/");
 
         input["modbus:unitID"] = parseInt(pathComp[1], 10) || input["modbus:unitID"];
-        input["modbus:address"] = parseInt(query.get("address"), 10) || input["modbus:address"];
+        input["modbus:address"] = parseInt(pathComp[2], 10) || input["modbus:address"];
         input["modbus:quantity"] = parseInt(query.get("quantity"), 10) || input["modbus:quantity"];
     }
 
@@ -229,6 +226,9 @@ export default class ModbusClient implements ProtocolClient {
     private validateAndFillDefaultForm(form: ModbusForm, contentLength = 0): ModbusForm {
         const result: ModbusForm = { ...form };
         const mode = contentLength > 0 ? "w" : "r";
+
+        // Use form values if provided, otherwise use form values (we are more merciful then the spec for retro-compatibility)
+        this.overrideFormFromURLPath(form);
 
         if (!form["modbus:function"] && !form["modbus:entity"]) {
             throw new Error("Malformed form: modbus:function or modbus:entity must be defined");
