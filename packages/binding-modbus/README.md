@@ -10,29 +10,6 @@ W3C WoT Binding Template for Modbus can be found [here](https://w3c.github.io/wo
 
 The protocol prefix handled by this binding is `modbus+tcp://`.
 
-## Getting Started
-
-### Run the Example App
-
-The Binding example in the `./examples` directory provides a TD (`modbus-thing.jsonld`) and an app script (`modbus-example.js`) .
-To execute the script use the pre-configure servient inside `./examples/servients` folder, as following:
-
-```bash
-# first init the node package
-cd examples/servients/modbus-cli
-npm install
-
-# then start the modbus server
-npm run server
-
-# finally start the script
-cd ../../scripts
-node ../servients/modbus-cli/dist/modbus-cli.js modbus-example.js
-```
-
-**Remember** to correctly initialize your development environment as described inside the [repository readme](https://github.com/eclipse/thingweb.node-wot/blob/master/README.md),
-before starting the example application. In particular, the optional step `sudo npm run link` must be executed.
-
 ## New Form Fields for the Modbus Binding
 
 **Note**: for further details please refer to the [documentation](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-modbus/src/modbus.ts).
