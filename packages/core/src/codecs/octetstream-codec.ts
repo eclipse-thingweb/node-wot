@@ -254,7 +254,7 @@ export default class OctetstreamCodec implements ContentCodec {
 
         // warn about numbers being too big to be represented as safe integers
         if (!Number.isSafeInteger(value)) {
-            warn("Value is not a safe integer");
+            warn("Value is not a safe integer", value);
         }
         const limit = Math.pow(2, 8 * length) - 1;
         // throw error on overflow
