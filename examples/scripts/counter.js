@@ -74,7 +74,7 @@ WoT.produce({
                 de: "Derzeitiger Zähler Stand",
                 it: "Valore attuale del contatore"
             },
-            iot:Custom: "example annotation",
+            "iot:Custom": "example annotation",
             observable: true,
             readOnly: true
         },
