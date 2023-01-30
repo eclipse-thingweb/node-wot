@@ -208,7 +208,7 @@ Polls the 8th holding register of the unit 1 every second.
     "modbus:entity": "HoldingRegister",
     "modbus:address": 8,
     "modbus:unitID": 1,
-    "modbus:pollingTime: 1000
+    "modbus:pollingTime": 1000
 }
 ```
 
