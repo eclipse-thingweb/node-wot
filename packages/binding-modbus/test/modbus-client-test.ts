@@ -121,9 +121,34 @@ describe("Modbus client test", () => {
         client["validateAndFillDefaultForm"](form)["modbus:function"].should.be.equal(1, "Wrong substitution");
     });
 
-    it("should override form values with URL", () => {
+    it("should accept just URL parameters", () => {
         const form: ModbusForm = {
-            href: "modbus://127.0.0.1:8502/2?address=2&quantity=5",
+            href: "modbus://127.0.0.1:8502/2/2?quantity=5",
+            "modbus:function": "readCoil",
+        };
+
+        // eslint-disable-next-line dot-notation
+        client["validateAndFillDefaultForm"](form);
+        form["modbus:unitID"].should.be.equal(2, "unitID  value not set");
+        form["modbus:address"].should.be.equal(2, "address value not set");
+        form["modbus:quantity"].should.be.equal(5, "quantity value not set");
+    });
+
+    it("should accept just URL parameters without quantity", () => {
+        const form: ModbusForm = {
+            href: "modbus://127.0.0.1:8502/2/2",
+            "modbus:function": "readCoil",
+        };
+
+        // eslint-disable-next-line dot-notation
+        client["validateAndFillDefaultForm"](form);
+        form["modbus:unitID"].should.be.equal(2, "unitID  value not set");
+        form["modbus:address"].should.be.equal(2, "address value not set");
+    });
+
+    it("should override correctly form values with URL", () => {
+        const form: ModbusForm = {
+            href: "modbus://127.0.0.1:8502/2/2?quantity=5",
             "modbus:function": "readCoil",
             "modbus:address": 0,
             "modbus:quantity": 1,
@@ -132,9 +157,9 @@ describe("Modbus client test", () => {
 
         // eslint-disable-next-line dot-notation
         client["overrideFormFromURLPath"](form);
-        form["modbus:unitID"].should.be.equal(2, "Form value not overridden");
-        form["modbus:address"].should.be.equal(2, "Form value not overridden");
-        form["modbus:quantity"].should.be.equal(5, "Form value not overridden");
+        form["modbus:unitID"].should.be.equal(2, "unitID value not overridden");
+        form["modbus:address"].should.be.equal(2, "address value not overridden");
+        form["modbus:quantity"].should.be.equal(5, "quantity value not overridden");
     });
 
     describe("misc", () => {

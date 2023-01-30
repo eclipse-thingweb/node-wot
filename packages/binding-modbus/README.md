@@ -84,7 +84,7 @@ Timeout in milliseconds of the modbus request. Default to 1000 milliseconds
 The URL is used to transport all addressing information necessary to describe the MODBUS connection and register addresses. It has the following structure:
 
 ```
-modbus+tcp:// <host> [ : <port> ] [/ <unitid> [ ?address=<address> [&quantity=<quantity> ] ] ]
+modbus+tcp:// <host> [ : <port> ] [/ <unitid> [ / <address> ] [&quantity=<quantity> ] ]
 ```
 
 with the following meaning:

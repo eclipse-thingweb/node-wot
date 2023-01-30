@@ -60,7 +60,7 @@ export class ModbusForm extends Form {
     /**
      * Physical address of the unit connected to the bus.
      */
-    public "modbus:unitID": number;
+    public "modbus:unitID"?: number;
     /**
      * Defines the starting address of registers or coils that are
      * meant to be written.
