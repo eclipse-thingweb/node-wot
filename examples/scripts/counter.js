@@ -117,7 +117,7 @@ WoT.produce({
             title: "Last change",
             titles: {
                 en: "Last change",
-                de: "Letzte Änderung",
+                de: "Letzte Zählerwertänderung",
                 it: "Ultima modifica",
             },
             type: "string",
@@ -156,7 +156,7 @@ WoT.produce({
             description: "Decrementing counter value",
             descriptions: {
                 en: "Decrementing counter value",
-                de: "Zählerwer verringern",
+                de: "Zählerwert verringern",
                 it: "Decrementare il valore del contatore",
             },
         },
@@ -170,7 +170,7 @@ WoT.produce({
             description: "Resetting counter value",
             descriptions: {
                 en: "Resetting counter value",
-                de: "Zählerwert resettieren",
+                de: "Zählerwert zurücksetzen",
                 it: "Resettare il valore del contatore",
             },
         },
@@ -186,7 +186,7 @@ WoT.produce({
             description: "Change event",
             descriptions: {
                 en: "Change event",
-                de: "Änderungsnachricht",
+                de: "Änderungsereignis",
                 it: "Valore modificato",
             },
         },
