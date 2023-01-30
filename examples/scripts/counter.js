@@ -29,13 +29,13 @@ WoT.produce({
     titles: {
         en: "Counter",
         de: "Zähler",
-        it: "Contatore"
+        it: "Contatore",
     },
     description: "Counter example Thing",
     descriptions: {
         en: "Counter example Thing",
         de: "Zähler Beispiel Ding",
-        it: "Contatore Esempio"
+        it: "Contatore Esempio",
     },
     support: "git://github.com/eclipse/thingweb.node-wot.git",
     links: [
@@ -49,126 +49,131 @@ WoT.produce({
         "https://www.w3.org/2019/wot/td/v1",
         "https://www.w3.org/2022/wot/td/v1.1",
         {
-            iot: "http://example.org/iot"
-        }
+            iot: "http://example.org/iot",
+        },
     ],
     uriVariables: {
         step: {
             type: "integer",
             minimum: 1,
-            maximum: 250
-        }
+            maximum: 250,
+        },
     },
     properties: {
         count: {
             title: "Count",
             titles: {
                 en: "Count",
-                de: "Zählen",
-                it: "Conteggio"
+                de: "Zähler",
+                it: "Valore",
             },
             type: "integer",
             description: "Current counter value",
             descriptions: {
                 en: "Current counter value",
-                de: "Derzeitiger Zähler Stand",
-                it: "Valore attuale del contatore"
+                de: "Derzeitiger Zählerwert",
+                it: "Valore attuale del contatore",
             },
             "iot:Custom": "example annotation",
             observable: true,
-            readOnly: true
+            readOnly: true,
         },
         countAsImage: {
             description: "Current counter value as SVG image",
             descriptions: {
                 en: "Current counter value as SVG image",
-                de: "Aktueller Zählerstand als SVG-Bild",
-                it: "Valore attuale del contatore come immagine SVG"
+                de: "Aktueller Zählerwert als SVG-Bild",
+                it: "Valore attuale del contatore come immagine SVG",
             },
             observable: false,
             readOnly: true,
             uriVariables: {
                 fill: {
-                    type: "string"
-                }
+                    type: "string",
+                },
             },
             forms: [
                 {
                     contentType: "image/svg+xml",
                 },
-            ]
+            ],
         },
         redDotImage: {
             description: "Red dot image as PNG",
+            forms: [
+                {
+                    contentType: "image/png",
+                },
+            ],
             descriptions: {
                 en: "Red dot image as PNG",
                 de: "Rotes Punktbild als PNG",
-                it: "Immagine punto rosso come PNG"
+                it: "Immagine punto rosso come PNG",
             },
             observable: false,
-            readOnly: true
+            readOnly: true,
         },
         lastChange: {
             title: "Last change",
             titles: {
                 en: "Last change",
                 de: "Letzte Änderung",
-                it: "Ultima modifica"
+                it: "Ultima modifica",
             },
             type: "string",
             description: "Last change of counter value",
             descriptions: {
                 en: "Last change of counter value",
                 de: "Letzte Änderung",
-                it: "Ultima modifica del valore"
+                it: "Ultima modifica del valore",
             },
             observable: true,
-            readOnly: true
-        }
+            readOnly: true,
+        },
     },
     actions: {
         increment: {
             title: "Increment",
             titles: {
                 en: "Increment",
-                de: "Zunahme",
-                it: "Incrementa"
+                de: "Erhöhen",
+                it: "Incrementa",
             },
             description: "Increment counter value",
             descriptions: {
                 en: "Increment counter value",
                 de: "Zählerwert erhöhen",
-                it: "Incrementa il valore del contatore"
-            }
+                it: "Incrementa il valore del contatore",
+            },
         },
         decrement: {
             title: "Decrement",
             titles: {
                 en: "Decrement",
                 de: "Verringern",
-                it: "Decrementa"
+                it: "Decrementa",
             },
             description: "Decrementing counter value",
             descriptions: {
                 en: "Decrementing counter value",
                 de: "Zählerwer verringern",
-                it: "Decrementare il valore del contatore"
-            }
+                it: "Decrementare il valore del contatore",
+            },
         },
         reset: {
             title: "Reset",
             titles: {
                 en: "Reset",
                 de: "Zurücksetzen",
-                it: "Ripristina"
+                it: "Reset",
             },
             description: "Resetting counter value",
             descriptions: {
                 en: "Resetting counter value",
                 de: "Zählerwert resettieren",
-                it: "Resettare il valore del contatore"
-            }
-        }
+                it: "Resettare il valore del contatore",
+            },
+        },
     },
     events: {
         change: {
@@ -176,16 +181,16 @@ WoT.produce({
             titles: {
                 en: "Changed",
                 de: "Geändert",
-                it: "Valore modificato"
+                it: "Valore modificato",
             },
             description: "Change event",
             descriptions: {
                 en: "Change event",
                 de: "Änderungsnachricht",
-                it: "Valore modificato"
-            }
-        }
-    }
+                it: "Valore modificato",
+            },
+        },
+    },
 })
     .then((thing) => {
         console.log("Produced " + thing.getThingDescription().title);
