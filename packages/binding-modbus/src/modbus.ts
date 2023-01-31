@@ -84,10 +84,3 @@ export class ModbusForm extends Form {
      */
     public "modbus:pollingTime"?: number;
 }
-
-export enum ModbusEndianness {
-    BIG_ENDIAN = "BIG_ENDIAN",
-    LITTLE_ENDIAN = "LITTLE_ENDIAN",
-    BIG_ENDIAN_BYTE_SWAP = "BIG_ENDIAN_BYTE_SWAP",
-    LITTLE_ENDIAN_BYTE_SWAP = "LITTLE_ENDIAN_BYTE_SWAP",
-}

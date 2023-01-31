@@ -12,13 +12,13 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-import { ModbusEndianness } from "./../src/modbus";
 import { should } from "chai";
 import * as chai from "chai";
 import { ModbusForm } from "../src/modbus";
 import ModbusServer from "./test-modbus-server";
 import chaiAsPromised from "chai-as-promised";
 import { ModbusConnection, PropertyOperation } from "../src/modbus-connection";
+import { Endianness } from "@node-wot/core";
 
 // should must be called to augment all variables
 should();
@@ -75,7 +75,7 @@ describe("Modbus connection", () => {
                 connectionRetryTime: 10,
                 maxRetries: 1,
             });
-            const op = new PropertyOperation(form, ModbusEndianness.BIG_ENDIAN);
+            const op = new PropertyOperation(form, Endianness.BIG_ENDIAN);
             connection.enqueue(op);
 
             await op.execute().should.eventually.be.rejected;
@@ -95,7 +95,7 @@ describe("Modbus connection", () => {
                 connectionRetryTime: 10,
                 maxRetries: 1,
             });
-            const op = new PropertyOperation(form, ModbusEndianness.BIG_ENDIAN);
+            const op = new PropertyOperation(form, Endianness.BIG_ENDIAN);
             connection.enqueue(op);
 
             await op.execute().should.eventually.be.rejected;

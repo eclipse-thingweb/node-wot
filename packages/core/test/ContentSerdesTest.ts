@@ -23,6 +23,7 @@ import { expect, should } from "chai";
 import { DataSchemaValue } from "wot-typescript-definitions";
 
 import ContentSerdes, { ContentCodec } from "../src/content-serdes";
+import { Endianness } from "../src/protocol-interfaces";
 // should must be called to augment all variables
 should();
 
@@ -40,11 +41,11 @@ const checkJsToJson = async (value: DataSchemaValue) => {
     expect(reparsed).to.deep.equal(value);
 };
 
-const checkStreamToValue = (value: number[], match: unknown, type?: string): void => {
+const checkStreamToValue = (value: number[], match: unknown, type: string, endianness?: string): void => {
     const octectBuffer = Buffer.from(value);
     expect(
         ContentSerdes.contentToValue(
-            { type: "application/octet-stream", body: octectBuffer },
+            { type: `application/octet-stream${endianness ? `;byteSeq=${endianness}` : ""}`, body: octectBuffer },
             { type: type ?? "integer", properties: {} }
         )
     ).to.deep.equal(match);
@@ -69,15 +70,73 @@ class HodorCodec implements ContentCodec {
 class SerdesOctetTests {
     @test "OctetStream to value"() {
         checkStreamToValue([0x36, 0x30], 13872, "uint16");
+        checkStreamToValue([0x36, 0x30], 13872, "uint16", Endianness.BIG_ENDIAN);
+        checkStreamToValue([0x30, 0x36], 13872, "uint16", Endianness.LITTLE_ENDIAN);
         checkStreamToValue([0x49, 0x91, 0xa1, 0xc2], 1234280898, "int32");
+        checkStreamToValue([0x49, 0x91, 0xa1, 0xc2], 1234280898, "int32", Endianness.BIG_ENDIAN);
+        checkStreamToValue([0xc2, 0xa1, 0x91, 0x49], 1234280898, "int32", Endianness.LITTLE_ENDIAN);
+        checkStreamToValue([0xa1, 0xc2, 0x49, 0x91], 1234280898, "int32", Endianness.LITTLE_ENDIAN_BYTE_SWAP);
+        checkStreamToValue([0x91, 0x49, 0xc2, 0xa1], 1234280898, "int32", Endianness.BIG_ENDIAN_BYTE_SWAP);
         checkStreamToValue([0x3d, 0xd6, 0xea, 0xfc], 0.10494038462638855, "float32");
+        checkStreamToValue([0x3d, 0xd6, 0xea, 0xfc], 0.10494038462638855, "float32", Endianness.BIG_ENDIAN);
+        checkStreamToValue([0xfc, 0xea, 0xd6, 0x3d], 0.10494038462638855, "float32", Endianness.LITTLE_ENDIAN);
+        checkStreamToValue([0xd6, 0x3d, 0xfc, 0xea], 0.10494038462638855, "float32", Endianness.BIG_ENDIAN_BYTE_SWAP);
+        checkStreamToValue(
+            [0xea, 0xfc, 0x3d, 0xd6],
+            0.10494038462638855,
+            "float32",
+            Endianness.LITTLE_ENDIAN_BYTE_SWAP
+        );
         checkStreamToValue([0x49, 0x25], 18725, "int16");
+        checkStreamToValue([0x49, 0x25], 18725, "int16", Endianness.BIG_ENDIAN);
+        checkStreamToValue([0x25, 0x49], 18725, "int16", Endianness.LITTLE_ENDIAN);
         checkStreamToValue([0x49, 0x25], 18725, "integer");
+        checkStreamToValue([0x49, 0x25], 18725, "integer", Endianness.BIG_ENDIAN);
+        checkStreamToValue([0x25, 0x49], 18725, "integer", Endianness.LITTLE_ENDIAN);
         checkStreamToValue([0xa4, 0x78], -23432, "int16");
+        checkStreamToValue([0xa4, 0x78], -23432, "int16", Endianness.BIG_ENDIAN);
+        checkStreamToValue([0x78, 0xa4], -23432, "int16", Endianness.LITTLE_ENDIAN);
         checkStreamToValue([0xeb, 0xe6, 0x90, 0x49], -5.5746861179443064e26, "number");
+        checkStreamToValue([0xeb, 0xe6, 0x90, 0x49], -5.5746861179443064e26, "number", Endianness.BIG_ENDIAN);
+        checkStreamToValue([0x49, 0x90, 0xe6, 0xeb], -5.5746861179443064e26, "number", Endianness.LITTLE_ENDIAN);
+        checkStreamToValue([0xe6, 0xeb, 0x49, 0x90], -5.5746861179443064e26, "number", Endianness.BIG_ENDIAN_BYTE_SWAP);
+        checkStreamToValue(
+            [0x90, 0x49, 0xeb, 0xe6],
+            -5.5746861179443064e26,
+            "number",
+            Endianness.LITTLE_ENDIAN_BYTE_SWAP
+        );
         checkStreamToValue([0x44, 0x80], 4.5, "float16");
+        checkStreamToValue([0x44, 0x80], 4.5, "float16", Endianness.BIG_ENDIAN);
+        checkStreamToValue([0x80, 0x44], 4.5, "float16", Endianness.LITTLE_ENDIAN);
         checkStreamToValue([0xeb, 0xe6, 0x90, 0x49], -5.5746861179443064e26, "float32");
+        checkStreamToValue([0xeb, 0xe6, 0x90, 0x49], -5.5746861179443064e26, "float32", Endianness.BIG_ENDIAN);
+        checkStreamToValue([0x49, 0x90, 0xe6, 0xeb], -5.5746861179443064e26, "float32", Endianness.LITTLE_ENDIAN);
+        checkStreamToValue(
+            [0xe6, 0xeb, 0x49, 0x90],
+            -5.5746861179443064e26,
+            "float32",
+            Endianness.BIG_ENDIAN_BYTE_SWAP
+        );
+        checkStreamToValue(
+            [0x90, 0x49, 0xeb, 0xe6],
+            -5.5746861179443064e26,
+            "float32",
+            Endianness.LITTLE_ENDIAN_BYTE_SWAP
+        );
         checkStreamToValue([0xd3, 0xcd, 0xcc, 0xcc, 0xc1, 0xb4, 0x82, 0x70], -4.9728447076484896e95, "float64");
+        checkStreamToValue(
+            [0xd3, 0xcd, 0xcc, 0xcc, 0xc1, 0xb4, 0x82, 0x70],
+            -4.9728447076484896e95,
+            "float64",
+            Endianness.BIG_ENDIAN
+        );
+        checkStreamToValue(
+            [0x70, 0x82, 0xb4, 0xc1, 0xcc, 0xcc, 0xcd, 0xd3],
+            -4.9728447076484896e95,
+            "float64",
+            Endianness.LITTLE_ENDIAN
+        );
     }
 
     @test async "value to OctetStream"() {
@@ -94,6 +153,14 @@ class SerdesOctetTests {
         body = await content.toBuffer();
         expect(body).to.deep.equal(Buffer.from([0x09, 0x29]));
 
+        content = ContentSerdes.valueToContent(
+            2345,
+            { type: "int16" },
+            "application/octet-stream;byteSeq=LITTLE_ENDIAN"
+        );
+        body = await content.toBuffer();
+        expect(body).to.deep.equal(Buffer.from([0x29, 0x09]));
+
         // @ts-ignore new dataschema types are not yet supported in the td type definitions
         content = ContentSerdes.valueToContent(10, { type: "int8" }, "application/octet-stream");
         body = await content.toBuffer();
@@ -104,6 +171,14 @@ class SerdesOctetTests {
         content = ContentSerdes.valueToContent(4.5, { type: "float16" }, "application/octet-stream");
         body = await content.toBuffer();
         expect(body).to.deep.equal(Buffer.from([0x44, 0x80]));
+
+        content = ContentSerdes.valueToContent(
+            4.5,
+            { type: "float16" },
+            "application/octet-stream;byteSeq=LITTLE_ENDIAN"
+        );
+        body = await content.toBuffer();
+        expect(body).to.deep.equal(Buffer.from([0x80, 0x44]));
     }
 
     @test "value to OctetStream should throw"() {
