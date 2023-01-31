@@ -111,7 +111,7 @@ WoT.produce({
                 {
                     contentType: "image/png",
                 },
-            ]
+            ],
         },
         lastChange: {
             title: "Last change",
