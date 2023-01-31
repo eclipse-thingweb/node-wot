@@ -202,13 +202,11 @@ Polls the 8th holding register of the unit 1 every second.
 {
     "href": "modbus://127.0.0.1:60000",
     "contentType": "application/octet-stream;length=2",
-    "op": [
-        "observeproperty"
-    ],
+    "op": ["observeproperty"],
     "modbus:entity": "HoldingRegister",
     "modbus:address": 8,
     "modbus:unitID": 1,
-    "modbus:pollingTime: 1000
+    "modbus:pollingTime": 1000
 }
 ```
 
