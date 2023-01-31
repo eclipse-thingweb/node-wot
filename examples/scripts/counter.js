@@ -37,7 +37,7 @@ WoT.produce({
         de: "Zähler Beispiel Ding",
         it: "Contatore Esempio",
     },
-    support: "git://github.com/eclipse/thingweb.node-wot.git",
+    support: "https://github.com/eclipse/thingweb.node-wot/",
     links: [
         {
             href: "https://www.thingweb.io/img/favicon/favicon.png",
@@ -100,11 +100,6 @@ WoT.produce({
         },
         redDotImage: {
             description: "Red dot image as PNG",
-            forms: [
-                {
-                    contentType: "image/png",
-                },
-            ],
             descriptions: {
                 en: "Red dot image as PNG",
                 de: "Rotes Punktbild als PNG",
@@ -112,6 +107,11 @@ WoT.produce({
             },
             observable: false,
             readOnly: true,
+            forms: [
+                {
+                    contentType: "image/png",
+                },
+            ]
         },
         lastChange: {
             title: "Last change",
