@@ -15,23 +15,6 @@ The protocol prefix handled by this binding is `mbus+tcp:`. This is currently a 
 This binding is currently experimental. Some errors might occur with the use of this binding.
 The code was tested in a specific situation which might not correspond to your own using.
 
-## Getting Started
-
-### Run the Example App
-
-The Binding example in the `./examples` directory provides a TD (`mbus-thing.json`) and an app script (`mbus-example.js`).
-To execute the script use the pre-configure servient inside `./examples/servients` folder, as following:
-
-```bash
-# first init the node package
-cd examples/servients/modbus-cli
-npm install
-
-# then start the script
-cd ../../scripts
-node ../servients/mbus-cli/dist/mbus-cli.js mbus-example.js
-```
-
 ## New Form Fields for the M-Bus Binding
 
 **Note**: for further details please refer to the [documentation](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-mbus/src/mbus.ts).
