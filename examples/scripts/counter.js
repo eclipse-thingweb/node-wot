@@ -25,17 +25,17 @@
 let count;
 let lastChange;
 WoT.produce({
-    title: "counter",
+    title: "Counter",
     titles: {
-        en: "counter",
-        de: "zähler",
+        en: "Counter",
+        de: "Zähler",
         it: "Contatore",
     },
-    description: "counter example Thing",
+    description: "Counter example Thing",
     descriptions: {
-        en: "counter example Thing",
+        en: "Counter example Thing",
         de: "Zähler Beispiel Ding",
-        it: "Contatore Esempio",
+        it: "Contatore di esempio",
     },
     support: "https://github.com/eclipse/thingweb.node-wot/",
     links: [
@@ -48,54 +48,84 @@ WoT.produce({
     "@context": [
         "https://www.w3.org/2019/wot/td/v1",
         "https://www.w3.org/2022/wot/td/v1.1",
-        { iot: "http://example.org/iot" },
+        {
+            iot: "http://example.org/iot",
+        },
     ],
     uriVariables: {
-        step: { type: "integer", minimum: 1, maximum: 250 },
+        step: {
+            type: "integer",
+            minimum: 1,
+            maximum: 250,
+        },
     },
     properties: {
         count: {
+            title: "Count",
+            titles: {
+                en: "Count",
+                de: "Zähler",
+                it: "Valore",
+            },
             type: "integer",
-            description: "current counter value",
+            description: "Current counter value",
             descriptions: {
-                en: "current counter value",
-                de: "Derzeitiger Zähler Stand",
-                it: "valore attuale del contatore",
+                en: "Current counter value",
+                de: "Derzeitiger Zählerwert",
+                it: "Valore attuale del contatore",
             },
             "iot:Custom": "example annotation",
             observable: true,
             readOnly: true,
         },
         countAsImage: {
-            description: "current counter value as SVG image",
+            description: "Current counter value as SVG image",
+            descriptions: {
+                en: "Current counter value as SVG image",
+                de: "Aktueller Zählerwert als SVG-Bild",
+                it: "Valore attuale del contatore come immagine SVG",
+            },
+            observable: false,
+            readOnly: true,
+            uriVariables: {
+                fill: {
+                    type: "string",
+                },
+            },
             forms: [
                 {
                     contentType: "image/svg+xml",
                 },
             ],
-            observable: false,
-            readOnly: true,
-            uriVariables: {
-                fill: { type: "string" },
-            },
         },
         redDotImage: {
             description: "Red dot image as PNG",
+            descriptions: {
+                en: "Red dot image as PNG",
+                de: "Rotes Punktbild als PNG",
+                it: "Immagine punto rosso come PNG",
+            },
+            observable: false,
+            readOnly: true,
             forms: [
                 {
                     contentType: "image/png",
                 },
             ],
-            observable: false,
-            readOnly: true,
         },
         lastChange: {
+            title: "Last change",
+            titles: {
+                en: "Last change",
+                de: "Letzte Zählerwertänderung",
+                it: "Ultima modifica",
+            },
             type: "string",
-            description: "last change of counter value",
+            description: "Last change of counter value",
             descriptions: {
-                en: "last change of counter value",
+                en: "Last change of counter value",
                 de: "Letzte Änderung",
-                it: "ultima modifica del valore",
+                it: "Ultima modifica del valore",
             },
             observable: true,
             readOnly: true,
@@ -103,37 +133,61 @@ WoT.produce({
     },
     actions: {
         increment: {
-            description: "Incrementing counter value",
+            title: "Increment",
+            titles: {
+                en: "Increment",
+                de: "Erhöhen",
+                it: "Incrementa",
+            },
+            description: "Increment counter value",
             descriptions: {
-                en: "Incrementing counter value",
-                de: "Zähler erhöhen",
-                it: "incrementare valore",
+                en: "Increment counter value",
+                de: "Zählerwert erhöhen",
+                it: "Incrementa il valore del contatore",
             },
         },
         decrement: {
+            title: "Decrement",
+            titles: {
+                en: "Decrement",
+                de: "Verringern",
+                it: "Decrementa",
+            },
             description: "Decrementing counter value",
             descriptions: {
                 en: "Decrementing counter value",
-                de: "Zähler verringern",
-                it: "decrementare valore",
+                de: "Zählerwert verringern",
+                it: "Decrementare il valore del contatore",
             },
         },
         reset: {
+            title: "Reset",
+            titles: {
+                en: "Reset",
+                de: "Zurücksetzen",
+                it: "Reset",
+            },
             description: "Resetting counter value",
             descriptions: {
                 en: "Resetting counter value",
-                de: "Zähler resettieren",
-                it: "resettare valore",
+                de: "Zählerwert zurücksetzen",
+                it: "Resettare il valore del contatore",
             },
         },
     },
     events: {
         change: {
-            description: "change event",
+            title: "Changed",
+            titles: {
+                en: "Changed",
+                de: "Geändert",
+                it: "Valore modificato",
+            },
+            description: "Change event",
             descriptions: {
-                en: "change event",
-                de: "Änderungsnachricht",
-                it: "resettare valore",
+                en: "Change event",
+                de: "Änderungsereignis",
+                it: "Valore modificato",
             },
         },
     },
