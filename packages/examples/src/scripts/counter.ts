@@ -37,7 +37,7 @@ WoT.produce({
     descriptions: {
         en: "Counter example Thing",
         de: "Zähler Beispiel Ding",
-        it: "Contatore Esempio",
+        it: "Contatore di esempio",
     },
     support: "https://github.com/eclipse/thingweb.node-wot/",
     links: [
