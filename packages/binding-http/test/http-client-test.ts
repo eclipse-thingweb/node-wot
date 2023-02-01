@@ -34,6 +34,7 @@ import express from "express";
 import serveStatic from "serve-static";
 import { DataSchema, DataSchemaValue, Form } from "wot-typescript-definitions";
 import SseStream from "ssestream";
+import FakeTimers from "@sinonjs/fake-timers";
 
 // Add spies
 import spies from "chai-spies";
@@ -309,7 +310,7 @@ class HttpClientTest1 {
 class HttpClientTest2 {
     @test "should register to sse server and get server sent event"(done: Mocha.Done) {
         // create sse server
-
+        const clock = FakeTimers.install();
         const app = express();
         app.use(serveStatic(__dirname));
         app.get("/sse", function (req: express.Request, res: express.Response) {
@@ -345,10 +346,16 @@ class HttpClientTest2 {
             href: `http://localhost:${port1}/sse`,
         };
 
-        client.subscribeResource(form, (data) => {
-            client.unlinkResource(form);
-            server.close();
-        });
+        client
+            .subscribeResource(form, (data) => {
+                client.unlinkResource(form);
+                server.close();
+                clock.uninstall();
+            })
+            .then(() => {
+                // subscription is active we can tick the clock
+                clock.tick(400);
+            });
     }
 
     @test "should call error() and complete() on subscription with no connection"(done: () => void) {

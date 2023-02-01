@@ -124,7 +124,6 @@ class HttpClientOAuthTest {
         const model = HttpClientOAuthTest.model;
         await model.expireAllTokens();
         this.client.setSecurity([scheme], { clientId: "thom", clientSecret: "nightworld" });
-        await sleep(1000);
         const resource = await this.client.readResource({
             href: "https://127.0.0.1:3000/resource",
         });
@@ -148,7 +147,6 @@ class HttpClientOAuthTest {
             username: "thomseddon",
             password: "nightworld",
         });
-        await sleep(1000);
         const resource = await this.client.readResource({
             href: "https://127.0.0.1:3000/resource",
         });
