@@ -188,10 +188,10 @@ describe("Modbus client test", () => {
                 "modbus:address": 4444,
                 "modbus:quantity": 1,
                 "modbus:unitID": 1,
-                "modbus:timeout": 1000,
+                "modbus:timeout": 100,
             };
 
-            await client.readResource(form).should.eventually.be.rejected;
+            await client.readResource(form).should.eventually.be.rejectedWith("Timed out");
         }).timeout(5000);
     });
     describe("read resource", () => {
