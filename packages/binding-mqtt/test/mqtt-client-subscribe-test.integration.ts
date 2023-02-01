@@ -88,13 +88,9 @@ describe("MQTT client implementation", () => {
                                 }
                             })
                             .then(() => {
-                                const job = setInterval(() => {
-                                    ++counter;
-                                    thing.emitEvent(eventName, counter);
-                                    if (counter === 3) {
-                                        clearInterval(job);
-                                    }
-                                }, 1000);
+                                for (let i = 0; i < 4; i++) {
+                                    thing.emitEvent(eventName, i);
+                                }
                             })
                             .catch((e) => {
                                 expect(true).to.equal(false);
@@ -153,13 +149,9 @@ describe("MQTT client implementation", () => {
                                 }
                             })
                             .then(() => {
-                                const job = setInterval(() => {
-                                    ++counter;
-                                    thing.emitEvent(eventName, counter);
-                                    if (counter === 3) {
-                                        clearInterval(job);
-                                    }
-                                }, 1000);
+                                for (let i = 0; i < 4; i++) {
+                                    thing.emitEvent(eventName, i);
+                                }
                             })
                             .catch((e) => {
                                 expect(true).to.equal(false);
