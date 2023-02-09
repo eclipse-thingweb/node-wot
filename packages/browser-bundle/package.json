@@ -16,6 +16,7 @@
         "@node-wot/binding-http": "0.8.5",
         "@node-wot/binding-websockets": "0.8.5",
         "@node-wot/core": "0.8.5",
+        "@node-wot/td-tools": "0.8.5",
         "browserify": "^17.0.0",
         "readable-stream4": "npm:readable-stream@^4.0.0",
         "tinyify": "2.5.2",
