@@ -365,6 +365,17 @@ export class AssetInterfaceDescriptionUtil {
                 thing.properties[key].forms = [];
 
                 for (const vi of value) {
+                    //The first if condition is expected to be temporary. will be adjusted or removed when a decision on how the datapoint's datatype would be modelled is made for AID
+                    if(vi.interaction.constraints.length > 0 && vi.interaction.constraints.length > 0){
+                        if(vi.interaction.constraints[0].value === "float"){
+                            thing.properties[key].type = "number";
+                        }
+                        else{
+                            thing.properties[key].type = vi.interaction.constraints[0].value;
+                        }
+
+                    }
+
                     if (vi.endpointMetadata) {
                         vi.secNamesForEndpoint = secNamesForEndpointMetadata.get(vi.endpointMetadata);
                     }
