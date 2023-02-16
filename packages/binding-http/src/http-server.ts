@@ -756,6 +756,9 @@ export default class HttpServer implements ProtocolServer {
                                     res.writeHead(500);
                                     res.end(err.message);
                                 }
+                            } else if (req.method === "HEAD") {
+                                res.writeHead(202);
+                                res.end();
                             } else {
                                 respondUnallowedMethod(res, "GET");
                             }
@@ -854,6 +857,11 @@ export default class HttpServer implements ProtocolServer {
                                         respondUnallowedMethod(res, "GET, PUT");
                                     }
                                     // resource found and response sent
+                                    return;
+                                } else if (req.method === "HEAD") {
+                                    // HEAD support for long polling subscription
+                                    res.writeHead(202);
+                                    res.end();
                                     return;
                                 } else {
                                     respondUnallowedMethod(res, "GET, PUT");
