@@ -485,17 +485,15 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
             if (options.formIndex >= 0 && options.formIndex < forms.length) {
                 form = forms[options.formIndex];
                 const scheme = Helpers.extractScheme(form.href);
-                const localClient = this.getClients().get(scheme);
-                if (localClient !== undefined) {
-                    // reuse client
-                    client = localClient;
-                } else if (this.getServient().hasClientFor(scheme)) {
-                    // new client
+                if (this.getServient().hasClientFor(scheme)) {
                     debug(`ConsumedThing '${this.title}' got client for '${scheme}'`);
                     client = this.getServient().getClientFor(scheme);
 
-                    this.ensureClientSecurity(client, form);
-                    this.getClients().set(scheme, client);
+                    if (!this.getClients().get(scheme)) {
+                        // new client
+                        this.ensureClientSecurity(client, form);
+                        this.getClients().set(scheme, client);
+                    }
                 } else {
                     throw new Error(`ConsumedThing '${this.title}' missing ClientFactory for '${scheme}'`);
                 }
