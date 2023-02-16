@@ -110,7 +110,11 @@ class ConsumedThingEvent extends TD.ThingEvent {
 abstract class InternalSubscription implements Subscription {
     active: boolean;
 
-    constructor(protected readonly thing: ConsumedThing, protected readonly name: string) {
+    constructor(
+        protected readonly thing: ConsumedThing,
+        protected readonly name: string,
+        protected readonly client: ProtocolClient
+    ) {
         this.active = true;
     }
 
@@ -120,8 +124,13 @@ abstract class InternalSubscription implements Subscription {
 class InternalPropertySubscription extends InternalSubscription {
     active = false;
     private formIndex: number;
-    constructor(thing: ConsumedThing, name: string, private readonly form: FormElementProperty) {
-        super(thing, name);
+    constructor(
+        thing: ConsumedThing,
+        name: string,
+        client: ProtocolClient,
+        private readonly form: FormElementProperty
+    ) {
+        super(thing, name, client);
         const index = this.thing.properties?.[name].forms.indexOf(form as TD.Form);
         if (index === undefined || index < 0) {
             throw new Error(`Could not find form ${form.href} in property ${name}`);
@@ -143,20 +152,13 @@ class InternalPropertySubscription extends InternalSubscription {
         if (!options.formIndex) {
             options.formIndex = this.matchingUnsubscribeForm();
         }
-        const { client, form } = this.thing.getClientFor(
-            tp.forms,
-            "unobserveproperty",
-            Affordance.PropertyAffordance,
-            options
-        );
+        const { form } = this.thing.getClientFor(tp.forms, "unobserveproperty", Affordance.PropertyAffordance, options);
         if (!form) {
             throw new Error(`ConsumedThing '${this.thing.title}' did not get suitable form`);
         }
-        if (!client) {
-            throw new Error(`ConsumedThing '${this.thing.title}' did not get suitable client for ${form.href}`);
-        }
+
         debug(`ConsumedThing '${this.thing.title}' unobserving to ${form.href}`);
-        await client.unlinkResource(form);
+        await this.client.unlinkResource(form);
         this.active = false;
     }
 
@@ -255,8 +257,8 @@ function findFormIndexWithScoring(
 
 class InternalEventSubscription extends InternalSubscription {
     private formIndex: number;
-    constructor(thing: ConsumedThing, name: string, private readonly form: FormElementEvent) {
-        super(thing, name);
+    constructor(thing: ConsumedThing, name: string, client: ProtocolClient, private readonly form: FormElementEvent) {
+        super(thing, name, client);
         const index = this.thing.events?.[name].forms.indexOf(form as TD.Form);
         if (index === undefined || index < 0) {
             throw new Error(`Could not find form ${form.href} in event ${name}`);
@@ -739,7 +741,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                 /* TODO: current scripting api cannot handle this */
             }
         );
-        const subscription = new InternalPropertySubscription(this, name, form as FormElementProperty);
+        const subscription = new InternalPropertySubscription(this, name, client, form as FormElementProperty);
         this.observedProperties.set(name, subscription);
         return subscription;
     }
@@ -797,7 +799,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
             }
         );
 
-        const subscription = new InternalEventSubscription(this, name, form as FormElementEvent);
+        const subscription = new InternalEventSubscription(this, name, client, form as FormElementEvent);
         this.subscribedEvents.set(name, subscription);
         return subscription;
     }
