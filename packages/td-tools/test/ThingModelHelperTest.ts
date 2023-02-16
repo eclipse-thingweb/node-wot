@@ -446,4 +446,48 @@ class ThingModelHelperTest {
         expect(validated.valid).to.be.false;
         expect(validated.errors).to.be.equal(`Missing required fields in map for model ${thing.title}`);
     }
+
+    @test async "should fail on unavailable linked ThingModel - http"() {
+        const thing = {
+            "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
+            "@type": "tm:ThingModel",
+            title: "Dimmable Colored Lamp",
+            version: {
+                model: "1.0.0",
+            },
+            links: [
+                {
+                    rel: "tm:extends",
+                    href: "http://example.com/models/colored-lamp-1.0.0.tm.jsonld",
+                    type: "application/tm+json",
+                },
+            ],
+        } as unknown as ThingModel;
+
+        expect(this.thingModelHelpers.getPartialTDs(thing)).to.be.rejectedWith(
+            new Error("http status code not 200 but 404")
+        );
+    }
+
+    @test async "should fail on unavailable linked ThingModel - https"() {
+        const thing = {
+            "@context": ["https://www.w3.org/2022/wot/td/v1.1"],
+            "@type": "tm:ThingModel",
+            title: "Dimmable Colored Lamp",
+            version: {
+                model: "1.0.0",
+            },
+            links: [
+                {
+                    rel: "tm:extends",
+                    href: "https://example.com/models/colored-lamp-1.0.0.tm.jsonld",
+                    type: "application/tm+json",
+                },
+            ],
+        } as unknown as ThingModel;
+
+        expect(this.thingModelHelpers.getPartialTDs(thing)).to.be.rejectedWith(
+            new Error("https status code not 200 but 404")
+        );
+    }
 }

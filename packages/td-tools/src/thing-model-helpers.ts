@@ -241,6 +241,10 @@ export class ThingModelHelpers {
             case "http": {
                 return new Promise((resolve, reject) => {
                     http.get(uri, (res) => {
+                        if (!res.statusCode || res.statusCode !== 200) {
+                            reject(new Error(`http status code not 200 but ${res.statusCode}`));
+                        }
+
                         res.setEncoding("utf8");
                         let rawData = "";
                         res.on("data", (chunk) => {
@@ -264,6 +268,10 @@ export class ThingModelHelpers {
                 return new Promise((resolve, reject) => {
                     https
                         .get(uri, (res) => {
+                            if (!res.statusCode || res.statusCode !== 200) {
+                                reject(new Error(`https status code not 200 but ${res.statusCode}`));
+                            }
+
                             res.setEncoding("utf8");
                             let rawData = "";
                             res.on("data", (chunk) => {
