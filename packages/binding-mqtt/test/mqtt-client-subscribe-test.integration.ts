@@ -51,8 +51,6 @@ describe("MQTT client implementation", () => {
 
         servient.addClientFactory(new MqttClientFactory());
 
-        let counter = 0;
-
         servient.start().then((WoT) => {
             expect(brokerServer.getPort()).to.equal(brokerPort);
             expect(brokerServer.getAddress()).to.equal(brokerAddress);
@@ -76,7 +74,6 @@ describe("MQTT client implementation", () => {
                         client
                             .subscribeEvent(eventName, (x) => {
                                 if (!eventReceived) {
-                                    counter = 0;
                                     eventReceived = true;
                                 } else {
                                     ProtocolHelpers.readStreamFully(ProtocolHelpers.toNodeStream(x.data)).then(
@@ -112,8 +109,6 @@ describe("MQTT client implementation", () => {
         servient.addClientFactory(new MqttClientFactory());
         servient.addClientFactory(new MqttsClientFactory({ rejectUnauthorized: false }));
 
-        let counter = 0;
-
         servient.start().then((WoT) => {
             expect(brokerServer.getPort()).to.equal(brokerPort);
             expect(brokerServer.getAddress()).to.equal(brokerAddress);
@@ -137,7 +132,6 @@ describe("MQTT client implementation", () => {
                         client
                             .subscribeEvent(eventName, (x) => {
                                 if (!eventReceived) {
-                                    counter = 0;
                                     eventReceived = true;
                                 } else {
                                     ProtocolHelpers.readStreamFully(ProtocolHelpers.toNodeStream(x.data)).then(

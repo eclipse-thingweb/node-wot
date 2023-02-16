@@ -26,10 +26,6 @@ import { readFileSync } from "fs";
 import OAuthServer from "express-oauth-server";
 import bodyParser from "body-parser";
 
-function sleep(ms: number) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 @suite("HTTP oauth client implementation")
 class HttpClientOAuthTest {
     private client: HttpClient;
