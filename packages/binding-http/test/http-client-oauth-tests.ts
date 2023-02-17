@@ -26,10 +26,6 @@ import { readFileSync } from "fs";
 import OAuthServer from "express-oauth-server";
 import bodyParser from "body-parser";
 
-function sleep(ms: number) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 @suite("HTTP oauth client implementation")
 class HttpClientOAuthTest {
     private client: HttpClient;
@@ -124,7 +120,6 @@ class HttpClientOAuthTest {
         const model = HttpClientOAuthTest.model;
         await model.expireAllTokens();
         this.client.setSecurity([scheme], { clientId: "thom", clientSecret: "nightworld" });
-        await sleep(1000);
         const resource = await this.client.readResource({
             href: "https://127.0.0.1:3000/resource",
         });
@@ -148,7 +143,6 @@ class HttpClientOAuthTest {
             username: "thomseddon",
             password: "nightworld",
         });
-        await sleep(1000);
         const resource = await this.client.readResource({
             href: "https://127.0.0.1:3000/resource",
         });

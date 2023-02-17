@@ -170,7 +170,7 @@ export default class InMemoryModel implements ClientCredentialsModel, PasswordMo
 
     expireAllTokens(): void {
         for (const token of this.tokens) {
-            token.accessTokenExpiresAt = new Date();
+            token.accessTokenExpiresAt = new Date(new Date().setHours(-1));
         }
     }
 }

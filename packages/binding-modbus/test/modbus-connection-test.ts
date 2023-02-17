@@ -91,7 +91,7 @@ describe("Modbus connection", () => {
                 "modbus:unitID": 1,
             };
             const connection = new ModbusConnection("127.0.0.1", 8502, {
-                connectionTimeout: 1000,
+                connectionTimeout: 100,
                 connectionRetryTime: 10,
                 maxRetries: 1,
             });

@@ -18,6 +18,7 @@
         "./dist/http-client.js": "./dist/http-client-browser.js"
     },
     "devDependencies": {
+        "@sinonjs/fake-timers": "^10.0.2",
         "@testdeck/mocha": "^0.1.2",
         "@types/accept-language-parser": "^1.5.2",
         "@types/basic-auth": "1.1.3",
