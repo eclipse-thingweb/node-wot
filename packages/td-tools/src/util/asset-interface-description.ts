@@ -359,21 +359,23 @@ export class AssetInterfaceDescriptionUtil {
             for (const entry of smInformation.properties.entries()) {
                 const key = entry[0];
                 const value: AASInteraction[] = entry[1];
-                logInfo("Property" + key + " = " + value);
+                logInfo("vProperty" + key + " = " + value);
 
                 thing.properties[key] = {};
                 thing.properties[key].forms = [];
 
                 for (const vi of value) {
-                    //The first if condition is expected to be temporary. will be adjusted or removed when a decision on how the datapoint's datatype would be modelled is made for AID
-                    if(vi.interaction.constraints.length > 0 && vi.interaction.constraints.length > 0){
-                        if(vi.interaction.constraints[0].value === "float"){
-                            thing.properties[key].type = "number";
-                        }
-                        else{
-                            thing.properties[key].type = vi.interaction.constraints[0].value;
-                        }
+                    // The first if condition is expected to be temporary. will be adjusted or removed when a decision on how the datapoint's datatype would be modelled is made for AID
 
+                    if (vi.interaction.constraints instanceof Array && vi.interaction.constraints) {
+                        for (const constraint of vi.interaction.constraints)
+                            if (constraint.type === "valueType") {
+                                if (constraint.value === "float") {
+                                    thing.properties[key].type = "number";
+                                } else {
+                                    thing.properties[key].type = constraint.value;
+                                }
+                            }
                     }
 
                     if (vi.endpointMetadata) {

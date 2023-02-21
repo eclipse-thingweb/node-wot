@@ -184,6 +184,12 @@ class AssetInterfaceDescriptionUtilTest {
         expect(tdObj.securityDefinitions[tdObj.security[0]]).to.have.property("scheme").that.equals("nosec");
 
         expect(tdObj).to.have.property("properties").to.have.property("count");
+        // just inserter by Kaz
+        expect(tdObj)
+            .to.have.property("properties")
+            .to.have.property("count")
+            .to.have.property("type")
+            .that.equals("integer");
 
         // form entries
         expect(tdObj)
