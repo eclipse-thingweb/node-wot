@@ -366,7 +366,7 @@ export class AssetInterfaceDescriptionUtil {
 
                 for (const vi of value) {
                     // The first block of if condition is expected to be temporary. will be adjusted or removed when a decision on how the datapoint's datatype would be modelled is made for AID.
-                    if (vi.interaction.constraint && vi.interaction.constraints instanceof Array) {
+                    if (vi.interaction.constraints && vi.interaction.constraints instanceof Array) {
                         for (const constraint of vi.interaction.constraints)
                             if (constraint.type === "valueType") {
                                 if (constraint.value === "float") {
