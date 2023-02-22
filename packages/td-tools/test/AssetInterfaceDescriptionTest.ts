@@ -184,6 +184,12 @@ class AssetInterfaceDescriptionUtilTest {
         expect(tdObj.securityDefinitions[tdObj.security[0]]).to.have.property("scheme").that.equals("nosec");
 
         expect(tdObj).to.have.property("properties").to.have.property("count");
+        // to check if count properties has type element that is equals the value defined in AID->integer
+        expect(tdObj)
+            .to.have.property("properties")
+            .to.have.property("count")
+            .to.have.property("type")
+            .that.equals("integer");
 
         // form entries
         expect(tdObj)
