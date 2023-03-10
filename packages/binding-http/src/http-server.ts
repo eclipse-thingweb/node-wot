@@ -642,7 +642,12 @@ export default class HttpServer implements ProtocolServer {
         }
 
         // Set CORS headers
-        res.setHeader("Access-Control-Allow-Origin", "*");
+        if (this.httpSecurityScheme === "NoSec") {
+            res.setHeader("Access-Control-Allow-Origin", "*");
+        } else {
+            res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
+            res.setHeader("Access-Control-Allow-Credentials", "true");
+        }
 
         const contentTypeHeader: string | string[] = req.headers["content-type"];
         let contentType: string = Array.isArray(contentTypeHeader) ? contentTypeHeader[0] : contentTypeHeader;
