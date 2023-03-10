@@ -609,7 +609,11 @@ export default class HttpServer implements ProtocolServer {
         });
 
         // Handle requests where the path is correct and the HTTP method is not allowed.
-        function respondUnallowedMethod(res: http.ServerResponse, allowed: string, corsPreflightWithCredentials = false): void {
+        function respondUnallowedMethod(
+            res: http.ServerResponse,
+            allowed: string,
+            corsPreflightWithCredentials = false
+        ): void {
             // Always allow OPTIONS to handle CORS pre-flight requests
             if (!allowed.includes("OPTIONS")) {
                 allowed += ", OPTIONS";
