@@ -775,6 +775,8 @@ export default class HttpServer implements ProtocolServer {
                                 res.writeHead(202);
                                 res.end();
                             } else {
+                                // may have been OPTIONS that failed the credentials check
+                                // as a result, we pass corsPreflightWithCredentials
                                 respondUnallowedMethod(res, "GET", corsPreflightWithCredentials);
                             }
                             // resource found and response sent
@@ -879,6 +881,8 @@ export default class HttpServer implements ProtocolServer {
                                     res.end();
                                     return;
                                 } else {
+                                    // may have been OPTIONS that failed the credentials check
+                                    // as a result, we pass corsPreflightWithCredentials
                                     respondUnallowedMethod(res, "GET, PUT", corsPreflightWithCredentials);
                                     return;
                                 } // Property exists?
@@ -929,6 +933,8 @@ export default class HttpServer implements ProtocolServer {
                                     res.end(err.message);
                                 }
                             } else {
+                                // may have been OPTIONS that failed the credentials check
+                                // as a result, we pass corsPreflightWithCredentials
                                 respondUnallowedMethod(res, "POST", corsPreflightWithCredentials);
                             }
                             // resource found and response sent
@@ -990,7 +996,9 @@ export default class HttpServer implements ProtocolServer {
                                 res.writeHead(202);
                                 res.end();
                             } else {
-                                respondUnallowedMethod(res, "GET");
+                                // may have been OPTIONS that failed the credentials check
+                                // as a result, we pass corsPreflightWithCredentials
+                                respondUnallowedMethod(res, "GET", corsPreflightWithCredentials);
                             }
                             // resource found and response sent
                             return;
