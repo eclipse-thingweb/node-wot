@@ -2,6 +2,7 @@
 [<img alt="npm" src="https://img.shields.io/npm/dw/@node-wot/td-tools">](https://npm-stat.com/charts.html?package=%40node-wot%2Ftd-tools)
 [![codecov](https://codecov.io/gh/eclipse/thingweb.node-wot/branch/master/graph/badge.svg)](https://codecov.io/gh/eclipse/thingweb.node-wot)
 [![Telegram Group](https://img.shields.io/endpoint?color=neon&url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Fnodewot)](https://t.me/nodewot)
+[![Discord](https://img.shields.io/badge/Discord-7289DA?logo=discord&logoColor=white&label=node-wot)](https://discord.gg/JXY2Jzefz3)
 
 # Eclipse Thingweb node-wot
 
