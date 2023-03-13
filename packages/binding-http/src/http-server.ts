@@ -642,11 +642,11 @@ export default class HttpServer implements ProtocolServer {
         }
 
         // Set CORS headers
-        if (this.httpSecurityScheme === "NoSec") {
-            res.setHeader("Access-Control-Allow-Origin", "*");
-        } else {
+        if (this.httpSecurityScheme !== "NoSec" && req.headers.origin) {
             res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
             res.setHeader("Access-Control-Allow-Credentials", "true");
+        } else {
+            res.setHeader("Access-Control-Allow-Origin", "*");
         }
 
         const contentTypeHeader: string | string[] = req.headers["content-type"];
@@ -740,7 +740,7 @@ export default class HttpServer implements ProtocolServer {
                     let corsPreflightWithCredentials = false;
                     // Thing Interaction - Access Control
                     if (this.httpSecurityScheme !== "NoSec" && !(await this.checkCredentials(thing, req))) {
-                        if (req.method === "OPTIONS") {
+                        if (req.method === "OPTIONS" && req.headers.origin) {
                             corsPreflightWithCredentials = true;
                         } else {
                             res.setHeader("WWW-Authenticate", `${this.httpSecurityScheme} realm="${thing.id}"`);
