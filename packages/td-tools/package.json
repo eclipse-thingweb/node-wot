@@ -36,7 +36,7 @@
         "ts-node": "10.1.0",
         "typescript": "4.4.3",
         "typescript-standard": "^0.3.36",
-        "webpack": "^5.53.0",
+        "webpack": "^5.76.0",
         "webpack-cli": "^4.8.0"
     },
     "dependencies": {
