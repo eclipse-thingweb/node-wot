@@ -609,7 +609,11 @@ export default class HttpServer implements ProtocolServer {
         });
 
         // Handle requests where the path is correct and the HTTP method is not allowed.
-        function respondUnallowedMethod(res: http.ServerResponse, allowed: string): void {
+        function respondUnallowedMethod(
+            res: http.ServerResponse,
+            allowed: string,
+            corsPreflightWithCredentials = false
+        ): void {
             // Always allow OPTIONS to handle CORS pre-flight requests
             if (!allowed.includes("OPTIONS")) {
                 allowed += ", OPTIONS";
@@ -620,6 +624,12 @@ export default class HttpServer implements ProtocolServer {
                         req.socket.remoteAddress
                     )}:${req.socket.remotePort}`
                 );
+                if (corsPreflightWithCredentials) {
+                    res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
+                    res.setHeader("Access-Control-Allow-Credentials", "true");
+                } else {
+                    res.setHeader("Access-Control-Allow-Origin", "*");
+                }
                 res.setHeader("Access-Control-Allow-Methods", allowed);
                 res.setHeader("Access-Control-Allow-Headers", "content-type, authorization, *");
                 res.writeHead(200);
@@ -632,7 +642,12 @@ export default class HttpServer implements ProtocolServer {
         }
 
         // Set CORS headers
-        res.setHeader("Access-Control-Allow-Origin", "*");
+        if (this.httpSecurityScheme !== "NoSec" && req.headers.origin) {
+            res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
+            res.setHeader("Access-Control-Allow-Credentials", "true");
+        } else {
+            res.setHeader("Access-Control-Allow-Origin", "*");
+        }
 
         const contentTypeHeader: string | string[] = req.headers["content-type"];
         let contentType: string = Array.isArray(contentTypeHeader) ? contentTypeHeader[0] : contentTypeHeader;
@@ -722,12 +737,17 @@ export default class HttpServer implements ProtocolServer {
                     // resource found and response sent
                     return;
                 } else {
+                    let corsPreflightWithCredentials = false;
                     // Thing Interaction - Access Control
                     if (this.httpSecurityScheme !== "NoSec" && !(await this.checkCredentials(thing, req))) {
-                        res.setHeader("WWW-Authenticate", `${this.httpSecurityScheme} realm="${thing.id}"`);
-                        res.writeHead(401);
-                        res.end();
-                        return;
+                        if (req.method === "OPTIONS" && req.headers.origin) {
+                            corsPreflightWithCredentials = true;
+                        } else {
+                            res.setHeader("WWW-Authenticate", `${this.httpSecurityScheme} realm="${thing.id}"`);
+                            res.writeHead(401);
+                            res.end();
+                            return;
+                        }
                     }
 
                     if (segments[2] === this.PROPERTY_DIR) {
@@ -760,7 +780,9 @@ export default class HttpServer implements ProtocolServer {
                                 res.writeHead(202);
                                 res.end();
                             } else {
-                                respondUnallowedMethod(res, "GET");
+                                // may have been OPTIONS that failed the credentials check
+                                // as a result, we pass corsPreflightWithCredentials
+                                respondUnallowedMethod(res, "GET", corsPreflightWithCredentials);
                             }
                             // resource found and response sent
                             return;
@@ -864,7 +886,9 @@ export default class HttpServer implements ProtocolServer {
                                     res.end();
                                     return;
                                 } else {
-                                    respondUnallowedMethod(res, "GET, PUT");
+                                    // may have been OPTIONS that failed the credentials check
+                                    // as a result, we pass corsPreflightWithCredentials
+                                    respondUnallowedMethod(res, "GET, PUT", corsPreflightWithCredentials);
                                     return;
                                 } // Property exists?
                             }
@@ -914,7 +938,9 @@ export default class HttpServer implements ProtocolServer {
                                     res.end(err.message);
                                 }
                             } else {
-                                respondUnallowedMethod(res, "POST");
+                                // may have been OPTIONS that failed the credentials check
+                                // as a result, we pass corsPreflightWithCredentials
+                                respondUnallowedMethod(res, "POST", corsPreflightWithCredentials);
                             }
                             // resource found and response sent
                             return;
@@ -975,7 +1001,9 @@ export default class HttpServer implements ProtocolServer {
                                 res.writeHead(202);
                                 res.end();
                             } else {
-                                respondUnallowedMethod(res, "GET");
+                                // may have been OPTIONS that failed the credentials check
+                                // as a result, we pass corsPreflightWithCredentials
+                                respondUnallowedMethod(res, "GET", corsPreflightWithCredentials);
                             }
                             // resource found and response sent
                             return;
