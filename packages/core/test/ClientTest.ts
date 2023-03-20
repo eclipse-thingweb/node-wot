@@ -267,6 +267,10 @@ class TrapClientFactory implements ProtocolClientFactory {
     }
 }
 
+class TrapClientFactory2 extends TrapClientFactory {
+    public scheme = "testdata2";
+}
+
 class TestProtocolClient implements ProtocolClient {
     readResource(form: Form): Promise<Content> {
         throw new Error("Method not implemented.");
@@ -696,5 +700,15 @@ class WoTClientTest {
         expect(
             thing.readProperty("aProperty", { uriVariables: { idTestWrong: "test" } })
         ).to.eventually.be.rejectedWith(Error);
+    }
+
+    @test async "adding and removing client factory"() {
+        const tcf2 = new TrapClientFactory2();
+        expect(WoTClientTest.servient.hasClientFor(tcf2.scheme)).to.be.not.true;
+        WoTClientTest.servient.addClientFactory(new TrapClientFactory2());
+        expect(WoTClientTest.servient.hasClientFor(tcf2.scheme)).to.be.true;
+        let result = WoTClientTest.servient.removeClientFactory(tcf2.scheme);
+        expect(result);
+        expect(WoTClientTest.servient.hasClientFor(tcf2.scheme)).to.be.not.true;
     }
 }
