@@ -34,8 +34,8 @@ export type BlockSize = 16 | 32 | 64 | 128 | 256 | 512 | 1024;
 export type BlockSizeOptionValue = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 export interface BlockWiseTransferParameters {
-    "cov:block2SZX"?: BlockSize;
-    "cov:block1SZX"?: BlockSize;
+    "cov:block2Size"?: BlockSize;
+    "cov:block1Size"?: BlockSize;
 }
 
 export class CoapForm extends Form {

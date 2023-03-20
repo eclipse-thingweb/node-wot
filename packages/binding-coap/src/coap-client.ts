@@ -218,13 +218,13 @@ export default class CoapClient implements ProtocolClient {
         return options;
     }
 
-    private setBlockOption(req: OutgoingMessage, optionName: "Block1" | "Block2", blockSZX?: BlockSize): void {
-        if (blockSZX == null) {
+    private setBlockOption(req: OutgoingMessage, optionName: "Block1" | "Block2", blockSize?: BlockSize): void {
+        if (blockSize == null) {
             return;
         }
 
         try {
-            const block2OptionValue = blockSizeToOptionValue(blockSZX);
+            const block2OptionValue = blockSizeToOptionValue(blockSize);
             req.setOption(optionName, block2OptionValue);
         } catch (e) {
             warn(e.toString());
@@ -257,8 +257,8 @@ export default class CoapClient implements ProtocolClient {
     private applyFormDataToRequest(form: CoapForm, req: OutgoingMessage) {
         const blockwise = form["cov:blockwise"];
         if (blockwise != null) {
-            this.setBlockOption(req, "Block2", blockwise["cov:block2SZX"]);
-            this.setBlockOption(req, "Block1", blockwise["cov:block1SZX"]);
+            this.setBlockOption(req, "Block2", blockwise["cov:block2Size"]);
+            this.setBlockOption(req, "Block1", blockwise["cov:block1Size"]);
         }
     }
 
