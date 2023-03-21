@@ -148,10 +148,7 @@ export default class Servient {
 
     public removeClientFactory(scheme: string): boolean {
         debug(`Servient removing client factory for '${scheme}'`);
-        const clientFactory = this.clientFactories.get(scheme);
-        if (clientFactory) {
-            clientFactory.destroy();
-        }
+        this.clientFactories.get(scheme)?.destroy();
         return this.clientFactories.delete(scheme);
     }
 
