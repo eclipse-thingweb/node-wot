@@ -142,7 +142,14 @@ export default class Servient {
     }
 
     public addClientFactory(clientFactory: ProtocolClientFactory): void {
+        debug(`Servient adding client factory for '${clientFactory.scheme}'`);
         this.clientFactories.set(clientFactory.scheme, clientFactory);
+    }
+
+    public removeClientFactory(scheme: string): boolean {
+        debug(`Servient removing client factory for '${scheme}'`);
+        this.clientFactories.get(scheme)?.destroy();
+        return this.clientFactories.delete(scheme);
     }
 
     public hasClientFor(scheme: string): boolean {
