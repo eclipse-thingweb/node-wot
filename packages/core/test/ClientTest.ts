@@ -704,11 +704,14 @@ class WoTClientTest {
 
     @test async "adding and removing client factory"() {
         const tcf2 = new TrapClientFactory2();
+        // eslint-disable-next-line no-unused-expressions
         expect(WoTClientTest.servient.hasClientFor(tcf2.scheme)).to.be.not.true;
         WoTClientTest.servient.addClientFactory(new TrapClientFactory2());
+        // eslint-disable-next-line no-unused-expressions
         expect(WoTClientTest.servient.hasClientFor(tcf2.scheme)).to.be.true;
-        let result = WoTClientTest.servient.removeClientFactory(tcf2.scheme);
+        const result = WoTClientTest.servient.removeClientFactory(tcf2.scheme);
         expect(result);
+        // eslint-disable-next-line no-unused-expressions
         expect(WoTClientTest.servient.hasClientFor(tcf2.scheme)).to.be.not.true;
     }
 }
