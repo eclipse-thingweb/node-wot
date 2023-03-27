@@ -75,8 +75,12 @@ describe("MQTT client implementation", () => {
                         done(err);
                     }
                 })
-                .then(() => mqttClient.invokeResource(form, new Content("", Readable.from(Buffer.from("test")))))
-                .then(() => mqttClient.stop())
+                .then(async (sub) => {
+                    await mqttClient.invokeResource(form, new Content("", Readable.from(Buffer.from("test"))));
+                    // Need to manually unsubscribe because stopping the client will unsubscribe all subscriptions
+                    sub.unsubscribe();
+                    await mqttClient.stop();
+                })
                 .catch((err) => done(err));
         }).timeout(10000);
 
