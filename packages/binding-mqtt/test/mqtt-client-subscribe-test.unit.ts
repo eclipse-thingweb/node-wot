@@ -75,8 +75,43 @@ describe("MQTT client implementation", () => {
                         done(err);
                     }
                 })
-                .then(() => mqttClient.invokeResource(form, new Content("", Readable.from(Buffer.from("test")))))
-                .then(() => mqttClient.stop())
+                .then(async (sub) => {
+                    await mqttClient.invokeResource(form, new Content("", Readable.from(Buffer.from("test"))));
+                    // Need to manually unsubscribe because stopping the client will not unsubscribe all subscriptions
+                    sub.unsubscribe();
+                    await mqttClient.stop();
+                })
+                .catch((err) => done(err));
+        }).timeout(10000);
+
+        it("should subscribe unsubscribe and subscribe again", (done: Mocha.Done) => {
+            const mqttClient = new MqttClient();
+            const form: MqttForm = {
+                href: brokerUri + "/" + property,
+                "mqtt:qos": MqttQoS.QoS0,
+                "mqtt:retain": false,
+            };
+
+            mqttClient
+                .subscribeResource(form, () => {
+                    /** No-op */
+                })
+                .then(async (sub) => {
+                    sub.unsubscribe();
+                    const sub2 = await mqttClient.subscribeResource(form, async (value: Content) => {
+                        try {
+                            const data = await value.toBuffer();
+                            expect(data.toString()).to.be.equal("test");
+                            done();
+                        } catch (err) {
+                            done(err);
+                        } finally {
+                            await mqttClient.stop();
+                        }
+                    });
+                    await mqttClient.invokeResource(form, new Content("", Readable.from(Buffer.from("test"))));
+                    sub2.unsubscribe();
+                })
                 .catch((err) => done(err));
         }).timeout(10000);
     });

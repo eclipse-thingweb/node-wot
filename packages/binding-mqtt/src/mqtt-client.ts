@@ -59,6 +59,15 @@ export default class MqttClient implements ProtocolClient {
                 this.client = mqtt.connect(brokerUri, this.config);
             }
 
+            if (this.client.connected) {
+                this.client.subscribe(topic);
+                resolve(
+                    new Subscription(() => {
+                        this.client.unsubscribe(topic);
+                    })
+                );
+            }
+
             this.client.on("connect", () => {
                 this.client.subscribe(topic);
                 resolve(
