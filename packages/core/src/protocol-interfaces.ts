@@ -35,7 +35,6 @@ export type PropertyHandlerMap = Map<string, PropertyHandlers>;
 export type ActionHandlerMap = Map<string, WoT.ActionHandler>;
 
 export type EventHandlers = {
-    handler?: WoT.EventListenerHandler;
     subscribe?: WoT.EventSubscriptionHandler;
     unsubscribe?: WoT.EventSubscriptionHandler;
 };

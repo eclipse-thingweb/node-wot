@@ -345,25 +345,6 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         return this;
     }
 
-    /** @inheritDoc */
-    setEventHandler(name: string, handler: WoT.EventListenerHandler): WoT.ExposedThing {
-        debug(`ExposedThing '${this.title}' setting event handler for '${name}'`);
-
-        if (this.events[name]) {
-            let eventHandler = this.__eventHandlers.get(name);
-            if (eventHandler) {
-                eventHandler.handler = handler;
-            } else {
-                eventHandler = { handler: handler };
-            }
-
-            this.__eventHandlers.set(name, eventHandler);
-        } else {
-            throw new Error(`ExposedThing '${this.title}' has no Event '${name}'`);
-        }
-        return this;
-    }
-
     /**
      * Handle the request of an action invocation form the protocol binding level
      * @experimental
