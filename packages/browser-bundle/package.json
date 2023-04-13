@@ -21,7 +21,7 @@
         "readable-stream4": "npm:readable-stream@^4.0.0",
         "tinyify": "2.5.2",
         "typescript": "4.4.3",
-        "wot-typescript-definitions": "0.8.0-SNAPSHOT.23"
+        "wot-typescript-definitions": "0.8.0-SNAPSHOT.25"
     },
     "scripts": {
         "build": "node build.js",
