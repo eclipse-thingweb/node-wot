@@ -21,6 +21,7 @@
 import { suite, test } from "@testdeck/mocha";
 import { expect, should } from "chai";
 import { DataSchemaValue } from "wot-typescript-definitions";
+import cbor from "cbor";
 
 import ContentSerdes, { ContentCodec } from "../src/content-serdes";
 import { Endianness } from "../src/protocol-interfaces";
@@ -38,6 +39,20 @@ const checkJsToJson = async (value: DataSchemaValue) => {
     const jsonContent = ContentSerdes.valueToContent(value, { type: "object", properties: {} });
     const body = await jsonContent.toBuffer();
     const reparsed = JSON.parse(body.toString());
+    expect(reparsed).to.deep.equal(value);
+};
+
+const checkCborToJs = (value: unknown): void => {
+    const cborBuffer = Buffer.from(cbor.encode(value));
+    expect(
+        ContentSerdes.contentToValue({ type: "application/cbor", body: cborBuffer }, { type: "object", properties: {} })
+    ).to.deep.equal(value);
+};
+
+const checkJsToCbor = async (value: DataSchemaValue) => {
+    const cborContent = ContentSerdes.valueToContent(value, { type: "object", properties: {} }, "application/cbor");
+    const body = await cborContent.toBuffer();
+    const reparsed = cbor.decode(body);
     expect(reparsed).to.deep.equal(value);
 };
 
@@ -200,7 +215,7 @@ class SerdesOctetTests {
 }
 
 @suite("testing JSON codec")
-class SerdesTests {
+class JsonSerdesTests {
     @test "JSON to value"() {
         checkJsonToJs(42);
         checkJsonToJs("Hallo");
@@ -217,6 +232,27 @@ class SerdesTests {
         await checkJsToJson({ foo: "bar" });
         await checkJsToJson({ answer: 42 });
         await checkJsToJson({ pi: 3.14 });
+    }
+}
+
+@suite("testing CBOR codec")
+class CborSerdesTests {
+    @test "CBOR to value"() {
+        checkCborToJs(42);
+        checkCborToJs("Hallo");
+        checkCborToJs(null);
+        checkCborToJs({ foo: "bar" });
+        checkCborToJs({ answer: 42 });
+        checkCborToJs({ pi: 3.14 });
+    }
+
+    @test async "value to CBOR"() {
+        await checkJsToCbor(42);
+        await checkJsToCbor("Hallo");
+        await checkJsToCbor(null);
+        await checkJsToCbor({ foo: "bar" });
+        await checkJsToCbor({ answer: 42 });
+        await checkJsToCbor({ pi: 3.14 });
     }
 }
 
