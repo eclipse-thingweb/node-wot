@@ -76,7 +76,7 @@ Note: the bindings for [binding-fujitsu](https://github.com/eclipse/thingweb.nod
 -   Text (HTML, CSS, XML, SVG) :heavy_check_mark:
 -   Base64 (PNG, JPEG, GIF) :heavy_check_mark:
 -   Octet stream :heavy_check_mark:
--   CBOR :timer_clock:
+-   CBOR :heavy_check_mark:
 -   EXI :timer_clock:
 
 Note: More mediaTypes can be easily added by implementing `ContentCodec` interface.
