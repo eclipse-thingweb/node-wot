@@ -51,7 +51,7 @@
         "commander": "^9.1.0",
         "dotenv": "^8.6.0",
         "lodash": "^4.17.21",
-        "vm2": "3.9.11"
+        "vm2": "3.9.17"
     },
     "scripts": {
         "build": "tsc -b",
