@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2022 Contributors to the Eclipse Foundation
+ * Copyright (c) 2023 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -31,6 +31,7 @@ import { Socket } from "dgram";
 import { Server, createServer, registerFormat, IncomingMessage, OutgoingMessage } from "coap";
 import slugify from "slugify";
 import { Readable } from "stream";
+import { MdnsIntroducer } from "./mdns-introducer";
 
 const { debug, warn, info, error } = createLoggers("binding-coap", "coap-server");
 
@@ -57,6 +58,9 @@ export default class CoapServer implements ProtocolServer {
 
     private readonly port: number = 5683;
     private readonly address?: string = undefined;
+
+    private mdnsIntroducer: MdnsIntroducer;
+
     private readonly server: Server = createServer(
         { reuseAddr: false },
         (req: IncomingMessage, res: OutgoingMessage) => {
@@ -92,6 +96,7 @@ export default class CoapServer implements ProtocolServer {
                 this.server.on("error", (err: Error) => {
                     error(`CoapServer for port ${this.port} failed: ${err.message}`);
                 });
+                this.mdnsIntroducer = new MdnsIntroducer(this.address);
                 resolve();
             });
         });
@@ -104,6 +109,7 @@ export default class CoapServer implements ProtocolServer {
             this.server.once("error", (err: Error) => {
                 reject(err);
             });
+            this.mdnsIntroducer?.close();
             this.server.close(() => {
                 resolve();
             });
@@ -136,7 +142,8 @@ export default class CoapServer implements ProtocolServer {
 
         debug(`CoapServer on port ${this.getPort()} exposes '${thing.title}' as unique '/${urlPath}'`);
 
-        if (this.getPort() !== -1) {
+        const port = this.getPort();
+        if (port !== -1) {
             this.things.set(urlPath, thing);
 
             // fill in binding data
@@ -187,6 +194,14 @@ export default class CoapServer implements ProtocolServer {
                     }
                 } // media types
             } // addresses
+
+            const parameters = {
+                urlPath,
+                port,
+                serviceName: "_wot._udp.local",
+            };
+
+            this.mdnsIntroducer?.registerExposedThing(thing, parameters);
         } // running
 
         return new Promise<void>((resolve, reject) => {
@@ -201,6 +216,7 @@ export default class CoapServer implements ProtocolServer {
             if (exposedThing?.id === thingId) {
                 this.things.delete(name);
                 this.coreResources.delete(name);
+                this.mdnsIntroducer?.delete(name);
 
                 info(`CoapServer succesfully destroyed '${exposedThing.title}'`);
                 return true;
