@@ -18,27 +18,44 @@ Useful labels:
 
 <!-- https://ecotrust-canada.github.io/markdown-toc/ -->
 
--   [License](#license)
--   [Implemented/supported features](#implementedsupported-features)
-    -   [Protocol Support](#protocol-support)
-    -   [MediaType Support](#mediatype-support)
--   [Prerequisites](#prerequisites)
-    -   [To use with Node.js](#to-use-with-nodejs)
-    -   [To use in a browser](#to-use-in-a-browser)
--   [How to get the library](#how-to-get-the-library)
+-   [Eclipse Thingweb node-wot](#eclipse-thingweb-node-wot)
+    -   [Table of Contents](#table-of-contents)
+    -   [License](#license)
+    -   [Implemented/supported features](#implementedsupported-features)
+        -   [Protocol Support](#protocol-support)
+        -   [MediaType Support](#mediatype-support)
+    -   [Prerequisites](#prerequisites)
+        -   [To use with Node.js](#to-use-with-nodejs)
+            -   [Linux](#linux)
+            -   [Windows](#windows)
+            -   [Mac OS](#mac-os)
+        -   [To use in a browser](#to-use-in-a-browser)
+    -   [How to get the library](#how-to-get-the-library)
     -   [As a Node.js dependency](#as-a-nodejs-dependency)
-    -   [As a standalone application](#as-a-standalone-application)
-    -   [As a Docker image](#as-a-docker-image)
-    -   [As a browser library](#as-a-browser-library)
--   [No time for explanations - show me a running example!](#no-time-for-explanations---show-me-a-running-example)
-    -   [Using Node.js](#using-nodejs)
-    -   [Using Docker](#using-docker)
-    -   [Using a browser](#using-a-browser)
--   [How to use the library](#how-to-use-the-library)
-    -   [The API](#the-api)
-    -   [TD Tooling](#td-tooling)
-    -   [Logging](#logging)
-    -   [Install new/different versions of NodeJS](#install-newdifferent-versions-of-nodejs)
+        -   [Normal Dependency](#normal-dependency)
+        -   [CLI Tool](#cli-tool)
+        -   [As a standalone application](#as-a-standalone-application)
+            -   [Clone and build](#clone-and-build)
+            -   [Optional steps](#optional-steps)
+                -   [Link Packages](#link-packages)
+                -   [Link Local wot-typescript-definitions](#link-local-wot-typescript-definitions)
+                -   [Optimization](#optimization)
+            -   [Trouble shooting](#trouble-shooting)
+        -   [As a Docker image](#as-a-docker-image)
+        -   [As a browser library](#as-a-browser-library)
+    -   [No time for explanations - show me a running example!](#no-time-for-explanations---show-me-a-running-example)
+        -   [Using Node.js](#using-nodejs)
+        -   [Using Docker](#using-docker)
+        -   [Using a browser](#using-a-browser)
+        -   [Online Things](#online-things)
+    -   [How to use the library](#how-to-use-the-library)
+        -   [The API](#the-api)
+        -   [TD Tooling](#td-tooling)
+        -   [Logging](#logging)
+        -   [Install new/different versions of NodeJS](#install-newdifferent-versions-of-nodejs)
+    -   [Development Internals](#development-internals)
+        -   [Publishing on NPM](#publishing-on-npm)
+        -   [Regenerating package-lock.json](#regenerating-package-lockjson)
 
 ## License
 
@@ -385,6 +402,25 @@ An example of how to use node-wot as a browser-side library can be found under `
 To run it, open [`examples/browser/index.html`](http://plugfest.thingweb.io/webui/) in a modern browser, and consume the test Thing available under `http://plugfest.thingweb.io:8083/testthing` to interact with it.
 
 The JavaScript code that uses node-wot as a library to power this application can be found under: `examples/browser/index.js`
+
+### Online Things
+
+We offer online simulated Things that are available to be used by anyone.
+
+Their TDs are available at the following links:
+
+-   Counter: HTTP at <http://plugfest.thingweb.io:8083/counter> and CoAP at <coap://plugfest.thingweb.io:5683/counter>
+-   Smart Coffee Machine: HTTP at <http://plugfest.thingweb.io:8083/smart-coffee-machine> and CoAP at <coap://plugfest.thingweb.io:5683/smart-coffee-machine>
+-   TestThing: HTTP at <http://plugfest.thingweb.io:8083/testthing> and CoAP at <coap://plugfest.thingweb.io:5683/testthing>
+
+All of them require no security mechanism to be communicated with and have same behavior from CoAP or HTTP endpoints.
+Below are small explanations on what they can be used for:
+
+-   Counter: It has a count property that can be read or observed and can be incremented or decremented via separate actions.
+    It is also possible to reset the count the value, obtain when the last change occured, subscribe to a change in the count value or get the count value as an image.
+-   TestThing: This Thing exists primarily for testing different data schemas and payload formats. It also has events attached to affordances that notify when a value changes.
+-   Smart Coffee Machine: This is a simulation of a coffee machine that also has a [simple user interface](http://plugfest.thingweb.io/examples/smart-coffee-machine.html) that displays the values of properties.
+    In addition to proving a real life device example, it can be used for testing `uriVariables`. You can ask it to brew different coffees and monitor the available resource level.
 
 ## How to use the library
 
