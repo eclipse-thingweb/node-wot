@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2022 Contributors to the Eclipse Foundation
+ * Copyright (c) 2023 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -12,7 +12,6 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-
 function checkPropertyWrite(expected, actual) {
     const output = "Property " + expected + " written with " + actual;
     if (expected === actual) {
@@ -83,8 +82,8 @@ WoT.produce({
             description: "Action without input nor output",
         },
         "void-int": {
-            title: "void-void Action",
-            description: "Action without input nor output",
+            title: "void-int Action",
+            description: "Action without input, but with integer output",
         },
         "int-void": {
             title: "int-void Action",
@@ -158,6 +157,7 @@ WoT.produce({
                 const localBool = await value.value();
                 checkPropertyWrite("boolean", typeof localBool);
                 bool = localBool;
+                thing.emitEvent("on-bool", bool);
             })
             .setPropertyReadHandler("bool", async () => bool)
             .setPropertyWriteHandler("int", async (value) => {
@@ -168,12 +168,14 @@ WoT.produce({
                     checkPropertyWrite("integer", typeof value);
                 }
                 int = localInt;
+                thing.emitEvent("on-int", int);
             })
             .setPropertyReadHandler("int", async () => int)
             .setPropertyWriteHandler("num", async (value) => {
                 const localNum = await value.value();
                 checkPropertyWrite("number", typeof localNum);
                 num = localNum;
+                thing.emitEvent("on-num", num);
             })
             .setPropertyReadHandler("num", async () => num)
             .setPropertyWriteHandler("string", async (value) => {
