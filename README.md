@@ -34,6 +34,7 @@ Useful labels:
     -   [Using Node.js](#using-nodejs)
     -   [Using Docker](#using-docker)
     -   [Using a browser](#using-a-browser)
+    -   [Online Things](#online-things)
 -   [How to use the library](#how-to-use-the-library)
     -   [The API](#the-api)
     -   [TD Tooling](#td-tooling)
