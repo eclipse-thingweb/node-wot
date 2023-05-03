@@ -46,7 +46,7 @@
         "json-placeholder-replacer": "^1.0.35",
         "url-toolkit": "2.1.6",
         "wot-thing-description-types": "1.1.0-23-March-2023",
-        "wot-thing-model-types": "^1.1.0-13-October-2022",
+        "wot-thing-model-types": "1.1.0-23-March-2023",
         "wot-typescript-definitions": "0.8.0-SNAPSHOT.25"
     },
     "scripts": {
