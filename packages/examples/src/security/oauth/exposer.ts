@@ -23,7 +23,6 @@ const td: ExposedThingInit = {
         oauth2_sc: {
             scheme: "oauth2",
             flow: "client",
-            authorization: "https://example.com/authorization",
             token: "https://localhost:3000/token",
             scopes: ["user", "admin"],
         },
