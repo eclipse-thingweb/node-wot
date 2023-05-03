@@ -34,6 +34,7 @@ Useful labels:
     -   [Using Node.js](#using-nodejs)
     -   [Using Docker](#using-docker)
     -   [Using a browser](#using-a-browser)
+    -   [Online Things](#online-things)
 -   [How to use the library](#how-to-use-the-library)
     -   [The API](#the-api)
     -   [TD Tooling](#td-tooling)
@@ -385,6 +386,25 @@ An example of how to use node-wot as a browser-side library can be found under `
 To run it, open [`examples/browser/index.html`](http://plugfest.thingweb.io/webui/) in a modern browser, and consume the test Thing available under `http://plugfest.thingweb.io:8083/testthing` to interact with it.
 
 The JavaScript code that uses node-wot as a library to power this application can be found under: `examples/browser/index.js`
+
+### Online Things
+
+We offer online simulated Things that are available to be used by anyone.
+
+Their TDs are available at the following links:
+
+-   Counter: HTTP at <http://plugfest.thingweb.io:8083/counter> and CoAP at <coap://plugfest.thingweb.io:5683/counter>
+-   Smart Coffee Machine: HTTP at <http://plugfest.thingweb.io:8083/smart-coffee-machine> and CoAP at <coap://plugfest.thingweb.io:5683/smart-coffee-machine>
+-   TestThing: HTTP at <http://plugfest.thingweb.io:8083/testthing> and CoAP at <coap://plugfest.thingweb.io:5683/testthing>
+
+All of them require no security mechanism to be communicated with and have same behavior from CoAP or HTTP endpoints.
+Below are small explanations on what they can be used for:
+
+-   Counter: It has a count property that can be read or observed and can be incremented or decremented via separate actions.
+    It is also possible to reset the count the value, obtain when the last change occured, subscribe to a change in the count value or get the count value as an image.
+-   TestThing: This Thing exists primarily for testing different data schemas and payload formats. It also has events attached to affordances that notify when a value changes.
+-   Smart Coffee Machine: This is a simulation of a coffee machine that also has a [simple user interface](http://plugfest.thingweb.io/examples/smart-coffee-machine.html) that displays the values of properties.
+    In addition to proving a real life device example, it can be used for testing `uriVariables`. You can ask it to brew different coffees and monitor the available resource level.
 
 ## How to use the library
 
