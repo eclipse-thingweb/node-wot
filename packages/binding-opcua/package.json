@@ -29,7 +29,7 @@
         "eslint-plugin-node": "^11.1.0",
         "eslint-plugin-promise": "^5.1.0",
         "eslint-plugin-unused-imports": "^1.1.4",
-        "mocha": "^9.1.1",
+        "mocha": "^9.2.2",
         "prettier": "^2.3.2",
         "ts-node": "10.1.0",
         "typescript": "4.4.3",
@@ -38,7 +38,7 @@
         "wot-typescript-definitions": "0.8.0-SNAPSHOT.25"
     },
     "dependencies": {
-        "ajv": "^7.0.4",
+        "ajv": "^8.11.0",
         "ajv-formats": "^2.1.1",
         "@node-wot/core": "0.8.6",
         "@node-wot/td-tools": "0.8.6",
