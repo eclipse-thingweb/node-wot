@@ -100,7 +100,21 @@ export default class MqttClient implements ProtocolClient {
     }
 
     public async writeResource(form: MqttForm, content: Content): Promise<void> {
-        throw new Error("Method not implemented.");
+        const requestUri = new url.URL(form.href);
+        const topic = requestUri.pathname.slice(1);
+        const brokerUri = `${this.scheme}://${requestUri.host}`;
+
+        if (this.client === undefined) {
+            this.client = mqtt.connect(brokerUri, this.config);
+        }
+
+        // if not input was provided, set up an own body otherwise take input as body
+        if (content === undefined) {
+            this.client.publish(topic, JSON.stringify(Buffer.from("")));
+        } else {
+            const buffer = await content.toBuffer();
+            this.client.publish(topic, buffer);
+        }
     }
 
     public async invokeResource(form: MqttForm, content: Content): Promise<Content> {
