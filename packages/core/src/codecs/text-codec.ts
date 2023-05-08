@@ -91,7 +91,14 @@ export default class TextCodec implements ContentCodec {
         if (be) {
             return Buffer.from(body, be);
         } else {
-            return Buffer.from(body);
+            if (this.subMediaType === "image/svg+xml" && typeof value === "string") {
+                // Note: necessary to get buffer without quotes around the string value
+                const buff = Buffer.alloc(value.length);
+                buff.write(value);
+                return buff;
+            } else {
+                return Buffer.from(body);
+            }
         }
     }
 }
