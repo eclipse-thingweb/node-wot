@@ -218,7 +218,7 @@ export default class MqttBrokerServer implements ProtocolServer {
                 } // Action exists?
             } // Thing exists?
         } else if (
-            segments.length === SegmentLength.property + 1 &&
+            segments.length === SegmentLength.property &&
             segments[SegmentIndex.interactionExtension] === "writeproperty"
         ) {
             // connecting to the writeable properties
