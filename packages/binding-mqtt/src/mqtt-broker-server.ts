@@ -36,6 +36,7 @@ import {
 } from "@node-wot/core";
 import { InteractionOptions } from "wot-typescript-definitions";
 import { ActionElement, PropertyElement } from "wot-thing-description-types";
+import { Readable } from "stream";
 
 const { info, debug, error, warn } = createLoggers("binding-mqtt", "mqtt-broker-server");
 
@@ -235,6 +236,7 @@ export default class MqttBrokerServer implements ProtocolServer {
          * For further discussion see https://github.com/eclipse/thingweb.node-wot/pull/253
          */
         let value;
+
         if ("properties" in packet && "contentType" in packet.properties) {
             try {
                 value = ContentSerdes.get().contentToValue(
@@ -266,7 +268,11 @@ export default class MqttBrokerServer implements ProtocolServer {
         };
 
         thing
-            .handleInvokeAction(segments[3], value, options)
+            .handleInvokeAction(
+                segments[3],
+                new Content(ContentSerdes.DEFAULT, Readable.from(value)),
+                options
+            )
             .then((output: unknown) => {
                 if (output) {
                     warn(`MqttBrokerServer at ${this.brokerURI} cannot return output '${segments[3]}'`);
@@ -300,7 +306,11 @@ export default class MqttBrokerServer implements ProtocolServer {
             };
 
             try {
-                thing.handleWriteProperty(segments[3], JSON.parse(payload.toString()), options);
+                thing.handleWriteProperty(
+                    segments[3],
+                    new Content(ContentSerdes.DEFAULT, Readable.from(payload.toString())),
+                    options
+                );
             } catch (err) {
                 error(
                     `MqttBrokerServer at ${this.brokerURI} got error on writing to property '${segments[3]}': ${err.message}`
