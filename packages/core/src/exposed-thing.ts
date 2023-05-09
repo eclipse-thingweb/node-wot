@@ -24,7 +24,7 @@ import { InteractionOutput } from "./interaction-output";
 import { Readable } from "stream";
 import ProtocolHelpers from "./protocol-helpers";
 import { ReadableStream as PolyfillStream } from "web-streams-polyfill/ponyfill/es2018";
-import { Content, PropertyContentMap } from "./core";
+import { Content, ContentSerdes, PropertyContentMap } from "./core";
 import ContentManager from "./content-serdes";
 import {
     ActionHandlerMap,
@@ -422,26 +422,19 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         propertyNames: string[],
         options: WoT.InteractionOptions & { formIndex: number }
     ): Promise<PropertyContentMap> {
-        // collect all single promises into array
-        const promises: Promise<Content>[] = [];
-        for (const propertyName of propertyNames) {
-            // Note: currently only DataSchema properties are supported
-            const form = this.properties[propertyName].forms.find(
-                (form) => form.contentType === "application/json" || !form.contentType
-            );
-            if (!form) {
-                continue;
-            }
-
-            promises.push(this.handleReadProperty(propertyName, options));
-        }
         try {
-            // wait for all promises to succeed and create response
+            // collect all single promises
             const output = new Map<string, Content>();
-            const results = await Promise.all(promises);
-
-            for (let i = 0; i < results.length; i++) {
-                output.set(propertyNames[i], results[i]);
+            for (const propertyName of propertyNames) {
+                // Note: currently only JSON DataSchema properties are supported
+                const form = this.properties[propertyName].forms.find(
+                    (form) => form.contentType === ContentSerdes.DEFAULT || !form.contentType
+                );
+                if (!form) {
+                    continue;
+                }
+                const contentResponse = await this.handleReadProperty(propertyName, options);
+                output.set(propertyName, contentResponse);
             }
             return output;
         } catch (error) {

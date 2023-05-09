@@ -758,13 +758,16 @@ export default class HttpServer implements ProtocolServer {
                                     const propMap: PropertyContentMap = await thing.handleReadAllProperties({
                                         formIndex: 0,
                                     });
-                                    res.setHeader("Content-Type", "application/json"); // contentType handling?
+                                    res.setHeader("Content-Type", ContentSerdes.DEFAULT); // contentType handling?
                                     res.writeHead(200);
                                     const recordResponse: Record<string, unknown> = {};
                                     for (const key of propMap.keys()) {
                                         const content: Content = propMap.get(key);
-                                        const data = await content.toBuffer();
-                                        recordResponse[key] = data.toString();
+                                        const value = ContentSerdes.get().contentToValue(
+                                            { type: ContentSerdes.DEFAULT, body: await content.toBuffer() },
+                                            {}
+                                        );
+                                        recordResponse[key] = value;
                                     }
                                     res.end(JSON.stringify(recordResponse));
                                 } catch (err) {
