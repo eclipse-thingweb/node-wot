@@ -136,7 +136,9 @@ export class MdnsIntroducer {
         this.mdnsEntries.delete(urlPath);
     }
 
-    public close(): void {
-        this.mdns.destroy();
+    public async close(): Promise<void> {
+        return new Promise((resolve) => {
+            this.mdns.destroy(resolve);
+        })
     }
 }
