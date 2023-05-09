@@ -116,8 +116,8 @@ export default class CoapServer implements ProtocolServer {
 
     public async stop(): Promise<void> {
         info(`CoapServer stopping on port ${this.getPort()}`);
-       await this.closeServer();
-       await this.mdnsIntroducer?.close();
+        await this.closeServer();
+        await this.mdnsIntroducer?.close();
     }
 
     /** returns socket to be re-used by CoapClients */
