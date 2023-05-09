@@ -139,6 +139,6 @@ export class MdnsIntroducer {
     public async close(): Promise<void> {
         return new Promise((resolve) => {
             this.mdns.destroy(resolve);
-        })
+        });
     }
 }
