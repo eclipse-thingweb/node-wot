@@ -2,6 +2,8 @@
 
 W3C WoT Binding Template specification for HTTP can be found [here](https://w3c.github.io/wot-binding-templates/bindings/protocols/http/index.html).
 
+Current Maintainer(s): @relu91 @danielpeintner
+
 ## Protocol specifier
 
 The protocol prefix handled by this binding is `http://` or `https://`.
