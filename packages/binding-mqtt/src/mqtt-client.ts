@@ -110,7 +110,7 @@ export default class MqttClient implements ProtocolClient {
 
         // if not input was provided, set up an own body otherwise take input as body
         if (content === undefined) {
-            this.client.publish(topic, JSON.stringify(Buffer.from("")));
+            this.client.publish(topic, Buffer.from(""));
         } else {
             const buffer = await content.toBuffer();
             this.client.publish(topic, buffer);
@@ -128,7 +128,7 @@ export default class MqttClient implements ProtocolClient {
 
         // if not input was provided, set up an own body otherwise take input as body
         if (content === undefined) {
-            this.client.publish(topic, JSON.stringify(Buffer.from("")));
+            this.client.publish(topic, Buffer.from(""));
         } else {
             const buffer = await content.toBuffer();
             this.client.publish(topic, buffer);
