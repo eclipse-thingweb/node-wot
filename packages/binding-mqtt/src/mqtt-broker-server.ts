@@ -268,11 +268,7 @@ export default class MqttBrokerServer implements ProtocolServer {
         };
 
         thing
-            .handleInvokeAction(
-                segments[3],
-                new Content(ContentSerdes.DEFAULT, Readable.from(value)),
-                options
-            )
+            .handleInvokeAction(segments[3], new Content(ContentSerdes.DEFAULT, Readable.from(value)), options)
             .then((output: unknown) => {
                 if (output) {
                     warn(`MqttBrokerServer at ${this.brokerURI} cannot return output '${segments[3]}'`);
