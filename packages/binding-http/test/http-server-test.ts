@@ -727,7 +727,7 @@ class HttpServerTest {
 
         const tdResponse = await fetch(uriTD);
         const td = await tdResponse.json();
-        console.log(JSON.stringify(td));
+
         expect(td).to.have.property("forms").to.be.an("array");
         expect(JSON.stringify(td.forms)).to.deep.contain.oneOf(["readallproperties", "readmultipleproperties"]);
         expect(JSON.stringify(td.forms)).to.not.deep.contain.oneOf(["writeallproperties", "writemultipleproperties"]);
@@ -761,7 +761,7 @@ class HttpServerTest {
 
         const tdResponse = await fetch(uriTD);
         const td = await tdResponse.json();
-        console.log(JSON.stringify(td));
+
         expect(td).to.have.property("forms").to.be.an("array");
         expect(JSON.stringify(td.forms)).to.not.deep.contain.oneOf(["readallproperties", "readmultipleproperties"]);
         expect(JSON.stringify(td.forms)).to.deep.contain.oneOf(["writeallproperties", "writemultipleproperties"]);
@@ -802,7 +802,7 @@ class HttpServerTest {
 
         const tdResponse = await fetch(uriTD);
         const td = await tdResponse.json();
-        console.log(JSON.stringify(td));
+
         expect(td).to.have.property("forms").to.be.an("array");
         expect(JSON.stringify(td.forms)).to.deep.contain.oneOf(["readallproperties", "readmultipleproperties"]);
         expect(JSON.stringify(td.forms)).to.deep.contain.oneOf(["writeallproperties", "writemultipleproperties"]);
