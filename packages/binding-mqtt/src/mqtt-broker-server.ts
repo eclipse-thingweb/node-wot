@@ -304,7 +304,7 @@ export default class MqttBrokerServer implements ProtocolServer {
             try {
                 thing.handleWriteProperty(
                     segments[3],
-                    new Content(ContentSerdes.DEFAULT, Readable.from(JSON.parse(payload.toString()))),
+                    new Content(ContentSerdes.DEFAULT, Readable.from(payload.toString())),
                     options
                 );
             } catch (err) {
