@@ -67,11 +67,11 @@ export class ContentSerdes {
             this.instance.addCodec(new CborCodec(), true);
             // Text
             this.instance.addCodec(new TextCodec());
-            this.instance.addCodec(new TextCodec("text/html"));
-            this.instance.addCodec(new TextCodec("text/css"));
-            this.instance.addCodec(new TextCodec("application/xml"));
-            this.instance.addCodec(new TextCodec("application/xhtml+xml"));
-            this.instance.addCodec(new TextCodec("image/svg+xml"));
+            this.instance.addCodec(new TextCodec("text/html", true));
+            this.instance.addCodec(new TextCodec("text/css", true));
+            this.instance.addCodec(new TextCodec("application/xml", true));
+            this.instance.addCodec(new TextCodec("application/xhtml+xml", true));
+            this.instance.addCodec(new TextCodec("image/svg+xml", true));
             // Base64
             this.instance.addCodec(new Base64Codec("image/png"));
             this.instance.addCodec(new Base64Codec("image/gif"));

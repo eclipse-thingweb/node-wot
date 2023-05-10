@@ -21,13 +21,10 @@ const { debug } = createLoggers("core", "text-codec");
 
 export default class TextCodec implements ContentCodec {
     private subMediaType: string;
-
-    constructor(subMediaType?: string) {
-        if (!subMediaType) {
-            this.subMediaType = "text/plain";
-        } else {
-            this.subMediaType = subMediaType;
-        }
+    private bufferDirectWrite: boolean; // e.g., necessary to create buffer without quotes around string value
+    constructor(subMediaType?: string, bufferDirectWrite?: boolean) {
+        this.subMediaType = !subMediaType ? "text/plain" : subMediaType;
+        this.bufferDirectWrite = !bufferDirectWrite ? false : bufferDirectWrite;
     }
 
     getMediaType(): string {
@@ -88,17 +85,12 @@ export default class TextCodec implements ContentCodec {
             }
         }
 
-        if (be) {
-            return Buffer.from(body, be);
+        if (this.bufferDirectWrite && typeof value === "string") {
+            const buff = Buffer.alloc(value.length);
+            buff.write(value, be);
+            return buff;
         } else {
-            if (this.subMediaType === "image/svg+xml" && typeof value === "string") {
-                // Note: necessary to get buffer without quotes around the string value
-                const buff = Buffer.alloc(value.length);
-                buff.write(value);
-                return buff;
-            } else {
-                return Buffer.from(body);
-            }
+            return Buffer.from(body, be);
         }
     }
 }
