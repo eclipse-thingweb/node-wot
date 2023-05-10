@@ -39,20 +39,16 @@ import { ActionElement, PropertyElement } from "wot-thing-description-types";
 
 const { info, debug, error, warn } = createLoggers("binding-mqtt", "mqtt-broker-server");
 
-enum SegmentLength {
-    "action" = 3,
-    "property" = 4,
-}
-
-enum SegmentIndex {
-    "thingName" = 0,
-    "interactionType" = 1,
-    "interactionName" = 2,
-    "interactionExtension" = 3,
-}
-
 export default class MqttBrokerServer implements ProtocolServer {
     readonly scheme: string = "mqtt";
+
+    private readonly ACTION_SEGMENT_LENGTH = 3;
+    private readonly PROPERTY_SEGMENT_LENGTH = 4;
+
+    private readonly THING_NAME_SEGMENT_INDEX = 0;
+    private readonly INTERACTION_TYPE_SEGMENT_INDEX = 1;
+    private readonly INTERACTION_NAME_SEGMENT_INDEX = 2;
+    private readonly INTERACTION_EXT_SEGMENT_INDEX = 3;
 
     private port = -1;
     private address: string = undefined;
@@ -204,13 +200,13 @@ export default class MqttBrokerServer implements ProtocolServer {
             payload = Buffer.from(rawPayload);
         }
 
-        if (segments.length === SegmentLength.action) {
+        if (segments.length === this.ACTION_SEGMENT_LENGTH) {
             // connecting to the actions
             debug(`MqttBrokerServer at ${this.brokerURI} received message for '${receivedTopic}'`);
-            const thing = this.things.get(segments[SegmentIndex.thingName]);
+            const thing = this.things.get(segments[this.THING_NAME_SEGMENT_INDEX]);
             if (thing) {
-                if (segments[SegmentIndex.interactionType] === "actions") {
-                    const action = thing.actions[segments[SegmentIndex.interactionName]];
+                if (segments[this.INTERACTION_TYPE_SEGMENT_INDEX] === "actions") {
+                    const action = thing.actions[segments[this.INTERACTION_NAME_SEGMENT_INDEX]];
                     if (action) {
                         this.handleAction(action, packet, payload, segments, thing);
                         return;
@@ -218,14 +214,14 @@ export default class MqttBrokerServer implements ProtocolServer {
                 } // Action exists?
             } // Thing exists?
         } else if (
-            segments.length === SegmentLength.property &&
-            segments[SegmentIndex.interactionExtension] === "writeproperty"
+            segments.length === this.PROPERTY_SEGMENT_LENGTH &&
+            segments[this.INTERACTION_EXT_SEGMENT_INDEX] === "writeproperty"
         ) {
             // connecting to the writeable properties
-            const thing = this.things.get(segments[SegmentIndex.thingName]);
+            const thing = this.things.get(segments[this.THING_NAME_SEGMENT_INDEX]);
             if (thing) {
-                if (segments[SegmentIndex.interactionType] === "properties") {
-                    const property = thing.properties[segments[SegmentIndex.interactionName]];
+                if (segments[this.INTERACTION_TYPE_SEGMENT_INDEX] === "properties") {
+                    const property = thing.properties[segments[this.INTERACTION_NAME_SEGMENT_INDEX]];
                     if (property) {
                         this.handlePropertyWrite(property, packet, payload, segments, thing);
                     } // Property exists?
@@ -259,7 +255,7 @@ export default class MqttBrokerServer implements ProtocolServer {
             } catch (err) {
                 warn(
                     `MqttBrokerServer at ${this.brokerURI} cannot process received message for '${
-                        segments[SegmentIndex.interactionName]
+                        segments[this.INTERACTION_NAME_SEGMENT_INDEX]
                     }': ${err.message}`
                 );
             }
@@ -283,12 +279,12 @@ export default class MqttBrokerServer implements ProtocolServer {
         };
 
         thing
-            .handleInvokeAction(segments[SegmentIndex.interactionName], value, options)
+            .handleInvokeAction(segments[this.INTERACTION_NAME_SEGMENT_INDEX], value, options)
             .then((output: unknown) => {
                 if (output) {
                     warn(
                         `MqttBrokerServer at ${this.brokerURI} cannot return output '${
-                            segments[SegmentIndex.interactionName]
+                            segments[this.INTERACTION_NAME_SEGMENT_INDEX]
                         }'`
                     );
                 }
@@ -296,7 +292,7 @@ export default class MqttBrokerServer implements ProtocolServer {
             .catch((err: Error) => {
                 error(
                     `MqttBrokerServer at ${this.brokerURI} got error on invoking '${
-                        segments[SegmentIndex.interactionName]
+                        segments[this.INTERACTION_NAME_SEGMENT_INDEX]
                     }': ${err.message}`
                 );
             });
@@ -326,14 +322,14 @@ export default class MqttBrokerServer implements ProtocolServer {
 
             try {
                 thing.handleWriteProperty(
-                    segments[SegmentIndex.interactionName],
+                    segments[this.INTERACTION_NAME_SEGMENT_INDEX],
                     JSON.parse(payload.toString()),
                     options
                 );
             } catch (err) {
                 error(
                     `MqttBrokerServer at ${this.brokerURI} got error on writing to property '${
-                        segments[SegmentIndex.interactionName]
+                        segments[this.INTERACTION_NAME_SEGMENT_INDEX]
                     }': ${err.message}`
                 );
             }
