@@ -22,6 +22,7 @@ const { debug } = createLoggers("core", "text-codec");
 export default class TextCodec implements ContentCodec {
     private subMediaType: string;
     private bufferDirectWrite: boolean; // e.g., necessary to create buffer without quotes around string value
+
     constructor(subMediaType?: string, bufferDirectWrite?: boolean) {
         this.subMediaType = !subMediaType ? "text/plain" : subMediaType;
         this.bufferDirectWrite = !bufferDirectWrite ? false : bufferDirectWrite;
