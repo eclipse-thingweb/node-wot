@@ -675,6 +675,9 @@ class HttpServerTest {
         const contentTypeResponse = await fetch(uri);
         expect(contentTypeResponse.headers.get("Content-Type")).to.equal("image/svg+xml");
 
+        // check value (e.g., SVG text without quotes)
+        expect(await contentTypeResponse.text()).to.equal(image);
+
         return httpServer.stop();
     }
 
