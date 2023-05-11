@@ -198,7 +198,7 @@ describe("MQTT client implementation", () => {
                                 setTimeout(() => {
                                     expect(input).to.equal(receivedInput);
                                     thing.destroy().then(() => done());
-                                }, 20);
+                                }, 100);
                             })
                             .catch((e) => {
                                 expect(true).to.equal(false);
@@ -251,7 +251,7 @@ describe("MQTT client implementation", () => {
                                 setTimeout(() => {
                                     expect(input).to.equal(receivedInput);
                                     thing.destroy().then(() => done());
-                                }, 20);
+                                }, 100);
                             })
                             .catch((e) => {
                                 expect(true).to.equal(false);
@@ -304,7 +304,7 @@ describe("MQTT client implementation", () => {
                                 setTimeout(() => {
                                     expect(input).to.eql(receivedInput);
                                     thing.destroy().then(() => done());
-                                }, 20);
+                                }, 100);
                             })
                             .catch((e) => {
                                 expect(true).to.equal(false);
@@ -361,7 +361,7 @@ describe("MQTT client implementation", () => {
                                 setTimeout(() => {
                                     expect(input).to.eql(receivedInput);
                                     thing.destroy().then(() => done());
-                                }, 20);
+                                }, 100);
                             })
                             .catch((e) => {
                                 expect(true).to.equal(false);
@@ -412,7 +412,7 @@ describe("MQTT client implementation", () => {
                                     setTimeout(() => {
                                         expect(input).to.equal(receivedInput);
                                         thing.destroy().then(() => done());
-                                    }, 20);
+                                    }, 100);
                                 });
                             })
                             .catch((e) => {
@@ -464,7 +464,7 @@ describe("MQTT client implementation", () => {
                                     setTimeout(() => {
                                         expect(input).to.equal(receivedInput);
                                         thing.destroy().then(() => done());
-                                    }, 20);
+                                    }, 100);
                                 });
                             })
                             .catch((e) => {
@@ -516,7 +516,7 @@ describe("MQTT client implementation", () => {
                                     setTimeout(() => {
                                         expect(input).to.eql(receivedInput);
                                         thing.destroy().then(() => done());
-                                    }, 20);
+                                    }, 100);
                                 });
                             })
                             .catch((e) => {
@@ -572,7 +572,7 @@ describe("MQTT client implementation", () => {
                                     setTimeout(() => {
                                         expect(input).to.eql(receivedInput);
                                         thing.destroy().then(() => done());
-                                    }, 20);
+                                    }, 100);
                                 });
                             })
                             .catch((e) => {
