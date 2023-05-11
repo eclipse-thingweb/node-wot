@@ -267,8 +267,11 @@ export default class MqttBrokerServer implements ProtocolServer {
             ),
         };
 
+        const contentType = action.forms[options.formIndex].contentType ?? ContentSerdes.DEFAULT;
+        const inputContent = new Content(contentType, Readable.from(value));
+
         thing
-            .handleInvokeAction(segments[3], new Content(ContentSerdes.DEFAULT, Readable.from(value)), options)
+            .handleInvokeAction(segments[3], inputContent, options)
             .then((output: unknown) => {
                 if (output) {
                     warn(`MqttBrokerServer at ${this.brokerURI} cannot return output '${segments[3]}'`);
@@ -301,10 +304,13 @@ export default class MqttBrokerServer implements ProtocolServer {
                 ),
             };
 
+            const formContentType = property.forms[options.formIndex].contentType ?? ContentSerdes.DEFAULT;
+            const inputContent = new Content(formContentType, Readable.from(payload.toString()));
+
             try {
                 thing.handleWriteProperty(
                     segments[3],
-                    new Content(ContentSerdes.DEFAULT, Readable.from(payload.toString())),
+                    inputContent,
                     options
                 );
             } catch (err) {
