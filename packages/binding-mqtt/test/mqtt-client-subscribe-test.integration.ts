@@ -155,4 +155,62 @@ describe("MQTT client implementation", () => {
             });
         });
     }).timeout(20000);
+
+    it("should invoke action", (done: Mocha.Done) => {
+        brokerServer = new MqttBrokerServer({ uri: brokerUri, selfHost: true });
+        servient.addServer(brokerServer);
+
+        servient.addClientFactory(new MqttClientFactory());
+
+        servient.start().then((WoT) => {
+            expect(brokerServer.getPort()).to.equal(brokerPort);
+            expect(brokerServer.getAddress()).to.equal(brokerAddress);
+
+            const actionNumber = Math.floor(Math.random() * 1000000);
+            const actionName: string = "action" + actionNumber;
+            const actions: { [key: string]: Record<string, unknown> } = {};
+            actions[actionName] = { input: { type: "string" } };
+
+            WoT.produce({
+                title: "TestWoTMQTT",
+                actions: actions
+            }).then((thing) => {
+                let receivedInput = '';
+
+                thing.setActionHandler(actionName, (async (inputData) => {
+                    receivedInput = await inputData.value() as string;
+
+                    return receivedInput;
+                }));
+
+
+                thing.expose().then(() => {
+                    info(`Exposed ${thing.getThingDescription().title}`);
+
+                    WoT.consume(thing.getThingDescription()).then((client) => {
+                        const input = "mqtt";
+
+                        client
+                            .invokeAction(actionName, input)
+                            .then((res) => {
+                                res.value().then((value) => {
+                                    // mqtt does not have output for actions, therefore it returns empty array
+                                    expect(value).to.equal(undefined);
+
+                                    setTimeout(() => {
+                                        if (receivedInput === input) {
+                                            thing.destroy().then(() => done());
+                                        }
+                                    }, 1000);
+                                })
+                            })
+                            .catch((e) => {
+                                expect(true).to.equal(false);
+                            });
+                    });
+                })
+            });
+
+        });
+    }).timeout(20000);
 });
