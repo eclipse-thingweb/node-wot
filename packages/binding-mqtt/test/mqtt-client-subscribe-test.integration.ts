@@ -173,18 +173,18 @@ describe("MQTT client implementation", () => {
                 type: "string",
                 observable: true,
                 readOnly: false,
-                writeOnly: true
+                writeOnly: true,
             };
 
             WoT.produce({
                 title: "TestWoTMQTT",
-                properties: properties
+                properties: properties,
             }).then((thing) => {
-                let receivedInput = '';
+                let receivedInput = "";
 
-                thing.setPropertyWriteHandler(propertyName, (async (inputData) => {
-                    receivedInput = await inputData.value() as string;
-                }));
+                thing.setPropertyWriteHandler(propertyName, async (inputData) => {
+                    receivedInput = (await inputData.value()) as string;
+                });
 
                 thing.expose().then(() => {
                     info(`Exposed ${thing.getThingDescription().title}`);
@@ -203,8 +203,8 @@ describe("MQTT client implementation", () => {
                             .catch((e) => {
                                 expect(true).to.equal(false);
                             });
-                    })
-                })
+                    });
+                });
             });
         });
     }).timeout(20000);
@@ -226,18 +226,18 @@ describe("MQTT client implementation", () => {
                 type: "number",
                 observable: true,
                 readOnly: false,
-                writeOnly: true
+                writeOnly: true,
             };
 
             WoT.produce({
                 title: "TestWoTMQTT",
-                properties: properties
+                properties: properties,
             }).then((thing) => {
                 let receivedInput: number;
 
-                thing.setPropertyWriteHandler(propertyName, (async (inputData) => {
-                    receivedInput = await inputData.value() as number;
-                }));
+                thing.setPropertyWriteHandler(propertyName, async (inputData) => {
+                    receivedInput = (await inputData.value()) as number;
+                });
 
                 thing.expose().then(() => {
                     info(`Exposed ${thing.getThingDescription().title}`);
@@ -256,8 +256,8 @@ describe("MQTT client implementation", () => {
                             .catch((e) => {
                                 expect(true).to.equal(false);
                             });
-                    })
-                })
+                    });
+                });
             });
         });
     }).timeout(20000);
@@ -279,18 +279,18 @@ describe("MQTT client implementation", () => {
                 type: "array",
                 observable: true,
                 readOnly: false,
-                writeOnly: true
+                writeOnly: true,
             };
 
             WoT.produce({
                 title: "TestWoTMQTT",
-                properties: properties
+                properties: properties,
             }).then((thing) => {
                 let receivedInput: [];
 
-                thing.setPropertyWriteHandler(propertyName, (async (inputData) => {
-                    receivedInput = await inputData.value() as [];
-                }));
+                thing.setPropertyWriteHandler(propertyName, async (inputData) => {
+                    receivedInput = (await inputData.value()) as [];
+                });
 
                 thing.expose().then(() => {
                     info(`Exposed ${thing.getThingDescription().title}`);
@@ -309,8 +309,8 @@ describe("MQTT client implementation", () => {
                             .catch((e) => {
                                 expect(true).to.equal(false);
                             });
-                    })
-                })
+                    });
+                });
             });
         });
     }).timeout(20000);
@@ -332,18 +332,18 @@ describe("MQTT client implementation", () => {
                 type: "object",
                 observable: true,
                 readOnly: false,
-                writeOnly: true
+                writeOnly: true,
             };
 
             WoT.produce({
                 title: "TestWoTMQTT",
-                properties: properties
+                properties: properties,
             }).then((thing) => {
                 let receivedInput: Record<string, unknown>;
 
-                thing.setPropertyWriteHandler(propertyName, (async (inputData) => {
-                    receivedInput = await inputData.value() as Record<string, unknown>;
-                }));
+                thing.setPropertyWriteHandler(propertyName, async (inputData) => {
+                    receivedInput = (await inputData.value()) as Record<string, unknown>;
+                });
 
                 thing.expose().then(() => {
                     info(`Exposed ${thing.getThingDescription().title}`);
@@ -352,7 +352,7 @@ describe("MQTT client implementation", () => {
                         const input = {
                             test_number: 23,
                             test_string: "test",
-                            test_array: ["t", "e", "s", "t"]
+                            test_array: ["t", "e", "s", "t"],
                         };
 
                         client
@@ -366,8 +366,8 @@ describe("MQTT client implementation", () => {
                             .catch((e) => {
                                 expect(true).to.equal(false);
                             });
-                    })
-                })
+                    });
+                });
             });
         });
     }).timeout(20000);
@@ -389,16 +389,15 @@ describe("MQTT client implementation", () => {
 
             WoT.produce({
                 title: "TestWoTMQTT",
-                actions: actions
+                actions: actions,
             }).then((thing) => {
-                let receivedInput = '';
+                let receivedInput = "";
 
-                thing.setActionHandler(actionName, (async (inputData) => {
-                    receivedInput = await inputData.value() as string;
+                thing.setActionHandler(actionName, async (inputData) => {
+                    receivedInput = (await inputData.value()) as string;
 
                     return receivedInput;
-                }));
-
+                });
 
                 thing.expose().then(() => {
                     info(`Exposed ${thing.getThingDescription().title}`);
@@ -420,9 +419,8 @@ describe("MQTT client implementation", () => {
                                 expect(true).to.equal(false);
                             });
                     });
-                })
+                });
             });
-
         });
     }).timeout(20000);
 
@@ -443,16 +441,15 @@ describe("MQTT client implementation", () => {
 
             WoT.produce({
                 title: "TestWoTMQTT",
-                actions: actions
+                actions: actions,
             }).then((thing) => {
                 let receivedInput: number;
 
-                thing.setActionHandler(actionName, (async (inputData) => {
-                    receivedInput = await inputData.value() as number;
+                thing.setActionHandler(actionName, async (inputData) => {
+                    receivedInput = (await inputData.value()) as number;
 
                     return receivedInput;
-                }));
-
+                });
 
                 thing.expose().then(() => {
                     info(`Exposed ${thing.getThingDescription().title}`);
@@ -468,15 +465,14 @@ describe("MQTT client implementation", () => {
                                         expect(input).to.equal(receivedInput);
                                         thing.destroy().then(() => done());
                                     }, 20);
-                                })
+                                });
                             })
                             .catch((e) => {
                                 expect(true).to.equal(false);
                             });
                     });
-                })
+                });
             });
-
         });
     }).timeout(20000);
 
@@ -497,16 +493,15 @@ describe("MQTT client implementation", () => {
 
             WoT.produce({
                 title: "TestWoTMQTT",
-                actions: actions
+                actions: actions,
             }).then((thing) => {
                 let receivedInput: [];
 
-                thing.setActionHandler(actionName, (async (inputData) => {
-                    receivedInput = await inputData.value() as [];
+                thing.setActionHandler(actionName, async (inputData) => {
+                    receivedInput = (await inputData.value()) as [];
 
                     return receivedInput;
-                }));
-
+                });
 
                 thing.expose().then(() => {
                     info(`Exposed ${thing.getThingDescription().title}`);
@@ -522,15 +517,14 @@ describe("MQTT client implementation", () => {
                                         expect(input).to.eql(receivedInput);
                                         thing.destroy().then(() => done());
                                     }, 20);
-                                })
+                                });
                             })
                             .catch((e) => {
                                 expect(true).to.equal(false);
                             });
                     });
-                })
+                });
             });
-
         });
     }).timeout(20000);
 
@@ -551,16 +545,15 @@ describe("MQTT client implementation", () => {
 
             WoT.produce({
                 title: "TestWoTMQTT",
-                actions: actions
+                actions: actions,
             }).then((thing) => {
                 let receivedInput: Record<string, unknown>;
 
-                thing.setActionHandler(actionName, (async (inputData) => {
-                    receivedInput = await inputData.value() as Record<string, unknown>;
+                thing.setActionHandler(actionName, async (inputData) => {
+                    receivedInput = (await inputData.value()) as Record<string, unknown>;
 
                     return receivedInput;
-                }));
-
+                });
 
                 thing.expose().then(() => {
                     info(`Exposed ${thing.getThingDescription().title}`);
@@ -569,7 +562,7 @@ describe("MQTT client implementation", () => {
                         const input = {
                             test_number: 23,
                             test_string: "test",
-                            test_array: ["t", "e", "s", "t"]
+                            test_array: ["t", "e", "s", "t"],
                         };
 
                         client
@@ -580,17 +573,14 @@ describe("MQTT client implementation", () => {
                                         expect(input).to.eql(receivedInput);
                                         thing.destroy().then(() => done());
                                     }, 20);
-                                })
+                                });
                             })
                             .catch((e) => {
                                 expect(true).to.equal(false);
                             });
                     });
-                })
+                });
             });
-
         });
     }).timeout(20000);
-
-
 });
