@@ -312,7 +312,7 @@ export default class MqttBrokerServer implements ProtocolServer {
     ) {
         if (!property.readOnly) {
             let contentType = ContentSerdes.DEFAULT;
-            if ("contentType" in packet.properties) {
+            if ("properties" in packet && "contentType" in packet.properties) {
                 contentType = packet.properties.contentType;
             }
 
