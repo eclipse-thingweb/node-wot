@@ -194,25 +194,21 @@ export default class CoapServer implements ProtocolServer {
         });
     }
 
-    public destroy(thingId: string): Promise<boolean> {
+    public async destroy(thingId: string): Promise<boolean> {
         debug(`CoapServer on port ${this.getPort()} destroying thingId '${thingId}'`);
-        return new Promise<boolean>((resolve, reject) => {
-            let removedThing: ExposedThing;
-            for (const name of Array.from(this.things.keys())) {
-                const expThing = this.things.get(name);
-                if (expThing?.id === thingId) {
-                    this.things.delete(name);
-                    this.coreResources.delete(name);
-                    removedThing = expThing;
-                }
+        for (const name of this.things.keys()) {
+            const exposedThing = this.things.get(name);
+            if (exposedThing?.id === thingId) {
+                this.things.delete(name);
+                this.coreResources.delete(name);
+
+                info(`CoapServer succesfully destroyed '${exposedThing.title}'`);
+                return true;
             }
-            if (removedThing) {
-                info(`CoapServer succesfully destroyed '${removedThing.title}'`);
-            } else {
-                info(`CoapServer failed to destroy thing with thingId '${thingId}'`);
-            }
-            resolve(removedThing !== undefined);
-        });
+        }
+
+        info(`CoapServer failed to destroy thing with thingId '${thingId}'`);
+        return false;
     }
 
     private formatCoreLinkFormatResources() {
