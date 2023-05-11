@@ -144,8 +144,8 @@ class HttpServerTest {
         resp = await (await fetch(uri + "properties/test")).text();
         expect(resp).to.equal('"off"');
 
-        resp = await (await fetch(uri + "properties")).text();
-        expect(resp).to.equal('{"test":"\\"off\\""}');
+        resp = await (await fetch(uri + "properties")).json();
+        expect(resp).to.deep.equal({ test: "off" });
 
         resp = await (await fetch(uri + "properties/test", { method: "PUT", body: "on" })).text();
         expect(resp).to.equal("");
@@ -271,8 +271,8 @@ class HttpServerTest {
         resp = await (await fetch(uri + "properties/test")).text();
         expect(resp).to.equal("{}");
 
-        resp = await (await fetch(uri + "properties")).text();
-        expect(resp).to.equal('{"test":"{}"}');
+        resp = await (await fetch(uri + "properties")).json();
+        expect(resp).to.deep.equal({ test: {} });
 
         resp = await (
             await fetch(uri + "properties/test", {
@@ -545,6 +545,100 @@ class HttpServerTest {
 
         resp = await (await fetch(uriWithoutThing + "my-entry/does-not-exist")).text();
         expect(resp).to.not.equal("{}"); // i.e., returns 'Not Found'
+
+        return httpServer.stop();
+    }
+
+    @test async "should report allproperties excluding non-JSON properties"() {
+        const httpServer = new HttpServer({ port: 0 });
+
+        await httpServer.start(null);
+
+        const tdTemplate: WoT.ExposedThingInit = {
+            title: "TestA",
+            properties: {
+                image: {
+                    forms: [
+                        {
+                            contentType: "image/svg+xml",
+                        },
+                    ],
+                },
+                testInteger: {
+                    type: "integer",
+                },
+                testBoolean: {
+                    type: "boolean",
+                },
+                testString: {
+                    type: "string",
+                },
+                testObject: {
+                    type: "object",
+                },
+                testArray: {
+                    type: "array",
+                },
+            },
+        };
+        const testThing = new ExposedThing(null, tdTemplate);
+
+        const image = "<svg xmlns='http://www.w3.org/2000/svg'><text>FOO</text></svg>";
+        const integer = 123;
+        const boolean = true;
+        const string = "ABCD";
+        const object = { t1: "xyz", i: 77 };
+        const array = ["x", "y", "z"];
+        testThing.setPropertyReadHandler("image", (_) => Promise.resolve(image));
+        testThing.setPropertyReadHandler("testInteger", (_) => Promise.resolve(integer));
+        testThing.setPropertyReadHandler("testBoolean", (_) => Promise.resolve(boolean));
+        testThing.setPropertyReadHandler("testString", (_) => Promise.resolve(string));
+        testThing.setPropertyReadHandler("testObject", (_) => Promise.resolve(object));
+        testThing.setPropertyReadHandler("testArray", (_) => Promise.resolve(array));
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.image.forms = [];
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.testInteger.forms = [];
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.testBoolean.forms = [];
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.testString.forms = [];
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.testObject.forms = [];
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.testArray.forms = [];
+
+        await httpServer.expose(testThing, tdTemplate);
+
+        // check values one by one first
+        const responseInteger = await fetch(`http://localhost:${httpServer.getPort()}/testa/properties/testInteger`);
+        expect(await responseInteger.json()).to.equal(integer);
+        const responseBoolean = await fetch(`http://localhost:${httpServer.getPort()}/testa/properties/testBoolean`);
+        expect(await responseBoolean.json()).to.equal(boolean);
+        const responseString = await fetch(`http://localhost:${httpServer.getPort()}/testa/properties/testString`);
+        expect(await responseString.json()).to.equal(string);
+        const responseObject = await fetch(`http://localhost:${httpServer.getPort()}/testa/properties/testObject`);
+        expect(await responseObject.json()).to.deep.equal(object);
+        const responseArray = await fetch(`http://localhost:${httpServer.getPort()}/testa/properties/testArray`);
+        expect(await responseArray.json()).to.deep.equal(array);
+
+        // check values of readallproperties
+        const responseAll = await fetch(`http://localhost:${httpServer.getPort()}/testa/properties`);
+        expect(await responseAll.json()).to.deep.equal({
+            // "image": image, // Note: No support for contentTypes other than JSON -> not included
+            testInteger: integer,
+            testBoolean: boolean,
+            testString: string,
+            testObject: object,
+            testArray: array,
+        });
 
         return httpServer.stop();
     }
