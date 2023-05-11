@@ -549,7 +549,7 @@ class HttpServerTest {
         return httpServer.stop();
     }
 
-    @test async "should report allproperties"() {
+    @test async "should report allproperties excluding non-JSON properties"() {
         const httpServer = new HttpServer({ port: 0 });
 
         await httpServer.start(null);
