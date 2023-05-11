@@ -21,11 +21,9 @@ const { debug } = createLoggers("core", "text-codec");
 
 export default class TextCodec implements ContentCodec {
     private subMediaType: string;
-    private bufferDirectWrite: boolean; // e.g., necessary to create buffer without quotes around string value
 
-    constructor(subMediaType?: string, bufferDirectWrite?: boolean) {
+    constructor(subMediaType?: string) {
         this.subMediaType = !subMediaType ? "text/plain" : subMediaType;
-        this.bufferDirectWrite = !bufferDirectWrite ? false : bufferDirectWrite;
     }
 
     getMediaType(): string {
@@ -46,7 +44,11 @@ export default class TextCodec implements ContentCodec {
         debug(`TextCodec serializing '${value}'`);
         let body = "";
         if (value !== undefined) {
-            body = JSON.stringify(value);
+            if (typeof value === "string") {
+                body = value;
+            } else {
+                body = JSON.stringify(value);
+            }
         }
 
         // type BufferEncoding = "ascii" | "utf8" | "utf-8" | "utf16le" | "ucs2" | "ucs-2" | "base64" | "latin1" | "binary" | "hex";
@@ -86,12 +88,9 @@ export default class TextCodec implements ContentCodec {
             }
         }
 
-        if (this.bufferDirectWrite && typeof value === "string") {
-            const buff = Buffer.alloc(value.length);
-            buff.write(value, be);
-            return buff;
-        } else {
-            return Buffer.from(body, be);
-        }
+        // Note: write buffer directly without quotes around as Buffer.from() would do
+        const buff = Buffer.alloc(body.length);
+        buff.write(body, be);
+        return buff;
     }
 }
