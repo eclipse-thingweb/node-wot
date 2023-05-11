@@ -56,9 +56,6 @@ packages/*
 !packages/binding-opcua
 !packages/binding-netconf
 !packages/binding-modbus
-!packages/binding-firestore
-!packages/binding-firestore-browser-bundle
-!packages/binding-mbus
 !packages/cli
 !packages/browser-bundle
 !packages/examples
