@@ -156,6 +156,60 @@ describe("MQTT client implementation", () => {
         });
     }).timeout(20000);
 
+    it("should write property", (done: Mocha.Done) => {
+        brokerServer = new MqttBrokerServer({ uri: brokerUri, selfHost: true });
+        servient.addServer(brokerServer);
+
+        servient.addClientFactory(new MqttClientFactory());
+
+        servient.start().then((WoT) => {
+            expect(brokerServer.getPort()).to.equal(brokerPort);
+            expect(brokerServer.getAddress()).to.equal(brokerAddress);
+
+            const propertyNumber = Math.floor(Math.random() * 1000000);
+            const propertyName: string = "property" + propertyNumber;
+            const properties: { [key: string]: Record<string, unknown> } = {};
+            properties[propertyName] = {
+                type: "string",
+                observable: true,
+                readOnly: false,
+                writeOnly: true
+            };
+
+            WoT.produce({
+                title: "TestWoTMQTT",
+                properties: properties
+            }).then((thing) => {
+                let receivedInput = '';
+
+                thing.setPropertyWriteHandler(propertyName, (async (inputData) => {
+                    receivedInput = await inputData.value() as string;
+                }));
+
+                thing.expose().then(() => {
+                    info(`Exposed ${thing.getThingDescription().title}`);
+
+                    WoT.consume(thing.getThingDescription()).then((client) => {
+                        const input = "writeProperty";
+
+                        client
+                            .writeProperty(propertyName, input)
+                            .then(() => {
+                                setTimeout(() => {
+                                    if (receivedInput === input) {
+                                        thing.destroy().then(() => done());
+                                    }
+                                }, 1000);
+                            })
+                            .catch((e) => {
+                                expect(true).to.equal(false);
+                            })
+                    })
+                })
+            });
+        });
+    })
+
     it("should invoke action", (done: Mocha.Done) => {
         brokerServer = new MqttBrokerServer({ uri: brokerUri, selfHost: true });
         servient.addServer(brokerServer);
