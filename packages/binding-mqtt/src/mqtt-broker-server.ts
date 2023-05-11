@@ -246,42 +246,22 @@ export default class MqttBrokerServer implements ProtocolServer {
          * https://github.com/mqttjs/MQTT.js/pull/1103
          * For further discussion see https://github.com/eclipse/thingweb.node-wot/pull/253
          */
-        let value;
-
+        let contentType = ContentSerdes.DEFAULT;
         if ("properties" in packet && "contentType" in packet.properties) {
-            try {
-                value = ContentSerdes.get().contentToValue(
-                    { type: packet.properties.contentType, body: payload },
-                    action.input
-                );
-            } catch (err) {
-                warn(
-                    `MqttBrokerServer at ${this.brokerURI} cannot process received message for '${
-                        segments[this.INTERACTION_NAME_SEGMENT_INDEX]
-                    }': ${err.message}`
-                );
-            }
-        } else {
-            try {
-                value = JSON.parse(payload.toString());
-            } catch (err) {
-                warn(
-                    `MqttBrokerServer at ${this.brokerURI}, packet has no Content Type and does not parse as JSON, relaying raw (string) payload.`
-                );
-                value = payload.toString();
-            }
+            contentType = packet.properties.contentType;
         }
+
         const options: InteractionOptions & { formIndex: number } = {
             formIndex: ProtocolHelpers.findRequestMatchingFormIndex(
                 action.forms,
                 this.scheme,
                 this.brokerURI,
-                ContentSerdes.DEFAULT
+                contentType
             ),
         };
 
-        const contentType = action.forms[options.formIndex].contentType ?? ContentSerdes.DEFAULT;
-        const inputContent = new Content(contentType, Readable.from(value));
+        const formContentType = action.forms[options.formIndex].contentType ?? ContentSerdes.DEFAULT;
+        const inputContent = new Content(formContentType, Readable.from(payload.toString()));
 
         thing
             .handleInvokeAction(segments[this.INTERACTION_NAME_SEGMENT_INDEX], inputContent, options)
