@@ -315,16 +315,17 @@ export default class HttpServer implements ProtocolServer {
                 anyProperties = true;
                 if (!thing.properties[propertyName].readOnly) {
                     allReadOnly = false;
-                } else if (!thing.properties[propertyName].writeOnly) {
+                }
+                if (!thing.properties[propertyName].writeOnly) {
                     allWriteOnly = false;
                 }
             }
             if (anyProperties) {
                 const href = base + "/" + this.PROPERTY_DIR;
                 const form = new TD.Form(href, type);
-                if (allReadOnly) {
+                if (allReadOnly && !allWriteOnly) {
                     form.op = ["readallproperties", "readmultipleproperties"];
-                } else if (allWriteOnly) {
+                } else if (allWriteOnly && !allReadOnly) {
                     form.op = ["writeallproperties", "writemultipleproperties"];
                 } else {
                     form.op = [

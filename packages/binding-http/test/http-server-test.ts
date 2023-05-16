@@ -797,4 +797,113 @@ class HttpServerTest {
 
         return httpServer.stop();
     }
+
+    @test async "TD should have form with readallproperties"() {
+        const httpServer = new HttpServer({ port: 0 });
+
+        await httpServer.start(null);
+
+        const tdTemplate: WoT.ExposedThingInit = {
+            title: "Test",
+            properties: {
+                testReadOnly: {
+                    type: "number",
+                    readOnly: true,
+                },
+            },
+        };
+        const testThing = new ExposedThing(null, tdTemplate);
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.testReadOnly.forms = [];
+
+        await httpServer.expose(testThing, tdTemplate);
+
+        const uriTD = `http://localhost:${httpServer.getPort()}/test`;
+
+        const tdResponse = await fetch(uriTD);
+        const td = await tdResponse.json();
+
+        expect(td).to.have.property("forms").to.be.an("array");
+        expect(JSON.stringify(td.forms)).to.deep.contain.oneOf(["readallproperties", "readmultipleproperties"]);
+        expect(JSON.stringify(td.forms)).to.not.deep.contain.oneOf(["writeallproperties", "writemultipleproperties"]);
+
+        return httpServer.stop();
+    }
+
+    @test async "TD should have form with writeallproperties"() {
+        const httpServer = new HttpServer({ port: 0 });
+
+        await httpServer.start(null);
+
+        const tdTemplate: WoT.ExposedThingInit = {
+            title: "Test",
+            properties: {
+                testWriteOnly: {
+                    type: "number",
+                    writeOnly: true,
+                },
+            },
+        };
+        const testThing = new ExposedThing(null, tdTemplate);
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.testWriteOnly.forms = [];
+
+        await httpServer.expose(testThing, tdTemplate);
+
+        const uriTD = `http://localhost:${httpServer.getPort()}/test`;
+
+        const tdResponse = await fetch(uriTD);
+        const td = await tdResponse.json();
+
+        expect(td).to.have.property("forms").to.be.an("array");
+        expect(JSON.stringify(td.forms)).to.not.deep.contain.oneOf(["readallproperties", "readmultipleproperties"]);
+        expect(JSON.stringify(td.forms)).to.deep.contain.oneOf(["writeallproperties", "writemultipleproperties"]);
+
+        return httpServer.stop();
+    }
+
+    @test async "TD should have form with readallproperties and writeallproperties"() {
+        const httpServer = new HttpServer({ port: 0 });
+
+        await httpServer.start(null);
+
+        const tdTemplate: WoT.ExposedThingInit = {
+            title: "Test",
+            properties: {
+                testReadOnly: {
+                    type: "number",
+                    readOnly: true,
+                },
+                testWriteOnly: {
+                    type: "number",
+                    writeOnly: true,
+                },
+            },
+        };
+        const testThing = new ExposedThing(null, tdTemplate);
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.testReadOnly.forms = [];
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.testWriteOnly.forms = [];
+
+        await httpServer.expose(testThing, tdTemplate);
+
+        const uriTD = `http://localhost:${httpServer.getPort()}/test`;
+
+        const tdResponse = await fetch(uriTD);
+        const td = await tdResponse.json();
+
+        expect(td).to.have.property("forms").to.be.an("array");
+        expect(JSON.stringify(td.forms)).to.deep.contain.oneOf(["readallproperties", "readmultipleproperties"]);
+        expect(JSON.stringify(td.forms)).to.deep.contain.oneOf(["writeallproperties", "writemultipleproperties"]);
+
+        return httpServer.stop();
+    }
 }
