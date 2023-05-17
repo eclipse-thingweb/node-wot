@@ -570,7 +570,16 @@ export default class HttpServer implements ProtocolServer {
 
                 return acceptValue;
             })
-            .filter((acceptValue) => contentSerdes.isSupported(acceptValue));
+            .filter((acceptValue) => contentSerdes.isSupported(acceptValue))
+            .sort((a, b) => {
+                // weight function last places weight more than first: application/td+json > application/json > text/html
+                const aWeight =
+                    ["text/html", "application/json", "application/td+json"].findIndex((value) => value === a) ?? 0;
+                const bWeight =
+                    ["text/html", "application/json", "application/td+json"].findIndex((value) => value === b) ?? 0;
+
+                return bWeight - aWeight;
+            });
 
         if (filteredAcceptValues.length > 0) {
             const contentType = filteredAcceptValues[0];
