@@ -742,6 +742,23 @@ class HttpServerTest {
                 expectedResponseCode: 200,
             },
             {
+                // Typical browser request (e.g., Chrome)
+                inputHeaders: {
+                    Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+                },
+                // We should favor application/td+json over text/html
+                expected: "application/td+json",
+                expectedResponseCode: 200,
+            },
+            {
+                inputHeaders: {
+                    Accept: "image/svg+xml,text/html",
+                },
+                // We should favor text/html over image/svg+xml
+                expected: "text/html",
+                expectedResponseCode: 200,
+            },
+            {
                 inputHeaders: { Accept: "*/*,application/json" },
                 expected: "application/td+json",
                 expectedResponseCode: 200,
