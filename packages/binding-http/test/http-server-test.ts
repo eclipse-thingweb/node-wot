@@ -751,6 +751,14 @@ class HttpServerTest {
                 expectedResponseCode: 200,
             },
             {
+                inputHeaders: {
+                    Accept: "image/svg+xml,text/html,",
+                },
+                // We should favor text/html over image/svg+xml
+                expected: "text/html",
+                expectedResponseCode: 200,
+            },
+            {
                 inputHeaders: { Accept: "*/*,application/json" },
                 expected: "application/td+json",
                 expectedResponseCode: 200,
