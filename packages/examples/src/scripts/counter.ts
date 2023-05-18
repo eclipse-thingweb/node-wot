@@ -111,7 +111,7 @@ WoT.produce({
             readOnly: true,
             forms: [
                 {
-                    contentType: "image/png",
+                    contentType: "image/png;base64",
                 },
             ],
         },

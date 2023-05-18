@@ -48,7 +48,18 @@ function showInteractions(thing) {
                 thing
                     .readProperty(property)
                     .then(async (res) => {
-                        ddItem.textContent = await res.value();
+                        switch (res.form?.contentType) {
+                            case "image/svg+xml":
+                                ddItem.innerHTML = await res.value();
+                                break;
+                            case "image/png;base64":
+                                const img = (await res.arrayBuffer()).toString("base64");
+                                ddItem.innerHTML = `<img src="data:image/png;base64,${img}">`;
+                                break;
+                            default:
+                                ddItem.textContent = await res.value();
+                                break;
+                        }
                     })
                     .catch((err) => window.alert("error: " + err));
             };
