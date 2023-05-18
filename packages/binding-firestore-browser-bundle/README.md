@@ -1,6 +1,6 @@
 # Browser Bundle of Firestore Binding of node-wot
 
-Bundle to run [Firestore Binding](https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-firestore) as a browser-side library.
+Bundle to run [Firestore Binding](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-firestore) as a browser-side library.
 
 ## Supported Protocols
 
@@ -14,7 +14,7 @@ Include the following script tag in your html
 <script src="https://cdn.jsdelivr.net/npm/@node-wot/binding-firestore-browser-bundle@latest/dist/binding-firestore-bundle.js"></script>
 ```
 
-You can access all [binding-firestore](https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-firestore) functionality through the "BindingFirestore" global object:
+You can access all [binding-firestore](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-firestore) functionality through the "BindingFirestore" global object:
 
 ```js
 var FirestoreClientFactory = BindingFirestore.FirestoreClientFactory;

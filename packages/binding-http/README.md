@@ -347,4 +347,4 @@ The exposed thing on the internal server will product form URLs such as:
 
 ## More Details
 
-see https://github.com/eclipse/thingweb.node-wot/
+see https://github.com/eclipse-thingweb/node-wot/

@@ -37,7 +37,7 @@ WoT.produce({
         de: "Zähler Beispiel Ding",
         it: "Contatore di esempio",
     },
-    support: "https://github.com/eclipse/thingweb.node-wot/",
+    support: "https://github.com/eclipse-thingweb/node-wot/",
     links: [
         {
             href: "https://www.thingweb.io/img/favicon/favicon.png",

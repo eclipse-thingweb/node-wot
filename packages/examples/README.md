@@ -9,7 +9,7 @@ Script examples are located in
 
 The idea of these folders is to use TypeScript to work on the examples which offers support in being up-to-date with the current API.
 
-see https://github.com/eclipse/thingweb.node-wot/issues/171.
+see https://github.com/eclipse-thingweb/node-wot/issues/171.
 
 ### Workflow
 

@@ -4,7 +4,7 @@
     "description": "HTTP client & server protocol binding for node-wot",
     "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
     "license": "EPL-2.0 OR W3C-20150513",
-    "repository": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-http",
+    "repository": "https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-http",
     "publishConfig": {
         "access": "public"
     },
@@ -74,7 +74,7 @@
         "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"**/*.json\""
     },
     "bugs": {
-        "url": "https://github.com/eclipse/thingweb.node-wot/issues"
+        "url": "https://github.com/eclipse-thingweb/node-wot/issues"
     },
-    "homepage": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-http#readme"
+    "homepage": "https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-http#readme"
 }

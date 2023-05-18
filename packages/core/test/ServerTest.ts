@@ -212,7 +212,7 @@ class WoTServerTest {
         }
     }
 
-    // skipped so far, see https://github.com/eclipse/thingweb.node-wot/issues/333#issuecomment-724583234
+    // skipped so far, see https://github.com/eclipse-thingweb/node-wot/issues/333#issuecomment-724583234
     /* @test.skip async "should not be able to read property with writeOnly"() {
         let thing = await WoTServerTest.WoT.produce({
             title: "ThingWithWriteOnly",
@@ -237,7 +237,7 @@ class WoTServerTest {
         }
     } */
 
-    // skipped so far, see https://github.com/eclipse/thingweb.node-wot/issues/333#issuecomment-724583234
+    // skipped so far, see https://github.com/eclipse-thingweb/node-wot/issues/333#issuecomment-724583234
     /* @test.skip async "should not be able to write property with readOnly"() {
         let thing = await WoTServerTest.WoT.produce({
             title: "ThingWithReadOnly",
@@ -293,7 +293,7 @@ class WoTServerTest {
         expect(ff).to.equal(1);
     }
 
-    // see https://github.com/eclipse/thingweb.node-wot/issues/426
+    // see https://github.com/eclipse-thingweb/node-wot/issues/426
     /* @test async "should remove tmModel type"() {
         let thing = await WoTServerTest.WoT.produce({
             title: "The Machine",
@@ -307,7 +307,7 @@ class WoTServerTest {
         expect(thing).to.not.have.property("@type");
     } */
 
-    // see https://github.com/eclipse/thingweb.node-wot/issues/426
+    // see https://github.com/eclipse-thingweb/node-wot/issues/426
     /* @test async "should not remove any other type than tmModel"() {
         let thing = await WoTServerTest.WoT.produce({
             title: "The Sensor",
@@ -321,7 +321,7 @@ class WoTServerTest {
         expect(thing).to.have.property("@type").that.equals("saref:TemperatureSensor");
     } */
 
-    // see https://github.com/eclipse/thingweb.node-wot/issues/426
+    // see https://github.com/eclipse-thingweb/node-wot/issues/426
     /* @test async "should not remove any other type than tmModel in array"() {
         let thing = await WoTServerTest.WoT.produce({
             title: "The Sensor",
@@ -719,7 +719,7 @@ class WoTServerTest {
     }
 
     @test async "should not add (or modify) @language if present "() {
-        // see issue https://github.com/eclipse/thingweb.node-wot/issues/111
+        // see issue https://github.com/eclipse-thingweb/node-wot/issues/111
         let thing = await WoTServerTest.WoT.produce(JSON.parse(`{
             "@context": ["https://w3c.github.io/wot/w3c-wot-td-context.jsonld", {"iot": "http://example.org/iot"}, {"@language" : "xx"}],
             "@type": ["Thing"],

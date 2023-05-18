@@ -52,9 +52,9 @@
         "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"**/*.json\""
     },
     "bugs": {
-        "url": "https://github.com/eclipse/thingweb.node-wot/issues"
+        "url": "https://github.com/eclipse-thingweb/node-wot/issues"
     },
-    "homepage": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-netconf#readme",
+    "homepage": "https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-netconf#readme",
     "directories": {
         "test": "test"
     },
