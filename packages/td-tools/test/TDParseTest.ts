@@ -727,7 +727,7 @@ class TDParserTest {
     }
 
     @test "uriVarables in combination with and without http base"() {
-        // see https://github.com/eclipse/thingweb.node-wot/issues/97
+        // see https://github.com/eclipse-thingweb/node-wot/issues/97
 
         const tdTest = `{
       "@context": "https://www.w3.org/2019/wot/td/v1",

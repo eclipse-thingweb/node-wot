@@ -104,7 +104,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         Object.assign(this, clonedModel);
 
         // unset "@type":"tm:ThingModel" ?
-        // see https://github.com/eclipse/thingweb.node-wot/issues/426
+        // see https://github.com/eclipse-thingweb/node-wot/issues/426
         /* if (this["@type"]) {
             if (typeof this["@type"] === 'string' && this["@type"] === "tm:ThingModel") {
                 delete this["@type"];

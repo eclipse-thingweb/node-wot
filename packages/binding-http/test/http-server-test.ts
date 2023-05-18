@@ -322,7 +322,7 @@ class HttpServerTest {
         });
     }
 
-    // https://github.com/eclipse/thingweb.node-wot/issues/181
+    // https://github.com/eclipse-thingweb/node-wot/issues/181
     @test async "should start and stop a server with no security"() {
         const httpServer = new HttpServer({ port, security: { scheme: "nosec" } });
 
@@ -332,7 +332,7 @@ class HttpServerTest {
         await httpServer.stop();
     }
 
-    // https://github.com/eclipse/thingweb.node-wot/issues/181
+    // https://github.com/eclipse-thingweb/node-wot/issues/181
     @test async "should not override a valid security scheme"() {
         const httpServer = new HttpServer({
             port: port2,

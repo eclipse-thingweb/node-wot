@@ -4,7 +4,7 @@
     "description": "A node-wot bundle that can run in a web browser",
     "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
     "license": "EPL-2.0 OR W3C-20150513",
-    "repository": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/browser-bundle",
+    "repository": "https://github.com/eclipse-thingweb/node-wot/tree/master/packages/browser-bundle",
     "publishConfig": {
         "access": "public"
     },
@@ -28,9 +28,9 @@
         "format": "prettier --write index.js \"**/*.json\""
     },
     "bugs": {
-        "url": "https://github.com/eclipse/thingweb.node-wot/issues"
+        "url": "https://github.com/eclipse-thingweb/node-wot/issues"
     },
-    "homepage": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/browser-bundle#readme",
+    "homepage": "https://github.com/eclipse-thingweb/node-wot/tree/master/packages/browser-bundle#readme",
     "keywords": [],
     "dependencies": {
         "events": "^2.1.0",
