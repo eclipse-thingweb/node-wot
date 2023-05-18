@@ -752,7 +752,7 @@ class HttpServerTest {
             },
             {
                 inputHeaders: {
-                    Accept: "image/svg+xml,text/html,",
+                    Accept: "image/svg+xml,text/html",
                 },
                 // We should favor text/html over image/svg+xml
                 expected: "text/html",
