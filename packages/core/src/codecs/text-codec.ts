@@ -23,11 +23,7 @@ export default class TextCodec implements ContentCodec {
     private subMediaType: string;
 
     constructor(subMediaType?: string) {
-        if (!subMediaType) {
-            this.subMediaType = "text/plain";
-        } else {
-            this.subMediaType = subMediaType;
-        }
+        this.subMediaType = !subMediaType ? "text/plain" : subMediaType;
     }
 
     getMediaType(): string {
@@ -48,7 +44,11 @@ export default class TextCodec implements ContentCodec {
         debug(`TextCodec serializing '${value}'`);
         let body = "";
         if (value !== undefined) {
-            body = JSON.stringify(value);
+            if (typeof value === "string") {
+                body = value;
+            } else {
+                body = JSON.stringify(value);
+            }
         }
 
         // type BufferEncoding = "ascii" | "utf8" | "utf-8" | "utf16le" | "ucs2" | "ucs-2" | "base64" | "latin1" | "binary" | "hex";
@@ -88,10 +88,9 @@ export default class TextCodec implements ContentCodec {
             }
         }
 
-        if (be) {
-            return Buffer.from(body, be);
-        } else {
-            return Buffer.from(body);
-        }
+        // Note: write buffer directly without quotes around as Buffer.from() would do
+        const buff = Buffer.alloc(body.length);
+        buff.write(body, be);
+        return buff;
     }
 }

@@ -315,16 +315,17 @@ export default class HttpServer implements ProtocolServer {
                 anyProperties = true;
                 if (!thing.properties[propertyName].readOnly) {
                     allReadOnly = false;
-                } else if (!thing.properties[propertyName].writeOnly) {
+                }
+                if (!thing.properties[propertyName].writeOnly) {
                     allWriteOnly = false;
                 }
             }
             if (anyProperties) {
                 const href = base + "/" + this.PROPERTY_DIR;
                 const form = new TD.Form(href, type);
-                if (allReadOnly) {
+                if (allReadOnly && !allWriteOnly) {
                     form.op = ["readallproperties", "readmultipleproperties"];
-                } else if (allWriteOnly) {
+                } else if (allWriteOnly && !allReadOnly) {
                     form.op = ["writeallproperties", "writemultipleproperties"];
                 } else {
                     form.op = [
@@ -569,7 +570,18 @@ export default class HttpServer implements ProtocolServer {
 
                 return acceptValue;
             })
-            .filter((acceptValue) => contentSerdes.isSupported(acceptValue));
+            .filter((acceptValue) => contentSerdes.isSupported(acceptValue))
+            .sort((a, b) => {
+                // weight function last places weight more than first: application/td+json > application/json > text/html
+                const aWeight = ["text/html", "application/json", "application/td+json"].findIndex(
+                    (value) => value === a
+                );
+                const bWeight = ["text/html", "application/json", "application/td+json"].findIndex(
+                    (value) => value === b
+                );
+
+                return bWeight - aWeight;
+            });
 
         if (filteredAcceptValues.length > 0) {
             const contentType = filteredAcceptValues[0];
@@ -758,13 +770,16 @@ export default class HttpServer implements ProtocolServer {
                                     const propMap: PropertyContentMap = await thing.handleReadAllProperties({
                                         formIndex: 0,
                                     });
-                                    res.setHeader("Content-Type", "application/json"); // contentType handling?
+                                    res.setHeader("Content-Type", ContentSerdes.DEFAULT); // contentType handling?
                                     res.writeHead(200);
                                     const recordResponse: Record<string, unknown> = {};
                                     for (const key of propMap.keys()) {
                                         const content: Content = propMap.get(key);
-                                        const data = await content.toBuffer();
-                                        recordResponse[key] = data.toString();
+                                        const value = ContentSerdes.get().contentToValue(
+                                            { type: ContentSerdes.DEFAULT, body: await content.toBuffer() },
+                                            {}
+                                        );
+                                        recordResponse[key] = value;
                                     }
                                     res.end(JSON.stringify(recordResponse));
                                 } catch (err) {
