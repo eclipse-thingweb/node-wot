@@ -742,6 +742,23 @@ class HttpServerTest {
                 expectedResponseCode: 200,
             },
             {
+                // Typical browser request (e.g., Chrome)
+                inputHeaders: {
+                    Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+                },
+                // We should favor application/td+json over text/html
+                expected: "application/td+json",
+                expectedResponseCode: 200,
+            },
+            {
+                inputHeaders: {
+                    Accept: "image/svg+xml,text/html",
+                },
+                // We should favor text/html over image/svg+xml
+                expected: "text/html",
+                expectedResponseCode: 200,
+            },
+            {
                 inputHeaders: { Accept: "*/*,application/json" },
                 expected: "application/td+json",
                 expectedResponseCode: 200,
@@ -794,6 +811,115 @@ class HttpServerTest {
         });
         expect(failedNegotiationResponse.headers.get("Content-Type")).to.equal(null);
         expect(failedNegotiationResponse.status).to.equal(406);
+
+        return httpServer.stop();
+    }
+
+    @test async "TD should have form with readallproperties"() {
+        const httpServer = new HttpServer({ port: 0 });
+
+        await httpServer.start(null);
+
+        const tdTemplate: WoT.ExposedThingInit = {
+            title: "Test",
+            properties: {
+                testReadOnly: {
+                    type: "number",
+                    readOnly: true,
+                },
+            },
+        };
+        const testThing = new ExposedThing(null, tdTemplate);
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.testReadOnly.forms = [];
+
+        await httpServer.expose(testThing, tdTemplate);
+
+        const uriTD = `http://localhost:${httpServer.getPort()}/test`;
+
+        const tdResponse = await fetch(uriTD);
+        const td = await tdResponse.json();
+
+        expect(td).to.have.property("forms").to.be.an("array");
+        expect(JSON.stringify(td.forms)).to.deep.contain.oneOf(["readallproperties", "readmultipleproperties"]);
+        expect(JSON.stringify(td.forms)).to.not.deep.contain.oneOf(["writeallproperties", "writemultipleproperties"]);
+
+        return httpServer.stop();
+    }
+
+    @test async "TD should have form with writeallproperties"() {
+        const httpServer = new HttpServer({ port: 0 });
+
+        await httpServer.start(null);
+
+        const tdTemplate: WoT.ExposedThingInit = {
+            title: "Test",
+            properties: {
+                testWriteOnly: {
+                    type: "number",
+                    writeOnly: true,
+                },
+            },
+        };
+        const testThing = new ExposedThing(null, tdTemplate);
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.testWriteOnly.forms = [];
+
+        await httpServer.expose(testThing, tdTemplate);
+
+        const uriTD = `http://localhost:${httpServer.getPort()}/test`;
+
+        const tdResponse = await fetch(uriTD);
+        const td = await tdResponse.json();
+
+        expect(td).to.have.property("forms").to.be.an("array");
+        expect(JSON.stringify(td.forms)).to.not.deep.contain.oneOf(["readallproperties", "readmultipleproperties"]);
+        expect(JSON.stringify(td.forms)).to.deep.contain.oneOf(["writeallproperties", "writemultipleproperties"]);
+
+        return httpServer.stop();
+    }
+
+    @test async "TD should have form with readallproperties and writeallproperties"() {
+        const httpServer = new HttpServer({ port: 0 });
+
+        await httpServer.start(null);
+
+        const tdTemplate: WoT.ExposedThingInit = {
+            title: "Test",
+            properties: {
+                testReadOnly: {
+                    type: "number",
+                    readOnly: true,
+                },
+                testWriteOnly: {
+                    type: "number",
+                    writeOnly: true,
+                },
+            },
+        };
+        const testThing = new ExposedThing(null, tdTemplate);
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.testReadOnly.forms = [];
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.testWriteOnly.forms = [];
+
+        await httpServer.expose(testThing, tdTemplate);
+
+        const uriTD = `http://localhost:${httpServer.getPort()}/test`;
+
+        const tdResponse = await fetch(uriTD);
+        const td = await tdResponse.json();
+
+        expect(td).to.have.property("forms").to.be.an("array");
+        expect(JSON.stringify(td.forms)).to.deep.contain.oneOf(["readallproperties", "readmultipleproperties"]);
+        expect(JSON.stringify(td.forms)).to.deep.contain.oneOf(["writeallproperties", "writemultipleproperties"]);
 
         return httpServer.stop();
     }
