@@ -699,7 +699,7 @@ export default class HttpServer implements ProtocolServer {
         try {
             segments = decodeURI(pathname).split("/");
         } catch (ex) {
-            // catch URIError, see https://github.com/eclipse/thingweb.node-wot/issues/389
+            // catch URIError, see https://github.com/eclipse-thingweb/node-wot/issues/389
             warn(`HttpServer on port ${this.getPort()} cannot decode URI for '${requestUri.pathname}'`);
             res.writeHead(400);
             res.end("decodeURI error for " + requestUri.pathname);

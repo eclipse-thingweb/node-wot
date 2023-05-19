@@ -6,4 +6,4 @@
 
 # Secure Example
 
-see `example-server-secure.js` in https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-http#server-example
+see `example-server-secure.js` in https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-http#server-example

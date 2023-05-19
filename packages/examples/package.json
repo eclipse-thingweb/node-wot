@@ -5,7 +5,7 @@
     "description": "Examples for node-wot (not published)",
     "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
     "license": "EPL-2.0 OR W3C-20150513",
-    "repository": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/examples",
+    "repository": "https://github.com/eclipse-thingweb/node-wot/tree/master/packages/examples",
     "devDependencies": {
         "@types/express-oauth-server": "^2.0.2",
         "@types/node": "16.4.13",
@@ -41,9 +41,9 @@
         "format": "prettier --write \"src/**/*.ts\" \"**/*.json\""
     },
     "bugs": {
-        "url": "https://github.com/eclipse/thingweb.node-wot/issues"
+        "url": "https://github.com/eclipse-thingweb/node-wot/issues"
     },
-    "homepage": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/examples#readme",
+    "homepage": "https://github.com/eclipse-thingweb/node-wot/tree/master/packages/examples#readme",
     "main": "index.js",
     "keywords": []
 }

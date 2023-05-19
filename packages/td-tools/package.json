@@ -4,7 +4,7 @@
     "description": "W3C Web of Things (WoT) Thing Description parser, serializer, and other tools",
     "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
     "license": "EPL-2.0 OR W3C-20150513",
-    "repository": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/td-tools",
+    "repository": "https://github.com/eclipse-thingweb/node-wot/tree/master/packages/td-tools",
     "publishConfig": {
         "access": "public"
     },
@@ -57,9 +57,9 @@
         "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"**/*.json\""
     },
     "bugs": {
-        "url": "https://github.com/eclipse/thingweb.node-wot/issues"
+        "url": "https://github.com/eclipse-thingweb/node-wot/issues"
     },
-    "homepage": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/td-tools#readme",
+    "homepage": "https://github.com/eclipse-thingweb/node-wot/tree/master/packages/td-tools#readme",
     "directories": {
         "test": "test"
     },
