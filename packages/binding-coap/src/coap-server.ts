@@ -205,69 +205,73 @@ export default class CoapServer implements ProtocolServer {
         return [href, form];
     }
 
-    public async expose(thing: ExposedThing, tdTemplate?: WoT.ExposedThingInit): Promise<void> {
-        const urlPath = this.createThingUrlPath(thing);
-        const port = this.getPort();
+    private fillInPropertyBindingData(thing: ExposedThing, base: string, port: number, offeredMediaType: string) {
+        for (const [propertyName, property] of Object.entries(thing.properties)) {
+            const opValues = this.getPropertyOpValues(property);
+            const [href, form] = this.createHrefAndForm(
+                base,
+                this.PROPERTY_DIR,
+                propertyName,
+                offeredMediaType,
+                opValues
+            );
 
-        if (port === -1) {
-            // TODO: Add debug message for this case
-            return;
+            ProtocolHelpers.updatePropertyFormWithTemplate(form, property);
+
+            property.forms.push(form);
+            this.logHrefAssignment(port, href, "Property", propertyName);
         }
+    }
 
-        debug(`CoapServer on port ${port} exposes '${thing.title}' as unique '/${urlPath}'`);
+    private fillInActionBindingData(thing: ExposedThing, base: string, port: number, offeredMediaType: string) {
+        for (const [actionName, action] of Object.entries(thing.actions)) {
+            const [href, form] = this.createHrefAndForm(
+                base,
+                this.ACTION_DIR,
+                actionName,
+                offeredMediaType,
+                "invokeaction"
+            );
 
-        this.createCoreResource(urlPath);
-        this.things.set(urlPath, thing);
+            ProtocolHelpers.updateActionFormWithTemplate(form, action);
+            action.forms.push(form);
 
-        // fill in binding data
-        for (const address of Helpers.getAddresses()) {
-            for (const offeredMediaType of ContentSerdes.get().getOfferedMediaTypes()) {
+            this.logHrefAssignment(port, href, "Action", actionName);
+        }
+    }
+
+    private fillInEventBindingData(thing: ExposedThing, base: string, port: number, offeredMediaType: string) {
+        for (const [eventName, event] of Object.entries(thing.events)) {
+            const [href, form] = this.createHrefAndForm(base, this.EVENT_DIR, eventName, offeredMediaType, [
+                "subscribeevent",
+                "unsubscribeevent",
+            ]);
+
+            ProtocolHelpers.updateEventFormWithTemplate(form, event);
+            event.forms.push(form);
+
+            this.logHrefAssignment(port, href, "Event", eventName);
+        }
+    }
+
+    private fillInBindingData(thing: ExposedThing, port: number, urlPath: string) {
+        const addresses = Helpers.getAddresses();
+        const offeredMediaTypes = ContentSerdes.get().getOfferedMediaTypes();
+
+        for (const address of addresses) {
+            for (const offeredMediaType of offeredMediaTypes) {
                 const base = this.createThingBase(address, port, urlPath);
 
-                for (const [propertyName, property] of Object.entries(thing.properties)) {
-                    const opValues = this.getPropertyOpValues(property);
-                    const [href, form] = this.createHrefAndForm(
-                        base,
-                        this.PROPERTY_DIR,
-                        propertyName,
-                        offeredMediaType,
-                        opValues
-                    );
+                this.fillInPropertyBindingData(thing, base, port, offeredMediaType);
+                this.fillInActionBindingData(thing, base, port, offeredMediaType);
+                this.fillInEventBindingData(thing, base, port, offeredMediaType);
+            }
+        }
+    }
 
-                    ProtocolHelpers.updatePropertyFormWithTemplate(form, property);
-
-                    property.forms.push(form);
-                    this.logHrefAssignment(port, href, "Property", propertyName);
-                }
-
-                for (const [actionName, action] of Object.entries(thing.actions)) {
-                    const [href, form] = this.createHrefAndForm(
-                        base,
-                        this.ACTION_DIR,
-                        actionName,
-                        offeredMediaType,
-                        "invokeaction"
-                    );
-
-                    ProtocolHelpers.updateActionFormWithTemplate(form, action);
-                    action.forms.push(form);
-
-                    this.logHrefAssignment(port, href, "Action", actionName);
-                }
-
-                for (const [eventName, event] of Object.entries(thing.events)) {
-                    const [href, form] = this.createHrefAndForm(base, this.EVENT_DIR, eventName, offeredMediaType, [
-                        "subscribeevent",
-                        "unsubscribeevent",
-                    ]);
-
-                    ProtocolHelpers.updateEventFormWithTemplate(form, event);
-                    event.forms.push(form);
-
-                    this.logHrefAssignment(port, href, "Event", eventName);
-                }
-            } // media types
-        } // addresses
+    private setUpIntroductionMethods(thing: ExposedThing, urlPath: string, port: number) {
+        this.createCoreResource(urlPath);
+        this.things.set(urlPath, thing);
 
         const parameters = {
             urlPath,
@@ -276,6 +280,23 @@ export default class CoapServer implements ProtocolServer {
         };
 
         this.mdnsIntroducer?.registerExposedThing(thing, parameters);
+    }
+
+    public async expose(thing: ExposedThing, tdTemplate?: WoT.ExposedThingInit): Promise<void> {
+        const urlPath = this.createThingUrlPath(thing);
+        const port = this.getPort();
+
+        if (port === -1) {
+            // TODO: What is the actual error condition here?
+            warn("CoapServer is assigned an invalid port, aborting expose process.");
+            return;
+        }
+
+        this.fillInBindingData(thing, port, urlPath);
+
+        debug(`CoapServer on port ${port} exposes '${thing.title}' as unique '/${urlPath}'`);
+
+        this.setUpIntroductionMethods(thing, urlPath, port);
     }
 
     public async destroy(thingId: string): Promise<boolean> {
