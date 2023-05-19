@@ -121,6 +121,26 @@ abstract class InternalSubscription implements Subscription {
     abstract stop(options?: WoT.InteractionOptions): Promise<void>;
 }
 
+function handleUriVariables(
+    thing: ConsumedThing,
+    ti: ThingInteraction,
+    form: TD.Form,
+    options?: WoT.InteractionOptions
+): TD.Form {
+    const ut = UriTemplate.parse(form.href);
+    const uriVariables = Helpers.parseInteractionOptions(thing, ti, options).uriVariables;
+    const updatedHref = ut.expand(uriVariables ?? {});
+    if (updatedHref !== form.href) {
+        // create shallow copy and update href
+        const updForm = { ...form };
+        updForm.href = updatedHref;
+        form = updForm;
+        debug(`ConsumedThing '${thing.title}' update form URI to ${form.href}`);
+    }
+
+    return form;
+}
+
 class InternalPropertySubscription extends InternalSubscription {
     active = false;
     private formIndex: number;
@@ -157,8 +177,9 @@ class InternalPropertySubscription extends InternalSubscription {
             throw new Error(`ConsumedThing '${this.thing.title}' did not get suitable form`);
         }
 
+        const formWithoutURIvariables = handleUriVariables(this.thing, tp, form, options);
         debug(`ConsumedThing '${this.thing.title}' unobserving to ${form.href}`);
-        await this.client.unlinkResource(form);
+        await this.client.unlinkResource(formWithoutURIvariables);
         this.active = false;
     }
 
@@ -282,20 +303,14 @@ class InternalEventSubscription extends InternalSubscription {
             options.formIndex = this.matchingUnsubscribeForm();
         }
 
-        const { client, form } = this.thing.getClientFor(
-            te.forms,
-            "unsubscribeevent",
-            Affordance.EventAffordance,
-            options
-        );
+        const { form } = this.thing.getClientFor(te.forms, "unsubscribeevent", Affordance.EventAffordance, options);
         if (!form) {
             throw new Error(`ConsumedThing '${this.thing.title}' did not get suitable form`);
         }
-        if (!client) {
-            throw new Error(`ConsumedThing '${this.thing.title}' did not get suitable client for ${form.href}`);
-        }
+
+        const formWithoutURIvariables = handleUriVariables(this.thing, te, form, options);
         debug(`ConsumedThing '${this.thing.title}' unsubscribing to ${form.href}`);
-        client.unlinkResource(form);
+        this.client.unlinkResource(formWithoutURIvariables);
         this.active = false;
     }
 
@@ -702,7 +717,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         if (!tp) {
             throw new Error(`ConsumedThing '${this.title}' does not have property ${name}`);
         }
-        let { client, form } = this.getClientFor(tp.forms, "observeproperty", Affordance.PropertyAffordance, options);
+        const { client, form } = this.getClientFor(tp.forms, "observeproperty", Affordance.PropertyAffordance, options);
         if (!form) {
             throw new Error(`ConsumedThing '${this.title}' did not get suitable form`);
         }
@@ -717,10 +732,10 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         debug(`ConsumedThing '${this.title}' observing to ${form.href}`);
 
         // uriVariables ?
-        form = this.handleUriVariables(tp, form, options);
+        const formWithoutURITemplates = this.handleUriVariables(tp, form, options);
 
         await client.subscribeResource(
-            form,
+            formWithoutURITemplates,
             // next
             (content) => {
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- tsc get confused when nullables are to listeners lambdas
@@ -760,7 +775,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         if (!te) {
             throw new Error(`ConsumedThing '${this.title}' does not have event ${name}`);
         }
-        let { client, form } = this.getClientFor(te.forms, "subscribeevent", Affordance.EventAffordance, options);
+        const { client, form } = this.getClientFor(te.forms, "subscribeevent", Affordance.EventAffordance, options);
         if (!form) {
             throw new Error(`ConsumedThing '${this.title}' did not get suitable form`);
         }
@@ -775,10 +790,10 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         debug(`ConsumedThing '${this.title}' subscribing to ${form.href}`);
 
         // uriVariables ?
-        form = this.handleUriVariables(te, form, options);
+        const formWithoutURITemplates = this.handleUriVariables(te, form, options);
 
         await client.subscribeResource(
-            form,
+            formWithoutURITemplates,
             (content) => {
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- tsc get confused when nullables are to listeners lambdas
                 if (!content.type) content.type = form!.contentType ?? "application/json";
@@ -808,17 +823,6 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
     // http://192.168.178.24:8080/counter/actions/increment{?step} with options {uriVariables: {'step' : 3}} --> http://192.168.178.24:8080/counter/actions/increment?step=3
     // see RFC6570 (https://tools.ietf.org/html/rfc6570) for URI Template syntax
     handleUriVariables(ti: ThingInteraction, form: TD.Form, options?: WoT.InteractionOptions): TD.Form {
-        const ut = UriTemplate.parse(form.href);
-        const uriVariables = Helpers.parseInteractionOptions(this, ti, options).uriVariables;
-        const updatedHref = ut.expand(uriVariables ?? {});
-        if (updatedHref !== form.href) {
-            // create shallow copy and update href
-            const updForm = { ...form };
-            updForm.href = updatedHref;
-            form = updForm;
-            debug(`ConsumedThing '${this.title}' update form URI to ${form.href}`);
-        }
-
-        return form;
+        return handleUriVariables(this, ti, form, options);
     }
 }
