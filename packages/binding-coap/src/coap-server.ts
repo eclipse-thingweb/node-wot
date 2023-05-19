@@ -27,6 +27,7 @@ import Servient, {
     Content,
     createLoggers,
 } from "@node-wot/core";
+import { PropertyElement } from "wot-thing-description-types";
 import { Socket } from "dgram";
 import { Server, createServer, registerFormat, IncomingMessage, OutgoingMessage } from "coap";
 import slugify from "slugify";
@@ -136,81 +137,145 @@ export default class CoapServer implements ProtocolServer {
         }
     }
 
-    public expose(thing: ExposedThing, tdTemplate?: WoT.ExposedThingInit): Promise<void> {
-        let urlPath = slugify(thing.title, { lower: true });
+    private createThingUrlPath(thing: ExposedThing) {
+        const urlPath = slugify(thing.title, { lower: true });
 
         if (this.things.has(urlPath)) {
-            urlPath = Helpers.generateUniqueName(urlPath);
+            return Helpers.generateUniqueName(urlPath);
         }
+
+        return urlPath;
+    }
+
+    private createCoreResource(urlPath: string): void {
         this.coreResources.set(urlPath, { urlPath, parameters: thingDescriptionParameters });
+    }
 
-        debug(`CoapServer on port ${this.getPort()} exposes '${thing.title}' as unique '/${urlPath}'`);
+    // TODO: Could probably be defined as a general helper function
+    private getPropertyOpValues(property: PropertyElement): string[] {
+        const op: string[] = [];
 
+        if (!property.readOnly) {
+            op.push("writeproperty");
+        }
+
+        if (!property.writeOnly) {
+            op.push("readproperty");
+        }
+
+        // TODO: Handle edge case where writeOnly === true and readOnly === true
+
+        if (property.observable) {
+            op.push("observeproperty");
+            op.push("unobserveproperty");
+        }
+
+        return op;
+    }
+
+    private createFormHref(base: string, affordancePathSegment: string, affordanceName: string) {
+        return `${base}/${affordancePathSegment}/${encodeURIComponent(affordanceName)}`;
+    }
+
+    private createAffordanceForm(href: string, offeredMediaType: string, op: string[] | string) {
+        const form = new TD.Form(href, offeredMediaType);
+        form.op = op;
+
+        return form;
+    }
+
+    private createThingBase(address: string, port: number, urlPath: string): string {
+        return `${this.scheme}://${address}:${port}/${encodeURIComponent(urlPath)}`;
+    }
+
+    private logHrefAssignment(port: number, href: string, affordanceType: string, affordanceName: string) {
+        debug(`CoapServer on port ${port} assigns '${href}' to ${affordanceType} '${affordanceName}'`);
+    }
+
+    private createHrefAndForm(
+        base: string,
+        affordancePathSegment: string,
+        affordanceName: string,
+        offeredMediaType: string,
+        opValues: string | string[]
+    ): [string, TD.Form] {
+        const href = this.createFormHref(base, affordancePathSegment, affordanceName);
+        const form = this.createAffordanceForm(href, offeredMediaType, opValues);
+
+        return [href, form];
+    }
+
+    public async expose(thing: ExposedThing, tdTemplate?: WoT.ExposedThingInit): Promise<void> {
+        const urlPath = this.createThingUrlPath(thing);
         const port = this.getPort();
-        if (port !== -1) {
-            this.things.set(urlPath, thing);
 
-            // fill in binding data
-            for (const address of Helpers.getAddresses()) {
-                for (const type of ContentSerdes.get().getOfferedMediaTypes()) {
-                    const base: string =
-                        this.scheme + "://" + address + ":" + this.getPort() + "/" + encodeURIComponent(urlPath);
+        if (port === -1) {
+            // TODO: Add debug message for this case
+            return;
+        }
 
-                    for (const propertyName in thing.properties) {
-                        const href = base + "/" + this.PROPERTY_DIR + "/" + encodeURIComponent(propertyName);
-                        const form = new TD.Form(href, type);
-                        ProtocolHelpers.updatePropertyFormWithTemplate(form, thing.properties[propertyName]);
-                        if (thing.properties[propertyName].readOnly) {
-                            form.op = ["readproperty"];
-                        } else if (thing.properties[propertyName].writeOnly) {
-                            form.op = ["writeproperty"];
-                        } else {
-                            form.op = ["readproperty", "writeproperty"];
-                        }
-                        if (thing.properties[propertyName].observable) {
-                            if (!form.op) {
-                                form.op = [];
-                            }
-                            form.op.push("observeproperty");
-                            form.op.push("unobserveproperty");
-                        }
+        debug(`CoapServer on port ${port} exposes '${thing.title}' as unique '/${urlPath}'`);
 
-                        thing.properties[propertyName].forms.push(form);
-                        debug(`CoapServer on port ${this.getPort()} assigns '${href}' to Property '${propertyName}'`);
-                    }
+        this.createCoreResource(urlPath);
+        this.things.set(urlPath, thing);
 
-                    for (const actionName in thing.actions) {
-                        const href = base + "/" + this.ACTION_DIR + "/" + encodeURIComponent(actionName);
-                        const form = new TD.Form(href, type);
-                        ProtocolHelpers.updateActionFormWithTemplate(form, thing.actions[actionName]);
-                        form.op = "invokeaction";
-                        thing.actions[actionName].forms.push(form);
-                        debug(`CoapServer on port ${this.getPort()} assigns '${href}' to Action '${actionName}'`);
-                    }
+        // fill in binding data
+        for (const address of Helpers.getAddresses()) {
+            for (const offeredMediaType of ContentSerdes.get().getOfferedMediaTypes()) {
+                const base = this.createThingBase(address, port, urlPath);
 
-                    for (const eventName in thing.events) {
-                        const href = base + "/" + this.EVENT_DIR + "/" + encodeURIComponent(eventName);
-                        const form = new TD.Form(href, type);
-                        ProtocolHelpers.updateEventFormWithTemplate(form, thing.events[eventName]);
-                        form.op = ["subscribeevent", "unsubscribeevent"];
-                        thing.events[eventName].forms.push(form);
-                        debug(`CoapServer on port ${this.getPort()} assigns '${href}' to Event '${eventName}'`);
-                    }
-                } // media types
-            } // addresses
+                for (const [propertyName, property] of Object.entries(thing.properties)) {
+                    const opValues = this.getPropertyOpValues(property);
+                    const [href, form] = this.createHrefAndForm(
+                        base,
+                        this.PROPERTY_DIR,
+                        propertyName,
+                        offeredMediaType,
+                        opValues
+                    );
 
-            const parameters = {
-                urlPath,
-                port,
-                serviceName: "_wot._udp.local",
-            };
+                    ProtocolHelpers.updatePropertyFormWithTemplate(form, property);
 
-            this.mdnsIntroducer?.registerExposedThing(thing, parameters);
-        } // running
+                    property.forms.push(form);
+                    this.logHrefAssignment(port, href, "Property", propertyName);
+                }
 
-        return new Promise<void>((resolve, reject) => {
-            resolve();
-        });
+                for (const [actionName, action] of Object.entries(thing.actions)) {
+                    const [href, form] = this.createHrefAndForm(
+                        base,
+                        this.ACTION_DIR,
+                        actionName,
+                        offeredMediaType,
+                        "invokeaction"
+                    );
+
+                    ProtocolHelpers.updateActionFormWithTemplate(form, action);
+                    action.forms.push(form);
+
+                    this.logHrefAssignment(port, href, "Action", actionName);
+                }
+
+                for (const [eventName, event] of Object.entries(thing.events)) {
+                    const [href, form] = this.createHrefAndForm(base, this.EVENT_DIR, eventName, offeredMediaType, [
+                        "subscribeevent",
+                        "unsubscribeevent",
+                    ]);
+
+                    ProtocolHelpers.updateEventFormWithTemplate(form, event);
+                    event.forms.push(form);
+
+                    this.logHrefAssignment(port, href, "Event", eventName);
+                }
+            } // media types
+        } // addresses
+
+        const parameters = {
+            urlPath,
+            port,
+            serviceName: "_wot._udp.local",
+        };
+
+        this.mdnsIntroducer?.registerExposedThing(thing, parameters);
     }
 
     public async destroy(thingId: string): Promise<boolean> {
