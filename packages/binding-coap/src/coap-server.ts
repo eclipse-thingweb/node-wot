@@ -137,6 +137,23 @@ export default class CoapServer implements ProtocolServer {
         }
     }
 
+    public async expose(thing: ExposedThing, tdTemplate?: WoT.ExposedThingInit): Promise<void> {
+        const port = this.getPort();
+        const urlPath = this.createThingUrlPath(thing);
+
+        if (port === -1) {
+            warn("CoapServer is assigned an invalid port, aborting expose process.");
+            return;
+        }
+
+        this.fillInBindingData(thing, port, urlPath);
+
+        debug(`CoapServer on port ${port} exposes '${thing.title}' as unique '/${urlPath}'`);
+
+        this.setUpIntroductionMethods(thing, urlPath, port);
+    }
+
+
     private createThingUrlPath(thing: ExposedThing) {
         const urlPath = slugify(thing.title, { lower: true });
 
@@ -147,8 +164,43 @@ export default class CoapServer implements ProtocolServer {
         return urlPath;
     }
 
-    private createCoreResource(urlPath: string): void {
-        this.coreResources.set(urlPath, { urlPath, parameters: thingDescriptionParameters });
+
+
+    private fillInBindingData(thing: ExposedThing, port: number, urlPath: string) {
+        const addresses = Helpers.getAddresses();
+        const offeredMediaTypes = ContentSerdes.get().getOfferedMediaTypes();
+
+        for (const address of addresses) {
+            for (const offeredMediaType of offeredMediaTypes) {
+                const base = this.createThingBase(address, port, urlPath);
+
+                this.fillInPropertyBindingData(thing, base, port, offeredMediaType);
+                this.fillInActionBindingData(thing, base, port, offeredMediaType);
+                this.fillInEventBindingData(thing, base, port, offeredMediaType);
+            }
+        }
+    }
+
+    private createThingBase(address: string, port: number, urlPath: string): string {
+        return `${this.scheme}://${address}:${port}/${encodeURIComponent(urlPath)}`;
+    }
+
+    private fillInPropertyBindingData(thing: ExposedThing, base: string, port: number, offeredMediaType: string) {
+        for (const [propertyName, property] of Object.entries(thing.properties)) {
+            const opValues = this.getPropertyOpValues(property);
+            const [href, form] = this.createHrefAndForm(
+                base,
+                this.PROPERTY_DIR,
+                propertyName,
+                offeredMediaType,
+                opValues
+            );
+
+            ProtocolHelpers.updatePropertyFormWithTemplate(form, property);
+
+            property.forms.push(form);
+            this.logHrefAssignment(port, href, "Property", propertyName);
+        }
     }
 
     // TODO: Could probably be defined as a general helper function
@@ -173,55 +225,6 @@ export default class CoapServer implements ProtocolServer {
         return op;
     }
 
-    private createFormHref(base: string, affordancePathSegment: string, affordanceName: string) {
-        return `${base}/${affordancePathSegment}/${encodeURIComponent(affordanceName)}`;
-    }
-
-    private createAffordanceForm(href: string, offeredMediaType: string, op: string[] | string) {
-        const form = new TD.Form(href, offeredMediaType);
-        form.op = op;
-
-        return form;
-    }
-
-    private createThingBase(address: string, port: number, urlPath: string): string {
-        return `${this.scheme}://${address}:${port}/${encodeURIComponent(urlPath)}`;
-    }
-
-    private logHrefAssignment(port: number, href: string, affordanceType: string, affordanceName: string) {
-        debug(`CoapServer on port ${port} assigns '${href}' to ${affordanceType} '${affordanceName}'`);
-    }
-
-    private createHrefAndForm(
-        base: string,
-        affordancePathSegment: string,
-        affordanceName: string,
-        offeredMediaType: string,
-        opValues: string | string[]
-    ): [string, TD.Form] {
-        const href = this.createFormHref(base, affordancePathSegment, affordanceName);
-        const form = this.createAffordanceForm(href, offeredMediaType, opValues);
-
-        return [href, form];
-    }
-
-    private fillInPropertyBindingData(thing: ExposedThing, base: string, port: number, offeredMediaType: string) {
-        for (const [propertyName, property] of Object.entries(thing.properties)) {
-            const opValues = this.getPropertyOpValues(property);
-            const [href, form] = this.createHrefAndForm(
-                base,
-                this.PROPERTY_DIR,
-                propertyName,
-                offeredMediaType,
-                opValues
-            );
-
-            ProtocolHelpers.updatePropertyFormWithTemplate(form, property);
-
-            property.forms.push(form);
-            this.logHrefAssignment(port, href, "Property", propertyName);
-        }
-    }
 
     private fillInActionBindingData(thing: ExposedThing, base: string, port: number, offeredMediaType: string) {
         for (const [actionName, action] of Object.entries(thing.actions)) {
@@ -254,19 +257,32 @@ export default class CoapServer implements ProtocolServer {
         }
     }
 
-    private fillInBindingData(thing: ExposedThing, port: number, urlPath: string) {
-        const addresses = Helpers.getAddresses();
-        const offeredMediaTypes = ContentSerdes.get().getOfferedMediaTypes();
+    private createHrefAndForm(
+        base: string,
+        affordancePathSegment: string,
+        affordanceName: string,
+        offeredMediaType: string,
+        opValues: string | string[]
+    ): [string, TD.Form] {
+        const href = this.createFormHref(base, affordancePathSegment, affordanceName);
+        const form = this.createAffordanceForm(href, offeredMediaType, opValues);
 
-        for (const address of addresses) {
-            for (const offeredMediaType of offeredMediaTypes) {
-                const base = this.createThingBase(address, port, urlPath);
+        return [href, form];
+    }
 
-                this.fillInPropertyBindingData(thing, base, port, offeredMediaType);
-                this.fillInActionBindingData(thing, base, port, offeredMediaType);
-                this.fillInEventBindingData(thing, base, port, offeredMediaType);
-            }
-        }
+    private createFormHref(base: string, affordancePathSegment: string, affordanceName: string) {
+        return `${base}/${affordancePathSegment}/${encodeURIComponent(affordanceName)}`;
+    }
+
+    private createAffordanceForm(href: string, offeredMediaType: string, op: string[] | string) {
+        const form = new TD.Form(href, offeredMediaType);
+        form.op = op;
+
+        return form;
+    }
+
+    private logHrefAssignment(port: number, href: string, affordanceType: string, affordanceName: string) {
+        debug(`CoapServer on port ${port} assigns '${href}' to ${affordanceType} '${affordanceName}'`);
     }
 
     private setUpIntroductionMethods(thing: ExposedThing, urlPath: string, port: number) {
@@ -282,21 +298,8 @@ export default class CoapServer implements ProtocolServer {
         this.mdnsIntroducer?.registerExposedThing(thing, parameters);
     }
 
-    public async expose(thing: ExposedThing, tdTemplate?: WoT.ExposedThingInit): Promise<void> {
-        const urlPath = this.createThingUrlPath(thing);
-        const port = this.getPort();
-
-        if (port === -1) {
-            // TODO: What is the actual error condition here?
-            warn("CoapServer is assigned an invalid port, aborting expose process.");
-            return;
-        }
-
-        this.fillInBindingData(thing, port, urlPath);
-
-        debug(`CoapServer on port ${port} exposes '${thing.title}' as unique '/${urlPath}'`);
-
-        this.setUpIntroductionMethods(thing, urlPath, port);
+    private createCoreResource(urlPath: string): void {
+        this.coreResources.set(urlPath, { urlPath, parameters: thingDescriptionParameters });
     }
 
     public async destroy(thingId: string): Promise<boolean> {
