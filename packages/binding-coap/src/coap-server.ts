@@ -27,7 +27,6 @@ import Servient, {
     Content,
     createLoggers,
 } from "@node-wot/core";
-import { PropertyElement } from "wot-thing-description-types";
 import { Socket } from "dgram";
 import { Server, createServer, registerFormat, IncomingMessage, OutgoingMessage } from "coap";
 import slugify from "slugify";
@@ -184,7 +183,7 @@ export default class CoapServer implements ProtocolServer {
 
     private fillInPropertyBindingData(thing: ExposedThing, base: string, port: number, offeredMediaType: string) {
         for (const [propertyName, property] of Object.entries(thing.properties)) {
-            const opValues = this.getPropertyOpValues(property);
+            const opValues = ProtocolHelpers.getPropertyOpValues(property);
             const [href, form] = this.createHrefAndForm(
                 base,
                 this.PROPERTY_DIR,
@@ -198,28 +197,6 @@ export default class CoapServer implements ProtocolServer {
             property.forms.push(form);
             this.logHrefAssignment(port, href, "Property", propertyName);
         }
-    }
-
-    // TODO: Could probably be defined as a general helper function
-    private getPropertyOpValues(property: PropertyElement): string[] {
-        const op: string[] = [];
-
-        if (!property.readOnly) {
-            op.push("writeproperty");
-        }
-
-        if (!property.writeOnly) {
-            op.push("readproperty");
-        }
-
-        // TODO: Handle edge case where writeOnly === true and readOnly === true
-
-        if (property.observable) {
-            op.push("observeproperty");
-            op.push("unobserveproperty");
-        }
-
-        return op;
     }
 
     private fillInActionBindingData(thing: ExposedThing, base: string, port: number, offeredMediaType: string) {
