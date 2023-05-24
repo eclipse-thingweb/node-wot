@@ -153,7 +153,6 @@ export default class CoapServer implements ProtocolServer {
         this.setUpIntroductionMethods(thing, urlPath, port);
     }
 
-
     private createThingUrlPath(thing: ExposedThing) {
         const urlPath = slugify(thing.title, { lower: true });
 
@@ -163,8 +162,6 @@ export default class CoapServer implements ProtocolServer {
 
         return urlPath;
     }
-
-
 
     private fillInBindingData(thing: ExposedThing, port: number, urlPath: string) {
         const addresses = Helpers.getAddresses();
@@ -224,7 +221,6 @@ export default class CoapServer implements ProtocolServer {
 
         return op;
     }
-
 
     private fillInActionBindingData(thing: ExposedThing, base: string, port: number, offeredMediaType: string) {
         for (const [actionName, action] of Object.entries(thing.actions)) {
