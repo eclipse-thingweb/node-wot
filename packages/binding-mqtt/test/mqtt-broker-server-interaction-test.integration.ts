@@ -17,7 +17,7 @@ import Servient, { createInfoLogger } from "@node-wot/core";
 import { expect, should } from "chai";
 import MqttBrokerServer from "../src/mqtt-broker-server";
 import MqttClientFactory from "../src/mqtt-client-factory";
-import { ConsumedThing } from "wot-typescript-definitions";
+import { ConsumedThing, ExposedThing } from "wot-typescript-definitions";
 
 const info = createInfoLogger("binding-mqtt", "mqtt-broker-server-interaction-test.integration");
 
@@ -97,6 +97,8 @@ describe("MQTT broker server interaction implementation", () => {
     let arrayAction: [];
     let objectAction: Record<string, unknown>;
 
+    let testThing: ExposedThing;
+
     before((done: Mocha.Done) => {
         servient = new Servient();
         brokerServer = new MqttBrokerServer({ uri: brokerUri, selfHost: true });
@@ -105,45 +107,7 @@ describe("MQTT broker server interaction implementation", () => {
         servient.start().then((WoT) => {
             WoT.produce(mqttThingModel)
                 .then((thing) => {
-                    thing.setPropertyWriteHandler("stringProperty", async (inputData) => {
-                        stringProperty = (await inputData.value()) as string;
-                    });
-
-                    thing.setPropertyWriteHandler("numberProperty", async (inputData) => {
-                        numberProperty = (await inputData.value()) as number;
-                    });
-
-                    thing.setPropertyWriteHandler("arrayProperty", async (inputData) => {
-                        arrayProperty = (await inputData.value()) as [];
-                    });
-
-                    thing.setPropertyWriteHandler("objectProperty", async (inputData) => {
-                        objectProperty = (await inputData.value()) as Record<string, unknown>;
-                    });
-
-                    thing.setActionHandler("stringAction", async (inputData) => {
-                        stringAction = (await inputData.value()) as string;
-
-                        return stringAction;
-                    });
-
-                    thing.setActionHandler("numberAction", async (inputData) => {
-                        numberAction = (await inputData.value()) as number;
-
-                        return numberAction;
-                    });
-
-                    thing.setActionHandler("arrayAction", async (inputData) => {
-                        arrayAction = (await inputData.value()) as [];
-
-                        return arrayAction;
-                    });
-
-                    thing.setActionHandler("objectAction", async (inputData) => {
-                        objectAction = (await inputData.value()) as Record<string, unknown>;
-
-                        return objectAction;
-                    });
+                    testThing = thing;
 
                     thing.expose().then(() => {
                         info(`Exposed ${thing.getThingDescription().title}`);
@@ -167,49 +131,55 @@ describe("MQTT broker server interaction implementation", () => {
     it("should write property (string)", (done: Mocha.Done) => {
         const input = "writeProperty";
 
-        mqttClient
-            .writeProperty("stringProperty", input)
-            .then(() => {
-                setTimeout(() => {
-                    expect(stringProperty).to.equal(input);
-                    done();
-                }, 100);
-            })
-            .catch((e) => {
+        testThing.setPropertyWriteHandler("stringProperty", async (inputData) => {
+            stringProperty = (await inputData.value()) as string;
+            try {
+                expect(stringProperty).to.equal(input);
+                done();
+            } catch (e) {
                 done(e);
-            });
+            }
+        });
+
+        mqttClient.writeProperty("stringProperty", input).catch((e) => {
+            done(e);
+        });
     }).timeout(20000);
 
     it("should write property (number)", (done: Mocha.Done) => {
         const input = 1337;
 
-        mqttClient
-            .writeProperty("numberProperty", input)
-            .then(() => {
-                setTimeout(() => {
-                    expect(numberProperty).to.equal(input);
-                    done();
-                }, 100);
-            })
-            .catch((e) => {
+        testThing.setPropertyWriteHandler("numberProperty", async (inputData) => {
+            numberProperty = (await inputData.value()) as number;
+            try {
+                expect(numberProperty).to.equal(input);
+                done();
+            } catch (e) {
                 done(e);
-            });
+            }
+        });
+
+        mqttClient.writeProperty("numberProperty", input).catch((e) => {
+            done(e);
+        });
     }).timeout(20000);
 
     it("should write property (array)", (done: Mocha.Done) => {
         const input = [1, 3, 3, 7];
 
-        mqttClient
-            .writeProperty("arrayProperty", input)
-            .then(() => {
-                setTimeout(() => {
-                    expect(arrayProperty).to.eql(input);
-                    done();
-                }, 100);
-            })
-            .catch((e) => {
+        testThing.setPropertyWriteHandler("arrayProperty", async (inputData) => {
+            arrayProperty = (await inputData.value()) as [];
+            try {
+                expect(arrayProperty).to.eql(input);
+                done();
+            } catch (e) {
                 done(e);
-            });
+            }
+        });
+
+        mqttClient.writeProperty("arrayProperty", input).catch((e) => {
+            done(e);
+        });
     }).timeout(20000);
 
     it("should write property (object)", (done: Mocha.Done) => {
@@ -219,65 +189,79 @@ describe("MQTT broker server interaction implementation", () => {
             test_array: ["t", "e", "s", "t"],
         };
 
-        mqttClient
-            .writeProperty("objectProperty", input)
-            .then(() => {
-                setTimeout(() => {
-                    expect(objectProperty).to.eql(input);
-                    done();
-                }, 100);
-            })
-            .catch((e) => {
+        testThing.setPropertyWriteHandler("objectProperty", async (inputData) => {
+            objectProperty = (await inputData.value()) as Record<string, unknown>;
+            try {
+                expect(objectProperty).to.eql(input);
+                done();
+            } catch (e) {
                 done(e);
-            });
+            }
+        });
+
+        mqttClient.writeProperty("objectProperty", input).catch((e) => {
+            done(e);
+        });
     }).timeout(20000);
 
     it("should invoke action (string)", (done: Mocha.Done) => {
         const input = "invokeAction";
 
-        mqttClient
-            .invokeAction("stringAction", input)
-            .then((res) => {
-                setTimeout(() => {
-                    expect(stringAction).to.equal(input);
-                    done();
-                }, 100);
-            })
-            .catch((e) => {
+        testThing.setActionHandler("stringAction", async (inputData) => {
+            stringAction = (await inputData.value()) as string;
+            try {
+                expect(stringAction).to.equal(input);
+                done();
+            } catch (e) {
                 done(e);
-            });
+            }
+
+            return stringAction;
+        });
+
+        mqttClient.invokeAction("stringAction", input).catch((e) => {
+            done(e);
+        });
     }).timeout(20000);
 
     it("should invoke action (number)", (done: Mocha.Done) => {
         const input = 1337;
 
-        mqttClient
-            .invokeAction("numberAction", input)
-            .then((res) => {
-                setTimeout(() => {
-                    expect(numberAction).to.equal(input);
-                    done();
-                }, 100);
-            })
-            .catch((e) => {
+        testThing.setActionHandler("numberAction", async (inputData) => {
+            numberAction = (await inputData.value()) as number;
+            try {
+                expect(numberAction).to.equal(input);
+                done();
+            } catch (e) {
                 done(e);
-            });
+            }
+
+            return numberAction;
+        });
+
+        mqttClient.invokeAction("numberAction", input).catch((e) => {
+            done(e);
+        });
     }).timeout(20000);
 
     it("should invoke action (array)", (done: Mocha.Done) => {
         const input = [1, 3, 3, 7];
 
-        mqttClient
-            .invokeAction("arrayAction", input)
-            .then((res) => {
-                setTimeout(() => {
-                    expect(arrayAction).to.eql(input);
-                    done();
-                }, 100);
-            })
-            .catch((e) => {
+        testThing.setActionHandler("arrayAction", async (inputData) => {
+            arrayAction = (await inputData.value()) as [];
+            try {
+                expect(arrayAction).to.eql(input);
+                done();
+            } catch (e) {
                 done(e);
-            });
+            }
+
+            return arrayAction;
+        });
+
+        mqttClient.invokeAction("arrayAction", input).catch((e) => {
+            done(e);
+        });
     }).timeout(20000);
 
     it("should invoke action (object)", (done: Mocha.Done) => {
@@ -287,16 +271,20 @@ describe("MQTT broker server interaction implementation", () => {
             test_array: ["t", "e", "s", "t"],
         };
 
-        mqttClient
-            .invokeAction("objectAction", input)
-            .then((res) => {
-                setTimeout(() => {
-                    expect(objectAction).to.eql(input);
-                    done();
-                }, 100);
-            })
-            .catch((e) => {
+        testThing.setActionHandler("objectAction", async (inputData) => {
+            objectAction = (await inputData.value()) as Record<string, unknown>;
+            try {
+                expect(objectAction).to.eql(input);
+                done();
+            } catch (e) {
                 done(e);
-            });
+            }
+
+            return objectAction;
+        });
+
+        mqttClient.invokeAction("objectAction", input).catch((e) => {
+            done(e);
+        });
     }).timeout(20000);
 });
