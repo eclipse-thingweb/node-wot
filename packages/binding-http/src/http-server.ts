@@ -315,16 +315,17 @@ export default class HttpServer implements ProtocolServer {
                 anyProperties = true;
                 if (!thing.properties[propertyName].readOnly) {
                     allReadOnly = false;
-                } else if (!thing.properties[propertyName].writeOnly) {
+                }
+                if (!thing.properties[propertyName].writeOnly) {
                     allWriteOnly = false;
                 }
             }
             if (anyProperties) {
                 const href = base + "/" + this.PROPERTY_DIR;
                 const form = new TD.Form(href, type);
-                if (allReadOnly) {
+                if (allReadOnly && !allWriteOnly) {
                     form.op = ["readallproperties", "readmultipleproperties"];
-                } else if (allWriteOnly) {
+                } else if (allWriteOnly && !allReadOnly) {
                     form.op = ["writeallproperties", "writemultipleproperties"];
                 } else {
                     form.op = [
@@ -569,7 +570,18 @@ export default class HttpServer implements ProtocolServer {
 
                 return acceptValue;
             })
-            .filter((acceptValue) => contentSerdes.isSupported(acceptValue));
+            .filter((acceptValue) => contentSerdes.isSupported(acceptValue))
+            .sort((a, b) => {
+                // weight function last places weight more than first: application/td+json > application/json > text/html
+                const aWeight = ["text/html", "application/json", "application/td+json"].findIndex(
+                    (value) => value === a
+                );
+                const bWeight = ["text/html", "application/json", "application/td+json"].findIndex(
+                    (value) => value === b
+                );
+
+                return bWeight - aWeight;
+            });
 
         if (filteredAcceptValues.length > 0) {
             const contentType = filteredAcceptValues[0];
@@ -687,7 +699,7 @@ export default class HttpServer implements ProtocolServer {
         try {
             segments = decodeURI(pathname).split("/");
         } catch (ex) {
-            // catch URIError, see https://github.com/eclipse/thingweb.node-wot/issues/389
+            // catch URIError, see https://github.com/eclipse-thingweb/node-wot/issues/389
             warn(`HttpServer on port ${this.getPort()} cannot decode URI for '${requestUri.pathname}'`);
             res.writeHead(400);
             res.end("decodeURI error for " + requestUri.pathname);

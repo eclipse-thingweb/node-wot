@@ -244,9 +244,9 @@ export default class MqttBrokerServer implements ProtocolServer {
         /*
          * Currently, this branch will never be taken. The main reason for that is in the mqtt library we use:
          * https://github.com/mqttjs/MQTT.js/pull/1103
-         * For further discussion see https://github.com/eclipse/thingweb.node-wot/pull/253
+         * For further discussion see https://github.com/eclipse-thingweb/node-wot/pull/253
          */
-        let contentType = ContentSerdes.DEFAULT;
+        const contentType = packet?.properties?.contentType ?? ContentSerdes.DEFAULT;
         if ("properties" in packet && "contentType" in packet.properties) {
             contentType = packet.properties.contentType;
         }
@@ -291,7 +291,7 @@ export default class MqttBrokerServer implements ProtocolServer {
         thing: ExposedThing
     ) {
         if (!property.readOnly) {
-            let contentType = ContentSerdes.DEFAULT;
+            const contentType = packet?.properties?.contentType ?? ContentSerdes.DEFAULT;
             if ("properties" in packet && "contentType" in packet.properties) {
                 contentType = packet.properties.contentType;
             }

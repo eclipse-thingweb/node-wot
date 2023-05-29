@@ -2,7 +2,7 @@
 
 ## Overview
 
-Firestore Binding is an implementation of the [W3C Web of Things](https://www.w3.org/WoT/) Binding using Firestore, which can be used with [Eclipse Thingweb node-wot](https://github.com/eclipse/thingweb.node-wot/) to embody the Web of Things.
+Firestore Binding is an implementation of the [W3C Web of Things](https://www.w3.org/WoT/) Binding using Firestore, which can be used with [Eclipse Thingweb node-wot](https://github.com/eclipse-thingweb/node-wot/) to embody the Web of Things.
 
 Firestore has the ability to subscribe to written data, and Firestore Binding uses this to perform communication between the Thing and the Client.
 This Binding provides a storage location (Reference) in Firestore for data corresponding to a Thing's properties, actions, and events. By writing data to the Reference, communication between the Thing or Client that subscribes to the data is realized.
@@ -226,4 +226,4 @@ You can check it at [Firebase console](https://console.firebase.google.com/).
 
 ## More Details
 
-See <https://github.com/eclipse/thingweb.node-wot/>
+See <https://github.com/eclipse-thingweb/node-wot/>

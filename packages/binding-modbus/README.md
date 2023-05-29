@@ -12,7 +12,7 @@ The protocol prefix handled by this binding is `modbus+tcp://`.
 
 ## New Form Fields for the Modbus Binding
 
-**Note**: for further details please refer to the [documentation](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-modbus/src/modbus.ts).
+**Note**: for further details please refer to the [documentation](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-modbus/src/modbus.ts).
 
 ### modbus:function
 
@@ -200,4 +200,4 @@ Polls the 8th holding register of the unit 1 every second.
 
 ## More Details
 
-See <https://github.com/eclipse/thingweb.node-wot/>
+See <https://github.com/eclipse-thingweb/node-wot/>

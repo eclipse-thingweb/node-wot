@@ -113,4 +113,4 @@ wotHelper
 
 ## More Details
 
-See <https://github.com/eclipse/thingweb.node-wot/>
+See <https://github.com/eclipse-thingweb/node-wot/>

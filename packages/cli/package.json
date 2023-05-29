@@ -4,7 +4,7 @@
     "description": "servient command line interface",
     "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
     "license": "EPL-2.0 OR W3C-20150513",
-    "repository": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/cli",
+    "repository": "https://github.com/eclipse-thingweb/node-wot/tree/master/packages/cli",
     "publishConfig": {
         "access": "public"
     },
@@ -51,7 +51,7 @@
         "commander": "^9.1.0",
         "dotenv": "^8.6.0",
         "lodash": "^4.17.21",
-        "vm2": "3.9.17"
+        "vm2": "3.9.18"
     },
     "scripts": {
         "build": "tsc -b",
@@ -63,8 +63,8 @@
         "test": "mocha --require ts-node/register --extension ts"
     },
     "bugs": {
-        "url": "https://github.com/eclipse/thingweb.node-wot/issues"
+        "url": "https://github.com/eclipse-thingweb/node-wot/issues"
     },
-    "homepage": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/cli#readme",
+    "homepage": "https://github.com/eclipse-thingweb/node-wot/tree/master/packages/cli#readme",
     "keywords": []
 }
