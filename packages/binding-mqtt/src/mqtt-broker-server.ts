@@ -247,9 +247,6 @@ export default class MqttBrokerServer implements ProtocolServer {
          * For further discussion see https://github.com/eclipse-thingweb/node-wot/pull/253
          */
         const contentType = packet?.properties?.contentType ?? ContentSerdes.DEFAULT;
-        if ("properties" in packet && "contentType" in packet.properties) {
-            contentType = packet.properties.contentType;
-        }
 
         const options: InteractionOptions & { formIndex: number } = {
             formIndex: ProtocolHelpers.findRequestMatchingFormIndex(
@@ -261,7 +258,7 @@ export default class MqttBrokerServer implements ProtocolServer {
         };
 
         const formContentType = action.forms[options.formIndex].contentType ?? ContentSerdes.DEFAULT;
-        const inputContent = new Content(formContentType, Readable.from(payload.toString()));
+        const inputContent = new Content(formContentType, Readable.from(payload));
 
         thing
             .handleInvokeAction(segments[this.INTERACTION_NAME_SEGMENT_INDEX], inputContent, options)
@@ -292,9 +289,6 @@ export default class MqttBrokerServer implements ProtocolServer {
     ) {
         if (!property.readOnly) {
             const contentType = packet?.properties?.contentType ?? ContentSerdes.DEFAULT;
-            if ("properties" in packet && "contentType" in packet.properties) {
-                contentType = packet.properties.contentType;
-            }
 
             const options: InteractionOptions & { formIndex: number } = {
                 formIndex: ProtocolHelpers.findRequestMatchingFormIndex(
@@ -306,7 +300,7 @@ export default class MqttBrokerServer implements ProtocolServer {
             };
 
             const formContentType = property.forms[options.formIndex].contentType ?? ContentSerdes.DEFAULT;
-            const inputContent = new Content(formContentType, Readable.from(payload.toString()));
+            const inputContent = new Content(formContentType, Readable.from(payload));
 
             try {
                 thing.handleWriteProperty(segments[this.INTERACTION_NAME_SEGMENT_INDEX], inputContent, options);
