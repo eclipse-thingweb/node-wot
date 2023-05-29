@@ -246,7 +246,7 @@ export default class MqttBrokerServer implements ProtocolServer {
          * https://github.com/mqttjs/MQTT.js/pull/1103
          * For further discussion see https://github.com/eclipse-thingweb/node-wot/pull/253
          */
-        let contentType = ContentSerdes.DEFAULT;
+        const contentType = packet?.properties?.contentType ?? ContentSerdes.DEFAULT;
         if ("properties" in packet && "contentType" in packet.properties) {
             contentType = packet.properties.contentType;
         }
