@@ -45,9 +45,8 @@
         "is-absolute-url": "3.0.3",
         "json-placeholder-replacer": "^1.0.35",
         "url-toolkit": "2.1.6",
-        "wot-thing-description-types": "1.1.0-23-March-2023",
-        "wot-thing-model-types": "1.1.0-23-March-2023",
-        "wot-typescript-definitions": "0.8.0-SNAPSHOT.25"
+        "wot-thing-model-types": "1.1.0-24-May-2023",
+        "wot-typescript-definitions": "0.8.0-SNAPSHOT.26"
     },
     "scripts": {
         "build": "tsc -b && webpack",
