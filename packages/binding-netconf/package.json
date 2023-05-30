@@ -36,12 +36,12 @@
         "wot-typescript-definitions": "0.8.0-SNAPSHOT.25"
     },
     "dependencies": {
-        "@node-wot/td-tools": "0.8.7",
         "@node-wot/core": "0.8.7",
+        "@node-wot/td-tools": "0.8.7",
         "@types/node-netconf": "npm:@types/netconf@^2.0.0",
         "@types/url-parse": "^1.4.3",
         "case-1.5.3": "npm:case@^1.5.3",
-        "node-netconf": "^1.1.1",
+        "node-netconf": "^1.1.2",
         "url-parse": "^1.5.8"
     },
     "scripts": {

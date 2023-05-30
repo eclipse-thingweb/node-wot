@@ -18,6 +18,8 @@
         "./dist/http-client.js": "./dist/http-client-browser.js"
     },
     "devDependencies": {
+        "@node-oauth/express-oauth-server": "^3.0.1",
+        "@node-oauth/oauth2-server": "^4.3.0",
         "@sinonjs/fake-timers": "^10.0.2",
         "@testdeck/mocha": "^0.1.2",
         "@types/accept-language-parser": "^1.5.2",
@@ -25,7 +27,6 @@
         "@types/chai": "^4.2.18",
         "@types/chai-as-promised": "^7.1.4",
         "@types/express": "^4.17.3",
-        "@types/express-oauth-server": "^2.0.2",
         "@types/mocha": "^9.0.0",
         "@types/node": "16.4.13",
         "@types/node-fetch": "^2.5.10",
@@ -42,7 +43,6 @@
         "eslint-plugin-node": "^11.1.0",
         "eslint-plugin-promise": "^5.1.0",
         "eslint-plugin-unused-imports": "^1.1.4",
-        "express-oauth-server": "^2.0.0",
         "mocha": "^9.2.2",
         "prettier": "^2.3.2",
         "ssestream": "^1.1.0",

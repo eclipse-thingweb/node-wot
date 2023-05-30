@@ -11,8 +11,7 @@
     "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
     "license": "EPL-2.0 OR W3C-20150513",
     "devDependencies": {
-        "@types/express-oauth-server": "^2.0.2",
-        "cors": "^2.8.5",
-        "express-oauth-server": "^2.0.0"
+        "@node-oauth/express-oauth-server": "^3.0.1",
+        "cors": "^2.8.5"
     }
 }
