@@ -35,7 +35,7 @@
         "typescript": "4.4.3",
         "typescript-standard": "^0.3.36",
         "should": "^13.2.3",
-        "wot-typescript-definitions": "0.8.0-SNAPSHOT.25"
+        "wot-typescript-definitions": "0.8.0-SNAPSHOT.26"
     },
     "dependencies": {
         "ajv": "^8.11.0",
@@ -65,9 +65,9 @@
         "test": "mocha"
     },
     "bugs": {
-        "url": "https://github.com/eclipse/thingweb.node-wot/issues"
+        "url": "https://github.com/eclipse-thingweb/node-wot/issues"
     },
-    "homepage": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-opcua#readme",
+    "homepage": "https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-opcua#readme",
     "directories": {
         "test": "test"
     },

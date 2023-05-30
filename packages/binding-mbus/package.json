@@ -40,7 +40,7 @@
         "@node-wot/core": "0.8.7",
         "@node-wot/td-tools": "0.8.7",
         "node-mbus": "^1.2.2",
-        "wot-typescript-definitions": "0.8.0-SNAPSHOT.25"
+        "wot-typescript-definitions": "0.8.0-SNAPSHOT.26"
     },
     "scripts": {
         "build": "tsc -b",
@@ -50,9 +50,9 @@
         "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"**/*.json\""
     },
     "bugs": {
-        "url": "https://github.com/eclipse/thingweb.node-wot/issues"
+        "url": "https://github.com/eclipse-thingweb/node-wot/issues"
     },
-    "homepage": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-mbus#readme",
+    "homepage": "https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-mbus#readme",
     "directories": {
         "test": "test"
     },

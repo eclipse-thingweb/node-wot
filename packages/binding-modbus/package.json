@@ -44,7 +44,7 @@
         "@node-wot/td-tools": "0.8.7",
         "modbus-serial": "8.0.3",
         "rxjs": "5.5.11",
-        "wot-typescript-definitions": "0.8.0-SNAPSHOT.25"
+        "wot-typescript-definitions": "0.8.0-SNAPSHOT.26"
     },
     "scripts": {
         "build": "tsc -b",
@@ -54,9 +54,9 @@
         "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"**/*.json\""
     },
     "bugs": {
-        "url": "https://github.com/eclipse/thingweb.node-wot/issues"
+        "url": "https://github.com/eclipse-thingweb/node-wot/issues"
     },
-    "homepage": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-modbus#readme",
+    "homepage": "https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-modbus#readme",
     "directories": {
         "test": "test"
     }

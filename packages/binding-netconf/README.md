@@ -132,4 +132,4 @@ Please note that, in order to make this binding work, each href should always co
 
 ## More Details
 
-See <https://github.com/eclipse/thingweb.node-wot/>
+See <https://github.com/eclipse-thingweb/node-wot/>
