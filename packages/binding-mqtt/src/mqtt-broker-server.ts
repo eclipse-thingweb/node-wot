@@ -246,42 +246,19 @@ export default class MqttBrokerServer implements ProtocolServer {
          * https://github.com/mqttjs/MQTT.js/pull/1103
          * For further discussion see https://github.com/eclipse-thingweb/node-wot/pull/253
          */
-        let value;
+        const contentType = packet?.properties?.contentType ?? ContentSerdes.DEFAULT;
 
-        if ("properties" in packet && "contentType" in packet.properties) {
-            try {
-                value = ContentSerdes.get().contentToValue(
-                    { type: packet.properties.contentType, body: payload },
-                    action.input
-                );
-            } catch (err) {
-                warn(
-                    `MqttBrokerServer at ${this.brokerURI} cannot process received message for '${
-                        segments[this.INTERACTION_NAME_SEGMENT_INDEX]
-                    }': ${err.message}`
-                );
-            }
-        } else {
-            try {
-                value = JSON.parse(payload.toString());
-            } catch (err) {
-                warn(
-                    `MqttBrokerServer at ${this.brokerURI}, packet has no Content Type and does not parse as JSON, relaying raw (string) payload.`
-                );
-                value = payload.toString();
-            }
-        }
         const options: InteractionOptions & { formIndex: number } = {
             formIndex: ProtocolHelpers.findRequestMatchingFormIndex(
                 action.forms,
                 this.scheme,
                 this.brokerURI,
-                ContentSerdes.DEFAULT
+                contentType
             ),
         };
 
-        const contentType = action.forms[options.formIndex].contentType ?? ContentSerdes.DEFAULT;
-        const inputContent = new Content(contentType, Readable.from(value));
+        const formContentType = action.forms[options.formIndex].contentType ?? ContentSerdes.DEFAULT;
+        const inputContent = new Content(formContentType, Readable.from(payload));
 
         thing
             .handleInvokeAction(segments[this.INTERACTION_NAME_SEGMENT_INDEX], inputContent, options)
@@ -311,10 +288,7 @@ export default class MqttBrokerServer implements ProtocolServer {
         thing: ExposedThing
     ) {
         if (!property.readOnly) {
-            let contentType = ContentSerdes.DEFAULT;
-            if ("contentType" in packet.properties) {
-                contentType = packet.properties.contentType;
-            }
+            const contentType = packet?.properties?.contentType ?? ContentSerdes.DEFAULT;
 
             const options: InteractionOptions & { formIndex: number } = {
                 formIndex: ProtocolHelpers.findRequestMatchingFormIndex(
@@ -326,7 +300,7 @@ export default class MqttBrokerServer implements ProtocolServer {
             };
 
             const formContentType = property.forms[options.formIndex].contentType ?? ContentSerdes.DEFAULT;
-            const inputContent = new Content(formContentType, Readable.from(payload.toString()));
+            const inputContent = new Content(formContentType, Readable.from(payload));
 
             try {
                 thing.handleWriteProperty(segments[this.INTERACTION_NAME_SEGMENT_INDEX], inputContent, options);
