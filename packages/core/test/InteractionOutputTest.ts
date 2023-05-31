@@ -19,7 +19,7 @@ import promised from "chai-as-promised";
 import { expect, use } from "chai";
 import { Readable } from "stream";
 import { InteractionOutput } from "../src/interaction-output";
-import { Content } from "@node-wot/core";
+import { Content } from "..";
 
 use(promised);
 const delay = (ms: number) => {

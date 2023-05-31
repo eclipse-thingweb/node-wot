@@ -4,7 +4,13 @@ module.exports = {
         tsconfigRootDir: __dirname,
         project: ["./tsconfig.eslint.json"],
     },
-    extends: ["eslint:recommended", "standard", "prettier", "plugin:@typescript-eslint/recommended"],
+    extends: [
+        "eslint:recommended",
+        "standard",
+        "prettier",
+        "plugin:@typescript-eslint/recommended",
+        "plugin:workspaces/recommended",
+    ],
     plugins: ["@typescript-eslint", "unused-imports", "workspaces", "notice"],
     env: {
         es6: true,
@@ -20,7 +26,6 @@ module.exports = {
                 onNonMatchingHeader: "replace",
             },
         ],
-        "workspaces/no-relative-imports": "error",
         "@typescript-eslint/no-unused-vars": "off", // or "@typescript-eslint/no-unused-vars": "off",
         "no-use-before-define": "off",
         "@typescript-eslint/no-use-before-define": ["error"],
