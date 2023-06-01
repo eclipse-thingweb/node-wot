@@ -23,7 +23,7 @@
 import { suite, test } from "@testdeck/mocha";
 import * as TD from "@node-wot/td-tools";
 import { expect } from "chai";
-import { ProtocolHelpers } from "@node-wot/core";
+import { ProtocolHelpers } from "..";
 import { ActionElement, EventElement, PropertyElement } from "wot-thing-description-types";
 
 @suite("Protocol Helpers")
