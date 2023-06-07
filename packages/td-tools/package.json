@@ -33,8 +33,8 @@
         "prettier": "^2.3.2",
         "stream-http": "^3.2.0",
         "ts-loader": "8",
-        "ts-node": "10.1.0",
-        "typescript": "4.4.3",
+        "ts-node": "^10.9.1",
+        "typescript": "^4.7.4",
         "typescript-standard": "^0.3.36",
         "webpack": "^5.76.0",
         "webpack-cli": "^4.8.0"
