@@ -47,7 +47,7 @@ export class LongPollingSubscription implements InternalSubscription {
                     if (handshake) {
                         const headRequest = await this.client["generateFetchRequest"](this.form, "HEAD", {
                             timeout: 1000,
-                            signal: this.abortController.signal as any,
+                            signal: this.abortController.signal,
                         });
                         const result = await this.client["fetch"](headRequest);
                         if (result.ok) resolve();
@@ -56,7 +56,7 @@ export class LongPollingSubscription implements InternalSubscription {
                     // long timeout for long polling
                     const request = await this.client["generateFetchRequest"](this.form, "GET", {
                         timeout: 60 * 60 * 1000,
-                        signal: this.abortController.signal as any,
+                        signal: this.abortController.signal,
                     });
                     debug(`HttpClient (subscribeResource) sending ${request.method} to ${request.url}`);
 
