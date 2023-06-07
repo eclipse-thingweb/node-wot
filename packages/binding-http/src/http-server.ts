@@ -1010,7 +1010,7 @@ export default class HttpServer implements ProtocolServer {
                                 };
 
                                 await thing.handleSubscribeEvent(segments[3], listener, options);
-                                res.on("finish", () => {
+                                res.on("close", () => {
                                     debug(`HttpServer on port ${this.getPort()} closed Event connection`);
                                     thing.handleUnsubscribeEvent(segments[3], listener, options);
                                 });
