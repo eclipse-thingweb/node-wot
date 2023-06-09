@@ -985,8 +985,14 @@ export default class HttpServer implements ProtocolServer {
                                 const listener = async (value: Content) => {
                                     try {
                                         // send event data
-                                        res.setHeader("Content-Type", value.type);
-                                        res.writeHead(200);
+                                        if (!res.headersSent) {
+                                            // We are polite and use the same request as long as the client
+                                            // does not close the connection (or we hit the timeout; see below).
+                                            // Therefore we are sending the headers
+                                            // only if we didn't have sent them before.
+                                            res.setHeader("Content-Type", value.type);
+                                            res.writeHead(200);
+                                        }
                                         value.body.pipe(res);
                                     } catch (err) {
                                         if (err?.code === "ERR_HTTP_HEADERS_SENT") {
@@ -1004,7 +1010,7 @@ export default class HttpServer implements ProtocolServer {
                                 };
 
                                 await thing.handleSubscribeEvent(segments[3], listener, options);
-                                res.on("finish", () => {
+                                res.on("close", () => {
                                     debug(`HttpServer on port ${this.getPort()} closed Event connection`);
                                     thing.handleUnsubscribeEvent(segments[3], listener, options);
                                 });

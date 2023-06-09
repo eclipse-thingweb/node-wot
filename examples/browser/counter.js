@@ -114,6 +114,8 @@ function showInteractions(thing) {
 
             eventSubscriptions[evnt] = false;
             let subscription;
+            let eventCounter = 0;
+            const eventDisplay = document.getElementById("event-display");
             checkbox.onclick = (click) => {
                 if (
                     document.getElementById(evnt).checked &&
@@ -124,12 +126,17 @@ function showInteractions(thing) {
                     eventSubscriptions[evnt] = true;
                     thing
                         .subscribeEvent(evnt, async function (data) {
-                            console.log('Event "' + evnt + '"');
+                            const value = await data.value();
+                            console.log('Event "' + evnt + '"', value);
+                            eventCounter++;
                             updateProperties();
+                            document.getElementById("event-count").innerHTML = eventCounter;
+                            document.getElementById("event-payload").innerHTML = value;
                         })
                         .then((sub) => {
                             subscription = sub;
                             console.log("Subscribed for event: " + evnt);
+                            eventDisplay.style.display = "block";
                         })
                         .catch((error) => {
                             window.alert("Event " + evnt + " error\nMessage: " + error);
@@ -142,6 +149,10 @@ function showInteractions(thing) {
                             .stop()
                             .then(() => {
                                 console.log("Unsubscribed for event: " + evnt);
+                                eventDisplay.style.display = "none";
+                                eventCounter = 0;
+                                document.getElementById("event-count").innerHTML = eventCounter;
+                                document.getElementById("event-payload").innerHTML = "";
                             })
                             .catch((error) => {
                                 window.alert("Event " + evnt + " error\nMessage: " + error);
