@@ -129,6 +129,7 @@ function showInteractions(thing) {
                             const value = await data.value();
                             console.log('Event "' + evnt + '"', value);
                             eventCounter++;
+                            updateProperties();
                             document.getElementById("event-count").innerHTML = eventCounter;
                             document.getElementById("event-payload").innerHTML = value;
                         })
