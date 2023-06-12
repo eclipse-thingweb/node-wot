@@ -15,7 +15,7 @@
     "types": "dist/file.d.ts",
     "devDependencies": {
         "@node-wot/td-tools": "0.8.7",
-        "@types/node": "16.4.13",
+        "@types/node": "16.18.35",
         "@typescript-eslint/eslint-plugin": "^4.30.0",
         "@typescript-eslint/parser": "^4.30.0",
         "eslint": "^7.32.0",

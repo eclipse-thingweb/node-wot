@@ -8,7 +8,7 @@
     "repository": "https://github.com/eclipse-thingweb/node-wot/tree/master/packages/examples",
     "devDependencies": {
         "@node-oauth/express-oauth-server": "^3.0.1",
-        "@types/node": "16.4.13",
+        "@types/node": "16.18.35",
         "@typescript-eslint/eslint-plugin": "^4.30.0",
         "@typescript-eslint/parser": "^4.30.0",
         "eslint": "^7.32.0",

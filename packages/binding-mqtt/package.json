@@ -16,7 +16,7 @@
     "devDependencies": {
         "@testdeck/mocha": "^0.1.2",
         "@types/chai": "^4.2.18",
-        "@types/node": "16.4.13",
+        "@types/node": "16.18.35",
         "@typescript-eslint/eslint-plugin": "^4.30.0",
         "@typescript-eslint/parser": "^4.30.0",
         "chai": "^4.3.4",
