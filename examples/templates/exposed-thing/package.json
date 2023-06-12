@@ -10,7 +10,7 @@
     "author": "tumeiesi",
     "license": "MIT",
     "devDependencies": {
-        "typescript": "4.4.3",
+        "typescript": "4.7.4",
         "wot-typescript-definitions": "0.8.0-SNAPSHOT.26",
         "@types/node": "16.18.35",
         "tslint": "5.12.1"
