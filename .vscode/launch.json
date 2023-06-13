@@ -303,26 +303,6 @@
             "request": "launch",
             "skipFiles": ["<node_internals>/**"],
             "type": "pwa-node"
-        },
-        {
-            "args": [
-                "--require",
-                "ts-node/register",
-                "test/**/*.ts",
-                "--timeout",
-                "10000",
-                "--colors",
-                "--extension",
-                "ts",
-                "${workspaceFolder}/packages/binding-firestore/test"
-            ],
-            "internalConsoleOptions": "openOnSessionStart",
-            "cwd": "${workspaceFolder}/packages/binding-firestore/",
-            "name": "Firestore Tests",
-            "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
-            "request": "launch",
-            "skipFiles": ["<node_internals>/**"],
-            "type": "pwa-node"
         }
     ]
 }

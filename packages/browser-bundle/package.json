@@ -20,7 +20,7 @@
         "browserify": "^17.0.0",
         "readable-stream4": "npm:readable-stream@^4.0.0",
         "tinyify": "2.5.2",
-        "typescript": "^4.7.4",
+        "typescript": "4.7.4",
         "wot-typescript-definitions": "0.8.0-SNAPSHOT.26"
     },
     "scripts": {
