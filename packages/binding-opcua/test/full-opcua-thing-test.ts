@@ -303,11 +303,8 @@ const thingDescription: WoT.ThingDescription = {
 
 describe("Full OPCUA Thing Test", () => {
     let opcuaServer: OPCUAServer;
-    let endpoint: string;
     before(async () => {
         opcuaServer = await startServer();
-        endpoint = opcuaServer.getEndpointUrl();
-        debug(`endpoint =  ${endpoint}`);
     });
     after(async () => {
         await opcuaServer.shutdown();
