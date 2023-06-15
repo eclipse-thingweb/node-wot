@@ -22,18 +22,15 @@ import { VariableIds, OPCUAServer } from "node-opcua";
 import { OPCUAProtocolClient, OPCUAForm, OPCUAFormInvoke } from "../src/opcua-protocol-client";
 import { OpcuaJSONCodec, schemaDataValue } from "../src/codec";
 import { startServer } from "./fixture/basic-opcua-server";
-
+const endpoint = "opc.tcp://localhost:7890";
 const { debug } = createLoggers("binding-opcua", "opcua-protocol-client");
 
 describe("OPCUA Client", function () {
     this.timeout(60000);
 
     let opcuaServer: OPCUAServer;
-    let endpoint: string;
     before(async () => {
         opcuaServer = await startServer();
-        endpoint = opcuaServer.getEndpointUrl();
-        debug(`endpoint = ${endpoint}`);
     });
     before(() => {
         // ensure codec is loaded
