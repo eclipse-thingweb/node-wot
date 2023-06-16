@@ -1,5 +1,7 @@
 # Command-line interface (CLI) of node-wot
 
+Current Maintainer(s): @relu91 @danielpeintner @mkovatsc
+
 ## Getting Started
 
 ### Installation

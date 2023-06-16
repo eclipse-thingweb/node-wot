@@ -3,6 +3,8 @@
 W3C Web of Things (WoT) Protocol Binding for OPC UA.
 This package uses [nodep-opcua](https://www.npmjs.com/package/node-opcua) as a low-level client for OPCUA over TCP.
 
+Current Maintainer(s): @erossignon
+
 ## Protocol specifier
 
 The protocol prefix handled by this binding is `opc.tcp`.
