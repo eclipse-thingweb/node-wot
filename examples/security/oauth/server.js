@@ -15,7 +15,7 @@
 /**
  * A simple oAuth test server
  */
-const OAuthServer = require("express-oauth-server");
+const OAuthServer = require("@node-oauth/express-oauth-server");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const https = require("https");

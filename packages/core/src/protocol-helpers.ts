@@ -19,7 +19,7 @@ import { ReadableStream as PolyfillStream } from "web-streams-polyfill/ponyfill/
 import { ActionElement, EventElement, PropertyElement } from "wot-thing-description-types";
 import { createLoggers } from "./logger";
 
-const { debug } = createLoggers("core", "protocol-helpers");
+const { debug, warn } = createLoggers("core", "protocol-helpers");
 
 export interface IManagedStream {
     nodeStream: Readable;
@@ -379,5 +379,28 @@ export default class ProtocolHelpers {
 
         // No suitable form found for this operation
         return finalFormIndex;
+    }
+
+    public static getPropertyOpValues(property: PropertyElement): string[] {
+        const op: string[] = [];
+
+        if (!property.readOnly) {
+            op.push("writeproperty");
+        }
+
+        if (!property.writeOnly) {
+            op.push("readproperty");
+        }
+
+        if (op.length === 0) {
+            warn("Property was declared both as readOnly and writeOnly.");
+        }
+
+        if (property.observable) {
+            op.push("observeproperty");
+            op.push("unobserveproperty");
+        }
+
+        return op;
     }
 }

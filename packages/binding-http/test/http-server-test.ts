@@ -144,8 +144,8 @@ class HttpServerTest {
         resp = await (await fetch(uri + "properties/test")).text();
         expect(resp).to.equal('"off"');
 
-        resp = await (await fetch(uri + "properties")).text();
-        expect(resp).to.equal('{"test":"\\"off\\""}');
+        resp = await (await fetch(uri + "properties")).json();
+        expect(resp).to.deep.equal({ test: "off" });
 
         resp = await (await fetch(uri + "properties/test", { method: "PUT", body: "on" })).text();
         expect(resp).to.equal("");
@@ -271,8 +271,8 @@ class HttpServerTest {
         resp = await (await fetch(uri + "properties/test")).text();
         expect(resp).to.equal("{}");
 
-        resp = await (await fetch(uri + "properties")).text();
-        expect(resp).to.equal('{"test":"{}"}');
+        resp = await (await fetch(uri + "properties")).json();
+        expect(resp).to.deep.equal({ test: {} });
 
         resp = await (
             await fetch(uri + "properties/test", {
@@ -322,7 +322,7 @@ class HttpServerTest {
         });
     }
 
-    // https://github.com/eclipse/thingweb.node-wot/issues/181
+    // https://github.com/eclipse-thingweb/node-wot/issues/181
     @test async "should start and stop a server with no security"() {
         const httpServer = new HttpServer({ port, security: { scheme: "nosec" } });
 
@@ -332,7 +332,7 @@ class HttpServerTest {
         await httpServer.stop();
     }
 
-    // https://github.com/eclipse/thingweb.node-wot/issues/181
+    // https://github.com/eclipse-thingweb/node-wot/issues/181
     @test async "should not override a valid security scheme"() {
         const httpServer = new HttpServer({
             port: port2,
@@ -549,6 +549,100 @@ class HttpServerTest {
         return httpServer.stop();
     }
 
+    @test async "should report allproperties excluding non-JSON properties"() {
+        const httpServer = new HttpServer({ port: 0 });
+
+        await httpServer.start(null);
+
+        const tdTemplate: WoT.ExposedThingInit = {
+            title: "TestA",
+            properties: {
+                image: {
+                    forms: [
+                        {
+                            contentType: "image/svg+xml",
+                        },
+                    ],
+                },
+                testInteger: {
+                    type: "integer",
+                },
+                testBoolean: {
+                    type: "boolean",
+                },
+                testString: {
+                    type: "string",
+                },
+                testObject: {
+                    type: "object",
+                },
+                testArray: {
+                    type: "array",
+                },
+            },
+        };
+        const testThing = new ExposedThing(null, tdTemplate);
+
+        const image = "<svg xmlns='http://www.w3.org/2000/svg'><text>FOO</text></svg>";
+        const integer = 123;
+        const boolean = true;
+        const string = "ABCD";
+        const object = { t1: "xyz", i: 77 };
+        const array = ["x", "y", "z"];
+        testThing.setPropertyReadHandler("image", (_) => Promise.resolve(image));
+        testThing.setPropertyReadHandler("testInteger", (_) => Promise.resolve(integer));
+        testThing.setPropertyReadHandler("testBoolean", (_) => Promise.resolve(boolean));
+        testThing.setPropertyReadHandler("testString", (_) => Promise.resolve(string));
+        testThing.setPropertyReadHandler("testObject", (_) => Promise.resolve(object));
+        testThing.setPropertyReadHandler("testArray", (_) => Promise.resolve(array));
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.image.forms = [];
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.testInteger.forms = [];
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.testBoolean.forms = [];
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.testString.forms = [];
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.testObject.forms = [];
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.testArray.forms = [];
+
+        await httpServer.expose(testThing, tdTemplate);
+
+        // check values one by one first
+        const responseInteger = await fetch(`http://localhost:${httpServer.getPort()}/testa/properties/testInteger`);
+        expect(await responseInteger.json()).to.equal(integer);
+        const responseBoolean = await fetch(`http://localhost:${httpServer.getPort()}/testa/properties/testBoolean`);
+        expect(await responseBoolean.json()).to.equal(boolean);
+        const responseString = await fetch(`http://localhost:${httpServer.getPort()}/testa/properties/testString`);
+        expect(await responseString.json()).to.equal(string);
+        const responseObject = await fetch(`http://localhost:${httpServer.getPort()}/testa/properties/testObject`);
+        expect(await responseObject.json()).to.deep.equal(object);
+        const responseArray = await fetch(`http://localhost:${httpServer.getPort()}/testa/properties/testArray`);
+        expect(await responseArray.json()).to.deep.equal(array);
+
+        // check values of readallproperties
+        const responseAll = await fetch(`http://localhost:${httpServer.getPort()}/testa/properties`);
+        expect(await responseAll.json()).to.deep.equal({
+            // "image": image, // Note: No support for contentTypes other than JSON -> not included
+            testInteger: integer,
+            testBoolean: boolean,
+            testString: string,
+            testObject: object,
+            testArray: array,
+        });
+
+        return httpServer.stop();
+    }
+
     @test async "should support setting SVG contentType"() {
         const httpServer = new HttpServer({ port: 0 });
 
@@ -580,6 +674,9 @@ class HttpServerTest {
 
         const contentTypeResponse = await fetch(uri);
         expect(contentTypeResponse.headers.get("Content-Type")).to.equal("image/svg+xml");
+
+        // check value (e.g., SVG text without quotes)
+        expect(await contentTypeResponse.text()).to.equal(image);
 
         return httpServer.stop();
     }
@@ -645,6 +742,23 @@ class HttpServerTest {
                 expectedResponseCode: 200,
             },
             {
+                // Typical browser request (e.g., Chrome)
+                inputHeaders: {
+                    Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+                },
+                // We should favor application/td+json over text/html
+                expected: "application/td+json",
+                expectedResponseCode: 200,
+            },
+            {
+                inputHeaders: {
+                    Accept: "image/svg+xml,text/html",
+                },
+                // We should favor text/html over image/svg+xml
+                expected: "text/html",
+                expectedResponseCode: 200,
+            },
+            {
                 inputHeaders: { Accept: "*/*,application/json" },
                 expected: "application/td+json",
                 expectedResponseCode: 200,
@@ -697,6 +811,115 @@ class HttpServerTest {
         });
         expect(failedNegotiationResponse.headers.get("Content-Type")).to.equal(null);
         expect(failedNegotiationResponse.status).to.equal(406);
+
+        return httpServer.stop();
+    }
+
+    @test async "TD should have form with readallproperties"() {
+        const httpServer = new HttpServer({ port: 0 });
+
+        await httpServer.start(null);
+
+        const tdTemplate: WoT.ExposedThingInit = {
+            title: "Test",
+            properties: {
+                testReadOnly: {
+                    type: "number",
+                    readOnly: true,
+                },
+            },
+        };
+        const testThing = new ExposedThing(null, tdTemplate);
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.testReadOnly.forms = [];
+
+        await httpServer.expose(testThing, tdTemplate);
+
+        const uriTD = `http://localhost:${httpServer.getPort()}/test`;
+
+        const tdResponse = await fetch(uriTD);
+        const td = await tdResponse.json();
+
+        expect(td).to.have.property("forms").to.be.an("array");
+        expect(JSON.stringify(td.forms)).to.deep.contain.oneOf(["readallproperties", "readmultipleproperties"]);
+        expect(JSON.stringify(td.forms)).to.not.deep.contain.oneOf(["writeallproperties", "writemultipleproperties"]);
+
+        return httpServer.stop();
+    }
+
+    @test async "TD should have form with writeallproperties"() {
+        const httpServer = new HttpServer({ port: 0 });
+
+        await httpServer.start(null);
+
+        const tdTemplate: WoT.ExposedThingInit = {
+            title: "Test",
+            properties: {
+                testWriteOnly: {
+                    type: "number",
+                    writeOnly: true,
+                },
+            },
+        };
+        const testThing = new ExposedThing(null, tdTemplate);
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.testWriteOnly.forms = [];
+
+        await httpServer.expose(testThing, tdTemplate);
+
+        const uriTD = `http://localhost:${httpServer.getPort()}/test`;
+
+        const tdResponse = await fetch(uriTD);
+        const td = await tdResponse.json();
+
+        expect(td).to.have.property("forms").to.be.an("array");
+        expect(JSON.stringify(td.forms)).to.not.deep.contain.oneOf(["readallproperties", "readmultipleproperties"]);
+        expect(JSON.stringify(td.forms)).to.deep.contain.oneOf(["writeallproperties", "writemultipleproperties"]);
+
+        return httpServer.stop();
+    }
+
+    @test async "TD should have form with readallproperties and writeallproperties"() {
+        const httpServer = new HttpServer({ port: 0 });
+
+        await httpServer.start(null);
+
+        const tdTemplate: WoT.ExposedThingInit = {
+            title: "Test",
+            properties: {
+                testReadOnly: {
+                    type: "number",
+                    readOnly: true,
+                },
+                testWriteOnly: {
+                    type: "number",
+                    writeOnly: true,
+                },
+            },
+        };
+        const testThing = new ExposedThing(null, tdTemplate);
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.testReadOnly.forms = [];
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.testWriteOnly.forms = [];
+
+        await httpServer.expose(testThing, tdTemplate);
+
+        const uriTD = `http://localhost:${httpServer.getPort()}/test`;
+
+        const tdResponse = await fetch(uriTD);
+        const td = await tdResponse.json();
+
+        expect(td).to.have.property("forms").to.be.an("array");
+        expect(JSON.stringify(td.forms)).to.deep.contain.oneOf(["readallproperties", "readmultipleproperties"]);
+        expect(JSON.stringify(td.forms)).to.deep.contain.oneOf(["writeallproperties", "writemultipleproperties"]);
 
         return httpServer.stop();
     }

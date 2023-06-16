@@ -180,9 +180,9 @@ try {
 
 ### More Examples
 
-There are example implementations provided in the [example/scripting folder](https://github.com/eclipse/thingweb.node-wot/tree/master/examples/scripts).
+There are example implementations provided in the [example/scripting folder](https://github.com/eclipse-thingweb/node-wot/tree/master/examples/scripts).
 
-Please setup node-wot as described at the [node-wot main page](https://github.com/eclipse/thingweb.node-wot#as-a-standalone-application).
+Please setup node-wot as described at the [node-wot main page](https://github.com/eclipse-thingweb/node-wot#as-a-standalone-application).
 
 -   example-mqtt-publish.js: Shows when node-wot acts as a MQTT Client that publishes data (latest counter value) to a broker.
     At the same time, another client can invoke an action, such as `resetCounter`, by sending a publication message to the topic of this action.
@@ -210,4 +210,4 @@ Start the script by the command `wot-servient -c mqtt-subscribe.js` or `node ../
 
 ### More Details
 
-See <https://github.com/eclipse/thingweb.node-wot/>
+See <https://github.com/eclipse-thingweb/node-wot/>

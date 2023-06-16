@@ -1,10 +1,10 @@
 {
     "name": "@node-wot/browser-bundle",
-    "version": "0.8.6",
+    "version": "0.8.8",
     "description": "A node-wot bundle that can run in a web browser",
     "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
     "license": "EPL-2.0 OR W3C-20150513",
-    "repository": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/browser-bundle",
+    "repository": "https://github.com/eclipse-thingweb/node-wot/tree/master/packages/browser-bundle",
     "publishConfig": {
         "access": "public"
     },
@@ -13,24 +13,24 @@
     ],
     "main": "dist/wot-bundle.min.js",
     "devDependencies": {
-        "@node-wot/binding-http": "0.8.6",
-        "@node-wot/binding-websockets": "0.8.6",
-        "@node-wot/core": "0.8.6",
-        "@node-wot/td-tools": "0.8.6",
+        "@node-wot/binding-http": "0.8.8",
+        "@node-wot/binding-websockets": "0.8.8",
+        "@node-wot/core": "0.8.8",
+        "@node-wot/td-tools": "0.8.8",
         "browserify": "^17.0.0",
         "readable-stream4": "npm:readable-stream@^4.0.0",
         "tinyify": "2.5.2",
-        "typescript": "4.4.3",
-        "wot-typescript-definitions": "0.8.0-SNAPSHOT.25"
+        "typescript": "4.7.4",
+        "wot-typescript-definitions": "0.8.0-SNAPSHOT.26"
     },
     "scripts": {
         "build": "node build.js",
         "format": "prettier --write index.js \"**/*.json\""
     },
     "bugs": {
-        "url": "https://github.com/eclipse/thingweb.node-wot/issues"
+        "url": "https://github.com/eclipse-thingweb/node-wot/issues"
     },
-    "homepage": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/browser-bundle#readme",
+    "homepage": "https://github.com/eclipse-thingweb/node-wot/tree/master/packages/browser-bundle#readme",
     "keywords": [],
     "dependencies": {
         "events": "^2.1.0",

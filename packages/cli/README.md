@@ -131,7 +131,7 @@ VAR1=Value1
 VAR2=Value2
 ```
 
-Additionally, you can look at [the JSON Schema](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/cli/src/wot-servient-schema.conf.json) to understand possible values for each field.
+Additionally, you can look at [the JSON Schema](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/cli/src/wot-servient-schema.conf.json) to understand possible values for each field.
 
 ### Environment variables
 
@@ -150,8 +150,8 @@ For further details check: `wot-servient --help`
 
 ### Examples
 
-See [node-wot examples using Node.js](https://github.com/eclipse/thingweb.node-wot/#no-time-for-explanations---show-me-a-running-example).
+See [node-wot examples using Node.js](https://github.com/eclipse-thingweb/node-wot/#no-time-for-explanations---show-me-a-running-example).
 
 ## More Details
 
-See <https://github.com/eclipse/thingweb.node-wot/>
+See <https://github.com/eclipse-thingweb/node-wot/>

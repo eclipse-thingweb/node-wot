@@ -18,6 +18,23 @@
             // JSONEditor.defaults.theme = 'foundation5';
             JSONEditor.defaults.iconlib = "fontawesome4";
         </script>
+        <style>
+            @keyframes blink {
+                50% {
+                    opacity: 0;
+                }
+                100% {
+                    opacity: 1;
+                }
+            }
+            .blink {
+                animation: blink 0.5s step-start 0s 1;
+            }
+
+            .hidden {
+                display: none;
+            }
+        </style>
     </head>
     <body>
         <div id="topbar" class="row">
@@ -48,6 +65,10 @@
                 <figure>
                     <figcaption><h4>Events</h4></figcaption>
                     <ul id="events" class="side-nav"></ul>
+                    <div id="event-display" class="hidden">
+                        <p>Event count: <span id="event-count"></span></p>
+                        <p>Last payload: <span id="event-payload"></span></p>
+                    </div>
                 </figure>
             </div>
         </div>

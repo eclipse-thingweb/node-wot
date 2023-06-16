@@ -14,7 +14,15 @@
  ********************************************************************************/
 
 import { createDebugLogger } from "@node-wot/core";
-import { PasswordModel, ClientCredentialsModel, Callback, Token, Falsey, Client, User } from "oauth2-server";
+import {
+    PasswordModel,
+    ClientCredentialsModel,
+    Callback,
+    Token,
+    Falsey,
+    Client,
+    User,
+} from "@node-oauth/oauth2-server";
 
 const debug = createDebugLogger("binding-http", "memory-model");
 

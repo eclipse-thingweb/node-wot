@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2022 Contributors to the Eclipse Foundation
+ * Copyright (c) 2023 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -31,6 +31,7 @@ import { Socket } from "dgram";
 import { Server, createServer, registerFormat, IncomingMessage, OutgoingMessage } from "coap";
 import slugify from "slugify";
 import { Readable } from "stream";
+import { MdnsIntroducer } from "./mdns-introducer";
 
 const { debug, warn, info, error } = createLoggers("binding-coap", "coap-server");
 
@@ -57,6 +58,9 @@ export default class CoapServer implements ProtocolServer {
 
     private readonly port: number = 5683;
     private readonly address?: string = undefined;
+
+    private mdnsIntroducer: MdnsIntroducer;
+
     private readonly server: Server = createServer(
         { reuseAddr: false },
         (req: IncomingMessage, res: OutgoingMessage) => {
@@ -92,13 +96,13 @@ export default class CoapServer implements ProtocolServer {
                 this.server.on("error", (err: Error) => {
                     error(`CoapServer for port ${this.port} failed: ${err.message}`);
                 });
+                this.mdnsIntroducer = new MdnsIntroducer(this.address);
                 resolve();
             });
         });
     }
 
-    public stop(): Promise<void> {
-        info(`CoapServer stopping on port ${this.getPort()}`);
+    private closeServer(): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             // stop promise handles all errors from now on
             this.server.once("error", (err: Error) => {
@@ -108,6 +112,12 @@ export default class CoapServer implements ProtocolServer {
                 resolve();
             });
         });
+    }
+
+    public async stop(): Promise<void> {
+        info(`CoapServer stopping on port ${this.getPort()}`);
+        await this.closeServer();
+        await this.mdnsIntroducer?.close();
     }
 
     /** returns socket to be re-used by CoapClients */
@@ -126,93 +136,161 @@ export default class CoapServer implements ProtocolServer {
         }
     }
 
-    public expose(thing: ExposedThing, tdTemplate?: WoT.ExposedThingInit): Promise<void> {
-        let urlPath = slugify(thing.title, { lower: true });
+    public async expose(thing: ExposedThing, tdTemplate?: WoT.ExposedThingInit): Promise<void> {
+        const port = this.getPort();
+        const urlPath = this.createThingUrlPath(thing);
 
-        if (this.things.has(urlPath)) {
-            urlPath = Helpers.generateUniqueName(urlPath);
+        if (port === -1) {
+            warn("CoapServer is assigned an invalid port, aborting expose process.");
+            return;
         }
-        this.coreResources.set(urlPath, { urlPath, parameters: thingDescriptionParameters });
 
-        debug(`CoapServer on port ${this.getPort()} exposes '${thing.title}' as unique '/${urlPath}'`);
+        this.fillInBindingData(thing, port, urlPath);
 
-        if (this.getPort() !== -1) {
-            this.things.set(urlPath, thing);
+        debug(`CoapServer on port ${port} exposes '${thing.title}' as unique '/${urlPath}'`);
 
-            // fill in binding data
-            for (const address of Helpers.getAddresses()) {
-                for (const type of ContentSerdes.get().getOfferedMediaTypes()) {
-                    const base: string =
-                        this.scheme + "://" + address + ":" + this.getPort() + "/" + encodeURIComponent(urlPath);
-
-                    for (const propertyName in thing.properties) {
-                        const href = base + "/" + this.PROPERTY_DIR + "/" + encodeURIComponent(propertyName);
-                        const form = new TD.Form(href, type);
-                        ProtocolHelpers.updatePropertyFormWithTemplate(form, thing.properties[propertyName]);
-                        if (thing.properties[propertyName].readOnly) {
-                            form.op = ["readproperty"];
-                        } else if (thing.properties[propertyName].writeOnly) {
-                            form.op = ["writeproperty"];
-                        } else {
-                            form.op = ["readproperty", "writeproperty"];
-                        }
-                        if (thing.properties[propertyName].observable) {
-                            if (!form.op) {
-                                form.op = [];
-                            }
-                            form.op.push("observeproperty");
-                            form.op.push("unobserveproperty");
-                        }
-
-                        thing.properties[propertyName].forms.push(form);
-                        debug(`CoapServer on port ${this.getPort()} assigns '${href}' to Property '${propertyName}'`);
-                    }
-
-                    for (const actionName in thing.actions) {
-                        const href = base + "/" + this.ACTION_DIR + "/" + encodeURIComponent(actionName);
-                        const form = new TD.Form(href, type);
-                        ProtocolHelpers.updateActionFormWithTemplate(form, thing.actions[actionName]);
-                        form.op = "invokeaction";
-                        thing.actions[actionName].forms.push(form);
-                        debug(`CoapServer on port ${this.getPort()} assigns '${href}' to Action '${actionName}'`);
-                    }
-
-                    for (const eventName in thing.events) {
-                        const href = base + "/" + this.EVENT_DIR + "/" + encodeURIComponent(eventName);
-                        const form = new TD.Form(href, type);
-                        ProtocolHelpers.updateEventFormWithTemplate(form, thing.events[eventName]);
-                        form.op = ["subscribeevent", "unsubscribeevent"];
-                        thing.events[eventName].forms.push(form);
-                        debug(`CoapServer on port ${this.getPort()} assigns '${href}' to Event '${eventName}'`);
-                    }
-                } // media types
-            } // addresses
-        } // running
-
-        return new Promise<void>((resolve, reject) => {
-            resolve();
-        });
+        this.setUpIntroductionMethods(thing, urlPath, port);
     }
 
-    public destroy(thingId: string): Promise<boolean> {
+    private createThingUrlPath(thing: ExposedThing) {
+        const urlPath = slugify(thing.title, { lower: true });
+
+        if (this.things.has(urlPath)) {
+            return Helpers.generateUniqueName(urlPath);
+        }
+
+        return urlPath;
+    }
+
+    private fillInBindingData(thing: ExposedThing, port: number, urlPath: string) {
+        const addresses = Helpers.getAddresses();
+        const offeredMediaTypes = ContentSerdes.get().getOfferedMediaTypes();
+
+        for (const address of addresses) {
+            for (const offeredMediaType of offeredMediaTypes) {
+                const base = this.createThingBase(address, port, urlPath);
+
+                this.fillInPropertyBindingData(thing, base, port, offeredMediaType);
+                this.fillInActionBindingData(thing, base, port, offeredMediaType);
+                this.fillInEventBindingData(thing, base, port, offeredMediaType);
+            }
+        }
+    }
+
+    private createThingBase(address: string, port: number, urlPath: string): string {
+        return `${this.scheme}://${address}:${port}/${encodeURIComponent(urlPath)}`;
+    }
+
+    private fillInPropertyBindingData(thing: ExposedThing, base: string, port: number, offeredMediaType: string) {
+        for (const [propertyName, property] of Object.entries(thing.properties)) {
+            const opValues = ProtocolHelpers.getPropertyOpValues(property);
+            const [href, form] = this.createHrefAndForm(
+                base,
+                this.PROPERTY_DIR,
+                propertyName,
+                offeredMediaType,
+                opValues
+            );
+
+            ProtocolHelpers.updatePropertyFormWithTemplate(form, property);
+
+            property.forms.push(form);
+            this.logHrefAssignment(port, href, "Property", propertyName);
+        }
+    }
+
+    private fillInActionBindingData(thing: ExposedThing, base: string, port: number, offeredMediaType: string) {
+        for (const [actionName, action] of Object.entries(thing.actions)) {
+            const [href, form] = this.createHrefAndForm(
+                base,
+                this.ACTION_DIR,
+                actionName,
+                offeredMediaType,
+                "invokeaction"
+            );
+
+            ProtocolHelpers.updateActionFormWithTemplate(form, action);
+            action.forms.push(form);
+
+            this.logHrefAssignment(port, href, "Action", actionName);
+        }
+    }
+
+    private fillInEventBindingData(thing: ExposedThing, base: string, port: number, offeredMediaType: string) {
+        for (const [eventName, event] of Object.entries(thing.events)) {
+            const [href, form] = this.createHrefAndForm(base, this.EVENT_DIR, eventName, offeredMediaType, [
+                "subscribeevent",
+                "unsubscribeevent",
+            ]);
+
+            ProtocolHelpers.updateEventFormWithTemplate(form, event);
+            event.forms.push(form);
+
+            this.logHrefAssignment(port, href, "Event", eventName);
+        }
+    }
+
+    private createHrefAndForm(
+        base: string,
+        affordancePathSegment: string,
+        affordanceName: string,
+        offeredMediaType: string,
+        opValues: string | string[]
+    ): [string, TD.Form] {
+        const href = this.createFormHref(base, affordancePathSegment, affordanceName);
+        const form = this.createAffordanceForm(href, offeredMediaType, opValues);
+
+        return [href, form];
+    }
+
+    private createFormHref(base: string, affordancePathSegment: string, affordanceName: string) {
+        return `${base}/${affordancePathSegment}/${encodeURIComponent(affordanceName)}`;
+    }
+
+    private createAffordanceForm(href: string, offeredMediaType: string, op: string[] | string) {
+        const form = new TD.Form(href, offeredMediaType);
+        form.op = op;
+
+        return form;
+    }
+
+    private logHrefAssignment(port: number, href: string, affordanceType: string, affordanceName: string) {
+        debug(`CoapServer on port ${port} assigns '${href}' to ${affordanceType} '${affordanceName}'`);
+    }
+
+    private setUpIntroductionMethods(thing: ExposedThing, urlPath: string, port: number) {
+        this.createCoreResource(urlPath);
+        this.things.set(urlPath, thing);
+
+        const parameters = {
+            urlPath,
+            port,
+            serviceName: "_wot._udp.local",
+        };
+
+        this.mdnsIntroducer?.registerExposedThing(thing, parameters);
+    }
+
+    private createCoreResource(urlPath: string): void {
+        this.coreResources.set(urlPath, { urlPath, parameters: thingDescriptionParameters });
+    }
+
+    public async destroy(thingId: string): Promise<boolean> {
         debug(`CoapServer on port ${this.getPort()} destroying thingId '${thingId}'`);
-        return new Promise<boolean>((resolve, reject) => {
-            let removedThing: ExposedThing;
-            for (const name of Array.from(this.things.keys())) {
-                const expThing = this.things.get(name);
-                if (expThing?.id === thingId) {
-                    this.things.delete(name);
-                    this.coreResources.delete(name);
-                    removedThing = expThing;
-                }
+        for (const name of this.things.keys()) {
+            const exposedThing = this.things.get(name);
+            if (exposedThing?.id === thingId) {
+                this.things.delete(name);
+                this.coreResources.delete(name);
+                this.mdnsIntroducer?.delete(name);
+
+                info(`CoapServer succesfully destroyed '${exposedThing.title}'`);
+                return true;
             }
-            if (removedThing) {
-                info(`CoapServer succesfully destroyed '${removedThing.title}'`);
-            } else {
-                info(`CoapServer failed to destroy thing with thingId '${thingId}'`);
-            }
-            resolve(removedThing !== undefined);
-        });
+        }
+
+        info(`CoapServer failed to destroy thing with thingId '${thingId}'`);
+        return false;
     }
 
     private formatCoreLinkFormatResources() {

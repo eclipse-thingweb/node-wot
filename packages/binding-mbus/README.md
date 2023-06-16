@@ -19,7 +19,7 @@ The code was tested in a specific situation which might not correspond to your o
 
 ## New Form Fields for the M-Bus Binding
 
-**Note**: for further details please refer to the [documentation](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-mbus/src/mbus.ts).
+**Note**: for further details please refer to the [documentation](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-mbus/src/mbus.ts).
 
 ### mbus:unitID
 
@@ -113,4 +113,4 @@ Reads the data with the id of 1 of the unit 2
 
 ## More Details
 
-See <https://github.com/eclipse/thingweb.node-wot/>
+See <https://github.com/eclipse-thingweb/node-wot/>

@@ -29,6 +29,7 @@ export class LongPollingSubscription implements InternalSubscription {
     private client: HttpClient;
 
     private closed: boolean;
+    private abortController: AbortController;
     /**
      *
      */
@@ -36,6 +37,7 @@ export class LongPollingSubscription implements InternalSubscription {
         this.form = form;
         this.client = client;
         this.closed = false;
+        this.abortController = new AbortController();
     }
 
     open(next: (value: Content) => void, error?: (error: Error) => void, complete?: () => void): Promise<void> {
@@ -45,6 +47,7 @@ export class LongPollingSubscription implements InternalSubscription {
                     if (handshake) {
                         const headRequest = await this.client["generateFetchRequest"](this.form, "HEAD", {
                             timeout: 1000,
+                            signal: this.abortController.signal,
                         });
                         const result = await this.client["fetch"](headRequest);
                         if (result.ok) resolve();
@@ -53,6 +56,7 @@ export class LongPollingSubscription implements InternalSubscription {
                     // long timeout for long polling
                     const request = await this.client["generateFetchRequest"](this.form, "GET", {
                         timeout: 60 * 60 * 1000,
+                        signal: this.abortController.signal,
                     });
                     debug(`HttpClient (subscribeResource) sending ${request.method} to ${request.url}`);
 
@@ -85,6 +89,7 @@ export class LongPollingSubscription implements InternalSubscription {
     }
 
     close(): void {
+        this.abortController.abort();
         this.closed = true;
     }
 }

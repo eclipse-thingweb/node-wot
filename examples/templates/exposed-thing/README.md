@@ -11,7 +11,7 @@ Using TypeScript gives type safety and the separation of source and build direct
 Using node-wot as an npm dependency allows faster installation and also being able to install only what is needed for the given project.
 For example, this way one can install only the CoAP binding if the device will only communicate with CoAP.
 
-The source files can be found [at the examples folder of node-wot](https://github.com/eclipse/thingweb.node-wot/tree/master/examples/templates/exposed-thing). You should modify this code to match your needs.
+The source files can be found [at the examples folder of node-wot](https://github.com/eclipse-thingweb/node-wot/tree/master/examples/templates/exposed-thing). You should modify this code to match your needs.
 
 ## Code Structure
 

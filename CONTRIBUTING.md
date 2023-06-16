@@ -28,7 +28,7 @@ Thus, before your contribution can be accepted by the project team, contributors
 -   Sign-off every commit using the same email address used for your Eclipse account
     -   Set the Git user email address with `git config user.email "<your Eclipse account email>"`
     -   Add the `-s` flag when you make the commit(s), e.g. `git commit -s -m "feat: add support for magic"`
--   Open a [Pull Request](https://github.com/eclipse/thingweb.node-wot/pulls)
+-   Open a [Pull Request](https://github.com/eclipse-thingweb/node-wot/pulls)
 
 For more information, please see the Eclipse Committer Handbook:
 https://www.eclipse.org/projects/handbook/#resources-commit

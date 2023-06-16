@@ -1,6 +1,6 @@
-[![Default CI Pipeline](https://github.com/eclipse/thingweb.node-wot/actions/workflows/ci.yaml/badge.svg)](https://github.com/eclipse/thingweb.node-wot/actions/workflows/ci.yaml)
+[![Default CI Pipeline](https://github.com/eclipse-thingweb/node-wot/actions/workflows/ci.yaml/badge.svg)](https://github.com/eclipse-thingweb/node-wot/actions/workflows/ci.yaml)
 [<img alt="npm" src="https://img.shields.io/npm/dw/@node-wot/td-tools">](https://npm-stat.com/charts.html?package=%40node-wot%2Ftd-tools)
-[![codecov](https://codecov.io/gh/eclipse/thingweb.node-wot/branch/master/graph/badge.svg)](https://codecov.io/gh/eclipse/thingweb.node-wot)
+[![codecov](https://codecov.io/gh/eclipse-thingweb/node-wot/branch/master/graph/badge.svg)](https://codecov.io/gh/eclipse-thingweb/node-wot)
 [![Telegram Group](https://img.shields.io/endpoint?color=neon&url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Fnodewot)](https://t.me/nodewot)
 [![Discord](https://img.shields.io/badge/Discord-7289DA?logo=discord&logoColor=white&label=node-wot)](https://discord.gg/JXY2Jzefz3)
 
@@ -11,8 +11,8 @@ W3C Web of Things implementation on NodeJS.
 Visit http://www.thingweb.io for a practical [node-wot API usage](http://www.thingweb.io/smart-coffee-machine.html), [hands-on tutorials](http://www.thingweb.io/hands-on.html) or additional information.
 
 Useful labels:
-<a href="https://github.com/eclipse/thingweb.node-wot/issues?q=label%3Aquestion+">question</a> |
-<a href="https://github.com/eclipse/thingweb.node-wot/issues?q=label%3A%22good+first+issue%22+">good first issue</a>
+<a href="https://github.com/eclipse-thingweb/node-wot/issues?q=label%3Aquestion+">question</a> |
+<a href="https://github.com/eclipse-thingweb/node-wot/issues?q=label%3A%22good+first+issue%22+">good first issue</a>
 
 ### Table of Contents
 
@@ -55,21 +55,21 @@ Please also see the additional [notices](NOTICE.md) and [how to contribute](CONT
 
 ### Protocol Support
 
--   [HTTP](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-http/README.md) :heavy_check_mark:
--   [HTTPS](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-http/README.md) :heavy_check_mark:
--   [CoAP](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-coap/README.md) :heavy_check_mark:
--   [CoAPS](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-coap/README.md) :heavy_check_mark:
--   [MQTT](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-mqtt/README.md) :heavy_check_mark:
--   [Firestore](https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-firestore/README.md) :heavy_check_mark:
--   [Websocket](https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-websockets) :heavy_plus_sign: (Server only)
--   [OPC-UA](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-opcua/README.md) :heavy_plus_sign: (Client only)
--   [NETCONF](https://github.com/eclipse/thingweb.node-wot/blob/master/packages/binding-netconf/README.md) :heavy_plus_sign: (Client only)
--   [Modbus](https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-modbus) :heavy_plus_sign: (Client only)
--   [M-Bus](https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-mbus) :heavy_plus_sign: (Client only)
+-   [HTTP](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-http/README.md) :heavy_check_mark:
+-   [HTTPS](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-http/README.md) :heavy_check_mark:
+-   [CoAP](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-coap/README.md) :heavy_check_mark:
+-   [CoAPS](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-coap/README.md) :heavy_check_mark:
+-   [MQTT](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-mqtt/README.md) :heavy_check_mark:
+-   ~~[Firestore//lastSupportedVersion](https://github.com/eclipse/thingweb.node-wot/blob/v0.8.6/packages/binding-firestore/README.md) :heavy_check_mark:~~
+-   [Websocket](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-websockets) :heavy_plus_sign: (Server only)
+-   [OPC-UA](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-opcua/README.md) :heavy_plus_sign: (Client only)
+-   [NETCONF](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-netconf/README.md) :heavy_plus_sign: (Client only)
+-   [Modbus](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-modbus) :heavy_plus_sign: (Client only)
+-   [M-Bus](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-mbus) :heavy_plus_sign: (Client only)
 
 Note: More protocols can be easily added by implementing `ProtocolClient`, `ProtocolClientFactory`, and `ProtocolServer` interface.
 
-Note: the bindings for [binding-fujitsu](https://github.com/eclipse/thingweb.node-wot/tree/v0.7.x/packages/binding-fujitsu) and [binding-oracle](https://github.com/eclipse/thingweb.node-wot/tree/v0.7.x/packages/binding-oracle) were removed after `v0.7.x` due to lack of maintainers.
+Note: the bindings for [binding-fujitsu](https://github.com/eclipse-thingweb/node-wot/tree/v0.7.x/packages/binding-fujitsu) and [binding-oracle](https://github.com/eclipse-thingweb/node-wot/tree/v0.7.x/packages/binding-oracle) were removed after `v0.7.x` due to lack of maintainers.
 
 ### MediaType Support
 
@@ -206,7 +206,7 @@ You can then start the applications with node by running `node server.js` and `n
 
 #### CLI Tool
 
-You can alternatively use node-wot via its command line interface (CLI). Please visit the [CLI tool's Readme](<[url](https://github.com/eclipse/thingweb.node-wot/tree/master/packages/cli)>) to find out more.
+You can alternatively use node-wot via its command line interface (CLI). Please visit the [CLI tool's Readme](<[url](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/cli)>) to find out more.
 
 ### As a standalone application
 
@@ -215,7 +215,7 @@ You can alternatively use node-wot via its command line interface (CLI). Please 
 Clone the repository:
 
 ```
-git clone https://github.com/eclipse/thingweb.node-wot
+git clone https://github.com/eclipse-thingweb/node-wot
 ```
 
 Go into the repository:
@@ -301,7 +301,7 @@ Make sure you are under linux or under WSL if you are running on Windows.
 Clone the repository:
 
 ```
-git clone https://github.com/eclipse/thingweb.node-wot
+git clone https://github.com/eclipse-thingweb/node-wot
 ```
 
 Go into the repository:
@@ -412,8 +412,8 @@ Below are small explanations on what they can be used for:
 
 This library implements the WoT Scripting API:
 
--   [Editors Draft](w3c.github.io/wot-scripting-api/) in [master](https://github.com/eclipse/thingweb.node-wot)
--   [Working Draft](https://www.w3.org/TR/wot-scripting-api/) corresponding to node-wot [release versions](https://github.com/eclipse/thingweb.node-wot/releases)
+-   [Editors Draft](w3c.github.io/wot-scripting-api/) in [master](https://github.com/eclipse-thingweb/node-wot)
+-   [Working Draft](https://www.w3.org/TR/wot-scripting-api/) corresponding to node-wot [release versions](https://github.com/eclipse-thingweb/node-wot/releases)
 
 Additionally, you can have a look at our [API Documentation](API.md).
 
@@ -421,11 +421,11 @@ To learn by examples, see `examples/scripts` to have a feeling of how to script 
 
 ### TD Tooling
 
-The package [td-tools](https://github.com/eclipse/thingweb.node-wot/tree/master/packages/td-tools) provides utilties around ThingDescription (TD) tooling:
+The package [td-tools](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/td-tools) provides utilties around ThingDescription (TD) tooling:
 
 -   ThingDescription (TD) parsing
 -   ThingModel (TM) tooling
--   [Asset Interface Description (AID)](https://github.com/eclipse/thingweb.node-wot/tree/master/packages/td-tools/src/util) utility
+-   [Asset Interface Description (AID)](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/td-tools/src/util) utility
 -   ...
 
 ### Logging
@@ -513,6 +513,6 @@ Run `npm publish --workspaces` in root node-wot folder.
 1. Delete `package-lock.json` file
 1. Delete _any_ local cache (like `node_modules` folders etc.)
 1. Run `npm install`
-1. Run `npm dedupe` (see https://github.com/eclipse/thingweb.node-wot/pull/765#issuecomment-1133772886)
+1. Run `npm dedupe` (see https://github.com/eclipse-thingweb/node-wot/pull/765#issuecomment-1133772886)
 
 </details>

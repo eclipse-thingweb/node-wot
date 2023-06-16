@@ -29,7 +29,6 @@
     "references": [
         { "path": "./packages/binding-coap" },
         { "path": "./packages/binding-file" },
-        /*{ "path": "./packages/binding-firestore" }, Disabled see https://github.com/eclipse/thingweb.node-wot/issues/827*/
         { "path": "./packages/binding-http" },
         { "path": "./packages/binding-mbus" },
         { "path": "./packages/binding-modbus" },

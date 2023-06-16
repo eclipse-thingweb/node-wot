@@ -23,7 +23,7 @@ import InMemoryModel from "./memory-model";
 import { promisify } from "util";
 import { readFileSync } from "fs";
 
-import OAuthServer from "express-oauth-server";
+import OAuthServer from "@node-oauth/express-oauth-server";
 import bodyParser from "body-parser";
 
 @suite("HTTP oauth client implementation")

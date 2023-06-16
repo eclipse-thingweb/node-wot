@@ -1,6 +1,6 @@
 {
     "name": "@node-wot/binding-opcua",
-    "version": "0.8.6",
+    "version": "0.8.8",
     "description": "opcua client protocol binding for node-wot",
     "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
     "license": "EPL-2.0 OR W3C-20150513",
@@ -17,7 +17,7 @@
     "devDependencies": {
         "@types/chai": "^4.2.18",
         "@types/mocha": "^9.0.0",
-        "@types/node": "16.4.13",
+        "@types/node": "16.18.35",
         "@typescript-eslint/eslint-plugin": "^4.30.0",
         "@typescript-eslint/parser": "^4.30.0",
         "chai": "^4.3.4",
@@ -31,30 +31,41 @@
         "eslint-plugin-unused-imports": "^1.1.4",
         "mocha": "^9.2.2",
         "prettier": "^2.3.2",
-        "ts-node": "10.1.0",
-        "typescript": "4.4.3",
-        "typescript-standard": "^0.3.36",
         "should": "^13.2.3",
-        "wot-typescript-definitions": "0.8.0-SNAPSHOT.25"
+        "ts-node": "^10.9.1",
+        "typescript": "4.7.4",
+        "typescript-standard": "^0.3.36",
+        "wot-typescript-definitions": "0.8.0-SNAPSHOT.26"
     },
     "dependencies": {
+        "@node-wot/core": "0.8.8",
+        "@node-wot/td-tools": "0.8.8",
         "ajv": "^8.11.0",
         "ajv-formats": "^2.1.1",
-        "@node-wot/core": "0.8.6",
-        "@node-wot/td-tools": "0.8.6",
-        "node-opcua": "2.77.0",
-        "node-opcua-json": "0.19.1",
-        "node-opcua-pubsub-client": "0.19.1",
-        "node-opcua-types": "2.77.0",
         "node-opcua-address-space": "2.77.0",
-        "node-opcua-variant": "2.77.0",
-        "node-opcua-data-value": "2.77.0",
         "node-opcua-basic-types": "2.77.0",
         "node-opcua-binary-stream": "2.77.0",
         "node-opcua-buffer-utils": "2.77.0",
+        "node-opcua-client": "2.77.0",
+        "node-opcua-constants": "2.77.0",
+        "node-opcua-data-model": "2.77.0",
+        "node-opcua-data-value": "2.77.0",
+        "node-opcua-date-time": "2.77.0",
+        "node-opcua-debug": "2.77.0",
         "node-opcua-extension-object": "2.77.0",
+        "node-opcua-factory": "2.77.0",
+        "node-opcua-json": "0.19.1",
         "node-opcua-nodeid": "2.77.0",
-        "node-opcua-data-model": "2.77.0"
+        "node-opcua-numeric-range": "2.77.0",
+        "node-opcua-pseudo-session": "2.77.0",
+        "node-opcua-pubsub-client": "0.19.1",
+        "node-opcua-service-browse": "2.77.0",
+        "node-opcua-service-translate-browse-path": "2.77.0",
+        "node-opcua-status-code": "2.77.0",
+        "node-opcua-types": "2.77.0",
+        "node-opcua-variant": "2.77.0",
+        "node-opcua": "2.77.0",
+        "rxjs": "5.5.11"
     },
     "scripts": {
         "build": "tsc -b",
@@ -65,9 +76,9 @@
         "test": "mocha"
     },
     "bugs": {
-        "url": "https://github.com/eclipse/thingweb.node-wot/issues"
+        "url": "https://github.com/eclipse-thingweb/node-wot/issues"
     },
-    "homepage": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-opcua#readme",
+    "homepage": "https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-opcua#readme",
     "directories": {
         "test": "test"
     },

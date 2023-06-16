@@ -315,16 +315,17 @@ export default class HttpServer implements ProtocolServer {
                 anyProperties = true;
                 if (!thing.properties[propertyName].readOnly) {
                     allReadOnly = false;
-                } else if (!thing.properties[propertyName].writeOnly) {
+                }
+                if (!thing.properties[propertyName].writeOnly) {
                     allWriteOnly = false;
                 }
             }
             if (anyProperties) {
                 const href = base + "/" + this.PROPERTY_DIR;
                 const form = new TD.Form(href, type);
-                if (allReadOnly) {
+                if (allReadOnly && !allWriteOnly) {
                     form.op = ["readallproperties", "readmultipleproperties"];
-                } else if (allWriteOnly) {
+                } else if (allWriteOnly && !allReadOnly) {
                     form.op = ["writeallproperties", "writemultipleproperties"];
                 } else {
                     form.op = [
@@ -569,7 +570,18 @@ export default class HttpServer implements ProtocolServer {
 
                 return acceptValue;
             })
-            .filter((acceptValue) => contentSerdes.isSupported(acceptValue));
+            .filter((acceptValue) => contentSerdes.isSupported(acceptValue))
+            .sort((a, b) => {
+                // weight function last places weight more than first: application/td+json > application/json > text/html
+                const aWeight = ["text/html", "application/json", "application/td+json"].findIndex(
+                    (value) => value === a
+                );
+                const bWeight = ["text/html", "application/json", "application/td+json"].findIndex(
+                    (value) => value === b
+                );
+
+                return bWeight - aWeight;
+            });
 
         if (filteredAcceptValues.length > 0) {
             const contentType = filteredAcceptValues[0];
@@ -687,7 +699,7 @@ export default class HttpServer implements ProtocolServer {
         try {
             segments = decodeURI(pathname).split("/");
         } catch (ex) {
-            // catch URIError, see https://github.com/eclipse/thingweb.node-wot/issues/389
+            // catch URIError, see https://github.com/eclipse-thingweb/node-wot/issues/389
             warn(`HttpServer on port ${this.getPort()} cannot decode URI for '${requestUri.pathname}'`);
             res.writeHead(400);
             res.end("decodeURI error for " + requestUri.pathname);
@@ -758,13 +770,16 @@ export default class HttpServer implements ProtocolServer {
                                     const propMap: PropertyContentMap = await thing.handleReadAllProperties({
                                         formIndex: 0,
                                     });
-                                    res.setHeader("Content-Type", "application/json"); // contentType handling?
+                                    res.setHeader("Content-Type", ContentSerdes.DEFAULT); // contentType handling?
                                     res.writeHead(200);
                                     const recordResponse: Record<string, unknown> = {};
                                     for (const key of propMap.keys()) {
                                         const content: Content = propMap.get(key);
-                                        const data = await content.toBuffer();
-                                        recordResponse[key] = data.toString();
+                                        const value = ContentSerdes.get().contentToValue(
+                                            { type: ContentSerdes.DEFAULT, body: await content.toBuffer() },
+                                            {}
+                                        );
+                                        recordResponse[key] = value;
                                     }
                                     res.end(JSON.stringify(recordResponse));
                                 } catch (err) {
@@ -970,8 +985,14 @@ export default class HttpServer implements ProtocolServer {
                                 const listener = async (value: Content) => {
                                     try {
                                         // send event data
-                                        res.setHeader("Content-Type", value.type);
-                                        res.writeHead(200);
+                                        if (!res.headersSent) {
+                                            // We are polite and use the same request as long as the client
+                                            // does not close the connection (or we hit the timeout; see below).
+                                            // Therefore we are sending the headers
+                                            // only if we didn't have sent them before.
+                                            res.setHeader("Content-Type", value.type);
+                                            res.writeHead(200);
+                                        }
                                         value.body.pipe(res);
                                     } catch (err) {
                                         if (err?.code === "ERR_HTTP_HEADERS_SENT") {
@@ -989,7 +1010,7 @@ export default class HttpServer implements ProtocolServer {
                                 };
 
                                 await thing.handleSubscribeEvent(segments[3], listener, options);
-                                res.on("finish", () => {
+                                res.on("close", () => {
                                     debug(`HttpServer on port ${this.getPort()} closed Event connection`);
                                     thing.handleUnsubscribeEvent(segments[3], listener, options);
                                 });

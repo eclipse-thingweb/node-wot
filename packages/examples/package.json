@@ -1,14 +1,14 @@
 {
     "name": "@node-wot/examples",
-    "version": "0.8.6",
+    "version": "0.8.8",
     "private": true,
     "description": "Examples for node-wot (not published)",
     "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
     "license": "EPL-2.0 OR W3C-20150513",
-    "repository": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/examples",
+    "repository": "https://github.com/eclipse-thingweb/node-wot/tree/master/packages/examples",
     "devDependencies": {
-        "@types/express-oauth-server": "^2.0.2",
-        "@types/node": "16.4.13",
+        "@node-oauth/express-oauth-server": "^3.0.1",
+        "@types/node": "16.18.35",
         "@typescript-eslint/eslint-plugin": "^4.30.0",
         "@typescript-eslint/parser": "^4.30.0",
         "eslint": "^7.32.0",
@@ -18,20 +18,19 @@
         "eslint-plugin-node": "^11.1.0",
         "eslint-plugin-promise": "^5.1.0",
         "eslint-plugin-unused-imports": "^1.1.4",
-        "express-oauth-server": "^2.0.0",
         "prettier": "^2.3.2",
-        "ts-node": "10.1.0",
-        "typescript": "4.4.3",
+        "ts-node": "^10.9.1",
+        "typescript": "4.7.4",
         "typescript-standard": "^0.3.36",
-        "wot-thing-description-types": "1.1.0-23-March-2023",
-        "wot-typescript-definitions": "0.8.0-SNAPSHOT.25"
+        "wot-typescript-definitions": "0.8.0-SNAPSHOT.26"
     },
     "dependencies": {
-        "@node-wot/binding-coap": "0.8.6",
-        "@node-wot/binding-file": "0.8.6",
-        "@node-wot/binding-http": "0.8.6",
-        "@node-wot/core": "0.8.6",
-        "@node-wot/td-tools": "0.8.6",
+        "@node-wot/binding-coap": "0.8.8",
+        "@node-wot/binding-file": "0.8.8",
+        "@node-wot/binding-http": "0.8.8",
+        "@node-wot/binding-opcua": "0.8.8",
+        "@node-wot/core": "0.8.8",
+        "@node-wot/td-tools": "0.8.8",
         "rxjs": "5.5.11"
     },
     "scripts": {
@@ -41,9 +40,9 @@
         "format": "prettier --write \"src/**/*.ts\" \"**/*.json\""
     },
     "bugs": {
-        "url": "https://github.com/eclipse/thingweb.node-wot/issues"
+        "url": "https://github.com/eclipse-thingweb/node-wot/issues"
     },
-    "homepage": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/examples#readme",
+    "homepage": "https://github.com/eclipse-thingweb/node-wot/tree/master/packages/examples#readme",
     "main": "index.js",
     "keywords": []
 }
