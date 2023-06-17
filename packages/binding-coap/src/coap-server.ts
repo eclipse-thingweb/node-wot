@@ -192,8 +192,6 @@ export default class CoapServer implements ProtocolServer {
                 opValues
             );
 
-            ProtocolHelpers.updatePropertyFormWithTemplate(form, property);
-
             property.forms.push(form);
             this.logHrefAssignment(port, href, "Property", propertyName);
         }
@@ -209,7 +207,6 @@ export default class CoapServer implements ProtocolServer {
                 "invokeaction"
             );
 
-            ProtocolHelpers.updateActionFormWithTemplate(form, action);
             action.forms.push(form);
 
             this.logHrefAssignment(port, href, "Action", actionName);
@@ -223,7 +220,6 @@ export default class CoapServer implements ProtocolServer {
                 "unsubscribeevent",
             ]);
 
-            ProtocolHelpers.updateEventFormWithTemplate(form, event);
             event.forms.push(form);
 
             this.logHrefAssignment(port, href, "Event", eventName);
