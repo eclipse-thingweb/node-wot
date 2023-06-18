@@ -22,12 +22,52 @@ import * as http from "http";
 
 const { debug } = createLoggers("binding-http", "http-server-middleware");
 
+/**
+ * A function that handles a request and passes it to the WoT Servient.
+ * See {@link HttpMiddleware} for an example.
+ * @param req The HTTP request.
+ * @param res The HTTP response.
+ * @param next Call this function to pass the request to the WoT Servient.
+ */
 export type MiddlewareRequestHandler = (
     req: http.IncomingMessage,
     res: http.ServerResponse,
     next: () => void
 ) => Promise<void>;
 
+/**
+ * A middleware for the HTTP server, which can be used to intercept requests before they are handled by the WoT Servient.
+ *
+ * Example:
+ * ```javascript
+ * import { Servient } from "@node-wot/core";
+ * import { HttpMiddleware, HttpServer } from "@node-wot/binding-http";
+ *
+ * const servient = new Servient();
+ *
+ * const middleware = new HttpMiddleware(async (req, res, next) => {
+ *     // For example, reject requests to the protected path with 401 Unauthorized
+ *     if (req.url.endsWith("protected-path")) {
+ *         res.statusCode = 401;
+ *         res.end("Unauthorized");
+ *         return;
+ *     }
+ *     // Pass all other requests to the WoT Servient
+ *     next();
+ * });
+
+ * const httpServer = new HttpServer({
+ *     port,
+ *     middleware,
+ * });
+ *
+ * servient.addServer(httpServer);
+ *
+ * servient.start().then(async (WoT) => {
+ *    // ...
+ * });
+ * ```
+ */
 export default class HttpMiddleware {
     public handler: MiddlewareRequestHandler;
 
