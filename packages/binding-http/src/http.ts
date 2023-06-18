@@ -21,11 +21,12 @@ export { default as HttpServer } from "./http-server";
 export { default as HttpClient } from "./http-client";
 export { default as HttpClientFactory } from "./http-client-factory";
 export { default as HttpsClientFactory } from "./https-client-factory";
-export * from "./http-server-middleware";
+export { default as HttpMiddleware } from "./http-server-middleware";
 export * from "./http-server";
 export * from "./http-client";
 export * from "./http-client-factory";
 export * from "./https-client-factory";
+export * from "./http-server-middleware";
 
 export interface HttpProxyConfig {
     href: string;
