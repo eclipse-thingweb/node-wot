@@ -46,10 +46,11 @@ export type MiddlewareRequestHandler = (
  * const servient = new Servient();
  *
  * const middleware = new HttpMiddleware(async (req, res, next) => {
- *     // For example, reject requests to the protected path with 401 Unauthorized
- *     if (req.url.endsWith("protected-path")) {
- *         res.statusCode = 401;
- *         res.end("Unauthorized");
+ *     // For example, reject requests in which the X-Custom-Header header is missing
+*      // by replying with 400 Bad Request
+ *     if (!req.headers["x-custom-header"]) {
+ *         res.statusCode = 400;
+ *         res.end("Bad Request");
  *         return;
  *     }
  *     // Pass all other requests to the WoT Servient

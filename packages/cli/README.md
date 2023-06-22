@@ -131,6 +131,8 @@ VAR2=Value2
 
 Additionally, you can look at [the JSON Schema](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/cli/src/wot-servient-schema.conf.json) to understand possible values for each field.
 
+> In the current implementation, the **middleware** option (that you can use to handle raw HTTP requests _before_ they hit the Servient) is only available when using the `@node-wot/binding-http` package as a library. See [Adding a middleware](../binding-http/README.md#adding-a-middleware) for more information.
+
 ### Environment variables
 
 If your scripts needs to access environment variables those must be supplied in a particular file. Node-wot cli uses [dotenv](https://github.com/motdotla/dotenv) library to load `.env` files located at the current working directory. For example, providing the following `.env` file will fill variables `PORT` and `ADDRESS` in scripts `process.env` field:
