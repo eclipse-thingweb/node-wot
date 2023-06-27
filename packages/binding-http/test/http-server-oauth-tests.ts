@@ -93,7 +93,7 @@ class OAuthServerTests {
             return true;
         };
 
-        await fetch("http://localhost:8080/testoauth/TestOAuth");
+        await fetch("http://localhost:8080/testoauth/properties/test");
 
         called.should.eql(true);
     }
@@ -107,7 +107,7 @@ class OAuthServerTests {
             return false;
         };
 
-        const response = await fetch("http://localhost:8080/testoauth/TestOAuth");
+        const response = await fetch("http://localhost:8080/testoauth/properties/test");
 
         called.should.eql(true);
 
@@ -123,7 +123,7 @@ class OAuthServerTests {
             return false;
         };
 
-        const response = await fetch("http://localhost:8080/testoauth/TestOAuth");
+        const response = await fetch("http://localhost:8080/testoauth/properties/test");
 
         called.should.eql(true);
 

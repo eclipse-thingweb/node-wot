@@ -779,7 +779,7 @@ class HttpServerTest {
 
         await httpServer.expose(testThing);
 
-        const uri = `http://localhost:${httpServer.getPort()}/test/`;
+        const uri = `http://localhost:${httpServer.getPort()}/test`;
 
         const testCases = [
             {
@@ -853,7 +853,7 @@ class HttpServerTest {
 
         await httpServer.expose(testThing);
 
-        const uri = `http://localhost:${httpServer.getPort()}/test/`;
+        const uri = `http://localhost:${httpServer.getPort()}/test`;
 
         const failedNegotiationResponse = await fetch(uri, {
             headers: {
