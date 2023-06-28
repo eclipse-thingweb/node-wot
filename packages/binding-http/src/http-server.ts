@@ -21,7 +21,6 @@ import * as fs from "fs";
 import * as http from "http";
 import * as https from "https";
 import bauth from "basic-auth";
-import * as url from "url";
 
 import { AddressInfo } from "net";
 
@@ -583,8 +582,7 @@ export default class HttpServer implements ProtocolServer {
     }
 
     private async handleRequest(req: http.IncomingMessage, res: http.ServerResponse) {
-        // eslint-disable-next-line node/no-deprecated-api
-        const requestUri = url.parse(req.url);
+        const requestUri = new URL(req.url, `${this.scheme}://${req.headers.host}`);
 
         debug(
             `HttpServer on port ${this.getPort()} received '${req.method} ${
