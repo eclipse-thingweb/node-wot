@@ -310,17 +310,17 @@ The exposed thing on the internal server will product form URLs such as:
 
 ### Adding a middleware
 
-HttpServer supports the addition of **middleware** to handle the raw HTTP requests before they hit the Servient. In the middleware you can run some logic to filter and eventually reject HTTP requests (e.g. based on some custom headers).
+HttpServer supports the addition of **middleware** to handle the raw HTTP requests before they hit the Servient. In the middleware function, you can run some logic to filter and eventually reject HTTP requests (e.g. based on some custom headers).
 
-This can be done by passing an instance of HttpMiddleware to the HttpServer constructor.
+This can be done by passing a middleware function to the HttpServer constructor.
 
 ```js
 const { Servient } = require("@node-wot/core");
-const { HttpMiddleware, HttpServer } = require("@node-wot/binding-http");
+const { HttpServer } = require("@node-wot/binding-http");
 
 const servient = new Servient();
 
-const middleware = new HttpMiddleware(async (req, res, next) => {
+const middleware = async (req, res, next) => {
     // For example, reject requests in which the X-Custom-Header header is missing
     // by replying with 400 Bad Request
     if (!req.headers["x-custom-header"]) {
@@ -330,7 +330,7 @@ const middleware = new HttpMiddleware(async (req, res, next) => {
     }
     // Pass all other requests to the WoT Servient
     next();
-});
+};
 
 const httpServer = new HttpServer({
     port,

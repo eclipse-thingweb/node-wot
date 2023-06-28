@@ -27,7 +27,7 @@ import { Content, createLoggers, ExposedThing, Helpers } from "@node-wot/core";
 import { DataSchemaValue, InteractionInput, InteractionOptions } from "wot-typescript-definitions";
 import chaiAsPromised from "chai-as-promised";
 import { Readable } from "stream";
-import HttpMiddleware from "../src/http-server-middleware";
+import { MiddlewareRequestHandler } from "../src/http-server-middleware";
 
 const { debug, error } = createLoggers("binding-http", "http-server-test");
 
@@ -51,14 +51,14 @@ class HttpServerTest {
     }
 
     @test async "should use middleware if provided"() {
-        const middleware = new HttpMiddleware(async (req, res, next) => {
+        const middleware: MiddlewareRequestHandler = async (req, res, next) => {
             if (req.url.endsWith("testMiddleware")) {
                 res.statusCode = 401;
                 res.end("Unauthorized");
             } else {
                 next();
             }
-        });
+        };
 
         const httpServer = new HttpServer({
             port,

@@ -43,7 +43,7 @@ import slugify from "slugify";
 import { ThingDescription } from "wot-typescript-definitions";
 import * as acceptLanguageParser from "accept-language-parser";
 import { ActionElement, EventElement, PropertyElement } from "wot-thing-description-types";
-import HttpMiddleware from "./http-server-middleware";
+import { MiddlewareRequestHandler } from "./http-server-middleware";
 
 const { debug, info, warn, error } = createLoggers("binding-http", "http-server");
 
@@ -66,7 +66,7 @@ export default class HttpServer implements ProtocolServer {
     private readonly httpSecurityScheme: string = "NoSec"; // HTTP header compatible string
     private readonly validOAuthClients: RegExp = /.*/g;
     private readonly server: http.Server | https.Server = null;
-    private readonly middleware: HttpMiddleware = null;
+    private readonly middleware: MiddlewareRequestHandler = null;
     private readonly things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
     private servient: Servient = null;
     private oAuthValidator: Validator;
@@ -112,7 +112,7 @@ export default class HttpServer implements ProtocolServer {
             this.scheme = "https";
             this.server = https.createServer(options, (req, res) => {
                 if (this.middleware) {
-                    this.middleware.handleRequest(req, res, () => {
+                    this.middleware(req, res, () => {
                         this.handleRequest(req, res);
                     });
                 } else {
@@ -123,7 +123,7 @@ export default class HttpServer implements ProtocolServer {
             this.scheme = "http";
             this.server = http.createServer((req, res) => {
                 if (this.middleware) {
-                    this.middleware.handleRequest(req, res, () => {
+                    this.middleware(req, res, () => {
                         this.handleRequest(req, res);
                     });
                 } else {

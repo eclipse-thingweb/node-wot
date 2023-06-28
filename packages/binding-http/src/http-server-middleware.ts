@@ -17,35 +17,19 @@
  * HTTP Middleware for the HTTP Server
  */
 
-import { createLoggers } from "@node-wot/core";
 import * as http from "http";
 
-const { debug } = createLoggers("binding-http", "http-server-middleware");
-
 /**
- * A function that handles a request and passes it to the WoT Servient.
- * See {@link HttpMiddleware} for an example.
- * @param req The HTTP request.
- * @param res The HTTP response.
- * @param next Call this function to pass the request to the WoT Servient.
- */
-export type MiddlewareRequestHandler = (
-    req: http.IncomingMessage,
-    res: http.ServerResponse,
-    next: () => void
-) => Promise<void>;
-
-/**
- * A middleware for the HTTP server, which can be used to intercept requests before they are handled by the WoT Servient.
+ * A middleware function for the HTTP server, which can be used to intercept requests before they are handled by the WoT Servient.
  *
  * Example:
  * ```javascript
  * import { Servient } from "@node-wot/core";
- * import { HttpMiddleware, HttpServer } from "@node-wot/binding-http";
+ * import { HttpServer, MiddlewareRequestHandler } from "@node-wot/binding-http";
  *
  * const servient = new Servient();
  *
- * const middleware = new HttpMiddleware(async (req, res, next) => {
+ * const middleware: MiddlewareRequestHandler = async (req, res, next) => {
  *     // For example, reject requests in which the X-Custom-Header header is missing
 *      // by replying with 400 Bad Request
  *     if (!req.headers["x-custom-header"]) {
@@ -55,7 +39,7 @@ export type MiddlewareRequestHandler = (
  *     }
  *     // Pass all other requests to the WoT Servient
  *     next();
- * });
+ * };
 
  * const httpServer = new HttpServer({
  *     port,
@@ -68,16 +52,12 @@ export type MiddlewareRequestHandler = (
  *    // ...
  * });
  * ```
+ * @param req The HTTP request.
+ * @param res The HTTP response.
+ * @param next Call this function to pass the request to the WoT Servient.
  */
-export default class HttpMiddleware {
-    public handler: MiddlewareRequestHandler;
-
-    constructor(handler: MiddlewareRequestHandler) {
-        this.handler = handler;
-    }
-
-    public handleRequest(req: http.IncomingMessage, res: http.ServerResponse, next: () => void): Promise<void> {
-        debug("Hit middleware");
-        return this.handler(req, res, next);
-    }
-}
+export type MiddlewareRequestHandler = (
+    req: http.IncomingMessage,
+    res: http.ServerResponse,
+    next: () => void
+) => Promise<void>;
