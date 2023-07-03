@@ -1,6 +1,6 @@
 # Command-line interface (CLI) of node-wot
 
-Current Maintainer(s): @relu91 @danielpeintner @mkovatsc
+Current Maintainer(s): [@relu91](https://github.com/relu91) [@danielpeintner](https://github.com/danielpeintner) [@mkovatsc](https://github.com/mkovatsc)
 
 ## Getting Started
 
