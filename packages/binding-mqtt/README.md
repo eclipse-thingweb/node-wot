@@ -4,7 +4,7 @@ W3C Web of Things (WoT) Protocol Binding for [MQTT](https://en.wikipedia.org/wik
 This package uses [mqtt](https://www.npmjs.com/package/mqtt) as a low level library for MQTT.
 W3C WoT Binding Template for MQTT can be found [here](https://w3c.github.io/wot-binding-templates/bindings/protocols/mqtt/index.html).
 
-Current Maintainer(s): @egekorkan @hasbel @sebastiankb @hasanheroglu
+Current Maintainer(s): [@egekorkan](https://github.com/egekorkan) [@hasbel](https://github.com/hasbel) [@sebastiankb](https://github.com/sebastiankb) [@hasanheroglu](https://github.com/hasanheroglu)
 
 ## Protocol specifier
 
