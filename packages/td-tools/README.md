@@ -1,6 +1,6 @@
 # TD (Thing Description) tools of node-wot
 
-Current Maintainer(s): @danielpeintner @relu91
+Current Maintainer(s): [@danielpeintner](https://github.com/danielpeintner) [@relu91](https://github.com/relu91)
 
 ## Getting Started
 
