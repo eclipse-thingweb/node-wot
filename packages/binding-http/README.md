@@ -2,7 +2,7 @@
 
 W3C WoT Binding Template specification for HTTP can be found [here](https://w3c.github.io/wot-binding-templates/bindings/protocols/http/index.html).
 
-Current Maintainer(s): @relu91 @danielpeintner
+Current Maintainer(s): [@relu91](https://github.com/relu91) [@danielpeintner](https://github.com/danielpeintner)
 
 ## Protocol specifier
 
