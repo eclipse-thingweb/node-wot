@@ -6,7 +6,7 @@ W3C Web of Things (WoT) Protocol Binding for [Meter Bus](https://en.wikipedia.or
 This package uses [node-mbus](https://www.npmjs.com/package/node-mbus) as a low level client for M-Bus TCP.
 This implementation only supports reading data (for WoT Consumer applications).
 
-Current Maintainer(s): @LennyHEVS
+Current Maintainer(s): [@LennyHEVS](https://github.com/LennyHEVS)
 
 ## Protocol specifier
 
