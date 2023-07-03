@@ -2,7 +2,7 @@
 
 W3C WoT Binding Template specification for CoAP can be found [here](https://w3c.github.io/wot-binding-templates/bindings/protocols/coap/index.html).
 
-Current Maintainer(s): @JKRhb
+Current Maintainer(s): [@JKRhb](https://github.com/JKRhb)
 
 ## Protocol specifier
 
