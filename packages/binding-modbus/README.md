@@ -6,6 +6,8 @@ W3C Web of Things (WoT) Protocol Binding for [Modbus](https://en.wikipedia.org/w
 This package uses [modbus-serial](https://www.npmjs.com/package/modbus-serial) as a low level client for Modbus TCP.
 W3C WoT Binding Template for Modbus can be found [here](https://w3c.github.io/wot-binding-templates/bindings/protocols/modbus/index.html).
 
+Current Maintainer(s): [@relu91](https://github.com/relu91) [@fillobotto](https://github.com/fillobotto)
+
 ## Protocol specifier
 
 The protocol prefix handled by this binding is `modbus+tcp://`.

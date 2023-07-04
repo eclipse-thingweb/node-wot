@@ -2,6 +2,8 @@
 
 Bundle to run node-wot as browser-side library. Note, this will only include the node-wot in client mode with limited binding support.
 
+Current Maintainer(s): [@relu91](https://github.com/relu91) [@danielpeintner](https://github.com/danielpeintner)
+
 ## Supported bindings
 
 HTTP / HTTPS / WebSockets
