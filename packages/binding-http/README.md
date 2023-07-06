@@ -174,15 +174,15 @@ The protocol binding can be configured using his constructor or trough servient 
 
 ```ts
 {
-    port?: number;                  // TCP Port to listen on
-    address?: string;               // IP address or hostname of local interface to bind to
-    proxy?: HttpProxyConfig;        // proxy configuration
-    allowSelfSigned?: boolean;      // Accept self signed certificates
-    serverKey?: string;             // HTTPs server secret key file
-    serverCert?: string;            // HTTPs server certificate file
-    security?: TD.SecurityScheme;   // Security scheme of the server
-    baseUri?: string                // A Base URI to be used in the TD in cases where the client will access a different URL than the actual machine serving the thing.  [See Using BaseUri below]
-    middleware?: HttpMiddleware;    // the instance of HttpMiddleware. See [Adding a middleware] section below.
+    port?: number;                           // TCP Port to listen on
+    address?: string;                        // IP address or hostname of local interface to bind to
+    proxy?: HttpProxyConfig;                 // proxy configuration
+    allowSelfSigned?: boolean;               // Accept self signed certificates
+    serverKey?: string;                      // HTTPs server secret key file
+    serverCert?: string;                     // HTTPs server certificate file
+    security?: TD.SecurityScheme;            // Security scheme of the server
+    baseUri?: string                         // A Base URI to be used in the TD in cases where the client will access a different URL than the actual machine serving the thing.  [See Using BaseUri below]
+    middleware?: MiddlewareRequestHandler;   // the MiddlewareRequestHandler function. See [Adding a middleware] section below.
 }
 ```
 
@@ -333,7 +333,6 @@ const middleware = async (req, res, next) => {
 };
 
 const httpServer = new HttpServer({
-    port,
     middleware,
 });
 

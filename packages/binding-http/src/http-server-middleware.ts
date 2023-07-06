@@ -42,7 +42,6 @@ import * as http from "http";
  * };
 
  * const httpServer = new HttpServer({
- *     port,
  *     middleware,
  * });
  *
