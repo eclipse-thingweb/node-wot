@@ -109,6 +109,7 @@ export default class HttpServer implements ProtocolServer {
         }
 
         const router = Router({
+            ignoreTrailingSlash: true,
             defaultRoute(req, res) {
                 // url-rewrite feature in use ?
                 const pathname = req.url;
