@@ -21,7 +21,6 @@ import * as fs from "fs";
 import * as http from "http";
 import * as https from "https";
 import bauth from "basic-auth";
-import * as url from "url";
 
 import { AddressInfo } from "net";
 
@@ -32,18 +31,22 @@ import Servient, {
     Helpers,
     ExposedThing,
     ProtocolHelpers,
-    PropertyContentMap,
-    Content,
     createLoggers,
 } from "@node-wot/core";
 import { HttpConfig, HttpForm, OAuth2ServerConfig } from "./http";
 import createValidator, { Validator } from "./oauth-token-validation";
 import { OAuth2SecurityScheme } from "@node-wot/td-tools";
 import slugify from "slugify";
-import { ThingDescription } from "wot-typescript-definitions";
-import * as acceptLanguageParser from "accept-language-parser";
 import { ActionElement, EventElement, PropertyElement } from "wot-thing-description-types";
 import { MiddlewareRequestHandler } from "./http-server-middleware";
+import Router from "find-my-way";
+import thingsRoute from "./routes/things";
+import thingDescriptionRoute from "./routes/thing-description";
+import propertyRoute from "./routes/property";
+import actionRoute from "./routes/action";
+import eventRoute from "./routes/event";
+import propertiesRoute from "./routes/properties";
+import propertyObserveRoute from "./routes/property-observe";
 
 const { debug, info, warn, error } = createLoggers("binding-http", "http-server");
 
@@ -70,6 +73,7 @@ export default class HttpServer implements ProtocolServer {
     private readonly things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
     private servient: Servient = null;
     private oAuthValidator: Validator;
+    private router: Router.Instance<Router.HTTPVersion.V1>;
 
     constructor(config: HttpConfig = {}) {
         if (typeof config !== "object") {
@@ -103,6 +107,42 @@ export default class HttpServer implements ProtocolServer {
         if (config.middleware !== undefined) {
             this.middleware = config.middleware;
         }
+
+        const router = Router({
+            ignoreTrailingSlash: true,
+            defaultRoute(req, res) {
+                // url-rewrite feature in use ?
+                const pathname = req.url;
+                if (config.urlRewrite) {
+                    const entryUrl = pathname;
+                    const internalUrl = config.urlRewrite[entryUrl];
+                    if (internalUrl) {
+                        req.url = internalUrl;
+                        router.lookup(req, res, this);
+                        debug("[binding-http]", `URL "${entryUrl}" has been rewritten to "${pathname}"`);
+                        return;
+                    }
+                }
+
+                // No url-rewrite mapping found -> resource not found
+                res.writeHead(404);
+                res.end("Not Found");
+            },
+        });
+
+        this.router = router;
+
+        this.router.get("/", thingsRoute);
+        this.router.get("/:thing", thingDescriptionRoute);
+        this.router.on(["GET", "HEAD", "OPTIONS"], "/:thing/" + this.PROPERTY_DIR, propertiesRoute);
+        this.router.on(["GET", "PUT", "HEAD", "OPTIONS"], "/:thing/" + this.PROPERTY_DIR + "/:property", propertyRoute);
+        this.router.on(
+            ["GET", "HEAD", "OPTIONS"],
+            "/:thing/" + this.PROPERTY_DIR + "/:property/" + this.OBSERVABLE_DIR,
+            propertyObserveRoute
+        );
+        this.router.on(["POST", "OPTIONS"], "/:thing/" + this.ACTION_DIR + "/:action", actionRoute);
+        this.router.on(["GET", "HEAD", "OPTIONS"], "/:thing/" + this.EVENT_DIR + "/:event", eventRoute);
 
         // TLS
         if (config.serverKey && config.serverCert) {
@@ -207,6 +247,10 @@ export default class HttpServer implements ProtocolServer {
     /** returns http.Server to be re-used by other HTTP-based bindings (e.g., WebSockets) */
     public getServer(): http.Server | https.Server {
         return this.server;
+    }
+
+    public getThings(): Map<string, ExposedThing> {
+        return this.things;
     }
 
     /** returns server port number and indicates that server is running when larger than -1  */
@@ -455,7 +499,7 @@ export default class HttpServer implements ProtocolServer {
         }
     }
 
-    private async checkCredentials(thing: ExposedThing, req: http.IncomingMessage): Promise<boolean> {
+    public async checkCredentials(thing: ExposedThing, req: http.IncomingMessage): Promise<boolean> {
         debug(`HttpServer on port ${this.getPort()} checking credentials for '${thing.id}'`);
 
         const creds = this.servient.getCredentials(thing.id);
@@ -538,91 +582,8 @@ export default class HttpServer implements ProtocolServer {
         }
     }
 
-    /**
-     * Look for language negotiation through the Accept-Language header field of HTTP (e.g., "de", "de-CH", "en-US,en;q=0.5")
-     * Note: "title" on thing level is mandatory term --> check whether "titles" exists for multi-languages
-     * Note: HTTP header names are case-insensitive and req.headers seems to contain them in lowercase
-     *
-     *
-     * @param td
-     * @param thing
-     * @param req
-     */
-    private negotiateLanguage(td: ThingDescription, thing: ExposedThing, req: http.IncomingMessage) {
-        if (req.headers["accept-language"] && req.headers["accept-language"] !== "*") {
-            if (thing.titles) {
-                const supportedLanguages = Object.keys(thing.titles); // e.g., ['fr', 'en']
-
-                // the loose option allows partial matching on supported languages (e.g., returns "de" for "de-CH")
-                const prefLang = acceptLanguageParser.pick(supportedLanguages, req.headers["accept-language"], {
-                    loose: true,
-                });
-
-                if (prefLang) {
-                    // if a preferred language can be found use it
-                    debug(
-                        `TD language negotiation through the Accept-Language header field of HTTP leads to "${prefLang}"`
-                    );
-                    this.resetMultiLangThing(td, prefLang);
-                }
-            }
-        }
-    }
-
-    private async handleTdRequest(thing: ExposedThing, req: http.IncomingMessage, res: http.ServerResponse) {
-        const td = thing.getThingDescription();
-        const contentSerdes = ContentSerdes.get();
-
-        // TODO: Parameters need to be considered here as well
-        const acceptValues = req.headers.accept?.split(",").map((acceptValue) => acceptValue.split(";")[0]) ?? [
-            ContentSerdes.TD,
-        ];
-
-        // TODO: Better handling of wildcard values
-        const filteredAcceptValues = acceptValues
-            .map((acceptValue) => {
-                if (acceptValue === "*/*") {
-                    return ContentSerdes.TD;
-                }
-
-                return acceptValue;
-            })
-            .filter((acceptValue) => contentSerdes.isSupported(acceptValue))
-            .sort((a, b) => {
-                // weight function last places weight more than first: application/td+json > application/json > text/html
-                const aWeight = ["text/html", "application/json", "application/td+json"].findIndex(
-                    (value) => value === a
-                );
-                const bWeight = ["text/html", "application/json", "application/td+json"].findIndex(
-                    (value) => value === b
-                );
-
-                return bWeight - aWeight;
-            });
-
-        if (filteredAcceptValues.length > 0) {
-            const contentType = filteredAcceptValues[0];
-
-            const content = contentSerdes.valueToContent(thing.getThingDescription(), undefined, contentType);
-            const payload = await content.toBuffer();
-
-            this.negotiateLanguage(td, thing, req);
-            res.setHeader("Content-Type", contentType);
-            res.writeHead(200);
-            debug(`Sending HTTP response for TD with Content-Type ${contentType}.`);
-            res.end(payload);
-            return;
-        }
-
-        debug(`Request contained an accept header with the values ${acceptValues}, none of which are supported.`);
-
-        res.writeHead(406);
-        res.end(`Accept header contained no Content-Types supported by this resource. (Was ${acceptValues})`);
-    }
-
     private async handleRequest(req: http.IncomingMessage, res: http.ServerResponse) {
-        // eslint-disable-next-line node/no-deprecated-api
-        const requestUri = url.parse(req.url);
+        const requestUri = new URL(req.url, `${this.scheme}://${req.headers.host}`);
 
         debug(
             `HttpServer on port ${this.getPort()} received '${req.method} ${
@@ -636,39 +597,6 @@ export default class HttpServer implements ProtocolServer {
                 )}:${req.socket.remotePort}`
             );
         });
-
-        // Handle requests where the path is correct and the HTTP method is not allowed.
-        function respondUnallowedMethod(
-            res: http.ServerResponse,
-            allowed: string,
-            corsPreflightWithCredentials = false
-        ): void {
-            // Always allow OPTIONS to handle CORS pre-flight requests
-            if (!allowed.includes("OPTIONS")) {
-                allowed += ", OPTIONS";
-            }
-            if (req.method === "OPTIONS" && req.headers.origin && req.headers["access-control-request-method"]) {
-                debug(
-                    `HttpServer received an CORS preflight request from ${Helpers.toUriLiteral(
-                        req.socket.remoteAddress
-                    )}:${req.socket.remotePort}`
-                );
-                if (corsPreflightWithCredentials) {
-                    res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
-                    res.setHeader("Access-Control-Allow-Credentials", "true");
-                } else {
-                    res.setHeader("Access-Control-Allow-Origin", "*");
-                }
-                res.setHeader("Access-Control-Allow-Methods", allowed);
-                res.setHeader("Access-Control-Allow-Headers", "content-type, authorization, *");
-                res.writeHead(200);
-                res.end();
-            } else {
-                res.setHeader("Allow", allowed);
-                res.writeHead(405);
-                res.end("Method Not Allowed");
-            }
-        }
 
         // Set CORS headers
         if (this.httpSecurityScheme !== "NoSec" && req.headers.origin) {
@@ -700,435 +628,6 @@ export default class HttpServer implements ProtocolServer {
             }
         }
 
-        // url-rewrite feature in use ?
-        let pathname = requestUri.pathname;
-        if (this.urlRewrite) {
-            const entryUrl = pathname;
-            const internalUrl = this.urlRewrite[entryUrl];
-            if (internalUrl) {
-                pathname = internalUrl;
-                debug("[binding-http]", `URL "${entryUrl}" has been rewritten to "${pathname}"`);
-            }
-        }
-
-        // route request
-        let segments: string[];
-        try {
-            segments = decodeURI(pathname).split("/");
-        } catch (ex) {
-            // catch URIError, see https://github.com/eclipse-thingweb/node-wot/issues/389
-            warn(`HttpServer on port ${this.getPort()} cannot decode URI for '${requestUri.pathname}'`);
-            res.writeHead(400);
-            res.end("decodeURI error for " + requestUri.pathname);
-            return;
-        }
-
-        if (segments[1] === "") {
-            // no path -> list all Things
-            if (req.method === "GET") {
-                res.setHeader("Content-Type", ContentSerdes.DEFAULT);
-                res.writeHead(200);
-                const list = [];
-                for (const address of Helpers.getAddresses()) {
-                    // FIXME are Iterables really such a non-feature that I need array?
-                    for (const name of Array.from(this.things.keys())) {
-                        // FIXME the undefined check should NOT be necessary (however there seems to be null in it)
-                        if (name) {
-                            list.push(
-                                this.scheme +
-                                    "://" +
-                                    Helpers.toUriLiteral(address) +
-                                    ":" +
-                                    this.getPort() +
-                                    "/" +
-                                    encodeURIComponent(name)
-                            );
-                        }
-                    }
-                }
-                res.end(JSON.stringify(list));
-            } else {
-                respondUnallowedMethod(res, "GET");
-            }
-            // resource found and response sent
-            return;
-        } else {
-            // path -> select Thing
-            const thing: ExposedThing = this.things.get(segments[1]);
-            if (thing) {
-                if (segments.length === 2 || segments[2] === "") {
-                    // Thing root -> send TD
-                    if (req.method === "GET") {
-                        this.handleTdRequest(thing, req, res);
-                    } else {
-                        respondUnallowedMethod(res, "GET");
-                    }
-                    // resource found and response sent
-                    return;
-                } else {
-                    let corsPreflightWithCredentials = false;
-                    // Thing Interaction - Access Control
-                    if (this.httpSecurityScheme !== "NoSec" && !(await this.checkCredentials(thing, req))) {
-                        if (req.method === "OPTIONS" && req.headers.origin) {
-                            corsPreflightWithCredentials = true;
-                        } else {
-                            res.setHeader("WWW-Authenticate", `${this.httpSecurityScheme} realm="${thing.id}"`);
-                            res.writeHead(401);
-                            res.end();
-                            return;
-                        }
-                    }
-
-                    if (segments[2] === this.PROPERTY_DIR) {
-                        if (segments.length === 3) {
-                            // all properties
-                            if (req.method === "GET") {
-                                try {
-                                    const propMap: PropertyContentMap = await thing.handleReadAllProperties({
-                                        formIndex: 0,
-                                    });
-                                    res.setHeader("Content-Type", ContentSerdes.DEFAULT); // contentType handling?
-                                    res.writeHead(200);
-                                    const recordResponse: Record<string, unknown> = {};
-                                    for (const key of propMap.keys()) {
-                                        const content: Content = propMap.get(key);
-                                        const value = ContentSerdes.get().contentToValue(
-                                            { type: ContentSerdes.DEFAULT, body: await content.toBuffer() },
-                                            {}
-                                        );
-                                        recordResponse[key] = value;
-                                    }
-                                    res.end(JSON.stringify(recordResponse));
-                                } catch (err) {
-                                    error(
-                                        `HttpServer on port ${this.getPort()} got internal error on invoke '${
-                                            requestUri.pathname
-                                        }': ${err.message}`
-                                    );
-                                    res.writeHead(500);
-                                    res.end(err.message);
-                                }
-                            } else if (req.method === "HEAD") {
-                                res.writeHead(202);
-                                res.end();
-                            } else {
-                                // may have been OPTIONS that failed the credentials check
-                                // as a result, we pass corsPreflightWithCredentials
-                                respondUnallowedMethod(res, "GET", corsPreflightWithCredentials);
-                            }
-                            // resource found and response sent
-                            return;
-                        } else {
-                            // sub-path -> select Property
-                            const property = thing.properties[segments[3]];
-                            if (property) {
-                                const options: WoT.InteractionOptions & { formIndex: number } = {
-                                    formIndex: ProtocolHelpers.findRequestMatchingFormIndex(
-                                        property.forms,
-                                        this.scheme,
-                                        req.url,
-                                        contentType
-                                    ),
-                                };
-                                const uriVariables = Helpers.parseUrlParameters(
-                                    req.url,
-                                    thing.uriVariables,
-                                    property.uriVariables
-                                );
-                                if (!this.isEmpty(uriVariables)) {
-                                    options.uriVariables = uriVariables;
-                                }
-
-                                if (req.method === "GET") {
-                                    // check if this an observable request (longpoll)
-                                    if (segments[4] === this.OBSERVABLE_DIR) {
-                                        const listener = async (value: Content) => {
-                                            try {
-                                                // send property data
-                                                value.body.pipe(res);
-                                            } catch (err) {
-                                                if (err?.code === "ERR_HTTP_HEADERS_SENT") {
-                                                    thing.handleUnobserveProperty(segments[3], listener, options);
-                                                    return;
-                                                }
-                                                warn(
-                                                    `HttpServer on port ${this.getPort()} cannot process data for Property '${
-                                                        segments[3]
-                                                    }: ${err.message}'`
-                                                );
-                                                res.writeHead(500);
-                                                res.end("Invalid Property Data");
-                                            }
-                                        };
-
-                                        await thing.handleObserveProperty(segments[3], listener, options);
-
-                                        res.on("finish", () => {
-                                            debug(`HttpServer on port ${this.getPort()} closed connection`);
-                                            thing.handleUnobserveProperty(segments[3], listener, options);
-                                        });
-                                        res.setTimeout(60 * 60 * 1000, () =>
-                                            thing.handleUnobserveProperty(segments[3], listener, options)
-                                        );
-                                        return;
-                                    } else {
-                                        try {
-                                            const content = await thing.handleReadProperty(segments[3], options);
-                                            res.setHeader("Content-Type", content.type);
-                                            res.writeHead(200);
-                                            content.body.pipe(res);
-                                        } catch (err) {
-                                            error(
-                                                `HttpServer on port ${this.getPort()} got internal error on read '${
-                                                    requestUri.pathname
-                                                }': ${err.message}`
-                                            );
-                                            res.writeHead(500);
-                                            res.end(err.message);
-                                        }
-                                        return;
-                                    }
-                                } else if (req.method === "PUT") {
-                                    if (!property.readOnly) {
-                                        try {
-                                            await thing.handleWriteProperty(
-                                                segments[3],
-                                                new Content(contentType, req),
-                                                options
-                                            );
-                                            res.writeHead(204);
-                                            res.end("Changed");
-                                        } catch (err) {
-                                            error(
-                                                `HttpServer on port ${this.getPort()} got internal error on invoke '${
-                                                    requestUri.pathname
-                                                }': ${err.message}`
-                                            );
-                                            res.writeHead(500);
-                                            res.end(err.message);
-                                        }
-                                    } else {
-                                        respondUnallowedMethod(res, "GET, PUT");
-                                    }
-                                    // resource found and response sent
-                                    return;
-                                } else if (req.method === "HEAD") {
-                                    // HEAD support for long polling subscription
-                                    res.writeHead(202);
-                                    res.end();
-                                    return;
-                                } else {
-                                    // may have been OPTIONS that failed the credentials check
-                                    // as a result, we pass corsPreflightWithCredentials
-                                    respondUnallowedMethod(res, "GET, PUT", corsPreflightWithCredentials);
-                                    return;
-                                } // Property exists?
-                            }
-                        }
-                    } else if (segments[2] === this.ACTION_DIR) {
-                        // sub-path -> select Action
-                        const action = thing.actions[segments[3]];
-                        if (action) {
-                            if (req.method === "POST") {
-                                const options: WoT.InteractionOptions & { formIndex: number } = {
-                                    formIndex: ProtocolHelpers.findRequestMatchingFormIndex(
-                                        action.forms,
-                                        this.scheme,
-                                        req.url,
-                                        contentType
-                                    ),
-                                };
-                                const uriVariables = Helpers.parseUrlParameters(
-                                    req.url,
-                                    thing.uriVariables,
-                                    action.uriVariables
-                                );
-                                if (!this.isEmpty(uriVariables)) {
-                                    options.uriVariables = uriVariables;
-                                }
-                                try {
-                                    const output = await thing.handleInvokeAction(
-                                        segments[3],
-                                        new Content(contentType, req),
-                                        options
-                                    );
-                                    if (output) {
-                                        res.setHeader("Content-Type", output.type);
-                                        res.writeHead(200);
-                                        output.body.pipe(res);
-                                    } else {
-                                        res.writeHead(200);
-                                        res.end();
-                                    }
-                                } catch (err) {
-                                    error(
-                                        `HttpServer on port ${this.getPort()} got internal error on invoke '${
-                                            requestUri.pathname
-                                        }': ${err.message}`
-                                    );
-                                    res.writeHead(500);
-                                    res.end(err.message);
-                                }
-                            } else {
-                                // may have been OPTIONS that failed the credentials check
-                                // as a result, we pass corsPreflightWithCredentials
-                                respondUnallowedMethod(res, "POST", corsPreflightWithCredentials);
-                            }
-                            // resource found and response sent
-                            return;
-                        } // Action exists?
-                    } else if (segments[2] === this.EVENT_DIR) {
-                        // sub-path -> select Event
-                        const event = thing.events[segments[3]];
-                        if (event) {
-                            if (req.method === "GET") {
-                                const options: WoT.InteractionOptions & { formIndex: number } = {
-                                    formIndex: ProtocolHelpers.findRequestMatchingFormIndex(
-                                        event.forms,
-                                        this.scheme,
-                                        req.url,
-                                        contentType
-                                    ),
-                                };
-                                const uriVariables = Helpers.parseUrlParameters(
-                                    req.url,
-                                    thing.uriVariables,
-                                    event.uriVariables
-                                );
-                                if (!this.isEmpty(uriVariables)) {
-                                    options.uriVariables = uriVariables;
-                                }
-
-                                const listener = async (value: Content) => {
-                                    try {
-                                        // send event data
-                                        if (!res.headersSent) {
-                                            // We are polite and use the same request as long as the client
-                                            // does not close the connection (or we hit the timeout; see below).
-                                            // Therefore we are sending the headers
-                                            // only if we didn't have sent them before.
-                                            res.setHeader("Content-Type", value.type);
-                                            res.writeHead(200);
-                                        }
-                                        value.body.pipe(res);
-                                    } catch (err) {
-                                        if (err?.code === "ERR_HTTP_HEADERS_SENT") {
-                                            thing.handleUnsubscribeEvent(segments[3], listener, options);
-                                            return;
-                                        }
-                                        warn(
-                                            `HttpServer on port ${this.getPort()} cannot process data for Event '${
-                                                segments[3]
-                                            }: ${err.message}'`
-                                        );
-                                        res.writeHead(500);
-                                        res.end("Invalid Event Data");
-                                    }
-                                };
-
-                                await thing.handleSubscribeEvent(segments[3], listener, options);
-                                res.on("close", () => {
-                                    debug(`HttpServer on port ${this.getPort()} closed Event connection`);
-                                    thing.handleUnsubscribeEvent(segments[3], listener, options);
-                                });
-                                res.setTimeout(60 * 60 * 1000, () =>
-                                    thing.handleUnsubscribeEvent(segments[3], listener, options)
-                                );
-                            } else if (req.method === "HEAD") {
-                                // HEAD support for long polling subscription
-                                res.writeHead(202);
-                                res.end();
-                            } else {
-                                // may have been OPTIONS that failed the credentials check
-                                // as a result, we pass corsPreflightWithCredentials
-                                respondUnallowedMethod(res, "GET", corsPreflightWithCredentials);
-                            }
-                            // resource found and response sent
-                            return;
-                        } // Event exists?
-                    }
-                } // Interaction?
-            } // Thing exists?
-        }
-
-        // resource not found
-        res.writeHead(404);
-        res.end("Not Found");
-    }
-
-    private isEmpty(obj: Record<string, unknown>): boolean {
-        for (const key in obj) {
-            if (Object.prototype.hasOwnProperty.call(obj, key)) return false;
-        }
-        return true;
-    }
-
-    private resetMultiLangThing(thing: ThingDescription, prefLang: string) {
-        // TODO can we reset "title" to another name given that title is used in URI creation?
-
-        // set @language in @context
-        TD.setContextLanguage(thing, prefLang, true);
-
-        // use new language title
-        if (thing.titles) {
-            for (const titleLang in thing.titles) {
-                if (titleLang.startsWith(prefLang)) {
-                    thing.title = thing.titles[titleLang];
-                }
-            }
-        }
-
-        // use new language description
-        if (thing.descriptions) {
-            for (const titleLang in thing.descriptions) {
-                if (titleLang.startsWith(prefLang)) {
-                    thing.description = thing.descriptions[titleLang];
-                }
-            }
-        }
-
-        // remove any titles or descriptions and update title / description accordingly
-        delete thing.titles;
-        delete thing.descriptions;
-
-        // reset multi-language terms for interactions
-        this.resetMultiLangInteraction(thing.properties, prefLang);
-        this.resetMultiLangInteraction(thing.actions, prefLang);
-        this.resetMultiLangInteraction(thing.events, prefLang);
-    }
-
-    private resetMultiLangInteraction(
-        interactions: ThingDescription["properties"] | ThingDescription["actions"] | ThingDescription["events"],
-        prefLang: string
-    ) {
-        if (interactions) {
-            for (const interName in interactions) {
-                // unset any current title and/or description
-                delete interactions[interName].title;
-                delete interactions[interName].description;
-
-                // use new language title
-                if (interactions[interName].titles) {
-                    for (const titleLang in interactions[interName].titles) {
-                        if (titleLang.startsWith(prefLang)) {
-                            interactions[interName].title = interactions[interName].titles[titleLang];
-                        }
-                    }
-                }
-
-                // use new language description
-                if (interactions[interName].descriptions) {
-                    for (const descLang in interactions[interName].descriptions) {
-                        if (descLang.startsWith(prefLang)) {
-                            interactions[interName].description = interactions[interName].descriptions[descLang];
-                        }
-                    }
-                }
-
-                // unset any multilanguage titles and/or descriptions
-                delete interactions[interName].titles;
-                delete interactions[interName].descriptions;
-            }
-        }
+        this.router.lookup(req, res, this);
     }
 }
