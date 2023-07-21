@@ -1,0 +1,38 @@
+# Default owners (used as a fallback, last matching pattern takes the most precedence)
+* @danielpeintner @relu91
+
+# CoAP-Binding
+/packages/binding-coap/ @JKRhb
+
+# HTTP-Binding
+/packages/binding-http/ @danielpeintner @relu91
+
+# Mbus-Binding
+# /packages/binding-modbus/
+
+# Modbus-Binding
+/packages/binding-modbus/ @relu91
+
+# MQTT-Binding
+/packages/binding-mqtt/ @sebastiankb # @egekorkan
+
+# NETCONF Binding
+# /packages/binding-netconf/
+
+# OPCUA Binding
+# /packages/binding-opcua/
+
+# WebSockets Binding
+# /packages/binding-websockets/
+
+# Browser Bundle
+/packages/browser-bundle/ @danielpeintner @relu91
+
+# CLI
+/packages/browser-bundle/ @danielpeintner @relu91 @mkovatsc
+
+# Core
+/packages/core/ @danielpeintner @relu91 @JKRhb
+
+# TD Tools
+/packages/td-tools/ @danielpeintner @relu91
