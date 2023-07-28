@@ -1022,6 +1022,39 @@ class WoTServerTest {
         callback.should.have.been.called();
     }
 
+    @test async "should return content when returning 0 for action handler"() {
+        const thing = await WoTServerTest.WoT.produce({
+            title: "The Machine",
+            actions: {
+                test: {
+                    output: {
+                        type: "number",
+                    },
+                    forms: [
+                        {
+                            href: "http://example.org/test",
+                            op: ["invokeaction"],
+                        },
+                    ],
+                },
+            },
+        });
+        const callback = spy(async (params: InteractionOutput) => {
+            return 0;
+        });
+
+        thing.setActionHandler("test", callback);
+
+        const result = await (<ExposedThing>thing).handleInvokeAction(
+            "test",
+            new Content("application/json", Readable.from(Buffer.from(""))),
+            { formIndex: 0 }
+        );
+
+        callback.should.have.been.called();
+        expect(result).to.be.instanceOf(Content);
+    }
+
     @test async "should fail due to wrong uriVariable"() {
         const thing = await WoTServerTest.WoT.produce({
             title: "The Machine",
