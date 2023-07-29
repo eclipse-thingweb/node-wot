@@ -236,7 +236,7 @@ class HttpServerTest {
 
         debug(`Testing ${uri}`);
 
-        const resp = await await fetch(uri + "actions/noOutput", { method: "POST" });
+        const resp = await fetch(uri + "actions/noOutput", { method: "POST" });
 
         expect(resp.status).to.equal(204);
 
