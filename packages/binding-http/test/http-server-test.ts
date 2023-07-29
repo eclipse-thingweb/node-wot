@@ -228,11 +228,7 @@ class HttpServerTest {
             },
         });
 
-        testThing.setActionHandler("noOutput", (input: WoT.InteractionOutput) => {
-            return new Promise<undefined>((resolve, reject) => {
-                resolve(undefined);
-            });
-        });
+        testThing.setActionHandler("noOutput", async () => undefined);
 
         await httpServer.expose(testThing);
 
