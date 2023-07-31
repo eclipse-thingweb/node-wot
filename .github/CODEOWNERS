@@ -14,7 +14,7 @@
 /packages/binding-modbus/ @relu91
 
 # MQTT-Binding
-/packages/binding-mqtt/ @sebastiankb # @egekorkan
+/packages/binding-mqtt/ @sebastiankb @egekorkan
 
 # NETCONF Binding
 # /packages/binding-netconf/
