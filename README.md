@@ -39,7 +39,7 @@ Useful labels:
     -   [The API](#the-api)
     -   [TD Tooling](#td-tooling)
     -   [Logging](#logging)
-    -   [Install new/different versions of NodeJS](#install-newdifferent-versions-of-nodejs)
+    -   [Install new/different versions of Node.js](#install-newdifferent-versions-of-nodejs)
 
 ## License
 
@@ -289,7 +289,7 @@ To reduce the size of the installation from about 800 MByte down to about 200 MB
     4. Run `npm i` again
     5. Install the packages with `npm link @node-wot/<module>`
 -   Build error around `prebuild: npm run bootstrap`
-    -   This has been seen failing on WSL. Try using a more recent NodeJS version
+    -   This has been seen failing on WSL. Try using a more recent Node.js version
 
 ### As a Docker image
 
@@ -471,7 +471,7 @@ For instance, if you only want to see `error` messages from the `binding-coap` p
 DEBUG=node-wot:binding-coap*error npm start
 ```
 
-### Install new/different versions of NodeJS
+### Install new/different versions of Node.js
 
 Using NPM, you can install Node.js independent from the usually outdated package managers such as apt. This is nicely done by `n`:
 
