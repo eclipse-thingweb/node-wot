@@ -234,11 +234,7 @@ class HttpServerTest {
             },
         });
 
-        testThing.setActionHandler("noOutput", (input: WoT.InteractionOutput) => {
-            return new Promise<undefined>((resolve, reject) => {
-                resolve(undefined);
-            });
-        });
+        testThing.setActionHandler("noOutput", async () => undefined);
 
         await httpServer.expose(testThing);
 
@@ -246,7 +242,7 @@ class HttpServerTest {
 
         debug(`Testing ${uri}`);
 
-        const resp = await await fetch(uri + "actions/noOutput", { method: "POST" });
+        const resp = await fetch(uri + "actions/noOutput", { method: "POST" });
 
         expect(resp.status).to.equal(204);
 
