@@ -204,10 +204,16 @@ class HttpServerTest {
         resp = await (await fetch(uri + "properties/test")).text();
         expect(resp).to.equal('"on"');
 
-        resp = await (await fetch(uri + "actions/try", { method: "POST", body: "toggle" })).text();
+        let actionHttpResponse = await fetch(uri + "actions/try", { method: "POST", body: "toggle" });
+        resp = await actionHttpResponse.text();
+
+        expect(actionHttpResponse.status).to.equal(200);
         expect(resp).to.equal('"TEST"');
 
+        actionHttpResponse = await fetch(uri + "actions/try", { method: "POST", body: undefined });
         resp = await (await fetch(uri + "actions/try", { method: "POST", body: undefined })).text();
+
+        expect(actionHttpResponse.status).to.equal(200);
         expect(resp).to.equal('"TEST"');
 
         return httpServer.stop();
