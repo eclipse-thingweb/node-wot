@@ -6,9 +6,9 @@
 
 # Eclipse Thingweb node-wot
 
-W3C Web of Things implementation on NodeJS.
+W3C Web of Things implementation on Node.js.
 
-Visit http://www.thingweb.io for a practical [node-wot API usage](http://www.thingweb.io/smart-coffee-machine.html), [hands-on tutorials](http://www.thingweb.io/hands-on.html) or additional information.
+Visit https://www.thingweb.io for a practical [node-wot API usage](http://www.thingweb.io/smart-coffee-machine.html), [hands-on tutorials](http://www.thingweb.io/hands-on.html) or additional information.
 
 Useful labels:
 <a href="https://github.com/eclipse-thingweb/node-wot/issues?q=label%3Aquestion+">question</a> |
@@ -34,12 +34,12 @@ Useful labels:
     -   [Using Node.js](#using-nodejs)
     -   [Using Docker](#using-docker)
     -   [Using a browser](#using-a-browser)
-    -   [Online Things](#online-things)
+-   [Online Things](#online-things)
 -   [How to use the library](#how-to-use-the-library)
     -   [The API](#the-api)
     -   [TD Tooling](#td-tooling)
     -   [Logging](#logging)
-    -   [Install new/different versions of NodeJS](#install-newdifferent-versions-of-nodejs)
+    -   [Install new/different versions of Node.js](#install-newdifferent-versions-of-nodejs)
 
 ## License
 
@@ -69,7 +69,7 @@ Please also see the additional [notices](NOTICE.md) and [how to contribute](CONT
 
 Note: More protocols can be easily added by implementing `ProtocolClient`, `ProtocolClientFactory`, and `ProtocolServer` interface.
 
-Note: the bindings for [binding-fujitsu](https://github.com/eclipse-thingweb/node-wot/tree/v0.7.x/packages/binding-fujitsu) and [binding-oracle](https://github.com/eclipse-thingweb/node-wot/tree/v0.7.x/packages/binding-oracle) were removed after `v0.7.x` due to lack of maintainers.
+Note: The bindings for [binding-fujitsu](https://github.com/eclipse-thingweb/node-wot/tree/v0.7.x/packages/binding-fujitsu) and [binding-oracle](https://github.com/eclipse-thingweb/node-wot/tree/v0.7.x/packages/binding-oracle) were removed after `v0.7.x` due to lack of maintainers.
 
 ### MediaType Support
 
@@ -99,9 +99,9 @@ cs.addCodec(new MyCodec("application/myType"));
 
 ### To use with Node.js
 
-All systems require:
+All systems require the following:
 
--   [NodeJS](https://nodejs.org/) version 14+
+-   [Node.js](https://nodejs.org/) version 14+
 -   [npm](https://www.npmjs.com/) version 7+
 
 #### Linux
@@ -144,23 +144,22 @@ Using a browser with only ES5 support (eg. IE 11) might be possible if you add p
 
 ## How to get the library
 
-## As a Node.js dependency
+### As a Node.js dependency
 
 You can install node-wot in the following ways:
 
 1. As a normal dependency (i.e., like loadsh). In this case, you are embedding a servient inside your application.
-2. As a CLI to run scripts. In this case, your application is running inside
-   the default servient.
+2. As a CLI to run scripts. In this case, your application is running inside the default servient.
 
 #### Normal Dependency
 
-If you want to use node-wot as a library in your Node.js application, you can use npm to install the node-wot packages that you need. To do so, `cd` inside you application folder, and run:
+If you want to use node-wot as a library in your Node.js application, you can use npm to install the node-wot packages that you need. To do so, `cd` inside your application folder, and run:
 
 ```
 npm i @node-wot/core @node-wot/binding-http --save
 ```
 
-Now, you can implement a thing as follows:
+Now, you can implement a Thing as follows:
 
 ```JavaScript
 // server.js
@@ -177,7 +176,7 @@ servient.start().then((WoT) => {
 });
 ```
 
-A client consuming a thing can be implemented like this:
+A client consuming a Thing can be implemented like this:
 
 ```JavaScript
 // client.js
@@ -221,7 +220,7 @@ git clone https://github.com/eclipse-thingweb/node-wot
 Go into the repository:
 
 ```
-cd thingweb.node-wot
+cd node-wot
 ```
 
 Install root dependencies (locally installs tools such as [typescript](https://www.npmjs.com/package/typescript)):
@@ -230,7 +229,7 @@ Install root dependencies (locally installs tools such as [typescript](https://w
 npm ci
 ```
 
-Use `tsc` to transcompile TS code to JS in dist directory for each package:
+Use `tsc` to transcompile TS code to JS in the `dist` directory for each package:
 _Note: This step automatically calls `npm run bootstrap`._
 
 ```
@@ -251,7 +250,7 @@ sudo npm run link
 
 ##### Link Local wot-typescript-definitions
 
-To evolve the Scripting API in development, you need to use a locally changed version of the [wot-typescript-definitions](https://www.npmjs.com/package/wot-typescript-definitions).
+To involve the Scripting API in development, you need to use a locally changed version of the [wot-typescript-definitions](https://www.npmjs.com/package/wot-typescript-definitions).
 Use npm link for this as well:
 
 ```
@@ -275,12 +274,12 @@ sudo npm link wot-typescript-definitions
 To reduce the size of the installation from about 800 MByte down to about 200 MByte, you can run the following commands (currently only tested on Linux):
 `npm prune --production`
 
-#### Trouble shooting
+#### Troubleshooting
 
 -   Build error about `No matching version found for @node-wot/...` or something about `match`
-    -   try `npm run unlock` from project root before building
+    -   try `npm run unlock` from the project root before building
 -   `sudo npm run link` does not work
-    -   try `npm run unlock` from project root before calling `[sudo] npm run link`
+    -   try `npm run unlock` from the project root before calling `[sudo] npm run link`
     -   try `npm link` in each package directory in this order: td-tools, core, binding-\*, cli, demo-servients
 -   Error mesage for `npm link @node-wot/<module>`
     `ELOOP: too many symbolic links encountered, stat '/usr/lib/node_modules/@node-wot/<module>`
@@ -290,13 +289,13 @@ To reduce the size of the installation from about 800 MByte down to about 200 MB
     4. Run `npm i` again
     5. Install the packages with `npm link @node-wot/<module>`
 -   Build error around `prebuild: npm run bootstrap`
-    -   This has been seen failing on WSL. Try using a more recent NodeJS version
+    -   This has been seen failing on WSL. Try using a more recent Node.js version
 
 ### As a Docker image
 
 Alternatively, node-wot can be built as a Docker image with the `Dockerfile`.
 
-Make sure you are under linux or under WSL if you are running on Windows.
+Make sure you are under Linux or under WSL if you are running on Windows.
 
 Clone the repository:
 
@@ -307,7 +306,7 @@ git clone https://github.com/eclipse-thingweb/node-wot
 Go into the repository:
 
 ```
-cd thingweb.node-wot
+cd node-wot
 ```
 
 Build the Docker image named `wot-servient` from the `Dockerfile`:
@@ -324,7 +323,7 @@ docker run --rm wot-servient -h
 
 ### As a browser library
 
-node-wot can also be imported as browser-side library. To do so, include the following `script` tag in your html:
+node-wot can also be imported as browser-side library. To do so, include the following `script` tag in your HTML:
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/@node-wot/browser-bundle@latest/dist/wot-bundle.min.js"></script>
@@ -387,7 +386,7 @@ To run it, open [`examples/browser/index.html`](http://plugfest.thingweb.io/webu
 
 The JavaScript code that uses node-wot as a library to power this application can be found under: `examples/browser/index.js`
 
-### Online Things
+## Online Things
 
 We offer online simulated Things that are available to be used by anyone.
 
@@ -397,14 +396,14 @@ Their TDs are available at the following links:
 -   Smart Coffee Machine: HTTP at <http://plugfest.thingweb.io:8083/smart-coffee-machine> and CoAP at <coap://plugfest.thingweb.io:5683/smart-coffee-machine>
 -   TestThing: HTTP at <http://plugfest.thingweb.io:8083/testthing> and CoAP at <coap://plugfest.thingweb.io:5683/testthing>
 
-All of them require no security mechanism to be communicated with and have same behavior from CoAP or HTTP endpoints.
-Below are small explanations on what they can be used for:
+All of them require no security mechanism to be communicated with and have the same behavior from CoAP or HTTP endpoints.
+Below are small explanations of what they can be used for:
 
 -   Counter: It has a count property that can be read or observed and can be incremented or decremented via separate actions.
-    It is also possible to reset the count the value, obtain when the last change occured, subscribe to a change in the count value or get the count value as an image.
+    It is also possible to reset the count value, obtain when the last change occurred, subscribe to a change in the count value or get the count value as an image.
 -   TestThing: This Thing exists primarily for testing different data schemas and payload formats. It also has events attached to affordances that notify when a value changes.
 -   Smart Coffee Machine: This is a simulation of a coffee machine that also has a [simple user interface](http://plugfest.thingweb.io/examples/smart-coffee-machine.html) that displays the values of properties.
-    In addition to proving a real life device example, it can be used for testing `uriVariables`. You can ask it to brew different coffees and monitor the available resource level.
+    In addition to proving a real-life device example, it can be used for testing `uriVariables`. You can ask it to brew different coffees and monitor the available resource level.
 
 ## How to use the library
 
@@ -421,10 +420,10 @@ To learn by examples, see `examples/scripts` to have a feeling of how to script 
 
 ### TD Tooling
 
-The package [td-tools](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/td-tools) provides utilties around ThingDescription (TD) tooling:
+The package [td-tools](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/td-tools) provides utilities around Thing Description (TD) tooling:
 
--   ThingDescription (TD) parsing
--   ThingModel (TM) tooling
+-   Thing Description (TD) parsing
+-   Thing Model (TM) tooling
 -   [Asset Interface Description (AID)](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/td-tools/src/util) utility
 -   ...
 
@@ -434,7 +433,7 @@ Logging in node-wot is implemented via the [`debug`](https://www.npmjs.com/packa
 This allows users to enable log messages for specific logging levels (`info`, `debug`, `warn`, or `error`) or packages.
 Which log messages are emitted is controlled by the `DEBUG` environment variable.
 
-In the following, we will show a couple of examples for its usage using wildcard characters (`*`).
+In the following, we will show a couple of examples of its usage using wildcard characters (`*`).
 Note, however, that the syntax for setting an environment variable depends on your operating system and the terminal you use.
 See the [`debug` documentation](https://www.npmjs.com/package/debug) for more details on platform-specific differences.
 
@@ -472,9 +471,9 @@ For instance, if you only want to see `error` messages from the `binding-coap` p
 DEBUG=node-wot:binding-coap*error npm start
 ```
 
-### Install new/different versions of NodeJS
+### Install new/different versions of Node.js
 
-Using NPM, you can install NodeJS independent from the usually outdated package managers such as apt. This is nicely done by n:
+Using NPM, you can install Node.js independent from the usually outdated package managers such as apt. This is nicely done by `n`:
 
 ```
 sudo npm cache clean -f
