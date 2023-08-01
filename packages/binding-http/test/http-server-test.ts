@@ -204,11 +204,47 @@ class HttpServerTest {
         resp = await (await fetch(uri + "properties/test")).text();
         expect(resp).to.equal('"on"');
 
-        resp = await (await fetch(uri + "actions/try", { method: "POST", body: "toggle" })).text();
+        let actionHttpResponse = await fetch(uri + "actions/try", { method: "POST", body: "toggle" });
+        resp = await actionHttpResponse.text();
+
+        expect(actionHttpResponse.status).to.equal(200);
         expect(resp).to.equal('"TEST"');
 
+        actionHttpResponse = await fetch(uri + "actions/try", { method: "POST", body: undefined });
         resp = await (await fetch(uri + "actions/try", { method: "POST", body: undefined })).text();
+
+        expect(actionHttpResponse.status).to.equal(200);
         expect(resp).to.equal('"TEST"');
+
+        return httpServer.stop();
+    }
+
+    @test async "should return 204 when action has not output"() {
+        const httpServer = new HttpServer({ port: 0 });
+
+        await httpServer.start(null);
+
+        const testThing = new ExposedThing(null, {
+            title: "Test",
+            actions: {
+                noOutput: {
+                    output: { type: "string" },
+                    forms: [],
+                },
+            },
+        });
+
+        testThing.setActionHandler("noOutput", async () => undefined);
+
+        await httpServer.expose(testThing);
+
+        const uri = `http://localhost:${httpServer.getPort()}/test/`;
+
+        debug(`Testing ${uri}`);
+
+        const resp = await fetch(uri + "actions/noOutput", { method: "POST" });
+
+        expect(resp.status).to.equal(204);
 
         return httpServer.stop();
     }

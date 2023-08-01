@@ -83,7 +83,7 @@ export default async function actionRoute(
                 res.writeHead(200);
                 output.body.pipe(res);
             } else {
-                res.writeHead(200);
+                res.writeHead(204);
                 res.end();
             }
         } catch (err) {
