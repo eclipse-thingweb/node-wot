@@ -25,7 +25,7 @@ import { Subscription } from "rxjs/Subscription";
 import * as TD from "@node-wot/td-tools";
 // for Security definition
 
-import { ProtocolClient, Content, ProtocolHelpers, createLoggers } from "@node-wot/core";
+import { ProtocolClient, Content, ProtocolHelpers, createLoggers, ContentSerdes } from "@node-wot/core";
 import { HttpForm, HttpHeader, HttpConfig, HTTPMethodName, TuyaCustomBearerSecurityScheme } from "./http";
 import fetch, { Request, RequestInit, Response } from "node-fetch";
 import { Buffer } from "buffer";
@@ -50,15 +50,15 @@ const { debug, warn, error } = createLoggers("binding-http", "http-client-impl")
 export default class HttpClient implements ProtocolClient {
     private readonly agent: http.Agent;
     private readonly provider: "https" | "http";
-    private proxyRequest: Request = null;
+    private proxyRequest: Request | null = null;
     private allowSelfSigned = false;
     private oauth: OAuthManager;
 
-    private credential: Credential = null;
+    private credential: Credential | null = null;
 
     private activeSubscriptions = new Map<string, InternalSubscription>();
 
-    constructor(config: HttpConfig = null, secure = false, oauthManager: OAuthManager = new OAuthManager()) {
+    constructor(config: HttpConfig | null = null, secure = false, oauthManager: OAuthManager = new OAuthManager()) {
         // config proxy by client side (not from TD)
         if (config !== null && config.proxy && config.proxy.href) {
             this.proxyRequest = new Request(HttpClient.fixLocalhostName(config.proxy.href));
@@ -125,7 +125,7 @@ export default class HttpClient implements ProtocolClient {
         // in browsers node-fetch uses the native fetch, which returns a ReadableStream
         // not complaint with node. Therefore we have to force the conversion here.
         const body = ProtocolHelpers.toNodeStream(result.body as Readable);
-        return new Content(result.headers.get("content-type"), body);
+        return new Content(result.headers.get("content-type") ?? ContentSerdes.DEFAULT, body);
     }
 
     public async writeResource(form: HttpForm, content: Content): Promise<void> {
@@ -162,6 +162,9 @@ export default class HttpClient implements ProtocolClient {
             } else if (form.subprotocol === "sse") {
                 // server sent events
                 internalSubscription = new SSESubscription(form);
+            } else {
+                reject(new Error(`HttpClient does not support subprotocol ${form.subprotocol}`));
+                return;
             }
 
             internalSubscription
@@ -202,7 +205,7 @@ export default class HttpClient implements ProtocolClient {
         // in browsers node-fetch uses the native fetch, which returns a ReadableStream
         // not complaint with node. Therefore we have to force the conversion here.
         const body = ProtocolHelpers.toNodeStream(result.body as Readable);
-        return new Content(result.headers.get("content-type"), body);
+        return new Content(result.headers.get("content-type") ?? ContentSerdes.DEFAULT, body);
     }
 
     public async unlinkResource(form: HttpForm): Promise<void> {
@@ -210,7 +213,7 @@ export default class HttpClient implements ProtocolClient {
         const internalSub = this.activeSubscriptions.get(form.href);
 
         if (internalSub) {
-            this.activeSubscriptions.get(form.href).close();
+            internalSub.close();
         } else {
             warn(`HttpClient cannot unlink ${form.href} no subscription found`);
         }
@@ -399,7 +402,7 @@ export default class HttpClient implements ProtocolClient {
         }
     }
 
-    private static isOAuthTokenExpired(result: Response, credential: Credential) {
+    private static isOAuthTokenExpired(result: Response, credential: Credential | null) {
         return result.status === 401 && credential instanceof OAuthCredential;
     }
 

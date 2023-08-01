@@ -32,7 +32,7 @@ export default async function eventRoute(
         return;
     }
 
-    const contentTypeHeader: string | string[] = req.headers["content-type"];
+    const contentTypeHeader = req.headers["content-type"];
     const contentType: string = Array.isArray(contentTypeHeader) ? contentTypeHeader[0] : contentTypeHeader;
 
     const event = thing.events[_params.event];
@@ -75,14 +75,14 @@ export default async function eventRoute(
                 }
                 value.body.pipe(res);
             } catch (err) {
-                if (err?.code === "ERR_HTTP_HEADERS_SENT") {
+                // Safe cast to NodeJS.ErrnoException we are checking if it is equal to ERR_HTTP_HEADERS_SENT
+                if ((err as NodeJS.ErrnoException)?.code === "ERR_HTTP_HEADERS_SENT") {
                     thing.handleUnsubscribeEvent(_params.event, listener, options);
                     return;
                 }
+                const message = err instanceof Error ? err.message : JSON.stringify(err);
                 warn(
-                    `HttpServer on port ${this.getPort()} cannot process data for Event '${_params.event}: ${
-                        err.message
-                    }'`
+                    `HttpServer on port ${this.getPort()} cannot process data for Event '${_params.event}: ${message}'`
                 );
                 res.writeHead(500);
                 res.end("Invalid Event Data");

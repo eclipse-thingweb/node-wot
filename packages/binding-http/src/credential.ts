@@ -31,7 +31,7 @@ export interface BasicCredentialConfiguration {
 export class BasicCredential extends Credential {
     private readonly username: string;
     private readonly password: string;
-    private readonly options: BasicSecurityScheme;
+    private readonly options: BasicSecurityScheme | undefined;
     /**
      *
      */
@@ -114,7 +114,7 @@ export class BasicKeyCredential extends Credential {
 
 export class OAuthCredential extends Credential {
     private token: Token | Promise<Token>;
-    private readonly refresh: () => Promise<Token>;
+    private readonly refresh: (() => Promise<Token>) | undefined;
 
     /**
      *
@@ -167,9 +167,9 @@ export class TuyaCustomBearer extends Credential {
     protected key: string;
     protected secret: string;
     protected baseUri: string;
-    protected token: string;
-    protected refreshToken: string;
-    protected expireTime: Date;
+    protected token: string | undefined;
+    protected refreshToken: string | undefined;
+    protected expireTime: Date | undefined;
 
     constructor(credentials: TuyaCustomBearerCredentialConfiguration, scheme: TuyaCustomBearerSecurityScheme) {
         super();
@@ -187,11 +187,11 @@ export class TuyaCustomBearer extends Credential {
         const body = request.body ? request.body.read().toString() : "";
         const headers = this.getHeaders(true, request.headers.raw(), body, url, request.method);
         Object.assign(headers, request.headers.raw());
-        return new Request(url, { method: request.method, body: body !== "" ? body : null, headers: headers });
+        return new Request(url, { method: request.method, body: body !== "" ? body : undefined, headers: headers });
     }
 
     protected async requestAndRefreshToken(refresh: boolean): Promise<void> {
-        const headers = this.getHeaders(false, {}, "", null, null);
+        const headers = this.getHeaders(false, {}, "");
         const request = {
             headers: headers,
             method: "GET",
@@ -210,11 +210,11 @@ export class TuyaCustomBearer extends Credential {
         }
     }
 
-    private getHeaders(NormalRequest: boolean, headers: unknown, body: string, url: string, method: string) {
+    private getHeaders(NormalRequest: boolean, headers: unknown, body: string, url?: string, method?: string) {
         const requestTime = Date.now().toString();
         const replaceUri = this.baseUri.replace("/v1.0", "");
-        const _url = url ? url.replace(`${replaceUri}`, "") : null;
-        const sign = this.requestSign(NormalRequest, requestTime, body, headers, _url, method);
+        const _url = url ? url.replace(`${replaceUri}`, "") : undefined;
+        const sign = this.requestSign(NormalRequest, requestTime, body, _url, method);
         return {
             t: requestTime,
             client_id: this.key,
@@ -224,21 +224,14 @@ export class TuyaCustomBearer extends Credential {
         };
     }
 
-    private requestSign(
-        NormalRequest: boolean,
-        requestTime: string,
-        body: string,
-        headers: unknown,
-        path: string,
-        method: string
-    ): string {
+    private requestSign(NormalRequest: boolean, requestTime: string, body: string, path = "", method?: string): string {
         const bodyHash = crypto.createHash("sha256").update(body).digest("hex");
         let signUrl = "/v1.0/token?grant_type=1";
         const headerString = "";
         let useToken = "";
         const _method = method || "GET";
         if (NormalRequest) {
-            useToken = this.token;
+            useToken = this.token ?? "";
             const pathQuery = queryString.parse(path.split("?")[1]);
             let query: Record<string, string> = {};
             query = Object.assign(query, pathQuery);

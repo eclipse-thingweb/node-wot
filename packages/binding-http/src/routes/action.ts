@@ -33,7 +33,7 @@ export default async function actionRoute(
         return;
     }
 
-    const contentTypeHeader: string | string[] = req.headers["content-type"];
+    const contentTypeHeader = req.headers["content-type"];
     let contentType: string = Array.isArray(contentTypeHeader) ? contentTypeHeader[0] : contentTypeHeader;
     try {
         contentType = validOrDefaultRequestContentType(req, res, contentType);
@@ -87,9 +87,11 @@ export default async function actionRoute(
                 res.end();
             }
         } catch (err) {
-            error(`HttpServer on port ${this.getPort()} got internal error on invoke '${req.url}': ${err.message}`);
+            const message = err instanceof Error ? err.message : JSON.stringify(err);
+
+            error(`HttpServer on port ${this.getPort()} got internal error on invoke '${req.url}': ${message}`);
             res.writeHead(500);
-            res.end(err.message);
+            res.end(message);
         }
     } else {
         // may have been OPTIONS that failed the credentials check

@@ -23,7 +23,7 @@ import * as chai from "chai";
 import fetch from "node-fetch";
 
 import HttpServer from "../src/http-server";
-import { Content, createLoggers, ExposedThing, Helpers } from "@node-wot/core";
+import Servient, { Content, createLoggers, ExposedThing, Helpers } from "@node-wot/core";
 import { DataSchemaValue, InteractionInput, InteractionOptions } from "wot-typescript-definitions";
 import chaiAsPromised from "chai-as-promised";
 import { Readable } from "stream";
@@ -43,7 +43,7 @@ class HttpServerTest {
     @test async "should start and stop a server"() {
         const httpServer = new HttpServer({ port });
 
-        await httpServer.start(null);
+        await httpServer.start(new Servient());
         expect(httpServer.getPort()).to.eq(port); // from test
 
         await httpServer.stop();
@@ -52,7 +52,7 @@ class HttpServerTest {
 
     @test async "should use middleware if provided"() {
         const middleware: MiddlewareRequestHandler = async (req, res, next) => {
-            if (req.url.endsWith("testMiddleware")) {
+            if (req.url?.endsWith("testMiddleware")) {
                 res.statusCode = 401;
                 res.end("Unauthorized");
             } else {
@@ -65,9 +65,9 @@ class HttpServerTest {
             middleware,
         });
 
-        await httpServer.start(null);
+        await httpServer.start(new Servient());
 
-        const testThing = new ExposedThing(null, {
+        const testThing = new ExposedThing(new Servient(), {
             title: "Test",
             properties: {
                 testMiddleware: {
@@ -103,9 +103,9 @@ class HttpServerTest {
     @test async "should be able to destroy a thing"() {
         const httpServer = new HttpServer({ port: 0 });
 
-        await httpServer.start(null);
+        await httpServer.start(new Servient());
 
-        let testThing = new ExposedThing(null);
+        let testThing = new ExposedThing(new Servient());
         testThing = Helpers.extend(
             {
                 title: "Test",
@@ -135,9 +135,9 @@ class HttpServerTest {
     @test async "should change resource from 'off' to 'on' and try to invoke"() {
         const httpServer = new HttpServer({ port: 0 });
 
-        await httpServer.start(null);
+        await httpServer.start(new Servient());
 
-        const testThing = new ExposedThing(null, {
+        const testThing = new ExposedThing(new Servient(), {
             title: "Test",
             properties: {
                 test: {
@@ -222,9 +222,9 @@ class HttpServerTest {
     @test async "should return 204 when action has not output"() {
         const httpServer = new HttpServer({ port: 0 });
 
-        await httpServer.start(null);
+        await httpServer.start(new Servient());
 
-        const testThing = new ExposedThing(null, {
+        const testThing = new ExposedThing(new Servient(), {
             title: "Test",
             actions: {
                 noOutput: {
@@ -252,9 +252,9 @@ class HttpServerTest {
     @test async "should check uriVariables consistency"() {
         const httpServer = new HttpServer({ port: 0 });
 
-        await httpServer.start(null);
+        await httpServer.start(new Servient());
 
-        const testThing = new ExposedThing(null, {
+        const testThing = new ExposedThing(new Servient(), {
             title: "Test",
             properties: {
                 test: {
@@ -277,13 +277,13 @@ class HttpServerTest {
         });
         let test: DataSchemaValue;
         testThing.setPropertyReadHandler("test", (options) => {
-            expect(options.uriVariables).to.deep.equal({ id: "testId" });
+            expect(options?.uriVariables).to.deep.equal({ id: "testId" });
             return new Promise<InteractionInput>((resolve, reject) => {
                 resolve(test);
             });
         });
         testThing.setPropertyWriteHandler("test", async (value, options) => {
-            expect(options.uriVariables).to.deep.equal({ id: "testId" });
+            expect(options?.uriVariables).to.deep.equal({ id: "testId" });
             test = await value.value();
         });
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -316,9 +316,9 @@ class HttpServerTest {
     @test async "should serialize objects for actions and properties"() {
         const httpServer = new HttpServer({ port: 0 });
 
-        await httpServer.start(null);
+        await httpServer.start(new Servient());
 
-        const testThing = new ExposedThing(null, {
+        const testThing = new ExposedThing(new Servient(), {
             title: "Test",
             properties: {
                 test: {
@@ -331,7 +331,7 @@ class HttpServerTest {
                 },
             },
         });
-        let test = {};
+        let test: DataSchemaValue = {};
         testThing.setPropertyReadHandler("test", (_) => Promise.resolve(test));
         testThing.setPropertyWriteHandler("test", async (value) => {
             test = await value.value();
@@ -385,13 +385,13 @@ class HttpServerTest {
     @test async "should cause EADDRINUSE error when already running"() {
         const httpServer1 = new HttpServer({ port: 0 });
 
-        await httpServer1.start(null);
+        await httpServer1.start(new Servient());
         expect(httpServer1.getPort()).to.be.above(0);
 
         const httpServer2 = new HttpServer({ port: httpServer1.getPort() });
 
         try {
-            await httpServer2.start(null); // should fail
+            await httpServer2.start(new Servient()); // should fail
         } catch (err) {
             error(`HttpServer failed correctly on EADDRINUSE. ${err}`);
             assert(true);
@@ -413,7 +413,7 @@ class HttpServerTest {
     @test async "should start and stop a server with no security"() {
         const httpServer = new HttpServer({ port, security: { scheme: "nosec" } });
 
-        await httpServer.start(null);
+        await httpServer.start(new Servient());
         expect(httpServer.getPort()).to.eq(port); // port test
         expect(httpServer.getHttpSecurityScheme()).to.eq("NoSec"); // HTTP security scheme test (nosec -> NoSec)
         await httpServer.stop();
@@ -429,8 +429,8 @@ class HttpServerTest {
                 scheme: "bearer",
             },
         });
-        await httpServer.start(null);
-        const testThing = new ExposedThing(null);
+        await httpServer.start(new Servient());
+        const testThing = new ExposedThing(new Servient());
         testThing.title = "Test";
         testThing.securityDefinitions = {
             bearer: {
@@ -453,10 +453,10 @@ class HttpServerTest {
                 scheme: "bearer",
             },
         });
-        await httpServer.start(null);
+        await httpServer.start(new Servient());
 
         try {
-            const testThing = new ExposedThing(null);
+            const testThing = new ExposedThing(new Servient());
             testThing.title = "Test";
             testThing.securityDefinitions = {
                 oauth2: {
@@ -472,14 +472,14 @@ class HttpServerTest {
     @test async "config.port is overridden by WOT_PORT or PORT"() {
         // Works when none set
         let httpServer = new HttpServer({ port });
-        await httpServer.start(null);
+        await httpServer.start(new Servient());
         expect(httpServer.getPort()).to.eq(port); // WOT PORT from test
         await httpServer.stop();
 
         // Check PORT
         process.env.PORT = "2222";
         httpServer = new HttpServer({ port });
-        await httpServer.start(null);
+        await httpServer.start(new Servient());
         expect(httpServer.getPort()).to.eq(2222); // from PORT
         await httpServer.stop();
 
@@ -487,7 +487,7 @@ class HttpServerTest {
         process.env.PORT = undefined;
         process.env.WOT_PORT = "3333";
         httpServer = new HttpServer({ port });
-        await httpServer.start(null);
+        await httpServer.start(new Servient());
         expect(httpServer.getPort()).to.eq(3333); // WOT PORT from test
         await httpServer.stop();
 
@@ -495,7 +495,7 @@ class HttpServerTest {
         process.env.PORT = "2600";
         process.env.WOT_PORT = "1337";
         httpServer = new HttpServer({ port });
-        await httpServer.start(null);
+        await httpServer.start(new Servient());
         expect(httpServer.getPort()).to.eq(1337); // WOT PORT from test
         await httpServer.stop();
         delete process.env.PORT;
@@ -511,9 +511,9 @@ class HttpServerTest {
             port: 8080,
         });
 
-        await httpServer.start(null);
+        await httpServer.start(new Servient());
 
-        const testThing = new ExposedThing(null, {
+        const testThing = new ExposedThing(new Servient(), {
             title: "Smart Coffee Machine",
             properties: {
                 maintenanceNeeded: {
@@ -548,9 +548,9 @@ class HttpServerTest {
     @test async "should take in account global uriVariables"() {
         const httpServer = new HttpServer({ port: 0 });
 
-        await httpServer.start(null);
+        await httpServer.start(new Servient());
 
-        const testThing = new ExposedThing(null, {
+        const testThing = new ExposedThing(new Servient(), {
             title: "Test",
             uriVariables: {
                 globalVarTest: {
@@ -576,7 +576,7 @@ class HttpServerTest {
         });
         let test: DataSchemaValue;
         testThing.setPropertyReadHandler("test", (options) => {
-            expect(options.uriVariables).to.deep.equal({ id: "testId", globalVarTest: "test1" });
+            expect(options?.uriVariables).to.deep.equal({ id: "testId", globalVarTest: "test1" });
             return new Promise<InteractionInput>((resolve, reject) => {
                 resolve(test);
             });
@@ -600,9 +600,9 @@ class HttpServerTest {
     @test async "should allow url rewrite"() {
         const httpServer = new HttpServer({ port: 0, urlRewrite: { "/myroot/foo": "/test/properties/test" } });
 
-        await httpServer.start(null);
+        await httpServer.start(new Servient());
 
-        const testThing = new ExposedThing(null, {
+        const testThing = new ExposedThing(new Servient(), {
             title: "Test",
             properties: {
                 test: {
@@ -610,7 +610,7 @@ class HttpServerTest {
                 },
             },
         });
-        let test = {};
+        let test: DataSchemaValue = {};
         testThing.setPropertyReadHandler("test", (_) => Promise.resolve(test));
         testThing.setPropertyWriteHandler("test", async (value) => {
             test = await value.value();
@@ -639,7 +639,7 @@ class HttpServerTest {
     @test async "should report allproperties excluding non-JSON properties"() {
         const httpServer = new HttpServer({ port: 0 });
 
-        await httpServer.start(null);
+        await httpServer.start(new Servient());
 
         const tdTemplate: WoT.ExposedThingInit = {
             title: "TestA",
@@ -668,7 +668,7 @@ class HttpServerTest {
                 },
             },
         };
-        const testThing = new ExposedThing(null, tdTemplate);
+        const testThing = new ExposedThing(new Servient(), tdTemplate);
 
         const image = "<svg xmlns='http://www.w3.org/2000/svg'><text>FOO</text></svg>";
         const integer = 123;
@@ -733,7 +733,7 @@ class HttpServerTest {
     @test async "should support setting SVG contentType"() {
         const httpServer = new HttpServer({ port: 0 });
 
-        await httpServer.start(null);
+        await httpServer.start(new Servient());
 
         const tdTemplate = {
             title: "Test",
@@ -747,7 +747,7 @@ class HttpServerTest {
                 },
             },
         };
-        const testThing = new ExposedThing(null, tdTemplate);
+        const testThing = new ExposedThing(new Servient(), tdTemplate);
 
         const image = "<svg xmlns='http://www.w3.org/2000/svg'><text>FOO</text></svg>";
         testThing.setPropertyReadHandler("image", (_) => Promise.resolve(image));
@@ -771,7 +771,7 @@ class HttpServerTest {
     @test async "should support setting PNG contentType"() {
         const httpServer = new HttpServer({ port: 0 });
 
-        await httpServer.start(null);
+        await httpServer.start(new Servient());
 
         const tdTemplate = {
             title: "Test",
@@ -785,7 +785,7 @@ class HttpServerTest {
                 },
             },
         };
-        const testThing = new ExposedThing(null, tdTemplate);
+        const testThing = new ExposedThing(new Servient(), tdTemplate);
 
         const image =
             "iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==";
@@ -807,9 +807,9 @@ class HttpServerTest {
     @test async "should support TD content negotiation"() {
         const httpServer = new HttpServer({ port: 0 });
 
-        await httpServer.start(null);
+        await httpServer.start(new Servient());
 
-        const testThing = new ExposedThing(null, {
+        const testThing = new ExposedThing(new Servient(), {
             title: "Test",
         });
 
@@ -819,7 +819,7 @@ class HttpServerTest {
 
         const testCases = [
             {
-                inputHeaders: {},
+                inputHeaders: undefined,
                 expected: "application/td+json",
                 expectedResponseCode: 200,
             },
@@ -881,9 +881,9 @@ class HttpServerTest {
     @test async "should not support unknown Content-Types during TD content negotiation"() {
         const httpServer = new HttpServer({ port: 0 });
 
-        await httpServer.start(null);
+        await httpServer.start(new Servient());
 
-        const testThing = new ExposedThing(null, {
+        const testThing = new ExposedThing(new Servient(), {
             title: "Test",
         });
 
@@ -905,7 +905,7 @@ class HttpServerTest {
     @test async "TD should have form with readallproperties"() {
         const httpServer = new HttpServer({ port: 0 });
 
-        await httpServer.start(null);
+        await httpServer.start(new Servient());
 
         const tdTemplate: WoT.ExposedThingInit = {
             title: "Test",
@@ -916,7 +916,7 @@ class HttpServerTest {
                 },
             },
         };
-        const testThing = new ExposedThing(null, tdTemplate);
+        const testThing = new ExposedThing(new Servient(), tdTemplate);
 
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
@@ -939,7 +939,7 @@ class HttpServerTest {
     @test async "TD should have form with writeallproperties"() {
         const httpServer = new HttpServer({ port: 0 });
 
-        await httpServer.start(null);
+        await httpServer.start(new Servient());
 
         const tdTemplate: WoT.ExposedThingInit = {
             title: "Test",
@@ -950,7 +950,7 @@ class HttpServerTest {
                 },
             },
         };
-        const testThing = new ExposedThing(null, tdTemplate);
+        const testThing = new ExposedThing(new Servient(), tdTemplate);
 
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
@@ -973,7 +973,7 @@ class HttpServerTest {
     @test async "TD should have form with readallproperties and writeallproperties"() {
         const httpServer = new HttpServer({ port: 0 });
 
-        await httpServer.start(null);
+        await httpServer.start(new Servient());
 
         const tdTemplate: WoT.ExposedThingInit = {
             title: "Test",
@@ -988,7 +988,7 @@ class HttpServerTest {
                 },
             },
         };
-        const testThing = new ExposedThing(null, tdTemplate);
+        const testThing = new ExposedThing(new Servient(), tdTemplate);
 
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore

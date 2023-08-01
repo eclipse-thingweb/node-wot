@@ -28,7 +28,7 @@ import bodyParser from "body-parser";
 
 @suite("HTTP oauth client implementation")
 class HttpClientOAuthTest {
-    private client: HttpClient;
+    private client!: HttpClient;
     static model: InMemoryModel;
     static server: https.Server;
 

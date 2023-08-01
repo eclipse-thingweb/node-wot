@@ -49,7 +49,7 @@ function createRequestFunction(rejectUnauthorized: boolean) {
                 });
                 response.on("end", () => {
                     resolve({
-                        status: response.statusCode,
+                        status: response.statusCode ?? 500, // we are not expecting undefined status codes
                         body: body.toString(),
                     });
                 });
