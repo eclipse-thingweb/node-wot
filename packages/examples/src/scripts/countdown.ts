@@ -140,7 +140,7 @@ WoT.produce({
                 };
                 const ii: WoT.InteractionInput = resp;
                 console.log("init countdown value = " + JSON.stringify(resp));
-                countdowns.set(resp.href !== undefined ? resp.href : "", resp);
+                countdowns.set(resp.href ?? "", resp);
                 return ii;
             }
         );
