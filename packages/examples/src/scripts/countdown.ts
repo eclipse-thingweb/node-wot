@@ -90,7 +90,7 @@ WoT.produce({
                 const listToDelete: string[] = [];
                 for (const id of countdowns.keys()) {
                     const as = countdowns.get(id);
-                    if (as !== undefined && as.output !== undefined) {
+                    if (as?.output !== undefined) {
                         const prev = as.output;
                         as.output--;
                         console.log("\t" + id + ", from " + prev + " to " + as.output);
