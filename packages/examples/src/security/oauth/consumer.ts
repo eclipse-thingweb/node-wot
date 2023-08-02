@@ -12,20 +12,12 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-
-import { Servient, Helpers } from "@node-wot/core";
-import { HttpClientFactory } from "@node-wot/binding-http";
-import { CoapClientFactory } from "@node-wot/binding-coap";
+import { Helpers } from "@node-wot/core";
 import { ThingDescription } from "wot-typescript-definitions";
 
-// create Servient and add HTTP/CoAP binding
-const servient = new Servient();
-servient.addClientFactory(new HttpClientFactory());
-servient.addClientFactory(new CoapClientFactory());
+let WoTHelpers!: Helpers;
 
-const wotHelper = new Helpers(servient);
-
-wotHelper.fetch("https://localhost:8080/oauth").then((td) => {
+WoTHelpers.fetch("https://localhost:8080/oauth").then((td) => {
     WoT.consume(td as ThingDescription).then(async (thing) => {
         try {
             const resp = await thing.invokeAction("sayOk");

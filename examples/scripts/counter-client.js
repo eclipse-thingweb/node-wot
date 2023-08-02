@@ -13,14 +13,6 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-const core_1 = require("@node-wot/core");
-const binding_http_1 = require("@node-wot/binding-http");
-const binding_coap_1 = require("@node-wot/binding-coap");
-// create Servient and add HTTP/CoAP binding
-const servient = new core_1.Servient();
-servient.addClientFactory(new binding_http_1.HttpClientFactory());
-servient.addClientFactory(new binding_coap_1.CoapClientFactory());
-const wotHelper = new core_1.Helpers(servient);
 function getFormIndexForDecrementWithCoAP(thing) {
     var _a;
     const forms = (_a = thing.getThingDescription().actions) === null || _a === void 0 ? void 0 : _a.decrement.forms;
@@ -34,8 +26,7 @@ function getFormIndexForDecrementWithCoAP(thing) {
     // return formIndex: 0 if no CoAP target IRI found
     return 0;
 }
-wotHelper
-    .fetch("coap://localhost:5683/counter")
+WoTHelpers.fetch("coap://localhost:5683/counter")
     .then(async (td) => {
         // using await for serial execution (note 'async' in then() of fetch())
         try {

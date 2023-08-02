@@ -12,15 +12,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-const core_1 = require("@node-wot/core");
-const binding_http_1 = require("@node-wot/binding-http");
-const binding_coap_1 = require("@node-wot/binding-coap");
-// create Servient and add HTTP/CoAP binding
-const servient = new core_1.Servient();
-servient.addClientFactory(new binding_http_1.HttpClientFactory());
-servient.addClientFactory(new binding_coap_1.CoapClientFactory());
-const wotHelper = new core_1.Helpers(servient);
-wotHelper.fetch("https://localhost:8080/oauth").then((td) => {
+WoTHelpers.fetch("https://localhost:8080/oauth").then((td) => {
     WoT.consume(td).then(async (thing) => {
         try {
             const resp = await thing.invokeAction("sayOk");

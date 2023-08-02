@@ -13,17 +13,10 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { Servient, Helpers } from "@node-wot/core";
-import { HttpClientFactory } from "@node-wot/binding-http";
-import { CoapClientFactory } from "@node-wot/binding-coap";
+import { Helpers } from "@node-wot/core";
 import { ThingDescription } from "wot-typescript-definitions";
 
-// create Servient and add HTTP/CoAP binding
-const servient = new Servient();
-servient.addClientFactory(new HttpClientFactory());
-servient.addClientFactory(new CoapClientFactory());
-
-const wotHelper = new Helpers(servient);
+let WoTHelpers!: Helpers;
 
 function getFormIndexForDecrementWithCoAP(thing: WoT.ConsumedThing): number {
     const forms = thing.getThingDescription().actions?.decrement.forms;
@@ -38,8 +31,7 @@ function getFormIndexForDecrementWithCoAP(thing: WoT.ConsumedThing): number {
     return 0;
 }
 
-wotHelper
-    .fetch("coap://localhost:5683/counter")
+WoTHelpers.fetch("coap://localhost:5683/counter")
     .then(async (td) => {
         // using await for serial execution (note 'async' in then() of fetch())
         try {
