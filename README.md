@@ -99,7 +99,7 @@ cs.addCodec(new MyCodec("application/myType"));
 
 ### To use with Node.js
 
-> **Warning**: We are currently in the process to drop support for NodeJS versions 14 and 16.
+> **Warning**: We no longer actively support Node.js version 14 and lower.
 > Node.js version 20 is not yet supported (https://github.com/eclipse-thingweb/node-wot/issues/1004)
 
 All systems require:
