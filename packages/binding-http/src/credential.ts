@@ -31,7 +31,7 @@ export interface BasicCredentialConfiguration {
 export class BasicCredential extends Credential {
     private readonly username: string;
     private readonly password: string;
-    private readonly options: BasicSecurityScheme | undefined;
+    private readonly options?: BasicSecurityScheme;
     /**
      *
      */
@@ -114,7 +114,7 @@ export class BasicKeyCredential extends Credential {
 
 export class OAuthCredential extends Credential {
     private token: Token | Promise<Token>;
-    private readonly refresh: (() => Promise<Token>) | undefined;
+    private readonly refresh?: () => Promise<Token>;
 
     /**
      *
@@ -167,9 +167,9 @@ export class TuyaCustomBearer extends Credential {
     protected key: string;
     protected secret: string;
     protected baseUri: string;
-    protected token: string | undefined;
-    protected refreshToken: string | undefined;
-    protected expireTime: Date | undefined;
+    protected token?: string;
+    protected refreshToken?: string;
+    protected expireTime?: Date;
 
     constructor(credentials: TuyaCustomBearerCredentialConfiguration, scheme: TuyaCustomBearerSecurityScheme) {
         super();
