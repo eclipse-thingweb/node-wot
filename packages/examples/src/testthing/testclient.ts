@@ -13,17 +13,9 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { Servient, Helpers } from "@node-wot/core";
-import { HttpClientFactory } from "@node-wot/binding-http";
-import { CoapClientFactory } from "@node-wot/binding-coap";
+import { Helpers } from "@node-wot/core";
 import { ThingDescription } from "wot-typescript-definitions";
-
-// create Servient and add HTTP/CoAP binding
-const servient = new Servient();
-servient.addClientFactory(new HttpClientFactory());
-servient.addClientFactory(new CoapClientFactory());
-
-const wotHelper = new Helpers(servient);
+let WoTHelpers!: Helpers;
 
 console.log = () => {
     /* empty */
@@ -59,8 +51,7 @@ async function testPropertyWrite(
     }
 }
 
-wotHelper
-    .fetch("http://localhost:8080/testthing")
+WoTHelpers.fetch("http://localhost:8080/testthing")
     .then(async (td) => {
         // using await for serial execution (note 'async' in then() of fetch())
         try {

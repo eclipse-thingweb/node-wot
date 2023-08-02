@@ -13,14 +13,6 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-const core_1 = require("@node-wot/core");
-const binding_http_1 = require("@node-wot/binding-http");
-const binding_coap_1 = require("@node-wot/binding-coap");
-// create Servient and add HTTP/CoAP binding
-const servient = new core_1.Servient();
-servient.addClientFactory(new binding_http_1.HttpClientFactory());
-servient.addClientFactory(new binding_coap_1.CoapClientFactory());
-const wotHelper = new core_1.Helpers(servient);
 console.log = () => {
     /* empty */
 };
@@ -33,11 +25,7 @@ async function testPropertyRead(thing, name) {
         const value = await res.value();
         console.info("PASS " + name + " READ:", value);
     } catch (err) {
-        if (err instanceof Error) {
-            console.error("FAIL " + name + " READ:", err.message);
-        } else {
-            console.error("FAIL " + name + " READ:", err);
-        }
+        console.error("FAIL " + name + " READ:", JSON.stringify(err));
     }
 }
 async function testPropertyWrite(thing, name, value, shouldFail) {
@@ -47,23 +35,11 @@ async function testPropertyWrite(thing, name, value, shouldFail) {
         if (!shouldFail) console.info("PASS " + name + " WRITE (" + displayValue + ")");
         else console.error("FAIL " + name + " WRITE: (" + displayValue + ")");
     } catch (err) {
-        if (!shouldFail) {
-            if (err instanceof Error) {
-                console.error("FAIL " + name + " WRITE (" + displayValue + "):", err.message);
-            } else {
-                console.error("FAIL " + name + " WRITE (" + displayValue + "):", err);
-            }
-        } else {
-            if (err instanceof Error) {
-                console.info("PASS " + name + " WRITE (" + displayValue + "):", err.message);
-            } else {
-                console.info("PASS " + name + " WRITE (" + displayValue + "):", err);
-            }
-        }
+        if (!shouldFail) console.error("FAIL " + name + " WRITE (" + displayValue + "):", JSON.stringify(err));
+        else console.info("PASS " + name + " WRITE (" + displayValue + "):", JSON.stringify(err));
     }
 }
-wotHelper
-    .fetch("http://localhost:8080/testthing")
+WoTHelpers.fetch("http://localhost:8080/testthing")
     .then(async (td) => {
         // using await for serial execution (note 'async' in then() of fetch())
         try {
