@@ -38,11 +38,7 @@ async function testPropertyRead(thing: WoT.ConsumedThing, name: string) {
         const value = await res.value();
         console.info("PASS " + name + " READ:", value);
     } catch (err) {
-        if (err instanceof Error) {
-            console.error("FAIL " + name + " READ:", err.message);
-        } else {
-            console.error("FAIL " + name + " READ:", err);
-        }
+        console.error("FAIL " + name + " READ:", JSON.stringify(err));
     }
 }
 
@@ -58,19 +54,8 @@ async function testPropertyWrite(
         if (!shouldFail) console.info("PASS " + name + " WRITE (" + displayValue + ")");
         else console.error("FAIL " + name + " WRITE: (" + displayValue + ")");
     } catch (err) {
-        if (!shouldFail) {
-            if (err instanceof Error) {
-                console.error("FAIL " + name + " WRITE (" + displayValue + "):", err.message);
-            } else {
-                console.error("FAIL " + name + " WRITE (" + displayValue + "):", err);
-            }
-        } else {
-            if (err instanceof Error) {
-                console.info("PASS " + name + " WRITE (" + displayValue + "):", err.message);
-            } else {
-                console.info("PASS " + name + " WRITE (" + displayValue + "):", err);
-            }
-        }
+        if (!shouldFail) console.error("FAIL " + name + " WRITE (" + displayValue + "):", JSON.stringify(err));
+        else console.info("PASS " + name + " WRITE (" + displayValue + "):", JSON.stringify(err));
     }
 }
 
