@@ -12,15 +12,24 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-import { Helpers } from "@node-wot/core";
+
+import { Servient, Helpers } from "@node-wot/core";
+import { HttpClientFactory } from "@node-wot/binding-http";
+import { CoapClientFactory } from "@node-wot/binding-coap";
 import { ThingDescription } from "wot-typescript-definitions";
 
-let WoTHelpers: Helpers;
+// create Servient and add HTTP/CoAP binding
+const servient = new Servient();
+servient.addClientFactory(new HttpClientFactory());
+servient.addClientFactory(new CoapClientFactory());
 
-WoTHelpers.fetch("https://localhost:8080/oauth").then((td) => {
+const wotHelper = new Helpers(servient);
+
+wotHelper.fetch("https://localhost:8080/oauth").then((td) => {
     WoT.consume(td as ThingDescription).then(async (thing) => {
         try {
-            const result = await (await thing.invokeAction("sayOk")).value();
+            const resp = await thing.invokeAction("sayOk");
+            const result = resp?.value();
             console.log("oAuth token was", result);
         } catch (error) {
             console.log("It seems that I couldn't access the resource");

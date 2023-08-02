@@ -17,9 +17,17 @@
 // It considers a fictional smart coffee machine in order to demonstrate the capabilities of Web of Things.
 // An accompanying tutorial is available at http://www.thingweb.io/smart-coffee-machine.html.
 
+import { Servient, Helpers } from "@node-wot/core";
+import { HttpClientFactory } from "@node-wot/binding-http";
+import { CoapClientFactory } from "@node-wot/binding-coap";
 import { ThingDescription } from "wot-typescript-definitions";
-import { Helpers } from "@node-wot/core";
-let WoTHelpers: Helpers;
+
+// create Servient and add HTTP/CoAP binding
+const servient = new Servient();
+servient.addClientFactory(new HttpClientFactory());
+servient.addClientFactory(new CoapClientFactory());
+
+const wotHelper = new Helpers(servient);
 
 // Print data and an accompanying message in a distinguishable way
 function log(msg: string, data: unknown) {
@@ -29,7 +37,7 @@ function log(msg: string, data: unknown) {
     console.info("======================");
 }
 
-WoTHelpers.fetch("http://127.0.0.1:8080/smart-coffee-machine").then(async (td) => {
+wotHelper.fetch("http://127.0.0.1:8080/smart-coffee-machine").then(async (td) => {
     try {
         const thing = await WoT.consume(td as ThingDescription);
         log("Thing Description:", td);
@@ -60,7 +68,7 @@ WoTHelpers.fetch("http://127.0.0.1:8080/smart-coffee-machine").then(async (td) =
         const makeCoffee = await thing.invokeAction("makeDrink", undefined, {
             uriVariables: { drinkId: "latte", size: "l", quantity: 3 },
         });
-        const makeCoffeep = (await makeCoffee.value()) as Record<string, unknown>;
+        const makeCoffeep = (await makeCoffee?.value()) as Record<string, unknown>;
         if (makeCoffeep.result) {
             log("Enjoy your drink!", makeCoffeep);
         } else {
@@ -79,7 +87,7 @@ WoTHelpers.fetch("http://127.0.0.1:8080/smart-coffee-machine").then(async (td) =
             time: "10:00",
             mode: "everyday",
         });
-        const scheduledTaskp = (await scheduledTask.value()) as Record<string, string>;
+        const scheduledTaskp = (await scheduledTask?.value()) as Record<string, string>;
         log(scheduledTaskp.message, scheduledTaskp);
 
         // See how it has been added to the schedules property

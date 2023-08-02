@@ -13,23 +13,33 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { Helpers } from "@node-wot/core";
+import { Servient, Helpers } from "@node-wot/core";
+import { HttpClientFactory } from "@node-wot/binding-http";
+import { CoapClientFactory } from "@node-wot/binding-coap";
 import { ThingDescription } from "wot-typescript-definitions";
 
-let WoTHelpers: Helpers;
+// create Servient and add HTTP/CoAP binding
+const servient = new Servient();
+servient.addClientFactory(new HttpClientFactory());
+servient.addClientFactory(new CoapClientFactory());
+
+const wotHelper = new Helpers(servient);
 
 function getFormIndexForDecrementWithCoAP(thing: WoT.ConsumedThing): number {
-    const forms = thing.getThingDescription().actions.decrement.forms;
-    for (let i = 0; i < forms.length; i++) {
-        if (/^coaps?:\/\/.*/.test(forms[i].href)) {
-            return i;
+    const forms = thing.getThingDescription().actions?.decrement.forms;
+    if (forms !== undefined) {
+        for (let i = 0; i < forms.length; i++) {
+            if (/^coaps?:\/\/.*/.test(forms[i].href)) {
+                return i;
+            }
         }
     }
     // return formIndex: 0 if no CoAP target IRI found
     return 0;
 }
 
-WoTHelpers.fetch("coap://localhost:5683/counter")
+wotHelper
+    .fetch("coap://localhost:5683/counter")
     .then(async (td) => {
         // using await for serial execution (note 'async' in then() of fetch())
         try {

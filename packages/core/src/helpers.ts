@@ -34,7 +34,7 @@ import * as TDT from "wot-thing-description-types";
 import { ContentSerdes } from "./content-serdes";
 import Ajv, { ValidateFunction, ErrorObject } from "ajv";
 import TDSchema from "wot-thing-description-types/schema/td-json-schema-validation.json";
-import { DataSchemaValue, ExposedThingInit } from "wot-typescript-definitions";
+import { DataSchemaValue, ExposedThingInit, ThingDescription } from "wot-typescript-definitions";
 import { SomeJSONSchema } from "ajv/dist/types/json-schema";
 import { ThingInteraction, ThingModelHelpers } from "@node-wot/td-tools";
 import { Resolver } from "@node-wot/td-tools/src/resolver-interface";
@@ -152,9 +152,8 @@ export default class Helpers implements Resolver {
         }
     }
 
-    // TODO: specialize fetch to retrieve just thing descriptions
-    public fetch(uri: string): Promise<unknown> {
-        return new Promise<unknown>((resolve, reject) => {
+    public fetch(uri: string): Promise<ThingDescription> {
+        return new Promise<ThingDescription>((resolve, reject) => {
             const client = this.srv.getClientFor(Helpers.extractScheme(uri));
             debug(`WoTImpl fetching TD from '${uri}' with ${client}`);
             client

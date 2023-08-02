@@ -13,9 +13,17 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { Helpers } from "@node-wot/core";
+import { Servient, Helpers } from "@node-wot/core";
+import { HttpClientFactory } from "@node-wot/binding-http";
+import { CoapClientFactory } from "@node-wot/binding-coap";
 import { ThingDescription } from "wot-typescript-definitions";
-let WoTHelpers: Helpers;
+
+// create Servient and add HTTP/CoAP binding
+const servient = new Servient();
+servient.addClientFactory(new HttpClientFactory());
+servient.addClientFactory(new CoapClientFactory());
+
+const wotHelper = new Helpers(servient);
 
 console.log = () => {
     /* empty */
@@ -30,7 +38,11 @@ async function testPropertyRead(thing: WoT.ConsumedThing, name: string) {
         const value = await res.value();
         console.info("PASS " + name + " READ:", value);
     } catch (err) {
-        console.error("FAIL " + name + " READ:", err.message);
+        if (err instanceof Error) {
+            console.error("FAIL " + name + " READ:", err.message);
+        } else {
+            console.error("FAIL " + name + " READ:", err);
+        }
     }
 }
 
@@ -46,12 +58,24 @@ async function testPropertyWrite(
         if (!shouldFail) console.info("PASS " + name + " WRITE (" + displayValue + ")");
         else console.error("FAIL " + name + " WRITE: (" + displayValue + ")");
     } catch (err) {
-        if (!shouldFail) console.error("FAIL " + name + " WRITE (" + displayValue + "):", err.message);
-        else console.info("PASS " + name + " WRITE (" + displayValue + "):", err.message);
+        if (!shouldFail) {
+            if (err instanceof Error) {
+                console.error("FAIL " + name + " WRITE (" + displayValue + "):", err.message);
+            } else {
+                console.error("FAIL " + name + " WRITE (" + displayValue + "):", err);
+            }
+        } else {
+            if (err instanceof Error) {
+                console.info("PASS " + name + " WRITE (" + displayValue + "):", err.message);
+            } else {
+                console.info("PASS " + name + " WRITE (" + displayValue + "):", err);
+            }
+        }
     }
 }
 
-WoTHelpers.fetch("http://localhost:8080/testthing")
+wotHelper
+    .fetch("http://localhost:8080/testthing")
     .then(async (td) => {
         // using await for serial execution (note 'async' in then() of fetch())
         try {

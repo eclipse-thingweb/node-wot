@@ -13,8 +13,6 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { InteractionOptions } from "wot-typescript-definitions";
-
 function uuidv4(): string {
     return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
         const r = (Math.random() * 16) | 0;
@@ -91,8 +89,8 @@ WoT.produce({
                 console.log("Update countdowns");
                 const listToDelete: string[] = [];
                 for (const id of countdowns.keys()) {
-                    const as: ActionStatus = countdowns.get(id);
-                    if (as.output !== undefined) {
+                    const as = countdowns.get(id);
+                    if (as !== undefined && as.output !== undefined) {
                         const prev = as.output;
                         as.output--;
                         console.log("\t" + id + ", from " + prev + " to " + as.output);
@@ -117,20 +115,17 @@ WoT.produce({
         }, 1000);
 
         // set property handlers (using async-await)
-        thing.setPropertyReadHandler(
-            "countdowns",
-            async (options: InteractionOptions): Promise<WoT.InteractionInput> => {
-                const cts: string[] = [];
-                for (const id of countdowns.keys()) {
-                    cts.push(id);
-                }
-                return cts;
+        thing.setPropertyReadHandler("countdowns", async (options): Promise<WoT.InteractionInput> => {
+            const cts: string[] = [];
+            for (const id of countdowns.keys()) {
+                cts.push(id);
             }
-        );
+            return cts;
+        });
         // set action handlers (using async-await)
         thing.setActionHandler(
             "startCountdown",
-            async (params: WoT.InteractionOutput, options: InteractionOptions): Promise<WoT.InteractionInput> => {
+            async (params: WoT.InteractionOutput, options): Promise<WoT.InteractionInput> => {
                 let initValue = 100;
                 if (params) {
                     const value = await params.value();
@@ -145,21 +140,25 @@ WoT.produce({
                 };
                 const ii: WoT.InteractionInput = resp;
                 console.log("init countdown value = " + JSON.stringify(resp));
-                countdowns.set(resp.href, resp);
+                countdowns.set(resp.href !== undefined ? resp.href : "", resp);
                 return ii;
             }
         );
         thing.setActionHandler(
             "stopCountdown",
-            async (params: WoT.InteractionOutput, options: InteractionOptions): Promise<WoT.InteractionInput> => {
+            async (params: WoT.InteractionOutput, options): Promise<WoT.InteractionInput> => {
                 if (params) {
                     const value = await params.value();
                     if (typeof value === "string" && countdowns.has(value)) {
-                        const as: ActionStatus = countdowns.get(value);
-                        as.output = 0;
-                        as.status = Status.completed;
-                        console.log("Countdown stopped for href: " + value);
-                        return undefined;
+                        const as = countdowns.get(value);
+                        if (as !== undefined) {
+                            as.output = 0;
+                            as.status = Status.completed;
+                            console.log("Countdown stopped for href: " + value);
+                            return null;
+                        } else {
+                            throw Error("Countdown value is undefined for href, " + value);
+                        }
                     } else {
                         throw Error("Input provided for stopCountdown is no string or invalid href, " + value);
                     }
@@ -170,11 +169,11 @@ WoT.produce({
         );
         thing.setActionHandler(
             "monitorCountdown",
-            async (params: WoT.InteractionOutput, options: InteractionOptions): Promise<WoT.InteractionInput> => {
+            async (params: WoT.InteractionOutput, options): Promise<WoT.InteractionInput> => {
                 if (params) {
                     const value = await params.value();
                     if (typeof value === "string" && countdowns.has(value)) {
-                        const as: ActionStatus = countdowns.get(value);
+                        const as = countdowns.get(value);
                         return JSON.stringify(as);
                     } else {
                         throw Error("Input provided for monitorCountdown is no string or invalid href, " + value);
