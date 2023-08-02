@@ -1,5 +1,7 @@
 # TD (Thing Description) tools of node-wot
 
+Current Maintainer(s): [@danielpeintner](https://github.com/danielpeintner) [@relu91](https://github.com/relu91)
+
 ## Getting Started
 
 In the following example it is shown how td-tools of node-wot can be used.

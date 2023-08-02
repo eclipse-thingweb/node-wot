@@ -27,6 +27,7 @@ import { Content, createLoggers, ExposedThing, Helpers } from "@node-wot/core";
 import { DataSchemaValue, InteractionInput, InteractionOptions } from "wot-typescript-definitions";
 import chaiAsPromised from "chai-as-promised";
 import { Readable } from "stream";
+import { MiddlewareRequestHandler } from "../src/http-server-middleware";
 
 const { debug, error } = createLoggers("binding-http", "http-server-test");
 
@@ -47,6 +48,56 @@ class HttpServerTest {
 
         await httpServer.stop();
         expect(httpServer.getPort()).to.eq(-1); // from getPort() when not listening
+    }
+
+    @test async "should use middleware if provided"() {
+        const middleware: MiddlewareRequestHandler = async (req, res, next) => {
+            if (req.url.endsWith("testMiddleware")) {
+                res.statusCode = 401;
+                res.end("Unauthorized");
+            } else {
+                next();
+            }
+        };
+
+        const httpServer = new HttpServer({
+            port,
+            middleware,
+        });
+
+        await httpServer.start(null);
+
+        const testThing = new ExposedThing(null, {
+            title: "Test",
+            properties: {
+                testMiddleware: {
+                    forms: [],
+                },
+                testPassthrough: {
+                    forms: [],
+                },
+            },
+            actions: {},
+        });
+
+        let test: DataSchemaValue;
+        testThing.setPropertyReadHandler("testMiddleware", () => Promise.resolve(test));
+        testThing.setPropertyReadHandler("testPassthrough", () => Promise.resolve(test));
+
+        await httpServer.expose(testThing);
+
+        const uri = `http://localhost:${httpServer.getPort()}/test/`;
+        let resp;
+
+        debug(`Testing ${uri}`);
+
+        resp = await fetch(uri + "properties/testMiddleware");
+        expect(resp.status).to.equal(401);
+
+        resp = await fetch(uri + "properties/testPassthrough");
+        expect(resp.status).to.equal(200);
+
+        return httpServer.stop();
     }
 
     @test async "should be able to destroy a thing"() {
@@ -153,11 +204,47 @@ class HttpServerTest {
         resp = await (await fetch(uri + "properties/test")).text();
         expect(resp).to.equal('"on"');
 
-        resp = await (await fetch(uri + "actions/try", { method: "POST", body: "toggle" })).text();
+        let actionHttpResponse = await fetch(uri + "actions/try", { method: "POST", body: "toggle" });
+        resp = await actionHttpResponse.text();
+
+        expect(actionHttpResponse.status).to.equal(200);
         expect(resp).to.equal('"TEST"');
 
+        actionHttpResponse = await fetch(uri + "actions/try", { method: "POST", body: undefined });
         resp = await (await fetch(uri + "actions/try", { method: "POST", body: undefined })).text();
+
+        expect(actionHttpResponse.status).to.equal(200);
         expect(resp).to.equal('"TEST"');
+
+        return httpServer.stop();
+    }
+
+    @test async "should return 204 when action has not output"() {
+        const httpServer = new HttpServer({ port: 0 });
+
+        await httpServer.start(null);
+
+        const testThing = new ExposedThing(null, {
+            title: "Test",
+            actions: {
+                noOutput: {
+                    output: { type: "string" },
+                    forms: [],
+                },
+            },
+        });
+
+        testThing.setActionHandler("noOutput", async () => undefined);
+
+        await httpServer.expose(testThing);
+
+        const uri = `http://localhost:${httpServer.getPort()}/test/`;
+
+        debug(`Testing ${uri}`);
+
+        const resp = await fetch(uri + "actions/noOutput", { method: "POST" });
+
+        expect(resp.status).to.equal(204);
 
         return httpServer.stop();
     }
@@ -728,7 +815,7 @@ class HttpServerTest {
 
         await httpServer.expose(testThing);
 
-        const uri = `http://localhost:${httpServer.getPort()}/test/`;
+        const uri = `http://localhost:${httpServer.getPort()}/test`;
 
         const testCases = [
             {
@@ -802,7 +889,7 @@ class HttpServerTest {
 
         await httpServer.expose(testThing);
 
-        const uri = `http://localhost:${httpServer.getPort()}/test/`;
+        const uri = `http://localhost:${httpServer.getPort()}/test`;
 
         const failedNegotiationResponse = await fetch(uri, {
             headers: {

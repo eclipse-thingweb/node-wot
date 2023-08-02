@@ -1,5 +1,7 @@
 # Command-line interface (CLI) of node-wot
 
+Current Maintainer(s): [@relu91](https://github.com/relu91) [@danielpeintner](https://github.com/danielpeintner) [@mkovatsc](https://github.com/mkovatsc)
+
 ## Getting Started
 
 ### Installation
@@ -130,6 +132,8 @@ VAR2=Value2
 ```
 
 Additionally, you can look at [the JSON Schema](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/cli/src/wot-servient-schema.conf.json) to understand possible values for each field.
+
+> In the current implementation, the **middleware** option (that you can use to handle raw HTTP requests _before_ they hit the Servient) is only available when using the `@node-wot/binding-http` package as a library. See [Adding a middleware](../binding-http/README.md#adding-a-middleware) for more information.
 
 ### Environment variables
 

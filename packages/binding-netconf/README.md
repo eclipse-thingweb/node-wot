@@ -2,6 +2,8 @@
 
 W3C Web of Things (WoT) Protocol Binding for NETCONF [RFC6241](https://tools.ietf.org/html/rfc6241)
 
+Current Maintainer(s): [@lukesmolo](https://github.com/lukesmolo)
+
 ## Protocol specifier
 
 The protocol prefix handled by this binding is `netconf://`.

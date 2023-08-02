@@ -2,6 +2,8 @@
 
 W3C WoT Binding Template specification for HTTP can be found [here](https://w3c.github.io/wot-binding-templates/bindings/protocols/http/index.html).
 
+Current Maintainer(s): [@relu91](https://github.com/relu91) [@danielpeintner](https://github.com/danielpeintner)
+
 ## Protocol specifier
 
 The protocol prefix handled by this binding is `http://` or `https://`.
@@ -174,14 +176,15 @@ The protocol binding can be configured using his constructor or trough servient 
 
 ```ts
 {
-    port?: number;                  // TCP Port to listen on
-    address?: string;               // IP address or hostname of local interface to bind to
-    proxy?: HttpProxyConfig;        // proxy configuration
-    allowSelfSigned?: boolean;      // Accept self signed certificates
-    serverKey?: string;             // HTTPs server secret key file
-    serverCert?: string;            // HTTPs server certificate file
-    security?: TD.SecurityScheme;   // Security scheme of the server
-    baseUri?: string                // A Base URI to be used in the TD in cases where the client will access a different URL than the actual machine serving the thing.  [See Using BaseUri below]
+    port?: number;                           // TCP Port to listen on
+    address?: string;                        // IP address or hostname of local interface to bind to
+    proxy?: HttpProxyConfig;                 // proxy configuration
+    allowSelfSigned?: boolean;               // Accept self signed certificates
+    serverKey?: string;                      // HTTPs server secret key file
+    serverCert?: string;                     // HTTPs server certificate file
+    security?: TD.SecurityScheme;            // Security scheme of the server
+    baseUri?: string                         // A Base URI to be used in the TD in cases where the client will access a different URL than the actual machine serving the thing.  [See Using BaseUri below]
+    middleware?: MiddlewareRequestHandler;   // the MiddlewareRequestHandler function. See [Adding a middleware] section below.
 }
 ```
 
@@ -301,10 +304,46 @@ The exposed thing on the internal server will product form URLs such as:
           "href": "https://wot.w3.org/things/smart-coffee-machine/actions/makeDrink"
 ```
 
-**baseUrt vs address**
+**baseUri vs address**
 
 > `baseUri` tells the producer to prefix URLs which may include hostnames, network interfaces, and URI prefixes which are not local to the machine exposing the Thing.
-> `address` tells the HttpServer a specific ocal network interface to bind its TCP listener.
+
+> `address` tells the HttpServer a specific local network interface to bind its TCP listener.
+
+### Adding a middleware
+
+HttpServer supports the addition of **middleware** to handle the raw HTTP requests before they hit the Servient. In the middleware function, you can run some logic to filter and eventually reject HTTP requests (e.g. based on some custom headers).
+
+This can be done by passing a middleware function to the HttpServer constructor.
+
+```js
+const { Servient } = require("@node-wot/core");
+const { HttpServer } = require("@node-wot/binding-http");
+
+const servient = new Servient();
+
+const middleware = async (req, res, next) => {
+    // For example, reject requests in which the X-Custom-Header header is missing
+    // by replying with 400 Bad Request
+    if (!req.headers["x-custom-header"]) {
+        res.statusCode = 400;
+        res.end("Bad Request");
+        return;
+    }
+    // Pass all other requests to the WoT Servient
+    next();
+};
+
+const httpServer = new HttpServer({
+    middleware,
+});
+
+servient.addServer(httpServer);
+
+servient.start().then(async (WoT) => {
+    // ...
+});
+```
 
 ## Feature matrix
 

@@ -369,7 +369,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                     new InteractionOutput(inputContent, form, this.actions[name].input),
                     options
                 );
-                if (result) {
+                if (result !== undefined) {
                     // TODO: handle form.response.contentType
                     return ContentManager.valueToContent(result, this.actions[name].output, form.contentType);
                 }

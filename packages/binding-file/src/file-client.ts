@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2022 Contributors to the Eclipse Foundation
+ * Copyright (c) 2023 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -86,8 +86,9 @@ export default class FileClient implements ProtocolClient {
         error?: (error: Error) => void,
         complete?: () => void
     ): Promise<Subscription> {
-        error(new Error(`FileClient does not implement subscribe`));
-        return null;
+        return new Promise<Subscription>((resolve, reject) => {
+            reject(new Error(`FileClient does not implement subscribe`));
+        });
     }
 
     public async start(): Promise<void> {

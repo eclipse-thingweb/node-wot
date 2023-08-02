@@ -224,11 +224,13 @@ export default class ModbusClient implements ProtocolClient {
     }
 
     private validateAndFillDefaultForm(form: ModbusForm, contentLength = 0): ModbusForm {
-        const result: ModbusForm = { ...form };
         const mode = contentLength > 0 ? "w" : "r";
 
         // Use form values if provided, otherwise use form values (we are more merciful then the spec for retro-compatibility)
         this.overrideFormFromURLPath(form);
+
+        // take over latest content of form into a new result set
+        const result: ModbusForm = { ...form };
 
         if (!form["modbus:function"] && !form["modbus:entity"]) {
             throw new Error("Malformed form: modbus:function or modbus:entity must be defined");

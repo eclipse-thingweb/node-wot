@@ -15,11 +15,13 @@
 
 import * as TD from "@node-wot/td-tools";
 import { Method } from "./oauth-token-validation";
+import { MiddlewareRequestHandler } from "./http-server-middleware";
 
 export { default as HttpServer } from "./http-server";
 export { default as HttpClient } from "./http-client";
 export { default as HttpClientFactory } from "./http-client-factory";
 export { default as HttpsClientFactory } from "./https-client-factory";
+export { MiddlewareRequestHandler } from "./http-server-middleware";
 export * from "./http-server";
 export * from "./http-client";
 export * from "./http-client-factory";
@@ -43,6 +45,7 @@ export interface HttpConfig {
     serverKey?: string;
     serverCert?: string;
     security?: TD.SecurityScheme;
+    middleware?: MiddlewareRequestHandler;
 }
 
 export interface OAuth2ServerConfig extends TD.SecurityScheme {

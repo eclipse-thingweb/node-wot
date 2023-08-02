@@ -8,6 +8,8 @@ The core of node-wot is the entry point allowing to attach dedicated bindings su
 
 or to create user-specific bindings.
 
+Current Maintainer(s): [@danielpeintner](https://github.com/danielpeintner) [@relu91](https://github.com/relu91) [@JKRhb](https://github.com/JKRhb)
+
 ### Prerequisites
 
 -   `npm install @node-wot/core`
