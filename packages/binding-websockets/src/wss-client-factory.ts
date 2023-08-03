@@ -28,7 +28,7 @@ export default class WssClientFactory implements ProtocolClientFactory {
     }
 
     public getClient(): ProtocolClient {
-        return null;
+        throw new Error("WssClientFactory for 'wss' is not implemented");
     }
 
     public init(): boolean {

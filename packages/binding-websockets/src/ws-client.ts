@@ -63,7 +63,7 @@ export default class WebSocketClient implements ProtocolClient {
         error?: (error: Error) => void,
         complete?: () => void
     ): Promise<Subscription> {
-        return null;
+        throw new Error("Websocket client does not implement subscribeResource");
     }
 
     public async start(): Promise<void> {
