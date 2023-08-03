@@ -25,9 +25,9 @@ const { debug, warn } = createLoggers("binding-http", "https-client-factory");
 
 export default class HttpsClientFactory implements ProtocolClientFactory {
     public readonly scheme: string = "https";
-    private config: HttpConfig = null;
+    private config: HttpConfig | null = null;
 
-    constructor(config: HttpConfig = null) {
+    constructor(config: HttpConfig | null = null) {
         this.config = config;
     }
 

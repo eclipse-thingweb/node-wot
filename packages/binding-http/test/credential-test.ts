@@ -37,7 +37,7 @@ chai.use(chaiAsPromised);
 @suite("Credetials auth test suite")
 class CredentialTest {
     @test async "should sign in with basic"(): Promise<void> {
-        const scheme: BasicSecurityScheme = {
+        const scheme: BasicSecurityScheme & { name: string } = {
             scheme: "basic",
             in: "header",
             name: "testHeader",
@@ -53,13 +53,13 @@ class CredentialTest {
         const basic = new BasicCredential(config, scheme);
         const response = await basic.sign(request);
 
-        response.headers
-            .get(scheme.name)
-            .should.be.equal("Basic " + Buffer.from(config.username + ":" + config.password).toString("base64"));
+        chai.expect(response.headers?.get(scheme.name)).be.equal(
+            "Basic " + Buffer.from(config.username + ":" + config.password).toString("base64")
+        );
     }
 
     @test async "should sign in with bearer"(): Promise<void> {
-        const scheme: BearerSecurityScheme = {
+        const scheme: BearerSecurityScheme & { name: string } = {
             scheme: "bearer",
             in: "header",
             name: "testHeader",
@@ -74,11 +74,11 @@ class CredentialTest {
         const bearer = new BearerCredential(config, scheme);
         const response = await bearer.sign(request);
 
-        response.headers.get(scheme.name).should.be.equal("Bearer " + config.token);
+        chai.expect(response.headers?.get(scheme.name)).be.equal("Bearer " + config.token);
     }
 
     @test async "should sign in with basic key"(): Promise<void> {
-        const scheme: APIKeySecurityScheme = {
+        const scheme: APIKeySecurityScheme & { name: string } = {
             scheme: "apikey",
             in: "header",
             name: "testHeader",
@@ -93,7 +93,7 @@ class CredentialTest {
         const basic = new BasicKeyCredential(config, scheme);
         const response = await basic.sign(request);
 
-        response.headers.get(scheme.name).should.be.equal(config.apiKey);
+        chai.expect(response.headers?.get(scheme.name)).be.equal(config.apiKey);
     }
 
     @test async "should sign in with TuyaCustomBearer"(): Promise<void> {
@@ -121,6 +121,6 @@ class CredentialTest {
 
         const response = await credentials.sign(request);
         timekeeper.reset();
-        response.headers.get("sign").should.be.equal(sign);
+        chai.expect(response.headers.get("sign")).be.equal(sign);
     }
 }

@@ -15,7 +15,7 @@
  ********************************************************************************/
 import { HttpClient, HttpForm } from "./http";
 import EventSource from "eventsource";
-import { Content, ProtocolHelpers, createLoggers } from "@node-wot/core";
+import { Content, ContentSerdes, ProtocolHelpers, createLoggers } from "@node-wot/core";
 import { Readable } from "stream";
 
 const { debug } = createLoggers("binding-http", "subscription-protocols");
@@ -73,13 +73,14 @@ export class LongPollingSubscription implements InternalSubscription {
                         // in browsers node-fetch uses the native fetch, which returns a ReadableStream
                         // not complaint with node. Therefore we have to force the conversion here.
                         const body = ProtocolHelpers.toNodeStream(result.body as Readable);
-                        next(new Content(result.headers.get("content-type"), body));
+                        next(new Content(result.headers.get("content-type") ?? ContentSerdes.DEFAULT, body));
                         polling(false);
                     }
 
                     complete && complete();
                 } catch (e) {
-                    error && error(e);
+                    const err = e instanceof Error ? e : new Error(JSON.stringify(e));
+                    error && error(err);
                     complete && complete();
                     reject(e);
                 }
@@ -96,7 +97,7 @@ export class LongPollingSubscription implements InternalSubscription {
 
 export class SSESubscription implements InternalSubscription {
     private form: HttpForm;
-    private eventSource: EventSource;
+    private eventSource: EventSource | undefined;
     private closed: boolean;
     /**
      *
@@ -116,11 +117,14 @@ export class SSESubscription implements InternalSubscription {
             };
             this.eventSource.onmessage = (event) => {
                 debug(`HttpClient received ${JSON.stringify(event)} from ${this.form.href}`);
-                const output = new Content(this.form.contentType, Readable.from(JSON.stringify(event)));
+                const output = new Content(
+                    this.form.contentType ?? ContentSerdes.DEFAULT,
+                    Readable.from(JSON.stringify(event))
+                );
                 next(output);
             };
             this.eventSource.onerror = function (event) {
-                error(new Error(event.toString()));
+                error?.(new Error(event.toString()));
                 complete && complete();
                 reject(event.toString());
             };
@@ -128,6 +132,6 @@ export class SSESubscription implements InternalSubscription {
     }
 
     close(): void {
-        this.eventSource.close();
+        this.eventSource?.close();
     }
 }

@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 import { IncomingMessage, ServerResponse } from "http";
-import { Content, ContentSerdes, PropertyContentMap, createLoggers } from "@node-wot/core";
+import { ContentSerdes, PropertyContentMap, createLoggers } from "@node-wot/core";
 import { respondUnallowedMethod } from "./common";
 import HttpServer from "../http-server";
 
@@ -55,7 +55,8 @@ export default async function propertiesRoute(
             res.writeHead(200);
             const recordResponse: Record<string, unknown> = {};
             for (const key of propMap.keys()) {
-                const content: Content = propMap.get(key);
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- map key is always present as checked above
+                const content = propMap.get(key)!;
                 const value = ContentSerdes.get().contentToValue(
                     { type: ContentSerdes.DEFAULT, body: await content.toBuffer() },
                     {}
@@ -64,9 +65,11 @@ export default async function propertiesRoute(
             }
             res.end(JSON.stringify(recordResponse));
         } catch (err) {
-            error(`HttpServer on port ${this.getPort()} got internal error on invoke '${req.url}': ${err.message}`);
+            const message = err instanceof Error ? err.message : JSON.stringify(err);
+
+            error(`HttpServer on port ${this.getPort()} got internal error on invoke '${req.url}': ${message}`);
             res.writeHead(500);
-            res.end(err.message);
+            res.end(message);
         }
     } else if (req.method === "HEAD") {
         res.writeHead(202);

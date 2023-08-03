@@ -57,7 +57,7 @@ export abstract class Validator {
 
 function extractTokenFromRequest(request: http.IncomingMessage) {
     const headerToken = request.headers.authorization;
-    const url = new URL(request.url, `http://${request.headers.host}`);
+    const url = new URL(request.url ?? "", `http://${request.headers.host}`);
     const queryToken = url.searchParams.get("access_token");
 
     if (!headerToken && !queryToken) {
@@ -68,7 +68,7 @@ function extractTokenFromRequest(request: http.IncomingMessage) {
         return queryToken;
     }
 
-    const matches = headerToken.match(/Bearer\s(\S+)/);
+    const matches = headerToken?.match(/Bearer\s(\S+)/);
 
     if (!matches) {
         throw new Error("Invalid request: malformed authorization header");
@@ -112,8 +112,7 @@ export class EndpointValidator extends Validator {
             throw new Error("Introspection endpoint error: " + response.statusText);
         }
 
-        let contentType = response.headers.get("content-type");
-        contentType = response.headers.get("content-type")?.split(";")[0];
+        const contentType = response.headers.get("content-type")?.split(";")[0];
 
         if (contentType !== "application/json") {
             throw new Error(

@@ -32,7 +32,7 @@ export default async function propertyObserveRoute(
         return;
     }
 
-    const contentTypeHeader: string | string[] = req.headers["content-type"];
+    const contentTypeHeader = req.headers["content-type"];
     const contentType: string = Array.isArray(contentTypeHeader) ? contentTypeHeader[0] : contentTypeHeader;
     const property = thing.properties[_params.property];
 
@@ -69,14 +69,16 @@ export default async function propertyObserveRoute(
                 // send property data
                 value.body.pipe(res);
             } catch (err) {
-                if (err?.code === "ERR_HTTP_HEADERS_SENT") {
+                // Safe cast to NodeJS.ErrnoException we are checking if it is equal to ERR_HTTP_HEADERS_SENT
+                if ((err as NodeJS.ErrnoException)?.code === "ERR_HTTP_HEADERS_SENT") {
                     thing.handleUnobserveProperty(_params.property, listener, options);
                     return;
                 }
+                const message = err instanceof Error ? err.message : JSON.stringify(err);
                 warn(
-                    `HttpServer on port ${this.getPort()} cannot process data for Property '${_params.property}: ${
-                        err.message
-                    }'`
+                    `HttpServer on port ${this.getPort()} cannot process data for Property '${
+                        _params.property
+                    }: ${message}'`
                 );
                 res.writeHead(500);
                 res.end("Invalid Property Data");

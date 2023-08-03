@@ -62,10 +62,10 @@ const port4 = 30003;
 class TestHttpServer implements ProtocolServer {
     public readonly scheme: string = "test";
 
-    private testVector: TestVector;
+    private testVector: TestVector | undefined;
 
     private readonly port: number = 60606;
-    private readonly address: string = undefined;
+    private readonly address: string | undefined = undefined;
     private readonly server: http.Server;
 
     constructor(port?: number, address?: string) {
@@ -158,16 +158,19 @@ class TestHttpServer implements ProtocolServer {
                 body.push(data);
             });
             req.on("end", () => {
+                if (!this.testVector) {
+                    chai.assert.fail("No test vector given");
+                }
                 let value;
                 try {
                     value = ContentSerdes.get().contentToValue(
                         { type: ContentSerdes.DEFAULT, body: Buffer.concat(body) },
-                        this.testVector.schema
+                        this.testVector.schema ?? { type: "string" }
                     );
                 } catch (err) {
                     throw new Error("Cannot deserialize client payload");
                 }
-                expect(value).to.equal(this.testVector.payload);
+                expect(value).to.equal(this.testVector?.payload);
                 res.end();
             });
         } else {
@@ -189,7 +192,7 @@ class HttpClientTest1 {
         HttpClientTest1.httpServer.stop();
     }
 
-    private client: HttpClient;
+    private client!: HttpClient;
 
     before() {
         this.client = new HttpClient();
@@ -243,7 +246,7 @@ class HttpClientTest1 {
             new DefaultContent(Readable.from(inputVector3.payload))
         );
 
-        expect(resource.type).eql(null);
+        expect(resource.type).eql(ContentSerdes.DEFAULT);
         const body = await resource.toBuffer();
         body.toString("ascii").should.eql("");
     }
@@ -259,7 +262,7 @@ class HttpClientTest1 {
         };
         HttpClientTest1.httpServer.setTestVector(inputVector1);
         const resource = await this.client.readResource(inputVector1.form);
-        expect(resource.type).eql(null);
+        expect(resource.type).eql(ContentSerdes.DEFAULT);
         const body = await resource.toBuffer();
         body.toString("ascii").should.eql("");
     }

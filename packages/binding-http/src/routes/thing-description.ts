@@ -33,19 +33,21 @@ function resetMultiLangInteraction(
             delete interactions[interName].description;
 
             // use new language title
-            if (interactions[interName].titles) {
-                for (const titleLang in interactions[interName].titles) {
+            const titles = interactions[interName].titles;
+            if (titles) {
+                for (const titleLang in titles) {
                     if (titleLang.startsWith(prefLang)) {
-                        interactions[interName].title = interactions[interName].titles[titleLang];
+                        interactions[interName].title = titles[titleLang];
                     }
                 }
             }
 
             // use new language description
-            if (interactions[interName].descriptions) {
-                for (const descLang in interactions[interName].descriptions) {
+            const descriptions = interactions[interName].descriptions;
+            if (descriptions) {
+                for (const descLang in descriptions) {
                     if (descLang.startsWith(prefLang)) {
-                        interactions[interName].description = interactions[interName].descriptions[descLang];
+                        interactions[interName].description = descriptions[descLang];
                     }
                 }
             }

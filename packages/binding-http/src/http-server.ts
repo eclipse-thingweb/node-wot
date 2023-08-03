@@ -63,16 +63,16 @@ export default class HttpServer implements ProtocolServer {
     // private readonly OPTIONS_BODY_VARIABLES ='body';
 
     private readonly port: number = 8080;
-    private readonly address: string = undefined;
-    private readonly baseUri: string = undefined;
-    private readonly urlRewrite: Record<string, string> = undefined;
+    private readonly address?: string = undefined;
+    private readonly baseUri?: string = undefined;
+    private readonly urlRewrite?: Record<string, string> = undefined;
     private readonly httpSecurityScheme: string = "NoSec"; // HTTP header compatible string
     private readonly validOAuthClients: RegExp = /.*/g;
-    private readonly server: http.Server | https.Server = null;
-    private readonly middleware: MiddlewareRequestHandler = null;
+    private readonly server: http.Server | https.Server;
+    private readonly middleware: MiddlewareRequestHandler | null = null;
     private readonly things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
-    private servient: Servient = null;
-    private oAuthValidator: Validator;
+    private servient: Servient | null = null;
+    private oAuthValidator?: Validator = undefined;
     private router: Router.Instance<Router.HTTPVersion.V1>;
 
     constructor(config: HttpConfig = {}) {
@@ -88,11 +88,11 @@ export default class HttpServer implements ProtocolServer {
             .map((envVar) => {
                 return { key: envVar, value: process.env[envVar] };
             })
-            .find((envObj) => envObj.value != null);
+            .find((envObj) => envObj.value != null && envObj.value !== undefined) as { key: string; value: string };
 
         if (environmentObj) {
             info(`HttpServer Port Overridden to ${environmentObj.value} by Environment Variable ${environmentObj.key}`);
-            this.port = +environmentObj.value;
+            this.port = parseInt(environmentObj.value);
         }
 
         if (config.address !== undefined) {
@@ -115,7 +115,7 @@ export default class HttpServer implements ProtocolServer {
                 const pathname = req.url;
                 if (config.urlRewrite) {
                     const entryUrl = pathname;
-                    const internalUrl = config.urlRewrite[entryUrl];
+                    const internalUrl = config.urlRewrite[entryUrl ?? "/"];
                     if (internalUrl) {
                         req.url = internalUrl;
                         router.lookup(req, res, this);
@@ -301,7 +301,7 @@ export default class HttpServer implements ProtocolServer {
         }
     }
 
-    public async expose(thing: ExposedThing, tdTemplate?: WoT.ExposedThingInit): Promise<void> {
+    public async expose(thing: ExposedThing, tdTemplate: WoT.ExposedThingInit = {}): Promise<void> {
         let urlPath = slugify(thing.title, { lower: true });
 
         if (this.things.has(urlPath)) {
@@ -336,7 +336,7 @@ export default class HttpServer implements ProtocolServer {
     public destroy(thingId: string): Promise<boolean> {
         debug(`HttpServer on port ${this.getPort()} destroying thingId '${thingId}'`);
         return new Promise<boolean>((resolve, reject) => {
-            let removedThing: ExposedThing;
+            let removedThing: ExposedThing | undefined;
             for (const name of Array.from(this.things.keys())) {
                 const expThing = this.things.get(name);
                 if (expThing?.id === thingId) {
@@ -413,7 +413,7 @@ export default class HttpServer implements ProtocolServer {
                 const form = new TD.Form(href, type);
                 ProtocolHelpers.updatePropertyFormWithTemplate(
                     form,
-                    (tdTemplate?.properties[propertyName] ?? {}) as PropertyElement
+                    (tdTemplate.properties?.[propertyName] ?? {}) as PropertyElement
                 );
                 if (thing.properties[propertyName].readOnly) {
                     form.op = ["readproperty"];
@@ -466,7 +466,7 @@ export default class HttpServer implements ProtocolServer {
                 const form = new TD.Form(href, type);
                 ProtocolHelpers.updateActionFormWithTemplate(
                     form,
-                    (tdTemplate?.actions[actionName] ?? {}) as ActionElement
+                    (tdTemplate.actions?.[actionName] ?? {}) as ActionElement
                 );
                 form.op = ["invokeaction"];
                 const hform: HttpForm = form;
@@ -488,7 +488,7 @@ export default class HttpServer implements ProtocolServer {
                 const form = new TD.Form(href, type);
                 ProtocolHelpers.updateEventFormWithTemplate(
                     form,
-                    (tdTemplate?.events[eventName] ?? {}) as EventElement
+                    (tdTemplate.events?.[eventName] ?? {}) as EventElement
                 );
                 form.subprotocol = "longpoll";
                 form.op = ["subscribeevent", "unsubscribeevent"];
@@ -501,6 +501,10 @@ export default class HttpServer implements ProtocolServer {
 
     public async checkCredentials(thing: ExposedThing, req: http.IncomingMessage): Promise<boolean> {
         debug(`HttpServer on port ${this.getPort()} checking credentials for '${thing.id}'`);
+
+        if (this.servient === null) {
+            throw new Error("Servient not set");
+        }
 
         const creds = this.servient.getCredentials(thing.id);
 
@@ -526,13 +530,17 @@ export default class HttpServer implements ProtocolServer {
                 const scopes = Helpers.toStringArray(oAuthScheme.scopes); // validate call requires array of strings while oAuthScheme.scopes can be string or array of strings
                 let valid = false;
 
+                if (!this.oAuthValidator) {
+                    throw new Error("OAuth validator not set. Cannot validate request.");
+                }
+
                 try {
                     valid = await this.oAuthValidator.validate(req, scopes, this.validOAuthClients);
-                } catch (error) {
+                } catch (err) {
                     // TODO: should we answer differently to the client if something went wrong?
                     error("OAuth authorization error; sending unauthorized response error");
                     error("this was possibly caused by a misconfiguration of the server");
-                    error(`${error}`);
+                    error(`${err}`);
                 }
 
                 return valid;
@@ -583,7 +591,7 @@ export default class HttpServer implements ProtocolServer {
     }
 
     private async handleRequest(req: http.IncomingMessage, res: http.ServerResponse) {
-        const requestUri = new URL(req.url, `${this.scheme}://${req.headers.host}`);
+        const requestUri = new URL(req.url ?? "", `${this.scheme}://${req.headers.host}`);
 
         debug(
             `HttpServer on port ${this.getPort()} received '${req.method} ${
@@ -606,7 +614,7 @@ export default class HttpServer implements ProtocolServer {
             res.setHeader("Access-Control-Allow-Origin", "*");
         }
 
-        const contentTypeHeader: string | string[] = req.headers["content-type"];
+        const contentTypeHeader = req.headers["content-type"];
         let contentType: string = Array.isArray(contentTypeHeader) ? contentTypeHeader[0] : contentTypeHeader;
 
         if (req.method === "PUT" || req.method === "POST") {

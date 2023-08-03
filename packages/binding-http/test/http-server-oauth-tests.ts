@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 import { suite, test } from "@testdeck/mocha";
-import { should } from "chai";
+import { should, expect } from "chai";
 import { HttpServer, OAuth2ServerConfig } from "../src/http";
 import { IntrospectionEndpoint, EndpointValidator } from "../src/oauth-token-validation";
 import Servient, { ExposedThing } from "@node-wot/core";
@@ -24,7 +24,7 @@ class MockServient extends Servient {}
 should();
 @suite("OAuth server token validation tests")
 class OAuthServerTests {
-    private server: HttpServer;
+    private server!: HttpServer;
     async before() {
         // eslint-disable-next-line @typescript-eslint/no-empty-function
         console.debug = () => {};
@@ -47,7 +47,7 @@ class OAuthServerTests {
 
         await this.server.start(new MockServient());
 
-        const testThing = new ExposedThing(null, {
+        const testThing = new ExposedThing(new Servient(), {
             title: "TestOAuth",
             id: "test",
             securityDefinitions: {
@@ -80,19 +80,21 @@ class OAuthServerTests {
     @test async "should configure oauth"() {
         /* eslint-disable dot-notation */
         this.server["httpSecurityScheme"].should.be.equal("OAuth");
-        this.server["oAuthValidator"].should.be.instanceOf(EndpointValidator);
+        expect(this.server["oAuthValidator"]).to.be.instanceOf(EndpointValidator);
         /* eslint-enable dot-notation */
     }
 
     @test async "should call oauth validation"() {
         let called = false;
 
-        // eslint-disable-next-line dot-notation
-        this.server["oAuthValidator"].validate = async (token, scopes, clients) => {
+        /* eslint-disable dot-notation */
+        expect(this.server["oAuthValidator"]).to.not.be.equal(undefined, "OAuth validator not set");
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        this.server["oAuthValidator"]!.validate = async (token, scopes, clients) => {
             called = true;
             return true;
         };
-
+        /* eslint-enable dot-notation */
         await fetch("http://localhost:8080/testoauth/properties/test");
 
         called.should.eql(true);
@@ -101,12 +103,14 @@ class OAuthServerTests {
     @test async "should send unauthorized if oauth validation fails"() {
         let called = false;
 
-        // eslint-disable-next-line dot-notation
-        this.server["oAuthValidator"].validate = async (token, scopes, clients) => {
+        /* eslint-disable dot-notation */
+        expect(this.server["oAuthValidator"]).to.not.be.equal(undefined, "OAuth validator not set");
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        this.server["oAuthValidator"]!.validate = async (token, scopes, clients) => {
             called = true;
             return false;
         };
-
+        /* eslint-enable dot-notation */
         const response = await fetch("http://localhost:8080/testoauth/properties/test");
 
         called.should.eql(true);
@@ -117,12 +121,14 @@ class OAuthServerTests {
     @test async "should send error if oauth validation throws"() {
         let called = false;
 
-        // eslint-disable-next-line dot-notation
-        this.server["oAuthValidator"].validate = async (token, scopes, clients) => {
+        /* eslint-disable dot-notation */
+        expect(this.server["oAuthValidator"]).to.not.be.equal(undefined, "OAuth validator not set");
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        this.server["oAuthValidator"]!.validate = async (token, scopes, clients) => {
             called = true;
             return false;
         };
-
+        /* eslint-enable dot-notation */
         const response = await fetch("http://localhost:8080/testoauth/properties/test");
 
         called.should.eql(true);

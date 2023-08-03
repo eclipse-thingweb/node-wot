@@ -52,7 +52,7 @@ function mockService(req: express.Request, res: express.Response) {
 }
 @suite("HTTP auth basic client implementation")
 class HttpClientBasicTest {
-    private client: HttpClient;
+    private client!: HttpClient;
 
     private static server: https.Server;
 

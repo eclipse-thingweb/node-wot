@@ -41,7 +41,7 @@ describe("OAuth2.0 Validator tests", () => {
     });
     @suite
     class IntrospectProtocolTests {
-        private validator: Validator;
+        private validator!: Validator;
         static server: http.Server;
         static before() {
             // eslint-disable-next-line @typescript-eslint/no-empty-function

@@ -26,10 +26,10 @@ const { debug, warn } = createLoggers("binding-http", "http-client-factory");
 
 export default class HttpClientFactory implements ProtocolClientFactory {
     public readonly scheme: string = "http";
-    private config: HttpConfig = null;
+    private config: HttpConfig | null = null;
     private oAuthManager: OAuthManager = new OAuthManager();
 
-    constructor(config: HttpConfig = null) {
+    constructor(config: HttpConfig | null = null) {
         this.config = config;
     }
 

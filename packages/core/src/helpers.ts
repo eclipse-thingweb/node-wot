@@ -117,12 +117,12 @@ export default class Helpers implements Resolver {
         }
     }
 
-    public static toUriLiteral(address: string): string {
+    public static toUriLiteral(address?: string): string {
         // Due to crash logged with:
         // TypeError: Cannot read property 'indexOf' of undefined at Function.Helpers.toUriLiteral
         if (!address) {
             error(`AddressHelper received invalid address '${address}'`);
-            return "{invalid address}";
+            return "{invalid address - undefined}";
         }
 
         if (address.indexOf(":") !== -1) {
@@ -140,7 +140,7 @@ export default class Helpers implements Resolver {
         }
     }
 
-    public static toStringArray(input: string[] | string): string[] {
+    public static toStringArray(input: string[] | string | undefined): string[] {
         if (input) {
             if (typeof input === "string") {
                 return [input];
@@ -345,12 +345,12 @@ export default class Helpers implements Resolver {
      * @returns merged and validated uriVariables
      */
     static parseUrlParameters(
-        url: string,
-        globalUriVariables: { [key: string]: TD.DataSchema },
-        uriVariables: { [k: string]: DataSchema }
+        url: string | undefined,
+        globalUriVariables: { [key: string]: TD.DataSchema } = {},
+        uriVariables: { [k: string]: DataSchema } = {}
     ): Record<string, unknown> {
         const params: Record<string, unknown> = {};
-        if (url == null || (!uriVariables && !globalUriVariables)) {
+        if ((url === undefined && url == null) || (!uriVariables && !globalUriVariables)) {
             return params;
         }
 
