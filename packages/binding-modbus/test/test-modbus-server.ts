@@ -83,7 +83,7 @@ export default class ModbusServer {
                 error(err.toString());
             });
             this.serverTCP.on("error", (err) => {
-                debug(err.toString());
+                debug(err?.toString());
             });
 
             this.serverTCP.on("initialized", resolve);

@@ -20,15 +20,16 @@ const warn = createWarnLogger("binding-modbus", "modbus-client-factory");
 
 export default class ModbusClientFactory implements ProtocolClientFactory {
     public readonly scheme: string = "modbus+tcp";
-    private singleton: ModbusClient;
+    private singleton?: ModbusClient;
 
     public getClient(): ProtocolClient {
         debug(`Get client for '${this.scheme}'`);
         this.init();
-        return this.singleton;
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- singleton is initialized in init()
+        return this.singleton!;
     }
 
-    public init(): boolean {
+    public init(): this is this & { singleton: ModbusClient } {
         if (!this.singleton) {
             debug(`Initializing client for '${this.scheme}'`);
             this.singleton = new ModbusClient();

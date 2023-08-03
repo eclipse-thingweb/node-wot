@@ -15,13 +15,14 @@
 import ModbusRTU from "modbus-serial";
 import { ReadCoilResult, ReadRegisterResult } from "modbus-serial/ModbusRTU";
 import { ModbusEntity, ModbusFunction, ModbusForm } from "./modbus";
-import { Content, createLoggers, Endianness } from "@node-wot/core";
+import { Content, ContentSerdes, createLoggers, Endianness } from "@node-wot/core";
 import { Readable } from "stream";
 import { inspect } from "util";
 
 const { debug, warn, error } = createLoggers("binding-modbus", "modbus-connection");
 
 const configDefaults = {
+    connectionTimeout: 1000,
     operationTimeout: 2000,
     connectionRetryTime: 10000,
     maxRetries: 5,
@@ -100,7 +101,7 @@ class ModbusTransaction {
             } catch (err) {
                 warn(`Read operation failed on ${this.base}, len: ${this.quantity}, ${err}`);
                 // inform all operations and the invoker
-                this.operations.forEach((op) => op.failed(err));
+                this.operations.forEach((op) => op.failed(err instanceof Error ? err : new Error(JSON.stringify(err))));
                 throw err;
             }
         } else {
@@ -111,12 +112,26 @@ class ModbusTransaction {
             } catch (err) {
                 warn(`Write operation failed on ${this.base}, len: ${this.quantity}, ${err}`);
                 // inform all operations and the invoker
-                this.operations.forEach((op) => op.failed(err));
+                this.operations.forEach((op) => op.failed(err instanceof Error ? err : new Error(JSON.stringify(err))));
                 throw err;
             }
         }
     }
 }
+
+export type ModbusFormWithDefaults = ModbusForm &
+    Required<
+        Pick<
+            ModbusForm,
+            | "modbus:function"
+            | "modbus:entity"
+            | "modbus:unitID"
+            | "modbus:address"
+            | "modbus:quantity"
+            | "modbus:timeout"
+            | "modbus:pollingTime"
+        >
+    >;
 
 /**
  * ModbusConnection represents a client connected to a specific host and port
@@ -127,14 +142,14 @@ export class ModbusConnection {
     client: ModbusRTU;
     connecting: boolean;
     connected: boolean;
-    timer: NodeJS.Timer; // connection idle timer
-    currentTransaction: ModbusTransaction; // transaction currently in progress or null
+    timer: NodeJS.Timer | null; // connection idle timer
+    currentTransaction: ModbusTransaction | null; // transaction currently in progress or null
     queue: Array<ModbusTransaction>; // queue of further transactions
     config: {
-        connectionTimeout?: number;
-        operationTimeout?: number;
-        connectionRetryTime?: number;
-        maxRetries?: number;
+        connectionTimeout: number;
+        operationTimeout: number;
+        connectionRetryTime: number;
+        maxRetries: number;
     };
 
     constructor(
@@ -150,6 +165,7 @@ export class ModbusConnection {
         this.host = host;
         this.port = port;
         this.client = new ModbusRTU(); // new ModbusClient();
+        this.connected = false;
         this.connecting = false;
         this.timer = null;
         this.currentTransaction = null;
@@ -182,8 +198,8 @@ export class ModbusConnection {
                 if (op.base === t.base + t.quantity) {
                     // append
                     t.quantity += op.quantity;
-
-                    if (t.content) {
+                    // write operation
+                    if (t.content && op.content) {
                         t.content = Buffer.concat([t.content, op.content]);
                     }
 
@@ -196,7 +212,8 @@ export class ModbusConnection {
                     t.base -= op.quantity;
                     t.quantity += op.quantity;
 
-                    if (t.content) {
+                    // write operation
+                    if (t.content && op.content) {
                         t.content = Buffer.concat([op.content, t.content]);
                     }
 
@@ -268,13 +285,14 @@ export class ModbusConnection {
                 // inform all the operations that the connection cannot be recovered
                 this.queue.forEach((transaction) => {
                     transaction.operations.forEach((op) => {
-                        op.failed(error);
+                        op.failed(error instanceof Error ? error : new Error(JSON.stringify(error)));
                     });
                 });
             }
         } else if (this.client.isOpen && this.currentTransaction == null && this.queue.length > 0) {
             // take next transaction from queue and execute
-            this.currentTransaction = this.queue.shift();
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- queue.length > 0
+            this.currentTransaction = this.queue.shift()!;
             try {
                 await this.currentTransaction.execute();
                 this.currentTransaction = null;
@@ -322,6 +340,10 @@ export class ModbusConnection {
         // reset connection idle timer
         if (this.timer) {
             clearTimeout(this.timer);
+        }
+
+        if (!transaction.content) {
+            throw new Error("Invoked write transaction without content");
         }
 
         this.timer = global.setTimeout(() => this.modbusstop(), this.config.operationTimeout);
@@ -399,7 +421,7 @@ export class ModbusConnection {
                 error(`Cannot close session. ${err}`);
             }
         });
-        clearInterval(this.timer);
+        this.timer && clearInterval(this.timer);
         this.timer = null;
     }
 }
@@ -415,19 +437,19 @@ export class PropertyOperation {
     function: ModbusFunction;
     content?: Buffer;
     endianness: Endianness;
-    transaction: ModbusTransaction; // transaction used to execute this operation
+    transaction: ModbusTransaction | null; // transaction used to execute this operation
     contentType: string;
-    resolve: (value?: Content | PromiseLike<Content>) => void;
-    reject: (reason?: Error) => void;
+    resolve?: (value?: Content | PromiseLike<Content>) => void;
+    reject?: (reason?: Error) => void;
 
-    constructor(form: ModbusForm, endianness: Endianness, content?: Buffer) {
+    constructor(form: ModbusFormWithDefaults, endianness: Endianness, content?: Buffer) {
         this.unitId = form["modbus:unitID"];
         this.registerType = form["modbus:entity"];
         this.base = form["modbus:address"];
         this.quantity = form["modbus:quantity"];
         this.function = form["modbus:function"] as ModbusFunction;
         this.endianness = endianness;
-        this.contentType = form.contentType;
+        this.contentType = form.contentType ?? ContentSerdes.DEFAULT;
         this.content = content;
         this.transaction = null;
     }
@@ -436,7 +458,7 @@ export class PropertyOperation {
      * Trigger execution of this operation.
      *
      */
-    async execute(): Promise<Content | PromiseLike<Content>> {
+    async execute(): Promise<(Content | PromiseLike<Content>) | undefined> {
         return new Promise(
             (resolve: (value?: Content | PromiseLike<Content>) => void, reject: (reason?: Error) => void) => {
                 this.resolve = resolve;
@@ -461,9 +483,18 @@ export class PropertyOperation {
     done(base?: number, buffer?: Buffer): void {
         debug("Operation done");
 
+        if (!this.resolve || !this.reject) {
+            throw new Error("Invoked done before executing operation");
+        }
+
         if (base === null || base === undefined) {
             // resolve write operation
             this.resolve();
+            return;
+        }
+
+        if (buffer === null || buffer === undefined) {
+            this.reject(new Error("Write operation finished without buffer"));
             return;
         }
 
@@ -490,6 +521,9 @@ export class PropertyOperation {
      */
     failed(reason: Error): void {
         warn(`Operation failed: ${reason}`);
+        if (!this.reject) {
+            throw new Error("Invoked reject before executing operation");
+        }
         // reject the Promise given to the invoking script
         this.reject(reason);
     }
