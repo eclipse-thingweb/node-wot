@@ -17,7 +17,7 @@
  * Protocol test suite to test protocol implementations
  */
 
-import { createLoggers } from "@node-wot/core";
+import Servient, { createLoggers } from "@node-wot/core";
 import { suite, test } from "@testdeck/mocha";
 import { expect, should } from "chai";
 import WebSocketServer from "../src/ws-server";
@@ -33,7 +33,7 @@ class WebSocketsTest {
     @test async "should start and stop own server"() {
         const wsServer = new WebSocketServer({ port });
 
-        await wsServer.start(null);
+        await wsServer.start(new Servient());
         expect(wsServer.getPort()).to.eq(port); // from test
 
         info("Test stopping WebSocket server");

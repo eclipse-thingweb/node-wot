@@ -39,7 +39,7 @@ export default class WebSocketServer implements ProtocolServer {
     public readonly ACTION_DIR: string = "actions";
     public readonly EVENT_DIR: string = "events";
     private readonly port: number = 8081;
-    private readonly address: string = undefined;
+    private readonly address?: string = undefined;
     private readonly ownServer: boolean = true;
     private readonly httpServer: http.Server | https.Server;
 
@@ -86,7 +86,7 @@ export default class WebSocketServer implements ProtocolServer {
         return new Promise<void>((resolve, reject) => {
             // handle incoming WebScoket connections
             this.httpServer.on("upgrade", (request, socket, head) => {
-                const pathname = new url.URL(request.url).pathname;
+                const pathname = new url.URL(request.url ?? "", `${this.scheme}://${request.headers.host}`).pathname;
 
                 const socketServer = this.socketServers[pathname];
 
