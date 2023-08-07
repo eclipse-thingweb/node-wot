@@ -36,16 +36,16 @@ let assetInterfaceDescriptionUtil = new AssetInterfaceDescriptionUtil();
 
 async function example() {
     try {
-        const aid = await fs.readFile("AID_v03_counter.json", {
+        const aas = await fs.readFile("AID_v03_counter.json", {
             encoding: "utf8",
         });
         // transform AID to WoT TD
-        let tdAID = assetInterfaceDescriptionUtil.transformToTD(aid, `{"title": "counter"}`);
-        // Note: transformToTD() may have up to 3 input parameters
-        // * aid (required):           AID input
+        let tdAID = assetInterfaceDescriptionUtil.transformAAS2TD(aas, `{"title": "counter"}`);
+        // Note: transformAAS2TD() may have up to 3 input parameters
+        // * aas (required):           AAS in JSON format
         // * template (optional):      Initial TD template
         // * submodelRegex (optional): Submodel filter based on regular expression
-        //                             e.g., filtering HTTP only by calling transformToTD(aid, `{}`, "HTTP")
+        //                             e.g., filtering HTTP only by calling transformAAS2TD(aas, `{}`, "HTTP")
 
         // do work as usual
         const WoT = await servient.start();
