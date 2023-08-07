@@ -437,7 +437,7 @@ export class AssetInterfaceDescriptionUtil {
 
     /** @deprecated use transformAAS2TD method instead */
     public transformToTD(aid: string, template?: string, submodelRegex?: string): string {
-        return this.transformAAS2TD(aid, submodelRegex);
+        return this.transformAAS2TD(aid, template, submodelRegex);
     }
 
     /**
