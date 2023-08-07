@@ -16,6 +16,7 @@
 import Thing from "../thing-description";
 import * as TD from "../thing-description";
 import { SecurityScheme } from "wot-thing-description-types";
+import * as TDParser from "../td-parser";
 
 import debug from "debug";
 const namespace = "node-wot:td-tools:asset-interface-description-util";
@@ -474,5 +475,25 @@ export class AssetInterfaceDescriptionUtil {
         this.processSubmodel(smInformation, submodel, submodelRegex);
 
         return this._transform(smInformation, template);
+    }
+
+    /**
+     * Transform WoT ThingDescription (TD) to AID submodel definition in JSON format
+     *
+     * @param td input AID submodel in JSON format
+     * @returns transformed AID submodel definition in JSON format
+     */
+    public transformTD2SM(td: string): string {
+        const thing = TDParser.parseTD(td);
+        console.log("TD " + thing.title + " parsed...");
+
+        // TODO
+        // value entry "idShort": "EndpointMetadata"
+        // value entry "idShort": "InterfaceMetadata"
+        const tdObject = {
+            idShort: thing.title,
+        };
+
+        return JSON.stringify(tdObject);
     }
 }

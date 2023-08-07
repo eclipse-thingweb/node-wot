@@ -228,4 +228,14 @@ class AssetInterfaceDescriptionUtilTest {
         const td4Obj = JSON.parse(td4);
         expect(td4Obj).to.not.have.property("properties");
     }
+
+    @test async "should correctly transform sample TD into JSON submodel"() {
+        const td = `{"title": "testTD"}`;
+        const sm = this.assetInterfaceDescriptionUtil.transformTD2SM(td);
+
+        const smObj = JSON.parse(sm);
+        expect(smObj).to.have.property("idShort").that.equals("testTD");
+
+        // TODO EndpointMetadata and InterfaceMetadata
+    }
 }
