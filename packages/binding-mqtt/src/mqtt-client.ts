@@ -173,7 +173,6 @@ export default class MqttClient implements ProtocolClient {
                 this.config.username = credentials.username;
                 this.config.password = credentials.password;
             }
-
         }
         return true;
     }
