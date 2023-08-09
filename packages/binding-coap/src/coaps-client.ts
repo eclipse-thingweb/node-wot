@@ -21,7 +21,7 @@ import * as TD from "@node-wot/td-tools";
 
 import { Subscription } from "rxjs/Subscription";
 
-import { ProtocolClient, Content, createLoggers } from "@node-wot/core";
+import { ProtocolClient, Content, createLoggers, ContentSerdes } from "@node-wot/core";
 import { CoapForm, CoapMethodName, isValidCoapMethod, isSupportedCoapMethod } from "./coap";
 import { CoapClient as coaps, CoapResponse, RequestMethod, SecurityParameters } from "node-coap-client";
 import { Readable } from "stream";
@@ -34,7 +34,7 @@ declare interface pskSecurityParameters {
 
 export default class CoapsClient implements ProtocolClient {
     // FIXME coap Agent closes socket when no messages in flight -> new socket with every request
-    private authorization: SecurityParameters;
+    private authorization?: SecurityParameters;
 
     public toString(): string {
         return "[CoapsClient]";
@@ -46,11 +46,11 @@ export default class CoapsClient implements ProtocolClient {
                 .then((res: CoapResponse) => {
                     debug(`CoapsClient received ${res.code} from ${form.href}`);
 
-                    // FIXME node-coap-client does not support options
-                    let contentType; // = res.format[...]
-                    if (!contentType) contentType = form.contentType;
+                    // FIXME: Add toString conversion for response Content-Format
+                    const contentType = form.contentType ?? ContentSerdes.DEFAULT;
+                    const body = Readable.from(res.payload ?? Buffer.alloc(0));
 
-                    resolve(new Content(contentType, Readable.from(res.payload)));
+                    resolve(new Content(contentType, body));
                 })
                 .catch((err: Error) => {
                     reject(err);
@@ -78,11 +78,11 @@ export default class CoapsClient implements ProtocolClient {
                 .then((res: CoapResponse) => {
                     debug(`CoapsClient received ${res.code} from ${form.href}`);
 
-                    // FIXME node-coap-client does not support options
-                    let contentType; // = res.format[...]
-                    if (!contentType) contentType = form.contentType;
+                    // FIXME: Add toString conversion for response Content-Format
+                    const contentType = form.contentType ?? ContentSerdes.DEFAULT;
+                    const body = Readable.from(res.payload ?? Buffer.alloc(0));
 
-                    resolve(new Content(contentType, Readable.from(res.payload)));
+                    resolve(new Content(contentType, body));
                 })
                 .catch((err: Error) => {
                     reject(err);
@@ -112,11 +112,13 @@ export default class CoapsClient implements ProtocolClient {
     ): Promise<Subscription> {
         return new Promise<Subscription>((resolve, reject) => {
             const requestUri = new URL(form.href.replace(/$coaps/, "https"));
-            coaps.setSecurityParams(requestUri.hostname, this.authorization);
+            if (this.authorization != null) {
+                coaps.setSecurityParams(requestUri.hostname, this.authorization);
+            }
 
             const callback = (resp: CoapResponse) => {
                 if (resp.payload != null) {
-                    next(new Content(form?.contentType, Readable.from(resp.payload)));
+                    next(new Content(form?.contentType ?? ContentSerdes.DEFAULT, Readable.from(resp.payload)));
                 }
             };
 
@@ -126,12 +128,12 @@ export default class CoapsClient implements ProtocolClient {
                     resolve(
                         new Subscription(() => {
                             coaps.stopObserving(form.href);
-                            complete();
+                            complete?.();
                         })
                     );
                 })
                 .catch((err) => {
-                    error(err);
+                    error?.(err);
                     reject(err);
                 });
         });
@@ -153,7 +155,7 @@ export default class CoapsClient implements ProtocolClient {
 
         const security: TD.SecurityScheme = metadata[0];
 
-        if (security.scheme === "psk") {
+        if (security.scheme === "psk" && credentials != null) {
             this.authorization = { psk: {} };
             this.authorization.psk[credentials.identity] = credentials.psk;
         } else if (security.scheme === "apikey") {
@@ -207,7 +209,9 @@ export default class CoapsClient implements ProtocolClient {
     ): Promise<CoapResponse> {
         // url only works with http*
         const requestUri = new URL(form.href.replace(/$coaps/, "https"));
-        coaps.setSecurityParams(requestUri.hostname, this.authorization);
+        if (this.authorization != null) {
+            coaps.setSecurityParams(requestUri.hostname, this.authorization);
+        }
 
         let method;
 
@@ -221,7 +225,7 @@ export default class CoapsClient implements ProtocolClient {
 
         debug(`CoapsClient sending ${method} to ${form.href}`);
 
-        const body = content.body ? await content.toBuffer() : undefined;
+        const body = await content?.toBuffer();
 
         const req = coaps.request(
             form.href /* string */,
