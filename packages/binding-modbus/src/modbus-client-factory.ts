@@ -29,7 +29,7 @@ export default class ModbusClientFactory implements ProtocolClientFactory {
         return this.singleton!;
     }
 
-    public init(): this is this & { singleton: ModbusClient } {
+    public init(): boolean {
         if (!this.singleton) {
             debug(`Initializing client for '${this.scheme}'`);
             this.singleton = new ModbusClient();
