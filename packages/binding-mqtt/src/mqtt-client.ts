@@ -40,7 +40,7 @@ export default class MqttClient implements ProtocolClient {
         this.scheme = "mqtt" + (secure ? "s" : "");
     }
 
-    private client: mqtt.MqttClient | undefined = undefined;
+    private client?: mqtt.MqttClient;
 
     public subscribeResource(
         form: MqttForm,
