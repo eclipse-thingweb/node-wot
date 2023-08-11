@@ -185,7 +185,7 @@ describe("OPCUA Client", function () {
         debug(`Y4: outputArguments: ${outputArguments}`);
 
         if (outputArguments == null) {
-            fail("outputArguments is null");
+            expect.fail("outputArguments is null");
         }
         outputArguments.should.eql({ PreviousSetPoint: 27 });
     });
