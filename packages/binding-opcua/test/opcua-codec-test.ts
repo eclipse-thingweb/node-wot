@@ -22,7 +22,7 @@ import { ObjectSchema } from "@node-wot/td-tools";
 import { DataValue } from "node-opcua-data-value";
 import { DataType, VariantArrayType } from "node-opcua-variant";
 import { coerceLocalizedText } from "node-opcua-data-model";
-import { opcuaJsonEncodeDataValue } from "node-opcua-json";
+import { opcuaJsonEncodeDataValue, DataValueJSON } from "node-opcua-json";
 import { StatusCodes } from "node-opcua-status-code";
 
 import { OpcuaBinaryCodec, OpcuaJSONCodec, theOpcuaBinaryCodec, theOpcuaJSONCodec } from "../src/codec";
@@ -63,7 +63,7 @@ describe("OPCUA Binary Serdes ", () => {
         const schema: ObjectSchema = { type: "object", properties: {} };
 
         it("should encode and decode a dataValue with application/opcua+binary codec " + index, () => {
-            const payload = theOpcuaBinaryCodec.valueToBytes(dataValue, schema);
+            const payload = theOpcuaBinaryCodec.valueToBytes(dataValue as DataValue | DataValueJSON, schema);
             const dataValueReloaded = theOpcuaBinaryCodec.bytesToValue(payload, schema);
             expect(dataValue).to.eql(jsonify(dataValueReloaded));
         });

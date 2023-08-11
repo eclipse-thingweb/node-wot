@@ -328,8 +328,10 @@ describe("Full OPCUA Thing Test", () => {
         thing.setPropertyReadHandler("temperature", async () => temperature);
 
         const expThing = thing as ExposedThing;
-        const readHandler = expThing.__propertyHandlers.get("temperature").readHandler;
-        expect(readHandler, "must have a readHandler");
+        const readHandler = expThing.__propertyHandlers.get("temperature")?.readHandler;
+        if (!readHandler) {
+            expect.fail("must have a readHandler");
+        }
         const temperatureCheck1 = await readHandler();
         expect(temperatureCheck1).to.equal(10);
 
@@ -396,7 +398,7 @@ describe("Full OPCUA Thing Test", () => {
             const json2 = await doTest(thing, propertyName, { formIndex: 2 });
             expect(json2).to.eql({ Type: 11, Body: 25 });
 
-            expect(thingDescription.properties.temperature.forms[3].contentType).eql(
+            expect(thingDescription.properties?.temperature.forms[3].contentType).eql(
                 "application/opcua+json;type=DataValue"
             );
             const json3 = await doTest(thing, propertyName, { formIndex: 3 });
@@ -423,7 +425,7 @@ describe("Full OPCUA Thing Test", () => {
             expect(temperatureBefore).to.eql(27);
 
             // ---------------------------------------------- application/json
-            expect(thingDescription.properties.temperatureSetPoint.forms[0].contentType).eql("application/json");
+            expect(thingDescription.properties?.temperatureSetPoint.forms[0].contentType).eql("application/json");
             await thing.writeProperty("temperatureSetPoint", 110);
             const temperatureAfter = await readTemperature(thing);
             expect(temperatureAfter).to.eql(110);
@@ -436,7 +438,7 @@ describe("Full OPCUA Thing Test", () => {
         const { thing, servient } = await makeThing();
         try {
             // ---------------------------------------------- application/opcua+json;type=DataValue
-            expect(thingDescription.properties.temperatureSetPoint.forms[3].contentType).eql(
+            expect(thingDescription.properties?.temperatureSetPoint.forms[3].contentType).eql(
                 "application/opcua+json;type=DataValue"
             );
             await thing.writeProperty(
@@ -455,7 +457,7 @@ describe("Full OPCUA Thing Test", () => {
         const { thing, servient } = await makeThing();
         try {
             // ---------------------------------------------- application/opcua+json;type=Variant
-            expect(thingDescription.properties.temperatureSetPoint.forms[2].contentType).eql(
+            expect(thingDescription.properties?.temperatureSetPoint.forms[2].contentType).eql(
                 "application/opcua+json;type=Variant"
             );
             await thing.writeProperty("temperatureSetPoint", { Type: 11, Body: 90 }, { formIndex: 2 });
@@ -475,6 +477,9 @@ describe("Full OPCUA Thing Test", () => {
         try {
             // read temperature before
             const contentA = await thing.invokeAction("setTemperatureSetPoint", { TargetTemperature: 26 });
+            if (!contentA) {
+                expect.fail("contentA null");
+            }
             const returnedValue = await contentA.value();
 
             debug(`Temperature setpoint before ${returnedValue}`);
@@ -498,6 +503,9 @@ describe("Full OPCUA Thing Test", () => {
             const contentA = await thing.invokeAction("$OPCUA$setTemperatureSetPoint", {
                 TargetTemperature: { Type: 11, Body: 26 },
             });
+            if (!contentA) {
+                expect.fail("contentA null");
+            }
             const returnedValue = await contentA.value();
 
             debug(`Temperature setpoint before ${returnedValue}`);
@@ -520,7 +528,7 @@ describe("Full OPCUA Thing Test", () => {
                     SongList: ["Jingle Bell", "Mary has a little lamb"],
                     Volume: 100,
                 })
-            ).value();
+            )?.value();
             const returnedValue = content;
             debug(`Return value ${JSON.stringify(returnedValue, null, " ")}`);
             expect(returnedValue).to.eql({
@@ -553,7 +561,7 @@ describe("Full OPCUA Thing Test", () => {
                     SongList: ["Jingle Bell", "Mary has a little lamb"],
                     Volume: 100,
                 })
-            ).value();
+            )?.value();
             const returnedValue = content;
             debug(`Return value ${JSON.stringify(returnedValue, null, " ")}`);
             expect(returnedValue).to.eql({
