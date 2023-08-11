@@ -152,8 +152,10 @@ export default class Helpers implements Resolver {
         }
     }
 
-    public fetch(uri: string): Promise<ThingDescription> {
-        return new Promise<ThingDescription>((resolve, reject) => {
+    // TODO: specialize fetch to retrieve just thing descriptions
+    // see https://github.com/eclipse-thingweb/node-wot/issues/1055
+    public fetch(uri: string): Promise<unknown> {
+        return new Promise<unknown>((resolve, reject) => {
             const client = this.srv.getClientFor(Helpers.extractScheme(uri));
             debug(`WoTImpl fetching TD from '${uri}' with ${client}`);
             client
