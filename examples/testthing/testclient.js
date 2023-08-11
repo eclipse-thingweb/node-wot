@@ -25,7 +25,7 @@ async function testPropertyRead(thing, name) {
         const value = await res.value();
         console.info("PASS " + name + " READ:", value);
     } catch (err) {
-        console.error("FAIL " + name + " READ:", err.message);
+        console.error("FAIL " + name + " READ:", JSON.stringify(err));
     }
 }
 async function testPropertyWrite(thing, name, value, shouldFail) {
@@ -35,8 +35,8 @@ async function testPropertyWrite(thing, name, value, shouldFail) {
         if (!shouldFail) console.info("PASS " + name + " WRITE (" + displayValue + ")");
         else console.error("FAIL " + name + " WRITE: (" + displayValue + ")");
     } catch (err) {
-        if (!shouldFail) console.error("FAIL " + name + " WRITE (" + displayValue + "):", err.message);
-        else console.info("PASS " + name + " WRITE (" + displayValue + "):", err.message);
+        if (!shouldFail) console.error("FAIL " + name + " WRITE (" + displayValue + "):", JSON.stringify(err));
+        else console.info("PASS " + name + " WRITE (" + displayValue + "):", JSON.stringify(err));
     }
 }
 WoTHelpers.fetch("http://localhost:8080/testthing")

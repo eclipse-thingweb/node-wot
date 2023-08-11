@@ -1,11 +1,10 @@
 {
     "extends": "../../tsconfig.json",
     "compilerOptions": {
+        "strict": true,
         "outDir": "dist",
         "rootDir": "src",
         "target": "ES2018",
-        "alwaysStrict": false,
-        "noImplicitUseStrict": true,
         "sourceMap": false,
         "removeComments": false
     },

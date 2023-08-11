@@ -153,6 +153,7 @@ export default class Helpers implements Resolver {
     }
 
     // TODO: specialize fetch to retrieve just thing descriptions
+    // see https://github.com/eclipse-thingweb/node-wot/issues/1055
     public fetch(uri: string): Promise<unknown> {
         return new Promise<unknown>((resolve, reject) => {
             const client = this.srv.getClientFor(Helpers.extractScheme(uri));

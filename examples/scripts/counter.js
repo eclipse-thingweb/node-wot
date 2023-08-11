@@ -204,7 +204,7 @@ WoT.produce({
             let fill = "black";
             if (options && typeof options === "object" && "uriVariables" in options) {
                 console.log("options = " + JSON.stringify(options));
-                if ("fill" in options.uriVariables) {
+                if (options.uriVariables && "fill" in options.uriVariables) {
                     const uriVariables = options.uriVariables;
                     fill = uriVariables.fill;
                 }
@@ -229,7 +229,7 @@ WoT.produce({
             let step = 1;
             if (options && typeof options === "object" && "uriVariables" in options) {
                 console.log("options = " + JSON.stringify(options));
-                if ("step" in options.uriVariables) {
+                if (options.uriVariables && "step" in options.uriVariables) {
                     const uriVariables = options.uriVariables;
                     step = uriVariables.step;
                 }
@@ -246,7 +246,7 @@ WoT.produce({
             let step = 1;
             if (options && typeof options === "object" && "uriVariables" in options) {
                 console.log("options = " + JSON.stringify(options));
-                if ("step" in options.uriVariables) {
+                if (options.uriVariables && "step" in options.uriVariables) {
                     const uriVariables = options.uriVariables;
                     step = uriVariables.step;
                 }
