@@ -20,7 +20,7 @@ import { ModbusForm, ModbusFunction } from "./modbus";
 import { ProtocolClient, Content, DefaultContent, createDebugLogger, Endianness } from "@node-wot/core";
 import { SecurityScheme } from "@node-wot/td-tools";
 import { modbusFunctionToEntity } from "./utils";
-import { ModbusConnection, PropertyOperation } from "./modbus-connection";
+import { ModbusConnection, ModbusFormWithDefaults, PropertyOperation } from "./modbus-connection";
 import { Readable } from "stream";
 import { Subscription } from "rxjs/Subscription";
 
@@ -51,7 +51,7 @@ class ModbusSubscription {
                 next(result);
             } catch (e) {
                 if (error) {
-                    error(e);
+                    error(e instanceof Error ? e : new Error(JSON.stringify(e)));
                 }
                 clearInterval(this.interval);
             }
@@ -94,7 +94,12 @@ export default class ModbusClient implements ProtocolClient {
         form = this.validateAndFillDefaultForm(form, 0);
         const id = `${form.href}/${form["modbus:unitID"]}#${form["modbus:function"]}?${form["modbus:address"]}&${form["modbus:quantity"]}`;
 
-        this._subscriptions.get(id).unsubscribe();
+        const subscription = this._subscriptions.get(id);
+        if (!subscription) {
+            throw new Error("No subscription for " + id + " found");
+        }
+        subscription.unsubscribe();
+
         this._subscriptions.delete(id);
 
         return Promise.resolve();
@@ -148,15 +153,15 @@ export default class ModbusClient implements ProtocolClient {
         if (content) {
             body = await content.toBuffer();
         }
-        form = this.validateAndFillDefaultForm(form, body?.byteLength);
+        const formValidated = this.validateAndFillDefaultForm(form, body?.byteLength);
 
-        const endianness = this.validateEndianness(form);
+        const endianness = this.validateEndianness(formValidated);
 
         const host = parsed.hostname;
         const hostAndPort = host + ":" + port;
 
         if (body) {
-            this.validateBufferLength(form, body);
+            this.validateBufferLength(formValidated, body);
         }
 
         // find or create connection
@@ -164,16 +169,16 @@ export default class ModbusClient implements ProtocolClient {
 
         if (!connection) {
             debug(`Creating new ModbusConnection for ${hostAndPort}`);
-            this._connections.set(
-                hostAndPort,
-                new ModbusConnection(host, port, { connectionTimeout: form["modbus:timeout"] || DEFAULT_TIMEOUT })
-            );
-            connection = this._connections.get(hostAndPort);
+
+            connection = new ModbusConnection(host, port, {
+                connectionTimeout: form["modbus:timeout"] || DEFAULT_TIMEOUT,
+            });
+            this._connections.set(hostAndPort, connection);
         } else {
             debug(`Reusing ModbusConnection for ${hostAndPort}`);
         }
         // create operation
-        const operation = new PropertyOperation(form, endianness, body);
+        const operation = new PropertyOperation(formValidated, endianness, body);
 
         // enqueue the operation at the connection
         connection.enqueue(operation);
@@ -206,10 +211,14 @@ export default class ModbusClient implements ProtocolClient {
 
         input["modbus:unitID"] = parseInt(pathComp[1], 10) || input["modbus:unitID"];
         input["modbus:address"] = parseInt(pathComp[2], 10) || input["modbus:address"];
-        input["modbus:quantity"] = parseInt(query.get("quantity"), 10) || input["modbus:quantity"];
+
+        const queryQuantity = query.get("quantity");
+        if (queryQuantity) {
+            input["modbus:quantity"] = parseInt(queryQuantity, 10);
+        }
     }
 
-    private validateBufferLength(form: ModbusForm, buffer: Buffer) {
+    private validateBufferLength(form: ModbusFormWithDefaults, buffer: Buffer) {
         const mpy = form["modbus:entity"] === "InputRegister" || form["modbus:entity"] === "HoldingRegister" ? 2 : 1;
         const quantity = form["modbus:quantity"];
         if (buffer && buffer.length !== mpy * quantity) {
@@ -223,7 +232,7 @@ export default class ModbusClient implements ProtocolClient {
         }
     }
 
-    private validateAndFillDefaultForm(form: ModbusForm, contentLength = 0): ModbusForm {
+    private validateAndFillDefaultForm(form: ModbusForm, contentLength = 0): ModbusFormWithDefaults {
         const mode = contentLength > 0 ? "w" : "r";
 
         // Use form values if provided, otherwise use form values (we are more merciful then the spec for retro-compatibility)
@@ -243,7 +252,7 @@ export default class ModbusClient implements ProtocolClient {
             }
 
             // Check if the function is a valid modbus function code
-            if (!Object.keys(ModbusFunction).includes(result["modbus:function"].toString())) {
+            if (!Object.keys(ModbusFunction).includes(form["modbus:function"].toString())) {
                 throw new Error("Undefined function number or name: " + form["modbus:function"]);
             }
         }
@@ -296,6 +305,6 @@ export default class ModbusClient implements ProtocolClient {
         result["modbus:pollingTime"] = form["modbus:pollingTime"] ? form["modbus:pollingTime"] : DEFAULT_POLLING;
         result["modbus:timeout"] = form["modbus:timeout"] ? form["modbus:timeout"] : DEFAULT_TIMEOUT;
 
-        return result;
+        return result as ModbusFormWithDefaults;
     }
 }
