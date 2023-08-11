@@ -40,7 +40,7 @@ export default class MqttClient implements ProtocolClient {
         this.scheme = "mqtt" + (secure ? "s" : "");
     }
 
-    private client: mqtt.MqttClient = undefined;
+    private client?: mqtt.MqttClient;
 
     public subscribeResource(
         form: MqttForm,
@@ -166,8 +166,13 @@ export default class MqttClient implements ProtocolClient {
         const security: TD.SecurityScheme = metadata[0];
 
         if (security.scheme === "basic") {
-            this.config.username = credentials.username;
-            this.config.password = credentials.password;
+            if (credentials === undefined) {
+                // FIXME: This error message should be reworded and adapt to logging convention
+                throw new Error("binding-mqtt: security wants to be basic but you have provided no credentials");
+            } else {
+                this.config.username = credentials.username;
+                this.config.password = credentials.password;
+            }
         }
         return true;
     }
