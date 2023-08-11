@@ -1,4 +1,4 @@
-import { ExposedThing, Content } from "@node-wot/core";
+import Servient, { ExposedThing, Content } from "@node-wot/core";
 /********************************************************************************
  * Copyright (c) 2023 Contributors to the Eclipse Foundation
  *
@@ -36,7 +36,7 @@ class CoapServerTest {
     @test async "should start and stop a server"() {
         const coapServer = new CoapServer(PORT);
 
-        await coapServer.start(null);
+        await coapServer.start(new Servient());
         expect(coapServer.getPort()).to.eq(PORT); // from test
 
         await coapServer.stop();
@@ -46,9 +46,9 @@ class CoapServerTest {
     @test async "should read property"() {
         const coapServer = new CoapServer(PORT);
 
-        await coapServer.start(null);
+        await coapServer.start(new Servient());
 
-        const testThing = new ExposedThing(null, {
+        const testThing = new ExposedThing(new Servient(), {
             title: "Test",
             properties: {
                 test: {
@@ -77,9 +77,9 @@ class CoapServerTest {
     @test async "should write property"() {
         const coapServer = new CoapServer(PORT);
 
-        await coapServer.start(null);
+        await coapServer.start(new Servient());
 
-        const testThing = new ExposedThing(null, {
+        const testThing = new ExposedThing(new Servient(), {
             title: "Test",
             properties: {
                 test: {
@@ -116,9 +116,9 @@ class CoapServerTest {
     @test async "should perform an action"() {
         const coapServer = new CoapServer(PORT);
 
-        await coapServer.start(null);
+        await coapServer.start(new Servient());
 
-        const testThing = new ExposedThing(null, {
+        const testThing = new ExposedThing(new Servient(), {
             title: "Test",
             actions: {
                 try: {
@@ -153,9 +153,9 @@ class CoapServerTest {
     @test async "should subscribe to event"() {
         const coapServer = new CoapServer(PORT);
 
-        await coapServer.start(null);
+        await coapServer.start(new Servient());
 
-        const testThing = new ExposedThing(null, {
+        const testThing = new ExposedThing(new Servient(), {
             title: "Test",
             events: {
                 eventTest: {
@@ -187,16 +187,16 @@ class CoapServerTest {
     @test async "should cause EADDRINUSE error when already running"() {
         const portNumber = 9000;
         const coapServer1 = new CoapServer(portNumber);
-        await coapServer1.start(null);
+        await coapServer1.start(new Servient());
 
         expect(coapServer1.getPort()).to.eq(portNumber);
 
         const coapServer2 = new CoapServer(coapServer1.getPort());
 
         try {
-            await coapServer2.start(null);
+            await coapServer2.start(new Servient());
         } catch (err) {
-            expect(err.message).to.eql(`bind EADDRINUSE 0.0.0.0:${portNumber}`);
+            expect((err as Error).message).to.eql(`bind EADDRINUSE 0.0.0.0:${portNumber}`);
         }
 
         await coapServer1.stop();
@@ -204,9 +204,9 @@ class CoapServerTest {
 
     @test async "should support IPv6"() {
         const coapServer = new CoapServer(PORT, "::");
-        await coapServer.start(null);
+        await coapServer.start(new Servient());
 
-        const testThing = new ExposedThing(null, {
+        const testThing = new ExposedThing(new Servient(), {
             title: "Test",
             properties: {
                 test: {
@@ -235,9 +235,9 @@ class CoapServerTest {
         const portNumber = 9001;
         const coapServer = new CoapServer(portNumber);
 
-        await coapServer.start(null);
+        await coapServer.start(new Servient());
 
-        const testThing = new ExposedThing(null, {
+        const testThing = new ExposedThing(new Servient(), {
             title: "Test",
             uriVariables: {
                 globalVarTest: {
@@ -263,7 +263,7 @@ class CoapServerTest {
         });
         const test: DataSchemaValue = "testValue";
         testThing.setPropertyReadHandler("test", (options) => {
-            expect(options.uriVariables).to.deep.equal({ id: "testId", globalVarTest: "test1" });
+            expect(options?.uriVariables).to.deep.equal({ id: "testId", globalVarTest: "test1" });
             return new Promise<InteractionInput>((resolve, reject) => {
                 resolve(test);
             });
@@ -287,12 +287,12 @@ class CoapServerTest {
         const portNumber = 9001;
         const coapServer = new CoapServer(portNumber);
 
-        await coapServer.start(null);
+        await coapServer.start(new Servient());
 
         const testTitles = ["Test1", "Test2"];
 
         for (const title of testTitles) {
-            const thing = new ExposedThing(null, {
+            const thing = new ExposedThing(new Servient(), {
                 title,
             });
 
@@ -314,9 +314,9 @@ class CoapServerTest {
         const portNumber = 5683;
         const coapServer = new CoapServer(portNumber);
 
-        await coapServer.start(null);
+        await coapServer.start(new Servient());
 
-        const testThing = new ExposedThing(null, {
+        const testThing = new ExposedThing(new Servient(), {
             title: "Test",
         });
 
@@ -368,9 +368,9 @@ class CoapServerTest {
         const portNumber = 9002;
         const coapServer = new CoapServer(portNumber);
 
-        await coapServer.start(null);
+        await coapServer.start(new Servient());
 
-        const testThing = new ExposedThing(null, {
+        const testThing = new ExposedThing(new Servient(), {
             title: "Test",
             description: "This is a test!".repeat(100),
         });

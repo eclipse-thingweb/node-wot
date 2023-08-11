@@ -23,6 +23,7 @@ import { expect } from "chai";
 import CoapServer from "../src/coap-server";
 import CoapClient from "../src/coap-client";
 import { CoapForm } from "../src/coap";
+import Servient from "@node-wot/core";
 
 const port1 = 31833;
 const port2 = 31834;
@@ -56,7 +57,7 @@ class CoapClientTest {
 
         const coapServer = new CoapServer(port1);
 
-        await coapServer.start(null);
+        await coapServer.start(new Servient());
         expect(coapServer.getPort()).to.equal(port1);
 
         /*
@@ -102,7 +103,7 @@ class CoapClientTest {
 
     @test async "should re-use port"() {
         const coapServer = new CoapServer(port2, "localhost");
-        await coapServer.start(null);
+        await coapServer.start(new Servient());
         const coapClient = new CoapClient(coapServer);
         await coapClient.readResource({
             href: `coap://localhost:${port2}/`,
@@ -113,7 +114,7 @@ class CoapClientTest {
 
     @test(timeout(5000)) async "subscribe test"() {
         const coapServer = new CoapServer(port2, "localhost");
-        await coapServer.start(null);
+        await coapServer.start(new Servient());
         const coapClient = new CoapClient(coapServer);
         const form: CoapForm = {
             href: `coap://127.0.0.1:${port2}`,

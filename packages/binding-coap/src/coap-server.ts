@@ -63,7 +63,7 @@ export default class CoapServer implements ProtocolServer {
     private readonly port: number;
     private readonly address?: string;
 
-    private mdnsIntroducer: MdnsIntroducer;
+    private mdnsIntroducer?: MdnsIntroducer;
 
     private readonly server: Server = createServer(
         { reuseAddr: false },
@@ -461,7 +461,7 @@ export default class CoapServer implements ProtocolServer {
         affordanceKey: string,
         req: IncomingMessage,
         res: OutgoingMessage,
-        contentType?: string
+        contentType: string
     ) {
         const property = thing.properties[affordanceKey];
 
@@ -475,7 +475,7 @@ export default class CoapServer implements ProtocolServer {
                 if (req.headers.Observe == null) {
                     this.handleReadProperty(property, req, contentType, thing, res, affordanceKey);
                 } else {
-                    this.handleObserveProperty(req, thing, res, affordanceKey);
+                    this.handleObserveProperty(property, req, contentType, thing, res, affordanceKey);
                 }
                 break;
             case "PUT":
@@ -502,31 +502,42 @@ export default class CoapServer implements ProtocolServer {
         try {
             const interactionOptions = this.createInteractionOptions(
                 property.forms,
-                property.uriVariables,
                 thing,
                 req,
-                contentType
+                contentType,
+                property.uriVariables
             );
             const content = await thing.handleReadProperty(affordanceKey, interactionOptions);
             this.streamContentResponse(res, content);
         } catch (err) {
-            error(`CoapServer on port ${this.getPort()} got internal error on read '${req.url}': ${err.message}`);
-            this.sendResponse(res, "5.00", err.message);
+            const errorMessage = `${err}`;
+            error(`CoapServer on port ${this.getPort()} got internal error on read '${req.url}': ${errorMessage}`);
+            this.sendResponse(res, "5.00", errorMessage);
         }
     }
 
     private async handleObserveProperty(
+        property: PropertyElement,
         req: IncomingMessage,
+        contentType: string,
         thing: ExposedThing,
         res: OutgoingMessage,
         affordanceKey: string
     ) {
+        const interactionOptions = this.createInteractionOptions(
+            property.forms,
+            thing,
+            req,
+            contentType,
+            property.uriVariables
+        );
+
         const listener = this.createContentListener(req, res, this.PROPERTY_DIR, affordanceKey);
 
         try {
-            await thing.handleObserveProperty(affordanceKey, listener, null);
+            await thing.handleObserveProperty(affordanceKey, listener, interactionOptions);
         } catch (error) {
-            warn(error.toString());
+            warn(`${error}`);
         }
 
         res.end();
@@ -535,10 +546,10 @@ export default class CoapServer implements ProtocolServer {
             if (err) {
                 error(`CoapServer on port ${this.port} failed on observe with: ${err.message}`);
             }
-            thing.handleUnobserveProperty(affordanceKey, listener, null);
+            thing.handleUnobserveProperty(affordanceKey, listener, interactionOptions);
         });
 
-        setTimeout(() => thing.handleUnobserveProperty(affordanceKey, listener, null), 60 * 60 * 1000);
+        setTimeout(() => thing.handleUnobserveProperty(affordanceKey, listener, interactionOptions), 60 * 60 * 1000);
     }
 
     private createContentListener(
@@ -562,12 +573,13 @@ export default class CoapServer implements ProtocolServer {
                     debug(`CoapServer on port ${this.getPort()} failed '${affordanceKey}' subscription`);
                     this.sendResponse(res, code, "Subscription to event failed");
                 } else {
+                    const errorMessage = `${err}`;
                     debug(
-                        `CoapServer on port ${this.getPort()} got internal error on observe '${req.url}': ${
-                            err.message
-                        }`
+                        `CoapServer on port ${this.getPort()} got internal error on observe '${
+                            req.url
+                        }': ${errorMessage}`
                     );
-                    this.sendResponse(res, code, err.message);
+                    this.sendResponse(res, code, errorMessage);
                 }
             }
         };
@@ -584,10 +596,10 @@ export default class CoapServer implements ProtocolServer {
         try {
             const interactionOptions = this.createInteractionOptions(
                 property.forms,
-                property.uriVariables,
                 thing,
                 req,
-                contentType
+                contentType,
+                property.uriVariables
             );
             await thing.handleWriteProperty(
                 affordanceKey,
@@ -596,8 +608,9 @@ export default class CoapServer implements ProtocolServer {
             );
             this.sendChangedResponse(res);
         } catch (err) {
-            error(`CoapServer on port ${this.getPort()} got internal error on write '${req.url}': ${err.message}`);
-            this.sendResponse(res, "5.00", err.message);
+            const errorMessage = `${err}`;
+            error(`CoapServer on port ${this.getPort()} got internal error on write '${req.url}': ${errorMessage}`);
+            this.sendResponse(res, "5.00", errorMessage);
         }
     }
 
@@ -606,7 +619,7 @@ export default class CoapServer implements ProtocolServer {
         affordanceKey: string,
         req: IncomingMessage,
         res: OutgoingMessage,
-        contentType?: string
+        contentType: string
     ) {
         const action = thing.actions[affordanceKey];
 
@@ -622,10 +635,10 @@ export default class CoapServer implements ProtocolServer {
 
         const interactionOptions = this.createInteractionOptions(
             action.forms,
-            action.uriVariables,
             thing,
             req,
-            contentType
+            contentType,
+            action.uriVariables
         );
         try {
             const output = await thing.handleInvokeAction(
@@ -638,18 +651,19 @@ export default class CoapServer implements ProtocolServer {
             } else {
                 this.sendChangedResponse(res);
             }
-        } catch (err) {
-            error(`CoapServer on port ${this.getPort()} got internal error on invoke '${req.url}': ${err.message}`);
-            this.sendResponse(res, "5.00", err.message);
+        } catch (errror) {
+            const errorMessage = `${error}`;
+            error(`CoapServer on port ${this.getPort()} got internal error on invoke '${req.url}': ${errorMessage}`);
+            this.sendResponse(res, "5.00", errorMessage);
         }
     }
 
     private createInteractionOptions(
         forms: TD.Form[],
-        affordanceUriVariables: { [k: string]: DataSchema },
         thing: ExposedThing,
         req: IncomingMessage,
-        contentType: string
+        contentType: string,
+        affordanceUriVariables?: { [k: string]: DataSchema }
     ) {
         const options: AugmentedInteractionOptions = {
             formIndex: ProtocolHelpers.findRequestMatchingFormIndex(forms, this.scheme, req.url, contentType),
@@ -667,7 +681,7 @@ export default class CoapServer implements ProtocolServer {
         affordanceKey: string,
         req: IncomingMessage,
         res: OutgoingMessage,
-        contentType?: string
+        contentType: string
     ) {
         const event = thing.events[affordanceKey];
 
@@ -698,10 +712,10 @@ export default class CoapServer implements ProtocolServer {
 
             const interactionOptions = this.createInteractionOptions(
                 event.forms,
-                event.uriVariables,
                 thing,
                 req,
-                contentType
+                contentType,
+                event.uriVariables
             );
 
             const listener = this.createContentListener(req, res, this.EVENT_DIR, affordanceKey);
@@ -709,7 +723,7 @@ export default class CoapServer implements ProtocolServer {
             try {
                 await thing.handleSubscribeEvent(affordanceKey, listener, interactionOptions);
             } catch (error) {
-                warn(error.toString());
+                warn(`${error}`);
             }
 
             res.end();
