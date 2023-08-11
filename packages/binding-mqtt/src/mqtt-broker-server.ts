@@ -41,6 +41,14 @@ import { Readable } from "stream";
 const { info, debug, error, warn } = createLoggers("binding-mqtt", "mqtt-broker-server");
 
 export default class MqttBrokerServer implements ProtocolServer {
+    private static brokerIsInitialized(broker?: mqtt.MqttClient): asserts broker is mqtt.MqttClient {
+        if (broker === undefined) {
+            throw new Error(
+                `Broker not initialized. You need to start the ${MqttBrokerServer.name} before you can expose things.`
+            );
+        }
+    }
+
     readonly scheme: string = "mqtt";
 
     private readonly ACTION_SEGMENT_LENGTH = 3;
@@ -51,30 +59,33 @@ export default class MqttBrokerServer implements ProtocolServer {
     private readonly INTERACTION_NAME_SEGMENT_INDEX = 2;
     private readonly INTERACTION_EXT_SEGMENT_INDEX = 3;
 
-    private port = -1;
-    private address: string = undefined;
+    private readonly defaults: MqttBrokerServerConfig = { uri: "mqtt://localhost:1883" };
 
-    private brokerURI: string = undefined;
+    private port = -1;
+    private address?: string = undefined;
+
+    private brokerURI: string;
 
     private readonly things: Map<string, ExposedThing> = new Map();
 
     private readonly config: MqttBrokerServerConfig;
 
-    private broker: mqtt.MqttClient;
+    private broker?: mqtt.MqttClient;
 
-    private hostedServer: Aedes;
-    private hostedBroker: net.Server;
+    private hostedServer?: Aedes;
+    private hostedBroker?: net.Server;
 
     constructor(config: MqttBrokerServerConfig) {
-        this.config = config ?? { uri: "mqtt://localhost:1883" };
+        this.config = config ?? this.defaults;
+        this.config.uri = this.config.uri ?? this.defaults.uri;
 
-        if (config.uri !== undefined) {
-            // if there is a MQTT protocol indicator missing, add this
-            if (config.uri.indexOf("://") === -1) {
-                config.uri = this.scheme + "://" + config.uri;
-            }
-            this.brokerURI = config.uri;
+        // if there is a MQTT protocol indicator missing, add this
+        if (config.uri.indexOf("://") === -1) {
+            config.uri = this.scheme + "://" + config.uri;
         }
+
+        this.brokerURI = config.uri;
+
         if (config.selfHost) {
             this.hostedServer = Server({});
             let server;
@@ -86,7 +97,7 @@ export default class MqttBrokerServer implements ProtocolServer {
             const parsed = new url.URL(this.brokerURI);
             const port = parseInt(parsed.port);
             this.port = port > 0 ? port : 1883;
-            this.hostedBroker = server.listen(port);
+            this.hostedBroker = server.listen(port, parsed.hostname);
             this.hostedServer.authenticate = this.selfHostAuthentication.bind(this);
         }
     }
@@ -130,6 +141,7 @@ export default class MqttBrokerServer implements ProtocolServer {
     }
 
     private exposeProperty(name: string, propertyName: string, thing: ExposedThing) {
+        MqttBrokerServer.brokerIsInitialized(this.broker);
         const topic = encodeURIComponent(name) + "/properties/" + encodeURIComponent(propertyName);
         const property = thing.properties[propertyName];
 
@@ -143,6 +155,12 @@ export default class MqttBrokerServer implements ProtocolServer {
             const observeListener = async (content: Content) => {
                 debug(`MqttBrokerServer at ${this.brokerURI} publishing to Property topic '${propertyName}' `);
                 const buffer = await content.toBuffer();
+
+                if (this.broker === undefined) {
+                    warn(`MqttBrokerServer at ${this.brokerURI} has no client to publish to. Probably it was closed.`);
+                    return;
+                }
+
                 this.broker.publish(topic, buffer);
             };
             thing.handleObserveProperty(propertyName, observeListener, { formIndex: property.forms.length - 1 });
@@ -158,6 +176,8 @@ export default class MqttBrokerServer implements ProtocolServer {
     }
 
     private exposeAction(name: string, actionName: string, thing: ExposedThing) {
+        MqttBrokerServer.brokerIsInitialized(this.broker);
+
         const topic = encodeURIComponent(name) + "/actions/" + encodeURIComponent(actionName);
         this.broker.subscribe(topic);
 
@@ -179,6 +199,11 @@ export default class MqttBrokerServer implements ProtocolServer {
         debug(`MqttBrokerServer at ${this.brokerURI} assigns '${href}' to Event '${eventName}'`);
 
         const eventListener = async (content: Content) => {
+            if (this.broker === undefined) {
+                warn(`MqttBrokerServer at ${this.brokerURI} has no client to publish to. Probably it was closed.`);
+                return;
+            }
+
             if (!content) {
                 warn(`MqttBrokerServer on port ${this.getPort()} cannot process data for Event ${eventName}`);
                 thing.handleUnsubscribeEvent(eventName, eventListener, { formIndex: event.forms.length - 1 });
@@ -199,6 +224,9 @@ export default class MqttBrokerServer implements ProtocolServer {
             payload = rawPayload;
         } else if (typeof rawPayload === "string") {
             payload = Buffer.from(rawPayload);
+        } else {
+            warn(`MqttBrokerServer on port ${this.getPort()} received unexpected payload type`);
+            return;
         }
 
         if (segments.length === this.ACTION_SEGMENT_LENGTH) {
@@ -308,7 +336,7 @@ export default class MqttBrokerServer implements ProtocolServer {
                 error(
                     `MqttBrokerServer at ${this.brokerURI} got error on writing to property '${
                         segments[this.INTERACTION_NAME_SEGMENT_INDEX]
-                    }': ${err.message}`
+                    }': ${err}`
                 );
             }
         } else {
@@ -322,7 +350,8 @@ export default class MqttBrokerServer implements ProtocolServer {
 
     public async destroy(thingId: string): Promise<boolean> {
         debug(`MqttBrokerServer on port ${this.getPort()} destroying thingId '${thingId}'`);
-        let removedThing: ExposedThing;
+        let removedThing: ExposedThing | undefined;
+
         for (const name of Array.from(this.things.keys())) {
             const expThing = this.things.get(name);
             if (expThing != null && expThing.id != null && expThing.id === thingId) {
@@ -330,6 +359,7 @@ export default class MqttBrokerServer implements ProtocolServer {
                 removedThing = expThing;
             }
         }
+
         if (removedThing) {
             info(`MqttBrokerServer succesfully destroyed '${removedThing.title}'`);
         } else {
@@ -385,8 +415,12 @@ export default class MqttBrokerServer implements ProtocolServer {
         }
 
         if (this.hostedBroker !== undefined) {
-            await new Promise<void>((resolve) => this.hostedServer.close(() => resolve()));
-            await new Promise<void>((resolve) => this.hostedBroker.close(() => resolve()));
+            // When the broker is hosted, we need to close it.
+            // Both this.hostedBroker and this.hostedServer are defined at the same time.
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            await new Promise<void>((resolve) => this.hostedServer!.close(() => resolve()));
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            await new Promise<void>((resolve) => this.hostedBroker!.close(() => resolve()));
         }
     }
 
@@ -394,7 +428,11 @@ export default class MqttBrokerServer implements ProtocolServer {
         return this.port;
     }
 
-    public getAddress(): string {
+    /**
+     *
+     * @returns the address of the broker or undefined if the Server is not started.
+     */
+    public getAddress(): string | undefined {
         return this.address;
     }
 
@@ -408,15 +446,15 @@ export default class MqttBrokerServer implements ProtocolServer {
             for (let i = 0; i < this.config.selfHostAuthentication.length; i++) {
                 if (
                     username === this.config.selfHostAuthentication[i].username &&
-                    password.equals(Buffer.from(this.config.selfHostAuthentication[i].password))
+                    password.equals(Buffer.from(this.config.selfHostAuthentication[i].password ?? ""))
                 ) {
-                    done(undefined, true);
+                    done(null, true);
                     return;
                 }
             }
-            done(undefined, false);
+            done(null, false);
             return;
         }
-        done(undefined, true);
+        done(null, true);
     }
 }
