@@ -34,7 +34,7 @@ import * as TDT from "wot-thing-description-types";
 import { ContentSerdes } from "./content-serdes";
 import Ajv, { ValidateFunction, ErrorObject } from "ajv";
 import TDSchema from "wot-thing-description-types/schema/td-json-schema-validation.json";
-import { DataSchemaValue, ExposedThingInit, ThingDescription } from "wot-typescript-definitions";
+import { DataSchemaValue, ExposedThingInit } from "wot-typescript-definitions";
 import { SomeJSONSchema } from "ajv/dist/types/json-schema";
 import { ThingInteraction, ThingModelHelpers } from "@node-wot/td-tools";
 import { Resolver } from "@node-wot/td-tools/src/resolver-interface";
