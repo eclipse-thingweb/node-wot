@@ -216,17 +216,18 @@ export class OpcuaJSONCodec implements ContentCodec {
         const type = parameters?.type ?? "DataValue";
         switch (type) {
             case "DataValue": {
+                let dataValueJSON: DataValueJSON;
                 if (value instanceof DataValue) {
-                    value = opcuaJsonEncodeDataValue(value, true);
+                    dataValueJSON = opcuaJsonEncodeDataValue(value, true);
                 } else if (value instanceof Variant) {
-                    value = opcuaJsonEncodeDataValue(new DataValue({ value }), true);
+                    dataValueJSON = opcuaJsonEncodeDataValue(new DataValue({ value }), true);
                 } else if (typeof value === "string") {
-                    value = JSON.parse(value) as DataValueJSON;
+                    dataValueJSON = JSON.parse(value) as DataValueJSON;
                 } else {
-                    value = opcuaJsonEncodeDataValue(opcuaJsonDecodeDataValue(value as DataValueJSON), true);
+                    dataValueJSON = opcuaJsonEncodeDataValue(opcuaJsonDecodeDataValue(value as DataValueJSON), true);
                 }
-                value = formatForNodeWoT(value);
-                return Buffer.from(JSON.stringify(value), "ascii");
+                dataValueJSON = formatForNodeWoT(dataValueJSON);
+                return Buffer.from(JSON.stringify(dataValueJSON), "ascii");
             }
             case "Variant": {
                 if (value instanceof DataValue) {
@@ -256,9 +257,6 @@ export class OpcuaJSONCodec implements ContentCodec {
 }
 export const theOpcuaJSONCodec = new OpcuaJSONCodec();
 
-export function jsonify(a: unknown): unknown {
-    return JSON.parse(JSON.stringify(a));
-}
 export class OpcuaBinaryCodec implements ContentCodec {
     getMediaType(): string {
         return "application/opcua+octet-stream"; // see Ege
@@ -268,7 +266,9 @@ export class OpcuaBinaryCodec implements ContentCodec {
         const binaryStream = new BinaryStream(bytes);
         const dataValue = new DataValue();
         dataValue.decode(binaryStream);
-        return jsonify(opcuaJsonEncodeDataValue(dataValue, true));
+        // TODO wrapping JSON.parse(JSON.stringify(a)) a la jsonify needed?
+        return opcuaJsonEncodeDataValue(dataValue, true);
+        // return JSON.parse(JSON.stringify(opcuaJsonEncodeDataValue(dataValue, true)));
     }
 
     valueToBytes(
@@ -281,7 +281,7 @@ export class OpcuaBinaryCodec implements ContentCodec {
         // remove unwanted properties
         dataValue.serverPicoseconds = 0;
         dataValue.sourcePicoseconds = 0;
-        dataValue.serverTimestamp = undefined;
+        dataValue.serverTimestamp = null;
 
         const size = dataValue.binaryStoreSize();
         const stream = new BinaryStream(size);

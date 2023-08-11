@@ -25,7 +25,7 @@ import { coerceLocalizedText } from "node-opcua-data-model";
 import { opcuaJsonEncodeDataValue } from "node-opcua-json";
 import { StatusCodes } from "node-opcua-status-code";
 
-import { jsonify, OpcuaBinaryCodec, OpcuaJSONCodec, theOpcuaBinaryCodec, theOpcuaJSONCodec } from "../src/codec";
+import { OpcuaBinaryCodec, OpcuaJSONCodec, theOpcuaBinaryCodec, theOpcuaJSONCodec } from "../src/codec";
 
 const { debug } = createLoggers("binding-opcua", "opcua-codec-test");
 
@@ -48,6 +48,10 @@ const dataValue3 = new DataValue({
         value: [coerceLocalizedText("a"), coerceLocalizedText("b")],
     },
 });
+
+function jsonify(a: unknown): unknown {
+    return JSON.parse(JSON.stringify(a));
+}
 
 const dataValue1Json = jsonify(opcuaJsonEncodeDataValue(dataValue1, true));
 const dataValue2Json = jsonify(opcuaJsonEncodeDataValue(dataValue2, true));
