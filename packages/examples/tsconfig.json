@@ -2,7 +2,6 @@
     "extends": "../../tsconfig.json",
     "compilerOptions": {
         "strict": true,
-        "strictFunctionTypes": true,
         "outDir": "dist",
         "rootDir": "src",
         "target": "ES2018",
