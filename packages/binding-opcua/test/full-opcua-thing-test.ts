@@ -366,8 +366,8 @@ describe("Full OPCUA Thing Test", () => {
             debug(json?.toString());
             return json;
         } catch (e) {
-            debug(e.toString());
-            return { err: e.message };
+            debug(`${e}`);
+            return { err: `${e}` };
         }
     }
     it("Z2 - test $Variant$temperature", async () => {
