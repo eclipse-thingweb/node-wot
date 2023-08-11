@@ -484,7 +484,7 @@ export class PropertyOperation {
         debug("Operation done");
 
         if (!this.resolve || !this.reject) {
-            throw new Error("Invoked done before executing operation");
+            throw new Error("Function 'done' was invoked before executing the Modbus operation");
         }
 
         if (base === null || base === undefined) {
@@ -522,7 +522,7 @@ export class PropertyOperation {
     failed(reason: Error): void {
         warn(`Operation failed: ${reason}`);
         if (!this.reject) {
-            throw new Error("Invoked reject before executing operation");
+            throw new Error("Function 'failed' was invoked before executing the Modbus operation");
         }
         // reject the Promise given to the invoking script
         this.reject(reason);
