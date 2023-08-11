@@ -76,6 +76,10 @@ describe("MQTT client implementation", () => {
                                 if (!eventReceived) {
                                     eventReceived = true;
                                 } else {
+                                    if (!x.data) {
+                                        done(new Error("No data received"));
+                                        return;
+                                    }
                                     ProtocolHelpers.readStreamFully(ProtocolHelpers.toNodeStream(x.data)).then(
                                         (received) => {
                                             expect(JSON.parse(received.toString())).to.equal(++check);
@@ -134,6 +138,10 @@ describe("MQTT client implementation", () => {
                                 if (!eventReceived) {
                                     eventReceived = true;
                                 } else {
+                                    if (!x.data) {
+                                        done(new Error("No data received"));
+                                        return;
+                                    }
                                     ProtocolHelpers.readStreamFully(ProtocolHelpers.toNodeStream(x.data)).then(
                                         (received) => {
                                             expect(JSON.parse(received.toString())).to.equal(++check);

@@ -17,7 +17,7 @@
  * Protocol test suite to test protocol implementations
  */
 
-import { ProtocolClient, Content, DefaultContent, createLoggers } from "@node-wot/core";
+import { ProtocolClient, Content, DefaultContent, createLoggers, ContentSerdes } from "@node-wot/core";
 import * as TD from "@node-wot/td-tools";
 import * as mqtt from "mqtt";
 import { MqttClientConfig, MqttForm, MqttQoS } from "./mqtt";
@@ -40,7 +40,7 @@ export default class MqttClient implements ProtocolClient {
         this.scheme = "mqtt" + (secure ? "s" : "");
     }
 
-    private client: mqtt.MqttClient = undefined;
+    private client?: mqtt.MqttClient;
 
     public subscribeResource(
         form: MqttForm,
@@ -50,7 +50,7 @@ export default class MqttClient implements ProtocolClient {
     ): Promise<Subscription> {
         return new Promise<Subscription>((resolve, reject) => {
             // get MQTT-based metadata
-            const contentType = form.contentType;
+            const contentType = form.contentType ?? ContentSerdes.DEFAULT;
             const requestUri = new url.URL(form.href);
             const topic = requestUri.pathname.slice(1);
             const brokerUri: string = `${this.scheme}://` + requestUri.host;
@@ -63,15 +63,29 @@ export default class MqttClient implements ProtocolClient {
                 this.client.subscribe(topic);
                 resolve(
                     new Subscription(() => {
+                        if (!this.client) {
+                            warn(
+                                `MQTT Client is undefined. This means that the client either failed to connect or was never initialized.`
+                            );
+                            return;
+                        }
                         this.client.unsubscribe(topic);
                     })
                 );
             }
 
             this.client.on("connect", () => {
-                this.client.subscribe(topic);
+                // In this case, the client is definitely defined.
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                this.client!.subscribe(topic);
                 resolve(
                     new Subscription(() => {
+                        if (!this.client) {
+                            warn(
+                                `MQTT Client is undefined. This means that the client either failed to connect or was never initialized.`
+                            );
+                            return;
+                        }
                         this.client.unsubscribe(topic);
                     })
                 );
@@ -166,8 +180,13 @@ export default class MqttClient implements ProtocolClient {
         const security: TD.SecurityScheme = metadata[0];
 
         if (security.scheme === "basic") {
-            this.config.username = credentials.username;
-            this.config.password = credentials.password;
+            if (credentials === undefined) {
+                // FIXME: This error message should be reworded and adapt to logging convention
+                throw new Error("binding-mqtt: security wants to be basic but you have provided no credentials");
+            } else {
+                this.config.username = credentials.username;
+                this.config.password = credentials.password;
+            }
         }
         return true;
     }

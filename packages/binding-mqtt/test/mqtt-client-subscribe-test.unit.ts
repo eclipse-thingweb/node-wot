@@ -120,10 +120,10 @@ describe("MQTT client implementation", () => {
         beforeEach(() => {
             aedes.authenticate = function (_client, username: Readonly<string>, password: Readonly<Buffer>, done) {
                 if (username !== undefined) {
-                    done(undefined, username === "user" && password.equals(Buffer.from("pass")));
+                    done(null, username === "user" && password.equals(Buffer.from("pass")));
                     return;
                 }
-                done(undefined, true);
+                done(null, true);
             };
             const server = net.createServer(aedes.handle);
             hostedBroker = server.listen(brokerPort);
