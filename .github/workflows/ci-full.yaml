@@ -8,7 +8,7 @@ jobs:
         strategy:
             matrix:
                 os: [macos-latest, ubuntu-latest, windows-latest]
-                node-version: [16.x, 18.x]
+                node-version: [16.x, 18.x, 20.x]
 
         steps:
             - name: Checkout
@@ -19,9 +19,6 @@ jobs:
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "npm"
-            - name: npm 7
-              # npm workspaces requires npm v7 or higher
-              run: npm i -g npm@7 --registry=https://registry.npmjs.org
             - name: Install
               run: npm ci
 
@@ -41,14 +38,10 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v2
 
-            - name: Use Node.js 14
+            - name: Use Node.js 16
               uses: actions/setup-node@v1
               with:
-                  node-version: 14
-
-            - name: npm 7
-              # npm workspaces requires npm v7 or higher
-              run: npm i -g npm@7 --registry=https://registry.npmjs.org
+                  node-version: 16
 
             - name: Install
               run: npm ci
@@ -61,10 +54,10 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v1
-            - name: install node v14
+            - name: install node v16
               uses: actions/setup-node@v1
               with:
-                  node-version: 14
+                  node-version: 16
             - name: verify packages version consistency accross sub-modules
               run: npm run check:versions
 
