@@ -14,10 +14,10 @@
  ********************************************************************************/
 import { should } from "chai";
 import * as chai from "chai";
-import { ModbusForm } from "../src/modbus";
+import { ModbusFunction } from "../src/modbus";
 import ModbusServer from "./test-modbus-server";
 import chaiAsPromised from "chai-as-promised";
-import { ModbusConnection, PropertyOperation } from "../src/modbus-connection";
+import { ModbusConnection, ModbusFormWithDefaults, PropertyOperation } from "../src/modbus-connection";
 import { Endianness } from "@node-wot/core";
 
 // should must be called to augment all variables
@@ -63,12 +63,15 @@ describe("Modbus connection", () => {
 
     describe("Operation", () => {
         it("should fail for unknown host", async () => {
-            const form: ModbusForm = {
+            const form: ModbusFormWithDefaults = {
                 href: "modbus://127.0.0.2:8502",
                 "modbus:function": 15,
                 "modbus:address": 0,
                 "modbus:quantity": 1,
                 "modbus:unitID": 1,
+                "modbus:entity": "HoldingRegister",
+                "modbus:timeout": 1000,
+                "modbus:pollingTime": 1000,
             };
             const connection = new ModbusConnection("127.0.0.2", 8503, {
                 connectionTimeout: 200,
@@ -83,12 +86,15 @@ describe("Modbus connection", () => {
         }).timeout(5000);
 
         it("should throw with timeout", async () => {
-            const form: ModbusForm = {
+            const form: ModbusFormWithDefaults = {
                 href: "modbus://127.0.0.1:8502",
+                "modbus:function": ModbusFunction.readCoil,
                 "modbus:entity": "Coil",
                 "modbus:address": 4444,
                 "modbus:quantity": 1,
                 "modbus:unitID": 1,
+                "modbus:timeout": 1000,
+                "modbus:pollingTime": 1000,
             };
             const connection = new ModbusConnection("127.0.0.1", 8502, {
                 connectionTimeout: 100,

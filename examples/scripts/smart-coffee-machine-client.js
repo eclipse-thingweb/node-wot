@@ -15,6 +15,14 @@
 // This is an example of Web of Things consumer ("client" mode) Thing script.
 // It considers a fictional smart coffee machine in order to demonstrate the capabilities of Web of Things.
 // An accompanying tutorial is available at http://www.thingweb.io/smart-coffee-machine.html.
+
+// Print data and an accompanying message in a distinguishable way
+function log(msg, data) {
+    console.info("======================");
+    console.info(msg);
+    console.dir(data);
+    console.info("======================");
+}
 WoTHelpers.fetch("http://127.0.0.1:8080/smart-coffee-machine").then(async (td) => {
     try {
         const thing = await WoT.consume(td);
@@ -40,7 +48,7 @@ WoTHelpers.fetch("http://127.0.0.1:8080/smart-coffee-machine").then(async (td) =
         const makeCoffee = await thing.invokeAction("makeDrink", undefined, {
             uriVariables: { drinkId: "latte", size: "l", quantity: 3 },
         });
-        const makeCoffeep = await makeCoffee.value();
+        const makeCoffeep = await (makeCoffee === null || makeCoffee === void 0 ? void 0 : makeCoffee.value());
         if (makeCoffeep.result) {
             log("Enjoy your drink!", makeCoffeep);
         } else {
@@ -57,7 +65,9 @@ WoTHelpers.fetch("http://127.0.0.1:8080/smart-coffee-machine").then(async (td) =
             time: "10:00",
             mode: "everyday",
         });
-        const scheduledTaskp = await scheduledTask.value();
+        const scheduledTaskp = await (scheduledTask === null || scheduledTask === void 0
+            ? void 0
+            : scheduledTask.value());
         log(scheduledTaskp.message, scheduledTaskp);
         // See how it has been added to the schedules property
         const schedules = await (await thing.readProperty("schedules")).value();
@@ -74,10 +84,3 @@ WoTHelpers.fetch("http://127.0.0.1:8080/smart-coffee-machine").then(async (td) =
         console.error("Script error:", err);
     }
 });
-// Print data and an accompanying message in a distinguishable way
-function log(msg, data) {
-    console.info("======================");
-    console.info(msg);
-    console.dir(data);
-    console.info("======================");
-}

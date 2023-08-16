@@ -80,7 +80,7 @@ WoT.produce({
                 const listToDelete = [];
                 for (const id of countdowns.keys()) {
                     const as = countdowns.get(id);
-                    if (as.output !== undefined) {
+                    if (as !== undefined && as.output !== undefined) {
                         const prev = as.output;
                         as.output--;
                         console.log("\t" + id + ", from " + prev + " to " + as.output);
@@ -125,7 +125,7 @@ WoT.produce({
             };
             const ii = resp;
             console.log("init countdown value = " + JSON.stringify(resp));
-            countdowns.set(resp.href, resp);
+            countdowns.set(resp.href !== undefined ? resp.href : "", resp);
             return ii;
         });
         thing.setActionHandler("stopCountdown", async (params, options) => {
@@ -133,10 +133,14 @@ WoT.produce({
                 const value = await params.value();
                 if (typeof value === "string" && countdowns.has(value)) {
                     const as = countdowns.get(value);
-                    as.output = 0;
-                    as.status = Status.completed;
-                    console.log("Countdown stopped for href: " + value);
-                    return undefined;
+                    if (as !== undefined) {
+                        as.output = 0;
+                        as.status = Status.completed;
+                        console.log("Countdown stopped for href: " + value);
+                        return null;
+                    } else {
+                        throw Error("Countdown value is undefined for href, " + value);
+                    }
                 } else {
                     throw Error("Input provided for stopCountdown is no string or invalid href, " + value);
                 }

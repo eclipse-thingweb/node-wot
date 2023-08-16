@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 - 2020 Contributors to the Eclipse Foundation
+ * Copyright (c) 2023 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -15,7 +15,8 @@
 WoTHelpers.fetch("https://localhost:8080/oauth").then((td) => {
     WoT.consume(td).then(async (thing) => {
         try {
-            const result = await (await thing.invokeAction("sayOk")).value();
+            const resp = await thing.invokeAction("sayOk");
+            const result = resp === null || resp === void 0 ? void 0 : resp.value();
             console.log("oAuth token was", result);
         } catch (error) {
             console.log("It seems that I couldn't access the resource");

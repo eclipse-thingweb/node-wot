@@ -15,12 +15,13 @@
 import { Helpers } from "@node-wot/core";
 import { ThingDescription } from "wot-typescript-definitions";
 
-let WoTHelpers: Helpers;
+let WoTHelpers!: Helpers;
 
 WoTHelpers.fetch("https://localhost:8080/oauth").then((td) => {
     WoT.consume(td as ThingDescription).then(async (thing) => {
         try {
-            const result = await (await thing.invokeAction("sayOk")).value();
+            const resp = await thing.invokeAction("sayOk");
+            const result = resp?.value();
             console.log("oAuth token was", result);
         } catch (error) {
             console.log("It seems that I couldn't access the resource");
