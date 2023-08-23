@@ -515,9 +515,54 @@ export class AssetInterfaceDescriptionUtil {
     }
 
     /**
+     * Transform WoT ThingDescription (TD) to AAS in JSON format
+     *
+     * @param td input TD
+     * @returns transformed AAS in JSON format
+     */
+    public transformTD2AAS(td: string): string {
+        // TODO selection like HTTP only or so..
+        const submodel = this.transformTD2SM(td);
+        const submodelObj = JSON.parse(submodel);
+        const submodelId = submodelObj.id;
+
+        // configuration
+        const aasName = "SampleAAS";
+        const aasId = "https://example.com/ids/aas/7474_9002_6022_1115";
+
+        const aas = {
+            assetAdministrationShells: [
+                {
+                    idShort: aasName,
+                    id: aasId,
+                    assetInformation: {
+                        // information needed?
+                    },
+                    submodels: [
+                        {
+                            type: "ModelReference",
+                            keys: [
+                                {
+                                    type: "Submodel",
+                                    value: submodelId,
+                                },
+                            ],
+                        },
+                    ],
+                    modelType: "AssetAdministrationShell",
+                },
+            ],
+            submodels: [submodelObj],
+            conceptDescriptions: [],
+        };
+
+        return JSON.stringify(aas);
+    }
+
+    /**
      * Transform WoT ThingDescription (TD) to AID submodel definition in JSON format
      *
-     * @param td input AID submodel in JSON format
+     * @param td input TD
      * @returns transformed AID submodel definition in JSON format
      */
     public transformTD2SM(td: string): string {
@@ -527,10 +572,21 @@ export class AssetInterfaceDescriptionUtil {
         // TODO
         // value entry "idShort": "EndpointMetadata"
         // value entry "idShort": "InterfaceMetadata"
-        const tdObject = {
-            idShort: thing.title,
+        const aidObject = {
+            idShort: "AssetInterfaceDescription",
+            id: "TODO XYZ",
+            kind: "Instance",
+            // semanticId needed?
+            description: [
+                // TODO does this need to be an array or can it simply be a value
+                {
+                    language: "en",
+                    text: thing.title, // TODO should be description, where does title go to? later on in submodel?
+                },
+            ],
+            submodels: [],
         };
 
-        return JSON.stringify(tdObject);
+        return JSON.stringify(aidObject);
     }
 }
