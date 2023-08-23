@@ -25,181 +25,7 @@
     ],
     "submodels": [
         {
-            "idShort": "AssetInterfaceDescription",
-            "id": "https://example.com/ids/sm/8574_9002_6022_5297",
-            "kind": "Instance",
-            "semanticId": {
-                "type": "ExternalReference",
-                "keys": []
-            },
-            "submodelElements": [
-                {
-                    "idShort": "EndpointMetadata",
-                    "semanticId": {
-                        "type": "ExternalReference",
-                        "keys": []
-                    },
-                    "embeddedDataSpecifications": [],
-                    "value": [
-                        {
-                            "idShort": "base",
-                            "semanticId": {
-                                "type": "ExternalReference",
-                                "keys": []
-                            },
-                            "embeddedDataSpecifications": [],
-                            "valueType": "xs:string",
-                            "value": "modbus+tcp://192.168.1.187:502",
-                            "modelType": "Property"
-                        },
-                        {
-                            "idShort": "contentType",
-                            "semanticId": {
-                                "type": "ExternalReference",
-                                "keys": []
-                            },
-                            "embeddedDataSpecifications": [],
-                            "valueType": "xs:string",
-                            "value": "application/octet-stream;byteSeq=BIG_ENDIAN",
-                            "modelType": "Property"
-                        }
-                    ],
-                    "modelType": "SubmodelElementCollection"
-                },
-                {
-                    "idShort": "InterfaceMetadata",
-                    "semanticId": {
-                        "type": "ExternalReference",
-                        "keys": []
-                    },
-                    "embeddedDataSpecifications": [],
-                    "value": [
-                        {
-                            "idShort": "Properties",
-                            "semanticId": {
-                                "type": "ExternalReference",
-                                "keys": []
-                            },
-                            "embeddedDataSpecifications": [],
-                            "value": [
-                                {
-                                    "idShort": "voltage",
-                                    "semanticId": {
-                                        "type": "ExternalReference",
-                                        "keys": []
-                                    },
-                                    "qualifiers": [
-                                        {
-                                            "semanticId": {
-                                                "type": "ExternalReference",
-                                                "keys": []
-                                            },
-                                            "type": "modbus:function",
-                                            "valueType": "xs:string",
-                                            "value": "readHoldingRegisters",
-                                            "valueId": {
-                                                "type": "ExternalReference",
-                                                "keys": []
-                                            }
-                                        },
-                                        {
-                                            "type": "modbus:address",
-                                            "valueType": "xs:string",
-                                            "value": "40001"
-                                        },
-                                        {
-                                            "type": "modbus:quantity",
-                                            "valueType": "xs:string",
-                                            "value": "2"
-                                        }
-                                    ],
-                                    "embeddedDataSpecifications": [],
-                                    "valueType": "xs:double",
-                                    "value": "",
-                                    "modelType": "Property"
-                                },
-                                {
-                                    "idShort": "voltage",
-                                    "semanticId": {
-                                        "type": "ExternalReference",
-                                        "keys": []
-                                    },
-                                    "qualifiers": [
-                                        {
-                                            "type": "valueType",
-                                            "valueType": "xs:string",
-                                            "value": "double"
-                                        }
-                                    ],
-                                    "embeddedDataSpecifications": [],
-                                    "value": [
-                                        {
-                                            "idShort": "modbus:function",
-                                            "semanticId": {
-                                                "type": "ExternalReference",
-                                                "keys": []
-                                            },
-                                            "embeddedDataSpecifications": [],
-                                            "valueType": "xs:string",
-                                            "value": "readHoldingRegisters",
-                                            "modelType": "Property"
-                                        },
-                                        {
-                                            "idShort": "modbus:address",
-                                            "semanticId": {
-                                                "type": "ExternalReference",
-                                                "keys": []
-                                            },
-                                            "embeddedDataSpecifications": [],
-                                            "valueType": "xs:string",
-                                            "value": "40001",
-                                            "modelType": "Property"
-                                        },
-                                        {
-                                            "idShort": "modbus:quantity",
-                                            "semanticId": {
-                                                "type": "ExternalReference",
-                                                "keys": []
-                                            },
-                                            "embeddedDataSpecifications": [],
-                                            "valueType": "xs:string",
-                                            "value": "2",
-                                            "modelType": "Property"
-                                        }
-                                    ],
-                                    "modelType": "SubmodelElementCollection"
-                                }
-                            ],
-                            "modelType": "SubmodelElementCollection"
-                        },
-                        {
-                            "idShort": "Operations",
-                            "semanticId": {
-                                "type": "ExternalReference",
-                                "keys": []
-                            },
-                            "embeddedDataSpecifications": [],
-                            "value": [],
-                            "modelType": "SubmodelElementCollection"
-                        },
-                        {
-                            "idShort": "Events",
-                            "semanticId": {
-                                "type": "ExternalReference",
-                                "keys": []
-                            },
-                            "embeddedDataSpecifications": [],
-                            "value": [],
-                            "modelType": "SubmodelElementCollection"
-                        }
-                    ],
-                    "modelType": "SubmodelElementCollection"
-                }
-            ],
-            "modelType": "Submodel"
-        },
-        {
-            "idShort": "AssetInterfaceDescription",
+            "idShort": "AssetInterfacesDescription",
             "description": [
                 {
                     "language": "en",
@@ -256,7 +82,7 @@
                                         "keys": []
                                     },
                                     "embeddedDataSpecifications": [],
-                                    "valueType": "xs:string",
+                                    "valueType": "xs:anyURI",
                                     "value": "http://plugfest.thingweb.io:8083",
                                     "modelType": "Property"
                                 },
@@ -391,7 +217,7 @@
                                                                 "keys": []
                                                             },
                                                             "embeddedDataSpecifications": [],
-                                                            "valueType": "xs:anyURI",
+                                                            "valueType": "xs:string",
                                                             "value": "/counter/properties/count",
                                                             "modelType": "Property"
                                                         }
@@ -456,7 +282,7 @@
                                                                 "keys": []
                                                             },
                                                             "embeddedDataSpecifications": [],
-                                                            "valueType": "xs:anyURI",
+                                                            "valueType": "xs:string",
                                                             "value": "/counter/properties/countAsImage",
                                                             "modelType": "Property"
                                                         },
@@ -532,7 +358,7 @@
                                                                 "keys": []
                                                             },
                                                             "embeddedDataSpecifications": [],
-                                                            "valueType": "xs:anyURI",
+                                                            "valueType": "xs:string",
                                                             "value": "/counter/properties/redDotImage",
                                                             "modelType": "Property"
                                                         },
@@ -620,7 +446,7 @@
                                                                 "keys": []
                                                             },
                                                             "embeddedDataSpecifications": [],
-                                                            "valueType": "xs:anyURI",
+                                                            "valueType": "xs:string",
                                                             "value": "/counter/properties/lastChange",
                                                             "modelType": "Property"
                                                         }

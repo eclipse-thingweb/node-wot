@@ -36,7 +36,7 @@ let assetInterfaceDescriptionUtil = new AssetInterfaceDescriptionUtil();
 
 async function example() {
     try {
-        const aas = await fs.readFile("AID_v03_counter.json", {
+        const aas = await fs.readFile("counterHTTP.json", {
             encoding: "utf8",
         });
         // transform AID to WoT TD
@@ -69,4 +69,4 @@ example();
 
 It will show the counter value retrieved from http://plugfest.thingweb.io:8083/counter/properties/count
 
-Note: make sure that the file `AID_v03_counter.json` is in the same folder as the script.
+Note: make sure that the file `counterHTTP.json` is in the same folder as the script.

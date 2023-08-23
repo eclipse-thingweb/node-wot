@@ -230,7 +230,7 @@ class AssetInterfaceDescriptionUtilTest {
     }
 
     @test async "should correctly transform counterHTTP_minimal into a TD"() {
-        const modelAID = (await fs.readFile("test/util/counterHTTP_minimal.json")).toString();
+        const modelAID = (await fs.readFile("test/util/counterHTTP.json")).toString();
         const td = this.assetInterfaceDescriptionUtil.transformAAS2TD(modelAID, `{"title": "counter"}`);
 
         const tdObj = JSON.parse(td);
@@ -367,8 +367,19 @@ class AssetInterfaceDescriptionUtilTest {
         const sm = this.assetInterfaceDescriptionUtil.transformTD2SM(td);
 
         const smObj = JSON.parse(sm);
-        expect(smObj).to.have.property("idShort").that.equals("testTD");
+        expect(smObj).to.have.property("idShort").that.equals("AssetInterfacesDescription");
 
         // TODO EndpointMetadata and InterfaceMetadata
+    }
+
+    @test async "should correctly transform sample TD into JSON AAS"() {
+        const td = `{"title": "testTD"}`;
+        const sm = this.assetInterfaceDescriptionUtil.transformTD2AAS(td);
+
+        const aasObj = JSON.parse(sm);
+        expect(aasObj).to.have.property("assetAdministrationShells").to.be.an("array");
+        expect(aasObj).to.have.property("submodels").to.be.an("array");
+
+        // TODO more checks
     }
 }

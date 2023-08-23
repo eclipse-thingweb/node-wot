@@ -208,7 +208,7 @@ export class AssetInterfaceDescriptionUtil {
         submodel: Record<string, unknown>,
         submodelRegex?: string
     ): void {
-        if (submodel instanceof Object && submodel.idShort && submodel.idShort === "AssetInterfaceDescription") {
+        if (submodel instanceof Object && submodel.idShort && submodel.idShort === "AssetInterfacesDescription") {
             if (submodel.submodelElements && submodel.submodelElements instanceof Array) {
                 for (const submodelElement of submodel.submodelElements) {
                     if (submodelElement instanceof Object) {
@@ -573,7 +573,7 @@ export class AssetInterfaceDescriptionUtil {
         // value entry "idShort": "EndpointMetadata"
         // value entry "idShort": "InterfaceMetadata"
         const aidObject = {
-            idShort: "AssetInterfaceDescription",
+            idShort: "AssetInterfacesDescription",
             id: "TODO XYZ",
             kind: "Instance",
             // semanticId needed?
