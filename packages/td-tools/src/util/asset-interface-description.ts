@@ -19,6 +19,7 @@ import { SecurityScheme } from "wot-thing-description-types";
 import * as TDParser from "../td-parser";
 
 import debug from "debug";
+import { ThingDescription } from "wot-typescript-definitions";
 const namespace = "node-wot:td-tools:asset-interface-description-util";
 const logDebug = debug(`${namespace}:debug`);
 const logInfo = debug(`${namespace}:info`);
@@ -51,6 +52,17 @@ interface SubmodelInformation {
     events: Map<string, Array<AASInteraction>>;
 
     endpointMetadataArray: Array<Record<string, unknown>>;
+}
+
+// TODO can/shall we define als AAS/AID contructs? Difficult since idShort and value array is used *everywhere*
+interface EndpointMetadata {
+    idShort: "EndpointMetadata";
+    value: Array<EndpointMetadataValue>;
+    modelType: "SubmodelElementCollection";
+}
+
+interface EndpointMetadataValue {
+    idShort: string; // base, contentType, securityDefinitions
 }
 
 const noSecSS: SecurityScheme = { scheme: "nosec" };
@@ -565,9 +577,13 @@ export class AssetInterfaceDescriptionUtil {
      * @param td input TD
      * @returns transformed AID submodel definition in JSON format
      */
-    public transformTD2SM(td: string): string {
-        const thing = TDParser.parseTD(td);
-        console.log("TD " + thing.title + " parsed...");
+    public transformTD2SM(tdAsString: string): string {
+        const td: ThingDescription = TDParser.parseTD(tdAsString);
+
+        console.log("TD " + td.title + " parsed...");
+
+        // configuration
+        const submodelElementIdShort = "InterfaceHTTP";
 
         // TODO
         // value entry "idShort": "EndpointMetadata"
@@ -581,12 +597,97 @@ export class AssetInterfaceDescriptionUtil {
                 // TODO does this need to be an array or can it simply be a value
                 {
                     language: "en",
-                    text: thing.title, // TODO should be description, where does title go to? later on in submodel?
+                    text: td.title, // TODO should be description, where does title go to? later on in submodel?
                 },
             ],
-            submodels: [],
+            submodelElements: [
+                {
+                    idShort: submodelElementIdShort,
+                    // semanticId needed?
+                    // embeddedDataSpecifications needed?
+                    value: [
+                        // support
+                        this.createEndpointMetadata(td), // EndpointMetadata
+                        this.createInterfaceMetadata(td), // InterfaceMetadata
+                        // externalDescriptor ?
+                    ],
+                    modelType: "SubmodelElementCollection",
+                },
+            ],
+            modelType: "Submodel",
         };
 
         return JSON.stringify(aidObject);
+    }
+
+    private createEndpointMetadata(td: ThingDescription): Record<string, unknown> {
+        const values: Array<unknown> = [];
+
+        // base ?
+        if (td.base) {
+            values.push({
+                idShort: "base",
+                valueType: "xs:anyURI",
+                value: td.base, // TODO
+                modelType: "Property",
+            });
+        }
+
+        // TODO wrong place.. not allowed in TD spec?
+        /*
+        {
+            idShort: "contentType",
+            valueType: "xs:string",
+            value: "application/json", // TODO
+            modelType: "Property",
+        },
+        */
+
+        // securityDefinitions
+        const secValues: Array<unknown> = [];
+        for (const secKey in td.securityDefinitions) {
+            const secValue: SecurityScheme = td.securityDefinitions[secKey];
+            secValues.push({
+                idShort: secValue.scheme,
+                modelType: "SubmodelElementCollection", // TODO correct or Property ?
+                // modelType: "Property"
+            });
+        }
+
+        values.push({
+            idShort: "securityDefinitions",
+            value: [
+                {
+                    idShort: "scheme",
+                    value: secValues,
+                    modelType: "SubmodelElementCollection",
+                },
+            ],
+            modelType: "SubmodelElementCollection",
+        });
+
+        const endpointMetadata: Record<string, unknown> = {
+            idShort: "EndpointMetadata",
+            // semanticId ?
+            // embeddedDataSpecifications ?
+            value: values,
+            modelType: "SubmodelElementCollection",
+        };
+
+        return endpointMetadata;
+    }
+
+    private createInterfaceMetadata(td: ThingDescription): Record<string, unknown> {
+        const interfaceMetadata: Record<string, unknown> = {
+            idShort: "InterfaceMetadata",
+            // semanticId ?
+            // embeddedDataSpecifications ?
+            value: [
+                // TODO
+            ],
+            modelType: "SubmodelElementCollection",
+        };
+
+        return interfaceMetadata;
     }
 }

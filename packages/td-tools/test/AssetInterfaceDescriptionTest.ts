@@ -18,6 +18,7 @@ import { expect } from "chai";
 
 import { AssetInterfaceDescriptionUtil } from "../src/util/asset-interface-description";
 import { promises as fs } from "fs";
+import { ThingDescription } from "wot-typescript-definitions";
 
 @suite("tests to verify the Asset Interface Description Utils")
 class AssetInterfaceDescriptionUtilTest {
@@ -363,13 +364,95 @@ class AssetInterfaceDescriptionUtilTest {
     }
 
     @test async "should correctly transform sample TD into JSON submodel"() {
-        const td = `{"title": "testTD"}`;
-        const sm = this.assetInterfaceDescriptionUtil.transformTD2SM(td);
+        const base = "https://www.example.com/";
+        const td: ThingDescription = {
+            "@context": "https://www.w3.org/2022/wot/td/v1.1",
+            title: "testTD",
+            securityDefinitions: {
+                basic_sc: {
+                    scheme: "basic",
+                    in: "header",
+                },
+            },
+            security: "basic_sc",
+            base: base,
+            properties: {
+                status: {
+                    type: "string",
+                    observable: true,
+                    forms: [
+                        {
+                            href: "stat",
+                        },
+                    ],
+                },
+            },
+        };
+        const sm = this.assetInterfaceDescriptionUtil.transformTD2SM(JSON.stringify(td));
 
         const smObj = JSON.parse(sm);
         expect(smObj).to.have.property("idShort").that.equals("AssetInterfacesDescription");
+        expect(smObj).to.have.property("submodelElements").to.be.an("array").to.have.lengthOf.greaterThan(0);
+        const smInterface = smObj.submodelElements[0];
+        expect(smInterface).to.have.property("value").to.be.an("array").to.have.lengthOf.greaterThan(0);
+        let hasEndpointMetadata = false;
+        for (const smValue of smInterface.value) {
+            if (smValue.idShort === "EndpointMetadata") {
+                hasEndpointMetadata = true;
+                const endpointMetadata = smValue;
+                expect(endpointMetadata).to.have.property("value").to.be.an("array").to.have.lengthOf.greaterThan(0);
+                let hasBase = false;
+                let hasContentType = false;
+                let hasSecurityDefinitions = false;
+                for (const endpointMetadataValue of endpointMetadata.value) {
+                    if (endpointMetadataValue.idShort === "base") {
+                        hasBase = true;
+                        expect(endpointMetadataValue.value).to.equal(base);
+                    } else if (endpointMetadataValue.idShort === "contentType") {
+                        hasContentType = true;
+                    } else if (endpointMetadataValue.idShort === "securityDefinitions") {
+                        hasSecurityDefinitions = true;
+                        expect(endpointMetadataValue)
+                            .to.have.property("value")
+                            .to.be.an("array")
+                            .to.have.lengthOf.greaterThan(0);
+                        let hasScheme = false;
+                        for (const securityDefinitionValue of endpointMetadataValue.value) {
+                            if (securityDefinitionValue.idShort === "scheme") {
+                                hasScheme = true;
+                                expect(securityDefinitionValue)
+                                    .to.have.property("value")
+                                    .to.be.an("array")
+                                    .to.have.lengthOf.greaterThan(0);
+                                let hasBasic = false;
+                                for (const sec of securityDefinitionValue.value) {
+                                    if (sec.idShort === "basic") {
+                                        hasBasic = true;
+                                    }
+                                }
+                                expect(hasBasic).to.equal(true);
+                            }
+                        }
+                        expect(hasScheme).to.equal(true);
 
-        // TODO EndpointMetadata and InterfaceMetadata
+                        // expect(endpointMetadataValue.value).to.equal("basic");
+                    }
+                }
+                expect(hasBase).to.equal(true);
+                expect(hasContentType).to.equal(false);
+                expect(hasBase).to.equal(hasSecurityDefinitions);
+            }
+        }
+        expect(hasEndpointMetadata, "No EndpointMetadata").to.equal(true);
+
+        // TODO InterfaceMetadata with properties etc
+        let hasInterfaceMetadata = false;
+        for (const smValue of smInterface.value) {
+            if (smValue.idShort === "InterfaceMetadata") {
+                hasInterfaceMetadata = true;
+            }
+        }
+        expect(hasInterfaceMetadata, "No InterfaceMetadata").to.equal(true);
     }
 
     @test async "should correctly transform sample TD into JSON AAS"() {
@@ -378,7 +461,7 @@ class AssetInterfaceDescriptionUtilTest {
 
         const aasObj = JSON.parse(sm);
         expect(aasObj).to.have.property("assetAdministrationShells").to.be.an("array");
-        expect(aasObj).to.have.property("submodels").to.be.an("array");
+        expect(aasObj).to.have.property("submodels").to.be.an("array").to.have.lengthOf(1);
 
         // TODO more checks
     }
