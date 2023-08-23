@@ -89,18 +89,29 @@ export class AssetInterfaceDescriptionUtil {
                 if (v.idShort === "securityDefinitions") {
                     const securitySchemes: Array<SecurityScheme> = [];
                     if (v.value && v.value instanceof Array) {
-                        for (const secValue of v.value) {
-                            // allow all *other* security schemes like "uasec" as welll
-                            const ss: SecurityScheme = { scheme: secValue.idShort };
-                            securitySchemes.push(ss);
-                            /* if (secValue.idShort === "nosec" || secValue.idShort === "auto" || secValue.idShort === "combo" || secValue.idShort === "basic" || secValue.idShort === "digest" || secValue.idShort === "apikey" || secValue.idShort === "bearer" || secValue.idShort === "psk" || secValue.idShort === "oauth2" ) {
-                                const ss : SecurityScheme = { scheme: secValue.idShort};
-                                securitySchemes.push(ss);
-                            } */
-                            if (secValue.value && secValue.value instanceof Array) {
-                                for (const v of secValue.value) {
-                                    if (v.idShort && typeof v.idShort === "string" && v.idShort.length > 0 && v.value) {
-                                        ss[v.idShort] = v.value;
+                        for (const securityDefinitionsValue of v.value) {
+                            if (securityDefinitionsValue.idShort === "scheme") {
+                                if (securityDefinitionsValue.value && securityDefinitionsValue.value instanceof Array) {
+                                    for (const secValue of securityDefinitionsValue.value) {
+                                        // allow all *other* security schemes like "uasec" as well
+                                        const ss: SecurityScheme = { scheme: secValue.idShort };
+                                        securitySchemes.push(ss);
+                                        /* if (secValue.idShort === "nosec" || secValue.idShort === "auto" || secValue.idShort === "combo" || secValue.idShort === "basic" || secValue.idShort === "digest" || secValue.idShort === "apikey" || secValue.idShort === "bearer" || secValue.idShort === "psk" || secValue.idShort === "oauth2" ) {
+                                            const ss : SecurityScheme = { scheme: secValue.idShort};
+                                            securitySchemes.push(ss);
+                                        } */
+                                        if (secValue.value && secValue.value instanceof Array) {
+                                            for (const v of secValue.value) {
+                                                if (
+                                                    v.idShort &&
+                                                    typeof v.idShort === "string" &&
+                                                    v.idShort.length > 0 &&
+                                                    v.value
+                                                ) {
+                                                    ss[v.idShort] = v.value;
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -130,52 +141,59 @@ export class AssetInterfaceDescriptionUtil {
             }
         }
         if (vi.interaction.value instanceof Array) {
-            for (const v of vi.interaction.value) {
-                // Binding HTTP
-                if (v.idShort === "href") {
-                    if (form.href && form.href.length > 0) {
-                        form.href = form.href + v.value; // TODO handle leading/trailing slashes
-                    } else {
-                        form.href = v.value;
-                    }
-                } else if (typeof v.idShort === "string" && v.idShort.length > 0) {
-                    // pick *any* value (and possibly override, e.g, contentType)
-                    // TODO Should we add all value's (e.g., dataMapping might be empty array) ?
-                    // if (typeof v.value === "string" ||typeof v.value === "number" || typeof v.value === "boolean") {
-                    if (v.value) {
-                        form[v.idShort] = v.value;
-                        // use valueType to convert the string value
-                        if (
-                            v.valueType &&
-                            v.valueType &&
-                            v.valueType.dataObjectType &&
-                            v.valueType.dataObjectType.name &&
-                            typeof v.valueType.dataObjectType.name === "string"
-                        ) {
-                            // XSD schemaTypes, https://www.w3.org/TR/xmlschema-2/#built-in-datatypes
-                            switch (v.valueType.dataObjectType.name) {
-                                case "boolean":
-                                    form[v.idShort] = form[v.idShort] === "true";
-                                    break;
-                                case "float":
-                                case "double":
-                                case "decimal":
-                                case "integer":
-                                case "nonPositiveInteger":
-                                case "negativeInteger":
-                                case "long":
-                                case "int":
-                                case "short":
-                                case "byte":
-                                case "nonNegativeInteger":
-                                case "unsignedLong":
-                                case "unsignedInt":
-                                case "unsignedShort":
-                                case "unsignedByte":
-                                case "positiveInteger":
-                                    form[v.idShort] = Number(form[v.idShort]);
-                                    break;
-                                // TODO handle more XSD types ?
+            for (const iv of vi.interaction.value) {
+                if (iv.idShort === "forms") {
+                    if (iv.value instanceof Array) {
+                        for (const v of iv.value) {
+                            // Binding
+                            if (v.idShort === "href") {
+                                if (form.href && form.href.length > 0) {
+                                    form.href = form.href + v.value; // TODO handle leading/trailing slashes
+                                } else {
+                                    form.href = v.value;
+                                }
+                            } else if (typeof v.idShort === "string" && v.idShort.length > 0) {
+                                // TODO is this still relevant?
+                                // pick *any* value (and possibly override, e.g, contentType)
+                                // TODO Should we add all value's (e.g., dataMapping might be empty array) ?
+                                // if (typeof v.value === "string" ||typeof v.value === "number" || typeof v.value === "boolean") {
+                                if (v.value) {
+                                    form[v.idShort] = v.value;
+                                    // use valueType to convert the string value
+                                    if (
+                                        v.valueType &&
+                                        v.valueType &&
+                                        v.valueType.dataObjectType &&
+                                        v.valueType.dataObjectType.name &&
+                                        typeof v.valueType.dataObjectType.name === "string"
+                                    ) {
+                                        // XSD schemaTypes, https://www.w3.org/TR/xmlschema-2/#built-in-datatypes
+                                        switch (v.valueType.dataObjectType.name) {
+                                            case "boolean":
+                                                form[v.idShort] = form[v.idShort] === "true";
+                                                break;
+                                            case "float":
+                                            case "double":
+                                            case "decimal":
+                                            case "integer":
+                                            case "nonPositiveInteger":
+                                            case "negativeInteger":
+                                            case "long":
+                                            case "int":
+                                            case "short":
+                                            case "byte":
+                                            case "nonNegativeInteger":
+                                            case "unsignedLong":
+                                            case "unsignedInt":
+                                            case "unsignedShort":
+                                            case "unsignedByte":
+                                            case "positiveInteger":
+                                                form[v.idShort] = Number(form[v.idShort]);
+                                                break;
+                                            // TODO handle more XSD types ?
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -367,14 +385,33 @@ export class AssetInterfaceDescriptionUtil {
 
                 for (const vi of value) {
                     // The first block of if condition is expected to be temporary. will be adjusted or removed when a decision on how the datapoint's datatype would be modelled is made for AID.
-                    if (vi.interaction.constraints && vi.interaction.constraints instanceof Array) {
-                        for (const constraint of vi.interaction.constraints)
-                            if (constraint.type === "valueType") {
-                                if (constraint.value === "float") {
+                    if (vi.interaction.value && vi.interaction.value instanceof Array) {
+                        for (const interactionValue of vi.interaction.value)
+                            if (interactionValue.idShort === "type") {
+                                if (interactionValue.value === "float") {
                                     thing.properties[key].type = "number";
                                 } else {
-                                    thing.properties[key].type = constraint.value;
+                                    thing.properties[key].type = interactionValue.value;
                                 }
+                            } else if (interactionValue.idShort === "range") {
+                                if (interactionValue.min) {
+                                    thing.properties[key].min = interactionValue.min;
+                                }
+                                if (interactionValue.max) {
+                                    thing.properties[key].max = interactionValue.max;
+                                }
+                            } else if (interactionValue.idShort === "observable") {
+                                thing.properties[key].observable = interactionValue.value === "true";
+                            } else if (interactionValue.idShort === "readOnly") {
+                                thing.properties[key].readOnly = interactionValue.value === "true";
+                            } else if (interactionValue.idShort === "writeOnly") {
+                                thing.properties[key].writeOnly = interactionValue.value === "true";
+                            } else if (interactionValue.idShort === "forms") {
+                                // will be handled below
+                            } else {
+                                // handle other terms specifically?
+                                const key2 = interactionValue.idShort;
+                                thing.properties[key][key2] = interactionValue.value;
                             }
                     }
 
