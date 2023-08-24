@@ -94,25 +94,69 @@ export class AssetInterfaceDescriptionUtil {
         return ""; // TODO what is the right value if information cannot be found
     }
 
-    private getSecuritySchemesFromEndpointMetadata(
-        endpointMetadata?: Record<string, unknown>
-    ): Array<SecurityScheme> | undefined {
+    private getSecurityDefinitionsFromEndpointMetadata(endpointMetadata?: Record<string, unknown>): {
+        [k: string]: SecurityScheme;
+    } {
+        const securityDefinitions: {
+            [k: string]: SecurityScheme;
+        } = {};
+
         if (endpointMetadata?.value && endpointMetadata.value instanceof Array) {
             for (const v of endpointMetadata.value) {
                 if (v.idShort === "securityDefinitions") {
-                    const securitySchemes: Array<SecurityScheme> = [];
+                    // const securitySchemes: Array<SecurityScheme> = [];
                     if (v.value && v.value instanceof Array) {
-                        for (const securityDefinitionsValue of v.value) {
-                            if (securityDefinitionsValue.idShort === "scheme") {
+                        for (const securityDefinitionsValues of v.value) {
+                            if (securityDefinitionsValues.idShort) {
+                                // key
+                                if (securityDefinitionsValues.value instanceof Array) {
+                                    for (const securityDefinitionsValue of securityDefinitionsValues.value) {
+                                        if (securityDefinitionsValue.idShort === "scheme") {
+                                            if (securityDefinitionsValue.value) {
+                                                const ss: SecurityScheme = { scheme: securityDefinitionsValue.value };
+                                                securityDefinitions[securityDefinitionsValues.idShort] = ss;
+                                            }
+                                            /* if (securityDefinitionsValue.value && securityDefinitionsValue.value instanceof Array) {
+                                                for (const secValue of securityDefinitionsValue.value) {
+                                                    // allow all *other* security schemes like "uasec" as well
+                                                    const ss: SecurityScheme = { scheme: secValue.idShort };
+                                                    securitySchemes.push(ss);
+                                                    / * if (secValue.idShort === "nosec" || secValue.idShort === "auto" || secValue.idShort === "combo" || secValue.idShort === "basic" || secValue.idShort === "digest" || secValue.idShort === "apikey" || secValue.idShort === "bearer" || secValue.idShort === "psk" || secValue.idShort === "oauth2" ) {
+                                                        const ss : SecurityScheme = { scheme: secValue.idShort};
+                                                        securitySchemes.push(ss);
+                                                    } * /
+                                                    if (secValue.value && secValue.value instanceof Array) {
+                                                        for (const v of secValue.value) {
+                                                            if (
+                                                                v.idShort &&
+                                                                typeof v.idShort === "string" &&
+                                                                v.idShort.length > 0 &&
+                                                                v.value
+                                                            ) {
+                                                                ss[v.idShort] = v.value;
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            } */
+                                        }
+                                    }
+                                }
+                                /* securityDefinitions[securityDefinitionsValue.idShort] = {
+
+                                } */
+                            }
+
+                            /* if (securityDefinitionsValue.idShort === "scheme") {
                                 if (securityDefinitionsValue.value && securityDefinitionsValue.value instanceof Array) {
                                     for (const secValue of securityDefinitionsValue.value) {
                                         // allow all *other* security schemes like "uasec" as well
                                         const ss: SecurityScheme = { scheme: secValue.idShort };
                                         securitySchemes.push(ss);
-                                        /* if (secValue.idShort === "nosec" || secValue.idShort === "auto" || secValue.idShort === "combo" || secValue.idShort === "basic" || secValue.idShort === "digest" || secValue.idShort === "apikey" || secValue.idShort === "bearer" || secValue.idShort === "psk" || secValue.idShort === "oauth2" ) {
+                                        / * if (secValue.idShort === "nosec" || secValue.idShort === "auto" || secValue.idShort === "combo" || secValue.idShort === "basic" || secValue.idShort === "digest" || secValue.idShort === "apikey" || secValue.idShort === "bearer" || secValue.idShort === "psk" || secValue.idShort === "oauth2" ) {
                                             const ss : SecurityScheme = { scheme: secValue.idShort};
                                             securitySchemes.push(ss);
-                                        } */
+                                        } * /
                                         if (secValue.value && secValue.value instanceof Array) {
                                             for (const v of secValue.value) {
                                                 if (
@@ -127,14 +171,34 @@ export class AssetInterfaceDescriptionUtil {
                                         }
                                     }
                                 }
-                            }
+                            } */
                         }
                     }
-                    return securitySchemes;
                 }
             }
         }
-        return undefined;
+        return securityDefinitions;
+    }
+
+    private getSecurityFromEndpointMetadata(
+        endpointMetadata?: Record<string, unknown>
+    ): string | [string, ...string[]] {
+        const security: string[] = [];
+        if (endpointMetadata?.value && endpointMetadata.value instanceof Array) {
+            for (const v of endpointMetadata.value) {
+                if (v.idShort === "security") {
+                    if (v.value && v.value instanceof Array) {
+                        for (const securityValue of v.value) {
+                            if (securityValue.value) {
+                                security.push(securityValue.value);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return security as string | [string, ...string[]];
     }
 
     private createInteractionForm(vi: AASInteraction, addSecurity: boolean): TD.Form {
@@ -144,7 +208,7 @@ export class AssetInterfaceDescriptionUtil {
         };
         // need to add security at form level at all ?
         if (addSecurity) {
-            const securitySchemes = this.getSecuritySchemesFromEndpointMetadata(vi.endpointMetadata);
+            const securitySchemes = this.getSecurityDefinitionsFromEndpointMetadata(vi.endpointMetadata);
             if (securitySchemes === undefined) {
                 form.security = [noSecName];
             } else {
@@ -348,38 +412,23 @@ export class AssetInterfaceDescriptionUtil {
 
         // Security in AID is defined for each submodel
         // add "securityDefinitions" globally and add them on form level if necessary
-        // Note: possible collisions for "security" names handled by cnt
+        // TODO: possible collisions for "security" names *could* be handled by cnt
         if (!thing.securityDefinitions) {
             thing.securityDefinitions = {};
         }
-        let cnt = 1;
-        const secSchemeNamesAll = new Array<string>();
+        // let cnt = 1;
         const secNamesForEndpointMetadata = new Map<Record<string, unknown>, string[]>();
         for (const endpointMetadata of smInformation.endpointMetadataArray) {
             const secNames: Array<string> = [];
-            const securitySchemes = this.getSecuritySchemesFromEndpointMetadata(endpointMetadata);
-            if (securitySchemes === undefined) {
-                // we need "nosec" scheme
-                thing.securityDefinitions[noSecName] = noSecSS;
-                secSchemeNamesAll.push(noSecName);
-                secNames.push(noSecName);
-            } else {
-                // iterate over securitySchemes
-                for (const secScheme of securitySchemes) {
-                    const secName = cnt + "_sc";
-                    thing.securityDefinitions[secName] = secScheme;
-                    secSchemeNamesAll.push(secName);
-                    secNames.push(secName);
-                    cnt++;
-                }
+            thing.securityDefinitions = this.getSecurityDefinitionsFromEndpointMetadata(endpointMetadata);
+            thing.security = this.getSecurityFromEndpointMetadata(endpointMetadata);
+            // iterate over securitySchemes
+            for (const [key, value] of Object.entries(thing.securityDefinitions)) {
+                // console.log(key, value);
+                // TODO we could change the name to avoid name collisions. Shall we do so?
+                secNames.push(key);
             }
             secNamesForEndpointMetadata.set(endpointMetadata, secNames);
-        }
-        if (secSchemeNamesAll.length === 0) {
-            thing.securityDefinitions.nosec_sc = noSecSS;
-            thing.security = [noSecName];
-        } else {
-            thing.security = secSchemeNamesAll as [string, ...string[]];
         }
 
         // add interactions
@@ -584,11 +633,9 @@ export class AssetInterfaceDescriptionUtil {
         console.log("TD " + td.title + " parsed...");
 
         // configuration
+        // TODO pass as argument protocol binding prefix like "http" and use this as name and for forms
         const submodelElementIdShort = "InterfaceHTTP";
 
-        // TODO
-        // value entry "idShort": "EndpointMetadata"
-        // value entry "idShort": "InterfaceMetadata"
         const aidObject = {
             idShort: "AssetInterfacesDescription",
             id: "TODO XYZ",
@@ -608,8 +655,8 @@ export class AssetInterfaceDescriptionUtil {
                     // embeddedDataSpecifications needed?
                     value: [
                         // support
-                        this.createEndpointMetadata(td), // EndpointMetadata
-                        this.createInterfaceMetadata(td), // InterfaceMetadata
+                        this.createEndpointMetadata(td), // EndpointMetadata like base, security and securityDefinitions
+                        this.createInterfaceMetadata(td), // InterfaceMetadata like proprties, actions and events
                         // externalDescriptor ?
                     ],
                     modelType: "SubmodelElementCollection",
@@ -644,26 +691,43 @@ export class AssetInterfaceDescriptionUtil {
         },
         */
 
+        // security
+        const securityValues: Array<unknown> = [];
+        if (td.security) {
+            for (const secKey of td.security) {
+                securityValues.push({
+                    valueType: "xs:string",
+                    value: secKey,
+                    modelType: "Property",
+                });
+            }
+        }
+        values.push({
+            idShort: "security",
+            value: securityValues,
+            modelType: "SubmodelElementCollection",
+        });
+
         // securityDefinitions
-        const secValues: Array<unknown> = [];
+        const securityDefinitionsValues: Array<unknown> = [];
         for (const secKey in td.securityDefinitions) {
             const secValue: SecurityScheme = td.securityDefinitions[secKey];
-            secValues.push({
-                idShort: secValue.scheme,
-                modelType: "SubmodelElementCollection", // TODO correct or Property ?
-                // modelType: "Property"
+            securityDefinitionsValues.push({
+                idShort: secKey,
+                value: [
+                    {
+                        idShort: "scheme",
+                        valueType: "xs:string",
+                        value: secValue.scheme,
+                        modelType: "Property",
+                    },
+                ],
+                modelType: "SubmodelElementCollection",
             });
         }
-
         values.push({
             idShort: "securityDefinitions",
-            value: [
-                {
-                    idShort: "scheme",
-                    value: secValues,
-                    modelType: "SubmodelElementCollection",
-                },
-            ],
+            value: securityDefinitionsValues,
             modelType: "SubmodelElementCollection",
         });
 

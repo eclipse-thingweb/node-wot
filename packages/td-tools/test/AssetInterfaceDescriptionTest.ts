@@ -238,6 +238,8 @@ class AssetInterfaceDescriptionUtilTest {
         expect(tdObj).to.have.property("@context").that.equals("https://www.w3.org/2022/wot/td/v1.1");
         expect(tdObj).to.have.property("title").that.equals("counter");
 
+        expect(tdObj).to.have.property("securityDefinitions").to.be.an("object");
+
         expect(tdObj).to.have.property("security").to.be.an("array").to.have.lengthOf(1);
         expect(tdObj.securityDefinitions[tdObj.security[0]]).to.have.property("scheme").that.equals("nosec");
 
@@ -403,6 +405,7 @@ class AssetInterfaceDescriptionUtilTest {
                 expect(endpointMetadata).to.have.property("value").to.be.an("array").to.have.lengthOf.greaterThan(0);
                 let hasBase = false;
                 let hasContentType = false;
+                let hasSecurity = false;
                 let hasSecurityDefinitions = false;
                 for (const endpointMetadataValue of endpointMetadata.value) {
                     if (endpointMetadataValue.idShort === "base") {
@@ -410,35 +413,44 @@ class AssetInterfaceDescriptionUtilTest {
                         expect(endpointMetadataValue.value).to.equal(base);
                     } else if (endpointMetadataValue.idShort === "contentType") {
                         hasContentType = true;
+                    } else if (endpointMetadataValue.idShort === "security") {
+                        hasSecurity = true;
+                        expect(endpointMetadataValue)
+                            .to.have.property("value")
+                            .to.be.an("array")
+                            .to.have.lengthOf.greaterThan(0);
+                        expect(endpointMetadataValue.value[0].value).to.equal("basic_sc");
                     } else if (endpointMetadataValue.idShort === "securityDefinitions") {
                         hasSecurityDefinitions = true;
                         expect(endpointMetadataValue)
                             .to.have.property("value")
                             .to.be.an("array")
                             .to.have.lengthOf.greaterThan(0);
-                        let hasScheme = false;
+                        let hasBasicSC = false;
                         for (const securityDefinitionValue of endpointMetadataValue.value) {
-                            if (securityDefinitionValue.idShort === "scheme") {
-                                hasScheme = true;
+                            if (securityDefinitionValue.idShort === "basic_sc") {
+                                hasBasicSC = true;
                                 expect(securityDefinitionValue)
                                     .to.have.property("value")
                                     .to.be.an("array")
                                     .to.have.lengthOf.greaterThan(0);
                                 let hasBasic = false;
                                 for (const sec of securityDefinitionValue.value) {
-                                    if (sec.idShort === "basic") {
+                                    if (sec.idShort === "scheme") {
                                         hasBasic = true;
+                                        expect(sec.value).to.equal("basic");
                                     }
                                 }
                                 expect(hasBasic).to.equal(true);
                             }
                         }
-                        expect(hasScheme).to.equal(true);
+                        expect(hasBasicSC).to.equal(true);
                     }
                 }
                 expect(hasBase).to.equal(true);
                 expect(hasContentType).to.equal(false);
-                expect(hasBase).to.equal(hasSecurityDefinitions);
+                expect(hasSecurity).to.equal(true);
+                expect(hasSecurityDefinitions).to.equal(true);
             }
         }
         expect(hasEndpointMetadata, "No EndpointMetadata").to.equal(true);

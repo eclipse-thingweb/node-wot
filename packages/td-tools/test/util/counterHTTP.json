@@ -98,6 +98,18 @@
                                     "modelType": "Property"
                                 },
                                 {
+                                    "idShort": "security",
+                                    "typeValueListElement": "SubmodelElement",
+                                    "value": [
+                                        {
+                                            "valueType": "xs:string",
+                                            "value": "nosec_sc",
+                                            "modelType": "Property"
+                                        }
+                                    ],
+                                    "modelType": "SubmodelElementList"
+                                },
+                                {
                                     "idShort": "securityDefinitions",
                                     "semanticId": {
                                         "type": "ExternalReference",
@@ -106,17 +118,18 @@
                                     "embeddedDataSpecifications": [],
                                     "value": [
                                         {
-                                            "idShort": "scheme",
+                                            "idShort": "nosec_sc",
+                                            "semanticId": {
+                                                "type": "ExternalReference",
+                                                "keys": []
+                                            },
+                                            "embeddedDataSpecifications": [],
                                             "value": [
                                                 {
-                                                    "idShort": "nosec",
-                                                    "semanticId": {
-                                                        "type": "ExternalReference",
-                                                        "keys": []
-                                                    },
-                                                    "embeddedDataSpecifications": [],
-                                                    "value": [],
-                                                    "modelType": "SubmodelElementCollection"
+                                                    "idShort": "scheme",
+                                                    "valueType": "xs:string",
+                                                    "value": "nosec",
+                                                    "modelType": "Property"
                                                 }
                                             ],
                                             "modelType": "SubmodelElementCollection"
