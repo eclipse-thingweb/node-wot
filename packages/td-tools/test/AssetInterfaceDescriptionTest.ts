@@ -443,7 +443,7 @@ class AssetInterfaceDescriptionUtilTest {
         }
         expect(hasEndpointMetadata, "No EndpointMetadata").to.equal(true);
 
-        // TODO InterfaceMetadata with properties etc
+        // InterfaceMetadata with properties etc
         let hasInterfaceMetadata = false;
         for (const smValue of smInterface.value) {
             if (smValue.idShort === "InterfaceMetadata") {
