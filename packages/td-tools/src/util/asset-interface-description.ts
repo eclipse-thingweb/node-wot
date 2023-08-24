@@ -20,6 +20,7 @@ import * as TDParser from "../td-parser";
 
 import debug from "debug";
 import { ThingDescription } from "wot-typescript-definitions";
+import { PropertyElement } from "wot-thing-model-types";
 const namespace = "node-wot:td-tools:asset-interface-description-util";
 const logDebug = debug(`${namespace}:debug`);
 const logInfo = debug(`${namespace}:info`);
@@ -678,13 +679,106 @@ export class AssetInterfaceDescriptionUtil {
     }
 
     private createInterfaceMetadata(td: ThingDescription): Record<string, unknown> {
+        const properties: Array<unknown> = [];
+        if (td.properties) {
+            for (const propertyKey in td.properties) {
+                const propertyValue: PropertyElement = td.properties[propertyKey];
+
+                const propertyValues: Array<unknown> = [];
+                // type
+                if (propertyValue.type) {
+                    propertyValues.push({
+                        idShort: "type",
+                        valueType: "xs:string",
+                        value: propertyValue.type,
+                        modelType: "Property",
+                    });
+                }
+                // title
+                if (propertyValue.title) {
+                    propertyValues.push({
+                        idShort: "title",
+                        valueType: "xs:string",
+                        value: propertyValue.title,
+                        modelType: "Property",
+                    });
+                }
+                // observable
+                if (propertyValue.observable) {
+                    propertyValues.push({
+                        idShort: "observable",
+                        valueType: "xs:boolean",
+                        value: `${propertyValue.observable}`, // in AID represented as string
+                        modelType: "Property",
+                    });
+                }
+                // readOnly and writeOnly marked as EXTERNAL in AID spec
+                // range and others? Simply add them as is?
+
+                // forms
+                if (propertyValue.forms) {
+                    const propertyForm: Array<unknown> = [];
+                    /* for (const FormElementProperty in propertyValue.forms) {
+                        // TODO AID for now supports just *one* href/form
+                    } */
+                    if (propertyValue.forms.length > 0) {
+                        // pick first one for now (TODO change in future)
+                        const propertyForm0 = propertyValue.forms[0];
+                        // "idShort": "htv:methodName",
+                        if (propertyForm0.href) {
+                            propertyForm.push({
+                                idShort: "href",
+                                value: propertyForm0.href,
+                                modelType: "Property",
+                            });
+                        }
+                        // TODO other terms?
+                    }
+
+                    propertyValues.push({
+                        idShort: "forms",
+                        value: propertyForm,
+                        modelType: "SubmodelElementCollection",
+                    });
+                }
+
+                properties.push({
+                    idShort: propertyKey,
+                    // TODO description
+                    value: propertyValues,
+                    modelType: "SubmodelElementCollection",
+                });
+            }
+        }
+
+        const values: Array<unknown> = [];
+
+        // Properties
+        values.push({
+            idShort: "Properties",
+            value: properties,
+            modelType: "SubmodelElementCollection",
+        });
+
+        // Actions - TBD by AID
+        values.push({
+            idShort: "Actions",
+            value: [],
+            modelType: "SubmodelElementCollection",
+        });
+
+        // Events - TBD by AID
+        values.push({
+            idShort: "Events",
+            value: [],
+            modelType: "SubmodelElementCollection",
+        });
+
         const interfaceMetadata: Record<string, unknown> = {
             idShort: "InterfaceMetadata",
             // semanticId ?
             // embeddedDataSpecifications ?
-            value: [
-                // TODO
-            ],
+            value: values,
             modelType: "SubmodelElementCollection",
         };
 

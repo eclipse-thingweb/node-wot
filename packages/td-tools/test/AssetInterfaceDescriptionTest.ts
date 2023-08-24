@@ -434,8 +434,6 @@ class AssetInterfaceDescriptionUtilTest {
                             }
                         }
                         expect(hasScheme).to.equal(true);
-
-                        // expect(endpointMetadataValue.value).to.equal("basic");
                     }
                 }
                 expect(hasBase).to.equal(true);
@@ -450,6 +448,65 @@ class AssetInterfaceDescriptionUtilTest {
         for (const smValue of smInterface.value) {
             if (smValue.idShort === "InterfaceMetadata") {
                 hasInterfaceMetadata = true;
+                expect(smValue).to.have.property("value").to.be.an("array").to.have.lengthOf.greaterThan(0);
+                let hasProperties = false;
+                for (const interactionValues of smValue.value) {
+                    if (interactionValues.idShort === "Properties") {
+                        hasProperties = true;
+                        expect(interactionValues)
+                            .to.have.property("value")
+                            .to.be.an("array")
+                            .to.have.lengthOf.greaterThan(0);
+                        let hasPropertyStatus = false;
+                        for (const propertyValue of interactionValues.value) {
+                            if (propertyValue.idShort === "status") {
+                                hasPropertyStatus = true;
+                                expect(propertyValue)
+                                    .to.have.property("value")
+                                    .to.be.an("array")
+                                    .to.have.lengthOf.greaterThan(0);
+                                let hasType = false;
+                                let hasTitle = false;
+                                let hasObservable = false;
+                                let hasForms = false;
+                                for (const propProperty of propertyValue.value) {
+                                    if (propProperty.idShort === "type") {
+                                        hasType = true;
+                                        expect(propProperty.value).to.equal("string");
+                                    } else if (propProperty.idShort === "title") {
+                                        hasTitle = true;
+                                    } else if (propProperty.idShort === "observable") {
+                                        hasObservable = true;
+                                        expect(propProperty.value).to.equal("true");
+                                    } else if (propProperty.idShort === "forms") {
+                                        hasForms = true;
+                                        expect(propProperty)
+                                            .to.have.property("value")
+                                            .to.be.an("array")
+                                            .to.have.lengthOf.greaterThan(0);
+                                        let hasHref = false;
+                                        for (const formEntry of propProperty.value) {
+                                            if (formEntry.idShort === "href") {
+                                                hasHref = true;
+                                                expect(formEntry.value).to.be.oneOf([
+                                                    "stat",
+                                                    "https://www.example.com/stat",
+                                                ]);
+                                            }
+                                        }
+                                        expect(hasHref).to.equal(true);
+                                    }
+                                }
+                                expect(hasType).to.equal(true);
+                                expect(hasTitle).to.equal(false);
+                                expect(hasObservable).to.equal(true);
+                                expect(hasForms).to.equal(true);
+                            }
+                        }
+                        expect(hasPropertyStatus).to.equal(true);
+                    }
+                }
+                expect(hasProperties).to.equal(true);
             }
         }
         expect(hasInterfaceMetadata, "No InterfaceMetadata").to.equal(true);
@@ -463,6 +520,6 @@ class AssetInterfaceDescriptionUtilTest {
         expect(aasObj).to.have.property("assetAdministrationShells").to.be.an("array");
         expect(aasObj).to.have.property("submodels").to.be.an("array").to.have.lengthOf(1);
 
-        // TODO more checks
+        // Note: proper AID submodel checks done in previous test-case
     }
 }
