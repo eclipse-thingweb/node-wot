@@ -598,7 +598,7 @@ export class AssetInterfaceDescriptionUtil {
                     idShort: aasName,
                     id: aasId,
                     assetInformation: {
-                        // information needed?
+                        assetKind: "Type",
                     },
                     submodels: [
                         {
@@ -792,6 +792,7 @@ export class AssetInterfaceDescriptionUtil {
                         if (propertyForm0.href) {
                             propertyForm.push({
                                 idShort: "href",
+                                valueType: "xs:string",
                                 value: propertyForm0.href,
                                 modelType: "Property",
                             });
