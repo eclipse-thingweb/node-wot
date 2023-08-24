@@ -365,32 +365,33 @@ class AssetInterfaceDescriptionUtilTest {
         expect(td4Obj).to.not.have.property("properties");
     }
 
+    td1Base = "https://www.example.com/";
+    td1: ThingDescription = {
+        "@context": "https://www.w3.org/2022/wot/td/v1.1",
+        title: "testTD",
+        securityDefinitions: {
+            basic_sc: {
+                scheme: "basic",
+                in: "header",
+            },
+        },
+        security: "basic_sc",
+        base: this.td1Base,
+        properties: {
+            status: {
+                type: "string",
+                observable: true,
+                forms: [
+                    {
+                        href: "stat",
+                    },
+                ],
+            },
+        },
+    };
+
     @test async "should correctly transform sample TD into JSON submodel"() {
-        const base = "https://www.example.com/";
-        const td: ThingDescription = {
-            "@context": "https://www.w3.org/2022/wot/td/v1.1",
-            title: "testTD",
-            securityDefinitions: {
-                basic_sc: {
-                    scheme: "basic",
-                    in: "header",
-                },
-            },
-            security: "basic_sc",
-            base: base,
-            properties: {
-                status: {
-                    type: "string",
-                    observable: true,
-                    forms: [
-                        {
-                            href: "stat",
-                        },
-                    ],
-                },
-            },
-        };
-        const sm = this.assetInterfaceDescriptionUtil.transformTD2SM(JSON.stringify(td));
+        const sm = this.assetInterfaceDescriptionUtil.transformTD2SM(JSON.stringify(this.td1));
 
         const smObj = JSON.parse(sm);
         expect(smObj).to.have.property("idShort").that.equals("AssetInterfacesDescription");
@@ -410,7 +411,7 @@ class AssetInterfaceDescriptionUtilTest {
                 for (const endpointMetadataValue of endpointMetadata.value) {
                     if (endpointMetadataValue.idShort === "base") {
                         hasBase = true;
-                        expect(endpointMetadataValue.value).to.equal(base);
+                        expect(endpointMetadataValue.value).to.equal(this.td1Base);
                     } else if (endpointMetadataValue.idShort === "contentType") {
                         hasContentType = true;
                     } else if (endpointMetadataValue.idShort === "security") {
@@ -525,8 +526,7 @@ class AssetInterfaceDescriptionUtilTest {
     }
 
     @test async "should correctly transform sample TD into JSON AAS"() {
-        const td = `{"title": "testTD"}`;
-        const sm = this.assetInterfaceDescriptionUtil.transformTD2AAS(td);
+        const sm = this.assetInterfaceDescriptionUtil.transformTD2AAS(JSON.stringify(this.td1));
 
         const aasObj = JSON.parse(sm);
         expect(aasObj).to.have.property("assetAdministrationShells").to.be.an("array");
