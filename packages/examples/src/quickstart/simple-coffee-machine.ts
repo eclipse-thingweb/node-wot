@@ -90,7 +90,7 @@ servient.start().then((WoT) => {
                 console.info("received coffee order of ", coffeeType)
                 if(coffeeType==="espresso"){
                     if (waterAmount <= 10) {
-                        Promise.reject("Not enough water");
+                        // Promise.reject("Not enough water");
                     } else {
                         await setTimeout(() => {
                             waterAmount = waterAmount-10;
@@ -100,7 +100,7 @@ servient.start().then((WoT) => {
                     }
                 } else if(coffeeType==="cappuccino"){
                     if (waterAmount <= 10) {
-                        Promise.reject("Not enough water");
+                        // Promise.reject("Not enough water");
                     } else {
                         await setTimeout(() => {
                             waterAmount = waterAmount - 15;
@@ -111,7 +111,7 @@ servient.start().then((WoT) => {
                     }
                 } else if(coffeeType==="americano"){
                     if (waterAmount <= 10) {
-                        Promise.reject("Not enough water");
+                        // Promise.reject("Not enough water");
                     } else {
                         await setTimeout(() => {
                             waterAmount = waterAmount - 30;
@@ -121,7 +121,7 @@ servient.start().then((WoT) => {
                         // return 0;
                     }
                 } else {
-                    Promise.reject("Wrong coffee");
+                    // Promise.reject("Wrong coffee");
                 }
             })
 
