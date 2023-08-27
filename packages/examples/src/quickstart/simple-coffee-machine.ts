@@ -13,12 +13,11 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-// This is an example Thing script which is a simple presence detector
-// It fires an event when it detects a person (mocked as every 5 second)
+// This is an example Thing script which is a simple coffee machine.
+// You can order coffee and see the status of the resources
 
 import { Servient } from "@node-wot/core";
 import { HttpServer } from "@node-wot/binding-http";
-import { setTimeout } from "timers/promises";
 
 // create Servient add HTTP binding with port configuration
 const servient = new Servient();
@@ -89,34 +88,34 @@ servient.start().then((WoT) => {
                 const coffeeType = await params.value();
                 console.info("received coffee order of ", coffeeType)
                 if(coffeeType==="espresso"){
-                    if (waterAmount <= 10) {
+                    if (waterAmount <= 10 || beansAmount <= 10) {
                         // Promise.reject("Not enough water");
                     } else {
-                        await setTimeout(() => {
+                        setTimeout(() => {
                             waterAmount = waterAmount-10;
                             beansAmount = beansAmount-10;
+                            Promise.resolve();
                         },1000)
-                        Promise.resolve()
                     }
                 } else if(coffeeType==="cappuccino"){
-                    if (waterAmount <= 10) {
+                    if (waterAmount <= 20 || beansAmount <= 25 || milkAmount <= 15) {
                         // Promise.reject("Not enough water");
                     } else {
-                        await setTimeout(() => {
+                        setTimeout(() => {
                             waterAmount = waterAmount - 15;
                             beansAmount = beansAmount - 20;
                             milkAmount = milkAmount - 10;
-                        }, 1000);
+                        }, 2000);
                         Promise.resolve();
                     }
                 } else if(coffeeType==="americano"){
-                    if (waterAmount <= 10) {
+                    if (waterAmount <= 35 || beansAmount <= 10) {
                         // Promise.reject("Not enough water");
                     } else {
-                        await setTimeout(() => {
+                        setTimeout(() => {
                             waterAmount = waterAmount - 30;
                             beansAmount = beansAmount - 10;
-                        }, 1000);
+                        }, 2000);
                         Promise.resolve();
                         // return 0;
                     }
