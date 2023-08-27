@@ -1,0 +1,78 @@
+/********************************************************************************
+ * Copyright (c) 2023 Contributors to the Eclipse Foundation
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v. 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0, or the W3C Software Notice and
+ * Document License (2015-05-13) which is available at
+ * https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
+ ********************************************************************************/
+
+// This is an example Thing which is a smart clock that runs 60 times faster than real time, where 1 hour happens in 1 minute.
+
+import { Servient } from "@node-wot/core";
+import { HttpServer } from "@node-wot/binding-http";
+
+// create Servient add HTTP binding with port configuration
+const servient = new Servient();
+servient.addServer(
+    new HttpServer({
+        port: 8082,
+    })
+);
+
+let minuteCounter = 0
+let hourCounter = 0;
+
+servient.start().then((WoT) => {
+    WoT.produce({
+        title: "Smart Clock",
+        description: "a smart clock that runs 60 times faster than real time, where 1 hour happens in 1 minute.",
+        support: "https://github.com/eclipse-thingweb/node-wot/",
+        "@context": "https://www.w3.org/2022/wot/td/v1.1",
+        properties: {
+            time: {
+                readOnly: true,
+                observable: true,
+                type: "object",
+                properties: {
+                    minute: {
+                        type: "integer",
+                        minimum: 0,
+                        maximum: 59,
+                    },
+                    hour: {
+                        type: "integer",
+                        minimum: 0,
+                        maximum: 23,
+                    },
+                },
+            },
+        },
+    })
+        .then((thing) => {
+            console.log("Produced " + thing.getThingDescription().title);
+
+            thing.setPropertyReadHandler("time", async () => {
+                return {
+                    hour: hourCounter,
+                    minute: minuteCounter,
+                };
+            });
+
+            // TODO: Add intervals to count
+
+            // expose the thing
+            thing.expose().then(() => {
+                console.info(thing.getThingDescription().title + " ready");
+            });
+        })
+        .catch((e) => {
+            console.log(e);
+        });
+});
