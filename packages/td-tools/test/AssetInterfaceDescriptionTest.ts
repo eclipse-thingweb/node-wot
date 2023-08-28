@@ -560,4 +560,20 @@ class AssetInterfaceDescriptionUtilTest {
 
         // Note: proper AID submodel checks done in previous test-cases
     }
+
+    @test async "should correctly transform counter TD into JSON AAS"() {
+        const response = await fetch("http://plugfest.thingweb.io:8083/counter");
+        const counterTD = await response.json();
+
+        const sm = this.assetInterfaceDescriptionUtil.transformTD2AAS(JSON.stringify(counterTD), ["http", "coap"]);
+
+        const aasObj = JSON.parse(sm);
+        expect(aasObj).to.have.property("assetAdministrationShells").to.be.an("array");
+        expect(aasObj).to.have.property("submodels").to.be.an("array").to.have.lengthOf(2);
+
+        // TODO proper AID submodel checks
+        console.log("XXX\n\n");
+        console.log(JSON.stringify(aasObj));
+        console.log("\n\nXXX");
+    }
 }
