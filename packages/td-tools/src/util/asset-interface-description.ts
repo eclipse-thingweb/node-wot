@@ -20,7 +20,7 @@ import * as TDParser from "../td-parser";
 
 import debug from "debug";
 import { ThingDescription } from "wot-typescript-definitions";
-import { PropertyElement } from "wot-thing-model-types";
+import { FormElementBase, PropertyElement } from "wot-thing-model-types";
 const namespace = "node-wot:td-tools:asset-interface-description-util";
 const logDebug = debug(`${namespace}:debug`);
 const logInfo = debug(`${namespace}:info`);
@@ -580,13 +580,24 @@ export class AssetInterfaceDescriptionUtil {
      * Transform WoT ThingDescription (TD) to AAS in JSON format
      *
      * @param td input TD
+     * @param protocols protocol prefixes of interest (e.g., ["http", "coap"])
      * @returns transformed AAS in JSON format
      */
-    public transformTD2AAS(td: string): string {
-        // TODO selection like HTTP only or so..
-        const submodel = this.transformTD2SM(td);
-        const submodelObj = JSON.parse(submodel);
-        const submodelId = submodelObj.id;
+    public transformTD2AAS(td: string, protocols: string[]): string {
+        const submodelObjs: unknown[] = [];
+        let submodelId;
+
+        // apply selection like HTTP only or so..
+        for (const protocol of protocols) {
+            const submodel = this.transformTD2SM(td, protocol);
+            const submodelObj = JSON.parse(submodel);
+            submodelObjs.push(submodelObj);
+            if (submodelId === undefined) {
+                submodelId = submodelObj.id;
+            }
+        }
+
+        // TODO how should the structure w.r.t. submodel ID reference look like if there are several submodels
 
         // configuration
         const aasName = "SampleAAS";
@@ -614,7 +625,7 @@ export class AssetInterfaceDescriptionUtil {
                     modelType: "AssetAdministrationShell",
                 },
             ],
-            submodels: [submodelObj],
+            submodels: submodelObjs,
             conceptDescriptions: [],
         };
 
@@ -625,16 +636,16 @@ export class AssetInterfaceDescriptionUtil {
      * Transform WoT ThingDescription (TD) to AID submodel definition in JSON format
      *
      * @param td input TD
+     * @param protocol protocol prefix of interest (e.g., "http")
      * @returns transformed AID submodel definition in JSON format
      */
-    public transformTD2SM(tdAsString: string): string {
+    public transformTD2SM(tdAsString: string, protocol: string): string {
         const td: ThingDescription = TDParser.parseTD(tdAsString);
 
         console.log("TD " + td.title + " parsed...");
 
-        // configuration
-        // TODO pass as argument protocol binding prefix like "http" and use this as name and for forms
-        const submodelElementIdShort = "InterfaceHTTP";
+        // use protocol binding prefix like "http" for name
+        const submodelElementIdShort = protocol === undefined ? "Interface" : "Interface" + protocol.toUpperCase();
 
         const aidObject = {
             idShort: "AssetInterfacesDescription",
@@ -656,7 +667,7 @@ export class AssetInterfaceDescriptionUtil {
                     value: [
                         // support
                         this.createEndpointMetadata(td), // EndpointMetadata like base, security and securityDefinitions
-                        this.createInterfaceMetadata(td), // InterfaceMetadata like proprties, actions and events
+                        this.createInterfaceMetadata(td, protocol), // InterfaceMetadata like properties, actions and events
                         // externalDescriptor ?
                     ],
                     modelType: "SubmodelElementCollection",
@@ -742,100 +753,125 @@ export class AssetInterfaceDescriptionUtil {
         return endpointMetadata;
     }
 
-    private createInterfaceMetadata(td: ThingDescription): Record<string, unknown> {
+    private createInterfaceMetadata(td: ThingDescription, protocol: string): Record<string, unknown> {
         const properties: Array<unknown> = [];
-        if (td.properties) {
-            for (const propertyKey in td.properties) {
-                const propertyValue: PropertyElement = td.properties[propertyKey];
+        const actions: Array<unknown> = [];
+        const events: Array<unknown> = [];
 
-                const propertyValues: Array<unknown> = [];
-                // type
-                if (propertyValue.type) {
-                    propertyValues.push({
-                        idShort: "type",
-                        valueType: "xs:string",
-                        value: propertyValue.type,
-                        modelType: "Property",
-                    });
-                }
-                // title
-                if (propertyValue.title) {
-                    propertyValues.push({
-                        idShort: "title",
-                        valueType: "xs:string",
-                        value: propertyValue.title,
-                        modelType: "Property",
-                    });
-                }
-                // observable
-                if (propertyValue.observable) {
-                    propertyValues.push({
-                        idShort: "observable",
-                        valueType: "xs:boolean",
-                        value: `${propertyValue.observable}`, // in AID represented as string
-                        modelType: "Property",
-                    });
-                }
-                // readOnly and writeOnly marked as EXTERNAL in AID spec
-                // range and others? Simply add them as is?
+        if (protocol) {
+            // Properties
+            if (td.properties) {
+                for (const propertyKey in td.properties) {
+                    const propertyValue: PropertyElement = td.properties[propertyKey];
 
-                // forms
-                if (propertyValue.forms) {
-                    const propertyForm: Array<unknown> = [];
-                    /* for (const FormElementProperty in propertyValue.forms) {
+                    // check whether protocol prefix exists for a form
+                    let formElementPicked: FormElementBase | undefined;
+                    if (propertyValue.forms) {
+                        for (const formElementProperty of propertyValue.forms) {
+                            if (formElementProperty.href?.startsWith(protocol)) {
+                                formElementPicked = formElementProperty;
+                                // found matching form --> abort loop
+                                break;
+                            }
+                        }
+                    }
+                    if (formElementPicked === undefined) {
+                        // do not add this property, since there will be no href of interest
+                        continue;
+                    }
+
+                    const propertyValues: Array<unknown> = [];
+                    // type
+                    if (propertyValue.type) {
+                        propertyValues.push({
+                            idShort: "type",
+                            valueType: "xs:string",
+                            value: propertyValue.type,
+                            modelType: "Property",
+                        });
+                    }
+                    // title
+                    if (propertyValue.title) {
+                        propertyValues.push({
+                            idShort: "title",
+                            valueType: "xs:string",
+                            value: propertyValue.title,
+                            modelType: "Property",
+                        });
+                    }
+                    // observable
+                    if (propertyValue.observable) {
+                        propertyValues.push({
+                            idShort: "observable",
+                            valueType: "xs:boolean",
+                            value: `${propertyValue.observable}`, // in AID represented as string
+                            modelType: "Property",
+                        });
+                    }
+                    // readOnly and writeOnly marked as EXTERNAL in AID spec
+                    // range and others? Simply add them as is?
+
+                    // forms
+                    if (formElementPicked) {
+                        const propertyForm: Array<unknown> = [];
+
                         // TODO AID for now supports just *one* href/form
-                    } */
-                    if (propertyValue.forms.length > 0) {
-                        // pick first one for now (TODO change in future)
-                        const propertyForm0 = propertyValue.forms[0];
+                        // --> pick the first one that matches protocol (other means in future?)
+
                         // "idShort": "htv:methodName",
-                        if (propertyForm0.href) {
+                        if (formElementPicked.href) {
                             propertyForm.push({
                                 idShort: "href",
                                 valueType: "xs:string",
-                                value: propertyForm0.href,
+                                value: formElementPicked.href,
                                 modelType: "Property",
                             });
                         }
                         // TODO other terms?
+
+                        propertyValues.push({
+                            idShort: "forms",
+                            value: propertyForm,
+                            modelType: "SubmodelElementCollection",
+                        });
                     }
 
-                    propertyValues.push({
-                        idShort: "forms",
-                        value: propertyForm,
+                    properties.push({
+                        idShort: propertyKey,
+                        // TODO description
+                        value: propertyValues,
                         modelType: "SubmodelElementCollection",
                     });
                 }
+            }
+            // Actions
+            if (td.actions) {
+                // TODO actions - TBD by AID
+            }
 
-                properties.push({
-                    idShort: propertyKey,
-                    // TODO description
-                    value: propertyValues,
-                    modelType: "SubmodelElementCollection",
-                });
+            // Events
+            if (td.events) {
+                // TODO events - TBD by AID
             }
         }
 
         const values: Array<unknown> = [];
-
         // Properties
         values.push({
             idShort: "Properties",
             value: properties,
             modelType: "SubmodelElementCollection",
         });
-
-        // Actions - TBD by AID
+        // Actions
         values.push({
             idShort: "Actions",
-            value: [],
+            value: actions,
             modelType: "SubmodelElementCollection",
         });
-
-        // Events - TBD by AID
+        // Events
         values.push({
             idShort: "Events",
-            value: [],
+            value: events,
             modelType: "SubmodelElementCollection",
         });
 

@@ -391,7 +391,7 @@ class AssetInterfaceDescriptionUtilTest {
     };
 
     @test async "should correctly transform sample TD into JSON submodel"() {
-        const sm = this.assetInterfaceDescriptionUtil.transformTD2SM(JSON.stringify(this.td1));
+        const sm = this.assetInterfaceDescriptionUtil.transformTD2SM(JSON.stringify(this.td1), "http");
 
         const smObj = JSON.parse(sm);
         expect(smObj).to.have.property("idShort").that.equals("AssetInterfacesDescription");
@@ -525,13 +525,39 @@ class AssetInterfaceDescriptionUtilTest {
         expect(hasInterfaceMetadata, "No InterfaceMetadata").to.equal(true);
     }
 
+    @test
+    async "should transform sample TD into JSON submodel without any properties due to unknown protocol prefix"() {
+        const sm = this.assetInterfaceDescriptionUtil.transformTD2SM(JSON.stringify(this.td1), "unknown");
+
+        const smObj = JSON.parse(sm);
+        expect(smObj).to.have.property("idShort").that.equals("AssetInterfacesDescription");
+        expect(smObj).to.have.property("submodelElements").to.be.an("array").to.have.lengthOf.greaterThan(0);
+        const smInterface = smObj.submodelElements[0];
+        expect(smInterface).to.have.property("value").to.be.an("array").to.have.lengthOf.greaterThan(0);
+
+        // InterfaceMetadata with *no* properties for this protocol
+        let hasInterfaceMetadata = false;
+        for (const smValue of smInterface.value) {
+            if (smValue.idShort === "InterfaceMetadata") {
+                hasInterfaceMetadata = true;
+                expect(smValue).to.have.property("value").to.be.an("array").to.have.lengthOf.greaterThan(0);
+                for (const interactionValues of smValue.value) {
+                    if (interactionValues.idShort === "Properties") {
+                        expect(interactionValues).to.have.property("value").to.be.an("array").to.have.lengthOf(0);
+                    }
+                }
+            }
+        }
+        expect(hasInterfaceMetadata, "No InterfaceMetadata").to.equal(true);
+    }
+
     @test async "should correctly transform sample TD into JSON AAS"() {
-        const sm = this.assetInterfaceDescriptionUtil.transformTD2AAS(JSON.stringify(this.td1));
+        const sm = this.assetInterfaceDescriptionUtil.transformTD2AAS(JSON.stringify(this.td1), ["http"]);
 
         const aasObj = JSON.parse(sm);
         expect(aasObj).to.have.property("assetAdministrationShells").to.be.an("array");
         expect(aasObj).to.have.property("submodels").to.be.an("array").to.have.lengthOf(1);
 
-        // Note: proper AID submodel checks done in previous test-case
+        // Note: proper AID submodel checks done in previous test-cases
     }
 }
