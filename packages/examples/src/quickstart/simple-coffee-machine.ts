@@ -84,45 +84,45 @@ servient.start().then((WoT) => {
                 };
             });
 
-            thing.setActionHandler("brew", async (params,options) =>{
-                const coffeeType = await params.value();
-                console.info("received coffee order of ", coffeeType)
-                if(coffeeType==="espresso"){
-                    if (waterAmount <= 10 || beansAmount <= 10) {
-                        // Promise.reject("Not enough water");
-                    } else {
-                        setTimeout(() => {
-                            waterAmount = waterAmount-10;
-                            beansAmount = beansAmount-10;
-                            Promise.resolve();
-                        },1000)
-                    }
-                } else if(coffeeType==="cappuccino"){
-                    if (waterAmount <= 20 || beansAmount <= 25 || milkAmount <= 15) {
-                        // Promise.reject("Not enough water");
-                    } else {
-                        setTimeout(() => {
-                            waterAmount = waterAmount - 15;
-                            beansAmount = beansAmount - 20;
-                            milkAmount = milkAmount - 10;
-                        }, 2000);
-                        Promise.resolve();
-                    }
-                } else if(coffeeType==="americano"){
-                    if (waterAmount <= 35 || beansAmount <= 10) {
-                        // Promise.reject("Not enough water");
-                    } else {
-                        setTimeout(() => {
-                            waterAmount = waterAmount - 30;
-                            beansAmount = beansAmount - 10;
-                        }, 2000);
-                        Promise.resolve();
-                        // return 0;
-                    }
-                } else {
-                    // Promise.reject("Wrong coffee");
-                }
-            })
+            // thing.setActionHandler("brew", async (params,options) =>{
+            //     const coffeeType = await params.value();
+            //     console.info("received coffee order of ", coffeeType)
+            //     if(coffeeType==="espresso"){
+            //         if (waterAmount <= 10 || beansAmount <= 10) {
+            //             // Promise.reject("Not enough water");
+            //         } else {
+            //             setTimeout(() => {
+            //                 waterAmount = waterAmount-10;
+            //                 beansAmount = beansAmount-10;
+            //                 Promise.resolve();
+            //             },1000)
+            //         }
+            //     } else if(coffeeType==="cappuccino"){
+            //         if (waterAmount <= 20 || beansAmount <= 25 || milkAmount <= 15) {
+            //             // Promise.reject("Not enough water");
+            //         } else {
+            //             setTimeout(() => {
+            //                 waterAmount = waterAmount - 15;
+            //                 beansAmount = beansAmount - 20;
+            //                 milkAmount = milkAmount - 10;
+            //             }, 2000);
+            //             Promise.resolve();
+            //         }
+            //     } else if(coffeeType==="americano"){
+            //         if (waterAmount <= 35 || beansAmount <= 10) {
+            //             // Promise.reject("Not enough water");
+            //         } else {
+            //             setTimeout(() => {
+            //                 waterAmount = waterAmount - 30;
+            //                 beansAmount = beansAmount - 10;
+            //             }, 2000);
+            //             Promise.resolve();
+            //             // return 0;
+            //         }
+            //     } else {
+            //         // Promise.reject("Wrong coffee");
+            //     }
+            // })
 
             // expose the thing
             thing.expose().then(() => {

@@ -29,6 +29,22 @@ servient.addServer(
 let minuteCounter = 0
 let hourCounter = 0;
 
+async function timeCount() {
+    for (minuteCounter = 0; minuteCounter < 59; minuteCounter++) {
+        // if we have <60, we can get a 15:60.
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // sleep
+    }
+    console.info({
+        hour: hourCounter,
+        minute: minuteCounter,
+    });
+
+    hourCounter++;
+    if (hourCounter === 24) {
+        hourCounter = 0;
+    }
+}
+
 servient.start().then((WoT) => {
     WoT.produce({
         title: "Smart Clock",
@@ -55,7 +71,7 @@ servient.start().then((WoT) => {
             },
         },
     })
-        .then((thing) => {
+        .then(async (thing) => {
             console.log("Produced " + thing.getThingDescription().title);
 
             thing.setPropertyReadHandler("time", async () => {
@@ -65,7 +81,10 @@ servient.start().then((WoT) => {
                 };
             });
 
-            // TODO: Add intervals to count
+            timeCount()
+            setInterval(async()=>{
+                timeCount()
+            },61000) // if this is 60s, we never leave the for loop
 
             // expose the thing
             thing.expose().then(() => {
