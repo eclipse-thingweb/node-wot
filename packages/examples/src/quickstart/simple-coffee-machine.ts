@@ -18,6 +18,7 @@
 
 import { Servient } from "@node-wot/core";
 import { HttpServer } from "@node-wot/binding-http";
+import { InteractionOutput } from "wot-typescript-definitions";
 
 // create Servient add HTTP binding with port configuration
 const servient = new Servient();
@@ -46,20 +47,17 @@ servient.start().then((WoT) => {
                     water: {
                         type: "integer",
                         minimum: 10,
-                        maximum: 100,
-                        unit: "%",
+                        maximum: 100
                     },
                     beans: {
                         type: "integer",
                         minimum: 0,
-                        maximum: 100,
-                        unit: "%",
+                        maximum: 100
                     },
                     milk: {
                         type: "integer",
                         minimum: 0,
-                        maximum: 100,
-                        unit: "%",
+                        maximum: 100
                     },
                 },
             },
@@ -87,47 +85,54 @@ servient.start().then((WoT) => {
             thing.setActionHandler("brew", async (params) => {
                 const coffeeType = await params.value();
                 console.info("received coffee order of ", coffeeType);
-                if (coffeeType === "espresso") {
-                    if (waterAmount <= 10 || beansAmount <= 10) {
-                        return Promise.reject(new Error("Not enough water or beans"));
+                return new Promise<InteractionOutput>((resolve, reject) => {
+                    if (coffeeType === "espresso") {
+                        console.log("here");
+                        if (waterAmount <= 10 || beansAmount <= 10) {
+                            console.log("here4");
+                            reject(new Error("Not enough water or beans"));
+                        } else {
+                            console.log("here2");
+                            setTimeout(() => {
+                                console.log("here3");
+                                waterAmount = waterAmount - 10;
+                                beansAmount = beansAmount - 10;
+                                // @ts-ignore
+                                resolve();
+                            }, 1000);
+                        }
+                    } else if (coffeeType === "cappuccino") {
+                        if (waterAmount <= 20 || beansAmount <= 25 || milkAmount <= 15) {
+                            reject(new Error("Not enough water or beans"));
+                        } else {
+                            setTimeout(() => {
+                                waterAmount = waterAmount - 15;
+                                beansAmount = beansAmount - 20;
+                                milkAmount = milkAmount - 10;
+                                // @ts-ignore
+                                resolve();
+                            }, 2000);
+                        }
+                    } else if (coffeeType === "americano") {
+                        if (waterAmount <= 35 || beansAmount <= 10) {
+                            reject(new Error("Not enough water or beans"));
+                        } else {
+                            setTimeout(() => {
+                                waterAmount = waterAmount - 30;
+                                beansAmount = beansAmount - 10;
+                                // @ts-ignore
+                                resolve();
+                            }, 2000);
+                        }
                     } else {
-                        setTimeout(() => {
-                            waterAmount = waterAmount - 10;
-                            beansAmount = beansAmount - 10;
-                            return Promise.resolve();
-                        }, 1000);
+                        reject(new Error("Wrong coffee input"));
                     }
-                } else if (coffeeType === "cappuccino") {
-                    if (waterAmount <= 20 || beansAmount <= 25 || milkAmount <= 15) {
-                        return Promise.reject(new Error("Not enough water or beans"));
-                    } else {
-                        setTimeout(() => {
-                            waterAmount = waterAmount - 15;
-                            beansAmount = beansAmount - 20;
-                            milkAmount = milkAmount - 10;
-                            return Promise.resolve();
-                        }, 2000);
-                    }
-                } else if (coffeeType === "americano") {
-                    if (waterAmount <= 35 || beansAmount <= 10) {
-                        return Promise.reject(new Error("Not enough water or beans"));
-                    } else {
-                        setTimeout(() => {
-                            waterAmount = waterAmount - 30;
-                            beansAmount = beansAmount - 10;
-                            return Promise.resolve();
-                        }, 2000);
-                    }
-                } else {
-                    return Promise.reject(new Error("Wrong coffee input"));
-                }
-                return null;
+                })
             });
 
             // expose the thing
             thing.expose().then(() => {
                 console.info(thing.getThingDescription().title + " ready");
-                console.info(JSON.stringify(thing.getThingDescription()));
             });
         })
         .catch((e) => {
