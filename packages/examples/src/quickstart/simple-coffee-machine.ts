@@ -47,17 +47,17 @@ servient.start().then((WoT) => {
                     water: {
                         type: "integer",
                         minimum: 10,
-                        maximum: 100
+                        maximum: 100,
                     },
                     beans: {
                         type: "integer",
                         minimum: 0,
-                        maximum: 100
+                        maximum: 100,
                     },
                     milk: {
                         type: "integer",
                         minimum: 0,
-                        maximum: 100
+                        maximum: 100,
                     },
                 },
             },
@@ -127,7 +127,7 @@ servient.start().then((WoT) => {
                     } else {
                         reject(new Error("Wrong coffee input"));
                     }
-                })
+                });
             });
 
             // expose the thing
