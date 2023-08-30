@@ -27,7 +27,7 @@ servient.addServer(
     })
 );
 
-let waterAmount = 100
+let waterAmount = 100;
 let beansAmount = 100;
 let milkAmount = 100;
 
@@ -66,10 +66,10 @@ servient.start().then((WoT) => {
         },
         actions: {
             brew: {
-                input:{
-                    type:"string",
-                    enum: ["espresso","cappuccino","americano"]
-                }
+                input: {
+                    type: "string",
+                    enum: ["espresso", "cappuccino", "americano"],
+                },
             },
         },
     })
@@ -77,27 +77,27 @@ servient.start().then((WoT) => {
             console.log("Produced " + thing.getThingDescription().title);
 
             thing.setPropertyReadHandler("resources", async () => {
-                return{
+                return {
                     water: waterAmount,
                     beans: beansAmount,
                     milk: milkAmount,
                 };
             });
 
-            thing.setActionHandler("brew", async (params) =>{
+            thing.setActionHandler("brew", async (params) => {
                 const coffeeType = await params.value();
-                console.info("received coffee order of ", coffeeType)
-                if(coffeeType==="espresso"){
+                console.info("received coffee order of ", coffeeType);
+                if (coffeeType === "espresso") {
                     if (waterAmount <= 10 || beansAmount <= 10) {
                         return Promise.reject(new Error("Not enough water or beans"));
                     } else {
                         setTimeout(() => {
-                            waterAmount = waterAmount-10;
-                            beansAmount = beansAmount-10;
+                            waterAmount = waterAmount - 10;
+                            beansAmount = beansAmount - 10;
                             return Promise.resolve();
-                        },1000)
+                        }, 1000);
                     }
-                } else if(coffeeType==="cappuccino"){
+                } else if (coffeeType === "cappuccino") {
                     if (waterAmount <= 20 || beansAmount <= 25 || milkAmount <= 15) {
                         return Promise.reject(new Error("Not enough water or beans"));
                     } else {
@@ -108,7 +108,7 @@ servient.start().then((WoT) => {
                             return Promise.resolve();
                         }, 2000);
                     }
-                } else if(coffeeType==="americano"){
+                } else if (coffeeType === "americano") {
                     if (waterAmount <= 35 || beansAmount <= 10) {
                         return Promise.reject(new Error("Not enough water or beans"));
                     } else {
@@ -117,13 +117,12 @@ servient.start().then((WoT) => {
                             beansAmount = beansAmount - 10;
                             return Promise.resolve();
                         }, 2000);
-
                     }
                 } else {
                     return Promise.reject(new Error("Wrong coffee input"));
                 }
                 return null;
-            })
+            });
 
             // expose the thing
             thing.expose().then(() => {

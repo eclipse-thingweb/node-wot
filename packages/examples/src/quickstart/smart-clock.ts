@@ -26,7 +26,7 @@ servient.addServer(
     })
 );
 
-let minuteCounter = 0
+let minuteCounter = 0;
 let hourCounter = 0;
 
 async function timeCount() {
@@ -81,10 +81,10 @@ servient.start().then((WoT) => {
                 };
             });
 
-            timeCount()
-            setInterval(async()=>{
-                timeCount()
-            },61000) // if this is 60s, we never leave the for loop
+            timeCount();
+            setInterval(async () => {
+                timeCount();
+            }, 61000); // if this is 60s, we never leave the for loop
 
             // expose the thing
             thing.expose().then(() => {
