@@ -122,7 +122,6 @@ servient.start().then((WoT) => {
                 } else {
                     throw new Error("Wrong coffee input");
                 }
-                return undefined;
             });
 
             // expose the thing
