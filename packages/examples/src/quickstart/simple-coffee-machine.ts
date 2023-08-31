@@ -31,6 +31,11 @@ let waterAmount = 100;
 let beansAmount = 100;
 let milkAmount = 100;
 
+// promisify timeout since it does not return a promise
+function timeout(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 servient.start().then((WoT) => {
     WoT.produce({
         title: "Coffee Machine",
@@ -89,32 +94,29 @@ servient.start().then((WoT) => {
                     if (waterAmount <= 10 || beansAmount <= 10) {
                         throw new Error("Not enough water or beans");
                     } else {
-                        setTimeout(() => {
-                            waterAmount = waterAmount - 10;
-                            beansAmount = beansAmount - 10;
-                            return undefined;
-                        }, 1000);
+                        await timeout(1000);
+                        waterAmount = waterAmount - 10;
+                        beansAmount = beansAmount - 10;
+                        return undefined;
                     }
                 } else if (coffeeType === "cappuccino") {
                     if (waterAmount <= 20 || beansAmount <= 25 || milkAmount <= 15) {
                         throw new Error("Not enough water or beans");
                     } else {
-                        setTimeout(() => {
-                            waterAmount = waterAmount - 15;
-                            beansAmount = beansAmount - 20;
-                            milkAmount = milkAmount - 10;
-                            return undefined;
-                        }, 2000);
+                        await timeout(2000);
+                        waterAmount = waterAmount - 15;
+                        beansAmount = beansAmount - 20;
+                        milkAmount = milkAmount - 10;
+                        return undefined;
                     }
                 } else if (coffeeType === "americano") {
                     if (waterAmount <= 35 || beansAmount <= 10) {
                         throw new Error("Not enough water or beans");
                     } else {
-                        setTimeout(() => {
-                            waterAmount = waterAmount - 30;
-                            beansAmount = beansAmount - 10;
-                            return undefined;
-                        }, 2000);
+                        await timeout(2000);
+                        waterAmount = waterAmount - 30;
+                        beansAmount = beansAmount - 10;
+                        return undefined;
                     }
                 } else {
                     throw new Error("Wrong coffee input");
