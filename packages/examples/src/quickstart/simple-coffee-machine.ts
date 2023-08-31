@@ -18,7 +18,6 @@
 
 import { Servient } from "@node-wot/core";
 import { HttpServer } from "@node-wot/binding-http";
-import { InteractionOutput } from "wot-typescript-definitions";
 
 // create Servient add HTTP binding with port configuration
 const servient = new Servient();
@@ -82,52 +81,48 @@ servient.start().then((WoT) => {
                 };
             });
 
-            thing.setActionHandler("brew", async (params) => {
+            thing.setActionHandler("brew", async (params, options) => {
                 const coffeeType = await params.value();
                 console.info("received coffee order of ", coffeeType);
-                return new Promise<InteractionOutput>((resolve, reject) => {
-                    if (coffeeType === "espresso") {
-                        console.log("here");
-                        if (waterAmount <= 10 || beansAmount <= 10) {
-                            console.log("here4");
-                            reject(new Error("Not enough water or beans"));
-                        } else {
-                            console.log("here2");
-                            setTimeout(() => {
-                                console.log("here3");
-                                waterAmount = waterAmount - 10;
-                                beansAmount = beansAmount - 10;
-                                // @ts-ignore
-                                resolve();
-                            }, 1000);
-                        }
-                    } else if (coffeeType === "cappuccino") {
-                        if (waterAmount <= 20 || beansAmount <= 25 || milkAmount <= 15) {
-                            reject(new Error("Not enough water or beans"));
-                        } else {
-                            setTimeout(() => {
-                                waterAmount = waterAmount - 15;
-                                beansAmount = beansAmount - 20;
-                                milkAmount = milkAmount - 10;
-                                // @ts-ignore
-                                resolve();
-                            }, 2000);
-                        }
-                    } else if (coffeeType === "americano") {
-                        if (waterAmount <= 35 || beansAmount <= 10) {
-                            reject(new Error("Not enough water or beans"));
-                        } else {
-                            setTimeout(() => {
-                                waterAmount = waterAmount - 30;
-                                beansAmount = beansAmount - 10;
-                                // @ts-ignore
-                                resolve();
-                            }, 2000);
-                        }
+                if (coffeeType === "espresso") {
+                    console.log("here");
+                    if (waterAmount <= 10 || beansAmount <= 10) {
+                        console.log("here4");
+                        throw new Error("Not enough water or beans");
                     } else {
-                        reject(new Error("Wrong coffee input"));
+                        console.log("here2");
+                        setTimeout(() => {
+                            console.log("here3");
+                            waterAmount = waterAmount - 10;
+                            beansAmount = beansAmount - 10;
+                            return undefined;
+                        }, 1000);
                     }
-                });
+                } else if (coffeeType === "cappuccino") {
+                    if (waterAmount <= 20 || beansAmount <= 25 || milkAmount <= 15) {
+                        throw new Error("Not enough water or beans");
+                    } else {
+                        setTimeout(() => {
+                            waterAmount = waterAmount - 15;
+                            beansAmount = beansAmount - 20;
+                            milkAmount = milkAmount - 10;
+                            return undefined;
+                        }, 2000);
+                    }
+                } else if (coffeeType === "americano") {
+                    if (waterAmount <= 35 || beansAmount <= 10) {
+                        throw new Error("Not enough water or beans");
+                    } else {
+                        setTimeout(() => {
+                            waterAmount = waterAmount - 30;
+                            beansAmount = beansAmount - 10;
+                            return undefined;
+                        }, 2000);
+                    }
+                } else {
+                    throw new Error("Wrong coffee input");
+                }
+                return undefined;
             });
 
             // expose the thing
