@@ -384,6 +384,9 @@ class AssetInterfaceDescriptionUtilTest {
                 forms: [
                     {
                         href: "stat",
+                        contentType: "application/json",
+                        "htv:methodName": "GET",
+                        op: ["readproperty"],
                     },
                 ],
             },
@@ -498,6 +501,9 @@ class AssetInterfaceDescriptionUtilTest {
                                             .to.be.an("array")
                                             .to.have.lengthOf.greaterThan(0);
                                         let hasHref = false;
+                                        let hasContentType = false;
+                                        let hasHtvMethodName = false;
+                                        // let hasOp = false;
                                         for (const formEntry of propProperty.value) {
                                             if (formEntry.idShort === "href") {
                                                 hasHref = true;
@@ -505,9 +511,21 @@ class AssetInterfaceDescriptionUtilTest {
                                                     "stat",
                                                     "https://www.example.com/stat",
                                                 ]);
+                                            } else if (formEntry.idShort === "contentType") {
+                                                hasContentType = true;
+                                                expect(formEntry.value).to.equal("application/json");
+                                            } else if (formEntry.idShort === "htv:methodName") {
+                                                hasHtvMethodName = true;
+                                                expect(formEntry.value).to.equal("GET");
+                                                // } else if (formEntry.idShort === "op") {
+                                                //     hasOp = true;
+                                                //     expect(formEntry.value).to.have.members(["readproperty"]);
                                             }
                                         }
                                         expect(hasHref).to.equal(true);
+                                        expect(hasContentType).to.equal(true);
+                                        expect(hasHtvMethodName).to.equal(true);
+                                        // expect(hasOp).to.equal(true);
                                     }
                                 }
                                 expect(hasType).to.equal(true);

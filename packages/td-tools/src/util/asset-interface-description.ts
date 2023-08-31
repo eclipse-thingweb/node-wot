@@ -818,16 +818,20 @@ export class AssetInterfaceDescriptionUtil {
                         // TODO AID for now supports just *one* href/form
                         // --> pick the first one that matches protocol (other means in future?)
 
-                        // "idShort": "htv:methodName",
-                        if (formElementPicked.href) {
-                            propertyForm.push({
-                                idShort: "href",
-                                valueType: "xs:string",
-                                value: formElementPicked.href,
-                                modelType: "Property",
-                            });
+                        // walk over string values like: "href", "contentType", "htv:methodName", ...
+                        for (const formTerm in formElementPicked) {
+                            const formValue = formElementPicked[formTerm];
+                            if (typeof formValue === "string") {
+                                propertyForm.push({
+                                    idShort: formTerm,
+                                    valueType: "xs:string",
+                                    value: formValue,
+                                    modelType: "Property",
+                                });
+                            }
                         }
-                        // TODO other terms?
+
+                        // TODO terms that are not string-based, like op arrays?
 
                         propertyValues.push({
                             idShort: "forms",
