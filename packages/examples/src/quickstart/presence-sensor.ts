@@ -22,7 +22,7 @@ import { MqttBrokerServer } from "@node-wot/binding-mqtt";
 
 // create Servient add MQTT binding with port configuration
 const servient = new Servient();
-servient.addServer(new MqttBrokerServer({uri:"mqtt://localhost"}));
+servient.addServer(new MqttBrokerServer({ uri: "mqtt://localhost" }));
 
 servient.start().then((WoT) => {
     WoT.produce({

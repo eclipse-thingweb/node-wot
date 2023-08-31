@@ -21,9 +21,7 @@ import { CoapServer } from "@node-wot/binding-coap";
 
 // create Servient add CoAP binding with port configuration
 const servient = new Servient();
-servient.addServer(
-    new CoapServer(5685)
-);
+servient.addServer(new CoapServer(5685));
 
 let minuteCounter = 0;
 let hourCounter = 0;
