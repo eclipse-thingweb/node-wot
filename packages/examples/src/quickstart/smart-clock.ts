@@ -15,7 +15,7 @@
 
 // This is an example Thing which is a smart clock that runs 60 times faster than real time, where 1 hour happens in 1 minute.
 
-import { ExposedThing, Servient } from "@node-wot/core";
+import { Servient } from "@node-wot/core";
 import { HttpServer } from "@node-wot/binding-http";
 
 // create Servient add HTTP binding with port configuration
@@ -29,7 +29,7 @@ servient.addServer(
 let minuteCounter = 0;
 let hourCounter = 0;
 
-async function timeCount(thing:WoT.ExposedThing) {
+async function timeCount(thing: WoT.ExposedThing) {
     for (minuteCounter = 0; minuteCounter < 59; minuteCounter++) {
         // if we have <60, we can get a 15:60.
         await new Promise((resolve) => setTimeout(resolve, 1000)); // sleep

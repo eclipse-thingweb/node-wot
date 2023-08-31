@@ -118,7 +118,7 @@ servient.start().then((WoT) => {
                         await timeout(2000);
                         waterAmount = waterAmount - 30;
                         beansAmount = beansAmount - 10;
-                        thing.emitPropertyChange("resources")
+                        thing.emitPropertyChange("resources");
                         return undefined;
                     }
                 } else {
