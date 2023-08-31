@@ -17,19 +17,16 @@
 // It fires an event when it detects a person (mocked as every 5 second)
 
 import { Servient } from "@node-wot/core";
-import { HttpServer } from "@node-wot/binding-http";
+// eslint-disable-next-line workspaces/require-dependency
+import { MqttBrokerServer } from "@node-wot/binding-mqtt";
 
-// create Servient add HTTP binding with port configuration
+// create Servient add MQTT binding with port configuration
 const servient = new Servient();
-servient.addServer(
-    new HttpServer({
-        port: 8080,
-    })
-);
+servient.addServer(new MqttBrokerServer({uri:"mqtt://localhost"}));
 
 servient.start().then((WoT) => {
     WoT.produce({
-        title: "Presence Sensor",
+        title: "PresenceSensor",
         description: "Thing that can detect presence of human nearby",
         support: "https://github.com/eclipse-thingweb/node-wot/",
         "@context": "https://www.w3.org/2022/wot/td/v1.1",
@@ -49,16 +46,18 @@ servient.start().then((WoT) => {
     })
         .then((thing) => {
             console.log("Produced " + thing.getThingDescription().title);
-            // mocking the detection with an event sent every 5 seconds, with a random distance
-            setInterval(() => {
-                const distance: number = Math.random() * (1200 - 55) + 55;
-                thing.emitEvent("presenceDetected", distance);
-                console.info("Emitted presence with distance ", distance);
-            }, 5000);
 
             // expose the thing
             thing.expose().then(() => {
                 console.info(thing.getThingDescription().title + " ready");
+                console.info(JSON.stringify(thing.getThingDescription()));
+
+                // mocking the detection with an event sent every 5 seconds, with a random distance
+                setInterval(() => {
+                    const distance: number = Math.random() * (1200 - 55) + 55;
+                    thing.emitEvent("presenceDetected", distance);
+                    console.info("Emitted presence with distance ", distance);
+                }, 5000);
             });
         })
         .catch((e) => {
