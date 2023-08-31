@@ -97,6 +97,7 @@ servient.start().then((WoT) => {
                         await timeout(1000);
                         waterAmount = waterAmount - 10;
                         beansAmount = beansAmount - 10;
+                        thing.emitPropertyChange("resources");
                         return undefined;
                     }
                 } else if (coffeeType === "cappuccino") {
@@ -107,6 +108,7 @@ servient.start().then((WoT) => {
                         waterAmount = waterAmount - 15;
                         beansAmount = beansAmount - 20;
                         milkAmount = milkAmount - 10;
+                        thing.emitPropertyChange("resources");
                         return undefined;
                     }
                 } else if (coffeeType === "americano") {
@@ -116,6 +118,7 @@ servient.start().then((WoT) => {
                         await timeout(2000);
                         waterAmount = waterAmount - 30;
                         beansAmount = beansAmount - 10;
+                        thing.emitPropertyChange("resources")
                         return undefined;
                     }
                 } else {
