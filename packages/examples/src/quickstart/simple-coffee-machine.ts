@@ -63,6 +63,7 @@ servient.start().then((WoT) => {
         },
         actions: {
             brew: {
+                synchronous: true,
                 input: {
                     type: "string",
                     enum: ["espresso", "cappuccino", "americano"],
