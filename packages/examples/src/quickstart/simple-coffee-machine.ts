@@ -63,6 +63,7 @@ servient.start().then((WoT) => {
         },
         actions: {
             brew: {
+                synchronous: true,
                 input: {
                     type: "string",
                     enum: ["espresso", "cappuccino", "americano"],
@@ -85,14 +86,10 @@ servient.start().then((WoT) => {
                 const coffeeType = await params.value();
                 console.info("received coffee order of ", coffeeType);
                 if (coffeeType === "espresso") {
-                    console.log("here");
                     if (waterAmount <= 10 || beansAmount <= 10) {
-                        console.log("here4");
                         throw new Error("Not enough water or beans");
                     } else {
-                        console.log("here2");
                         setTimeout(() => {
-                            console.log("here3");
                             waterAmount = waterAmount - 10;
                             beansAmount = beansAmount - 10;
                             return undefined;
