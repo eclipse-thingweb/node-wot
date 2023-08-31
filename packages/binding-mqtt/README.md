@@ -31,7 +31,7 @@ MqttBrokerServer = require("@node-wot/binding-mqtt").MqttBrokerServer;
 
 // create Servient add MQTT binding
 let servient = new Servient();
-servient.addServer(new MqttBrokerServer({uri:"mqtt://test.mosquitto.org"}));
+servient.addServer(new MqttBrokerServer({ uri: "mqtt://test.mosquitto.org" }));
 
 servient.start().then((WoT) => {
     var counter = 0;
