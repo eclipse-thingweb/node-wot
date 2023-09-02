@@ -22,7 +22,7 @@ import { MqttBrokerServer } from "@node-wot/binding-mqtt";
 
 // create Servient add MQTT binding with port configuration
 const servient = new Servient();
-servient.addServer(new MqttBrokerServer({ uri: "mqtt://localhost" }));
+servient.addServer(new MqttBrokerServer({ uri: "mqtt://test.mosquitto.org" }));
 
 servient.start().then((WoT) => {
     WoT.produce({
@@ -50,7 +50,6 @@ servient.start().then((WoT) => {
             // expose the thing
             thing.expose().then(() => {
                 console.info(thing.getThingDescription().title + " ready");
-                console.info(JSON.stringify(thing.getThingDescription()));
 
                 // mocking the detection with an event sent every 5 seconds, with a random distance
                 setInterval(() => {
