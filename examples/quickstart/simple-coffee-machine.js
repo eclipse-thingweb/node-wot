@@ -20,9 +20,11 @@ const core_1 = require("@node-wot/core");
 const binding_http_1 = require("@node-wot/binding-http");
 // create Servient add HTTP binding with port configuration
 const servient = new core_1.Servient();
-servient.addServer(new binding_http_1.HttpServer({
-    port: 8081,
-}));
+servient.addServer(
+    new binding_http_1.HttpServer({
+        port: 8081,
+    })
+);
 let waterAmount = 100;
 let beansAmount = 100;
 let milkAmount = 100;
@@ -71,64 +73,58 @@ servient.start().then((WoT) => {
         },
     })
         .then((thing) => {
-        console.log("Produced " + thing.getThingDescription().title);
-        thing.setPropertyReadHandler("resources", async () => {
-            return {
-                water: waterAmount,
-                beans: beansAmount,
-                milk: milkAmount,
-            };
-        });
-        thing.setActionHandler("brew", async (params, options) => {
-            const coffeeType = await params.value();
-            console.info("received coffee order of ", coffeeType);
-            if (coffeeType === "espresso") {
-                if (waterAmount <= 10 || beansAmount <= 10) {
-                    throw new Error("Not enough water or beans");
+            console.log("Produced " + thing.getThingDescription().title);
+            thing.setPropertyReadHandler("resources", async () => {
+                return {
+                    water: waterAmount,
+                    beans: beansAmount,
+                    milk: milkAmount,
+                };
+            });
+            thing.setActionHandler("brew", async (params, options) => {
+                const coffeeType = await params.value();
+                console.info("received coffee order of ", coffeeType);
+                if (coffeeType === "espresso") {
+                    if (waterAmount <= 10 || beansAmount <= 10) {
+                        throw new Error("Not enough water or beans");
+                    } else {
+                        await timeout(1000);
+                        waterAmount = waterAmount - 10;
+                        beansAmount = beansAmount - 10;
+                        thing.emitPropertyChange("resources");
+                        return undefined;
+                    }
+                } else if (coffeeType === "cappuccino") {
+                    if (waterAmount <= 20 || beansAmount <= 25 || milkAmount <= 15) {
+                        throw new Error("Not enough water or beans");
+                    } else {
+                        await timeout(2000);
+                        waterAmount = waterAmount - 15;
+                        beansAmount = beansAmount - 20;
+                        milkAmount = milkAmount - 10;
+                        thing.emitPropertyChange("resources");
+                        return undefined;
+                    }
+                } else if (coffeeType === "americano") {
+                    if (waterAmount <= 35 || beansAmount <= 10) {
+                        throw new Error("Not enough water or beans");
+                    } else {
+                        await timeout(2000);
+                        waterAmount = waterAmount - 30;
+                        beansAmount = beansAmount - 10;
+                        thing.emitPropertyChange("resources");
+                        return undefined;
+                    }
+                } else {
+                    throw new Error("Wrong coffee input");
                 }
-                else {
-                    await timeout(1000);
-                    waterAmount = waterAmount - 10;
-                    beansAmount = beansAmount - 10;
-                    thing.emitPropertyChange("resources");
-                    return undefined;
-                }
-            }
-            else if (coffeeType === "cappuccino") {
-                if (waterAmount <= 20 || beansAmount <= 25 || milkAmount <= 15) {
-                    throw new Error("Not enough water or beans");
-                }
-                else {
-                    await timeout(2000);
-                    waterAmount = waterAmount - 15;
-                    beansAmount = beansAmount - 20;
-                    milkAmount = milkAmount - 10;
-                    thing.emitPropertyChange("resources");
-                    return undefined;
-                }
-            }
-            else if (coffeeType === "americano") {
-                if (waterAmount <= 35 || beansAmount <= 10) {
-                    throw new Error("Not enough water or beans");
-                }
-                else {
-                    await timeout(2000);
-                    waterAmount = waterAmount - 30;
-                    beansAmount = beansAmount - 10;
-                    thing.emitPropertyChange("resources");
-                    return undefined;
-                }
-            }
-            else {
-                throw new Error("Wrong coffee input");
-            }
-        });
-        // expose the thing
-        thing.expose().then(() => {
-            console.info(thing.getThingDescription().title + " ready");
-        });
-    })
+            });
+            // expose the thing
+            thing.expose().then(() => {
+                console.info(thing.getThingDescription().title + " ready");
+            });
+        })
         .catch((e) => {
-        console.log(e);
-    });
+            console.log(e);
+        });
 });

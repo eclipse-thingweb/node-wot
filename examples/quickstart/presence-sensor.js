@@ -30,7 +30,8 @@ servient.start().then((WoT) => {
         events: {
             presenceDetected: {
                 title: "Presence Detected",
-                description: "An event that is emitted when a person is detected in the room. It is mocked and emitted every 5 seconds",
+                description:
+                    "An event that is emitted when a person is detected in the room. It is mocked and emitted every 5 seconds",
                 data: {
                     type: "number",
                     title: "Distance",
@@ -41,19 +42,19 @@ servient.start().then((WoT) => {
         },
     })
         .then((thing) => {
-        console.log("Produced " + thing.getThingDescription().title);
-        // expose the thing
-        thing.expose().then(() => {
-            console.info(thing.getThingDescription().title + " ready");
-            // mocking the detection with an event sent every 5 seconds, with a random distance
-            setInterval(() => {
-                const distance = Math.random() * (1200 - 55) + 55;
-                thing.emitEvent("presenceDetected", distance);
-                console.info("Emitted presence with distance ", distance);
-            }, 5000);
-        });
-    })
+            console.log("Produced " + thing.getThingDescription().title);
+            // expose the thing
+            thing.expose().then(() => {
+                console.info(thing.getThingDescription().title + " ready");
+                // mocking the detection with an event sent every 5 seconds, with a random distance
+                setInterval(() => {
+                    const distance = Math.random() * (1200 - 55) + 55;
+                    thing.emitEvent("presenceDetected", distance);
+                    console.info("Emitted presence with distance ", distance);
+                }, 5000);
+            });
+        })
         .catch((e) => {
-        console.log(e);
-    });
+            console.log(e);
+        });
 });

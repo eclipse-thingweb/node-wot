@@ -64,24 +64,24 @@ servient.start().then((WoT) => {
         },
     })
         .then(async (thing) => {
-        console.log("Produced " + thing.getThingDescription().title);
-        thing.setPropertyReadHandler("time", async () => {
-            return {
-                hour: hourCounter,
-                minute: minuteCounter,
-            };
-        });
-        timeCount(thing);
-        setInterval(async () => {
+            console.log("Produced " + thing.getThingDescription().title);
+            thing.setPropertyReadHandler("time", async () => {
+                return {
+                    hour: hourCounter,
+                    minute: minuteCounter,
+                };
+            });
             timeCount(thing);
-            thing.emitPropertyChange("time");
-        }, 61000); // if this is 60s, we never leave the for loop
-        // expose the thing
-        thing.expose().then(() => {
-            console.info(thing.getThingDescription().title + " ready");
-        });
-    })
+            setInterval(async () => {
+                timeCount(thing);
+                thing.emitPropertyChange("time");
+            }, 61000); // if this is 60s, we never leave the for loop
+            // expose the thing
+            thing.expose().then(() => {
+                console.info(thing.getThingDescription().title + " ready");
+            });
+        })
         .catch((e) => {
-        console.log(e);
-    });
+            console.log(e);
+        });
 });
