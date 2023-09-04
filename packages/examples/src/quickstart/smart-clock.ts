@@ -16,7 +16,6 @@
 // This is an example Thing which is a smart clock that runs 60 times faster than real time, where 1 hour happens in 1 minute.
 
 import { Servient } from "@node-wot/core";
-// import { HttpServer } from "@node-wot/binding-http";
 import { CoapServer } from "@node-wot/binding-coap";
 
 // create Servient add CoAP binding with port configuration
