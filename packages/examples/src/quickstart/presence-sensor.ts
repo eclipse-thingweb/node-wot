@@ -17,7 +17,6 @@
 // It fires an event when it detects a person (mocked as every 5 second)
 
 import { Servient } from "@node-wot/core";
-// eslint-disable-next-line workspaces/require-dependency
 import { MqttBrokerServer } from "@node-wot/binding-mqtt";
 
 // create Servient add MQTT binding with port configuration
