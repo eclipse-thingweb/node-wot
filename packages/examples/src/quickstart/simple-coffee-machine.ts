@@ -50,7 +50,7 @@ servient.start().then((WoT) => {
                 properties: {
                     water: {
                         type: "integer",
-                        minimum: 10,
+                        minimum: 0,
                         maximum: 100,
                     },
                     beans: {
