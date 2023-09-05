@@ -97,7 +97,7 @@ export function findBasicDataTypeC(
 ): void {
     const resultMask = makeResultMask("ReferenceType");
 
-    if (dataTypeId.identifierType === NodeIdType.NUMERIC && dataTypeId.value <= 25) {
+    if (dataTypeId.identifierType === NodeIdType.NUMERIC && Number(dataTypeId.value) <= 25) {
         // we have a well-known DataType
         callback(null, dataTypeId.value as DataType);
     } else {
@@ -127,7 +127,7 @@ export function findBasicDataTypeC(
         });
     }
 }
-const findBasicDataType: (session: IBasicSession, dataTypeId: NodeId) => Promise<DataType> =
+const findBasicDataType: (session: IBasicSession, dataTypeId: NodeId) => Promise<DataType | undefined> =
     promisify(findBasicDataTypeC);
 
 function _variantToJSON(variant: Variant, contentType: string) {
@@ -335,7 +335,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
                 session,
                 form,
                 argumentDefinition,
-                callResult.outputArguments
+                callResult.outputArguments || []
             );
             return output;
         });
@@ -394,7 +394,9 @@ export class OPCUAProtocolClient implements ProtocolClient {
                     m.handlers.forEach((n) => n(content));
                 } catch (err) {
                     debug(`${nodeId}: ${dataValue}`);
-                    error(err.toString());
+                    if (error) {
+                        error(new Error(JSON.stringify(err)));
+                    }
                 }
                 if (complete) {
                     complete();
@@ -545,7 +547,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
         }
     }
 
-    private async _findBasicDataType(session: IBasicSession, dataType: NodeId): Promise<DataType> {
+    private async _findBasicDataType(session: IBasicSession, dataType: NodeId): Promise<DataType | undefined> {
         return await findBasicDataType(session, dataType);
     }
 
@@ -569,10 +571,13 @@ export class OPCUAProtocolClient implements ProtocolClient {
 
             const { name, dataType, /* description, */ arrayDimensions, valueRank } = argument;
 
-            if (bodyInput[name] === undefined) {
+            if (bodyInput[name || "null"] === undefined) {
                 throw new Error("missing value in bodyInput for argument " + name);
             }
             const basicDataType = await this._findBasicDataType(session, dataType);
+            if (basicDataType === undefined) {
+                throw new Error("basicDataType is undefined for dataType " + dataType);
+            }
 
             const arrayType: VariantArrayType =
                 valueRank === -1
@@ -582,7 +587,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
                     : VariantArrayType.Matrix;
 
             const n = (a: unknown) => Buffer.from(JSON.stringify(a));
-            const v = await this._contentToVariant(content2.type, n(bodyInput[name]), basicDataType);
+            const v = await this._contentToVariant(content2.type, n(bodyInput[name || "null"]), basicDataType);
 
             variants.push({
                 dataType: basicDataType,
@@ -609,7 +614,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
             const argument = outputArguments[index];
             const { name } = argument;
             const element = _variantToJSON(outputVariants[index], contentType);
-            body[name] = element;
+            body[name || "null"] = element;
         }
 
         return new Content("application/json", Readable.from(JSON.stringify(body)));

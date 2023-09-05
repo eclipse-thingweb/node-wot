@@ -184,6 +184,9 @@ describe("OPCUA Client", function () {
         const outputArguments = codecSerDes.contentToValue(contentResult2, schemaDataValue);
         debug(`Y4: outputArguments: ${outputArguments}`);
 
+        if (outputArguments == null) {
+            expect.fail("outputArguments is null");
+        }
         outputArguments.should.eql({ PreviousSetPoint: 27 });
     });
 });
