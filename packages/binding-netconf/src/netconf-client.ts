@@ -33,7 +33,7 @@ export default class NetconfClient implements ProtocolClient {
     private credentials: NetConfCredentials;
     constructor() {
         this.client = new AsyncNodeNetcon.Client();
-        this.credentials = null;
+        this.credentials = { username: "" };
     }
 
     public toString(): string {
@@ -132,7 +132,7 @@ export default class NetconfClient implements ProtocolClient {
             payload = payload.payload;
             result = JSON.stringify(await this.client.rpc(xpathQuery, method, NSs, target, payload));
         } catch (err) {
-            debug(err.toString());
+            debug(JSON.stringify(err));
             throw err;
         }
 
@@ -155,7 +155,7 @@ export default class NetconfClient implements ProtocolClient {
         complete?: () => void
     ): Promise<Subscription> {
         const unimplementedError = new Error(`NetconfClient does not implement subscribe`);
-        error(unimplementedError);
+        error?.(unimplementedError);
         throw unimplementedError;
     }
 

@@ -13,13 +13,13 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-export function isObject(a: unknown): boolean {
-    return !!a && a.constructor === Object;
+export function isPlainObject(a: unknown): boolean {
+    return typeof a === "object" && a !== null && !Array.isArray(a) && !(a instanceof Date);
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
 export function json2xpath(json: any, index: number, str: Array<string>): string[] {
-    if (!isObject(json)) {
+    if (!isPlainObject(json)) {
         return str;
     }
     const keys = Object.keys(json);
@@ -31,7 +31,7 @@ export function json2xpath(json: any, index: number, str: Array<string>): string
             str.splice(index - 3, 0, ns + ":");
             index++;
             continue;
-        } else if (json[key] && !isObject(json[key])) {
+        } else if (json[key] && !isPlainObject(json[key])) {
             // if next child is not an object, final leaf with value
             const val = json[key];
             if (j === 0) {
@@ -64,8 +64,8 @@ export function xpath2json(xpath: string, namespaces: Record<string, string>): R
         if (sub === "") {
             continue;
         }
-        let rootNamespace: string = null;
-        let key: string = null;
+        let rootNamespace: string | null = null;
+        let key: string | null = null;
         tmpObj = {};
         const reg = /\[(.*?)\]/g;
         if (sub.replace(reg, "").split(":").length > 1 && i === 1) {
@@ -81,17 +81,16 @@ export function xpath2json(xpath: string, namespaces: Record<string, string>): R
             tmpObj[key] = {};
             tmpObj[key].$ = $; // attach all the required namespaces
         }
-
-        if (sub.match(reg)) {
+        const values = sub.match(reg);
+        if (values) {
             // handle elements with values for leaves
-            const values = sub.match(reg);
             sub = sub.replace(/\[[^\]]*\]/g, "");
             if (!tmpObj[sub]) {
                 // create the parent
                 tmpObj[sub] = {};
             }
             for (let j = 0; j < values.length; j++) {
-                let val = values[j];
+                let val: string = values[j];
                 val = val.replace(/[[\]']+/g, "");
                 key = val.split("=")[0];
                 val = val.split("=")[1];
@@ -140,7 +139,7 @@ export function xpath2json(xpath: string, namespaces: Record<string, string>): R
 }
 
 export function addLeaves(xpath: string, payload: unknown): string {
-    if (!isObject(payload)) {
+    if (!isPlainObject(payload)) {
         return xpath;
     }
 

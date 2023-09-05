@@ -84,8 +84,8 @@ export default class NetconfCodec {
         } catch (err) {
             if (err instanceof SyntaxError) {
                 if (bytes.byteLength === 0) {
-                    // empty payload -> void/undefined
-                    return undefined;
+                    // empty payload -> void/null
+                    return null;
                 } else {
                     // be relaxed about what is received -> string without quotes
                     return bytes.toString();
