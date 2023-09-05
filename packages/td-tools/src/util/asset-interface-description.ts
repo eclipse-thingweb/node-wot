@@ -55,18 +55,6 @@ interface SubmodelInformation {
     endpointMetadataArray: Array<Record<string, unknown>>;
 }
 
-// TODO can/shall we define als AAS/AID contructs? Difficult since idShort and value array is used *everywhere*
-interface EndpointMetadata {
-    idShort: "EndpointMetadata";
-    value: Array<EndpointMetadataValue>;
-    modelType: "SubmodelElementCollection";
-}
-
-interface EndpointMetadataValue {
-    idShort: string; // base, contentType, securityDefinitions
-}
-
-const noSecSS: SecurityScheme = { scheme: "nosec" };
 const noSecName = 0 + "_sc";
 
 export class AssetInterfaceDescriptionUtil {
@@ -423,6 +411,7 @@ export class AssetInterfaceDescriptionUtil {
             thing.securityDefinitions = this.getSecurityDefinitionsFromEndpointMetadata(endpointMetadata);
             thing.security = this.getSecurityFromEndpointMetadata(endpointMetadata);
             // iterate over securitySchemes
+            // eslint-disable-next-line unused-imports/no-unused-vars
             for (const [key, value] of Object.entries(thing.securityDefinitions)) {
                 // console.log(key, value);
                 // TODO we could change the name to avoid name collisions. Shall we do so?
