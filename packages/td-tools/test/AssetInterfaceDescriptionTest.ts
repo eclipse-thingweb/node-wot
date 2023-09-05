@@ -15,6 +15,7 @@
 
 import { suite, test } from "@testdeck/mocha";
 import { expect } from "chai";
+import fetch from "node-fetch";
 
 import { AssetInterfaceDescriptionUtil } from "../src/util/asset-interface-description";
 import { promises as fs } from "fs";
