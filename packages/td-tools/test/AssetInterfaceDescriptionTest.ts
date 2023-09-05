@@ -579,7 +579,7 @@ class AssetInterfaceDescriptionUtilTest {
         // Note: proper AID submodel checks done in previous test-cases
     }
 
-    @test async "should correctly transform counter TD into JSON AAS"() {
+    @test.skip async "should correctly transform counter TD into JSON AAS"() {
         // built-in fetch requires Node.js 18+
         const response = await fetch("http://plugfest.thingweb.io:8083/counter");
         const counterTD = await response.json();
