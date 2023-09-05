@@ -42,7 +42,7 @@ class OAuthServerTests {
             method: method,
         };
         this.server = new HttpServer({
-            security: authConfig,
+            security: [authConfig],
         });
 
         await this.server.start(new MockServient());
@@ -79,7 +79,7 @@ class OAuthServerTests {
 
     @test async "should configure oauth"() {
         /* eslint-disable dot-notation */
-        this.server["httpSecurityScheme"].should.be.equal("OAuth");
+        this.server["supportedSecurityScheme"].should.contain("oauth2");
         expect(this.server["oAuthValidator"]).to.be.instanceOf(EndpointValidator);
         /* eslint-enable dot-notation */
     }

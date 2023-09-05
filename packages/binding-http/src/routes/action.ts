@@ -14,7 +14,13 @@
  ********************************************************************************/
 import { IncomingMessage, ServerResponse } from "http";
 import { Content, Helpers, ProtocolHelpers, createLoggers } from "@node-wot/core";
-import { isEmpty, respondUnallowedMethod, validOrDefaultRequestContentType } from "./common";
+import {
+    isEmpty,
+    respondUnallowedMethod,
+    securitySchemeToHTTPHeader,
+    setCORSForThing,
+    validOrDefaultRequestContentType,
+} from "./common";
 import HttpServer from "../http-server";
 
 const { error, warn } = createLoggers("binding-http", "routes", "action");
@@ -56,12 +62,15 @@ export default async function actionRoute(
         return;
     }
     // TODO: refactor this part to move into a common place
+    setCORSForThing(req, res, thing);
     let corsPreflightWithCredentials = false;
-    if (this.getHttpSecurityScheme() !== "NoSec" && !(await this.checkCredentials(thing, req))) {
+    const securityScheme = thing.securityDefinitions[Helpers.toStringArray(thing.security)[0]].scheme;
+
+    if (securityScheme !== "nosec" && !(await this.checkCredentials(thing, req))) {
         if (req.method === "OPTIONS" && req.headers.origin) {
             corsPreflightWithCredentials = true;
         } else {
-            res.setHeader("WWW-Authenticate", `${this.getHttpSecurityScheme()} realm="${thing.id}"`);
+            res.setHeader("WWW-Authenticate", `${securitySchemeToHTTPHeader(securityScheme)} realm="${thing.id}"`);
             res.writeHead(401);
             res.end();
             return;

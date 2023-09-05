@@ -66,7 +66,7 @@ export default class HttpServer implements ProtocolServer {
     private readonly address?: string = undefined;
     private readonly baseUri?: string = undefined;
     private readonly urlRewrite?: Record<string, string> = undefined;
-    private readonly httpSecurityScheme: string = "NoSec"; // HTTP header compatible string
+    private readonly supportedSecurityScheme: string[] = ["nosec"];
     private readonly validOAuthClients: RegExp = /.*/g;
     private readonly server: http.Server | https.Server;
     private readonly middleware: MiddlewareRequestHandler | null = null;
@@ -174,30 +174,28 @@ export default class HttpServer implements ProtocolServer {
 
         // Auth
         if (config.security) {
-            // storing HTTP header compatible string
-            switch (config.security.scheme) {
-                case "nosec":
-                    this.httpSecurityScheme = "NoSec";
-                    break;
-                case "basic":
-                    this.httpSecurityScheme = "Basic";
-                    break;
-                case "digest":
-                    this.httpSecurityScheme = "Digest";
-                    break;
-                case "bearer":
-                    this.httpSecurityScheme = "Bearer";
-                    break;
-                case "oauth2":
-                    {
-                        this.httpSecurityScheme = "OAuth";
-                        const oAuthConfig = config.security as OAuth2ServerConfig;
-                        this.validOAuthClients = new RegExp(oAuthConfig.allowedClients ?? ".*");
-                        this.oAuthValidator = createValidator(oAuthConfig.method);
-                    }
-                    break;
-                default:
-                    throw new Error(`HttpServer does not support security scheme '${config.security.scheme}`);
+            if (config.security.length > 1) {
+                // clear the default
+                this.supportedSecurityScheme = [];
+            }
+            for (const securityScheme of config.security) {
+                switch (securityScheme.scheme) {
+                    case "nosec":
+                    case "basic":
+                    case "digest":
+                    case "bearer":
+                        break;
+                    case "oauth2":
+                        {
+                            const oAuthConfig = securityScheme as OAuth2ServerConfig;
+                            this.validOAuthClients = new RegExp(oAuthConfig.allowedClients ?? ".*");
+                            this.oAuthValidator = createValidator(oAuthConfig.method);
+                        }
+                        break;
+                    default:
+                        throw new Error(`HttpServer does not support security scheme '${securityScheme.scheme}`);
+                }
+                this.supportedSecurityScheme.push(securityScheme.scheme);
             }
         }
     }
@@ -263,10 +261,6 @@ export default class HttpServer implements ProtocolServer {
         }
     }
 
-    public getHttpSecurityScheme(): string {
-        return this.httpSecurityScheme;
-    }
-
     private updateInteractionNameWithUriVariablePattern(
         interactionName: string,
         uriVariables: PropertyElement["uriVariables"] = {},
@@ -326,9 +320,11 @@ export default class HttpServer implements ProtocolServer {
                     // media types
                 } // addresses
 
-                if (this.scheme === "https") {
-                    this.fillSecurityScheme(thing);
+                if (this.scheme === "http" && Object.keys(thing.securityDefinitions).length !== 0) {
+                    warn(`HTTP Server will attempt to use your security schemes even if you are not using HTTPS.`);
                 }
+
+                this.fillSecurityScheme(thing);
             }
         }
     }
@@ -506,24 +502,25 @@ export default class HttpServer implements ProtocolServer {
             throw new Error("Servient not set");
         }
 
-        const creds = this.servient.getCredentials(thing.id);
-
-        switch (this.httpSecurityScheme) {
-            case "NoSec":
+        const credentials = this.servient.retrieveCredentials(thing.id);
+        // Multiple security schemes are deprecated we are not supporting them. We are only supporting one security value.
+        const selected = Helpers.toStringArray(thing.security)[0];
+        const thingSecurityScheme = thing.securityDefinitions[selected];
+        debug(`Verifying credentials with security scheme '${thingSecurityScheme.scheme}'`);
+        switch (thingSecurityScheme.scheme) {
+            case "nosec":
                 return true;
-            case "Basic": {
+            case "basic": {
                 const basic = bauth(req);
-                const basicCreds = creds as { username: string; password: string };
-                return (
-                    creds !== undefined &&
-                    basic !== undefined &&
-                    basic.name === basicCreds.username &&
-                    basic.pass === basicCreds.password
-                );
+                if (basic === undefined) return false;
+                if (!credentials || credentials.length === 0) return false;
+
+                const basicCredentials = credentials as { username: string; password: string }[];
+                return basicCredentials.some((cred) => basic.name === cred.username && basic.pass === cred.password);
             }
-            case "Digest":
+            case "digest":
                 return false;
-            case "OAuth": {
+            case "oauth2": {
                 const oAuthScheme = thing.securityDefinitions[thing.security[0] as string] as OAuth2SecurityScheme;
 
                 // TODO: Support security schemes defined at affordance level
@@ -549,8 +546,12 @@ export default class HttpServer implements ProtocolServer {
                 if (req.headers.authorization === undefined) return false;
                 // TODO proper token evaluation
                 const auth = req.headers.authorization.split(" ");
-                const bearerCredentials = creds as { token: string };
-                return auth[0] === "Bearer" && creds !== undefined && auth[1] === bearerCredentials.token;
+
+                if (auth.length !== 2 || auth[0] !== "Bearer") return false;
+                if (!credentials || credentials.length === 0) return false;
+
+                const bearerCredentials = credentials as { token: string }[];
+                return bearerCredentials.some((cred) => cred.token === auth[1]);
             }
             default:
                 return false;
@@ -558,22 +559,66 @@ export default class HttpServer implements ProtocolServer {
     }
 
     private fillSecurityScheme(thing: ExposedThing) {
-        if (thing.securityDefinitions) {
+        // User selected one security scheme
+        if (thing.security) {
+            // multiple security schemes are deprecated we are not supporting them
+            const securityScheme = Helpers.toStringArray(thing.security)[0];
             const secCandidate = Object.keys(thing.securityDefinitions).find((key) => {
-                let scheme = thing.securityDefinitions[key].scheme as string;
-                // HTTP Authentication Scheme for OAuth does not contain the version number
-                // see https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml
-                // remove version number for oauth2 schemes
-                scheme = scheme === "oauth2" ? scheme.split("2")[0] : scheme;
-                return scheme === this.httpSecurityScheme.toLowerCase();
+                return key === securityScheme;
             });
 
             if (!secCandidate) {
                 throw new Error(
-                    "Servient does not support thing security schemes. Current scheme supported: " +
-                        this.httpSecurityScheme +
-                        " secCandidate " +
+                    "Security scheme not found in thing security definitions. Thing security definitions: " +
                         Object.keys(thing.securityDefinitions).join(", ")
+                );
+            }
+
+            const isSupported = this.supportedSecurityScheme.find((supportedScheme) => {
+                const thingScheme = thing.securityDefinitions[secCandidate].scheme;
+                return thingScheme === supportedScheme.toLocaleLowerCase();
+            });
+
+            if (!isSupported) {
+                throw new Error(
+                    "Servient does not support thing security schemes. Current scheme supported: " +
+                        this.supportedSecurityScheme.join(", ")
+                );
+            }
+            // We don't need to do anything else, the user has selected one supported security scheme.
+            return;
+        }
+
+        // The user let the servient choose the security scheme
+        if (!thing.securityDefinitions || Object.keys(thing.securityDefinitions).length === 0) {
+            // We are using the first supported security scheme as default
+            thing.securityDefinitions = {
+                [this.supportedSecurityScheme[0]]: { scheme: this.supportedSecurityScheme[0] },
+            };
+            thing.security = [this.supportedSecurityScheme[0]];
+            return;
+        }
+
+        if (thing.securityDefinitions) {
+            // User provided a bunch of security schemes but no thing.security
+            // we select one for him. We select the first supported scheme.
+            const secCandidate = Object.keys(thing.securityDefinitions).find((key) => {
+                let scheme = thing.securityDefinitions[key].scheme;
+                // HTTP Authentication Scheme for OAuth does not contain the version number
+                // see https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml
+                // remove version number for oauth2 schemes
+                scheme = scheme === "oauth2" ? scheme.split("2")[0] : scheme;
+                return this.supportedSecurityScheme.includes(scheme.toLocaleLowerCase());
+            });
+
+            if (!secCandidate) {
+                throw new Error(
+                    "Servient does not support any of thing security schemes. Current scheme supported: " +
+                        this.supportedSecurityScheme.join(",") +
+                        " thing security schemes: " +
+                        Object.values(thing.securityDefinitions)
+                            .map((schemeDef) => schemeDef.scheme)
+                            .join(", ")
                 );
             }
 
@@ -582,11 +627,6 @@ export default class HttpServer implements ProtocolServer {
             thing.securityDefinitions[secCandidate] = selectedSecurityScheme;
 
             thing.security = [secCandidate];
-        } else {
-            thing.securityDefinitions = {
-                noSec: { scheme: "nosec" },
-            };
-            thing.security = ["noSec"];
         }
     }
 
@@ -605,14 +645,6 @@ export default class HttpServer implements ProtocolServer {
                 )}:${req.socket.remotePort}`
             );
         });
-
-        // Set CORS headers
-        if (this.httpSecurityScheme !== "NoSec" && req.headers.origin) {
-            res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
-            res.setHeader("Access-Control-Allow-Credentials", "true");
-        } else {
-            res.setHeader("Access-Control-Allow-Origin", "*");
-        }
 
         const contentTypeHeader = req.headers["content-type"];
         let contentType: string = Array.isArray(contentTypeHeader) ? contentTypeHeader[0] : contentTypeHeader;
