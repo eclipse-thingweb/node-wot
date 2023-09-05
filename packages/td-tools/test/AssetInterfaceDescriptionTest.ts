@@ -394,7 +394,7 @@ class AssetInterfaceDescriptionUtilTest {
     };
 
     @test async "should correctly transform sample TD into JSON submodel"() {
-        const sm = this.assetInterfaceDescriptionUtil.transformTD2SM(JSON.stringify(this.td1), "http");
+        const sm = this.assetInterfaceDescriptionUtil.transformTD2SM(JSON.stringify(this.td1), ["http"]);
 
         const smObj = JSON.parse(sm);
         expect(smObj).to.have.property("idShort").that.equals("AssetInterfacesDescription");
@@ -545,7 +545,7 @@ class AssetInterfaceDescriptionUtilTest {
 
     @test
     async "should transform sample TD into JSON submodel without any properties due to unknown protocol prefix"() {
-        const sm = this.assetInterfaceDescriptionUtil.transformTD2SM(JSON.stringify(this.td1), "unknown");
+        const sm = this.assetInterfaceDescriptionUtil.transformTD2SM(JSON.stringify(this.td1), ["unknown"]);
 
         const smObj = JSON.parse(sm);
         expect(smObj).to.have.property("idShort").that.equals("AssetInterfacesDescription");
@@ -579,7 +579,7 @@ class AssetInterfaceDescriptionUtilTest {
         // Note: proper AID submodel checks done in previous test-cases
     }
 
-    @test.skip async "should correctly transform counter TD into JSON AAS"() {
+    @test async "should correctly transform counter TD into JSON AAS"() {
         // built-in fetch requires Node.js 18+
         const response = await fetch("http://plugfest.thingweb.io:8083/counter");
         const counterTD = await response.json();
@@ -587,12 +587,14 @@ class AssetInterfaceDescriptionUtilTest {
         const sm = this.assetInterfaceDescriptionUtil.transformTD2AAS(JSON.stringify(counterTD), ["http", "coap"]);
 
         const aasObj = JSON.parse(sm);
-        expect(aasObj).to.have.property("assetAdministrationShells").to.be.an("array");
-        expect(aasObj).to.have.property("submodels").to.be.an("array").to.have.lengthOf(2);
-
         // TODO proper AID submodel checks
         console.log("XXX\n\n");
         console.log(JSON.stringify(aasObj));
         console.log("\n\nXXX");
+
+        expect(aasObj).to.have.property("assetAdministrationShells").to.be.an("array");
+        expect(aasObj).to.have.property("submodels").to.be.an("array").to.have.lengthOf(1);
+        const submodel = aasObj.submodels[0];
+        expect(submodel).to.have.property("submodelElements").to.be.an("array").to.have.lengthOf(2);
     }
 }

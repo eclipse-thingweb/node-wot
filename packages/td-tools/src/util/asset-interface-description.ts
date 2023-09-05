@@ -584,20 +584,9 @@ export class AssetInterfaceDescriptionUtil {
      * @returns transformed AAS in JSON format
      */
     public transformTD2AAS(td: string, protocols: string[]): string {
-        const submodelObjs: unknown[] = [];
-        let submodelId;
-
-        // apply selection like HTTP only or so..
-        for (const protocol of protocols) {
-            const submodel = this.transformTD2SM(td, protocol);
-            const submodelObj = JSON.parse(submodel);
-            submodelObjs.push(submodelObj);
-            if (submodelId === undefined) {
-                submodelId = submodelObj.id;
-            }
-        }
-
-        // TODO how should the structure w.r.t. submodel ID reference look like if there are several submodels
+        const submodel = this.transformTD2SM(td, protocols);
+        const submodelObj = JSON.parse(submodel);
+        const submodelId = submodelObj.id;
 
         // configuration
         const aasName = "SampleAAS";
@@ -625,7 +614,7 @@ export class AssetInterfaceDescriptionUtil {
                     modelType: "AssetAdministrationShell",
                 },
             ],
-            submodels: submodelObjs,
+            submodels: [submodelObj],
             conceptDescriptions: [],
         };
 
@@ -636,20 +625,40 @@ export class AssetInterfaceDescriptionUtil {
      * Transform WoT ThingDescription (TD) to AID submodel definition in JSON format
      *
      * @param td input TD
-     * @param protocol protocol prefix of interest (e.g., "http")
+     * @param protocols protocol prefixes of interest (e.g., ["http", "coap"])
      * @returns transformed AID submodel definition in JSON format
      */
-    public transformTD2SM(tdAsString: string, protocol: string): string {
+    public transformTD2SM(tdAsString: string, protocols: string[]): string {
         const td: ThingDescription = TDParser.parseTD(tdAsString);
+
+        const aidID = td.id ? td.id : "ID_" + Math.random();
 
         console.log("TD " + td.title + " parsed...");
 
-        // use protocol binding prefix like "http" for name
-        const submodelElementIdShort = protocol === undefined ? "Interface" : "Interface" + protocol.toUpperCase();
+        const submdelElements = [];
+        for (const protocol of protocols) {
+            // use protocol binding prefix like "http" for name
+            const submodelElementIdShort = protocol === undefined ? "Interface" : "Interface" + protocol.toUpperCase();
+
+            const submdelElement = {
+                idShort: submodelElementIdShort,
+                // semanticId needed?
+                // embeddedDataSpecifications needed?
+                value: [
+                    // support
+                    this.createEndpointMetadata(td), // EndpointMetadata like base, security and securityDefinitions
+                    this.createInterfaceMetadata(td, protocol), // InterfaceMetadata like properties, actions and events
+                    // externalDescriptor ?
+                ],
+                modelType: "SubmodelElementCollection",
+            };
+
+            submdelElements.push(submdelElement);
+        }
 
         const aidObject = {
             idShort: "AssetInterfacesDescription",
-            id: "TODO XYZ",
+            id: aidID,
             kind: "Instance",
             // semanticId needed?
             description: [
@@ -659,20 +668,7 @@ export class AssetInterfaceDescriptionUtil {
                     text: td.title, // TODO should be description, where does title go to? later on in submodel?
                 },
             ],
-            submodelElements: [
-                {
-                    idShort: submodelElementIdShort,
-                    // semanticId needed?
-                    // embeddedDataSpecifications needed?
-                    value: [
-                        // support
-                        this.createEndpointMetadata(td), // EndpointMetadata like base, security and securityDefinitions
-                        this.createInterfaceMetadata(td, protocol), // InterfaceMetadata like properties, actions and events
-                        // externalDescriptor ?
-                    ],
-                    modelType: "SubmodelElementCollection",
-                },
-            ],
+            submodelElements: submdelElements,
             modelType: "Submodel",
         };
 
