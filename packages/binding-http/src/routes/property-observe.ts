@@ -66,6 +66,14 @@ export default async function propertyObserveRoute(
     if (req.method === "GET") {
         const listener = async (value: Content) => {
             try {
+                if (!res.headersSent) {
+                    // We are polite and use the same request as long as the client
+                    // does not close the connection (or we hit the timeout; see below).
+                    // Therefore we are sending the headers
+                    // only if we didn't have sent them before.
+                    res.setHeader("Content-Type", value.type);
+                    res.writeHead(200);
+                }
                 // send property data
                 value.body.pipe(res);
             } catch (err) {
@@ -92,6 +100,7 @@ export default async function propertyObserveRoute(
         res.setTimeout(60 * 60 * 1000, () => thing.handleUnobserveProperty(_params.property, listener, options));
     } else if (req.method === "HEAD") {
         // HEAD support for long polling subscription
+        // TODO: set the Content-Type header to the type of the property
         res.writeHead(202);
         res.end();
     } else {
