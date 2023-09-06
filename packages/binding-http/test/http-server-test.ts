@@ -416,7 +416,7 @@ class HttpServerTest {
         await httpServer.start(new Servient());
         expect(httpServer.getPort()).to.eq(port); // port test
         // eslint-disable-next-line dot-notation
-        expect(httpServer["supportedSecurityScheme"][0]).to.eq("nosec");
+        expect(httpServer["supportedSecuritySchemes"][0]).to.eq("nosec");
         await httpServer.stop();
     }
 

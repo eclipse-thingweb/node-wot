@@ -79,7 +79,7 @@ class OAuthServerTests {
 
     @test async "should configure oauth"() {
         /* eslint-disable dot-notation */
-        this.server["supportedSecurityScheme"].should.contain("oauth2");
+        this.server["supportedSecuritySchemes"].should.contain("oauth2");
         expect(this.server["oAuthValidator"]).to.be.instanceOf(EndpointValidator);
         /* eslint-enable dot-notation */
     }

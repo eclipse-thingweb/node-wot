@@ -80,7 +80,7 @@ export function isEmpty(obj: Record<string, unknown>): boolean {
     return true;
 }
 
-export function securitySchemeToHTTPHeader(scheme: string): string {
+export function securitySchemeToHttpHeader(scheme: string): string {
     const [first, ...rest] = scheme;
     // HTTP Authentication Scheme for OAuth does not contain the version number
     // see https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml
@@ -88,7 +88,7 @@ export function securitySchemeToHTTPHeader(scheme: string): string {
     return first.toUpperCase() + rest.join("").toLowerCase();
 }
 
-export function setCORSForThing(req: IncomingMessage, res: ServerResponse, thing: ExposedThing): void {
+export function setCorsForThing(req: IncomingMessage, res: ServerResponse, thing: ExposedThing): void {
     const securityScheme = thing.securityDefinitions[Helpers.toStringArray(thing.security)[0]].scheme;
     // Set CORS headers
     if (securityScheme !== "nosec" && req.headers.origin) {

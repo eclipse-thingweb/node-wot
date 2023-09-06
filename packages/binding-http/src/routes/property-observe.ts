@@ -14,7 +14,7 @@
  ********************************************************************************/
 import { IncomingMessage, ServerResponse } from "http";
 import { Content, Helpers, ProtocolHelpers, createLoggers } from "@node-wot/core";
-import { isEmpty, respondUnallowedMethod, securitySchemeToHTTPHeader, setCORSForThing } from "./common";
+import { isEmpty, respondUnallowedMethod, securitySchemeToHttpHeader, setCorsForThing } from "./common";
 import HttpServer from "../http-server";
 
 const { debug, warn } = createLoggers("binding-http", "routes", "property", "observe");
@@ -51,7 +51,7 @@ export default async function propertyObserveRoute(
     }
 
     // TODO: refactor this part to move into a common place
-    setCORSForThing(req, res, thing);
+    setCorsForThing(req, res, thing);
     let corsPreflightWithCredentials = false;
     const securityScheme = thing.securityDefinitions[Helpers.toStringArray(thing.security)[0]].scheme;
 
@@ -59,7 +59,7 @@ export default async function propertyObserveRoute(
         if (req.method === "OPTIONS" && req.headers.origin) {
             corsPreflightWithCredentials = true;
         } else {
-            res.setHeader("WWW-Authenticate", `${securitySchemeToHTTPHeader(securityScheme)} realm="${thing.id}"`);
+            res.setHeader("WWW-Authenticate", `${securitySchemeToHttpHeader(securityScheme)} realm="${thing.id}"`);
             res.writeHead(401);
             res.end();
             return;
