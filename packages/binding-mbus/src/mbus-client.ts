@@ -105,6 +105,10 @@ export default class MBusClient implements ProtocolClient {
                 new MBusConnection(host, port, { connectionTimeout: form["mbus:timeout"] || DEFAULT_TIMEOUT })
             );
             connection = this._connections.get(hostAndPort);
+            if (!connection) {
+                debug(`MbusConnection undefined`);
+                throw new Error("MbusConnection undefined");
+            }
         } else {
             debug(`Reusing MbusConnection for ${hostAndPort}`);
         }
@@ -124,8 +128,14 @@ export default class MBusClient implements ProtocolClient {
         const query = parsed.searchParams;
 
         input["mbus:unitID"] = parseInt(pathComp[1], 10) || input["mbus:unitID"];
-        input["mbus:offset"] = parseInt(query.get("offset"), 10) || input["mbus:offset"];
-        input["mbus:timeout"] = parseInt(query.get("timeout"), 10) || input["mbus:timeout"];
+        const stringOffset = query.get("offset");
+        if (stringOffset !== null) {
+            input["mbus:offset"] = parseInt(stringOffset, 10);
+        }
+        const stringTimeout = query.get("timeout");
+        if (stringTimeout !== null) {
+            input["mbus:timeout"] = parseInt(stringTimeout, 10);
+        }
     }
 
     private validateAndFillDefaultForm(form: MBusForm): MBusForm {

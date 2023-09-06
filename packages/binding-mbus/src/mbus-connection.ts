@@ -61,14 +61,14 @@ export class MBusConnection {
     client: any; // MBusClient.IMBusRTU
     connecting: boolean;
     connected: boolean;
-    timer: NodeJS.Timer; // connection idle timer
-    currentTransaction: MBusTransaction; // transaction currently in progress or null
+    timer?: NodeJS.Timer; // connection idle timer
+    currentTransaction?: MBusTransaction; // transaction currently in progress or undefined
     queue: Array<MBusTransaction>; // queue of further transactions
     config: {
         connectionTimeout?: number;
         operationTimeout?: number;
         connectionRetryTime?: number;
-        maxRetries?: number;
+        maxRetries: number;
     };
 
     constructor(
@@ -92,8 +92,8 @@ export class MBusConnection {
         });
         this.connecting = false;
         this.connected = false;
-        this.timer = null;
-        this.currentTransaction = null;
+        this.timer = undefined;
+        this.currentTransaction = undefined;
         this.queue = new Array<MBusTransaction>();
 
         this.config = Object.assign(configDefaults, config);
@@ -156,7 +156,7 @@ export class MBusConnection {
         }
     }
 
-    async execute(op: PropertyOperation): Promise<Content | PromiseLike<Content>> {
+    async execute(op: PropertyOperation): Promise<Content | PromiseLike<Content> | undefined> {
         this.trigger();
         return op.execute();
     }
@@ -182,20 +182,25 @@ export class MBusConnection {
                 // inform all the operations that the connection cannot be recovered
                 this.queue.forEach((transaction) => {
                     transaction.operations.forEach((op) => {
-                        op.failed(error);
+                        op.failed(error instanceof Error ? error : new Error(JSON.stringify(error)));
                     });
                 });
             }
         } else if (this.connected && this.currentTransaction == null && this.queue.length > 0) {
             // take next transaction from queue and execute
             this.currentTransaction = this.queue.shift();
+            if (!this.currentTransaction) {
+                warn(`Current transaction is undefined -> transaction not executed`);
+                return;
+            }
+
             try {
                 await this.executeTransaction(this.currentTransaction);
-                this.currentTransaction = null;
+                this.currentTransaction = undefined;
                 this.trigger();
             } catch (err) {
                 warn(`Transaction failed: ${err}`);
-                this.currentTransaction = null;
+                this.currentTransaction = undefined;
                 this.trigger();
             }
         }
@@ -211,7 +216,9 @@ export class MBusConnection {
         } catch (err) {
             warn(`Read operation failed on unit ${transaction.unitId}. ${err}.`);
             // inform all operations and the invoker
-            transaction.operations.forEach((op) => op.failed(err));
+            transaction.operations.forEach((op) =>
+                op.failed(error instanceof Error ? error : new Error(JSON.stringify(error)))
+            );
             throw err;
         }
     }
@@ -249,7 +256,7 @@ export class MBusConnection {
             }
         });
         clearInterval(this.timer);
-        this.timer = null;
+        this.timer = undefined;
     }
 }
 
@@ -259,11 +266,14 @@ export class MBusConnection {
 export class PropertyOperation {
     unitId: number;
     base: number;
-    resolve: (value?: Content | PromiseLike<Content>) => void;
-    reject: (reason?: Error) => void;
+    resolve?: (value?: Content | PromiseLike<Content>) => void;
+    reject?: (reason?: Error) => void;
 
     constructor(form: MBusForm) {
         this.unitId = form["mbus:unitID"];
+        if (form["mbus:offset"] === undefined) {
+            throw new Error("form['mbus:offset'] is undefined");
+        }
         this.base = form["mbus:offset"];
     }
 
@@ -271,7 +281,7 @@ export class PropertyOperation {
      * Trigger execution of this operation.
      *
      */
-    async execute(): Promise<Content | PromiseLike<Content>> {
+    async execute(): Promise<(Content | PromiseLike<Content>) | undefined> {
         return new Promise(
             (resolve: (value?: Content | PromiseLike<Content>) => void, reject: (reason?: Error) => void) => {
                 this.resolve = resolve;
@@ -310,6 +320,9 @@ export class PropertyOperation {
 
         const resp = new Content("application/json", Readable.from(JSON.stringify(payload)));
 
+        if (!this.resolve) {
+            throw new Error("Function 'done' was invoked before executing the Mbus operation");
+        }
         // resolve the Promise given to the invoking script
         this.resolve(resp);
     }
@@ -319,9 +332,12 @@ export class PropertyOperation {
      *
      * @param reason Reason of failure
      */
-    failed(reason: string): void {
-        warn("Operation failed:", reason);
+    failed(reason: Error): void {
+        warn(`Operation failed: ${reason}`);
+        if (!this.reject) {
+            throw new Error("Function 'failed' was invoked before executing the Mbus operation");
+        }
         // reject the Promise given to the invoking script
-        this.reject(new Error(reason));
+        this.reject(reason);
     }
 }
