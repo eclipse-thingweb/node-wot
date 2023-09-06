@@ -12,7 +12,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-import { should } from "chai";
+import { expect, should } from "chai";
 import * as chai from "chai";
 import MBusClient from "../src/mbus-client";
 import { MBusForm } from "../src/mbus";
@@ -56,8 +56,16 @@ describe("mbus client test", () => {
         // eslint-disable-next-line dot-notation
         client["overrideFormFromURLPath"](form);
         form["mbus:unitID"].should.be.equal(2, "Form value not overridden");
-        form["mbus:offset"].should.be.equal(2, "Form value not overridden");
-        form["mbus:timeout"].should.be.equal(5, "Form value not overridden");
+        if (form["mbus:offset"]) {
+            form["mbus:offset"].should.be.equal(2, "Form value not overridden");
+        } else {
+            expect.fail("mbus:offset undefined");
+        }
+        if (form["mbus:timeout"]) {
+            form["mbus:timeout"].should.be.equal(5, "Form value not overridden");
+        } else {
+            expect.fail("mbus:timeout undefined");
+        }
     });
 
     describe("read resource", () => {

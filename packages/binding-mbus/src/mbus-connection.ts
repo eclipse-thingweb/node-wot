@@ -61,14 +61,14 @@ export class MBusConnection {
     client: any; // MBusClient.IMBusRTU
     connecting: boolean;
     connected: boolean;
-    timer: NodeJS.Timer; // connection idle timer
-    currentTransaction: MBusTransaction; // transaction currently in progress or null
+    timer?: NodeJS.Timer; // connection idle timer
+    currentTransaction?: MBusTransaction; // transaction currently in progress or undefined
     queue: Array<MBusTransaction>; // queue of further transactions
     config: {
         connectionTimeout?: number;
         operationTimeout?: number;
         connectionRetryTime?: number;
-        maxRetries?: number;
+        maxRetries: number;
     };
 
     constructor(
@@ -92,8 +92,8 @@ export class MBusConnection {
         });
         this.connecting = false;
         this.connected = false;
-        this.timer = null;
-        this.currentTransaction = null;
+        this.timer = undefined;
+        this.currentTransaction = undefined;
         this.queue = new Array<MBusTransaction>();
 
         this.config = Object.assign(configDefaults, config);
@@ -182,21 +182,25 @@ export class MBusConnection {
                 // inform all the operations that the connection cannot be recovered
                 this.queue.forEach((transaction) => {
                     transaction.operations.forEach((op) => {
-                        op.failed(error);
+                        op.failed(`${error}`);
                     });
                 });
             }
         } else if (this.connected && this.currentTransaction == null && this.queue.length > 0) {
             // take next transaction from queue and execute
             this.currentTransaction = this.queue.shift();
-            try {
-                await this.executeTransaction(this.currentTransaction);
-                this.currentTransaction = null;
-                this.trigger();
-            } catch (err) {
-                warn(`Transaction failed: ${err}`);
-                this.currentTransaction = null;
-                this.trigger();
+            if (!this.currentTransaction) {
+                warn(`Current transaction is undefined -> transaction not executed`);
+            } else {
+                try {
+                    await this.executeTransaction(this.currentTransaction);
+                    this.currentTransaction = undefined;
+                    this.trigger();
+                } catch (err) {
+                    warn(`Transaction failed: ${err}`);
+                    this.currentTransaction = undefined;
+                    this.trigger();
+                }
             }
         }
     }
@@ -211,7 +215,7 @@ export class MBusConnection {
         } catch (err) {
             warn(`Read operation failed on unit ${transaction.unitId}. ${err}.`);
             // inform all operations and the invoker
-            transaction.operations.forEach((op) => op.failed(err));
+            transaction.operations.forEach((op) => op.failed(`${error}`));
             throw err;
         }
     }
@@ -249,7 +253,7 @@ export class MBusConnection {
             }
         });
         clearInterval(this.timer);
-        this.timer = null;
+        this.timer = undefined;
     }
 }
 
@@ -259,11 +263,14 @@ export class MBusConnection {
 export class PropertyOperation {
     unitId: number;
     base: number;
-    resolve: (value?: Content | PromiseLike<Content>) => void;
-    reject: (reason?: Error) => void;
+    resolve?: (value?: Content | PromiseLike<Content>) => void;
+    reject?: (reason?: Error) => void;
 
     constructor(form: MBusForm) {
         this.unitId = form["mbus:unitID"];
+        if (form["mbus:offset"] === undefined) {
+            throw new Error("form['mbus:offset'] is undefined");
+        }
         this.base = form["mbus:offset"];
     }
 
@@ -272,12 +279,10 @@ export class PropertyOperation {
      *
      */
     async execute(): Promise<Content | PromiseLike<Content>> {
-        return new Promise(
-            (resolve: (value?: Content | PromiseLike<Content>) => void, reject: (reason?: Error) => void) => {
-                this.resolve = resolve;
-                this.reject = reject;
-            }
-        );
+        return new Promise<Content>((resolve, reject) => {
+            this.resolve = resolve;
+            this.reject = reject;
+        });
     }
 
     /**
@@ -311,7 +316,11 @@ export class PropertyOperation {
         const resp = new Content("application/json", Readable.from(JSON.stringify(payload)));
 
         // resolve the Promise given to the invoking script
-        this.resolve(resp);
+        if (this.resolve) {
+            this.resolve(resp);
+        } else {
+            warn("resolve undefined");
+        }
     }
 
     /**
@@ -322,6 +331,10 @@ export class PropertyOperation {
     failed(reason: string): void {
         warn("Operation failed:", reason);
         // reject the Promise given to the invoking script
-        this.reject(new Error(reason));
+        if (this.reject) {
+            this.reject(new Error(reason));
+        } else {
+            warn("reject undefined");
+        }
     }
 }
