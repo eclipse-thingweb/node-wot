@@ -308,6 +308,10 @@ describe("Full OPCUA Thing Test", () => {
         opcuaServer = await startServer();
         endpoint = opcuaServer.getEndpointUrl();
         debug(`endpoint =  ${endpoint}`);
+
+        // ajdust TD to endpoint
+        thingDescription.base = endpoint;
+        (thingDescription.opcua as unknown as { endpoint: string }).endpoint = endpoint;
     });
     after(async () => {
         await opcuaServer.shutdown();
@@ -327,20 +331,22 @@ describe("Full OPCUA Thing Test", () => {
         let temperature = 10;
         thing.setPropertyReadHandler("temperature", async () => temperature);
 
-        const expThing = thing as ExposedThing;
-        const readHandler = expThing.__propertyHandlers.get("temperature")?.readHandler;
-        if (!readHandler) {
-            expect.fail("must have a readHandler");
+        try {
+            const expThing = thing as ExposedThing;
+            const readHandler = expThing.__propertyHandlers.get("temperature")?.readHandler;
+            if (!readHandler) {
+                expect.fail("must have a readHandler");
+            }
+            const temperatureCheck1 = await readHandler();
+            expect(temperatureCheck1).to.equal(10);
+
+            temperature = 100;
+
+            const temperatureCheck2 = await readHandler();
+            expect(temperatureCheck2).to.equal(100);
+        } finally {
+            await servient.shutdown();
         }
-        const temperatureCheck1 = await readHandler();
-        expect(temperatureCheck1).to.equal(10);
-
-        temperature = 100;
-
-        const temperatureCheck2 = await readHandler();
-        expect(temperatureCheck2).to.equal(100);
-
-        await servient.shutdown();
     });
 
     async function makeThing() {

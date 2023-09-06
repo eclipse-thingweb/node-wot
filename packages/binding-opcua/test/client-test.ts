@@ -40,9 +40,6 @@ describe("OPCUA Client", function () {
         const codecSerDes = ContentSerdes.get();
         codecSerDes.addCodec(new OpcuaJSONCodec());
     });
-    after(async () => {
-        await opcuaServer.shutdown();
-    });
 
     let client: OPCUAProtocolClient;
     before(async function () {
@@ -50,6 +47,10 @@ describe("OPCUA Client", function () {
     });
     after(async () => {
         await client.stop();
+    });
+    // server shall stop after client
+    after(async () => {
+        await opcuaServer.shutdown();
     });
 
     [
