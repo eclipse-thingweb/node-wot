@@ -127,8 +127,14 @@ export default async function thingDescriptionRoute(
     this: HttpServer,
     req: IncomingMessage,
     res: ServerResponse,
-    _params: { thing: string }
+    _params: { [k: string]: string | undefined }
 ): Promise<void> {
+    if (_params.thing === undefined) {
+        res.writeHead(400);
+        res.end();
+        return;
+    }
+
     const thing = this.getThings().get(_params.thing);
     if (!thing) {
         res.writeHead(404);

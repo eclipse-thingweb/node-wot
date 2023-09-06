@@ -78,9 +78,9 @@ export default class ModbusServer {
 
     public start(): Promise<unknown> {
         return new Promise((resolve) => {
-            this.serverTCP.on("SocketError", (err: Error) => {
+            this.serverTCP.on("SocketError", (err: Error | null) => {
                 // Handle socket error if needed, can be ignored
-                error(err.toString());
+                error("SocketError:", err?.toString());
             });
             this.serverTCP.on("error", (err) => {
                 debug(err?.toString());

@@ -23,8 +23,13 @@ export default async function actionRoute(
     this: HttpServer,
     req: IncomingMessage,
     res: ServerResponse,
-    _params: { thing: string; action: string }
+    _params: { [k: string]: string | undefined }
 ): Promise<void> {
+    if (_params.thing === undefined || _params.action === undefined) {
+        res.writeHead(400);
+        res.end();
+        return;
+    }
     const thing = this.getThings().get(_params.thing);
 
     if (!thing) {

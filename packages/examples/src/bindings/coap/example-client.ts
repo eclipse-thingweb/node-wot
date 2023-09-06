@@ -24,7 +24,8 @@ servient.addClientFactory(new CoapClientFactory());
 const wotHelper = new Helpers(servient);
 wotHelper
     .fetch("coap://plugfest.thingweb.io:5683/testthing")
-    .then(async (td: ThingDescription) => {
+    .then(async (fetched) => {
+        const td: ThingDescription = fetched as ThingDescription;
         // using await for serial execution (note 'async' in then() of fetch())
         try {
             const WoT = await servient.start();

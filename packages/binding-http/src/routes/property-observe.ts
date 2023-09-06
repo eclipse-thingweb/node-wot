@@ -22,8 +22,14 @@ export default async function propertyObserveRoute(
     this: HttpServer,
     req: IncomingMessage,
     res: ServerResponse,
-    _params: { thing: string; property: string }
+    _params: { [k: string]: string | undefined }
 ): Promise<void> {
+    if (_params.thing === undefined || _params.property === undefined) {
+        res.writeHead(400);
+        res.end();
+        return;
+    }
+
     const thing = this.getThings().get(_params.thing);
 
     if (!thing) {
@@ -62,7 +68,7 @@ export default async function propertyObserveRoute(
             return;
         }
     }
-
+    const propertyName = _params.property;
     if (req.method === "GET") {
         const listener = async (value: Content) => {
             try {
@@ -79,7 +85,7 @@ export default async function propertyObserveRoute(
             } catch (err) {
                 // Safe cast to NodeJS.ErrnoException we are checking if it is equal to ERR_HTTP_HEADERS_SENT
                 if ((err as NodeJS.ErrnoException)?.code === "ERR_HTTP_HEADERS_SENT") {
-                    thing.handleUnobserveProperty(_params.property, listener, options);
+                    thing.handleUnobserveProperty(propertyName, listener, options);
                     return;
                 }
                 const message = err instanceof Error ? err.message : JSON.stringify(err);
@@ -95,9 +101,9 @@ export default async function propertyObserveRoute(
         await thing.handleObserveProperty(_params.property, listener, options);
         res.on("finish", () => {
             debug(`HttpServer on port ${this.getPort()} closed connection`);
-            thing.handleUnobserveProperty(_params.property, listener, options);
+            thing.handleUnobserveProperty(propertyName, listener, options);
         });
-        res.setTimeout(60 * 60 * 1000, () => thing.handleUnobserveProperty(_params.property, listener, options));
+        res.setTimeout(60 * 60 * 1000, () => thing.handleUnobserveProperty(propertyName, listener, options));
     } else if (req.method === "HEAD") {
         // HEAD support for long polling subscription
         // TODO: set the Content-Type header to the type of the property

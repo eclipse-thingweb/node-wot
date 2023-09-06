@@ -289,9 +289,9 @@ class HttpServerTest {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         testThing.properties.test.forms = [];
-        testThing.setActionHandler("try", (input: WoT.InteractionOutput, params: InteractionOptions) => {
+        testThing.setActionHandler("try", (input: WoT.InteractionOutput, params?: InteractionOptions) => {
             return new Promise<string>((resolve, reject) => {
-                expect(params.uriVariables).to.deep.equal({ step: 5 });
+                expect(params?.uriVariables).to.deep.equal({ step: 5 });
                 resolve("TEST");
             });
         });
