@@ -156,7 +156,7 @@ export class MBusConnection {
         }
     }
 
-    async execute(op: PropertyOperation): Promise<Content | PromiseLike<Content>> {
+    async execute(op: PropertyOperation): Promise<Content | PromiseLike<Content> | undefined> {
         this.trigger();
         return op.execute();
     }
@@ -182,7 +182,7 @@ export class MBusConnection {
                 // inform all the operations that the connection cannot be recovered
                 this.queue.forEach((transaction) => {
                     transaction.operations.forEach((op) => {
-                        op.failed(`${error}`);
+                        op.failed(error instanceof Error ? error : new Error(JSON.stringify(error)));
                     });
                 });
             }
@@ -215,7 +215,9 @@ export class MBusConnection {
         } catch (err) {
             warn(`Read operation failed on unit ${transaction.unitId}. ${err}.`);
             // inform all operations and the invoker
-            transaction.operations.forEach((op) => op.failed(`${error}`));
+            transaction.operations.forEach((op) =>
+                op.failed(error instanceof Error ? error : new Error(JSON.stringify(error)))
+            );
             throw err;
         }
     }
@@ -278,11 +280,13 @@ export class PropertyOperation {
      * Trigger execution of this operation.
      *
      */
-    async execute(): Promise<Content | PromiseLike<Content>> {
-        return new Promise<Content>((resolve, reject) => {
-            this.resolve = resolve;
-            this.reject = reject;
-        });
+    async execute(): Promise<(Content | PromiseLike<Content>) | undefined> {
+        return new Promise(
+            (resolve: (value?: Content | PromiseLike<Content>) => void, reject: (reason?: Error) => void) => {
+                this.resolve = resolve;
+                this.reject = reject;
+            }
+        );
     }
 
     /**
@@ -315,12 +319,11 @@ export class PropertyOperation {
 
         const resp = new Content("application/json", Readable.from(JSON.stringify(payload)));
 
-        // resolve the Promise given to the invoking script
-        if (this.resolve) {
-            this.resolve(resp);
-        } else {
-            warn("resolve undefined");
+        if (!this.resolve) {
+            throw new Error("Function 'done' was invoked before executing the Mbus operation");
         }
+        // resolve the Promise given to the invoking script
+        this.resolve(resp);
     }
 
     /**
@@ -328,13 +331,12 @@ export class PropertyOperation {
      *
      * @param reason Reason of failure
      */
-    failed(reason: string): void {
-        warn("Operation failed:", reason);
-        // reject the Promise given to the invoking script
-        if (this.reject) {
-            this.reject(new Error(reason));
-        } else {
-            warn("reject undefined");
+    failed(reason: Error): void {
+        warn(`Operation failed: ${reason}`);
+        if (!this.reject) {
+            throw new Error("Function 'failed' was invoked before executing the Mbus operation");
         }
+        // reject the Promise given to the invoking script
+        this.reject(reason);
     }
 }
