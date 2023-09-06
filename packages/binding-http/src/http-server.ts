@@ -66,7 +66,7 @@ export default class HttpServer implements ProtocolServer {
     private readonly address?: string = undefined;
     private readonly baseUri?: string = undefined;
     private readonly urlRewrite?: Record<string, string> = undefined;
-    private readonly supportedSecurityScheme: string[] = ["nosec"];
+    private readonly supportedSecuritySchemes: string[] = ["nosec"];
     private readonly validOAuthClients: RegExp = /.*/g;
     private readonly server: http.Server | https.Server;
     private readonly middleware: MiddlewareRequestHandler | null = null;
@@ -176,7 +176,7 @@ export default class HttpServer implements ProtocolServer {
         if (config.security) {
             if (config.security.length > 1) {
                 // clear the default
-                this.supportedSecurityScheme = [];
+                this.supportedSecuritySchemes = [];
             }
             for (const securityScheme of config.security) {
                 switch (securityScheme.scheme) {
@@ -195,7 +195,7 @@ export default class HttpServer implements ProtocolServer {
                     default:
                         throw new Error(`HttpServer does not support security scheme '${securityScheme.scheme}`);
                 }
-                this.supportedSecurityScheme.push(securityScheme.scheme);
+                this.supportedSecuritySchemes.push(securityScheme.scheme);
             }
         }
     }
@@ -574,7 +574,7 @@ export default class HttpServer implements ProtocolServer {
                 );
             }
 
-            const isSupported = this.supportedSecurityScheme.find((supportedScheme) => {
+            const isSupported = this.supportedSecuritySchemes.find((supportedScheme) => {
                 const thingScheme = thing.securityDefinitions[secCandidate].scheme;
                 return thingScheme === supportedScheme.toLocaleLowerCase();
             });
@@ -582,7 +582,7 @@ export default class HttpServer implements ProtocolServer {
             if (!isSupported) {
                 throw new Error(
                     "Servient does not support thing security schemes. Current scheme supported: " +
-                        this.supportedSecurityScheme.join(", ")
+                        this.supportedSecuritySchemes.join(", ")
                 );
             }
             // We don't need to do anything else, the user has selected one supported security scheme.
@@ -593,9 +593,9 @@ export default class HttpServer implements ProtocolServer {
         if (!thing.securityDefinitions || Object.keys(thing.securityDefinitions).length === 0) {
             // We are using the first supported security scheme as default
             thing.securityDefinitions = {
-                [this.supportedSecurityScheme[0]]: { scheme: this.supportedSecurityScheme[0] },
+                [this.supportedSecuritySchemes[0]]: { scheme: this.supportedSecuritySchemes[0] },
             };
-            thing.security = [this.supportedSecurityScheme[0]];
+            thing.security = [this.supportedSecuritySchemes[0]];
             return;
         }
 
@@ -608,13 +608,13 @@ export default class HttpServer implements ProtocolServer {
                 // see https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml
                 // remove version number for oauth2 schemes
                 scheme = scheme === "oauth2" ? scheme.split("2")[0] : scheme;
-                return this.supportedSecurityScheme.includes(scheme.toLocaleLowerCase());
+                return this.supportedSecuritySchemes.includes(scheme.toLocaleLowerCase());
             });
 
             if (!secCandidate) {
                 throw new Error(
                     "Servient does not support any of thing security schemes. Current scheme supported: " +
-                        this.supportedSecurityScheme.join(",") +
+                        this.supportedSecuritySchemes.join(",") +
                         " thing security schemes: " +
                         Object.values(thing.securityDefinitions)
                             .map((schemeDef) => schemeDef.scheme)
