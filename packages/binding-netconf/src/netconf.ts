@@ -33,6 +33,7 @@ export interface NetConfCredentials {
     privateKey?: string;
 }
 
-export function isRpcMethod(method: string): method is RpcMethod {
+export function isRpcMethod(method?: string): method is RpcMethod {
+    if (!method) return false;
     return ["GET-CONFIG", "EDIT-CONFIG", "COMMIT", "RPC"].includes(method);
 }

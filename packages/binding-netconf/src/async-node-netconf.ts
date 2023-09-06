@@ -16,9 +16,9 @@ import * as nodeNetconf from "node-netconf";
 import * as xpath2json from "./xpath2json";
 import { promises as fsPromises } from "fs";
 import { NetConfCredentials, RpcMethod } from "./netconf";
-import { createDebugLogger } from "@node-wot/core";
+import { createLoggers } from "@node-wot/core";
 
-const debug = createDebugLogger("binding-netconf", "async-node-netconf");
+const { debug, warn } = createLoggers("binding-netconf", "async-node-netconf");
 
 type RouterParams = {
     host: string;
@@ -47,18 +47,18 @@ const METHOD_OBJ = {
     RPC: {},
 };
 export class Client {
-    private router: nodeNetconf.Client;
+    private router: nodeNetconf.Client | null;
 
     private connected: boolean;
 
-    private routerParams: RouterParams;
+    private routerParams?: RouterParams;
 
     constructor() {
         this.router = null;
         this.connected = false;
     }
 
-    getRouter(): nodeNetconf.Client {
+    getRouter(): nodeNetconf.Client | null {
         return this.router;
     }
 
@@ -92,13 +92,22 @@ export class Client {
                 // close the old one
                 this.closeRouter();
             }
+
+            if (!this.routerParams) {
+                reject(new Error("Router params not initialized"));
+                return;
+            }
+
             this.router = new nodeNetconf.Client(this.routerParams);
             this.router.open((err?: string) => {
                 if (err) {
                     reject(err);
                 } else {
                     debug(
-                        `New NetConf router opened connection with host ${this.routerParams.host}, port ${this.routerParams.port}, username ${this.routerParams.username}`
+                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                        `New NetConf router opened connection with host ${this.routerParams!.host}, port ${
+                            this.routerParams!.port
+                        }, username ${this.routerParams!.username}`
                     );
                     this.connected = true;
                     resolve(undefined);
@@ -142,6 +151,11 @@ export class Client {
                     break;
                 }
             }
+            if (this.router === null) {
+                reject(new Error("Router not initialized"));
+                return;
+            }
+
             this.router.rpc(finalRequest, (err: string, results: unknown) => {
                 if (err) {
                     reject(err);
@@ -152,7 +166,10 @@ export class Client {
     }
 
     closeRouter(): void {
-        this.router.close();
+        if (this.router === null) {
+            warn("Closing an already cleared router.");
+        }
+        this.router?.close();
         this.connected = false;
     }
 }
