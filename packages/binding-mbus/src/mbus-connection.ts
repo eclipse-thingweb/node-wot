@@ -191,16 +191,17 @@ export class MBusConnection {
             this.currentTransaction = this.queue.shift();
             if (!this.currentTransaction) {
                 warn(`Current transaction is undefined -> transaction not executed`);
-            } else {
-                try {
-                    await this.executeTransaction(this.currentTransaction);
-                    this.currentTransaction = undefined;
-                    this.trigger();
-                } catch (err) {
-                    warn(`Transaction failed: ${err}`);
-                    this.currentTransaction = undefined;
-                    this.trigger();
-                }
+                return;
+            }
+
+            try {
+                await this.executeTransaction(this.currentTransaction);
+                this.currentTransaction = undefined;
+                this.trigger();
+            } catch (err) {
+                warn(`Transaction failed: ${err}`);
+                this.currentTransaction = undefined;
+                this.trigger();
             }
         }
     }
