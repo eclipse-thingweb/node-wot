@@ -165,7 +165,7 @@ export default async function thingDescriptionRoute(
         const payload = await content.toBuffer();
 
         negotiateLanguage(td, thing, req);
-
+        res.setHeader("Access-Control-Allow-Origin", "*");
         res.setHeader("Content-Type", contentType);
         res.writeHead(200);
         debug(`Sending HTTP response for TD with Content-Type ${contentType}.`);
