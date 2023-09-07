@@ -24,6 +24,7 @@ servient.addServer(
         port: 8081,
     })
 );
+core_1.Helpers.setStaticAddress("plugfest.thingweb.io"); // comment this out if you are testing locally
 let waterAmount = 100;
 let beansAmount = 100;
 let milkAmount = 100;
