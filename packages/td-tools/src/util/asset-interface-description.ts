@@ -34,16 +34,6 @@ const logError = debug(`${namespace}:error`);
  *
  */
 
-/*
- * TODOs
- * - transformToTD without any binding prefix (Idea: collect first all possible bindings)
- * - what is the desired input/output? string, object, ... ?
- * - what are options that would be desired? (context version, id, security, ...) -> template mechanism fine?
- * - Fields like @context, id, .. etc representable in AID?
- * - More test-data for action & events, data input and output, ...
- *
- */
-
 export class AssetInterfaceDescriptionUtil {
     /** @deprecated use transformAAS2TD method instead */
     public transformToTD(aid: string, template?: string, submodelRegex?: string): string {
@@ -91,10 +81,10 @@ export class AssetInterfaceDescriptionUtil {
      * Transform WoT ThingDescription (TD) to AAS in JSON format
      *
      * @param td input TD
-     * @param protocols protocol prefixes of interest (e.g., ["http", "coap"])
+     * @param protocols protocol prefixes of interest (e.g., ["http", "coap"]) or optional if all
      * @returns transformed AAS in JSON format
      */
-    public transformTD2AAS(td: string, protocols: string[]): string {
+    public transformTD2AAS(td: string, protocols?: string[]): string {
         const submodel = this.transformTD2SM(td, protocols);
         const submodelObj = JSON.parse(submodel);
         const submodelId = submodelObj.id;
@@ -136,15 +126,20 @@ export class AssetInterfaceDescriptionUtil {
      * Transform WoT ThingDescription (TD) to AID submodel definition in JSON format
      *
      * @param td input TD
-     * @param protocols protocol prefixes of interest (e.g., ["http", "coap"])
+     * @param protocols protocol prefixes of interest (e.g., ["http", "coap"]) or optional if all
      * @returns transformed AID submodel definition in JSON format
      */
-    public transformTD2SM(tdAsString: string, protocols: string[]): string {
+    public transformTD2SM(tdAsString: string, protocols?: string[]): string {
         const td: ThingDescription = TDParser.parseTD(tdAsString);
 
-        const aidID = td.id ? td.id : "ID_" + Math.random();
+        const aidID = td.id ? td.id : "ID" + Math.random();
 
         console.log("TD " + td.title + " parsed...");
+
+        // collect all possible prefixes
+        if (protocols === undefined || protocols.length === 0) {
+            protocols = this.getProtocolPrefixes(td);
+        }
 
         const submdelElements = [];
         for (const protocol of protocols) {
@@ -196,6 +191,47 @@ export class AssetInterfaceDescriptionUtil {
      * PRIVATE IMPLEMENTATION METHODS ARE FOLLOWING
      *
      */
+
+    private getProtocolPrefixes(td: ThingDescription): string[] {
+        const protocols: string[] = [];
+
+        if (td.properties) {
+            for (const propertyKey in td.properties) {
+                const property = td.properties[propertyKey];
+                this.updateProtocolPrefixes(property.forms, protocols);
+            }
+        }
+        if (td.actions) {
+            for (const actionKey in td.actions) {
+                const action = td.actions[actionKey];
+                this.updateProtocolPrefixes(action.forms, protocols);
+            }
+        }
+        if (td.events) {
+            for (const eventKey in td.events) {
+                const event = td.events[eventKey];
+                this.updateProtocolPrefixes(event.forms, protocols);
+            }
+        }
+
+        return protocols;
+    }
+
+    private updateProtocolPrefixes(forms: [FormElementBase, ...FormElementBase[]], protocols: string[]): void {
+        if (forms) {
+            for (const interactionForm of forms) {
+                if (interactionForm.href) {
+                    const positionColon = interactionForm.href.indexOf(":");
+                    if (positionColon > 0) {
+                        const prefix = interactionForm.href.substring(0, positionColon);
+                        if (!protocols.includes(prefix)) {
+                            protocols.push(prefix);
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     private getBaseFromEndpointMetadata(endpointMetadata?: Record<string, unknown>): string {
         if (endpointMetadata?.value && endpointMetadata.value instanceof Array) {
