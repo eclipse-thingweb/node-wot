@@ -26,11 +26,12 @@ class AssetInterfaceDescriptionUtilTest {
 
     @test async "should correctly transform counterHTTP into a TD"() {
         const modelAID = (await fs.readFile("test/util/counterHTTP.json")).toString();
-        const td = this.assetInterfaceDescriptionUtil.transformAAS2TD(modelAID, `{"title": "counter"}`);
+        const td = this.assetInterfaceDescriptionUtil.transformAAS2TD(modelAID, `{"title": "bla"}`);
 
         const tdObj = JSON.parse(td);
         expect(tdObj).to.have.property("@context").that.equals("https://www.w3.org/2022/wot/td/v1.1");
-        expect(tdObj).to.have.property("title").that.equals("counter");
+        expect(tdObj).to.have.property("title").that.equals("Counter"); // should come form AAS
+        expect(tdObj).to.have.property("support").that.equals("https://github.com/eclipse-thingweb/node-wot/");
 
         expect(tdObj).to.have.property("securityDefinitions").to.be.an("object");
 

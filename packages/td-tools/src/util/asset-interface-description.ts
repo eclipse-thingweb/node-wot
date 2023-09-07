@@ -34,6 +34,8 @@ const logInfo = debug(`${namespace}:info`);
 
 /*
  * TODOs
+ * - Support desription(s) and title(s)
+ * - transformToTD without any binding prefix (Idea: collect first all possible bindings)
  * - what is the desired input/output? string, object, ... ?
  * - what are options that would be desired? (context version, id, security, ...) -> template mechanism fine?
  * - Fields like @context, id, .. etc representable in AID?
@@ -51,6 +53,8 @@ interface SubmodelInformation {
     properties: Map<string, Array<AASInteraction>>;
     actions: Map<string, Array<AASInteraction>>;
     events: Map<string, Array<AASInteraction>>;
+
+    thing: Map<string, Record<string, unknown>>;
 
     endpointMetadataArray: Array<Record<string, unknown>>;
 }
@@ -305,6 +309,12 @@ export class AssetInterfaceDescriptionUtil {
                         // e.g., idShort: base , contentType, securityDefinitions, alternativeEndpointDescriptor?
                         endpointMetadata = smValue;
                         smInformation.endpointMetadataArray.push(endpointMetadata);
+                    } else if (smValue.idShort === "InterfaceMetadata") {
+                        // handled later
+                    } else if (smValue.idShort === "externalDescriptor") {
+                        // needed?
+                    } else {
+                        smInformation.thing.set(smValue.idShort, smValue.value);
                     }
                 }
             }
@@ -374,6 +384,7 @@ export class AssetInterfaceDescriptionUtil {
             events: new Map<string, Array<AASInteraction>>(),
             properties: new Map<string, Array<AASInteraction>>(),
             endpointMetadataArray: [],
+            thing: new Map<string, Record<string, unknown>>(),
         };
 
         if (aidModel instanceof Object && aidModel.submodels) {
@@ -390,7 +401,16 @@ export class AssetInterfaceDescriptionUtil {
     private _transform(smInformation: SubmodelInformation, template?: string): string {
         const thing: Thing = template ? JSON.parse(template) : {};
 
-        // TODO required fields possible in AID also?
+        // walk over thing information and set them
+        for (const [key, value] of smInformation.thing) {
+            if (typeof value === "string") {
+                thing[key] = value;
+            } else {
+                // TODO what to do with non-string values?
+            }
+        }
+
+        // required TD fields
         if (!thing["@context"]) {
             thing["@context"] = "https://www.w3.org/2022/wot/td/v1.1";
         }
@@ -426,9 +446,7 @@ export class AssetInterfaceDescriptionUtil {
         if (smInformation.properties.size > 0) {
             thing.properties = {};
 
-            for (const entry of smInformation.properties.entries()) {
-                const key = entry[0];
-                const value: AASInteraction[] = entry[1];
+            for (const [key, value] of smInformation.properties.entries()) {
                 logInfo("Property" + key + " = " + value);
 
                 thing.properties[key] = {};
@@ -480,9 +498,7 @@ export class AssetInterfaceDescriptionUtil {
         if (smInformation.actions.size > 0) {
             thing.actions = {};
 
-            for (const entry of smInformation.actions.entries()) {
-                const key = entry[0];
-                const value: AASInteraction[] = entry[1];
+            for (const [key, value] of smInformation.actions.entries()) {
                 logInfo("Action" + key + " = " + value);
 
                 thing.actions[key] = {};
@@ -503,9 +519,7 @@ export class AssetInterfaceDescriptionUtil {
         if (smInformation.events.size > 0) {
             thing.events = {};
 
-            for (const entry of smInformation.events.entries()) {
-                const key = entry[0];
-                const value: AASInteraction[] = entry[1];
+            for (const [key, value] of smInformation.events.entries()) {
                 logInfo("Event " + key + " = " + value);
 
                 thing.events[key] = {};
@@ -558,6 +572,7 @@ export class AssetInterfaceDescriptionUtil {
             events: new Map<string, Array<AASInteraction>>(),
             properties: new Map<string, Array<AASInteraction>>(),
             endpointMetadataArray: [],
+            thing: new Map<string, Record<string, unknown>>(),
         };
 
         this.processSubmodel(smInformation, submodel, submodelRegex);
