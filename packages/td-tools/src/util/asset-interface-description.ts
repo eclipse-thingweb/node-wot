@@ -24,8 +24,10 @@ import { FormElementBase, PropertyElement } from "wot-thing-model-types";
 const namespace = "node-wot:td-tools:asset-interface-description-util";
 const logDebug = debug(`${namespace}:debug`);
 const logInfo = debug(`${namespace}:info`);
+const logError = debug(`${namespace}:error`);
 
-/** Utilities around Asset Interface Description
+/**
+ * Utilities around Asset Interface Description
  * https://github.com/admin-shell-io/submodel-templates/tree/main/development/Asset%20Interface%20Description/1/0
  *
  * e.g, transform AAS (or AID  submodel) to TD or vicerversa transform TD to AAS (or AID submodel)
@@ -42,25 +44,159 @@ const logInfo = debug(`${namespace}:info`);
  *
  */
 
-interface AASInteraction {
-    endpointMetadata?: Record<string, unknown>;
-    secNamesForEndpoint?: Array<string>;
-    interaction: Record<string, unknown>;
-}
-
-interface SubmodelInformation {
-    properties: Map<string, Array<AASInteraction>>;
-    actions: Map<string, Array<AASInteraction>>;
-    events: Map<string, Array<AASInteraction>>;
-
-    thing: Map<string, Record<string, unknown>>;
-
-    endpointMetadataArray: Array<Record<string, unknown>>;
-}
-
-const noSecName = 0 + "_sc";
-
 export class AssetInterfaceDescriptionUtil {
+    /** @deprecated use transformAAS2TD method instead */
+    public transformToTD(aid: string, template?: string, submodelRegex?: string): string {
+        return this.transformAAS2TD(aid, template, submodelRegex);
+    }
+
+    /**
+     * Transform AAS in JSON format to a WoT ThingDescription (TD)
+     *
+     * @param aas input AAS in JSON format
+     * @param template TD template with basic desired TD template
+     * @param submodelRegex allows to filter submodel elements based on regex expression (e.g, "HTTP*") or full text based on idShort (e.g., "InterfaceHTTP")
+     * @returns transformed TD
+     */
+    public transformAAS2TD(aas: string, template?: string, submodelRegex?: string): string {
+        const smInformation = this.getSubmodelInformation(aas, submodelRegex);
+        return this._transform(smInformation, template);
+    }
+
+    /**
+     * Transform AID submodel definition in JSON format to a WoT ThingDescription (TD)
+     *
+     * @param aid input AID submodel in JSON format
+     * @param template TD template with basic desired TD template
+     * @param submodelRegex allows to filter submodel elements based on regex expression (e.g, "HTTP*") or full text based on idShort (e.g., "InterfaceHTTP")
+     * @returns transformed TD
+     */
+    public transformSM2TD(aid: string, template?: string, submodelRegex?: string): string {
+        const submodel = JSON.parse(aid);
+
+        const smInformation: SubmodelInformation = {
+            actions: new Map<string, Array<AASInteraction>>(),
+            events: new Map<string, Array<AASInteraction>>(),
+            properties: new Map<string, Array<AASInteraction>>(),
+            endpointMetadataArray: [],
+            thing: new Map<string, Record<string, unknown>>(),
+        };
+
+        this.processSubmodel(smInformation, submodel, submodelRegex);
+
+        return this._transform(smInformation, template);
+    }
+
+    /**
+     * Transform WoT ThingDescription (TD) to AAS in JSON format
+     *
+     * @param td input TD
+     * @param protocols protocol prefixes of interest (e.g., ["http", "coap"])
+     * @returns transformed AAS in JSON format
+     */
+    public transformTD2AAS(td: string, protocols: string[]): string {
+        const submodel = this.transformTD2SM(td, protocols);
+        const submodelObj = JSON.parse(submodel);
+        const submodelId = submodelObj.id;
+
+        // configuration
+        const aasName = "SampleAAS";
+        const aasId = "https://example.com/ids/aas/7474_9002_6022_1115";
+
+        const aas = {
+            assetAdministrationShells: [
+                {
+                    idShort: aasName,
+                    id: aasId,
+                    assetInformation: {
+                        assetKind: "Type",
+                    },
+                    submodels: [
+                        {
+                            type: "ModelReference",
+                            keys: [
+                                {
+                                    type: "Submodel",
+                                    value: submodelId,
+                                },
+                            ],
+                        },
+                    ],
+                    modelType: "AssetAdministrationShell",
+                },
+            ],
+            submodels: [submodelObj],
+            conceptDescriptions: [],
+        };
+
+        return JSON.stringify(aas);
+    }
+
+    /**
+     * Transform WoT ThingDescription (TD) to AID submodel definition in JSON format
+     *
+     * @param td input TD
+     * @param protocols protocol prefixes of interest (e.g., ["http", "coap"])
+     * @returns transformed AID submodel definition in JSON format
+     */
+    public transformTD2SM(tdAsString: string, protocols: string[]): string {
+        const td: ThingDescription = TDParser.parseTD(tdAsString);
+
+        const aidID = td.id ? td.id : "ID_" + Math.random();
+
+        console.log("TD " + td.title + " parsed...");
+
+        const submdelElements = [];
+        for (const protocol of protocols) {
+            // use protocol binding prefix like "http" for name
+            const submodelElementIdShort = protocol === undefined ? "Interface" : "Interface" + protocol.toUpperCase();
+
+            const submdelElement = {
+                idShort: submodelElementIdShort,
+                // semanticId needed?
+                // embeddedDataSpecifications needed?
+                value: [
+                    {
+                        idShort: "title",
+                        valueType: "xs:string",
+                        value: td.title,
+                        modelType: "Property",
+                    },
+                    // support and other?
+                    this.createEndpointMetadata(td), // EndpointMetadata like base, security and securityDefinitions
+                    this.createInterfaceMetadata(td, protocol), // InterfaceMetadata like properties, actions and events
+                    // externalDescriptor ?
+                ],
+                modelType: "SubmodelElementCollection",
+            };
+
+            submdelElements.push(submdelElement);
+        }
+
+        const aidObject = {
+            idShort: "AssetInterfacesDescription",
+            id: aidID,
+            kind: "Instance",
+            // semanticId needed?
+            description: [
+                // TODO does this need to be an array or can it simply be a value
+                {
+                    language: "en",
+                    text: td.title, // TODO should be description, where does title go to? later on in submodel?
+                },
+            ],
+            submodelElements: submdelElements,
+            modelType: "Submodel",
+        };
+
+        return JSON.stringify(aidObject);
+    }
+
+    /*
+     * PRIVATE IMPLEMENTATION METHODS ARE FOLLOWING
+     *
+     */
+
     private getBaseFromEndpointMetadata(endpointMetadata?: Record<string, unknown>): string {
         if (endpointMetadata?.value && endpointMetadata.value instanceof Array) {
             for (const v of endpointMetadata.value) {
@@ -145,16 +281,20 @@ export class AssetInterfaceDescriptionUtil {
             href: this.getBaseFromEndpointMetadata(vi.endpointMetadata),
             contentType: this.getContentTypeFromEndpointMetadata(vi.endpointMetadata),
         };
-        // need to add security at form level at all ?
+
         if (addSecurity) {
+            // XXX need to add security at form level at all ?
+            logError("security at form level not added/present");
+            /*
             const securitySchemes = this.getSecurityDefinitionsFromEndpointMetadata(vi.endpointMetadata);
             if (securitySchemes === undefined) {
-                form.security = [noSecName];
+                form.security = [0 + "_sc"];
             } else {
                 if (vi.secNamesForEndpoint) {
                     form.security = vi.secNamesForEndpoint as [string, ...string[]];
                 }
             }
+            */
         }
         if (vi.interaction.value instanceof Array) {
             for (const iv of vi.interaction.value) {
@@ -515,153 +655,6 @@ export class AssetInterfaceDescriptionUtil {
         return JSON.stringify(thing);
     }
 
-    /** @deprecated use transformAAS2TD method instead */
-    public transformToTD(aid: string, template?: string, submodelRegex?: string): string {
-        return this.transformAAS2TD(aid, template, submodelRegex);
-    }
-
-    /**
-     * Transform AAS in JSON format to a WoT ThingDescription (TD)
-     *
-     * @param aas input AAS in JSON format
-     * @param template TD template with basic desired TD template
-     * @param submodelRegex allows to filter submodel elements based on regex expression (e.g, "HTTP*") or full text based on idShort (e.g., "InterfaceHTTP")
-     * @returns transformed TD
-     */
-    public transformAAS2TD(aas: string, template?: string, submodelRegex?: string): string {
-        const smInformation = this.getSubmodelInformation(aas, submodelRegex);
-        return this._transform(smInformation, template);
-    }
-
-    /**
-     * Transform AID submodel definition in JSON format to a WoT ThingDescription (TD)
-     *
-     * @param aid input AID submodel in JSON format
-     * @param template TD template with basic desired TD template
-     * @param submodelRegex allows to filter submodel elements based on regex expression (e.g, "HTTP*") or full text based on idShort (e.g., "InterfaceHTTP")
-     * @returns transformed TD
-     */
-    public transformSM2TD(aid: string, template?: string, submodelRegex?: string): string {
-        const submodel = JSON.parse(aid);
-
-        const smInformation: SubmodelInformation = {
-            actions: new Map<string, Array<AASInteraction>>(),
-            events: new Map<string, Array<AASInteraction>>(),
-            properties: new Map<string, Array<AASInteraction>>(),
-            endpointMetadataArray: [],
-            thing: new Map<string, Record<string, unknown>>(),
-        };
-
-        this.processSubmodel(smInformation, submodel, submodelRegex);
-
-        return this._transform(smInformation, template);
-    }
-
-    /**
-     * Transform WoT ThingDescription (TD) to AAS in JSON format
-     *
-     * @param td input TD
-     * @param protocols protocol prefixes of interest (e.g., ["http", "coap"])
-     * @returns transformed AAS in JSON format
-     */
-    public transformTD2AAS(td: string, protocols: string[]): string {
-        const submodel = this.transformTD2SM(td, protocols);
-        const submodelObj = JSON.parse(submodel);
-        const submodelId = submodelObj.id;
-
-        // configuration
-        const aasName = "SampleAAS";
-        const aasId = "https://example.com/ids/aas/7474_9002_6022_1115";
-
-        const aas = {
-            assetAdministrationShells: [
-                {
-                    idShort: aasName,
-                    id: aasId,
-                    assetInformation: {
-                        assetKind: "Type",
-                    },
-                    submodels: [
-                        {
-                            type: "ModelReference",
-                            keys: [
-                                {
-                                    type: "Submodel",
-                                    value: submodelId,
-                                },
-                            ],
-                        },
-                    ],
-                    modelType: "AssetAdministrationShell",
-                },
-            ],
-            submodels: [submodelObj],
-            conceptDescriptions: [],
-        };
-
-        return JSON.stringify(aas);
-    }
-
-    /**
-     * Transform WoT ThingDescription (TD) to AID submodel definition in JSON format
-     *
-     * @param td input TD
-     * @param protocols protocol prefixes of interest (e.g., ["http", "coap"])
-     * @returns transformed AID submodel definition in JSON format
-     */
-    public transformTD2SM(tdAsString: string, protocols: string[]): string {
-        const td: ThingDescription = TDParser.parseTD(tdAsString);
-
-        const aidID = td.id ? td.id : "ID_" + Math.random();
-
-        console.log("TD " + td.title + " parsed...");
-
-        const submdelElements = [];
-        for (const protocol of protocols) {
-            // use protocol binding prefix like "http" for name
-            const submodelElementIdShort = protocol === undefined ? "Interface" : "Interface" + protocol.toUpperCase();
-
-            const submdelElement = {
-                idShort: submodelElementIdShort,
-                // semanticId needed?
-                // embeddedDataSpecifications needed?
-                value: [
-                    {
-                        idShort: "title",
-                        valueType: "xs:string",
-                        value: td.title,
-                        modelType: "Property",
-                    },
-                    // support and other?
-                    this.createEndpointMetadata(td), // EndpointMetadata like base, security and securityDefinitions
-                    this.createInterfaceMetadata(td, protocol), // InterfaceMetadata like properties, actions and events
-                    // externalDescriptor ?
-                ],
-                modelType: "SubmodelElementCollection",
-            };
-
-            submdelElements.push(submdelElement);
-        }
-
-        const aidObject = {
-            idShort: "AssetInterfacesDescription",
-            id: aidID,
-            kind: "Instance",
-            // semanticId needed?
-            description: [
-                // TODO does this need to be an array or can it simply be a value
-                {
-                    language: "en",
-                    text: td.title, // TODO should be description, where does title go to? later on in submodel?
-                },
-            ],
-            submodelElements: submdelElements,
-            modelType: "Submodel",
-        };
-
-        return JSON.stringify(aidObject);
-    }
-
     private createEndpointMetadata(td: ThingDescription): Record<string, unknown> {
         const values: Array<unknown> = [];
 
@@ -891,4 +884,20 @@ export class AssetInterfaceDescriptionUtil {
 
         return interfaceMetadata;
     }
+}
+
+interface AASInteraction {
+    endpointMetadata?: Record<string, unknown>;
+    secNamesForEndpoint?: Array<string>;
+    interaction: Record<string, unknown>;
+}
+
+interface SubmodelInformation {
+    properties: Map<string, Array<AASInteraction>>;
+    actions: Map<string, Array<AASInteraction>>;
+    events: Map<string, Array<AASInteraction>>;
+
+    thing: Map<string, Record<string, unknown>>;
+
+    endpointMetadataArray: Array<Record<string, unknown>>;
 }
