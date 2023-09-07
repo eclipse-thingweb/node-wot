@@ -22,8 +22,13 @@ export default async function eventRoute(
     this: HttpServer,
     req: IncomingMessage,
     res: ServerResponse,
-    _params: { thing: string; event: string }
+    _params: { [k: string]: string | undefined }
 ): Promise<void> {
+    if (_params.thing === undefined || _params.event === undefined) {
+        res.writeHead(400);
+        res.end();
+        return;
+    }
     const thing = this.getThings().get(_params.thing);
 
     if (!thing) {
@@ -62,6 +67,7 @@ export default async function eventRoute(
         if (!isEmpty(uriVariables)) {
             options.uriVariables = uriVariables;
         }
+        const eventName = _params.event;
         const listener = async (value: Content) => {
             try {
                 // send event data
@@ -77,24 +83,22 @@ export default async function eventRoute(
             } catch (err) {
                 // Safe cast to NodeJS.ErrnoException we are checking if it is equal to ERR_HTTP_HEADERS_SENT
                 if ((err as NodeJS.ErrnoException)?.code === "ERR_HTTP_HEADERS_SENT") {
-                    thing.handleUnsubscribeEvent(_params.event, listener, options);
+                    thing.handleUnsubscribeEvent(eventName, listener, options);
                     return;
                 }
                 const message = err instanceof Error ? err.message : JSON.stringify(err);
-                warn(
-                    `HttpServer on port ${this.getPort()} cannot process data for Event '${_params.event}: ${message}'`
-                );
+                warn(`HttpServer on port ${this.getPort()} cannot process data for Event '${eventName}: ${message}'`);
                 res.writeHead(500);
                 res.end("Invalid Event Data");
             }
         };
 
-        await thing.handleSubscribeEvent(_params.event, listener, options);
+        await thing.handleSubscribeEvent(eventName, listener, options);
         res.on("close", () => {
             debug(`HttpServer on port ${this.getPort()} closed Event connection`);
-            thing.handleUnsubscribeEvent(_params.event, listener, options);
+            thing.handleUnsubscribeEvent(eventName, listener, options);
         });
-        res.setTimeout(60 * 60 * 1000, () => thing.handleUnsubscribeEvent(_params.event, listener, options));
+        res.setTimeout(60 * 60 * 1000, () => thing.handleUnsubscribeEvent(eventName, listener, options));
     } else if (req.method === "HEAD") {
         // HEAD support for long polling subscription
         res.writeHead(202);

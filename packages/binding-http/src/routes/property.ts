@@ -22,8 +22,14 @@ export default async function propertyRoute(
     this: HttpServer,
     req: IncomingMessage,
     res: ServerResponse,
-    _params: { thing: string; property: string }
+    _params: { [k: string]: string | undefined }
 ): Promise<void> {
+    if (_params.thing === undefined || _params.property === undefined) {
+        res.writeHead(400);
+        res.end();
+        return;
+    }
+
     const thing = this.getThings().get(_params.thing);
 
     if (!thing) {
