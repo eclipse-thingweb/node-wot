@@ -107,62 +107,10 @@ export class AssetInterfaceDescriptionUtil {
                                                 const ss: SecurityScheme = { scheme: securityDefinitionsValue.value };
                                                 securityDefinitions[securityDefinitionsValues.idShort] = ss;
                                             }
-                                            /* if (securityDefinitionsValue.value && securityDefinitionsValue.value instanceof Array) {
-                                                for (const secValue of securityDefinitionsValue.value) {
-                                                    // allow all *other* security schemes like "uasec" as well
-                                                    const ss: SecurityScheme = { scheme: secValue.idShort };
-                                                    securitySchemes.push(ss);
-                                                    / * if (secValue.idShort === "nosec" || secValue.idShort === "auto" || secValue.idShort === "combo" || secValue.idShort === "basic" || secValue.idShort === "digest" || secValue.idShort === "apikey" || secValue.idShort === "bearer" || secValue.idShort === "psk" || secValue.idShort === "oauth2" ) {
-                                                        const ss : SecurityScheme = { scheme: secValue.idShort};
-                                                        securitySchemes.push(ss);
-                                                    } * /
-                                                    if (secValue.value && secValue.value instanceof Array) {
-                                                        for (const v of secValue.value) {
-                                                            if (
-                                                                v.idShort &&
-                                                                typeof v.idShort === "string" &&
-                                                                v.idShort.length > 0 &&
-                                                                v.value
-                                                            ) {
-                                                                ss[v.idShort] = v.value;
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            } */
                                         }
                                     }
                                 }
-                                /* securityDefinitions[securityDefinitionsValue.idShort] = {
-
-                                } */
                             }
-
-                            /* if (securityDefinitionsValue.idShort === "scheme") {
-                                if (securityDefinitionsValue.value && securityDefinitionsValue.value instanceof Array) {
-                                    for (const secValue of securityDefinitionsValue.value) {
-                                        // allow all *other* security schemes like "uasec" as well
-                                        const ss: SecurityScheme = { scheme: secValue.idShort };
-                                        securitySchemes.push(ss);
-                                        / * if (secValue.idShort === "nosec" || secValue.idShort === "auto" || secValue.idShort === "combo" || secValue.idShort === "basic" || secValue.idShort === "digest" || secValue.idShort === "apikey" || secValue.idShort === "bearer" || secValue.idShort === "psk" || secValue.idShort === "oauth2" ) {
-                                            const ss : SecurityScheme = { scheme: secValue.idShort};
-                                            securitySchemes.push(ss);
-                                        } * /
-                                        if (secValue.value && secValue.value instanceof Array) {
-                                            for (const v of secValue.value) {
-                                                if (
-                                                    v.idShort &&
-                                                    typeof v.idShort === "string" &&
-                                                    v.idShort.length > 0 &&
-                                                    v.value
-                                                ) {
-                                                    ss[v.idShort] = v.value;
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            } */
                         }
                     }
                 }
