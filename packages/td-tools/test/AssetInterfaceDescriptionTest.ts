@@ -181,6 +181,10 @@ class AssetInterfaceDescriptionUtilTest {
             status: {
                 type: "string",
                 observable: true,
+                descriptions: {
+                    en: "Statistic",
+                    de: "Statistik",
+                },
                 forms: [
                     {
                         href: "stat",
@@ -201,9 +205,13 @@ class AssetInterfaceDescriptionUtilTest {
         expect(smObj).to.have.property("submodelElements").to.be.an("array").to.have.lengthOf.greaterThan(0);
         const smInterface = smObj.submodelElements[0];
         expect(smInterface).to.have.property("value").to.be.an("array").to.have.lengthOf.greaterThan(0);
+        let hasThingTitle = false;
         let hasEndpointMetadata = false;
         for (const smValue of smInterface.value) {
-            if (smValue.idShort === "EndpointMetadata") {
+            if (smValue.idShort === "title") {
+                hasThingTitle = true;
+                expect(smValue).to.have.property("value").to.equal("testTD");
+            } else if (smValue.idShort === "EndpointMetadata") {
                 hasEndpointMetadata = true;
                 const endpointMetadata = smValue;
                 expect(endpointMetadata).to.have.property("value").to.be.an("array").to.have.lengthOf.greaterThan(0);
@@ -257,6 +265,7 @@ class AssetInterfaceDescriptionUtilTest {
                 expect(hasSecurityDefinitions).to.equal(true);
             }
         }
+        expect(hasThingTitle, "No thing title").to.equal(true);
         expect(hasEndpointMetadata, "No EndpointMetadata").to.equal(true);
 
         // InterfaceMetadata with properties etc
@@ -274,6 +283,7 @@ class AssetInterfaceDescriptionUtilTest {
                             .to.be.an("array")
                             .to.have.lengthOf.greaterThan(0);
                         let hasPropertyStatus = false;
+                        let hasPropertyStatusDescription = false;
                         for (const propertyValue of interactionValues.value) {
                             if (propertyValue.idShort === "status") {
                                 hasPropertyStatus = true;
@@ -333,8 +343,24 @@ class AssetInterfaceDescriptionUtilTest {
                                 expect(hasObservable).to.equal(true);
                                 expect(hasForms).to.equal(true);
                             }
+                            if (propertyValue.description) {
+                                hasPropertyStatusDescription = true;
+                                expect(propertyValue)
+                                    .to.have.property("description")
+                                    .to.eql([
+                                        {
+                                            language: "en",
+                                            text: "Statistic",
+                                        },
+                                        {
+                                            language: "de",
+                                            text: "Statistik",
+                                        },
+                                    ]);
+                            }
                         }
                         expect(hasPropertyStatus).to.equal(true);
+                        expect(hasPropertyStatusDescription).to.equal(true);
                     }
                 }
                 expect(hasProperties).to.equal(true);

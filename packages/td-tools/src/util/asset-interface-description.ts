@@ -28,13 +28,12 @@ const logInfo = debug(`${namespace}:info`);
 /** Utilities around Asset Interface Description
  * https://github.com/admin-shell-io/submodel-templates/tree/main/development/Asset%20Interface%20Description/1/0
  *
- * e.g, transform to TD
+ * e.g, transform AAS (or AID  submodel) to TD or vicerversa transform TD to AAS (or AID submodel)
  *
  */
 
 /*
  * TODOs
- * - Support desription(s) and title(s)
  * - transformToTD without any binding prefix (Idea: collect first all possible bindings)
  * - what is the desired input/output? string, object, ... ?
  * - what are options that would be desired? (context version, id, security, ...) -> template mechanism fine?
@@ -679,7 +678,13 @@ export class AssetInterfaceDescriptionUtil {
                 // semanticId needed?
                 // embeddedDataSpecifications needed?
                 value: [
-                    // support
+                    {
+                        idShort: "title",
+                        valueType: "xs:string",
+                        value: td.title,
+                        modelType: "Property",
+                    },
+                    // support and other?
                     this.createEndpointMetadata(td), // EndpointMetadata like base, security and securityDefinitions
                     this.createInterfaceMetadata(td, protocol), // InterfaceMetadata like properties, actions and events
                     // externalDescriptor ?
@@ -870,9 +875,28 @@ export class AssetInterfaceDescriptionUtil {
                         });
                     }
 
+                    let description;
+                    if (propertyValue.descriptions) {
+                        description = [];
+                        for (const langKey in propertyValue.descriptions) {
+                            const langValue = propertyValue.descriptions[langKey];
+                            description.push({
+                                language: langKey,
+                                text: langValue,
+                            });
+                        }
+                    } else if (propertyValue.description) {
+                        // fallback
+                        description = [];
+                        description.push({
+                            language: "en", // TODO where to get language identifier
+                            text: propertyValue.description,
+                        });
+                    }
+
                     properties.push({
                         idShort: propertyKey,
-                        // TODO description
+                        description: description,
                         value: propertyValues,
                         modelType: "SubmodelElementCollection",
                     });
