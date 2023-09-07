@@ -134,7 +134,7 @@ export class AssetInterfaceDescriptionUtil {
 
         const aidID = td.id ? td.id : "ID" + Math.random();
 
-        console.log("TD " + td.title + " parsed...");
+        logInfo("TD " + td.title + " parsed...");
 
         // collect all possible prefixes
         if (protocols === undefined || protocols.length === 0) {
@@ -556,7 +556,6 @@ export class AssetInterfaceDescriptionUtil {
             // iterate over securitySchemes
             // eslint-disable-next-line unused-imports/no-unused-vars
             for (const [key, value] of Object.entries(thing.securityDefinitions)) {
-                // console.log(key, value);
                 // TODO we could change the name to avoid name collisions. Shall we do so?
                 secNames.push(key);
             }
