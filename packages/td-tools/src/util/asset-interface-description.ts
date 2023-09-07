@@ -453,35 +453,65 @@ export class AssetInterfaceDescriptionUtil {
                 thing.properties[key].forms = [];
 
                 for (const vi of value) {
-                    // The first block of if condition is expected to be temporary. will be adjusted or removed when a decision on how the datapoint's datatype would be modelled is made for AID.
-                    if (vi.interaction.value && vi.interaction.value instanceof Array) {
-                        for (const interactionValue of vi.interaction.value)
-                            if (interactionValue.idShort === "type") {
-                                if (interactionValue.value === "float") {
-                                    thing.properties[key].type = "number";
-                                } else {
-                                    thing.properties[key].type = interactionValue.value;
+                    for (const keyInteraction in vi.interaction) {
+                        if (keyInteraction === "description") {
+                            const aasDescription = vi.interaction[keyInteraction];
+                            // convert
+                            //
+                            // [{
+                            //     "language": "en",
+                            //     "text": "Current counter value"
+                            //  },
+                            //  {
+                            //      "language": "de",
+                            //      "text": "Derzeitiger Zählerwert"
+                            //  }]
+                            //
+                            // to
+                            //
+                            // {"en": "Current counter value", "de": "Derzeitiger Zählerwert"}
+                            const tdDescription: Record<string, string> = {};
+                            if (aasDescription instanceof Array) {
+                                for (const aasDescriptionEntry of aasDescription) {
+                                    if (aasDescriptionEntry.language && aasDescriptionEntry.text) {
+                                        const language: string = aasDescriptionEntry.language;
+                                        const text: string = aasDescriptionEntry.text;
+                                        tdDescription[language] = text;
+                                    }
                                 }
-                            } else if (interactionValue.idShort === "range") {
-                                if (interactionValue.min) {
-                                    thing.properties[key].min = interactionValue.min;
-                                }
-                                if (interactionValue.max) {
-                                    thing.properties[key].max = interactionValue.max;
-                                }
-                            } else if (interactionValue.idShort === "observable") {
-                                thing.properties[key].observable = interactionValue.value === "true";
-                            } else if (interactionValue.idShort === "readOnly") {
-                                thing.properties[key].readOnly = interactionValue.value === "true";
-                            } else if (interactionValue.idShort === "writeOnly") {
-                                thing.properties[key].writeOnly = interactionValue.value === "true";
-                            } else if (interactionValue.idShort === "forms") {
-                                // will be handled below
-                            } else {
-                                // handle other terms specifically?
-                                const key2 = interactionValue.idShort;
-                                thing.properties[key][key2] = interactionValue.value;
                             }
+                            thing.properties[key].descriptions = tdDescription;
+                        } else if (keyInteraction === "value") {
+                            if (vi.interaction.value instanceof Array) {
+                                for (const interactionValue of vi.interaction.value)
+                                    if (interactionValue.idShort === "type") {
+                                        if (interactionValue.value === "float") {
+                                            thing.properties[key].type = "number";
+                                        } else {
+                                            thing.properties[key].type = interactionValue.value;
+                                        }
+                                    } else if (interactionValue.idShort === "range") {
+                                        if (interactionValue.min) {
+                                            thing.properties[key].min = interactionValue.min;
+                                        }
+                                        if (interactionValue.max) {
+                                            thing.properties[key].max = interactionValue.max;
+                                        }
+                                    } else if (interactionValue.idShort === "observable") {
+                                        thing.properties[key].observable = interactionValue.value === "true";
+                                    } else if (interactionValue.idShort === "readOnly") {
+                                        thing.properties[key].readOnly = interactionValue.value === "true";
+                                    } else if (interactionValue.idShort === "writeOnly") {
+                                        thing.properties[key].writeOnly = interactionValue.value === "true";
+                                    } else if (interactionValue.idShort === "forms") {
+                                        // will be handled below
+                                    } else {
+                                        // handle other terms specifically?
+                                        const key2 = interactionValue.idShort;
+                                        thing.properties[key][key2] = interactionValue.value;
+                                    }
+                            }
+                        }
                     }
 
                     if (vi.endpointMetadata) {

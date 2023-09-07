@@ -40,6 +40,11 @@ class AssetInterfaceDescriptionUtilTest {
 
         // check count property
         expect(tdObj).to.have.property("properties").to.have.property("count");
+        expect(tdObj).to.have.property("properties").to.have.property("count").to.have.property("descriptions").to.eql({
+            en: "Current counter value",
+            de: "Derzeitiger Zählerwert",
+            it: "Valore attuale del contatore",
+        });
         expect(tdObj)
             .to.have.property("properties")
             .to.have.property("count")
