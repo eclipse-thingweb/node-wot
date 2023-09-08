@@ -44,7 +44,7 @@ export interface HttpConfig {
     allowSelfSigned?: boolean;
     serverKey?: string;
     serverCert?: string;
-    security?: TD.SecurityScheme;
+    security?: TD.SecurityScheme[];
     middleware?: MiddlewareRequestHandler;
 }
 

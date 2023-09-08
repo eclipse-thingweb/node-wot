@@ -29,9 +29,11 @@ const httpConfig = {
     allowSelfSigned: true, // client configuration
     serverKey: "privatekey.pem",
     serverCert: "certificate.pem",
-    security: {
-        scheme: "basic", // (username & password)
-    },
+    security: [
+        {
+            scheme: "basic", // (username & password)
+        },
+    ],
 };
 // add HTTPS binding with configuration
 servient.addServer(new HttpServer(httpConfig));

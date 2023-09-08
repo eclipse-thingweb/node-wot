@@ -411,11 +411,12 @@ class HttpServerTest {
 
     // https://github.com/eclipse-thingweb/node-wot/issues/181
     @test async "should start and stop a server with no security"() {
-        const httpServer = new HttpServer({ port, security: { scheme: "nosec" } });
+        const httpServer = new HttpServer({ port, security: [{ scheme: "nosec" }] });
 
         await httpServer.start(new Servient());
         expect(httpServer.getPort()).to.eq(port); // port test
-        expect(httpServer.getHttpSecurityScheme()).to.eq("NoSec"); // HTTP security scheme test (nosec -> NoSec)
+        // eslint-disable-next-line dot-notation
+        expect(httpServer["supportedSecuritySchemes"][0]).to.eq("nosec");
         await httpServer.stop();
     }
 
@@ -425,9 +426,11 @@ class HttpServerTest {
             port: port2,
             serverKey: "./test/server.key",
             serverCert: "./test/server.cert",
-            security: {
-                scheme: "bearer",
-            },
+            security: [
+                {
+                    scheme: "bearer",
+                },
+            ],
         });
         await httpServer.start(new Servient());
         const testThing = new ExposedThing(new Servient());
@@ -449,9 +452,11 @@ class HttpServerTest {
             port: port2,
             serverKey: "./test/server.key",
             serverCert: "./test/server.cert",
-            security: {
-                scheme: "bearer",
-            },
+            security: [
+                {
+                    scheme: "bearer",
+                },
+            ],
         });
         await httpServer.start(new Servient());
 

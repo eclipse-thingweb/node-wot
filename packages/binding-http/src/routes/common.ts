@@ -12,7 +12,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-import { ContentSerdes, Helpers, createLoggers } from "@node-wot/core";
+import { ContentSerdes, ExposedThing, Helpers, createLoggers } from "@node-wot/core";
 import { IncomingMessage, ServerResponse } from "http";
 
 const { debug, warn } = createLoggers("binding-http", "routes", "common");
@@ -78,4 +78,23 @@ export function isEmpty(obj: Record<string, unknown>): boolean {
         if (Object.prototype.hasOwnProperty.call(obj, key)) return false;
     }
     return true;
+}
+
+export function securitySchemeToHttpHeader(scheme: string): string {
+    const [first, ...rest] = scheme;
+    // HTTP Authentication Scheme for OAuth does not contain the version number
+    // see https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml
+    if (scheme === "oauth2") return "OAuth";
+    return first.toUpperCase() + rest.join("").toLowerCase();
+}
+
+export function setCorsForThing(req: IncomingMessage, res: ServerResponse, thing: ExposedThing): void {
+    const securityScheme = thing.securityDefinitions[Helpers.toStringArray(thing.security)[0]].scheme;
+    // Set CORS headers
+    if (securityScheme !== "nosec" && req.headers.origin) {
+        res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
+        res.setHeader("Access-Control-Allow-Credentials", "true");
+    } else {
+        res.setHeader("Access-Control-Allow-Origin", "*");
+    }
 }

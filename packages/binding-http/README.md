@@ -132,9 +132,11 @@ let httpConfig = {
     allowSelfSigned: true, // client configuration
     serverKey: "privatekey.pem",
     serverCert: "certificate.pem",
-    security: {
-        scheme: "basic", // (username & password)
-    },
+    security: [
+        {
+            scheme: "basic", // (username & password)
+        },
+    ],
 };
 // add HTTPS binding with configuration
 servient.addServer(new HttpServer(httpConfig));
@@ -182,7 +184,7 @@ The protocol binding can be configured using his constructor or trough servient 
     allowSelfSigned?: boolean;               // Accept self signed certificates
     serverKey?: string;                      // HTTPs server secret key file
     serverCert?: string;                     // HTTPs server certificate file
-    security?: TD.SecurityScheme;            // Security scheme of the server
+    security?: TD.SecurityScheme[];          // A list of possible security schemes to be used by things exposed by this servient.
     baseUri?: string                         // A Base URI to be used in the TD in cases where the client will access a different URL than the actual machine serving the thing.  [See Using BaseUri below]
     middleware?: MiddlewareRequestHandler;   // the MiddlewareRequestHandler function. See [Adding a middleware] section below.
 }
@@ -225,9 +227,9 @@ The http protocol binding supports a set of security protocols that can be enabl
         allowSelfSigned: true,
         serverKey: "privatekey.pem",
         serverCert: "certificate.pem",
-        security: {
+        security: [{
             scheme: "basic" // (username & password)
-        }
+        }]
     }
     credentials: {
         "urn:dev:wot:org:eclipse:thingweb:my-example-secure": {
