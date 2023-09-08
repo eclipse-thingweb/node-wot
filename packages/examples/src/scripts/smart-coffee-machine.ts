@@ -396,7 +396,7 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
             const paramsp = (await params.value()) as Record<string, unknown>; //  : any = await Helpers.parseInteractionOutput(params);
 
             // Check if uriVariables are provided
-            if (paramsp && typeof paramsp === "object" && "time" in paramsp && "mode" in paramsp) {
+            if (paramsp !== undefined && typeof paramsp === "object" && "time" in paramsp && "mode" in paramsp) {
                 // Use default values if not provided
                 paramsp.drinkId = "drinkId" in paramsp ? paramsp.drinkId : "americano";
                 paramsp.size = "size" in paramsp ? paramsp.size : "m";

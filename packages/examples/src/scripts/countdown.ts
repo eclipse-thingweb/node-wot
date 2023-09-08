@@ -127,7 +127,7 @@ WoT.produce({
             "startCountdown",
             async (params: WoT.InteractionOutput, options): Promise<WoT.InteractionInput> => {
                 let initValue = 100;
-                if (params) {
+                if (params !== undefined) {
                     const value = await params.value();
                     if (typeof value === "number") {
                         initValue = value as number;
@@ -147,7 +147,7 @@ WoT.produce({
         thing.setActionHandler(
             "stopCountdown",
             async (params: WoT.InteractionOutput, options): Promise<WoT.InteractionInput> => {
-                if (params) {
+                if (params !== undefined) {
                     const value = await params.value();
                     if (typeof value === "string" && countdowns.has(value)) {
                         const as = countdowns.get(value);
@@ -170,7 +170,7 @@ WoT.produce({
         thing.setActionHandler(
             "monitorCountdown",
             async (params: WoT.InteractionOutput, options): Promise<WoT.InteractionInput> => {
-                if (params) {
+                if (params !== undefined) {
                     const value = await params.value();
                     if (typeof value === "string" && countdowns.has(value)) {
                         const as = countdowns.get(value);
