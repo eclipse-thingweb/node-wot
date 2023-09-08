@@ -6,6 +6,7 @@
         "module": "commonjs",
         "outDir": "dist",
         "strict": true,
+        "strictNullChecks": true,
         "composite": true,
         "incremental": true,
         "sourceMap": true,
