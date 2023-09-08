@@ -18,7 +18,7 @@ const core_1 = require("@node-wot/core");
 const binding_coap_1 = require("@node-wot/binding-coap");
 // create Servient add CoAP binding with port configuration
 const servient = new core_1.Servient();
-servient.addServer(new binding_coap_1.CoapServer(5685));
+servient.addServer(new binding_coap_1.CoapServer(5686));
 core_1.Helpers.setStaticAddress("plugfest.thingweb.io"); // comment this out if you are testing locally
 let minuteCounter = 0;
 let hourCounter = 0;
