@@ -67,7 +67,7 @@ export class Form implements TDT.FormElementBase {
 
     constructor(href: string, contentType?: string) {
         this.href = href;
-        if (contentType) this.contentType = contentType;
+        if (contentType !== undefined) this.contentType = contentType;
     }
 }
 export interface ExpectedResponse {
