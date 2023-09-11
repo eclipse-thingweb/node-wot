@@ -20,7 +20,7 @@ import Servient, { ExposedThing, Content } from "@node-wot/core";
 
 import { suite, test } from "@testdeck/mocha";
 import { expect, should } from "chai";
-import { DataSchemaValue, InteractionInput } from "wot-typescript-definitions";
+import { DataSchemaValue, InteractionInput, InteractionOptions } from "wot-typescript-definitions";
 import * as TD from "@node-wot/td-tools";
 import CoapServer from "../src/coap-server";
 import { CoapClient } from "../src/coap";
@@ -388,5 +388,78 @@ class CoapServerTest {
             coapServer.stop();
         });
         req.end();
+    }
+
+    @test async "should check uriVariables consistency"() {
+        const portNumber = 5683;
+        const coapServer = new CoapServer(portNumber);
+        const servient = new Servient();
+
+        await coapServer.start(servient);
+
+        const testThing = new ExposedThing(servient, {
+            title: "Test",
+            properties: {
+                test: {
+                    type: "string",
+                    uriVariables: {
+                        id: {
+                            type: "string",
+                        },
+                    },
+                },
+            },
+            actions: {
+                try: {
+                    output: { type: "string" },
+                    uriVariables: {
+                        step: { type: "integer" },
+                    },
+                },
+            },
+        });
+
+        let test: DataSchemaValue;
+        testThing.setPropertyReadHandler("test", (options) => {
+            expect(options?.uriVariables).to.deep.equal({ id: "testId" });
+            return new Promise<InteractionInput>((resolve, reject) => {
+                resolve(test);
+            });
+        });
+        testThing.setPropertyWriteHandler("test", async (value, options) => {
+            expect(options?.uriVariables).to.deep.equal({ id: "testId" });
+            test = await value.value();
+            expect(test?.valueOf()).to.deep.equal("on");
+        });
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.test.forms = [];
+        testThing.setActionHandler("try", (input: WoT.InteractionOutput, params?: InteractionOptions) => {
+            return new Promise<string>((resolve, reject) => {
+                expect(params?.uriVariables).to.deep.equal({ step: 5 });
+                resolve("TEST");
+            });
+        });
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.actions.try.forms = [];
+
+        await coapServer.expose(testThing);
+
+        const coapClient = new CoapClient(coapServer);
+
+        await coapClient.writeResource(
+            new TD.Form("coap://localhost/test/properties/test?id=testId"),
+            new Content("text/plain", Readable.from("on"))
+        );
+
+        const response1 = await coapClient.readResource(new TD.Form("coap://localhost/test/properties/test?id=testId"));
+        expect((await response1.toBuffer()).toString()).to.equal('"on"');
+
+        const response2 = await coapClient.invokeResource(new TD.Form("coap://localhost/test/actions/try?step=5"));
+        expect((await response2.toBuffer()).toString()).to.equal('"TEST"');
+
+        await coapClient.stop();
+        await coapServer.stop();
     }
 }
