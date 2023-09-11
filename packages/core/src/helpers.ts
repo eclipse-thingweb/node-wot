@@ -394,12 +394,13 @@ export default class Helpers implements Resolver {
     ): string {
         const encodedInteractionName = encodeURIComponent(interactionName);
         const uriVariables = [...Object.keys(affordanceUriVariables), ...Object.keys(thingUriVariables)];
-        const pattern = uriVariables.map(encodeURIComponent).join(",");
 
-        if (pattern.length > 0) {
-            return `${encodedInteractionName}{?${pattern}}`;
+        if (uriVariables.length === 0) {
+            return encodedInteractionName;
         }
 
-        return encodedInteractionName;
+        const pattern = uriVariables.map(encodeURIComponent).join(",");
+
+        return `${encodedInteractionName}{?${pattern}}`;
     }
 }
