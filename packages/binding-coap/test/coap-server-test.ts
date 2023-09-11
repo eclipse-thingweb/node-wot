@@ -391,9 +391,11 @@ class CoapServerTest {
     }
 
     @test async "should check uriVariables consistency"() {
-        const portNumber = 5683;
+        const portNumber = 9003;
         const coapServer = new CoapServer(portNumber);
         const servient = new Servient();
+
+        const baseUri = `coap://localhost:${portNumber}/test`;
 
         await coapServer.start(servient);
 
@@ -448,15 +450,14 @@ class CoapServerTest {
 
         const coapClient = new CoapClient(coapServer);
 
-        await coapClient.writeResource(
-            new TD.Form("coap://localhost/test/properties/test?id=testId"),
-            new Content("text/plain", Readable.from("on"))
-        );
+        const propertyUri = `${baseUri}/properties/test?id=testId`;
 
-        const response1 = await coapClient.readResource(new TD.Form("coap://localhost/test/properties/test?id=testId"));
+        await coapClient.writeResource(new TD.Form(propertyUri), new Content("text/plain", Readable.from("on")));
+
+        const response1 = await coapClient.readResource(new TD.Form(propertyUri));
         expect((await response1.toBuffer()).toString()).to.equal('"on"');
 
-        const response2 = await coapClient.invokeResource(new TD.Form("coap://localhost/test/actions/try?step=5"));
+        const response2 = await coapClient.invokeResource(new TD.Form(`${baseUri}/actions/try?step=5`));
         expect((await response2.toBuffer()).toString()).to.equal('"TEST"');
 
         await coapClient.stop();
