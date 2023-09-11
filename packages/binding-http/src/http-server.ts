@@ -261,40 +261,6 @@ export default class HttpServer implements ProtocolServer {
         }
     }
 
-    private updateInteractionNameWithUriVariablePattern(
-        interactionName: string,
-        uriVariables: PropertyElement["uriVariables"] = {},
-        thingVariables: PropertyElement["uriVariables"] = {}
-    ): string {
-        const variables = Object.assign({}, uriVariables, thingVariables);
-        if (Object.keys(variables).length > 0) {
-            let pattern = "{?";
-            let index = 0;
-            if (uriVariables) {
-                for (const key in uriVariables) {
-                    if (index !== 0) {
-                        pattern += ",";
-                    }
-                    pattern += encodeURIComponent(key);
-                    index++;
-                }
-            }
-            if (thingVariables) {
-                for (const key in thingVariables) {
-                    if (index !== 0) {
-                        pattern += ",";
-                    }
-                    pattern += encodeURIComponent(key);
-                    index++;
-                }
-            }
-            pattern += "}";
-            return encodeURIComponent(interactionName) + pattern;
-        } else {
-            return encodeURIComponent(interactionName);
-        }
-    }
-
     public async expose(thing: ExposedThing, tdTemplate: WoT.ExposedThingInit = {}): Promise<void> {
         let urlPath = slugify(thing.title, { lower: true });
 
@@ -400,7 +366,7 @@ export default class HttpServer implements ProtocolServer {
             }
 
             for (const propertyName in thing.properties) {
-                const propertyNamePattern = this.updateInteractionNameWithUriVariablePattern(
+                const propertyNamePattern = Helpers.updateInteractionNameWithUriVariablePattern(
                     propertyName,
                     thing.properties[propertyName].uriVariables,
                     thing.uriVariables
@@ -453,7 +419,7 @@ export default class HttpServer implements ProtocolServer {
             }
 
             for (const actionName in thing.actions) {
-                const actionNamePattern = this.updateInteractionNameWithUriVariablePattern(
+                const actionNamePattern = Helpers.updateInteractionNameWithUriVariablePattern(
                     actionName,
                     thing.actions[actionName].uriVariables,
                     thing.uriVariables
@@ -475,7 +441,7 @@ export default class HttpServer implements ProtocolServer {
             }
 
             for (const eventName in thing.events) {
-                const eventNamePattern = this.updateInteractionNameWithUriVariablePattern(
+                const eventNamePattern = Helpers.updateInteractionNameWithUriVariablePattern(
                     eventName,
                     thing.events[eventName].uriVariables,
                     thing.uriVariables
