@@ -104,10 +104,7 @@ export class Client {
                     reject(err);
                 } else {
                     debug(
-                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                        `New NetConf router opened connection with host ${this.routerParams!.host}, port ${
-                            this.routerParams!.port
-                        }, username ${this.routerParams!.username}`
+                        `New NetConf router opened connection with host ${this.routerParams?.host}, port ${this.routerParams?.port}, username ${this.routerParams?.username}`
                     );
                     this.connected = true;
                     resolve(undefined);
