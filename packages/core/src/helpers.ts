@@ -389,35 +389,17 @@ export default class Helpers implements Resolver {
 
     public static updateInteractionNameWithUriVariablePattern(
         interactionName: string,
-        uriVariables: PropertyElement["uriVariables"] = {},
-        thingVariables: PropertyElement["uriVariables"] = {}
+        affordanceUriVariables: PropertyElement["uriVariables"] = {},
+        thingUriVariables: PropertyElement["uriVariables"] = {}
     ): string {
-        const variables = Object.assign({}, uriVariables, thingVariables);
-        if (Object.keys(variables).length > 0) {
-            let pattern = "{?";
-            let index = 0;
-            if (uriVariables) {
-                for (const key in uriVariables) {
-                    if (index !== 0) {
-                        pattern += ",";
-                    }
-                    pattern += encodeURIComponent(key);
-                    index++;
-                }
-            }
-            if (thingVariables) {
-                for (const key in thingVariables) {
-                    if (index !== 0) {
-                        pattern += ",";
-                    }
-                    pattern += encodeURIComponent(key);
-                    index++;
-                }
-            }
-            pattern += "}";
-            return encodeURIComponent(interactionName) + pattern;
-        } else {
-            return encodeURIComponent(interactionName);
+        const encodedInteractionName = encodeURIComponent(interactionName);
+        const uriVariables = [...Object.keys(affordanceUriVariables), ...Object.keys(thingUriVariables)];
+        const pattern = uriVariables.map(encodeURIComponent).join(",");
+
+        if (pattern.length > 0) {
+            return `${encodedInteractionName}{?${pattern}}`;
         }
+
+        return encodedInteractionName;
     }
 }
