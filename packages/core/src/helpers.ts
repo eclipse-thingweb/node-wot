@@ -401,6 +401,6 @@ export default class Helpers implements Resolver {
 
         const pattern = uriVariables.map(encodeURIComponent).join(",");
 
-        return `${encodedInteractionName}{?${pattern}}`;
+        return encodedInteractionName + "{?" + pattern + "}";
     }
 }
