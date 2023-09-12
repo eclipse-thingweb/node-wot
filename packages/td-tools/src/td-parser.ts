@@ -222,7 +222,7 @@ export function serializeTD(thing: Thing): string {
     const copy = JSON.parse(JSON.stringify(thing));
 
     // clean-ups
-    if (copy.security === undefined || copy.security.length === 0) {
+    if (copy?.security.length === 0) {
         copy.securityDefinitions = {
             nosec_sc: { scheme: "nosec" },
         };
