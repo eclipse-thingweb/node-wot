@@ -1,6 +1,6 @@
 {
     "name": "@node-wot/binding-mqtt",
-    "version": "0.8.8",
+    "version": "0.8.9",
     "description": "MQTT binding for node-wot",
     "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
     "license": "EPL-2.0 OR W3C-20150513",
@@ -35,8 +35,8 @@
         "wot-typescript-definitions": "0.8.0-SNAPSHOT.26"
     },
     "dependencies": {
-        "@node-wot/core": "0.8.8",
-        "@node-wot/td-tools": "0.8.8",
+        "@node-wot/core": "0.8.9",
+        "@node-wot/td-tools": "0.8.9",
         "aedes": "^0.46.2",
         "mqtt": "^4.2.8",
         "rxjs": "5.5.11"
