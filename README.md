@@ -99,10 +99,10 @@ cs.addCodec(new MyCodec("application/myType"));
 
 ### To use with Node.js
 
-> **Warning**: We no longer actively support Node.js version 14 and lower.
+> **Warning**: We no longer actively support Node.js version 16 and lower.
 
--   [Node.js](https://nodejs.org/) version 14+
--   [npm](https://www.npmjs.com/) version 7+
+-   [Node.js](https://nodejs.org/) version 18+
+-   [npm](https://www.npmjs.com/) version 9+
 
 #### Linux
 
