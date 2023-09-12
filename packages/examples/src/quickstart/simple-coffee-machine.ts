@@ -29,9 +29,9 @@ servient.addServer(
 
 Helpers.setStaticAddress("plugfest.thingweb.io"); // comment this out if you are testing locally
 
-let waterAmount = 100;
-let beansAmount = 100;
-let milkAmount = 100;
+let waterAmount = 1000;
+let beansAmount = 1000;
+let milkAmount = 1000;
 
 // promisify timeout since it does not return a promise
 function timeout(ms: number) {
@@ -74,6 +74,13 @@ servient.start().then((WoT) => {
                 input: {
                     type: "string",
                     enum: ["espresso", "cappuccino", "americano"],
+                },
+            },
+            refill: {
+                synchronous: true,
+                input: {
+                    type: "string",
+                    enum: ["water", "beans", "milk"],
                 },
             },
         },
@@ -126,6 +133,27 @@ servient.start().then((WoT) => {
                 } else {
                     throw new Error("Wrong coffee input");
                 }
+            });
+
+            thing.setActionHandler("refill", async (params, options) => {
+                const selectedResource = await params.value();
+                console.info("received refill order of ", selectedResource);
+                switch (selectedResource) {
+                    case "water":
+                        waterAmount = 1000;
+                        break;
+                    case "beans":
+                        beansAmount = 1000;
+                        break;
+                    case "milk":
+                        milkAmount = 1000;
+                        break;
+                    default:
+                        throw new Error("Wrong refill input");
+                }
+
+                thing.emitPropertyChange("resources");
+                return undefined;
             });
 
             // expose the thing
