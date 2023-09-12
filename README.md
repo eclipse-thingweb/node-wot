@@ -101,7 +101,7 @@ cs.addCodec(new MyCodec("application/myType"));
 
 > **Warning**: We no longer actively support Node.js version 16 and lower.
 
--   [Node.js](https://nodejs.org/) version 16+
+-   [Node.js](https://nodejs.org/) version 18+
 -   [npm](https://www.npmjs.com/) version 9+
 
 #### Linux
