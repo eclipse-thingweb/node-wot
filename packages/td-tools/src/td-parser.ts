@@ -269,7 +269,7 @@ export function serializeTD(thing: Thing): string {
         delete copy.events;
     }
 
-    if (copy.links !== undefined && copy.links.length === 0) {
+    if (copy?.links.length === 0) {
         delete copy.links;
     }
 
