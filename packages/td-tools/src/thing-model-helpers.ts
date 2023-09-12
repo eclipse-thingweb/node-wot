@@ -625,7 +625,7 @@ export class ThingModelHelpers {
         keys = keys.map((el) => el.replace("{{", "").replace("}}", ""));
         let isValid = true;
         let errors;
-        if (keys !== undefined && keys.length > 0 && (map === undefined || map === null)) {
+        if ((keys ?? []).length > 0 && (map == null)) {
             isValid = false;
             errors = `No map provided for model ${model.title}`;
         } else if (keys.length > 0) {
