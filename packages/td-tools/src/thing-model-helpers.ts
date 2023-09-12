@@ -508,7 +508,7 @@ export class ThingModelHelpers {
                 extendedModel.properties = {};
             }
             for (const key in properties) {
-                if (dest.properties && dest.properties[key] !== undefined) {
+                if (dest?.properties[key] !== undefined) {
                     extendedModel.properties[key] = { ...properties[key], ...dest.properties[key] };
                 } else {
                     extendedModel.properties[key] = properties[key];
