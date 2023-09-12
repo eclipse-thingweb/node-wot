@@ -229,7 +229,7 @@ export function serializeTD(thing: Thing): string {
         copy.security = ["nosec_sc"];
     }
 
-    if (copy.forms !== undefined && copy.forms.length === 0) {
+    if (copy?.forms.length === 0) {
         delete copy.forms;
     }
 
