@@ -268,7 +268,7 @@ export class ThingModelHelpers {
                 return new Promise((resolve, reject) => {
                     https
                         .get(uri, (res) => {
-                            if (res.statusCode === undefined || res.statusCode !== 200) {
+                            if (res?.statusCode !== 200) {
                                 reject(new Error(`https status code not 200 but ${res.statusCode} for ${uri}`));
                             }
 
