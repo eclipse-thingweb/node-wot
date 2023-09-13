@@ -27,6 +27,11 @@ export * from "./coap-client";
 export * from "./coaps-client-factory";
 export * from "./coaps-client";
 
+export interface CoapServerConfig {
+    port?: number;
+    address?: string;
+}
+
 export type CoapMethodName = "GET" | "POST" | "PUT" | "DELETE" | "FETCH" | "PATCH" | "iPATCH";
 
 export type BlockSize = 16 | 32 | 64 | 128 | 256 | 512 | 1024;

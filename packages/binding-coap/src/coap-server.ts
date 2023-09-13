@@ -33,6 +33,7 @@ import slugify from "slugify";
 import { Readable } from "stream";
 import { MdnsIntroducer } from "./mdns-introducer";
 import { PropertyElement, DataSchema } from "wot-thing-description-types";
+import { CoapServerConfig } from "./coap";
 
 const { debug, warn, info, error } = createLoggers("binding-coap", "coap-server");
 
@@ -76,9 +77,9 @@ export default class CoapServer implements ProtocolServer {
 
     private readonly coreResources = new Map<string, CoreLinkFormatResource>();
 
-    constructor(port?: number, address?: string) {
-        this.port = port ?? 5683;
-        this.address = address;
+    constructor(config?: CoapServerConfig) {
+        this.port = config?.port ?? 5683;
+        this.address = config?.address;
 
         // WoT-specific content formats
         registerFormat(ContentSerdes.JSON_LD, 2100);
