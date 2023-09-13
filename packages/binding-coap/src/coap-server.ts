@@ -189,7 +189,9 @@ export default class CoapServer implements ProtocolServer {
                 this.PROPERTY_DIR,
                 propertyName,
                 offeredMediaType,
-                opValues
+                opValues,
+                property.uriVariables,
+                thing.uriVariables
             );
 
             property.forms.push(form);
@@ -204,7 +206,9 @@ export default class CoapServer implements ProtocolServer {
                 this.ACTION_DIR,
                 actionName,
                 offeredMediaType,
-                "invokeaction"
+                "invokeaction",
+                action.uriVariables,
+                thing.uriVariables
             );
 
             action.forms.push(form);
@@ -215,10 +219,15 @@ export default class CoapServer implements ProtocolServer {
 
     private fillInEventBindingData(thing: ExposedThing, base: string, port: number, offeredMediaType: string) {
         for (const [eventName, event] of Object.entries(thing.events)) {
-            const [href, form] = this.createHrefAndForm(base, this.EVENT_DIR, eventName, offeredMediaType, [
-                "subscribeevent",
-                "unsubscribeevent",
-            ]);
+            const [href, form] = this.createHrefAndForm(
+                base,
+                this.EVENT_DIR,
+                eventName,
+                offeredMediaType,
+                ["subscribeevent", "unsubscribeevent"],
+                event.uriVariables,
+                thing.uriVariables
+            );
 
             event.forms.push(form);
 
@@ -231,16 +240,36 @@ export default class CoapServer implements ProtocolServer {
         affordancePathSegment: string,
         affordanceName: string,
         offeredMediaType: string,
-        opValues: string | string[]
+        opValues: string | string[],
+        affordanceUriVariables: PropertyElement["uriVariables"] = {},
+        thingUriVariables: PropertyElement["uriVariables"] = {}
     ): [string, TD.Form] {
-        const href = this.createFormHref(base, affordancePathSegment, affordanceName);
+        const href = this.createFormHref(
+            base,
+            affordancePathSegment,
+            affordanceName,
+            affordanceUriVariables,
+            thingUriVariables
+        );
         const form = this.createAffordanceForm(href, offeredMediaType, opValues);
 
         return [href, form];
     }
 
-    private createFormHref(base: string, affordancePathSegment: string, affordanceName: string) {
-        return `${base}/${affordancePathSegment}/${encodeURIComponent(affordanceName)}`;
+    private createFormHref(
+        base: string,
+        affordancePathSegment: string,
+        affordanceName: string,
+        affordanceUriVariables: PropertyElement["uriVariables"] = {},
+        thingUriVariables: PropertyElement["uriVariables"] = {}
+    ) {
+        const affordanceNamePattern = Helpers.updateInteractionNameWithUriVariablePattern(
+            affordanceName,
+            affordanceUriVariables,
+            thingUriVariables
+        );
+
+        return `${base}/${affordancePathSegment}/${encodeURIComponent(affordanceNamePattern)}`;
     }
 
     private createAffordanceForm(href: string, offeredMediaType: string, op: string[] | string) {
