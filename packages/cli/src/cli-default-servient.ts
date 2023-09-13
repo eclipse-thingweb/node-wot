@@ -70,7 +70,7 @@ export default class DefaultServient extends Servient {
         },
         http: {
             port: 8080,
-            selfSigned: false,
+            allowSelfSigned: false,
         },
         coap: {
             port: 5683,
@@ -131,11 +131,9 @@ export default class DefaultServient extends Servient {
                 // re-use httpServer (same port)
                 // this.addServer(new WebSocketServer(httpServer));
             }
-            if (this.config.coap) {
-                coapServer =
-                    typeof this.config.coap.port === "number"
-                        ? new CoapServer(this.config.coap.port)
-                        : new CoapServer();
+            const coapConfig = this.config.coap;
+            if (coapConfig != null) {
+                coapServer = new CoapServer(coapConfig);
                 this.addServer(coapServer);
             }
             if (this.config.mqtt) {
