@@ -34,7 +34,7 @@ const PORT = 31831;
 @suite("CoAP server implementation")
 class CoapServerTest {
     @test async "should start and stop a server"() {
-        const coapServer = new CoapServer(PORT);
+        const coapServer = new CoapServer({ port: PORT });
 
         await coapServer.start(new Servient());
         expect(coapServer.getPort()).to.eq(PORT); // from test
@@ -44,7 +44,7 @@ class CoapServerTest {
     }
 
     @test async "should read property"() {
-        const coapServer = new CoapServer(PORT);
+        const coapServer = new CoapServer({ port: PORT });
 
         await coapServer.start(new Servient());
 
@@ -75,7 +75,7 @@ class CoapServerTest {
     }
 
     @test async "should write property"() {
-        const coapServer = new CoapServer(PORT);
+        const coapServer = new CoapServer({ port: PORT });
 
         await coapServer.start(new Servient());
 
@@ -114,7 +114,7 @@ class CoapServerTest {
     }
 
     @test async "should perform an action"() {
-        const coapServer = new CoapServer(PORT);
+        const coapServer = new CoapServer({ port: PORT });
 
         await coapServer.start(new Servient());
 
@@ -151,7 +151,7 @@ class CoapServerTest {
     }
 
     @test async "should subscribe to event"() {
-        const coapServer = new CoapServer(PORT);
+        const coapServer = new CoapServer({ port: PORT });
 
         await coapServer.start(new Servient());
 
@@ -185,25 +185,25 @@ class CoapServerTest {
     }
 
     @test async "should cause EADDRINUSE error when already running"() {
-        const portNumber = 9000;
-        const coapServer1 = new CoapServer(portNumber);
+        const port = 9000;
+        const coapServer1 = new CoapServer({ port });
         await coapServer1.start(new Servient());
 
-        expect(coapServer1.getPort()).to.eq(portNumber);
+        expect(coapServer1.getPort()).to.eq(port);
 
-        const coapServer2 = new CoapServer(coapServer1.getPort());
+        const coapServer2 = new CoapServer({ port: coapServer1.getPort() });
 
         try {
             await coapServer2.start(new Servient());
         } catch (err) {
-            expect((err as Error).message).to.eql(`bind EADDRINUSE 0.0.0.0:${portNumber}`);
+            expect((err as Error).message).to.eql(`bind EADDRINUSE 0.0.0.0:${port}`);
         }
 
         await coapServer1.stop();
     }
 
     @test async "should support IPv6"() {
-        const coapServer = new CoapServer(PORT, "::");
+        const coapServer = new CoapServer({ port: PORT, address: "::" });
         await coapServer.start(new Servient());
 
         const testThing = new ExposedThing(new Servient(), {
@@ -232,8 +232,8 @@ class CoapServerTest {
     }
 
     @test async "should take in account global uriVariables"() {
-        const portNumber = 9001;
-        const coapServer = new CoapServer(portNumber);
+        const port = 9001;
+        const coapServer = new CoapServer({ port });
 
         await coapServer.start(new Servient());
 
@@ -284,8 +284,8 @@ class CoapServerTest {
     }
 
     @test async "should support /.well-known/core"() {
-        const portNumber = 9001;
-        const coapServer = new CoapServer(portNumber);
+        const port = 9001;
+        const coapServer = new CoapServer({ port });
 
         await coapServer.start(new Servient());
 
@@ -311,8 +311,8 @@ class CoapServerTest {
     }
 
     @test async "should support TD Content-Format negotiation"() {
-        const portNumber = 5683;
-        const coapServer = new CoapServer(portNumber);
+        const port = 5683;
+        const coapServer = new CoapServer({ port });
 
         await coapServer.start(new Servient());
 
@@ -365,8 +365,8 @@ class CoapServerTest {
     }
 
     @test async "should supply Size2 option when fetching a TD"() {
-        const portNumber = 9002;
-        const coapServer = new CoapServer(portNumber);
+        const port = 9002;
+        const coapServer = new CoapServer({ port });
 
         await coapServer.start(new Servient());
 
@@ -391,11 +391,11 @@ class CoapServerTest {
     }
 
     @test async "should check uriVariables consistency"() {
-        const portNumber = 9003;
-        const coapServer = new CoapServer(portNumber);
+        const port = 9003;
+        const coapServer = new CoapServer({ port });
         const servient = new Servient();
 
-        const baseUri = `coap://localhost:${portNumber}/test`;
+        const baseUri = `coap://localhost:${port}/test`;
 
         await coapServer.start(servient);
 
