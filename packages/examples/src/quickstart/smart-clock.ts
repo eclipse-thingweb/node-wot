@@ -20,7 +20,7 @@ import { CoapServer } from "@node-wot/binding-coap";
 
 // create Servient add CoAP binding with port configuration
 const servient = new Servient();
-servient.addServer(new CoapServer(5686));
+servient.addServer(new CoapServer({ port: 5686 }));
 
 Helpers.setStaticAddress("plugfest.thingweb.io"); // comment this out if you are testing locally
 

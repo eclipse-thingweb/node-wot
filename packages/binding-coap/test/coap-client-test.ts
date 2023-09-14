@@ -55,7 +55,7 @@ class CoapClientTest {
         // testThing.extendInteractions();
         // await testThing.writeProperty("test", "UNSET");
 
-        const coapServer = new CoapServer(port1);
+        const coapServer = new CoapServer({ port: port1 });
 
         await coapServer.start(new Servient());
         expect(coapServer.getPort()).to.equal(port1);
@@ -102,7 +102,7 @@ class CoapClientTest {
     }
 
     @test async "should re-use port"() {
-        const coapServer = new CoapServer(port2, "localhost");
+        const coapServer = new CoapServer({ port: port2, address: "localhost" });
         await coapServer.start(new Servient());
         const coapClient = new CoapClient(coapServer);
         await coapClient.readResource({
@@ -113,7 +113,7 @@ class CoapClientTest {
     }
 
     @test(timeout(5000)) async "subscribe test"() {
-        const coapServer = new CoapServer(port2, "localhost");
+        const coapServer = new CoapServer({ port: port2, address: "localhost" });
         await coapServer.start(new Servient());
         const coapClient = new CoapClient(coapServer);
         const form: CoapForm = {
