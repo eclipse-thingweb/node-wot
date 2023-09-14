@@ -508,7 +508,7 @@ export class ThingModelHelpers {
                 extendedModel.properties = {};
             }
             for (const key in properties) {
-                if (dest?.properties[key] !== undefined) {
+                if (dest.properties !== undefined && dest.properties[key] !== undefined) {
                     extendedModel.properties[key] = { ...properties[key], ...dest.properties[key] };
                 } else {
                     extendedModel.properties[key] = properties[key];
@@ -625,7 +625,7 @@ export class ThingModelHelpers {
         keys = keys.map((el) => el.replace("{{", "").replace("}}", ""));
         let isValid = true;
         let errors;
-        if ((keys ?? []).length > 0 && (map == null)) {
+        if ((keys ?? []).length > 0 && map == null) {
             isValid = false;
             errors = `No map provided for model ${model.title}`;
         } else if (keys.length > 0) {
