@@ -1,6 +1,6 @@
 {
     "name": "@node-wot/examples",
-    "version": "0.8.8",
+    "version": "0.8.9",
     "private": true,
     "description": "Examples for node-wot (not published)",
     "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
@@ -25,13 +25,13 @@
         "wot-typescript-definitions": "0.8.0-SNAPSHOT.26"
     },
     "dependencies": {
-        "@node-wot/binding-coap": "0.8.8",
-        "@node-wot/binding-file": "0.8.8",
-        "@node-wot/binding-http": "0.8.8",
-        "@node-wot/binding-mqtt": "0.8.8",
-        "@node-wot/binding-opcua": "0.8.8",
-        "@node-wot/core": "0.8.8",
-        "@node-wot/td-tools": "0.8.8",
+        "@node-wot/binding-coap": "0.8.9",
+        "@node-wot/binding-file": "0.8.9",
+        "@node-wot/binding-http": "0.8.9",
+        "@node-wot/binding-mqtt": "0.8.9",
+        "@node-wot/binding-opcua": "0.8.9",
+        "@node-wot/core": "0.8.9",
+        "@node-wot/td-tools": "0.8.9",
         "rxjs": "5.5.11"
     },
     "scripts": {

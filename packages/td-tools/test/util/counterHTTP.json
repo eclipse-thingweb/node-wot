@@ -1,0 +1,528 @@
+{
+    "assetAdministrationShells": [
+        {
+            "idShort": "SampleAAS",
+            "id": "https://example.com/ids/aas/7474_9002_6022_1115",
+            "assetInformation": {
+                "assetKind": "Type",
+                "globalAssetId": "https://example.com/ids/asset/3071_4170_8032_4893",
+                "specificAssetIds": [],
+                "assetType": ""
+            },
+            "submodels": [
+                {
+                    "type": "ModelReference",
+                    "keys": [
+                        {
+                            "type": "Submodel",
+                            "value": "https://example.com/ids/sm/4333_9041_7022_4184"
+                        }
+                    ]
+                }
+            ],
+            "modelType": "AssetAdministrationShell"
+        }
+    ],
+    "submodels": [
+        {
+            "idShort": "AssetInterfacesDescription",
+            "description": [
+                {
+                    "language": "en",
+                    "text": "Counter example Thing"
+                },
+                {
+                    "language": "de",
+                    "text": "Zähler Beispiel Ding"
+                },
+                {
+                    "language": "it",
+                    "text": "Contatore di esempio"
+                }
+            ],
+            "id": "https://example.com/ids/sm/4333_9041_7022_4184",
+            "kind": "Instance",
+            "semanticId": {
+                "type": "ExternalReference",
+                "keys": []
+            },
+            "submodelElements": [
+                {
+                    "idShort": "InterfaceHTTP",
+                    "semanticId": {
+                        "type": "ExternalReference",
+                        "keys": []
+                    },
+                    "embeddedDataSpecifications": [],
+                    "value": [
+                        {
+                            "idShort": "title",
+                            "valueType": "xs:string",
+                            "value": "Counter",
+                            "modelType": "Property"
+                        },
+                        {
+                            "idShort": "support",
+                            "valueType": "xs:anyURI",
+                            "value": "https://github.com/eclipse-thingweb/node-wot/",
+                            "modelType": "Property"
+                        },
+                        {
+                            "idShort": "EndpointMetadata",
+                            "semanticId": {
+                                "type": "ExternalReference",
+                                "keys": []
+                            },
+                            "embeddedDataSpecifications": [],
+                            "value": [
+                                {
+                                    "idShort": "base",
+                                    "semanticId": {
+                                        "type": "ExternalReference",
+                                        "keys": []
+                                    },
+                                    "embeddedDataSpecifications": [],
+                                    "valueType": "xs:anyURI",
+                                    "value": "http://plugfest.thingweb.io:8083",
+                                    "modelType": "Property"
+                                },
+                                {
+                                    "idShort": "contentType",
+                                    "semanticId": {
+                                        "type": "ExternalReference",
+                                        "keys": []
+                                    },
+                                    "embeddedDataSpecifications": [],
+                                    "valueType": "xs:string",
+                                    "value": "application/json",
+                                    "modelType": "Property"
+                                },
+                                {
+                                    "idShort": "security",
+                                    "typeValueListElement": "SubmodelElement",
+                                    "value": [
+                                        {
+                                            "valueType": "xs:string",
+                                            "value": "nosec_sc",
+                                            "modelType": "Property"
+                                        }
+                                    ],
+                                    "modelType": "SubmodelElementList"
+                                },
+                                {
+                                    "idShort": "securityDefinitions",
+                                    "semanticId": {
+                                        "type": "ExternalReference",
+                                        "keys": []
+                                    },
+                                    "embeddedDataSpecifications": [],
+                                    "value": [
+                                        {
+                                            "idShort": "nosec_sc",
+                                            "semanticId": {
+                                                "type": "ExternalReference",
+                                                "keys": []
+                                            },
+                                            "embeddedDataSpecifications": [],
+                                            "value": [
+                                                {
+                                                    "idShort": "scheme",
+                                                    "valueType": "xs:string",
+                                                    "value": "nosec",
+                                                    "modelType": "Property"
+                                                }
+                                            ],
+                                            "modelType": "SubmodelElementCollection"
+                                        }
+                                    ],
+                                    "modelType": "SubmodelElementCollection"
+                                }
+                            ],
+                            "modelType": "SubmodelElementCollection"
+                        },
+                        {
+                            "idShort": "InterfaceMetadata",
+                            "semanticId": {
+                                "type": "ExternalReference",
+                                "keys": []
+                            },
+                            "embeddedDataSpecifications": [],
+                            "value": [
+                                {
+                                    "idShort": "Properties",
+                                    "semanticId": {
+                                        "type": "ExternalReference",
+                                        "keys": []
+                                    },
+                                    "embeddedDataSpecifications": [],
+                                    "value": [
+                                        {
+                                            "idShort": "count",
+                                            "description": [
+                                                {
+                                                    "language": "en",
+                                                    "text": "Current counter value"
+                                                },
+                                                {
+                                                    "language": "de",
+                                                    "text": "Derzeitiger Zählerwert"
+                                                },
+                                                {
+                                                    "language": "it",
+                                                    "text": "Valore attuale del contatore"
+                                                }
+                                            ],
+                                            "semanticId": {
+                                                "type": "ExternalReference",
+                                                "keys": []
+                                            },
+                                            "qualifiers": [],
+                                            "embeddedDataSpecifications": [],
+                                            "value": [
+                                                {
+                                                    "idShort": "type",
+                                                    "valueType": "xs:string",
+                                                    "value": "integer",
+                                                    "modelType": "Property"
+                                                },
+                                                {
+                                                    "idShort": "range",
+                                                    "valueType": "xs:integer",
+                                                    "min": "1",
+                                                    "max": "100",
+                                                    "modelType": "Range"
+                                                },
+                                                {
+                                                    "idShort": "title",
+                                                    "valueType": "xs:string",
+                                                    "value": "Count",
+                                                    "modelType": "Property"
+                                                },
+                                                {
+                                                    "idShort": "observable",
+                                                    "valueType": "xs:boolean",
+                                                    "value": "true",
+                                                    "modelType": "Property"
+                                                },
+                                                {
+                                                    "idShort": "forms",
+                                                    "semanticId": {
+                                                        "type": "ExternalReference",
+                                                        "keys": []
+                                                    },
+                                                    "embeddedDataSpecifications": [],
+                                                    "value": [
+                                                        {
+                                                            "idShort": "htv:methodName",
+                                                            "semanticId": {
+                                                                "type": "ExternalReference",
+                                                                "keys": []
+                                                            },
+                                                            "embeddedDataSpecifications": [],
+                                                            "valueType": "xs:string",
+                                                            "value": "GET",
+                                                            "modelType": "Property"
+                                                        },
+                                                        {
+                                                            "idShort": "href",
+                                                            "semanticId": {
+                                                                "type": "ExternalReference",
+                                                                "keys": []
+                                                            },
+                                                            "embeddedDataSpecifications": [],
+                                                            "valueType": "xs:string",
+                                                            "value": "/counter/properties/count",
+                                                            "modelType": "Property"
+                                                        }
+                                                    ],
+                                                    "modelType": "SubmodelElementCollection"
+                                                }
+                                            ],
+                                            "modelType": "SubmodelElementCollection"
+                                        },
+                                        {
+                                            "idShort": "countAsImage",
+                                            "description": [
+                                                {
+                                                    "language": "en",
+                                                    "text": "Current counter value as SVG image"
+                                                },
+                                                {
+                                                    "language": "de",
+                                                    "text": "Aktueller Zählerwert als SVG-Bild"
+                                                },
+                                                {
+                                                    "language": "it",
+                                                    "text": "Valore attuale del contatore come immagine SVG"
+                                                }
+                                            ],
+                                            "semanticId": {
+                                                "type": "ExternalReference",
+                                                "keys": []
+                                            },
+                                            "qualifiers": [],
+                                            "embeddedDataSpecifications": [],
+                                            "value": [
+                                                {
+                                                    "idShort": "observable",
+                                                    "valueType": "xs:boolean",
+                                                    "value": "false",
+                                                    "modelType": "Property"
+                                                },
+                                                {
+                                                    "idShort": "forms",
+                                                    "semanticId": {
+                                                        "type": "ExternalReference",
+                                                        "keys": []
+                                                    },
+                                                    "embeddedDataSpecifications": [],
+                                                    "value": [
+                                                        {
+                                                            "idShort": "htv:methodName",
+                                                            "semanticId": {
+                                                                "type": "ExternalReference",
+                                                                "keys": []
+                                                            },
+                                                            "embeddedDataSpecifications": [],
+                                                            "valueType": "xs:string",
+                                                            "value": "GET",
+                                                            "modelType": "Property"
+                                                        },
+                                                        {
+                                                            "idShort": "href",
+                                                            "semanticId": {
+                                                                "type": "ExternalReference",
+                                                                "keys": []
+                                                            },
+                                                            "embeddedDataSpecifications": [],
+                                                            "valueType": "xs:string",
+                                                            "value": "/counter/properties/countAsImage",
+                                                            "modelType": "Property"
+                                                        },
+                                                        {
+                                                            "idShort": "contentType",
+                                                            "semanticId": {
+                                                                "type": "ExternalReference",
+                                                                "keys": []
+                                                            },
+                                                            "embeddedDataSpecifications": [],
+                                                            "valueType": "xs:string",
+                                                            "value": "image/svg+xml",
+                                                            "modelType": "Property"
+                                                        }
+                                                    ],
+                                                    "modelType": "SubmodelElementCollection"
+                                                }
+                                            ],
+                                            "modelType": "SubmodelElementCollection"
+                                        },
+                                        {
+                                            "idShort": "redDotImage",
+                                            "description": [
+                                                {
+                                                    "language": "en",
+                                                    "text": "Red dot image as PNG"
+                                                },
+                                                {
+                                                    "language": "de",
+                                                    "text": "Rotes Punktbild als PNG"
+                                                },
+                                                {
+                                                    "language": "it",
+                                                    "text": "Immagine punto rosso come PNG"
+                                                }
+                                            ],
+                                            "semanticId": {
+                                                "type": "ExternalReference",
+                                                "keys": []
+                                            },
+                                            "qualifiers": [],
+                                            "embeddedDataSpecifications": [],
+                                            "value": [
+                                                {
+                                                    "idShort": "observable",
+                                                    "valueType": "xs:boolean",
+                                                    "value": "false",
+                                                    "modelType": "Property"
+                                                },
+                                                {
+                                                    "idShort": "forms",
+                                                    "semanticId": {
+                                                        "type": "ExternalReference",
+                                                        "keys": []
+                                                    },
+                                                    "embeddedDataSpecifications": [],
+                                                    "value": [
+                                                        {
+                                                            "idShort": "htv:methodName",
+                                                            "semanticId": {
+                                                                "type": "ExternalReference",
+                                                                "keys": []
+                                                            },
+                                                            "embeddedDataSpecifications": [],
+                                                            "valueType": "xs:string",
+                                                            "value": "GET",
+                                                            "modelType": "Property"
+                                                        },
+                                                        {
+                                                            "idShort": "href",
+                                                            "semanticId": {
+                                                                "type": "ExternalReference",
+                                                                "keys": []
+                                                            },
+                                                            "embeddedDataSpecifications": [],
+                                                            "valueType": "xs:string",
+                                                            "value": "/counter/properties/redDotImage",
+                                                            "modelType": "Property"
+                                                        },
+                                                        {
+                                                            "idShort": "contentType",
+                                                            "semanticId": {
+                                                                "type": "ExternalReference",
+                                                                "keys": []
+                                                            },
+                                                            "embeddedDataSpecifications": [],
+                                                            "valueType": "xs:string",
+                                                            "value": "image/png;base64",
+                                                            "modelType": "Property"
+                                                        }
+                                                    ],
+                                                    "modelType": "SubmodelElementCollection"
+                                                }
+                                            ],
+                                            "modelType": "SubmodelElementCollection"
+                                        },
+                                        {
+                                            "idShort": "lastChange",
+                                            "description": [
+                                                {
+                                                    "language": "en",
+                                                    "text": "Last change of counter value"
+                                                },
+                                                {
+                                                    "language": "de",
+                                                    "text": "Letzte Änderung"
+                                                },
+                                                {
+                                                    "language": "it",
+                                                    "text": "Ultima modifica del valore"
+                                                }
+                                            ],
+                                            "semanticId": {
+                                                "type": "ExternalReference",
+                                                "keys": []
+                                            },
+                                            "qualifiers": [],
+                                            "embeddedDataSpecifications": [],
+                                            "value": [
+                                                {
+                                                    "idShort": "type",
+                                                    "valueType": "xs:string",
+                                                    "value": "string",
+                                                    "modelType": "Property"
+                                                },
+                                                {
+                                                    "idShort": "title",
+                                                    "valueType": "xs:string",
+                                                    "value": "Last change",
+                                                    "modelType": "Property"
+                                                },
+                                                {
+                                                    "idShort": "observable",
+                                                    "valueType": "xs:boolean",
+                                                    "value": "true",
+                                                    "modelType": "Property"
+                                                },
+                                                {
+                                                    "idShort": "forms",
+                                                    "semanticId": {
+                                                        "type": "ExternalReference",
+                                                        "keys": []
+                                                    },
+                                                    "embeddedDataSpecifications": [],
+                                                    "value": [
+                                                        {
+                                                            "idShort": "htv:methodName",
+                                                            "semanticId": {
+                                                                "type": "ExternalReference",
+                                                                "keys": []
+                                                            },
+                                                            "embeddedDataSpecifications": [],
+                                                            "valueType": "xs:string",
+                                                            "value": "GET",
+                                                            "modelType": "Property"
+                                                        },
+                                                        {
+                                                            "idShort": "href",
+                                                            "semanticId": {
+                                                                "type": "ExternalReference",
+                                                                "keys": []
+                                                            },
+                                                            "embeddedDataSpecifications": [],
+                                                            "valueType": "xs:string",
+                                                            "value": "/counter/properties/lastChange",
+                                                            "modelType": "Property"
+                                                        }
+                                                    ],
+                                                    "modelType": "SubmodelElementCollection"
+                                                }
+                                            ],
+                                            "modelType": "SubmodelElementCollection"
+                                        }
+                                    ],
+                                    "modelType": "SubmodelElementCollection"
+                                },
+                                {
+                                    "idShort": "Actions",
+                                    "semanticId": {
+                                        "type": "ExternalReference",
+                                        "keys": []
+                                    },
+                                    "embeddedDataSpecifications": [],
+                                    "value": [],
+                                    "modelType": "SubmodelElementCollection"
+                                },
+                                {
+                                    "idShort": "Events",
+                                    "semanticId": {
+                                        "type": "ExternalReference",
+                                        "keys": []
+                                    },
+                                    "embeddedDataSpecifications": [],
+                                    "value": [],
+                                    "modelType": "SubmodelElementCollection"
+                                }
+                            ],
+                            "modelType": "SubmodelElementCollection"
+                        },
+                        {
+                            "idShort": "externalDescriptor",
+                            "semanticId": {
+                                "type": "ExternalReference",
+                                "keys": []
+                            },
+                            "embeddedDataSpecifications": [],
+                            "value": [
+                                {
+                                    "idShort": "ThingDescription",
+                                    "semanticId": {
+                                        "type": "ExternalReference",
+                                        "keys": []
+                                    },
+                                    "embeddedDataSpecifications": [],
+                                    "value": "/aasx/files/counter-http-simple.td.jsonld",
+                                    "contentType": "application/json",
+                                    "modelType": "File"
+                                }
+                            ],
+                            "modelType": "SubmodelElementCollection"
+                        }
+                    ],
+                    "modelType": "SubmodelElementCollection"
+                }
+            ],
+            "modelType": "Submodel"
+        }
+    ],
+    "conceptDescriptions": []
+}

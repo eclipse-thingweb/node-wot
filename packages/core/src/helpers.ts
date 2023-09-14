@@ -38,7 +38,7 @@ import { DataSchemaValue, ExposedThingInit } from "wot-typescript-definitions";
 import { SomeJSONSchema } from "ajv/dist/types/json-schema";
 import { ThingInteraction, ThingModelHelpers } from "@node-wot/td-tools";
 import { Resolver } from "@node-wot/td-tools/src/resolver-interface";
-import { DataSchema } from "wot-thing-description-types";
+import { PropertyElement, DataSchema } from "wot-thing-description-types";
 import { createLoggers } from "./logger";
 
 const { debug, error, warn } = createLoggers("core", "helpers");
@@ -385,5 +385,22 @@ export default class Helpers implements Resolver {
         });
 
         return params;
+    }
+
+    public static updateInteractionNameWithUriVariablePattern(
+        interactionName: string,
+        affordanceUriVariables: PropertyElement["uriVariables"] = {},
+        thingUriVariables: PropertyElement["uriVariables"] = {}
+    ): string {
+        const encodedInteractionName = encodeURIComponent(interactionName);
+        const uriVariables = [...Object.keys(affordanceUriVariables), ...Object.keys(thingUriVariables)];
+
+        if (uriVariables.length === 0) {
+            return encodedInteractionName;
+        }
+
+        const pattern = uriVariables.map(encodeURIComponent).join(",");
+
+        return encodedInteractionName + "{?" + pattern + "}";
     }
 }
