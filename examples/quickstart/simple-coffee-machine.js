@@ -47,17 +47,17 @@ servient.start().then((WoT) => {
                     water: {
                         type: "integer",
                         minimum: 0,
-                        maximum: 100,
+                        maximum: 1000,
                     },
                     beans: {
                         type: "integer",
                         minimum: 0,
-                        maximum: 100,
+                        maximum: 1000,
                     },
                     milk: {
                         type: "integer",
                         minimum: 0,
-                        maximum: 100,
+                        maximum: 1000,
                     },
                 },
             },
