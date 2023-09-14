@@ -343,7 +343,7 @@ class AssetInterfaceDescriptionUtilTest {
                                 expect(hasObservable).to.equal(true);
                                 expect(hasForms).to.equal(true);
                             }
-                            if (propertyValue.description) {
+                            if (propertyValue.description !== undefined) {
                                 hasPropertyStatusDescription = true;
                                 expect(propertyValue)
                                     .to.have.property("description")
