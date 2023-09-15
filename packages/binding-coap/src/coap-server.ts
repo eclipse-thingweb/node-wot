@@ -171,9 +171,9 @@ export default class CoapServer implements ProtocolServer {
             for (const offeredMediaType of offeredMediaTypes) {
                 const base = this.createThingBase(address, port, urlPath);
 
-                this.fillInPropertyBindingData(thing, base, port, offeredMediaType);
-                this.fillInActionBindingData(thing, base, port, offeredMediaType);
-                this.fillInEventBindingData(thing, base, port, offeredMediaType);
+                this.fillInPropertyBindingData(thing, base, offeredMediaType);
+                this.fillInActionBindingData(thing, base, offeredMediaType);
+                this.fillInEventBindingData(thing, base, offeredMediaType);
             }
         }
     }
@@ -182,10 +182,10 @@ export default class CoapServer implements ProtocolServer {
         return `${this.scheme}://${address}:${port}/${encodeURIComponent(urlPath)}`;
     }
 
-    private fillInPropertyBindingData(thing: ExposedThing, base: string, port: number, offeredMediaType: string) {
+    private fillInPropertyBindingData(thing: ExposedThing, base: string, offeredMediaType: string) {
         for (const [propertyName, property] of Object.entries(thing.properties)) {
             const opValues = ProtocolHelpers.getPropertyOpValues(property);
-            const [href, form] = this.createHrefAndForm(
+            const form = this.createAffordanceForm(
                 base,
                 this.PROPERTY_DIR,
                 propertyName,
@@ -196,13 +196,13 @@ export default class CoapServer implements ProtocolServer {
             );
 
             property.forms.push(form);
-            this.logHrefAssignment(port, href, "Property", propertyName);
+            this.logHrefAssignment(form, "Property", propertyName);
         }
     }
 
-    private fillInActionBindingData(thing: ExposedThing, base: string, port: number, offeredMediaType: string) {
+    private fillInActionBindingData(thing: ExposedThing, base: string, offeredMediaType: string) {
         for (const [actionName, action] of Object.entries(thing.actions)) {
-            const [href, form] = this.createHrefAndForm(
+            const form = this.createAffordanceForm(
                 base,
                 this.ACTION_DIR,
                 actionName,
@@ -213,14 +213,13 @@ export default class CoapServer implements ProtocolServer {
             );
 
             action.forms.push(form);
-
-            this.logHrefAssignment(port, href, "Action", actionName);
+            this.logHrefAssignment(form, "Action", actionName);
         }
     }
 
-    private fillInEventBindingData(thing: ExposedThing, base: string, port: number, offeredMediaType: string) {
+    private fillInEventBindingData(thing: ExposedThing, base: string, offeredMediaType: string) {
         for (const [eventName, event] of Object.entries(thing.events)) {
-            const [href, form] = this.createHrefAndForm(
+            const form = this.createAffordanceForm(
                 base,
                 this.EVENT_DIR,
                 eventName,
@@ -231,12 +230,11 @@ export default class CoapServer implements ProtocolServer {
             );
 
             event.forms.push(form);
-
-            this.logHrefAssignment(port, href, "Event", eventName);
+            this.logHrefAssignment(form, "Event", eventName);
         }
     }
 
-    private createHrefAndForm(
+    private createAffordanceForm(
         base: string,
         affordancePathSegment: string,
         affordanceName: string,
@@ -244,44 +242,23 @@ export default class CoapServer implements ProtocolServer {
         opValues: string | string[],
         affordanceUriVariables: PropertyElement["uriVariables"] = {},
         thingUriVariables: PropertyElement["uriVariables"] = {}
-    ): [string, TD.Form] {
-        const href = this.createFormHref(
-            base,
-            affordancePathSegment,
-            affordanceName,
-            affordanceUriVariables,
-            thingUriVariables
-        );
-        const form = this.createAffordanceForm(href, offeredMediaType, opValues);
-
-        return [href, form];
-    }
-
-    private createFormHref(
-        base: string,
-        affordancePathSegment: string,
-        affordanceName: string,
-        affordanceUriVariables: PropertyElement["uriVariables"] = {},
-        thingUriVariables: PropertyElement["uriVariables"] = {}
-    ) {
+    ): TD.Form {
         const affordanceNamePattern = Helpers.updateInteractionNameWithUriVariablePattern(
             affordanceName,
             affordanceUriVariables,
             thingUriVariables
         );
 
-        return `${base}/${affordancePathSegment}/${encodeURIComponent(affordanceNamePattern)}`;
-    }
+        const href = `${base}/${affordancePathSegment}/${encodeURIComponent(affordanceNamePattern)}`;
 
-    private createAffordanceForm(href: string, offeredMediaType: string, op: string[] | string) {
         const form = new TD.Form(href, offeredMediaType);
-        form.op = op;
+        form.op = opValues;
 
         return form;
     }
 
-    private logHrefAssignment(port: number, href: string, affordanceType: string, affordanceName: string) {
-        debug(`CoapServer on port ${port} assigns '${href}' to ${affordanceType} '${affordanceName}'`);
+    private logHrefAssignment(form: TD.Form, affordanceType: string, affordanceName: string) {
+        debug(`CoapServer on port ${this.port} assigns '${form.href}' to ${affordanceType} '${affordanceName}'`);
     }
 
     private setUpIntroductionMethods(thing: ExposedThing, urlPath: string, port: number) {
