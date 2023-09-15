@@ -218,7 +218,6 @@ export default class CoapServer implements ProtocolServer {
         }
 
         const readableProperties = this.getReadableProperties(thing).length;
-        const writableProperties = this.getWritableProperties(thing).length;
 
         const opValues: string[] = [];
 
@@ -228,14 +227,6 @@ export default class CoapServer implements ProtocolServer {
 
         if (readableProperties === numberOfProperties) {
             opValues.push("readallproperties");
-        }
-
-        if (writableProperties > 0) {
-            opValues.push("writemultipleproperties");
-        }
-
-        if (writableProperties === numberOfProperties) {
-            opValues.push("writeallproperties");
         }
 
         return opValues;
@@ -574,14 +565,9 @@ export default class CoapServer implements ProtocolServer {
             return;
         }
 
-        const method = req.method;
-
-        switch (method) {
+        switch (req.method) {
             case "GET":
                 this.handleReadMultipleProperties(forms, req, contentType, thing, res);
-                break;
-            case "PUT":
-                this.handleWriteMultipleProperties(forms, req, contentType, thing, res);
                 break;
             default:
                 this.sendMethodNotAllowedResponse(res);
@@ -629,16 +615,6 @@ export default class CoapServer implements ProtocolServer {
             error(`CoapServer on port ${this.getPort()} got internal error on read '${req.url}': ${errorMessage}`);
             this.sendResponse(res, "5.00", errorMessage);
         }
-    }
-
-    private async handleWriteMultipleProperties(
-        forms: TD.Form[],
-        req: IncomingMessage,
-        contentType: string,
-        thing: ExposedThing,
-        res: OutgoingMessage
-    ) {
-        this.sendResponse(res, "5.01", "Writing multiple properties is not implemented yet.");
     }
 
     private async handleReadProperty(
