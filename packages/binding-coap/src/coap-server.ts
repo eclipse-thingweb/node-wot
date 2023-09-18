@@ -360,7 +360,7 @@ export default class CoapServer implements ProtocolServer {
         this.sendContentResponse(res, payload, contentType);
     }
 
-    private processAcceptValue(req: IncomingMessage) {
+    private processAcceptValue(req: IncomingMessage): { contentType: string; isSupported: boolean } {
         const accept = req.headers.Accept;
 
         if (typeof accept !== "string") {
@@ -371,7 +371,7 @@ export default class CoapServer implements ProtocolServer {
             };
         }
 
-        const isSupported = ContentSerdes.get().isSupported(accept);
+        const isSupported: boolean = ContentSerdes.get().isSupported(accept);
 
         if (!isSupported) {
             debug(`Request contained an accept option with value ${accept} which is not supported.`);
@@ -550,9 +550,7 @@ export default class CoapServer implements ProtocolServer {
         res.end();
 
         res.on("finish", (err: Error) => {
-            if (err) {
-                error(`CoapServer on port ${this.port} failed on observe with: ${err.message}`);
-            }
+            error(`CoapServer on port ${this.port} failed on observe with: ${err.message}`);
             thing.handleUnobserveProperty(affordanceKey, listener, interactionOptions);
         });
 
@@ -653,7 +651,7 @@ export default class CoapServer implements ProtocolServer {
                 new Content(contentType, Readable.from(req.payload)),
                 interactionOptions
             );
-            if (output) {
+            if (output != null) {
                 this.streamContentResponse(res, output, { end: true });
             } else {
                 this.sendChangedResponse(res);
@@ -791,7 +789,7 @@ export default class CoapServer implements ProtocolServer {
         return contentType ?? ContentSerdes.DEFAULT;
     }
 
-    private checkContentTypeSupportForInput(method: string, contentType: string) {
+    private checkContentTypeSupportForInput(method: string, contentType: string): boolean {
         const methodsWithPayload: string[] = ["PUT", "POST", "FETCH", "iPATCH", "PATCH"];
         const notAMethodWithPayload = !methodsWithPayload.includes(method);
 
