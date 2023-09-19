@@ -54,20 +54,33 @@ class ThingDiscovery {
         const uriScheme = new URL(url).protocol.split(":")[0];
         const client = this.servient.getClientFor(uriScheme);
         const result = await client.discoverDirectly(url);
-        const data = await ProtocolHelpers.readStreamFully(result.body);
 
         // TODO: Add TD validation
         // FIXME: application/td+json can't be handled at the moment
 
-        const value = ContentManager.contentToValue({ type: "application/json", body: data }, {});
+        const value = ContentManager.contentToValue({ type: "application/json", body: await result.toBuffer() }, {});
 
         if (value instanceof Object) {
             yield value as ThingDescription;
         }
     }
 
-    async *directory(url: string, filter?: WoT.ThingFilter): AsyncGenerator<ThingDescription> {
-        // Not implemented, do nothing
+    async *exploreDirectory(url: string, filter?: WoT.ThingFilter): AsyncGenerator<ThingDescription> {
+        yield Promise.reject(new Error("Unimplemented"));
+    }
+
+    async requestThingDescription(url: string): Promise<ThingDescription> {
+        const uriScheme = new URL(url).protocol.split(":")[0];
+        const client = this.servient.getClientFor(uriScheme);
+        const result = await client.discoverDirectly(url);
+
+        const value = ContentManager.contentToValue({ type: result.type, body: await result.toBuffer() }, {});
+
+        if (value instanceof Object) {
+            return value as ThingDescription;
+        }
+
+        throw new Error("Not found.");
     }
 }
 
