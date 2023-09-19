@@ -20,7 +20,6 @@ import { Subscription } from "rxjs/Subscription";
 import Servient from "./servient";
 import ExposedThing from "./exposed-thing";
 import { Content } from "./content";
-import { ThingDescription } from "wot-typescript-definitions";
 
 export type PropertyContentMap = Map<string, Content>;
 
