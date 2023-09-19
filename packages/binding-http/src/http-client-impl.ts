@@ -418,6 +418,6 @@ export default class HttpClient implements ProtocolClient {
         const response = await fetch(uri, { headers });
         // TODO: Result should be validated
         const body = ProtocolHelpers.toNodeStream(response.body as Readable);
-        return { type: response.headers.get("content-type"), body };
+        return new Content(response.headers.get("content-type") ?? "application/td+json", body);
     }
 }

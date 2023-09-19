@@ -62,11 +62,8 @@ export default class CoapClient implements ProtocolClient {
         req.setOption("Accept", "application/td+json");
         return new Promise<Content>((resolve, reject) => {
             req.on("response", (res: IncomingMessage) => {
-                let contentType = res.headers["Content-Format"];
-                if (typeof contentType !== "string") {
-                    contentType = "application/td+json";
-                }
-                resolve({ type: contentType, body: Readable.from(res.payload) });
+                const contentType = (res.headers["Content-Format"] as string) ?? "application/td+json";
+                resolve(new Content(contentType, Readable.from(res.payload)));
             });
             req.on("error", (err: Error) => reject(err));
             req.end();
