@@ -246,7 +246,7 @@ export class AssetInterfaceDescriptionUtil {
     }
 
     private getContentTypeFromEndpointMetadata(endpointMetadata?: Record<string, unknown>): string {
-        if (endpointMetadata?.value !== undefined && endpointMetadata.value instanceof Array) {
+        if (endpointMetadata?.value != null && endpointMetadata.value instanceof Array) {
             for (const v of endpointMetadata.value) {
                 if (v.idShort === "contentType") {
                     // e.g., "value": "application/octet-stream;byteSeq=BIG_ENDIAN"
