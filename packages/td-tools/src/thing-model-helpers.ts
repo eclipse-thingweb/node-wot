@@ -241,7 +241,7 @@ export class ThingModelHelpers {
             case "http": {
                 return new Promise((resolve, reject) => {
                     http.get(uri, (res) => {
-                        if (res?.statusCode !== 200) {
+                        if (res.statusCode == null || res.statusCode !== 200) {
                             reject(new Error(`http status code not 200 but ${res.statusCode} for ${uri}`));
                         }
 
@@ -268,7 +268,7 @@ export class ThingModelHelpers {
                 return new Promise((resolve, reject) => {
                     https
                         .get(uri, (res) => {
-                            if (res?.statusCode !== 200) {
+                            if (res.statusCode == null || res.statusCode !== 200) {
                                 reject(new Error(`https status code not 200 but ${res.statusCode} for ${uri}`));
                             }
 
@@ -625,7 +625,7 @@ export class ThingModelHelpers {
         keys = keys.map((el) => el.replace("{{", "").replace("}}", ""));
         let isValid = true;
         let errors;
-        if ((keys ?? []).length > 0 && map == null) {
+        if (keys != null && keys.length > 0 && (map === undefined || map === null)) {
             isValid = false;
             errors = `No map provided for model ${model.title}`;
         } else if (keys.length > 0) {
