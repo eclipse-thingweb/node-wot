@@ -405,7 +405,7 @@ export class ThingModelHelpers {
 
             for (const key in submodelObj) {
                 const sub = submodelObj[key];
-                if (options.selfComposition != null) {
+                if (options.selfComposition === true) {
                     if (!data.links) {
                         throw new Error(
                             "You used self composition but links are missing; they are needed to extract the instance name"
@@ -449,7 +449,7 @@ export class ThingModelHelpers {
                 }
             }
         }
-        if (!data.links || options.selfComposition != null) {
+        if (!data.links || options.selfComposition === true) {
             data.links = [];
         }
         // add reference to the thing model
@@ -508,7 +508,7 @@ export class ThingModelHelpers {
                 extendedModel.properties = {};
             }
             for (const key in properties) {
-                if (dest.properties != null && dest.properties[key] != null) {
+                if (dest.properties && dest.properties[key] != null) {
                     extendedModel.properties[key] = { ...properties[key], ...dest.properties[key] };
                 } else {
                     extendedModel.properties[key] = properties[key];
