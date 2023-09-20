@@ -61,7 +61,7 @@ WoTHelpers.fetch("http://127.0.0.1:8080/smart-coffee-machine").then(async (td) =
             uriVariables: { drinkId: "latte", size: "l", quantity: 3 },
         });
         const makeCoffeep = (await makeCoffee?.value()) as Record<string, unknown>;
-        if (makeCoffeep.result !== undefined) {
+        if (makeCoffeep.result) {
             log("Enjoy your drink!", makeCoffeep);
         } else {
             log("Failed making your drink:", makeCoffeep);
