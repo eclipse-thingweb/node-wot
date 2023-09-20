@@ -158,7 +158,7 @@ export function parseTD(td: string, normalize?: boolean): Thing {
                 throw new Error(`Form of Property '${propName}' has no href field`);
             }
             // check if base field required
-            if (!isAbsoluteUrl(form.href) && thing.base === undefined)
+            if (!isAbsoluteUrl(form.href) && thing.base == null)
                 throw new Error(`Form of Property '${propName}' has relative URI while TD has no base field`);
             // add
             allForms.push(form);
@@ -176,7 +176,7 @@ export function parseTD(td: string, normalize?: boolean): Thing {
                 throw new Error(`Form of Action '${actName}' has no href field`);
             }
             // check if base field required
-            if (!isAbsoluteUrl(form.href) && thing.base === undefined)
+            if (!isAbsoluteUrl(form.href) && thing.base == null)
                 throw new Error(`Form of Action '${actName}' has relative URI while TD has no base field`);
             // add
             allForms.push(form);
@@ -194,7 +194,7 @@ export function parseTD(td: string, normalize?: boolean): Thing {
                 throw new Error(`Form of Event '${evtName}' has no href field`);
             }
             // check if base field required
-            if (!isAbsoluteUrl(form.href) && thing.base === undefined)
+            if (!isAbsoluteUrl(form.href) && thing.base == null)
                 throw new Error(`Form of Event '${evtName}' has relative URI while TD has no base field`);
             // add
             allForms.push(form);
@@ -233,9 +233,9 @@ export function serializeTD(thing: Thing): string {
         delete copy.forms;
     }
 
-    if (copy.properties !== undefined && Object.keys(copy.properties).length === 0) {
+    if (copy.properties != null && Object.keys(copy.properties).length === 0) {
         delete copy.properties;
-    } else if (copy.properties !== undefined) {
+    } else if (copy.properties != null) {
         // add mandatory fields (if missing): observable, writeOnly, and readOnly
         for (const propName in copy.properties) {
             const prop = copy.properties[propName];
@@ -251,9 +251,9 @@ export function serializeTD(thing: Thing): string {
         }
     }
 
-    if (copy.actions !== undefined && Object.keys(copy.actions).length === 0) {
+    if (copy.actions != null && Object.keys(copy.actions).length === 0) {
         delete copy.actions;
-    } else if (copy.actions !== undefined) {
+    } else if (copy.actions != null) {
         // add mandatory fields (if missing): idempotent and safe
         for (const actName in copy.actions) {
             const act = copy.actions[actName];
@@ -265,7 +265,7 @@ export function serializeTD(thing: Thing): string {
             }
         }
     }
-    if (copy.events !== undefined && Object.keys(copy.events).length === 0) {
+    if (copy.events != null && Object.keys(copy.events).length === 0) {
         delete copy.events;
     }
 

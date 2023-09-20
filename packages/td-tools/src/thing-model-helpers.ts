@@ -110,7 +110,7 @@ export class ThingModelHelpers {
         }
         if ("links" in data && Array.isArray(data.links)) {
             const foundTmExtendsRel = data.links.find((link) => link.rel === "tm:extends");
-            if (foundTmExtendsRel !== undefined) return true;
+            if (foundTmExtendsRel != null) return true;
         }
 
         if (data.properties !== undefined) {
@@ -138,7 +138,7 @@ export class ThingModelHelpers {
     public static getModelVersion(data: ThingModel): string | undefined {
         if (
             "version" in data &&
-            data.version !== undefined &&
+            data.version != null &&
             typeof data.version === "object" &&
             "model" in data.version &&
             typeof data.version.model === "string"
@@ -343,7 +343,7 @@ export class ThingModelHelpers {
                 for (const aff in affRefs) {
                     const affUri = affRefs[aff] as string;
                     const refObj = this.parseTmRef(affUri);
-                    if (refObj.uri === undefined) {
+                    if (refObj.uri == null) {
                         throw new Error(`Missing remote path in ${affUri}`);
                     }
                     let source = await this.fetchModel(refObj.uri);
@@ -376,7 +376,7 @@ export class ThingModelHelpers {
         if (!options) {
             options = {} as CompositionOptions;
         }
-        if (options.baseUrl === undefined) {
+        if (options.baseUrl == null) {
             options.baseUrl = ".";
         }
         const newTMHref = this.returnNewTMHref(options.baseUrl, title);
@@ -405,7 +405,7 @@ export class ThingModelHelpers {
 
             for (const key in submodelObj) {
                 const sub = submodelObj[key];
-                if (options.selfComposition !== undefined) {
+                if (options.selfComposition != null) {
                     if (!data.links) {
                         throw new Error(
                             "You used self composition but links are missing; they are needed to extract the instance name"
@@ -415,7 +415,7 @@ export class ThingModelHelpers {
                     const index = data.links.findIndex((el) => el.href === key);
                     const el = data.links[index];
                     const instanceName = el.instanceName;
-                    if (instanceName === undefined) {
+                    if (instanceName == null) {
                         throw new Error("Self composition is not possible without instance names");
                     }
                     // self composition enabled, just one TD expected
@@ -449,7 +449,7 @@ export class ThingModelHelpers {
                 }
             }
         }
-        if (!data.links || options.selfComposition !== undefined) {
+        if (!data.links || options.selfComposition != null) {
             data.links = [];
         }
         // add reference to the thing model
@@ -475,7 +475,7 @@ export class ThingModelHelpers {
 
     private static getThingModelRef(data: Record<string, unknown>): Record<string, unknown> {
         const refs = {} as Record<string, unknown>;
-        if (data === undefined) {
+        if (data == null) {
             return refs;
         }
         for (const key in data) {
@@ -508,7 +508,7 @@ export class ThingModelHelpers {
                 extendedModel.properties = {};
             }
             for (const key in properties) {
-                if (dest.properties !== undefined && dest.properties[key] !== undefined) {
+                if (dest.properties != null && dest.properties[key] != null) {
                     extendedModel.properties[key] = { ...properties[key], ...dest.properties[key] };
                 } else {
                     extendedModel.properties[key] = properties[key];
@@ -660,7 +660,7 @@ export class ThingModelHelpers {
     }
 
     private removeDependency(dep?: string) {
-        if (dep !== undefined) {
+        if (dep != null) {
             this.deps = this.deps.filter((el) => el !== dep);
         } else {
             this.deps.pop();
