@@ -449,7 +449,7 @@ export class AssetInterfaceDescriptionUtil {
                 if (smValue instanceof Object) {
                     if (smValue.idShort === "InterfaceMetadata") {
                         logInfo("InterfaceMetadata");
-                        if (smValue.value != null && smValue.value instanceof Array) {
+                        if (smValue.value instanceof Array) {
                             for (const interactionValue of smValue.value) {
                                 if (interactionValue.idShort === "Properties") {
                                     if (interactionValue.value instanceof Array) {
