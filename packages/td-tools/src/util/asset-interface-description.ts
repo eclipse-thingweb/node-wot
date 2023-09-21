@@ -425,7 +425,7 @@ export class AssetInterfaceDescriptionUtil {
 
     private processSubmodelElement(smInformation: SubmodelInformation, submodelElement: Record<string, unknown>): void {
         // EndpointMetadata vs. InterfaceMetadata
-        if (submodelElement.value != null && submodelElement.value instanceof Array) {
+        if (submodelElement.value instanceof Array) {
             // Note: iterate twice over to collect first EndpointMetadata
             let endpointMetadata: Record<string, unknown> = {};
             for (const smValue of submodelElement.value) {
