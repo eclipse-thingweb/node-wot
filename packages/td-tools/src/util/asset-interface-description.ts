@@ -408,7 +408,7 @@ export class AssetInterfaceDescriptionUtil {
                 for (const submodelElement of submodel.submodelElements) {
                     if (submodelElement instanceof Object) {
                         logDebug("SubmodelElement.idShort: " + submodelElement.idShort);
-                        if (submodelRegex != null && typeof submodelRegex === "string" && submodelRegex.length > 0) {
+                        if (typeof submodelRegex === "string" && submodelRegex.length > 0) {
                             const regex = new RegExp(submodelRegex);
                             if (!regex.test(submodelElement.idShort)) {
                                 logInfo("submodel not of interest");
