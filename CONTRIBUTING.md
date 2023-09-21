@@ -84,6 +84,27 @@ function startFoo() {
     error("This is an error message!");
 }
 ```
+### Checking for `undefined` or `null`
+
+In node-wot, we enabled [strict boolean expressions](https://typescript-eslint.io/rules/strict-boolean-expressions/). In summary, this means that in the 
+the code base is not allowed to use non-boolean expressions where a boolean is expected (see the [examples](https://typescript-eslint.io/rules/strict-boolean-expressions/#examples)). 
+How then should the contributor deal with nullable variables? For example:
+```ts
+function(arg1: string | null | undefined) {
+    // ERROR: not allowed by strict-boolean-expressions 
+    if(!arg) { throw new Error("arg should be defined!))}
+}
+```
+Instead of checking for both null and `undefiend` values (`if(arg !== undefined && arg !== null)`) the preferred solution is to use `!=` or `==` operator. Interestingly in JavaScript 
+with ==, null and undefined are only equal to each other. Example:
+```ts
+function(arg1: string | null | undefined) {
+    // OK
+    if(arg == null) { throw new Error("arg should be defined!))}
+}
+```
+
+Further reading on the motivations can be found [here](https://basarat.gitbook.io/typescript/recap/null-undefined#checking-for-either). 
 
 ## Commits
 
