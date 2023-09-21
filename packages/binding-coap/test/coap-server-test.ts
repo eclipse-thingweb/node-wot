@@ -280,7 +280,7 @@ class CoapServerTest {
         const resp = await coapClient.readResource(new TD.Form(uri + "properties/test?id=testId&globalVarTest=test1"));
         expect((await resp.toBuffer()).toString()).to.equal('"testValue"');
 
-        return coapServer.stop();
+        await coapServer.stop();
     }
 
     @test async "should support /.well-known/core"() {
@@ -307,7 +307,7 @@ class CoapServerTest {
             '</test1>;rt="wot.thing";ct="50 432",</test2>;rt="wot.thing";ct="50 432"'
         );
 
-        return coapServer.stop();
+        await coapServer.stop();
     }
 
     @test async "should support TD Content-Format negotiation"() {
@@ -323,7 +323,6 @@ class CoapServerTest {
         await coapServer.expose(testThing);
 
         const uri = `coap://localhost:${coapServer.getPort()}/test`;
-        let responseCounter = 0;
 
         registerFormat("application/foobar", 65000);
 
@@ -337,31 +336,36 @@ class CoapServerTest {
             null,
         ];
 
-        for (const contentFormat of contentFormats) {
-            const req = request(uri);
+        const promises = contentFormats.map(
+            (contentFormat) =>
+                new Promise<void>((resolve) => {
+                    const req = request(uri);
 
-            if (contentFormat != null) {
-                req.setHeader("Accept", contentFormat);
-            }
+                    if (contentFormat != null) {
+                        req.setHeader("Accept", contentFormat);
+                    }
 
-            req.on("response", (res: IncomingMessage) => {
-                const requestContentFormat = res.headers["Content-Format"];
+                    req.on("response", async (res: IncomingMessage) => {
+                        const requestContentFormat = res.headers["Content-Format"];
 
-                if (contentFormat === unsupportedContentFormat) {
-                    expect(res.code).to.equal("4.06");
-                    expect(res.payload.toString()).to.equal(
-                        `Content-Format ${unsupportedContentFormat} is not supported by this resource.`
-                    );
-                } else {
-                    expect(requestContentFormat).to.equal(contentFormat ?? defaultContentFormat);
-                }
+                        if (contentFormat === unsupportedContentFormat) {
+                            expect(res.code).to.equal("4.06");
+                            expect(res.payload.toString()).to.equal(
+                                `Content-Format ${unsupportedContentFormat} is not supported by this resource.`
+                            );
+                        } else {
+                            expect(requestContentFormat).to.equal(contentFormat ?? defaultContentFormat);
+                        }
 
-                if (++responseCounter >= contentFormats.length) {
-                    coapServer.stop();
-                }
-            });
-            req.end();
-        }
+                        resolve();
+                    });
+                    req.end();
+                })
+        );
+
+        await Promise.all(promises);
+
+        await coapServer.stop();
     }
 
     @test async "should supply Size2 option when fetching a TD"() {
@@ -377,17 +381,21 @@ class CoapServerTest {
 
         await coapServer.expose(testThing);
 
-        const req = request({
-            host: "localhost",
-            pathname: "test",
-            port: coapServer.getPort(),
+        await new Promise<void>((resolve) => {
+            const req = request({
+                host: "localhost",
+                pathname: "test",
+                port: coapServer.getPort(),
+            });
+            req.setOption("Size2", 0);
+            req.on("response", (res) => {
+                expect(res.headers.Size2).to.equal(JSON.stringify(testThing.getThingDescription()).length);
+                resolve();
+            });
+            req.end();
         });
-        req.setOption("Size2", 0);
-        req.on("response", (res) => {
-            expect(res.headers.Size2).to.equal(JSON.stringify(testThing.getThingDescription()).length);
-            coapServer.stop();
-        });
-        req.end();
+
+        await coapServer.stop();
     }
 
     @test async "should check uriVariables consistency"() {
