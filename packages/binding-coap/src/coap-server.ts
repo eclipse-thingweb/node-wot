@@ -205,10 +205,6 @@ export default class CoapServer implements ProtocolServer {
         return Object.entries(thing.properties).filter(([_, value]) => value.writeOnly !== true);
     }
 
-    private getWritableProperties(thing: ExposedThing) {
-        return Object.entries(thing.properties).filter(([_, value]) => value.readOnly !== true);
-    }
-
     private createPropertyMetaOpValues(thing: ExposedThing): string[] {
         const properties = Object.values(thing.properties);
         const numberOfProperties = properties.length;
