@@ -323,7 +323,6 @@ class CoapServerTest {
         await coapServer.expose(testThing);
 
         const uri = `coap://localhost:${coapServer.getPort()}/test`;
-        let responseCounter = 0;
 
         registerFormat("application/foobar", 65000);
 
@@ -337,9 +336,8 @@ class CoapServerTest {
             null,
         ];
 
-        await new Promise<void>((resolve) => {
-            for (const contentFormat of contentFormats) {
-                const req = request(uri);
+        const promises = contentFormats.map((contentFormat) => new Promise<void>((resolve) => {
+            const req = request(uri);
 
                 if (contentFormat != null) {
                     req.setHeader("Accept", contentFormat);
@@ -357,13 +355,12 @@ class CoapServerTest {
                         expect(requestContentFormat).to.equal(contentFormat ?? defaultContentFormat);
                     }
 
-                    if (++responseCounter >= contentFormats.length) {
-                        resolve();
-                    }
+                    resolve();
                 });
                 req.end();
-            }
-        });
+        }));
+
+        await Promise.all(promises);
 
         await coapServer.stop();
     }
