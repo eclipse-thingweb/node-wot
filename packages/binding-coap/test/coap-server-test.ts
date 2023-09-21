@@ -280,7 +280,7 @@ class CoapServerTest {
         const resp = await coapClient.readResource(new TD.Form(uri + "properties/test?id=testId&globalVarTest=test1"));
         expect((await resp.toBuffer()).toString()).to.equal('"testValue"');
 
-        return coapServer.stop();
+        await coapServer.stop();
     }
 
     @test async "should support /.well-known/core"() {
@@ -307,7 +307,7 @@ class CoapServerTest {
             '</test1>;rt="wot.thing";ct="50 432",</test2>;rt="wot.thing";ct="50 432"'
         );
 
-        return coapServer.stop();
+        await coapServer.stop();
     }
 
     @test async "should support TD Content-Format negotiation"() {
@@ -344,7 +344,7 @@ class CoapServerTest {
                 req.setHeader("Accept", contentFormat);
             }
 
-            req.on("response", (res: IncomingMessage) => {
+            req.on("response", async (res: IncomingMessage) => {
                 const requestContentFormat = res.headers["Content-Format"];
 
                 if (contentFormat === unsupportedContentFormat) {
@@ -357,7 +357,7 @@ class CoapServerTest {
                 }
 
                 if (++responseCounter >= contentFormats.length) {
-                    coapServer.stop();
+                    await coapServer.stop();
                 }
             });
             req.end();
@@ -383,9 +383,9 @@ class CoapServerTest {
             port: coapServer.getPort(),
         });
         req.setOption("Size2", 0);
-        req.on("response", (res) => {
+        req.on("response", async (res) => {
             expect(res.headers.Size2).to.equal(JSON.stringify(testThing.getThingDescription()).length);
-            coapServer.stop();
+            await coapServer.stop();
         });
         req.end();
     }
