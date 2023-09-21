@@ -234,7 +234,7 @@ export class AssetInterfaceDescriptionUtil {
     }
 
     private getBaseFromEndpointMetadata(endpointMetadata?: Record<string, unknown>): string {
-        if (endpointMetadata?.value != null && endpointMetadata.value instanceof Array) {
+        if (endpointMetadata?.value instanceof Array) {
             for (const v of endpointMetadata.value) {
                 if (v.idShort === "base") {
                     // e.g., "value": "modbus+tcp://192.168.1.187:502"
@@ -246,7 +246,7 @@ export class AssetInterfaceDescriptionUtil {
     }
 
     private getContentTypeFromEndpointMetadata(endpointMetadata?: Record<string, unknown>): string {
-        if (endpointMetadata?.value != null && endpointMetadata.value instanceof Array) {
+        if (endpointMetadata?.value instanceof Array) {
             for (const v of endpointMetadata.value) {
                 if (v.idShort === "contentType") {
                     // e.g., "value": "application/octet-stream;byteSeq=BIG_ENDIAN"
@@ -264,11 +264,11 @@ export class AssetInterfaceDescriptionUtil {
             [k: string]: SecurityScheme;
         } = {};
 
-        if (endpointMetadata?.value != null && endpointMetadata.value instanceof Array) {
+        if (endpointMetadata?.value instanceof Array) {
             for (const v of endpointMetadata.value) {
                 if (v.idShort === "securityDefinitions") {
                     // const securitySchemes: Array<SecurityScheme> = [];
-                    if (v.value != null && v.value instanceof Array) {
+                    if (v.value instanceof Array) {
                         for (const securityDefinitionsValues of v.value) {
                             if (securityDefinitionsValues.idShort != null) {
                                 // key
@@ -404,7 +404,7 @@ export class AssetInterfaceDescriptionUtil {
             submodel.idShort != null &&
             submodel.idShort === "AssetInterfacesDescription"
         ) {
-            if (submodel.submodelElements != null && submodel.submodelElements instanceof Array) {
+            if (submodel.submodelElements instanceof Array) {
                 for (const submodelElement of submodel.submodelElements) {
                     if (submodelElement instanceof Object) {
                         logDebug("SubmodelElement.idShort: " + submodelElement.idShort);
