@@ -295,7 +295,7 @@ export class AssetInterfaceDescriptionUtil {
         endpointMetadata?: Record<string, unknown>
     ): string | [string, ...string[]] {
         const security: string[] = [];
-        if (endpointMetadata?.value != null && endpointMetadata.value instanceof Array) {
+        if (endpointMetadata?.value instanceof Array) {
             for (const v of endpointMetadata.value) {
                 if (v.idShort === "security") {
                     if (v.value != null && v.value instanceof Array) {
