@@ -337,31 +337,35 @@ class CoapServerTest {
             null,
         ];
 
-        for (const contentFormat of contentFormats) {
-            const req = request(uri);
+        await new Promise<void>((resolve) => {
+            for (const contentFormat of contentFormats) {
+                const req = request(uri);
 
-            if (contentFormat != null) {
-                req.setHeader("Accept", contentFormat);
+                if (contentFormat != null) {
+                    req.setHeader("Accept", contentFormat);
+                }
+
+                req.on("response", async (res: IncomingMessage) => {
+                    const requestContentFormat = res.headers["Content-Format"];
+
+                    if (contentFormat === unsupportedContentFormat) {
+                        expect(res.code).to.equal("4.06");
+                        expect(res.payload.toString()).to.equal(
+                            `Content-Format ${unsupportedContentFormat} is not supported by this resource.`
+                        );
+                    } else {
+                        expect(requestContentFormat).to.equal(contentFormat ?? defaultContentFormat);
+                    }
+
+                    if (++responseCounter >= contentFormats.length) {
+                        resolve();
+                    }
+                });
+                req.end();
             }
+        });
 
-            req.on("response", async (res: IncomingMessage) => {
-                const requestContentFormat = res.headers["Content-Format"];
-
-                if (contentFormat === unsupportedContentFormat) {
-                    expect(res.code).to.equal("4.06");
-                    expect(res.payload.toString()).to.equal(
-                        `Content-Format ${unsupportedContentFormat} is not supported by this resource.`
-                    );
-                } else {
-                    expect(requestContentFormat).to.equal(contentFormat ?? defaultContentFormat);
-                }
-
-                if (++responseCounter >= contentFormats.length) {
-                    await coapServer.stop();
-                }
-            });
-            req.end();
-        }
+        await coapServer.stop();
     }
 
     @test async "should supply Size2 option when fetching a TD"() {
@@ -377,17 +381,21 @@ class CoapServerTest {
 
         await coapServer.expose(testThing);
 
-        const req = request({
-            host: "localhost",
-            pathname: "test",
-            port: coapServer.getPort(),
+        await new Promise<void>((resolve) => {
+            const req = request({
+                host: "localhost",
+                pathname: "test",
+                port: coapServer.getPort(),
+            });
+            req.setOption("Size2", 0);
+            req.on("response", (res) => {
+                expect(res.headers.Size2).to.equal(JSON.stringify(testThing.getThingDescription()).length);
+                resolve();
+            });
+            req.end();
         });
-        req.setOption("Size2", 0);
-        req.on("response", async (res) => {
-            expect(res.headers.Size2).to.equal(JSON.stringify(testThing.getThingDescription()).length);
-            await coapServer.stop();
-        });
-        req.end();
+
+        await coapServer.stop();
     }
 
     @test async "should check uriVariables consistency"() {
