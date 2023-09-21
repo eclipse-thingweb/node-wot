@@ -336,29 +336,32 @@ class CoapServerTest {
             null,
         ];
 
-        const promises = contentFormats.map((contentFormat) => new Promise<void>((resolve) => {
-            const req = request(uri);
+        const promises = contentFormats.map(
+            (contentFormat) =>
+                new Promise<void>((resolve) => {
+                    const req = request(uri);
 
-                if (contentFormat != null) {
-                    req.setHeader("Accept", contentFormat);
-                }
-
-                req.on("response", async (res: IncomingMessage) => {
-                    const requestContentFormat = res.headers["Content-Format"];
-
-                    if (contentFormat === unsupportedContentFormat) {
-                        expect(res.code).to.equal("4.06");
-                        expect(res.payload.toString()).to.equal(
-                            `Content-Format ${unsupportedContentFormat} is not supported by this resource.`
-                        );
-                    } else {
-                        expect(requestContentFormat).to.equal(contentFormat ?? defaultContentFormat);
+                    if (contentFormat != null) {
+                        req.setHeader("Accept", contentFormat);
                     }
 
-                    resolve();
-                });
-                req.end();
-        }));
+                    req.on("response", async (res: IncomingMessage) => {
+                        const requestContentFormat = res.headers["Content-Format"];
+
+                        if (contentFormat === unsupportedContentFormat) {
+                            expect(res.code).to.equal("4.06");
+                            expect(res.payload.toString()).to.equal(
+                                `Content-Format ${unsupportedContentFormat} is not supported by this resource.`
+                            );
+                        } else {
+                            expect(requestContentFormat).to.equal(contentFormat ?? defaultContentFormat);
+                        }
+
+                        resolve();
+                    });
+                    req.end();
+                })
+        );
 
         await Promise.all(promises);
 
