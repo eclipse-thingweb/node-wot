@@ -186,6 +186,7 @@ The protocol binding can be configured using his constructor or trough servient 
     serverCert?: string;                     // HTTPs server certificate file
     security?: TD.SecurityScheme[];          // A list of possible security schemes to be used by things exposed by this servient.
     baseUri?: string                         // A Base URI to be used in the TD in cases where the client will access a different URL than the actual machine serving the thing.  [See Using BaseUri below]
+    urlRewrite?: Record<string, string>      // A record to allow for other URLs pointing to existing endpoints, e.g., { "/myroot/myUrl": "/test/properties/test" }
     middleware?: MiddlewareRequestHandler;   // the MiddlewareRequestHandler function. See [Adding a middleware] section below.
 }
 ```
