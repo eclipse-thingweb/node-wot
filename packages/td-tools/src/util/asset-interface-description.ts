@@ -298,7 +298,7 @@ export class AssetInterfaceDescriptionUtil {
         if (endpointMetadata?.value instanceof Array) {
             for (const v of endpointMetadata.value) {
                 if (v.idShort === "security") {
-                    if (v.value != null && v.value instanceof Array) {
+                    if (v.value instanceof Array) {
                         for (const securityValue of v.value) {
                             if (securityValue.value != null) {
                                 security.push(securityValue.value);
