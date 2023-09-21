@@ -132,7 +132,7 @@ export class AssetInterfaceDescriptionUtil {
     public transformTD2SM(tdAsString: string, protocols?: string[]): string {
         const td: ThingDescription = TDParser.parseTD(tdAsString);
 
-        const aidID = td.id != null ? td.id : "ID" + Math.random();
+        const aidID = td.id ?? "ID" + Math.random();
 
         logInfo("TD " + td.title + " parsed...");
 
