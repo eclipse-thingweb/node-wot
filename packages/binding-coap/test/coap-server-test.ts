@@ -566,4 +566,70 @@ class CoapServerTest {
         await coapServer.stop();
         await coapClient.stop();
     }
+
+    @test async "should reject requests for undefined meta operations"() {
+        const coapServer = new CoapServer();
+        const servient = new Servient();
+
+        await coapServer.start(servient);
+
+        const testThingWithoutForms = new ExposedThing(servient, {
+            title: "Test",
+        });
+
+        await coapServer.expose(testThingWithoutForms);
+
+        await new Promise<void>((resolve) => {
+            const req = request({
+                host: "localhost",
+                pathname: "test/properties",
+                port: coapServer.getPort(),
+                method: "GET",
+            });
+            req.on("response", (res: IncomingMessage) => {
+                expect(res.code).to.equal("4.04");
+                resolve();
+            });
+            req.end();
+        });
+
+        await coapServer.stop();
+        await servient.shutdown();
+    }
+
+    @test async "should reject unsupported methods for meta operations"() {
+        const coapServer = new CoapServer();
+        const servient = new Servient();
+
+        await coapServer.start(servient);
+
+        const testThingWithoutForms = new ExposedThing(servient, {
+            title: "Test",
+            properties: {
+                testInteger: {
+                    type: "integer",
+                    forms: [],
+                },
+            },
+        });
+
+        await coapServer.expose(testThingWithoutForms);
+
+        await new Promise<void>((resolve) => {
+            const req = request({
+                host: "localhost",
+                pathname: "test/properties",
+                port: coapServer.getPort(),
+                method: "PUT",
+            });
+            req.on("response", (res) => {
+                expect(res.code).to.equal("4.05");
+                resolve();
+            });
+            req.end();
+        });
+
+        await coapServer.stop();
+        await servient.shutdown();
+    }
 }
