@@ -471,4 +471,173 @@ class CoapServerTest {
         await coapClient.stop();
         await coapServer.stop();
     }
+
+    @test async "should report allproperties excluding non-JSON properties"() {
+        const port = 5683;
+        const coapServer = new CoapServer({ port });
+        const servient = new Servient();
+
+        await coapServer.start(servient);
+
+        const tdTemplate: WoT.ExposedThingInit = {
+            title: "TestA",
+            properties: {
+                image: {
+                    forms: [
+                        {
+                            contentType: "image/svg+xml",
+                        },
+                    ],
+                },
+                testInteger: {
+                    type: "integer",
+                },
+                testBoolean: {
+                    type: "boolean",
+                },
+                testString: {
+                    type: "string",
+                },
+                testObject: {
+                    type: "object",
+                },
+                testArray: {
+                    type: "array",
+                },
+            },
+        };
+        const testThing = new ExposedThing(servient, tdTemplate);
+
+        const image = "<svg xmlns='http://www.w3.org/2000/svg'><text>FOO</text></svg>";
+        const integer = 123;
+        const boolean = true;
+        const string = "ABCD";
+        const object = { t1: "xyz", i: 77 };
+        const array = ["x", "y", "z"];
+        testThing.setPropertyReadHandler("image", async (_) => image);
+        testThing.setPropertyReadHandler("testInteger", async (_) => integer);
+        testThing.setPropertyReadHandler("testBoolean", async (_) => boolean);
+        testThing.setPropertyReadHandler("testString", async (_) => string);
+        testThing.setPropertyReadHandler("testObject", async (_) => object);
+        testThing.setPropertyReadHandler("testArray", async (_) => array);
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.image.forms = [];
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.testInteger.forms = [];
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.testBoolean.forms = [];
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.testString.forms = [];
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.testObject.forms = [];
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.testArray.forms = [];
+
+        await coapServer.expose(testThing, tdTemplate);
+
+        const coapClient = new CoapClient(coapServer);
+
+        const decodeContent = async (content: Content) => JSON.parse((await content.toBuffer()).toString());
+
+        const baseUri = `coap://localhost:${port}/testa/properties`;
+
+        // check values one by one first
+        const responseInteger = await coapClient.readResource(new TD.Form(`${baseUri}/testInteger`));
+        expect(await decodeContent(responseInteger)).to.equal(integer);
+        const responseBoolean = await coapClient.readResource(new TD.Form(`${baseUri}/testBoolean`));
+        expect(await decodeContent(responseBoolean)).to.equal(boolean);
+        const responseString = await coapClient.readResource(new TD.Form(`${baseUri}/testString`));
+        expect(await decodeContent(responseString)).to.equal(string);
+        const responseObject = await coapClient.readResource(new TD.Form(`${baseUri}/testObject`));
+        expect(await decodeContent(responseObject)).to.deep.equal(object);
+        const responseArray = await coapClient.readResource(new TD.Form(`${baseUri}/testArray`));
+        expect(await decodeContent(responseArray)).to.deep.equal(array);
+
+        // check values of readallproperties
+        const responseAll = await coapClient.readResource(new TD.Form(baseUri));
+        expect(await decodeContent(responseAll)).to.deep.equal({
+            image: image,
+            testInteger: integer,
+            testBoolean: boolean,
+            testString: string,
+            testObject: object,
+            testArray: array,
+        });
+
+        await coapServer.stop();
+        await coapClient.stop();
+    }
+
+    @test async "should reject requests for undefined meta operations"() {
+        const coapServer = new CoapServer();
+        const servient = new Servient();
+
+        await coapServer.start(servient);
+
+        const testThingWithoutForms = new ExposedThing(servient, {
+            title: "Test",
+        });
+
+        await coapServer.expose(testThingWithoutForms);
+
+        await new Promise<void>((resolve) => {
+            const req = request({
+                host: "localhost",
+                pathname: "test/properties",
+                port: coapServer.getPort(),
+                method: "GET",
+            });
+            req.on("response", (res: IncomingMessage) => {
+                expect(res.code).to.equal("4.04");
+                resolve();
+            });
+            req.end();
+        });
+
+        await coapServer.stop();
+        await servient.shutdown();
+    }
+
+    @test async "should reject unsupported methods for meta operations"() {
+        const coapServer = new CoapServer();
+        const servient = new Servient();
+
+        await coapServer.start(servient);
+
+        const testThingWithoutForms = new ExposedThing(servient, {
+            title: "Test",
+            properties: {
+                testInteger: {
+                    type: "integer",
+                    forms: [],
+                },
+            },
+        });
+
+        await coapServer.expose(testThingWithoutForms);
+
+        await new Promise<void>((resolve) => {
+            const req = request({
+                host: "localhost",
+                pathname: "test/properties",
+                port: coapServer.getPort(),
+                method: "PUT",
+            });
+            req.on("response", (res) => {
+                expect(res.code).to.equal("4.05");
+                resolve();
+            });
+            req.end();
+        });
+
+        await coapServer.stop();
+        await servient.shutdown();
+    }
 }

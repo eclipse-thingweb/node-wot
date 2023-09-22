@@ -34,6 +34,7 @@ import { Readable } from "stream";
 import { MdnsIntroducer } from "./mdns-introducer";
 import { PropertyElement, DataSchema } from "wot-thing-description-types";
 import { CoapServerConfig } from "./coap";
+import { DataSchemaValue } from "wot-typescript-definitions";
 
 const { debug, warn, info, error } = createLoggers("binding-coap", "coap-server");
 
@@ -171,6 +172,8 @@ export default class CoapServer implements ProtocolServer {
             for (const offeredMediaType of offeredMediaTypes) {
                 const base = this.createThingBase(address, port, urlPath);
 
+                this.fillInMetaPropertiesBindingData(thing, base, offeredMediaType);
+
                 this.fillInPropertyBindingData(thing, base, offeredMediaType);
                 this.fillInActionBindingData(thing, base, offeredMediaType);
                 this.fillInEventBindingData(thing, base, offeredMediaType);
@@ -182,17 +185,60 @@ export default class CoapServer implements ProtocolServer {
         return `${this.scheme}://${address}:${port}/${encodeURIComponent(urlPath)}`;
     }
 
+    private fillInMetaPropertiesBindingData(thing: ExposedThing, base: string, offeredMediaType: string) {
+        const opValues = this.createPropertyMetaOpValues(thing);
+
+        if (opValues.length === 0) {
+            return;
+        }
+
+        if (thing.forms == null) {
+            thing.forms = [];
+        }
+
+        const form = this.createAffordanceForm(base, this.PROPERTY_DIR, offeredMediaType, opValues, thing.uriVariables);
+
+        thing.forms.push(form);
+    }
+
+    private getReadableProperties(thing: ExposedThing) {
+        return Object.entries(thing.properties).filter(([_, value]) => value.writeOnly !== true);
+    }
+
+    private createPropertyMetaOpValues(thing: ExposedThing): string[] {
+        const properties = Object.values(thing.properties);
+        const numberOfProperties = properties.length;
+
+        if (numberOfProperties === 0) {
+            return [];
+        }
+
+        const readableProperties = this.getReadableProperties(thing).length;
+
+        const opValues: string[] = [];
+
+        if (readableProperties > 0) {
+            opValues.push("readmultipleproperties");
+        }
+
+        if (readableProperties === numberOfProperties) {
+            opValues.push("readallproperties");
+        }
+
+        return opValues;
+    }
+
     private fillInPropertyBindingData(thing: ExposedThing, base: string, offeredMediaType: string) {
         for (const [propertyName, property] of Object.entries(thing.properties)) {
             const opValues = ProtocolHelpers.getPropertyOpValues(property);
             const form = this.createAffordanceForm(
                 base,
                 this.PROPERTY_DIR,
-                propertyName,
                 offeredMediaType,
                 opValues,
-                property.uriVariables,
-                thing.uriVariables
+                thing.uriVariables,
+                propertyName,
+                property.uriVariables
             );
 
             property.forms.push(form);
@@ -205,11 +251,11 @@ export default class CoapServer implements ProtocolServer {
             const form = this.createAffordanceForm(
                 base,
                 this.ACTION_DIR,
-                actionName,
                 offeredMediaType,
                 "invokeaction",
-                action.uriVariables,
-                thing.uriVariables
+                thing.uriVariables,
+                actionName,
+                action.uriVariables
             );
 
             action.forms.push(form);
@@ -222,11 +268,11 @@ export default class CoapServer implements ProtocolServer {
             const form = this.createAffordanceForm(
                 base,
                 this.EVENT_DIR,
-                eventName,
                 offeredMediaType,
                 ["subscribeevent", "unsubscribeevent"],
-                event.uriVariables,
-                thing.uriVariables
+                thing.uriVariables,
+                eventName,
+                event.uriVariables
             );
 
             event.forms.push(form);
@@ -237,19 +283,23 @@ export default class CoapServer implements ProtocolServer {
     private createAffordanceForm(
         base: string,
         affordancePathSegment: string,
-        affordanceName: string,
         offeredMediaType: string,
         opValues: string | string[],
-        affordanceUriVariables: PropertyElement["uriVariables"] = {},
-        thingUriVariables: PropertyElement["uriVariables"] = {}
+        thingUriVariables: PropertyElement["uriVariables"],
+        affordanceName?: string,
+        affordanceUriVariables?: PropertyElement["uriVariables"]
     ): TD.Form {
         const affordanceNamePattern = Helpers.updateInteractionNameWithUriVariablePattern(
-            affordanceName,
+            affordanceName ?? "",
             affordanceUriVariables,
             thingUriVariables
         );
 
-        const href = `${base}/${affordancePathSegment}/${encodeURIComponent(affordanceNamePattern)}`;
+        let href = `${base}/${affordancePathSegment}`;
+
+        if (affordanceNamePattern.length > 0) {
+            href += `/${encodeURIComponent(affordanceNamePattern)}`;
+        }
 
         const form = new TD.Form(href, offeredMediaType);
         form.op = opValues;
@@ -473,7 +523,7 @@ export default class CoapServer implements ProtocolServer {
         const property = thing.properties[affordanceKey];
 
         if (property == null) {
-            this.sendNotFoundResponse(res);
+            this.handlePropertiesRequest(req, contentType, thing, res);
             return;
         }
 
@@ -495,6 +545,71 @@ export default class CoapServer implements ProtocolServer {
                 break;
             default:
                 this.sendMethodNotAllowedResponse(res);
+        }
+    }
+
+    private async handlePropertiesRequest(
+        req: IncomingMessage,
+        contentType: string,
+        thing: ExposedThing,
+        res: OutgoingMessage
+    ) {
+        const forms = thing.forms;
+
+        if (forms == null) {
+            this.sendNotFoundResponse(res);
+            return;
+        }
+
+        switch (req.method) {
+            case "GET":
+                this.handleReadMultipleProperties(forms, req, contentType, thing, res);
+                break;
+            default:
+                this.sendMethodNotAllowedResponse(res);
+                break;
+        }
+    }
+
+    private async handleReadMultipleProperties(
+        forms: TD.Form[],
+        req: IncomingMessage,
+        contentType: string,
+        thing: ExposedThing,
+        res: OutgoingMessage
+    ) {
+        try {
+            const interactionOptions = this.createInteractionOptions(
+                forms,
+                thing,
+                req,
+                contentType,
+                thing.uriVariables
+            );
+            const readablePropertyKeys = this.getReadableProperties(thing).map(([key, _]) => key);
+            const contentMap = await thing.handleReadMultipleProperties(readablePropertyKeys, interactionOptions);
+
+            const recordResponse: Record<string, DataSchemaValue> = {};
+            for (const [key, content] of contentMap.entries()) {
+                const value = ContentSerdes.get().contentToValue(
+                    { type: ContentSerdes.DEFAULT, body: await content.toBuffer() },
+                    {}
+                );
+
+                if (value == null) {
+                    // TODO: How should this case be handled?
+                    continue;
+                }
+
+                recordResponse[key] = value;
+            }
+
+            const content = ContentSerdes.get().valueToContent(recordResponse, undefined, contentType);
+            this.streamContentResponse(res, content);
+        } catch (err) {
+            const errorMessage = `${err}`;
+            error(`CoapServer on port ${this.getPort()} got internal error on read '${req.url}': ${errorMessage}`);
+            this.sendResponse(res, "5.00", errorMessage);
         }
     }
 
