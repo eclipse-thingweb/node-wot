@@ -38,7 +38,7 @@ export default async function propertyRoute(
 
     const thing = this.getThings().get(_params.thing);
 
-    if (!thing) {
+    if (thing == null) {
         res.writeHead(404);
         res.end();
         return;
@@ -61,7 +61,7 @@ export default async function propertyRoute(
 
     const property = thing.properties[_params.property];
 
-    if (!property) {
+    if (property == null) {
         res.writeHead(404);
         res.end();
         return;
@@ -82,7 +82,7 @@ export default async function propertyRoute(
     const securityScheme = thing.securityDefinitions[Helpers.toStringArray(thing.security)[0]].scheme;
 
     if (securityScheme !== "nosec" && !(await this.checkCredentials(thing, req))) {
-        if (req.method === "OPTIONS" && req.headers.origin) {
+        if (req.method === "OPTIONS" && req.headers.origin != null) {
             corsPreflightWithCredentials = true;
         } else {
             res.setHeader("WWW-Authenticate", `${securitySchemeToHttpHeader(securityScheme)} realm="${thing.id}"`);
@@ -106,7 +106,7 @@ export default async function propertyRoute(
             res.end(message);
         }
     } else if (req.method === "PUT") {
-        if (!property.readOnly) {
+        if (property.readOnly !== true) {
             try {
                 await thing.handleWriteProperty(_params.property, new Content(contentType, req), options);
 

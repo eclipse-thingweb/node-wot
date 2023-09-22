@@ -175,7 +175,7 @@ export default class HttpClient implements ProtocolClient {
     }
 
     public async invokeResource(form: HttpForm, content?: Content): Promise<Content> {
-        const headers = content ? [["content-type", content.type]] : [];
+        const headers = content != null ? [["content-type", content.type]] : [];
 
         const request = await this.generateFetchRequest(form, "POST", {
             headers,
@@ -184,8 +184,8 @@ export default class HttpClient implements ProtocolClient {
 
         debug(
             `HttpClient (invokeResource) sending ${request.method} ${
-                content ? "with '" + request.headers.get("Content-Type") + "' " : " "
-            }to ${request.url}`
+                content != null ? `with '"${request.headers.get("Content-Type")}"` : ""
+            } to ${request.url}`
         );
 
         const result = await this.fetch(request);
@@ -218,7 +218,7 @@ export default class HttpClient implements ProtocolClient {
 
     public async stop(): Promise<void> {
         // When running in browser mode, Agent.destroy() might not exist.
-        if (this.agent && this.agent.destroy) this.agent.destroy();
+        this.agent?.destroy?.();
     }
 
     public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: unknown): boolean {
@@ -280,7 +280,7 @@ export default class HttpClient implements ProtocolClient {
                 return false;
         }
 
-        if (security.proxy) {
+        if (security.proxy != null) {
             if (this.proxyRequest !== null) {
                 debug(`HttpClient overriding client-side proxy with security proxy '${security.proxy}`);
             }

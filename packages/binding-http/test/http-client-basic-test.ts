@@ -33,7 +33,7 @@ function mockService(req: express.Request, res: express.Response) {
     const auth = { login: "admin", password: "password" }; // change this
 
     // parse login and password from headers
-    const b64auth = (req.headers.authorization || "").split(" ")[1] || "";
+    const b64auth = (req.headers.authorization ?? "").split(" ")[1] ?? "";
     const [login, password] = Buffer.from(b64auth, "base64").toString().split(":");
 
     // Verify login and password are set and correct

@@ -38,7 +38,7 @@ export default async function actionRoute(
     }
     const thing = this.getThings().get(_params.thing);
 
-    if (!thing) {
+    if (thing == null) {
         res.writeHead(404);
         res.end();
         return;
@@ -61,7 +61,7 @@ export default async function actionRoute(
 
     const action = thing.actions[_params.action];
 
-    if (!action) {
+    if (action == null) {
         res.writeHead(404);
         res.end();
         return;
@@ -72,7 +72,7 @@ export default async function actionRoute(
     const securityScheme = thing.securityDefinitions[Helpers.toStringArray(thing.security)[0]].scheme;
 
     if (securityScheme !== "nosec" && !(await this.checkCredentials(thing, req))) {
-        if (req.method === "OPTIONS" && req.headers.origin) {
+        if (req.method === "OPTIONS" && req.headers.origin != null) {
             corsPreflightWithCredentials = true;
         } else {
             res.setHeader("WWW-Authenticate", `${securitySchemeToHttpHeader(securityScheme)} realm="${thing.id}"`);
@@ -92,7 +92,7 @@ export default async function actionRoute(
         }
         try {
             const output = await thing.handleInvokeAction(_params.action, new Content(contentType, req), options);
-            if (output) {
+            if (output != null) {
                 res.setHeader("Content-Type", output.type);
                 res.writeHead(200);
                 output.body.pipe(res);

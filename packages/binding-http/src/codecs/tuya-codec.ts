@@ -17,17 +17,28 @@ import { ContentCodec } from "@node-wot/core";
 import * as TD from "@node-wot/td-tools";
 import { DataSchemaValue } from "wot-typescript-definitions";
 
+interface TuyaOutput {
+    success?: boolean;
+    msg?: string;
+    result?: {
+        code?: string;
+    }[];
+}
+
 export default class HttpTuyaCodec implements ContentCodec {
     getMediaType(): string {
         return "application/json+tuya";
     }
 
     bytesToValue(bytes: Buffer, schema: TD.DataSchema, parameters: { [key: string]: string }): DataSchemaValue {
-        const parsedBody = JSON.parse(bytes.toString());
-        if (!parsedBody.success) throw new Error(parsedBody.msg ? parsedBody.msg : JSON.stringify(parsedBody));
-        for (const key in parsedBody.result) {
-            if (parsedBody.result[key].code === schema["tuya:PropertyName"]) {
-                return parsedBody.result[key].value;
+        const parsedBody: TuyaOutput = JSON.parse(bytes.toString());
+        if (parsedBody.success !== true) {
+            throw new Error(parsedBody.msg != null ? parsedBody.msg : JSON.stringify(parsedBody));
+        }
+
+        for (const value of Object.values(parsedBody.result ?? {})) {
+            if (value.code === schema["tuya:PropertyName"]) {
+                return value;
             }
         }
         throw new Error("Property not found");

@@ -92,11 +92,11 @@ export default class InMemoryModel implements ClientCredentialsModel, PasswordMo
      * Get access token.
      */
 
-    async getAccessToken(bearerToken: string, callback: Callback<Token>): Promise<Token | Falsey> {
+    async getAccessToken(bearerToken: string, callback?: Callback<Token>): Promise<Token | Falsey> {
         const tokens = this.tokens.filter(function (token) {
             return token.accessToken === bearerToken;
         });
-        if (callback) {
+        if (callback != null) {
             callback(null, tokens[0]);
         }
 
