@@ -4,7 +4,8 @@
         "resolveJsonModule": true,
         "types": ["node", "readable-stream"],
         "outDir": "dist",
-        "rootDir": "src"
+        "rootDir": "src",
+        "strictNullChecks": true
     },
     "include": ["src/**/*"]
 }

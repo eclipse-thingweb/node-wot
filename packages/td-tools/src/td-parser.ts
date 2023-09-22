@@ -158,7 +158,7 @@ export function parseTD(td: string, normalize?: boolean): Thing {
                 throw new Error(`Form of Property '${propName}' has no href field`);
             }
             // check if base field required
-            if (!isAbsoluteUrl(form.href) && !thing.base)
+            if (!isAbsoluteUrl(form.href) && thing.base == null)
                 throw new Error(`Form of Property '${propName}' has relative URI while TD has no base field`);
             // add
             allForms.push(form);
@@ -176,7 +176,7 @@ export function parseTD(td: string, normalize?: boolean): Thing {
                 throw new Error(`Form of Action '${actName}' has no href field`);
             }
             // check if base field required
-            if (!isAbsoluteUrl(form.href) && !thing.base)
+            if (!isAbsoluteUrl(form.href) && thing.base == null)
                 throw new Error(`Form of Action '${actName}' has relative URI while TD has no base field`);
             // add
             allForms.push(form);
@@ -194,7 +194,7 @@ export function parseTD(td: string, normalize?: boolean): Thing {
                 throw new Error(`Form of Event '${evtName}' has no href field`);
             }
             // check if base field required
-            if (!isAbsoluteUrl(form.href) && !thing.base)
+            if (!isAbsoluteUrl(form.href) && thing.base == null)
                 throw new Error(`Form of Event '${evtName}' has relative URI while TD has no base field`);
             // add
             allForms.push(form);
@@ -222,20 +222,20 @@ export function serializeTD(thing: Thing): string {
     const copy = JSON.parse(JSON.stringify(thing));
 
     // clean-ups
-    if (!copy.security || copy.security.length === 0) {
+    if (copy.security == null || copy.security.length === 0) {
         copy.securityDefinitions = {
             nosec_sc: { scheme: "nosec" },
         };
         copy.security = ["nosec_sc"];
     }
 
-    if (copy.forms && copy.forms.length === 0) {
+    if (copy.forms?.length === 0) {
         delete copy.forms;
     }
 
-    if (copy.properties && Object.keys(copy.properties).length === 0) {
+    if (copy.properties != null && Object.keys(copy.properties).length === 0) {
         delete copy.properties;
-    } else if (copy.properties) {
+    } else if (copy.properties != null) {
         // add mandatory fields (if missing): observable, writeOnly, and readOnly
         for (const propName in copy.properties) {
             const prop = copy.properties[propName];
@@ -251,9 +251,9 @@ export function serializeTD(thing: Thing): string {
         }
     }
 
-    if (copy.actions && Object.keys(copy.actions).length === 0) {
+    if (copy.actions != null && Object.keys(copy.actions).length === 0) {
         delete copy.actions;
-    } else if (copy.actions) {
+    } else if (copy.actions != null) {
         // add mandatory fields (if missing): idempotent and safe
         for (const actName in copy.actions) {
             const act = copy.actions[actName];
@@ -265,11 +265,11 @@ export function serializeTD(thing: Thing): string {
             }
         }
     }
-    if (copy.events && Object.keys(copy.events).length === 0) {
+    if (copy.events != null && Object.keys(copy.events).length === 0) {
         delete copy.events;
     }
 
-    if (copy.links && copy.links.length === 0) {
+    if (copy?.links.length === 0) {
         delete copy.links;
     }
 

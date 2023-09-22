@@ -1,4 +1,7 @@
 {
     "extends": "../../.eslintrc.js",
-    "ignorePatterns": "webpack.config.js"
+    "ignorePatterns": "webpack.config.js",
+    "rules": {
+        "@typescript-eslint/strict-boolean-expressions": ["error"]
+    }
 }

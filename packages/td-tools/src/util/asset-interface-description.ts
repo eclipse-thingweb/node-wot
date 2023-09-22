@@ -132,7 +132,7 @@ export class AssetInterfaceDescriptionUtil {
     public transformTD2SM(tdAsString: string, protocols?: string[]): string {
         const td: ThingDescription = TDParser.parseTD(tdAsString);
 
-        const aidID = td.id ? td.id : "ID" + Math.random();
+        const aidID = td.id ?? "ID" + Math.random();
 
         logInfo("TD " + td.title + " parsed...");
 
@@ -218,9 +218,9 @@ export class AssetInterfaceDescriptionUtil {
     }
 
     private updateProtocolPrefixes(forms: [FormElementBase, ...FormElementBase[]], protocols: string[]): void {
-        if (forms) {
+        if (forms != null) {
             for (const interactionForm of forms) {
-                if (interactionForm.href) {
+                if (interactionForm.href != null) {
                     const positionColon = interactionForm.href.indexOf(":");
                     if (positionColon > 0) {
                         const prefix = interactionForm.href.substring(0, positionColon);
@@ -234,7 +234,7 @@ export class AssetInterfaceDescriptionUtil {
     }
 
     private getBaseFromEndpointMetadata(endpointMetadata?: Record<string, unknown>): string {
-        if (endpointMetadata?.value && endpointMetadata.value instanceof Array) {
+        if (endpointMetadata?.value instanceof Array) {
             for (const v of endpointMetadata.value) {
                 if (v.idShort === "base") {
                     // e.g., "value": "modbus+tcp://192.168.1.187:502"
@@ -246,7 +246,7 @@ export class AssetInterfaceDescriptionUtil {
     }
 
     private getContentTypeFromEndpointMetadata(endpointMetadata?: Record<string, unknown>): string {
-        if (endpointMetadata?.value && endpointMetadata.value instanceof Array) {
+        if (endpointMetadata?.value instanceof Array) {
             for (const v of endpointMetadata.value) {
                 if (v.idShort === "contentType") {
                     // e.g., "value": "application/octet-stream;byteSeq=BIG_ENDIAN"
@@ -264,18 +264,18 @@ export class AssetInterfaceDescriptionUtil {
             [k: string]: SecurityScheme;
         } = {};
 
-        if (endpointMetadata?.value && endpointMetadata.value instanceof Array) {
+        if (endpointMetadata?.value instanceof Array) {
             for (const v of endpointMetadata.value) {
                 if (v.idShort === "securityDefinitions") {
                     // const securitySchemes: Array<SecurityScheme> = [];
-                    if (v.value && v.value instanceof Array) {
+                    if (v.value instanceof Array) {
                         for (const securityDefinitionsValues of v.value) {
-                            if (securityDefinitionsValues.idShort) {
+                            if (securityDefinitionsValues.idShort != null) {
                                 // key
                                 if (securityDefinitionsValues.value instanceof Array) {
                                     for (const securityDefinitionsValue of securityDefinitionsValues.value) {
                                         if (securityDefinitionsValue.idShort === "scheme") {
-                                            if (securityDefinitionsValue.value) {
+                                            if (securityDefinitionsValue.value != null) {
                                                 const ss: SecurityScheme = { scheme: securityDefinitionsValue.value };
                                                 securityDefinitions[securityDefinitionsValues.idShort] = ss;
                                             }
@@ -295,12 +295,12 @@ export class AssetInterfaceDescriptionUtil {
         endpointMetadata?: Record<string, unknown>
     ): string | [string, ...string[]] {
         const security: string[] = [];
-        if (endpointMetadata?.value && endpointMetadata.value instanceof Array) {
+        if (endpointMetadata?.value instanceof Array) {
             for (const v of endpointMetadata.value) {
                 if (v.idShort === "security") {
-                    if (v.value && v.value instanceof Array) {
+                    if (v.value instanceof Array) {
                         for (const securityValue of v.value) {
-                            if (securityValue.value) {
+                            if (securityValue.value != null) {
                                 security.push(securityValue.value);
                             }
                         }
@@ -346,17 +346,16 @@ export class AssetInterfaceDescriptionUtil {
                                 }
                             } else if (typeof v.idShort === "string" && v.idShort.length > 0) {
                                 // TODO is this still relevant?
-                                // pick *any* value (and possibly override, e.g, contentType)
+                                // pick *any* value (and possibly override, e.g. contentType)
                                 // TODO Should we add all value's (e.g., dataMapping might be empty array) ?
                                 // if (typeof v.value === "string" ||typeof v.value === "number" || typeof v.value === "boolean") {
-                                if (v.value) {
+                                if (v.value != null) {
                                     form[v.idShort] = v.value;
                                     // use valueType to convert the string value
                                     if (
-                                        v.valueType &&
-                                        v.valueType &&
-                                        v.valueType.dataObjectType &&
-                                        v.valueType.dataObjectType.name &&
+                                        v.valueType != null &&
+                                        v.valueType.dataObjectType != null &&
+                                        v.valueType.dataObjectType.name != null &&
                                         typeof v.valueType.dataObjectType.name === "string"
                                     ) {
                                         // XSD schemaTypes, https://www.w3.org/TR/xmlschema-2/#built-in-datatypes
@@ -400,12 +399,16 @@ export class AssetInterfaceDescriptionUtil {
         submodel: Record<string, unknown>,
         submodelRegex?: string
     ): void {
-        if (submodel instanceof Object && submodel.idShort && submodel.idShort === "AssetInterfacesDescription") {
-            if (submodel.submodelElements && submodel.submodelElements instanceof Array) {
+        if (
+            submodel instanceof Object &&
+            submodel.idShort != null &&
+            submodel.idShort === "AssetInterfacesDescription"
+        ) {
+            if (submodel.submodelElements instanceof Array) {
                 for (const submodelElement of submodel.submodelElements) {
                     if (submodelElement instanceof Object) {
                         logDebug("SubmodelElement.idShort: " + submodelElement.idShort);
-                        if (submodelRegex && typeof submodelRegex === "string" && submodelRegex.length > 0) {
+                        if (typeof submodelRegex === "string" && submodelRegex.length > 0) {
                             const regex = new RegExp(submodelRegex);
                             if (!regex.test(submodelElement.idShort)) {
                                 logInfo("submodel not of interest");
@@ -422,7 +425,7 @@ export class AssetInterfaceDescriptionUtil {
 
     private processSubmodelElement(smInformation: SubmodelInformation, submodelElement: Record<string, unknown>): void {
         // EndpointMetadata vs. InterfaceMetadata
-        if (submodelElement.value && submodelElement.value instanceof Array) {
+        if (submodelElement.value instanceof Array) {
             // Note: iterate twice over to collect first EndpointMetadata
             let endpointMetadata: Record<string, unknown> = {};
             for (const smValue of submodelElement.value) {
@@ -446,7 +449,7 @@ export class AssetInterfaceDescriptionUtil {
                 if (smValue instanceof Object) {
                     if (smValue.idShort === "InterfaceMetadata") {
                         logInfo("InterfaceMetadata");
-                        if (smValue.value && smValue.value instanceof Array) {
+                        if (smValue.value instanceof Array) {
                             for (const interactionValue of smValue.value) {
                                 if (interactionValue.idShort === "Properties") {
                                     if (interactionValue.value instanceof Array) {
@@ -510,7 +513,7 @@ export class AssetInterfaceDescriptionUtil {
             thing: new Map<string, Record<string, unknown>>(),
         };
 
-        if (aidModel instanceof Object && aidModel.submodels) {
+        if (aidModel instanceof Object && aidModel.submodels != null) {
             if (aidModel.submodels instanceof Array) {
                 for (const submodel of aidModel.submodels) {
                     this.processSubmodel(smInformation, submodel, submodelRegex);
@@ -522,7 +525,7 @@ export class AssetInterfaceDescriptionUtil {
     }
 
     private _transform(smInformation: SubmodelInformation, template?: string): string {
-        const thing: Thing = template ? JSON.parse(template) : {};
+        const thing: Thing = template != null ? JSON.parse(template) : {};
 
         // walk over thing information and set them
         for (const [key, value] of smInformation.thing) {
@@ -534,7 +537,7 @@ export class AssetInterfaceDescriptionUtil {
         }
 
         // required TD fields
-        if (!thing["@context"]) {
+        if (thing["@context"] == null) {
             thing["@context"] = "https://www.w3.org/2022/wot/td/v1.1";
         }
         if (!thing.title) {
@@ -544,7 +547,7 @@ export class AssetInterfaceDescriptionUtil {
         // Security in AID is defined for each submodel
         // add "securityDefinitions" globally and add them on form level if necessary
         // TODO: possible collisions for "security" names *could* be handled by cnt
-        if (!thing.securityDefinitions) {
+        if (thing.securityDefinitions == null) {
             thing.securityDefinitions = {};
         }
         // let cnt = 1;
@@ -595,7 +598,7 @@ export class AssetInterfaceDescriptionUtil {
                             const tdDescription: Record<string, string> = {};
                             if (aasDescription instanceof Array) {
                                 for (const aasDescriptionEntry of aasDescription) {
-                                    if (aasDescriptionEntry.language && aasDescriptionEntry.text) {
+                                    if (aasDescriptionEntry.language != null && aasDescriptionEntry.text != null) {
                                         const language: string = aasDescriptionEntry.language;
                                         const text: string = aasDescriptionEntry.text;
                                         tdDescription[language] = text;
@@ -613,10 +616,10 @@ export class AssetInterfaceDescriptionUtil {
                                             thing.properties[key].type = interactionValue.value;
                                         }
                                     } else if (interactionValue.idShort === "range") {
-                                        if (interactionValue.min) {
+                                        if (interactionValue.min != null) {
                                             thing.properties[key].min = interactionValue.min;
                                         }
-                                        if (interactionValue.max) {
+                                        if (interactionValue.max != null) {
                                             thing.properties[key].max = interactionValue.max;
                                         }
                                     } else if (interactionValue.idShort === "observable") {
@@ -694,7 +697,7 @@ export class AssetInterfaceDescriptionUtil {
         const values: Array<unknown> = [];
 
         // base ?
-        if (td.base) {
+        if (td.base != null) {
             values.push({
                 idShort: "base",
                 valueType: "xs:anyURI",
@@ -715,7 +718,7 @@ export class AssetInterfaceDescriptionUtil {
 
         // security
         const securityValues: Array<unknown> = [];
-        if (td.security) {
+        if (td.security != null) {
             for (const secKey of td.security) {
                 securityValues.push({
                     valueType: "xs:string",
@@ -779,7 +782,7 @@ export class AssetInterfaceDescriptionUtil {
                     let formElementPicked: FormElementBase | undefined;
                     if (propertyValue.forms) {
                         for (const formElementProperty of propertyValue.forms) {
-                            if (formElementProperty.href?.startsWith(protocol)) {
+                            if (formElementProperty.href != null && formElementProperty.href.startsWith(protocol)) {
                                 formElementPicked = formElementProperty;
                                 // found matching form --> abort loop
                                 break;
@@ -793,7 +796,7 @@ export class AssetInterfaceDescriptionUtil {
 
                     const propertyValues: Array<unknown> = [];
                     // type
-                    if (propertyValue.type) {
+                    if (propertyValue.type != null) {
                         propertyValues.push({
                             idShort: "type",
                             valueType: "xs:string",
@@ -802,7 +805,7 @@ export class AssetInterfaceDescriptionUtil {
                         });
                     }
                     // title
-                    if (propertyValue.title) {
+                    if (propertyValue.title != null) {
                         propertyValues.push({
                             idShort: "title",
                             valueType: "xs:string",
@@ -811,7 +814,7 @@ export class AssetInterfaceDescriptionUtil {
                         });
                     }
                     // observable
-                    if (propertyValue.observable) {
+                    if (propertyValue.observable != null) {
                         propertyValues.push({
                             idShort: "observable",
                             valueType: "xs:boolean",
@@ -823,7 +826,7 @@ export class AssetInterfaceDescriptionUtil {
                     // range and others? Simply add them as is?
 
                     // forms
-                    if (formElementPicked) {
+                    if (formElementPicked != null) {
                         const propertyForm: Array<unknown> = [];
 
                         // TODO AID for now supports just *one* href/form
@@ -861,7 +864,7 @@ export class AssetInterfaceDescriptionUtil {
                                 text: langValue,
                             });
                         }
-                    } else if (propertyValue.description) {
+                    } else if (propertyValue.description != null) {
                         // fallback
                         description = [];
                         description.push({

@@ -110,7 +110,7 @@ export class ThingModelHelpers {
         }
         if ("links" in data && Array.isArray(data.links)) {
             const foundTmExtendsRel = data.links.find((link) => link.rel === "tm:extends");
-            if (foundTmExtendsRel) return true;
+            if (foundTmExtendsRel != null) return true;
         }
 
         if (data.properties !== undefined) {
@@ -136,17 +136,9 @@ export class ThingModelHelpers {
      * @experimental
      */
     public static getModelVersion(data: ThingModel): string | undefined {
-        if (
-            "version" in data &&
-            data.version &&
-            typeof data.version === "object" &&
-            "model" in data.version &&
-            typeof data.version.model === "string"
-        ) {
-            return data.version.model;
-        } else {
-            return undefined;
-        }
+        return typeof data?.version === "object" && typeof data?.version?.model === "string"
+            ? data.version.model
+            : undefined;
     }
 
     /**
@@ -241,7 +233,7 @@ export class ThingModelHelpers {
             case "http": {
                 return new Promise((resolve, reject) => {
                     http.get(uri, (res) => {
-                        if (!res.statusCode || res.statusCode !== 200) {
+                        if (res.statusCode == null || res.statusCode !== 200) {
                             reject(new Error(`http status code not 200 but ${res.statusCode} for ${uri}`));
                         }
 
@@ -268,7 +260,7 @@ export class ThingModelHelpers {
                 return new Promise((resolve, reject) => {
                     https
                         .get(uri, (res) => {
-                            if (!res.statusCode || res.statusCode !== 200) {
+                            if (res.statusCode == null || res.statusCode !== 200) {
                                 reject(new Error(`https status code not 200 but ${res.statusCode} for ${uri}`));
                             }
 
@@ -343,7 +335,7 @@ export class ThingModelHelpers {
                 for (const aff in affRefs) {
                     const affUri = affRefs[aff] as string;
                     const refObj = this.parseTmRef(affUri);
-                    if (!refObj.uri) {
+                    if (refObj.uri == null) {
                         throw new Error(`Missing remote path in ${affUri}`);
                     }
                     let source = await this.fetchModel(refObj.uri);
@@ -376,7 +368,7 @@ export class ThingModelHelpers {
         if (!options) {
             options = {} as CompositionOptions;
         }
-        if (!options.baseUrl) {
+        if (options.baseUrl == null) {
             options.baseUrl = ".";
         }
         const newTMHref = this.returnNewTMHref(options.baseUrl, title);
@@ -405,7 +397,7 @@ export class ThingModelHelpers {
 
             for (const key in submodelObj) {
                 const sub = submodelObj[key];
-                if (options.selfComposition) {
+                if (options.selfComposition === true) {
                     if (!data.links) {
                         throw new Error(
                             "You used self composition but links are missing; they are needed to extract the instance name"
@@ -415,7 +407,7 @@ export class ThingModelHelpers {
                     const index = data.links.findIndex((el) => el.href === key);
                     const el = data.links[index];
                     const instanceName = el.instanceName;
-                    if (!instanceName) {
+                    if (instanceName == null) {
                         throw new Error("Self composition is not possible without instance names");
                     }
                     // self composition enabled, just one TD expected
@@ -449,7 +441,7 @@ export class ThingModelHelpers {
                 }
             }
         }
-        if (!data.links || options.selfComposition) {
+        if (!data.links || options.selfComposition === true) {
             data.links = [];
         }
         // add reference to the thing model
@@ -475,7 +467,7 @@ export class ThingModelHelpers {
 
     private static getThingModelRef(data: Record<string, unknown>): Record<string, unknown> {
         const refs = {} as Record<string, unknown>;
-        if (!data) {
+        if (data == null) {
             return refs;
         }
         for (const key in data) {
@@ -508,7 +500,7 @@ export class ThingModelHelpers {
                 extendedModel.properties = {};
             }
             for (const key in properties) {
-                if (dest.properties && dest.properties[key]) {
+                if (dest.properties && dest.properties[key] != null) {
                     extendedModel.properties[key] = { ...properties[key], ...dest.properties[key] };
                 } else {
                     extendedModel.properties[key] = properties[key];
@@ -625,7 +617,7 @@ export class ThingModelHelpers {
         keys = keys.map((el) => el.replace("{{", "").replace("}}", ""));
         let isValid = true;
         let errors;
-        if (keys && keys.length > 0 && (map === undefined || map === null)) {
+        if (keys?.length > 0 && (map === undefined || map === null)) {
             isValid = false;
             errors = `No map provided for model ${model.title}`;
         } else if (keys.length > 0) {
@@ -660,7 +652,7 @@ export class ThingModelHelpers {
     }
 
     private removeDependency(dep?: string) {
-        if (dep) {
+        if (dep != null) {
             this.deps = this.deps.filter((el) => el !== dep);
         } else {
             this.deps.pop();
