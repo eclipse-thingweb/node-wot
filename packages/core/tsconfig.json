@@ -3,7 +3,8 @@
     "compilerOptions": {
         "resolveJsonModule": true,
         "outDir": "dist",
-        "rootDir": "src"
+        "rootDir": "src",
+        "strictNullChecks": true
     },
     "include": ["src/**/*"],
     "references": [{ "path": "../td-tools" }]

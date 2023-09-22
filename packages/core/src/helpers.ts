@@ -120,7 +120,7 @@ export default class Helpers implements Resolver {
     public static toUriLiteral(address?: string): string {
         // Due to crash logged with:
         // TypeError: Cannot read property 'indexOf' of undefined at Function.Helpers.toUriLiteral
-        if (!address) {
+        if (address == null) {
             error(`AddressHelper received invalid address '${address}'`);
             return "{invalid address - undefined}";
         }
@@ -141,7 +141,7 @@ export default class Helpers implements Resolver {
     }
 
     public static toStringArray(input: string[] | string | undefined): string[] {
-        if (input) {
+        if (input != null) {
             if (typeof input === "string") {
                 return [input];
             } else {
@@ -351,7 +351,7 @@ export default class Helpers implements Resolver {
         uriVariables: { [k: string]: DataSchema } = {}
     ): Record<string, unknown> {
         const params: Record<string, unknown> = {};
-        if ((url === undefined && url == null) || (!uriVariables && !globalUriVariables)) {
+        if ((url === undefined && url == null) || (uriVariables == null && globalUriVariables == null)) {
             return params;
         }
 
@@ -367,14 +367,14 @@ export default class Helpers implements Resolver {
             const queryKey: string = decodeURIComponent(indexPair[0]);
             const queryValue: string = decodeURIComponent(indexPair.length > 1 ? indexPair[1] : "");
 
-            if (uriVariables && uriVariables[queryKey]) {
+            if (uriVariables != null && uriVariables[queryKey] != null) {
                 if (uriVariables[queryKey].type === "integer" || uriVariables[queryKey].type === "number") {
                     // *cast* it to number
                     params[queryKey] = +queryValue;
                 } else {
                     params[queryKey] = queryValue;
                 }
-            } else if (globalUriVariables && globalUriVariables[queryKey]) {
+            } else if (globalUriVariables != null && globalUriVariables[queryKey] != null) {
                 if (globalUriVariables[queryKey].type === "integer" || globalUriVariables[queryKey].type === "number") {
                     // *cast* it to number
                     params[queryKey] = +queryValue;
