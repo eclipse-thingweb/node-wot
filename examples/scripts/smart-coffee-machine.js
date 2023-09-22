@@ -20,6 +20,15 @@ let possibleDrinks;
 let maintenanceNeeded;
 let schedules;
 let servedCounter;
+function readFromSensor(sensorType) {
+    // Actual implementation of reading data from a sensor can go here
+    // For the sake of example, let's just return a value
+    return 100;
+}
+function notify(subscribers, msg) {
+    // Actual implementation of notifying subscribers with a message can go here
+    console.log(msg);
+}
 WoT.produce({
     title: "Smart-Coffee-Machine",
     description: `A smart coffee machine with a range of capabilities.
@@ -366,7 +375,7 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
         thing.setActionHandler("setSchedule", async (params, options) => {
             const paramsp = await params.value(); //  : any = await Helpers.parseInteractionOutput(params);
             // Check if uriVariables are provided
-            if (paramsp && typeof paramsp === "object" && "time" in paramsp && "mode" in paramsp) {
+            if (paramsp != null && typeof paramsp === "object" && "time" in paramsp && "mode" in paramsp) {
                 // Use default values if not provided
                 paramsp.drinkId = "drinkId" in paramsp ? paramsp.drinkId : "americano";
                 paramsp.size = "size" in paramsp ? paramsp.size : "m";
@@ -388,12 +397,3 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
     .catch((e) => {
         console.log(e);
     });
-function readFromSensor(sensorType) {
-    // Actual implementation of reading data from a sensor can go here
-    // For the sake of example, let's just return a value
-    return 100;
-}
-function notify(subscribers, msg) {
-    // Actual implementation of notifying subscribers with a message can go here
-    console.log(msg);
-}

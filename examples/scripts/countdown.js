@@ -80,7 +80,7 @@ WoT.produce({
                 const listToDelete = [];
                 for (const id of countdowns.keys()) {
                     const as = countdowns.get(id);
-                    if (as !== undefined && as.output !== undefined) {
+                    if ((as === null || as === void 0 ? void 0 : as.output) !== undefined) {
                         const prev = as.output;
                         as.output--;
                         console.log("\t" + id + ", from " + prev + " to " + as.output);
@@ -111,8 +111,9 @@ WoT.produce({
         });
         // set action handlers (using async-await)
         thing.setActionHandler("startCountdown", async (params, options) => {
+            var _a;
             let initValue = 100;
-            if (params) {
+            if (params != null) {
                 const value = await params.value();
                 if (typeof value === "number") {
                     initValue = value;
@@ -125,11 +126,11 @@ WoT.produce({
             };
             const ii = resp;
             console.log("init countdown value = " + JSON.stringify(resp));
-            countdowns.set(resp.href !== undefined ? resp.href : "", resp);
+            countdowns.set((_a = resp.href) !== null && _a !== void 0 ? _a : "", resp);
             return ii;
         });
         thing.setActionHandler("stopCountdown", async (params, options) => {
-            if (params) {
+            if (params != null) {
                 const value = await params.value();
                 if (typeof value === "string" && countdowns.has(value)) {
                     const as = countdowns.get(value);
@@ -149,7 +150,7 @@ WoT.produce({
             }
         });
         thing.setActionHandler("monitorCountdown", async (params, options) => {
-            if (params) {
+            if (params != null) {
                 const value = await params.value();
                 if (typeof value === "string" && countdowns.has(value)) {
                     const as = countdowns.get(value);
