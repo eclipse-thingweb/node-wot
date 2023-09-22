@@ -173,7 +173,7 @@ class InternalPropertySubscription extends InternalSubscription {
             options.formIndex = this.matchingUnsubscribeForm();
         }
         const { form } = this.thing.getClientFor(tp.forms, "unobserveproperty", Affordance.PropertyAffordance, options);
-        if (!form) {
+        if (form == null) {
             throw new Error(`ConsumedThing '${this.thing.title}' did not get suitable form`);
         }
 
@@ -219,7 +219,7 @@ class InternalPropertySubscription extends InternalSubscription {
         for (let i = 0; i < forms.length; i++) {
             let score = 0;
             const form = forms[i];
-            if (form.op === operation || (Array.isArray(form.op) && form.op.includes(operation))) {
+            if (form.op === operation || (form?.op?.includes(operation) === true && Array.isArray(form.op) === true)) {
                 score += 1;
             }
 
@@ -256,7 +256,7 @@ function findFormIndexWithScoring(
     for (let i = 0; i < forms.length; i++) {
         let score = 0;
         const form = forms[i];
-        if (form.op === operation || (Array.isArray(form.op) && form.op.includes(operation))) {
+        if (form.op === operation || (form?.op?.includes(operation) === true && Array.isArray(form.op) === true)) {
             score += 1;
         }
 
@@ -304,7 +304,7 @@ class InternalEventSubscription extends InternalSubscription {
         }
 
         const { form } = this.thing.getClientFor(te.forms, "unsubscribeevent", Affordance.EventAffordance, options);
-        if (!form) {
+        if (form == null) {
             throw new Error(`ConsumedThing '${this.thing.title}' did not get suitable form`);
         }
 
@@ -462,7 +462,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
             const logStatement = () =>
                 debug(`ConsumedThing '${this.title}' setting credentials for ${client} based on thing security`);
 
-            if (form && Array.isArray(form.security) && form.security.length > 0) {
+            if (form != null && Array.isArray(form.security) && form.security.length > 0) {
                 // Note security member in form objects overrides (i.e., completely replace) all definitions activated at the Thing level
                 // see https://www.w3.org/TR/wot-thing-description/#security-serialization-json
 
@@ -556,7 +556,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         }
 
         let { client, form } = this.getClientFor(tp.forms, "readproperty", Affordance.PropertyAffordance, options);
-        if (!form) {
+        if (form == null) {
             throw new Error(`ConsumedThing '${this.title}' did not get suitable form`);
         }
         if (client == null) {
@@ -600,7 +600,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
             // collect attributes that are "readable" only
             const tp = this.properties[propertyName];
             const { form } = this.getClientFor(tp.forms, "readproperty", Affordance.PropertyAffordance, options);
-            if (form) {
+            if (form != null) {
                 propertyNames.push(propertyName);
             }
         }
@@ -622,7 +622,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
             throw new Error(`ConsumedThing '${this.title}' does not have property ${propertyName}`);
         }
         let { client, form } = this.getClientFor(tp.forms, "writeproperty", Affordance.PropertyAffordance, options);
-        if (!form) {
+        if (form == null) {
             throw new Error(`ConsumedThing '${this.title}' did not get suitable form`);
         }
         if (client == null) {
@@ -665,7 +665,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
             throw new Error(`ConsumedThing '${this.title}' does not have action ${actionName}`);
         }
         let { client, form } = this.getClientFor(ta.forms, "invokeaction", Affordance.ActionAffordance, options);
-        if (!form) {
+        if (form == null) {
             throw new Error(`ConsumedThing '${this.title}' did not get suitable form`);
         }
         if (client == null) {
@@ -691,7 +691,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         if (!content.type) content.type = form.contentType ?? "application/json";
 
         // check if returned media type is the same as expected media type (from TD)
-        if (form.response) {
+        if (form.response != null) {
             if (content.type !== form.response.contentType) {
                 throw new Error(`Unexpected type in response`);
             }
@@ -718,7 +718,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
             throw new Error(`ConsumedThing '${this.title}' does not have property ${name}`);
         }
         const { client, form } = this.getClientFor(tp.forms, "observeproperty", Affordance.PropertyAffordance, options);
-        if (!form) {
+        if (form == null) {
             throw new Error(`ConsumedThing '${this.title}' did not get suitable form`);
         }
         if (client == null) {
@@ -776,7 +776,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
             throw new Error(`ConsumedThing '${this.title}' does not have event ${name}`);
         }
         const { client, form } = this.getClientFor(te.forms, "subscribeevent", Affordance.EventAffordance, options);
-        if (!form) {
+        if (form == null) {
             throw new Error(`ConsumedThing '${this.title}' did not get suitable form`);
         }
         if (client == null) {
