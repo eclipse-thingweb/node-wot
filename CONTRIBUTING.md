@@ -99,7 +99,7 @@ function(arg1: string | null | undefined) {
 ```
 
 Instead of checking for both null and `undefined` values (`if (arg !== undefined && arg !== null)`) the preferred solution is to use `!=` or `==` operator. Interestingly in JavaScript
-with `==`, `null` and `undefined` are only equal to each other. Example:
+with `==`, `null` and `undefined` are equal to each other. Example:
 
 ```ts
 function(arg1: string | null | undefined) {
