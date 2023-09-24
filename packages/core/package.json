@@ -15,9 +15,9 @@
     "main": "dist/core.js",
     "types": "dist/core.d.ts",
     "devDependencies": {
-        "@types/debug": "^4.1.8",
+        "@types/debug": "^4.1.7",
         "@types/uritemplate": "^0.3.4",
-        "@types/uuid": "^9.0.4"
+        "@types/uuid": "^8.3.1"
     },
     "dependencies": {
         "@node-wot/td-tools": "0.8.9",
