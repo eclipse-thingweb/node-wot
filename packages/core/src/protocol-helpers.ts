@@ -121,7 +121,7 @@ export default class ProtocolHelpers {
             Array.isArray(td.properties[propertyName].forms)
         ) {
             for (const form of td.properties[propertyName].forms) {
-                if (form.href && form.href.startsWith(uriScheme) && form.contentType != null) {
+                if (form.href?.startsWith(uriScheme) && form.contentType != null) {
                     return form.contentType; // abort loop
                 }
             }
