@@ -169,9 +169,7 @@ class InternalPropertySubscription extends InternalSubscription {
         if (tp == null) {
             throw new Error(`ConsumedThing '${this.thing.title}' does not have property ${this.name}`);
         }
-        if (options.formIndex == null) {
-            options.formIndex = this.matchingUnsubscribeForm();
-        }
+        options.formIndex ??= this.matchingUnsubscribeForm();
         const { form } = this.thing.getClientFor(tp.forms, "unobserveproperty", Affordance.PropertyAffordance, options);
         if (form == null) {
             throw new Error(`ConsumedThing '${this.thing.title}' did not get suitable form`);
