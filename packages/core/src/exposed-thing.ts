@@ -276,7 +276,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         debug(`ExposedThing '${this.title}' setting property unobserve handler for '${name}'`);
 
         if (this.properties[name] != null) {
-            if (!(this.properties[name].observable === true)) {
+            if (this.properties[name].observable !== true) {
                 throw new Error(
                     `ExposedThing '${this.title}' cannot set unobserve handler for property '${name}' due to missing observable flag`
                 );
