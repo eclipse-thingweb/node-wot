@@ -161,9 +161,7 @@ export default class ProtocolHelpers {
         if (
             eventName != null &&
             uriScheme != null &&
-            td?.events != null &&
-            td.events[eventName] != null &&
-            td.events[eventName].forms != null &&
+            td?.events[eventName]?.forms != null &&
             Array.isArray(td.events[eventName].forms)
         ) {
             for (const form of td.events[eventName].forms) {
