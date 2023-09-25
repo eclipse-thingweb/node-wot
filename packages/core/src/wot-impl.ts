@@ -87,7 +87,7 @@ export default class WoTImpl {
 
             debug(
                 `WoTImpl consuming TD ${
-                    newThing.id != null ? "'" + newThing.id + "'" : "without id"
+                    newThing.id != null ? `'${newThing.id}'` : "without id"
                 } to instantiate ConsumedThing '${newThing.title}'`
             );
             return newThing;
