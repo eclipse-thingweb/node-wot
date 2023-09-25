@@ -484,10 +484,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             }
             Helpers.validateInteractionOptions(this, this.properties[propertyName], options);
             const writeHandler = this.__propertyHandlers.get(propertyName)?.writeHandler;
-            const form =
-                this.properties[propertyName].forms != null
-                    ? this.properties[propertyName].forms[options.formIndex]
-                    : {};
+            const form = this.properties[propertyName]?.forms[options.formIndex] ?? {};
             // call write handler (if any)
             if (writeHandler != null) {
                 await writeHandler(new InteractionOutput(inputContent, form, this.properties[propertyName]), options);
