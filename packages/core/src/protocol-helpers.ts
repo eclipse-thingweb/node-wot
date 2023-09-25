@@ -139,6 +139,7 @@ export default class ProtocolHelpers {
         if (
             actionName != null &&
             uriScheme != null &&
+            td?.actions &&
             td?.actions[actionName]?.forms != null &&
             Array.isArray(td.actions[actionName].forms)
         ) {
@@ -161,6 +162,7 @@ export default class ProtocolHelpers {
         if (
             eventName != null &&
             uriScheme != null &&
+            td?.events &&
             td?.events[eventName]?.forms != null &&
             Array.isArray(td.events[eventName].forms)
         ) {
