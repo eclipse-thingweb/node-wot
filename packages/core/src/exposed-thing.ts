@@ -362,10 +362,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             if (handler != null) {
                 debug(`ExposedThing '${this.title}' calls registered handler for Action '${name}'`);
                 Helpers.validateInteractionOptions(this, this.actions[name], options);
-                const form =
-                    this.actions[name].forms != null
-                        ? this.actions[name].forms[options.formIndex]
-                        : { contentType: "application/json" };
+                const form = this.actions[name].forms[options.formIndex] ?? { contentType: "application/json" };
                 const result: WoT.InteractionInput | void = await handler(
                     new InteractionOutput(inputContent, form, this.actions[name].input),
                     options
