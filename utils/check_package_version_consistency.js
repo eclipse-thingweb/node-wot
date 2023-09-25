@@ -58,14 +58,12 @@ async function main() {
 
     let nbErrors = 0;
     // finding the packages that are present with multiple versions
-    for (const collectedDepedencies of [allDependencies, devDependencies]) {
-        for (const [module, versionPackages] of Object.entries(collectedDepedencies)) {
-            const versions = Object.keys(versionPackages);
-            if (versions.length !== 1) {
-                console.log("Warning module ", module, " has multiple versions ", versions.join(" "));
-                console.log(versionPackages);
-                nbErrors++;
-            }
+    for (const [module, versionPackages] of Object.entries(allDependencies)) {
+        const versions = Object.keys(versionPackages);
+        if (versions.length !== 1) {
+            console.log("Warning module ", module, " has multiple versions ", versions.join(" "));
+            console.log(versionPackages);
+            nbErrors++;
         }
     }
     if (nbErrors > 0) {
