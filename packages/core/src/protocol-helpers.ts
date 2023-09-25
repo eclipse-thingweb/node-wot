@@ -140,8 +140,8 @@ export default class ProtocolHelpers {
             actionName != null &&
             uriScheme != null &&
             td?.actions &&
-            td?.actions[actionName]?.forms != null &&
-            Array.isArray(td.actions[actionName].forms)
+            td.actions != null &&
+            Array.isArray(td.actions[actionName]?.forms)
         ) {
             for (const form of td.actions[actionName].forms) {
                 if (form.href && form.href.startsWith(uriScheme) && form.contentType != null) {
