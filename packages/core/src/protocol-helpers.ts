@@ -139,9 +139,7 @@ export default class ProtocolHelpers {
         if (
             actionName != null &&
             uriScheme != null &&
-            td?.actions != null &&
-            td.actions[actionName] != null &&
-            td.actions[actionName].forms != null &&
+            td?.actions[actionName]?.forms != null &&
             Array.isArray(td.actions[actionName].forms)
         ) {
             for (const form of td.actions[actionName].forms) {
