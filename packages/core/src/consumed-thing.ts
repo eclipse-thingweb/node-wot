@@ -467,7 +467,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                     this.getSecuritySchemes(form.security),
                     this.getServient().retrieveCredentials(this.id)
                 );
-            } else if (this.security != null && Array.isArray(this.security) && this.security.length > 0) {
+            } else if (Array.isArray(this.security) && this.security.length > 0) {
                 logStatement();
                 client.setSecurity(
                     this.getSecuritySchemes(this.security as string[]),
