@@ -297,9 +297,7 @@ class InternalEventSubscription extends InternalSubscription {
             throw new Error(`ConsumedThing '${this.thing.title}' does not have event ${this.name}`);
         }
 
-        if (options.formIndex == null) {
-            options.formIndex = this.matchingUnsubscribeForm();
-        }
+        options.formIndex ??= this.matchingUnsubscribeForm();
 
         const { form } = this.thing.getClientFor(te.forms, "unsubscribeevent", Affordance.EventAffordance, options);
         if (form == null) {
