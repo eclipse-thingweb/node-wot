@@ -399,10 +399,9 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                 debug(`ExposedThing '${this.title}' calls registered readHandler for Property '${propertyName}'`);
                 Helpers.validateInteractionOptions(this, this.properties[propertyName], options);
                 const result: WoT.InteractionInput | void = await readHandler(options);
-                const form =
-                    this.properties[propertyName].forms != null
-                        ? this.properties[propertyName].forms[options.formIndex]
-                        : { contentType: "application/json" };
+                const form = this.properties[propertyName]?.forms[options.formIndex] ?? {
+                    contentType: "application/json",
+                };
                 return ContentManager.valueToContent(
                     result,
                     this.properties[propertyName],
