@@ -351,7 +351,7 @@ export default class Helpers implements Resolver {
         uriVariables: { [k: string]: DataSchema } = {}
     ): Record<string, unknown> {
         const params: Record<string, unknown> = {};
-        if ((url === undefined && url == null) || (uriVariables == null && globalUriVariables == null)) {
+        if (url == null || (uriVariables == null && globalUriVariables == null)) {
             return params;
         }
 
