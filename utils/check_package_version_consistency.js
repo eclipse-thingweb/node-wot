@@ -4,7 +4,8 @@ const fs = require("fs");
 
 const doDebug = false;
 async function main() {
-    const dependencies = {};
+    const allDependencies = {};
+    const devDependencies = {};
 
     async function exploreModule(folderPath) {
         const folder = path.basename(folderPath);
@@ -15,14 +16,23 @@ async function main() {
                 console.log("exploring ", folderPath);
             }
             const packageJson = JSON.parse(await fs.promises.readFile(packageFilename, "utf8"));
-            if (packageJson.dependencies || packageJson.devDependencies) {
-                const modules = Object.entries(packageJson.dependencies || []).concat(
-                    Object.entries(packageJson.devDependencies || [])
-                );
-                for (const [moduleName, version] of modules) {
-                    dependencies[moduleName] = dependencies[moduleName] || {};
-                    dependencies[moduleName][version] = dependencies[moduleName][version] || [];
-                    dependencies[moduleName][version].push(folder);
+            for (const [modules, isDevDependencies] of [
+                [packageJson.dependencies ?? {}, false],
+                [packageJson.devDependencies ?? {}, true],
+            ]) {
+                const dependencyCollections = [allDependencies];
+
+                // devDependencies are recorded a second time for a redundancy check
+                if (isDevDependencies) {
+                    dependencyCollections.push(devDependencies);
+                }
+
+                for (const [moduleName, version] of Object.entries(modules)) {
+                    for (const dependencyCollection of dependencyCollections) {
+                        dependencyCollection[moduleName] ??= {};
+                        dependencyCollection[moduleName][version] ??= [];
+                        dependencyCollection[moduleName][version].push(folder);
+                    }
                 }
                 if (doDebug) {
                     console.log(folder);
@@ -48,7 +58,7 @@ async function main() {
 
     let nbErrors = 0;
     // finding the packages that are present with multiple versions
-    for (const [module, versionPackages] of Object.entries(dependencies)) {
+    for (const [module, versionPackages] of Object.entries(allDependencies)) {
         const versions = Object.keys(versionPackages);
         if (versions.length !== 1) {
             console.log("Warning module ", module, " has multiple versions ", versions.join(" "));
@@ -61,9 +71,10 @@ async function main() {
         process.exit(1);
     }
 
+    // Check for redundant devDependencies and exit with error if there is a duplicate
     const oftenUsedPackages = [];
     const rarelyUsedPackages = [];
-    for (const [module, versionPackages] of Object.entries(dependencies)) {
+    for (const [module, versionPackages] of Object.entries(devDependencies)) {
         if (module.match(/^@node-wot/)) {
             continue;
         }
@@ -82,20 +93,16 @@ async function main() {
         }
     }
 
-    console.log("Good ! the version number of all modules used are all consistent !");
-
-    const displayOftenUsedPackages = false;
-    if (displayOftenUsedPackages) {
-        //  ---
-        console.log("\nSuggestion: now you can manually update the devDependencies section of the main package.json");
-        console.log(
-            "with the following packages. Those packages are installed  more than once in one of the sub modules"
-        );
-
+    if (oftenUsedPackages.length > 0) {
+        console.log("The following packages are installed more than once.");
+        console.log("Please move them manually to the devDependencies section of the main package.json.");
         console.log("-----------\n");
 
         console.log(oftenUsedPackages.sort().join("\n"));
+        process.exit(1);
     }
+
+    console.log("Good! The version numbers of all modules used are consistent.");
     process.exit(0);
 }
 
