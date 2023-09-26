@@ -21,6 +21,7 @@ import * as TDParser from "../td-parser";
 import debug from "debug";
 import { ThingDescription } from "wot-typescript-definitions";
 import { FormElementBase, PropertyElement } from "wot-thing-model-types";
+import isAbsoluteUrl = require("is-absolute-url");
 const namespace = "node-wot:td-tools:asset-interface-description-util";
 const logDebug = debug(`${namespace}:debug`);
 const logInfo = debug(`${namespace}:info`);
@@ -339,7 +340,9 @@ export class AssetInterfaceDescriptionUtil {
                         for (const v of iv.value) {
                             // Binding
                             if (v.idShort === "href") {
-                                if (form.href && form.href.length > 0) {
+                                if (isAbsoluteUrl(v.value)) {
+                                    form.href = v.value;
+                                } else if (form.href && form.href.length > 0) {
                                     form.href = form.href + v.value; // TODO handle leading/trailing slashes
                                 } else {
                                     form.href = v.value;

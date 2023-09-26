@@ -1,0 +1,167 @@
+{
+    "assetAdministrationShells": [
+        {
+            "idShort": "SampleAAS",
+            "id": "https://example.com/ids/aas/7474_9002_6022_1115",
+            "assetInformation": { "assetKind": "Type" },
+            "submodels": [
+                {
+                    "type": "ModelReference",
+                    "keys": [
+                        {
+                            "type": "Submodel",
+                            "value": "uri:dev:inverter"
+                        }
+                    ]
+                }
+            ],
+            "modelType": "AssetAdministrationShell"
+        }
+    ],
+    "submodels": [
+        {
+            "idShort": "AssetInterfacesDescription",
+            "id": "uri:dev:inverter",
+            "kind": "Instance",
+            "description": [
+                {
+                    "language": "en",
+                    "text": "Inverter GEN44"
+                }
+            ],
+            "submodelElements": [
+                {
+                    "idShort": "InterfaceMODBUS+TCP",
+                    "value": [
+                        {
+                            "idShort": "title",
+                            "valueType": "xs:string",
+                            "value": "Inverter GEN44",
+                            "modelType": "Property"
+                        },
+                        {
+                            "idShort": "EndpointMetadata",
+                            "value": [
+                                {
+                                    "idShort": "base",
+                                    "valueType": "xs:anyURI",
+                                    "value": "modbus+tcp://192.168.178.146:502/",
+                                    "modelType": "Property"
+                                },
+                                {
+                                    "idShort": "security",
+                                    "value": [
+                                        {
+                                            "valueType": "xs:string",
+                                            "value": "nosec_sc",
+                                            "modelType": "Property"
+                                        }
+                                    ],
+                                    "modelType": "SubmodelElementCollection"
+                                },
+                                {
+                                    "idShort": "securityDefinitions",
+                                    "value": [
+                                        {
+                                            "idShort": "nosec_sc",
+                                            "value": [
+                                                {
+                                                    "idShort": "scheme",
+                                                    "valueType": "xs:string",
+                                                    "value": "nosec",
+                                                    "modelType": "Property"
+                                                }
+                                            ],
+                                            "modelType": "SubmodelElementCollection"
+                                        }
+                                    ],
+                                    "modelType": "SubmodelElementCollection"
+                                }
+                            ],
+                            "modelType": "SubmodelElementCollection"
+                        },
+                        {
+                            "idShort": "InterfaceMetadata",
+                            "value": [
+                                {
+                                    "idShort": "Properties",
+                                    "value": [
+                                        {
+                                            "idShort": "device_name",
+                                            "value": [
+                                                {
+                                                    "idShort": "type",
+                                                    "valueType": "xs:string",
+                                                    "value": "string",
+                                                    "modelType": "Property"
+                                                },
+                                                {
+                                                    "idShort": "title",
+                                                    "valueType": "xs:string",
+                                                    "value": "Device name",
+                                                    "modelType": "Property"
+                                                },
+                                                {
+                                                    "idShort": "forms",
+                                                    "value": [
+                                                        {
+                                                            "idShort": "op",
+                                                            "valueType": "xs:string",
+                                                            "value": "readproperty",
+                                                            "modelType": "Property"
+                                                        },
+                                                        {
+                                                            "idShort": "href",
+                                                            "valueType": "xs:string",
+                                                            "value": "modbus+tcp://192.168.178.146:502/1/40020?quantity=16",
+                                                            "modelType": "Property"
+                                                        },
+                                                        {
+                                                            "idShort": "modbus:function",
+                                                            "valueType": "xs:string",
+                                                            "value": "readHoldingRegisters",
+                                                            "modelType": "Property"
+                                                        },
+                                                        {
+                                                            "idShort": "modbus:type",
+                                                            "valueType": "xs:string",
+                                                            "value": "string",
+                                                            "modelType": "Property"
+                                                        },
+                                                        {
+                                                            "idShort": "contentType",
+                                                            "valueType": "xs:string",
+                                                            "value": "application/octet-stream",
+                                                            "modelType": "Property"
+                                                        }
+                                                    ],
+                                                    "modelType": "SubmodelElementCollection"
+                                                }
+                                            ],
+                                            "modelType": "SubmodelElementCollection"
+                                        }
+                                    ],
+                                    "modelType": "SubmodelElementCollection"
+                                },
+                                {
+                                    "idShort": "Actions",
+                                    "value": [],
+                                    "modelType": "SubmodelElementCollection"
+                                },
+                                {
+                                    "idShort": "Events",
+                                    "value": [],
+                                    "modelType": "SubmodelElementCollection"
+                                }
+                            ],
+                            "modelType": "SubmodelElementCollection"
+                        }
+                    ],
+                    "modelType": "SubmodelElementCollection"
+                }
+            ],
+            "modelType": "Submodel"
+        }
+    ],
+    "conceptDescriptions": []
+}
