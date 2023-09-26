@@ -347,7 +347,7 @@ export default class ProtocolHelpers {
         // If a form index hint is gived, you it. Just check the form actually supports the op
         if (interaction.forms !== undefined && formIndex !== undefined && interaction.forms.length > formIndex) {
             const form = interaction.forms[formIndex];
-            if (form != null && (operationName === undefined || form.op?.includes(operationName) === true)) {
+            if (form != null && (operationName == null || form.op?.includes(operationName) === true)) {
                 finalFormIndex = formIndex;
             }
         }
