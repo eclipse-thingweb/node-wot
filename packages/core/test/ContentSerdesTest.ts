@@ -60,7 +60,10 @@ const checkStreamToValue = (value: number[], match: unknown, type: string, endia
     const octectBuffer = Buffer.from(value);
     expect(
         ContentSerdes.contentToValue(
-            { type: `application/octet-stream${endianness ? `;byteSeq=${endianness}` : ""}`, body: octectBuffer },
+            {
+                type: `application/octet-stream${endianness != null ? `;byteSeq=${endianness}` : ""}`,
+                body: octectBuffer,
+            },
             { type: type ?? "integer", properties: {} }
         )
     ).to.deep.equal(match);

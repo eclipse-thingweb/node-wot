@@ -59,11 +59,11 @@ export default class OctetstreamCodec implements ContentCodec {
         debug("OctetstreamCodec parsing", bytes);
         debug("Parameters", parameters);
 
-        const bigendian = !parameters.byteSeq?.includes(Endianness.LITTLE_ENDIAN); // default to big endian
+        const bigendian = !(parameters.byteSeq?.includes(Endianness.LITTLE_ENDIAN) === true); // default to big endian
         let signed = parameters.signed !== "false"; // default to signed
 
         // check length if specified
-        if (parameters.length && parseInt(parameters.length) !== bytes.length) {
+        if (parameters.length != null && parseInt(parameters.length) !== bytes.length) {
             throw new Error("Lengths do not match, required: " + parameters.length + " provided: " + bytes.length);
         }
 
@@ -83,7 +83,7 @@ export default class OctetstreamCodec implements ContentCodec {
         }
 
         // Handle byte swapping
-        if (parameters.byteSeq?.includes("BYTE_SWAP") && dataLength > 1) {
+        if (parameters.byteSeq?.includes("BYTE_SWAP") === true && dataLength > 1) {
             bytes.swap16();
         }
 
@@ -184,13 +184,13 @@ export default class OctetstreamCodec implements ContentCodec {
     valueToBytes(value: unknown, schema?: DataSchema, parameters: { [key: string]: string | undefined } = {}): Buffer {
         debug(`OctetstreamCodec serializing '${value}'`);
 
-        if (!parameters.length) {
+        if (parameters.length == null) {
             warn("Missing 'length' parameter necessary for write. I'll do my best");
         }
 
-        const bigendian = !parameters.byteSeq?.includes(Endianness.LITTLE_ENDIAN); // default to bigendian
+        const bigendian = !(parameters.byteSeq?.includes(Endianness.LITTLE_ENDIAN) === true); // default to bigendian
         let signed = parameters.signed !== "false"; // if signed is undefined -> true (default)
-        let length = parameters.length ? parseInt(parameters.length) : undefined;
+        let length = parameters.length != null ? parseInt(parameters.length) : undefined;
 
         if (value === undefined) {
             throw new Error("Undefined value");
@@ -212,7 +212,7 @@ export default class OctetstreamCodec implements ContentCodec {
 
         switch (dataType) {
             case "boolean":
-                return Buffer.alloc(length ?? 1, value ? 255 : 0);
+                return Buffer.alloc(length ?? 1, value != null ? 255 : 0);
             case "byte":
             case "short":
             case "int":
