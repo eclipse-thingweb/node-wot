@@ -60,7 +60,7 @@ function extractTokenFromRequest(request: http.IncomingMessage) {
     const url = new URL(request.url ?? "", `http://${request.headers.host}`);
     const queryToken = url.searchParams.get("access_token");
 
-    if (headerToken == null && queryToken == null) {
+    if (headerToken != null && queryToken != null) {
         throw new Error("Invalid request: only one authentication method is allowed");
     }
 
