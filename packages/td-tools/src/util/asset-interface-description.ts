@@ -340,7 +340,7 @@ export class AssetInterfaceDescriptionUtil {
                         for (const v of iv.value) {
                             // Binding
                             if (v.idShort === "href") {
-                                if (isAbsoluteUrl(v.value)) {
+                                if (v.value != null && isAbsoluteUrl(v.value)) {
                                     form.href = v.value;
                                 } else if (form.href && form.href.length > 0) {
                                     form.href = form.href + v.value; // TODO handle leading/trailing slashes
