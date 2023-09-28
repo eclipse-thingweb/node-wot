@@ -69,7 +69,7 @@ export default class ProtocolHelpers {
                 // TODO match for example http only?
             }
             // 2. Use any form
-            if (formTemplate.contentType) {
+            if (formTemplate.contentType != null) {
                 form.contentType = formTemplate.contentType;
                 return; // abort loop
             }
@@ -83,7 +83,7 @@ export default class ProtocolHelpers {
                 // TODO match for example http only?
             }
             // 2. Use any form
-            if (formTemplate.contentType) {
+            if (formTemplate.contentType != null) {
                 form.contentType = formTemplate.contentType;
                 return; // abort loop
             }
@@ -97,7 +97,7 @@ export default class ProtocolHelpers {
                 // TODO match for example http only?
             }
             // 2. Use any form
-            if (formTemplate.contentType) {
+            if (formTemplate.contentType != null) {
                 form.contentType = formTemplate.contentType;
                 return; // abort loop
             }
@@ -113,16 +113,15 @@ export default class ProtocolHelpers {
         // Should interaction methods like readProperty() return an encapsulated value container with value&contenType
         // as sketched in https://github.com/w3c/wot-scripting-api/issues/201#issuecomment-573702999
         if (
-            td &&
-            propertyName &&
-            uriScheme &&
-            td.properties &&
-            td.properties[propertyName] &&
-            td.properties[propertyName].forms &&
+            propertyName != null &&
+            uriScheme != null &&
+            td?.properties != null &&
+            td.properties[propertyName] != null &&
+            td.properties[propertyName].forms != null &&
             Array.isArray(td.properties[propertyName].forms)
         ) {
             for (const form of td.properties[propertyName].forms) {
-                if (form.href && form.href.startsWith(uriScheme) && form.contentType) {
+                if (form.href?.startsWith(uriScheme) && form.contentType != null) {
                     return form.contentType; // abort loop
                 }
             }
@@ -138,16 +137,14 @@ export default class ProtocolHelpers {
     ): string | undefined {
         // try to find contentType
         if (
-            td &&
-            actionName &&
-            uriScheme &&
-            td.actions &&
-            td.actions[actionName] &&
-            td.actions[actionName].forms &&
-            Array.isArray(td.actions[actionName].forms)
+            actionName != null &&
+            uriScheme != null &&
+            td?.actions &&
+            td.actions != null &&
+            Array.isArray(td.actions[actionName]?.forms)
         ) {
             for (const form of td.actions[actionName].forms) {
-                if (form.href && form.href.startsWith(uriScheme) && form.contentType) {
+                if (form.href && form.href.startsWith(uriScheme) && form.contentType != null) {
                     return form.contentType; // abort loop
                 }
             }
@@ -163,16 +160,14 @@ export default class ProtocolHelpers {
     ): string | undefined {
         // try to find contentType
         if (
-            td &&
-            eventName &&
-            uriScheme &&
-            td.events &&
-            td.events[eventName] &&
-            td.events[eventName].forms &&
+            eventName != null &&
+            uriScheme != null &&
+            td?.events &&
+            td?.events[eventName]?.forms != null &&
             Array.isArray(td.events[eventName].forms)
         ) {
             for (const form of td.events[eventName].forms) {
-                if (form.href && form.href.startsWith(uriScheme) && form.contentType) {
+                if (form.href && form.href.startsWith(uriScheme) && form.contentType != null) {
                     return form.contentType; // abort loop
                 }
             }
@@ -240,17 +235,17 @@ export default class ProtocolHelpers {
 
     static readStreamFully(stream: NodeJS.ReadableStream): Promise<Buffer> {
         return new Promise<Buffer>((resolve, reject) => {
-            if (stream) {
+            if (stream != null) {
                 const chunks: Array<unknown> = [];
                 stream.on("data", (data) => chunks.push(data));
                 stream.on("error", reject);
                 stream.on("end", () => {
                     if (
-                        chunks[0] &&
+                        chunks[0] != null &&
                         (chunks[0] instanceof Array || chunks[0] instanceof Buffer || chunks[0] instanceof Uint8Array)
                     ) {
                         resolve(Buffer.concat(chunks as Array<Buffer | Uint8Array>));
-                    } else if (chunks[0] && typeof chunks[0] === "string") {
+                    } else if (chunks[0] != null && typeof chunks[0] === "string") {
                         resolve(Buffer.from(chunks.join()));
                     } else {
                         resolve(Buffer.from(chunks as Array<number>));
@@ -287,7 +282,7 @@ export default class ProtocolHelpers {
             return formUrl.protocol === uriScheme + ":" && (reqUrl === undefined || formUrl.pathname === reqUrl);
         });
         // optionally try to match form's content type to the request's one
-        if (contentType) {
+        if (contentType != null) {
             const contentTypeMatchingForms: TD.Form[] = matchingForms.filter((form) => {
                 return form.contentType === contentType;
             });
@@ -330,12 +325,12 @@ export default class ProtocolHelpers {
         switch (type) {
             case "property":
                 if (
-                    (interaction.readOnly && operationName === "writeproperty") ||
-                    (interaction.writeOnly && operationName === "readproperty")
+                    (interaction.readOnly === true && operationName === "writeproperty") ||
+                    (interaction.writeOnly === true && operationName === "readproperty")
                 )
                     return finalFormIndex;
-                if (interaction.readOnly === undefined || !interaction.readOnly) defaultOps.push("writeproperty");
-                if (interaction.writeOnly === undefined || !interaction.writeOnly) defaultOps.push("readproperty");
+                if (interaction.readOnly !== true) defaultOps.push("writeproperty");
+                if (interaction.writeOnly !== true) defaultOps.push("readproperty");
                 break;
             case "action":
                 defaultOps = ["invokeaction"];
@@ -352,7 +347,7 @@ export default class ProtocolHelpers {
         // If a form index hint is gived, you it. Just check the form actually supports the op
         if (interaction.forms !== undefined && formIndex !== undefined && interaction.forms.length > formIndex) {
             const form = interaction.forms[formIndex];
-            if (form && (operationName === undefined || form.op?.includes(operationName))) {
+            if (form != null && (operationName == null || form.op?.includes(operationName) === true)) {
                 finalFormIndex = formIndex;
             }
         }
@@ -362,7 +357,7 @@ export default class ProtocolHelpers {
             if (operationName !== undefined) {
                 interaction.forms.every((form: TD.Form) => {
                     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- operationName !== undefined
-                    if (form.op?.includes(operationName!)) {
+                    if (form.op?.includes(operationName!) === true) {
                         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- interaction.forms  !== undefined
                         finalFormIndex = interaction.forms!.indexOf(form);
                     }
@@ -384,11 +379,11 @@ export default class ProtocolHelpers {
     public static getPropertyOpValues(property: PropertyElement): string[] {
         const op: string[] = [];
 
-        if (!property.readOnly) {
+        if (property.readOnly !== true) {
             op.push("writeproperty");
         }
 
-        if (!property.writeOnly) {
+        if (property.writeOnly !== true) {
             op.push("readproperty");
         }
 
@@ -396,7 +391,7 @@ export default class ProtocolHelpers {
             warn("Property was declared both as readOnly and writeOnly.");
         }
 
-        if (property.observable) {
+        if (property.observable === true) {
             op.push("observeproperty");
             op.push("unobserveproperty");
         }

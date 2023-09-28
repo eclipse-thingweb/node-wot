@@ -73,7 +73,7 @@ export default class NetconfCodec implements ContentCodec {
         if (hasNamespace) {
             // expect to have xmlns
             const properties = schema.properties;
-            if (!properties) {
+            if (properties == null) {
                 throw new Error(`Missing "properties" field in TD`);
             }
             let nsFound = false;
@@ -81,16 +81,16 @@ export default class NetconfCodec implements ContentCodec {
             let value;
             for (const key in properties) {
                 const el = properties[key];
-                if (!payload[key]) {
+                if (payload[key] == null) {
                     throw new Error(`Payload is missing '${key}' field specified in TD`);
                 }
-                if (el["nc:attribute"] === true && payload[key]) {
+                if (el["nc:attribute"] === true && payload[key] != null) {
                     // if (el.format && el.format === 'urn')
                     const ns: string = payload[key] as string;
                     aliasNs = ns.split(":")[ns.split(":").length - 1];
                     NSs[aliasNs] = payload[key];
                     nsFound = true;
-                } else if (payload[key]) {
+                } else if (payload[key] != null) {
                     value = payload[key];
                 }
             }
@@ -102,10 +102,10 @@ export default class NetconfCodec implements ContentCodec {
             }
         }
 
-        if (schema && schema.type && schema.type === "object" && schema.properties) {
+        if (schema?.type === "object" && schema.properties != null) {
             // nested object, go down
             let tmpObj;
-            if (schema.properties && schema["nc:container"]) {
+            if (schema["nc:container"] != null) {
                 // check the root level
                 tmpObj = this.getPayloadNamespaces(schema, payload, NSs, true); // root case
             } else {
@@ -118,10 +118,10 @@ export default class NetconfCodec implements ContentCodec {
 
         // once here schema is properties
         for (const key in schema) {
-            if ((schema[key].type && schema[key].type === "object") || hasNamespace) {
+            if (schema[key].type === "object" || hasNamespace) {
                 // go down only if it is a nested object or it has a namespace
                 let tmpHasNamespace = false;
-                if (schema[key].properties && schema[key]["nc:container"]) {
+                if (schema[key].properties != null && schema[key]["nc:container"] != null) {
                     tmpHasNamespace = true;
                 }
                 const tmpObj = this.getPayloadNamespaces(

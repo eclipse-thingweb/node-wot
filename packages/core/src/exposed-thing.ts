@@ -141,7 +141,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     }
 
     public emitEvent(name: string, data: WoT.InteractionInput): void {
-        if (this.events[name]) {
+        if (this.events[name] != null) {
             const eventAffordance = this.events[name];
             this.__eventListeners.notify(eventAffordance, data, eventAffordance.data);
         } else {
@@ -151,7 +151,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     }
 
     public async emitPropertyChange(name: string): Promise<void> {
-        if (this.properties[name]) {
+        if (this.properties[name] != null) {
             const property = this.properties[name];
             const readHandler = this.__propertyHandlers.get(name)?.readHandler;
 
@@ -200,9 +200,9 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     setPropertyReadHandler(propertyName: string, handler: WoT.PropertyReadHandler): WoT.ExposedThing {
         debug(`ExposedThing '${this.title}' setting read handler for '${propertyName}'`);
 
-        if (this.properties[propertyName]) {
+        if (this.properties[propertyName] != null) {
             // setting read handler for writeOnly not allowed
-            if (this.properties[propertyName].writeOnly) {
+            if (this.properties[propertyName].writeOnly === true) {
                 throw new Error(
                     `ExposedThing '${this.title}' cannot set read handler for property '${propertyName}' due to writeOnly flag`
                 );
@@ -225,9 +225,9 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     /** @inheritDoc */
     setPropertyWriteHandler(propertyName: string, handler: WoT.PropertyWriteHandler): WoT.ExposedThing {
         debug(`ExposedThing '${this.title}' setting write handler for '${propertyName}'`);
-        if (this.properties[propertyName]) {
+        if (this.properties[propertyName] != null) {
             // setting write handler for readOnly not allowed
-            if (this.properties[propertyName].readOnly) {
+            if (this.properties[propertyName].readOnly === true) {
                 throw new Error(
                     `ExposedThing '${this.title}' cannot set write handler for property '${propertyName}' due to readOnly flag`
                 );
@@ -251,8 +251,8 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     setPropertyObserveHandler(name: string, handler: WoT.PropertyReadHandler): WoT.ExposedThing {
         debug(`ExposedThing '${this.title}' setting property observe handler for '${name}'`);
 
-        if (this.properties[name]) {
-            if (!this.properties[name].observable) {
+        if (this.properties[name] != null) {
+            if (this.properties[name].observable !== true) {
                 throw new Error(
                     `ExposedThing '${this.title}' cannot set observe handler for property '${name}' since the observable flag is set to false`
                 );
@@ -275,8 +275,8 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     setPropertyUnobserveHandler(name: string, handler: WoT.PropertyReadHandler): WoT.ExposedThing {
         debug(`ExposedThing '${this.title}' setting property unobserve handler for '${name}'`);
 
-        if (this.properties[name]) {
-            if (!this.properties[name].observable) {
+        if (this.properties[name] != null) {
+            if (this.properties[name].observable !== true) {
                 throw new Error(
                     `ExposedThing '${this.title}' cannot set unobserve handler for property '${name}' due to missing observable flag`
                 );
@@ -299,7 +299,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     setActionHandler(actionName: string, handler: WoT.ActionHandler): WoT.ExposedThing {
         debug(`ExposedThing '${this.title}' setting action handler for '${actionName}'`);
 
-        if (this.actions[actionName]) {
+        if (this.actions[actionName] != null) {
             this.__actionHandlers.set(actionName, handler);
         } else {
             throw new Error(`ExposedThing '${this.title}' has no Action '${actionName}'`);
@@ -311,7 +311,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     setEventSubscribeHandler(name: string, handler: WoT.EventSubscriptionHandler): WoT.ExposedThing {
         debug(`ExposedThing '${this.title}' setting event subscribe handler for '${name}'`);
 
-        if (this.events[name]) {
+        if (this.events[name] != null) {
             let eventHandler = this.__eventHandlers.get(name);
             if (eventHandler) {
                 eventHandler.subscribe = handler;
@@ -330,7 +330,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     setEventUnsubscribeHandler(name: string, handler: WoT.EventSubscriptionHandler): WoT.ExposedThing {
         debug(`ExposedThing '${this.title}' setting event unsubscribe handler for '${name}'`);
 
-        if (this.events[name]) {
+        if (this.events[name] != null) {
             let eventHandler = this.__eventHandlers.get(name);
             if (eventHandler) {
                 eventHandler.unsubscribe = handler;
@@ -355,16 +355,14 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         options: WoT.InteractionOptions & { formIndex: number }
     ): Promise<Content | void> {
         // TODO: handling URI variables?
-        if (this.actions[name]) {
+        if (this.actions[name] != null) {
             debug(`ExposedThing '${this.title}' has Action state of '${name}'`);
 
             const handler = this.__actionHandlers.get(name);
             if (handler != null) {
                 debug(`ExposedThing '${this.title}' calls registered handler for Action '${name}'`);
                 Helpers.validateInteractionOptions(this, this.actions[name], options);
-                const form = this.actions[name].forms
-                    ? this.actions[name].forms[options.formIndex]
-                    : { contentType: "application/json" };
+                const form = this.actions[name].forms[options.formIndex] ?? { contentType: "application/json" };
                 const result: WoT.InteractionInput | void = await handler(
                     new InteractionOutput(inputContent, form, this.actions[name].input),
                     options
@@ -389,7 +387,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         propertyName: string,
         options: WoT.InteractionOptions & { formIndex: number }
     ): Promise<Content> {
-        if (this.properties[propertyName]) {
+        if (this.properties[propertyName] != null) {
             debug(`ExposedThing '${this.title}' has Action state of '${propertyName}'`);
 
             const readHandler = this.__propertyHandlers.get(propertyName)?.readHandler;
@@ -398,9 +396,9 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                 debug(`ExposedThing '${this.title}' calls registered readHandler for Property '${propertyName}'`);
                 Helpers.validateInteractionOptions(this, this.properties[propertyName], options);
                 const result: WoT.InteractionInput | void = await readHandler(options);
-                const form = this.properties[propertyName].forms
-                    ? this.properties[propertyName].forms[options.formIndex]
-                    : { contentType: "application/json" };
+                const form = this.properties[propertyName]?.forms[options.formIndex] ?? {
+                    contentType: "application/json",
+                };
                 return ContentManager.valueToContent(
                     result,
                     this.properties[propertyName],
@@ -428,7 +426,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             for (const propertyName of propertyNames) {
                 // Note: currently only JSON DataSchema properties are supported
                 const form = this.properties[propertyName].forms.find(
-                    (form) => form.contentType === ContentSerdes.DEFAULT || !form.contentType
+                    (form) => form.contentType === ContentSerdes.DEFAULT || form.contentType == null
                 );
                 if (!form) {
                     continue;
@@ -477,15 +475,13 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         options: WoT.InteractionOptions & { formIndex: number }
     ): Promise<void> {
         // TODO: to be removed next api does not allow an ExposedThing to be also a ConsumeThing
-        if (this.properties[propertyName]) {
-            if (this.properties[propertyName].readOnly && this.properties[propertyName].readOnly === true) {
+        if (this.properties[propertyName] != null) {
+            if (this.properties[propertyName].readOnly === true) {
                 throw new Error(`ExposedThing '${this.title}', property '${propertyName}' is readOnly`);
             }
             Helpers.validateInteractionOptions(this, this.properties[propertyName], options);
             const writeHandler = this.__propertyHandlers.get(propertyName)?.writeHandler;
-            const form = this.properties[propertyName].forms
-                ? this.properties[propertyName].forms[options.formIndex]
-                : {};
+            const form = this.properties[propertyName]?.forms[options.formIndex] ?? {};
             // call write handler (if any)
             if (writeHandler != null) {
                 await writeHandler(new InteractionOutput(inputContent, form, this.properties[propertyName]), options);
@@ -510,7 +506,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         for (const propertyName in valueMap) {
             // Note: currently only DataSchema properties are supported
             const form = this.properties[propertyName].forms.find(
-                (form) => form.contentType === "application/json" || !form.contentType
+                (form) => form.contentType === "application/json" || form.contentType == null
             );
             if (!form) {
                 continue;
@@ -536,7 +532,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         listener: ContentListener,
         options: WoT.InteractionOptions & { formIndex: number }
     ): Promise<void> {
-        if (this.events[name]) {
+        if (this.events[name] != null) {
             Helpers.validateInteractionOptions(this, this.events[name], options);
 
             const formIndex = ProtocolHelpers.getFormIndexForOperation(
@@ -574,7 +570,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         listener: ContentListener,
         options: WoT.InteractionOptions & { formIndex: number }
     ): void {
-        if (this.events[name]) {
+        if (this.events[name] != null) {
             Helpers.validateInteractionOptions(this, this.events[name], options);
 
             const formIndex = ProtocolHelpers.getFormIndexForOperation(
@@ -609,7 +605,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         listener: ContentListener,
         options: WoT.InteractionOptions & { formIndex: number }
     ): Promise<void> {
-        if (this.properties[name]) {
+        if (this.properties[name] != null) {
             Helpers.validateInteractionOptions(this, this.properties[name], options);
             const formIndex = ProtocolHelpers.getFormIndexForOperation(
                 this.properties[name],
@@ -641,7 +637,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         listener: ContentListener,
         options: WoT.InteractionOptions & { formIndex: number }
     ): void {
-        if (this.properties[name]) {
+        if (this.properties[name] != null) {
             Helpers.validateInteractionOptions(this, this.properties[name], options);
             const formIndex = ProtocolHelpers.getFormIndexForOperation(
                 this.properties[name],
