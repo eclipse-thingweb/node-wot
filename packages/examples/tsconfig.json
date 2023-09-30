@@ -5,7 +5,8 @@
         "rootDir": "src",
         "target": "ES2018",
         "sourceMap": false,
-        "removeComments": false
+        "removeComments": false,
+        "strictNullChecks": true
     },
     "include": ["src/**/*"],
     "references": [{ "path": "../td-tools" }]
