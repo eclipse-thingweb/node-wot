@@ -32,7 +32,9 @@ export default class HttpTuyaCodec implements ContentCodec {
 
     bytesToValue(bytes: Buffer, schema: TD.DataSchema, parameters: { [key: string]: string }): DataSchemaValue {
         const parsedBody: TuyaOutput = JSON.parse(bytes.toString());
-        if (parsedBody.success !== true) {
+        const success = parsedBody.success ?? false;
+
+        if (!success) {
             throw new Error(parsedBody.msg != null ? parsedBody.msg : JSON.stringify(parsedBody));
         }
 

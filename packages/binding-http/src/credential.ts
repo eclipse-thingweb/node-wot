@@ -214,7 +214,9 @@ export class TuyaCustomBearer extends Credential {
             url = `${this.baseUri}/token/${this.refreshToken}`;
         }
         const data: TokenResponse = await (await fetch(url, request)).json();
-        if (data.success === true) {
+        const success = data.success ?? false;
+
+        if (success) {
             this.token = data.result?.access_token;
             this.refreshToken = data.result?.refresh_token;
 
