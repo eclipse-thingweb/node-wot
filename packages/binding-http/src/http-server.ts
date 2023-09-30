@@ -45,7 +45,6 @@ import actionRoute from "./routes/action";
 import eventRoute from "./routes/event";
 import propertiesRoute from "./routes/properties";
 import propertyObserveRoute from "./routes/property-observe";
-import { AddressInfo } from "net";
 
 const { debug, info, warn, error } = createLoggers("binding-http", "http-server");
 
