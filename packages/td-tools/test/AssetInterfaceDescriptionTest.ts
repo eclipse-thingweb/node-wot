@@ -165,6 +165,51 @@ class AssetInterfaceDescriptionUtilTest {
         expect(td4Obj).to.not.have.property("properties");
     }
 
+    @test async "should correctly transform inverterModbus into a TD"() {
+        const modelAID = (await fs.readFile("test/util/inverterModbus.json")).toString();
+        const td = this.assetInterfaceDescriptionUtil.transformAAS2TD(modelAID, `{"title": "bla"}`);
+
+        const tdObj = JSON.parse(td);
+        expect(tdObj).to.have.property("@context").that.equals("https://www.w3.org/2022/wot/td/v1.1");
+        expect(tdObj).to.have.property("title").that.equals("Inverter GEN44"); // should come form AAS
+
+        expect(tdObj).to.have.property("securityDefinitions").to.be.an("object");
+
+        expect(tdObj).to.have.property("security").to.be.an("array").to.have.lengthOf(1);
+        expect(tdObj.securityDefinitions[tdObj.security[0]]).to.have.property("scheme").that.equals("nosec");
+
+        // check device_name property
+        expect(tdObj).to.have.property("properties").to.have.property("device_name");
+        expect(tdObj)
+            .to.have.property("properties")
+            .to.have.property("device_name")
+            .to.have.property("type")
+            .that.equals("string");
+        expect(tdObj)
+            .to.have.property("properties")
+            .to.have.property("device_name")
+            .to.have.property("title")
+            .that.equals("Device name");
+        expect(tdObj)
+            .to.have.property("properties")
+            .to.have.property("device_name")
+            .to.have.property("forms")
+            .to.be.an("array")
+            .to.have.lengthOf(1);
+        expect(tdObj.properties.device_name.forms[0]).to.have.property("op").to.eql("readproperty");
+        expect(tdObj.properties.device_name.forms[0])
+            .to.have.property("href")
+            .to.eql("modbus+tcp://192.168.178.146:502/1/40020?quantity=16");
+        expect(tdObj.properties.device_name.forms[0])
+            .to.have.property("modbus:function")
+            .to.eql("readHoldingRegisters");
+        expect(tdObj.properties.device_name.forms[0]).to.have.property("modbus:type").to.eql("string");
+        expect(tdObj.properties.device_name.forms[0])
+            .to.have.property("contentType")
+            .to.eql("application/octet-stream");
+        expect(tdObj.properties.device_name.forms[0]).not.to.have.property("security");
+    }
+
     td1Base = "https://www.example.com/";
     td1: ThingDescription = {
         "@context": "https://www.w3.org/2022/wot/td/v1.1",
