@@ -252,14 +252,19 @@ export default class HttpServer implements ProtocolServer {
 
     /** returns server port number and indicates that server is running when larger than -1  */
     public getPort(): number {
-        const address: AddressInfo | string | null = this.server?.address?.();
+        const address = this.server?.address();
 
         if (typeof address === "object") {
             return address?.port ?? -1;
-        } else {
-            // includes address() typeof "string" case, which is only for unix sockets
+        }
+
+        const port = parseInt(address);
+
+        if (isNaN(port)) {
             return -1;
         }
+
+        return port;
     }
 
     public async expose(thing: ExposedThing, tdTemplate: WoT.ExposedThingInit = {}): Promise<void> {
