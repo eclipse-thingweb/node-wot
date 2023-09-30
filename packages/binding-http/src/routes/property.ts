@@ -106,21 +106,22 @@ export default async function propertyRoute(
             res.end(message);
         }
     } else if (req.method === "PUT") {
-        if (property.readOnly !== true) {
-            try {
-                await thing.handleWriteProperty(_params.property, new Content(contentType, req), options);
-
-                res.writeHead(204);
-                res.end("Changed");
-            } catch (err) {
-                const message = err instanceof Error ? err.message : JSON.stringify(err);
-
-                error(`HttpServer on port ${this.getPort()} got internal error on invoke '${req.url}': ${message}`);
-                res.writeHead(500);
-                res.end(message);
-            }
-        } else {
+        if (property.readOnly ?? false) {
             respondUnallowedMethod(req, res, "GET, PUT");
+            return;
+        }
+
+        try {
+            await thing.handleWriteProperty(_params.property, new Content(contentType, req), options);
+
+            res.writeHead(204);
+            res.end("Changed");
+        } catch (err) {
+            const message = err instanceof Error ? err.message : JSON.stringify(err);
+
+            error(`HttpServer on port ${this.getPort()} got internal error on invoke '${req.url}': ${message}`);
+            res.writeHead(500);
+            res.end(message);
         }
         // resource found and response sent
     } else {
