@@ -332,11 +332,12 @@ export default class HttpServer implements ProtocolServer {
 
     public addEndpoint(thing: ExposedThing, tdTemplate: WoT.ExposedThingInit, base: string): void {
         for (const type of ContentSerdes.get().getOfferedMediaTypes()) {
+            const properties = Object.values(thing.properties);
+
             let allReadOnly = true;
             let allWriteOnly = true;
-            let anyProperties = false;
-            for (const property of Object.values(thing.properties)) {
-                anyProperties = true;
+
+            for (const property of properties) {
                 if (property.readOnly ?? false) {
                     allReadOnly = false;
                 }
@@ -344,7 +345,8 @@ export default class HttpServer implements ProtocolServer {
                     allWriteOnly = false;
                 }
             }
-            if (anyProperties) {
+
+            if (properties.length > 0) {
                 const href = base + "/" + this.PROPERTY_DIR;
                 const form = new TD.Form(href, type);
                 if (allReadOnly && !allWriteOnly) {
@@ -366,10 +368,10 @@ export default class HttpServer implements ProtocolServer {
                 this.addUrlRewriteEndpoints(form, thing.forms);
             }
 
-            for (const propertyName in thing.properties) {
+            for (const [propertyName, property] of Object.entries(thing.properties)) {
                 const propertyNamePattern = Helpers.updateInteractionNameWithUriVariablePattern(
                     propertyName,
-                    thing.properties[propertyName].uriVariables,
+                    property.uriVariables,
                     thing.uriVariables
                 );
                 const href = base + "/" + this.PROPERTY_DIR + "/" + propertyNamePattern;
@@ -378,28 +380,24 @@ export default class HttpServer implements ProtocolServer {
                     form,
                     (tdTemplate.properties?.[propertyName] ?? {}) as PropertyElement
                 );
-                if (thing.properties[propertyName].readOnly ?? false) {
+                if (property.readOnly ?? false) {
                     form.op = ["readproperty"];
                     const hform: HttpForm = form;
-                    if (hform["htv:methodName"] === undefined) {
-                        hform["htv:methodName"] = "GET";
-                    }
-                } else if (thing.properties[propertyName].writeOnly ?? false) {
+                    hform["htv:methodName"] ??= "GET";
+                } else if (property.writeOnly ?? false) {
                     form.op = ["writeproperty"];
                     const hform: HttpForm = form;
-                    if (hform["htv:methodName"] === undefined) {
-                        hform["htv:methodName"] = "PUT";
-                    }
+                    hform["htv:methodName"] ??= "PUT";
                 } else {
                     form.op = ["readproperty", "writeproperty"];
                 }
 
-                thing.properties[propertyName].forms.push(form);
+                property.forms.push(form);
                 debug(`HttpServer on port ${this.getPort()} assigns '${href}' to Property '${propertyName}'`);
-                this.addUrlRewriteEndpoints(form, thing.properties[propertyName].forms);
+                this.addUrlRewriteEndpoints(form, property.forms);
 
                 // if property is observable add an additional form with a observable href
-                if (thing.properties[propertyName].observable === true) {
+                if (property.observable === true) {
                     const href =
                         base +
                         "/" +
@@ -411,11 +409,11 @@ export default class HttpServer implements ProtocolServer {
                     const form = new TD.Form(href, type);
                     form.op = ["observeproperty", "unobserveproperty"];
                     form.subprotocol = "longpoll";
-                    thing.properties[propertyName].forms.push(form);
+                    property.forms.push(form);
                     debug(
                         `HttpServer on port ${this.getPort()} assigns '${href}' to observable Property '${propertyName}'`
                     );
-                    this.addUrlRewriteEndpoints(form, thing.properties[propertyName].forms);
+                    this.addUrlRewriteEndpoints(form, property.forms);
                 }
             }
 
