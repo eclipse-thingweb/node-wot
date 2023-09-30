@@ -66,19 +66,19 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     };
 
     /** A map of property (read & write) handler callback functions */
-    __propertyHandlers: PropertyHandlerMap = new Map<string, PropertyHandlers>();
+    #propertyHandlers: PropertyHandlerMap = new Map<string, PropertyHandlers>();
 
     /** A map of action handler callback functions */
-    __actionHandlers: ActionHandlerMap = new Map<string, WoT.ActionHandler>();
+    #actionHandlers: ActionHandlerMap = new Map<string, WoT.ActionHandler>();
 
     /** A map of event handler callback functions */
-    __eventHandlers: EventHandlerMap = new Map<string, EventHandlers>();
+    #eventHandlers: EventHandlerMap = new Map<string, EventHandlers>();
 
     /** A map of property listener callback functions */
-    __propertyListeners: ProtocolListenerRegistry = new ProtocolListenerRegistry();
+    #propertyListeners: ProtocolListenerRegistry = new ProtocolListenerRegistry();
 
     /** A map of event listener callback functions */
-    __eventListeners: ProtocolListenerRegistry = new ProtocolListenerRegistry();
+    #eventListeners: ProtocolListenerRegistry = new ProtocolListenerRegistry();
 
     private getServient: () => Servient;
 
@@ -123,27 +123,13 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     }
 
     public getThingDescription(): WoT.ThingDescription {
-        return JSON.parse(TD.serializeTD(this), (key, value) => {
-            // Check if key matches internals like "__propertyHandlers", "__actionHandlers", ...
-            // if matched return value "undefined"
-            if (
-                key === "__propertyHandlers" ||
-                key === "__actionHandlers" ||
-                key === "__eventHandlers" ||
-                key === "__propertyListeners" ||
-                key === "__eventListeners"
-            ) {
-                return undefined;
-            }
-            // else return the value itself
-            return value;
-        });
+        return JSON.parse(TD.serializeTD(this));
     }
 
     public emitEvent(name: string, data: WoT.InteractionInput): void {
         if (this.events[name] != null) {
             const eventAffordance = this.events[name];
-            this.__eventListeners.notify(eventAffordance, data, eventAffordance.data);
+            this.#eventListeners.notify(eventAffordance, data, eventAffordance.data);
         } else {
             // NotFoundError
             throw new Error("NotFoundError for event '" + name + "'");
@@ -153,7 +139,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     public async emitPropertyChange(name: string): Promise<void> {
         if (this.properties[name] != null) {
             const property = this.properties[name];
-            const readHandler = this.__propertyHandlers.get(name)?.readHandler;
+            const readHandler = this.#propertyHandlers.get(name)?.readHandler;
 
             if (!readHandler) {
                 throw new Error(
@@ -162,7 +148,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             }
 
             const data = await readHandler();
-            this.__propertyListeners.notify(property, data, property);
+            this.#propertyListeners.notify(property, data, property);
         } else {
             // NotFoundError
             throw new Error("NotFoundError for property '" + name + "'");
@@ -189,11 +175,11 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         debug(`ExposedThing '${this.title}' destroying the thing and its interactions`);
         await this.getServient().destroyThing(this.id);
 
-        this.__eventListeners.unregisterAll();
-        this.__propertyListeners.unregisterAll();
-        this.__eventHandlers.clear();
-        this.__propertyHandlers.clear();
-        this.__eventHandlers.clear();
+        this.#eventListeners.unregisterAll();
+        this.#propertyListeners.unregisterAll();
+        this.#eventHandlers.clear();
+        this.#propertyHandlers.clear();
+        this.#eventHandlers.clear();
     }
 
     /** @inheritDoc */
@@ -207,14 +193,14 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                     `ExposedThing '${this.title}' cannot set read handler for property '${propertyName}' due to writeOnly flag`
                 );
             } else {
-                let propertyHandler = this.__propertyHandlers.get(propertyName);
+                let propertyHandler = this.#propertyHandlers.get(propertyName);
                 if (propertyHandler) {
                     propertyHandler.readHandler = handler;
                 } else {
                     propertyHandler = { readHandler: handler };
                 }
 
-                this.__propertyHandlers.set(propertyName, propertyHandler);
+                this.#propertyHandlers.set(propertyName, propertyHandler);
             }
         } else {
             throw new Error(`ExposedThing '${this.title}' has no Property '${propertyName}'`);
@@ -232,14 +218,14 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                     `ExposedThing '${this.title}' cannot set write handler for property '${propertyName}' due to readOnly flag`
                 );
             } else {
-                let propertyHandler = this.__propertyHandlers.get(propertyName);
+                let propertyHandler = this.#propertyHandlers.get(propertyName);
                 if (propertyHandler) {
                     propertyHandler.writeHandler = handler;
                 } else {
                     propertyHandler = { writeHandler: handler };
                 }
 
-                this.__propertyHandlers.set(propertyName, propertyHandler);
+                this.#propertyHandlers.set(propertyName, propertyHandler);
             }
         } else {
             throw new Error(`ExposedThing '${this.title}' has no Property '${propertyName}'`);
@@ -257,13 +243,13 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                     `ExposedThing '${this.title}' cannot set observe handler for property '${name}' since the observable flag is set to false`
                 );
             } else {
-                let propertyHandler = this.__propertyHandlers.get(name);
+                let propertyHandler = this.#propertyHandlers.get(name);
                 if (propertyHandler) {
                     propertyHandler.observeHandler = handler;
                 } else {
                     propertyHandler = { observeHandler: handler };
                 }
-                this.__propertyHandlers.set(name, propertyHandler);
+                this.#propertyHandlers.set(name, propertyHandler);
             }
         } else {
             throw new Error(`ExposedThing '${this.title}' has no Property '${name}'`);
@@ -281,13 +267,13 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                     `ExposedThing '${this.title}' cannot set unobserve handler for property '${name}' due to missing observable flag`
                 );
             } else {
-                let propertyHandler = this.__propertyHandlers.get(name);
+                let propertyHandler = this.#propertyHandlers.get(name);
                 if (propertyHandler) {
                     propertyHandler.unobserveHandler = handler;
                 } else {
                     propertyHandler = { unobserveHandler: handler };
                 }
-                this.__propertyHandlers.set(name, propertyHandler);
+                this.#propertyHandlers.set(name, propertyHandler);
             }
         } else {
             throw new Error(`ExposedThing '${this.title}' has no Property '${name}'`);
@@ -300,7 +286,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         debug(`ExposedThing '${this.title}' setting action handler for '${actionName}'`);
 
         if (this.actions[actionName] != null) {
-            this.__actionHandlers.set(actionName, handler);
+            this.#actionHandlers.set(actionName, handler);
         } else {
             throw new Error(`ExposedThing '${this.title}' has no Action '${actionName}'`);
         }
@@ -312,14 +298,14 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         debug(`ExposedThing '${this.title}' setting event subscribe handler for '${name}'`);
 
         if (this.events[name] != null) {
-            let eventHandler = this.__eventHandlers.get(name);
+            let eventHandler = this.#eventHandlers.get(name);
             if (eventHandler) {
                 eventHandler.subscribe = handler;
             } else {
                 eventHandler = { subscribe: handler };
             }
 
-            this.__eventHandlers.set(name, eventHandler);
+            this.#eventHandlers.set(name, eventHandler);
         } else {
             throw new Error(`ExposedThing '${this.title}' has no Event '${name}'`);
         }
@@ -331,14 +317,14 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         debug(`ExposedThing '${this.title}' setting event unsubscribe handler for '${name}'`);
 
         if (this.events[name] != null) {
-            let eventHandler = this.__eventHandlers.get(name);
+            let eventHandler = this.#eventHandlers.get(name);
             if (eventHandler) {
                 eventHandler.unsubscribe = handler;
             } else {
                 eventHandler = { unsubscribe: handler };
             }
 
-            this.__eventHandlers.set(name, eventHandler);
+            this.#eventHandlers.set(name, eventHandler);
         } else {
             throw new Error(`ExposedThing '${this.title}' has no Event '${name}'`);
         }
@@ -358,7 +344,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         if (this.actions[name] != null) {
             debug(`ExposedThing '${this.title}' has Action state of '${name}'`);
 
-            const handler = this.__actionHandlers.get(name);
+            const handler = this.#actionHandlers.get(name);
             if (handler != null) {
                 debug(`ExposedThing '${this.title}' calls registered handler for Action '${name}'`);
                 Helpers.validateInteractionOptions(this, this.actions[name], options);
@@ -390,7 +376,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         if (this.properties[propertyName] != null) {
             debug(`ExposedThing '${this.title}' has Action state of '${propertyName}'`);
 
-            const readHandler = this.__propertyHandlers.get(propertyName)?.readHandler;
+            const readHandler = this.#propertyHandlers.get(propertyName)?.readHandler;
 
             if (readHandler != null) {
                 debug(`ExposedThing '${this.title}' calls registered readHandler for Property '${propertyName}'`);
@@ -480,7 +466,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                 throw new Error(`ExposedThing '${this.title}', property '${propertyName}' is readOnly`);
             }
             Helpers.validateInteractionOptions(this, this.properties[propertyName], options);
-            const writeHandler = this.__propertyHandlers.get(propertyName)?.writeHandler;
+            const writeHandler = this.#propertyHandlers.get(propertyName)?.writeHandler;
             const form = this.properties[propertyName]?.forms[options.formIndex] ?? {};
             // call write handler (if any)
             if (writeHandler != null) {
@@ -543,7 +529,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             );
 
             if (formIndex !== -1) {
-                this.__eventListeners.register(this.events[name], formIndex, listener);
+                this.#eventListeners.register(this.events[name], formIndex, listener);
                 debug(`ExposedThing '${this.title}' subscribes to event '${name}'`);
             } else {
                 throw new Error(
@@ -551,7 +537,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                 );
             }
 
-            const subscribe = this.__eventHandlers.get(name)?.subscribe;
+            const subscribe = this.#eventHandlers.get(name)?.subscribe;
             if (subscribe) {
                 await subscribe(options);
             }
@@ -580,13 +566,13 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                 options.formIndex
             );
             if (formIndex !== -1) {
-                this.__eventListeners.unregister(this.events[name], formIndex, listener);
+                this.#eventListeners.unregister(this.events[name], formIndex, listener);
             } else {
                 throw new Error(
                     `ExposedThing '${this.title}', no event listener from found for '${name}' with form index '${options.formIndex}'`
                 );
             }
-            const unsubscribe = this.__eventHandlers.get(name)?.unsubscribe;
+            const unsubscribe = this.#eventHandlers.get(name)?.unsubscribe;
             if (unsubscribe) {
                 unsubscribe(options);
             }
@@ -615,7 +601,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             );
 
             if (formIndex !== -1) {
-                this.__propertyListeners.register(this.properties[name], formIndex, listener);
+                this.#propertyListeners.register(this.properties[name], formIndex, listener);
                 debug(`ExposedThing '${this.title}' subscribes to property '${name}'`);
             } else {
                 throw new Error(
@@ -623,7 +609,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                 );
             }
 
-            const observeHandler = this.__propertyHandlers.get(name)?.observeHandler;
+            const observeHandler = this.#propertyHandlers.get(name)?.observeHandler;
             if (observeHandler) {
                 await observeHandler(options);
             }
@@ -647,14 +633,14 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             );
 
             if (formIndex !== -1) {
-                this.__propertyListeners.unregister(this.properties[name], formIndex, listener);
+                this.#propertyListeners.unregister(this.properties[name], formIndex, listener);
             } else {
                 throw new Error(
                     `ExposedThing '${this.title}', no property listener from found for '${name}' with form index '${options.formIndex}'`
                 );
             }
 
-            const unobserveHandler = this.__propertyHandlers.get(name)?.unobserveHandler;
+            const unobserveHandler = this.#propertyHandlers.get(name)?.unobserveHandler;
             if (unobserveHandler) {
                 unobserveHandler(options);
             }
