@@ -337,10 +337,13 @@ export default class HttpServer implements ProtocolServer {
             let allWriteOnly = true;
 
             for (const property of properties) {
-                if (property.readOnly ?? false) {
+                const readOnly = property.readOnly ?? false;
+                if (readOnly) {
                     allReadOnly = false;
                 }
-                if (property.writeOnly ?? false) {
+
+                const writeOnly = property.writeOnly ?? false;
+                if (writeOnly) {
                     allWriteOnly = false;
                 }
             }
