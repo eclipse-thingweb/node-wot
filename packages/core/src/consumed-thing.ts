@@ -541,7 +541,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                 this.ensureClientSecurity(client, form);
             }
         }
-        return { client: client, form: form };
+        return { client, form };
     }
 
     async readProperty(propertyName: string, options?: WoT.InteractionOptions): Promise<WoT.InteractionOutput> {

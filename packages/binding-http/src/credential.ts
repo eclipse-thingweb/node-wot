@@ -187,13 +187,13 @@ export class TuyaCustomBearer extends Credential {
         const body = request.body ? request.body.read().toString() : "";
         const headers = this.getHeaders(true, request.headers.raw(), body, url, request.method);
         Object.assign(headers, request.headers.raw());
-        return new Request(url, { method: request.method, body: body !== "" ? body : undefined, headers: headers });
+        return new Request(url, { method: request.method, body: body !== "" ? body : undefined, headers });
     }
 
     protected async requestAndRefreshToken(refresh: boolean): Promise<void> {
         const headers = this.getHeaders(false, {}, "");
         const request = {
-            headers: headers,
+            headers,
             method: "GET",
         };
         let url = `${this.baseUri}/token?grant_type=1`;

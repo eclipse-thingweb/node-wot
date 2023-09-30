@@ -462,7 +462,7 @@ export class AssetInterfaceDescriptionUtil {
                                                 smInformation.properties.set(iValue.idShort, []);
                                             }
                                             const propInter: AASInteraction = {
-                                                endpointMetadata: endpointMetadata,
+                                                endpointMetadata,
                                                 interaction: iValue,
                                             };
                                             smInformation.properties.get(iValue.idShort)?.push(propInter);
@@ -476,7 +476,7 @@ export class AssetInterfaceDescriptionUtil {
                                                 smInformation.actions.set(iValue.idShort, []);
                                             }
                                             const actInter: AASInteraction = {
-                                                endpointMetadata: endpointMetadata,
+                                                endpointMetadata,
                                                 interaction: iValue,
                                             };
                                             smInformation.actions.get(iValue.idShort)?.push(actInter);
@@ -490,7 +490,7 @@ export class AssetInterfaceDescriptionUtil {
                                                 smInformation.events.set(iValue.idShort, []);
                                             }
                                             const evInter: AASInteraction = {
-                                                endpointMetadata: endpointMetadata,
+                                                endpointMetadata,
                                                 interaction: iValue,
                                             };
                                             smInformation.events.get(iValue.idShort)?.push(evInter);
@@ -878,7 +878,7 @@ export class AssetInterfaceDescriptionUtil {
 
                     properties.push({
                         idShort: propertyKey,
-                        description: description,
+                        description,
                         value: propertyValues,
                         modelType: "SubmodelElementCollection",
                     });

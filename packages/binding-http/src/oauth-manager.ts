@@ -31,11 +31,11 @@ function createRequestFunction(rejectUnauthorized: boolean) {
             const parsedURL = new URL(url);
 
             const options: RequestOptions = {
-                method: method,
+                method,
                 host: parsedURL.hostname,
                 port: parseInt(parsedURL.port),
                 path: parsedURL.pathname + parsedURL.search,
-                headers: headers,
+                headers,
             };
 
             options.rejectUnauthorized = rejectUnauthorized;

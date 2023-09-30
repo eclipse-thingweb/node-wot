@@ -185,7 +185,7 @@ export default class HttpClient implements ProtocolClient {
         const headers = content ? [["content-type", content.type]] : [];
 
         const request = await this.generateFetchRequest(form, "POST", {
-            headers: headers,
+            headers,
             body: content?.body,
         });
 

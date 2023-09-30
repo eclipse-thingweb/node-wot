@@ -159,7 +159,7 @@ export class ThingModelHelpers {
         }
         return {
             valid: isValid,
-            errors: errors,
+            errors,
         };
     }
 
@@ -632,7 +632,7 @@ export class ThingModelHelpers {
         }
         return {
             valid: isValid,
-            errors: errors,
+            errors,
         };
     }
 

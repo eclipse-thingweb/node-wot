@@ -563,7 +563,7 @@ class CoapServerTest {
         // check values of readallproperties
         const responseAll = await coapClient.readResource(new TD.Form(baseUri));
         expect(await decodeContent(responseAll)).to.deep.equal({
-            image: image,
+            image,
             testInteger: integer,
             testBoolean: boolean,
             testString: string,

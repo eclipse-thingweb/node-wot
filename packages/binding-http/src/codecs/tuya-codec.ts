@@ -38,7 +38,7 @@ export default class HttpTuyaCodec implements ContentCodec {
             commands: [
                 {
                     code: schema["tuya:PropertyName"],
-                    value: value,
+                    value,
                 },
             ],
         };
