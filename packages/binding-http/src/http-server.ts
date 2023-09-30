@@ -417,10 +417,10 @@ export default class HttpServer implements ProtocolServer {
                 }
             }
 
-            for (const actionName in thing.actions) {
+            for (const [actionName, action] of Object.entries(thing.actions)) {
                 const actionNamePattern = Helpers.updateInteractionNameWithUriVariablePattern(
                     actionName,
-                    thing.actions[actionName].uriVariables,
+                    action.uriVariables,
                     thing.uriVariables
                 );
                 const href = base + "/" + this.ACTION_DIR + "/" + actionNamePattern;
@@ -431,18 +431,17 @@ export default class HttpServer implements ProtocolServer {
                 );
                 form.op = ["invokeaction"];
                 const hform: HttpForm = form;
-                if (hform["htv:methodName"] === undefined) {
-                    hform["htv:methodName"] = "POST";
-                }
-                thing.actions[actionName].forms.push(form);
+
+                hform["htv:methodName"] ??= "POST";
+                action.forms.push(form);
                 debug(`HttpServer on port ${this.getPort()} assigns '${href}' to Action '${actionName}'`);
-                this.addUrlRewriteEndpoints(form, thing.actions[actionName].forms);
+                this.addUrlRewriteEndpoints(form, action.forms);
             }
 
-            for (const eventName in thing.events) {
+            for (const [eventName, event] of Object.entries(thing.events)) {
                 const eventNamePattern = Helpers.updateInteractionNameWithUriVariablePattern(
                     eventName,
-                    thing.events[eventName].uriVariables,
+                    event.uriVariables,
                     thing.uriVariables
                 );
                 const href = base + "/" + this.EVENT_DIR + "/" + eventNamePattern;
@@ -453,9 +452,9 @@ export default class HttpServer implements ProtocolServer {
                 );
                 form.subprotocol = "longpoll";
                 form.op = ["subscribeevent", "unsubscribeevent"];
-                thing.events[eventName].forms.push(form);
+                event.forms.push(form);
                 debug(`HttpServer on port ${this.getPort()} assigns '${href}' to Event '${eventName}'`);
-                this.addUrlRewriteEndpoints(form, thing.events[eventName].forms);
+                this.addUrlRewriteEndpoints(form, event.forms);
             }
         }
     }
