@@ -100,7 +100,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         this.events = {};
         // Deep clone the Thing Model
         // without functions or methods
-        const clonedModel = JSON.parse(JSON.stringify(thingModel));
+        const clonedModel = structuredClone(thingModel);
         Object.assign(this, clonedModel);
 
         // unset "@type":"tm:ThingModel" ?

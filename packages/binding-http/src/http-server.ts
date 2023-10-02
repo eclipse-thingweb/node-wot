@@ -320,7 +320,7 @@ export default class HttpServer implements ProtocolServer {
             for (const inUri in this.urlRewrite) {
                 const toUri = this.urlRewrite[inUri];
                 if (form.href.endsWith(toUri)) {
-                    const form2: TD.Form = JSON.parse(JSON.stringify(form)); // deep copy
+                    const form2 = structuredClone(form);
                     form2.href = form2.href.substring(0, form.href.lastIndexOf(toUri)) + inUri;
                     forms.push(form2);
                     debug(`HttpServer on port ${this.getPort()} assigns urlRewrite '${form2.href}' for '${form.href}'`);
