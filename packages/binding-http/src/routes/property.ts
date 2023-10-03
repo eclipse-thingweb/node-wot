@@ -106,7 +106,8 @@ export default async function propertyRoute(
             res.end(message);
         }
     } else if (req.method === "PUT") {
-        if (property.readOnly ?? false) {
+        const readOnly: boolean = property.readOnly ?? false;
+        if (readOnly) {
             respondUnallowedMethod(req, res, "GET, PUT");
             return;
         }
