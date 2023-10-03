@@ -382,11 +382,15 @@ export default class HttpServer implements ProtocolServer {
                     form,
                     (tdTemplate.properties?.[propertyName] ?? {}) as PropertyElement
                 );
-                if (property.readOnly ?? false) {
+
+                const readOnly: boolean = property.readOnly ?? false;
+                const writeOnly: boolean = property.writeOnly ?? false;
+
+                if (readOnly) {
                     form.op = ["readproperty"];
                     const hform: HttpForm = form;
                     hform["htv:methodName"] ??= "GET";
-                } else if (property.writeOnly ?? false) {
+                } else if (writeOnly) {
                     form.op = ["writeproperty"];
                     const hform: HttpForm = form;
                     hform["htv:methodName"] ??= "PUT";
