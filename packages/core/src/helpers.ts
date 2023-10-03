@@ -266,7 +266,7 @@ export default class Helpers implements Resolver {
         }
         return {
             valid: isValid,
-            errors: errors,
+            errors,
         };
     }
 

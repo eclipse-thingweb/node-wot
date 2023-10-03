@@ -140,12 +140,12 @@ export default class InMemoryModel implements ClientCredentialsModel, PasswordMo
     async saveToken(token: Token, client: Client, user: User, callback?: Callback<Token>): Promise<Token> {
         const { accessToken, accessTokenExpiresAt, refreshTokenExpiresAt, refreshToken } = token;
         this.tokens.push({
-            accessToken: accessToken,
-            accessTokenExpiresAt: accessTokenExpiresAt,
-            client: client,
-            refreshToken: refreshToken,
-            refreshTokenExpiresAt: refreshTokenExpiresAt,
-            user: user,
+            accessToken,
+            accessTokenExpiresAt,
+            client,
+            refreshToken,
+            refreshTokenExpiresAt,
+            user,
         });
         if (callback) {
             callback(null, this.tokens[this.tokens.length - 1]);

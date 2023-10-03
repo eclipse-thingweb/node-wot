@@ -39,7 +39,7 @@ class OAuthServerTests {
         };
         const authConfig: OAuth2ServerConfig = {
             scheme: "oauth2",
-            method: method,
+            method,
         };
         this.server = new HttpServer({
             security: [authConfig],

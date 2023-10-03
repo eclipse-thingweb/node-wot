@@ -62,7 +62,7 @@ export default class ModbusServer {
                 this.registers[addr] = value;
             },
         };
-        this.serverTCP = new ServerTCP(vector, { host: "127.0.0.1", port: 8502, debug: true, unitID: unitID });
+        this.serverTCP = new ServerTCP(vector, { host: "127.0.0.1", port: 8502, debug: true, unitID });
     }
 
     setRegisters(data: Array<number>, start = 0): void {

@@ -62,7 +62,7 @@ describe("MQTT client implementation", () => {
 
             WoT.produce({
                 title: "TestWoTMQTT",
-                events: events,
+                events,
             }).then((thing) => {
                 thing.expose().then(() => {
                     info(`Exposed ${thing.getThingDescription().title}`);
@@ -124,7 +124,7 @@ describe("MQTT client implementation", () => {
 
             WoT.produce({
                 title: "TestWoTMQTT",
-                events: events,
+                events,
             }).then((thing) => {
                 thing.expose().then(() => {
                     info(`Exposed ${thing.getThingDescription().title}`);
