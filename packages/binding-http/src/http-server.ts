@@ -529,11 +529,6 @@ export default class HttpServer implements ProtocolServer {
     }
 
     private fillSecurityScheme(thing: ExposedThing) {
-        const security = thing.security;
-        if (typeof security === "string") {
-            thing.security = [security];
-        }
-
         // User selected one security scheme
         if (thing.security.length > 0) {
             // multiple security schemes are deprecated we are not supporting them
