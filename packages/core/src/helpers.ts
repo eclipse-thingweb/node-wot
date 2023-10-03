@@ -220,7 +220,7 @@ export default class Helpers implements Resolver {
      * Helper function to remove reserved keywords in required property of TD JSON Schema
      */
     static createExposeThingInitSchema(tdSchema: unknown): SomeJSONSchema {
-        const tdSchemaCopy = JSON.parse(JSON.stringify(tdSchema));
+        const tdSchemaCopy = structuredClone(tdSchema) as SomeJSONSchema;
 
         if (tdSchemaCopy.required !== undefined) {
             const reservedKeywords: Array<string> = [
