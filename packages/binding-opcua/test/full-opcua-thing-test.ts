@@ -16,7 +16,7 @@
 // node-wot implementation of W3C WoT Servient
 
 import { expect } from "chai";
-import { ExposedThing, Servient, createLoggers } from "@node-wot/core";
+import { Servient, createLoggers } from "@node-wot/core";
 import { InteractionOptions } from "wot-typescript-definitions";
 
 import { OPCUAServer } from "node-opcua";
@@ -325,13 +325,9 @@ describe("Full OPCUA Thing Test", () => {
         thing.expose();
 
         let temperature = 10;
-        thing.setPropertyReadHandler("temperature", async () => temperature);
+        const readHandler = async () => temperature;
+        thing.setPropertyReadHandler("temperature", readHandler);
 
-        const expThing = thing as ExposedThing;
-        const readHandler = expThing.__propertyHandlers.get("temperature")?.readHandler;
-        if (!readHandler) {
-            expect.fail("must have a readHandler");
-        }
         const temperatureCheck1 = await readHandler();
         expect(temperatureCheck1).to.equal(10);
 
