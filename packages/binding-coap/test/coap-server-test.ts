@@ -127,10 +127,8 @@ class CoapServerTest {
             },
         });
 
-        testThing.setActionHandler("try", (input: WoT.InteractionOutput) => {
-            return new Promise<string>((resolve, reject) => {
-                resolve("TEST");
-            });
+        testThing.setActionHandler("try", async (input: WoT.InteractionOutput) => {
+            return "TEST";
         });
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
@@ -444,11 +442,9 @@ class CoapServerTest {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         testThing.properties.test.forms = [];
-        testThing.setActionHandler("try", (input: WoT.InteractionOutput, params?: InteractionOptions) => {
-            return new Promise<string>((resolve, reject) => {
-                expect(params?.uriVariables).to.deep.equal({ step: 5 });
-                resolve("TEST");
-            });
+        testThing.setActionHandler("try", async (input: WoT.InteractionOutput, params?: InteractionOptions) => {
+            expect(params?.uriVariables).to.deep.equal({ step: 5 });
+            return "TEST";
         });
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore

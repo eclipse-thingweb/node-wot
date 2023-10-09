@@ -295,24 +295,20 @@ export default class HttpServer implements ProtocolServer {
         }
     }
 
-    public destroy(thingId: string): Promise<boolean> {
+    public async destroy(thingId: string): Promise<boolean> {
         debug(`HttpServer on port ${this.getPort()} destroying thingId '${thingId}'`);
-        return new Promise<boolean>((resolve, reject) => {
-            let removedThing: ExposedThing | undefined;
-            for (const name of Array.from(this.things.keys())) {
-                const expThing = this.things.get(name);
-                if (expThing?.id === thingId) {
-                    this.things.delete(name);
-                    removedThing = expThing;
-                }
+
+        for (const [name, thing] of this.things.entries()) {
+            if (thing.id === thingId) {
+                this.things.delete(name);
+                info(`HttpServer successfully destroyed '${thing.title}'`);
+
+                return true;
             }
-            if (removedThing) {
-                info(`HttpServer successfully destroyed '${removedThing.title}'`);
-            } else {
-                info(`HttpServer failed to destroy thing with thingId '${thingId}'`);
-            }
-            resolve(removedThing !== undefined);
-        });
+        }
+
+        info(`HttpServer failed to destroy thing with thingId '${thingId}'`);
+        return false;
     }
 
     private addUrlRewriteEndpoints(form: TD.Form, forms: Array<TD.Form>): void {

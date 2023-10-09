@@ -43,29 +43,15 @@ chaiUse(spies);
 class TestProtocolServer implements ProtocolServer {
     public readonly scheme: string = "test";
 
-    expose(thing: ExposedThing): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            resolve();
-        });
+    async expose(thing: ExposedThing): Promise<void> {}
+
+    async destroy(thingId: string): Promise<boolean> {
+        return true;
     }
 
-    destroy(thingId: string): Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => {
-            resolve(true);
-        });
-    }
+    async start(): Promise<void> {}
 
-    start(): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            resolve();
-        });
-    }
-
-    stop(): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            resolve();
-        });
-    }
+    async stop(): Promise<void> {}
 
     getPort(): number {
         return -1;
@@ -279,10 +265,8 @@ class WoTServerTest {
         });
         const number: WoT.DataSchemaValue = 1; // init
 
-        const readHandler = () => {
-            return new Promise<InteractionInput>((resolve) => {
-                resolve(number);
-            });
+        const readHandler = async () => {
+            return number;
         };
 
         thing.setPropertyReadHandler("my number", readHandler);

@@ -147,15 +147,13 @@ class TDClient implements ProtocolClient {
         return Promise.reject(new Error("unlinkResource not implemented"));
     }
 
-    public subscribeResource(
+    public async subscribeResource(
         form: Form,
         next: (value: Content) => void,
         error?: (error: Error) => void,
         complete?: () => void
     ): Promise<Subscription> {
-        return new Promise<Subscription>((resolve, reject) => {
-            resolve(new Subscription());
-        });
+        return new Subscription();
     }
 
     public async start(): Promise<void> {
@@ -217,21 +215,19 @@ class TrapClient implements ProtocolClient {
         await this.trap(form);
     }
 
-    public subscribeResource(
+    public async subscribeResource(
         form: Form,
         next: (value: Content) => void,
         error?: (error: Error) => void,
         complete?: () => void
     ): Promise<Subscription> {
-        return new Promise<Subscription>((resolve, reject) => {
-            // send one event
-            next(this.trap(form) as Content);
-            // then complete
-            setImmediate(() => {
-                complete?.();
-            });
-            resolve(new Subscription());
+        // send one event
+        next(this.trap(form) as Content);
+        // then complete
+        setImmediate(() => {
+            complete?.();
         });
+        return new Subscription();
     }
 
     public async start(): Promise<void> {
@@ -462,12 +458,9 @@ class WoTClientTest {
         const thing = await WoTClientTest.WoT.consume(td);
         expect(thing).to.have.property("title").that.equals("aThing");
         expect(thing).to.have.property("events").that.has.property("anEvent");
-        return new Promise((resolve) => {
-            thing.subscribeEvent("anEvent", async (x) => {
-                const value = await x.value();
-                expect(value).to.equal("triggered");
-                resolve(true);
-            });
+        await thing.subscribeEvent("anEvent", async (x) => {
+            const value = await x.value();
+            expect(value).to.equal("triggered");
         });
     }
 
