@@ -44,7 +44,7 @@ async function example() {
         const aid = JSON.stringify(JSON.parse(aas).submodels[0]);
 
         // transform AID to WoT TD
-        let tdAID = assetInterfaceDescriptionUtil.transformSM2TD(aid, `{"title": "counter"}`);
+        const tdAID = assetInterfaceDescriptionUtil.transformSM2TD(aid, `{"title": "counter"}`);
         // Note: transformSM2TD() may have up to 3 input parameters
         // * aid (required):           AID submodel in JSON format
         // * template (optional):      Initial TD template
