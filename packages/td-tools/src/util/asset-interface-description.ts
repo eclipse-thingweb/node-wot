@@ -36,11 +36,6 @@ const logError = debug(`${namespace}:error`);
  */
 
 export class AssetInterfaceDescriptionUtil {
-    /** @deprecated use transformAAS2TD method instead */
-    public transformToTD(aid: string, template?: string, submodelRegex?: string): string {
-        return this.transformAAS2TD(aid, template, submodelRegex);
-    }
-
     /**
      * Transform AAS in JSON format to a WoT ThingDescription (TD)
      *
@@ -186,6 +181,11 @@ export class AssetInterfaceDescriptionUtil {
         };
 
         return JSON.stringify(aidObject);
+    }
+
+    /** @deprecated use transformAAS2TD method instead */
+    public transformToTD(aid: string, template?: string, submodelRegex?: string): string {
+        return this.transformAAS2TD(aid, template, submodelRegex);
     }
 
     /*
