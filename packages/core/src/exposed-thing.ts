@@ -105,14 +105,12 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
      */
     #eventListeners: ProtocolListenerRegistry = new ProtocolListenerRegistry();
 
-    private getServient: () => Servient;
+    #servient: Servient;
 
     constructor(servient: Servient, thingModel: WoT.ExposedThingInit = {}) {
         super();
 
-        this.getServient = () => {
-            return servient;
-        };
+        this.#servient = servient;
 
         // The init object might still have undefined values, so initialize them here.
         // TODO: who checks that those are valid?
@@ -186,7 +184,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 
         return new Promise<void>((resolve, reject) => {
             // let servient forward exposure to the servers
-            this.getServient()
+            this.#servient
                 .expose(this)
                 .then(() => {
                     resolve();
@@ -198,7 +196,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     /** @inheritDoc */
     async destroy(): Promise<void> {
         debug(`ExposedThing '${this.title}' destroying the thing and its interactions`);
-        await this.getServient().destroyThing(this.id);
+        await this.#servient.destroyThing(this.id);
 
         this.#eventListeners.unregisterAll();
         this.#propertyListeners.unregisterAll();
