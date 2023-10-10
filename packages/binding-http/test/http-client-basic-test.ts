@@ -111,9 +111,11 @@ class HttpClientBasicTest {
         try {
             await this.client.readResource({ href: "https://127.0.0.1:3001" });
         } catch (error) {
-            // Note: depending on Node.js version different errors appear
-            // AssertionError: expected 'request to https://127.0.0.1:3001/ fa…' to deeply equal 'Client error: Unauthorized'
-            // error.message.should.eql("Client error: Unauthorized");
+            if (error instanceof Error) {
+                error.message.should.eql("Client error: Unauthorized");
+            } else {
+                fail("No proper error instance object");
+            }
             return;
         }
         fail("should fail to authorize client with basic");
