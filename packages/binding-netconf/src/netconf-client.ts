@@ -72,9 +72,7 @@ export default class NetconfClient implements ProtocolClient {
 
         const result = JSON.stringify(await this.client.rpc(xpathQuery, method, NSs, target));
 
-        return new Promise<Content>((resolve, reject) => {
-            resolve(new Content(contentType, Readable.from(Buffer.from(result))));
-        });
+        return new Content(contentType, Readable.from(Buffer.from(result)));
     }
 
     public async writeResource(form: NetconfForm, content: Content): Promise<void> {

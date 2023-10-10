@@ -24,7 +24,7 @@ import fetch from "node-fetch";
 
 import HttpServer from "../src/http-server";
 import Servient, { Content, createLoggers, ExposedThing, Helpers } from "@node-wot/core";
-import { DataSchemaValue, InteractionInput, InteractionOptions } from "wot-typescript-definitions";
+import { DataSchemaValue, InteractionOptions } from "wot-typescript-definitions";
 import chaiAsPromised from "chai-as-promised";
 import { Readable } from "stream";
 import { MiddlewareRequestHandler } from "../src/http-server-middleware";
@@ -163,10 +163,8 @@ class HttpServerTest {
             test = await value.value();
         });
 
-        testThing.setActionHandler("try", (input: WoT.InteractionOutput) => {
-            return new Promise<string>((resolve, reject) => {
-                resolve("TEST");
-            });
+        testThing.setActionHandler("try", async (input: WoT.InteractionOutput) => {
+            return "TEST";
         });
 
         await httpServer.expose(testThing);
@@ -276,11 +274,9 @@ class HttpServerTest {
             },
         });
         let test: DataSchemaValue;
-        testThing.setPropertyReadHandler("test", (options) => {
+        testThing.setPropertyReadHandler("test", async (options) => {
             expect(options?.uriVariables).to.deep.equal({ id: "testId" });
-            return new Promise<InteractionInput>((resolve, reject) => {
-                resolve(test);
-            });
+            return test;
         });
         testThing.setPropertyWriteHandler("test", async (value, options) => {
             expect(options?.uriVariables).to.deep.equal({ id: "testId" });
@@ -289,11 +285,9 @@ class HttpServerTest {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         testThing.properties.test.forms = [];
-        testThing.setActionHandler("try", (input: WoT.InteractionOutput, params?: InteractionOptions) => {
-            return new Promise<string>((resolve, reject) => {
-                expect(params?.uriVariables).to.deep.equal({ step: 5 });
-                resolve("TEST");
-            });
+        testThing.setActionHandler("try", async (input: WoT.InteractionOutput, params?: InteractionOptions) => {
+            expect(params?.uriVariables).to.deep.equal({ step: 5 });
+            return "TEST";
         });
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
@@ -339,10 +333,8 @@ class HttpServerTest {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         testThing.properties.test.forms = [];
-        testThing.setActionHandler("try", (input: WoT.InteractionOutput) => {
-            return new Promise<string>((resolve, reject) => {
-                resolve("TEST");
-            });
+        testThing.setActionHandler("try", async (input: WoT.InteractionOutput) => {
+            return "TEST";
         });
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
@@ -580,11 +572,9 @@ class HttpServerTest {
             },
         });
         let test: DataSchemaValue;
-        testThing.setPropertyReadHandler("test", (options) => {
+        testThing.setPropertyReadHandler("test", async (options) => {
             expect(options?.uriVariables).to.deep.equal({ id: "testId", globalVarTest: "test1" });
-            return new Promise<InteractionInput>((resolve, reject) => {
-                resolve(test);
-            });
+            return test;
         });
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore

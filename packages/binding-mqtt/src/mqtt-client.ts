@@ -155,13 +155,10 @@ export default class MqttClient implements ProtocolClient {
         const requestUri = new url.URL(form.href);
         const topic = requestUri.pathname.slice(1);
 
-        return new Promise<void>((resolve, reject) => {
-            if (this.client && this.client.connected) {
-                this.client.unsubscribe(topic);
-                debug(`MqttClient unsubscribed from topic '${topic}'`);
-            }
-            resolve();
-        });
+        if (this.client != null && this.client.connected) {
+            this.client.unsubscribe(topic);
+            debug(`MqttClient unsubscribed from topic '${topic}'`);
+        }
     }
 
     public async start(): Promise<void> {

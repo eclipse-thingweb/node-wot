@@ -29,66 +29,56 @@ export default class FileClient implements ProtocolClient {
         return "[FileClient]";
     }
 
-    public readResource(form: Form): Promise<Content> {
-        return new Promise<Content>((resolve, reject) => {
-            const filepath = form.href.split("//");
-            const resource = fs.createReadStream(filepath[1]);
-            const extension = path.extname(filepath[1]);
-            debug(`FileClient found '${extension}' extension`);
-            let contentType;
-            if (form.contentType) {
-                contentType = form.contentType;
-            } else {
-                // *guess* contentType based on file extension
-                contentType = "application/octet-stream";
-                switch (extension) {
-                    case ".txt":
-                    case ".log":
-                    case ".ini":
-                    case ".cfg":
-                        contentType = "text/plain";
-                        break;
-                    case ".json":
-                        contentType = "application/json";
-                        break;
-                    case ".jsonld":
-                        contentType = "application/ld+json";
-                        break;
-                    default:
-                        warn(`FileClient cannot determine media type of '${form.href}'`);
-                }
+    public async readResource(form: Form): Promise<Content> {
+        const filepath = form.href.split("//");
+        const resource = fs.createReadStream(filepath[1]);
+        const extension = path.extname(filepath[1]);
+        debug(`FileClient found '${extension}' extension`);
+        let contentType;
+        if (form.contentType) {
+            contentType = form.contentType;
+        } else {
+            // *guess* contentType based on file extension
+            contentType = "application/octet-stream";
+            switch (extension) {
+                case ".txt":
+                case ".log":
+                case ".ini":
+                case ".cfg":
+                    contentType = "text/plain";
+                    break;
+                case ".json":
+                    contentType = "application/json";
+                    break;
+                case ".jsonld":
+                    contentType = "application/ld+json";
+                    break;
+                default:
+                    warn(`FileClient cannot determine media type of '${form.href}'`);
             }
-            resolve(new Content(contentType, resource));
-        });
+        }
+        return new Content(contentType, resource);
     }
 
-    public writeResource(form: Form, content: Content): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            reject(new Error(`FileClient does not implement write`));
-        });
+    public async writeResource(form: Form, content: Content): Promise<void> {
+        throw new Error("FileClient does not implement write");
     }
 
-    public invokeResource(form: Form, content: Content): Promise<Content> {
-        return new Promise<Content>((resolve, reject) => {
-            reject(new Error(`FileClient does not implement invoke`));
-        });
+    public async invokeResource(form: Form, content: Content): Promise<Content> {
+        throw new Error("FileClient does not implement invoke");
     }
 
-    public unlinkResource(form: Form): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            reject(new Error(`FileClient does not implement unlink`));
-        });
+    public async unlinkResource(form: Form): Promise<void> {
+        throw new Error("FileClient does not implement unlink");
     }
 
-    public subscribeResource(
+    public async subscribeResource(
         form: Form,
         next: (value: Content) => void,
         error?: (error: Error) => void,
         complete?: () => void
     ): Promise<Subscription> {
-        return new Promise<Subscription>((resolve, reject) => {
-            reject(new Error(`FileClient does not implement subscribe`));
-        });
+        throw new Error("FileClient does not implement subscribe");
     }
 
     public async start(): Promise<void> {

@@ -306,38 +306,30 @@ export default class DefaultServient extends Servient {
                         .then((thing) => {
                             thing.setActionHandler("setLogLevel", async (level) => {
                                 const ll = await Helpers.parseInteractionOutput(level);
-                                return new Promise((resolve, reject) => {
-                                    if (typeof ll === "number") {
-                                        this.setLogLevel(ll as number);
-                                    } else if (typeof ll === "string") {
-                                        this.setLogLevel(ll as string);
-                                    } else {
-                                        // try to convert it to strings
-                                        this.setLogLevel(ll + "");
-                                    }
-                                    resolve(`Log level set to '${this.logLevel}'`);
-                                });
+                                if (typeof ll === "number") {
+                                    this.setLogLevel(ll as number);
+                                } else if (typeof ll === "string") {
+                                    this.setLogLevel(ll as string);
+                                } else {
+                                    // try to convert it to strings
+                                    this.setLogLevel(ll + "");
+                                }
+                                return `Log level set to '${this.logLevel}'`;
                             });
-                            thing.setActionHandler("shutdown", () => {
-                                return new Promise((resolve, reject) => {
-                                    debug("shutting down by remote");
-                                    this.shutdown();
-                                    resolve(undefined);
-                                });
+                            thing.setActionHandler("shutdown", async () => {
+                                debug("shutting down by remote");
+                                await this.shutdown();
+                                return undefined;
                             });
                             thing.setActionHandler("runScript", async (script) => {
                                 const scriptv = await Helpers.parseInteractionOutput(script);
-                                return new Promise((resolve, reject) => {
-                                    debug("running script", scriptv);
-                                    this.runScript(scriptv as string);
-                                    resolve(undefined);
-                                });
+                                debug("running script", scriptv);
+                                this.runScript(scriptv as string);
+                                return undefined;
                             });
-                            thing.setPropertyReadHandler("things", () => {
-                                return new Promise((resolve, reject) => {
-                                    debug("returnings things");
-                                    resolve(this.getThings());
-                                });
+                            thing.setPropertyReadHandler("things", async () => {
+                                debug("returnings things");
+                                return this.getThings();
                             });
                             thing
                                 .expose()

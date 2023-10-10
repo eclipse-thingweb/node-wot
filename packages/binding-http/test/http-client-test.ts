@@ -104,16 +104,10 @@ class TestHttpServer implements ProtocolServer {
         }
     }
 
-    public expose(thing: unknown): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            resolve();
-        });
-    }
+    public async expose(thing: unknown): Promise<void> {}
 
-    public destroy(thingId: string): Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => {
-            resolve(false);
-        });
+    public async destroy(thingId: string): Promise<boolean> {
+        return false;
     }
 
     public setTestVector(vector: TestVector) {
