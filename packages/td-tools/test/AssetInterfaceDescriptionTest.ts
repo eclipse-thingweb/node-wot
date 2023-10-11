@@ -321,7 +321,7 @@ class AssetInterfaceDescriptionUtilTest {
                 expect(smValue).to.have.property("value").to.be.an("array").to.have.lengthOf.greaterThan(0);
                 let hasProperties = false;
                 for (const interactionValues of smValue.value) {
-                    if (interactionValues.idShort === "Properties") {
+                    if (interactionValues.idShort === "properties") {
                         hasProperties = true;
                         expect(interactionValues)
                             .to.have.property("value")
@@ -439,7 +439,7 @@ class AssetInterfaceDescriptionUtilTest {
                 hasInterfaceMetadata = true;
                 expect(smValue).to.have.property("value").to.be.an("array").to.have.lengthOf.greaterThan(0);
                 for (const interactionValues of smValue.value) {
-                    if (interactionValues.idShort === "Properties") {
+                    if (interactionValues.idShort === "properties") {
                         expect(interactionValues).to.have.property("value").to.be.an("array").to.have.lengthOf(0);
                     }
                 }

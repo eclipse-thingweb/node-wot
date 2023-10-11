@@ -84,7 +84,7 @@
                             "idShort": "InterfaceMetadata",
                             "value": [
                                 {
-                                    "idShort": "Properties",
+                                    "idShort": "properties",
                                     "value": [
                                         {
                                             "idShort": "device_name",
@@ -144,12 +144,12 @@
                                     "modelType": "SubmodelElementCollection"
                                 },
                                 {
-                                    "idShort": "Actions",
+                                    "idShort": "actions",
                                     "value": [],
                                     "modelType": "SubmodelElementCollection"
                                 },
                                 {
-                                    "idShort": "Events",
+                                    "idShort": "events",
                                     "value": [],
                                     "modelType": "SubmodelElementCollection"
                                 }

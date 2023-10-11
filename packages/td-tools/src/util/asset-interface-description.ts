@@ -36,11 +36,6 @@ const logError = debug(`${namespace}:error`);
  */
 
 export class AssetInterfaceDescriptionUtil {
-    /** @deprecated use transformAAS2TD method instead */
-    public transformToTD(aid: string, template?: string, submodelRegex?: string): string {
-        return this.transformAAS2TD(aid, template, submodelRegex);
-    }
-
     /**
      * Transform AAS in JSON format to a WoT ThingDescription (TD)
      *
@@ -186,6 +181,11 @@ export class AssetInterfaceDescriptionUtil {
         };
 
         return JSON.stringify(aidObject);
+    }
+
+    /** @deprecated use transformAAS2TD method instead */
+    public transformToTD(aid: string, template?: string, submodelRegex?: string): string {
+        return this.transformAAS2TD(aid, template, submodelRegex);
     }
 
     /*
@@ -454,7 +454,7 @@ export class AssetInterfaceDescriptionUtil {
                         logInfo("InterfaceMetadata");
                         if (smValue.value instanceof Array) {
                             for (const interactionValue of smValue.value) {
-                                if (interactionValue.idShort === "Properties") {
+                                if (interactionValue.idShort === "properties") {
                                     if (interactionValue.value instanceof Array) {
                                         for (const iValue of interactionValue.value) {
                                             logInfo("Property: " + iValue.idShort);
@@ -468,7 +468,7 @@ export class AssetInterfaceDescriptionUtil {
                                             smInformation.properties.get(iValue.idShort)?.push(propInter);
                                         }
                                     }
-                                } else if (interactionValue.idShort === "Operations") {
+                                } else if (interactionValue.idShort === "actions") {
                                     if (interactionValue.value instanceof Array) {
                                         for (const iValue of interactionValue.value) {
                                             logInfo("Action: " + iValue.idShort);
@@ -482,7 +482,7 @@ export class AssetInterfaceDescriptionUtil {
                                             smInformation.actions.get(iValue.idShort)?.push(actInter);
                                         }
                                     }
-                                } else if (interactionValue.idShort === "Events") {
+                                } else if (interactionValue.idShort === "events") {
                                     if (interactionValue.value instanceof Array) {
                                         for (const iValue of interactionValue.value) {
                                             logInfo("Event: " + iValue.idShort);
@@ -898,19 +898,19 @@ export class AssetInterfaceDescriptionUtil {
         const values: Array<unknown> = [];
         // Properties
         values.push({
-            idShort: "Properties",
+            idShort: "properties",
             value: properties,
             modelType: "SubmodelElementCollection",
         });
         // Actions
         values.push({
-            idShort: "Actions",
+            idShort: "actions",
             value: actions,
             modelType: "SubmodelElementCollection",
         });
         // Events
         values.push({
-            idShort: "Events",
+            idShort: "events",
             value: events,
             modelType: "SubmodelElementCollection",
         });
