@@ -18,7 +18,6 @@ Useful labels:
 
 <!-- https://ecotrust-canada.github.io/markdown-toc/ -->
 
--   [License](#license)
 -   [Implemented/supported features](#implementedsupported-features)
     -   [Protocol Support](#protocol-support)
     -   [MediaType Support](#mediatype-support)
@@ -40,16 +39,7 @@ Useful labels:
     -   [TD Tooling](#td-tooling)
     -   [Logging](#logging)
     -   [Install new/different versions of Node.js](#install-newdifferent-versions-of-nodejs)
-
-## License
-
-Dual-licensed under both
-
--   [Eclipse Public License v. 2.0](http://www.eclipse.org/legal/epl-2.0)
--   [W3C Software Notice and Document License (2015-05-13)](https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document)
-
-Pick one of these two licenses that fits your needs.
-Please also see the additional [notices](NOTICE.md) and [how to contribute](CONTRIBUTING.md).
+-   [License](#license)
 
 ## Implemented/supported features
 
@@ -515,3 +505,13 @@ Run `npm publish --workspaces` in root node-wot folder.
 1. Run `npm dedupe` (see https://github.com/eclipse-thingweb/node-wot/pull/765#issuecomment-1133772886)
 
 </details>
+
+## License
+
+Dual-licensed under both
+
+-   [Eclipse Public License v. 2.0](http://www.eclipse.org/legal/epl-2.0)
+-   [W3C Software Notice and Document License (2015-05-13)](https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document)
+
+Pick one of these two licenses that fits your needs.
+Please also see the additional [notices](NOTICE.md) and [how to contribute](CONTRIBUTING.md).
