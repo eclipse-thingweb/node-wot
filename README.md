@@ -232,7 +232,7 @@ If you execute both scripts you will see `count: ${count}` printed 5 times. We h
 -   CBOR :heavy_check_mark:
 -   EXI :timer_clock:
 
-Don't you find your preferred MediaType? More codecs can be easily added by implementing `ContentCodec` interface. Read more in the [Documentation](#documentation) section.
+Can't find your preferred MediaType? More codecs can be easily added by implementing `ContentCodec` interface. Read more in the [Documentation](#documentation) section.
 
 ## No time for explanations - show me a running example!
 
@@ -337,7 +337,7 @@ const ContentSerdes = require('@node-wot/core').ContentSerdes
 const JsonCodec = require('@node-wot/core').JsonCodec
 
 // e.g., assign built-in codec for *new* contentType
-let cs = ContentSerdes.get();
+const cs = ContentSerdes.get();
 cs.addCodec(new JsonCodec("application/calendar+json"));
 
 // e.g., assign *own* MyCodec implementation (implementing ContentCodec interface)
