@@ -121,10 +121,9 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         this.properties = {};
         this.actions = {};
         this.events = {};
-        // Deep clone the Thing Model
-        // without functions or methods
-        const clonedModel = JSON.parse(JSON.stringify(thingModel));
-        Object.assign(this, clonedModel);
+
+        const deepClonedModel = structuredClone(thingModel);
+        Object.assign(this, deepClonedModel);
 
         // unset "@type":"tm:ThingModel" ?
         // see https://github.com/eclipse-thingweb/node-wot/issues/426
