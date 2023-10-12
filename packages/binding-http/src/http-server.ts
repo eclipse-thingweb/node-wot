@@ -319,7 +319,8 @@ export default class HttpServer implements ProtocolServer {
     private addUrlRewriteEndpoints(form: TD.Form, forms: Array<TD.Form>): void {
         if (this.urlRewrite != null) {
             for (const [inUri, toUri] of Object.entries(this.urlRewrite)) {
-                if (form.href.endsWith(toUri)) {
+                const endsWithToUri: boolean = form.href.endsWith(toUri);
+                if (endsWithToUri) {
                     const form2 = structuredClone(form);
                     form2.href = form2.href.substring(0, form.href.lastIndexOf(toUri)) + inUri;
                     forms.push(form2);
