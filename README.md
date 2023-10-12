@@ -134,7 +134,7 @@ docker run --rm wot-servient -h
 
 ## Examples
 
-With node-wot you can create server side Things, in WoT gergo we call this operation "expose a thing" or you can create client side Things, in WoT gergo we call this operation "consume a thing". In the following sections we will show how to create a simple counter Thing and how to consume it. Supposing you installed and configured node-wot as a library, you can create and expose counter Thing as follows:
+With node-wot you can create server-side Things, in WoT jargon we call this operation "expose a thing" or you can create client-side Things, in WoT gergo we call this operation "consume a thing". An exposed Thing allows you to bring your device or services to the Web with just a few lines of code. On the other hand, with a consumed Thing, you have a fixed interface to interact with devices, potentially using different protocols/frameworks. In the following section, we will show how to create a simple counter Thing and how to consume it. Assuming you have installed and configured node-wot as a library, you can create and expose a counter Thing as follows:
 
 ```JavaScript
 // Required steps to create a servient for creating a thing
