@@ -59,7 +59,8 @@ The framework is composed by different packages that users can use as they pleas
 
 #### Node.js
 
-> **Warning**: We no longer actively support Node.js version 16 and lower.
+> [!WARNING]
+> We no longer actively support Node.js version 16 and lower.
 
 -   [Node.js](https://nodejs.org/) version 18+
 -   [npm](https://www.npmjs.com/) version 9+
@@ -216,9 +217,11 @@ If you execute both scripts you will see `count: ${count}` printed 5 times. We h
 -   [Modbus](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-modbus) :heavy_plus_sign: (Client only)
 -   [M-Bus](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-mbus) :heavy_plus_sign: (Client only)
 
-Note: More protocols can be easily added by implementing `ProtocolClient`, `ProtocolClientFactory`, and `ProtocolServer` interface.
+> [!NOTE]
+> More protocols can be easily added by implementing `ProtocolClient`, `ProtocolClientFactory`, and `ProtocolServer` interface.
 
-Note: The bindings for [binding-fujitsu](https://github.com/eclipse-thingweb/node-wot/tree/v0.7.x/packages/binding-fujitsu) and [binding-oracle](https://github.com/eclipse-thingweb/node-wot/tree/v0.7.x/packages/binding-oracle) were removed after `v0.7.x` due to lack of maintainers.
+> [!NOTE]
+> The bindings for [binding-fujitsu](https://github.com/eclipse-thingweb/node-wot/tree/v0.7.x/packages/binding-fujitsu) and [binding-oracle](https://github.com/eclipse-thingweb/node-wot/tree/v0.7.x/packages/binding-oracle) were removed after `v0.7.x` due to lack of maintainers.
 
 ### MediaType Support
 
@@ -301,7 +304,8 @@ Below are small explanations of what they can be used for:
 
 ## Documentation
 
-> **Warning** ⚒️ We are planning to extend this section and to provide a more detailed documentation. Stay tuned!
+> [!WARNING]
+> ⚒️ We are planning to extend this section and to provide a more detailed documentation. Stay tuned!
 
 ### The API
 
