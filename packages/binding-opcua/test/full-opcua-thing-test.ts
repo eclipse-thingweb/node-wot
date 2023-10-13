@@ -332,15 +332,17 @@ describe("Full OPCUA Thing Test", () => {
         const readHandler = async () => temperature;
         thing.setPropertyReadHandler("temperature", readHandler);
 
-        const temperatureCheck1 = await readHandler();
-        expect(temperatureCheck1).to.equal(10);
+        try {
+            const temperatureCheck1 = await readHandler();
+            expect(temperatureCheck1).to.equal(10);
 
-        temperature = 100;
+            temperature = 100;
 
-        const temperatureCheck2 = await readHandler();
-        expect(temperatureCheck2).to.equal(100);
-
-        await servient.shutdown();
+            const temperatureCheck2 = await readHandler();
+            expect(temperatureCheck2).to.equal(100);
+        } finally {
+            await servient.shutdown();
+        }
     });
 
     async function makeThing() {
