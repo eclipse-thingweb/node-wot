@@ -8,11 +8,12 @@ on:
 
 jobs:
     setup-and-test:
+        name: Tests (${{ matrix.os }}, Node ${{ matrix.node-version }})
         runs-on: ${{ matrix.os }}
 
         strategy:
             matrix:
-                os: [ubuntu-latest]
+                os: [macos-latest, ubuntu-latest, windows-latest]
                 node-version: [18.x, 20.x]
 
         steps:
