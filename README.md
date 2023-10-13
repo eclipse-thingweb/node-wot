@@ -1,4 +1,8 @@
-<img title="ThingWeb" alt="Thingweb logo" src="https://raw.githubusercontent.com/eclipse-thingweb/website/master/misc/thingweb_logo.svg" width="300px">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/eclipse-thingweb/website/master/misc/thingweb_logo_for_dark_bg.svg">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/eclipse-thingweb/website/master/misc/thingweb_logo.svg">
+  <img title="ThingWeb" alt="Thingweb logo" src="" width="300px">
+</picture>
 
 ## node-wot
 
