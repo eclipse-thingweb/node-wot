@@ -33,6 +33,7 @@
         "build:podman": "podman build -t wot-servient .",
         "clean:dist": "npm exec  --workspaces -- npx rimraf tsconfig.tsbuildinfo dist",
         "update:wot-typescript-definitions": "npx npm-check-updates  -u -f \"wot-typescript-definitions\" --deep",
+        "update:node-opcua": "npx npm-check-updates -u -f node-opcua* --deep --dep prod,debug,peer",
         "link": "npm link -ws"
     },
     "workspaces": [
