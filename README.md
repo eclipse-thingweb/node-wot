@@ -10,7 +10,7 @@
 [![Telegram Group](https://img.shields.io/endpoint?color=neon&url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Fnodewot)](https://t.me/nodewot)
 [![Discord](https://img.shields.io/badge/Discord-7289DA?logo=discord&logoColor=white&label=node-wot)](https://discord.gg/JXY2Jzefz3)
 
-The Eclipse Thingweb node-wot is a framework for implementing [Web of Things](https://www.w3.org/WoT/) servers and clients in Node.js. It is written from the ground up with Typescript with the goal of providing a fast and extensible framework for IoT applications. Node-wot wants to give developers the ability to create complex business logic without worring about protocol and low level details levereging to a standard metadata format, the [Thing Description (TD)](https://www.w3.org/TR/wot-thing-description11/). Thanks to the TD abstraction developers can find a set of satellite tools to create their applications in a fast and easy way.
+The Eclipse Thingweb node-wot is a framework for implementing [Web of Things](https://www.w3.org/WoT/) servers and clients in Node.js. It is written from the ground up with Typescript with the goal of providing a fast and extensible framework for IoT applications. Node-wot wants to give developers the ability to create complex business logic without worrying about protocol and low-level details leveraging on a standard metadata format, the [Thing Description (TD)](https://www.w3.org/TR/wot-thing-description11/). Thanks to the TD abstraction developers can find a set of satellite tools to create their applications in a fast and easy way.
 
 ## Web of Things principles in a Nutshell
 
@@ -134,7 +134,7 @@ docker run --rm wot-servient -h
 
 ## Examples
 
-With node-wot you can create server-side Things, in WoT jargon we call this operation "expose a thing" or you can create client-side Things, in WoT jargon we call this operation "consume a thing". An exposed Thing allows you to bring your device or services to the Web with just a few lines of code. On the other hand, with a consumed Thing, you have a fixed interface to interact with devices, potentially using different protocols/frameworks. In the following section, we will show how to create a simple counter Thing and how to consume it. Assuming you have installed and configured node-wot as a library, you can create and expose a counter Thing as follows:
+With node-wot you can create server-side Things, in WoT jargon we call this operation "expose a Thing" or you can create client-side Things, in WoT jargon we call this operation "consume a Thing". An exposed Thing allows you to bring your device or services to the Web with just a few lines of code. On the other hand, with a consumed Thing, you have a fixed interface to interact with devices, potentially using different protocols/frameworks. In the following section, we will show how to create a simple counter Thing and how to consume it. Assuming you have installed and configured node-wot as a library, you can create and expose a counter Thing as follows:
 
 ```JavaScript
 // Required steps to create a servient for creating a thing
@@ -171,7 +171,7 @@ servient.start().then( async (WoT) => {
 });
 ```
 
-Now supposing you want to interact with the device you have to consume its thing description as follows:
+Now supposing you want to interact with the device, you have to consume its Thing Description as follows:
 
 ```JavaScript
 // client.js
@@ -199,7 +199,7 @@ WoTHelpers.fetch("http://localhost:8080/counter").then(async (td) => {
 }).catch((err) => { console.error("Fetch error:", err); });
 ```
 
-If you execute both scripts you will see `count: ${count}` printed 5 times. We hosted a more complex version of this example at [http://plugfest.thingweb.io/examples/counter.html](http://plugfest.thingweb.io/examples/counter.html) and you can find the source code in the [counter example](./examples/browser) folder. You can also find more examples in the [examples folder](./examples/scripts) for Javascript and in the [examples folder](./packages/examples/) for Typescript. Finally, for your convenience we host a set of online Things that you can use to test your applications. You can find more information about them in the [Online Things](#online-things) section.
+If you execute both scripts you will see `count: ${count}` printed 5 times. We host a more complex version of this example at [http://plugfest.thingweb.io/examples/counter.html](http://plugfest.thingweb.io/examples/counter.html) and you can find the source code in the [counter example](./examples/browser) folder. You can also find more examples in the [examples folder](./examples/scripts) for JavaScript and in the [examples folder](./packages/examples/) for TypeScript. Finally, for your convenience, we host a set of online Things that you can use to test your applications. You can find more information about them in the [Online Things](#online-things) section.
 
 ## Implemented/supported features
 
@@ -449,7 +449,7 @@ Run `npm publish --workspaces` in root node-wot folder.
 
 ## License
 
-Dual-licensed under both
+Dual-licensed under:
 
 -   [Eclipse Public License v. 2.0](http://www.eclipse.org/legal/epl-2.0)
 -   [W3C Software Notice and Document License (2015-05-13)](https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document)
