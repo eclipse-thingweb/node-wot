@@ -348,13 +348,14 @@ export class AssetInterfaceDescriptionUtil {
                                     form.href = v.value;
                                 }
                             } else if (typeof v.idShort === "string" && v.idShort.length > 0) {
-                                // TODO is this still relevant?
                                 // pick *any* value (and possibly override, e.g. contentType)
-                                // TODO Should we add all value's (e.g., dataMapping might be empty array) ?
-                                // if (typeof v.value === "string" ||typeof v.value === "number" || typeof v.value === "boolean") {
                                 if (v.value != null) {
-                                    form[v.idShort] = v.value;
+                                    // Note: AID does not allow idShort to contain values with colon (i.e., ":") --> "_" used instead
+                                    // --> THIS MAY LEAD TO PROBLEMS BUT THAT'S HOW IT IS SPECIFIED
+                                    const tdTerm = (v.idShort as string).replace("_", ":");
+                                    form[tdTerm] = v.value;
                                     // use valueType to convert the string value
+                                    // TODO Should we add/support all value's (e.g., dataMapping might be empty array) ?
                                     if (
                                         v.valueType != null &&
                                         v.valueType.dataObjectType != null &&
@@ -364,7 +365,7 @@ export class AssetInterfaceDescriptionUtil {
                                         // XSD schemaTypes, https://www.w3.org/TR/xmlschema-2/#built-in-datatypes
                                         switch (v.valueType.dataObjectType.name) {
                                             case "boolean":
-                                                form[v.idShort] = form[v.idShort] === "true";
+                                                form[tdTerm] = form[v.value] === "true";
                                                 break;
                                             case "float":
                                             case "double":
@@ -382,7 +383,7 @@ export class AssetInterfaceDescriptionUtil {
                                             case "unsignedShort":
                                             case "unsignedByte":
                                             case "positiveInteger":
-                                                form[v.idShort] = Number(form[v.idShort]);
+                                                form[tdTerm] = Number(form[v.value]);
                                                 break;
                                             // TODO handle more XSD types ?
                                         }
@@ -836,8 +837,13 @@ export class AssetInterfaceDescriptionUtil {
                         // --> pick the first one that matches protocol (other means in future?)
 
                         // walk over string values like: "href", "contentType", "htv:methodName", ...
-                        for (const formTerm in formElementPicked) {
+                        for (let formTerm in formElementPicked) {
                             const formValue = formElementPicked[formTerm];
+
+                            // Note: AID does not allow idShort to contain values with colon (i.e., ":") --> "_" used instead
+                            // TODO are there more characters we need to deal with?
+                            formTerm = formTerm.replace(":", "_");
+
                             if (typeof formValue === "string") {
                                 propertyForm.push({
                                     idShort: formTerm,

@@ -117,13 +117,13 @@
                                                             "modelType": "Property"
                                                         },
                                                         {
-                                                            "idShort": "modbus:function",
+                                                            "idShort": "modbus_function",
                                                             "valueType": "xs:string",
                                                             "value": "readHoldingRegisters",
                                                             "modelType": "Property"
                                                         },
                                                         {
-                                                            "idShort": "modbus:type",
+                                                            "idShort": "modbus_type",
                                                             "valueType": "xs:string",
                                                             "value": "string",
                                                             "modelType": "Property"
