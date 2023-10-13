@@ -94,7 +94,7 @@ export default class MBusClient implements ProtocolClient {
             debug(`Creating new MbusConnection for ${hostAndPort}`);
             this._connections.set(
                 hostAndPort,
-                new MBusConnection(host, port, { connectionTimeout: form["mbus:timeout"] || DEFAULT_TIMEOUT })
+                new MBusConnection(host, port, { connectionTimeout: form["mbus:timeout"] ?? DEFAULT_TIMEOUT })
             );
             connection = this._connections.get(hostAndPort);
             if (!connection) {

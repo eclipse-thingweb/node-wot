@@ -35,7 +35,7 @@ export default class HttpTuyaCodec implements ContentCodec {
         const success = parsedBody.success ?? false;
 
         if (!success) {
-            throw new Error(parsedBody.msg != null ? parsedBody.msg : JSON.stringify(parsedBody));
+            throw new Error(parsedBody.msg ?? JSON.stringify(parsedBody));
         }
 
         for (const value of Object.values(parsedBody.result ?? {})) {
