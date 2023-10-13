@@ -1,136 +1,88 @@
+<img title="ThingWeb" alt="Thingweb logo" src="https://raw.githubusercontent.com/eclipse-thingweb/website/master/misc/thingweb_logo.svg" width="300px">
+
+## node-wot
+
+> A fast and extensible framework to connect any device with your application
+
 [![Default CI Pipeline](https://github.com/eclipse-thingweb/node-wot/actions/workflows/ci.yaml/badge.svg)](https://github.com/eclipse-thingweb/node-wot/actions/workflows/ci.yaml)
 [<img alt="npm" src="https://img.shields.io/npm/dw/@node-wot/td-tools">](https://npm-stat.com/charts.html?package=%40node-wot%2Ftd-tools)
 [![codecov](https://codecov.io/gh/eclipse-thingweb/node-wot/branch/master/graph/badge.svg)](https://codecov.io/gh/eclipse-thingweb/node-wot)
 [![Telegram Group](https://img.shields.io/endpoint?color=neon&url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Fnodewot)](https://t.me/nodewot)
 [![Discord](https://img.shields.io/badge/Discord-7289DA?logo=discord&logoColor=white&label=node-wot)](https://discord.gg/JXY2Jzefz3)
 
-# Eclipse Thingweb node-wot
+The Eclipse Thingweb node-wot is a framework for implementing [Web of Things](https://www.w3.org/WoT/) servers and clients in Node.js. It is written from the ground up with Typescript with the goal of providing a fast and extensible framework for IoT applications. Node-wot wants to give developers the ability to create complex business logic without worrying about protocol and low-level details leveraging on a standard metadata format, the [Thing Description (TD)](https://www.w3.org/TR/wot-thing-description11/). Thanks to the TD abstraction developers can find a set of satellite tools to create their applications in a fast and easy way.
 
-W3C Web of Things implementation on Node.js.
+## Web of Things principles in a Nutshell
 
-Visit https://www.thingweb.io for a practical [node-wot API usage](http://www.thingweb.io/smart-coffee-machine.html), [hands-on tutorials](http://www.thingweb.io/hands-on.html) or additional information.
+The Web of Things (WoT) tackles IoT fragmentation by extending standardized web technologies. It simplifies IoT application development, promoting flexibility and interoperability. WoT preserves existing IoT standards, ensuring reuse, and provides an adaptable, abstract architecture based on real-world use cases across domains. In essence, WoT paves the way for seamless IoT integration by defining an information model capable of describing Things and Services and how to interact with them. This information model is called the Thing Description (TD) and it is a JSON-LD document that describes the Thing and its capabilities, including its network services (APIs), its network interactions, and security requirements. The TD is the cornerstone of the Web of Things architecture and it is the main abstraction that node-wot uses to implement its functionalities. Every Thing has the following capabilities or "affordances":
 
-Useful labels:
-<a href="https://github.com/eclipse-thingweb/node-wot/issues?q=label%3Aquestion+">question</a> |
-<a href="https://github.com/eclipse-thingweb/node-wot/issues?q=label%3A%22good+first+issue%22+">good first issue</a>
+-   **⚙️ Properties**: a property is a value that can be read, written or observed. For example, a temperature sensor can have a property that represents the current temperature.
+-   **🦾 Actions**: an action is an operation that can be invoked. For example, a light bulb can have an action that turns it on or off.
+-   **⚡ Events**: an event is a notification. For example, a motion sensor can send an event when it detects motion.
+
+For further information please refer to the official [W3C Web of Things](https://www.w3.org/WoT/) website.
 
 ### Table of Contents
 
 <!-- https://ecotrust-canada.github.io/markdown-toc/ -->
 
--   [License](#license)
+-   [Installation](#installation)
+    -   [As a library](#as-a-library)
+        -   [Node.js](#nodejs)
+        -   [Browser](#browser)
+    -   [As a CLI tool](#as-a-cli-tool)
+        -   [As a docker image](#as-a-docker-image)
+-   [Examples](#examples)
 -   [Implemented/supported features](#implementedsupported-features)
     -   [Protocol Support](#protocol-support)
     -   [MediaType Support](#mediatype-support)
--   [Prerequisites](#prerequisites)
-    -   [To use with Node.js](#to-use-with-nodejs)
-    -   [To use in a browser](#to-use-in-a-browser)
--   [How to get the library](#how-to-get-the-library)
-    -   [As a Node.js dependency](#as-a-nodejs-dependency)
-    -   [As a standalone application](#as-a-standalone-application)
-    -   [As a Docker image](#as-a-docker-image)
-    -   [As a browser library](#as-a-browser-library)
 -   [No time for explanations - show me a running example!](#no-time-for-explanations---show-me-a-running-example)
     -   [Using Node.js](#using-nodejs)
     -   [Using Docker](#using-docker)
     -   [Using a browser](#using-a-browser)
 -   [Online Things](#online-things)
--   [How to use the library](#how-to-use-the-library)
+-   [Documentation](#documentation)
     -   [The API](#the-api)
     -   [TD Tooling](#td-tooling)
     -   [Logging](#logging)
     -   [Install new/different versions of Node.js](#install-newdifferent-versions-of-nodejs)
+-   [Contributing](#contributing)
+-   [License](#license)
 
-## License
+## Installation
 
-Dual-licensed under both
+The framework can be used in two ways: as a library or as a CLI tool. In this section we will explain how to install the framework in both ways.
 
--   [Eclipse Public License v. 2.0](http://www.eclipse.org/legal/epl-2.0)
--   [W3C Software Notice and Document License (2015-05-13)](https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document)
+### As a library
 
-Pick one of these two licenses that fits your needs.
-Please also see the additional [notices](NOTICE.md) and [how to contribute](CONTRIBUTING.md).
+The framework is composed by different packages that users can use as they please. The core package is `@node-wot/core` and it is the only mandatory package to install. The other packages are bindings that allow the framework to communicate with different protocols and optionally we offer a set of tools in the `@node-wot/td-tools` package.
 
-## Implemented/supported features
+#### Node.js
 
-### Protocol Support
-
--   [HTTP](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-http/README.md) :heavy_check_mark:
--   [HTTPS](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-http/README.md) :heavy_check_mark:
--   [CoAP](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-coap/README.md) :heavy_check_mark:
--   [CoAPS](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-coap/README.md) :heavy_check_mark:
--   [MQTT](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-mqtt/README.md) :heavy_check_mark:
--   ~~[Firestore//lastSupportedVersion](https://github.com/eclipse/thingweb.node-wot/blob/v0.8.6/packages/binding-firestore/README.md) :heavy_check_mark:~~
--   [Websocket](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-websockets) :heavy_plus_sign: (Server only)
--   [OPC-UA](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-opcua/README.md) :heavy_plus_sign: (Client only)
--   [NETCONF](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-netconf/README.md) :heavy_plus_sign: (Client only)
--   [Modbus](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-modbus) :heavy_plus_sign: (Client only)
--   [M-Bus](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-mbus) :heavy_plus_sign: (Client only)
-
-Note: More protocols can be easily added by implementing `ProtocolClient`, `ProtocolClientFactory`, and `ProtocolServer` interface.
-
-Note: The bindings for [binding-fujitsu](https://github.com/eclipse-thingweb/node-wot/tree/v0.7.x/packages/binding-fujitsu) and [binding-oracle](https://github.com/eclipse-thingweb/node-wot/tree/v0.7.x/packages/binding-oracle) were removed after `v0.7.x` due to lack of maintainers.
-
-### MediaType Support
-
--   JSON :heavy_check_mark:
--   Text (HTML, CSS, XML, SVG) :heavy_check_mark:
--   Base64 (PNG, JPEG, GIF) :heavy_check_mark:
--   Octet stream :heavy_check_mark:
--   CBOR :heavy_check_mark:
--   EXI :timer_clock:
-
-Note: More mediaTypes can be easily added by implementing `ContentCodec` interface.
-
-```JavaScript
-const ContentSerdes = require('@node-wot/core').ContentSerdes
-const JsonCodec = require('@node-wot/core').JsonCodec
-
-// e.g., assign built-in codec for *new* contentType
-let cs = ContentSerdes.get();
-cs.addCodec(new JsonCodec("application/calendar+json"));
-
-// e.g., assign *own* MyCodec implementation (implementing ContentCodec interface)
-cs.addCodec(new MyCodec("application/myType"));
-
-```
-
-## Prerequisites
-
-### To use with Node.js
-
-> **Warning**: We no longer actively support Node.js version 16 and lower.
+> [!WARNING]
+> We no longer actively support Node.js version 16 and lower.
 
 -   [Node.js](https://nodejs.org/) version 18+
 -   [npm](https://www.npmjs.com/) version 9+
 
-#### Linux
+Platforms specific prerequisites:
 
-Meet the [node-gyp](https://github.com/nodejs/node-gyp#installation) requirements:
+-   Linux: Meet the [node-gyp](https://github.com/nodejs/node-gyp#installation) requirements:
+    -   Python v3.6, v3.7, or v3.8
+    -   make
+    -   A proper C/C++ compiler toolchain, like GCC
+-   Windows: Install the Windows build tools through a CMD shell as administrator:
+    -   `npm install -g --production windows-build-tools`
+-   Mac OS: Meet the [node-gyp](https://github.com/nodejs/node-gyp#installation) requirements:
+    -   `xcode-select --install`
 
--   Python v3.6, v3.7, or v3.8
--   make
--   A proper C/C++ compiler toolchain, like GCC
-
-#### Windows
-
-Install the Windows build tools through a CMD shell as administrator:
-
-```
-npm install -g --production windows-build-tools
-```
-
-> WSL: Windows Services for Linux should follow Linux instructions.
-
-#### Mac OS
-
-Meet the [node-gyp](https://github.com/nodejs/node-gyp#installation) requirements:
+If you want to use node-wot as a library in your Node.js application, you can use npm to install the node-wot packages that you need. To do so, `cd` inside your application folder, and run:
 
 ```
-xcode-select --install
+npm i @node-wot/core @node-wot/binding-http --save
 ```
 
-### To use in a browser
+#### Browser
 
 To use node-wot as a browser-side JavaScript Library, the browser needs to support ECMAScript 2015.
 Supported browsers include:
@@ -140,162 +92,21 @@ Supported browsers include:
 -   Chrome 58 and later
 -   Safari 10 and later
 
-Using a browser with only ES5 support (eg. IE 11) might be possible if you add polyfills.
-
-## How to get the library
-
-### As a Node.js dependency
-
-You can install node-wot in the following ways:
-
-1. As a normal dependency (i.e., like loadsh). In this case, you are embedding a servient inside your application.
-2. As a CLI to run scripts. In this case, your application is running inside the default servient.
-
-#### Normal Dependency
-
-If you want to use node-wot as a library in your Node.js application, you can use npm to install the node-wot packages that you need. To do so, `cd` inside your application folder, and run:
+Using a browser with only ES5 support (e.g., IE 11) might be possible if you add polyfills. If you want to use node-wot as a library in your browser application, you can install the `@node-wot/browser-bundle` as following:
 
 ```
-npm i @node-wot/core @node-wot/binding-http --save
+npm i @node-wot/browser-bundle --save
 ```
 
-Now, you can implement a Thing as follows:
+you can find more installation options in the specific [package README](./packages/browser-bundle/README.md).
 
-```JavaScript
-// server.js
-// Required steps to create a servient for creating a thing
-const Servient = require('@node-wot/core').Servient;
-const HttpServer = require('@node-wot/binding-http').HttpServer;
-
-const servient = new Servient();
-servient.addServer(new HttpServer());
-
-servient.start().then((WoT) => {
-    // Then from here on you can use the WoT object to produce the thing
-    // i.e WoT.produce({.....})
-});
-```
-
-A client consuming a Thing can be implemented like this:
-
-```JavaScript
-// client.js
-// Required steps to create a servient for a client
-const { Servient, Helpers } = require("@node-wot/core");
-const { HttpClientFactory } = require('@node-wot/binding-http');
-
-const servient = new Servient();
-servient.addClientFactory(new HttpClientFactory(null));
-const WoTHelpers = new Helpers(servient);
-
-WoTHelpers.fetch("http://localhost:8080/example").then(async (td) => {
-    try {
-        servient.start().then(async (WoT) => {
-            // Then from here on you can consume the thing
-            // i.e let thing = await WoT.consume(td) ...
-        });
-    }
-    catch (err) {
-        console.error("Script error:", err);
-    }
-}).catch((err) => { console.error("Fetch error:", err); });
-```
-
-You can then start the applications with node by running `node server.js` and `node client.js`.
-
-#### CLI Tool
+### As a CLI tool
 
 You can alternatively use node-wot via its command line interface (CLI). Please visit the [CLI tool's Readme](<[url](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/cli)>) to find out more.
 
-### As a standalone application
+#### As a docker image
 
-#### Clone and build
-
-Clone the repository:
-
-```
-git clone https://github.com/eclipse-thingweb/node-wot
-```
-
-Go into the repository:
-
-```
-cd node-wot
-```
-
-Install root dependencies (locally installs tools such as [typescript](https://www.npmjs.com/package/typescript)):
-
-```
-npm ci
-```
-
-Use `tsc` to transcompile TS code to JS in the `dist` directory for each package:
-_Note: This step automatically calls `npm run bootstrap`._
-
-```
-npm run build
-```
-
-#### Optional steps
-
-###### Link Packages
-
-Make all packages available on your local machine (as symlinks). You can then use each package in its local version via `npm link <module>` instead of `npm install <module>` (see also https://docs.npmjs.com/cli/link).
-
-```
-sudo npm run link
-```
-
-(On Windows omit `sudo`)
-
-##### Link Local wot-typescript-definitions
-
-To involve the Scripting API in development, you need to use a locally changed version of the [wot-typescript-definitions](https://www.npmjs.com/package/wot-typescript-definitions).
-Use npm link for this as well:
-
-```
-git clone https://github.com/w3c/wot-scripting-api/
-cd wot-scripting-api/typescript/
-sudo npm link
-```
-
-(On Windows omit `sudo`)
-
-In each node-wot package, link the local version made available in the previous step:
-
-```
-sudo npm link wot-typescript-definitions
-```
-
-(On Windows omit `sudo`)
-
-##### Optimization
-
-To reduce the size of the installation from about 800 MByte down to about 200 MByte, you can run the following commands (currently only tested on Linux):
-`npm prune --production`
-
-#### Troubleshooting
-
--   Build error about `No matching version found for @node-wot/...` or something about `match`
-    -   try `npm run unlock` from the project root before building
--   `sudo npm run link` does not work
-    -   try `npm run unlock` from the project root before calling `[sudo] npm run link`
-    -   try `npm link` in each package directory in this order: td-tools, core, binding-\*, cli, demo-servients
--   Error mesage for `npm link @node-wot/<module>`
-    `ELOOP: too many symbolic links encountered, stat '/usr/lib/node_modules/@node-wot/<module>`
-    1. Run `npm run link` in `thingweb.node-wot` again
-    2. Remove `node_modules` in the targeted project
-    3. Remove all `@node-wot/<module>` dependencies in your `package.json`
-    4. Run `npm i` again
-    5. Install the packages with `npm link @node-wot/<module>`
--   Build error around `prebuild: npm run bootstrap`
-    -   This has been seen failing on WSL. Try using a more recent Node.js version
-
-### As a Docker image
-
-Alternatively, node-wot can be built as a Docker image with the `Dockerfile`.
-
-Make sure you are under Linux or under WSL if you are running on Windows.
+Another option is to use node-wot inside a docker image. Make sure you are under Linux or under WSL if you are running on Windows.
 
 Clone the repository:
 
@@ -321,21 +132,107 @@ Run the wot-servient as a container:
 docker run --rm wot-servient -h
 ```
 
-### As a browser library
+## Examples
 
-node-wot can also be imported as browser-side library. To do so, include the following `script` tag in your HTML:
+With node-wot you can create server-side Things, in WoT jargon we call this operation "expose a Thing" or you can create client-side Things, in WoT jargon we call this operation "consume a Thing". An exposed Thing allows you to bring your device or services to the Web with just a few lines of code. On the other hand, with a consumed Thing, you have a fixed interface to interact with devices, potentially using different protocols/frameworks. In the following section, we will show how to create a simple counter Thing and how to consume it. Assuming you have installed and configured node-wot as a library, you can create and expose a counter Thing as follows:
 
-```html
-<script src="https://cdn.jsdelivr.net/npm/@node-wot/browser-bundle@latest/dist/wot-bundle.min.js"></script>
+```JavaScript
+// Required steps to create a servient for creating a thing
+const Servient = require('@node-wot/core').Servient;
+const HttpServer = require('@node-wot/binding-http').HttpServer;
+
+const servient = new Servient();
+servient.addServer(new HttpServer());
+
+servient.start().then( async (WoT) => {
+    // Then from here on you can use the WoT object to produce the thing
+    let count = 0;
+    const exposingThing = await WoT.produce({
+        title: "Counter",
+        description: "A simple counter thing",
+        properties: {
+            count: {
+                type: "integer",
+                description: "current counter value",
+                observable: true,
+                readOnly: true
+            }
+        },
+        actions: {
+            increment: {
+                description: "increment counter value",
+            }
+        }
+    })
+    exposingThing.setPropertyReadHandler("count", () => { return count; });
+    exposingThing.setActionHandler("increment", () => { count++; exposingThing.emitPropertyChange("count"); });
+    await exposingThing.expose();
+    // now you can interact with the thing via http://localhost:8080/counter
+});
 ```
 
-In the browser, node wot only works in client mode with limited binding support. Supported bindings: HTTP / HTTPS / WebSockets
-You can access all node-wot functionality through the "Wot" global object:
+Now supposing you want to interact with the device, you have to consume its Thing Description as follows:
 
-```javascript
-var servient = new Wot.Core.Servient();
-var client = new Wot.Http.HttpClient();
+```JavaScript
+// client.js
+// Required steps to create a servient for a client
+const { Servient, Helpers } = require("@node-wot/core");
+const { HttpClientFactory } = require('@node-wot/binding-http');
+
+const servient = new Servient();
+servient.addClientFactory(new HttpClientFactory(null));
+const WoTHelpers = new Helpers(servient);
+
+WoTHelpers.fetch("http://localhost:8080/counter").then(async (td) => {
+    try {
+        const WoT = await servient.start();
+        // Then from here on you can consume the thing
+        let thing = await WoT.consume(td);
+        thing.observeProperty("count", async (output) => { console.log("count:", await data.value()); });
+        for (let i = 0; i < 5; i++) {
+            await thing.invokeAction("increment");
+        }
+    }
+    catch (err) {
+        console.error("Script error:", err);
+    }
+}).catch((err) => { console.error("Fetch error:", err); });
 ```
+
+If you execute both scripts you will see `count: ${count}` printed 5 times. We host a more complex version of this example at [http://plugfest.thingweb.io/examples/counter.html](http://plugfest.thingweb.io/examples/counter.html) and you can find the source code in the [counter example](./examples/browser) folder. You can also find more examples in the [examples folder](./examples/scripts) for JavaScript and in the [examples folder](./packages/examples/) for TypeScript. Finally, for your convenience, we host a set of online Things that you can use to test your applications. You can find more information about them in the [Online Things](#online-things) section.
+
+## Implemented/supported features
+
+### Protocol Support
+
+-   [HTTP](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-http/README.md) :heavy_check_mark:
+-   [HTTPS](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-http/README.md) :heavy_check_mark:
+-   [CoAP](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-coap/README.md) :heavy_check_mark:
+-   [CoAPS](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-coap/README.md) :heavy_check_mark:
+-   [MQTT](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-mqtt/README.md) :heavy_check_mark:
+-   ~~[Firestore//lastSupportedVersion](https://github.com/eclipse/thingweb.node-wot/blob/v0.8.6/packages/binding-firestore/README.md) :heavy_check_mark:~~
+-   [Websocket](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-websockets) :heavy_plus_sign: (Server only)
+-   [OPC-UA](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-opcua/README.md) :heavy_plus_sign: (Client only)
+-   [NETCONF](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-netconf/README.md) :heavy_plus_sign: (Client only)
+-   [Modbus](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-modbus) :heavy_plus_sign: (Client only)
+-   [M-Bus](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-mbus) :heavy_plus_sign: (Client only)
+
+> [!NOTE]
+> More protocols can be easily added by implementing `ProtocolClient`, `ProtocolClientFactory`, and `ProtocolServer` interface.
+
+> [!NOTE]
+> The bindings for [binding-fujitsu](https://github.com/eclipse-thingweb/node-wot/tree/v0.7.x/packages/binding-fujitsu) and [binding-oracle](https://github.com/eclipse-thingweb/node-wot/tree/v0.7.x/packages/binding-oracle) were removed after `v0.7.x` due to lack of maintainers.
+
+### MediaType Support
+
+-   JSON :heavy_check_mark:
+-   Text (HTML, CSS, XML, SVG) :heavy_check_mark:
+-   Base64 (PNG, JPEG, GIF) :heavy_check_mark:
+-   Octet stream :heavy_check_mark:
+-   CBOR :heavy_check_mark:
+-   EXI :timer_clock:
+
+Can't find your preferred MediaType? More codecs can be easily added by implementing `ContentCodec` interface. Read more in the [Documentation](#documentation) section.
 
 ## No time for explanations - show me a running example!
 
@@ -405,7 +302,10 @@ Below are small explanations of what they can be used for:
 -   Smart Coffee Machine: This is a simulation of a coffee machine that also has a [simple user interface](http://plugfest.thingweb.io/examples/smart-coffee-machine.html) that displays the values of properties.
     In addition to proving a real-life device example, it can be used for testing `uriVariables`. You can ask it to brew different coffees and monitor the available resource level.
 
-## How to use the library
+## Documentation
+
+> [!WARNING]
+> ⚒️ We are planning to extend this section and to provide a more detailed documentation. Stay tuned!
 
 ### The API
 
@@ -417,6 +317,33 @@ This library implements the WoT Scripting API:
 Additionally, you can have a look at our [API Documentation](API.md).
 
 To learn by examples, see `examples/scripts` to have a feeling of how to script a Thing or a Consumer.
+
+### Adding a new codec
+
+To add a new codec, you need to implement the `ContentCodec` interface. The interface is defined as follows:
+
+```TypeScript
+export interface ContentCodec {
+    getMediaType(): string;
+    bytesToValue(bytes: Buffer, schema: DataSchema, parameters?: {[key: string]: string}): any;
+    valueToBytes(value: any, schema: DataSchema, parameters?: {[key: string]: string}): Buffer;
+}
+```
+
+Finally you can add to your servient the new codec as follows:
+
+```JavaScript
+const ContentSerdes = require('@node-wot/core').ContentSerdes
+const JsonCodec = require('@node-wot/core').JsonCodec
+
+// e.g., assign built-in codec for *new* contentType
+const cs = ContentSerdes.get();
+cs.addCodec(new JsonCodec("application/calendar+json"));
+
+// e.g., assign *own* MyCodec implementation (implementing ContentCodec interface)
+cs.addCodec(new MyCodec("application/myType"));
+
+```
 
 ### TD Tooling
 
@@ -497,6 +424,20 @@ Finally, make the node command available through:
 ```
 sudo ln -sf /usr/local/n/versions/node/<VERSION>/bin/node /usr/bin/node
 ```
+
+## Contributing
+
+Please check out our [contributing guidelines](CONTRIBUTING.md) for more details.
+
+## License
+
+Dual-licensed under:
+
+-   [Eclipse Public License v. 2.0](http://www.eclipse.org/legal/epl-2.0)
+-   [W3C Software Notice and Document License (2015-05-13)](https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document)
+
+Pick one of these two licenses that fits your needs.
+Please also see the additional [notices](NOTICE.md) and [how to contribute](CONTRIBUTING.md).
 
 ## Development Internals
 
