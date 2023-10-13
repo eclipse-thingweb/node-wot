@@ -92,7 +92,7 @@ Supported browsers include:
 -   Chrome 58 and later
 -   Safari 10 and later
 
-Using a browser with only ES5 support (eg. IE 11) might be possible if you add polyfills. If you want to use node-wot as a library in your browser application, you can install the `@node-wot/browser-bundle` as following:
+Using a browser with only ES5 support (e.g., IE 11) might be possible if you add polyfills. If you want to use node-wot as a library in your browser application, you can install the `@node-wot/browser-bundle` as following:
 
 ```
 npm i @node-wot/browser-bundle --save
