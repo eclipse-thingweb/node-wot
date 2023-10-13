@@ -308,6 +308,10 @@ describe("Full OPCUA Thing Test", () => {
         opcuaServer = await startServer();
         endpoint = opcuaServer.getEndpointUrl();
         debug(`endpoint =  ${endpoint}`);
+
+        // adjust TD to endpoint
+        thingDescription.base = endpoint;
+        (thingDescription.opcua as unknown as { endpoint: string }).endpoint = endpoint;
     });
     after(async () => {
         await opcuaServer.shutdown();
