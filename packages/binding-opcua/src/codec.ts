@@ -266,7 +266,7 @@ export class OpcuaBinaryCodec implements ContentCodec {
         const binaryStream = new BinaryStream(bytes);
         const dataValue = new DataValue();
         dataValue.decode(binaryStream);
-        return JSON.parse(JSON.stringify(opcuaJsonEncodeDataValue(dataValue, true)));
+        return opcuaJsonEncodeDataValue(dataValue, true);
     }
 
     valueToBytes(
