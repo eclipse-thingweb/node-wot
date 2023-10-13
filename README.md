@@ -456,4 +456,3 @@ Run `npm publish --workspaces` in root node-wot folder.
 1. Run `npm dedupe` (see https://github.com/eclipse-thingweb/node-wot/pull/765#issuecomment-1133772886)
 
 </details>
-
