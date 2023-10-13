@@ -309,7 +309,7 @@ describe("Full OPCUA Thing Test", () => {
         endpoint = opcuaServer.getEndpointUrl();
         debug(`endpoint =  ${endpoint}`);
 
-        // ajdust TD to endpoint
+        // adjust TD to endpoint
         thingDescription.base = endpoint;
         (thingDescription.opcua as unknown as { endpoint: string }).endpoint = endpoint;
     });
