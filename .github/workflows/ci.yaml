@@ -18,11 +18,15 @@ jobs:
                 node-version: [18.x, 20.x]
                 is-master:
                     - ${{ github.ref_name == 'master' }}
+                is-workflow-dispatch:
+                    - ${{ github.event_name == 'workflow_dispatch' }}
                 exclude:
                     - os: macos-latest
                       is-master: false
+                      is-workflow-dispatch: false
                     - os: windows-latest
                       is-master: false
+                      is-workflow-dispatch: false
 
         steps:
             - name: Checkout
