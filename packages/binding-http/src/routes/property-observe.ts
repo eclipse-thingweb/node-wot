@@ -32,7 +32,7 @@ export default async function propertyObserveRoute(
 
     const thing = this.getThings().get(_params.thing);
 
-    if (!thing) {
+    if (thing == null) {
         res.writeHead(404);
         res.end();
         return;
@@ -42,7 +42,7 @@ export default async function propertyObserveRoute(
     const contentType: string = Array.isArray(contentTypeHeader) ? contentTypeHeader[0] : contentTypeHeader;
     const property = thing.properties[_params.property];
 
-    if (!property) {
+    if (property == null) {
         res.writeHead(404);
         res.end();
         return;
@@ -62,7 +62,7 @@ export default async function propertyObserveRoute(
     const securityScheme = thing.securityDefinitions[Helpers.toStringArray(thing.security)[0]].scheme;
 
     if (securityScheme !== "nosec" && !(await this.checkCredentials(thing, req))) {
-        if (req.method === "OPTIONS" && req.headers.origin) {
+        if (req.method === "OPTIONS" && req.headers.origin != null) {
             corsPreflightWithCredentials = true;
         } else {
             res.setHeader("WWW-Authenticate", `${securitySchemeToHttpHeader(securityScheme)} realm="${thing.id}"`);

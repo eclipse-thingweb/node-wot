@@ -52,7 +52,7 @@ class HttpServerTest {
 
     @test async "should use middleware if provided"() {
         const middleware: MiddlewareRequestHandler = async (req, res, next) => {
-            if (req.url?.endsWith("testMiddleware")) {
+            if (req.url?.endsWith("testMiddleware") ?? false) {
                 res.statusCode = 401;
                 res.end("Unauthorized");
             } else {

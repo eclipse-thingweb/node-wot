@@ -60,11 +60,11 @@ function extractTokenFromRequest(request: http.IncomingMessage) {
     const url = new URL(request.url ?? "", `http://${request.headers.host}`);
     const queryToken = url.searchParams.get("access_token");
 
-    if (!headerToken && !queryToken) {
+    if (headerToken != null && queryToken != null) {
         throw new Error("Invalid request: only one authentication method is allowed");
     }
 
-    if (queryToken) {
+    if (queryToken != null) {
         return queryToken;
     }
 
@@ -84,9 +84,10 @@ export class EndpointValidator extends Validator {
         super();
         this.config = config;
         const endpoint = config.endpoint;
+        const allowSelfSigned = config?.allowSelfSigned ?? false;
         this.agent = endpoint.startsWith("https")
             ? new SecureAgent({
-                  rejectUnauthorized: !config.allowSelfSigned,
+                  rejectUnauthorized: !allowSelfSigned,
               })
             : new http.Agent();
     }
@@ -134,7 +135,7 @@ export class EndpointValidator extends Validator {
             return true;
         }
 
-        if (!validationResult.scope) {
+        if (validationResult.scope == null) {
             // If the token doesn't have any scope and we already know that scopes.length > 0,
             // then the token is not valid
             return false;
@@ -149,7 +150,7 @@ export class EndpointValidator extends Validator {
         if (!validScope) return false;
 
         // Check if the client was allowed in the servient configuration file
-        if (validationResult.client_id && !validationResult.client_id.match(clients)) {
+        if (!validationResult.client_id?.match(clients)) {
             return false;
         }
 

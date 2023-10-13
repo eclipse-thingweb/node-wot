@@ -27,14 +27,17 @@ export function respondUnallowedMethod(
     if (!allowed.includes("OPTIONS")) {
         allowed += ", OPTIONS";
     }
-    if (req.method === "OPTIONS" && req.headers.origin && req.headers["access-control-request-method"]) {
+
+    const headers = req.headers;
+    const origin = headers.origin;
+    if (req.method === "OPTIONS" && origin != null && headers["access-control-request-method"] != null) {
         debug(
             `HttpServer received an CORS preflight request from ${Helpers.toUriLiteral(req.socket.remoteAddress)}:${
                 req.socket.remotePort
             }`
         );
         if (corsPreflightWithCredentials) {
-            res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
+            res.setHeader("Access-Control-Allow-Origin", origin);
             res.setHeader("Access-Control-Allow-Credentials", "true");
         } else {
             res.setHeader("Access-Control-Allow-Origin", "*");
@@ -91,8 +94,10 @@ export function securitySchemeToHttpHeader(scheme: string): string {
 export function setCorsForThing(req: IncomingMessage, res: ServerResponse, thing: ExposedThing): void {
     const securityScheme = thing.securityDefinitions[Helpers.toStringArray(thing.security)[0]].scheme;
     // Set CORS headers
-    if (securityScheme !== "nosec" && req.headers.origin) {
-        res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
+
+    const origin = req.headers.origin;
+    if (securityScheme !== "nosec" && origin != null) {
+        res.setHeader("Access-Control-Allow-Origin", origin);
         res.setHeader("Access-Control-Allow-Credentials", "true");
     } else {
         res.setHeader("Access-Control-Allow-Origin", "*");
