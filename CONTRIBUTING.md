@@ -74,7 +74,7 @@ sudo npm run link
 
 ##### Link Local wot-typescript-definitions
 
-To involve the Scripting API in development, you need to use a locally changed version of the [wot-typescript-definitions](https://www.npmjs.com/package/wot-typescript-definitions).
+When experimenting with new APIs, developers might need to change the [wot-typescript-definitions](https://www.npmjs.com/package/wot-typescript-definitions). If you want to use your own version of wot-types-defitions you can link your local copy using the following steps.
 Use npm link for this as well:
 
 ```
