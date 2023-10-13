@@ -48,7 +48,7 @@ import { schemaDataValue } from "./codec";
 import { FormElementProperty } from "wot-thing-description-types";
 import { opcuaJsonEncodeVariant } from "node-opcua-json";
 import { Argument, BrowseDescription, BrowseResult } from "node-opcua-types";
-import { isGoodish, ReferenceTypeIds } from "node-opcua";
+import { isGoodish2, ReferenceTypeIds } from "node-opcua";
 
 const { debug } = createLoggers("binding-opcua", "opcua-protocol-client");
 
@@ -308,7 +308,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
             return statusCode;
         });
         debug(`writeResource: statusCode ${statusCode}`);
-        if (statusCode !== StatusCodes.Good && !isGoodish(statusCode)) {
+        if (statusCode !== StatusCodes.Good && !isGoodish2(statusCode, { treatUncertainAsBad: false })) {
             throw new Error("Error in OPCUA Write : " + statusCode.toString());
         }
     }
