@@ -1,6 +1,6 @@
 <img title="ThingWeb" alt="Thingweb logo" src="https://raw.githubusercontent.com/eclipse-thingweb/website/master/misc/thingweb_logo.svg" width=300px>
 
-## Node-wot
+## node-wot
 
 > A fast and extensible framework to connect any device with your application
 
