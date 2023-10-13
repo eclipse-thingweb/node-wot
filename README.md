@@ -429,6 +429,16 @@ sudo ln -sf /usr/local/n/versions/node/<VERSION>/bin/node /usr/bin/node
 
 Please check out our [contributing guidelines](CONTRIBUTING.md) for more details.
 
+## License
+
+Dual-licensed under:
+
+-   [Eclipse Public License v. 2.0](http://www.eclipse.org/legal/epl-2.0)
+-   [W3C Software Notice and Document License (2015-05-13)](https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document)
+
+Pick one of these two licenses that fits your needs.
+Please also see the additional [notices](NOTICE.md) and [how to contribute](CONTRIBUTING.md).
+
 ## Development Internals
 
 <details>
@@ -447,12 +457,3 @@ Run `npm publish --workspaces` in root node-wot folder.
 
 </details>
 
-## License
-
-Dual-licensed under:
-
--   [Eclipse Public License v. 2.0](http://www.eclipse.org/legal/epl-2.0)
--   [W3C Software Notice and Document License (2015-05-13)](https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document)
-
-Pick one of these two licenses that fits your needs.
-Please also see the additional [notices](NOTICE.md) and [how to contribute](CONTRIBUTING.md).
