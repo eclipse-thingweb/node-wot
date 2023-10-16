@@ -296,8 +296,11 @@ Their TDs are available at the following links:
 -   Counter: HTTP at <http://plugfest.thingweb.io:8083/counter> and CoAP at <coap://plugfest.thingweb.io:5683/counter>
 -   Smart Coffee Machine: HTTP at <http://plugfest.thingweb.io:8083/smart-coffee-machine> and CoAP at <coap://plugfest.thingweb.io:5683/smart-coffee-machine>
 -   TestThing: HTTP at <http://plugfest.thingweb.io:8083/testthing> and CoAP at <coap://plugfest.thingweb.io:5683/testthing>
+-   Presence sensor: MQTT at <https://zion.vaimee.com/things/urn:uuid:0a028f8e-8a91-4aaf-a346-9a48d440fd7c>
+-   Smart Clock: CoAP at <https://zion.vaimee.com/things/urn:uuid:913cf8cb-3687-4d98-8d2f-f6f27cfc7162>
+-   Simple Coffee Machine: HTTP at <https://zion.vaimee.com/things/urn:uuid:7ba2bca0-a7f6-47b3-bdce-498caa33bbaf>
 
-All of them require no security mechanism to be communicated with and have the same behavior from CoAP or HTTP endpoints.
+All of them require no security mechanism to be communicated with.
 Below are small explanations of what they can be used for:
 
 -   Counter: It has a count property that can be read or observed and can be incremented or decremented via separate actions.
@@ -305,6 +308,9 @@ Below are small explanations of what they can be used for:
 -   TestThing: This Thing exists primarily for testing different data schemas and payload formats. It also has events attached to affordances that notify when a value changes.
 -   Smart Coffee Machine: This is a simulation of a coffee machine that also has a [simple user interface](http://plugfest.thingweb.io/examples/smart-coffee-machine.html) that displays the values of properties.
     In addition to proving a real-life device example, it can be used for testing `uriVariables`. You can ask it to brew different coffees and monitor the available resource level.
+-   Presence Sensor: It mocks the detection of a person by firing an event every 5 seconds.
+-   Smart Clock: It simply has a property affordance for the time. However, it runs 60 times faster than real-time to allow time-based decisions that can be easily tested.
+-   Simple Coffee Machine: This is a simpler simulation of the coffee machine above.
 
 ## Documentation
 
