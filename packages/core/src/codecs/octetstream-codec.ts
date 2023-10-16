@@ -59,7 +59,7 @@ export default class OctetstreamCodec implements ContentCodec {
         debug("OctetstreamCodec parsing", bytes);
         debug("Parameters", parameters);
 
-        const bigEndian = !schema?.byteSeq?.includes(Endianness.LITTLE_ENDIAN); // default to big endian
+        const bigEndian = (schema?.byteSeq?.includes(Endianness.LITTLE_ENDIAN) !== true); // default to big endian
         let signed = schema?.signed !== "false"; // default to signed
         const offset = schema?.['ex:bitOffset'] !== undefined ? parseInt(schema['ex:bitOffset']) : 0;
         let dataLength: number = schema?.["ex:bitLength"] !== undefined ? parseInt(schema["ex:bitLength"]) : bytes.length * 8;
@@ -92,12 +92,14 @@ export default class OctetstreamCodec implements ContentCodec {
             }
         }
 
+        console.log(bytes, dataType, dataLength, signed, bigEndian, offset)
+
         if (dataLength > bytes.length * 8 - offset) {
             throw new Error(`'ex:bitLength' is ${dataLength}, but buffer length at offset ${offset} is ${bytes.length * 8 - offset}`);
         }
 
         // Handle byte swapping
-        if (schema?.byteSeq?.includes("BYTE_SWAP") && bytes.length > 1) {
+        if (schema?.byteSeq?.includes("BYTE_SWAP") === true && bytes.length > 1) {
             bytes.swap16();
         }
 
@@ -195,11 +197,11 @@ export default class OctetstreamCodec implements ContentCodec {
     valueToBytes(value: unknown, schema?: DataSchema, parameters: { [key: string]: string | undefined } = {}): Buffer {
         debug(`OctetstreamCodec serializing '${value}'`);
 
-        if (!parameters.length) {
+        if (parameters.length == null) {
             warn("Missing 'length' parameter necessary for write. I'll do my best");
         }
 
-        const bigEndian = !schema?.byteSeq?.includes(Endianness.LITTLE_ENDIAN); // default to big endian
+        const bigEndian = !(schema?.byteSeq?.includes(Endianness.LITTLE_ENDIAN) === true); // default to big endian
         let signed = schema?.signed !== "false"; // default to signed
         const offset = schema?.['ex:bitOffset'] !== undefined ? parseInt(schema['ex:bitOffset']) : 0;
         let dataLength = schema?.["ex:bitLength"] !== undefined ? parseInt(schema["ex:bitLength"]) : undefined;
@@ -228,7 +230,7 @@ export default class OctetstreamCodec implements ContentCodec {
                     signed = false;
                 }
                 dataType = typeSem[2];
-                if (dataLength) {
+                if (dataLength !== undefined) {
                     if (parseInt(typeSem[3]) !== dataLength ) {
                     throw new Error(`Type is '${(typeSem[1] ?? '') + typeSem[2] + typeSem[3]}' but 'ex:bitLength' is ` + dataLength);
                     }
@@ -240,7 +242,7 @@ export default class OctetstreamCodec implements ContentCodec {
 
         switch (dataType) {
             case "boolean":
-                return Buffer.alloc(dataLength ?? 1, value ? 255 : 0);
+                return Buffer.alloc(dataLength ?? 1, value != null ? 255 : 0);
             case "byte":
             case "short":
             case "int":
@@ -277,8 +279,8 @@ export default class OctetstreamCodec implements ContentCodec {
         value: unknown,
         options: { dataLength: number | undefined; offset: number | undefined, bigEndian: boolean; signed: boolean; byteSeq: string }
     ): Buffer {
-        const length = options.dataLength ? options.dataLength : 32;
-        const offset = options.offset ? options.offset : 0;
+        const length = options.dataLength ?? 32;
+        const offset = options.offset ?? 0;
         const { bigEndian, signed, byteSeq } = options;
         const byteLength = Math.ceil((offset + length) / 8);
 
@@ -361,8 +363,8 @@ export default class OctetstreamCodec implements ContentCodec {
             throw new Error("Value is not a number");
         }
 
-        const length = options.dataLength ? options.dataLength : 32;
-        const offset = options.offset ? options.offset : 0;
+        const length = options.dataLength ?? 32;
+        const offset = options.offset ?? 0;
         const { bigEndian, byteSeq } = options;
         const byteLength = Math.ceil((offset + length) / 8);
         const byteOffset = Math.floor(offset / 8);
@@ -403,7 +405,7 @@ export default class OctetstreamCodec implements ContentCodec {
             throw new Error("Value is not a string");
         }
 
-        const offset = options.offset ? options.offset : 0;
+        const offset = options.offset ?? 0;
         const { charset } = options;
 
         const str = String(value);
@@ -413,7 +415,7 @@ export default class OctetstreamCodec implements ContentCodec {
         }
 
         const buf = Buffer.from(str, charset);
-        const length = options.dataLength ? options.dataLength : buf.length * 8;
+        const length = options.dataLength ?? buf.length * 8;
         if (buf.length > length) {
             throw new Error(`String is ${buf.length * 8} bits long, but 'ex:bitLength' is ${length}`);
         }

@@ -1,6 +1,6 @@
 {
     "name": "@node-wot/td-tools",
-    "version": "0.8.9",
+    "version": "0.8.10",
     "description": "W3C Web of Things (WoT) Thing Description parser, serializer, and other tools",
     "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
     "license": "EPL-2.0 OR W3C-20150513",
@@ -20,8 +20,8 @@
         "is-absolute-url": "3.0.3",
         "json-placeholder-replacer": "^1.0.35",
         "url-toolkit": "2.1.6",
-        "wot-thing-model-types": "1.1.0-24-May-2023",
-        "wot-typescript-definitions": "0.8.0-SNAPSHOT.26"
+        "wot-thing-model-types": "1.1.0-05-July-2023",
+        "wot-typescript-definitions": "0.8.0-SNAPSHOT.27"
     },
     "scripts": {
         "build": "tsc -b && webpack",

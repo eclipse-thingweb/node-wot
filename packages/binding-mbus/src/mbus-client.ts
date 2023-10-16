@@ -40,33 +40,25 @@ export default class MBusClient implements ProtocolClient {
         return this.performOperation(form) as Promise<Content>;
     }
 
-    writeResource(form: MBusForm, content: Content): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            throw new Error("Method not implemented.");
-        });
+    async writeResource(form: MBusForm, content: Content): Promise<void> {
+        throw new Error("Method not implemented.");
     }
 
-    invokeResource(form: MBusForm, content: Content): Promise<Content> {
-        return new Promise<Content>((resolve, reject) => {
-            throw new Error("Method not implemented.");
-        });
+    async invokeResource(form: MBusForm, content: Content): Promise<Content> {
+        throw new Error("Method not implemented.");
     }
 
-    unlinkResource(form: MBusForm): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            throw new Error("Method not implemented.");
-        });
+    async unlinkResource(form: MBusForm): Promise<void> {
+        throw new Error("Method not implemented.");
     }
 
-    public subscribeResource(
+    public async subscribeResource(
         form: MBusForm,
         next: (value: Content) => void,
         error?: (error: Error) => void,
         complete?: () => void
     ): Promise<Subscription> {
-        return new Promise<Subscription>((resolve, reject) => {
-            throw new Error("Method not implemented.");
-        });
+        throw new Error("Method not implemented.");
     }
 
     async start(): Promise<void> {
@@ -102,7 +94,7 @@ export default class MBusClient implements ProtocolClient {
             debug(`Creating new MbusConnection for ${hostAndPort}`);
             this._connections.set(
                 hostAndPort,
-                new MBusConnection(host, port, { connectionTimeout: form["mbus:timeout"] || DEFAULT_TIMEOUT })
+                new MBusConnection(host, port, { connectionTimeout: form["mbus:timeout"] ?? DEFAULT_TIMEOUT })
             );
             connection = this._connections.get(hostAndPort);
             if (!connection) {

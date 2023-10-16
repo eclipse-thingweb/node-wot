@@ -57,7 +57,7 @@ export class ContentSerdes {
     private offered: Set<string> = new Set<string>();
 
     public static get(): ContentSerdes {
-        if (!this.instance) {
+        if (this.instance == null) {
             this.instance = new ContentSerdes();
             // JSON
             this.instance.addCodec(new JsonCodec(), true);

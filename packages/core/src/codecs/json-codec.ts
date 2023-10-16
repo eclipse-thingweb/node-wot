@@ -24,11 +24,7 @@ export default class JsonCodec implements ContentCodec {
     private subMediaType: string;
 
     constructor(subMediaType?: string) {
-        if (!subMediaType) {
-            this.subMediaType = ContentSerdes.DEFAULT; // 'application/json'
-        } else {
-            this.subMediaType = subMediaType;
-        }
+        this.subMediaType = subMediaType ?? ContentSerdes.DEFAULT;
     }
 
     getMediaType(): string {

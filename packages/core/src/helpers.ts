@@ -120,7 +120,7 @@ export default class Helpers implements Resolver {
     public static toUriLiteral(address?: string): string {
         // Due to crash logged with:
         // TypeError: Cannot read property 'indexOf' of undefined at Function.Helpers.toUriLiteral
-        if (!address) {
+        if (address == null) {
             error(`AddressHelper received invalid address '${address}'`);
             return "{invalid address - undefined}";
         }
@@ -141,7 +141,7 @@ export default class Helpers implements Resolver {
     }
 
     public static toStringArray(input: string[] | string | undefined): string[] {
-        if (input) {
+        if (input != null) {
             if (typeof input === "string") {
                 return [input];
             } else {
@@ -220,7 +220,7 @@ export default class Helpers implements Resolver {
      * Helper function to remove reserved keywords in required property of TD JSON Schema
      */
     static createExposeThingInitSchema(tdSchema: unknown): SomeJSONSchema {
-        const tdSchemaCopy = JSON.parse(JSON.stringify(tdSchema));
+        const tdSchemaCopy = structuredClone(tdSchema) as SomeJSONSchema;
 
         if (tdSchemaCopy.required !== undefined) {
             const reservedKeywords: Array<string> = [
@@ -253,7 +253,7 @@ export default class Helpers implements Resolver {
      * Helper function to validate an ExposedThingInit
      */
     public static validateExposedThingInit(data: ExposedThingInit): { valid: boolean; errors?: string } {
-        if (data["@type"] === "tm:ThingModel" || ThingModelHelpers.isThingModel(data)) {
+        if (data["@type"] === "tm:ThingModel" || ThingModelHelpers.isThingModel(data) === true) {
             return {
                 valid: false,
                 errors: "ThingModel declaration is not supported",
@@ -266,7 +266,7 @@ export default class Helpers implements Resolver {
         }
         return {
             valid: isValid,
-            errors: errors,
+            errors,
         };
     }
 
@@ -351,7 +351,7 @@ export default class Helpers implements Resolver {
         uriVariables: { [k: string]: DataSchema } = {}
     ): Record<string, unknown> {
         const params: Record<string, unknown> = {};
-        if ((url === undefined && url == null) || (!uriVariables && !globalUriVariables)) {
+        if (url == null || (uriVariables == null && globalUriVariables == null)) {
             return params;
         }
 
@@ -367,14 +367,14 @@ export default class Helpers implements Resolver {
             const queryKey: string = decodeURIComponent(indexPair[0]);
             const queryValue: string = decodeURIComponent(indexPair.length > 1 ? indexPair[1] : "");
 
-            if (uriVariables && uriVariables[queryKey]) {
+            if (uriVariables != null && uriVariables[queryKey] != null) {
                 if (uriVariables[queryKey].type === "integer" || uriVariables[queryKey].type === "number") {
                     // *cast* it to number
                     params[queryKey] = +queryValue;
                 } else {
                     params[queryKey] = queryValue;
                 }
-            } else if (globalUriVariables && globalUriVariables[queryKey]) {
+            } else if (globalUriVariables != null && globalUriVariables[queryKey] != null) {
                 if (globalUriVariables[queryKey].type === "integer" || globalUriVariables[queryKey].type === "number") {
                     // *cast* it to number
                     params[queryKey] = +queryValue;

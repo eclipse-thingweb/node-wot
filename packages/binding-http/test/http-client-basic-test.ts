@@ -33,7 +33,7 @@ function mockService(req: express.Request, res: express.Response) {
     const auth = { login: "admin", password: "password" }; // change this
 
     // parse login and password from headers
-    const b64auth = (req.headers.authorization || "").split(" ")[1] || "";
+    const b64auth = (req.headers.authorization ?? "").split(" ")[1] ?? "";
     const [login, password] = Buffer.from(b64auth, "base64").toString().split(":");
 
     // Verify login and password are set and correct
@@ -111,9 +111,11 @@ class HttpClientBasicTest {
         try {
             await this.client.readResource({ href: "https://127.0.0.1:3001" });
         } catch (error) {
-            // Note: depending on Node.js version different errors appear
-            // AssertionError: expected 'request to https://127.0.0.1:3001/ fa…' to deeply equal 'Client error: Unauthorized'
-            // error.message.should.eql("Client error: Unauthorized");
+            if (error instanceof Error) {
+                error.message.should.eql("Client error: Unauthorized");
+            } else {
+                fail("No proper error instance object");
+            }
             return;
         }
         fail("should fail to authorize client with basic");

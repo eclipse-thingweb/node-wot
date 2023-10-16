@@ -80,10 +80,6 @@ export class Client {
         if (credentials.privateKey) {
             this.routerParams.pkey = await fsPromises.readFile(credentials.privateKey, { encoding: "utf8" });
         }
-
-        return new Promise((resolve, reject) => {
-            resolve(undefined);
-        });
     }
 
     openRouter(): Promise<void> {

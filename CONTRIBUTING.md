@@ -33,6 +33,88 @@ Thus, before your contribution can be accepted by the project team, contributors
 For more information, please see the Eclipse Committer Handbook:
 https://www.eclipse.org/projects/handbook/#resources-commit
 
+## Clone and build
+
+Clone the repository:
+
+```
+git clone https://github.com/eclipse-thingweb/node-wot
+```
+
+Go into the repository:
+
+```
+cd node-wot
+```
+
+Install root dependencies (locally installs tools such as [typescript](https://www.npmjs.com/package/typescript)):
+
+```
+npm ci
+```
+
+Use `tsc` to transcompile TS code to JS in the `dist` directory for each package:
+_Note: This step automatically calls `npm run bootstrap`._
+
+```
+npm run build
+```
+
+#### Optional steps
+
+###### Link Packages
+
+Make all packages available on your local machine (as symlinks). You can then use each package in its local version via `npm link <module>` instead of `npm install <module>` (see also https://docs.npmjs.com/cli/link). This is also useful if you want to test the CLI with a local script.
+
+```
+sudo npm run link
+```
+
+(On Windows omit `sudo`)
+
+##### Link Local wot-typescript-definitions
+
+When experimenting with new APIs, developers might need to change the [wot-typescript-definitions](https://www.npmjs.com/package/wot-typescript-definitions). If you want to use your own version of wot-types-defitions you can link your local copy using the following steps.
+Use npm link for this as well:
+
+```
+git clone https://github.com/w3c/wot-scripting-api/
+cd wot-scripting-api/typescript/
+sudo npm link
+```
+
+(On Windows omit `sudo`)
+
+In each node-wot package, link the local version made available in the previous step:
+
+```
+sudo npm link wot-typescript-definitions
+```
+
+(On Windows omit `sudo`)
+
+##### Optimization
+
+To reduce the size of the installation from about 800 MByte down to about 200 MByte, you can run the following commands (currently only tested on Linux):
+`npm prune --production`
+
+#### Troubleshooting
+
+-   Build error about `No matching version found for @node-wot/...` or something about `match`
+    -   try `npm run unlock` from the project root before building
+-   `sudo npm run link` does not work
+    -   try `npm run unlock` from the project root before calling `[sudo] npm run link`
+    -   try `npm link` in each package directory in this order: td-tools, core, binding-\*, cli, demo-servients
+-   Error mesage for `npm link @node-wot/<module>`
+    `ELOOP: too many symbolic links encountered, stat '/usr/lib/node_modules/@node-wot/<module>`
+    1. Run `npm run link` in `thingweb.node-wot` again
+    2. Remove `node_modules` in the targeted project
+    3. Remove all `@node-wot/<module>` dependencies in your `package.json`
+    4. Run `npm i` again
+    5. Install the packages with `npm link @node-wot/<module>`
+-   Build error around `prebuild: npm run bootstrap`
+    -   This has been seen failing on WSL. Try using a more recent Node.js version
+
 ## Adding a New Protocol Binding
 
 In order to add support for a new protocol binding, you need to implement the protocol interfaces defined in the `core` package.

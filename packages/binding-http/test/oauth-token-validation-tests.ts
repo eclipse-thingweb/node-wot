@@ -75,13 +75,13 @@ describe("OAuth2.0 Validator tests", () => {
             });
 
             introspectEndpoint.use((req, res) => {
-                if (req.method !== "POST" || !req.is("application/x-www-form-urlencoded")) {
+                if (req.method !== "POST" || req.is("application/x-www-form-urlencoded") == null) {
                     return res.status(400).end();
                 }
 
                 const token = req.body.token;
 
-                if (!token) {
+                if (token == null) {
                     return res.status(400).end();
                 }
                 switch (token) {

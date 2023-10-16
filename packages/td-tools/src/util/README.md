@@ -14,9 +14,10 @@ The [IDTA Asset Interface Description (AID) working group](https://github.com/ad
 
 #### AAS/AID to WoT TD
 
-The file `counterHTTP.json` describes the counter sample in AID format for http binding. The `AssetInterfaceDescriptionUtil` utility class allows to transform the AID format to a valid WoT TD format which in the end can be properly consumed by node-wot.
+The file `counterHTTP.json` describes the counter sample in AAS/AID format for http binding. The `AssetInterfaceDescriptionUtil` utility class allows to transform the AID format to a valid WoT TD format which in the end can be properly consumed by node-wot.
 
-The example tries to load an AID file in AID format and transforms it to a regular WoT TD.
+The example `aid-to-td.js` tries to transform an AID submodel (from an AAS file) into a regular WoT TD.
+Note: Besides converting the AID submodel it is also possible to convert a full AAS file (see `transformTD2AAS(...)`).
 
 ```js
 // aid-to-td.js
@@ -39,10 +40,13 @@ async function example() {
         const aas = await fs.readFile("counterHTTP.json", {
             encoding: "utf8",
         });
+        // pick AID submodel
+        const aid = JSON.stringify(JSON.parse(aas).submodels[0]);
+
         // transform AID to WoT TD
-        let tdAID = assetInterfaceDescriptionUtil.transformAAS2TD(aas, `{"title": "counter"}`);
-        // Note: transformAAS2TD() may have up to 3 input parameters
-        // * aas (required):           AAS in JSON format
+        const tdAID = assetInterfaceDescriptionUtil.transformSM2TD(aid, `{"title": "counter"}`);
+        // Note: transformSM2TD() may have up to 3 input parameters
+        // * aid (required):           AID submodel in JSON format
         // * template (optional):      Initial TD template
         // * submodelRegex (optional): Submodel filter based on regular expression
         //                             e.g., filtering HTTP only by calling transformAAS2TD(aas, `{}`, "HTTP")
@@ -65,7 +69,8 @@ example();
 
 #### WoT TD to AAS/AID
 
-The example tries to load online counter TD and converts it to AAS JSON format.
+The example `td-to-aid.js` tries to load the online counter TD and converts it to an AID submodel in JSON format.
+Note: Besides converting it into an AID submodel it is also possible to convert it into a full AAS form (see `transformTD2AAS(...)`).
 
 ```js
 // td-to-aid.js
@@ -78,9 +83,9 @@ async function example() {
         const response = await fetch("http://plugfest.thingweb.io:8083/counter");
         const counterTD = await response.json();
 
-        const sm = assetInterfaceDescriptionUtil.transformTD2AAS(JSON.stringify(counterTD), ["http", "coap"]);
+        const sm = assetInterfaceDescriptionUtil.transformTD2SM(JSON.stringify(counterTD), ["http", "coap"]);
 
-        // print JSON format of AAS
+        // print JSON format of AID submodel
         console.log(sm);
     } catch (err) {
         console.log(err);
@@ -98,4 +103,4 @@ example();
 Note: make sure that the file `counterHTTP.json` is in the same folder as the script.
 
 `node td-to-aid.js`
-... will show the online counter im AAS/AID JSON format (usable by AASX Package Explorer 2023-08-01.alpha).
+... will show the online counter im AAS/AID JSON format (compliant with AAS V3.0 and can be imported by AASX Package Explorer).

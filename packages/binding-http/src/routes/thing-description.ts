@@ -104,21 +104,24 @@ function resetMultiLangThing(thing: ThingDescription, prefLang: string) {
  * @param req
  */
 function negotiateLanguage(td: ThingDescription, thing: ExposedThing, req: IncomingMessage) {
-    if (req.headers["accept-language"] && req.headers["accept-language"] !== "*") {
-        if (td.titles) {
-            const supportedLanguages = Object.keys(td.titles); // e.g., ['fr', 'en']
-            // the loose option allows partial matching on supported languages (e.g., returns "de" for "de-CH")
-            const prefLang = acceptLanguageParser.pick(supportedLanguages, req.headers["accept-language"], {
-                loose: true,
-            });
-            if (prefLang) {
-                // if a preferred language can be found use it
-                debug(
-                    `TD language negotiation through the Accept-Language header field of HTTP leads to "${prefLang}"`
-                );
-                // TODO: reset titles and descriptions to only contain the preferred language
-                resetMultiLangThing(td, prefLang);
-            }
+    const acceptLanguage = req.headers["accept-language"];
+    const noPreference = acceptLanguage == null || acceptLanguage === "*";
+
+    if (noPreference) {
+        return;
+    }
+
+    if (td.titles != null) {
+        const supportedLanguages = Object.keys(td.titles); // e.g., ['fr', 'en']
+        // the loose option allows partial matching on supported languages (e.g., returns "de" for "de-CH")
+        const prefLang = acceptLanguageParser.pick(supportedLanguages, acceptLanguage, {
+            loose: true,
+        });
+        if (prefLang != null) {
+            // if a preferred language can be found use it
+            debug(`TD language negotiation through the Accept-Language header field of HTTP leads to "${prefLang}"`);
+            // TODO: reset titles and descriptions to only contain the preferred language
+            resetMultiLangThing(td, prefLang);
         }
     }
 }
@@ -136,7 +139,7 @@ export default async function thingDescriptionRoute(
     }
 
     const thing = this.getThings().get(_params.thing);
-    if (!thing) {
+    if (thing == null) {
         res.writeHead(404);
         res.end();
         return;

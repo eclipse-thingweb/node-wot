@@ -38,7 +38,7 @@ export default async function propertyRoute(
 
     const thing = this.getThings().get(_params.thing);
 
-    if (!thing) {
+    if (thing == null) {
         res.writeHead(404);
         res.end();
         return;
@@ -61,7 +61,7 @@ export default async function propertyRoute(
 
     const property = thing.properties[_params.property];
 
-    if (!property) {
+    if (property == null) {
         res.writeHead(404);
         res.end();
         return;
@@ -82,7 +82,7 @@ export default async function propertyRoute(
     const securityScheme = thing.securityDefinitions[Helpers.toStringArray(thing.security)[0]].scheme;
 
     if (securityScheme !== "nosec" && !(await this.checkCredentials(thing, req))) {
-        if (req.method === "OPTIONS" && req.headers.origin) {
+        if (req.method === "OPTIONS" && req.headers.origin != null) {
             corsPreflightWithCredentials = true;
         } else {
             res.setHeader("WWW-Authenticate", `${securitySchemeToHttpHeader(securityScheme)} realm="${thing.id}"`);
@@ -106,21 +106,23 @@ export default async function propertyRoute(
             res.end(message);
         }
     } else if (req.method === "PUT") {
-        if (!property.readOnly) {
-            try {
-                await thing.handleWriteProperty(_params.property, new Content(contentType, req), options);
-
-                res.writeHead(204);
-                res.end("Changed");
-            } catch (err) {
-                const message = err instanceof Error ? err.message : JSON.stringify(err);
-
-                error(`HttpServer on port ${this.getPort()} got internal error on invoke '${req.url}': ${message}`);
-                res.writeHead(500);
-                res.end(message);
-            }
-        } else {
+        const readOnly: boolean = property.readOnly ?? false;
+        if (readOnly) {
             respondUnallowedMethod(req, res, "GET, PUT");
+            return;
+        }
+
+        try {
+            await thing.handleWriteProperty(_params.property, new Content(contentType, req), options);
+
+            res.writeHead(204);
+            res.end("Changed");
+        } catch (err) {
+            const message = err instanceof Error ? err.message : JSON.stringify(err);
+
+            error(`HttpServer on port ${this.getPort()} got internal error on invoke '${req.url}': ${message}`);
+            res.writeHead(500);
+            res.end(message);
         }
         // resource found and response sent
     } else {

@@ -376,10 +376,8 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
             // Check if the amount of available resources is sufficient to make a drink
             for (const resource in newResources) {
                 if (newResources[resource] <= 0) {
-                    return new Promise((resolve, reject) => {
-                        thing.emitEvent("outOfResource", `Low level of ${resource}: ${newResources[resource]}%`);
-                        return { result: false, message: `${resource} level is not sufficient` };
-                    });
+                    thing.emitEvent("outOfResource", `Low level of ${resource}: ${newResources[resource]}%`);
+                    return { result: false, message: `${resource} level is not sufficient` };
                 }
             }
 
@@ -396,7 +394,7 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
             const paramsp = (await params.value()) as Record<string, unknown>; //  : any = await Helpers.parseInteractionOutput(params);
 
             // Check if uriVariables are provided
-            if (paramsp && typeof paramsp === "object" && "time" in paramsp && "mode" in paramsp) {
+            if (paramsp != null && typeof paramsp === "object" && "time" in paramsp && "mode" in paramsp) {
                 // Use default values if not provided
                 paramsp.drinkId = "drinkId" in paramsp ? paramsp.drinkId : "americano";
                 paramsp.size = "size" in paramsp ? paramsp.size : "m";
@@ -407,9 +405,8 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
 
                 return { result: true, message: `Your schedule has been set!` };
             }
-            return new Promise((resolve, reject) => {
-                resolve({ result: false, message: `Please provide all the required parameters: time and mode.` });
-            });
+
+            return { result: false, message: `Please provide all the required parameters: time and mode.` };
         });
 
         // Finally expose the thing

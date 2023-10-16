@@ -72,9 +72,7 @@ export default class NetconfClient implements ProtocolClient {
 
         const result = JSON.stringify(await this.client.rpc(xpathQuery, method, NSs, target));
 
-        return new Promise<Content>((resolve, reject) => {
-            resolve(new Content(contentType, Readable.from(Buffer.from(result))));
-        });
+        return new Content(contentType, Readable.from(Buffer.from(result)));
     }
 
     public async writeResource(form: NetconfForm, content: Content): Promise<void> {
@@ -85,8 +83,8 @@ export default class NetconfClient implements ProtocolClient {
         const port = parseInt(url.port);
         const xpathQuery = url.pathname;
         const method = this.methodFromForm(form, "EDIT-CONFIG");
-        let NSs = form["nc:NSs"] || {};
-        const target = form["nc:target"] || DEFAULT_TARGET;
+        let NSs = form["nc:NSs"] ?? {};
+        const target = form["nc:target"] ?? DEFAULT_TARGET;
 
         if (this.client.getRouter() === null) {
             try {
@@ -114,8 +112,8 @@ export default class NetconfClient implements ProtocolClient {
         const port = parseInt(url.port);
         const xpathQuery = url.pathname;
         const method = this.methodFromForm(form, "RPC");
-        let NSs = form["nc:NSs"] || {};
-        const target = form["nc:target"] || DEFAULT_TARGET;
+        let NSs = form["nc:NSs"] ?? {};
+        const target = form["nc:target"] ?? DEFAULT_TARGET;
         let result: string;
 
         if (this.client.getRouter() === null) {

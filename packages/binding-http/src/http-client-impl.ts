@@ -148,51 +148,44 @@ export default class HttpClient implements ProtocolClient {
         debug(`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
     }
 
-    public subscribeResource(
+    public async subscribeResource(
         form: HttpForm,
         next: (value: Content) => void,
         error?: (error: Error) => void,
         complete?: () => void
     ): Promise<Subscription> {
-        return new Promise<Subscription>((resolve, reject) => {
-            let internalSubscription: InternalSubscription;
-            if (form.subprotocol === undefined || form.subprotocol === "longpoll") {
-                // longpoll or subprotocol is not defined default is longpoll
-                internalSubscription = new LongPollingSubscription(form, this);
-            } else if (form.subprotocol === "sse") {
-                // server sent events
-                internalSubscription = new SSESubscription(form);
-            } else {
-                reject(new Error(`HttpClient does not support subprotocol ${form.subprotocol}`));
-                return;
-            }
+        const defaultSubprotocol = "longpoll";
+        const subprotocol = form.subprotocol ?? defaultSubprotocol;
 
-            internalSubscription
-                .open(next, error, complete)
-                .then(() => {
-                    this.activeSubscriptions.set(form.href, internalSubscription);
-                    resolve(
-                        new Subscription(() => {
-                            internalSubscription.close();
-                        })
-                    );
-                })
-                .catch((err) => reject(err));
+        let internalSubscription: InternalSubscription;
+        if (subprotocol === defaultSubprotocol) {
+            internalSubscription = new LongPollingSubscription(form, this);
+        } else if (form.subprotocol === "sse") {
+            // server sent events
+            internalSubscription = new SSESubscription(form);
+        } else {
+            throw new Error(`HttpClient does not support subprotocol ${form.subprotocol}`);
+        }
+
+        await internalSubscription.open(next, error, complete);
+        this.activeSubscriptions.set(form.href, internalSubscription);
+        return new Subscription(() => {
+            internalSubscription.close();
         });
     }
 
     public async invokeResource(form: HttpForm, content?: Content): Promise<Content> {
-        const headers = content ? [["content-type", content.type]] : [];
+        const headers = content != null ? [["content-type", content.type]] : [];
 
         const request = await this.generateFetchRequest(form, "POST", {
-            headers: headers,
+            headers,
             body: content?.body,
         });
 
         debug(
             `HttpClient (invokeResource) sending ${request.method} ${
-                content ? "with '" + request.headers.get("Content-Type") + "' " : " "
-            }to ${request.url}`
+                content != null ? `with '"${request.headers.get("Content-Type")}"` : ""
+            } to ${request.url}`
         );
 
         const result = await this.fetch(request);
@@ -225,7 +218,7 @@ export default class HttpClient implements ProtocolClient {
 
     public async stop(): Promise<void> {
         // When running in browser mode, Agent.destroy() might not exist.
-        if (this.agent && this.agent.destroy) this.agent.destroy();
+        this.agent?.destroy?.();
     }
 
     public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: unknown): boolean {
@@ -287,7 +280,7 @@ export default class HttpClient implements ProtocolClient {
                 return false;
         }
 
-        if (security.proxy) {
+        if (security.proxy != null) {
             if (this.proxyRequest !== null) {
                 debug(`HttpClient overriding client-side proxy with security proxy '${security.proxy}`);
             }

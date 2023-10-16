@@ -21,7 +21,6 @@ import { suite, test } from "@testdeck/mocha";
 import chai, { expect, should } from "chai";
 
 import * as http from "http";
-import { AddressInfo } from "net";
 
 import { Content, DefaultContent, ContentSerdes, createLoggers, ProtocolServer } from "@node-wot/core";
 
@@ -96,29 +95,32 @@ class TestHttpServer implements ProtocolServer {
 
     /** returns server port number and indicates that server is running when larger than -1  */
     public getPort(): number {
-        if (this.server.address() && typeof this.server.address() === "object") {
-            return (<AddressInfo>this.server.address()).port;
-        } else {
-            // includes address() typeof "string" case, which is only for unix sockets
+        const address = this.server?.address();
+
+        if (typeof address === "object") {
+            return address?.port ?? -1;
+        }
+
+        const port = parseInt(address);
+
+        if (isNaN(port)) {
             return -1;
         }
+
+        return port;
     }
 
-    public expose(thing: unknown): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            resolve();
-        });
-    }
+    public async expose(thing: unknown): Promise<void> {}
 
-    public destroy(thingId: string): Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => {
-            resolve(false);
-        });
+    public async destroy(thingId: string): Promise<boolean> {
+        return false;
     }
 
     public setTestVector(vector: TestVector) {
-        if (!vector.op) throw new Error("No vector op given");
-        if (!vector.form["htv:methodName"]) {
+        if (vector.op == null) {
+            throw new Error("No vector op given");
+        }
+        if (vector.form["htv:methodName"] == null) {
             // TODO also check all array entries
             switch (vector.op[0]) {
                 case "readproperty":

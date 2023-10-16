@@ -39,10 +39,11 @@ const thingDescription = {
 ```
 
 ```javascript
-// examples/src/opcua/dempo-opcua1.ts
+// examples/src/opcua/demo-opcua1.ts
 import { Servient } from "@node-wot/core";
 import { OPCUAClientFactory } from "@node-wot/binding-opcua";
 
+import { thingDescription } from "./demo-opcua-thing-description";
 (async () => {
     const servient = new Servient();
     servient.addClientFactory(new OPCUAClientFactory());
@@ -51,9 +52,11 @@ import { OPCUAClientFactory } from "@node-wot/binding-opcua";
     const thing = await wot.consume(thingDescription);
 
     const content = await thing.readProperty("pumpSpeed");
-    const json = (await content.value()).valueOf();
+    const pumpSpeed = await content.value();
 
-    console.log("Pump Speed is", json);
+    console.log("------------------------------");
+    console.log("Pump Speed is : ", pumpSpeed, "m/s");
+    console.log("------------------------------");
 
     await servient.shutdown();
 })();

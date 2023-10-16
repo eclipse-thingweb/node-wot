@@ -22,8 +22,6 @@ import * as http from "http";
 import * as https from "https";
 import bauth from "basic-auth";
 
-import { AddressInfo } from "net";
-
 import * as TD from "@node-wot/td-tools";
 import Servient, {
     ProtocolServer,
@@ -62,14 +60,14 @@ export default class HttpServer implements ProtocolServer {
     // private readonly OPTIONS_URI_VARIABLES ='uriVariables';
     // private readonly OPTIONS_BODY_VARIABLES ='body';
 
-    private readonly port: number = 8080;
-    private readonly address?: string = undefined;
-    private readonly baseUri?: string = undefined;
-    private readonly urlRewrite?: Record<string, string> = undefined;
+    private readonly port: number;
+    private readonly address?: string;
+    private readonly baseUri?: string;
+    private readonly urlRewrite?: Record<string, string>;
     private readonly supportedSecuritySchemes: string[] = ["nosec"];
     private readonly validOAuthClients: RegExp = /.*/g;
     private readonly server: http.Server | https.Server;
-    private readonly middleware: MiddlewareRequestHandler | null = null;
+    private readonly middleware?: MiddlewareRequestHandler;
     private readonly things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
     private servient: Servient | null = null;
     private oAuthValidator?: Validator = undefined;
@@ -80,33 +78,11 @@ export default class HttpServer implements ProtocolServer {
             throw new Error(`HttpServer requires config object (got ${typeof config})`);
         }
 
-        if (config.port !== undefined) {
-            this.port = config.port;
-        }
-
-        const environmentObj = ["WOT_PORT", "PORT"]
-            .map((envVar) => {
-                return { key: envVar, value: process.env[envVar] };
-            })
-            .find((envObj) => envObj.value != null && envObj.value !== undefined) as { key: string; value: string };
-
-        if (environmentObj) {
-            info(`HttpServer Port Overridden to ${environmentObj.value} by Environment Variable ${environmentObj.key}`);
-            this.port = parseInt(environmentObj.value);
-        }
-
-        if (config.address !== undefined) {
-            this.address = config.address;
-        }
-        if (config.baseUri !== undefined) {
-            this.baseUri = config.baseUri;
-        }
-        if (config.urlRewrite !== undefined) {
-            this.urlRewrite = config.urlRewrite;
-        }
-        if (config.middleware !== undefined) {
-            this.middleware = config.middleware;
-        }
+        this.port = this.obtainEnvironmentPortNumber() ?? config.port ?? 8080;
+        this.address = config.address;
+        this.baseUri = config.baseUri;
+        this.urlRewrite = config.urlRewrite;
+        this.middleware = config.middleware;
 
         const router = Router({
             ignoreTrailingSlash: true,
@@ -145,7 +121,7 @@ export default class HttpServer implements ProtocolServer {
         this.router.on(["GET", "HEAD", "OPTIONS"], "/:thing/" + this.EVENT_DIR + "/:event", eventRoute);
 
         // TLS
-        if (config.serverKey && config.serverCert) {
+        if (config.serverKey != null && config.serverCert != null) {
             const options: https.ServerOptions = {};
             options.key = fs.readFileSync(config.serverKey);
             options.cert = fs.readFileSync(config.serverCert);
@@ -198,6 +174,28 @@ export default class HttpServer implements ProtocolServer {
                 this.supportedSecuritySchemes.push(securityScheme.scheme);
             }
         }
+    }
+
+    private obtainEnvironmentPortNumber(): number | undefined {
+        for (const portVariable of ["WOT_PORT", "PORT"]) {
+            const environmentValue = process.env[portVariable];
+
+            if (environmentValue == null) {
+                continue;
+            }
+
+            const parsedPort = parseInt(environmentValue);
+
+            if (isNaN(parsedPort)) {
+                debug(`Ignoring environment variable ${portVariable} because it is not an integer.`);
+                continue;
+            }
+
+            info(`HttpServer Port Overridden to ${parsedPort} by Environment Variable ${portVariable}`);
+            return parsedPort;
+        }
+
+        return undefined;
     }
 
     public start(servient: Servient): Promise<void> {
@@ -253,12 +251,19 @@ export default class HttpServer implements ProtocolServer {
 
     /** returns server port number and indicates that server is running when larger than -1  */
     public getPort(): number {
-        if (this.server.address() && typeof this.server.address() === "object") {
-            return (<AddressInfo>this.server.address()).port;
-        } else {
-            // includes address() typeof "string" case, which is only for unix sockets
+        const address = this.server?.address();
+
+        if (typeof address === "object") {
+            return address?.port ?? -1;
+        }
+
+        const port = parseInt(address);
+
+        if (isNaN(port)) {
             return -1;
         }
+
+        return port;
     }
 
     public async expose(thing: ExposedThing, tdTemplate: WoT.ExposedThingInit = {}): Promise<void> {
@@ -295,32 +300,28 @@ export default class HttpServer implements ProtocolServer {
         }
     }
 
-    public destroy(thingId: string): Promise<boolean> {
+    public async destroy(thingId: string): Promise<boolean> {
         debug(`HttpServer on port ${this.getPort()} destroying thingId '${thingId}'`);
-        return new Promise<boolean>((resolve, reject) => {
-            let removedThing: ExposedThing | undefined;
-            for (const name of Array.from(this.things.keys())) {
-                const expThing = this.things.get(name);
-                if (expThing?.id === thingId) {
-                    this.things.delete(name);
-                    removedThing = expThing;
-                }
+
+        for (const [name, thing] of this.things.entries()) {
+            if (thing.id === thingId) {
+                this.things.delete(name);
+                info(`HttpServer successfully destroyed '${thing.title}'`);
+
+                return true;
             }
-            if (removedThing) {
-                info(`HttpServer successfully destroyed '${removedThing.title}'`);
-            } else {
-                info(`HttpServer failed to destroy thing with thingId '${thingId}'`);
-            }
-            resolve(removedThing !== undefined);
-        });
+        }
+
+        info(`HttpServer failed to destroy thing with thingId '${thingId}'`);
+        return false;
     }
 
     private addUrlRewriteEndpoints(form: TD.Form, forms: Array<TD.Form>): void {
-        if (this.urlRewrite) {
-            for (const inUri in this.urlRewrite) {
-                const toUri = this.urlRewrite[inUri];
-                if (form.href.endsWith(toUri)) {
-                    const form2: TD.Form = JSON.parse(JSON.stringify(form)); // deep copy
+        if (this.urlRewrite != null) {
+            for (const [inUri, toUri] of Object.entries(this.urlRewrite)) {
+                const endsWithToUri: boolean = form.href.endsWith(toUri);
+                if (endsWithToUri) {
+                    const form2 = structuredClone(form);
                     form2.href = form2.href.substring(0, form.href.lastIndexOf(toUri)) + inUri;
                     forms.push(form2);
                     debug(`HttpServer on port ${this.getPort()} assigns urlRewrite '${form2.href}' for '${form.href}'`);
@@ -331,19 +332,24 @@ export default class HttpServer implements ProtocolServer {
 
     public addEndpoint(thing: ExposedThing, tdTemplate: WoT.ExposedThingInit, base: string): void {
         for (const type of ContentSerdes.get().getOfferedMediaTypes()) {
+            const properties = Object.values(thing.properties);
+
             let allReadOnly = true;
             let allWriteOnly = true;
-            let anyProperties = false;
-            for (const propertyName in thing.properties) {
-                anyProperties = true;
-                if (!thing.properties[propertyName].readOnly) {
+
+            for (const property of properties) {
+                const readOnly: boolean = property.readOnly ?? false;
+                if (!readOnly) {
                     allReadOnly = false;
                 }
-                if (!thing.properties[propertyName].writeOnly) {
+
+                const writeOnly: boolean = property.writeOnly ?? false;
+                if (!writeOnly) {
                     allWriteOnly = false;
                 }
             }
-            if (anyProperties) {
+
+            if (properties.length > 0) {
                 const href = base + "/" + this.PROPERTY_DIR;
                 const form = new TD.Form(href, type);
                 if (allReadOnly && !allWriteOnly) {
@@ -358,17 +364,17 @@ export default class HttpServer implements ProtocolServer {
                         "writemultipleproperties",
                     ];
                 }
-                if (!thing.forms) {
+                if (thing.forms == null) {
                     thing.forms = [];
                 }
                 thing.forms.push(form);
                 this.addUrlRewriteEndpoints(form, thing.forms);
             }
 
-            for (const propertyName in thing.properties) {
+            for (const [propertyName, property] of Object.entries(thing.properties)) {
                 const propertyNamePattern = Helpers.updateInteractionNameWithUriVariablePattern(
                     propertyName,
-                    thing.properties[propertyName].uriVariables,
+                    property.uriVariables,
                     thing.uriVariables
                 );
                 const href = base + "/" + this.PROPERTY_DIR + "/" + propertyNamePattern;
@@ -377,28 +383,28 @@ export default class HttpServer implements ProtocolServer {
                     form,
                     (tdTemplate.properties?.[propertyName] ?? {}) as PropertyElement
                 );
-                if (thing.properties[propertyName].readOnly) {
+
+                const readOnly: boolean = property.readOnly ?? false;
+                const writeOnly: boolean = property.writeOnly ?? false;
+
+                if (readOnly) {
                     form.op = ["readproperty"];
                     const hform: HttpForm = form;
-                    if (hform["htv:methodName"] === undefined) {
-                        hform["htv:methodName"] = "GET";
-                    }
-                } else if (thing.properties[propertyName].writeOnly) {
+                    hform["htv:methodName"] ??= "GET";
+                } else if (writeOnly) {
                     form.op = ["writeproperty"];
                     const hform: HttpForm = form;
-                    if (hform["htv:methodName"] === undefined) {
-                        hform["htv:methodName"] = "PUT";
-                    }
+                    hform["htv:methodName"] ??= "PUT";
                 } else {
                     form.op = ["readproperty", "writeproperty"];
                 }
 
-                thing.properties[propertyName].forms.push(form);
+                property.forms.push(form);
                 debug(`HttpServer on port ${this.getPort()} assigns '${href}' to Property '${propertyName}'`);
-                this.addUrlRewriteEndpoints(form, thing.properties[propertyName].forms);
+                this.addUrlRewriteEndpoints(form, property.forms);
 
                 // if property is observable add an additional form with a observable href
-                if (thing.properties[propertyName].observable) {
+                if (property.observable === true) {
                     const href =
                         base +
                         "/" +
@@ -410,18 +416,18 @@ export default class HttpServer implements ProtocolServer {
                     const form = new TD.Form(href, type);
                     form.op = ["observeproperty", "unobserveproperty"];
                     form.subprotocol = "longpoll";
-                    thing.properties[propertyName].forms.push(form);
+                    property.forms.push(form);
                     debug(
                         `HttpServer on port ${this.getPort()} assigns '${href}' to observable Property '${propertyName}'`
                     );
-                    this.addUrlRewriteEndpoints(form, thing.properties[propertyName].forms);
+                    this.addUrlRewriteEndpoints(form, property.forms);
                 }
             }
 
-            for (const actionName in thing.actions) {
+            for (const [actionName, action] of Object.entries(thing.actions)) {
                 const actionNamePattern = Helpers.updateInteractionNameWithUriVariablePattern(
                     actionName,
-                    thing.actions[actionName].uriVariables,
+                    action.uriVariables,
                     thing.uriVariables
                 );
                 const href = base + "/" + this.ACTION_DIR + "/" + actionNamePattern;
@@ -432,18 +438,17 @@ export default class HttpServer implements ProtocolServer {
                 );
                 form.op = ["invokeaction"];
                 const hform: HttpForm = form;
-                if (hform["htv:methodName"] === undefined) {
-                    hform["htv:methodName"] = "POST";
-                }
-                thing.actions[actionName].forms.push(form);
+
+                hform["htv:methodName"] ??= "POST";
+                action.forms.push(form);
                 debug(`HttpServer on port ${this.getPort()} assigns '${href}' to Action '${actionName}'`);
-                this.addUrlRewriteEndpoints(form, thing.actions[actionName].forms);
+                this.addUrlRewriteEndpoints(form, action.forms);
             }
 
-            for (const eventName in thing.events) {
+            for (const [eventName, event] of Object.entries(thing.events)) {
                 const eventNamePattern = Helpers.updateInteractionNameWithUriVariablePattern(
                     eventName,
-                    thing.events[eventName].uriVariables,
+                    event.uriVariables,
                     thing.uriVariables
                 );
                 const href = base + "/" + this.EVENT_DIR + "/" + eventNamePattern;
@@ -454,9 +459,9 @@ export default class HttpServer implements ProtocolServer {
                 );
                 form.subprotocol = "longpoll";
                 form.op = ["subscribeevent", "unsubscribeevent"];
-                thing.events[eventName].forms.push(form);
+                event.forms.push(form);
                 debug(`HttpServer on port ${this.getPort()} assigns '${href}' to Event '${eventName}'`);
-                this.addUrlRewriteEndpoints(form, thing.events[eventName].forms);
+                this.addUrlRewriteEndpoints(form, event.forms);
             }
         }
     }
@@ -479,7 +484,7 @@ export default class HttpServer implements ProtocolServer {
             case "basic": {
                 const basic = bauth(req);
                 if (basic === undefined) return false;
-                if (!credentials || credentials.length === 0) return false;
+                if (credentials == null || credentials.length === 0) return false;
 
                 const basicCredentials = credentials as { username: string; password: string }[];
                 return basicCredentials.some((cred) => basic.name === cred.username && basic.pass === cred.password);
@@ -514,7 +519,7 @@ export default class HttpServer implements ProtocolServer {
                 const auth = req.headers.authorization.split(" ");
 
                 if (auth.length !== 2 || auth[0] !== "Bearer") return false;
-                if (!credentials || credentials.length === 0) return false;
+                if (credentials == null || credentials.length === 0) return false;
 
                 const bearerCredentials = credentials as { token: string }[];
                 return bearerCredentials.some((cred) => cred.token === auth[1]);
@@ -526,14 +531,14 @@ export default class HttpServer implements ProtocolServer {
 
     private fillSecurityScheme(thing: ExposedThing) {
         // User selected one security scheme
-        if (thing.security) {
+        if (thing.security.length > 0) {
             // multiple security schemes are deprecated we are not supporting them
             const securityScheme = Helpers.toStringArray(thing.security)[0];
             const secCandidate = Object.keys(thing.securityDefinitions).find((key) => {
                 return key === securityScheme;
             });
 
-            if (!secCandidate) {
+            if (secCandidate == null) {
                 throw new Error(
                     "Security scheme not found in thing security definitions. Thing security definitions: " +
                         Object.keys(thing.securityDefinitions).join(", ")
@@ -545,7 +550,7 @@ export default class HttpServer implements ProtocolServer {
                 return thingScheme === supportedScheme.toLocaleLowerCase();
             });
 
-            if (!isSupported) {
+            if (isSupported == null) {
                 throw new Error(
                     "Servient does not support thing security schemes. Current scheme supported: " +
                         this.supportedSecuritySchemes.join(", ")
@@ -555,8 +560,9 @@ export default class HttpServer implements ProtocolServer {
             return;
         }
 
-        // The user let the servient choose the security scheme
-        if (!thing.securityDefinitions || Object.keys(thing.securityDefinitions).length === 0) {
+        // The security array is empty – the user lets the servient choose the
+        // security scheme.
+        if (Object.keys(thing.securityDefinitions ?? {}).length === 0) {
             // We are using the first supported security scheme as default
             thing.securityDefinitions = {
                 [this.supportedSecuritySchemes[0]]: { scheme: this.supportedSecuritySchemes[0] },
@@ -565,35 +571,33 @@ export default class HttpServer implements ProtocolServer {
             return;
         }
 
-        if (thing.securityDefinitions) {
-            // User provided a bunch of security schemes but no thing.security
-            // we select one for him. We select the first supported scheme.
-            const secCandidate = Object.keys(thing.securityDefinitions).find((key) => {
-                let scheme = thing.securityDefinitions[key].scheme;
-                // HTTP Authentication Scheme for OAuth does not contain the version number
-                // see https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml
-                // remove version number for oauth2 schemes
-                scheme = scheme === "oauth2" ? scheme.split("2")[0] : scheme;
-                return this.supportedSecuritySchemes.includes(scheme.toLocaleLowerCase());
-            });
+        // User provided a bunch of security schemes but no thing.security
+        // we select one for him. We select the first supported scheme.
+        const secCandidate = Object.keys(thing.securityDefinitions).find((key) => {
+            let scheme = thing.securityDefinitions[key].scheme;
+            // HTTP Authentication Scheme for OAuth does not contain the version number
+            // see https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml
+            // remove version number for oauth2 schemes
+            scheme = scheme === "oauth2" ? scheme.split("2")[0] : scheme;
+            return this.supportedSecuritySchemes.includes(scheme.toLocaleLowerCase());
+        });
 
-            if (!secCandidate) {
-                throw new Error(
-                    "Servient does not support any of thing security schemes. Current scheme supported: " +
-                        this.supportedSecuritySchemes.join(",") +
-                        " thing security schemes: " +
-                        Object.values(thing.securityDefinitions)
-                            .map((schemeDef) => schemeDef.scheme)
-                            .join(", ")
-                );
-            }
-
-            const selectedSecurityScheme = thing.securityDefinitions[secCandidate];
-            thing.securityDefinitions = {};
-            thing.securityDefinitions[secCandidate] = selectedSecurityScheme;
-
-            thing.security = [secCandidate];
+        if (secCandidate == null) {
+            throw new Error(
+                "Servient does not support any of thing security schemes. Current scheme supported: " +
+                    this.supportedSecuritySchemes.join(",") +
+                    " thing security schemes: " +
+                    Object.values(thing.securityDefinitions)
+                        .map((schemeDef) => schemeDef.scheme)
+                        .join(", ")
+            );
         }
+
+        const selectedSecurityScheme = thing.securityDefinitions[secCandidate];
+        thing.securityDefinitions = {};
+        thing.securityDefinitions[secCandidate] = selectedSecurityScheme;
+
+        thing.security = [secCandidate];
     }
 
     private async handleRequest(req: http.IncomingMessage, res: http.ServerResponse) {

@@ -21,6 +21,7 @@ import * as TDParser from "../td-parser";
 import debug from "debug";
 import { ThingDescription } from "wot-typescript-definitions";
 import { FormElementBase, PropertyElement } from "wot-thing-model-types";
+import isAbsoluteUrl = require("is-absolute-url");
 const namespace = "node-wot:td-tools:asset-interface-description-util";
 const logDebug = debug(`${namespace}:debug`);
 const logInfo = debug(`${namespace}:info`);
@@ -35,11 +36,6 @@ const logError = debug(`${namespace}:error`);
  */
 
 export class AssetInterfaceDescriptionUtil {
-    /** @deprecated use transformAAS2TD method instead */
-    public transformToTD(aid: string, template?: string, submodelRegex?: string): string {
-        return this.transformAAS2TD(aid, template, submodelRegex);
-    }
-
     /**
      * Transform AAS in JSON format to a WoT ThingDescription (TD)
      *
@@ -185,6 +181,11 @@ export class AssetInterfaceDescriptionUtil {
         };
 
         return JSON.stringify(aidObject);
+    }
+
+    /** @deprecated use transformAAS2TD method instead */
+    public transformToTD(aid: string, template?: string, submodelRegex?: string): string {
+        return this.transformAAS2TD(aid, template, submodelRegex);
     }
 
     /*
@@ -339,19 +340,22 @@ export class AssetInterfaceDescriptionUtil {
                         for (const v of iv.value) {
                             // Binding
                             if (v.idShort === "href") {
-                                if (form.href && form.href.length > 0) {
+                                if (v.value != null && isAbsoluteUrl(v.value)) {
+                                    form.href = v.value;
+                                } else if (form.href && form.href.length > 0) {
                                     form.href = form.href + v.value; // TODO handle leading/trailing slashes
                                 } else {
                                     form.href = v.value;
                                 }
                             } else if (typeof v.idShort === "string" && v.idShort.length > 0) {
-                                // TODO is this still relevant?
                                 // pick *any* value (and possibly override, e.g. contentType)
-                                // TODO Should we add all value's (e.g., dataMapping might be empty array) ?
-                                // if (typeof v.value === "string" ||typeof v.value === "number" || typeof v.value === "boolean") {
                                 if (v.value != null) {
-                                    form[v.idShort] = v.value;
+                                    // Note: AID does not allow idShort to contain values with colon (i.e., ":") --> "_" used instead
+                                    // --> THIS MAY LEAD TO PROBLEMS BUT THAT'S HOW IT IS SPECIFIED
+                                    const tdTerm = (v.idShort as string).replace("_", ":");
+                                    form[tdTerm] = v.value;
                                     // use valueType to convert the string value
+                                    // TODO Should we add/support all value's (e.g., dataMapping might be empty array) ?
                                     if (
                                         v.valueType != null &&
                                         v.valueType.dataObjectType != null &&
@@ -361,7 +365,7 @@ export class AssetInterfaceDescriptionUtil {
                                         // XSD schemaTypes, https://www.w3.org/TR/xmlschema-2/#built-in-datatypes
                                         switch (v.valueType.dataObjectType.name) {
                                             case "boolean":
-                                                form[v.idShort] = form[v.idShort] === "true";
+                                                form[tdTerm] = form[v.value] === "true";
                                                 break;
                                             case "float":
                                             case "double":
@@ -379,7 +383,7 @@ export class AssetInterfaceDescriptionUtil {
                                             case "unsignedShort":
                                             case "unsignedByte":
                                             case "positiveInteger":
-                                                form[v.idShort] = Number(form[v.idShort]);
+                                                form[tdTerm] = Number(form[v.value]);
                                                 break;
                                             // TODO handle more XSD types ?
                                         }
@@ -451,7 +455,7 @@ export class AssetInterfaceDescriptionUtil {
                         logInfo("InterfaceMetadata");
                         if (smValue.value instanceof Array) {
                             for (const interactionValue of smValue.value) {
-                                if (interactionValue.idShort === "Properties") {
+                                if (interactionValue.idShort === "properties") {
                                     if (interactionValue.value instanceof Array) {
                                         for (const iValue of interactionValue.value) {
                                             logInfo("Property: " + iValue.idShort);
@@ -459,13 +463,13 @@ export class AssetInterfaceDescriptionUtil {
                                                 smInformation.properties.set(iValue.idShort, []);
                                             }
                                             const propInter: AASInteraction = {
-                                                endpointMetadata: endpointMetadata,
+                                                endpointMetadata,
                                                 interaction: iValue,
                                             };
                                             smInformation.properties.get(iValue.idShort)?.push(propInter);
                                         }
                                     }
-                                } else if (interactionValue.idShort === "Operations") {
+                                } else if (interactionValue.idShort === "actions") {
                                     if (interactionValue.value instanceof Array) {
                                         for (const iValue of interactionValue.value) {
                                             logInfo("Action: " + iValue.idShort);
@@ -473,13 +477,13 @@ export class AssetInterfaceDescriptionUtil {
                                                 smInformation.actions.set(iValue.idShort, []);
                                             }
                                             const actInter: AASInteraction = {
-                                                endpointMetadata: endpointMetadata,
+                                                endpointMetadata,
                                                 interaction: iValue,
                                             };
                                             smInformation.actions.get(iValue.idShort)?.push(actInter);
                                         }
                                     }
-                                } else if (interactionValue.idShort === "Events") {
+                                } else if (interactionValue.idShort === "events") {
                                     if (interactionValue.value instanceof Array) {
                                         for (const iValue of interactionValue.value) {
                                             logInfo("Event: " + iValue.idShort);
@@ -487,7 +491,7 @@ export class AssetInterfaceDescriptionUtil {
                                                 smInformation.events.set(iValue.idShort, []);
                                             }
                                             const evInter: AASInteraction = {
-                                                endpointMetadata: endpointMetadata,
+                                                endpointMetadata,
                                                 interaction: iValue,
                                             };
                                             smInformation.events.get(iValue.idShort)?.push(evInter);
@@ -833,8 +837,13 @@ export class AssetInterfaceDescriptionUtil {
                         // --> pick the first one that matches protocol (other means in future?)
 
                         // walk over string values like: "href", "contentType", "htv:methodName", ...
-                        for (const formTerm in formElementPicked) {
+                        for (let formTerm in formElementPicked) {
                             const formValue = formElementPicked[formTerm];
+
+                            // Note: AID does not allow idShort to contain values with colon (i.e., ":") --> "_" used instead
+                            // TODO are there more characters we need to deal with?
+                            formTerm = formTerm.replace(":", "_");
+
                             if (typeof formValue === "string") {
                                 propertyForm.push({
                                     idShort: formTerm,
@@ -875,7 +884,7 @@ export class AssetInterfaceDescriptionUtil {
 
                     properties.push({
                         idShort: propertyKey,
-                        description: description,
+                        description,
                         value: propertyValues,
                         modelType: "SubmodelElementCollection",
                     });
@@ -895,19 +904,19 @@ export class AssetInterfaceDescriptionUtil {
         const values: Array<unknown> = [];
         // Properties
         values.push({
-            idShort: "Properties",
+            idShort: "properties",
             value: properties,
             modelType: "SubmodelElementCollection",
         });
         // Actions
         values.push({
-            idShort: "Actions",
+            idShort: "actions",
             value: actions,
             modelType: "SubmodelElementCollection",
         });
         // Events
         values.push({
-            idShort: "Events",
+            idShort: "events",
             value: events,
             modelType: "SubmodelElementCollection",
         });

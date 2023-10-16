@@ -159,7 +159,7 @@ export class ThingModelHelpers {
         }
         return {
             valid: isValid,
-            errors: errors,
+            errors,
         };
     }
 
@@ -613,7 +613,7 @@ export class ThingModelHelpers {
         const regex = "{{.*?}}";
         const modelString = JSON.stringify(model);
         // first check if model needs map
-        let keys: string[] = modelString.match(new RegExp(regex, "g")) || [];
+        let keys: string[] = modelString.match(new RegExp(regex, "g")) ?? [];
         keys = keys.map((el) => el.replace("{{", "").replace("}}", ""));
         let isValid = true;
         let errors;
@@ -632,7 +632,7 @@ export class ThingModelHelpers {
         }
         return {
             valid: isValid,
-            errors: errors,
+            errors,
         };
     }
 

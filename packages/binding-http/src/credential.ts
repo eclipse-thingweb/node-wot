@@ -163,6 +163,18 @@ export interface TuyaCustomBearerCredentialConfiguration {
     secret: string;
 }
 
+interface TokenResponse {
+    success?: boolean;
+    result?: {
+        // eslint-disable-next-line camelcase
+        access_token?: string;
+        // eslint-disable-next-line camelcase
+        refresh_token?: string;
+        // eslint-disable-next-line camelcase
+        expire_time?: number;
+    };
+}
+
 export class TuyaCustomBearer extends Credential {
     protected key: string;
     protected secret: string;
@@ -184,52 +196,68 @@ export class TuyaCustomBearer extends Credential {
             await this.requestAndRefreshToken(isTokenExpired);
 
         const url: string = request.url;
-        const body = request.body ? request.body.read().toString() : "";
-        const headers = this.getHeaders(true, request.headers.raw(), body, url, request.method);
+        const body = request.body?.read().toString();
+        const method = request.method;
+        const headers = this.getHeaders(true, request.headers.raw(), body, url, method);
         Object.assign(headers, request.headers.raw());
-        return new Request(url, { method: request.method, body: body !== "" ? body : undefined, headers: headers });
+        return new Request(url, { method, body: body !== "" ? body : undefined, headers });
     }
 
     protected async requestAndRefreshToken(refresh: boolean): Promise<void> {
-        const headers = this.getHeaders(false, {}, "");
+        const headers = this.getHeaders(false, {});
         const request = {
-            headers: headers,
+            headers,
             method: "GET",
         };
         let url = `${this.baseUri}/token?grant_type=1`;
         if (refresh) {
             url = `${this.baseUri}/token/${this.refreshToken}`;
         }
-        const data = await (await fetch(url, request)).json();
-        if (data.success) {
-            this.token = data.result.access_token;
-            this.refreshToken = data.result.refresh_token;
-            this.expireTime = new Date(Date.now() + data.result.expire_time * 1000);
+        const data: TokenResponse = await (await fetch(url, request)).json();
+        const success = data.success ?? false;
+
+        if (success) {
+            this.token = data.result?.access_token;
+            this.refreshToken = data.result?.refresh_token;
+
+            const expireTime = data.result?.expire_time;
+            if (expireTime != null) {
+                this.expireTime = new Date(Date.now() + expireTime * 1000);
+            }
         } else {
             throw new Error("token fetch failed");
         }
     }
 
-    private getHeaders(NormalRequest: boolean, headers: unknown, body: string, url?: string, method?: string) {
+    private getHeaders(NormalRequest: boolean, headers: unknown, body?: string, url?: string, method?: string) {
         const requestTime = Date.now().toString();
         const replaceUri = this.baseUri.replace("/v1.0", "");
-        const _url = url ? url.replace(`${replaceUri}`, "") : undefined;
+        const _url = url?.replace(replaceUri, "");
         const sign = this.requestSign(NormalRequest, requestTime, body, _url, method);
         return {
             t: requestTime,
             client_id: this.key,
             sign_method: "HMAC-SHA256",
             sign,
-            access_token: this.token || "",
+            access_token: this.token ?? "",
         };
     }
 
-    private requestSign(NormalRequest: boolean, requestTime: string, body: string, path = "", method?: string): string {
-        const bodyHash = crypto.createHash("sha256").update(body).digest("hex");
+    private requestSign(
+        NormalRequest: boolean,
+        requestTime: string,
+        body?: string,
+        path = "",
+        method?: string
+    ): string {
+        const bodyHash = crypto
+            .createHash("sha256")
+            .update(body ?? "")
+            .digest("hex");
         let signUrl = "/v1.0/token?grant_type=1";
         const headerString = "";
         let useToken = "";
-        const _method = method || "GET";
+        const _method = method ?? "GET";
         if (NormalRequest) {
             useToken = this.token ?? "";
             const pathQuery = queryString.parse(path.split("?")[1]);

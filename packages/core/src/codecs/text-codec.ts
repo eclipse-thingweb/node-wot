@@ -23,7 +23,7 @@ export default class TextCodec implements ContentCodec {
     private subMediaType: string;
 
     constructor(subMediaType?: string) {
-        this.subMediaType = !subMediaType ? "text/plain" : subMediaType;
+        this.subMediaType = subMediaType ?? "text/plain";
     }
 
     getMediaType(): string {

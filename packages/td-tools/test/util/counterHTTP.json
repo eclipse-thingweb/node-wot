@@ -149,7 +149,7 @@
                             "embeddedDataSpecifications": [],
                             "value": [
                                 {
-                                    "idShort": "Properties",
+                                    "idShort": "properties",
                                     "semanticId": {
                                         "type": "ExternalReference",
                                         "keys": []
@@ -473,7 +473,7 @@
                                     "modelType": "SubmodelElementCollection"
                                 },
                                 {
-                                    "idShort": "Actions",
+                                    "idShort": "actions",
                                     "semanticId": {
                                         "type": "ExternalReference",
                                         "keys": []
@@ -483,7 +483,7 @@
                                     "modelType": "SubmodelElementCollection"
                                 },
                                 {
-                                    "idShort": "Events",
+                                    "idShort": "events",
                                     "semanticId": {
                                         "type": "ExternalReference",
                                         "keys": []
