@@ -83,8 +83,8 @@ export default class NetconfClient implements ProtocolClient {
         const port = parseInt(url.port);
         const xpathQuery = url.pathname;
         const method = this.methodFromForm(form, "EDIT-CONFIG");
-        let NSs = form["nc:NSs"] || {};
-        const target = form["nc:target"] || DEFAULT_TARGET;
+        let NSs = form["nc:NSs"] ?? {};
+        const target = form["nc:target"] ?? DEFAULT_TARGET;
 
         if (this.client.getRouter() === null) {
             try {
@@ -112,8 +112,8 @@ export default class NetconfClient implements ProtocolClient {
         const port = parseInt(url.port);
         const xpathQuery = url.pathname;
         const method = this.methodFromForm(form, "RPC");
-        let NSs = form["nc:NSs"] || {};
-        const target = form["nc:target"] || DEFAULT_TARGET;
+        let NSs = form["nc:NSs"] ?? {};
+        const target = form["nc:target"] ?? DEFAULT_TARGET;
         let result: string;
 
         if (this.client.getRouter() === null) {

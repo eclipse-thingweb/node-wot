@@ -121,7 +121,7 @@ export function findBasicDataTypeC(
                 return callback(new Error("Internal Error"));
             }
 
-            browseResult.references = browseResult.references || /* istanbul ignore next */ [];
+            browseResult.references = browseResult.references ?? /* istanbul ignore next */ [];
             const baseDataType = browseResult.references[0].nodeId;
             return findBasicDataTypeC(session, baseDataType, callback);
         });
@@ -335,7 +335,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
                 session,
                 form,
                 argumentDefinition,
-                callResult.outputArguments || []
+                callResult.outputArguments ?? []
             );
             return output;
         });
@@ -571,7 +571,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
 
             const { name, dataType, /* description, */ arrayDimensions, valueRank } = argument;
 
-            if (bodyInput[name || "null"] === undefined) {
+            if (bodyInput[name ?? "null"] === undefined) {
                 throw new Error("missing value in bodyInput for argument " + name);
             }
             const basicDataType = await this._findBasicDataType(session, dataType);
@@ -587,7 +587,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
                     : VariantArrayType.Matrix;
 
             const n = (a: unknown) => Buffer.from(JSON.stringify(a));
-            const v = await this._contentToVariant(content2.type, n(bodyInput[name || "null"]), basicDataType);
+            const v = await this._contentToVariant(content2.type, n(bodyInput[name ?? "null"]), basicDataType);
 
             variants.push({
                 dataType: basicDataType,
@@ -607,14 +607,14 @@ export class OPCUAProtocolClient implements ProtocolClient {
     ): Promise<Content> {
         const outputArguments = (argumentDefinition.outputArguments || []) as unknown as Argument[];
 
-        const contentType = form.contentType || "application/json";
+        const contentType = form.contentType ?? "application/json";
 
         const body: Record<string, unknown> = {};
         for (let index = 0; index < outputArguments.length; index++) {
             const argument = outputArguments[index];
             const { name } = argument;
             const element = _variantToJSON(outputVariants[index], contentType);
-            body[name || "null"] = element;
+            body[name ?? "null"] = element;
         }
 
         return new Content("application/json", Readable.from(JSON.stringify(body)));

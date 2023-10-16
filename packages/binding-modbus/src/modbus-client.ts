@@ -171,7 +171,7 @@ export default class ModbusClient implements ProtocolClient {
             debug(`Creating new ModbusConnection for ${hostAndPort}`);
 
             connection = new ModbusConnection(host, port, {
-                connectionTimeout: form["modbus:timeout"] || DEFAULT_TIMEOUT,
+                connectionTimeout: form["modbus:timeout"] ?? DEFAULT_TIMEOUT,
             });
             this._connections.set(hostAndPort, connection);
         } else {
