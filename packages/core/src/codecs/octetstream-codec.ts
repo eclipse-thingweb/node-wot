@@ -92,8 +92,6 @@ export default class OctetstreamCodec implements ContentCodec {
             }
         }
 
-        console.log(bytes, dataType, dataLength, signed, bigEndian, offset)
-
         if (dataLength > bytes.length * 8 - offset) {
             throw new Error(`'ex:bitLength' is ${dataLength}, but buffer length at offset ${offset} is ${bytes.length * 8 - offset}`);
         }
