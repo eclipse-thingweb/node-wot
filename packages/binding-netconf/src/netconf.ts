@@ -34,6 +34,8 @@ export interface NetConfCredentials {
 }
 
 export function isRpcMethod(method?: string): method is RpcMethod {
-    if (!method) return false;
+    if (method == null) {
+        return false;
+    }
     return ["GET-CONFIG", "EDIT-CONFIG", "COMMIT", "RPC"].includes(method);
 }

@@ -65,7 +65,7 @@ export default class WebSocketServer implements ProtocolServer {
             }
 
             // TLS
-            if (config.serverKey && config.serverCert) {
+            if (config.serverKey != null && config.serverCert != null) {
                 const options = {
                     key: fs.readFileSync(config.serverKey),
                     cert: fs.readFileSync(config.serverCert),
@@ -90,7 +90,7 @@ export default class WebSocketServer implements ProtocolServer {
 
                 const socketServer = this.socketServers[pathname];
 
-                if (socketServer) {
+                if (socketServer != null) {
                     socketServer.handleUpgrade(request, socket as net.Socket /* fix me */, head, (ws) => {
                         socketServer.emit("connection", ws, request);
                     });
@@ -139,7 +139,7 @@ export default class WebSocketServer implements ProtocolServer {
     }
 
     public getPort(): number {
-        if (this.httpServer.address() && typeof this.httpServer.address() === "object") {
+        if (this.httpServer.address() != null && typeof this.httpServer.address() === "object") {
             return (<AddressInfo>this.httpServer.address()).port;
         } else {
             // includes typeof "string" case, which is only for unix sockets
@@ -177,10 +177,14 @@ export default class WebSocketServer implements ProtocolServer {
                     const href = `${this.scheme}://${address}:${this.getPort()}${path}`;
                     const form = new TD.Form(href, ContentSerdes.DEFAULT);
                     const ops = [];
-                    if (!property.writeOnly) {
+
+                    const writeOnly: boolean = property.writeOnly ?? false;
+                    const readOnly: boolean = property.readOnly ?? false;
+
+                    if (!writeOnly) {
                         ops.push("readproperty", "observeproperty", "unobserveproperty");
                     }
-                    if (!property.readOnly) {
+                    if (!readOnly) {
                         ops.push("writeproperty");
                     }
                     form.op = ops;
@@ -205,7 +209,8 @@ export default class WebSocketServer implements ProtocolServer {
                         }
                     };
 
-                    if (!property.writeOnly) {
+                    const writeOnly: boolean = property.writeOnly ?? false;
+                    if (writeOnly) {
                         for (let formIndex = 0; formIndex < thing.properties[propertyName].forms.length; formIndex++) {
                             thing
                                 .handleObserveProperty(propertyName, observeListener, { formIndex })
