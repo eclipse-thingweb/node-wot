@@ -340,7 +340,7 @@ const runScripts = async function (servient: DefaultServient, scripts: Array<str
         });
     } else {
         // Activate inspector only if is not already opened and don't wait
-        debug != null && inspector.url() != null && inspector.open(debug.port, debug.host, false);
+        debug != null && inspector.url() == null && inspector.open(debug.port, debug.host, false);
         launchScripts(scripts);
     }
 };
