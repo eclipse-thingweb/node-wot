@@ -98,7 +98,8 @@ export default class DefaultServient extends Servient {
 
         // apply flags
         if (clientOnly) {
-            this.config.servient ??= { clientOnly };
+            this.config.servient ??= {};
+            this.config.servient.clientOnly = true;
         }
 
         // set log level before any output
