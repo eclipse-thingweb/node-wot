@@ -311,7 +311,7 @@ const runScripts = async function (servient: DefaultServient, scripts: Array<str
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     if (debug && debug.shouldBreak) {
         // Activate inspector only if is not already opened and wait for the debugger to attach
-        inspector.url() != null && inspector.open(debug.port, debug.host, true);
+        inspector.url() == null && inspector.open(debug.port, debug.host, true);
 
         // Set a breakpoint at the first line of of first script
         // the breakpoint gives time to inspector clients to set their breakpoints
