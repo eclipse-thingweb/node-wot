@@ -340,12 +340,22 @@ export class AssetInterfaceDescriptionUtil {
                         for (const v of iv.value) {
                             // Binding
                             if (v.idShort === "href") {
-                                if (v.value != null && isAbsoluteUrl(v.value)) {
-                                    form.href = v.value;
-                                } else if (form.href && form.href.length > 0) {
-                                    form.href = form.href + v.value; // TODO handle leading/trailing slashes
-                                } else {
-                                    form.href = v.value;
+                                if (v.value != null) {
+                                    const hrefValue: string = v.value;
+                                    if (isAbsoluteUrl(hrefValue)) {
+                                        form.href = hrefValue;
+                                    } else if (form.href && form.href.length > 0) {
+                                        // handle leading/trailing slashes
+                                        if (form.href.endsWith("/") && hrefValue.startsWith("/")) {
+                                            form.href = form.href + hrefValue.substring(1);
+                                        } else if (!form.href.endsWith("/") && !hrefValue.startsWith("/")) {
+                                            form.href = form.href + "/" + hrefValue;
+                                        } else {
+                                            form.href = form.href + hrefValue;
+                                        }
+                                    } else {
+                                        form.href = hrefValue;
+                                    }
                                 }
                             } else if (typeof v.idShort === "string" && v.idShort.length > 0) {
                                 // pick *any* value (and possibly override, e.g. contentType)
@@ -632,6 +642,39 @@ export class AssetInterfaceDescriptionUtil {
                                         thing.properties[key].readOnly = interactionValue.value === "true";
                                     } else if (interactionValue.idShort === "writeOnly") {
                                         thing.properties[key].writeOnly = interactionValue.value === "true";
+                                    } else if (interactionValue.idShort === "min_max") {
+                                        // special treatment
+                                        if (thing.properties[key].type == null) {
+                                            thing.properties[key].type = "number";
+                                        }
+                                        if (interactionValue.min != null) {
+                                            thing.properties[key].minimum = Number(interactionValue.min);
+                                        }
+                                        if (interactionValue.max != null) {
+                                            thing.properties[key].maximum = Number(interactionValue.max);
+                                        }
+                                    } else if (interactionValue.idShort === "itemsRange") {
+                                        // special treatment
+                                        if (thing.properties[key].type == null) {
+                                            thing.properties[key].type = "array";
+                                        }
+                                        if (interactionValue.min != null) {
+                                            thing.properties[key].minItems = Number(interactionValue.min);
+                                        }
+                                        if (interactionValue.max != null) {
+                                            thing.properties[key].maxItems = Number(interactionValue.max);
+                                        }
+                                    } else if (interactionValue.idShort === "lengthRange") {
+                                        // special treatment
+                                        if (thing.properties[key].type == null) {
+                                            thing.properties[key].type = "string";
+                                        }
+                                        if (interactionValue.min != null) {
+                                            thing.properties[key].minLength = Number(interactionValue.min);
+                                        }
+                                        if (interactionValue.max != null) {
+                                            thing.properties[key].maxLength = Number(interactionValue.max);
+                                        }
                                     } else if (interactionValue.idShort === "forms") {
                                         // will be handled below
                                     } else {
@@ -807,6 +850,49 @@ export class AssetInterfaceDescriptionUtil {
                             value: propertyValue.type,
                             modelType: "Property",
                         });
+                        // special AID treatment
+                        if (propertyValue.minimum != null || propertyValue.maximum != null) {
+                            const minMax: { [k: string]: unknown } = {
+                                idShort: "min_max",
+                                valueType: "xs:integer",
+                                modelType: "Range",
+                            };
+                            if (propertyValue.minimum != null) {
+                                minMax.min = propertyValue.minimum.toString();
+                            }
+                            if (propertyValue.maximum != null) {
+                                minMax.max = propertyValue.maximum.toString();
+                            }
+                            propertyValues.push(minMax);
+                        }
+                        if (propertyValue.minItems != null || propertyValue.maxItems != null) {
+                            const itemsRange: { [k: string]: unknown } = {
+                                idShort: "itemsRange",
+                                valueType: "xs:integer",
+                                modelType: "Range",
+                            };
+                            if (propertyValue.minItems != null) {
+                                itemsRange.min = propertyValue.minItems.toString();
+                            }
+                            if (propertyValue.maxItems != null) {
+                                itemsRange.max = propertyValue.maxItems.toString();
+                            }
+                            propertyValues.push(itemsRange);
+                        }
+                        if (propertyValue.minLength != null || propertyValue.maxLength != null) {
+                            const lengthRange: { [k: string]: unknown } = {
+                                idShort: "lengthRange",
+                                valueType: "xs:integer",
+                                modelType: "Range",
+                            };
+                            if (propertyValue.minLength != null) {
+                                lengthRange.min = propertyValue.minLength.toString();
+                            }
+                            if (propertyValue.maxLength != null) {
+                                lengthRange.max = propertyValue.maxLength.toString();
+                            }
+                            propertyValues.push(lengthRange);
+                        }
                     }
                     // title
                     if (propertyValue.title != null) {
