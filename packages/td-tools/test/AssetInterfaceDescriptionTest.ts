@@ -405,6 +405,8 @@ class AssetInterfaceDescriptionUtilTest {
                                         hasMinMax = true;
                                         expect(propProperty.min).to.equal("0");
                                         expect(propProperty.max).to.equal("100");
+                                        expect(propProperty.valueType).to.equal("xs:integer");
+                                        expect(propProperty.modelType).to.equal("Range");
                                     } else if (propProperty.idShort === "forms") {
                                         hasForms = true;
                                         expect(propProperty)

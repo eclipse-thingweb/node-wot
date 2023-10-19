@@ -854,7 +854,8 @@ export class AssetInterfaceDescriptionUtil {
                         if (propertyValue.minimum != null || propertyValue.maximum != null) {
                             const minMax: { [k: string]: unknown } = {
                                 idShort: "min_max",
-                                valueType: "xs:integer",
+                                valueType:
+                                    "integer".localeCompare(propertyValue.type) === 0 ? "xs:integer" : "xs:double",
                                 modelType: "Range",
                             };
                             if (propertyValue.minimum != null) {
