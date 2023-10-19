@@ -34,6 +34,7 @@ jobs:
 
             - name: Test with coverage report
               run: npm run coverage:only
+              timeout-minutes: 10
 
             - name: Upload to codecov.io
               uses: codecov/codecov-action@v2
