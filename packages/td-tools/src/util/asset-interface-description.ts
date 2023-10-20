@@ -904,8 +904,8 @@ export class AssetInterfaceDescriptionUtil {
                             modelType: "Property",
                         });
                     }
-                    // observable
-                    if (propertyValue.observable != null) {
+                    // observable (if it deviates from the default == false only)
+                    if (propertyValue.observable != null && propertyValue.observable === true) {
                         propertyValues.push({
                             idShort: "observable",
                             valueType: "xs:boolean",
