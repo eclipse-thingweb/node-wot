@@ -341,6 +341,7 @@ class AssetInterfaceDescriptionUtilTest {
                                         expect(propProperty.value).to.equal("string");
                                     } else if (propProperty.idShort === "title") {
                                         hasTitle = true;
+                                        expect(propProperty.value).to.equal("Device name");
                                     } else if (propProperty.idShort === "observable") {
                                         hasObservable = true;
                                     } else if (propProperty.idShort === "forms") {
