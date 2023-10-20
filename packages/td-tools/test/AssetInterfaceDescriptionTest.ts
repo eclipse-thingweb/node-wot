@@ -333,6 +333,7 @@ class AssetInterfaceDescriptionUtilTest {
                                     .to.have.lengthOf.greaterThan(0);
                                 let hasType = false;
                                 let hasTitle = false;
+                                let hasObservable = false;
                                 let hasForms = false;
                                 for (const propProperty of propertyValue.value) {
                                     if (propProperty.idShort === "type") {
@@ -341,6 +342,8 @@ class AssetInterfaceDescriptionUtilTest {
                                     } else if (propProperty.idShort === "title") {
                                         hasTitle = true;
                                         expect(propProperty.value).to.equal("Device name");
+                                    } else if (propProperty.idShort === "observable") {
+                                        hasObservable = true;
                                     } else if (propProperty.idShort === "forms") {
                                         hasForms = true;
                                         expect(propProperty)
@@ -383,6 +386,7 @@ class AssetInterfaceDescriptionUtilTest {
                                 }
                                 expect(hasType).to.equal(true);
                                 expect(hasTitle).to.equal(true);
+                                expect(hasObservable).to.equal(false); // it is default only
                                 expect(hasForms).to.equal(true);
                             } else if (propertyValue.idShort === "soc") {
                                 hasPropertySOC = true;
