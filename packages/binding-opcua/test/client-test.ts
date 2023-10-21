@@ -108,7 +108,7 @@ describe("OPCUA Client", function () {
             const dataValue = codecSerDes.contentToValue(content2, schemaDataValue) as Record<string, unknown>;
 
             // (deal with always changing date )
-            if (dataValue.SourceTimestamp) {
+            if (dataValue.SourceTimestamp != null) {
                 expect(dataValue.SourceTimestamp).to.be.instanceOf(Date);
                 dataValue.SourceTimestamp = "*";
             }

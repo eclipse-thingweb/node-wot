@@ -112,7 +112,7 @@ export async function startServer(): Promise<OPCUAServer> {
     temperatureSetPoint.setValueFromSource({ dataType: DataType.Double, value: 27.0 });
 
     const methodSet = mySensor.getComponentByName("MethodSet", nsDI) as UAObject;
-    if (!methodSet) {
+    if (methodSet == null) {
         throw new Error("cannot find MethodSet");
     }
     const method = namespace.addMethod(methodSet, {

@@ -76,7 +76,7 @@ describe("MQTT client implementation", () => {
                                 if (!eventReceived) {
                                     eventReceived = true;
                                 } else {
-                                    if (!x.data) {
+                                    if (x.data == null) {
                                         done(new Error("No data received"));
                                         return;
                                     }
@@ -138,7 +138,7 @@ describe("MQTT client implementation", () => {
                                 if (!eventReceived) {
                                     eventReceived = true;
                                 } else {
-                                    if (!x.data) {
+                                    if (x.data == null) {
                                         done(new Error("No data received"));
                                         return;
                                     }

@@ -77,8 +77,9 @@ export class Client {
             username: credentials.username,
             password: credentials?.password,
         };
-        if (credentials.privateKey) {
-            this.routerParams.pkey = await fsPromises.readFile(credentials.privateKey, { encoding: "utf8" });
+        const privateKey = credentials?.privateKey;
+        if (privateKey != null) {
+            this.routerParams.pkey = await fsPromises.readFile(privateKey, { encoding: "utf8" });
         }
     }
 
@@ -96,7 +97,7 @@ export class Client {
 
             this.router = new nodeNetconf.Client(this.routerParams);
             this.router.open((err?: string) => {
-                if (err) {
+                if (err != null) {
                     reject(err);
                 } else {
                     debug(
@@ -117,7 +118,7 @@ export class Client {
         payload?: unknown
     ): Promise<unknown> {
         return new Promise((resolve, reject) => {
-            if (payload) {
+            if (payload != null) {
                 xpathQuery = xpath2json.addLeaves(xpathQuery, payload);
             }
             const objRequest = xpath2json.xpath2json(xpathQuery, NSs);

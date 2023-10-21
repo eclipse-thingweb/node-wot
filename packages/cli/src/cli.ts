@@ -28,6 +28,7 @@ import ConfigSchema from "./wot-servient-schema.conf.json";
 import _ from "lodash";
 import { version } from "@node-wot/core/package.json";
 import { createLoggers } from "@node-wot/core";
+import inspector from "inspector";
 
 const { error, info, warn } = createLoggers("cli", "cli");
 
@@ -212,7 +213,8 @@ const args = program.args;
 
 // .env parsing
 const env: dotenv.DotenvConfigOutput = dotenv.config();
-if (env.error && (env.error as ErrnoException).code && (env.error as ErrnoException).code !== "ENOENT") {
+const errorNoException: ErrnoException | undefined = env.error;
+if (errorNoException?.code !== "ENOENT") {
     throw env.error;
 } else if (env.parsed) {
     for (const [key, value] of Object.entries(env.parsed)) {
@@ -225,7 +227,7 @@ if (env.error && (env.error as ErrnoException).code && (env.error as ErrnoExcept
 
 // Functions
 async function buildConfig(): Promise<unknown> {
-    const fileToOpen = options.configFile || path.join(baseDir, defaultFile);
+    const fileToOpen = options?.configFile ?? path.join(baseDir, defaultFile);
     let configFileData = {};
 
     // JSON config file
@@ -242,24 +244,24 @@ async function buildConfig(): Promise<unknown> {
     }
 
     // CLI arguments
-    if (options.configParams) {
+    if (options?.configParams != null) {
         configFileData = _.merge(configFileData, options.configParams);
     }
 
     return configFileData;
 }
 const loadCompilerFunction = function (compilerModule: string | undefined) {
-    if (compilerModule) {
+    if (compilerModule != null) {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const compilerMod = require(compilerModule);
 
-        if (!compilerMod.create) {
+        if (compilerMod.create == null) {
             throw new Error("No create function defined for " + compilerModule);
         }
 
         const compilerObject = compilerMod.create();
 
-        if (!compilerObject.compile) {
+        if (compilerObject.compile == null) {
             throw new Error("No compile function defined for create return object");
         }
         return compilerObject.compile;
@@ -269,9 +271,9 @@ const loadCompilerFunction = function (compilerModule: string | undefined) {
 const loadEnvVariables = function () {
     const env: dotenv.DotenvConfigOutput = dotenv.config();
 
+    const errorNoException: ErrnoException | undefined = env.error;
     // ignore file not found but throw otherwise
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (env.error && (env.error as any).code && (env.error as any).code !== "ENOENT") {
+    if (errorNoException?.code !== "ENOENT") {
         throw env.error;
     }
     return env;
@@ -307,17 +309,16 @@ const runScripts = async function (servient: DefaultServient, scripts: Array<str
     };
 
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const inspector = require("inspector");
     if (debug && debug.shouldBreak) {
         // Activate inspector only if is not already opened and wait for the debugger to attach
-        !inspector.url() && inspector.open(debug.port, debug.host, true);
+        inspector.url() == null && inspector.open(debug.port, debug.host, true);
 
         // Set a breakpoint at the first line of of first script
         // the breakpoint gives time to inspector clients to set their breakpoints
         const session = new inspector.Session();
         session.connect();
         session.post("Debugger.enable", (error: Error) => {
-            if (error) {
+            if (error != null) {
                 warn("Cannot set breakpoint; reason: cannot enable debugger");
                 warn(error.toString());
             }
@@ -328,8 +329,8 @@ const runScripts = async function (servient: DefaultServient, scripts: Array<str
                     lineNumber: 0,
                     url: "file:///" + path.resolve(scripts[0]).replace(/\\/g, "/"),
                 },
-                (err: Error) => {
-                    if (err) {
+                (err: Error | null) => {
+                    if (err != null) {
                         warn("Cannot set breakpoint");
                         warn(error.toString());
                     }
@@ -339,7 +340,7 @@ const runScripts = async function (servient: DefaultServient, scripts: Array<str
         });
     } else {
         // Activate inspector only if is not already opened and don't wait
-        debug && !inspector.url() && inspector.open(debug.port, debug.host, false);
+        debug != null && inspector.url() == null && inspector.open(debug.port, debug.host, false);
         launchScripts(scripts);
     }
 };
@@ -370,7 +371,7 @@ buildConfig()
         return new DefaultServient(options.clientOnly, conf);
     })
     .catch((err) => {
-        if (err.code === "ENOENT" && !options.configFile) {
+        if (err.code === "ENOENT" && options.configFile == null) {
             warn(`WoT-Servient using defaults as '${defaultFile}' does not exist`);
             return new DefaultServient(options.clientOnly);
         } else {
@@ -384,9 +385,9 @@ buildConfig()
             .then(() => {
                 if (args.length > 0) {
                     info(`WoT-Servient loading ${args.length} command line script${args.length > 1 ? "s" : ""}`);
-                    return runScripts(servient, args, options.inspect || options.inspectBrk);
+                    return runScripts(servient, args, options.inspect ?? options.inspectBrk);
                 } else {
-                    return runAllScripts(servient, options.inspect || options.inspectBrk);
+                    return runAllScripts(servient, options.inspect ?? options.inspectBrk);
                 }
             })
             .catch((err) => {

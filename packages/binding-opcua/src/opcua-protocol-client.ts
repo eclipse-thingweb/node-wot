@@ -151,7 +151,8 @@ export class OPCUAProtocolClient implements ProtocolClient {
 
     private async _withConnection<T>(form: OPCUAForm, next: (connection: OPCUAConnection) => Promise<T>): Promise<T> {
         const endpoint = form.href;
-        if (!endpoint || !endpoint.match(/^opc.tcp:\/\//)) {
+        const matchesScheme: boolean = endpoint?.match(/^opc.tcp:\/\//) != null;
+        if (!matchesScheme) {
             debug(`invalid opcua:endpoint ${endpoint} specified`);
             throw new Error("Invalid OPCUA endpoint " + endpoint);
         }
@@ -223,7 +224,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
     private async _resolveNodeId2(form: OPCUAForm, fNodeId: NodeIdLike | NodeByBrowsePath): Promise<NodeId> {
         if (fNodeId instanceof NodeId) {
             return fNodeId;
-        } else if ((<NodeByBrowsePath>fNodeId).root) {
+        } else if ((<NodeByBrowsePath>fNodeId).root != null) {
             const f = <NodeByBrowsePath>fNodeId;
             const r: NodeIdLike = f.root;
             const rootNodeId = resolveNodeId(r);
@@ -247,7 +248,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
 
     private async _resolveNodeId(form: OPCUAForm): Promise<NodeId> {
         const fNodeId = form["opcua:nodeId"];
-        if (!fNodeId) {
+        if (fNodeId == null) {
             debug(`resolveNodeId: form = ${form}`);
             throw new Error("form must expose a 'opcua:nodeId'");
         }
@@ -257,7 +258,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
     /** extract the dataType of a variable */
     private async _predictDataType(form: OPCUAForm): Promise<DataType> {
         const fNodeId = form["opcua:nodeId"];
-        if (!fNodeId) {
+        if (fNodeId == null) {
             debug(`resolveNodeId: form = ${form}`);
             throw new Error("form must expose a 'opcua:nodeId'");
         }
@@ -274,7 +275,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
     private async _resolveMethodNodeId(form: OPCUAFormInvoke): Promise<NodeId> {
         //  const objectNode = this._resolveNodeId(form);
         const fNodeId = form["opcua:method"];
-        if (!fNodeId) {
+        if (fNodeId == null) {
             debug(`resolveNodeId: form = ${form}`);
             throw new Error("form must expose a 'opcua:nodeId'");
         }
@@ -521,7 +522,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
     ): Promise<Variant> {
         const contentSerDes = ContentSerdes.get();
 
-        contentType = contentType ? contentType.split(";")[0] : "application/json";
+        contentType = contentType?.split(";")[0] ?? "application/json";
 
         switch (contentType) {
             case "application/json": {
@@ -557,13 +558,13 @@ export class OPCUAProtocolClient implements ProtocolClient {
         content: Content | undefined | null,
         argumentDefinition: ArgumentDefinition
     ): Promise<VariantOptions[]> {
-        if (!content || !content.body) {
+        if (content?.body == null) {
             return [];
         }
         const content2 = { ...content, body: await content.toBuffer() };
         const bodyInput = JSON.parse(content2.body.toString());
 
-        const inputArguments = (argumentDefinition.inputArguments || []) as unknown as Argument[];
+        const inputArguments = (argumentDefinition.inputArguments ?? []) as unknown as Argument[];
 
         const variants: VariantLike[] = [];
         for (let index = 0; index < inputArguments.length; index++) {
@@ -605,7 +606,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
         argumentDefinition: ArgumentDefinition,
         outputVariants: Variant[]
     ): Promise<Content> {
-        const outputArguments = (argumentDefinition.outputArguments || []) as unknown as Argument[];
+        const outputArguments = (argumentDefinition.outputArguments ?? []) as unknown as Argument[];
 
         const contentType = form.contentType ?? "application/json";
 

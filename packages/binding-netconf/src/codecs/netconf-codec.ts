@@ -42,14 +42,14 @@ export default class NetconfCodec {
             const form = leaf.forms[0];
             leaf = form.href.split("/").splice(-1, 1); // take the first one, since there is no difference for the leaf
             leaf = leaf[0].replace(/\[(.*?)\]/g, ""); // clean the leaf from possible values
-            if (!leaf) {
+            if (leaf == null) {
                 throw new Error(`The href specified in TD is missing the leaf node in the Xpath`);
             }
             const url = new Url(form.href);
             const xpathQuery = url.pathname;
             const tree = xpathQuery.split("/").map((value, index) => {
                 const val = value.replace(/\[(.*?)\]/g, "").split(":");
-                return val[1] ? val[1] : val[0];
+                return val[1] ?? val[0];
             });
             let value = reply;
             for (const el of tree) {
@@ -63,12 +63,7 @@ export default class NetconfCodec {
                 throw new Error(`TD is missing the schema type`);
             }
             if (tmpSchema.type === "object") {
-                if (
-                    tmpSchema.properties &&
-                    tmpSchema["xml:container"] &&
-                    tmpSchema.properties.xmlns &&
-                    tmpSchema.properties.xmlns["xml:attribute"]
-                ) {
+                if (tmpSchema["xml:container"] != null && tmpSchema?.properties?.xmlns["xml:attribute"] != null) {
                     // now check if it contains
                     parsed = {};
                     const xmlnsKey = Object.keys(value.$)[0];
@@ -103,7 +98,7 @@ export default class NetconfCodec {
             const NSs = {};
             let leaf = schema.forms[0].href.split("/").splice(-1, 1); // take the first one, since there is no difference for the leaf
             leaf = leaf[0].replace(/\[(.*?)\]/g, ""); // clean the leaf from possible values
-            if (!leaf) {
+            if (leaf == null) {
                 throw new Error(`The href specified in TD is missing the leaf node in the Xpath`);
             }
             const tmpObj = this.getPayloadNamespaces(schema, value, NSs, false, leaf);
@@ -125,7 +120,7 @@ export default class NetconfCodec {
         if (hasNamespace) {
             // expect to have xmlns
             const properties = schema.properties;
-            if (!properties) {
+            if (properties == null) {
                 throw new Error(`Missing "properties" field in TD`);
             }
             let nsFound = false;
@@ -133,18 +128,18 @@ export default class NetconfCodec {
             let value;
             for (const key in properties) {
                 const el = properties[key];
-                if (!payload[key]) {
+                const payloadField = payload[key];
+                if (payloadField == null) {
                     throw new Error(`Payload is missing '${key}' field specified in TD`);
                 }
-                if (el["xml:attribute"] === true && payload[key]) {
+                if (el["xml:attribute"] === true) {
                     // if (el.format && el.format === 'urn')
                     const ns = payload[key];
                     aliasNs = ns.split(":")[ns.split(":").length - 1];
                     namespaces[aliasNs] = payload[key];
                     nsFound = true;
-                } else if (payload[key]) {
-                    value = payload[key];
                 }
+                value = payloadField;
             }
             if (!nsFound) {
                 throw new Error(`Namespace not found in the payload`);
@@ -155,10 +150,10 @@ export default class NetconfCodec {
             return { payload, namespaces }; // return objects
         }
 
-        if (schema && schema.type && schema.type === "object" && schema.properties) {
+        if (schema?.type === "object" && schema.properties != null) {
             // nested object, go down
             let tmpObj: PayloadNamespaces;
-            if (schema.properties && schema["xml:container"]) {
+            if (schema["xml:container"] != null) {
                 // check the root level
                 tmpObj = this.getPayloadNamespaces(schema, payload, namespaces, true, leaf); // root case
             } else {
@@ -171,10 +166,10 @@ export default class NetconfCodec {
 
         // once here schema is properties
         for (const key in schema) {
-            if ((schema[key].type && schema[key].type === "object") || hasNamespace) {
+            if (schema[key]?.type === "object" || hasNamespace) {
                 // go down only if it is a nested object or it has a namespace
                 let tmpHasNamespace = false;
-                if (schema[key].properties && schema[key]["xml:container"]) {
+                if (schema[key]?.properties != null && schema[key]["xml:container"] != null) {
                     tmpHasNamespace = true;
                 }
                 const tmpObj = this.getPayloadNamespaces(schema[key], payload[key], namespaces, tmpHasNamespace, leaf);

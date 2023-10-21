@@ -35,7 +35,7 @@ export default class FileClient implements ProtocolClient {
         const extension = path.extname(filepath[1]);
         debug(`FileClient found '${extension}' extension`);
         let contentType;
-        if (form.contentType) {
+        if (form.contentType != null) {
             contentType = form.contentType;
         } else {
             // *guess* contentType based on file extension

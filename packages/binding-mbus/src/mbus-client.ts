@@ -140,7 +140,7 @@ export default class MBusClient implements ProtocolClient {
             throw new Error("Malformed form: offset must be defined");
         }
 
-        result["mbus:timeout"] = form["mbus:timeout"] ? form["mbus:timeout"] : DEFAULT_TIMEOUT;
+        result["mbus:timeout"] = form["mbus:timeout"] ?? DEFAULT_TIMEOUT;
 
         return result;
     }

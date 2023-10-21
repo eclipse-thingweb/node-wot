@@ -31,7 +31,7 @@ const { debug, error, info } = createLoggers("cli", "cli-default-servient");
 
 // Helper function needed for `mergeConfigs` function
 function isObject(item: unknown) {
-    return item && typeof item === "object" && !Array.isArray(item);
+    return item != null && typeof item === "object" && !Array.isArray(item);
 }
 
 /**
@@ -98,9 +98,7 @@ export default class DefaultServient extends Servient {
 
         // apply flags
         if (clientOnly) {
-            if (!this.config.servient) {
-                this.config.servient = {};
-            }
+            this.config.servient ??= {};
             this.config.servient.clientOnly = true;
         }
 
@@ -111,7 +109,9 @@ export default class DefaultServient extends Servient {
         this.addCredentials(this.config.credentials);
 
         // remove secrets from original for displaying config (already added)
-        if (this.config.credentials) delete this.config.credentials;
+        if (this.config.credentials != null) {
+            delete this.config.credentials;
+        }
 
         // display
         debug("DefaultServient configured with");
@@ -123,8 +123,8 @@ export default class DefaultServient extends Servient {
         }
 
         let coapServer: CoapServer | undefined;
-        if (!this.config.servient.clientOnly) {
-            if (this.config.http) {
+        if (this.config.servient.clientOnly == null) {
+            if (this.config.http != null) {
                 const httpServer = new HttpServer(this.config.http);
                 this.addServer(httpServer);
 
@@ -136,7 +136,7 @@ export default class DefaultServient extends Servient {
                 coapServer = new CoapServer(coapConfig);
                 this.addServer(coapServer);
             }
-            if (this.config.mqtt) {
+            if (this.config.mqtt != null) {
                 const mqttBrokerServer = new MqttBrokerServer({
                     uri: this.config.mqtt.broker,
                     user: typeof this.config.mqtt.username === "string" ? this.config.mqtt.username : undefined,
@@ -250,7 +250,7 @@ export default class DefaultServient extends Servient {
 
     private logScriptError(description: string, err: Error): void {
         let message: string;
-        if (typeof err === "object" && err.stack) {
+        if (typeof err === "object" && err.stack != null) {
             const match = err.stack.match(/evalmachine\.<anonymous>:([0-9]+:[0-9]+)/);
             if (Array.isArray(match)) {
                 message = `and halted at line ${match[1]}\n    ${err}`;

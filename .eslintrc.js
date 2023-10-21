@@ -31,6 +31,7 @@ module.exports = {
         "@typescript-eslint/no-use-before-define": ["error"],
         "@typescript-eslint/prefer-nullish-coalescing": "error",
         "unused-imports/no-unused-imports": "error",
+        "@typescript-eslint/strict-boolean-expressions": "error",
         "unused-imports/no-unused-vars": [
             "warn",
             {

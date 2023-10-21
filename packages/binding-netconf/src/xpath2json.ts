@@ -31,7 +31,7 @@ export function json2xpath(json: any, index: number, str: Array<string>): string
             str.splice(index - 3, 0, ns + ":");
             index++;
             continue;
-        } else if (json[key] && !isPlainObject(json[key])) {
+        } else if (json[key] != null && !isPlainObject(json[key])) {
             // if next child is not an object, final leaf with value
             const val = json[key];
             if (j === 0) {
@@ -85,10 +85,7 @@ export function xpath2json(xpath: string, namespaces: Record<string, string>): R
         if (values) {
             // handle elements with values for leaves
             sub = sub.replace(/\[[^\]]*\]/g, "");
-            if (!tmpObj[sub]) {
-                // create the parent
-                tmpObj[sub] = {};
-            }
+            tmpObj[sub] ??= {};
             for (let j = 0; j < values.length; j++) {
                 let val: string = values[j];
                 val = val.replace(/[[\]']+/g, "");
@@ -129,10 +126,7 @@ export function xpath2json(xpath: string, namespaces: Record<string, string>): R
             tmpObj[sub].$.xmlns = namespaces[nsKey];
         }
 
-        if (!tmpObj[sub]) {
-            tmpObj[sub] = {};
-        }
-        tmpObj[sub] = Object.assign(tmpObj[sub], obj);
+        tmpObj[sub] = Object.assign(tmpObj[sub] ?? {}, obj);
         obj = tmpObj;
     }
     return obj;

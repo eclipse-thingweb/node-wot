@@ -132,15 +132,14 @@ export class MBusConnection {
             this.connecting = true;
 
             for (let retry = 0; retry < this.config.maxRetries; retry++) {
-                if (
-                    this.client.connect((err: string) => {
-                        if (err != null) {
-                            warn(
-                                `Cannot connect to ${this.host}. Reason: ${err}. Retry in ${this.config.connectionRetryTime}ms.`
-                            );
-                        }
-                    })
-                ) {
+                const success: boolean = this.client.connect((err: string) => {
+                    if (err != null) {
+                        warn(
+                            `Cannot connect to ${this.host}. Reason: ${err}. Retry in ${this.config.connectionRetryTime}ms.`
+                        );
+                    }
+                });
+                if (success) {
                     this.connecting = false;
                     this.connected = true;
                     debug(`MBus connected to ${this.host}`);
