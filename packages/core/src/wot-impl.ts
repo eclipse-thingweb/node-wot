@@ -44,19 +44,17 @@ class ThingDiscoveryProcess {
 
     #filter: ThingFilter;
 
-
-
     constructor(filter?: ThingFilter) {
         this.#filter = filter ?? {};
-    };
+    }
 
-    stop(): void  {
+    stop(): void {
         this.#done = true;
     }
 
     // TODO: Implement AsyncIterable
     // async iterable<ThingDescription>;
-  };
+}
 
 export default class WoTImpl {
     private srv: Servient;
