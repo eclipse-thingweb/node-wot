@@ -291,9 +291,9 @@ export default class OctetstreamCodec implements ContentCodec {
                 if (schema === undefined || schema.properties === undefined) {
                     throw new Error("Missing schema for object");
                 }
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 return value === null
                     ? Buffer.alloc(0)
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     : this.valueToObject(value as { [key: string]: any }, schema, bigEndian);
             case "array":
             case "undefined":
@@ -469,8 +469,8 @@ export default class OctetstreamCodec implements ContentCodec {
         }
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private valueToObject(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         value: { [key: string]: any },
         schema: DataSchema,
         bigEndian: boolean,
