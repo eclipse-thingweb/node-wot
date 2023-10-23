@@ -85,78 +85,82 @@ class HodorCodec implements ContentCodec {
 class SerdesOctetTests {
     @test "OctetStream to value"() {
         checkStreamToValue([0x36, 0x30], 13872, "uint16");
-        checkStreamToValue([0x36, 0x30], 13872, "uint16", {byteSeq: Endianness.BIG_ENDIAN});
-        checkStreamToValue([0x30, 0x36], 13872, "uint16", {byteSeq: Endianness.LITTLE_ENDIAN});
+        checkStreamToValue([0x36, 0x30], 13872, "uint16", { byteSeq: Endianness.BIG_ENDIAN });
+        checkStreamToValue([0x30, 0x36], 13872, "uint16", { byteSeq: Endianness.LITTLE_ENDIAN });
         checkStreamToValue([0x49, 0x91, 0xa1, 0xc2], 1234280898, "int32");
-        checkStreamToValue([0x49, 0x91, 0xa1, 0xc2], 1234280898, "int32", {byteSeq: Endianness.BIG_ENDIAN});
-        checkStreamToValue([0xc2, 0xa1, 0x91, 0x49], 1234280898, "int32", {byteSeq: Endianness.LITTLE_ENDIAN});
-        checkStreamToValue([0xa1, 0xc2, 0x49, 0x91], 1234280898, "int32", {byteSeq: Endianness.LITTLE_ENDIAN_BYTE_SWAP});
-        checkStreamToValue([0x91, 0x49, 0xc2, 0xa1], 1234280898, "int32", {byteSeq: Endianness.BIG_ENDIAN_BYTE_SWAP});
+        checkStreamToValue([0x49, 0x91, 0xa1, 0xc2], 1234280898, "int32", { byteSeq: Endianness.BIG_ENDIAN });
+        checkStreamToValue([0xc2, 0xa1, 0x91, 0x49], 1234280898, "int32", { byteSeq: Endianness.LITTLE_ENDIAN });
+        checkStreamToValue([0xa1, 0xc2, 0x49, 0x91], 1234280898, "int32", {
+            byteSeq: Endianness.LITTLE_ENDIAN_BYTE_SWAP,
+        });
+        checkStreamToValue([0x91, 0x49, 0xc2, 0xa1], 1234280898, "int32", { byteSeq: Endianness.BIG_ENDIAN_BYTE_SWAP });
         checkStreamToValue([0x3d, 0xd6, 0xea, 0xfc], 0.10494038462638855, "float32");
-        checkStreamToValue([0x3d, 0xd6, 0xea, 0xfc], 0.10494038462638855, "float32", {byteSeq: Endianness.BIG_ENDIAN});
-        checkStreamToValue([0xfc, 0xea, 0xd6, 0x3d], 0.10494038462638855, "float32", {byteSeq: Endianness.LITTLE_ENDIAN});
-        checkStreamToValue([0xd6, 0x3d, 0xfc, 0xea], 0.10494038462638855, "float32", {byteSeq: Endianness.BIG_ENDIAN_BYTE_SWAP});
-        checkStreamToValue(
-            [0xea, 0xfc, 0x3d, 0xd6],
-            0.10494038462638855,
-            "float32",
-            {byteSeq: Endianness.LITTLE_ENDIAN_BYTE_SWAP}
-        );
+        checkStreamToValue([0x3d, 0xd6, 0xea, 0xfc], 0.10494038462638855, "float32", {
+            byteSeq: Endianness.BIG_ENDIAN,
+        });
+        checkStreamToValue([0xfc, 0xea, 0xd6, 0x3d], 0.10494038462638855, "float32", {
+            byteSeq: Endianness.LITTLE_ENDIAN,
+        });
+        checkStreamToValue([0xd6, 0x3d, 0xfc, 0xea], 0.10494038462638855, "float32", {
+            byteSeq: Endianness.BIG_ENDIAN_BYTE_SWAP,
+        });
+        checkStreamToValue([0xea, 0xfc, 0x3d, 0xd6], 0.10494038462638855, "float32", {
+            byteSeq: Endianness.LITTLE_ENDIAN_BYTE_SWAP,
+        });
         checkStreamToValue([0x49, 0x25], 18725, "int16");
-        checkStreamToValue([0x49, 0x25], 18725, "int16", {byteSeq: Endianness.BIG_ENDIAN});
-        checkStreamToValue([0x25, 0x49], 18725, "int16", {byteSeq: Endianness.LITTLE_ENDIAN});
+        checkStreamToValue([0x49, 0x25], 18725, "int16", { byteSeq: Endianness.BIG_ENDIAN });
+        checkStreamToValue([0x25, 0x49], 18725, "int16", { byteSeq: Endianness.LITTLE_ENDIAN });
         checkStreamToValue([0x49, 0x25], 18725, "integer");
-        checkStreamToValue([0x49, 0x25], 18725, "integer", {byteSeq: Endianness.BIG_ENDIAN});
-        checkStreamToValue([0x25, 0x49], 18725, "integer", {byteSeq: Endianness.LITTLE_ENDIAN});
+        checkStreamToValue([0x49, 0x25], 18725, "integer", { byteSeq: Endianness.BIG_ENDIAN });
+        checkStreamToValue([0x25, 0x49], 18725, "integer", { byteSeq: Endianness.LITTLE_ENDIAN });
         checkStreamToValue([0xa4, 0x78], -23432, "int16");
-        checkStreamToValue([0xa4, 0x78], -23432, "int16", {byteSeq: Endianness.BIG_ENDIAN});
-        checkStreamToValue([0x78, 0xa4], -23432, "int16", {byteSeq: Endianness.LITTLE_ENDIAN});
+        checkStreamToValue([0xa4, 0x78], -23432, "int16", { byteSeq: Endianness.BIG_ENDIAN });
+        checkStreamToValue([0x78, 0xa4], -23432, "int16", { byteSeq: Endianness.LITTLE_ENDIAN });
         checkStreamToValue([0xeb, 0xe6, 0x90, 0x49], -5.5746861179443064e26, "number");
-        checkStreamToValue([0xeb, 0xe6, 0x90, 0x49], -5.5746861179443064e26, "number", {byteSeq: Endianness.BIG_ENDIAN});
-        checkStreamToValue([0x49, 0x90, 0xe6, 0xeb], -5.5746861179443064e26, "number", {byteSeq: Endianness.LITTLE_ENDIAN});
-        checkStreamToValue([0xe6, 0xeb, 0x49, 0x90], -5.5746861179443064e26, "number", {byteSeq: Endianness.BIG_ENDIAN_BYTE_SWAP});
-        checkStreamToValue(
-            [0x90, 0x49, 0xeb, 0xe6],
-            -5.5746861179443064e26,
-            "number",
-            {byteSeq: Endianness.LITTLE_ENDIAN_BYTE_SWAP}
-        );
+        checkStreamToValue([0xeb, 0xe6, 0x90, 0x49], -5.5746861179443064e26, "number", {
+            byteSeq: Endianness.BIG_ENDIAN,
+        });
+        checkStreamToValue([0x49, 0x90, 0xe6, 0xeb], -5.5746861179443064e26, "number", {
+            byteSeq: Endianness.LITTLE_ENDIAN,
+        });
+        checkStreamToValue([0xe6, 0xeb, 0x49, 0x90], -5.5746861179443064e26, "number", {
+            byteSeq: Endianness.BIG_ENDIAN_BYTE_SWAP,
+        });
+        checkStreamToValue([0x90, 0x49, 0xeb, 0xe6], -5.5746861179443064e26, "number", {
+            byteSeq: Endianness.LITTLE_ENDIAN_BYTE_SWAP,
+        });
         checkStreamToValue([0x44, 0x80], 4.5, "float16");
-        checkStreamToValue([0x44, 0x80], 4.5, "float16", {byteSeq: Endianness.BIG_ENDIAN});
-        checkStreamToValue([0x80, 0x44], 4.5, "float16", {byteSeq: Endianness.LITTLE_ENDIAN});
+        checkStreamToValue([0x44, 0x80], 4.5, "float16", { byteSeq: Endianness.BIG_ENDIAN });
+        checkStreamToValue([0x80, 0x44], 4.5, "float16", { byteSeq: Endianness.LITTLE_ENDIAN });
         checkStreamToValue([0xeb, 0xe6, 0x90, 0x49], -5.5746861179443064e26, "float32");
-        checkStreamToValue([0xeb, 0xe6, 0x90, 0x49], -5.5746861179443064e26, "float32", {byteSeq: Endianness.BIG_ENDIAN});
-        checkStreamToValue([0x49, 0x90, 0xe6, 0xeb], -5.5746861179443064e26, "float32", {byteSeq: Endianness.LITTLE_ENDIAN});
-        checkStreamToValue(
-            [0xe6, 0xeb, 0x49, 0x90],
-            -5.5746861179443064e26,
-            "float32",
-            {byteSeq: Endianness.BIG_ENDIAN_BYTE_SWAP}
-        );
-        checkStreamToValue(
-            [0x90, 0x49, 0xeb, 0xe6],
-            -5.5746861179443064e26,
-            "float32",
-            {byteSeq: Endianness.LITTLE_ENDIAN_BYTE_SWAP}
-        );
+        checkStreamToValue([0xeb, 0xe6, 0x90, 0x49], -5.5746861179443064e26, "float32", {
+            byteSeq: Endianness.BIG_ENDIAN,
+        });
+        checkStreamToValue([0x49, 0x90, 0xe6, 0xeb], -5.5746861179443064e26, "float32", {
+            byteSeq: Endianness.LITTLE_ENDIAN,
+        });
+        checkStreamToValue([0xe6, 0xeb, 0x49, 0x90], -5.5746861179443064e26, "float32", {
+            byteSeq: Endianness.BIG_ENDIAN_BYTE_SWAP,
+        });
+        checkStreamToValue([0x90, 0x49, 0xeb, 0xe6], -5.5746861179443064e26, "float32", {
+            byteSeq: Endianness.LITTLE_ENDIAN_BYTE_SWAP,
+        });
         checkStreamToValue([0xd3, 0xcd, 0xcc, 0xcc, 0xc1, 0xb4, 0x82, 0x70], -4.9728447076484896e95, "float64");
-        checkStreamToValue(
-            [0xd3, 0xcd, 0xcc, 0xcc, 0xc1, 0xb4, 0x82, 0x70],
-            -4.9728447076484896e95,
-            "float64",
-            {byteSeq: Endianness.BIG_ENDIAN}
-        );
-        checkStreamToValue(
-            [0x70, 0x82, 0xb4, 0xc1, 0xcc, 0xcc, 0xcd, 0xd3],
-            -4.9728447076484896e95,
-            "float64",
-            {byteSeq: Endianness.LITTLE_ENDIAN}
-        );
+        checkStreamToValue([0xd3, 0xcd, 0xcc, 0xcc, 0xc1, 0xb4, 0x82, 0x70], -4.9728447076484896e95, "float64", {
+            byteSeq: Endianness.BIG_ENDIAN,
+        });
+        checkStreamToValue([0x70, 0x82, 0xb4, 0xc1, 0xcc, 0xcc, 0xcd, 0xd3], -4.9728447076484896e95, "float64", {
+            byteSeq: Endianness.LITTLE_ENDIAN,
+        });
         // 0011 0110 0011 0000 -> 0011
         checkStreamToValue([0x36, 0x30], 3, "integer", { "ex:bitOffset": 0, "ex:bitLength": 4 });
 
         // 0011 0000 0011 0110 -> 0011
-        checkStreamToValue([0x30, 0x36], 3, "integer", { "ex:bitOffset": 8, "ex:bitLength": 4, byteSeq: Endianness.LITTLE_ENDIAN });
+        checkStreamToValue([0x30, 0x36], 3, "integer", {
+            "ex:bitOffset": 8,
+            "ex:bitLength": 4,
+            byteSeq: Endianness.LITTLE_ENDIAN,
+        });
 
         // 0011 0110 0011 0000 -> 0 0110
         checkStreamToValue([0x36, 0x30], 6, "integer", { "ex:bitOffset": 0, "ex:bitLength": 5 });
@@ -171,116 +175,205 @@ class SerdesOctetTests {
         checkStreamToValue([0x36, 0x30], 433, "integer", { "ex:bitOffset": 0, "ex:bitLength": 11 });
 
         // 1110 1011 1110 0110 1001 0000 0100 1001 -> 111 1001 1010 0100 0001
-        checkStreamToValue([0xeb, 0xe6, 0x90, 0x49], 498241, "integer", {"ex:bitOffset": 7, "ex:bitLength": 19});
+        checkStreamToValue([0xeb, 0xe6, 0x90, 0x49], 498241, "integer", { "ex:bitOffset": 7, "ex:bitLength": 19 });
 
         // 0011 0110 0011 0000 -> 1101 1000
         checkStreamToValue([0x36, 0x30], 216, "uint8", { "ex:bitOffset": 2, "ex:bitLength": 8 });
-        checkStreamToValue([0x36, 0x30], 216, "uint8", { "ex:bitOffset": 2, "ex:bitLength": 8, byteSeq: Endianness.BIG_ENDIAN });
+        checkStreamToValue([0x36, 0x30], 216, "uint8", {
+            "ex:bitOffset": 2,
+            "ex:bitLength": 8,
+            byteSeq: Endianness.BIG_ENDIAN,
+        });
         // 0011 0000 0011 0110 -> 1100 0000
-        checkStreamToValue([0x30, 0x36], 192, "uint8", { "ex:bitOffset": 2, "ex:bitLength": 8, byteSeq: Endianness.LITTLE_ENDIAN });
+        checkStreamToValue([0x30, 0x36], 192, "uint8", {
+            "ex:bitOffset": 2,
+            "ex:bitLength": 8,
+            byteSeq: Endianness.LITTLE_ENDIAN,
+        });
 
         // 0000 0110 1000 1001 0000 0000 -> 0100 0100 1000 0000
         checkStreamToValue([0x06, 0x89, 0x00], 4.5, "float16", { "ex:bitOffset": 7, "ex:bitLength": 16 });
 
         // 1100 1110 1011 1110 0110 1001 0000 0100 1001 1101 -> 1110 1011 1110 0110 1001 0000 0100 1001
         // CE BE 69 04 9D -> Eb E6 90 49
-        checkStreamToValue([0xce, 0xbe, 0x69, 0x04, 0x9d], -5.5746861179443064e26, "float32", { "ex:bitOffset": 4, "ex:bitLength": 32 });
+        checkStreamToValue([0xce, 0xbe, 0x69, 0x04, 0x9d], -5.5746861179443064e26, "float32", {
+            "ex:bitOffset": 4,
+            "ex:bitLength": 32,
+        });
 
         // 0011 1110 1001 1110 0110 1110 0110 0110 0110 0110 0000 1101 1010 0100 0001 0011 1000 0111
         // -> 1101 0011 1100 1101 1100 1100 1100 1100 1100 0001 1011 0100 1000 0010 0111 0000
         // 3E 9E 6E 66 66 0D A4 13 87 -> D3 CD CC CC C1 B4 82 70
-        checkStreamToValue([0x3e, 0x9e, 0x6e, 0x66, 0x66, 0x0d, 0xa4, 0x13, 0x87], -4.9728447076484896e95, "float64", { "ex:bitOffset": 5, "ex:bitLength": 64 });
+        checkStreamToValue([0x3e, 0x9e, 0x6e, 0x66, 0x66, 0x0d, 0xa4, 0x13, 0x87], -4.9728447076484896e95, "float64", {
+            "ex:bitOffset": 5,
+            "ex:bitLength": 64,
+        });
 
         // bit 4 to 36 are the same as a few lines above, so -5.5746861179443064e26 should be the result again
-        checkStreamToValue([0xce, 0xbe, 0x69, 0x04, 0x9d], -5.5746861179443064e26, "number", { "ex:bitOffset": 4, "ex:bitLength": 32 });
+        checkStreamToValue([0xce, 0xbe, 0x69, 0x04, 0x9d], -5.5746861179443064e26, "number", {
+            "ex:bitOffset": 4,
+            "ex:bitLength": 32,
+        });
 
         // Value verified with https://evanw.github.io/float-toy/
-        checkStreamToValue([0xFF, 0xFF], 0.00012201070785522461, "number", { "ex:bitOffset": 2, "ex:bitLength": 11});
+        checkStreamToValue([0xff, 0xff], 0.00012201070785522461, "number", { "ex:bitOffset": 2, "ex:bitLength": 11 });
 
         // 0001 0101 0111 0110 0101 0110 0010 0011 -> 101 0111 0110 0101 0110 0010
         checkStreamToValue([0xf5, 0x76, 0x56, 0x23], "Web", "string", { "ex:bitOffset": 5, "ex:bitLength": 23 });
-        checkStreamToValue([0x01, 0xb1, 0xd7, 0x65, 0x62], { flag1: true, flag2: false, numberProperty: 99, stringProperty: "Web" }, "object", {type: "object", properties: {
-            flag1: { type: "boolean", "ex:bitOffset": 8, "ex:bitLength": 1 },
-            flag2: { type: "boolean", "ex:bitOffset": 9, "ex:bitLength": 1 },
-            numberProperty: { type: "integer", "ex:bitOffset": 10, "ex:bitLength": 7 },
-            stringProperty: { type: "string", "ex:bitOffset": 17, "ex:bitLength": 23 }
-        }});
-        checkStreamToValue([0x01, 0xb1, 0xd7, 0x65, 0x62, 0x01, 0xb1, 0xd7, 0x65, 0x62],
-            { flag1: true, flag2: false, numberProperty: 99, stringProperty: "Web",
-            objectProperty: { flag1: true, flag2: false, numberProperty: 99, stringProperty: "Web" }},
+        checkStreamToValue(
+            [0x01, 0xb1, 0xd7, 0x65, 0x62],
+            { flag1: true, flag2: false, numberProperty: 99, stringProperty: "Web" },
             "object",
-            {type: "object", properties: {
-            flag1: { type: "boolean", "ex:bitOffset": 8, "ex:bitLength": 1 },
-            flag2: { type: "boolean", "ex:bitOffset": 9, "ex:bitLength": 1 },
-            numberProperty: { type: "integer", "ex:bitOffset": 10, "ex:bitLength": 7 },
-            stringProperty: { type: "string", "ex:bitOffset": 17, "ex:bitLength": 23 },
-            objectProperty: { type: "object", "ex:bitOffset": 40, "ex:bitLength": 40, properties: {
-                flag1: { type: "boolean", "ex:bitOffset": 8, "ex:bitLength": 1 },
-                flag2: { type: "boolean", "ex:bitOffset": 9, "ex:bitLength": 1 },
-                numberProperty: { type: "integer", "ex:bitOffset": 10, "ex:bitLength": 7 },
-                stringProperty: { type: "string", "ex:bitOffset": 17, "ex:bitLength": 23 },
-            }}
-        }});
-        checkStreamToValue([0xc0],
-            { deepCascased: { level1: { level2: { level3: {bool: true, level4: {bool: true, bool2: false}}}}}},
+            {
+                type: "object",
+                properties: {
+                    flag1: { type: "boolean", "ex:bitOffset": 8, "ex:bitLength": 1 },
+                    flag2: { type: "boolean", "ex:bitOffset": 9, "ex:bitLength": 1 },
+                    numberProperty: { type: "integer", "ex:bitOffset": 10, "ex:bitLength": 7 },
+                    stringProperty: { type: "string", "ex:bitOffset": 17, "ex:bitLength": 23 },
+                },
+            }
+        );
+        checkStreamToValue(
+            [0x01, 0xb1, 0xd7, 0x65, 0x62, 0x01, 0xb1, 0xd7, 0x65, 0x62],
+            {
+                flag1: true,
+                flag2: false,
+                numberProperty: 99,
+                stringProperty: "Web",
+                objectProperty: { flag1: true, flag2: false, numberProperty: 99, stringProperty: "Web" },
+            },
             "object",
-            {type: "object", properties: {
-                deepCascased: { type: "object", properties: {
-                    level1: { type: "object", properties: {
-                        level2: { type: "object", properties: {
-                            level3: { type: "object", properties: {
-                                bool: { type: "boolean", "ex:bitOffset": 0, "ex:bitLength": 1 },
-                                level4: { type: "object", properties: {
-                                    bool: { type: "boolean", "ex:bitOffset": 1, "ex:bitLength": 1 },
-                                    bool2: { type: "boolean", "ex:bitOffset": 2, "ex:bitLength": 1 }
-                                }}
-                            }}
-                        }}
-                    }}
-                }}
-            }});
+            {
+                type: "object",
+                properties: {
+                    flag1: { type: "boolean", "ex:bitOffset": 8, "ex:bitLength": 1 },
+                    flag2: { type: "boolean", "ex:bitOffset": 9, "ex:bitLength": 1 },
+                    numberProperty: { type: "integer", "ex:bitOffset": 10, "ex:bitLength": 7 },
+                    stringProperty: { type: "string", "ex:bitOffset": 17, "ex:bitLength": 23 },
+                    objectProperty: {
+                        type: "object",
+                        "ex:bitOffset": 40,
+                        "ex:bitLength": 40,
+                        properties: {
+                            flag1: { type: "boolean", "ex:bitOffset": 8, "ex:bitLength": 1 },
+                            flag2: { type: "boolean", "ex:bitOffset": 9, "ex:bitLength": 1 },
+                            numberProperty: { type: "integer", "ex:bitOffset": 10, "ex:bitLength": 7 },
+                            stringProperty: { type: "string", "ex:bitOffset": 17, "ex:bitLength": 23 },
+                        },
+                    },
+                },
+            }
+        );
+        checkStreamToValue(
+            [0xc0],
+            { deepCascased: { level1: { level2: { level3: { bool: true, level4: { bool: true, bool2: false } } } } } },
+            "object",
+            {
+                type: "object",
+                properties: {
+                    deepCascased: {
+                        type: "object",
+                        properties: {
+                            level1: {
+                                type: "object",
+                                properties: {
+                                    level2: {
+                                        type: "object",
+                                        properties: {
+                                            level3: {
+                                                type: "object",
+                                                properties: {
+                                                    bool: { type: "boolean", "ex:bitOffset": 0, "ex:bitLength": 1 },
+                                                    level4: {
+                                                        type: "object",
+                                                        properties: {
+                                                            bool: {
+                                                                type: "boolean",
+                                                                "ex:bitOffset": 1,
+                                                                "ex:bitLength": 1,
+                                                            },
+                                                            bool2: {
+                                                                type: "boolean",
+                                                                "ex:bitOffset": 2,
+                                                                "ex:bitLength": 1,
+                                                            },
+                                                        },
+                                                    },
+                                                },
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            }
+        );
     }
 
     @test async "OctetStream to value should throw"() {
-        expect(() => ContentSerdes.contentToValue({ type: "application/octet-stream", body: Buffer.from([0x36]) }, { type: "int8", "ex:bitOffset": 3, "ex:bitLength": 1 })).to.throw(
-            Error,
-            "Type is 'int8' but 'ex:bitLength' is 1"
-        );
-        expect(() => ContentSerdes.contentToValue({ type: "application/octet-stream", body: Buffer.from([0x36]) }, { type: "int8", "ex:bitOffset": 0, "ex:bitLength": 9 })).to.throw(
-            Error,
-            "Type is 'int8' but 'ex:bitLength' is 9"
-        );
-        expect(() => ContentSerdes.contentToValue({ type: "application/octet-stream", body: Buffer.from([0x36]) }, { type: "uint16" })).to.throw(
-            Error,
-            "Type is 'uint16' but 'ex:bitLength' is 8"
-        );
-        expect(() => ContentSerdes.contentToValue({ type: "application/octet-stream", body: Buffer.from([0x36, 0x47]) }, { type: "int32" })).to.throw(
-            Error,
-            "Type is 'int32' but 'ex:bitLength' is 16"
-        );
-        expect(() => ContentSerdes.contentToValue({ type: "application/octet-stream", body: Buffer.from([0x36]) }, { type: "float64" })).to.throw(
-            Error,
-            "Type is 'float64' but 'ex:bitLength' is 8"
-        );
-        expect(() => ContentSerdes.contentToValue({ type: "application/octet-stream", body: Buffer.from([0x36])}, { type: "integer", "ex:bitOffset": 0, "ex:bitLength": 9 })).to.throw(
-            Error,
-            "'ex:bitLength' is 9, but buffer length at offset 0 is 8"
-        );
-        expect(() => ContentSerdes.contentToValue({ type: "application/octet-stream", body: Buffer.from([0x36])}, { type: "integer", "ex:bitOffset": 1, "ex:bitLength": 8 })).to.throw(
-            Error,
-            "'ex:bitLength' is 8, but buffer length at offset 1 is 7"
-        );
-        expect(() => ContentSerdes.contentToValue({ type: "application/octet-stream", body: Buffer.from([0x36])}, { type: "object", "ex:bitOffset": 1, "ex:bitLength": 5 })).to.throw(
-            Error,
-            "Missing schema for object"
-        );
-        expect(() => ContentSerdes.contentToValue({ type: "application/octet-stream", body: Buffer.from([0x36, 0x30])}, { type: "object", "properties": {
-            prop1: {type: "boolean", "ex:bitOffset": 1, "ex:bitLength": 1},
-            prop2: {},
-        }})).to.throw(
-            Error,
-            "Missing 'type' property in schema"
-        )
+        expect(() =>
+            ContentSerdes.contentToValue(
+                { type: "application/octet-stream", body: Buffer.from([0x36]) },
+                { type: "int8", "ex:bitOffset": 3, "ex:bitLength": 1 }
+            )
+        ).to.throw(Error, "Type is 'int8' but 'ex:bitLength' is 1");
+        expect(() =>
+            ContentSerdes.contentToValue(
+                { type: "application/octet-stream", body: Buffer.from([0x36]) },
+                { type: "int8", "ex:bitOffset": 0, "ex:bitLength": 9 }
+            )
+        ).to.throw(Error, "Type is 'int8' but 'ex:bitLength' is 9");
+        expect(() =>
+            ContentSerdes.contentToValue(
+                { type: "application/octet-stream", body: Buffer.from([0x36]) },
+                { type: "uint16" }
+            )
+        ).to.throw(Error, "Type is 'uint16' but 'ex:bitLength' is 8");
+        expect(() =>
+            ContentSerdes.contentToValue(
+                { type: "application/octet-stream", body: Buffer.from([0x36, 0x47]) },
+                { type: "int32" }
+            )
+        ).to.throw(Error, "Type is 'int32' but 'ex:bitLength' is 16");
+        expect(() =>
+            ContentSerdes.contentToValue(
+                { type: "application/octet-stream", body: Buffer.from([0x36]) },
+                { type: "float64" }
+            )
+        ).to.throw(Error, "Type is 'float64' but 'ex:bitLength' is 8");
+        expect(() =>
+            ContentSerdes.contentToValue(
+                { type: "application/octet-stream", body: Buffer.from([0x36]) },
+                { type: "integer", "ex:bitOffset": 0, "ex:bitLength": 9 }
+            )
+        ).to.throw(Error, "'ex:bitLength' is 9, but buffer length at offset 0 is 8");
+        expect(() =>
+            ContentSerdes.contentToValue(
+                { type: "application/octet-stream", body: Buffer.from([0x36]) },
+                { type: "integer", "ex:bitOffset": 1, "ex:bitLength": 8 }
+            )
+        ).to.throw(Error, "'ex:bitLength' is 8, but buffer length at offset 1 is 7");
+        expect(() =>
+            ContentSerdes.contentToValue(
+                { type: "application/octet-stream", body: Buffer.from([0x36]) },
+                { type: "object", "ex:bitOffset": 1, "ex:bitLength": 5 }
+            )
+        ).to.throw(Error, "Missing schema for object");
+        expect(() =>
+            ContentSerdes.contentToValue(
+                { type: "application/octet-stream", body: Buffer.from([0x36, 0x30]) },
+                {
+                    type: "object",
+                    properties: {
+                        prop1: { type: "boolean", "ex:bitOffset": 1, "ex:bitLength": 1 },
+                        prop2: {},
+                    },
+                }
+            )
+        ).to.throw(Error, "Missing 'type' property in schema");
     }
 
     @test async "value to OctetStream"() {
@@ -324,78 +417,162 @@ class SerdesOctetTests {
         body = await content.toBuffer();
         expect(body).to.deep.equal(Buffer.from([0x80, 0x44]));
 
-        content = ContentSerdes.valueToContent(2345, { type: "integer", "ex:bitLength": 24 }, "application/octet-stream");
+        content = ContentSerdes.valueToContent(
+            2345,
+            { type: "integer", "ex:bitLength": 24 },
+            "application/octet-stream"
+        );
         body = await content.toBuffer();
         expect(body).to.deep.equal(Buffer.from([0x00, 0x09, 0x29]));
 
-        content = ContentSerdes.valueToContent(-32768, { type: "integer", "ex:bitOffset": 0, "ex:bitLength": 16 }, "application/octet-stream");
+        content = ContentSerdes.valueToContent(
+            -32768,
+            { type: "integer", "ex:bitOffset": 0, "ex:bitLength": 16 },
+            "application/octet-stream"
+        );
         body = await content.toBuffer();
         expect(body).to.deep.equal(Buffer.from([0x80, 0x00]));
 
-        content = ContentSerdes.valueToContent(-32768, { type: "integer", "ex:bitOffset": 5, "ex:bitLength": 16}, "application/octet-stream");
+        content = ContentSerdes.valueToContent(
+            -32768,
+            { type: "integer", "ex:bitOffset": 5, "ex:bitLength": 16 },
+            "application/octet-stream"
+        );
         body = await content.toBuffer();
         expect(body).to.deep.equal(Buffer.from([0x04, 0x00, 0x00]));
 
-        content = ContentSerdes.valueToContent(-32767, { type: "integer", "ex:bitOffset": 5, "ex:bitLength": 16}, "application/octet-stream");
+        content = ContentSerdes.valueToContent(
+            -32767,
+            { type: "integer", "ex:bitOffset": 5, "ex:bitLength": 16 },
+            "application/octet-stream"
+        );
         body = await content.toBuffer();
         expect(body).to.deep.equal(Buffer.from([0x04, 0x00, 0x08]));
 
-        content = ContentSerdes.valueToContent(-32767, { type: "integer", "ex:bitOffset": 16, "ex:bitLength": 16}, "application/octet-stream");
+        content = ContentSerdes.valueToContent(
+            -32767,
+            { type: "integer", "ex:bitOffset": 16, "ex:bitLength": 16 },
+            "application/octet-stream"
+        );
         body = await content.toBuffer();
         expect(body).to.deep.equal(Buffer.from([0x00, 0x00, 0x80, 0x01]));
 
-        content = ContentSerdes.valueToContent(4.5, { type: "float16", "ex:bitOffset": 16, "ex:bitLength": 16 }, "application/octet-stream");
+        content = ContentSerdes.valueToContent(
+            4.5,
+            { type: "float16", "ex:bitOffset": 16, "ex:bitLength": 16 },
+            "application/octet-stream"
+        );
         body = await content.toBuffer();
         expect(body).to.deep.equal(Buffer.from([0x00, 0x00, 0x44, 0x80]));
 
-        content = ContentSerdes.valueToContent(-4.9728447076484896e95, { type: "float64", "ex:bitOffset": 16, "ex:bitLength": 64 }, "application/octet-stream");
+        content = ContentSerdes.valueToContent(
+            -4.9728447076484896e95,
+            { type: "float64", "ex:bitOffset": 16, "ex:bitLength": 64 },
+            "application/octet-stream"
+        );
         body = await content.toBuffer();
         expect(body).to.deep.equal(Buffer.from([0x00, 0x00, 0xd3, 0xcd, 0xcc, 0xcc, 0xc1, 0xb4, 0x82, 0x70]));
 
-        content = ContentSerdes.valueToContent("Web", { type: "string", "ex:bitOffset": 16 }, "application/octet-stream");
+        content = ContentSerdes.valueToContent(
+            "Web",
+            { type: "string", "ex:bitOffset": 16 },
+            "application/octet-stream"
+        );
         body = await content.toBuffer();
         expect(body).to.deep.equal(Buffer.from([0x00, 0x00, 0x57, 0x65, 0x62]));
 
-        content = ContentSerdes.valueToContent("Web", { type: "string", "ex:bitOffset": 1 }, "application/octet-stream");
+        content = ContentSerdes.valueToContent(
+            "Web",
+            { type: "string", "ex:bitOffset": 1 },
+            "application/octet-stream"
+        );
         body = await content.toBuffer();
-        expect(body).to.deep.equal(Buffer.from([0x57, 0x65, 0x62 ]));
+        expect(body).to.deep.equal(Buffer.from([0x57, 0x65, 0x62]));
 
-        content = ContentSerdes.valueToContent({ flag1: true, flag2: false, numberProperty: 99, stringProperty: "Web"
-        }, { type: "object", properties: {
-            flag1: { type: "boolean", "ex:bitOffset": 8, "ex:bitLength": 1 },
-            flag2: { type: "boolean", "ex:bitOffset": 9, "ex:bitLength": 1 },
-            numberProperty: { type: "integer", "ex:bitOffset": 10, "ex:bitLength": 7, signed: "false" },
-            stringProperty: { type: "string", "ex:bitOffset": 17, "ex:bitLength": 23 }
-        }, "ex:bitLength": 40}, "application/octet-stream");
+        content = ContentSerdes.valueToContent(
+            { flag1: true, flag2: false, numberProperty: 99, stringProperty: "Web" },
+            {
+                type: "object",
+                properties: {
+                    flag1: { type: "boolean", "ex:bitOffset": 8, "ex:bitLength": 1 },
+                    flag2: { type: "boolean", "ex:bitOffset": 9, "ex:bitLength": 1 },
+                    numberProperty: { type: "integer", "ex:bitOffset": 10, "ex:bitLength": 7, signed: "false" },
+                    stringProperty: { type: "string", "ex:bitOffset": 17, "ex:bitLength": 23 },
+                },
+                "ex:bitLength": 40,
+            },
+            "application/octet-stream"
+        );
         body = await content.toBuffer();
         expect(body).to.deep.equal(Buffer.from([0x00, 0xb1, 0xd7, 0x65, 0x62]));
 
-        const longString = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum."
+        const longString =
+            "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.";
         content = ContentSerdes.valueToContent(
             { longString },
-            { type: "object", properties: {
-                longString: { type: "string", "ex:bitOffset": 8, "ex:bitLength": 1696 }
-            }, "ex:bitLength": 1704}, "application/octet-stream");
+            {
+                type: "object",
+                properties: {
+                    longString: { type: "string", "ex:bitOffset": 8, "ex:bitLength": 1696 },
+                },
+                "ex:bitLength": 1704,
+            },
+            "application/octet-stream"
+        );
         body = await content.toBuffer();
         expect(body).to.deep.equal(Buffer.concat([Buffer.from([0x00]), Buffer.from(longString)]));
 
         content = ContentSerdes.valueToContent(
-            { deepCascased: { level1: { level2: { level3: {bool: true, level4: {bool: true, bool2: false}}}}}},
-            { type: "object", properties: {
-                deepCascased: { type: "object", properties: {
-                    level1: { type: "object", properties: {
-                        level2: { type: "object", properties: {
-                            level3: { type: "object", properties: {
-                                bool: { type: "boolean", "ex:bitOffset": 0, "ex:bitLength": 1 },
-                                level4: { type: "object", properties: {
-                                    bool: { type: "boolean", "ex:bitOffset": 1, "ex:bitLength": 1 },
-                                    bool2: { type: "boolean", "ex:bitOffset": 2, "ex:bitLength": 1 }
-                                }, "ex:bitLength": 2}
-                            }, "ex:bitLength": 3}
-                        }, "ex:bitLength": 3}
-                    }, "ex:bitLength": 3}
-                }, "ex:bitLength": 3}
-            }, "ex:bitLength": 3}, "application/octet-stream");
+            { deepCascased: { level1: { level2: { level3: { bool: true, level4: { bool: true, bool2: false } } } } } },
+            {
+                type: "object",
+                properties: {
+                    deepCascased: {
+                        type: "object",
+                        properties: {
+                            level1: {
+                                type: "object",
+                                properties: {
+                                    level2: {
+                                        type: "object",
+                                        properties: {
+                                            level3: {
+                                                type: "object",
+                                                properties: {
+                                                    bool: { type: "boolean", "ex:bitOffset": 0, "ex:bitLength": 1 },
+                                                    level4: {
+                                                        type: "object",
+                                                        properties: {
+                                                            bool: {
+                                                                type: "boolean",
+                                                                "ex:bitOffset": 1,
+                                                                "ex:bitLength": 1,
+                                                            },
+                                                            bool2: {
+                                                                type: "boolean",
+                                                                "ex:bitOffset": 2,
+                                                                "ex:bitLength": 1,
+                                                            },
+                                                        },
+                                                        "ex:bitLength": 2,
+                                                    },
+                                                },
+                                                "ex:bitLength": 3,
+                                            },
+                                        },
+                                        "ex:bitLength": 3,
+                                    },
+                                },
+                                "ex:bitLength": 3,
+                            },
+                        },
+                        "ex:bitLength": 3,
+                    },
+                },
+                "ex:bitLength": 3,
+            },
+            "application/octet-stream"
+        );
         body = await content.toBuffer();
         expect(body).to.deep.equal(Buffer.from([0xc0]));
     }
@@ -415,30 +592,49 @@ class SerdesOctetTests {
             Error,
             "Unable to handle dataType undefined"
         );
-        expect(() => ContentSerdes.valueToContent(-2345, { type: "integer", "ex:bitOffset": 0, "ex:bitLength": 10 }, "application/octet-stream")).to.throw(
-            Error,
-            "Integer overflow when representing signed -2345 in 10 bit(s)"
-        );
-        expect(() => ContentSerdes.valueToContent(-32769, { type: "integer", "ex:bitOffset": 0, "ex:bitLength": 16 }, "application/octet-stream")).to.throw(
-            Error,
-            "Integer overflow when representing signed -32769 in 16 bit(s)"
-        );
-        expect(() => ContentSerdes.valueToContent({ flag1: true, flag2: false, numberProperty: 99, stringProperty: "Web" }, { type: "object", "properties": {
-            flag1: { type: "boolean", "ex:bitOffset": 8, "ex:bitLength": 1 },
-            flag2: { type: "boolean", "ex:bitOffset": 9, "ex:bitLength": 1 },
-            numberProperty: { type: "integer", "ex:bitOffset": 10, "ex:bitLength": 7 },
-            stringProperty: { type: "string", "ex:bitOffset": 17, "ex:bitLength": 23 }
-        }}, "application/octet-stream")).to.throw(
-            Error,
-            "Missing 'ex:bitLength' property in schema"
-        );
-        expect(() => ContentSerdes.valueToContent({ intProp: 42 }, { type: "object", "properties": {
-            intProp: { type: "integer", "ex:bitOffset": 0, "ex:bitLength": 8 },
-            stringProp: { type: "string", "ex:bitOffset": 8, "ex:bitLength": 8 }
-        }, "ex:bitLength": 16 }, "application/octet-stream")).to.throw(
-            Error,
-            "Missing property 'stringProp'"
-        );
+        expect(() =>
+            ContentSerdes.valueToContent(
+                -2345,
+                { type: "integer", "ex:bitOffset": 0, "ex:bitLength": 10 },
+                "application/octet-stream"
+            )
+        ).to.throw(Error, "Integer overflow when representing signed -2345 in 10 bit(s)");
+        expect(() =>
+            ContentSerdes.valueToContent(
+                -32769,
+                { type: "integer", "ex:bitOffset": 0, "ex:bitLength": 16 },
+                "application/octet-stream"
+            )
+        ).to.throw(Error, "Integer overflow when representing signed -32769 in 16 bit(s)");
+        expect(() =>
+            ContentSerdes.valueToContent(
+                { flag1: true, flag2: false, numberProperty: 99, stringProperty: "Web" },
+                {
+                    type: "object",
+                    properties: {
+                        flag1: { type: "boolean", "ex:bitOffset": 8, "ex:bitLength": 1 },
+                        flag2: { type: "boolean", "ex:bitOffset": 9, "ex:bitLength": 1 },
+                        numberProperty: { type: "integer", "ex:bitOffset": 10, "ex:bitLength": 7 },
+                        stringProperty: { type: "string", "ex:bitOffset": 17, "ex:bitLength": 23 },
+                    },
+                },
+                "application/octet-stream"
+            )
+        ).to.throw(Error, "Missing 'ex:bitLength' property in schema");
+        expect(() =>
+            ContentSerdes.valueToContent(
+                { intProp: 42 },
+                {
+                    type: "object",
+                    properties: {
+                        intProp: { type: "integer", "ex:bitOffset": 0, "ex:bitLength": 8 },
+                        stringProp: { type: "string", "ex:bitOffset": 8, "ex:bitLength": 8 },
+                    },
+                    "ex:bitLength": 16,
+                },
+                "application/octet-stream"
+            )
+        ).to.throw(Error, "Missing property 'stringProp'");
     }
 }
 
