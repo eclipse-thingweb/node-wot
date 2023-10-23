@@ -293,8 +293,7 @@ export default class OctetstreamCodec implements ContentCodec {
                 }
                 return value === null
                     ? Buffer.alloc(0)
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    : this.valueToObject(value as { [key: string]: any }, schema, bigEndian);
+                    : this.valueToObject(value as { [key: string]: any }, schema, bigEndian); // eslint-disable-line @typescript-eslint/no-explicit-any
             case "array":
             case "undefined":
                 throw new Error("Unable to handle dataType " + dataType);
@@ -470,8 +469,7 @@ export default class OctetstreamCodec implements ContentCodec {
     }
 
     private valueToObject(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        value: { [key: string]: any },
+        value: { [key: string]: any }, // eslint-disable-line @typescript-eslint/no-explicit-any
         schema: DataSchema,
         bigEndian: boolean,
         result?: Buffer | undefined
