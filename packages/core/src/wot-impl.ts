@@ -22,100 +22,47 @@ import Helpers from "./helpers";
 import { ThingDescription } from "wot-thing-description-types";
 import { createLoggers } from "./logger";
 import ContentManager from "./content-serdes";
-import ProtocolHelpers from "./protocol-helpers";
 
 const { debug } = createLoggers("core", "wot-impl");
 
-class ThingDiscovery {
-    private servient: Servient;
-    constructor(servient: Servient) {
-        this.servient = servient;
-    }
-
-    async direct(url: string, filter?: WoT.ThingFilter): Promise<ThingDescription> {
-        const uriScheme = new URL(url).protocol.split(":")[0];
-        const client = this.servient.getClientFor(uriScheme);
-        const result = await client.discoverDirectly(url);
-        const data = await ProtocolHelpers.readStreamFully(result.body);
-
-        // TODO: Add TD validation
-        // FIXME: application/td+json can't be handled at the moment
-
-        const value = ContentManager.contentToValue({ type: "application/json", body: data }, {});
-        if (value instanceof Object) {
-            return value as ThingDescription;
-        }
-
-        throw Error(`Could not parse Thing Description obtained from ${url}`);
-    }
-
-    // Alternative approach.
-    async *directIterator(url: string, filter?: WoT.ThingFilter): AsyncGenerator<ThingDescription> {
-        const uriScheme = new URL(url).protocol.split(":")[0];
-        const client = this.servient.getClientFor(uriScheme);
-        const result = await client.discoverDirectly(url);
-
-        // TODO: Add TD validation
-        // FIXME: application/td+json can't be handled at the moment
-
-        const value = ContentManager.contentToValue({ type: "application/json", body: await result.toBuffer() }, {});
-
-        if (value instanceof Object) {
-            yield value as ThingDescription;
-        }
-    }
-
-    async *exploreDirectory(url: string, filter?: WoT.ThingFilter): AsyncGenerator<ThingDescription> {
-        yield Promise.reject(new Error("Unimplemented"));
-    }
-
-    async requestThingDescription(url: string): Promise<ThingDescription> {
-        const uriScheme = new URL(url).protocol.split(":")[0];
-        const client = this.servient.getClientFor(uriScheme);
-        const result = await client.discoverDirectly(url);
-
-        const value = ContentManager.contentToValue({ type: result.type, body: await result.toBuffer() }, {});
-
-        if (value instanceof Object) {
-            return value as ThingDescription;
-        }
-
-        throw new Error("Not found.");
-    }
+interface ThingFilter {
+    fragment?: object;
 }
 
-/**
- * wot-type-definitions does not contain a implementation of Discovery method enums
- * so we need to create them here. Sadly, we should keep this enum in sync with
- * WoT.DiscoveryMethod
- */
-export enum DiscoveryMethod {
-    /** does not provide any restriction */
-    "any",
-    /** for discovering Things defined in the same device */
-    "local",
-    /** for discovery based on a service provided by a directory or repository of Things  */
-    "directory",
-    /** for discovering Things in the device's network by using a supported multicast protocol  */
-    "multicast",
-}
+class ThingDiscoveryProcess {
+    #done = false;
+
+    get done() {
+        return this.#done;
+    }
+
+    #error?: Error;
+
+    get error() {
+        return this.#error;
+    }
+
+    #filter: ThingFilter;
+
+
+
+    constructor(filter?: ThingFilter) {
+        this.#filter = filter ?? {};
+    };
+
+    stop(): void  {
+        this.#done = true;
+    }
+
+    // TODO: Implement AsyncIterable
+    // async iterable<ThingDescription>;
+  };
 
 export default class WoTImpl {
     private srv: Servient;
-    DiscoveryMethod: typeof WoT.DiscoveryMethod;
-
-    discovery: ThingDiscovery;
 
     constructor(srv: Servient) {
         this.srv = srv;
-        // force casting cause tsc does not allow to use DiscoveryMethod as WoT.DiscoveryMethod even if they are the same
-        this.DiscoveryMethod = DiscoveryMethod as unknown as typeof WoT.DiscoveryMethod;
-
-        this.discovery = new ThingDiscovery(srv);
-    }
-
-    discover(filter?: WoT.ThingFilter): WoT.ThingDiscovery {
-        throw new Error("REMOVE ME.");
     }
 
     /** @inheritDoc */
@@ -164,6 +111,29 @@ export default class WoTImpl {
                 );
             }
         });
+    }
+
+    async discover(filter?: WoT.ThingFilter): Promise<ThingDiscoveryProcess> {
+        // TODO: Implement this function
+        return new ThingDiscoveryProcess(filter);
+    }
+
+    async *exploreDirectory(url: string, filter?: WoT.ThingFilter): AsyncGenerator<ThingDiscoveryProcess> {
+        yield Promise.reject(new Error("Unimplemented"));
+    }
+
+    async requestThingDescription(url: string): Promise<ThingDescription> {
+        const uriScheme = new URL(url).protocol.split(":")[0];
+        const client = this.srv.getClientFor(uriScheme);
+        const result = await client.discoverDirectly(url);
+
+        const value = ContentManager.contentToValue({ type: result.type, body: await result.toBuffer() }, {});
+
+        if (value instanceof Object) {
+            return value as ThingDescription;
+        }
+
+        throw new Error("Not found.");
     }
 }
 
