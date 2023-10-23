@@ -139,6 +139,67 @@
                                                 }
                                             ],
                                             "modelType": "SubmodelElementCollection"
+                                        },
+                                        {
+                                            "idShort": "soc",
+                                            "value": [
+                                                {
+                                                    "idShort": "type",
+                                                    "valueType": "xs:string",
+                                                    "value": "integer",
+                                                    "modelType": "Property"
+                                                },
+                                                {
+                                                    "idShort": "title",
+                                                    "valueType": "xs:string",
+                                                    "value": "Battery SoC scaled in %",
+                                                    "modelType": "Property"
+                                                },
+                                                {
+                                                    "idShort": "min_max",
+                                                    "valueType": "xs:integer",
+                                                    "min": "0",
+                                                    "max": "100",
+                                                    "modelType": "Range"
+                                                },
+                                                {
+                                                    "idShort": "forms",
+                                                    "value": [
+                                                        {
+                                                            "idShort": "op",
+                                                            "valueType": "xs:string",
+                                                            "value": "readproperty",
+                                                            "modelType": "Property"
+                                                        },
+                                                        {
+                                                            "idShort": "href",
+                                                            "valueType": "xs:string",
+                                                            "value": "/40361?quantity=1",
+                                                            "modelType": "Property"
+                                                        },
+                                                        {
+                                                            "idShort": "modbus:function",
+                                                            "valueType": "xs:string",
+                                                            "value": "readHoldingRegisters",
+                                                            "modelType": "Property"
+                                                        },
+                                                        {
+                                                            "idShort": "modbus:type",
+                                                            "valueType": "xs:string",
+                                                            "value": "uint16be",
+                                                            "modelType": "Property"
+                                                        },
+                                                        {
+                                                            "idShort": "contentType",
+                                                            "valueType": "xs:string",
+                                                            "value": "application/octet-stream",
+                                                            "modelType": "Property"
+                                                        }
+                                                    ],
+                                                    "modelType": "SubmodelElementCollection"
+                                                }
+                                            ],
+                                            "modelType": "SubmodelElementCollection"
                                         }
                                     ],
                                     "modelType": "SubmodelElementCollection"

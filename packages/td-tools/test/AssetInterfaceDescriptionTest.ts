@@ -178,7 +178,7 @@ class AssetInterfaceDescriptionUtilTest {
         expect(tdObj).to.have.property("security").to.be.an("array").to.have.lengthOf(1);
         expect(tdObj.securityDefinitions[tdObj.security[0]]).to.have.property("scheme").that.equals("nosec");
 
-        // check device_name property
+        // check property device_name
         expect(tdObj).to.have.property("properties").to.have.property("device_name");
         expect(tdObj)
             .to.have.property("properties")
@@ -207,6 +207,39 @@ class AssetInterfaceDescriptionUtilTest {
         expect(tdObj.properties.device_name.forms[0])
             .to.have.property("contentType")
             .to.eql("application/octet-stream");
+        expect(tdObj.properties.device_name.forms[0]).not.to.have.property("security");
+
+        // check property soc
+        expect(tdObj).to.have.property("properties").to.have.property("soc");
+        expect(tdObj)
+            .to.have.property("properties")
+            .to.have.property("soc")
+            .to.have.property("type")
+            .that.equals("integer");
+        expect(tdObj).to.have.property("properties").to.have.property("soc").to.have.property("minimum").that.equals(0);
+        expect(tdObj)
+            .to.have.property("properties")
+            .to.have.property("soc")
+            .to.have.property("maximum")
+            .that.equals(100);
+        expect(tdObj)
+            .to.have.property("properties")
+            .to.have.property("soc")
+            .to.have.property("title")
+            .that.equals("Battery SoC scaled in %");
+        expect(tdObj)
+            .to.have.property("properties")
+            .to.have.property("soc")
+            .to.have.property("forms")
+            .to.be.an("array")
+            .to.have.lengthOf(1);
+        expect(tdObj.properties.soc.forms[0]).to.have.property("op").to.eql("readproperty");
+        expect(tdObj.properties.soc.forms[0])
+            .to.have.property("href")
+            .to.eql("modbus+tcp://192.168.178.146:502/40361?quantity=1");
+        expect(tdObj.properties.soc.forms[0]).to.have.property("modbus:function").to.eql("readHoldingRegisters");
+        expect(tdObj.properties.soc.forms[0]).to.have.property("modbus:type").to.eql("uint16be");
+        expect(tdObj.properties.soc.forms[0]).to.have.property("contentType").to.eql("application/octet-stream");
         expect(tdObj.properties.device_name.forms[0]).not.to.have.property("security");
     }
 
@@ -290,6 +323,7 @@ class AssetInterfaceDescriptionUtilTest {
                             .to.be.an("array")
                             .to.have.lengthOf.greaterThan(0);
                         let hasPropertyDeviceName = false;
+                        let hasPropertySOC = false;
                         for (const propertyValue of interactionValues.value) {
                             if (propertyValue.idShort === "device_name") {
                                 hasPropertyDeviceName = true;
@@ -299,6 +333,7 @@ class AssetInterfaceDescriptionUtilTest {
                                     .to.have.lengthOf.greaterThan(0);
                                 let hasType = false;
                                 let hasTitle = false;
+                                let hasObservable = false;
                                 let hasForms = false;
                                 for (const propProperty of propertyValue.value) {
                                     if (propProperty.idShort === "type") {
@@ -307,6 +342,8 @@ class AssetInterfaceDescriptionUtilTest {
                                     } else if (propProperty.idShort === "title") {
                                         hasTitle = true;
                                         expect(propProperty.value).to.equal("Device name");
+                                    } else if (propProperty.idShort === "observable") {
+                                        hasObservable = true;
                                     } else if (propProperty.idShort === "forms") {
                                         hasForms = true;
                                         expect(propProperty)
@@ -349,10 +386,79 @@ class AssetInterfaceDescriptionUtilTest {
                                 }
                                 expect(hasType).to.equal(true);
                                 expect(hasTitle).to.equal(true);
+                                expect(hasObservable).to.equal(false); // it is default only
+                                expect(hasForms).to.equal(true);
+                            } else if (propertyValue.idShort === "soc") {
+                                hasPropertySOC = true;
+                                expect(propertyValue)
+                                    .to.have.property("value")
+                                    .to.be.an("array")
+                                    .to.have.lengthOf.greaterThan(0);
+                                let hasType = false;
+                                let hasTitle = false;
+                                let hasMinMax = false;
+                                let hasForms = false;
+                                for (const propProperty of propertyValue.value) {
+                                    if (propProperty.idShort === "type") {
+                                        hasType = true;
+                                        expect(propProperty.value).to.equal("integer");
+                                    } else if (propProperty.idShort === "title") {
+                                        hasTitle = true;
+                                        expect(propProperty.value).to.equal("Battery SoC scaled in %");
+                                    } else if (propProperty.idShort === "min_max") {
+                                        hasMinMax = true;
+                                        expect(propProperty.min).to.equal("0");
+                                        expect(propProperty.max).to.equal("100");
+                                        expect(propProperty.valueType).to.equal("xs:integer");
+                                        expect(propProperty.modelType).to.equal("Range");
+                                    } else if (propProperty.idShort === "forms") {
+                                        hasForms = true;
+                                        expect(propProperty)
+                                            .to.have.property("value")
+                                            .to.be.an("array")
+                                            .to.have.lengthOf.greaterThan(0);
+                                        let hasHref = false;
+                                        let hasOp = false;
+                                        let hasContentType = false;
+                                        let hasModbusFunction = false;
+                                        let hasModbusType = false;
+                                        for (const formEntry of propProperty.value) {
+                                            if (formEntry.idShort === "href") {
+                                                hasHref = true;
+                                                expect(formEntry.value).to.equal(
+                                                    "modbus+tcp://192.168.178.146:502/40361?quantity=1"
+                                                );
+                                            } else if (formEntry.idShort === "op") {
+                                                hasOp = true;
+                                                expect(formEntry.value).to.equal("readproperty");
+                                            } else if (formEntry.idShort === "contentType") {
+                                                hasContentType = true;
+                                                expect(formEntry.value).to.equal("application/octet-stream");
+                                            } else if (formEntry.idShort === "modbus_function") {
+                                                // vs. "modbus:function"
+                                                hasModbusFunction = true;
+                                                expect(formEntry.value).to.equal("readHoldingRegisters");
+                                            } else if (formEntry.idShort === "modbus_type") {
+                                                // vs. "modbus:type"
+                                                hasModbusType = true;
+                                                expect(formEntry.value).to.equal("uint16be");
+                                            }
+                                        }
+                                        expect(hasHref).to.equal(true);
+                                        expect(hasOp).to.equal(true);
+                                        expect(hasContentType).to.equal(true);
+                                        expect(hasModbusFunction).to.equal(true);
+                                        expect(hasModbusType).to.equal(true);
+                                    }
+                                }
+                                expect(hasType).to.equal(true);
+                                expect(hasTitle).to.equal(true);
+                                expect(hasMinMax).to.equal(true);
                                 expect(hasForms).to.equal(true);
                             }
                         }
                         expect(hasPropertyDeviceName).to.equal(true);
+                        expect(hasPropertySOC).to.equal(true);
                     }
                 }
                 expect(hasProperties).to.equal(true);

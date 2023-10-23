@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2022 Contributors to the Eclipse Foundation
+ * Copyright (c) 2023 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -140,7 +140,7 @@ export default class MBusClient implements ProtocolClient {
             throw new Error("Malformed form: offset must be defined");
         }
 
-        result["mbus:timeout"] = form["mbus:timeout"] ? form["mbus:timeout"] : DEFAULT_TIMEOUT;
+        result["mbus:timeout"] = form["mbus:timeout"] ?? DEFAULT_TIMEOUT;
 
         return result;
     }

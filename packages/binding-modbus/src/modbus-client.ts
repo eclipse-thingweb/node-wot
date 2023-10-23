@@ -150,7 +150,7 @@ export default class ModbusClient implements ProtocolClient {
         const parsed = new URL(form.href);
         const port = parsed.port ? parseInt(parsed.port, 10) : DEFAULT_PORT;
         let body;
-        if (content) {
+        if (content != null) {
             body = await content.toBuffer();
         }
         const formValidated = this.validateAndFillDefaultForm(form, body?.byteLength);
@@ -160,7 +160,7 @@ export default class ModbusClient implements ProtocolClient {
         const host = parsed.hostname;
         const hostAndPort = host + ":" + port;
 
-        if (body) {
+        if (body != null) {
             this.validateBufferLength(formValidated, body);
         }
 
@@ -189,13 +189,13 @@ export default class ModbusClient implements ProtocolClient {
 
     private validateEndianness(form: ModbusForm): Endianness {
         let endianness = Endianness.BIG_ENDIAN;
-        if (form.contentType) {
+        if (form.contentType != null) {
             const contentValues: string[] = form.contentType.split(";") ?? [];
             // Check endian-ness
             const byteSeq = contentValues.find((value) => /^byteSeq=/.test(value));
-            if (byteSeq) {
+            if (byteSeq != null) {
                 const guessEndianness = Endianness[byteSeq.split("=")[1] as keyof typeof Endianness];
-                if (guessEndianness) {
+                if (guessEndianness != null) {
                     endianness = guessEndianness;
                 } else {
                     throw new Error("Malformed form: Content Type endianness is not valid");
@@ -213,7 +213,7 @@ export default class ModbusClient implements ProtocolClient {
         input["modbus:address"] = parseInt(pathComp[2], 10) || input["modbus:address"];
 
         const queryQuantity = query.get("quantity");
-        if (queryQuantity) {
+        if (queryQuantity != null) {
             input["modbus:quantity"] = parseInt(queryQuantity, 10);
         }
     }
@@ -221,7 +221,7 @@ export default class ModbusClient implements ProtocolClient {
     private validateBufferLength(form: ModbusFormWithDefaults, buffer: Buffer) {
         const mpy = form["modbus:entity"] === "InputRegister" || form["modbus:entity"] === "HoldingRegister" ? 2 : 1;
         const quantity = form["modbus:quantity"];
-        if (buffer && buffer.length !== mpy * quantity) {
+        if (buffer.length !== mpy * quantity) {
             throw new Error(
                 "Content length does not match register / coil count, got " +
                     buffer.length +
@@ -241,11 +241,11 @@ export default class ModbusClient implements ProtocolClient {
         // take over latest content of form into a new result set
         const result: ModbusForm = { ...form };
 
-        if (!form["modbus:function"] && !form["modbus:entity"]) {
+        if (form["modbus:function"] == null && form["modbus:entity"] == null) {
             throw new Error("Malformed form: modbus:function or modbus:entity must be defined");
         }
 
-        if (form["modbus:function"]) {
+        if (form["modbus:function"] != null) {
             // Convert string function to enums if defined
             if (typeof form["modbus:function"] === "string") {
                 result["modbus:function"] = ModbusFunction[form["modbus:function"]];
@@ -294,16 +294,18 @@ export default class ModbusClient implements ProtocolClient {
             throw new Error("Malformed form: address must be defined");
         }
 
-        if (!form["modbus:quantity"] && contentLength === 0) {
+        const hasQuantity = form["modbus:quantity"] != null;
+
+        if (!hasQuantity && contentLength === 0) {
             result["modbus:quantity"] = 1;
-        } else if (!form["modbus:quantity"] && contentLength > 0) {
+        } else if (!hasQuantity && contentLength > 0) {
             const regSize =
                 result["modbus:entity"] === "InputRegister" || result["modbus:entity"] === "HoldingRegister" ? 2 : 1;
             result["modbus:quantity"] = contentLength / regSize;
         }
 
-        result["modbus:pollingTime"] = form["modbus:pollingTime"] ? form["modbus:pollingTime"] : DEFAULT_POLLING;
-        result["modbus:timeout"] = form["modbus:timeout"] ? form["modbus:timeout"] : DEFAULT_TIMEOUT;
+        result["modbus:pollingTime"] ??= DEFAULT_POLLING;
+        result["modbus:timeout"] ??= DEFAULT_TIMEOUT;
 
         return result as ModbusFormWithDefaults;
     }

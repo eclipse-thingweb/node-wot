@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2022 Contributors to the Eclipse Foundation
+ * Copyright (c) 2023 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -86,7 +86,8 @@ export default class MqttBrokerServer implements ProtocolServer {
 
         this.brokerURI = config.uri;
 
-        if (config.selfHost) {
+        const selfHost = config.selfHost ?? false;
+        if (selfHost) {
             this.hostedServer = Server({});
             let server;
             if (config.key) {
@@ -145,7 +146,8 @@ export default class MqttBrokerServer implements ProtocolServer {
         const topic = encodeURIComponent(name) + "/properties/" + encodeURIComponent(propertyName);
         const property = thing.properties[propertyName];
 
-        if (!property.writeOnly) {
+        const writeOnly: boolean = property.writeOnly ?? false;
+        if (!writeOnly) {
             const href = this.brokerURI + "/" + topic;
             const form = new TD.Form(href, ContentSerdes.DEFAULT);
             form.op = ["readproperty", "observeproperty", "unobserveproperty"];
@@ -165,7 +167,8 @@ export default class MqttBrokerServer implements ProtocolServer {
             };
             thing.handleObserveProperty(propertyName, observeListener, { formIndex: property.forms.length - 1 });
         }
-        if (!property.readOnly) {
+        const readOnly: boolean = property.readOnly ?? false;
+        if (!readOnly) {
             const href = this.brokerURI + "/" + topic + "/writeproperty";
             this.broker.subscribe(topic + "/writeproperty");
             const form = new TD.Form(href, ContentSerdes.DEFAULT);
@@ -204,7 +207,7 @@ export default class MqttBrokerServer implements ProtocolServer {
                 return;
             }
 
-            if (!content) {
+            if (content == null) {
                 warn(`MqttBrokerServer on port ${this.getPort()} cannot process data for Event ${eventName}`);
                 thing.handleUnsubscribeEvent(eventName, eventListener, { formIndex: event.forms.length - 1 });
                 return;
@@ -233,10 +236,10 @@ export default class MqttBrokerServer implements ProtocolServer {
             // connecting to the actions
             debug(`MqttBrokerServer at ${this.brokerURI} received message for '${receivedTopic}'`);
             const thing = this.things.get(segments[this.THING_NAME_SEGMENT_INDEX]);
-            if (thing) {
+            if (thing != null) {
                 if (segments[this.INTERACTION_TYPE_SEGMENT_INDEX] === "actions") {
                     const action = thing.actions[segments[this.INTERACTION_NAME_SEGMENT_INDEX]];
-                    if (action) {
+                    if (action != null) {
                         this.handleAction(action, packet, payload, segments, thing);
                         return;
                     }
@@ -248,10 +251,10 @@ export default class MqttBrokerServer implements ProtocolServer {
         ) {
             // connecting to the writeable properties
             const thing = this.things.get(segments[this.THING_NAME_SEGMENT_INDEX]);
-            if (thing) {
+            if (thing != null) {
                 if (segments[this.INTERACTION_TYPE_SEGMENT_INDEX] === "properties") {
                     const property = thing.properties[segments[this.INTERACTION_NAME_SEGMENT_INDEX]];
-                    if (property) {
+                    if (property != null) {
                         this.handlePropertyWrite(property, packet, payload, segments, thing);
                     } // Property exists?
                 }
@@ -291,7 +294,7 @@ export default class MqttBrokerServer implements ProtocolServer {
         thing
             .handleInvokeAction(segments[this.INTERACTION_NAME_SEGMENT_INDEX], inputContent, options)
             .then((output: unknown) => {
-                if (output) {
+                if (output != null) {
                     warn(
                         `MqttBrokerServer at ${this.brokerURI} cannot return output '${
                             segments[this.INTERACTION_NAME_SEGMENT_INDEX]
@@ -315,7 +318,8 @@ export default class MqttBrokerServer implements ProtocolServer {
         segments: string[],
         thing: ExposedThing
     ) {
-        if (!property.readOnly) {
+        const readOnly = property.readOnly ?? false;
+        if (!readOnly) {
             const contentType = packet?.properties?.contentType ?? ContentSerdes.DEFAULT;
 
             const options: InteractionOptions & { formIndex: number } = {
@@ -360,7 +364,7 @@ export default class MqttBrokerServer implements ProtocolServer {
             }
         }
 
-        if (removedThing) {
+        if (removedThing != null) {
             info(`MqttBrokerServer succesfully destroyed '${removedThing.title}'`);
         } else {
             info(`MqttBrokerServer failed to destroy thing with thingId '${thingId}'`);

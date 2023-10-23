@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2022 Contributors to the Eclipse Foundation
+ * Copyright (c) 2023 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -132,15 +132,14 @@ export class MBusConnection {
             this.connecting = true;
 
             for (let retry = 0; retry < this.config.maxRetries; retry++) {
-                if (
-                    this.client.connect((err: string) => {
-                        if (err != null) {
-                            warn(
-                                `Cannot connect to ${this.host}. Reason: ${err}. Retry in ${this.config.connectionRetryTime}ms.`
-                            );
-                        }
-                    })
-                ) {
+                const success: boolean = this.client.connect((err: string) => {
+                    if (err != null) {
+                        warn(
+                            `Cannot connect to ${this.host}. Reason: ${err}. Retry in ${this.config.connectionRetryTime}ms.`
+                        );
+                    }
+                });
+                if (success) {
                     this.connecting = false;
                     this.connected = true;
                     debug(`MBus connected to ${this.host}`);

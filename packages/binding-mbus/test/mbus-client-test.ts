@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2021 Contributors to the Eclipse Foundation
+ * Copyright (c) 2023 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -56,12 +56,12 @@ describe("mbus client test", () => {
         // eslint-disable-next-line dot-notation
         client["overrideFormFromURLPath"](form);
         form["mbus:unitID"].should.be.equal(2, "Form value not overridden");
-        if (form["mbus:offset"]) {
+        if (form["mbus:offset"] != null) {
             form["mbus:offset"].should.be.equal(2, "Form value not overridden");
         } else {
             expect.fail("mbus:offset undefined");
         }
-        if (form["mbus:timeout"]) {
+        if (form["mbus:timeout"] != null) {
             form["mbus:timeout"].should.be.equal(5, "Form value not overridden");
         } else {
             expect.fail("mbus:timeout undefined");

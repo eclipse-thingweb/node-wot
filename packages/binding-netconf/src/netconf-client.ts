@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022 Contributors to the Eclipse Foundation
+ * Copyright (c) 2023 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -77,7 +77,7 @@ export default class NetconfClient implements ProtocolClient {
 
     public async writeResource(form: NetconfForm, content: Content): Promise<void> {
         const body = await content.toBuffer();
-        let payload = content ? JSON.parse(body.toString()) : {};
+        let payload = JSON.parse(body.toString());
         const url = new Url(form.href);
         const ipAddress = url.hostname;
         const port = parseInt(url.port);
@@ -106,7 +106,7 @@ export default class NetconfClient implements ProtocolClient {
 
     public async invokeResource(form: NetconfForm, content: Content): Promise<Content> {
         const body = await content.toBuffer();
-        let payload = content ? JSON.parse(body.toString()) : {};
+        let payload = JSON.parse(body.toString());
         const url = new Url(form.href);
         const ipAddress = url.hostname;
         const port = parseInt(url.port);
@@ -135,9 +135,7 @@ export default class NetconfClient implements ProtocolClient {
         }
 
         const contentType = "application/yang-data+xml";
-        return new Promise<Content>((resolve, reject) => {
-            resolve(new Content(contentType, Readable.from(result)));
-        });
+        return new Content(contentType, Readable.from(result));
     }
 
     public unlinkResource(form: NetconfForm): Promise<void> {
@@ -170,7 +168,7 @@ export default class NetconfClient implements ProtocolClient {
             warn(`NetconfClient without security`);
             return false;
         }
-        if (!credentials || (!credentials.password && !credentials.privateKey)) {
+        if (credentials?.password == null && credentials?.privateKey == null) {
             throw new Error(`Both password and privateKey missing inside credentials`);
         }
 

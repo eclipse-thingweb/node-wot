@@ -33,7 +33,7 @@ export class OPCUAClientFactory implements ProtocolClientFactory {
 
     getClient(): ProtocolClient {
         debug(`OpcuaClientFactory creating client for '${this.scheme}'`);
-        if (this._clients[0]) {
+        if (this._clients[0] != null) {
             return this._clients[0];
         }
         this._clients[0] = new OPCUAProtocolClient();
