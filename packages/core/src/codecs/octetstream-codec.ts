@@ -122,8 +122,12 @@ export default class OctetstreamCodec implements ContentCodec {
                 return this.numberToValue(bytes, { dataLength, bigEndian });
             case "string":
                 return bytes.toString(parameters.charset as BufferEncoding);
-            case "array":
             case "object":
+                if (schema === undefined ||  schema.properties === undefined) {
+                    throw new Error("Missing schema for object");
+                }
+                return this.objectToValue(bytes, schema);
+            case "array":
                 throw new Error("Unable to handle dataType " + dataType);
             case "null":
                 return null;
@@ -192,6 +196,19 @@ export default class OctetstreamCodec implements ContentCodec {
         }
     }
 
+    private objectToValue(bytes: Buffer, schema?: DataSchema): DataSchemaValue {
+        if (schema?.type !== "object") {
+            throw new Error("Schema must be of type 'object'");
+        }
+
+        const result: { [key: string]: unknown } = {};
+        for (const propertyName in schema.properties) {
+            const propertySchema = schema.properties[propertyName];
+            result[propertyName] = this.bytesToValue(bytes, propertySchema);
+        }
+        return result;
+    }
+
     valueToBytes(value: unknown, schema?: DataSchema, parameters: { [key: string]: string | undefined } = {}): Buffer {
         debug(`OctetstreamCodec serializing '${value}'`);
 
@@ -240,7 +257,7 @@ export default class OctetstreamCodec implements ContentCodec {
 
         switch (dataType) {
             case "boolean":
-                return Buffer.alloc(dataLength ?? 1, value != null ? 255 : 0);
+                return Buffer.alloc(dataLength ?? 1, value === true ? 255 : 0);
             case "byte":
             case "short":
             case "int":
@@ -262,8 +279,13 @@ export default class OctetstreamCodec implements ContentCodec {
                     charset: parameters.charset ?? "utf8",
                 });
             }
-            case "array":
             case "object":
+                if (schema === undefined ||  schema.properties === undefined) {
+                    throw new Error("Missing schema for object");
+                }
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                return value === null ? Buffer.alloc(0) : this.valueToObject(value as {[key: string]: any}, schema, bigEndian);
+            case "array":
             case "undefined":
                 throw new Error("Unable to handle dataType " + dataType);
             case "null":
@@ -302,12 +324,14 @@ export default class OctetstreamCodec implements ContentCodec {
             }
         }
 
-        if (offset !== 0) {
-            return this.writeBits(value, offset, length, bigEndian)
-        }
-
         const buf = Buffer.alloc(byteLength);
+
+        if (offset !== 0) {
+            this.writeBits(buf, value, offset, length, bigEndian)
+            return buf;
+        }
         // Handle byte swapping
+
         if (byteSeq?.includes("BYTE_SwAP") && byteLength > 1) {
             buf.swap16();
         }
@@ -423,8 +447,40 @@ export default class OctetstreamCodec implements ContentCodec {
         if (offset % 8 === 0) {
             return Buffer.concat([Buffer.alloc(byteLength - (length / 8)), buf]);
         } else {
-            return this.writeBits(buf.readUIntBE(0, buf.length), offset, length, true);
+            const buffer = Buffer.alloc(byteLength);
+            this.copyBits(buf, buf.length * 8 - length, buffer, offset, length);
+            return buf;
         }
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    private valueToObject(value: {[key: string]: any}, schema: DataSchema, bigEndian: boolean, result?: Buffer | undefined): Buffer {
+        if (typeof value !== "object" || value === null) {
+            throw new Error("Value is not an object");
+        }
+
+        if (schema["ex:bitLength"] === undefined) {
+            throw new Error("Missing 'ex:bitLength' property in schema");
+        }
+
+        result = result ?? Buffer.alloc(Math.ceil(schema["ex:bitLength"] / 8));
+        for (const propertyName in schema.properties) {
+            if (Object.hasOwnProperty.call(value, propertyName) === false) {
+                throw new Error(`Missing property '${propertyName}'`);
+            }
+            const propertySchema = schema.properties[propertyName];
+            let propertyValue = value[propertyName]
+            const propertyOffset = parseInt(propertySchema["ex:bitOffset"]);
+            const propertyLength = parseInt(propertySchema["ex:bitLength"]);
+            let buf: Buffer;
+            if (propertySchema.type === "object") {
+                buf = this.valueToObject(propertyValue, propertySchema, bigEndian, result);
+            } else {
+                buf = this.valueToBytes(propertyValue, { ...propertySchema, "ex:bitOffset": 0});
+            }
+            this.copyBits(buf, buf.length * 8 - propertyLength, result, propertyOffset, propertyLength);
+        }
+        return result;
     }
 
     private readBits(buffer: Buffer, bitOffset: number, bitLength: number) {
@@ -472,10 +528,7 @@ export default class OctetstreamCodec implements ContentCodec {
           return resultBuffer;
         }
 
-        private writeBits(value: number, offsetBits: number, length: number, bigEndian: boolean) {
-            const numBytes = Math.ceil((offsetBits + length) / 8);
-            const buffer = Buffer.alloc(numBytes);
-
+        private writeBits(buffer: Buffer, value: number, offsetBits: number, length: number, bigEndian: boolean) {
             const bitOffset = offsetBits % 8;
             const byteOffset = Math.floor(offsetBits / 8);
 
@@ -494,7 +547,22 @@ export default class OctetstreamCodec implements ContentCodec {
                 buffer[byteIndex] |= bitValue << bitIndex;
               }
             }
+        }
 
-            return buffer;
+        private copyBits(source: Buffer, sourceBitOffset: number, target: Buffer, targetBitOffset: number, bitLength: number) {
+            if (sourceBitOffset % 8 === 0 && targetBitOffset % 8 === 0 && bitLength % 8 === 0) {
+                source.copy(target, targetBitOffset / 8, sourceBitOffset, sourceBitOffset + bitLength);
+            } else {
+                const bits = this.readBits(source, sourceBitOffset, bitLength);
+                if (bits.length <= 6) {
+                    this.writeBits(target, bits.readUIntBE(0, bits.length), targetBitOffset, bitLength, true);
+                } else {
+                    // iterate over bytes and write them to the buffer
+                    for (let i = 0; i < bits.length; i++) {
+                        const byte = bits.readUInt8(i);
+                        this.writeBits(target, byte, targetBitOffset + i * 8, 8, true);
+                    }
+                }
+            }
         }
 }
