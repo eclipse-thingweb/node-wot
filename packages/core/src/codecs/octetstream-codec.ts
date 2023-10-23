@@ -469,7 +469,7 @@ export default class OctetstreamCodec implements ContentCodec {
                 throw new Error(`Missing property '${propertyName}'`);
             }
             const propertySchema = schema.properties[propertyName];
-            let propertyValue = value[propertyName]
+            const propertyValue = value[propertyName]
             const propertyOffset = parseInt(propertySchema["ex:bitOffset"]);
             const propertyLength = parseInt(propertySchema["ex:bitLength"]);
             let buf: Buffer;
