@@ -496,6 +496,18 @@ class AssetInterfaceDescriptionUtilTest {
                     },
                 ],
             },
+            temperature: {
+                description: "Temperature value of the weather station",
+                type: "number",
+                minimum: -32.5,
+                maximum: 55.2,
+                unit: "degreeCelsius",
+                forms: [
+                    {
+                        href: "temp",
+                    },
+                ],
+            },
         },
     };
 
@@ -585,7 +597,7 @@ class AssetInterfaceDescriptionUtilTest {
                             .to.be.an("array")
                             .to.have.lengthOf.greaterThan(0);
                         let hasPropertyStatus = false;
-                        let hasPropertyStatusDescription = false;
+                        let hasPropertyTemperature = false;
                         for (const propertyValue of interactionValues.value) {
                             if (propertyValue.idShort === "status") {
                                 hasPropertyStatus = true;
@@ -597,6 +609,7 @@ class AssetInterfaceDescriptionUtilTest {
                                 let hasTitle = false;
                                 let hasObservable = false;
                                 let hasForms = false;
+                                let hasPropertyStatusDescription = false;
                                 for (const propProperty of propertyValue.value) {
                                     if (propProperty.idShort === "type") {
                                         hasType = true;
@@ -635,29 +648,58 @@ class AssetInterfaceDescriptionUtilTest {
                                         expect(hasHtvMethodName).to.equal(true);
                                     }
                                 }
+                                if (propertyValue.description != null) {
+                                    hasPropertyStatusDescription = true;
+                                    expect(propertyValue)
+                                        .to.have.property("description")
+                                        .to.eql([
+                                            {
+                                                language: "en",
+                                                text: "Statistic",
+                                            },
+                                            {
+                                                language: "de",
+                                                text: "Statistik",
+                                            },
+                                        ]);
+                                }
                                 expect(hasType).to.equal(true);
                                 expect(hasTitle).to.equal(false);
                                 expect(hasObservable).to.equal(true);
                                 expect(hasForms).to.equal(true);
-                            }
-                            if (propertyValue.description != null) {
-                                hasPropertyStatusDescription = true;
+                                expect(hasPropertyStatusDescription).to.equal(true);
+                            } else if (propertyValue.idShort === "temperature") {
+                                hasPropertyTemperature = true;
                                 expect(propertyValue)
-                                    .to.have.property("description")
-                                    .to.eql([
-                                        {
-                                            language: "en",
-                                            text: "Statistic",
-                                        },
-                                        {
-                                            language: "de",
-                                            text: "Statistik",
-                                        },
-                                    ]);
+                                    .to.have.property("value")
+                                    .to.be.an("array")
+                                    .to.have.lengthOf.greaterThan(0);
+                                let hasType = false;
+                                let hasDescription = false;
+                                let hasUnit = false;
+                                let hasForms = false;
+                                for (const propProperty of propertyValue.value) {
+                                    if (propProperty.idShort === "type") {
+                                        hasType = true;
+                                        expect(propProperty.value).to.equal("number");
+                                    } else if (propProperty.idShort === "description") {
+                                        hasDescription = true;
+                                        expect(propProperty.value).to.equal("Temperature value of the weather station");
+                                    } else if (propProperty.idShort === "unit") {
+                                        hasUnit = true;
+                                        expect(propProperty.value).to.equal("degreeCelsius");
+                                    } else if (propProperty.idShort === "forms") {
+                                        hasForms = true;
+                                    }
+                                }
+                                expect(hasType).to.equal(true);
+                                expect(hasDescription).to.equal(true);
+                                expect(hasUnit).to.equal(true);
+                                expect(hasForms).to.equal(true);
                             }
                         }
                         expect(hasPropertyStatus).to.equal(true);
-                        expect(hasPropertyStatusDescription).to.equal(true);
+                        expect(hasPropertyTemperature).to.equal(true);
                     }
                 }
                 expect(hasProperties).to.equal(true);

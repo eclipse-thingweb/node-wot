@@ -904,6 +904,15 @@ export class AssetInterfaceDescriptionUtil {
                             modelType: "Property",
                         });
                     }
+                    // description
+                    if (propertyValue.description != null) {
+                        propertyValues.push({
+                            idShort: "description",
+                            valueType: "xs:string",
+                            value: propertyValue.description,
+                            modelType: "Property",
+                        });
+                    }
                     // observable (if it deviates from the default == false only)
                     if (propertyValue.observable != null && propertyValue.observable === true) {
                         propertyValues.push({
@@ -913,6 +922,44 @@ export class AssetInterfaceDescriptionUtil {
                             modelType: "Property",
                         });
                     }
+                    // contentMediaType
+                    if (propertyValue.contentMediaType != null) {
+                        propertyValues.push({
+                            idShort: "contentMediaType",
+                            valueType: "xs:string",
+                            value: propertyValue.contentMediaType,
+                            modelType: "Property",
+                        });
+                    }
+                    // TODO enum
+                    // const
+                    if (propertyValue.const != null) {
+                        propertyValues.push({
+                            idShort: "const",
+                            valueType: "xs:string",
+                            value: propertyValue.const,
+                            modelType: "Property",
+                        });
+                    }
+                    // default
+                    if (propertyValue.default != null) {
+                        propertyValues.push({
+                            idShort: "default",
+                            valueType: "xs:string",
+                            value: propertyValue.default,
+                            modelType: "Property",
+                        });
+                    }
+                    // unit
+                    if (propertyValue.unit != null) {
+                        propertyValues.push({
+                            idShort: "unit",
+                            valueType: "xs:string",
+                            value: propertyValue.unit,
+                            modelType: "Property",
+                        });
+                    }
+
                     // readOnly and writeOnly marked as EXTERNAL in AID spec
                     // range and others? Simply add them as is?
 
