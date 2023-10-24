@@ -274,6 +274,30 @@ const tdSimple11 = `{
       }}
 }`;
 
+const tdSimpleModbus1 = `{
+    "@context": "https://www.w3.org/2022/wot/td/v1.1",
+    "title": "TestModbus",
+    "base": "modbus+tcp://##addr##:502/##unitid##",
+    "securityDefinitions": {
+      "nosec_sc": {
+        "scheme": "nosec"
+      }
+    },
+    "security": "nosec_sc",
+    "properties": {
+      "voltage": {
+        "title": "Voltage",
+        "type": "number",
+        "unit": "V",
+        "forms": [
+          {
+            "href": "/40001?quantity=2"
+          }
+        ]
+      }
+    }
+  }`;
+
 /** Broken TDs */
 const tdBroken1 = `{
   "@context": "https://www.w3.org/2019/wot/td/v1",
@@ -700,6 +724,26 @@ class TDParserTest {
         expect(thing.properties).to.have.property("status");
         expect(thing.properties.status.readOnly).equals(true);
         expect(thing.properties.status.observable).equals(false);
+    }
+
+    @test "simple Modbus TD 1.1"() {
+        const thing: Thing = TDParser.parseTD(tdSimpleModbus1);
+
+        // simple elements
+        expect(thing).to.have.property("@context").that.equals(DEFAULT_CONTEXT_V11);
+        expect(thing.title).equals("TestModbus");
+        expect(thing.base).equals("modbus+tcp://##addr##:502/##unitid##");
+
+        // interaction arrays
+        expect(thing).to.have.property("properties");
+        expect(thing).to.have.property("actions");
+        expect(thing).to.have.property("events");
+
+        expect(thing.properties).to.have.property("voltage");
+        expect(thing.properties.voltage.forms[0].href).to.be.oneOf([
+            "/40001?quantity=2",
+            "modbus+tcp://##addr##:502/##unitid##/40001?quantity=2",
+        ]);
     }
 
     @test "should detect broken TDs"() {
