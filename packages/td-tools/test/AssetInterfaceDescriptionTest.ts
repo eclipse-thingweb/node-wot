@@ -264,10 +264,14 @@ class AssetInterfaceDescriptionUtilTest {
                 hasEndpointMetadata = true;
                 const endpointMetadata = smValue;
                 expect(endpointMetadata).to.have.property("value").to.be.an("array").to.have.lengthOf.greaterThan(0);
+                let hasBase = false;
                 let hasSecurity = false;
                 let hasSecurityDefinitions = false;
                 for (const endpointMetadataValue of endpointMetadata.value) {
-                    if (endpointMetadataValue.idShort === "security") {
+                    if (endpointMetadataValue.idShort === "base") {
+                        hasBase = true;
+                        expect(endpointMetadataValue.value).to.equal("modbus+tcp://192.168.178.146:502/");
+                    } else if (endpointMetadataValue.idShort === "security") {
                         hasSecurity = true;
                         expect(endpointMetadataValue)
                             .to.have.property("value")
@@ -301,6 +305,7 @@ class AssetInterfaceDescriptionUtilTest {
                         expect(hasBasicSC).to.equal(true);
                     }
                 }
+                expect(hasBase).to.equal(true);
                 expect(hasSecurity).to.equal(true);
                 expect(hasSecurityDefinitions).to.equal(true);
             }
@@ -358,9 +363,7 @@ class AssetInterfaceDescriptionUtilTest {
                                         for (const formEntry of propProperty.value) {
                                             if (formEntry.idShort === "href") {
                                                 hasHref = true;
-                                                expect(formEntry.value).to.equal(
-                                                    "modbus+tcp://192.168.178.146:502/1/40020?quantity=16"
-                                                );
+                                                expect(formEntry.value).to.equal("1/40020?quantity=16");
                                             } else if (formEntry.idShort === "op") {
                                                 hasOp = true;
                                                 expect(formEntry.value).to.equal("readproperty");
@@ -425,9 +428,7 @@ class AssetInterfaceDescriptionUtilTest {
                                         for (const formEntry of propProperty.value) {
                                             if (formEntry.idShort === "href") {
                                                 hasHref = true;
-                                                expect(formEntry.value).to.equal(
-                                                    "modbus+tcp://192.168.178.146:502/40361?quantity=1"
-                                                );
+                                                expect(formEntry.value).to.equal("40361?quantity=1"); // use base
                                             } else if (formEntry.idShort === "op") {
                                                 hasOp = true;
                                                 expect(formEntry.value).to.equal("readproperty");

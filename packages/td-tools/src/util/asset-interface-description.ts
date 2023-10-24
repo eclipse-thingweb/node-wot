@@ -258,17 +258,17 @@ export class AssetInterfaceDescriptionUtil {
         return ""; // TODO what is the right value if information cannot be found
     }
 
-    private getSecurityDefinitionsFromEndpointMetadata(endpointMetadata?: Record<string, unknown>): {
-        [k: string]: SecurityScheme;
-    } {
+    private updateRootMetadata(thing: Thing, endpointMetadata?: Record<string, unknown>) {
         const securityDefinitions: {
             [k: string]: SecurityScheme;
         } = {};
+        const security: string[] = [];
 
         if (endpointMetadata?.value instanceof Array) {
             for (const v of endpointMetadata.value) {
-                if (v.idShort === "securityDefinitions") {
-                    // const securitySchemes: Array<SecurityScheme> = [];
+                if (v.idShort === "base") {
+                    thing.base = v.value;
+                } else if (v.idShort === "securityDefinitions") {
                     if (v.value instanceof Array) {
                         for (const securityDefinitionsValues of v.value) {
                             if (securityDefinitionsValues.idShort != null) {
@@ -286,19 +286,7 @@ export class AssetInterfaceDescriptionUtil {
                             }
                         }
                     }
-                }
-            }
-        }
-        return securityDefinitions;
-    }
-
-    private getSecurityFromEndpointMetadata(
-        endpointMetadata?: Record<string, unknown>
-    ): string | [string, ...string[]] {
-        const security: string[] = [];
-        if (endpointMetadata?.value instanceof Array) {
-            for (const v of endpointMetadata.value) {
-                if (v.idShort === "security") {
+                } else if (v.idShort === "security") {
                     if (v.value instanceof Array) {
                         for (const securityValue of v.value) {
                             if (securityValue.value != null) {
@@ -310,7 +298,8 @@ export class AssetInterfaceDescriptionUtil {
             }
         }
 
-        return security as string | [string, ...string[]];
+        thing.securityDefinitions = securityDefinitions;
+        thing.security = security as string | [string, ...string[]];
     }
 
     private createInteractionForm(vi: AASInteraction, addSecurity: boolean): TD.Form {
@@ -568,8 +557,8 @@ export class AssetInterfaceDescriptionUtil {
         const secNamesForEndpointMetadata = new Map<Record<string, unknown>, string[]>();
         for (const endpointMetadata of smInformation.endpointMetadataArray) {
             const secNames: Array<string> = [];
-            thing.securityDefinitions = this.getSecurityDefinitionsFromEndpointMetadata(endpointMetadata);
-            thing.security = this.getSecurityFromEndpointMetadata(endpointMetadata);
+            // update base, securityDefinitions, security, ...
+            this.updateRootMetadata(thing, endpointMetadata);
             // iterate over securitySchemes
             // eslint-disable-next-line unused-imports/no-unused-vars
             for (const [key, value] of Object.entries(thing.securityDefinitions)) {
@@ -925,7 +914,20 @@ export class AssetInterfaceDescriptionUtil {
 
                         // walk over string values like: "href", "contentType", "htv:methodName", ...
                         for (let formTerm in formElementPicked) {
-                            const formValue = formElementPicked[formTerm];
+                            let formValue = formElementPicked[formTerm];
+
+                            // Note: node-wot uses absolute URIs *almost* everywhere but we want to use "base" in AID
+                            // --> try to create relative href's as much as possible
+                            if (
+                                formTerm === "href" &&
+                                td.base != null &&
+                                td.base.length > 0 &&
+                                typeof formValue === "string" &&
+                                formValue.startsWith(td.base)
+                            ) {
+                                formValue = formValue.substring(td.base.length);
+                                console.log("dsadsa: " + formValue);
+                            }
 
                             // Note: AID does not allow idShort to contain values with colon (i.e., ":") --> "_" used instead
                             // TODO are there more characters we need to deal with?
