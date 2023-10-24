@@ -277,7 +277,7 @@ const tdSimple11 = `{
 const tdSimpleModbus1 = `{
     "@context": "https://www.w3.org/2022/wot/td/v1.1",
     "title": "TestModbus",
-    "base": "modbus+tcp://<IP-Address>:502/<unitid>/",
+    "base": "modbus+tcp://##addr##:502/##unitid##/",
     "securityDefinitions": {
       "nosec_sc": {
         "scheme": "nosec"
@@ -732,7 +732,7 @@ class TDParserTest {
         // simple elements
         expect(thing).to.have.property("@context").that.equals(DEFAULT_CONTEXT_V11);
         expect(thing.title).equals("TestModbus");
-        expect(thing.base).equals("modbus+tcp://<IP-Address>:502/<unitid>/");
+        expect(thing.base).equals("modbus+tcp://##addr##:502/##unitid##/");
 
         // interaction arrays
         expect(thing).to.have.property("properties");
@@ -742,7 +742,7 @@ class TDParserTest {
         expect(thing.properties).to.have.property("voltage");
         expect(thing.properties.voltage.forms[0].href).to.be.oneOf([
             "/40001?quantity=2",
-            "modbus+tcp://<IP-Address>:502/<unitid>/40001?quantity=2",
+            "modbus+tcp://##addr##:502/##unitid##/40001?quantity=2",
         ]);
     }
 
