@@ -57,6 +57,7 @@ packages/*
 !packages/binding-netconf
 !packages/binding-modbus
 !packages/binding-mbus
+!packages/binding-firestore
 !packages/cli
 !packages/browser-bundle
 !packages/examples

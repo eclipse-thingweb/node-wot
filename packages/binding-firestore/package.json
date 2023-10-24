@@ -1,0 +1,44 @@
+{
+    "name": "@node-wot/binding-firestore",
+    "version": "0.8.10",
+    "description": "Firestore client & server protocol binding for node-wot",
+    "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
+    "license": "EPL-2.0 OR W3C-20150513",
+    "repository": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-firestore",
+    "publishConfig": {
+        "access": "public"
+    },
+    "main": "dist/firestore.js",
+    "scripts": {
+        "build": "tsc -b",
+        "rebuild": "tsc -b && npm rebuild --unsafe-perm --build-from-source",
+        "test": "firebase emulators:exec --debug -c test/firebase.json \"npm run fbemutest\" && kill-port 4000 8088 9099",
+        "fbemutest": "mocha --require ts-node/register test/**/*.ts --timeout 60000 --exit",
+        "onlystartemu": "firebase emulators:start --debug -c test/firebase.json",
+        "codestyle": "standard --pretty",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
+        "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"**/*.json\""
+    },
+    "dependencies": {
+        "@node-wot/core": "0.8.10",
+        "@node-wot/td-tools": "0.8.10",
+        "buffer": "^5.5.0",
+        "firebase": "^10.5.0",
+        "uuid": "^7.0.3"
+    },
+    "devDependencies": {
+        "@firebase/rules-unit-testing": "^3.0.1",
+        "firebase-admin": "^9.9.0",
+        "firebase-tools": "^12.0.0",
+        "kill-port": "^1.6.1"
+    },
+    "bugs": {
+        "url": "https://github.com/eclipse/thingweb.node-wot/issues"
+    },
+    "homepage": "https://github.com/eclipse/thingweb.node-wot/tree/master/packages/binding-firestore#readme",
+    "directories": {
+        "test": "test"
+    },
+    "keywords": []
+}
