@@ -815,16 +815,128 @@ export class AssetInterfaceDescriptionUtil {
         const securityDefinitionsValues: Array<unknown> = [];
         for (const secKey in td.securityDefinitions) {
             const secValue: SecurityScheme = td.securityDefinitions[secKey];
+            const values = [];
+            // scheme always
+            values.push({
+                idShort: "scheme",
+                semanticId: this.createSemanticId("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+                valueType: "xs:string",
+                value: secValue.scheme,
+                modelType: "Property",
+            });
+            // other security information
+            if (secValue.proxy != null) {
+                values.push({
+                    idShort: "proxy",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#proxy"),
+                    valueType: "xs:string",
+                    value: secValue.proxy,
+                    modelType: "Property",
+                });
+            }
+            if (secValue.name != null) {
+                values.push({
+                    idShort: "name",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#name"),
+                    valueType: "xs:string",
+                    value: secValue.name,
+                    modelType: "Property",
+                });
+            }
+            if (secValue.in != null) {
+                values.push({
+                    idShort: "in",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#in"),
+                    valueType: "xs:string",
+                    value: secValue.in,
+                    modelType: "Property",
+                });
+            }
+            if (secValue.qop != null) {
+                values.push({
+                    idShort: "qop",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#qop"),
+                    valueType: "xs:string",
+                    value: secValue.qop,
+                    modelType: "Property",
+                });
+            }
+            if (secValue.authorization != null) {
+                values.push({
+                    idShort: "authorization",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#authorization"),
+                    valueType: "xs:string",
+                    value: secValue.authorization,
+                    modelType: "Property",
+                });
+            }
+            if (secValue.alg != null) {
+                values.push({
+                    idShort: "alg",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#alg"),
+                    valueType: "xs:string",
+                    value: secValue.alg,
+                    modelType: "Property",
+                });
+            }
+            if (secValue.format != null) {
+                values.push({
+                    idShort: "format",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#format"),
+                    valueType: "xs:string",
+                    value: secValue.format,
+                    modelType: "Property",
+                });
+            }
+            if (secValue.identity != null) {
+                values.push({
+                    idShort: "identity",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#identity"),
+                    valueType: "xs:string",
+                    value: secValue.identity,
+                    modelType: "Property",
+                });
+            }
+            if (secValue.token != null) {
+                values.push({
+                    idShort: "token",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#token"),
+                    valueType: "xs:string",
+                    value: secValue.token,
+                    modelType: "Property",
+                });
+            }
+            if (secValue.refresh != null) {
+                values.push({
+                    idShort: "refresh",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#refresh"),
+                    valueType: "xs:string",
+                    value: secValue.refresh,
+                    modelType: "Property",
+                });
+            }
+            if (secValue.scopes != null) {
+                values.push({
+                    idShort: "scopes",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#scopes"),
+                    valueType: "xs:string",
+                    value: secValue.scopes,
+                    modelType: "Property",
+                });
+            }
+            if (secValue.flow != null) {
+                values.push({
+                    idShort: "flow",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#flow"),
+                    valueType: "xs:string",
+                    value: secValue.flow,
+                    modelType: "Property",
+                });
+            }
+
             securityDefinitionsValues.push({
                 idShort: secKey,
-                value: [
-                    {
-                        idShort: "scheme",
-                        valueType: "xs:string",
-                        value: secValue.scheme,
-                        modelType: "Property",
-                    },
-                ],
+                value: values,
                 modelType: "SubmodelElementCollection",
             });
         }

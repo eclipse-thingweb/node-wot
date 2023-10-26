@@ -573,13 +573,18 @@ class AssetInterfaceDescriptionUtilTest {
                                     .to.be.an("array")
                                     .to.have.lengthOf.greaterThan(0);
                                 let hasBasic = false;
+                                let hasIn = false;
                                 for (const sec of securityDefinitionValue.value) {
                                     if (sec.idShort === "scheme") {
                                         hasBasic = true;
                                         expect(sec.value).to.equal("basic");
+                                    } else if (sec.idShort === "in") {
+                                        hasIn = true;
+                                        expect(sec.value).to.equal("header");
                                     }
                                 }
                                 expect(hasBasic).to.equal(true);
+                                expect(hasIn).to.equal(true);
                             }
                         }
                         expect(hasBasicSC).to.equal(true);
