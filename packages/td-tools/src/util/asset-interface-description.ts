@@ -142,9 +142,28 @@ export class AssetInterfaceDescriptionUtil {
             // use protocol binding prefix like "http" for name
             const submodelElementIdShort = protocol === undefined ? "Interface" : "Interface" + protocol.toUpperCase();
 
+            const supplementalSemanticIds = [this.createSemanticId("https://www.w3.org/2019/wot/td")];
+            if (protocol !== undefined) {
+                const protocolLC = protocol.toLocaleLowerCase();
+                let supplementalSemanticIdProtocolValue;
+                if (protocolLC.includes("modbus")) {
+                    supplementalSemanticIdProtocolValue = "http://www.w3.org/2011/modbus";
+                } else if (protocolLC.includes("mqtt")) {
+                    supplementalSemanticIdProtocolValue = "http://www.w3.org/2011/mqtt";
+                } else if (protocolLC.includes("http")) {
+                    supplementalSemanticIdProtocolValue = "http://www.w3.org/2011/http";
+                }
+                if (supplementalSemanticIdProtocolValue !== undefined) {
+                    supplementalSemanticIds.push(this.createSemanticId(supplementalSemanticIdProtocolValue));
+                }
+            }
+
             const submdelElement = {
                 idShort: submodelElementIdShort,
-                // semanticId needed?
+                semanticId: this.createSemanticId(
+                    "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/Interface"
+                ),
+                supplementalSemanticIds,
                 // embeddedDataSpecifications needed?
                 value: [
                     {
@@ -168,7 +187,7 @@ export class AssetInterfaceDescriptionUtil {
             idShort: "AssetInterfacesDescription",
             id: aidID,
             kind: "Instance",
-            // semanticId needed?
+            semanticId: this.createSemanticId("https://admin-shell.io/idta/AssetInterfacesDescription/1/0/Submodel"),
             description: [
                 // TODO does this need to be an array or can it simply be a value
                 {
@@ -192,6 +211,18 @@ export class AssetInterfaceDescriptionUtil {
      * PRIVATE IMPLEMENTATION METHODS ARE FOLLOWING
      *
      */
+
+    private createSemanticId(value: string): object {
+        return {
+            type: "ExternalReference",
+            keys: [
+                {
+                    type: "GlobalReference",
+                    value,
+                },
+            ],
+        };
+    }
 
     private getProtocolPrefixes(td: ThingDescription): string[] {
         const protocols: string[] = [];
