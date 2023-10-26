@@ -776,6 +776,7 @@ export class AssetInterfaceDescriptionUtil {
         if (td.base != null) {
             values.push({
                 idShort: "base",
+                semanticId: this.createSemanticId("https://www.w3.org/2019/wot/td#baseURI"),
                 valueType: "xs:anyURI",
                 value: td.base, // TODO
                 modelType: "Property",
@@ -1015,7 +1016,39 @@ export class AssetInterfaceDescriptionUtil {
                                 formValue.startsWith(td.base)
                             ) {
                                 formValue = formValue.substring(td.base.length);
-                                console.log("dsadsa: " + formValue);
+                            }
+
+                            let semanticId;
+                            if (formTerm === "href") {
+                                semanticId = "https://www.w3.org/2019/wot/hypermedia#hasTarget";
+                            } else if (formTerm === "contentType") {
+                                semanticId = "https://www.w3.org/2019/wot/hypermedia#forContentType";
+                            } else if (formTerm === "htv:methodName") {
+                                semanticId = "https://www.w3.org/2011/http#methodName";
+                            } else if (formTerm === "htv:headers") {
+                                semanticId = "https://www.w3.org/2011/http#headers";
+                            } else if (formTerm === "htv:fieldName") {
+                                semanticId = "https://www.w3.org/2011/http#fieldName";
+                            } else if (formTerm === "htv:fieldValue") {
+                                semanticId = "https://www.w3.org/2011/http#fieldValue";
+                            } else if (formTerm === "modbus:function") {
+                                semanticId = "https://www.w3.org/2019/wot/modbus#Function";
+                            } else if (formTerm === "modbus:entity") {
+                                semanticId = "https://www.w3.org/2019/wot/modbus#Entity";
+                            } else if (formTerm === "modbus:zeroBasedAddressing") {
+                                semanticId = "https://www.w3.org/2019/wot/modbus#hasZeroBasedAddressingFlag";
+                            } else if (formTerm === "modbus:timeout") {
+                                semanticId = "https://www.w3.org/2019/wot/modbus#hasTimeout";
+                            } else if (formTerm === "modbus:pollingTime") {
+                                semanticId = "https://www.w3.org/2019/wot/modbus#hasPollingTime";
+                                // } else if (formTerm === "modbus:type") {
+                                //     semanticId = "https://www.w3.org/2019/wot/modbus#type";
+                            } else if (formTerm === "mqv:retain") {
+                                semanticId = "https://www.w3.org/2019/wot/mqtt#hasRetainFlag";
+                            } else if (formTerm === "mqv:controlPacket") {
+                                semanticId = "https://www.w3.org/2019/wot/mqtt#ControlPacket";
+                            } else if (formTerm === "mqv:qos") {
+                                semanticId = "https://www.w3.org/2019/wot/mqtt#hasQoSFlag";
                             }
 
                             // Note: AID does not allow idShort to contain values with colon (i.e., ":") --> "_" used instead
@@ -1023,12 +1056,22 @@ export class AssetInterfaceDescriptionUtil {
                             formTerm = formTerm.replace(":", "_");
 
                             if (typeof formValue === "string") {
-                                propertyForm.push({
-                                    idShort: formTerm,
-                                    valueType: "xs:string",
-                                    value: formValue,
-                                    modelType: "Property",
-                                });
+                                if (semanticId !== undefined) {
+                                    propertyForm.push({
+                                        idShort: formTerm,
+                                        semanticId: this.createSemanticId(semanticId),
+                                        valueType: "xs:string",
+                                        value: formValue,
+                                        modelType: "Property",
+                                    });
+                                } else {
+                                    propertyForm.push({
+                                        idShort: formTerm,
+                                        valueType: "xs:string",
+                                        value: formValue,
+                                        modelType: "Property",
+                                    });
+                                }
                             }
                         }
 
