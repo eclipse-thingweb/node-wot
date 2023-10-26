@@ -806,6 +806,7 @@ export class AssetInterfaceDescriptionUtil {
         }
         values.push({
             idShort: "security",
+            semanticId: this.createSemanticId("https://www.w3.org/2019/wot/td#hasSecurityConfiguration"),
             value: securityValues,
             modelType: "SubmodelElementCollection",
         });
@@ -829,6 +830,7 @@ export class AssetInterfaceDescriptionUtil {
         }
         values.push({
             idShort: "securityDefinitions",
+            semanticId: this.createSemanticId("https://www.w3.org/2019/wot/td#definesSecurityScheme"),
             value: securityDefinitionsValues,
             modelType: "SubmodelElementCollection",
         });
@@ -878,6 +880,7 @@ export class AssetInterfaceDescriptionUtil {
                     if (propertyValue.type != null) {
                         propertyValues.push({
                             idShort: "type",
+                            semanticId: this.createSemanticId("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
                             valueType: "xs:string",
                             value: propertyValue.type,
                             modelType: "Property",
@@ -886,43 +889,73 @@ export class AssetInterfaceDescriptionUtil {
                         if (propertyValue.minimum != null || propertyValue.maximum != null) {
                             const minMax: { [k: string]: unknown } = {
                                 idShort: "min_max",
+                                semanticId: this.createSemanticId(
+                                    "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/minMaxRange"
+                                ),
+                                supplementalSemanticIds: [],
                                 valueType:
                                     "integer".localeCompare(propertyValue.type) === 0 ? "xs:integer" : "xs:double",
                                 modelType: "Range",
                             };
                             if (propertyValue.minimum != null) {
                                 minMax.min = propertyValue.minimum.toString();
+                                (minMax.supplementalSemanticIds as Array<unknown>).push(
+                                    this.createSemanticId("https://www.w3.org/2019/wot/json-schema#minimum")
+                                );
                             }
                             if (propertyValue.maximum != null) {
                                 minMax.max = propertyValue.maximum.toString();
+                                (minMax.supplementalSemanticIds as Array<unknown>).push(
+                                    this.createSemanticId("https://www.w3.org/2019/wot/json-schema#maximum")
+                                );
                             }
                             propertyValues.push(minMax);
                         }
                         if (propertyValue.minItems != null || propertyValue.maxItems != null) {
                             const itemsRange: { [k: string]: unknown } = {
                                 idShort: "itemsRange",
+                                semanticId: this.createSemanticId(
+                                    "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/itemsRange"
+                                ),
+                                supplementalSemanticIds: [],
                                 valueType: "xs:integer",
                                 modelType: "Range",
                             };
                             if (propertyValue.minItems != null) {
                                 itemsRange.min = propertyValue.minItems.toString();
+                                (itemsRange.supplementalSemanticIds as Array<unknown>).push(
+                                    this.createSemanticId("https://www.w3.org/2019/wot/json-schema#minItems")
+                                );
                             }
                             if (propertyValue.maxItems != null) {
                                 itemsRange.max = propertyValue.maxItems.toString();
+                                (itemsRange.supplementalSemanticIds as Array<unknown>).push(
+                                    this.createSemanticId("https://www.w3.org/2019/wot/json-schema#maxItems")
+                                );
                             }
                             propertyValues.push(itemsRange);
                         }
                         if (propertyValue.minLength != null || propertyValue.maxLength != null) {
                             const lengthRange: { [k: string]: unknown } = {
                                 idShort: "lengthRange",
+                                semanticId: this.createSemanticId(
+                                    "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/lengthRange"
+                                ),
+                                supplementalSemanticIds: [],
                                 valueType: "xs:integer",
                                 modelType: "Range",
                             };
                             if (propertyValue.minLength != null) {
                                 lengthRange.min = propertyValue.minLength.toString();
+                                (lengthRange.supplementalSemanticIds as Array<unknown>).push(
+                                    this.createSemanticId("https://www.w3.org/2019/wot/json-schema#minLength")
+                                );
                             }
                             if (propertyValue.maxLength != null) {
                                 lengthRange.max = propertyValue.maxLength.toString();
+                                (lengthRange.supplementalSemanticIds as Array<unknown>).push(
+                                    this.createSemanticId("https://www.w3.org/2019/wot/json-schema#maxLength")
+                                );
                             }
                             propertyValues.push(lengthRange);
                         }
@@ -931,6 +964,7 @@ export class AssetInterfaceDescriptionUtil {
                     if (propertyValue.title != null) {
                         propertyValues.push({
                             idShort: "title",
+                            semanticId: this.createSemanticId("https://www.w3.org/2019/wot/td#title"),
                             valueType: "xs:string",
                             value: propertyValue.title,
                             modelType: "Property",
@@ -949,6 +983,7 @@ export class AssetInterfaceDescriptionUtil {
                     if (propertyValue.observable != null && propertyValue.observable === true) {
                         propertyValues.push({
                             idShort: "observable",
+                            semanticId: this.createSemanticId("https://www.w3.org/2019/wot/td#isObservable"),
                             valueType: "xs:boolean",
                             value: `${propertyValue.observable}`, // in AID represented as string
                             modelType: "Property",
@@ -958,6 +993,9 @@ export class AssetInterfaceDescriptionUtil {
                     if (propertyValue.contentMediaType != null) {
                         propertyValues.push({
                             idShort: "contentMediaType",
+                            semanticId: this.createSemanticId(
+                                "https://www.w3.org/2019/wot/json-schema#contentMediaType"
+                            ),
                             valueType: "xs:string",
                             value: propertyValue.contentMediaType,
                             modelType: "Property",
@@ -977,6 +1015,7 @@ export class AssetInterfaceDescriptionUtil {
                     if (propertyValue.default != null) {
                         propertyValues.push({
                             idShort: "default",
+                            semanticId: this.createSemanticId("https://www.w3.org/2019/wot/json-schema#default"),
                             valueType: "xs:string",
                             value: propertyValue.default,
                             modelType: "Property",
@@ -991,6 +1030,7 @@ export class AssetInterfaceDescriptionUtil {
                             modelType: "Property",
                         });
                     }
+                    // TODO items
 
                     // readOnly and writeOnly marked as EXTERNAL in AID spec
                     // range and others? Simply add them as is?
@@ -1106,6 +1146,10 @@ export class AssetInterfaceDescriptionUtil {
                     properties.push({
                         idShort: propertyKey,
                         description,
+                        semanticId: this.createSemanticId(
+                            "https://admin-shell.io/idta/AssetInterfaceDescription/1/0/PropertyDefinition"
+                        ),
+                        supplementalSemanticIds: [this.createSemanticId("https://www.w3.org/2019/wot/td#name")],
                         value: propertyValues,
                         modelType: "SubmodelElementCollection",
                     });
@@ -1126,6 +1170,7 @@ export class AssetInterfaceDescriptionUtil {
         // Properties
         values.push({
             idShort: "properties",
+            semanticId: this.createSemanticId("https://www.w3.org/2019/wot/td#PropertyAffordance"),
             value: properties,
             modelType: "SubmodelElementCollection",
         });
