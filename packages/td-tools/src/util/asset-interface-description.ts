@@ -171,11 +171,20 @@ export class AssetInterfaceDescriptionUtil {
                         valueType: "xs:string",
                         value: td.title,
                         modelType: "Property",
+                        semanticId: this.createSemanticId("https://www.w3.org/2019/wot/td#title"),
                     },
-                    // support and other?
+                    // created, modified, support ?
                     this.createEndpointMetadata(td), // EndpointMetadata like base, security and securityDefinitions
                     this.createInterfaceMetadata(td, protocol), // InterfaceMetadata like properties, actions and events
-                    // externalDescriptor ?
+                    {
+                        idShort: "ExternalDescriptor",
+                        semanticId: this.createSemanticId(
+                            "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/ExternalDescriptor"
+                        ),
+                        // embeddedDataSpecifications ?
+                        value: [],
+                        modelType: "SubmodelElementCollection",
+                    },
                 ],
                 modelType: "SubmodelElementCollection",
             };
@@ -825,7 +834,9 @@ export class AssetInterfaceDescriptionUtil {
 
         const endpointMetadata: Record<string, unknown> = {
             idShort: "EndpointMetadata",
-            // semanticId ?
+            semanticId: this.createSemanticId(
+                "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/EndpointMetadata"
+            ),
             // embeddedDataSpecifications ?
             value: values,
             modelType: "SubmodelElementCollection",
@@ -1090,7 +1101,10 @@ export class AssetInterfaceDescriptionUtil {
 
         const interfaceMetadata: Record<string, unknown> = {
             idShort: "InterfaceMetadata",
-            // semanticId ?
+            semanticId: this.createSemanticId(
+                "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/InterfaceMetadata"
+            ),
+            supplementalSemanticIds: [this.createSemanticId("https://www.w3.org/2019/wot/td#InteractionAffordance")],
             // embeddedDataSpecifications ?
             value: values,
             modelType: "SubmodelElementCollection",
