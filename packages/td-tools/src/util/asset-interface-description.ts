@@ -142,9 +142,28 @@ export class AssetInterfaceDescriptionUtil {
             // use protocol binding prefix like "http" for name
             const submodelElementIdShort = protocol === undefined ? "Interface" : "Interface" + protocol.toUpperCase();
 
+            const supplementalSemanticIds = [this.createSemanticId("https://www.w3.org/2019/wot/td")];
+            if (protocol !== undefined) {
+                const protocolLC = protocol.toLocaleLowerCase();
+                let supplementalSemanticIdProtocolValue;
+                if (protocolLC.includes("modbus")) {
+                    supplementalSemanticIdProtocolValue = "http://www.w3.org/2011/modbus";
+                } else if (protocolLC.includes("mqtt")) {
+                    supplementalSemanticIdProtocolValue = "http://www.w3.org/2011/mqtt";
+                } else if (protocolLC.includes("http")) {
+                    supplementalSemanticIdProtocolValue = "http://www.w3.org/2011/http";
+                }
+                if (supplementalSemanticIdProtocolValue !== undefined) {
+                    supplementalSemanticIds.push(this.createSemanticId(supplementalSemanticIdProtocolValue));
+                }
+            }
+
             const submdelElement = {
                 idShort: submodelElementIdShort,
-                // semanticId needed?
+                semanticId: this.createSemanticId(
+                    "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/Interface"
+                ),
+                supplementalSemanticIds,
                 // embeddedDataSpecifications needed?
                 value: [
                     {
@@ -152,11 +171,20 @@ export class AssetInterfaceDescriptionUtil {
                         valueType: "xs:string",
                         value: td.title,
                         modelType: "Property",
+                        semanticId: this.createSemanticId("https://www.w3.org/2019/wot/td#title"),
                     },
-                    // support and other?
+                    // created, modified, support ?
                     this.createEndpointMetadata(td), // EndpointMetadata like base, security and securityDefinitions
                     this.createInterfaceMetadata(td, protocol), // InterfaceMetadata like properties, actions and events
-                    // externalDescriptor ?
+                    {
+                        idShort: "ExternalDescriptor",
+                        semanticId: this.createSemanticId(
+                            "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/ExternalDescriptor"
+                        ),
+                        // embeddedDataSpecifications ?
+                        value: [],
+                        modelType: "SubmodelElementCollection",
+                    },
                 ],
                 modelType: "SubmodelElementCollection",
             };
@@ -168,7 +196,7 @@ export class AssetInterfaceDescriptionUtil {
             idShort: "AssetInterfacesDescription",
             id: aidID,
             kind: "Instance",
-            // semanticId needed?
+            semanticId: this.createSemanticId("https://admin-shell.io/idta/AssetInterfacesDescription/1/0/Submodel"),
             description: [
                 // TODO does this need to be an array or can it simply be a value
                 {
@@ -192,6 +220,18 @@ export class AssetInterfaceDescriptionUtil {
      * PRIVATE IMPLEMENTATION METHODS ARE FOLLOWING
      *
      */
+
+    private createSemanticId(value: string): object {
+        return {
+            type: "ExternalReference",
+            keys: [
+                {
+                    type: "GlobalReference",
+                    value,
+                },
+            ],
+        };
+    }
 
     private getProtocolPrefixes(td: ThingDescription): string[] {
         const protocols: string[] = [];
@@ -736,6 +776,7 @@ export class AssetInterfaceDescriptionUtil {
         if (td.base != null) {
             values.push({
                 idShort: "base",
+                semanticId: this.createSemanticId("https://www.w3.org/2019/wot/td#baseURI"),
                 valueType: "xs:anyURI",
                 value: td.base, // TODO
                 modelType: "Property",
@@ -765,6 +806,7 @@ export class AssetInterfaceDescriptionUtil {
         }
         values.push({
             idShort: "security",
+            semanticId: this.createSemanticId("https://www.w3.org/2019/wot/td#hasSecurityConfiguration"),
             value: securityValues,
             modelType: "SubmodelElementCollection",
         });
@@ -773,28 +815,143 @@ export class AssetInterfaceDescriptionUtil {
         const securityDefinitionsValues: Array<unknown> = [];
         for (const secKey in td.securityDefinitions) {
             const secValue: SecurityScheme = td.securityDefinitions[secKey];
+            const values = [];
+            // scheme always
+            values.push({
+                idShort: "scheme",
+                semanticId: this.createSemanticId("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+                valueType: "xs:string",
+                value: secValue.scheme,
+                modelType: "Property",
+            });
+            // other security information
+            if (secValue.proxy != null) {
+                values.push({
+                    idShort: "proxy",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#proxy"),
+                    valueType: "xs:string",
+                    value: secValue.proxy,
+                    modelType: "Property",
+                });
+            }
+            if (secValue.name != null) {
+                values.push({
+                    idShort: "name",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#name"),
+                    valueType: "xs:string",
+                    value: secValue.name,
+                    modelType: "Property",
+                });
+            }
+            if (secValue.in != null) {
+                values.push({
+                    idShort: "in",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#in"),
+                    valueType: "xs:string",
+                    value: secValue.in,
+                    modelType: "Property",
+                });
+            }
+            if (secValue.qop != null) {
+                values.push({
+                    idShort: "qop",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#qop"),
+                    valueType: "xs:string",
+                    value: secValue.qop,
+                    modelType: "Property",
+                });
+            }
+            if (secValue.authorization != null) {
+                values.push({
+                    idShort: "authorization",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#authorization"),
+                    valueType: "xs:string",
+                    value: secValue.authorization,
+                    modelType: "Property",
+                });
+            }
+            if (secValue.alg != null) {
+                values.push({
+                    idShort: "alg",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#alg"),
+                    valueType: "xs:string",
+                    value: secValue.alg,
+                    modelType: "Property",
+                });
+            }
+            if (secValue.format != null) {
+                values.push({
+                    idShort: "format",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#format"),
+                    valueType: "xs:string",
+                    value: secValue.format,
+                    modelType: "Property",
+                });
+            }
+            if (secValue.identity != null) {
+                values.push({
+                    idShort: "identity",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#identity"),
+                    valueType: "xs:string",
+                    value: secValue.identity,
+                    modelType: "Property",
+                });
+            }
+            if (secValue.token != null) {
+                values.push({
+                    idShort: "token",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#token"),
+                    valueType: "xs:string",
+                    value: secValue.token,
+                    modelType: "Property",
+                });
+            }
+            if (secValue.refresh != null) {
+                values.push({
+                    idShort: "refresh",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#refresh"),
+                    valueType: "xs:string",
+                    value: secValue.refresh,
+                    modelType: "Property",
+                });
+            }
+            if (secValue.scopes != null) {
+                values.push({
+                    idShort: "scopes",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#scopes"),
+                    valueType: "xs:string",
+                    value: secValue.scopes,
+                    modelType: "Property",
+                });
+            }
+            if (secValue.flow != null) {
+                values.push({
+                    idShort: "flow",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#flow"),
+                    valueType: "xs:string",
+                    value: secValue.flow,
+                    modelType: "Property",
+                });
+            }
+
             securityDefinitionsValues.push({
                 idShort: secKey,
-                value: [
-                    {
-                        idShort: "scheme",
-                        valueType: "xs:string",
-                        value: secValue.scheme,
-                        modelType: "Property",
-                    },
-                ],
+                value: values,
                 modelType: "SubmodelElementCollection",
             });
         }
         values.push({
             idShort: "securityDefinitions",
+            semanticId: this.createSemanticId("https://www.w3.org/2019/wot/td#definesSecurityScheme"),
             value: securityDefinitionsValues,
             modelType: "SubmodelElementCollection",
         });
 
         const endpointMetadata: Record<string, unknown> = {
             idShort: "EndpointMetadata",
-            // semanticId ?
+            semanticId: this.createSemanticId(
+                "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/EndpointMetadata"
+            ),
             // embeddedDataSpecifications ?
             value: values,
             modelType: "SubmodelElementCollection",
@@ -835,6 +992,7 @@ export class AssetInterfaceDescriptionUtil {
                     if (propertyValue.type != null) {
                         propertyValues.push({
                             idShort: "type",
+                            semanticId: this.createSemanticId("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
                             valueType: "xs:string",
                             value: propertyValue.type,
                             modelType: "Property",
@@ -843,43 +1001,73 @@ export class AssetInterfaceDescriptionUtil {
                         if (propertyValue.minimum != null || propertyValue.maximum != null) {
                             const minMax: { [k: string]: unknown } = {
                                 idShort: "min_max",
+                                semanticId: this.createSemanticId(
+                                    "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/minMaxRange"
+                                ),
+                                supplementalSemanticIds: [],
                                 valueType:
                                     "integer".localeCompare(propertyValue.type) === 0 ? "xs:integer" : "xs:double",
                                 modelType: "Range",
                             };
                             if (propertyValue.minimum != null) {
                                 minMax.min = propertyValue.minimum.toString();
+                                (minMax.supplementalSemanticIds as Array<unknown>).push(
+                                    this.createSemanticId("https://www.w3.org/2019/wot/json-schema#minimum")
+                                );
                             }
                             if (propertyValue.maximum != null) {
                                 minMax.max = propertyValue.maximum.toString();
+                                (minMax.supplementalSemanticIds as Array<unknown>).push(
+                                    this.createSemanticId("https://www.w3.org/2019/wot/json-schema#maximum")
+                                );
                             }
                             propertyValues.push(minMax);
                         }
                         if (propertyValue.minItems != null || propertyValue.maxItems != null) {
                             const itemsRange: { [k: string]: unknown } = {
                                 idShort: "itemsRange",
+                                semanticId: this.createSemanticId(
+                                    "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/itemsRange"
+                                ),
+                                supplementalSemanticIds: [],
                                 valueType: "xs:integer",
                                 modelType: "Range",
                             };
                             if (propertyValue.minItems != null) {
                                 itemsRange.min = propertyValue.minItems.toString();
+                                (itemsRange.supplementalSemanticIds as Array<unknown>).push(
+                                    this.createSemanticId("https://www.w3.org/2019/wot/json-schema#minItems")
+                                );
                             }
                             if (propertyValue.maxItems != null) {
                                 itemsRange.max = propertyValue.maxItems.toString();
+                                (itemsRange.supplementalSemanticIds as Array<unknown>).push(
+                                    this.createSemanticId("https://www.w3.org/2019/wot/json-schema#maxItems")
+                                );
                             }
                             propertyValues.push(itemsRange);
                         }
                         if (propertyValue.minLength != null || propertyValue.maxLength != null) {
                             const lengthRange: { [k: string]: unknown } = {
                                 idShort: "lengthRange",
+                                semanticId: this.createSemanticId(
+                                    "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/lengthRange"
+                                ),
+                                supplementalSemanticIds: [],
                                 valueType: "xs:integer",
                                 modelType: "Range",
                             };
                             if (propertyValue.minLength != null) {
                                 lengthRange.min = propertyValue.minLength.toString();
+                                (lengthRange.supplementalSemanticIds as Array<unknown>).push(
+                                    this.createSemanticId("https://www.w3.org/2019/wot/json-schema#minLength")
+                                );
                             }
                             if (propertyValue.maxLength != null) {
                                 lengthRange.max = propertyValue.maxLength.toString();
+                                (lengthRange.supplementalSemanticIds as Array<unknown>).push(
+                                    this.createSemanticId("https://www.w3.org/2019/wot/json-schema#maxLength")
+                                );
                             }
                             propertyValues.push(lengthRange);
                         }
@@ -888,6 +1076,7 @@ export class AssetInterfaceDescriptionUtil {
                     if (propertyValue.title != null) {
                         propertyValues.push({
                             idShort: "title",
+                            semanticId: this.createSemanticId("https://www.w3.org/2019/wot/td#title"),
                             valueType: "xs:string",
                             value: propertyValue.title,
                             modelType: "Property",
@@ -906,6 +1095,7 @@ export class AssetInterfaceDescriptionUtil {
                     if (propertyValue.observable != null && propertyValue.observable === true) {
                         propertyValues.push({
                             idShort: "observable",
+                            semanticId: this.createSemanticId("https://www.w3.org/2019/wot/td#isObservable"),
                             valueType: "xs:boolean",
                             value: `${propertyValue.observable}`, // in AID represented as string
                             modelType: "Property",
@@ -915,6 +1105,9 @@ export class AssetInterfaceDescriptionUtil {
                     if (propertyValue.contentMediaType != null) {
                         propertyValues.push({
                             idShort: "contentMediaType",
+                            semanticId: this.createSemanticId(
+                                "https://www.w3.org/2019/wot/json-schema#contentMediaType"
+                            ),
                             valueType: "xs:string",
                             value: propertyValue.contentMediaType,
                             modelType: "Property",
@@ -934,6 +1127,7 @@ export class AssetInterfaceDescriptionUtil {
                     if (propertyValue.default != null) {
                         propertyValues.push({
                             idShort: "default",
+                            semanticId: this.createSemanticId("https://www.w3.org/2019/wot/json-schema#default"),
                             valueType: "xs:string",
                             value: propertyValue.default,
                             modelType: "Property",
@@ -948,6 +1142,7 @@ export class AssetInterfaceDescriptionUtil {
                             modelType: "Property",
                         });
                     }
+                    // TODO items
 
                     // readOnly and writeOnly marked as EXTERNAL in AID spec
                     // range and others? Simply add them as is?
@@ -973,7 +1168,39 @@ export class AssetInterfaceDescriptionUtil {
                                 formValue.startsWith(td.base)
                             ) {
                                 formValue = formValue.substring(td.base.length);
-                                console.log("dsadsa: " + formValue);
+                            }
+
+                            let semanticId;
+                            if (formTerm === "href") {
+                                semanticId = "https://www.w3.org/2019/wot/hypermedia#hasTarget";
+                            } else if (formTerm === "contentType") {
+                                semanticId = "https://www.w3.org/2019/wot/hypermedia#forContentType";
+                            } else if (formTerm === "htv:methodName") {
+                                semanticId = "https://www.w3.org/2011/http#methodName";
+                            } else if (formTerm === "htv:headers") {
+                                semanticId = "https://www.w3.org/2011/http#headers";
+                            } else if (formTerm === "htv:fieldName") {
+                                semanticId = "https://www.w3.org/2011/http#fieldName";
+                            } else if (formTerm === "htv:fieldValue") {
+                                semanticId = "https://www.w3.org/2011/http#fieldValue";
+                            } else if (formTerm === "modbus:function") {
+                                semanticId = "https://www.w3.org/2019/wot/modbus#Function";
+                            } else if (formTerm === "modbus:entity") {
+                                semanticId = "https://www.w3.org/2019/wot/modbus#Entity";
+                            } else if (formTerm === "modbus:zeroBasedAddressing") {
+                                semanticId = "https://www.w3.org/2019/wot/modbus#hasZeroBasedAddressingFlag";
+                            } else if (formTerm === "modbus:timeout") {
+                                semanticId = "https://www.w3.org/2019/wot/modbus#hasTimeout";
+                            } else if (formTerm === "modbus:pollingTime") {
+                                semanticId = "https://www.w3.org/2019/wot/modbus#hasPollingTime";
+                                // } else if (formTerm === "modbus:type") {
+                                //     semanticId = "https://www.w3.org/2019/wot/modbus#type";
+                            } else if (formTerm === "mqv:retain") {
+                                semanticId = "https://www.w3.org/2019/wot/mqtt#hasRetainFlag";
+                            } else if (formTerm === "mqv:controlPacket") {
+                                semanticId = "https://www.w3.org/2019/wot/mqtt#ControlPacket";
+                            } else if (formTerm === "mqv:qos") {
+                                semanticId = "https://www.w3.org/2019/wot/mqtt#hasQoSFlag";
                             }
 
                             // Note: AID does not allow idShort to contain values with colon (i.e., ":") --> "_" used instead
@@ -981,12 +1208,22 @@ export class AssetInterfaceDescriptionUtil {
                             formTerm = formTerm.replace(":", "_");
 
                             if (typeof formValue === "string") {
-                                propertyForm.push({
-                                    idShort: formTerm,
-                                    valueType: "xs:string",
-                                    value: formValue,
-                                    modelType: "Property",
-                                });
+                                if (semanticId !== undefined) {
+                                    propertyForm.push({
+                                        idShort: formTerm,
+                                        semanticId: this.createSemanticId(semanticId),
+                                        valueType: "xs:string",
+                                        value: formValue,
+                                        modelType: "Property",
+                                    });
+                                } else {
+                                    propertyForm.push({
+                                        idShort: formTerm,
+                                        valueType: "xs:string",
+                                        value: formValue,
+                                        modelType: "Property",
+                                    });
+                                }
                             }
                         }
 
@@ -1021,6 +1258,10 @@ export class AssetInterfaceDescriptionUtil {
                     properties.push({
                         idShort: propertyKey,
                         description,
+                        semanticId: this.createSemanticId(
+                            "https://admin-shell.io/idta/AssetInterfaceDescription/1/0/PropertyDefinition"
+                        ),
+                        supplementalSemanticIds: [this.createSemanticId("https://www.w3.org/2019/wot/td#name")],
                         value: propertyValues,
                         modelType: "SubmodelElementCollection",
                     });
@@ -1041,6 +1282,7 @@ export class AssetInterfaceDescriptionUtil {
         // Properties
         values.push({
             idShort: "properties",
+            semanticId: this.createSemanticId("https://www.w3.org/2019/wot/td#PropertyAffordance"),
             value: properties,
             modelType: "SubmodelElementCollection",
         });
@@ -1059,7 +1301,10 @@ export class AssetInterfaceDescriptionUtil {
 
         const interfaceMetadata: Record<string, unknown> = {
             idShort: "InterfaceMetadata",
-            // semanticId ?
+            semanticId: this.createSemanticId(
+                "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/InterfaceMetadata"
+            ),
+            supplementalSemanticIds: [this.createSemanticId("https://www.w3.org/2019/wot/td#InteractionAffordance")],
             // embeddedDataSpecifications ?
             value: values,
             modelType: "SubmodelElementCollection",

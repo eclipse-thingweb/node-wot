@@ -517,9 +517,20 @@ class AssetInterfaceDescriptionUtilTest {
 
         const smObj = JSON.parse(sm);
         expect(smObj).to.have.property("idShort").that.equals("AssetInterfacesDescription");
+        expect(smObj).to.have.property("semanticId");
         expect(smObj).to.have.property("submodelElements").to.be.an("array").to.have.lengthOf.greaterThan(0);
         const smInterface = smObj.submodelElements[0];
         expect(smInterface).to.have.property("value").to.be.an("array").to.have.lengthOf.greaterThan(0);
+        expect(smInterface)
+            .to.have.property("semanticId")
+            .to.be.an("object")
+            .with.property("keys")
+            .to.be.an("array")
+            .to.have.lengthOf.greaterThan(0);
+        expect(smInterface)
+            .to.have.property("supplementalSemanticIds")
+            .to.be.an("array")
+            .to.have.lengthOf.greaterThan(1); // default WoT-TD and http
         let hasThingTitle = false;
         let hasEndpointMetadata = false;
         for (const smValue of smInterface.value) {
@@ -562,13 +573,18 @@ class AssetInterfaceDescriptionUtilTest {
                                     .to.be.an("array")
                                     .to.have.lengthOf.greaterThan(0);
                                 let hasBasic = false;
+                                let hasIn = false;
                                 for (const sec of securityDefinitionValue.value) {
                                     if (sec.idShort === "scheme") {
                                         hasBasic = true;
                                         expect(sec.value).to.equal("basic");
+                                    } else if (sec.idShort === "in") {
+                                        hasIn = true;
+                                        expect(sec.value).to.equal("header");
                                     }
                                 }
                                 expect(hasBasic).to.equal(true);
+                                expect(hasIn).to.equal(true);
                             }
                         }
                         expect(hasBasicSC).to.equal(true);
