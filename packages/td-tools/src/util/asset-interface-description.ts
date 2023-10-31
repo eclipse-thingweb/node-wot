@@ -92,7 +92,7 @@ export class AssetInterfaceDescriptionUtil {
         const aas = {
             assetAdministrationShells: [
                 {
-                    idShort: aasName,
+                    idShort: this.sanitizeIdShort(aasName),
                     id: aasId,
                     assetInformation: {
                         assetKind: "Type",
@@ -159,7 +159,7 @@ export class AssetInterfaceDescriptionUtil {
             }
 
             const submdelElement = {
-                idShort: submodelElementIdShort,
+                idShort: this.sanitizeIdShort(submodelElementIdShort),
                 semanticId: this.createSemanticId(
                     "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/Interface"
                 ),
@@ -231,6 +231,37 @@ export class AssetInterfaceDescriptionUtil {
                 },
             ],
         };
+    }
+
+    private replaceCharAt(str: string, index: number, char: string) {
+        if (index > str.length - 1) return str;
+        return str.substring(0, index) + char + str.substring(index + 1);
+    }
+
+    private sanitizeIdShort(value: string): string {
+        // idShort of Referables shall only feature letters, digits, underscore ("_");
+        // starting mandatory with a letter, i.e. [a-zA-Z][a-zA-Z0-9]*.
+        //
+        // see https://github.com/eclipse-thingweb/node-wot/issues/1145
+        // and https://github.com/admin-shell-io/aas-specs/issues/295
+        if (value != null) {
+            for (let i = 0; i < value.length; i++) {
+                const char = value.charCodeAt(i);
+                if (i !== 0 && char === " ".charCodeAt(0)) {
+                    // underscore -> fine as is
+                } else if (char >= "0".charCodeAt(0) && char <= "9".charCodeAt(0)) {
+                    // digit -> fine as is
+                } else if (char >= "A".charCodeAt(0) && char <= "Z".charCodeAt(0)) {
+                    // small letter -> fine as is
+                } else if (char >= "a".charCodeAt(0) && char <= "z".charCodeAt(0)) {
+                    // capital letter -> fine as is
+                } else {
+                    // replace with underscore "_"
+                    value = this.replaceCharAt(value, i, "_");
+                }
+            }
+        }
+        return value;
     }
 
     private getProtocolPrefixes(td: ThingDescription): string[] {
@@ -1207,20 +1238,24 @@ export class AssetInterfaceDescriptionUtil {
                             // TODO are there more characters we need to deal with?
                             formTerm = formTerm.replace(":", "_");
 
-                            if (typeof formValue === "string") {
+                            if (
+                                typeof formValue === "string" ||
+                                typeof formValue === "number" ||
+                                typeof formValue === "boolean"
+                            ) {
                                 if (semanticId !== undefined) {
                                     propertyForm.push({
                                         idShort: formTerm,
                                         semanticId: this.createSemanticId(semanticId),
                                         valueType: "xs:string",
-                                        value: formValue,
+                                        value: formValue.toString(),
                                         modelType: "Property",
                                     });
                                 } else {
                                     propertyForm.push({
                                         idShort: formTerm,
                                         valueType: "xs:string",
-                                        value: formValue,
+                                        value: formValue.toString(),
                                         modelType: "Property",
                                     });
                                 }
