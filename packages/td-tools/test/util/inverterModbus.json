@@ -31,7 +31,7 @@
             ],
             "submodelElements": [
                 {
-                    "idShort": "InterfaceMODBUS+TCP",
+                    "idShort": "InterfaceMODBUS_TCP",
                     "value": [
                         {
                             "idShort": "title",
@@ -50,11 +50,35 @@
                                 },
                                 {
                                     "idShort": "security",
+                                    "typeValueListElement": "SubmodelElement",
                                     "value": [
                                         {
-                                            "valueType": "xs:string",
-                                            "value": "nosec_sc",
-                                            "modelType": "Property"
+                                            "value": {
+                                                "type": "ModelReference",
+                                                "keys": [
+                                                    {
+                                                        "type": "Submodel",
+                                                        "value": "uri:dev:inverter"
+                                                    },
+                                                    {
+                                                        "type": "SubmodelElementCollection",
+                                                        "value": "InterfaceMODBUS_TCP"
+                                                    },
+                                                    {
+                                                        "type": "SubmodelElementCollection",
+                                                        "value": "EndpointMetadata"
+                                                    },
+                                                    {
+                                                        "type": "SubmodelElementCollection",
+                                                        "value": "securityDefinitions"
+                                                    },
+                                                    {
+                                                        "type": "SubmodelElementCollection",
+                                                        "value": "nosec_sc"
+                                                    }
+                                                ]
+                                            },
+                                            "modelType": "ReferenceElement"
                                         }
                                     ],
                                     "modelType": "SubmodelElementCollection"

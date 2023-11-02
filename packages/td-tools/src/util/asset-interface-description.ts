@@ -140,7 +140,9 @@ export class AssetInterfaceDescriptionUtil {
         const submdelElements = [];
         for (const protocol of protocols) {
             // use protocol binding prefix like "http" for name
-            const submodelElementIdShort = protocol === undefined ? "Interface" : "Interface" + protocol.toUpperCase();
+            const submodelElementIdShort = this.sanitizeIdShort(
+                protocol === undefined ? "Interface" : "Interface" + protocol.toUpperCase()
+            );
 
             const supplementalSemanticIds = [this.createSemanticId("https://www.w3.org/2019/wot/td")];
             if (protocol !== undefined) {
@@ -159,7 +161,7 @@ export class AssetInterfaceDescriptionUtil {
             }
 
             const submdelElement = {
-                idShort: this.sanitizeIdShort(submodelElementIdShort),
+                idShort: submodelElementIdShort,
                 semanticId: this.createSemanticId(
                     "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/Interface"
                 ),
@@ -174,7 +176,7 @@ export class AssetInterfaceDescriptionUtil {
                         semanticId: this.createSemanticId("https://www.w3.org/2019/wot/td#title"),
                     },
                     // created, modified, support ?
-                    this.createEndpointMetadata(td), // EndpointMetadata like base, security and securityDefinitions
+                    this.createEndpointMetadata(td, aidID, submodelElementIdShort), // EndpointMetadata like base, security and securityDefinitions
                     this.createInterfaceMetadata(td, protocol), // InterfaceMetadata like properties, actions and events
                     {
                         idShort: "ExternalDescriptor",
@@ -360,8 +362,16 @@ export class AssetInterfaceDescriptionUtil {
                 } else if (v.idShort === "security") {
                     if (v.value instanceof Array) {
                         for (const securityValue of v.value) {
-                            if (securityValue.value != null) {
-                                security.push(securityValue.value);
+                            if (securityValue.value != null && securityValue.value.keys instanceof Array) {
+                                // e.g.,
+                                // {
+                                //    "type": "SubmodelElementCollection",
+                                //    "value": "nosec_sc"
+                                // }
+                                const key = securityValue.value.keys[securityValue.value.keys.length - 1]; // last path
+                                if (key.value != null) {
+                                    security.push(key.value);
+                                }
                             }
                         }
                     }
@@ -800,7 +810,11 @@ export class AssetInterfaceDescriptionUtil {
         return JSON.stringify(thing);
     }
 
-    private createEndpointMetadata(td: ThingDescription): Record<string, unknown> {
+    private createEndpointMetadata(
+        td: ThingDescription,
+        submodelIdShort: string,
+        submodelElementIdShort: string
+    ): Record<string, unknown> {
         const values: Array<unknown> = [];
 
         // base ?
@@ -829,9 +843,31 @@ export class AssetInterfaceDescriptionUtil {
         if (td.security != null) {
             for (const secKey of td.security) {
                 securityValues.push({
-                    valueType: "xs:string",
-                    value: secKey,
-                    modelType: "Property",
+                    value: {
+                        type: "ModelReference",
+                        keys: [
+                            {
+                                type: "Submodel",
+                                value: submodelIdShort,
+                            },
+                            {
+                                type: "SubmodelElementCollection",
+                                value: submodelElementIdShort,
+                            },
+                            {
+                                type: "SubmodelElementCollection",
+                                value: "EndpointMetadata",
+                            },
+                            {
+                                type: "SubmodelElementCollection",
+                                value: "securityDefinitions",
+                            },
+                            {
+                                type: "SubmodelElementCollection",
+                                value: secKey,
+                            },
+                        ],
+                    },
                 });
             }
         }
