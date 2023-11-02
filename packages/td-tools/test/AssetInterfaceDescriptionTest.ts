@@ -910,6 +910,7 @@ class AssetInterfaceDescriptionUtilTest {
                                             } else if (formEntry.idShort === "modbus_address") {
                                                 hasModbusAddress = true;
                                                 expect(formEntry.value).to.equal("1");
+                                                expect(formEntry.valueType).to.equal("xs:int");
                                             }
                                         }
                                         expect(hasHref).to.equal(true);
