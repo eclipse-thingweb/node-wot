@@ -123,7 +123,7 @@ export default class DefaultServient extends Servient {
         }
 
         let coapServer: CoapServer | undefined;
-        if (this.config.servient.clientOnly == null) {
+        if (this.config.servient.clientOnly === false) {
             if (this.config.http != null) {
                 const httpServer = new HttpServer(this.config.http);
                 this.addServer(httpServer);
