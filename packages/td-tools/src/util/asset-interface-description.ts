@@ -264,6 +264,28 @@ export class AssetInterfaceDescriptionUtil {
         return value;
     }
 
+    private getSimpleValueTypeXsd(value: unknown): string {
+        // see https://www.w3.org/TR/xmlschema-2/#built-in-datatypes
+        if (typeof value === "boolean") {
+            return "xs:boolean";
+        } else if (typeof value === "number") {
+            const number = Number(value);
+            // TODO XSD can be even more fine-grained
+            if (Number.isInteger(number)) {
+                //  int is ·derived· from long by setting the value of ·maxInclusive· to be 2147483647 and ·minInclusive· to be -2147483648
+                if (number <= 2147483647 && number >= -2147483648) {
+                    return "xs:int";
+                } else {
+                    return "xs:integer";
+                }
+            } else {
+                return "xs:double";
+            }
+        } else {
+            return "xs:string";
+        }
+    }
+
     private getProtocolPrefixes(td: ThingDescription): string[] {
         const protocols: string[] = [];
 
@@ -1159,7 +1181,7 @@ export class AssetInterfaceDescriptionUtil {
                         propertyValues.push({
                             idShort: "default",
                             semanticId: this.createSemanticId("https://www.w3.org/2019/wot/json-schema#default"),
-                            valueType: "xs:string",
+                            valueType: this.getSimpleValueTypeXsd(propertyValue.default),
                             value: propertyValue.default,
                             modelType: "Property",
                         });
@@ -1247,22 +1269,22 @@ export class AssetInterfaceDescriptionUtil {
                                     propertyForm.push({
                                         idShort: formTerm,
                                         semanticId: this.createSemanticId(semanticId),
-                                        valueType: "xs:string",
+                                        valueType: this.getSimpleValueTypeXsd(formValue),
                                         value: formValue.toString(),
                                         modelType: "Property",
                                     });
                                 } else {
                                     propertyForm.push({
                                         idShort: formTerm,
-                                        valueType: "xs:string",
+                                        valueType: this.getSimpleValueTypeXsd(formValue),
                                         value: formValue.toString(),
                                         modelType: "Property",
                                     });
                                 }
                             }
-                        }
 
-                        // TODO terms that are not string-based, like op arrays?
+                            // TODO terms that are not simple types like op arrays?
+                        }
 
                         propertyValues.push({
                             idShort: "forms",
