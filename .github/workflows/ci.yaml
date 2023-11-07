@@ -26,6 +26,13 @@ jobs:
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "npm"
+
+            # workaround for issue #1154
+            - name: Install setuptools on MacOs
+              if: matrix.os == 'macos-latest'
+              run: |
+                  sudo -H pip install setuptools
+
             - name: Install
               run: npm ci
 
