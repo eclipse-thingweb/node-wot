@@ -102,9 +102,32 @@
                                     "typeValueListElement": "SubmodelElement",
                                     "value": [
                                         {
-                                            "valueType": "xs:string",
-                                            "value": "nosec_sc",
-                                            "modelType": "Property"
+                                            "value": {
+                                                "type": "ModelReference",
+                                                "keys": [
+                                                    {
+                                                        "type": "Submodel",
+                                                        "value": "https://example.com/ids/sm/4333_9041_7022_4184"
+                                                    },
+                                                    {
+                                                        "type": "SubmodelElementCollection",
+                                                        "value": "InterfaceHTTP"
+                                                    },
+                                                    {
+                                                        "type": "SubmodelElementCollection",
+                                                        "value": "EndpointMetadata"
+                                                    },
+                                                    {
+                                                        "type": "SubmodelElementCollection",
+                                                        "value": "securityDefinitions"
+                                                    },
+                                                    {
+                                                        "type": "SubmodelElementCollection",
+                                                        "value": "nosec_sc"
+                                                    }
+                                                ]
+                                            },
+                                            "modelType": "ReferenceElement"
                                         }
                                     ],
                                     "modelType": "SubmodelElementList"
