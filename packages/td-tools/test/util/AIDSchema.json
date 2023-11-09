@@ -1097,7 +1097,7 @@
                                     { "$ref": "#/definitions/supportElement" },
                                     { "$ref": "#/definitions/ExternalDescriptorContainer" },
                                     { "$ref": "#/definitions/MODBUSEndpointMetadata" },
-                                    { "$ref": "#/definitions/ModbusInterfaceMetadata" }
+                                    { "$ref": "#/definitions/MODBUSInterfaceMetadata" }
                                 ]
                             },
                             "if": {
@@ -1111,7 +1111,7 @@
                                 "contains": {
                                     "anyOf": [
                                         { "$ref": "#/definitions/MODBUSEndpointMetadata" },
-                                        { "$ref": "#/definitions/HTTPInterfaceMetadata" }
+                                        { "$ref": "#/definitions/MODBUSInterfaceMetadata" }
                                     ]
                                 },
                                 "minContains": 2,
@@ -1164,7 +1164,7 @@
                                 "contains": {
                                     "anyOf": [
                                         { "$ref": "#/definitions/MQTTEndpointMetadata" },
-                                        { "$ref": "#/definitions/HTTPInterfaceMetadata" }
+                                        { "$ref": "#/definitions/MQTTInterfaceMetadata" }
                                     ]
                                 },
                                 "minContains": 2,
@@ -1454,7 +1454,7 @@
                 }
             ]
         },
-        "ModbusInterfaceMetadata": {
+        "MODBUSInterfaceMetadata": {
             "allOf": [
                 {
                     "$ref": "#/definitions/SubmodelElement"
@@ -3635,6 +3635,9 @@
                             "enum": ["forms"]
                         },
                         "value": {
+                            "uniqueItems": true,
+                            "unevaluatedItems": false,
+                            "maxItems": 9,
                             "type": "array",
                             "items": {
                                 "anyOf": [
