@@ -1014,13 +1014,14 @@ class AssetInterfaceDescriptionUtilTest {
         const counterTD = await response.json();
 
         const sm = this.assetInterfaceDescriptionUtil.transformTD2AAS(JSON.stringify(counterTD), ["http"]); // "coap"
+        console.log("XXX AAS\n\n" + sm + "\n\nXXX");
 
         const aasObj = JSON.parse(sm);
         // TODO proper AID submodel checks
         expect(aasObj).to.have.property("assetAdministrationShells").to.be.an("array");
         expect(aasObj).to.have.property("submodels").to.be.an("array").to.have.lengthOf(1);
         const submodel = aasObj.submodels[0];
-        console.log("XXX\n\n" + JSON.stringify(submodel) + "\n\nXXX");
+        console.log("YYY AID\n\n" + JSON.stringify(submodel) + "\n\nYYY");
         const isValid = this.validateAID(submodel);
         expect(isValid.valid, isValid.errors).to.equal(true);
         expect(submodel).to.have.property("submodelElements").to.be.an("array").to.have.lengthOf(1);
