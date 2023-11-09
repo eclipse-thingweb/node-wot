@@ -2067,18 +2067,7 @@
                             "enum": ["xs:string"]
                         },
                         "value": {
-                            "type": "string",
-                            "enum": [
-                                "nosec_sc",
-                                "digest_sc",
-                                "basic_sc",
-                                "apikey_sc",
-                                "psk_sc",
-                                "bearer_sc",
-                                "auto_sc",
-                                "combo_sc",
-                                "oauth2_sc"
-                            ]
+                            "type": "string"
                         },
                         "valueId": {
                             "$ref": "#/definitions/Reference"
@@ -2099,8 +2088,7 @@
                 {
                     "properties": {
                         "idShort": {
-                            "type": "string",
-                            "enum": ["nosec_sc"]
+                            "type": "string"
                         },
                         "value": {
                             "type": "array",
@@ -2124,8 +2112,7 @@
                 {
                     "properties": {
                         "idShort": {
-                            "type": "string",
-                            "enum": ["basic_sc"]
+                            "type": "string"
                         },
                         "value": {
                             "type": "array",
@@ -2158,8 +2145,7 @@
                 {
                     "properties": {
                         "idShort": {
-                            "type": "string",
-                            "enum": ["bearer_sc"]
+                            "type": "string"
                         },
                         "value": {
                             "type": "array",
@@ -2195,8 +2181,7 @@
                 {
                     "properties": {
                         "idShort": {
-                            "type": "string",
-                            "enum": ["digest_sc"]
+                            "type": "string"
                         },
                         "value": {
                             "type": "array",
@@ -2230,8 +2215,7 @@
                 {
                     "properties": {
                         "idShort": {
-                            "type": "string",
-                            "enum": ["apikey_sc"]
+                            "type": "string"
                         },
                         "value": {
                             "type": "array",
@@ -2264,8 +2248,7 @@
                 {
                     "properties": {
                         "idShort": {
-                            "type": "string",
-                            "enum": ["auto_sc"]
+                            "type": "string"
                         },
                         "value": {
                             "type": "array",
@@ -2296,8 +2279,7 @@
                 {
                     "properties": {
                         "idShort": {
-                            "type": "string",
-                            "enum": ["psk_sc"]
+                            "type": "string"
                         },
                         "value": {
                             "type": "array",
@@ -2329,8 +2311,7 @@
                 {
                     "properties": {
                         "idShort": {
-                            "type": "string",
-                            "enum": ["oauth2_sc"]
+                            "type": "string"
                         },
                         "value": {
                             "type": "array",
@@ -2369,8 +2350,7 @@
                 {
                     "properties": {
                         "idShort": {
-                            "type": "string",
-                            "enum": ["combo_sc"]
+                            "type": "string"
                         },
                         "value": {
                             "type": "array",
