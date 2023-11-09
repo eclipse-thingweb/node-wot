@@ -27,42 +27,72 @@
         {
             "idShort": "AssetInterfacesDescription",
             "description": [
-                {
-                    "language": "en",
-                    "text": "Counter example Thing"
-                },
-                {
-                    "language": "de",
-                    "text": "Zähler Beispiel Ding"
-                },
-                {
-                    "language": "it",
-                    "text": "Contatore di esempio"
-                }
+                { "language": "en", "text": "Counter example Thing" },
+                { "language": "de", "text": "Zähler Beispiel Ding" },
+                { "language": "it", "text": "Contatore di esempio" }
             ],
             "id": "https://example.com/ids/sm/4333_9041_7022_4184",
             "kind": "Instance",
             "semanticId": {
                 "type": "ExternalReference",
-                "keys": []
+                "keys": [
+                    {
+                        "type": "GlobalReference",
+                        "value": "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/Submodel"
+                    }
+                ]
             },
             "submodelElements": [
                 {
                     "idShort": "InterfaceHTTP",
                     "semanticId": {
                         "type": "ExternalReference",
-                        "keys": []
+                        "keys": [
+                            {
+                                "type": "GlobalReference",
+                                "value": "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/Interface"
+                            }
+                        ]
                     },
+                    "supplementalSemanticIds": [
+                        {
+                            "type": "ExternalReference",
+                            "keys": [
+                                {
+                                    "type": "GlobalReference",
+                                    "value": "http://www.w3.org/2011/http"
+                                }
+                            ]
+                        }
+                    ],
                     "embeddedDataSpecifications": [],
                     "value": [
                         {
                             "idShort": "title",
+                            "semanticId": {
+                                "type": "ExternalReference",
+                                "keys": [
+                                    {
+                                        "type": "GlobalReference",
+                                        "value": "https://www.w3.org/2019/wot/td#title"
+                                    }
+                                ]
+                            },
                             "valueType": "xs:string",
                             "value": "Counter",
                             "modelType": "Property"
                         },
                         {
                             "idShort": "support",
+                            "semanticId": {
+                                "type": "ExternalReference",
+                                "keys": [
+                                    {
+                                        "type": "GlobalReference",
+                                        "value": "https://www.w3.org/2019/wot/td#support"
+                                    }
+                                ]
+                            },
                             "valueType": "xs:anyURI",
                             "value": "https://github.com/eclipse-thingweb/node-wot/",
                             "modelType": "Property"
@@ -71,7 +101,12 @@
                             "idShort": "EndpointMetadata",
                             "semanticId": {
                                 "type": "ExternalReference",
-                                "keys": []
+                                "keys": [
+                                    {
+                                        "type": "GlobalReference",
+                                        "value": "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/EndpointMetadata"
+                                    }
+                                ]
                             },
                             "embeddedDataSpecifications": [],
                             "value": [
@@ -79,7 +114,12 @@
                                     "idShort": "base",
                                     "semanticId": {
                                         "type": "ExternalReference",
-                                        "keys": []
+                                        "keys": [
+                                            {
+                                                "type": "GlobalReference",
+                                                "value": "https://www.w3.org/2019/wot/td#base"
+                                            }
+                                        ]
                                     },
                                     "embeddedDataSpecifications": [],
                                     "valueType": "xs:anyURI",
@@ -90,7 +130,12 @@
                                     "idShort": "contentType",
                                     "semanticId": {
                                         "type": "ExternalReference",
-                                        "keys": []
+                                        "keys": [
+                                            {
+                                                "type": "GlobalReference",
+                                                "value": "https://www.w3.org/2019/wot/hypermedia#forContentType"
+                                            }
+                                        ]
                                     },
                                     "embeddedDataSpecifications": [],
                                     "valueType": "xs:string",
@@ -99,7 +144,16 @@
                                 },
                                 {
                                     "idShort": "security",
-                                    "typeValueListElement": "SubmodelElement",
+                                    "semanticId": {
+                                        "type": "ExternalReference",
+                                        "keys": [
+                                            {
+                                                "type": "GlobalReference",
+                                                "value": "https://www.w3.org/2019/wot/td#hasSecurityConfiguration"
+                                            }
+                                        ]
+                                    },
+                                    "typeValueListElement": "ReferenceElement",
                                     "value": [
                                         {
                                             "value": {
@@ -136,7 +190,12 @@
                                     "idShort": "securityDefinitions",
                                     "semanticId": {
                                         "type": "ExternalReference",
-                                        "keys": []
+                                        "keys": [
+                                            {
+                                                "type": "GlobalReference",
+                                                "value": "https://www.w3.org/2019/wot/td#definesSecurityScheme"
+                                            }
+                                        ]
                                     },
                                     "embeddedDataSpecifications": [],
                                     "value": [
@@ -144,12 +203,26 @@
                                             "idShort": "nosec_sc",
                                             "semanticId": {
                                                 "type": "ExternalReference",
-                                                "keys": []
+                                                "keys": [
+                                                    {
+                                                        "type": "GlobalReference",
+                                                        "value": "https://www.w3.org/2019/wot/security#NoSecurityScheme"
+                                                    }
+                                                ]
                                             },
                                             "embeddedDataSpecifications": [],
                                             "value": [
                                                 {
                                                     "idShort": "scheme",
+                                                    "semanticId": {
+                                                        "type": "ExternalReference",
+                                                        "keys": [
+                                                            {
+                                                                "type": "GlobalReference",
+                                                                "value": "https://www.w3.org/2019/wot/td#definesSecurityScheme"
+                                                            }
+                                                        ]
+                                                    },
                                                     "valueType": "xs:string",
                                                     "value": "nosec",
                                                     "modelType": "Property"
@@ -167,7 +240,12 @@
                             "idShort": "InterfaceMetadata",
                             "semanticId": {
                                 "type": "ExternalReference",
-                                "keys": []
+                                "keys": [
+                                    {
+                                        "type": "GlobalReference",
+                                        "value": "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/InterfaceMetadata"
+                                    }
+                                ]
                             },
                             "embeddedDataSpecifications": [],
                             "value": [
@@ -175,20 +253,22 @@
                                     "idShort": "properties",
                                     "semanticId": {
                                         "type": "ExternalReference",
-                                        "keys": []
+                                        "keys": [
+                                            {
+                                                "type": "GlobalReference",
+                                                "value": "https://www.w3.org/2019/wot/td#PropertyAffordance"
+                                            }
+                                        ]
                                     },
                                     "embeddedDataSpecifications": [],
                                     "value": [
                                         {
                                             "idShort": "count",
                                             "description": [
-                                                {
-                                                    "language": "en",
-                                                    "text": "Current counter value"
-                                                },
+                                                { "language": "en", "text": "Current counter value" },
                                                 {
                                                     "language": "de",
-                                                    "text": "Derzeitiger Zählerwert"
+                                                    "text": "Derzeitiger Z\u00E4hlerwert"
                                                 },
                                                 {
                                                     "language": "it",
@@ -197,19 +277,56 @@
                                             ],
                                             "semanticId": {
                                                 "type": "ExternalReference",
-                                                "keys": []
+                                                "keys": [
+                                                    {
+                                                        "type": "GlobalReference",
+                                                        "value": "https://admin-shell.io/idta/AssetInterfaceDescription/1/0/PropertyDefinition"
+                                                    }
+                                                ]
                                             },
-                                            "qualifiers": [],
                                             "embeddedDataSpecifications": [],
                                             "value": [
                                                 {
                                                     "idShort": "type",
+                                                    "semanticId": {
+                                                        "type": "ExternalReference",
+                                                        "keys": [
+                                                            {
+                                                                "type": "GlobalReference",
+                                                                "value": "https://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+                                                            }
+                                                        ]
+                                                    },
                                                     "valueType": "xs:string",
                                                     "value": "integer",
                                                     "modelType": "Property"
                                                 },
                                                 {
-                                                    "idShort": "range",
+                                                    "idShort": "min_max",
+                                                    "semanticId": {
+                                                        "type": "ExternalReference",
+                                                        "keys": [
+                                                            {
+                                                                "type": "GlobalReference",
+                                                                "value": "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/minMaxRange"
+                                                            }
+                                                        ]
+                                                    },
+                                                    "supplementalSemanticIds": [
+                                                        {
+                                                            "type": "ExternalReference",
+                                                            "keys": [
+                                                                {
+                                                                    "type": "GlobalReference",
+                                                                    "value": "https://www.w3.org/2019/wot/json-schema#minimum"
+                                                                },
+                                                                {
+                                                                    "type": "GlobalReference",
+                                                                    "value": "https://www.w3.org/2019/wot/json-schema#maximum"
+                                                                }
+                                                            ]
+                                                        }
+                                                    ],
                                                     "valueType": "xs:integer",
                                                     "min": "1",
                                                     "max": "100",
@@ -217,12 +334,30 @@
                                                 },
                                                 {
                                                     "idShort": "title",
+                                                    "semanticId": {
+                                                        "type": "ExternalReference",
+                                                        "keys": [
+                                                            {
+                                                                "type": "GlobalReference",
+                                                                "value": "https://www.w3.org/2019/wot/td#title"
+                                                            }
+                                                        ]
+                                                    },
                                                     "valueType": "xs:string",
                                                     "value": "Count",
                                                     "modelType": "Property"
                                                 },
                                                 {
                                                     "idShort": "observable",
+                                                    "semanticId": {
+                                                        "type": "ExternalReference",
+                                                        "keys": [
+                                                            {
+                                                                "type": "GlobalReference",
+                                                                "value": "https://www.w3.org/2019/wot/td#isObservable"
+                                                            }
+                                                        ]
+                                                    },
                                                     "valueType": "xs:boolean",
                                                     "value": "true",
                                                     "modelType": "Property"
@@ -231,15 +366,25 @@
                                                     "idShort": "forms",
                                                     "semanticId": {
                                                         "type": "ExternalReference",
-                                                        "keys": []
+                                                        "keys": [
+                                                            {
+                                                                "type": "GlobalReference",
+                                                                "value": "https://www.w3.org/2019/wot/td#hasForm"
+                                                            }
+                                                        ]
                                                     },
                                                     "embeddedDataSpecifications": [],
                                                     "value": [
                                                         {
-                                                            "idShort": "htv:methodName",
+                                                            "idShort": "htv_methodName",
                                                             "semanticId": {
                                                                 "type": "ExternalReference",
-                                                                "keys": []
+                                                                "keys": [
+                                                                    {
+                                                                        "type": "GlobalReference",
+                                                                        "value": "https://www.w3.org/2011/http#methodName"
+                                                                    }
+                                                                ]
                                                             },
                                                             "embeddedDataSpecifications": [],
                                                             "valueType": "xs:string",
@@ -250,7 +395,12 @@
                                                             "idShort": "href",
                                                             "semanticId": {
                                                                 "type": "ExternalReference",
-                                                                "keys": []
+                                                                "keys": [
+                                                                    {
+                                                                        "type": "GlobalReference",
+                                                                        "value": "https://www.w3.org/2019/wot/hypermedia#hasTarget"
+                                                                    }
+                                                                ]
                                                             },
                                                             "embeddedDataSpecifications": [],
                                                             "valueType": "xs:string",
@@ -272,7 +422,7 @@
                                                 },
                                                 {
                                                     "language": "de",
-                                                    "text": "Aktueller Zählerwert als SVG-Bild"
+                                                    "text": "Aktueller Z\u00E4hlerwert als SVG-Bild"
                                                 },
                                                 {
                                                     "language": "it",
@@ -281,13 +431,26 @@
                                             ],
                                             "semanticId": {
                                                 "type": "ExternalReference",
-                                                "keys": []
+                                                "keys": [
+                                                    {
+                                                        "type": "GlobalReference",
+                                                        "value": "https://admin-shell.io/idta/AssetInterfaceDescription/1/0/PropertyDefinition"
+                                                    }
+                                                ]
                                             },
-                                            "qualifiers": [],
                                             "embeddedDataSpecifications": [],
                                             "value": [
                                                 {
                                                     "idShort": "observable",
+                                                    "semanticId": {
+                                                        "type": "ExternalReference",
+                                                        "keys": [
+                                                            {
+                                                                "type": "GlobalReference",
+                                                                "value": "https://www.w3.org/2019/wot/td#isObservable"
+                                                            }
+                                                        ]
+                                                    },
                                                     "valueType": "xs:boolean",
                                                     "value": "false",
                                                     "modelType": "Property"
@@ -296,15 +459,25 @@
                                                     "idShort": "forms",
                                                     "semanticId": {
                                                         "type": "ExternalReference",
-                                                        "keys": []
+                                                        "keys": [
+                                                            {
+                                                                "type": "GlobalReference",
+                                                                "value": "https://www.w3.org/2019/wot/td#hasForm"
+                                                            }
+                                                        ]
                                                     },
                                                     "embeddedDataSpecifications": [],
                                                     "value": [
                                                         {
-                                                            "idShort": "htv:methodName",
+                                                            "idShort": "htv_methodName",
                                                             "semanticId": {
                                                                 "type": "ExternalReference",
-                                                                "keys": []
+                                                                "keys": [
+                                                                    {
+                                                                        "type": "GlobalReference",
+                                                                        "value": "https://www.w3.org/2011/http#methodName"
+                                                                    }
+                                                                ]
                                                             },
                                                             "embeddedDataSpecifications": [],
                                                             "valueType": "xs:string",
@@ -315,7 +488,12 @@
                                                             "idShort": "href",
                                                             "semanticId": {
                                                                 "type": "ExternalReference",
-                                                                "keys": []
+                                                                "keys": [
+                                                                    {
+                                                                        "type": "GlobalReference",
+                                                                        "value": "https://www.w3.org/2019/wot/hypermedia#hasTarget"
+                                                                    }
+                                                                ]
                                                             },
                                                             "embeddedDataSpecifications": [],
                                                             "valueType": "xs:string",
@@ -326,11 +504,16 @@
                                                             "idShort": "contentType",
                                                             "semanticId": {
                                                                 "type": "ExternalReference",
-                                                                "keys": []
+                                                                "keys": [
+                                                                    {
+                                                                        "type": "GlobalReference",
+                                                                        "value": "https://www.w3.org/2019/wot/hypermedia#forContentType"
+                                                                    }
+                                                                ]
                                                             },
                                                             "embeddedDataSpecifications": [],
                                                             "valueType": "xs:string",
-                                                            "value": "image/svg+xml",
+                                                            "value": "image/svg\u002Bxml",
                                                             "modelType": "Property"
                                                         }
                                                     ],
@@ -342,14 +525,8 @@
                                         {
                                             "idShort": "redDotImage",
                                             "description": [
-                                                {
-                                                    "language": "en",
-                                                    "text": "Red dot image as PNG"
-                                                },
-                                                {
-                                                    "language": "de",
-                                                    "text": "Rotes Punktbild als PNG"
-                                                },
+                                                { "language": "en", "text": "Red dot image as PNG" },
+                                                { "language": "de", "text": "Rotes Punktbild als PNG" },
                                                 {
                                                     "language": "it",
                                                     "text": "Immagine punto rosso come PNG"
@@ -357,13 +534,26 @@
                                             ],
                                             "semanticId": {
                                                 "type": "ExternalReference",
-                                                "keys": []
+                                                "keys": [
+                                                    {
+                                                        "type": "GlobalReference",
+                                                        "value": "https://admin-shell.io/idta/AssetInterfaceDescription/1/0/PropertyDefinition"
+                                                    }
+                                                ]
                                             },
-                                            "qualifiers": [],
                                             "embeddedDataSpecifications": [],
                                             "value": [
                                                 {
                                                     "idShort": "observable",
+                                                    "semanticId": {
+                                                        "type": "ExternalReference",
+                                                        "keys": [
+                                                            {
+                                                                "type": "GlobalReference",
+                                                                "value": "https://www.w3.org/2019/wot/td#isObservable"
+                                                            }
+                                                        ]
+                                                    },
                                                     "valueType": "xs:boolean",
                                                     "value": "false",
                                                     "modelType": "Property"
@@ -372,15 +562,25 @@
                                                     "idShort": "forms",
                                                     "semanticId": {
                                                         "type": "ExternalReference",
-                                                        "keys": []
+                                                        "keys": [
+                                                            {
+                                                                "type": "GlobalReference",
+                                                                "value": "https://www.w3.org/2019/wot/td#hasForm"
+                                                            }
+                                                        ]
                                                     },
                                                     "embeddedDataSpecifications": [],
                                                     "value": [
                                                         {
-                                                            "idShort": "htv:methodName",
+                                                            "idShort": "htv_methodName",
                                                             "semanticId": {
                                                                 "type": "ExternalReference",
-                                                                "keys": []
+                                                                "keys": [
+                                                                    {
+                                                                        "type": "GlobalReference",
+                                                                        "value": "https://www.w3.org/2011/http#methodName"
+                                                                    }
+                                                                ]
                                                             },
                                                             "embeddedDataSpecifications": [],
                                                             "valueType": "xs:string",
@@ -391,7 +591,12 @@
                                                             "idShort": "href",
                                                             "semanticId": {
                                                                 "type": "ExternalReference",
-                                                                "keys": []
+                                                                "keys": [
+                                                                    {
+                                                                        "type": "GlobalReference",
+                                                                        "value": "https://www.w3.org/2019/wot/hypermedia#hasTarget"
+                                                                    }
+                                                                ]
                                                             },
                                                             "embeddedDataSpecifications": [],
                                                             "valueType": "xs:string",
@@ -402,7 +607,12 @@
                                                             "idShort": "contentType",
                                                             "semanticId": {
                                                                 "type": "ExternalReference",
-                                                                "keys": []
+                                                                "keys": [
+                                                                    {
+                                                                        "type": "GlobalReference",
+                                                                        "value": "https://www.w3.org/2019/wot/hypermedia#forContentType"
+                                                                    }
+                                                                ]
                                                             },
                                                             "embeddedDataSpecifications": [],
                                                             "valueType": "xs:string",
@@ -422,10 +632,7 @@
                                                     "language": "en",
                                                     "text": "Last change of counter value"
                                                 },
-                                                {
-                                                    "language": "de",
-                                                    "text": "Letzte Änderung"
-                                                },
+                                                { "language": "de", "text": "Letzte \u00C4nderung" },
                                                 {
                                                     "language": "it",
                                                     "text": "Ultima modifica del valore"
@@ -433,25 +640,56 @@
                                             ],
                                             "semanticId": {
                                                 "type": "ExternalReference",
-                                                "keys": []
+                                                "keys": [
+                                                    {
+                                                        "type": "GlobalReference",
+                                                        "value": "https://admin-shell.io/idta/AssetInterfaceDescription/1/0/PropertyDefinition"
+                                                    }
+                                                ]
                                             },
-                                            "qualifiers": [],
                                             "embeddedDataSpecifications": [],
                                             "value": [
                                                 {
                                                     "idShort": "type",
+                                                    "semanticId": {
+                                                        "type": "ExternalReference",
+                                                        "keys": [
+                                                            {
+                                                                "type": "GlobalReference",
+                                                                "value": "https://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+                                                            }
+                                                        ]
+                                                    },
                                                     "valueType": "xs:string",
                                                     "value": "string",
                                                     "modelType": "Property"
                                                 },
                                                 {
                                                     "idShort": "title",
+                                                    "semanticId": {
+                                                        "type": "ExternalReference",
+                                                        "keys": [
+                                                            {
+                                                                "type": "GlobalReference",
+                                                                "value": "https://www.w3.org/2019/wot/td#title"
+                                                            }
+                                                        ]
+                                                    },
                                                     "valueType": "xs:string",
                                                     "value": "Last change",
                                                     "modelType": "Property"
                                                 },
                                                 {
                                                     "idShort": "observable",
+                                                    "semanticId": {
+                                                        "type": "ExternalReference",
+                                                        "keys": [
+                                                            {
+                                                                "type": "GlobalReference",
+                                                                "value": "https://www.w3.org/2019/wot/td#isObservable"
+                                                            }
+                                                        ]
+                                                    },
                                                     "valueType": "xs:boolean",
                                                     "value": "true",
                                                     "modelType": "Property"
@@ -460,15 +698,25 @@
                                                     "idShort": "forms",
                                                     "semanticId": {
                                                         "type": "ExternalReference",
-                                                        "keys": []
+                                                        "keys": [
+                                                            {
+                                                                "type": "GlobalReference",
+                                                                "value": "https://www.w3.org/2019/wot/td#hasForm"
+                                                            }
+                                                        ]
                                                     },
                                                     "embeddedDataSpecifications": [],
                                                     "value": [
                                                         {
-                                                            "idShort": "htv:methodName",
+                                                            "idShort": "htv_methodName",
                                                             "semanticId": {
                                                                 "type": "ExternalReference",
-                                                                "keys": []
+                                                                "keys": [
+                                                                    {
+                                                                        "type": "GlobalReference",
+                                                                        "value": "https://www.w3.org/2011/http#methodName"
+                                                                    }
+                                                                ]
                                                             },
                                                             "embeddedDataSpecifications": [],
                                                             "valueType": "xs:string",
@@ -479,7 +727,12 @@
                                                             "idShort": "href",
                                                             "semanticId": {
                                                                 "type": "ExternalReference",
-                                                                "keys": []
+                                                                "keys": [
+                                                                    {
+                                                                        "type": "GlobalReference",
+                                                                        "value": "https://www.w3.org/2019/wot/hypermedia#hasTarget"
+                                                                    }
+                                                                ]
                                                             },
                                                             "embeddedDataSpecifications": [],
                                                             "valueType": "xs:string",
@@ -499,7 +752,12 @@
                                     "idShort": "actions",
                                     "semanticId": {
                                         "type": "ExternalReference",
-                                        "keys": []
+                                        "keys": [
+                                            {
+                                                "type": "GlobalReference",
+                                                "value": "https://www.w3.org/2019/wot/td#ActionAffordance"
+                                            }
+                                        ]
                                     },
                                     "embeddedDataSpecifications": [],
                                     "value": [],
@@ -509,7 +767,12 @@
                                     "idShort": "events",
                                     "semanticId": {
                                         "type": "ExternalReference",
-                                        "keys": []
+                                        "keys": [
+                                            {
+                                                "type": "GlobalReference",
+                                                "value": "https://www.w3.org/2019/wot/td#EventAffordance"
+                                            }
+                                        ]
                                     },
                                     "embeddedDataSpecifications": [],
                                     "value": [],
@@ -519,10 +782,15 @@
                             "modelType": "SubmodelElementCollection"
                         },
                         {
-                            "idShort": "externalDescriptor",
+                            "idShort": "ExternalDescriptor",
                             "semanticId": {
                                 "type": "ExternalReference",
-                                "keys": []
+                                "keys": [
+                                    {
+                                        "type": "GlobalReference",
+                                        "value": "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/ExternalDescriptor"
+                                    }
+                                ]
                             },
                             "embeddedDataSpecifications": [],
                             "value": [
@@ -530,7 +798,12 @@
                                     "idShort": "ThingDescription",
                                     "semanticId": {
                                         "type": "ExternalReference",
-                                        "keys": []
+                                        "keys": [
+                                            {
+                                                "type": "GlobalReference",
+                                                "value": "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/externalDescriptorName"
+                                            }
+                                        ]
                                     },
                                     "embeddedDataSpecifications": [],
                                     "value": "/aasx/files/counter-http-simple.td.jsonld",

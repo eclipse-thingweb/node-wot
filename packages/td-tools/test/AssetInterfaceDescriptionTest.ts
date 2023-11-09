@@ -20,12 +20,39 @@ import { AssetInterfaceDescriptionUtil } from "../src/util/asset-interface-descr
 import { promises as fs } from "fs";
 import { ThingDescription } from "wot-typescript-definitions";
 
+import Ajv, { ValidateFunction, ErrorObject } from "ajv";
+import * as AIDSchema from "../test/util/AIDSchema.json";
+
+const aidSchema = AIDSchema; //  require("../test/util/AIDSchema.json");
+const ajv = new Ajv({ strict: false });
+
 @suite("tests to verify the Asset Interface Description Utils")
 class AssetInterfaceDescriptionUtilTest {
     private assetInterfaceDescriptionUtil = new AssetInterfaceDescriptionUtil();
 
+    aidValidator = ajv.compile(aidSchema) as ValidateFunction;
+
+    // Note: Should this be a functionality of the AID tool OR for the time beeing just a test/control
+    validateAID(aidSubmodel: object): { valid: boolean; errors?: string } {
+        const isValid = this.aidValidator(aidSubmodel);
+        let errors;
+        if (!isValid) {
+            errors = this.aidValidator.errors?.map((o: ErrorObject) => o.message).join("\n");
+        }
+        return {
+            valid: isValid,
+            errors,
+        };
+    }
+
     @test async "should correctly transform counterHTTP into a TD"() {
         const modelAID = (await fs.readFile("test/util/counterHTTP.json")).toString();
+
+        const modelAIDobj = JSON.parse(modelAID);
+        expect(modelAIDobj).to.have.property("submodels").to.be.an("array").to.have.lengthOf(1);
+        const isValid = this.validateAID(modelAIDobj.submodels[0]);
+        expect(isValid.valid, isValid.errors).to.equal(true);
+
         const td = this.assetInterfaceDescriptionUtil.transformAAS2TD(modelAID, `{"title": "bla"}`);
 
         const tdObj = JSON.parse(td);
