@@ -178,7 +178,8 @@ export class AssetInterfaceDescriptionUtil {
                     // created, modified, support ?
                     this.createEndpointMetadata(td, aidID, submodelElementIdShort), // EndpointMetadata like base, security and securityDefinitions
                     this.createInterfaceMetadata(td, protocol), // InterfaceMetadata like properties, actions and events
-                    {
+                    // Note: "ExternalDescriptor" should contain file values --> not applicable to TD
+                    /* {
                         idShort: "ExternalDescriptor",
                         semanticId: this.createSemanticId(
                             "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/ExternalDescriptor"
@@ -186,7 +187,7 @@ export class AssetInterfaceDescriptionUtil {
                         // embeddedDataSpecifications ?
                         value: [],
                         modelType: "SubmodelElementCollection",
-                    },
+                    }, */
                 ],
                 modelType: "SubmodelElementCollection",
             };
@@ -839,16 +840,15 @@ export class AssetInterfaceDescriptionUtil {
     ): Record<string, unknown> {
         const values: Array<unknown> = [];
 
-        // base ?
-        if (td.base != null) {
-            values.push({
-                idShort: "base",
-                semanticId: this.createSemanticId("https://www.w3.org/2019/wot/td#baseURI"),
-                valueType: "xs:anyURI",
-                value: td.base, // TODO
-                modelType: "Property",
-            });
-        }
+        // base (AID requires base)
+        // TODO what should we do if no base is provided?
+        values.push({
+            idShort: "base",
+            semanticId: this.createSemanticId("https://www.w3.org/2019/wot/td#baseURI"),
+            valueType: "xs:anyURI",
+            value: td.base ?? "NO_BASE",
+            modelType: "Property",
+        });
 
         // TODO wrong place.. not allowed in TD spec?
         /*
@@ -890,14 +890,16 @@ export class AssetInterfaceDescriptionUtil {
                             },
                         ],
                     },
+                    modelType: "ReferenceElement",
                 });
             }
         }
         values.push({
             idShort: "security",
             semanticId: this.createSemanticId("https://www.w3.org/2019/wot/td#hasSecurityConfiguration"),
+            typeValueListElement: "ReferenceElement",
             value: securityValues,
-            modelType: "SubmodelElementCollection",
+            modelType: "SubmodelElementList",
         });
 
         // securityDefinitions
@@ -1173,12 +1175,7 @@ export class AssetInterfaceDescriptionUtil {
                     }
                     // description
                     if (propertyValue.description != null) {
-                        propertyValues.push({
-                            idShort: "description",
-                            valueType: "xs:string",
-                            value: propertyValue.description,
-                            modelType: "Property",
-                        });
+                        // AID deals with description in level above
                     }
                     // observable (if it deviates from the default == false only)
                     if (propertyValue.observable != null && propertyValue.observable === true) {
@@ -1282,8 +1279,8 @@ export class AssetInterfaceDescriptionUtil {
                                 semanticId = "https://www.w3.org/2019/wot/modbus#hasTimeout";
                             } else if (formTerm === "modbus:pollingTime") {
                                 semanticId = "https://www.w3.org/2019/wot/modbus#hasPollingTime";
-                                // } else if (formTerm === "modbus:type") {
-                                //     semanticId = "https://www.w3.org/2019/wot/modbus#type";
+                            } else if (formTerm === "modbus:type") {
+                                semanticId = "https://www.w3.org/2019/wot/modbus#type";
                             } else if (formTerm === "mqv:retain") {
                                 semanticId = "https://www.w3.org/2019/wot/mqtt#hasRetainFlag";
                             } else if (formTerm === "mqv:controlPacket") {
@@ -1301,6 +1298,9 @@ export class AssetInterfaceDescriptionUtil {
                                 typeof formValue === "number" ||
                                 typeof formValue === "boolean"
                             ) {
+                                // AID schema restricts terms in form to a finite set of *allowed* terms
+                                // e.g., "op" is not allowed
+                                // at the momement all of them have "semanticId" -> use this as check
                                 if (semanticId !== undefined) {
                                     propertyForm.push({
                                         idShort: formTerm,
@@ -1310,12 +1310,13 @@ export class AssetInterfaceDescriptionUtil {
                                         modelType: "Property",
                                     });
                                 } else {
-                                    propertyForm.push({
-                                        idShort: formTerm,
-                                        valueType: this.getSimpleValueTypeXsd(formValue),
-                                        value: formValue.toString(),
-                                        modelType: "Property",
-                                    });
+                                    // unknown AID term
+                                    /* propertyForm.push({
+                                            idShort: formTerm,
+                                            valueType: this.getSimpleValueTypeXsd(formValue),
+                                            value: formValue.toString(),
+                                            modelType: "Property",
+                                        }); */
                                 }
                             }
 
