@@ -3233,8 +3233,7 @@
                         },
 
                         "valueType": {
-                            "type": "string",
-                            "enum": ["xs:string"]
+                            "type": "string"
                         },
                         "value": {
                             "type": "string"
@@ -3299,8 +3298,7 @@
                         },
 
                         "valueType": {
-                            "type": "string",
-                            "enum": ["xs:string"]
+                            "type": "string"
                         },
                         "value": {
                             "type": "string"
@@ -3329,8 +3327,7 @@
                         },
 
                         "valueType": {
-                            "type": "string",
-                            "enum": ["xs:string"]
+                            "type": "string"
                         },
                         "value": {
                             "type": "string"
@@ -3359,8 +3356,7 @@
                         },
 
                         "valueType": {
-                            "type": "string",
-                            "enum": ["xs:string"]
+                            "type": "string"
                         },
                         "value": {
                             "type": "string"
@@ -3406,6 +3402,36 @@
                 }
             ]
         },
+        "modbusElements": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/DataElement"
+                },
+                {
+                    "properties": {
+                        "idShort": {
+                            "type": "string",
+                            "enum": ["modbus_function"]
+                        },
+
+                        "valueType": {
+                            "type": "string",
+                            "enum": ["xs:string"]
+                        },
+                        "value": {
+                            "type": "string"
+                        },
+                        "valueId": {
+                            "$ref": "#/definitions/Reference"
+                        },
+                        "modelType": {
+                            "const": "Property"
+                        }
+                    },
+                    "required": ["valueType"]
+                }
+            ]
+        },
         "modbusEntityElement": {
             "allOf": [
                 {
@@ -3419,8 +3445,7 @@
                         },
 
                         "valueType": {
-                            "type": "string",
-                            "enum": ["xs:string"]
+                            "type": "string"
                         },
                         "value": {
                             "type": "string"
@@ -3449,8 +3474,7 @@
                         },
 
                         "valueType": {
-                            "type": "string",
-                            "enum": ["xs:string"]
+                            "type": "string"
                         },
                         "value": {
                             "type": "string"
@@ -3479,8 +3503,7 @@
                         },
 
                         "valueType": {
-                            "type": "string",
-                            "enum": ["xs:string"]
+                            "type": "string"
                         },
                         "value": {
                             "type": "string"
@@ -3509,8 +3532,7 @@
                         },
 
                         "valueType": {
-                            "type": "string",
-                            "enum": ["xs:string"]
+                            "type": "string"
                         },
                         "value": {
                             "type": "string"
@@ -3539,8 +3561,7 @@
                         },
 
                         "valueType": {
-                            "type": "string",
-                            "enum": ["xs:string"]
+                            "type": "string"
                         },
                         "value": {
                             "type": "string"
@@ -3613,7 +3634,10 @@
                                 ]
                             },
                             "contains": {
-                                "$ref": "#/definitions/hrefElement"
+                                "anyOf": [
+                                    { "$ref": "#/definitions/hrefElement" },
+                                    { "$ref": "#/definitions/mqvControlPacketElement" }
+                                ]
                             }
                         },
                         "modelType": {
@@ -3653,7 +3677,10 @@
                                 ]
                             },
                             "contains": {
-                                "$ref": "#/definitions/hrefElement"
+                                "anyOf": [
+                                    { "$ref": "#/definitions/hrefElement" },
+                                    { "$ref": "#/definitions/modbusFunctionElement" }
+                                ]
                             }
                         },
                         "modelType": {
