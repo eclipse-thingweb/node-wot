@@ -50,7 +50,7 @@
                                 },
                                 {
                                     "idShort": "security",
-                                    "typeValueListElement": "SubmodelElement",
+                                    "typeValueListElement": "ReferenceElement",
                                     "value": [
                                         {
                                             "value": {
@@ -81,7 +81,7 @@
                                             "modelType": "ReferenceElement"
                                         }
                                     ],
-                                    "modelType": "SubmodelElementCollection"
+                                    "modelType": "SubmodelElementList"
                                 },
                                 {
                                     "idShort": "securityDefinitions",
@@ -128,12 +128,6 @@
                                                 {
                                                     "idShort": "forms",
                                                     "value": [
-                                                        {
-                                                            "idShort": "op",
-                                                            "valueType": "xs:string",
-                                                            "value": "readproperty",
-                                                            "modelType": "Property"
-                                                        },
                                                         {
                                                             "idShort": "href",
                                                             "valueType": "xs:string",
@@ -190,25 +184,19 @@
                                                     "idShort": "forms",
                                                     "value": [
                                                         {
-                                                            "idShort": "op",
-                                                            "valueType": "xs:string",
-                                                            "value": "readproperty",
-                                                            "modelType": "Property"
-                                                        },
-                                                        {
                                                             "idShort": "href",
                                                             "valueType": "xs:string",
                                                             "value": "/40361?quantity=1",
                                                             "modelType": "Property"
                                                         },
                                                         {
-                                                            "idShort": "modbus:function",
+                                                            "idShort": "modbus_function",
                                                             "valueType": "xs:string",
                                                             "value": "readHoldingRegisters",
                                                             "modelType": "Property"
                                                         },
                                                         {
-                                                            "idShort": "modbus:type",
+                                                            "idShort": "modbus_type",
                                                             "valueType": "xs:string",
                                                             "value": "uint16be",
                                                             "modelType": "Property"
