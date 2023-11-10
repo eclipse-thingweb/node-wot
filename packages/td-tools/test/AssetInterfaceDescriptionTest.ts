@@ -23,7 +23,7 @@ import { ThingDescription } from "wot-typescript-definitions";
 import Ajv, { ValidateFunction, ErrorObject } from "ajv";
 import * as AIDSchema from "../test/util/AIDSchema.json";
 
-const aidSchema = AIDSchema; //  require("../test/util/AIDSchema.json");
+const aidSchema = AIDSchema;
 const ajv = new Ajv({ strict: false });
 
 @suite("tests to verify the Asset Interface Description Utils")
@@ -897,6 +897,7 @@ class AssetInterfaceDescriptionUtilTest {
                 for (const endpointMetadataValue of endpointMetadata.value) {
                     if (endpointMetadataValue.idShort === "base") {
                         hasBase = true;
+                        expect(endpointMetadataValue.value).to.equal("modbus+tcp://127.0.0.1:60000");
                     } else if (endpointMetadataValue.idShort === "contentType") {
                         hasContentType = true;
                     } else if (endpointMetadataValue.idShort === "security") {

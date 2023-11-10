@@ -22,6 +22,7 @@ import debug from "debug";
 import { ThingDescription } from "wot-typescript-definitions";
 import { FormElementBase, PropertyElement } from "wot-thing-model-types";
 import isAbsoluteUrl = require("is-absolute-url");
+import URLToolkit = require("url-toolkit");
 const namespace = "node-wot:td-tools:asset-interface-description-util";
 const logDebug = debug(`${namespace}:debug`);
 const logInfo = debug(`${namespace}:info`);
@@ -176,7 +177,7 @@ export class AssetInterfaceDescriptionUtil {
                         semanticId: this.createSemanticId("https://www.w3.org/2019/wot/td#title"),
                     },
                     // created, modified, support ?
-                    this.createEndpointMetadata(td, aidID, submodelElementIdShort), // EndpointMetadata like base, security and securityDefinitions
+                    this.createEndpointMetadata(td, protocol, aidID, submodelElementIdShort), // EndpointMetadata like base, security and securityDefinitions
                     this.createInterfaceMetadata(td, protocol), // InterfaceMetadata like properties, actions and events
                     // Note: "ExternalDescriptor" should contain file values --> not applicable to TD
                     /* {
@@ -835,18 +836,36 @@ export class AssetInterfaceDescriptionUtil {
 
     private createEndpointMetadata(
         td: ThingDescription,
+        protocol: string,
         submodelIdShort: string,
         submodelElementIdShort: string
     ): Record<string, unknown> {
         const values: Array<unknown> = [];
 
         // base (AID requires base)
-        // TODO what should we do if no base is provided?
+        let base = td.base ?? "NO_BASE";
+        if (td.base == null && td.properties) {
+            // do best effort if base is not specified by looking at property forms
+            for (const propertyKey in td.properties) {
+                const property: PropertyElement = td.properties[propertyKey];
+                // check whether form exists for a given protocol (prefix)
+                const formElementPicked = this.getFormForProtocol(property, protocol);
+                if (formElementPicked?.href !== undefined) {
+                    const urlParts = URLToolkit.parseURL(formElementPicked.href);
+                    if (urlParts != null) {
+                        // keep scheme and netLoc only
+                        urlParts.path = urlParts.params = urlParts.query = urlParts.fragment = "";
+                        base = URLToolkit.buildURLFromParts(urlParts);
+                        continue; // abort to loop over remaining properties
+                    }
+                }
+            }
+        }
         values.push({
             idShort: "base",
             semanticId: this.createSemanticId("https://www.w3.org/2019/wot/td#baseURI"),
             valueType: "xs:anyURI",
-            value: td.base ?? "NO_BASE",
+            value: base,
             modelType: "Property",
         });
 
@@ -1051,6 +1070,21 @@ export class AssetInterfaceDescriptionUtil {
         return endpointMetadata;
     }
 
+    private getFormForProtocol(property: PropertyElement, protocol: string): FormElementBase | undefined {
+        let formElementPicked: FormElementBase | undefined;
+        // check whether protocol prefix exists for a form
+        if (property.forms) {
+            for (const formElementProperty of property.forms) {
+                if (formElementProperty.href != null && formElementProperty.href.startsWith(protocol)) {
+                    formElementPicked = formElementProperty;
+                    // found matching form --> abort loop
+                    break;
+                }
+            }
+        }
+        return formElementPicked;
+    }
+
     private createInterfaceMetadata(td: ThingDescription, protocol: string): Record<string, unknown> {
         const properties: Array<unknown> = [];
         const actions: Array<unknown> = [];
@@ -1060,19 +1094,10 @@ export class AssetInterfaceDescriptionUtil {
             // Properties
             if (td.properties) {
                 for (const propertyKey in td.properties) {
-                    const propertyValue: PropertyElement = td.properties[propertyKey];
+                    const property: PropertyElement = td.properties[propertyKey];
 
-                    // check whether protocol prefix exists for a form
-                    let formElementPicked: FormElementBase | undefined;
-                    if (propertyValue.forms) {
-                        for (const formElementProperty of propertyValue.forms) {
-                            if (formElementProperty.href != null && formElementProperty.href.startsWith(protocol)) {
-                                formElementPicked = formElementProperty;
-                                // found matching form --> abort loop
-                                break;
-                            }
-                        }
-                    }
+                    // check whether form exists for a given protocol (prefix)
+                    const formElementPicked = this.getFormForProtocol(property, protocol);
                     if (formElementPicked === undefined) {
                         // do not add this property, since there will be no href of interest
                         continue;
@@ -1080,41 +1105,40 @@ export class AssetInterfaceDescriptionUtil {
 
                     const propertyValues: Array<unknown> = [];
                     // type
-                    if (propertyValue.type != null) {
+                    if (property.type != null) {
                         propertyValues.push({
                             idShort: "type",
                             semanticId: this.createSemanticId("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
                             valueType: "xs:string",
-                            value: propertyValue.type,
+                            value: property.type,
                             modelType: "Property",
                         });
                         // special AID treatment
-                        if (propertyValue.minimum != null || propertyValue.maximum != null) {
+                        if (property.minimum != null || property.maximum != null) {
                             const minMax: { [k: string]: unknown } = {
                                 idShort: "min_max",
                                 semanticId: this.createSemanticId(
                                     "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/minMaxRange"
                                 ),
                                 supplementalSemanticIds: [],
-                                valueType:
-                                    "integer".localeCompare(propertyValue.type) === 0 ? "xs:integer" : "xs:double",
+                                valueType: "integer".localeCompare(property.type) === 0 ? "xs:integer" : "xs:double",
                                 modelType: "Range",
                             };
-                            if (propertyValue.minimum != null) {
-                                minMax.min = propertyValue.minimum.toString();
+                            if (property.minimum != null) {
+                                minMax.min = property.minimum.toString();
                                 (minMax.supplementalSemanticIds as Array<unknown>).push(
                                     this.createSemanticId("https://www.w3.org/2019/wot/json-schema#minimum")
                                 );
                             }
-                            if (propertyValue.maximum != null) {
-                                minMax.max = propertyValue.maximum.toString();
+                            if (property.maximum != null) {
+                                minMax.max = property.maximum.toString();
                                 (minMax.supplementalSemanticIds as Array<unknown>).push(
                                     this.createSemanticId("https://www.w3.org/2019/wot/json-schema#maximum")
                                 );
                             }
                             propertyValues.push(minMax);
                         }
-                        if (propertyValue.minItems != null || propertyValue.maxItems != null) {
+                        if (property.minItems != null || property.maxItems != null) {
                             const itemsRange: { [k: string]: unknown } = {
                                 idShort: "itemsRange",
                                 semanticId: this.createSemanticId(
@@ -1124,21 +1148,21 @@ export class AssetInterfaceDescriptionUtil {
                                 valueType: "xs:integer",
                                 modelType: "Range",
                             };
-                            if (propertyValue.minItems != null) {
-                                itemsRange.min = propertyValue.minItems.toString();
+                            if (property.minItems != null) {
+                                itemsRange.min = property.minItems.toString();
                                 (itemsRange.supplementalSemanticIds as Array<unknown>).push(
                                     this.createSemanticId("https://www.w3.org/2019/wot/json-schema#minItems")
                                 );
                             }
-                            if (propertyValue.maxItems != null) {
-                                itemsRange.max = propertyValue.maxItems.toString();
+                            if (property.maxItems != null) {
+                                itemsRange.max = property.maxItems.toString();
                                 (itemsRange.supplementalSemanticIds as Array<unknown>).push(
                                     this.createSemanticId("https://www.w3.org/2019/wot/json-schema#maxItems")
                                 );
                             }
                             propertyValues.push(itemsRange);
                         }
-                        if (propertyValue.minLength != null || propertyValue.maxLength != null) {
+                        if (property.minLength != null || property.maxLength != null) {
                             const lengthRange: { [k: string]: unknown } = {
                                 idShort: "lengthRange",
                                 semanticId: this.createSemanticId(
@@ -1148,14 +1172,14 @@ export class AssetInterfaceDescriptionUtil {
                                 valueType: "xs:integer",
                                 modelType: "Range",
                             };
-                            if (propertyValue.minLength != null) {
-                                lengthRange.min = propertyValue.minLength.toString();
+                            if (property.minLength != null) {
+                                lengthRange.min = property.minLength.toString();
                                 (lengthRange.supplementalSemanticIds as Array<unknown>).push(
                                     this.createSemanticId("https://www.w3.org/2019/wot/json-schema#minLength")
                                 );
                             }
-                            if (propertyValue.maxLength != null) {
-                                lengthRange.max = propertyValue.maxLength.toString();
+                            if (property.maxLength != null) {
+                                lengthRange.max = property.maxLength.toString();
                                 (lengthRange.supplementalSemanticIds as Array<unknown>).push(
                                     this.createSemanticId("https://www.w3.org/2019/wot/json-schema#maxLength")
                                 );
@@ -1164,67 +1188,67 @@ export class AssetInterfaceDescriptionUtil {
                         }
                     }
                     // title
-                    if (propertyValue.title != null) {
+                    if (property.title != null) {
                         propertyValues.push({
                             idShort: "title",
                             semanticId: this.createSemanticId("https://www.w3.org/2019/wot/td#title"),
                             valueType: "xs:string",
-                            value: propertyValue.title,
+                            value: property.title,
                             modelType: "Property",
                         });
                     }
                     // description
-                    if (propertyValue.description != null) {
+                    if (property.description != null) {
                         // AID deals with description in level above
                     }
                     // observable (if it deviates from the default == false only)
-                    if (propertyValue.observable != null && propertyValue.observable === true) {
+                    if (property.observable != null && property.observable === true) {
                         propertyValues.push({
                             idShort: "observable",
                             semanticId: this.createSemanticId("https://www.w3.org/2019/wot/td#isObservable"),
                             valueType: "xs:boolean",
-                            value: `${propertyValue.observable}`, // in AID represented as string
+                            value: `${property.observable}`, // in AID represented as string
                             modelType: "Property",
                         });
                     }
                     // contentMediaType
-                    if (propertyValue.contentMediaType != null) {
+                    if (property.contentMediaType != null) {
                         propertyValues.push({
                             idShort: "contentMediaType",
                             semanticId: this.createSemanticId(
                                 "https://www.w3.org/2019/wot/json-schema#contentMediaType"
                             ),
                             valueType: "xs:string",
-                            value: propertyValue.contentMediaType,
+                            value: property.contentMediaType,
                             modelType: "Property",
                         });
                     }
                     // TODO enum
                     // const
-                    if (propertyValue.const != null) {
+                    if (property.const != null) {
                         propertyValues.push({
                             idShort: "const",
                             valueType: "xs:string",
-                            value: propertyValue.const,
+                            value: property.const,
                             modelType: "Property",
                         });
                     }
                     // default
-                    if (propertyValue.default != null) {
+                    if (property.default != null) {
                         propertyValues.push({
                             idShort: "default",
                             semanticId: this.createSemanticId("https://www.w3.org/2019/wot/json-schema#default"),
-                            valueType: this.getSimpleValueTypeXsd(propertyValue.default),
-                            value: propertyValue.default,
+                            valueType: this.getSimpleValueTypeXsd(property.default),
+                            value: property.default,
                             modelType: "Property",
                         });
                     }
                     // unit
-                    if (propertyValue.unit != null) {
+                    if (property.unit != null) {
                         propertyValues.push({
                             idShort: "unit",
                             valueType: "xs:string",
-                            value: propertyValue.unit,
+                            value: property.unit,
                             modelType: "Property",
                         });
                     }
@@ -1331,21 +1355,21 @@ export class AssetInterfaceDescriptionUtil {
                     }
 
                     let description;
-                    if (propertyValue.descriptions) {
+                    if (property.descriptions) {
                         description = [];
-                        for (const langKey in propertyValue.descriptions) {
-                            const langValue = propertyValue.descriptions[langKey];
+                        for (const langKey in property.descriptions) {
+                            const langValue = property.descriptions[langKey];
                             description.push({
                                 language: langKey,
                                 text: langValue,
                             });
                         }
-                    } else if (propertyValue.description != null) {
+                    } else if (property.description != null) {
                         // fallback
                         description = [];
                         description.push({
                             language: "en", // TODO where to get language identifier
-                            text: propertyValue.description,
+                            text: property.description,
                         });
                     }
 
