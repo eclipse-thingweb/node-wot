@@ -79,7 +79,7 @@ export default class OctetstreamCodec implements ContentCodec {
                 if (typeSem[1] === "u") {
                     // compare with schema information
                     if (schema?.signed === "true") {
-                        throw new Error("Type is unsigned but 'ex:signed' is true");
+                        throw new Error("Type is unsigned but 'signed' is true");
                     }
                     // no schema, but type is unsigned
                     signed = false;
@@ -89,8 +89,6 @@ export default class OctetstreamCodec implements ContentCodec {
                     throw new Error(
                         `Type is '${(typeSem[1] ?? "") + typeSem[2] + typeSem[3]}' but 'ex:bitLength' is ` + dataLength
                     );
-                } else {
-                    dataLength = +typeSem[3] ?? bytes.length * 8;
                 }
             }
         }
@@ -132,10 +130,9 @@ export default class OctetstreamCodec implements ContentCodec {
                     throw new Error("Missing schema for object");
                 }
                 return this.objectToValue(bytes, schema);
-            case "array":
-                throw new Error("Unable to handle dataType " + dataType);
             case "null":
                 return null;
+            case "array":
             default:
                 throw new Error("Unable to handle dataType " + dataType);
         }
@@ -222,16 +219,16 @@ export default class OctetstreamCodec implements ContentCodec {
         }
 
         const bigEndian = !(schema?.byteSeq?.includes(Endianness.LITTLE_ENDIAN) === true); // default to big endian
-        let signed = schema?.signed !== "false"; // default to signed
+        let signed = schema?.signed !== "false";
         const offset = schema?.["ex:bitOffset"] !== undefined ? parseInt(schema["ex:bitOffset"]) : 0;
         let dataLength = schema?.["ex:bitLength"] !== undefined ? parseInt(schema["ex:bitLength"]) : undefined;
-        let dataType: string = schema?.type ?? "undefined";
+        let dataType: string = schema?.type ?? undefined;
 
         if (value === undefined) {
             throw new Error("Undefined value");
         }
 
-        if (!dataType) {
+        if (dataType === undefined) {
             throw new Error("Missing 'type' property in schema");
         }
 
@@ -244,7 +241,7 @@ export default class OctetstreamCodec implements ContentCodec {
                 if (typeSem[1] === "u") {
                     // compare with schema information
                     if (schema?.signed === "true") {
-                        throw new Error("Type is unsigned but 'ex:signed' is true");
+                        throw new Error("Type is unsigned but 'signed' is true");
                     }
                     // no schema, but type is unsigned
                     signed = false;

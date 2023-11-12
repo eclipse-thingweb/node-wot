@@ -177,6 +177,13 @@ class SerdesOctetTests {
         // 1110 1011 1110 0110 1001 0000 0100 1001 -> 111 1001 1010 0100 0001
         checkStreamToValue([0xeb, 0xe6, 0x90, 0x49], 498241, "integer", { "ex:bitOffset": 7, "ex:bitLength": 19 });
 
+        // 1110 1011 1110 0110 1001 0000 0100 1001 -> 111 1001 1010 0100 0001
+        checkStreamToValue([0xeb, 0xe6, 0x90, 0x49], 4299271, "integer", {
+            "ex:bitOffset": 7,
+            "ex:bitLength": 19,
+            byteSeq: Endianness.LITTLE_ENDIAN,
+        });
+
         // 0011 0110 0011 0000 -> 1101 1000
         checkStreamToValue([0x36, 0x30], 216, "uint8", { "ex:bitOffset": 2, "ex:bitLength": 8 });
         checkStreamToValue([0x36, 0x30], 216, "uint8", {
@@ -317,6 +324,18 @@ class SerdesOctetTests {
         expect(() =>
             ContentSerdes.contentToValue(
                 { type: "application/octet-stream", body: Buffer.from([0x36]) },
+                { type: "array" }
+            )
+        ).to.throw(Error, "Unable to handle dataType array");
+        expect(() =>
+            ContentSerdes.contentToValue(
+                { type: "application/octet-stream", body: Buffer.from([0x36]) },
+                { type: "foo" }
+            )
+        ).to.throw(Error, "Unable to handle dataType foo");
+        expect(() =>
+            ContentSerdes.contentToValue(
+                { type: "application/octet-stream", body: Buffer.from([0x36]) },
                 { type: "int8", "ex:bitOffset": 3, "ex:bitLength": 1 }
             )
         ).to.throw(Error, "Type is 'int8' but 'ex:bitLength' is 1");
@@ -359,6 +378,12 @@ class SerdesOctetTests {
         expect(() =>
             ContentSerdes.contentToValue(
                 { type: "application/octet-stream", body: Buffer.from([0x36]) },
+                { type: "number", "ex:bitLength": 8 }
+            )
+        ).to.throw(Error, "Wrong buffer length for type 'number', must be 16, 32, or 64 is " + 8);
+        expect(() =>
+            ContentSerdes.contentToValue(
+                { type: "application/octet-stream", body: Buffer.from([0x36]) },
                 { type: "object", "ex:bitOffset": 1, "ex:bitLength": 5 }
             )
         ).to.throw(Error, "Missing schema for object");
@@ -374,6 +399,12 @@ class SerdesOctetTests {
                 }
             )
         ).to.throw(Error, "Missing 'type' property in schema");
+        expect(() =>
+            ContentSerdes.contentToValue(
+                { type: "application/octet-stream", body: Buffer.from([0x36]) },
+                { type: "uint8", signed: "true" }
+            )
+        ).to.throw(Error, "Type is unsigned but 'signed' is true");
     }
 
     @test async "value to OctetStream"() {
@@ -402,6 +433,10 @@ class SerdesOctetTests {
         content = ContentSerdes.valueToContent(10, { type: "int8" }, "application/octet-stream");
         body = await content.toBuffer();
         expect(body).to.deep.equal(Buffer.from([0x0a]));
+
+        content = ContentSerdes.valueToContent(12342, { type: "uint16" }, "application/octet-stream");
+        body = await content.toBuffer();
+        expect(body).to.deep.equal(Buffer.from([0x30, 0x36]));
 
         // should serialize a number as a float16
         // @ts-ignore new dataschema types are not yet supported in the td type definitions
@@ -588,10 +623,16 @@ class SerdesOctetTests {
             Error,
             "Integer overflow when representing signed 23450000 in 16 bit(s)"
         );
-        expect(() => ContentSerdes.valueToContent(2345, undefined, "application/octet-stream")).to.throw(
+        expect(() => ContentSerdes.valueToContent(2345, { type: "foo" }, "application/octet-stream")).to.throw(
             Error,
-            "Unable to handle dataType undefined"
+            "Unable to handle dataType foo"
         );
+        expect(() =>
+            ContentSerdes.valueToContent(10, { type: "uint8", signed: "true" }, "application/octet-stream")
+        ).to.throw(Error, "Type is unsigned but 'signed' is true");
+        expect(() =>
+            ContentSerdes.valueToContent(47, { type: "int8", "ex:bitLength": 9 }, "application/octet-stream")
+        ).to.throw(Error, "Type is 'int8' but 'ex:bitLength' is 9");
         expect(() =>
             ContentSerdes.valueToContent(
                 -2345,
@@ -635,6 +676,17 @@ class SerdesOctetTests {
                 "application/octet-stream"
             )
         ).to.throw(Error, "Missing property 'stringProp'");
+        expect(() =>
+            ContentSerdes.valueToContent(
+                undefined as unknown as DataSchemaValue,
+                { type: "int8" },
+                "application/octet-stream"
+            )
+        ).to.throw(Error, "Undefined value");
+        expect(() => ContentSerdes.valueToContent(10, {}, "application/octet-stream")).to.throw(
+            Error,
+            "Missing 'type' property in schema"
+        );
     }
 }
 
