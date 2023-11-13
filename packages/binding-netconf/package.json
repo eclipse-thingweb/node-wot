@@ -1,6 +1,6 @@
 {
     "name": "@node-wot/binding-netconf",
-    "version": "0.8.10",
+    "version": "0.8.11",
     "description": "NetConf client protocol binding for node-wot",
     "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
     "license": "EPL-2.0 OR W3C-20150513",
@@ -14,8 +14,8 @@
     "main": "dist/netconf.js",
     "types": "dist/netconf.d.ts",
     "dependencies": {
-        "@node-wot/core": "0.8.10",
-        "@node-wot/td-tools": "0.8.10",
+        "@node-wot/core": "0.8.11",
+        "@node-wot/td-tools": "0.8.11",
         "@types/node-netconf": "npm:@types/netconf@^2.0.0",
         "@types/url-parse": "^1.4.3",
         "case-1.5.3": "npm:case@^1.5.3",
