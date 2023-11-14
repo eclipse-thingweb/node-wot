@@ -572,7 +572,13 @@ class AssetInterfaceDescriptionUtilTest {
             .to.be.an("object")
             .with.property("keys")
             .to.be.an("array")
-            .to.have.lengthOf.greaterThan(0);
+            .to.have.lengthOf.greaterThan(0)
+            .to.have.deep.members([
+                {
+                    type: "GlobalReference",
+                    value: "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/Interface",
+                },
+            ]);
         expect(smInterface)
             .to.have.property("supplementalSemanticIds")
             .to.be.an("array")
@@ -709,6 +715,18 @@ class AssetInterfaceDescriptionUtilTest {
                                             .to.have.property("value")
                                             .to.be.an("array")
                                             .to.have.lengthOf.greaterThan(0);
+                                        expect(propProperty)
+                                            .to.have.property("semanticId")
+                                            .to.be.an("object")
+                                            .with.property("keys")
+                                            .to.be.an("array")
+                                            .to.have.lengthOf.greaterThan(0)
+                                            .to.have.deep.members([
+                                                {
+                                                    type: "GlobalReference",
+                                                    value: "https://www.w3.org/2019/wot/td#hasForm",
+                                                },
+                                            ]);
                                         let hasHref = false;
                                         let hasContentType = false;
                                         let hasHtvMethodName = false;

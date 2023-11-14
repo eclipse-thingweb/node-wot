@@ -1349,6 +1349,7 @@ export class AssetInterfaceDescriptionUtil {
 
                         propertyValues.push({
                             idShort: "forms",
+                            semanticId: this.createSemanticId("https://www.w3.org/2019/wot/td#hasForm"),
                             value: propertyForm,
                             modelType: "SubmodelElementCollection",
                         });
