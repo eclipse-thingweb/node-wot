@@ -534,7 +534,6 @@ class AssetInterfaceDescriptionUtilTest {
                     {
                         href: "stat",
                         contentType: "application/json",
-                        "htv:methodName": "GET",
                         op: ["readproperty"],
                     },
                 ],
