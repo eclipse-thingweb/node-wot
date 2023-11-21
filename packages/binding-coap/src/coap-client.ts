@@ -183,6 +183,24 @@ export default class CoapClient implements ProtocolClient {
         });
     }
 
+    /**
+     * @inheritdoc
+     */
+    requestThingDescription(uri: string): Promise<Content> {
+        const options: CoapRequestParams = this.uriToOptions(uri);
+        const req = this.agent.request(options);
+
+        req.setOption("Accept", "application/td+json");
+        return new Promise<Content>((resolve, reject) => {
+            req.on("response", (res: IncomingMessage) => {
+                const contentType = (res.headers["Content-Format"] as string) ?? "application/td+json";
+                resolve(new Content(contentType, Readable.from(res.payload)));
+            });
+            req.on("error", (err: Error) => reject(err));
+            req.end();
+        });
+    }
+
     public async start(): Promise<void> {
         // do nothing
     }

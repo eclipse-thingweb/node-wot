@@ -430,6 +430,13 @@ export class OPCUAProtocolClient implements ProtocolClient {
         });
     }
 
+    /**
+     * @inheritdoc
+     */
+    public async requestThingDescription(uri: string): Promise<Content> {
+        throw new Error("Method not implemented");
+    }
+
     start(): Promise<void> {
         debug("start: Sorry not implemented");
         throw new Error("Method not implemented.");

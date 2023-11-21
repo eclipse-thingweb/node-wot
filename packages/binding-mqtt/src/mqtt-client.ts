@@ -161,6 +161,13 @@ export default class MqttClient implements ProtocolClient {
         }
     }
 
+    /**
+     * @inheritdoc
+     */
+    public async requestThingDescription(uri: string): Promise<Content> {
+        throw new Error("Method not implemented");
+    }
+
     public async start(): Promise<void> {
         // do nothing
     }

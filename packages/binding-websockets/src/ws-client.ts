@@ -66,6 +66,13 @@ export default class WebSocketClient implements ProtocolClient {
         throw new Error("Websocket client does not implement subscribeResource");
     }
 
+    /**
+     * @inheritdoc
+     */
+    public async requestThingDescription(uri: string): Promise<Content> {
+        throw new Error("Method not implemented");
+    }
+
     public async start(): Promise<void> {
         // do nothing
     }

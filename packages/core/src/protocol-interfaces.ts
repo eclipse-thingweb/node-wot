@@ -66,6 +66,16 @@ export interface ProtocolClient {
         complete?: () => void
     ): Promise<Subscription>;
 
+    /**
+     * Requests a single Thing Description from a given {@link uri}.
+     *
+     * The result is returned asynchronously as {@link Content}, which has to
+     * be deserialized and validated by the upper layers of the implementation.
+     *
+     * @param uri
+     */
+    requestThingDescription(uri: string): Promise<Content>;
+
     /** start the client (ensure it is ready to send requests) */
     start(): Promise<void>;
     /** stop the client */

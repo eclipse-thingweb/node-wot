@@ -212,6 +212,18 @@ export default class HttpClient implements ProtocolClient {
         }
     }
 
+    /**
+     * @inheritdoc
+     */
+    public async requestThingDescription(uri: string): Promise<Content> {
+        const headers: HeadersInit = {
+            Accept: "application/td+json",
+        };
+        const response = await fetch(uri, { headers });
+        const body = ProtocolHelpers.toNodeStream(response.body as Readable);
+        return new Content(response.headers.get("content-type") ?? "application/td+json", body);
+    }
+
     public async start(): Promise<void> {
         // do nothing
     }

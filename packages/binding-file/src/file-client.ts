@@ -72,6 +72,13 @@ export default class FileClient implements ProtocolClient {
         throw new Error("FileClient does not implement unlink");
     }
 
+    /**
+     * @inheritdoc
+     */
+    public async requestThingDescription(uri: string): Promise<Content> {
+        throw new Error("Not implemented");
+    }
+
     public async subscribeResource(
         form: Form,
         next: (value: Content) => void,
