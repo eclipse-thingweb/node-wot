@@ -69,8 +69,8 @@ export default class WoTImpl {
     }
 
     /** @inheritDoc */
-    async *exploreDirectory(url: string, filter?: WoT.ThingFilter): AsyncGenerator<ThingDiscoveryProcess> {
-        yield Promise.reject(new Error("Unimplemented"));
+    async exploreDirectory(url: string, filter?: WoT.ThingFilter): Promise<WoT.ThingDiscoveryProcess> {
+        return new ThingDiscoveryProcess(filter);
     }
 
     /** @inheritDoc */
