@@ -25,11 +25,7 @@ import ContentManager from "./content-serdes";
 
 const { debug } = createLoggers("core", "wot-impl");
 
-interface ThingFilter {
-    fragment?: object;
-}
-
-class ThingDiscoveryProcess {
+class ThingDiscoveryProcess implements WoT.ThingDiscoveryProcess {
     #done = false;
 
     get done() {
@@ -42,18 +38,21 @@ class ThingDiscoveryProcess {
         return this.#error;
     }
 
-    #filter: ThingFilter;
+    #filter: WoT.ThingFilter;
 
-    constructor(filter?: ThingFilter) {
+    constructor(filter?: WoT.ThingFilter) {
         this.#filter = filter ?? {};
+    }
+
+    filter?: WoT.ThingFilter | undefined;
+
+    [Symbol.asyncIterator](): AsyncIterator<ThingDescription> {
+            throw new Error("Method not implemented.");
     }
 
     stop(): void {
         this.#done = true;
     }
-
-    // TODO: Implement AsyncIterable
-    // async iterable<ThingDescription>;
 }
 
 export default class WoTImpl {
@@ -61,6 +60,29 @@ export default class WoTImpl {
 
     constructor(srv: Servient) {
         this.srv = srv;
+    }
+
+    async discover(filter?: WoT.ThingFilter): Promise<WoT.ThingDiscoveryProcess> {
+        // TODO: Implement this function
+        return new ThingDiscoveryProcess(filter);
+    }
+
+    async *exploreDirectory(url: string, filter?: WoT.ThingFilter): AsyncGenerator<ThingDiscoveryProcess> {
+        yield Promise.reject(new Error("Unimplemented"));
+    }
+
+    async requestThingDescription(url: string): Promise<ThingDescription> {
+        const uriScheme = new URL(url).protocol.split(":")[0];
+        const client = this.srv.getClientFor(uriScheme);
+        const result = await client.discoverDirectly(url);
+
+        const value = ContentManager.contentToValue({ type: result.type, body: await result.toBuffer() }, {});
+
+        if (value instanceof Object) {
+            return value as ThingDescription;
+        }
+
+        throw new Error("Not found.");
     }
 
     /** @inheritDoc */
@@ -109,29 +131,6 @@ export default class WoTImpl {
                 );
             }
         });
-    }
-
-    async discover(filter?: WoT.ThingFilter): Promise<ThingDiscoveryProcess> {
-        // TODO: Implement this function
-        return new ThingDiscoveryProcess(filter);
-    }
-
-    async *exploreDirectory(url: string, filter?: WoT.ThingFilter): AsyncGenerator<ThingDiscoveryProcess> {
-        yield Promise.reject(new Error("Unimplemented"));
-    }
-
-    async requestThingDescription(url: string): Promise<ThingDescription> {
-        const uriScheme = new URL(url).protocol.split(":")[0];
-        const client = this.srv.getClientFor(uriScheme);
-        const result = await client.discoverDirectly(url);
-
-        const value = ContentManager.contentToValue({ type: result.type, body: await result.toBuffer() }, {});
-
-        if (value instanceof Object) {
-            return value as ThingDescription;
-        }
-
-        throw new Error("Not found.");
     }
 }
 
