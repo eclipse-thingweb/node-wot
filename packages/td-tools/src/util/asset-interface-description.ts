@@ -1085,6 +1085,82 @@ export class AssetInterfaceDescriptionUtil {
         return formElementPicked;
     }
 
+    private hasOp(form: FormElementBase, op: string): boolean {
+        if (form.op != null) {
+            if (typeof form.op === "string" && form.op === op) {
+                return true;
+            } else if (Array.isArray(form.op) && form.op.includes(op)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private addRequiredAidTermsForForm(form: FormElementBase, protocol: string): void {
+        if (form == null || protocol == null) {
+            return;
+        }
+        if (protocol.startsWith("http")) {
+            // HTTP: href, htv_methodName
+            // default for htv:methodName depending on op, see https://w3c.github.io/wot-binding-templates/bindings/protocols/http/index.html#http-default-vocabulary-terms
+            const htvKey = "htv:methodName";
+            if (form[htvKey] == null) {
+                if (
+                    this.hasOp(form, "readproperty") ||
+                    this.hasOp(form, "readallproperties") ||
+                    this.hasOp(form, "readmultipleproperties")
+                ) {
+                    form[htvKey] = "GET";
+                } else if (
+                    this.hasOp(form, "writeproperty") ||
+                    this.hasOp(form, "writeallproperties") ||
+                    this.hasOp(form, "writemultipleproperties")
+                ) {
+                    form[htvKey] = "PUT";
+                } else if (this.hasOp(form, "invokeaction")) {
+                    form[htvKey] = "POST";
+                }
+            }
+        } else if (protocol.startsWith("modbus")) {
+            // Modbus: href, modbus_function
+            // default for modbus:function depending on op, see https://w3c.github.io/wot-binding-templates/bindings/protocols/modbus/index.html#default-mappings
+            const mbKey = "modbus:function";
+            if (form[mbKey] == null) {
+                if (this.hasOp(form, "writeproperty") || this.hasOp(form, "invokeaction")) {
+                    form[mbKey] = "writeSingleCoil";
+                } else if (this.hasOp(form, "readallproperties") || this.hasOp(form, "readmultipleproperties")) {
+                    form[mbKey] = "readHoldingRegisters";
+                } else if (this.hasOp(form, "writeallproperties") || this.hasOp(form, "writemultipleproperties")) {
+                    form[mbKey] = "writeMultipleHoldingRegisters";
+                }
+            }
+        } else if (protocol.startsWith("mqtt")) {
+            // MQTT: href, mqv_controlPacket
+            // default for mqv:controlPacket depending on op, see https://w3c.github.io/wot-binding-templates/bindings/protocols/mqtt/index.html#default-mappings
+            const mqvKey = "mqv:controlPacket";
+            if (form[mqvKey] == null) {
+                if (
+                    this.hasOp(form, "readproperty") ||
+                    this.hasOp(form, "observeproperty") ||
+                    this.hasOp(form, "readallproperties") ||
+                    this.hasOp(form, "readmultipleproperties") ||
+                    this.hasOp(form, "subscribeevent")
+                ) {
+                    form[mqvKey] = "subscribe";
+                } else if (
+                    this.hasOp(form, "writeproperty") ||
+                    this.hasOp(form, "writeallproperties") ||
+                    this.hasOp(form, "writemultipleproperties") ||
+                    this.hasOp(form, "invokeaction")
+                ) {
+                    form[mqvKey] = "publish";
+                } else if (this.hasOp(form, "unobserveproperty") || this.hasOp(form, "unsubscribeevent")) {
+                    form[mqvKey] = "unsubscribe";
+                }
+            }
+        }
+    }
+
     private createInterfaceMetadata(td: ThingDescription, protocol: string): Record<string, unknown> {
         const properties: Array<unknown> = [];
         const actions: Array<unknown> = [];
@@ -1263,6 +1339,9 @@ export class AssetInterfaceDescriptionUtil {
 
                         // TODO AID for now supports just *one* href/form
                         // --> pick the first one that matches protocol (other means in future?)
+
+                        // AID has required terms that need to be present always for a given interface
+                        this.addRequiredAidTermsForForm(formElementPicked, protocol);
 
                         // walk over string values like: "href", "contentType", "htv:methodName", ...
                         for (let formTerm in formElementPicked) {
