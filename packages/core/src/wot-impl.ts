@@ -62,15 +62,18 @@ export default class WoTImpl {
         this.srv = srv;
     }
 
+    /** @inheritDoc */
     async discover(filter?: WoT.ThingFilter): Promise<WoT.ThingDiscoveryProcess> {
         // TODO: Implement this function
         return new ThingDiscoveryProcess(filter);
     }
 
+    /** @inheritDoc */
     async *exploreDirectory(url: string, filter?: WoT.ThingFilter): AsyncGenerator<ThingDiscoveryProcess> {
         yield Promise.reject(new Error("Unimplemented"));
     }
 
+    /** @inheritDoc */
     async requestThingDescription(url: string): Promise<ThingDescription> {
         const uriScheme = new URL(url).protocol.split(":")[0];
         const client = this.srv.getClientFor(uriScheme);
