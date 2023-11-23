@@ -22,12 +22,20 @@ import chai, { expect, should } from "chai";
 
 import * as http from "http";
 
-import { Content, DefaultContent, ContentSerdes, createLoggers, ProtocolServer } from "@node-wot/core";
+import {
+    Content,
+    DefaultContent,
+    ContentSerdes,
+    createLoggers,
+    ProtocolServer,
+    Servient,
+    Helpers,
+} from "@node-wot/core";
 
 import { Readable } from "stream";
 
 import HttpClient from "../src/http-client";
-import { HttpForm } from "../src/http";
+import { HttpForm, HttpClientFactory } from "../src/http";
 
 import express from "express";
 import serveStatic from "serve-static";
@@ -517,5 +525,25 @@ class HttpClientTest2 {
                 }
             );
         });
+    }
+
+    @test async "should fetchTD successfully"() {
+        const servient = new Servient();
+        servient.addClientFactory(new HttpClientFactory());
+        const helpers = new Helpers(servient);
+        const td = await helpers.fetchTD("http://plugfest.thingweb.io:8083/counter");
+        expect(td).to.contains.keys("@context", "title");
+    }
+
+    @test async "should fail fetching a non TD resource"() {
+        const servient = new Servient();
+        servient.addClientFactory(new HttpClientFactory());
+        const helpers = new Helpers(servient);
+        try {
+            await helpers.fetchTD("http://plugfest.thingweb.io:8083/"); // reports array
+            expect(1).to.equal(0, "Does not report that we do not deal with a proper TD");
+        } catch (err) {
+            // correct since it is not a proper TD
+        }
     }
 }
