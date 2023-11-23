@@ -21,7 +21,7 @@ import ConsumedThing from "./consumed-thing";
 import Helpers from "./helpers";
 import { createLoggers } from "./logger";
 import ContentManager from "./content-serdes";
-import TDSchema from "wot-thing-description-types/schema/td-json-schema-validation.json";
+import { ErrorObject } from "ajv";
 
 const { debug } = createLoggers("core", "wot-impl");
 
@@ -46,14 +46,16 @@ export default class WoTImpl {
         const uriScheme = Helpers.extractScheme(url);
         const client = this.srv.getClientFor(uriScheme);
         const content = await client.requestThingDescription(url);
+        const value = ContentManager.contentToValue({ type: content.type, body: await content.toBuffer() }, {});
 
-        const value = ContentManager.contentToValue({ type: content.type, body: await content.toBuffer() }, TDSchema);
+        const isValidThingDescription = Helpers.tsSchemaValidator(value);
 
-        if (value instanceof Object) {
-            return value as WoT.ThingDescription;
+        if (!isValidThingDescription) {
+            const errors = Helpers.tsSchemaValidator.errors?.map((o: ErrorObject) => o.message).join("\n");
+            throw new Error(errors);
         }
 
-        throw new Error("Not found.");
+        return value as WoT.ThingDescription;
     }
 
     /** @inheritDoc */
