@@ -21,6 +21,7 @@ import ConsumedThing from "./consumed-thing";
 import Helpers from "./helpers";
 import { createLoggers } from "./logger";
 import ContentManager from "./content-serdes";
+import TDSchema from "wot-thing-description-types/schema/td-json-schema-validation.json";
 
 const { debug } = createLoggers("core", "wot-impl");
 
@@ -44,12 +45,11 @@ export default class WoTImpl {
     async requestThingDescription(url: string): Promise<WoT.ThingDescription> {
         const uriScheme = new URL(url).protocol.split(":")[0];
         const client = this.srv.getClientFor(uriScheme);
-        const result = await client.requestThingDescription(url);
+        const content = await client.requestThingDescription(url);
 
-        const value = ContentManager.contentToValue({ type: result.type, body: await result.toBuffer() }, {});
+        const value = ContentManager.contentToValue({ type: content.type, body: await content.toBuffer() }, TDSchema);
 
         if (value instanceof Object) {
-            // TODO: Add validation step
             return value as WoT.ThingDescription;
         }
 
