@@ -14,7 +14,6 @@
  ********************************************************************************/
 
 import { Helpers } from "@node-wot/core";
-import { ThingDescription } from "wot-typescript-definitions";
 let WoTHelpers!: Helpers;
 
 console.log = () => {
@@ -51,11 +50,11 @@ async function testPropertyWrite(
     }
 }
 
-WoTHelpers.fetch("http://localhost:8080/testthing")
+WoTHelpers.fetchTD("http://localhost:8080/testthing")
     .then(async (td) => {
-        // using await for serial execution (note 'async' in then() of fetch())
+        // using await for serial execution (note 'async' in then() of fetchTD())
         try {
-            const thing = await WoT.consume(td as ThingDescription);
+            const thing = await WoT.consume(td);
             console.info("=== TD ===");
             console.info(td);
             console.info("==========");

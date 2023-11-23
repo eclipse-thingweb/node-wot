@@ -15,7 +15,6 @@
 
 import { Servient, Helpers } from "@node-wot/core";
 import { CoapClientFactory } from "@node-wot/binding-coap";
-import { ThingDescription } from "wot-typescript-definitions";
 
 // create Servient and add CoAP binding
 const servient = new Servient();
@@ -23,10 +22,9 @@ servient.addClientFactory(new CoapClientFactory());
 
 const wotHelper = new Helpers(servient);
 wotHelper
-    .fetch("coap://plugfest.thingweb.io:5683/testthing")
-    .then(async (fetched) => {
-        const td: ThingDescription = fetched as ThingDescription;
-        // using await for serial execution (note 'async' in then() of fetch())
+    .fetchTD("coap://plugfest.thingweb.io:5683/testthing")
+    .then(async (td) => {
+        // using await for serial execution (note 'async' in then() of fetchTD())
         try {
             const WoT = await servient.start();
             const thing = await WoT.consume(td);

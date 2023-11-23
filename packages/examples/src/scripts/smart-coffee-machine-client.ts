@@ -17,7 +17,6 @@
 // It considers a fictional smart coffee machine in order to demonstrate the capabilities of Web of Things.
 // An accompanying tutorial is available at http://www.thingweb.io/smart-coffee-machine.html.
 
-import { ThingDescription } from "wot-typescript-definitions";
 import { Helpers } from "@node-wot/core";
 let WoTHelpers!: Helpers;
 
@@ -29,9 +28,9 @@ function log(msg: string, data: unknown) {
     console.info("======================");
 }
 
-WoTHelpers.fetch("http://127.0.0.1:8080/smart-coffee-machine").then(async (td) => {
+WoTHelpers.fetchTD("http://127.0.0.1:8080/smart-coffee-machine").then(async (td) => {
     try {
-        const thing = await WoT.consume(td as ThingDescription);
+        const thing = await WoT.consume(td);
         log("Thing Description:", td);
 
         // Read property allAvailableResources

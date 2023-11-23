@@ -34,7 +34,7 @@ import * as TDT from "wot-thing-description-types";
 import { ContentSerdes } from "./content-serdes";
 import Ajv, { ValidateFunction, ErrorObject } from "ajv";
 import TDSchema from "wot-thing-description-types/schema/td-json-schema-validation.json";
-import { DataSchemaValue, ExposedThingInit } from "wot-typescript-definitions";
+import { DataSchemaValue, ExposedThingInit, ThingDescription } from "wot-typescript-definitions";
 import { SomeJSONSchema } from "ajv/dist/types/json-schema";
 import { ThingInteraction, ThingModelHelpers } from "@node-wot/td-tools";
 import { Resolver } from "@node-wot/td-tools/src/resolver-interface";
@@ -152,8 +152,28 @@ export default class Helpers implements Resolver {
         }
     }
 
-    // TODO: specialize fetch to retrieve just thing descriptions
-    // see https://github.com/eclipse-thingweb/node-wot/issues/1055
+    /**
+     * Fetches a resource with additionally checking TD conformance
+     *
+     * @param uri The URI of a TD resource
+     * @returns A ThingDescription
+     */
+    public async fetchTD(uri: string): Promise<ThingDescription> {
+        const data = await this.fetch(uri);
+        const isValid = Helpers.tsSchemaValidator(data);
+        if (!isValid) {
+            const errors = Helpers.tsSchemaValidator.errors?.map((o: ErrorObject) => o.message).join("\n");
+            throw new Error(errors);
+        }
+        return data as ThingDescription;
+    }
+
+    /**
+     * Fetches a resource
+     *
+     * @param uri The URI of a the resource
+     * @returns An object
+     */
     public fetch(uri: string): Promise<unknown> {
         return new Promise<unknown>((resolve, reject) => {
             const client = this.srv.getClientFor(Helpers.extractScheme(uri));

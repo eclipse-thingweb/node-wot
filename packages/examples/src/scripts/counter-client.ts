@@ -14,7 +14,6 @@
  ********************************************************************************/
 
 import { Helpers } from "@node-wot/core";
-import { ThingDescription } from "wot-typescript-definitions";
 
 let WoTHelpers!: Helpers;
 
@@ -31,11 +30,11 @@ function getFormIndexForDecrementWithCoAP(thing: WoT.ConsumedThing): number {
     return 0;
 }
 
-WoTHelpers.fetch("coap://localhost:5683/counter")
+WoTHelpers.fetchTD("coap://localhost:5683/counter")
     .then(async (td) => {
-        // using await for serial execution (note 'async' in then() of fetch())
+        // using await for serial execution (note 'async' in then() of fetchTD())
         try {
-            const thing = await WoT.consume(td as ThingDescription);
+            const thing = await WoT.consume(td);
             console.info("=== TD ===");
             console.info(td);
             console.info("==========");

@@ -13,12 +13,11 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 import { Helpers } from "@node-wot/core";
-import { ThingDescription } from "wot-typescript-definitions";
 
 let WoTHelpers!: Helpers;
 
-WoTHelpers.fetch("https://localhost:8080/oauth").then((td) => {
-    WoT.consume(td as ThingDescription).then(async (thing) => {
+WoTHelpers.fetchTD("https://localhost:8080/oauth").then((td) => {
+    WoT.consume(td).then(async (thing) => {
         try {
             const resp = await thing.invokeAction("sayOk");
             const result = await resp?.value();
