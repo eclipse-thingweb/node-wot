@@ -171,7 +171,7 @@ export default class Helpers implements Resolver {
     /**
      * Fetches a resource
      *
-     * @param uri The URI of a the resource
+     * @param uri The URI of a resource
      * @returns An object
      */
     public fetch(uri: string): Promise<unknown> {
