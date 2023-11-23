@@ -28,7 +28,7 @@ const { debug, warn } = createLoggers("binding-file", "file-client");
  * Used to determine the Content-Type of a file from the extension in its
  * {@link filePath} if no explicit Content-Type is defined.
  *
- * @param filepath The file paththe Content-Type is determined for.
+ * @param filepath The file path the Content-Type is determined for.
  * @returns An appropriate Content-Type or `application/octet-stream` as a fallback.
  */
 function mapFileExtensionToContentType(filepath: string) {
