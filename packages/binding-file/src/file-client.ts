@@ -64,7 +64,7 @@ export default class FileClient implements ProtocolClient {
     }
 
     public async readResource(form: Form): Promise<Content> {
-        const filepath = form.href.split("//")[1];
+        const filepath = new URL(form.href).pathname;
         return this.readFile(filepath, form.contentType);
     }
 
