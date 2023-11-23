@@ -43,7 +43,7 @@ export default class WoTImpl {
 
     /** @inheritDoc */
     async requestThingDescription(url: string): Promise<WoT.ThingDescription> {
-        const uriScheme = new URL(url).protocol.split(":")[0];
+        const uriScheme = Helpers.extractScheme(url);
         const client = this.srv.getClientFor(uriScheme);
         const content = await client.requestThingDescription(url);
 
