@@ -24,40 +24,48 @@ import path = require("path");
 
 const { debug, warn } = createLoggers("binding-file", "file-client");
 
+/**
+ * Used to determine the Content-Type of a file from the extension in its
+ * {@link filePath} if no explicit Content-Type is defined.
+ *
+ * @param filepath The file paththe Content-Type is determined for.
+ * @returns An appropriate Content-Type or `application/octet-stream` as a fallback.
+ */
+function mapFileExtensionToContentType(filepath: string) {
+    const fileExtension = path.extname(filepath);
+    debug(`FileClient found '${fileExtension}' extension`);
+    switch (fileExtension) {
+        case ".txt":
+        case ".log":
+        case ".ini":
+        case ".cfg":
+            return "text/plain";
+        case ".json":
+            return "application/json";
+        case ".jsontd":
+            return "application/td+json";
+        case ".jsonld":
+            return "application/ld+json";
+        default:
+            warn(`FileClient cannot determine media type for path '${filepath}'`);
+            return "application/octet-stream";
+    }
+}
+
 export default class FileClient implements ProtocolClient {
     public toString(): string {
         return "[FileClient]";
     }
 
+    private async readFile(filepath: string, contentType?: string): Promise<Content> {
+        const resource = fs.createReadStream(filepath);
+        const resourceContentType = contentType ?? mapFileExtensionToContentType(filepath);
+        return new Content(resourceContentType, resource);
+    }
+
     public async readResource(form: Form): Promise<Content> {
-        const filepath = form.href.split("//");
-        const resource = fs.createReadStream(filepath[1]);
-        const extension = path.extname(filepath[1]);
-        debug(`FileClient found '${extension}' extension`);
-        let contentType;
-        if (form.contentType != null) {
-            contentType = form.contentType;
-        } else {
-            // *guess* contentType based on file extension
-            contentType = "application/octet-stream";
-            switch (extension) {
-                case ".txt":
-                case ".log":
-                case ".ini":
-                case ".cfg":
-                    contentType = "text/plain";
-                    break;
-                case ".json":
-                    contentType = "application/json";
-                    break;
-                case ".jsonld":
-                    contentType = "application/ld+json";
-                    break;
-                default:
-                    warn(`FileClient cannot determine media type of '${form.href}'`);
-            }
-        }
-        return new Content(contentType, resource);
+        const filepath = form.href.split("//")[1];
+        return this.readFile(filepath, form.contentType);
     }
 
     public async writeResource(form: Form, content: Content): Promise<void> {
@@ -76,7 +84,7 @@ export default class FileClient implements ProtocolClient {
      * @inheritdoc
      */
     public async requestThingDescription(uri: string): Promise<Content> {
-        throw new Error("Not implemented");
+        return this.readFile(uri, "application/td+json");
     }
 
     public async subscribeResource(
