@@ -153,13 +153,14 @@ public class CopyrightFix {
         }
     }
 
-    static String getNewLine(String line, int yearCreation, int yearLastModified, boolean useYearRange) {
+    static String getNewLine(String line, int yearCreation, int yearLastModified, boolean useYearRange, boolean useYearOfCreation) {
         int idx1 = checkMatchIndex(line, COPYRIGHT_HEADER_LINE_START);
         String newLine;
         if (yearCreation == yearLastModified || !useYearRange) {
             // one year only
+            int year = useYearOfCreation ? yearCreation : yearLastModified;
             // e.g., Copyright (c) 2019 Contributors to the Eclipse Foundation
-            newLine = line.substring(0, idx1) + COPYRIGHT_HEADER_LINE_START + " " + yearLastModified + " " + COPYRIGHT_HEADER_LINE_END;
+            newLine = line.substring(0, idx1) + COPYRIGHT_HEADER_LINE_START + " " + year + " " + COPYRIGHT_HEADER_LINE_END;
         } else {
             // year range
             // e.g., Copyright (c) 2018 - 2019 Contributors to the Eclipse Foundation
@@ -174,18 +175,20 @@ public class CopyrightFix {
 
             // Note: we no longer use year ranges since it is optional, see https://www.eclipse.org/projects/handbook/#ip-copyright-headers
             boolean useYearRange = false;
+            // configure whether we use year of creation or year of last modification
+            boolean useYearOfCreation = true;
 
             int yearCreation = getCommitYear(file, true);
             int yearLastModified = getCommitYear(file, false);
 
-            String newLine = getNewLine(line, yearCreation, yearLastModified, useYearRange);
+            String newLine = getNewLine(line, yearCreation, yearLastModified, useYearRange, useYearOfCreation);
             if (!line.equals(newLine)) {
                 System.out.println(file);
                 if (useYearRange) {
                     // Note: need to re-run newLine call since after commit the yearLastModified changes to current year
                     yearLastModified = LocalDate.now().getYear();
                 }
-                newLine = getNewLine(line, yearCreation, yearLastModified, useYearRange);
+                newLine = getNewLine(line, yearCreation, yearLastModified, useYearRange, useYearOfCreation);
                 System.out.println("\t change " + line + " --> " + newLine);
                 updateCopyrightLine(path, lineNumber, newLine);
             }
