@@ -82,6 +82,8 @@ describe("Modbus connection", () => {
             connection.enqueue(op);
 
             await op.execute().should.eventually.be.rejected;
+            connection.queue.length.should.equal(0);
+
             connection.close();
         }).timeout(5000);
 
@@ -105,6 +107,7 @@ describe("Modbus connection", () => {
             connection.enqueue(op);
 
             await op.execute().should.eventually.be.rejected;
+            connection.queue.length.should.equal(0);
 
             connection.close();
         }).timeout(5000);
