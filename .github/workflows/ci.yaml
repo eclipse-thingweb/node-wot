@@ -26,14 +26,28 @@ jobs:
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "npm"
+
+            # workaround for issue #1154
+            - name: Install setuptools on MacOs
+              if: matrix.os == 'macos-latest'
+              run: |
+                  sudo -H pip install setuptools
+
             - name: Install
               run: npm ci
 
             - name: Build
               run: npm run build
 
+            # workaround for issue #1138
+            - name: Add missing hostname to /etc/hosts
+              if: matrix.os == 'macos-latest'
+              run: |
+                  sudo echo "127.0.0.1" `hostname` | sudo tee -a /etc/hosts
+
             - name: Test with coverage report
               run: npm run coverage:only
+              timeout-minutes: 10
 
             - name: Upload to codecov.io
               uses: codecov/codecov-action@v2

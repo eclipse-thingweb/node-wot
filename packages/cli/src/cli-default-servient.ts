@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /********************************************************************************
- * Copyright (c) 2023 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -123,7 +123,7 @@ export default class DefaultServient extends Servient {
         }
 
         let coapServer: CoapServer | undefined;
-        if (this.config.servient.clientOnly == null) {
+        if (this.config.servient.clientOnly === false) {
             if (this.config.http != null) {
                 const httpServer = new HttpServer(this.config.http);
                 this.addServer(httpServer);

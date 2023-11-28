@@ -31,7 +31,7 @@
             ],
             "submodelElements": [
                 {
-                    "idShort": "InterfaceMODBUS+TCP",
+                    "idShort": "InterfaceMODBUS_TCP",
                     "value": [
                         {
                             "idShort": "title",
@@ -50,14 +50,38 @@
                                 },
                                 {
                                     "idShort": "security",
+                                    "typeValueListElement": "ReferenceElement",
                                     "value": [
                                         {
-                                            "valueType": "xs:string",
-                                            "value": "nosec_sc",
-                                            "modelType": "Property"
+                                            "value": {
+                                                "type": "ModelReference",
+                                                "keys": [
+                                                    {
+                                                        "type": "Submodel",
+                                                        "value": "uri:dev:inverter"
+                                                    },
+                                                    {
+                                                        "type": "SubmodelElementCollection",
+                                                        "value": "InterfaceMODBUS_TCP"
+                                                    },
+                                                    {
+                                                        "type": "SubmodelElementCollection",
+                                                        "value": "EndpointMetadata"
+                                                    },
+                                                    {
+                                                        "type": "SubmodelElementCollection",
+                                                        "value": "securityDefinitions"
+                                                    },
+                                                    {
+                                                        "type": "SubmodelElementCollection",
+                                                        "value": "nosec_sc"
+                                                    }
+                                                ]
+                                            },
+                                            "modelType": "ReferenceElement"
                                         }
                                     ],
-                                    "modelType": "SubmodelElementCollection"
+                                    "modelType": "SubmodelElementList"
                                 },
                                 {
                                     "idShort": "securityDefinitions",
@@ -104,12 +128,6 @@
                                                 {
                                                     "idShort": "forms",
                                                     "value": [
-                                                        {
-                                                            "idShort": "op",
-                                                            "valueType": "xs:string",
-                                                            "value": "readproperty",
-                                                            "modelType": "Property"
-                                                        },
                                                         {
                                                             "idShort": "href",
                                                             "valueType": "xs:string",
@@ -166,25 +184,19 @@
                                                     "idShort": "forms",
                                                     "value": [
                                                         {
-                                                            "idShort": "op",
-                                                            "valueType": "xs:string",
-                                                            "value": "readproperty",
-                                                            "modelType": "Property"
-                                                        },
-                                                        {
                                                             "idShort": "href",
                                                             "valueType": "xs:string",
                                                             "value": "/40361?quantity=1",
                                                             "modelType": "Property"
                                                         },
                                                         {
-                                                            "idShort": "modbus:function",
+                                                            "idShort": "modbus_function",
                                                             "valueType": "xs:string",
                                                             "value": "readHoldingRegisters",
                                                             "modelType": "Property"
                                                         },
                                                         {
-                                                            "idShort": "modbus:type",
+                                                            "idShort": "modbus_type",
                                                             "valueType": "xs:string",
                                                             "value": "uint16be",
                                                             "modelType": "Property"

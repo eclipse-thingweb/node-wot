@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2023 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -122,7 +122,9 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         this.actions = {};
         this.events = {};
 
-        const deepClonedModel = structuredClone(thingModel);
+        // Deep clone the Thing Model
+        // without functions or methods
+        const deepClonedModel = JSON.parse(JSON.stringify(thingModel));
         Object.assign(this, deepClonedModel);
 
         // unset "@type":"tm:ThingModel" ?

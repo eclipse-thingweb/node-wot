@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2023 Contributors to the Eclipse Foundation
+ * Copyright (c) 2022 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -22,6 +22,7 @@ import debug from "debug";
 import { ThingDescription } from "wot-typescript-definitions";
 import { FormElementBase, PropertyElement } from "wot-thing-model-types";
 import isAbsoluteUrl = require("is-absolute-url");
+import URLToolkit = require("url-toolkit");
 const namespace = "node-wot:td-tools:asset-interface-description-util";
 const logDebug = debug(`${namespace}:debug`);
 const logInfo = debug(`${namespace}:info`);
@@ -92,7 +93,7 @@ export class AssetInterfaceDescriptionUtil {
         const aas = {
             assetAdministrationShells: [
                 {
-                    idShort: aasName,
+                    idShort: this.sanitizeIdShort(aasName),
                     id: aasId,
                     assetInformation: {
                         assetKind: "Type",
@@ -140,11 +141,32 @@ export class AssetInterfaceDescriptionUtil {
         const submdelElements = [];
         for (const protocol of protocols) {
             // use protocol binding prefix like "http" for name
-            const submodelElementIdShort = protocol === undefined ? "Interface" : "Interface" + protocol.toUpperCase();
+            const submodelElementIdShort = this.sanitizeIdShort(
+                protocol === undefined ? "Interface" : "Interface" + protocol.toUpperCase()
+            );
+
+            const supplementalSemanticIds = [this.createSemanticId("https://www.w3.org/2019/wot/td")];
+            if (protocol !== undefined) {
+                const protocolLC = protocol.toLocaleLowerCase();
+                let supplementalSemanticIdProtocolValue;
+                if (protocolLC.includes("modbus")) {
+                    supplementalSemanticIdProtocolValue = "http://www.w3.org/2011/modbus";
+                } else if (protocolLC.includes("mqtt")) {
+                    supplementalSemanticIdProtocolValue = "http://www.w3.org/2011/mqtt";
+                } else if (protocolLC.includes("http")) {
+                    supplementalSemanticIdProtocolValue = "http://www.w3.org/2011/http";
+                }
+                if (supplementalSemanticIdProtocolValue !== undefined) {
+                    supplementalSemanticIds.push(this.createSemanticId(supplementalSemanticIdProtocolValue));
+                }
+            }
 
             const submdelElement = {
                 idShort: submodelElementIdShort,
-                // semanticId needed?
+                semanticId: this.createSemanticId(
+                    "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/Interface"
+                ),
+                supplementalSemanticIds,
                 // embeddedDataSpecifications needed?
                 value: [
                     {
@@ -152,11 +174,21 @@ export class AssetInterfaceDescriptionUtil {
                         valueType: "xs:string",
                         value: td.title,
                         modelType: "Property",
+                        semanticId: this.createSemanticId("https://www.w3.org/2019/wot/td#title"),
                     },
-                    // support and other?
-                    this.createEndpointMetadata(td), // EndpointMetadata like base, security and securityDefinitions
+                    // created, modified, support ?
+                    this.createEndpointMetadata(td, protocol, aidID, submodelElementIdShort), // EndpointMetadata like base, security and securityDefinitions
                     this.createInterfaceMetadata(td, protocol), // InterfaceMetadata like properties, actions and events
-                    // externalDescriptor ?
+                    // Note: "ExternalDescriptor" should contain file values --> not applicable to TD
+                    /* {
+                        idShort: "ExternalDescriptor",
+                        semanticId: this.createSemanticId(
+                            "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/ExternalDescriptor"
+                        ),
+                        // embeddedDataSpecifications ?
+                        value: [],
+                        modelType: "SubmodelElementCollection",
+                    }, */
                 ],
                 modelType: "SubmodelElementCollection",
             };
@@ -168,7 +200,7 @@ export class AssetInterfaceDescriptionUtil {
             idShort: "AssetInterfacesDescription",
             id: aidID,
             kind: "Instance",
-            // semanticId needed?
+            semanticId: this.createSemanticId("https://admin-shell.io/idta/AssetInterfacesDescription/1/0/Submodel"),
             description: [
                 // TODO does this need to be an array or can it simply be a value
                 {
@@ -192,6 +224,71 @@ export class AssetInterfaceDescriptionUtil {
      * PRIVATE IMPLEMENTATION METHODS ARE FOLLOWING
      *
      */
+
+    private createSemanticId(value: string): object {
+        return {
+            type: "ExternalReference",
+            keys: [
+                {
+                    type: "GlobalReference",
+                    value,
+                },
+            ],
+        };
+    }
+
+    private replaceCharAt(str: string, index: number, char: string) {
+        if (index > str.length - 1) return str;
+        return str.substring(0, index) + char + str.substring(index + 1);
+    }
+
+    private sanitizeIdShort(value: string): string {
+        // idShort of Referables shall only feature letters, digits, underscore ("_");
+        // starting mandatory with a letter, i.e. [a-zA-Z][a-zA-Z0-9]*.
+        //
+        // see https://github.com/eclipse-thingweb/node-wot/issues/1145
+        // and https://github.com/admin-shell-io/aas-specs/issues/295
+        if (value != null) {
+            for (let i = 0; i < value.length; i++) {
+                const char = value.charCodeAt(i);
+                if (i !== 0 && char === " ".charCodeAt(0)) {
+                    // underscore -> fine as is
+                } else if (char >= "0".charCodeAt(0) && char <= "9".charCodeAt(0)) {
+                    // digit -> fine as is
+                } else if (char >= "A".charCodeAt(0) && char <= "Z".charCodeAt(0)) {
+                    // small letter -> fine as is
+                } else if (char >= "a".charCodeAt(0) && char <= "z".charCodeAt(0)) {
+                    // capital letter -> fine as is
+                } else {
+                    // replace with underscore "_"
+                    value = this.replaceCharAt(value, i, "_");
+                }
+            }
+        }
+        return value;
+    }
+
+    private getSimpleValueTypeXsd(value: unknown): string {
+        // see https://www.w3.org/TR/xmlschema-2/#built-in-datatypes
+        if (typeof value === "boolean") {
+            return "xs:boolean";
+        } else if (typeof value === "number") {
+            const number = Number(value);
+            // TODO XSD can be even more fine-grained
+            if (Number.isInteger(number)) {
+                //  int is ·derived· from long by setting the value of ·maxInclusive· to be 2147483647 and ·minInclusive· to be -2147483648
+                if (number <= 2147483647 && number >= -2147483648) {
+                    return "xs:int";
+                } else {
+                    return "xs:integer";
+                }
+            } else {
+                return "xs:double";
+            }
+        } else {
+            return "xs:string";
+        }
+    }
 
     private getProtocolPrefixes(td: ThingDescription): string[] {
         const protocols: string[] = [];
@@ -258,17 +355,17 @@ export class AssetInterfaceDescriptionUtil {
         return ""; // TODO what is the right value if information cannot be found
     }
 
-    private getSecurityDefinitionsFromEndpointMetadata(endpointMetadata?: Record<string, unknown>): {
-        [k: string]: SecurityScheme;
-    } {
+    private updateRootMetadata(thing: Thing, endpointMetadata?: Record<string, unknown>) {
         const securityDefinitions: {
             [k: string]: SecurityScheme;
         } = {};
+        const security: string[] = [];
 
         if (endpointMetadata?.value instanceof Array) {
             for (const v of endpointMetadata.value) {
-                if (v.idShort === "securityDefinitions") {
-                    // const securitySchemes: Array<SecurityScheme> = [];
+                if (v.idShort === "base") {
+                    thing.base = v.value;
+                } else if (v.idShort === "securityDefinitions") {
                     if (v.value instanceof Array) {
                         for (const securityDefinitionsValues of v.value) {
                             if (securityDefinitionsValues.idShort != null) {
@@ -286,23 +383,19 @@ export class AssetInterfaceDescriptionUtil {
                             }
                         }
                     }
-                }
-            }
-        }
-        return securityDefinitions;
-    }
-
-    private getSecurityFromEndpointMetadata(
-        endpointMetadata?: Record<string, unknown>
-    ): string | [string, ...string[]] {
-        const security: string[] = [];
-        if (endpointMetadata?.value instanceof Array) {
-            for (const v of endpointMetadata.value) {
-                if (v.idShort === "security") {
+                } else if (v.idShort === "security") {
                     if (v.value instanceof Array) {
                         for (const securityValue of v.value) {
-                            if (securityValue.value != null) {
-                                security.push(securityValue.value);
+                            if (securityValue.value != null && securityValue.value.keys instanceof Array) {
+                                // e.g.,
+                                // {
+                                //    "type": "SubmodelElementCollection",
+                                //    "value": "nosec_sc"
+                                // }
+                                const key = securityValue.value.keys[securityValue.value.keys.length - 1]; // last path
+                                if (key.value != null) {
+                                    security.push(key.value);
+                                }
                             }
                         }
                     }
@@ -310,7 +403,8 @@ export class AssetInterfaceDescriptionUtil {
             }
         }
 
-        return security as string | [string, ...string[]];
+        thing.securityDefinitions = securityDefinitions;
+        thing.security = security as string | [string, ...string[]];
     }
 
     private createInteractionForm(vi: AASInteraction, addSecurity: boolean): TD.Form {
@@ -568,8 +662,8 @@ export class AssetInterfaceDescriptionUtil {
         const secNamesForEndpointMetadata = new Map<Record<string, unknown>, string[]>();
         for (const endpointMetadata of smInformation.endpointMetadataArray) {
             const secNames: Array<string> = [];
-            thing.securityDefinitions = this.getSecurityDefinitionsFromEndpointMetadata(endpointMetadata);
-            thing.security = this.getSecurityFromEndpointMetadata(endpointMetadata);
+            // update base, securityDefinitions, security, ...
+            this.updateRootMetadata(thing, endpointMetadata);
             // iterate over securitySchemes
             // eslint-disable-next-line unused-imports/no-unused-vars
             for (const [key, value] of Object.entries(thing.securityDefinitions)) {
@@ -740,18 +834,40 @@ export class AssetInterfaceDescriptionUtil {
         return JSON.stringify(thing);
     }
 
-    private createEndpointMetadata(td: ThingDescription): Record<string, unknown> {
+    private createEndpointMetadata(
+        td: ThingDescription,
+        protocol: string,
+        submodelIdShort: string,
+        submodelElementIdShort: string
+    ): Record<string, unknown> {
         const values: Array<unknown> = [];
 
-        // base ?
-        if (td.base != null) {
-            values.push({
-                idShort: "base",
-                valueType: "xs:anyURI",
-                value: td.base, // TODO
-                modelType: "Property",
-            });
+        // base (AID requires base)
+        let base = td.base ?? "NO_BASE";
+        if (td.base == null && td.properties) {
+            // do best effort if base is not specified by looking at property forms
+            for (const propertyKey in td.properties) {
+                const property: PropertyElement = td.properties[propertyKey];
+                // check whether form exists for a given protocol (prefix)
+                const formElementPicked = this.getFormForProtocol(property, protocol);
+                if (formElementPicked?.href !== undefined) {
+                    const urlParts = URLToolkit.parseURL(formElementPicked.href);
+                    if (urlParts != null) {
+                        // keep scheme and netLoc only
+                        urlParts.path = urlParts.params = urlParts.query = urlParts.fragment = "";
+                        base = URLToolkit.buildURLFromParts(urlParts);
+                        continue; // abort to loop over remaining properties
+                    }
+                }
+            }
         }
+        values.push({
+            idShort: "base",
+            semanticId: this.createSemanticId("https://www.w3.org/2019/wot/td#baseURI"),
+            valueType: "xs:anyURI",
+            value: base,
+            modelType: "Property",
+        });
 
         // TODO wrong place.. not allowed in TD spec?
         /*
@@ -768,50 +884,281 @@ export class AssetInterfaceDescriptionUtil {
         if (td.security != null) {
             for (const secKey of td.security) {
                 securityValues.push({
-                    valueType: "xs:string",
-                    value: secKey,
-                    modelType: "Property",
+                    value: {
+                        type: "ModelReference",
+                        keys: [
+                            {
+                                type: "Submodel",
+                                value: submodelIdShort,
+                            },
+                            {
+                                type: "SubmodelElementCollection",
+                                value: submodelElementIdShort,
+                            },
+                            {
+                                type: "SubmodelElementCollection",
+                                value: "EndpointMetadata",
+                            },
+                            {
+                                type: "SubmodelElementCollection",
+                                value: "securityDefinitions",
+                            },
+                            {
+                                type: "SubmodelElementCollection",
+                                value: secKey,
+                            },
+                        ],
+                    },
+                    modelType: "ReferenceElement",
                 });
             }
         }
         values.push({
             idShort: "security",
+            semanticId: this.createSemanticId("https://www.w3.org/2019/wot/td#hasSecurityConfiguration"),
+            typeValueListElement: "ReferenceElement",
             value: securityValues,
-            modelType: "SubmodelElementCollection",
+            modelType: "SubmodelElementList",
         });
 
         // securityDefinitions
         const securityDefinitionsValues: Array<unknown> = [];
         for (const secKey in td.securityDefinitions) {
             const secValue: SecurityScheme = td.securityDefinitions[secKey];
+            const values = [];
+            // scheme always
+            values.push({
+                idShort: "scheme",
+                semanticId: this.createSemanticId("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+                valueType: "xs:string",
+                value: secValue.scheme,
+                modelType: "Property",
+            });
+            // other security information
+            if (secValue.proxy != null) {
+                values.push({
+                    idShort: "proxy",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#proxy"),
+                    valueType: "xs:string",
+                    value: secValue.proxy,
+                    modelType: "Property",
+                });
+            }
+            if (secValue.name != null) {
+                values.push({
+                    idShort: "name",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#name"),
+                    valueType: "xs:string",
+                    value: secValue.name,
+                    modelType: "Property",
+                });
+            }
+            if (secValue.in != null) {
+                values.push({
+                    idShort: "in",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#in"),
+                    valueType: "xs:string",
+                    value: secValue.in,
+                    modelType: "Property",
+                });
+            }
+            if (secValue.qop != null) {
+                values.push({
+                    idShort: "qop",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#qop"),
+                    valueType: "xs:string",
+                    value: secValue.qop,
+                    modelType: "Property",
+                });
+            }
+            if (secValue.authorization != null) {
+                values.push({
+                    idShort: "authorization",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#authorization"),
+                    valueType: "xs:string",
+                    value: secValue.authorization,
+                    modelType: "Property",
+                });
+            }
+            if (secValue.alg != null) {
+                values.push({
+                    idShort: "alg",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#alg"),
+                    valueType: "xs:string",
+                    value: secValue.alg,
+                    modelType: "Property",
+                });
+            }
+            if (secValue.format != null) {
+                values.push({
+                    idShort: "format",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#format"),
+                    valueType: "xs:string",
+                    value: secValue.format,
+                    modelType: "Property",
+                });
+            }
+            if (secValue.identity != null) {
+                values.push({
+                    idShort: "identity",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#identity"),
+                    valueType: "xs:string",
+                    value: secValue.identity,
+                    modelType: "Property",
+                });
+            }
+            if (secValue.token != null) {
+                values.push({
+                    idShort: "token",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#token"),
+                    valueType: "xs:string",
+                    value: secValue.token,
+                    modelType: "Property",
+                });
+            }
+            if (secValue.refresh != null) {
+                values.push({
+                    idShort: "refresh",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#refresh"),
+                    valueType: "xs:string",
+                    value: secValue.refresh,
+                    modelType: "Property",
+                });
+            }
+            if (secValue.scopes != null) {
+                values.push({
+                    idShort: "scopes",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#scopes"),
+                    valueType: "xs:string",
+                    value: secValue.scopes,
+                    modelType: "Property",
+                });
+            }
+            if (secValue.flow != null) {
+                values.push({
+                    idShort: "flow",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#flow"),
+                    valueType: "xs:string",
+                    value: secValue.flow,
+                    modelType: "Property",
+                });
+            }
+
             securityDefinitionsValues.push({
                 idShort: secKey,
-                value: [
-                    {
-                        idShort: "scheme",
-                        valueType: "xs:string",
-                        value: secValue.scheme,
-                        modelType: "Property",
-                    },
-                ],
+                value: values,
                 modelType: "SubmodelElementCollection",
             });
         }
         values.push({
             idShort: "securityDefinitions",
+            semanticId: this.createSemanticId("https://www.w3.org/2019/wot/td#definesSecurityScheme"),
             value: securityDefinitionsValues,
             modelType: "SubmodelElementCollection",
         });
 
         const endpointMetadata: Record<string, unknown> = {
             idShort: "EndpointMetadata",
-            // semanticId ?
+            semanticId: this.createSemanticId(
+                "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/EndpointMetadata"
+            ),
             // embeddedDataSpecifications ?
             value: values,
             modelType: "SubmodelElementCollection",
         };
 
         return endpointMetadata;
+    }
+
+    private getFormForProtocol(property: PropertyElement, protocol: string): FormElementBase | undefined {
+        let formElementPicked: FormElementBase | undefined;
+        // check whether protocol prefix exists for a form
+        if (property.forms) {
+            for (const formElementProperty of property.forms) {
+                if (formElementProperty.href != null && formElementProperty.href.startsWith(protocol)) {
+                    formElementPicked = formElementProperty;
+                    // found matching form --> abort loop
+                    break;
+                }
+            }
+        }
+        return formElementPicked;
+    }
+
+    private hasOp(form: FormElementBase, op: string): boolean {
+        if (form.op != null) {
+            if (typeof form.op === "string" && form.op === op) {
+                return true;
+            } else if (Array.isArray(form.op) && form.op.includes(op)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private addRequiredAidTermsForForm(form: FormElementBase, protocol: string): void {
+        if (form == null || protocol == null) {
+            return;
+        }
+        if (protocol.startsWith("http")) {
+            // HTTP: href, htv_methodName
+            // default for htv:methodName depending on op, see https://w3c.github.io/wot-binding-templates/bindings/protocols/http/index.html#http-default-vocabulary-terms
+            const htvKey = "htv:methodName";
+            if (form[htvKey] == null) {
+                if (
+                    this.hasOp(form, "readproperty") ||
+                    this.hasOp(form, "readallproperties") ||
+                    this.hasOp(form, "readmultipleproperties")
+                ) {
+                    form[htvKey] = "GET";
+                } else if (
+                    this.hasOp(form, "writeproperty") ||
+                    this.hasOp(form, "writeallproperties") ||
+                    this.hasOp(form, "writemultipleproperties")
+                ) {
+                    form[htvKey] = "PUT";
+                } else if (this.hasOp(form, "invokeaction")) {
+                    form[htvKey] = "POST";
+                }
+            }
+        } else if (protocol.startsWith("modbus")) {
+            // Modbus: href, modbus_function
+            // default for modbus:function depending on op, see https://w3c.github.io/wot-binding-templates/bindings/protocols/modbus/index.html#default-mappings
+            const mbKey = "modbus:function";
+            if (form[mbKey] == null) {
+                if (this.hasOp(form, "writeproperty") || this.hasOp(form, "invokeaction")) {
+                    form[mbKey] = "writeSingleCoil";
+                } else if (this.hasOp(form, "readallproperties") || this.hasOp(form, "readmultipleproperties")) {
+                    form[mbKey] = "readHoldingRegisters";
+                } else if (this.hasOp(form, "writeallproperties") || this.hasOp(form, "writemultipleproperties")) {
+                    form[mbKey] = "writeMultipleHoldingRegisters";
+                }
+            }
+        } else if (protocol.startsWith("mqtt")) {
+            // MQTT: href, mqv_controlPacket
+            // default for mqv:controlPacket depending on op, see https://w3c.github.io/wot-binding-templates/bindings/protocols/mqtt/index.html#default-mappings
+            const mqvKey = "mqv:controlPacket";
+            if (form[mqvKey] == null) {
+                if (
+                    this.hasOp(form, "readproperty") ||
+                    this.hasOp(form, "observeproperty") ||
+                    this.hasOp(form, "readallproperties") ||
+                    this.hasOp(form, "readmultipleproperties") ||
+                    this.hasOp(form, "subscribeevent")
+                ) {
+                    form[mqvKey] = "subscribe";
+                } else if (
+                    this.hasOp(form, "writeproperty") ||
+                    this.hasOp(form, "writeallproperties") ||
+                    this.hasOp(form, "writemultipleproperties") ||
+                    this.hasOp(form, "invokeaction")
+                ) {
+                    form[mqvKey] = "publish";
+                } else if (this.hasOp(form, "unobserveproperty") || this.hasOp(form, "unsubscribeevent")) {
+                    form[mqvKey] = "unsubscribe";
+                }
+            }
+        }
     }
 
     private createInterfaceMetadata(td: ThingDescription, protocol: string): Record<string, unknown> {
@@ -823,19 +1170,10 @@ export class AssetInterfaceDescriptionUtil {
             // Properties
             if (td.properties) {
                 for (const propertyKey in td.properties) {
-                    const propertyValue: PropertyElement = td.properties[propertyKey];
+                    const property: PropertyElement = td.properties[propertyKey];
 
-                    // check whether protocol prefix exists for a form
-                    let formElementPicked: FormElementBase | undefined;
-                    if (propertyValue.forms) {
-                        for (const formElementProperty of propertyValue.forms) {
-                            if (formElementProperty.href != null && formElementProperty.href.startsWith(protocol)) {
-                                formElementPicked = formElementProperty;
-                                // found matching form --> abort loop
-                                break;
-                            }
-                        }
-                    }
+                    // check whether form exists for a given protocol (prefix)
+                    const formElementPicked = this.getFormForProtocol(property, protocol);
                     if (formElementPicked === undefined) {
                         // do not add this property, since there will be no href of interest
                         continue;
@@ -843,76 +1181,155 @@ export class AssetInterfaceDescriptionUtil {
 
                     const propertyValues: Array<unknown> = [];
                     // type
-                    if (propertyValue.type != null) {
+                    if (property.type != null) {
                         propertyValues.push({
                             idShort: "type",
+                            semanticId: this.createSemanticId("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
                             valueType: "xs:string",
-                            value: propertyValue.type,
+                            value: property.type,
                             modelType: "Property",
                         });
                         // special AID treatment
-                        if (propertyValue.minimum != null || propertyValue.maximum != null) {
+                        if (property.minimum != null || property.maximum != null) {
                             const minMax: { [k: string]: unknown } = {
                                 idShort: "min_max",
-                                valueType:
-                                    "integer".localeCompare(propertyValue.type) === 0 ? "xs:integer" : "xs:double",
+                                semanticId: this.createSemanticId(
+                                    "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/minMaxRange"
+                                ),
+                                supplementalSemanticIds: [],
+                                valueType: "integer".localeCompare(property.type) === 0 ? "xs:integer" : "xs:double",
                                 modelType: "Range",
                             };
-                            if (propertyValue.minimum != null) {
-                                minMax.min = propertyValue.minimum.toString();
+                            if (property.minimum != null) {
+                                minMax.min = property.minimum.toString();
+                                (minMax.supplementalSemanticIds as Array<unknown>).push(
+                                    this.createSemanticId("https://www.w3.org/2019/wot/json-schema#minimum")
+                                );
                             }
-                            if (propertyValue.maximum != null) {
-                                minMax.max = propertyValue.maximum.toString();
+                            if (property.maximum != null) {
+                                minMax.max = property.maximum.toString();
+                                (minMax.supplementalSemanticIds as Array<unknown>).push(
+                                    this.createSemanticId("https://www.w3.org/2019/wot/json-schema#maximum")
+                                );
                             }
                             propertyValues.push(minMax);
                         }
-                        if (propertyValue.minItems != null || propertyValue.maxItems != null) {
+                        if (property.minItems != null || property.maxItems != null) {
                             const itemsRange: { [k: string]: unknown } = {
                                 idShort: "itemsRange",
+                                semanticId: this.createSemanticId(
+                                    "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/itemsRange"
+                                ),
+                                supplementalSemanticIds: [],
                                 valueType: "xs:integer",
                                 modelType: "Range",
                             };
-                            if (propertyValue.minItems != null) {
-                                itemsRange.min = propertyValue.minItems.toString();
+                            if (property.minItems != null) {
+                                itemsRange.min = property.minItems.toString();
+                                (itemsRange.supplementalSemanticIds as Array<unknown>).push(
+                                    this.createSemanticId("https://www.w3.org/2019/wot/json-schema#minItems")
+                                );
                             }
-                            if (propertyValue.maxItems != null) {
-                                itemsRange.max = propertyValue.maxItems.toString();
+                            if (property.maxItems != null) {
+                                itemsRange.max = property.maxItems.toString();
+                                (itemsRange.supplementalSemanticIds as Array<unknown>).push(
+                                    this.createSemanticId("https://www.w3.org/2019/wot/json-schema#maxItems")
+                                );
                             }
                             propertyValues.push(itemsRange);
                         }
-                        if (propertyValue.minLength != null || propertyValue.maxLength != null) {
+                        if (property.minLength != null || property.maxLength != null) {
                             const lengthRange: { [k: string]: unknown } = {
                                 idShort: "lengthRange",
+                                semanticId: this.createSemanticId(
+                                    "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/lengthRange"
+                                ),
+                                supplementalSemanticIds: [],
                                 valueType: "xs:integer",
                                 modelType: "Range",
                             };
-                            if (propertyValue.minLength != null) {
-                                lengthRange.min = propertyValue.minLength.toString();
+                            if (property.minLength != null) {
+                                lengthRange.min = property.minLength.toString();
+                                (lengthRange.supplementalSemanticIds as Array<unknown>).push(
+                                    this.createSemanticId("https://www.w3.org/2019/wot/json-schema#minLength")
+                                );
                             }
-                            if (propertyValue.maxLength != null) {
-                                lengthRange.max = propertyValue.maxLength.toString();
+                            if (property.maxLength != null) {
+                                lengthRange.max = property.maxLength.toString();
+                                (lengthRange.supplementalSemanticIds as Array<unknown>).push(
+                                    this.createSemanticId("https://www.w3.org/2019/wot/json-schema#maxLength")
+                                );
                             }
                             propertyValues.push(lengthRange);
                         }
                     }
                     // title
-                    if (propertyValue.title != null) {
+                    if (property.title != null) {
                         propertyValues.push({
                             idShort: "title",
+                            semanticId: this.createSemanticId("https://www.w3.org/2019/wot/td#title"),
                             valueType: "xs:string",
-                            value: propertyValue.title,
+                            value: property.title,
                             modelType: "Property",
                         });
+                    }
+                    // description
+                    if (property.description != null) {
+                        // AID deals with description in level above
                     }
                     // observable (if it deviates from the default == false only)
-                    if (propertyValue.observable != null && propertyValue.observable === true) {
+                    if (property.observable != null && property.observable === true) {
                         propertyValues.push({
                             idShort: "observable",
+                            semanticId: this.createSemanticId("https://www.w3.org/2019/wot/td#isObservable"),
                             valueType: "xs:boolean",
-                            value: `${propertyValue.observable}`, // in AID represented as string
+                            value: `${property.observable}`, // in AID represented as string
                             modelType: "Property",
                         });
                     }
+                    // contentMediaType
+                    if (property.contentMediaType != null) {
+                        propertyValues.push({
+                            idShort: "contentMediaType",
+                            semanticId: this.createSemanticId(
+                                "https://www.w3.org/2019/wot/json-schema#contentMediaType"
+                            ),
+                            valueType: "xs:string",
+                            value: property.contentMediaType,
+                            modelType: "Property",
+                        });
+                    }
+                    // TODO enum
+                    // const
+                    if (property.const != null) {
+                        propertyValues.push({
+                            idShort: "const",
+                            valueType: "xs:string",
+                            value: property.const,
+                            modelType: "Property",
+                        });
+                    }
+                    // default
+                    if (property.default != null) {
+                        propertyValues.push({
+                            idShort: "default",
+                            semanticId: this.createSemanticId("https://www.w3.org/2019/wot/json-schema#default"),
+                            valueType: this.getSimpleValueTypeXsd(property.default),
+                            value: property.default,
+                            modelType: "Property",
+                        });
+                    }
+                    // unit
+                    if (property.unit != null) {
+                        propertyValues.push({
+                            idShort: "unit",
+                            valueType: "xs:string",
+                            value: property.unit,
+                            modelType: "Property",
+                        });
+                    }
+                    // TODO items
+
                     // readOnly and writeOnly marked as EXTERNAL in AID spec
                     // range and others? Simply add them as is?
 
@@ -923,55 +1340,126 @@ export class AssetInterfaceDescriptionUtil {
                         // TODO AID for now supports just *one* href/form
                         // --> pick the first one that matches protocol (other means in future?)
 
+                        // AID has required terms that need to be present always for a given interface
+                        this.addRequiredAidTermsForForm(formElementPicked, protocol);
+
                         // walk over string values like: "href", "contentType", "htv:methodName", ...
                         for (let formTerm in formElementPicked) {
-                            const formValue = formElementPicked[formTerm];
+                            let formValue = formElementPicked[formTerm];
+
+                            // Note: node-wot uses absolute URIs *almost* everywhere but we want to use "base" in AID
+                            // --> try to create relative href's as much as possible
+                            if (
+                                formTerm === "href" &&
+                                td.base != null &&
+                                td.base.length > 0 &&
+                                typeof formValue === "string" &&
+                                formValue.startsWith(td.base)
+                            ) {
+                                formValue = formValue.substring(td.base.length);
+                            }
+
+                            let semanticId;
+                            if (formTerm === "href") {
+                                semanticId = "https://www.w3.org/2019/wot/hypermedia#hasTarget";
+                            } else if (formTerm === "contentType") {
+                                semanticId = "https://www.w3.org/2019/wot/hypermedia#forContentType";
+                            } else if (formTerm === "htv:methodName") {
+                                semanticId = "https://www.w3.org/2011/http#methodName";
+                            } else if (formTerm === "htv:headers") {
+                                semanticId = "https://www.w3.org/2011/http#headers";
+                            } else if (formTerm === "htv:fieldName") {
+                                semanticId = "https://www.w3.org/2011/http#fieldName";
+                            } else if (formTerm === "htv:fieldValue") {
+                                semanticId = "https://www.w3.org/2011/http#fieldValue";
+                            } else if (formTerm === "modbus:function") {
+                                semanticId = "https://www.w3.org/2019/wot/modbus#Function";
+                            } else if (formTerm === "modbus:entity") {
+                                semanticId = "https://www.w3.org/2019/wot/modbus#Entity";
+                            } else if (formTerm === "modbus:zeroBasedAddressing") {
+                                semanticId = "https://www.w3.org/2019/wot/modbus#hasZeroBasedAddressingFlag";
+                            } else if (formTerm === "modbus:timeout") {
+                                semanticId = "https://www.w3.org/2019/wot/modbus#hasTimeout";
+                            } else if (formTerm === "modbus:pollingTime") {
+                                semanticId = "https://www.w3.org/2019/wot/modbus#hasPollingTime";
+                            } else if (formTerm === "modbus:type") {
+                                semanticId = "https://www.w3.org/2019/wot/modbus#type";
+                            } else if (formTerm === "mqv:retain") {
+                                semanticId = "https://www.w3.org/2019/wot/mqtt#hasRetainFlag";
+                            } else if (formTerm === "mqv:controlPacket") {
+                                semanticId = "https://www.w3.org/2019/wot/mqtt#ControlPacket";
+                            } else if (formTerm === "mqv:qos") {
+                                semanticId = "https://www.w3.org/2019/wot/mqtt#hasQoSFlag";
+                            }
 
                             // Note: AID does not allow idShort to contain values with colon (i.e., ":") --> "_" used instead
                             // TODO are there more characters we need to deal with?
                             formTerm = formTerm.replace(":", "_");
 
-                            if (typeof formValue === "string") {
-                                propertyForm.push({
-                                    idShort: formTerm,
-                                    valueType: "xs:string",
-                                    value: formValue,
-                                    modelType: "Property",
-                                });
+                            if (
+                                typeof formValue === "string" ||
+                                typeof formValue === "number" ||
+                                typeof formValue === "boolean"
+                            ) {
+                                // AID schema restricts terms in form to a finite set of *allowed* terms
+                                // e.g., "op" is not allowed
+                                // at the momement all of them have "semanticId" -> use this as check
+                                if (semanticId !== undefined) {
+                                    propertyForm.push({
+                                        idShort: formTerm,
+                                        semanticId: this.createSemanticId(semanticId),
+                                        valueType: this.getSimpleValueTypeXsd(formValue),
+                                        value: formValue.toString(),
+                                        modelType: "Property",
+                                    });
+                                } else {
+                                    // unknown AID term
+                                    /* propertyForm.push({
+                                            idShort: formTerm,
+                                            valueType: this.getSimpleValueTypeXsd(formValue),
+                                            value: formValue.toString(),
+                                            modelType: "Property",
+                                        }); */
+                                }
                             }
-                        }
 
-                        // TODO terms that are not string-based, like op arrays?
+                            // TODO terms that are not simple types like op arrays?
+                        }
 
                         propertyValues.push({
                             idShort: "forms",
+                            semanticId: this.createSemanticId("https://www.w3.org/2019/wot/td#hasForm"),
                             value: propertyForm,
                             modelType: "SubmodelElementCollection",
                         });
                     }
 
                     let description;
-                    if (propertyValue.descriptions) {
+                    if (property.descriptions) {
                         description = [];
-                        for (const langKey in propertyValue.descriptions) {
-                            const langValue = propertyValue.descriptions[langKey];
+                        for (const langKey in property.descriptions) {
+                            const langValue = property.descriptions[langKey];
                             description.push({
                                 language: langKey,
                                 text: langValue,
                             });
                         }
-                    } else if (propertyValue.description != null) {
+                    } else if (property.description != null) {
                         // fallback
                         description = [];
                         description.push({
                             language: "en", // TODO where to get language identifier
-                            text: propertyValue.description,
+                            text: property.description,
                         });
                     }
 
                     properties.push({
                         idShort: propertyKey,
                         description,
+                        semanticId: this.createSemanticId(
+                            "https://admin-shell.io/idta/AssetInterfaceDescription/1/0/PropertyDefinition"
+                        ),
+                        supplementalSemanticIds: [this.createSemanticId("https://www.w3.org/2019/wot/td#name")],
                         value: propertyValues,
                         modelType: "SubmodelElementCollection",
                     });
@@ -992,6 +1480,7 @@ export class AssetInterfaceDescriptionUtil {
         // Properties
         values.push({
             idShort: "properties",
+            semanticId: this.createSemanticId("https://www.w3.org/2019/wot/td#PropertyAffordance"),
             value: properties,
             modelType: "SubmodelElementCollection",
         });
@@ -1010,7 +1499,10 @@ export class AssetInterfaceDescriptionUtil {
 
         const interfaceMetadata: Record<string, unknown> = {
             idShort: "InterfaceMetadata",
-            // semanticId ?
+            semanticId: this.createSemanticId(
+                "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/InterfaceMetadata"
+            ),
+            supplementalSemanticIds: [this.createSemanticId("https://www.w3.org/2019/wot/td#InteractionAffordance")],
             // embeddedDataSpecifications ?
             value: values,
             modelType: "SubmodelElementCollection",

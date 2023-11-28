@@ -192,7 +192,7 @@ WoTHelpers.fetch("http://localhost:8080/counter").then(async (td) => {
         const WoT = await servient.start();
         // Then from here on you can consume the thing
         let thing = await WoT.consume(td);
-        thing.observeProperty("count", async (output) => { console.log("count:", await data.value()); });
+        thing.observeProperty("count", async (data) => { console.log("count:", await data.value()); });
         for (let i = 0; i < 5; i++) {
             await thing.invokeAction("increment");
         }

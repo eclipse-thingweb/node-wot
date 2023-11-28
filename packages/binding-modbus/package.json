@@ -1,6 +1,6 @@
 {
     "name": "@node-wot/binding-modbus",
-    "version": "0.8.10",
+    "version": "0.8.11",
     "description": "Modbus TCP client protocol binding for node-wot",
     "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
     "contributors": [
@@ -17,11 +17,11 @@
     "main": "dist/modbus.js",
     "types": "dist/modbus.d.ts",
     "dependencies": {
-        "@node-wot/core": "0.8.10",
-        "@node-wot/td-tools": "0.8.10",
+        "@node-wot/core": "0.8.11",
+        "@node-wot/td-tools": "0.8.11",
         "modbus-serial": "8.0.3",
         "rxjs": "5.5.11",
-        "wot-typescript-definitions": "0.8.0-SNAPSHOT.27"
+        "wot-typescript-definitions": "0.8.0-SNAPSHOT.29"
     },
     "scripts": {
         "build": "tsc -b",

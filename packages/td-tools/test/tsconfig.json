@@ -3,5 +3,5 @@
     "compilerOptions": {
         "rootDir": ".."
     },
-    "include": ["*.ts", "**/*.ts", "../src/**/*.ts"]
+    "include": ["*.ts", "**/*.ts", "../src/**/*.ts", "**/AIDSchema.json"]
 }
