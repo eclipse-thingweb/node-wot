@@ -41,7 +41,7 @@ td = {
             observable: false,
             forms: [
                 {
-                    href: "file://test.txt",
+                    href: "file:///test.txt",
                     contentType: "text/plain",
                     op: ["readproperty"],
                 },
@@ -92,7 +92,7 @@ servient.addClientFactory(new FileClientFactory(null));
 
 let wotHelper = new Helpers(servient);
 wotHelper
-    .fetch("file://TD.jsonld")
+    .fetch("file:///TD.jsonld")
     .then(async (td) => {
         // using await for serial execution (note 'async' in then() of fetch())
         try {

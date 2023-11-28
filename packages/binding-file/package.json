@@ -21,7 +21,7 @@
     },
     "scripts": {
         "build": "tsc -b",
-        "test": "",
+        "test": "mocha --require ts-node/register --extension ts",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
         "format": "prettier --write \"src/**/*.ts\" \"**/*.json\""
@@ -29,5 +29,8 @@
     "bugs": {
         "url": "https://github.com/eclipse-thingweb/node-wot/issues"
     },
-    "homepage": "https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-file#readme"
+    "homepage": "https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-file#readme",
+    "directories": {
+        "test": "test"
+    }
 }
