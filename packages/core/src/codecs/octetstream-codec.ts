@@ -59,8 +59,9 @@ export default class OctetstreamCodec implements ContentCodec {
         debug("OctetstreamCodec parsing", bytes);
         debug("Parameters", parameters);
 
-        const bigEndian = schema?.byteSeq?.includes(Endianness.LITTLE_ENDIAN) !== true; // default to big endian
-        let signed = schema?.signed !== "false"; // default to signed
+        console.debug(parameters)
+        const bigEndian = !(parameters.byteSeq?.includes(Endianness.LITTLE_ENDIAN) === true); // default to big endian
+        let signed = parameters.signed !== "false"; // default to signed
         const offset = schema?.["ex:bitOffset"] !== undefined ? parseInt(schema["ex:bitOffset"]) : 0;
         let dataLength: number =
             schema?.["ex:bitLength"] !== undefined ? parseInt(schema["ex:bitLength"]) : bytes.length * 8;
@@ -78,7 +79,7 @@ export default class OctetstreamCodec implements ContentCodec {
             if (typeSem) {
                 if (typeSem[1] === "u") {
                     // compare with schema information
-                    if (schema?.signed === "true") {
+                    if (parameters?.signed === "true") {
                         throw new Error("Type is unsigned but 'signed' is true");
                     }
                     // no schema, but type is unsigned
@@ -100,7 +101,7 @@ export default class OctetstreamCodec implements ContentCodec {
         }
 
         // Handle byte swapping
-        if (schema?.byteSeq?.includes("BYTE_SWAP") === true && bytes.length > 1) {
+        if (parameters?.byteSeq?.includes("BYTE_SWAP") === true && bytes.length > 1) {
             bytes.swap16();
         }
 
@@ -129,7 +130,7 @@ export default class OctetstreamCodec implements ContentCodec {
                 if (schema === undefined || schema.properties === undefined) {
                     throw new Error("Missing schema for object");
                 }
-                return this.objectToValue(bytes, schema);
+                return this.objectToValue(bytes, schema, parameters);
             case "null":
                 return null;
             case "array":
@@ -198,15 +199,16 @@ export default class OctetstreamCodec implements ContentCodec {
         }
     }
 
-    private objectToValue(bytes: Buffer, schema?: DataSchema): DataSchemaValue {
+    private objectToValue(bytes: Buffer, schema?: DataSchema, parameters: { [key: string]: string | undefined } = {} ): DataSchemaValue {
         if (schema?.type !== "object") {
             throw new Error("Schema must be of type 'object'");
         }
 
         const result: { [key: string]: unknown } = {};
-        for (const propertyName in schema.properties) {
+        const sortedProperties = Object.keys(schema.properties).sort();
+        for (const propertyName of sortedProperties) {
             const propertySchema = schema.properties[propertyName];
-            result[propertyName] = this.bytesToValue(bytes, propertySchema);
+            result[propertyName] = this.bytesToValue(bytes, propertySchema, parameters);
         }
         return result;
     }
@@ -218,8 +220,8 @@ export default class OctetstreamCodec implements ContentCodec {
             warn("Missing 'length' parameter necessary for write. I'll do my best");
         }
 
-        const bigEndian = !(schema?.byteSeq?.includes(Endianness.LITTLE_ENDIAN) === true); // default to big endian
-        let signed = schema?.signed !== "false";
+        const bigEndian = !(parameters.byteSeq?.includes(Endianness.LITTLE_ENDIAN) === true); // default to big endian
+        let signed = parameters.signed !== "false"; // default to signed
         const offset = schema?.["ex:bitOffset"] !== undefined ? parseInt(schema["ex:bitOffset"]) : 0;
         let dataLength = schema?.["ex:bitLength"] !== undefined ? parseInt(schema["ex:bitLength"]) : undefined;
         let dataType: string = schema?.type ?? undefined;
@@ -240,7 +242,7 @@ export default class OctetstreamCodec implements ContentCodec {
             if (typeSem) {
                 if (typeSem[1] === "u") {
                     // compare with schema information
-                    if (schema?.signed === "true") {
+                    if (parameters?.signed === "true") {
                         throw new Error("Type is unsigned but 'signed' is true");
                     }
                     // no schema, but type is unsigned
@@ -290,7 +292,7 @@ export default class OctetstreamCodec implements ContentCodec {
                 }
                 return value === null
                     ? Buffer.alloc(0)
-                    : this.valueToObject(value as { [key: string]: any }, schema, bigEndian); // eslint-disable-line @typescript-eslint/no-explicit-any
+                    : this.valueToObject(value as { [key: string]: any }, schema, parameters); // eslint-disable-line @typescript-eslint/no-explicit-any
             case "array":
             case "undefined":
                 throw new Error("Unable to handle dataType " + dataType);
@@ -468,7 +470,7 @@ export default class OctetstreamCodec implements ContentCodec {
     private valueToObject(
         value: { [key: string]: any }, // eslint-disable-line @typescript-eslint/no-explicit-any
         schema: DataSchema,
-        bigEndian: boolean,
+        parameters: { [key: string]: string | undefined } = {},
         result?: Buffer | undefined
     ): Buffer {
         if (typeof value !== "object" || value === null) {
@@ -490,9 +492,9 @@ export default class OctetstreamCodec implements ContentCodec {
             const propertyLength = parseInt(propertySchema["ex:bitLength"]);
             let buf: Buffer;
             if (propertySchema.type === "object") {
-                buf = this.valueToObject(propertyValue, propertySchema, bigEndian, result);
+                buf = this.valueToObject(propertyValue, propertySchema, parameters, result);
             } else {
-                buf = this.valueToBytes(propertyValue, { ...propertySchema, "ex:bitOffset": 0 });
+                buf = this.valueToBytes(propertyValue, { ...propertySchema, "ex:bitOffset": 0 }, parameters);
             }
             this.copyBits(buf, buf.length * 8 - propertyLength, result, propertyOffset, propertyLength);
         }
