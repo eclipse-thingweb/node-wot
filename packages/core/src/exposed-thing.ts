@@ -412,7 +412,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                 return ContentManager.valueToContent(
                     result,
                     this.properties[propertyName],
-                    form?.contentType ?? "application/json"
+                    form.contentType
                 );
             } else {
                 throw new Error(`ExposedThing '${this.title}' has no readHandler for Property '${propertyName}'`);
