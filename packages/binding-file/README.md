@@ -90,11 +90,12 @@ Helpers = require("@node-wot/core").Helpers;
 const servient = new Servient();
 servient.addClientFactory(new FileClientFactory(null));
 
-servient.start()
+servient
+    .start()
     .then(async () => {
         // using await for serial execution (note 'async' in then() of start())
         try {
-            const td = await WoT.requestThingDescription("file:///TD.jsonld")
+            const td = await WoT.requestThingDescription("file:///TD.jsonld");
             const thing = await WoT.consume(td);
 
             // read property "fileContent" and print the content
