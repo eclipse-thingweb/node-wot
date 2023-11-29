@@ -44,7 +44,6 @@ export default class FileClient implements ProtocolClient {
 
     public async writeResource(form: Form, content: Content): Promise<void> {
         const filePath = fileURLToPath(form.href);
-        content.toBuffer();
 
         const writeStream = fs.createWriteStream(filePath);
         const buffer = await content.toBuffer();
