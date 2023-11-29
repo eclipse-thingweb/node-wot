@@ -22,11 +22,11 @@ The example tries to load an internal TestThing TD and reads the `fileContent` p
 
 ```js
 // example.js1
-Servient = require("@node-wot/core").Servient;
-FileClientFactory = require("@node-wot/binding-file").FileClientFactory;
+const Servient = require("@node-wot/core").Servient;
+const FileClientFactory = require("@node-wot/binding-file").FileClientFactory;
 
 // create Servient and add File binding
-let servient = new Servient();
+const servient = new Servient();
 servient.addClientFactory(new FileClientFactory(null));
 
 td = {
@@ -81,10 +81,8 @@ The example tries to load a locally stored TestThing TD and reads the `fileConte
 
 ```js
 // example2.js
-Servient = require("@node-wot/core").Servient;
-FileClientFactory = require("@node-wot/binding-file").FileClientFactory;
-
-Helpers = require("@node-wot/core").Helpers;
+const Servient = require("@node-wot/core").Servient;
+const FileClientFactory = require("@node-wot/binding-file").FileClientFactory;
 
 // create Servient and add File binding
 const servient = new Servient();
@@ -92,7 +90,7 @@ servient.addClientFactory(new FileClientFactory(null));
 
 servient
     .start()
-    .then(async () => {
+    .then(async (WoT) => {
         // using await for serial execution (note 'async' in then() of start())
         try {
             const td = await WoT.requestThingDescription("file:///TD.jsonld");

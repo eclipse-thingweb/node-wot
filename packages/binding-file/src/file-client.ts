@@ -29,22 +29,22 @@ export default class FileClient implements ProtocolClient {
         return "[FileClient]";
     }
 
-    private async readFromFile(filePath: string, contentType: string) {
+    private async readFromFile(uri: string, contentType: string) {
+        const filePath = fileURLToPath(uri);
         debug(`Reading file of Content-Type ${contentType} from path ${filePath}.`);
+
         const resource = fs.createReadStream(filePath);
         return new Content(contentType, resource);
     }
 
     public async readResource(form: Form): Promise<Content> {
-        const filePath = fileURLToPath(form.href);
-
         const formContentType = form.contentType;
         if (form.contentType == null) {
             debug(`Found no Content-Type for Form, defaulting to ${ContentSerdes.DEFAULT}`);
         }
         const contentType = formContentType ?? ContentSerdes.DEFAULT;
 
-        return this.readFromFile(filePath, contentType);
+        return this.readFromFile(form.href, contentType);
     }
 
     public async writeResource(form: Form, content: Content): Promise<void> {
