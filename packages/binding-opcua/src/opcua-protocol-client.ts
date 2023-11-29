@@ -619,7 +619,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
         for (let index = 0; index < outputArguments.length; index++) {
             const argument = outputArguments[index];
             const { name } = argument;
-            const element = _variantToJSON(outputVariants[index],  form.contentType);
+            const element = _variantToJSON(outputVariants[index], form.contentType);
             body[name ?? "null"] = element;
         }
 
