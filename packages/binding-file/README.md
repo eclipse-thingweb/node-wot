@@ -87,16 +87,14 @@ FileClientFactory = require("@node-wot/binding-file").FileClientFactory;
 Helpers = require("@node-wot/core").Helpers;
 
 // create Servient and add File binding
-let servient = new Servient();
+const servient = new Servient();
 servient.addClientFactory(new FileClientFactory(null));
 
-let wotHelper = new Helpers(servient);
-wotHelper
-    .fetch("file:///TD.jsonld")
-    .then(async (td) => {
-        // using await for serial execution (note 'async' in then() of fetch())
+servient.start()
+    .then(async () => {
+        // using await for serial execution (note 'async' in then() of start())
         try {
-            const WoT = await servient.start();
+            const td = await WoT.requestThingDescription("file:///TD.jsonld")
             const thing = await WoT.consume(td);
 
             // read property "fileContent" and print the content
