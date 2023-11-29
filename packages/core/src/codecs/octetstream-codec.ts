@@ -59,7 +59,6 @@ export default class OctetstreamCodec implements ContentCodec {
         debug("OctetstreamCodec parsing", bytes);
         debug("Parameters", parameters);
 
-        console.debug(parameters);
         const bigEndian = !(parameters.byteSeq?.includes(Endianness.LITTLE_ENDIAN) === true); // default to big endian
         let signed = parameters.signed !== "false"; // default to signed
         const offset = schema?.["ex:bitOffset"] !== undefined ? parseInt(schema["ex:bitOffset"]) : 0;
