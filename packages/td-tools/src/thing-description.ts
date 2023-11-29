@@ -56,7 +56,7 @@ export type ThingInteraction = TDT.PropertyElement | TDT.ActionElement | TDT.Eve
 export class Form implements TDT.FormElementBase {
     op?: string | string[];
     href: TDT.AnyUri;
-    contentType?: string;
+    contentType: string;
     contentCoding?: string;
     subprotocol?: TDT.Subprotocol;
     security?: TDT.Security;
@@ -67,7 +67,7 @@ export class Form implements TDT.FormElementBase {
 
     constructor(href: string, contentType?: string) {
         this.href = href;
-        if (contentType != null) this.contentType = contentType;
+        this.contentType = contentType ?? "application/json";
     }
 }
 export interface ExpectedResponse {
