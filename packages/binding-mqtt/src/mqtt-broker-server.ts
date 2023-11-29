@@ -263,7 +263,7 @@ export default class MqttBrokerServer implements ProtocolServer {
          * https://github.com/mqttjs/MQTT.js/pull/1103
          * For further discussion see https://github.com/eclipse-thingweb/node-wot/pull/253
          */
-        const contentType = packet?.properties?.contentType ?? ContentSerdes.DEFAULT;
+        const contentType = packet?.properties?.contentType;
 
         const options: InteractionOptions & { formIndex: number } = {
             formIndex: ProtocolHelpers.findRequestMatchingFormIndex(
@@ -274,7 +274,7 @@ export default class MqttBrokerServer implements ProtocolServer {
             ),
         };
 
-        const formContentType = action.forms[options.formIndex].contentType ?? ContentSerdes.DEFAULT;
+        const formContentType = action.forms[options.formIndex].contentType;
         const inputContent = new Content(formContentType, Readable.from(payload));
 
         thing
@@ -306,7 +306,7 @@ export default class MqttBrokerServer implements ProtocolServer {
     ) {
         const readOnly = property.readOnly ?? false;
         if (!readOnly) {
-            const contentType = packet?.properties?.contentType ?? ContentSerdes.DEFAULT;
+            const contentType = packet?.properties?.contentType;
 
             const options: InteractionOptions & { formIndex: number } = {
                 formIndex: ProtocolHelpers.findRequestMatchingFormIndex(
@@ -317,7 +317,7 @@ export default class MqttBrokerServer implements ProtocolServer {
                 ),
             };
 
-            const formContentType = property.forms[options.formIndex].contentType ?? ContentSerdes.DEFAULT;
+            const formContentType = property.forms[options.formIndex].contentType;
             const inputContent = new Content(formContentType, Readable.from(payload));
 
             try {

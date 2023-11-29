@@ -451,7 +451,7 @@ export class PropertyOperation {
         this.quantity = form["modv:quantity"];
         this.function = form["modv:function"] as ModbusFunction;
         this.endianness = endianness;
-        this.contentType = form.contentType ?? ContentSerdes.DEFAULT;
+        this.contentType = form.contentType;
         this.content = content;
         this.transaction = null;
     }

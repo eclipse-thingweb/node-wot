@@ -47,7 +47,7 @@ export default class CoapsClient implements ProtocolClient {
                     debug(`CoapsClient received ${res.code} from ${form.href}`);
 
                     // FIXME: Add toString conversion for response Content-Format
-                    const contentType = form.contentType ?? ContentSerdes.DEFAULT;
+                    const contentType = form.contentType;
                     const body = Readable.from(res.payload ?? Buffer.alloc(0));
 
                     resolve(new Content(contentType, body));
@@ -79,7 +79,7 @@ export default class CoapsClient implements ProtocolClient {
                     debug(`CoapsClient received ${res.code} from ${form.href}`);
 
                     // FIXME: Add toString conversion for response Content-Format
-                    const contentType = form.contentType ?? ContentSerdes.DEFAULT;
+                    const contentType = form.contentType;
                     const body = Readable.from(res.payload ?? Buffer.alloc(0));
 
                     resolve(new Content(contentType, body));
@@ -118,7 +118,7 @@ export default class CoapsClient implements ProtocolClient {
 
             const callback = (resp: CoapResponse) => {
                 if (resp.payload != null) {
-                    next(new Content(form?.contentType ?? ContentSerdes.DEFAULT, Readable.from(resp.payload)));
+                    next(new Content(form?.contentType, Readable.from(resp.payload)));
                 }
             };
 
