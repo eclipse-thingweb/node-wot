@@ -139,6 +139,23 @@ export default class CoapsClient implements ProtocolClient {
         });
     }
 
+    /**
+     * @inheritdoc
+     */
+    public async requestThingDescription(uri: string): Promise<Content> {
+        const response = await coaps.request(uri, "get", undefined, {
+            // FIXME: Add accept option
+            //       Currently not supported by node-coap-client
+        });
+
+        // TODO: Respect Content-Format in response.
+        //       Currently not really well supported by node-coap-client
+        const contentType = "application/td+json";
+        const payload = response.payload ?? Buffer.alloc(0);
+
+        return new Content(contentType, Readable.from(payload));
+    }
+
     public async start(): Promise<void> {
         // do nothing
     }

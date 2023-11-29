@@ -61,6 +61,13 @@ export default class MBusClient implements ProtocolClient {
         throw new Error("Method not implemented.");
     }
 
+    /**
+     * @inheritdoc
+     */
+    public async requestThingDescription(uri: string): Promise<Content> {
+        throw new Error("Method not implemented");
+    }
+
     async start(): Promise<void> {
         // do nothing
     }
