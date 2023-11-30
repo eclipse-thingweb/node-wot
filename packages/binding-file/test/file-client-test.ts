@@ -46,21 +46,21 @@ describe("File Client Implementation", () => {
     });
 
     for (const uriScheme of ["file:///", "file://"]) {
-        for (const testData of [
+        for (const [index, testData] of [
             {
                 value: jsonValue,
                 contentType: "application/json",
-                fileName: "test.json",
+                fileExtension: "json",
             },
-            { value: jsonValue, contentType: undefined, fileName: "test.json" },
-            { value: "Lorem ipsum dolor sit amet.", contentType: "text/plain", fileName: "test.txt" },
-        ]) {
+            { value: jsonValue, contentType: undefined, fileExtension: "json" },
+            { value: "Lorem ipsum dolor sit amet.", contentType: "text/plain", fileExtension: "txt" },
+        ].entries()) {
             it(`should be able to write and read files using URI scheme ${uriScheme} with ${formatContentType(
                 testData.contentType
             )}`, async () => {
                 const contentType = testData.contentType;
                 const originalValue = testData.value;
-                const fileName = testData.fileName;
+                const fileName = `test${index}.${testData.fileExtension}`;
 
                 // eslint-disable-next-line n/no-path-concat
                 const href = `${uriScheme}${__dirname}/${fileName}`;
