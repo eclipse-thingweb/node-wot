@@ -39,7 +39,7 @@ export default class FileClient implements ProtocolClient {
 
     public async readResource(form: Form): Promise<Content> {
         const formContentType = form.contentType;
-        if (form.contentType == null) {
+        if (formContentType == null) {
             debug(`Found no Content-Type for Form, defaulting to ${ContentSerdes.DEFAULT}`);
         }
         const contentType = formContentType ?? ContentSerdes.DEFAULT;
