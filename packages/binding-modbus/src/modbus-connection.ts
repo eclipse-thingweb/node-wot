@@ -282,12 +282,14 @@ export class ModbusConnection {
                 this.trigger();
             } catch (error) {
                 warn("Cannot reconnect to modbus server");
-                // inform all the operations that the connection cannot be recovered
-                this.queue.forEach((transaction) => {
-                    transaction.operations.forEach((op) => {
-                        op.failed(error instanceof Error ? error : new Error(JSON.stringify(error)));
+                // inform and clean up all the operations that the connection cannot be recovered
+                while (this.queue.length > 0) {
+                    const transaction = this.queue.shift();
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- queue.length > 0
+                    transaction!.operations.forEach((operation) => {
+                        operation.failed(error instanceof Error ? error : new Error(JSON.stringify(error)));
                     });
-                });
+                }
             }
         } else if (this.client.isOpen && this.currentTransaction == null && this.queue.length > 0) {
             // take next transaction from queue and execute

@@ -20,6 +20,8 @@ import ExposedThing from "./exposed-thing";
 import ConsumedThing from "./consumed-thing";
 import Helpers from "./helpers";
 import { createLoggers } from "./logger";
+import ContentManager from "./content-serdes";
+import { ErrorObject } from "ajv";
 
 const { debug } = createLoggers("core", "wot-impl");
 
@@ -39,8 +41,21 @@ export default class WoTImpl {
         throw new Error("not implemented");
     }
 
+    /** @inheritDoc */
     async requestThingDescription(url: string): Promise<WoT.ThingDescription> {
-        throw new Error("not implemented");
+        const uriScheme = Helpers.extractScheme(url);
+        const client = this.srv.getClientFor(uriScheme);
+        const content = await client.requestThingDescription(url);
+        const value = ContentManager.contentToValue({ type: content.type, body: await content.toBuffer() }, {});
+
+        const isValidThingDescription = Helpers.tsSchemaValidator(value);
+
+        if (!isValidThingDescription) {
+            const errors = Helpers.tsSchemaValidator.errors?.map((o: ErrorObject) => o.message).join("\n");
+            throw new Error(errors);
+        }
+
+        return value as WoT.ThingDescription;
     }
 
     /** @inheritDoc */

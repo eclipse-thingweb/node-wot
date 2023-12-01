@@ -131,6 +131,13 @@ export default class ModbusClient implements ProtocolClient {
         });
     }
 
+    /**
+     * @inheritdoc
+     */
+    public async requestThingDescription(uri: string): Promise<Content> {
+        throw new Error("Method not implemented");
+    }
+
     async start(): Promise<void> {
         // do nothing
     }

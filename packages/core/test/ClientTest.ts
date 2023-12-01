@@ -156,6 +156,10 @@ class TDClient implements ProtocolClient {
         return new Subscription();
     }
 
+    async requestThingDescription(uri: string): Promise<Content> {
+        throw new Error("Method not implemented.");
+    }
+
     public async start(): Promise<void> {
         // do nothing
     }
@@ -230,6 +234,10 @@ class TrapClient implements ProtocolClient {
         return new Subscription();
     }
 
+    async requestThingDescription(uri: string): Promise<Content> {
+        throw new Error("Method not implemented.");
+    }
+
     public async start(): Promise<void> {
         // do nothing
     }
@@ -290,6 +298,10 @@ class TestProtocolClient implements ProtocolClient {
         error?: (error: Error) => void,
         complete?: () => void
     ): Promise<Subscription> {
+        throw new Error("Method not implemented.");
+    }
+
+    async requestThingDescription(uri: string): Promise<Content> {
         throw new Error("Method not implemented.");
     }
 
