@@ -17,59 +17,43 @@
  * File protocol binding
  */
 import { Form, SecurityScheme } from "@node-wot/td-tools";
-import { ProtocolClient, Content, createLoggers } from "@node-wot/core";
+import { ProtocolClient, Content, createLoggers, ContentSerdes } from "@node-wot/core";
 import { Subscription } from "rxjs/Subscription";
 import fs = require("fs");
-import path = require("path");
+import { fileURLToPath } from "node:url";
 
-const { debug, warn } = createLoggers("binding-file", "file-client");
-
-/**
- * Used to determine the Content-Type of a file from the extension in its
- * {@link filePath} if no explicit Content-Type is defined.
- *
- * @param filepath The file path the Content-Type is determined for.
- * @returns An appropriate Content-Type or `application/octet-stream` as a fallback.
- */
-function mapFileExtensionToContentType(filepath: string) {
-    const fileExtension = path.extname(filepath);
-    debug(`FileClient found '${fileExtension}' extension`);
-    switch (fileExtension) {
-        case ".txt":
-        case ".log":
-        case ".ini":
-        case ".cfg":
-            return "text/plain";
-        case ".json":
-            return "application/json";
-        case ".jsontd":
-            return "application/td+json";
-        case ".jsonld":
-            return "application/ld+json";
-        default:
-            warn(`FileClient cannot determine media type for path '${filepath}'`);
-            return "application/octet-stream";
-    }
-}
+const { debug } = createLoggers("binding-file", "file-client");
 
 export default class FileClient implements ProtocolClient {
     public toString(): string {
         return "[FileClient]";
     }
 
-    private async readFile(filepath: string, contentType?: string): Promise<Content> {
-        const resource = fs.createReadStream(filepath);
-        const resourceContentType = contentType ?? mapFileExtensionToContentType(filepath);
-        return new Content(resourceContentType, resource);
+    private async readFromFile(uri: string, contentType: string) {
+        const filePath = fileURLToPath(uri);
+        debug(`Reading file of Content-Type ${contentType} from path ${filePath}.`);
+
+        const resource = fs.createReadStream(filePath);
+        return new Content(contentType, resource);
     }
 
     public async readResource(form: Form): Promise<Content> {
-        const filepath = new URL(form.href).pathname;
-        return this.readFile(filepath, form.contentType);
+        const formContentType = form.contentType;
+        if (formContentType == null) {
+            debug(`Found no Content-Type for Form, defaulting to ${ContentSerdes.DEFAULT}`);
+        }
+        const contentType = formContentType ?? ContentSerdes.DEFAULT;
+
+        return this.readFromFile(form.href, contentType);
     }
 
     public async writeResource(form: Form, content: Content): Promise<void> {
-        throw new Error("FileClient does not implement write");
+        const filePath = fileURLToPath(form.href);
+
+        const writeStream = fs.createWriteStream(filePath);
+        const buffer = await content.toBuffer();
+
+        writeStream.end(buffer);
     }
 
     public async invokeResource(form: Form, content: Content): Promise<Content> {
@@ -84,7 +68,7 @@ export default class FileClient implements ProtocolClient {
      * @inheritdoc
      */
     public async requestThingDescription(uri: string): Promise<Content> {
-        return this.readFile(uri, "application/td+json");
+        return this.readFromFile(uri, "application/td+json");
     }
 
     public async subscribeResource(
