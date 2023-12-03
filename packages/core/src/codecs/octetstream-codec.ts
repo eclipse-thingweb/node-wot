@@ -549,22 +549,17 @@ export default class OctetstreamCodec implements ContentCodec {
     }
 
     private writeBits(buffer: Buffer, value: number, offsetBits: number, length: number, bigEndian: boolean) {
-        const bitOffset = offsetBits % 8;
-        const byteOffset = Math.floor(offsetBits / 8);
+        let byteIndex = Math.floor(offsetBits / 8);
+        let bitIndex = offsetBits % 8;
 
-        if (bigEndian) {
-            for (let i = 0; i < length; i++) {
-                const byteIndex = byteOffset + Math.floor((bitOffset + i) / 8);
-                const bitIndex = (bitOffset + i) % 8;
-                const bitValue = (value >> (length - 1 - i)) & 1;
-                buffer[byteIndex] |= bitValue << (7 - bitIndex);
-            }
-        } else {
-            for (let i = 0; i < length; i++) {
-                const byteIndex = byteOffset + Math.floor((bitOffset + i) / 8);
-                const bitIndex = (bitOffset + i) % 8;
-                const bitValue = (value >> i) & 1;
-                buffer[byteIndex] |= bitValue << bitIndex;
+        for (let i = 0; i < length; i++) {
+            const bitValue = bigEndian ? (value >> (length - 1 - i)) & 1 : (value >> i) & 1;
+            buffer[byteIndex] |= bitValue << (bigEndian ? 7 - bitIndex : bitIndex);
+
+            bitIndex++;
+            if (bitIndex === 8) {
+                bitIndex = 0;
+                byteIndex++;
             }
         }
     }
