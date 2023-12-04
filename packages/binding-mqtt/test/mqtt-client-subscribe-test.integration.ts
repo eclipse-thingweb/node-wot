@@ -31,7 +31,7 @@ should();
 
 describe("MQTT client implementation", () => {
     let servient: Servient;
-    let brokerServer: MqttBrokerServer;
+    let brokerServer: MqttBrokerServer | undefined;
 
     const brokerAddress = "localhost";
     const brokerPort = 1889;
@@ -43,7 +43,7 @@ describe("MQTT client implementation", () => {
 
     afterEach(async () => {
         await servient.shutdown();
-        await brokerServer.stop();
+        await brokerServer?.stop();
     });
 
     it("should expose via broker", function (done: Mocha.Done) {
@@ -59,8 +59,8 @@ describe("MQTT client implementation", () => {
         servient.addClientFactory(new MqttClientFactory());
 
         servient.start().then((WoT) => {
-            expect(brokerServer.getPort()).to.equal(brokerPort);
-            expect(brokerServer.getAddress()).to.equal(brokerAddress);
+            expect(brokerServer?.getPort()).to.equal(brokerPort);
+            expect(brokerServer?.getAddress()).to.equal(brokerAddress);
 
             const eventNumber = Math.floor(Math.random() * 1000000);
             const eventName: string = "event" + eventNumber;
@@ -121,8 +121,8 @@ describe("MQTT client implementation", () => {
         servient.addClientFactory(new MqttsClientFactory({ rejectUnauthorized: false }));
 
         servient.start().then((WoT) => {
-            expect(brokerServer.getPort()).to.equal(brokerPort);
-            expect(brokerServer.getAddress()).to.equal(brokerAddress);
+            expect(brokerServer?.getPort()).to.equal(brokerPort);
+            expect(brokerServer?.getAddress()).to.equal(brokerAddress);
 
             const eventNumber = Math.floor(Math.random() * 1000000);
             const eventName: string = "event" + eventNumber;
