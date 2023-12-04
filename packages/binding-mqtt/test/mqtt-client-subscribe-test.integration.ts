@@ -22,6 +22,7 @@ import { expect, should } from "chai";
 import MqttBrokerServer from "../src/mqtt-broker-server";
 import MqttClientFactory from "../src/mqtt-client-factory";
 import MqttsClientFactory from "../src/mqtts-client-factory";
+import { platform } from "os";
 
 const info = createInfoLogger("binding-mqtt", "mqtt-client-subscribe-test.integration");
 
@@ -45,7 +46,13 @@ describe("MQTT client implementation", () => {
         await brokerServer.stop();
     });
 
-    it("should expose via broker", (done: Mocha.Done) => {
+    it("should expose via broker", function (done: Mocha.Done) {
+        // Skip this test on macOS until the underlying issue is fixed,
+        // see https://github.com/eclipse-thingweb/node-wot/issues/1159
+        if (platform() === "darwin") {
+            this.skip();
+        }
+
         brokerServer = new MqttBrokerServer({ uri: brokerUri, selfHost: true });
         servient.addServer(brokerServer);
 
