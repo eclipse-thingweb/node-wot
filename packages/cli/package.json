@@ -17,7 +17,7 @@
         "wot-servient": "bin/index.js"
     },
     "optionalDependencies": {
-        "ts-node": "10.1.0"
+        "ts-node": "10.9.1"
     },
     "dependencies": {
         "@node-wot/binding-coap": "0.8.11",
