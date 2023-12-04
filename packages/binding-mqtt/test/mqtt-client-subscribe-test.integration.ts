@@ -109,7 +109,13 @@ describe("MQTT client implementation", () => {
         });
     }).timeout(20000);
 
-    it("should expose via broker using mqtts", (done: Mocha.Done) => {
+    it("should expose via broker using mqtts", function (done: Mocha.Done) {
+        // Skip this test on macOS until the underlying issue is fixed,
+        // see https://github.com/eclipse-thingweb/node-wot/issues/1159
+        if (platform() === "darwin") {
+            this.skip();
+        }
+
         brokerServer = new MqttBrokerServer({
             uri: brokerUri,
             selfHost: true,
