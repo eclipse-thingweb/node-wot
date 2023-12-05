@@ -89,12 +89,12 @@ describe("MQTT client implementation - integration", () => {
                                 }
                             })
                             .then(() => {
-                                for (let i = 0; i < 4; i++) {
+                                for (let i = 0; i < 5; i++) {
                                     thing.emitEvent(eventName, i);
                                 }
                             })
                             .catch((e) => {
-                                expect(true).to.equal(false);
+                                done(e);
                             });
                     });
                 });
@@ -151,12 +151,12 @@ describe("MQTT client implementation - integration", () => {
                                 }
                             })
                             .then(() => {
-                                for (let i = 0; i < 4; i++) {
+                                for (let i = 0; i < 5; i++) {
                                     thing.emitEvent(eventName, i);
                                 }
                             })
                             .catch((e) => {
-                                expect(true).to.equal(false);
+                                done(e);
                             });
                     });
                 });
