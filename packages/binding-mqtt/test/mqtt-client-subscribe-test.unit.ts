@@ -31,7 +31,7 @@ chai.use(chaiAsPromised);
 // should must be called to augment all variables
 should();
 
-describe("MQTT client implementation", () => {
+describe("MQTT client implementation - unit", () => {
     let aedes: Aedes;
     let hostedBroker: net.Server;
     const property = "test1";
@@ -152,7 +152,7 @@ describe("MQTT client implementation", () => {
                 .then(() => done());
         }).timeout(10000);
 
-        it("should authenticate with basic auth", (done: Mocha.Done) => {
+        it("should authenticate with basic auth", async () => {
             const mqttClient = new MqttClient();
             mqttClient.setSecurity([{ scheme: "basic" }], { username: "user", password: "pass" });
 
@@ -162,12 +162,8 @@ describe("MQTT client implementation", () => {
                 "mqtt:retain": false,
             };
 
-            mqttClient
-                .subscribeResource(form, () => {
-                    /** */
-                })
-                .catch((err) => done(err))
-                .then(() => done());
+            await mqttClient.subscribeResource(form, () => {});
+            await mqttClient.stop();
         }).timeout(10000);
     });
 });
