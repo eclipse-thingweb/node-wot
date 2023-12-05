@@ -61,7 +61,7 @@ describe("MQTT client implementation - unit", () => {
             const mqttClient = new MqttClient();
             const form: MqttForm = {
                 href: brokerUri + "/" + property,
-                "mqv:qos": "0",
+                "mqv:qos": "2",
                 "mqv:retain": false,
             };
 
@@ -77,8 +77,6 @@ describe("MQTT client implementation - unit", () => {
                 })
                 .then(async (sub) => {
                     await mqttClient.invokeResource(form, new Content("", Readable.from(Buffer.from("test"))));
-                    // Need to manually unsubscribe because stopping the client will not unsubscribe all subscriptions
-                    sub.unsubscribe();
                     await mqttClient.stop();
                 })
                 .catch((err) => done(err));
@@ -88,7 +86,7 @@ describe("MQTT client implementation - unit", () => {
             const mqttClient = new MqttClient();
             const form: MqttForm = {
                 href: brokerUri + "/" + property,
-                "mqv:qos": "0",
+                "mqv:qos": "2",
                 "mqv:retain": false,
             };
 
@@ -97,8 +95,8 @@ describe("MQTT client implementation - unit", () => {
                     /** No-op */
                 })
                 .then(async (sub) => {
-                    sub.unsubscribe();
-                    const sub2 = await mqttClient.subscribeResource(form, async (value: Content) => {
+                    await mqttClient.unlinkResource(form);
+                    await mqttClient.subscribeResource(form, async (value: Content) => {
                         try {
                             const data = await value.toBuffer();
                             expect(data.toString()).to.be.equal("test");
@@ -106,11 +104,11 @@ describe("MQTT client implementation - unit", () => {
                         } catch (err) {
                             done(err);
                         } finally {
+                            // Note: stopping the client clears also all subscriptions
                             await mqttClient.stop();
                         }
                     });
                     await mqttClient.invokeResource(form, new Content("", Readable.from(Buffer.from("test"))));
-                    sub2.unsubscribe();
                 })
                 .catch((err) => done(err));
         }).timeout(10000);

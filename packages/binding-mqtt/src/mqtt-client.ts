@@ -25,6 +25,7 @@ import * as url from "url";
 import { Subscription } from "rxjs/Subscription";
 import { Readable } from "stream";
 import { IClientPublishOptions } from "mqtt";
+import MQTTMessagePool from "./mqtt-message-pool";
 
 const { debug, warn } = createLoggers("binding-mqtt", "mqtt-client");
 
@@ -35,6 +36,7 @@ declare interface MqttClientSecurityParameters {
 
 export default class MqttClient implements ProtocolClient {
     private scheme: string;
+    private pools: Map<string, MQTTMessagePool> = new Map();
 
     constructor(private config: MqttClientConfig = {}, secure = false) {
         this.scheme = "mqtt" + (secure ? "s" : "");
@@ -55,38 +57,59 @@ export default class MqttClient implements ProtocolClient {
         // Current specification allows only form["mqv:filter"]
         const filter = requestUri.pathname.slice(1) ?? form["mqv:filter"];
 
-        if (this.client === undefined) {
-            this.client = await mqtt.connectAsync(brokerUri, this.config);
+        let pool = this.pools.get(brokerUri);
+
+        if (pool == null) {
+            pool = new MQTTMessagePool();
+            this.pools.set(brokerUri, pool);
         }
 
-        this.client.on("message", (receivedTopic: string, payload: Buffer) => {
-            debug(`Received MQTT message (topic: ${receivedTopic}, data length: ${payload.length})`);
-            if (filter.includes(receivedTopic)) {
-                next(new Content(contentType, Readable.from(payload)));
+        await pool.connect(brokerUri, this.config);
+
+        pool.subscribe(
+            filter,
+            (topic: string, message: Buffer) => {
+                next(new Content(contentType, Readable.from(message)));
+            },
+            (e: Error) => {
+                if (error) error(e);
             }
-        });
+        );
 
-        this.client.on("error", (err: Error) => {
-            // Connection errors are fired as a result of mqtt.connectAsync
-            // here we have to handle only parsing errors.
-            if (error) error(err);
-        });
-
-        await this.client.subscribeAsync(filter);
-
-        return new Subscription(() => {
-            if (!this.client) {
-                warn(
-                    `MQTT Client is undefined. This means that the client either failed to connect or was never initialized.`
-                );
-                return;
-            }
-            this.client.unsubscribe(filter);
-        });
+        return new Subscription(() => {});
     }
 
     public async readResource(form: MqttForm): Promise<Content> {
-        throw new Error("Method not implemented.");
+        const contentType = form.contentType ?? ContentSerdes.DEFAULT;
+        const requestUri = new url.URL(form.href);
+        const brokerUri: string = `${this.scheme}://` + requestUri.host;
+        // Keeping the path as the topic for compatibility reasons.
+        // Current specification allows only form["mqv:filter"]
+        const filter = requestUri.pathname.slice(1) ?? form["mqv:filter"];
+
+        let pool = this.pools.get(brokerUri);
+
+        if (pool == null) {
+            pool = new MQTTMessagePool();
+            this.pools.set(brokerUri, pool);
+        }
+
+        await pool.connect(brokerUri, this.config);
+
+        const result = await new Promise<Content>((resolve, reject) => {
+            pool!.subscribe(
+                filter,
+                (topic: string, message: Buffer) => {
+                    resolve(new Content(contentType, Readable.from(message)));
+                },
+                (e: Error) => {
+                    reject(e);
+                }
+            );
+        });
+
+        await pool.unsubscribe(filter);
+        return result;
     }
 
     public async writeResource(form: MqttForm, content: Content): Promise<void> {
@@ -94,13 +117,18 @@ export default class MqttClient implements ProtocolClient {
         const brokerUri = `${this.scheme}://${requestUri.host}`;
         const topic = requestUri.pathname.slice(1) ?? form["mqv:topic"];
 
-        if (this.client === undefined) {
-            this.client = await mqtt.connectAsync(brokerUri, this.config);
+        let pool = this.pools.get(brokerUri);
+
+        if (pool == null) {
+            pool = new MQTTMessagePool();
+            this.pools.set(brokerUri, pool);
         }
+
+        await pool.connect(brokerUri, this.config);
 
         // if not input was provided, set up an own body otherwise take input as body
         const buffer = content === undefined ? Buffer.from("") : await content.toBuffer();
-        await this.client.publishAsync(topic, buffer, {
+        await pool.publish(topic, buffer, {
             retain: form["mqv:retain"],
             qos: this.mapQoS(form["mqv:qos"]),
         });
@@ -111,13 +139,18 @@ export default class MqttClient implements ProtocolClient {
         const topic = requestUri.pathname.slice(1);
         const brokerUri = `${this.scheme}://${requestUri.host}`;
 
-        if (this.client === undefined) {
-            this.client = await mqtt.connectAsync(brokerUri, this.config);
+        let pool = this.pools.get(brokerUri);
+
+        if (pool == null) {
+            pool = new MQTTMessagePool();
+            this.pools.set(brokerUri, pool);
         }
+
+        await pool.connect(brokerUri, this.config);
 
         // if not input was provided, set up an own body otherwise take input as body
         const buffer = content === undefined ? Buffer.from("") : await content.toBuffer();
-        await this.client.publishAsync(topic, buffer, {
+        await pool.publish(topic, buffer, {
             retain: form["mqv:retain"],
             qos: this.mapQoS(form["mqv:qos"]),
         });
@@ -127,10 +160,12 @@ export default class MqttClient implements ProtocolClient {
 
     public async unlinkResource(form: TD.Form): Promise<void> {
         const requestUri = new url.URL(form.href);
+        const brokerUri: string = `${this.scheme}://` + requestUri.host;
         const topic = requestUri.pathname.slice(1);
 
-        if (this.client != null && this.client.connected) {
-            await this.client.unsubscribeAsync(topic);
+        const pool = this.pools.get(brokerUri);
+        if (pool != null) {
+            await pool.unsubscribe(topic);
             debug(`MqttClient unsubscribed from topic '${topic}'`);
         }
     }
@@ -147,6 +182,9 @@ export default class MqttClient implements ProtocolClient {
     }
 
     public async stop(): Promise<void> {
+        for (const pool of this.pools.values()) {
+            await pool.end();
+        }
         if (this.client) return this.client.endAsync();
     }
 
