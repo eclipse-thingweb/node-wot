@@ -19,7 +19,7 @@
 
 import * as chai from "chai";
 import chaiAsPromised from "chai-as-promised";
-import { MqttClient, MqttForm, MqttQoS } from "../src/mqtt";
+import { MqttClient, MqttForm } from "../src/mqtt";
 import { expect, should } from "chai";
 import { Aedes, Server } from "aedes";
 import * as net from "net";
@@ -61,8 +61,8 @@ describe("MQTT client implementation - unit", () => {
             const mqttClient = new MqttClient();
             const form: MqttForm = {
                 href: brokerUri + "/" + property,
-                "mqtt:qos": MqttQoS.QoS0,
-                "mqtt:retain": false,
+                "mqv:qos": "0",
+                "mqv:retain": false,
             };
 
             mqttClient
@@ -88,8 +88,8 @@ describe("MQTT client implementation - unit", () => {
             const mqttClient = new MqttClient();
             const form: MqttForm = {
                 href: brokerUri + "/" + property,
-                "mqtt:qos": MqttQoS.QoS0,
-                "mqtt:retain": false,
+                "mqv:qos": "0",
+                "mqv:retain": false,
             };
 
             mqttClient
@@ -139,8 +139,8 @@ describe("MQTT client implementation - unit", () => {
 
             const form: MqttForm = {
                 href: brokerUri + "/" + property,
-                "mqtt:qos": MqttQoS.QoS1,
-                "mqtt:retain": false,
+                "mqv:qos": "1",
+                "mqv:retain": false,
             };
 
             mqttClient
@@ -158,8 +158,8 @@ describe("MQTT client implementation - unit", () => {
 
             const form: MqttForm = {
                 href: brokerUri + "/" + property,
-                "mqtt:qos": MqttQoS.QoS1,
-                "mqtt:retain": false,
+                "mqv:qos": "1",
+                "mqv:retain": false,
             };
 
             await mqttClient.subscribeResource(form, () => {});

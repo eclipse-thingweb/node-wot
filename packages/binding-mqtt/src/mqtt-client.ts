@@ -50,8 +50,10 @@ export default class MqttClient implements ProtocolClient {
     ): Promise<Subscription> {
         const contentType = form.contentType ?? ContentSerdes.DEFAULT;
         const requestUri = new url.URL(form.href);
-        const topic = requestUri.pathname.slice(1);
         const brokerUri: string = `${this.scheme}://` + requestUri.host;
+        // Keeping the path as the topic for compatibility reasons.
+        // Current specification allows only form["mqv:filter"]
+        const filter = requestUri.pathname.slice(1) ?? form["mqv:filter"];
 
         if (this.client === undefined) {
             this.client = await mqtt.connectAsync(brokerUri, this.config);
@@ -59,7 +61,7 @@ export default class MqttClient implements ProtocolClient {
 
         this.client.on("message", (receivedTopic: string, payload: Buffer) => {
             debug(`Received MQTT message (topic: ${receivedTopic}, data length: ${payload.length})`);
-            if (receivedTopic === topic) {
+            if (filter.includes(receivedTopic)) {
                 next(new Content(contentType, Readable.from(payload)));
             }
         });
@@ -70,7 +72,7 @@ export default class MqttClient implements ProtocolClient {
             if (error) error(err);
         });
 
-        await this.client.subscribeAsync(topic);
+        await this.client.subscribeAsync(filter);
 
         return new Subscription(() => {
             if (!this.client) {
@@ -79,7 +81,7 @@ export default class MqttClient implements ProtocolClient {
                 );
                 return;
             }
-            this.client.unsubscribe(topic);
+            this.client.unsubscribe(filter);
         });
     }
 
@@ -89,20 +91,19 @@ export default class MqttClient implements ProtocolClient {
 
     public async writeResource(form: MqttForm, content: Content): Promise<void> {
         const requestUri = new url.URL(form.href);
-        const topic = requestUri.pathname.slice(1);
         const brokerUri = `${this.scheme}://${requestUri.host}`;
+        const topic = requestUri.pathname.slice(1) ?? form["mqv:topic"];
 
         if (this.client === undefined) {
             this.client = await mqtt.connectAsync(brokerUri, this.config);
         }
 
         // if not input was provided, set up an own body otherwise take input as body
-        if (content === undefined) {
-            await this.client.publishAsync(topic, Buffer.from(""));
-        } else {
-            const buffer = await content.toBuffer();
-            await this.client.publishAsync(topic, buffer);
-        }
+        const buffer = content === undefined ? Buffer.from("") : await content.toBuffer();
+        await this.client.publishAsync(topic, buffer, {
+            retain: form["mqv:retain"],
+            qos: this.mapQoS(form["mqv:qos"]),
+        });
     }
 
     public async invokeResource(form: MqttForm, content: Content): Promise<Content> {
@@ -115,12 +116,11 @@ export default class MqttClient implements ProtocolClient {
         }
 
         // if not input was provided, set up an own body otherwise take input as body
-        if (content === undefined) {
-            await this.client.publishAsync(topic, Buffer.from(""));
-        } else {
-            const buffer = await content.toBuffer();
-            await this.client.publishAsync(topic, buffer);
-        }
+        const buffer = content === undefined ? Buffer.from("") : await content.toBuffer();
+        await this.client.publishAsync(topic, buffer, {
+            retain: form["mqv:retain"],
+            qos: this.mapQoS(form["mqv:qos"]),
+        });
         // there will be no response
         return new DefaultContent(Readable.from([]));
     }
@@ -169,15 +169,20 @@ export default class MqttClient implements ProtocolClient {
         return true;
     }
 
-    private mapQoS(qos: MqttQoS): Required<IClientPublishOptions>["qos"] {
+    private mapQoS(qos: MqttQoS | undefined): Required<IClientPublishOptions>["qos"] {
         switch (qos) {
-            case 2:
-                return (qos = 2);
-            case 1:
-                return (qos = 1);
-            case 0:
+            case "0":
+                return 0;
+            case "1":
+                return 1;
+            case "2":
+                return 2;
+            case undefined:
+                return 0;
             default:
-                return (qos = 0);
+                warn(`MqttClient received unsupported QoS level '${qos}'`);
+                warn(`MqttClient falling back to QoS level '0'`);
+                return 0;
         }
     }
 }

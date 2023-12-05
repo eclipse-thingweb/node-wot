@@ -29,21 +29,16 @@ export * from "./mqtt-client-factory";
 export * from "./mqtts-client-factory";
 export * from "./mqtt-broker-server";
 
-/**
- * MQTT Quality of Service level.
- * QoS0: Fire-and-forget
- * QoS1: Deliver-at-least-once
- * QoS2: Deliver-exactly-once
- */
-export enum MqttQoS {
-    QoS0,
-    QoS1,
-    QoS2,
-}
-
+export type MqttQoS = "0" | "1" | "2";
 export class MqttForm extends Form {
-    public "mqtt:qos": MqttQoS = MqttQoS.QoS0;
-    public "mqtt:retain": boolean;
+    public "mqv:qos"?: MqttQoS = "0";
+    public "mqv:retain"?: boolean;
+
+    public "mqv:topic"?: string;
+
+    public "mqv:filter"?: string | string[];
+
+    public "mqv:controlPacket"?: "publish" | "subscribe" | "unsubscribe";
 }
 
 export interface MqttClientConfig {
