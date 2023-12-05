@@ -17,7 +17,7 @@
         "@node-wot/core": "0.8.11",
         "@node-wot/td-tools": "0.8.11",
         "aedes": "^0.46.2",
-        "mqtt": "^4.2.8",
+        "mqtt": "^5.3.2",
         "rxjs": "5.5.11"
     },
     "scripts": {

@@ -28,7 +28,7 @@ const info = createInfoLogger("binding-mqtt", "mqtt-client-subscribe-test.integr
 // should must be called to augment all variables
 should();
 
-describe("MQTT client implementation", () => {
+describe("MQTT client implementation - integration", () => {
     let servient: Servient;
     let brokerServer: MqttBrokerServer;
 

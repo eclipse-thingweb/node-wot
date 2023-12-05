@@ -21,10 +21,10 @@ import { ProtocolClient, Content, DefaultContent, createLoggers, ContentSerdes }
 import * as TD from "@node-wot/td-tools";
 import * as mqtt from "mqtt";
 import { MqttClientConfig, MqttForm, MqttQoS } from "./mqtt";
-import { IPublishPacket, QoS } from "mqtt";
 import * as url from "url";
 import { Subscription } from "rxjs/Subscription";
 import { Readable } from "stream";
+import { IClientPublishOptions } from "mqtt";
 
 const { debug, warn } = createLoggers("binding-mqtt", "mqtt-client");
 
@@ -42,70 +42,44 @@ export default class MqttClient implements ProtocolClient {
 
     private client?: mqtt.MqttClient;
 
-    public subscribeResource(
+    public async subscribeResource(
         form: MqttForm,
         next: (value: Content) => void,
         error?: (error: Error) => void,
         complete?: () => void
     ): Promise<Subscription> {
-        return new Promise<Subscription>((resolve, reject) => {
-            // get MQTT-based metadata
-            const contentType = form.contentType ?? ContentSerdes.DEFAULT;
-            const requestUri = new url.URL(form.href);
-            const topic = requestUri.pathname.slice(1);
-            const brokerUri: string = `${this.scheme}://` + requestUri.host;
+        const contentType = form.contentType ?? ContentSerdes.DEFAULT;
+        const requestUri = new url.URL(form.href);
+        const topic = requestUri.pathname.slice(1);
+        const brokerUri: string = `${this.scheme}://` + requestUri.host;
 
-            if (this.client === undefined) {
-                this.client = mqtt.connect(brokerUri, this.config);
+        if (this.client === undefined) {
+            this.client = await mqtt.connectAsync(brokerUri, this.config);
+        }
+
+        this.client.on("message", (receivedTopic: string, payload: Buffer) => {
+            debug(`Received MQTT message (topic: ${receivedTopic}, data length: ${payload.length})`);
+            if (receivedTopic === topic) {
+                next(new Content(contentType, Readable.from(payload)));
             }
+        });
 
-            if (this.client.connected) {
-                this.client.subscribe(topic);
-                resolve(
-                    new Subscription(() => {
-                        if (!this.client) {
-                            warn(
-                                `MQTT Client is undefined. This means that the client either failed to connect or was never initialized.`
-                            );
-                            return;
-                        }
-                        this.client.unsubscribe(topic);
-                    })
+        this.client.on("error", (err: Error) => {
+            // Connection errors are fired as a result of mqtt.connectAsync
+            // here we have to handle only parsing errors.
+            if (error) error(err);
+        });
+
+        await this.client.subscribeAsync(topic);
+
+        return new Subscription(() => {
+            if (!this.client) {
+                warn(
+                    `MQTT Client is undefined. This means that the client either failed to connect or was never initialized.`
                 );
+                return;
             }
-
-            this.client.on("connect", () => {
-                // In this case, the client is definitely defined.
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                this.client!.subscribe(topic);
-                resolve(
-                    new Subscription(() => {
-                        if (!this.client) {
-                            warn(
-                                `MQTT Client is undefined. This means that the client either failed to connect or was never initialized.`
-                            );
-                            return;
-                        }
-                        this.client.unsubscribe(topic);
-                    })
-                );
-            });
-            this.client.on("message", (receivedTopic: string, payload: string, packet: IPublishPacket) => {
-                debug(`Received MQTT message (topic: ${receivedTopic}, data: ${payload})`);
-                if (receivedTopic === topic) {
-                    next(new Content(contentType, Readable.from(payload)));
-                }
-            });
-            this.client.on("error", (err: Error) => {
-                if (this.client) {
-                    this.client.end();
-                }
-                this.client = undefined;
-                // TODO: error handling
-                if (error) error(err);
-
-                reject(err);
-            });
+            this.client.unsubscribe(topic);
         });
     }
 
@@ -119,15 +93,15 @@ export default class MqttClient implements ProtocolClient {
         const brokerUri = `${this.scheme}://${requestUri.host}`;
 
         if (this.client === undefined) {
-            this.client = mqtt.connect(brokerUri, this.config);
+            this.client = await mqtt.connectAsync(brokerUri, this.config);
         }
 
         // if not input was provided, set up an own body otherwise take input as body
         if (content === undefined) {
-            this.client.publish(topic, Buffer.from(""));
+            await this.client.publishAsync(topic, Buffer.from(""));
         } else {
             const buffer = await content.toBuffer();
-            this.client.publish(topic, buffer);
+            await this.client.publishAsync(topic, buffer);
         }
     }
 
@@ -137,17 +111,17 @@ export default class MqttClient implements ProtocolClient {
         const brokerUri = `${this.scheme}://${requestUri.host}`;
 
         if (this.client === undefined) {
-            this.client = mqtt.connect(brokerUri, this.config);
+            this.client = await mqtt.connectAsync(brokerUri, this.config);
         }
 
         // if not input was provided, set up an own body otherwise take input as body
         if (content === undefined) {
-            this.client.publish(topic, Buffer.from(""));
+            await this.client.publishAsync(topic, Buffer.from(""));
         } else {
             const buffer = await content.toBuffer();
-            this.client.publish(topic, buffer);
+            await this.client.publishAsync(topic, buffer);
         }
-        // there will bo no response
+        // there will be no response
         return new DefaultContent(Readable.from([]));
     }
 
@@ -156,7 +130,7 @@ export default class MqttClient implements ProtocolClient {
         const topic = requestUri.pathname.slice(1);
 
         if (this.client != null && this.client.connected) {
-            this.client.unsubscribe(topic);
+            await this.client.unsubscribeAsync(topic);
             debug(`MqttClient unsubscribed from topic '${topic}'`);
         }
     }
@@ -173,7 +147,7 @@ export default class MqttClient implements ProtocolClient {
     }
 
     public async stop(): Promise<void> {
-        if (this.client) this.client.end();
+        if (this.client) return this.client.endAsync();
     }
 
     public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: MqttClientSecurityParameters): boolean {
@@ -195,7 +169,7 @@ export default class MqttClient implements ProtocolClient {
         return true;
     }
 
-    private mapQoS(qos: MqttQoS): QoS {
+    private mapQoS(qos: MqttQoS): Required<IClientPublishOptions>["qos"] {
         switch (qos) {
             case 2:
                 return (qos = 2);
