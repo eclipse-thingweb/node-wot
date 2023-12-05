@@ -20,12 +20,12 @@
 import { ProtocolClient, Content, DefaultContent, createLoggers, ContentSerdes } from "@node-wot/core";
 import * as TD from "@node-wot/td-tools";
 import * as mqtt from "mqtt";
-import { MqttClientConfig, MqttForm, MqttQoS } from "./mqtt";
+import { MqttClientConfig, MqttForm } from "./mqtt";
 import * as url from "url";
 import { Subscription } from "rxjs/Subscription";
 import { Readable } from "stream";
-import { IClientPublishOptions } from "mqtt";
 import MQTTMessagePool from "./mqtt-message-pool";
+import { mapQoS } from "./util";
 
 const { debug, warn } = createLoggers("binding-mqtt", "mqtt-client");
 
@@ -130,7 +130,7 @@ export default class MqttClient implements ProtocolClient {
         const buffer = content === undefined ? Buffer.from("") : await content.toBuffer();
         await pool.publish(topic, buffer, {
             retain: form["mqv:retain"],
-            qos: this.mapQoS(form["mqv:qos"]),
+            qos: mapQoS(form["mqv:qos"]),
         });
     }
 
@@ -152,7 +152,7 @@ export default class MqttClient implements ProtocolClient {
         const buffer = content === undefined ? Buffer.from("") : await content.toBuffer();
         await pool.publish(topic, buffer, {
             retain: form["mqv:retain"],
-            qos: this.mapQoS(form["mqv:qos"]),
+            qos: mapQoS(form["mqv:qos"]),
         });
         // there will be no response
         return new DefaultContent(Readable.from([]));
@@ -205,22 +205,5 @@ export default class MqttClient implements ProtocolClient {
             }
         }
         return true;
-    }
-
-    private mapQoS(qos: MqttQoS | undefined): Required<IClientPublishOptions>["qos"] {
-        switch (qos) {
-            case "0":
-                return 0;
-            case "1":
-                return 1;
-            case "2":
-                return 2;
-            case undefined:
-                return 0;
-            default:
-                warn(`MqttClient received unsupported QoS level '${qos}'`);
-                warn(`MqttClient falling back to QoS level '0'`);
-                return 0;
-        }
     }
 }

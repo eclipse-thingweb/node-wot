@@ -24,7 +24,7 @@ import { AuthenticateError, Client, Server, Aedes } from "aedes";
 import * as net from "net";
 import * as tls from "tls";
 import * as TD from "@node-wot/td-tools";
-import { MqttBrokerServerConfig } from "./mqtt";
+import { MqttBrokerServerConfig, MqttForm } from "./mqtt";
 import {
     ProtocolServer,
     Servient,
@@ -37,6 +37,7 @@ import {
 import { InteractionOptions } from "wot-typescript-definitions";
 import { ActionElement, PropertyElement } from "wot-thing-description-types";
 import { Readable } from "stream";
+import { mapQoS } from "./util";
 
 const { info, debug, error, warn } = createLoggers("binding-mqtt", "mqtt-broker-server");
 
@@ -196,7 +197,8 @@ export default class MqttBrokerServer implements ProtocolServer {
         const event = thing.events[eventName];
 
         const href = this.brokerURI + "/" + topic;
-        const form = new TD.Form(href, ContentSerdes.DEFAULT);
+        const form = new MqttForm(href, ContentSerdes.DEFAULT);
+        form["mqv:qos"] = "2";
         form.op = ["subscribeevent", "unsubscribeevent"];
         event.forms.push(form);
         debug(`MqttBrokerServer at ${this.brokerURI} assigns '${href}' to Event '${eventName}'`);
@@ -214,7 +216,7 @@ export default class MqttBrokerServer implements ProtocolServer {
             }
             debug(`MqttBrokerServer at ${this.brokerURI} publishing to Event topic '${eventName}' `);
             const buffer = await content.toBuffer();
-            this.broker.publish(topic, buffer);
+            this.broker.publish(topic, buffer, { retain: form["mqv:retain"], qos: mapQoS(form["mqv:qos"]) });
         };
         thing.handleSubscribeEvent(eventName, eventListener, { formIndex: event.forms.length - 1 });
     }
