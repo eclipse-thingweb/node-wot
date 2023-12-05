@@ -13,20 +13,15 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { Servient, Helpers } from "@node-wot/core";
+import { Servient } from "@node-wot/core";
 import { CoapClientFactory } from "@node-wot/binding-coap";
-import { ThingDescription } from "wot-typescript-definitions";
 
 // create Servient and add CoAP binding
 const servient = new Servient();
 servient.addClientFactory(new CoapClientFactory());
 
-const wotHelper = new Helpers(servient);
-wotHelper
-    .fetch("coap://plugfest.thingweb.io:5683/testthing")
-    .then(async (fetched) => {
-        const td: ThingDescription = fetched as ThingDescription;
-        // using await for serial execution (note 'async' in then() of fetch())
+WoT.requestThingDescription("coap://plugfest.thingweb.io:5683/testthing")
+    .then(async (td) => {
         try {
             const WoT = await servient.start();
             const thing = await WoT.consume(td);

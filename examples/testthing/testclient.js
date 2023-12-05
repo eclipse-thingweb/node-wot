@@ -39,9 +39,8 @@ async function testPropertyWrite(thing, name, value, shouldFail) {
         else console.info("PASS " + name + " WRITE (" + displayValue + "):", JSON.stringify(err));
     }
 }
-WoTHelpers.fetch("http://localhost:8080/testthing")
+WoT.requestThingDescription("http://localhost:8080/testthing")
     .then(async (td) => {
-        // using await for serial execution (note 'async' in then() of fetch())
         try {
             const thing = await WoT.consume(td);
             console.info("=== TD ===");

@@ -13,10 +13,6 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { Helpers } from "@node-wot/core";
-import { ThingDescription } from "wot-typescript-definitions";
-let WoTHelpers!: Helpers;
-
 console.log = () => {
     /* empty */
 };
@@ -51,11 +47,10 @@ async function testPropertyWrite(
     }
 }
 
-WoTHelpers.fetch("http://localhost:8080/testthing")
+WoT.requestThingDescription("http://localhost:8080/testthing")
     .then(async (td) => {
-        // using await for serial execution (note 'async' in then() of fetch())
         try {
-            const thing = await WoT.consume(td as ThingDescription);
+            const thing = await WoT.consume(td);
             console.info("=== TD ===");
             console.info(td);
             console.info("==========");
