@@ -180,14 +180,13 @@ Now supposing you want to interact with the device, you have to consume its Thin
 ```JavaScript
 // client.js
 // Required steps to create a servient for a client
-const { Servient, Helpers } = require("@node-wot/core");
+const { Servient } = require("@node-wot/core");
 const { HttpClientFactory } = require('@node-wot/binding-http');
 
 const servient = new Servient();
 servient.addClientFactory(new HttpClientFactory(null));
-const WoTHelpers = new Helpers(servient);
 
-WoTHelpers.fetch("http://localhost:8080/counter").then(async (td) => {
+WoT.requestThingDescription("http://localhost:8080/counter").then(async (td) => {
     try {
         const WoT = await servient.start();
         // Then from here on you can consume the thing

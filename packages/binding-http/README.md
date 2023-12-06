@@ -29,17 +29,12 @@ The Thing Description is located under the following uri <http://plugfest.thingw
 Servient = require("@node-wot/core").Servient;
 HttpClientFactory = require("@node-wot/binding-http").HttpClientFactory;
 
-Helpers = require("@node-wot/core").Helpers;
-
 // create Servient and add HTTP binding
 let servient = new Servient();
 servient.addClientFactory(new HttpClientFactory(null));
 
-let wotHelper = new Helpers(servient);
-wotHelper
-    .fetch("http://plugfest.thingweb.io:8083/testthing")
+WoT.requestThingDescription("http://plugfest.thingweb.io:8083/testthing")
     .then(async (td) => {
-        // using await for serial execution (note 'async' in then() of fetch())
         try {
             const WoT = await servient.start();
             const thing = await WoT.consume(td);
