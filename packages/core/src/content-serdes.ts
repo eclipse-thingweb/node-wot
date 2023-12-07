@@ -63,6 +63,7 @@ export class ContentSerdes {
             this.instance.addCodec(new JsonCodec(), true);
             this.instance.addCodec(new JsonCodec("application/senml+json"));
             this.instance.addCodec(new JsonCodec("application/td+json"));
+            this.instance.addCodec(new JsonCodec("application/ld+json"));
             // CBOR
             this.instance.addCodec(new CborCodec(), true);
             // Text
