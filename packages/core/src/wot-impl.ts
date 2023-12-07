@@ -22,8 +22,59 @@ import Helpers from "./helpers";
 import { createLoggers } from "./logger";
 import ContentManager from "./content-serdes";
 import { ErrorObject } from "ajv";
+import { ThingDescription } from "wot-thing-description-types";
 
 const { debug } = createLoggers("core", "wot-impl");
+
+// @ts-expect-error Typescript currently encounters an error here that *should* be a false positve
+class ExploreDirectoryDatasource implements UnderlyingDefaultSource<WoT.ThingDescription> {
+    constructor(rawThingDescriptions: WoT.DataSchemaValue) {
+        this.rawThingDescriptions = rawThingDescriptions;
+    }
+
+    rawThingDescriptions: WoT.DataSchemaValue;
+
+    start(controller: ReadableStreamDefaultController<WoT.ThingDescription>) {
+        if (!(this.rawThingDescriptions instanceof Array)) {
+            controller.error(new Error("Encountered an invalid output value."));
+            controller.close();
+            return;
+        }
+
+        for (const outputValue of this.rawThingDescriptions) {
+            // TODO: Add validation
+            controller.enqueue(outputValue as WoT.ThingDescription);
+        }
+
+        controller.close();
+    }
+}
+
+class ThingDiscoveryProcess implements WoT.ThingDiscoveryProcess {
+    constructor(thingDescriptionStream: ReadableStream<ThingDescription>, filter?: WoT.ThingFilter) {
+        this.filter = filter;
+        this.done = false;
+        this.thingDescriptionStream = thingDescriptionStream;
+    }
+
+    thingDescriptionStream: ReadableStream<WoT.ThingDescription>;
+
+    filter?: WoT.ThingFilter | undefined;
+    done: boolean;
+    error?: Error | undefined;
+    async stop(): Promise<void> {
+        await this.thingDescriptionStream.cancel();
+        this.done = true;
+    }
+
+    async *[Symbol.asyncIterator](): AsyncIterator<WoT.ThingDescription> {
+        // @ts-expect-error Typescript currently encounters an error here that *should* be a false positve
+        for await (const thingDescription of this.thingDescriptionStream) {
+            yield thingDescription;
+        }
+        this.done = true;
+    }
+}
 
 export default class WoTImpl {
     private srv: Servient;
@@ -38,7 +89,15 @@ export default class WoTImpl {
 
     /** @inheritDoc */
     async exploreDirectory(url: string, filter?: WoT.ThingFilter): Promise<WoT.ThingDiscoveryProcess> {
-        throw new Error("not implemented");
+        const directoyThingDescription = await this.requestThingDescription(url);
+        const consumedDirectoy = await this.consume(directoyThingDescription);
+
+        const thingsPropertyOutput = await consumedDirectoy.readProperty("things");
+        const rawThingDescriptions = await thingsPropertyOutput.value();
+        const thingDescriptionDataSource = new ExploreDirectoryDatasource(rawThingDescriptions);
+
+        const thingDescriptionStream = new ReadableStream(thingDescriptionDataSource);
+        return new ThingDiscoveryProcess(thingDescriptionStream, filter);
     }
 
     /** @inheritDoc */
