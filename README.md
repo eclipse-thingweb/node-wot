@@ -186,20 +186,15 @@ const { HttpClientFactory } = require('@node-wot/binding-http');
 const servient = new Servient();
 servient.addClientFactory(new HttpClientFactory(null));
 
-WoT.requestThingDescription("http://localhost:8080/counter").then(async (td) => {
-    try {
-        const WoT = await servient.start();
-        // Then from here on you can consume the thing
-        let thing = await WoT.consume(td);
-        thing.observeProperty("count", async (data) => { console.log("count:", await data.value()); });
-        for (let i = 0; i < 5; i++) {
-            await thing.invokeAction("increment");
-        }
+servient.start().then(async (WoT) => {
+    const td = await WoT.requestThingDescription("http://localhost:8080/counter");
+    // Then from here on you can consume the thing
+    let thing = await WoT.consume(td);
+    thing.observeProperty("count", async (data) => { console.log("count:", await data.value()); });
+    for (let i = 0; i < 5; i++) {
+        await thing.invokeAction("increment");
     }
-    catch (err) {
-        console.error("Script error:", err);
-    }
-}).catch((err) => { console.error("Fetch error:", err); });
+}).catch((err) => { console.error("Error:", err); });
 ```
 
 If you execute both scripts you will see `count: ${count}` printed 5 times. We host a more complex version of this example at [http://plugfest.thingweb.io/examples/counter.html](http://plugfest.thingweb.io/examples/counter.html) and you can find the source code in the [counter example](./examples/browser) folder. You can also find more examples in the [examples folder](./examples/scripts) for JavaScript and in the [examples folder](./packages/examples/) for TypeScript. Finally, for your convenience, we host a set of online Things that you can use to test your applications. You can find more information about them in the [Online Things](#online-things) section.
