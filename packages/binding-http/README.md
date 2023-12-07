@@ -33,10 +33,11 @@ HttpClientFactory = require("@node-wot/binding-http").HttpClientFactory;
 let servient = new Servient();
 servient.addClientFactory(new HttpClientFactory(null));
 
-WoT.requestThingDescription("http://plugfest.thingweb.io:8083/testthing")
-    .then(async (td) => {
+servient
+    .start()
+    .then(async (WoT) => {
         try {
-            const WoT = await servient.start();
+            const td = await WoT.requestThingDescription("http://plugfest.thingweb.io:8083/testthing");
             const thing = await WoT.consume(td);
 
             // read property
@@ -47,7 +48,7 @@ WoT.requestThingDescription("http://plugfest.thingweb.io:8083/testthing")
         }
     })
     .catch((err) => {
-        console.error("Fetch error:", err);
+        console.error("Start error:", err);
     });
 ```
 
