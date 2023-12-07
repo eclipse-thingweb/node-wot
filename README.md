@@ -194,7 +194,7 @@ servient.start().then(async (WoT) => {
     for (let i = 0; i < 5; i++) {
         await thing.invokeAction("increment");
     }
-}).catch((err) => { console.error("Error:", err); });
+}).catch((err) => { console.error(err); });
 ```
 
 If you execute both scripts you will see `count: ${count}` printed 5 times. We host a more complex version of this example at [http://plugfest.thingweb.io/examples/counter.html](http://plugfest.thingweb.io/examples/counter.html) and you can find the source code in the [counter example](./examples/browser) folder. You can also find more examples in the [examples folder](./examples/scripts) for JavaScript and in the [examples folder](./packages/examples/) for TypeScript. Finally, for your convenience, we host a set of online Things that you can use to test your applications. You can find more information about them in the [Online Things](#online-things) section.
