@@ -20,10 +20,11 @@ import { CoapClientFactory } from "@node-wot/binding-coap";
 const servient = new Servient();
 servient.addClientFactory(new CoapClientFactory());
 
-WoT.requestThingDescription("coap://plugfest.thingweb.io:5683/testthing")
-    .then(async (td) => {
+servient
+    .start()
+    .then(async (WoT) => {
         try {
-            const WoT = await servient.start();
+            const td = await WoT.requestThingDescription("coap://plugfest.thingweb.io:5683/testthing");
             const thing = await WoT.consume(td);
 
             // read property
@@ -34,5 +35,5 @@ WoT.requestThingDescription("coap://plugfest.thingweb.io:5683/testthing")
         }
     })
     .catch((err) => {
-        console.error("Fetch error:", err);
+        console.error("Start error:", err);
     });
