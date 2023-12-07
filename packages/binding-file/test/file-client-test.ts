@@ -18,7 +18,7 @@ import { Content, ContentSerdes } from "@node-wot/core";
 import FileClient from "../src/file-client";
 import { Form } from "@node-wot/td-tools";
 import { expect } from "chai";
-import { unlink } from "fs";
+import { promises as asyncFs } from "fs";
 import { fileURLToPath } from "node:url";
 
 const jsonValue = {
@@ -89,7 +89,7 @@ describe("File Client Implementation", () => {
                 const readValue = ContentSerdes.get().contentToValue(readContent, {});
                 expect(readValue).to.deep.eq(originalValue);
 
-                unlink(filePath, () => {});
+                await asyncFs.unlink(filePath);
             });
         }
     }
