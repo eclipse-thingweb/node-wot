@@ -435,6 +435,12 @@ export default class CoapServer implements ProtocolServer {
     }
 
     private async handleRequest(req: IncomingMessage, res: OutgoingMessage) {
+        if (req.rsinfo.port === 0) {
+            // Ignore requests with an invalid source port
+            // See https://github.com/eclipse-thingweb/node-wot/issues/1182
+            return;
+        }
+
         const origin = this.formatRequestOrigin(req);
 
         debug(
