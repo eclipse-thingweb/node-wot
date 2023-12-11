@@ -48,8 +48,12 @@ jobs:
                   sudo echo "127.0.0.1" `hostname` | sudo tee -a /etc/hosts
 
             - name: Test with coverage report
-              run: npm run coverage:only
-              timeout-minutes: 10
+              uses: nick-fields/retry@v2
+              with:
+                  timeout_minutes: 10
+                  max_attempts: 2
+                  command: npm run coverage:only
+                  new_command_on_retry: DEBUG=node-wot* npm run coverage:only
 
             - name: Upload to codecov.io
               uses: codecov/codecov-action@v2
