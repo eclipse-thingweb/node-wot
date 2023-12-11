@@ -53,7 +53,7 @@ jobs:
                   timeout_minutes: 10
                   max_attempts: 2
                   command: npm run coverage:only
-                  # Rerun with debug logging enabled, but always fail the retry
+                  # Rerun with debug logging enabled on error, but always fail the retry
                   new_command_on_retry: |
                       DEBUG=node-wot* npm run test:only
                       exit 1
