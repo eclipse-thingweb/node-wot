@@ -26,9 +26,8 @@ function getFormIndexForDecrementWithCoAP(thing) {
     // return formIndex: 0 if no CoAP target IRI found
     return 0;
 }
-WoTHelpers.fetch("coap://localhost:5683/counter")
+WoT.requestThingDescription("coap://localhost:5683/counter")
     .then(async (td) => {
-        // using await for serial execution (note 'async' in then() of fetch())
         try {
             const thing = await WoT.consume(td);
             console.info("=== TD ===");

@@ -26,20 +26,18 @@ The Thing Description is located under the following CoAP URI `coap://plugfest.t
 
 ```js
 // example-client.js
-const { Servient, Helpers } = require("@node-wot/core");
+const { Servient } = require("@node-wot/core");
 const { CoapClientFactory } = require("@node-wot/binding-coap");
 
 // create Servient and add CoAP binding
 const servient = new Servient();
 servient.addClientFactory(new CoapClientFactory());
 
-const wotHelper = new Helpers(servient);
-wotHelper
-    .fetch("coap://plugfest.thingweb.io:5683/testthing")
-    .then(async (td) => {
-        // using await for serial execution (note 'async' in then() of fetch())
+servient
+    .start()
+    .then(async (WoT) => {
         try {
-            const WoT = await servient.start();
+            const td = await WoT.requestThingDescription("coap://plugfest.thingweb.io:5683/testthing");
             const thing = await WoT.consume(td);
 
             // read property
@@ -50,7 +48,7 @@ wotHelper
         }
     })
     .catch((err) => {
-        console.error("Fetch error:", err);
+        console.error("Start error:", err);
     });
 ```
 

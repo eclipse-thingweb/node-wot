@@ -245,7 +245,7 @@ Interacting with another WoT Thing is called consuming a Thing and works by usin
 ##### Fetch a Thing Description of a Thing given its URL
 
 ```javascript
-WoTHelpers.fetch("http://localhost:8080/counter").then(async(td) => {
+WoT.requestThingDescription("http://localhost:8080/counter").then(async(td) => {
   // Do something with the TD
 }
 ```
@@ -255,13 +255,13 @@ URLs can have various schemes, including `file://` to read from the local filesy
 ##### Consume a TD of a Thing, including parsing the TD and generating the protocol bindings in order to access lower level functionality
 
 ```javascript
-WoTHelpers.fetch("http://localhost:8080/counter").then(async (td) => {
+WoT.requestThingDescription("http://localhost:8080/counter").then(async (td) => {
     let thing = WoT.consume(td);
     // Do something with the consumed Thing
 });
 ```
 
-Things can be `consume`d no matter if they were fetched with WoTHelpers or not.
+Things can be `consume`d no matter if they were fetched with `WoT.requestThingDescription()`, `WoTHelpers.fetch()` or any other mean.
 `consume` only requires a TD as an `Object`, so you could also use `fs.readFile` and `JSON.parse` or inline it into your code.
 As long at it results in a TD Object, you can receive it over Fax, Morse it or use smoke signals.
 
@@ -298,10 +298,10 @@ It is an asynchronous function that will take some time to complete.
 So you should handle it explicitly.
 Here we use the `async`/`await` functionality of NodeJS.
 
-Declare the surrounding function as `async`, e.g., the `WoTHelpers.fetch()` resolve handler:
+Declare the surrounding function as `async`, e.g., the `WoT.requestThingDescription()` resolve handler:
 
 ```javascript
-WoTHelpers.fetch(myURI).then(async(td) => { ... });
+WoT.requestThingDescription(myURI).then(async(td) => { ... });
 ```
 
 Use `await` to make Promises synchronous (blocking):

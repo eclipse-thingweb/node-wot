@@ -12,7 +12,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-WoTHelpers.fetch("https://localhost:8080/oauth").then((td) => {
+WoT.requestThingDescription("https://localhost:8080/oauth").then((td) => {
     WoT.consume(td).then(async (thing) => {
         try {
             const resp = await thing.invokeAction("sayOk");
