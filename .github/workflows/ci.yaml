@@ -53,7 +53,9 @@ jobs:
                   timeout_minutes: 10
                   max_attempts: 2
                   command: npm run coverage:only
-                  new_command_on_retry: DEBUG=node-wot* npm run coverage:only
+                  new_command_on_retry: |
+                      DEBUG=node-wot* npm run coverage:only
+                      exit 1
 
             - name: Upload to codecov.io
               uses: codecov/codecov-action@v2
