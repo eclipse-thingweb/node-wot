@@ -648,24 +648,27 @@ class SerdesOctetTests {
             "application/octet-stream"
         );
         body = await content.toBuffer();
-        expect(body).to.deep.equal(Buffer.from([0x57, 0x65, 0x62]));
+        // Web is 57 65 62 in hex and 01010111 01100101 01100010 in binary
+        // with offset 1 -> 00101011 10110010 10110001 000000000
+        expect(body).to.deep.equal(Buffer.from([0x2b, 0xb2, 0xb1, 0x00]));
 
         content = ContentSerdes.valueToContent(
             { flag1: true, flag2: false, numberProperty: 99, stringProperty: "Web" },
             {
                 type: "object",
                 properties: {
-                    flag1: { type: "boolean", "ex:bitOffset": 8, "ex:bitLength": 1 },
-                    flag2: { type: "boolean", "ex:bitOffset": 9, "ex:bitLength": 1 },
-                    numberProperty: { type: "integer", "ex:bitOffset": 10, "ex:bitLength": 7 },
-                    stringProperty: { type: "string", "ex:bitOffset": 17, "ex:bitLength": 23 },
+                    flag1: { type: "boolean", "ex:bitOffset": 7, "ex:bitLength": 1 },
+                    flag2: { type: "boolean", "ex:bitOffset": 8, "ex:bitLength": 1 },
+                    numberProperty: { type: "integer", "ex:bitOffset": 9, "ex:bitLength": 7 },
+                    stringProperty: { type: "string", "ex:bitOffset": 16, "ex:bitLength": 24 },
                 },
-                "ex:bitLength": 40,
             },
-            "application/octet-stream;signed=false;"
+            "application/octet-stream;length=5;signed=false;"
         );
         body = await content.toBuffer();
-        expect(body).to.deep.equal(Buffer.from([0x00, 0xb1, 0xd7, 0x65, 0x62]));
+        // properties are: true -> 1, false -> 0, 90 -> 1100011, Web -> 01010111 01100101 01100010
+        // resulting bits should be 00000001 01100011 01010111 01100101 01100010
+        expect(body).to.deep.equal(Buffer.from([0x01, 0x63, 0x57, 0x65, 0x62]));
 
         const longString =
             "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.";
@@ -678,7 +681,7 @@ class SerdesOctetTests {
                 },
                 "ex:bitLength": 1704,
             },
-            "application/octet-stream"
+            "application/octet-stream;length=213;"
         );
         body = await content.toBuffer();
         expect(body).to.deep.equal(Buffer.concat([Buffer.from([0x00]), Buffer.from(longString)]));
@@ -732,7 +735,7 @@ class SerdesOctetTests {
                 },
                 "ex:bitLength": 3,
             },
-            "application/octet-stream"
+            "application/octet-stream;length=1;"
         );
         body = await content.toBuffer();
         expect(body).to.deep.equal(Buffer.from([0xc0]));
@@ -787,7 +790,7 @@ class SerdesOctetTests {
                 },
                 "application/octet-stream"
             )
-        ).to.throw(Error, "Missing 'ex:bitLength' property in schema");
+        ).to.throw(Error, "Missing 'length' parameter necessary for write");
         expect(() =>
             ContentSerdes.valueToContent(
                 { intProp: 42 },
@@ -797,16 +800,15 @@ class SerdesOctetTests {
                         intProp: { type: "integer", "ex:bitOffset": 0, "ex:bitLength": 8 },
                         stringProp: { type: "string", "ex:bitOffset": 8, "ex:bitLength": 8 },
                     },
-                    "ex:bitLength": 16,
                 },
-                "application/octet-stream"
+                "application/octet-stream;length=2;"
             )
         ).to.throw(Error, "Missing property 'stringProp'");
         expect(() =>
             ContentSerdes.valueToContent(
                 undefined as unknown as DataSchemaValue,
                 { type: "int8" },
-                "application/octet-stream"
+                "application/octet-stream;length=1;"
             )
         ).to.throw(Error, "Undefined value");
         expect(() => ContentSerdes.valueToContent(10, {}, "application/octet-stream")).to.throw(

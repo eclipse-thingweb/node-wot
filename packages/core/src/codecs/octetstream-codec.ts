@@ -62,7 +62,10 @@ export default class OctetstreamCodec implements ContentCodec {
         const bigEndian = !(parameters.byteSeq?.includes(Endianness.LITTLE_ENDIAN) === true); // default to big endian
         let signed = parameters.signed !== "false"; // default to signed
         const offset = schema?.["ex:bitOffset"] !== undefined ? parseInt(schema["ex:bitOffset"]) : 0;
-        let dataLength: number =
+        if (parameters.length != null && parseInt(parameters.length) !== bytes.length) {
+            throw new Error("Lengths do not match, required: " + parameters.length + " provided: " + bytes.length);
+        }
+        let bitLength: number =
             schema?.["ex:bitLength"] !== undefined ? parseInt(schema["ex:bitLength"]) : bytes.length * 8;
         let dataType: string = schema?.type;
 
@@ -85,17 +88,17 @@ export default class OctetstreamCodec implements ContentCodec {
                     signed = false;
                 }
                 dataType = typeSem[2];
-                if (parseInt(typeSem[3]) !== dataLength) {
+                if (parseInt(typeSem[3]) !== bitLength) {
                     throw new Error(
-                        `Type is '${(typeSem[1] ?? "") + typeSem[2] + typeSem[3]}' but 'ex:bitLength' is ` + dataLength
+                        `Type is '${(typeSem[1] ?? "") + typeSem[2] + typeSem[3]}' but 'ex:bitLength' is ` + bitLength
                     );
                 }
             }
         }
 
-        if (dataLength > bytes.length * 8 - offset) {
+        if (bitLength > bytes.length * 8 - offset) {
             throw new Error(
-                `'ex:bitLength' is ${dataLength}, but buffer length at offset ${offset} is ${bytes.length * 8 - offset}`
+                `'ex:bitLength' is ${bitLength}, but buffer length at offset ${offset} is ${bytes.length * 8 - offset}`
             );
         }
 
@@ -104,9 +107,9 @@ export default class OctetstreamCodec implements ContentCodec {
             bytes.swap16();
         }
 
-        if (offset !== undefined && dataLength < bytes.length * 8) {
-            bytes = this.readBits(bytes, offset, dataLength);
-            dataLength = bytes.length * 8;
+        if (offset !== undefined && bitLength < bytes.length * 8) {
+            bytes = this.readBits(bytes, offset, bitLength);
+            bitLength = bytes.length * 8;
         }
 
         // determine return type
@@ -118,11 +121,11 @@ export default class OctetstreamCodec implements ContentCodec {
             case "short":
             case "int":
             case "integer":
-                return this.integerToValue(bytes, { dataLength, bigEndian, signed });
+                return this.integerToValue(bytes, { dataLength: bitLength, bigEndian, signed });
             case "float":
             case "double":
             case "number":
-                return this.numberToValue(bytes, { dataLength, bigEndian });
+                return this.numberToValue(bytes, { dataLength: bitLength, bigEndian });
             case "string":
                 return bytes.toString(parameters.charset as BufferEncoding);
             case "object":
@@ -225,8 +228,10 @@ export default class OctetstreamCodec implements ContentCodec {
 
         const bigEndian = !(parameters.byteSeq?.includes(Endianness.LITTLE_ENDIAN) === true); // default to big endian
         let signed = parameters.signed !== "false"; // default to signed
+        // byte length of the buffer to be returned
+        let length = parameters.length != null ? parseInt(parameters.length) : undefined;
+        let bitLength = schema?.["ex:bitLength"] !== undefined ? parseInt(schema["ex:bitLength"]) : undefined;
         const offset = schema?.["ex:bitOffset"] !== undefined ? parseInt(schema["ex:bitOffset"]) : 0;
-        let dataLength = schema?.["ex:bitLength"] !== undefined ? parseInt(schema["ex:bitLength"]) : undefined;
         let dataType: string = schema?.type ?? undefined;
 
         if (value === undefined) {
@@ -252,28 +257,54 @@ export default class OctetstreamCodec implements ContentCodec {
                     signed = false;
                 }
                 dataType = typeSem[2];
-                if (dataLength !== undefined) {
-                    if (parseInt(typeSem[3]) !== dataLength) {
+                if (bitLength !== undefined) {
+                    if (parseInt(typeSem[3]) !== bitLength) {
                         throw new Error(
                             `Type is '${(typeSem[1] ?? "") + typeSem[2] + typeSem[3]}' but 'ex:bitLength' is ` +
-                                dataLength
+                                bitLength
                         );
                     }
                 } else {
-                    dataLength = +typeSem[3];
+                    bitLength = +typeSem[3];
+                }
+            }
+        }
+
+        // determine buffer length
+        if (length === undefined) {
+            if (bitLength !== undefined) {
+                length = Math.ceil((offset + bitLength) / 8);
+            }
+            warn("Missing 'length' parameter necessary for write. I'll do my best");
+        } else {
+            if (bitLength === undefined) {
+                bitLength = length * 8;
+            } else {
+                if (length * 8 < bitLength + offset) {
+                    throw new Error("Length is too short for 'ex:bitLength' and 'ex:bitOffset'");
                 }
             }
         }
 
         switch (dataType) {
             case "boolean":
-                return Buffer.alloc(dataLength ?? 1, value === true ? 255 : 0);
+                if (value === true) {
+                    // Write 1's to bits at offset to offset + bitLength
+                    const buf = Buffer.alloc(length ?? 1, 0);
+                    for (let i = offset; i < offset + (bitLength ?? buf.length * 8); ++i) {
+                        buf[Math.floor(i / 8)] |= 1 << (7 - (i % 8));
+                    }
+                    return buf;
+                } else {
+                    return Buffer.alloc(length ?? 1, 0);
+                }
             case "byte":
             case "short":
             case "int":
             case "integer":
                 return this.valueToInteger(value, {
-                    dataLength,
+                    bitLength,
+                    byteLength: length,
                     bigEndian,
                     offset,
                     signed,
@@ -281,10 +312,17 @@ export default class OctetstreamCodec implements ContentCodec {
                 });
             case "float":
             case "number":
-                return this.valueToNumber(value, { dataLength, bigEndian, offset, byteSeq: parameters.byteSeq ?? "" });
+                return this.valueToNumber(value, {
+                    bitLength,
+                    byteLength: length,
+                    bigEndian,
+                    offset,
+                    byteSeq: parameters.byteSeq ?? "",
+                });
             case "string": {
                 return this.valueToString(value, {
-                    dataLength,
+                    bitLength,
+                    byteLength: length,
                     offset,
                     charset: parameters.charset ?? "utf8",
                 });
@@ -309,17 +347,18 @@ export default class OctetstreamCodec implements ContentCodec {
     private valueToInteger(
         value: unknown,
         options: {
-            dataLength: number | undefined;
+            bitLength: number | undefined;
+            byteLength: number | undefined;
             offset: number | undefined;
             bigEndian: boolean;
             signed: boolean;
             byteSeq: string;
         }
     ): Buffer {
-        const length = options.dataLength ?? 32;
+        const length = options.bitLength ?? 32;
         const offset = options.offset ?? 0;
+        const byteLength = options.byteLength ?? Math.ceil((offset + length) / 8);
         const { bigEndian, signed, byteSeq } = options;
-        const byteLength = Math.ceil((offset + length) / 8);
 
         if (typeof value !== "number") {
             throw new Error("Value is not a number");
@@ -396,16 +435,22 @@ export default class OctetstreamCodec implements ContentCodec {
 
     private valueToNumber(
         value: unknown,
-        options: { dataLength: number | undefined; offset: number | undefined; bigEndian: boolean; byteSeq: string }
+        options: {
+            bitLength: number | undefined;
+            byteLength: number | undefined;
+            offset: number | undefined;
+            bigEndian: boolean;
+            byteSeq: string;
+        }
     ): Buffer {
         if (typeof value !== "number") {
             throw new Error("Value is not a number");
         }
 
-        const length = options.dataLength ?? 32;
+        const length = options.bitLength ?? (options.byteLength !== undefined ? options.byteLength * 8 : 32);
         const offset = options.offset ?? 0;
         const { bigEndian, byteSeq } = options;
-        const byteLength = Math.ceil((offset + length) / 8);
+        const byteLength = options.byteLength ?? Math.ceil((offset + length) / 8);
         const byteOffset = Math.floor(offset / 8);
         const buf = Buffer.alloc(byteLength);
 
@@ -438,7 +483,12 @@ export default class OctetstreamCodec implements ContentCodec {
 
     private valueToString(
         value: unknown,
-        options: { dataLength: number | undefined; offset: number | undefined; charset: string }
+        options: {
+            bitLength: number | undefined;
+            byteLength: number | undefined;
+            offset: number | undefined;
+            charset: string;
+        }
     ): Buffer {
         if (typeof value !== "string") {
             throw new Error("Value is not a string");
@@ -454,19 +504,19 @@ export default class OctetstreamCodec implements ContentCodec {
         }
 
         const buf = Buffer.from(str, charset);
-        const length = options.dataLength ?? buf.length * 8;
-        if (buf.length > length) {
-            throw new Error(`String is ${buf.length * 8} bits long, but 'ex:bitLength' is ${length}`);
+        const bitLength = options.bitLength ?? buf.length * 8;
+        if (buf.length > bitLength) {
+            throw new Error(`String is ${buf.length * 8} bits long, but 'ex:bitLength' is ${bitLength}`);
         }
 
         // write string to buffer at offset
-        const byteLength = Math.ceil((offset + length) / 8);
+        const byteLength = options.byteLength ?? Math.ceil((offset + bitLength) / 8);
         if (offset % 8 === 0) {
-            return Buffer.concat([Buffer.alloc(byteLength - length / 8), buf]);
+            return Buffer.concat([Buffer.alloc(byteLength - bitLength / 8), buf]);
         } else {
             const buffer = Buffer.alloc(byteLength);
-            this.copyBits(buf, buf.length * 8 - length, buffer, offset, length);
-            return buf;
+            this.copyBits(buf, 0, buffer, offset, bitLength);
+            return buffer;
         }
     }
 
@@ -480,11 +530,11 @@ export default class OctetstreamCodec implements ContentCodec {
             throw new Error("Value is not an object");
         }
 
-        if (schema["ex:bitLength"] === undefined) {
-            throw new Error("Missing 'ex:bitLength' property in schema");
+        if (parameters.length === undefined) {
+            throw new Error("Missing 'length' parameter necessary for write");
         }
 
-        result = result ?? Buffer.alloc(Math.ceil(schema["ex:bitLength"] / 8));
+        result = result ?? Buffer.alloc(parseInt(parameters.length));
         for (const propertyName in schema.properties) {
             if (Object.hasOwnProperty.call(value, propertyName) === false) {
                 throw new Error(`Missing property '${propertyName}'`);
@@ -497,9 +547,9 @@ export default class OctetstreamCodec implements ContentCodec {
             if (propertySchema.type === "object") {
                 buf = this.valueToObject(propertyValue, propertySchema, parameters, result);
             } else {
-                buf = this.valueToBytes(propertyValue, { ...propertySchema, "ex:bitOffset": 0 }, parameters);
+                buf = this.valueToBytes(propertyValue, propertySchema, parameters);
             }
-            this.copyBits(buf, buf.length * 8 - propertyLength, result, propertyOffset, propertyLength);
+            this.copyBits(buf, propertyOffset, result, propertyOffset, propertyLength);
         }
         return result;
     }
@@ -572,7 +622,7 @@ export default class OctetstreamCodec implements ContentCodec {
         bitLength: number
     ) {
         if (sourceBitOffset % 8 === 0 && targetBitOffset % 8 === 0 && bitLength % 8 === 0) {
-            source.copy(target, targetBitOffset / 8, sourceBitOffset, sourceBitOffset + bitLength);
+            source.copy(target, targetBitOffset / 8, sourceBitOffset / 8, sourceBitOffset + bitLength / 8);
         } else {
             const bits = this.readBits(source, sourceBitOffset, bitLength);
             if (bits.length <= 6) {
