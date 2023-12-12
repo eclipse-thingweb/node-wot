@@ -57,6 +57,7 @@ jobs:
                   new_command_on_retry: |
                       DEBUG=node-wot* npm run test:only
                       exit 1
+                  shell: bash
 
             - name: Upload to codecov.io
               uses: codecov/codecov-action@v2
