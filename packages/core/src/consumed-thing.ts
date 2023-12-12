@@ -675,7 +675,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
 
         const content = await client.invokeResource(form, input);
         // infer media type from form if not in response metadata
-        if (!content.type) content.type = form.contentType ?? "application/json";
+        content.type ??= form.contentType;
 
         // check if returned media type is the same as expected media type (from TD)
         if (form.response != null) {
@@ -725,8 +725,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
             formWithoutURITemplates,
             // next
             (content) => {
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- tsc get confused when nullables are to listeners lambdas
-                if (!content.type) content.type = form!.contentType ?? "application/json";
+                content.type ??= form.contentType;
                 try {
                     listener(new InteractionOutput(content, form, tp));
                 } catch (e) {
@@ -782,8 +781,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         await client.subscribeResource(
             formWithoutURITemplates,
             (content) => {
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- tsc get confused when nullables are to listeners lambdas
-                if (!content.type) content.type = form!.contentType ?? "application/json";
+                content.type ??= form.contentType;
                 try {
                     listener(new InteractionOutput(content, form, te.data));
                 } catch (e) {
