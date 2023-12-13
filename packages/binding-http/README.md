@@ -26,11 +26,11 @@ The Thing Description is located under the following uri <http://plugfest.thingw
 
 ```js
 // example-client.js
-Servient = require("@node-wot/core").Servient;
-HttpClientFactory = require("@node-wot/binding-http").HttpClientFactory;
+const { Servient } = require("@node-wot/core");
+const { HttpClientFactory } = require("@node-wot/binding-http");
 
 // create Servient and add HTTP binding
-let servient = new Servient();
+const servient = new Servient();
 servient.addClientFactory(new HttpClientFactory(null));
 
 servient
@@ -60,13 +60,11 @@ The server example produces a thing that allows for setting a property `count`. 
 
 ```js
 // example-server.js
-Servient = require("@node-wot/core").Servient;
-HttpServer = require("@node-wot/binding-http").HttpServer;
-
-Helpers = require("@node-wot/core").Helpers;
+const { Servient } = require("@node-wot/core");
+const { HttpServer } = require("@node-wot/binding-http");
 
 // create Servient add HTTP binding with port configuration
-let servient = new Servient();
+const servient = new Servient();
 servient.addServer(
     new HttpServer({
         port: 8081, // (default 8080)
@@ -110,13 +108,11 @@ The _secure_ server example shows how to add credentials and how to set up HTTPS
 
 ```js
 // example-server-secure.js
-Servient = require("@node-wot/core").Servient;
-HttpServer = require("@node-wot/binding-http").HttpServer;
-
-Helpers = require("@node-wot/core").Helpers;
+const { Servient } = require("@node-wot/core");
+const { HttpServer } = require("@node-wot/binding-http");
 
 // create secure Servient with username & password credentials
-let servient = new Servient();
+const servient = new Servient();
 servient.addCredentials({
     "urn:dev:wot:org:eclipse:thingweb:my-example-secure": {
         username: "node-wot",
@@ -124,7 +120,7 @@ servient.addCredentials({
         // token: "1/mZ1edKKACtPAb7zGlwSzvs72PvhAbGmB8K1ZrGxpcNM"
     },
 });
-let httpConfig = {
+const httpConfig = {
     allowSelfSigned: true, // client configuration
     serverKey: "privatekey.pem",
     serverCert: "certificate.pem",
