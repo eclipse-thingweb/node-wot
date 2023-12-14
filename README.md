@@ -142,8 +142,8 @@ With node-wot you can create server-side Things, in WoT jargon we call this oper
 
 ```JavaScript
 // Required steps to create a servient for creating a thing
-const Servient = require('@node-wot/core').Servient;
-const HttpServer = require('@node-wot/binding-http').HttpServer;
+const { Servient } = require("@node-wot/core");
+const { HttpServer } = require("@node-wot/binding-http");
 
 const servient = new Servient();
 servient.addServer(new HttpServer());
@@ -181,7 +181,7 @@ Now supposing you want to interact with the device, you have to consume its Thin
 // client.js
 // Required steps to create a servient for a client
 const { Servient } = require("@node-wot/core");
-const { HttpClientFactory } = require('@node-wot/binding-http');
+const { HttpClientFactory } = require("@node-wot/binding-http");
 
 const servient = new Servient();
 servient.addClientFactory(new HttpClientFactory(null));
@@ -337,8 +337,7 @@ export interface ContentCodec {
 Finally you can add to your servient the new codec as follows:
 
 ```JavaScript
-const ContentSerdes = require('@node-wot/core').ContentSerdes
-const JsonCodec = require('@node-wot/core').JsonCodec
+const { ContentSerdes, JsonCodec } = require("@node-wot/core");
 
 // e.g., assign built-in codec for *new* contentType
 const cs = ContentSerdes.get();

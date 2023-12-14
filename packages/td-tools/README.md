@@ -18,23 +18,22 @@ The example parses a TD and also serializes yet another newly created TD.
 
 ```
 // example.js
-TDTools = require("@node-wot/td-tools");
-Thing = require("@node-wot/td-tools").Thing;
-
+const TDTools = require("@node-wot/td-tools");
+const { Thing } = require("@node-wot/td-tools");
 
 // parse TD
-let tdString = JSON.stringify({
+const tdString = JSON.stringify({
     id : "123",
     title: "MyThing"
 });
-let dd = TDTools.parseTD(tdString);
+const dd = TDTools.parseTD(tdString);
 console.log("**** PARSED TD ****");
 console.log(dd);
 console.log("****");
 
 
 // init Thing and serialize to TD
-let thing = new Thing();
+const thing = new Thing();
 thing.id = "789";
 thing["@type"] = "Thing";
 thing.support = "foo@example.com"
@@ -43,7 +42,7 @@ thing.properties = {
         type: "integer"
     }
 }
-let tdString2 = TDTools.serializeTD(thing);
+const tdString2 = TDTools.serializeTD(thing);
 console.log("**** SERIALIZED TD ****");
 console.log(tdString2);
 console.log("****");

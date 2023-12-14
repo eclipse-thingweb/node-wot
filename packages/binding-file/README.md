@@ -21,9 +21,9 @@ The example tries to load an internal TestThing TD and reads the `fileContent` p
 `node example1.js`
 
 ```js
-// example.js1
-const Servient = require("@node-wot/core").Servient;
-const FileClientFactory = require("@node-wot/binding-file").FileClientFactory;
+// example1.js
+const { Servient } = require("@node-wot/core");
+const { FileClientFactory } = require("@node-wot/binding-file");
 
 // create Servient and add File binding
 const servient = new Servient();
@@ -81,8 +81,8 @@ The example tries to load a locally stored TestThing TD and reads the `fileConte
 
 ```js
 // example2.js
-const Servient = require("@node-wot/core").Servient;
-const FileClientFactory = require("@node-wot/binding-file").FileClientFactory;
+const { Servient } = require("@node-wot/core");
+const { FileClientFactory } = require("@node-wot/binding-file");
 
 // create Servient and add File binding
 const servient = new Servient();

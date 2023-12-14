@@ -26,11 +26,11 @@ In addition, the Thing subscribes to the `resetCounter` topic (via its action ha
 it can handle requests to reset the counter value.
 
 ```js
-Servient = require("@node-wot/core").Servient;
-MqttBrokerServer = require("@node-wot/binding-mqtt").MqttBrokerServer;
+const { Servient } = require("@node-wot/core");
+const { MqttBrokerServer } = require("@node-wot/binding-mqtt");
 
 // create Servient add MQTT binding
-let servient = new Servient();
+const servient = new Servient();
 servient.addServer(new MqttBrokerServer({ uri: "mqtt://test.mosquitto.org" }));
 
 servient.start().then((WoT) => {
@@ -111,17 +111,15 @@ The Thing Description corresponding to the previous example is shown below:
 This example takes the Thing Description of the previous example and subscribes to the `counterEvent` and resets the counter every 20s via the `resetCounter` action.
 
 ```js
-Servient = require("@node-wot/core").Servient;
-MqttClientFactory = require("@node-wot/binding-mqtt").MqttClientFactory;
-
-Helpers = require("@node-wot/core").Helpers;
+const { Servient } = require("@node-wot/core");
+const { MqttClientFactory } = require("@node-wot/binding-mqtt");
 
 // create Servient and add MQTT binding
-let servient = new Servient();
+const servient = new Servient();
 servient.addClientFactory(new MqttClientFactory(null));
 
 // Thing Description can be also fetched
-let td = `{
+const td = `{
     "@context": "https://www.w3.org/2019/td/v1",
     "title": "MQTT-Test",
     "id": "urn:dev:wot:mqtt:counter",
