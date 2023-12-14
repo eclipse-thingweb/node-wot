@@ -69,9 +69,7 @@ class ThingDiscoveryProcess implements WoT.ThingDiscoveryProcess {
 
     async *[Symbol.asyncIterator](): AsyncIterator<WoT.ThingDescription> {
         // @ts-expect-error Typescript currently encounters an error here that *should* be a false positve
-        for await (const thingDescription of this.thingDescriptionStream) {
-            yield thingDescription;
-        }
+        yield* this.thingDescriptionStream;
         this.done = true;
     }
 }
