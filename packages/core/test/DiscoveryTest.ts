@@ -32,22 +32,23 @@ const directoryThingDescription = {
     title: "Directory Test TD",
     security: "nosec_sc",
     securityDefinitions: {
-        "nosec_sc": {
+        nosec_sc: {
             scheme: "nosec",
-        }
+        },
     },
     properties: {
         things: {
-            forms: [{
-                href: directoryThingsUrl,
-            }]
-        }
-    }
-}
-
+            forms: [
+                {
+                    href: directoryThingsUrl,
+                },
+            ],
+        },
+    },
+};
 
 class TestProtocolClient implements ProtocolClient {
-   async readResource(form: Form): Promise<Content> {
+    async readResource(form: Form): Promise<Content> {
         if (form.href === directoryThingsUrl) {
             const buffer = Buffer.from(JSON.stringify([directoryThingDescription]));
             const content = new Content("application/ld+json", Readable.from(buffer));
@@ -69,7 +70,12 @@ class TestProtocolClient implements ProtocolClient {
         throw new Error("Method not implemented.");
     }
 
-    subscribeResource(form: Form, next: (content: Content) => void, error?: ((error: Error) => void) | undefined, complete?: (() => void) | undefined): Promise<Subscription> {
+    subscribeResource(
+        form: Form,
+        next: (content: Content) => void,
+        error?: ((error: Error) => void) | undefined,
+        complete?: (() => void) | undefined
+    ): Promise<Subscription> {
         throw new Error("Method not implemented.");
     }
 
@@ -95,7 +101,6 @@ class TestProtocolClient implements ProtocolClient {
     setSecurity(metadata: SecurityScheme[], credentials?: unknown): boolean {
         return true;
     }
-
 }
 
 class TestProtocolClientFactory implements ProtocolClientFactory {
@@ -116,16 +121,15 @@ class TestProtocolClientFactory implements ProtocolClientFactory {
 
 describe("Discovery Tests", () => {
     it("should be possible to use the exploreDirectory method", async () => {
-
-    const servient = new Servient();
+        const servient = new Servient();
         servient.addClientFactory(new TestProtocolClientFactory());
 
-    const WoT = await servient.start();
+        const WoT = await servient.start();
 
-    const discoveryProcess = await WoT.exploreDirectory(directoryTdUrl);
+        const discoveryProcess = await WoT.exploreDirectory(directoryTdUrl);
 
-    for await (const thingDescription of discoveryProcess) {
-        expect(thingDescription.title === "Directory Test TD");
-    }
- });
+        for await (const thingDescription of discoveryProcess) {
+            expect(thingDescription.title === "Directory Test TD");
+        }
+    });
 });
