@@ -23,27 +23,33 @@ import { createLoggers } from "./logger";
 import ContentManager from "./content-serdes";
 import { ErrorObject } from "ajv";
 import { ThingDescription } from "wot-thing-description-types";
+import { isThingDescription } from "./validation";
 
 const { debug } = createLoggers("core", "wot-impl");
 
 // @ts-expect-error Typescript currently encounters an error here that *should* be a false positve
 class ExploreDirectoryDatasource implements UnderlyingDefaultSource<WoT.ThingDescription> {
-    constructor(rawThingDescriptions: WoT.DataSchemaValue) {
-        this.rawThingDescriptions = rawThingDescriptions;
+    constructor(directoryOutput: WoT.DataSchemaValue) {
+        this.directoryOutput = directoryOutput;
     }
 
-    rawThingDescriptions: WoT.DataSchemaValue;
+    directoryOutput: WoT.DataSchemaValue;
 
     start(controller: ReadableStreamDefaultController<WoT.ThingDescription>) {
-        if (!(this.rawThingDescriptions instanceof Array)) {
+        if (!(this.directoryOutput instanceof Array)) {
             controller.error(new Error("Encountered an invalid output value."));
             controller.close();
             return;
         }
 
-        for (const outputValue of this.rawThingDescriptions) {
-            // TODO: Add validation
-            controller.enqueue(outputValue as WoT.ThingDescription);
+        for (const outputValue of this.directoryOutput) {
+            if (!isThingDescription(outputValue)) {
+                const validationError = new Error("Validation of Thing Description failed");
+                controller.error(validationError);
+                continue;
+            }
+
+            controller.enqueue(outputValue);
         }
 
         controller.close();
