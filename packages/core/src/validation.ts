@@ -14,7 +14,7 @@
  ********************************************************************************/
 
 import TDSchema from "wot-thing-description-types/schema/td-json-schema-validation.json";
-import Ajv, { ValidateFunction } from "ajv";
+import Ajv from "ajv";
 
 export function createWotAjvInstance() {
     return (
@@ -33,7 +33,7 @@ export function createWotAjvInstance() {
 }
 
 const ajv = createWotAjvInstance();
-const validateTd = ajv.compile(TDSchema) as ValidateFunction;
+const validateTd = ajv.compile<WoT.ThingDescription>(TDSchema);
 
 export function isThingDescription(input: unknown): input is WoT.ThingDescription {
     return validateTd(input);
