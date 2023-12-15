@@ -32,7 +32,7 @@ import Servient from "./servient";
 import * as TD from "@node-wot/td-tools";
 import * as TDT from "wot-thing-description-types";
 import { ContentSerdes } from "./content-serdes";
-import Ajv, { ValidateFunction, ErrorObject } from "ajv";
+import { ValidateFunction, ErrorObject } from "ajv";
 import TDSchema from "wot-thing-description-types/schema/td-json-schema-validation.json";
 import { DataSchemaValue, ExposedThingInit } from "wot-typescript-definitions";
 import { SomeJSONSchema } from "ajv/dist/types/json-schema";
