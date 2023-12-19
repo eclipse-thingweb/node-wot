@@ -167,4 +167,4 @@ Server started opc.tcp://<YOURMACHINENAME>:7890
 ### awesome WoT - OPCUA tools
 
 the [node-wot-opcua-tools](https://github.com/node-opcua/node-wot-opcua-tools) project provides
-some useful applications built on top of thingweb.node-wot and the OPCUA binding.
+some useful applications built on top of node-wot and the OPCUA binding.
