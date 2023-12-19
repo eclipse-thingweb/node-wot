@@ -54,7 +54,7 @@ The href contains: URI schema + IP address + port + XPath
 
 -   URI schema: the schema for NETCONF is not registered with IANA; the Binding is using `netconf`.
 -   IP address and port: IP address and port of the NETCONF server. The credentials for the SSH connection to the server can be added into the `wot-servient.configuration.json`.
--   XPath: the XPath of the YANG model node addressed by the given InteractionAffordance. The XPath is automatically converted into the corrisponding XML needed by the RPC. If an attribute refers to a particular namespace, an alias can be used. The complete URN for the alias should be added to the **nc:NSs** field.
+-   XPath: the XPath of the YANG model node addressed by the given InteractionAffordance. The XPath is automatically converted into the corresponding XML needed by the RPC. If an attribute refers to a particular namespace, an alias can be used. The complete URN for the alias should be added to the **nc:NSs** field.
 
 ### nc:target
 
