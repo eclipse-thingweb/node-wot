@@ -145,7 +145,7 @@ const thingDescription = {
 
 ## Advanced
 
-The OPC-UA binding for node-wot offers additionals feature to allow you to interact with
+The OPC-UA binding for node-wot offers additional features to allow you to interact with
 OPCUA Variant and DataValue in OPCUA JSON encoded form.
 For an example of use, you can dive into the unit test of the binding-opcua library.
 
@@ -167,4 +167,4 @@ Server started opc.tcp://<YOURMACHINENAME>:7890
 ### awesome WoT - OPCUA tools
 
 the [node-wot-opcua-tools](https://github.com/node-opcua/node-wot-opcua-tools) project provides
-some useful applications built on top of thingweb.node-wob and the OPCUA binding.
+some useful applications built on top of thingweb.node-wot and the OPCUA binding.
