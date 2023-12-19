@@ -53,7 +53,7 @@ The `-h` option explains the functionality and also how node-wot can be configur
 -   `wot-servient -h` _or_
 -   `node packages\cli\dist\cli.js`
 
-The `-h` help options shows the following output:
+The `-h` help option shows the following output:
 
 ```
 Usage: wot-servient [options] [files...]
@@ -73,7 +73,7 @@ Options:
   -c, --client-only                 do not start any servers (enables multiple instances without port conflicts)
   -cp, --compiler <module>          load module as a compiler
   -f, --config-file <file>          load configuration from specified file (default: "wot-servient.conf.json")
-  -p, --config-params <param...>    override configuration paramters [key1:=value1 key2:=value2 ...] (e.g. http.port:=8080)
+  -p, --config-params <param...>    override configuration parameters [key1:=value1 key2:=value2 ...] (e.g. http.port:=8080)
   -h, --help                        show this help
 
 wot-servient.conf.json syntax:
