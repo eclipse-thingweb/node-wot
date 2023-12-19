@@ -40,7 +40,7 @@ A more user-friendly property to specify `modbus:function`. It can be filled wit
 
 ### modbus:unitID
 
-The physical bus address of the unit targeted by the mobus request.
+The physical bus address of the unit targeted by the modbus request.
 
 ### modbus:address
 
@@ -114,7 +114,7 @@ This implementation handles multiple requests to the same slave by serializing a
 
 ## Combination
 
-When two **requests** of the same type are issued and these requests cover neighboured registers, then they are combined into a single **transaction** reading or writing the combined register range. Note that this algorithm is currently rather simple: New **requests** are just checked if they can be prepended or appended to an existing **transaction**. If not, a new **transcation** is created. When a **transcation** completes, all **requests** contained in this **transaction** are completed.
+When two **requests** of the same type are issued and these requests cover neighboured registers, then they are combined into a single **transaction** reading or writing the combined register range. Note that this algorithm is currently rather simple: New **requests** are just checked if they can be prepended or appended to an existing **transaction**. If not, a new **transaction** is created. When a **transaction** completes, all **requests** contained in this **transaction** are completed.
 
 ## Serialization
 
@@ -122,7 +122,7 @@ Multiple **transactions** to the same slave are serialized. This means that a ne
 
 ## Combination using the node-wot API
 
-To help the MODBUS binding to perform combination a user of the API should create several requests for neighboured registers and resolve them alltogether in a single call to `Promise.all()`, e.g. as follows:
+To help the MODBUS binding to perform combination a user of the API should create several requests for neighboured registers and resolve them all together in a single call to `Promise.all()`, e.g. as follows:
 
 ```javascript
 console.info("Creating promise vl1n");
