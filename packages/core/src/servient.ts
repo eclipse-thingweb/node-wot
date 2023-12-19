@@ -30,8 +30,8 @@ export default class Servient {
     private things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
     private credentialStore: Map<string, Array<unknown>> = new Map<string, Array<unknown>>();
 
-    private started = false;
-    private shutdowned = false;
+    #started = false;
+    #shutdown = false;
 
     /** add a new codec to support a mediatype; offered mediatypes are listed in TDs */
     public addMediaType(codec: ContentCodec, offered = false): void {
@@ -213,7 +213,7 @@ export default class Servient {
 
     // will return WoT object
     public async start(): Promise<typeof WoT> {
-        if (this.started) {
+        if (this.#started) {
             throw Error("Servient started already");
         }
         const serverStatus: Array<Promise<void>> = [];
@@ -221,23 +221,23 @@ export default class Servient {
         this.clientFactories.forEach((clientFactory) => clientFactory.init());
 
         await Promise.all(serverStatus);
-        this.started = true;
+        this.#started = true;
         return new WoTImpl(this);
     }
 
     public async shutdown(): Promise<void> {
-        if (!this.started) {
-            debug("Servient cannot be shut down, wasn't even started");
+        if (!this.#started) {
+            debug("Servient cannot be shutdown, wasn't even started");
             return;
         }
-        if (this.shutdowned) {
-            throw Error("Servient shutdowned already");
+        if (this.#shutdown) {
+            throw Error("Servient shutdown already");
         }
 
         this.clientFactories.forEach((clientFactory) => clientFactory.destroy());
 
         const promises = this.servers.map((server) => server.stop());
         await Promise.all(promises);
-        this.shutdowned = true;
+        this.#shutdown = true;
     }
 }
