@@ -226,17 +226,18 @@ export default class Servient {
     }
 
     public async shutdown(): Promise<void> {
-        if (this.started) {
-            if (this.shutdowned) {
-                throw Error("Servient shutdowned already");
-            }
-            this.clientFactories.forEach((clientFactory) => clientFactory.destroy());
-
-            const promises = this.servers.map((server) => server.stop());
-            await Promise.all(promises);
-            this.shutdowned = true;
-        } else {
-            debug(`Servient cannot be shutdown, wasn't even started`);
+        if (!this.started) {
+            debug("Servient cannot be shut down, wasn't even started");
+            return;
         }
+        if (this.shutdowned) {
+            throw Error("Servient shutdowned already");
+        }
+
+        this.clientFactories.forEach((clientFactory) => clientFactory.destroy());
+
+        const promises = this.servers.map((server) => server.stop());
+        await Promise.all(promises);
+        this.shutdowned = true;
     }
 }
