@@ -27,7 +27,7 @@ The physical bus address of the unit targeted by the mbus request.
 
 ### mbus:offset
 
-This property defines the id of the data that are meant to be read. Specifying an id of -1 will return informations about the targeted M-Bus client.
+This property defines the id of the data that are meant to be read. Specifying an id of -1 will return information about the targeted M-Bus client.
 
 ### mbus:timeout
 
@@ -83,7 +83,7 @@ This implementation handles multiple requests to the same slave by combining the
 
 ## Combination
 
-When two **requests** are made on the same unitID, then they are combined into a single **transaction**. Note that this algorithm is currently rather simple: New **requests** are just checked if they can be combined to an existing **transaction**. If not, a new **transcation** is created. When a **transcation** completes, all **requests** contained in this **transaction** are completed.
+When two **requests** are made on the same unitID, then they are combined into a single **transaction**. Note that this algorithm is currently rather simple: New **requests** are just checked if they can be combined to an existing **transaction**. If not, a new **transaction** is created. When a **transaction** completes, all **requests** contained in this **transaction** are completed.
 
 ## Serialization
 
