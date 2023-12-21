@@ -21,9 +21,49 @@ import ConsumedThing from "./consumed-thing";
 import Helpers from "./helpers";
 import { createLoggers } from "./logger";
 import ContentManager from "./content-serdes";
-import { ErrorObject } from "ajv";
+import { getLastValidationErrors, isThingDescription } from "./validation";
 
 const { debug } = createLoggers("core", "wot-impl");
+
+class ThingDiscoveryProcess implements WoT.ThingDiscoveryProcess {
+    constructor(rawThingDescriptions: WoT.DataSchemaValue, filter?: WoT.ThingFilter) {
+        this.filter = filter;
+        this.done = false;
+        this.rawThingDescriptions = rawThingDescriptions;
+    }
+
+    rawThingDescriptions: WoT.DataSchemaValue;
+
+    filter?: WoT.ThingFilter | undefined;
+    done: boolean;
+    error?: Error | undefined;
+    async stop(): Promise<void> {
+        this.done = true;
+    }
+
+    async *[Symbol.asyncIterator](): AsyncIterator<WoT.ThingDescription> {
+        if (!(this.rawThingDescriptions instanceof Array)) {
+            this.error = new Error("Encountered an invalid output value.");
+            this.done = true;
+            return;
+        }
+
+        for (const outputValue of this.rawThingDescriptions) {
+            if (this.done) {
+                return;
+            }
+
+            if (!isThingDescription(outputValue)) {
+                this.error = getLastValidationErrors();
+                continue;
+            }
+
+            yield outputValue;
+        }
+
+        this.done = true;
+    }
+}
 
 export default class WoTImpl {
     private srv: Servient;
@@ -38,7 +78,13 @@ export default class WoTImpl {
 
     /** @inheritDoc */
     async exploreDirectory(url: string, filter?: WoT.ThingFilter): Promise<WoT.ThingDiscoveryProcess> {
-        throw new Error("not implemented");
+        const directoyThingDescription = await this.requestThingDescription(url);
+        const consumedDirectoy = await this.consume(directoyThingDescription);
+
+        const thingsPropertyOutput = await consumedDirectoy.readProperty("things");
+        const rawThingDescriptions = await thingsPropertyOutput.value();
+
+        return new ThingDiscoveryProcess(rawThingDescriptions, filter);
     }
 
     /** @inheritDoc */
@@ -48,14 +94,11 @@ export default class WoTImpl {
         const content = await client.requestThingDescription(url);
         const value = ContentManager.contentToValue({ type: content.type, body: await content.toBuffer() }, {});
 
-        const isValidThingDescription = Helpers.tsSchemaValidator(value);
-
-        if (!isValidThingDescription) {
-            const errors = Helpers.tsSchemaValidator.errors?.map((o: ErrorObject) => o.message).join("\n");
-            throw new Error(errors);
+        if (isThingDescription(value)) {
+            return value;
         }
 
-        return value as WoT.ThingDescription;
+        throw getLastValidationErrors();
     }
 
     /** @inheritDoc */
