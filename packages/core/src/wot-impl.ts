@@ -49,6 +49,10 @@ class ThingDiscoveryProcess implements WoT.ThingDiscoveryProcess {
         }
 
         for (const outputValue of this.rawThingDescriptions) {
+            if (this.done) {
+                return;
+            }
+
             if (!isThingDescription(outputValue)) {
                 this.error = getLastValidationErrors();
                 continue;
