@@ -141,7 +141,7 @@ class TestProtocolClientFactory implements ProtocolClientFactory {
     }
 }
 
-describe.only("Discovery Tests", () => {
+describe("Discovery Tests", () => {
     it("should be possible to use the exploreDirectory method", async () => {
         const servient = new Servient();
         servient.addClientFactory(new TestProtocolClientFactory());
