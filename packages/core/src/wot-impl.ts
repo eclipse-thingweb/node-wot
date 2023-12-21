@@ -43,7 +43,6 @@ class ThingDiscoveryProcess implements WoT.ThingDiscoveryProcess {
     }
 
     async *[Symbol.asyncIterator](): AsyncIterator<WoT.ThingDescription> {
-
         if (!(this.rawThingDescriptions instanceof Array)) {
             this.error = new Error("Encountered an invalid output value.");
             this.done = true;
