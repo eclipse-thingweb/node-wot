@@ -66,7 +66,7 @@ const directoryThingsUrl3 = "test://localhost/things3";
 
 const directoryThingDescription1 = createDirectoryTestTd(directoryTdTitle1, directoryThingsUrl1);
 const directoryThingDescription2 = createDirectoryTestTd(directoryTdTitle2, directoryThingsUrl2);
-const directoryThingDescription3 = createDirectoryTestTd(directoryTdTitle3, directoryThingsUrl2);
+const directoryThingDescription3 = createDirectoryTestTd(directoryTdTitle3, directoryThingsUrl3);
 
 class TestProtocolClient implements ProtocolClient {
     async readResource(form: Form): Promise<Content> {
@@ -165,7 +165,6 @@ describe("Discovery Tests", () => {
             tdCounter++;
         }
         expect(tdCounter).to.eql(1);
-        console.log(discoveryProcess.error);
         expect(discoveryProcess.error).to.eq(undefined);
     });
 
