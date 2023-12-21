@@ -22,60 +22,43 @@ import Helpers from "./helpers";
 import { createLoggers } from "./logger";
 import ContentManager from "./content-serdes";
 import { ErrorObject } from "ajv";
-import { ThingDescription } from "wot-thing-description-types";
 import { isThingDescription } from "./validation";
 
 const { debug } = createLoggers("core", "wot-impl");
 
-// @ts-expect-error Typescript currently encounters an error here that *should* be a false positve
-class ExploreDirectoryDatasource implements UnderlyingDefaultSource<WoT.ThingDescription> {
-    constructor(directoryOutput: WoT.DataSchemaValue) {
-        this.directoryOutput = directoryOutput;
-    }
-
-    directoryOutput: WoT.DataSchemaValue;
-
-    start(controller: ReadableStreamDefaultController<WoT.ThingDescription>) {
-        if (!(this.directoryOutput instanceof Array)) {
-            controller.error(new Error("Encountered an invalid output value."));
-            controller.close();
-            return;
-        }
-
-        for (const outputValue of this.directoryOutput) {
-            if (!isThingDescription(outputValue)) {
-                const validationError = new Error("Validation of Thing Description failed");
-                controller.error(validationError);
-                continue;
-            }
-
-            controller.enqueue(outputValue);
-        }
-
-        controller.close();
-    }
-}
-
 class ThingDiscoveryProcess implements WoT.ThingDiscoveryProcess {
-    constructor(thingDescriptionStream: ReadableStream<ThingDescription>, filter?: WoT.ThingFilter) {
+    constructor(rawThingDescriptions: WoT.DataSchemaValue, filter?: WoT.ThingFilter) {
         this.filter = filter;
         this.done = false;
-        this.thingDescriptionStream = thingDescriptionStream;
+        this.rawThingDescriptions = rawThingDescriptions;
     }
 
-    thingDescriptionStream: ReadableStream<WoT.ThingDescription>;
+    rawThingDescriptions: WoT.DataSchemaValue;
 
     filter?: WoT.ThingFilter | undefined;
     done: boolean;
     error?: Error | undefined;
     async stop(): Promise<void> {
-        await this.thingDescriptionStream.cancel();
         this.done = true;
     }
 
     async *[Symbol.asyncIterator](): AsyncIterator<WoT.ThingDescription> {
-        // @ts-expect-error Typescript currently encounters an error here that *should* be a false positve
-        yield* this.thingDescriptionStream;
+
+        if (!(this.rawThingDescriptions instanceof Array)) {
+            this.error = new Error("Encountered an invalid output value.");
+            this.done = true;
+            return;
+        }
+
+        for (const outputValue of this.rawThingDescriptions) {
+            if (!isThingDescription(outputValue)) {
+                this.error = new Error("Validation of Thing Description failed");
+                continue;
+            }
+
+            yield outputValue;
+        }
+
         this.done = true;
     }
 }
@@ -98,10 +81,8 @@ export default class WoTImpl {
 
         const thingsPropertyOutput = await consumedDirectoy.readProperty("things");
         const rawThingDescriptions = await thingsPropertyOutput.value();
-        const thingDescriptionDataSource = new ExploreDirectoryDatasource(rawThingDescriptions);
 
-        const thingDescriptionStream = new ReadableStream(thingDescriptionDataSource);
-        return new ThingDiscoveryProcess(thingDescriptionStream, filter);
+        return new ThingDiscoveryProcess(rawThingDescriptions, filter);
     }
 
     /** @inheritDoc */
