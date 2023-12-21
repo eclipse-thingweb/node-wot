@@ -21,7 +21,6 @@ import ConsumedThing from "./consumed-thing";
 import Helpers from "./helpers";
 import { createLoggers } from "./logger";
 import ContentManager from "./content-serdes";
-import { ErrorObject } from "ajv";
 import { getLastValidationErrors, isThingDescription } from "./validation";
 
 const { debug } = createLoggers("core", "wot-impl");
@@ -91,14 +90,11 @@ export default class WoTImpl {
         const content = await client.requestThingDescription(url);
         const value = ContentManager.contentToValue({ type: content.type, body: await content.toBuffer() }, {});
 
-        const isValidThingDescription = Helpers.tsSchemaValidator(value);
-
-        if (!isValidThingDescription) {
-            const errors = Helpers.tsSchemaValidator.errors?.map((o: ErrorObject) => o.message).join("\n");
-            throw new Error(errors);
+        if (isThingDescription(value)) {
+            return value;
         }
 
-        return value as WoT.ThingDescription;
+        throw getLastValidationErrors();
     }
 
     /** @inheritDoc */
