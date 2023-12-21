@@ -47,17 +47,20 @@ jobs:
               run: |
                   sudo echo "127.0.0.1" `hostname` | sudo tee -a /etc/hosts
 
+            # Enables the output of log messages from the Node.js debug module
+            # for workflow runs that are being retried with "debug logging"
+            # enabled.
+            #
+            # See https://github.com/eclipse-thingweb/node-wot/pull/1204 for
+            # more context regarding the rationale of this step.
+            - name: Configure debug logging
+              if: runner.debug == '1'
+              run: echo "DEBUG=node-wot*" >> $GITHUB_ENV
+              shell: bash
+
             - name: Test with coverage report
-              uses: nick-fields/retry@v2
-              with:
-                  timeout_minutes: 10
-                  max_attempts: 2
-                  command: npm run coverage:only
-                  # Rerun with debug logging enabled on error, but always fail the retry
-                  new_command_on_retry: |
-                      DEBUG=node-wot* npm run test:only
-                      exit 1
-                  shell: bash
+              timeout-minutes: 10
+              run: npm run coverage:only
 
             - name: Upload to codecov.io
               uses: codecov/codecov-action@v2
