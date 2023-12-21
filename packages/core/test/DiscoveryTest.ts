@@ -52,17 +52,21 @@ function createDiscoveryContent(td: unknown, contentType: string) {
     return content;
 }
 
-const directoryTdUrl1 = "test://localhost/.well-known/wot";
-const directoryTdUrl2 = "test://[::1]/.well-known/wot";
+const directoryTdUrl1 = "test://localhost/valid-output-tds";
+const directoryTdUrl2 = "test://localhost/invalid-output-tds";
+const directoryTdUrl3 = "test://localhost/no-array-output";
 
 const directoryTdTitle1 = "Directory Test TD 1";
 const directoryTdTitle2 = "Directory Test TD 2";
+const directoryTdTitle3 = "Directory Test TD 3";
 
 const directoryThingsUrl1 = "test://localhost/things1";
 const directoryThingsUrl2 = "test://localhost/things2";
+const directoryThingsUrl3 = "test://localhost/things3";
 
 const directoryThingDescription1 = createDirectoryTestTd(directoryTdTitle1, directoryThingsUrl1);
 const directoryThingDescription2 = createDirectoryTestTd(directoryTdTitle2, directoryThingsUrl2);
+const directoryThingDescription3 = createDirectoryTestTd(directoryTdTitle3, directoryThingsUrl2);
 
 class TestProtocolClient implements ProtocolClient {
     async readResource(form: Form): Promise<Content> {
@@ -73,6 +77,8 @@ class TestProtocolClient implements ProtocolClient {
                 return createDiscoveryContent([directoryThingDescription1], "application/ld+json");
             case directoryThingsUrl2:
                 return createDiscoveryContent(["I am an invalid TD!"], "application/ld+json");
+            case directoryThingsUrl3:
+                return createDiscoveryContent("I am no array and therefore invalid!", "application/ld+json");
         }
 
         throw new Error("Invalid URL");
@@ -107,6 +113,9 @@ class TestProtocolClient implements ProtocolClient {
             case directoryTdUrl2:
                 debug(`Found corrent URL ${uri} to fetch directory TD`);
                 return createDiscoveryContent(directoryThingDescription2, "application/td+json");
+            case directoryTdUrl3:
+                debug(`Found corrent URL ${uri} to fetch directory TD`);
+                return createDiscoveryContent(directoryThingDescription3, "application/td+json");
         }
 
         throw Error("Invalid URL");
@@ -160,13 +169,30 @@ describe("Discovery Tests", () => {
         expect(discoveryProcess.error).to.eq(undefined);
     });
 
-    it("should be possible to use the exploreDirectory method", async () => {
+    it("should receive no output and an error by the exploreDirectory method for invalid returned TDs", async () => {
         const servient = new Servient();
         servient.addClientFactory(new TestProtocolClientFactory());
 
         const WoT = await servient.start();
 
         const discoveryProcess = await WoT.exploreDirectory(directoryTdUrl2);
+
+        let tdCounter = 0;
+        for await (const thingDescription of discoveryProcess) {
+            error(`Encountered unexpected TD with title ${thingDescription.title}`);
+            tdCounter++;
+        }
+        expect(tdCounter).to.eql(0);
+        expect(discoveryProcess.error).to.not.eq(undefined);
+    });
+
+    it("should receive no output and an error by the exploreDirectory method if no array is returned", async () => {
+        const servient = new Servient();
+        servient.addClientFactory(new TestProtocolClientFactory());
+
+        const WoT = await servient.start();
+
+        const discoveryProcess = await WoT.exploreDirectory(directoryTdUrl3);
 
         let tdCounter = 0;
         for await (const thingDescription of discoveryProcess) {
