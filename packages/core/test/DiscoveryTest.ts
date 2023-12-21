@@ -202,4 +202,24 @@ describe("Discovery Tests", () => {
         expect(tdCounter).to.eql(0);
         expect(discoveryProcess.error).to.not.eq(undefined);
     });
+
+    it("should be possible to stop discovery with exploreDirectory prematurely", async () => {
+        const servient = new Servient();
+        servient.addClientFactory(new TestProtocolClientFactory());
+
+        const WoT = await servient.start();
+
+        const discoveryProcess = await WoT.exploreDirectory(directoryTdUrl1);
+        expect(discoveryProcess.done).to.not.eq(true);
+        discoveryProcess.stop();
+        expect(discoveryProcess.done).to.eq(true);
+
+        let tdCounter = 0;
+        for await (const thingDescription of discoveryProcess) {
+            error(`Encountered unexpected TD with title ${thingDescription.title}`);
+            tdCounter++;
+        }
+        expect(tdCounter).to.eql(0);
+        expect(discoveryProcess.error).to.eq(undefined);
+    });
 });
