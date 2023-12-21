@@ -13,8 +13,14 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
+import { ErrorObject } from "ajv";
 import Helpers from "./helpers";
 
 export function isThingDescription(input: unknown): input is WoT.ThingDescription {
     return Helpers.tsSchemaValidator(input);
+}
+
+export function getLastValidationErrors() {
+    const errors = Helpers.tsSchemaValidator.errors?.map((o: ErrorObject) => o.message).join("\n");
+    return new Error(errors);
 }

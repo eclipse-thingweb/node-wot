@@ -22,7 +22,7 @@ import Helpers from "./helpers";
 import { createLoggers } from "./logger";
 import ContentManager from "./content-serdes";
 import { ErrorObject } from "ajv";
-import { isThingDescription } from "./validation";
+import { getLastValidationErrors, isThingDescription } from "./validation";
 
 const { debug } = createLoggers("core", "wot-impl");
 
@@ -51,7 +51,7 @@ class ThingDiscoveryProcess implements WoT.ThingDiscoveryProcess {
 
         for (const outputValue of this.rawThingDescriptions) {
             if (!isThingDescription(outputValue)) {
-                this.error = new Error("Validation of Thing Description failed");
+                this.error = getLastValidationErrors();
                 continue;
             }
 
