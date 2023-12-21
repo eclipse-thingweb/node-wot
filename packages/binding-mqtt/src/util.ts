@@ -16,7 +16,7 @@ import { createLoggers } from "@node-wot/core";
 import { MqttQoS } from "./mqtt";
 import { IClientPublishOptions } from "mqtt";
 
-const { debug, warn } = createLoggers("binding-mqtt", "mqtt-util");
+const { warn } = createLoggers("binding-mqtt", "mqtt-util");
 
 export function mapQoS(qos: MqttQoS | undefined): Required<IClientPublishOptions>["qos"] {
     switch (qos) {
