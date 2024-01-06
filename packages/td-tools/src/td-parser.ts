@@ -98,43 +98,21 @@ export function parseTD(td: string, normalize?: boolean): Thing {
         thing["@type"] = [TD.DEFAULT_THING_TYPE, semType];
     }
 
-    if (thing.properties !== undefined && thing.properties instanceof Object) {
-        for (const propName in thing.properties) {
-            const prop: TD.ThingProperty = thing.properties[propName];
-            if (prop.readOnly === undefined || typeof prop.readOnly !== "boolean") {
-                prop.readOnly = false;
-            }
-            if (prop.writeOnly === undefined || typeof prop.writeOnly !== "boolean") {
-                prop.writeOnly = false;
-            }
-            if (prop.observable === undefined || typeof prop.observable !== "boolean") {
-                prop.observable = false;
-            }
-        }
+    for (const property of Object.values(thing.properties ?? {})) {
+        property.readOnly ??= false;
+        property.writeOnly ??= false;
+        property.observable ??= false;
     }
 
-    if (thing.actions !== undefined && thing.actions instanceof Object) {
-        for (const actName in thing.actions) {
-            const act: TD.ThingAction = thing.actions[actName];
-            if (act.safe === undefined || typeof act.safe !== "boolean") {
-                act.safe = false;
-            }
-            if (act.idempotent === undefined || typeof act.idempotent !== "boolean") {
-                act.idempotent = false;
-            }
-        }
+    for (const action of Object.values(thing.actions ?? {})) {
+        action.safe ??= false;
+        action.idempotent ??= false;
     }
 
     // avoid errors due to 'undefined'
-    if (typeof thing.properties !== "object" || thing.properties === null) {
-        thing.properties = {};
-    }
-    if (typeof thing.actions !== "object" || thing.actions === null) {
-        thing.actions = {};
-    }
-    if (typeof thing.events !== "object" || thing.events === null) {
-        thing.events = {};
-    }
+    thing.properties ??= {};
+    thing.actions ??= {};
+    thing.events ??= {};
 
     if (thing.security === undefined) {
         logWarn("parseTD() found no security metadata");
@@ -147,10 +125,9 @@ export function parseTD(td: string, normalize?: boolean): Thing {
     // collect all forms for normalization and use iterations also for checking
     const allForms = [];
     // properties
-    for (const propName in thing.properties) {
-        const prop: TD.ThingProperty = thing.properties[propName];
+    for (const [propName, prop] of Object.entries(thing.properties)) {
         // ensure forms mandatory forms field
-        if (!prop.forms) {
+        if (prop.forms == null) {
             throw new Error(`Property '${propName}' has no forms field`);
         }
         for (const form of prop.forms) {
@@ -165,10 +142,9 @@ export function parseTD(td: string, normalize?: boolean): Thing {
         }
     }
     // actions
-    for (const actName in thing.actions) {
-        const act: TD.ThingProperty = thing.actions[actName];
+    for (const [actName, act] of Object.entries(thing.actions)) {
         // ensure forms mandatory forms field
-        if (!act.forms) {
+        if (act.forms == null) {
             throw new Error(`Action '${actName}' has no forms field`);
         }
         for (const form of act.forms) {
@@ -183,10 +159,9 @@ export function parseTD(td: string, normalize?: boolean): Thing {
         }
     }
     // events
-    for (const evtName in thing.events) {
-        const evt: TD.ThingProperty = thing.events[evtName];
+    for (const [evtName, evt] of Object.entries(thing.events)) {
         // ensure forms mandatory forms field
-        if (!evt.forms) {
+        if (evt.forms == null) {
             throw new Error(`Event '${evtName}' has no forms field`);
         }
         for (const form of evt.forms) {
@@ -219,7 +194,7 @@ export function parseTD(td: string, normalize?: boolean): Thing {
 
 /** Serializes a Thing object into a TD */
 export function serializeTD(thing: Thing): string {
-    const copy = JSON.parse(JSON.stringify(thing));
+    const copy: Thing = JSON.parse(JSON.stringify(thing));
 
     // clean-ups
     if (copy.security == null || copy.security.length === 0) {
@@ -237,17 +212,10 @@ export function serializeTD(thing: Thing): string {
         delete copy.properties;
     } else if (copy.properties != null) {
         // add mandatory fields (if missing): observable, writeOnly, and readOnly
-        for (const propName in copy.properties) {
-            const prop = copy.properties[propName];
-            if (prop.readOnly === undefined || typeof prop.readOnly !== "boolean") {
-                prop.readOnly = false;
-            }
-            if (prop.writeOnly === undefined || typeof prop.writeOnly !== "boolean") {
-                prop.writeOnly = false;
-            }
-            if (prop.observable === undefined || typeof prop.observable !== "boolean") {
-                prop.observable = false;
-            }
+        for (const prop of Object.values(copy.properties)) {
+            prop.readOnly ??= false;
+            prop.writeOnly ??= false;
+            prop.observable ??= false;
         }
     }
 
@@ -255,14 +223,9 @@ export function serializeTD(thing: Thing): string {
         delete copy.actions;
     } else if (copy.actions != null) {
         // add mandatory fields (if missing): idempotent and safe
-        for (const actName in copy.actions) {
-            const act = copy.actions[actName];
-            if (act.idempotent === undefined || typeof act.idempotent !== "boolean") {
-                act.idempotent = false;
-            }
-            if (act.safe === undefined || typeof act.safe !== "boolean") {
-                act.safe = false;
-            }
+        for (const act of Object.values(copy.actions)) {
+            act.idempotent ??= false;
+            act.safe ??= false;
         }
     }
     if (copy.events != null && Object.keys(copy.events).length === 0) {

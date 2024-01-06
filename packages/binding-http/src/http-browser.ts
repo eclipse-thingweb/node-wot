@@ -54,8 +54,8 @@ export class HttpForm extends TD.Form {
 
 Headers.prototype.raw = function () {
     const result: { [key: string]: string[] } = {};
-    for (const h in this.entries()) {
-        result[h[0]] = h[1].split(",");
+    for (const [headerKey, headerValue] of this.entries()) {
+        result[headerKey] = headerValue.split(",");
     }
     return result;
 };

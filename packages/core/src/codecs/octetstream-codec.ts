@@ -535,11 +535,11 @@ export default class OctetstreamCodec implements ContentCodec {
         }
 
         result = result ?? Buffer.alloc(parseInt(parameters.length));
-        for (const propertyName in schema.properties) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        for (const [propertyName, propertySchema] of Object.entries(schema.properties) as [string, any]) {
             if (Object.hasOwnProperty.call(value, propertyName) === false) {
                 throw new Error(`Missing property '${propertyName}'`);
             }
-            const propertySchema = schema.properties[propertyName];
             const propertyValue = value[propertyName];
             const propertyOffset = parseInt(propertySchema["ex:bitOffset"]);
             const propertyLength = parseInt(propertySchema["ex:bitLength"]);
