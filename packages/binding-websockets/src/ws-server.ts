@@ -120,8 +120,8 @@ export default class WebSocketServer implements ProtocolServer {
     public stop(): Promise<void> {
         debug(`WebSocketServer stopping on port ${this.port}`);
         return new Promise<void>((resolve, reject) => {
-            for (const pathSocket in this.socketServers) {
-                this.socketServers[pathSocket].close();
+            for (const socketServer of Object.values(this.socketServers)) {
+                socketServer.close();
             }
 
             // stop promise handles all errors from now on
@@ -162,7 +162,7 @@ export default class WebSocketServer implements ProtocolServer {
 
             // TODO more efficient routing to ExposedThing without ResourceListeners in each server
 
-            for (const propertyName in thing.properties) {
+            for (const [propertyName, property] of Object.entries(thing.properties)) {
                 const path =
                     "/" +
                     encodeURIComponent(urlPath) +
@@ -170,7 +170,6 @@ export default class WebSocketServer implements ProtocolServer {
                     this.PROPERTY_DIR +
                     "/" +
                     encodeURIComponent(propertyName);
-                const property = thing.properties[propertyName];
 
                 // Populate forms related to the property
                 for (const address of Helpers.getAddresses()) {
@@ -231,26 +230,22 @@ export default class WebSocketServer implements ProtocolServer {
                 });
             }
 
-            for (const actionName in thing.actions) {
+            for (const [actionName, action] of Object.entries(thing.actions)) {
                 const path =
                     "/" + encodeURIComponent(urlPath) + "/" + this.ACTION_DIR + "/" + encodeURIComponent(actionName);
-                // eslint-disable-next-line unused-imports/no-unused-vars
-                const action = thing.actions[actionName];
 
                 for (const address of Helpers.getAddresses()) {
                     const href = `${this.scheme}://${address}:${this.getPort()}${path}`;
                     const form = new TD.Form(href, ContentSerdes.DEFAULT);
                     form.op = ["invokeaction"];
-                    thing.actions[actionName].forms.push(form);
+                    action.forms.push(form);
                     debug(`WebSocketServer on port ${this.getPort()} assigns '${href}' to Action '${actionName}'`);
                 }
             }
 
-            for (const eventName in thing.events) {
+            for (const [eventName, event] of Object.entries(thing.events)) {
                 const path =
                     "/" + encodeURIComponent(urlPath) + "/" + this.EVENT_DIR + "/" + encodeURIComponent(eventName);
-                // eslint-disable-next-line unused-imports/no-unused-vars
-                const event = thing.events[eventName];
 
                 // Populate forms related to the event
                 for (const address of Helpers.getAddresses()) {

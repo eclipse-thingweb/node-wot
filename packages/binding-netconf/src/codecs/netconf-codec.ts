@@ -126,8 +126,9 @@ export default class NetconfCodec {
             let nsFound = false;
             let aliasNs = "";
             let value;
-            for (const key in properties) {
-                const el = properties[key];
+            // TODO: Use correct type for el
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            for (const [key, el] of Object.entries(properties) as [string, any]) {
                 const payloadField = payload[key];
                 if (payloadField == null) {
                     throw new Error(`Payload is missing '${key}' field specified in TD`);

@@ -381,19 +381,16 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
     }
 
     extendInteractions(): void {
-        for (const propertyName in this.properties) {
-            const newProp = Helpers.extend(
-                this.properties[propertyName],
-                new ConsumedThingProperty(propertyName, this)
-            );
+        for (const [propertyName, property] of Object.entries(this.properties)) {
+            const newProp = Helpers.extend(property, new ConsumedThingProperty(propertyName, this));
             this.properties[propertyName] = newProp;
         }
-        for (const actionName in this.actions) {
-            const newAction = Helpers.extend(this.actions[actionName], new ConsumedThingAction(actionName, this));
+        for (const [actionName, action] of Object.entries(this.actions)) {
+            const newAction = Helpers.extend(action, new ConsumedThingAction(actionName, this));
             this.actions[actionName] = newAction;
         }
-        for (const eventName in this.events) {
-            const newEvent = Helpers.extend(this.events[eventName], new ConsumedThingEvent(eventName, this));
+        for (const [eventName, event] of Object.entries(this.events)) {
+            const newEvent = Helpers.extend(event, new ConsumedThingEvent(eventName, this));
             this.events[eventName] = newEvent;
         }
     }
@@ -612,14 +609,15 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
 
     readAllProperties(options?: WoT.InteractionOptions): Promise<WoT.PropertyReadMap> {
         const propertyNames: string[] = [];
-        for (const propertyName in this.properties) {
+
+        for (const [propertyName, property] of Object.entries(this.properties)) {
             // collect attributes that are "readable" only
-            const tp = this.properties[propertyName];
-            const { form } = this.getClientFor(tp.forms, "readproperty", Affordance.PropertyAffordance, options);
+            const { form } = this.getClientFor(property.forms, "readproperty", Affordance.PropertyAffordance, options);
             if (form != null) {
                 propertyNames.push(propertyName);
             }
         }
+
         return this._readProperties(propertyNames);
     }
 
@@ -656,9 +654,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
     async writeMultipleProperties(valueMap: WoT.PropertyWriteMap, options?: WoT.InteractionOptions): Promise<void> {
         // collect all single promises into array
         const promises: Promise<void>[] = [];
-        for (const propertyName in valueMap) {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            const value = valueMap.get(propertyName)!;
+        for (const [propertyName, value] of valueMap.entries()) {
             promises.push(this.writeProperty(propertyName, value));
         }
         // wait for all promises to succeed and create response

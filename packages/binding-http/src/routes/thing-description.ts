@@ -26,35 +26,31 @@ function resetMultiLangInteraction(
     interactions: ThingDescription["properties"] | ThingDescription["actions"] | ThingDescription["events"],
     prefLang: string
 ) {
-    if (interactions) {
-        for (const interName in interactions) {
+    if (interactions != null) {
+        for (const interaction of Object.values(interactions)) {
             // unset any current title and/or description
-            delete interactions[interName].title;
-            delete interactions[interName].description;
+            delete interaction.title;
+            delete interaction.description;
 
             // use new language title
-            const titles = interactions[interName].titles;
-            if (titles) {
-                for (const titleLang in titles) {
-                    if (titleLang.startsWith(prefLang)) {
-                        interactions[interName].title = titles[titleLang];
-                    }
+            for (const [titleLang, titleValue] of Object.entries(interaction.titles ?? {})) {
+                if (titleLang.startsWith(prefLang)) {
+                    interaction.title = titleValue;
+                    break;
                 }
             }
 
             // use new language description
-            const descriptions = interactions[interName].descriptions;
-            if (descriptions) {
-                for (const descLang in descriptions) {
-                    if (descLang.startsWith(prefLang)) {
-                        interactions[interName].description = descriptions[descLang];
-                    }
+            for (const [descLang, descriptionValue] of Object.entries(interaction.descriptions ?? {})) {
+                if (descLang.startsWith(prefLang)) {
+                    interaction.description = descriptionValue;
+                    break;
                 }
             }
 
             // unset any multilanguage titles and/or descriptions
-            delete interactions[interName].titles;
-            delete interactions[interName].descriptions;
+            delete interaction.titles;
+            delete interaction.descriptions;
         }
     }
 }

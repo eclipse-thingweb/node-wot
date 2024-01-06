@@ -319,20 +319,17 @@ export class ThingModelHelpers {
         modelInput.imports = [];
         for (const affType of affordanceTypes) {
             const affRefs = ThingModelHelpers.getThingModelRef(data[affType] as DataSchema);
-            if (Object.keys(affRefs).length > 0) {
-                for (const aff in affRefs) {
-                    const affUri = affRefs[aff] as string;
-                    const refObj = this.parseTmRef(affUri);
-                    if (refObj.uri == null) {
-                        throw new Error(`Missing remote path in ${affUri}`);
-                    }
-                    let source = await this.fetchModel(refObj.uri);
-                    [source] = await this._getPartialTDs(source);
-                    delete (data[affType] as DataSchema)[aff]["tm:ref"];
-                    const importedAffordance = this.getRefAffordance(refObj, source) ?? {};
-                    refObj.name = aff; // update the name of the affordance
-                    modelInput.imports.push({ affordance: importedAffordance, ...refObj });
+            for (const [aff, affUri] of Object.entries(affRefs)) {
+                const refObj = this.parseTmRef(affUri);
+                if (refObj.uri == null) {
+                    throw new Error(`Missing remote path in ${affUri}`);
                 }
+                let source = await this.fetchModel(refObj.uri);
+                [source] = await this._getPartialTDs(source);
+                delete (data[affType] as DataSchema)[aff]["tm:ref"];
+                const importedAffordance = this.getRefAffordance(refObj, source) ?? {};
+                refObj.name = aff; // update the name of the affordance
+                modelInput.imports.push({ affordance: importedAffordance, ...refObj });
             }
         }
         const tmLinks = ThingModelHelpers.getThingModelLinks(data, "tm:submodel");
@@ -383,8 +380,7 @@ export class ThingModelHelpers {
         if ("submodel" in modelObject) {
             const submodelObj = modelObject.submodel;
 
-            for (const key in submodelObj) {
-                const sub = submodelObj[key];
+            for (const [key, sub] of Object.entries(submodelObj ?? {})) {
                 if (options.selfComposition === true) {
                     if (!data.links) {
                         throw new Error(
@@ -402,11 +398,9 @@ export class ThingModelHelpers {
                     const [subPartialTD] = await this._getPartialTDs(sub, options);
                     const affordanceTypes = ["properties", "actions", "events"];
                     for (const affType of affordanceTypes) {
-                        for (const affKey in subPartialTD[affType] as DataSchema) {
+                        for (const affKey of Object.keys((subPartialTD[affType] ?? {}) as DataSchema)) {
+                            data[affType] ??= {} as DataSchema;
                             const newAffKey = `${instanceName}_${affKey}`;
-                            if (!(affType in data)) {
-                                data[affType] = {} as DataSchema;
-                            }
                             (data[affType] as DataSchema)[newAffKey] = (subPartialTD[affType] as DataSchema)[
                                 affKey
                             ] as DataSchema;
@@ -453,15 +447,15 @@ export class ThingModelHelpers {
         return tmpThingModels;
     }
 
-    private static getThingModelRef(data: Record<string, unknown>): Record<string, unknown> {
-        const refs = {} as Record<string, unknown>;
+    private static getThingModelRef(data: Record<string, unknown>): Record<string, string> {
+        const refs = {} as Record<string, string>;
         if (data == null) {
             return refs;
         }
-        for (const key in data) {
-            for (const key1 in data[key] as Record<string, unknown>) {
-                if (key1 === "tm:ref") {
-                    refs[key] = (data[key] as Record<string, unknown>)["tm:ref"] as string;
+        for (const [key, value] of Object.entries(data)) {
+            for (const valueKey of Object.keys(value as Record<string, unknown>)) {
+                if (valueKey === "tm:ref") {
+                    refs[key] = (value as Record<string, unknown>)["tm:ref"] as string;
                 }
             }
         }
