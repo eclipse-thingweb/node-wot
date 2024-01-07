@@ -24,6 +24,7 @@ see binding examples such as
 ## Codecs
 
 ### Octet-Stream
+
 The octet-stream codec enables deserialization and serialization of binary data. To encode and decode sequences of bytes, the octet-stream codec uses the following content type parameters:
 | Parameter | Description | Default |
 | --- | --- | --- |
@@ -40,15 +41,17 @@ Additionally, the octet-stream codec supports the data schema terms below for ad
 With the help of the terms and parameters above, the octet-stream codec can be used to serialize and deserialize objects containing bit-fields and sequences of bytes, like in the following example.
 
 #### Example
+
 To serialize the object `{ flag1: true, numberProperty: 99, stringProperty: "Web" }` to a sequence of bytes, the content type `application/octet-stream;length=4;signed=false;`, along with the following data schema can be used:
+
 ```json
 {
     "type": "object",
     "properties": {
         "flag1": { "type": "boolean", "ex:bitOffset": 0, "ex:bitLength": 1 },
         "numberProperty": { "type": "integer", "ex:bitOffset": 1, "ex:bitLength": 7 },
-        "stringProperty": { "type": "string", "ex:bitOffset": 2, "ex:bitLength": 24 },
-    },
+        "stringProperty": { "type": "string", "ex:bitOffset": 2, "ex:bitLength": 24 }
+    }
 }
 ```
 
