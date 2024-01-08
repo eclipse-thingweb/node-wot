@@ -79,7 +79,9 @@ export class InteractionOutput implements WoT.InteractionOutput {
 
     async value<T>(): Promise<T> {
         // the value has been already read?
-        if (this.parsedValue != null) return this.parsedValue as T;
+        if (this.parsedValue !== undefined) {
+            return this.parsedValue as T;
+        }
 
         if (this.dataUsed) {
             throw new Error("Can't read the stream once it has been already used");
