@@ -30,7 +30,7 @@ export default class Servient {
     private things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
     private credentialStore: Map<string, Array<unknown>> = new Map<string, Array<unknown>>();
 
-    #started = false;
+    #startedWoT?: typeof WoT;
     #shutdown = false;
 
     /** add a new codec to support a mediatype; offered mediatypes are listed in TDs */
@@ -213,25 +213,29 @@ export default class Servient {
 
     // will return WoT object
     public async start(): Promise<typeof WoT> {
-        if (this.#started) {
-            throw Error("Servient started already");
+        if (this.#startedWoT != null) {
+            debug("Servient started already -> nop -> returning previous WoT implementation");
+            return this.#startedWoT;
         }
+        if (this.#shutdown) {
+            throw Error("Servient cannot be started (again) since it was already stopped");
+        }
+
         const serverStatus: Array<Promise<void>> = [];
         this.servers.forEach((server) => serverStatus.push(server.start(this)));
         this.clientFactories.forEach((clientFactory) => clientFactory.init());
 
         await Promise.all(serverStatus);
-        this.#started = true;
-        return new WoTImpl(this);
+        return (this.#startedWoT = new WoTImpl(this));
     }
 
     public async shutdown(): Promise<void> {
-        if (!this.#started) {
-            debug("Servient cannot be shutdown, wasn't even started");
-            return;
+        if (this.#startedWoT === undefined) {
+            throw Error("Servient cannot be shutdown, wasn't even started");
         }
         if (this.#shutdown) {
-            throw Error("Servient shutdown already");
+            debug("Servient shutdown already -> nop");
+            return;
         }
 
         this.clientFactories.forEach((clientFactory) => clientFactory.destroy());
@@ -239,5 +243,6 @@ export default class Servient {
         const promises = this.servers.map((server) => server.stop());
         await Promise.all(promises);
         this.#shutdown = true;
+        this.#startedWoT = undefined; // clean-up reference
     }
 }
