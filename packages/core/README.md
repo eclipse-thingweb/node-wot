@@ -50,7 +50,7 @@ To serialize the object `{ flag1: true, numberProperty: 99, stringProperty: "Web
     "properties": {
         "flag1": { "type": "boolean", "ex:bitOffset": 0, "ex:bitLength": 1 },
         "numberProperty": { "type": "integer", "ex:bitOffset": 1, "ex:bitLength": 7 },
-        "stringProperty": { "type": "string", "ex:bitOffset": 2, "ex:bitLength": 24 }
+        "stringProperty": { "type": "string", "ex:bitOffset": 8, "ex:bitLength": 24 }
     }
 }
 ```
