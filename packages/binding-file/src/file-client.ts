@@ -19,7 +19,7 @@
 import { Form, SecurityScheme } from "@node-wot/td-tools";
 import { ProtocolClient, Content, createLoggers, ContentSerdes } from "@node-wot/core";
 import { Subscription } from "rxjs/Subscription";
-import fs = require("fs");
+import { promises as asyncFs } from "fs";
 import { fileURLToPath } from "node:url";
 
 const { debug } = createLoggers("binding-file", "file-client");
@@ -33,8 +33,9 @@ export default class FileClient implements ProtocolClient {
         const filePath = fileURLToPath(uri);
         debug(`Reading file of Content-Type ${contentType} from path ${filePath}.`);
 
-        const resource = fs.createReadStream(filePath);
-        return new Content(contentType, resource);
+        const fileHandle = await asyncFs.open(filePath);
+        const body = fileHandle.createReadStream();
+        return new Content(contentType, body);
     }
 
     public async readResource(form: Form): Promise<Content> {
@@ -50,10 +51,7 @@ export default class FileClient implements ProtocolClient {
     public async writeResource(form: Form, content: Content): Promise<void> {
         const filePath = fileURLToPath(form.href);
 
-        const writeStream = fs.createWriteStream(filePath);
-        const buffer = await content.toBuffer();
-
-        writeStream.end(buffer);
+        await asyncFs.writeFile(filePath, content.body);
     }
 
     public async invokeResource(form: Form, content: Content): Promise<Content> {
