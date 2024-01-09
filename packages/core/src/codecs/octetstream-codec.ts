@@ -535,6 +535,7 @@ export default class OctetstreamCodec implements ContentCodec {
         }
 
         result = result ?? Buffer.alloc(parseInt(parameters.length));
+        // TODO: Use correct type for propertySchema
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         for (const [propertyName, propertySchema] of Object.entries(schema.properties) as [string, any]) {
             if (Object.hasOwnProperty.call(value, propertyName) === false) {
