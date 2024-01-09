@@ -1,2 +1,3 @@
 # Ignore auxiliary files created by the FileClient implementation tests
-test.*
+test*.json
+test*.txt
