@@ -77,7 +77,7 @@ export class InteractionOutput implements WoT.InteractionOutput {
         return data;
     }
 
-    async value<T>(): Promise<T> {
+    async value<T extends WoT.DataSchemaValue>(): Promise<T> {
         // the value has been already read?
         if (this.parsedValue !== undefined) {
             return this.parsedValue as T;
