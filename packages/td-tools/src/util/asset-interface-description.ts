@@ -28,6 +28,12 @@ const logDebug = debug(`${namespace}:debug`);
 const logInfo = debug(`${namespace}:info`);
 const logError = debug(`${namespace}:error`);
 
+type NotEmptyArray<T> = [T, ...T[]];
+
+function isNotEmptyArray<T>(as: T[]): as is NotEmptyArray<T> {
+    return as.length > 0;
+}
+
 /**
  * Utilities around Asset Interface Description
  * https://github.com/admin-shell-io/submodel-templates/tree/main/development/Asset%20Interface%20Description/1/0
@@ -673,10 +679,7 @@ export class AssetInterfaceDescriptionUtil {
             for (const [key, value] of smInformation.properties.entries()) {
                 logInfo("Property" + key + " = " + value);
 
-                thing.properties[key] = {
-                    // @ts-expect-error Here is a strange type mismatch present
-                    forms: [],
-                };
+                const forms = [];
 
                 for (const vi of value) {
                     for (const keyInteraction in vi.interaction) {
@@ -777,8 +780,16 @@ export class AssetInterfaceDescriptionUtil {
                         vi.secNamesForEndpoint = secNamesForEndpointMetadata.get(vi.endpointMetadata);
                     }
                     const form = this.createInteractionForm(vi, smInformation.endpointMetadataArray.length > 1);
-                    thing.properties[key].forms.push(form);
+                    forms.push(form);
                 }
+
+                if (!isNotEmptyArray(forms)) {
+                    throw Error(`Mapping to properties produced an empty forms array for property ${key}`);
+                }
+
+                thing.properties[key] = {
+                    forms,
+                };
             }
         }
 
@@ -800,8 +811,11 @@ export class AssetInterfaceDescriptionUtil {
                     forms.push(form);
                 }
 
+                if (!isNotEmptyArray(forms)) {
+                    throw Error(`Mapping to actions produced an empty forms array for action ${key}`);
+                }
+
                 thing.actions[key] = {
-                    // @ts-expect-error Here is a strange type mismatch present
                     forms,
                 };
             }
@@ -815,15 +829,18 @@ export class AssetInterfaceDescriptionUtil {
             for (const [key, value] of smInformation.events.entries()) {
                 logInfo("Event " + key + " = " + value);
 
-                const forms = value.map((vi) => {
-                    if (vi.endpointMetadata) {
-                        vi.secNamesForEndpoint = secNamesForEndpointMetadata.get(vi.endpointMetadata);
-                    }
-                    return this.createInteractionForm(vi, smInformation.endpointMetadataArray.length > 1);
-                });
+                const forms = [];
+
+                for (const vi of value) {
+                    const form = this.createInteractionForm(vi, smInformation.endpointMetadataArray.length > 1);
+                    forms.push(form);
+                }
+
+                if (!isNotEmptyArray(forms)) {
+                    throw Error(`Mapping to events produced an empty forms array for event ${key}`);
+                }
 
                 thing.events[key] = {
-                    // @ts-expect-error Here is a strange type mismatch present
                     forms,
                 };
             }
