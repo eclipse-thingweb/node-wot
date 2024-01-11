@@ -213,7 +213,7 @@ export default class Servient {
 
     // will return WoT object
     public async start(): Promise<typeof WoT> {
-        if (this.#wotInstance != null) {
+        if (this.#wotInstance !== undefined) {
             debug("Servient started already -> nop -> returning previous WoT implementation");
             return this.#wotInstance;
         }
