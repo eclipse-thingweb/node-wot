@@ -12,25 +12,15 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-import { createLoggers } from "@node-wot/core";
-import { MqttQoS } from "./mqtt";
-import { IClientPublishOptions } from "mqtt";
 
-const { warn } = createLoggers("binding-mqtt", "mqtt-util");
+import { ErrorObject } from "ajv";
+import Helpers from "./helpers";
 
-export function mapQoS(qos: MqttQoS | undefined): Required<IClientPublishOptions>["qos"] {
-    switch (qos) {
-        case "0":
-            return 0;
-        case "1":
-            return 1;
-        case "2":
-            return 2;
-        case undefined:
-            return 0;
-        default:
-            warn(`MqttClient received unsupported QoS level '${qos}'`);
-            warn(`MqttClient falling back to QoS level '0'`);
-            return 0;
-    }
+export function isThingDescription(input: unknown): input is WoT.ThingDescription {
+    return Helpers.tsSchemaValidator(input);
+}
+
+export function getLastValidationErrors() {
+    const errors = Helpers.tsSchemaValidator.errors?.map((o: ErrorObject) => o.message).join("\n");
+    return new Error(errors);
 }

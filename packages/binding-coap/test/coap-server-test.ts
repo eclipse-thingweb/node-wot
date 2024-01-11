@@ -598,14 +598,13 @@ class CoapServerTest {
         });
 
         await coapServer.stop();
-        await servient.shutdown();
     }
 
     @test async "should reject unsupported methods for meta operations"() {
         const coapServer = new CoapServer();
         const servient = new Servient();
 
-        await coapServer.start(servient);
+        await coapServer.start(new Servient());
 
         const testThingWithoutForms = new ExposedThing(servient, {
             title: "Test",
@@ -634,6 +633,5 @@ class CoapServerTest {
         });
 
         await coapServer.stop();
-        await servient.shutdown();
     }
 }

@@ -254,7 +254,7 @@ The above configuration file, is setting up a https server with basic secure sch
 
 ### oAuth2.0
 
-Currently this binding supports only oAuth2.0 `client credential` and `Resource owner credential` flows. Other flows may be implemented in future like `code` flow. Futhermore, the oAuth2.0 protocol is only implemented for the client side.
+Currently this binding supports only oAuth2.0 `client credential` and `Resource owner credential` flows. Other flows may be implemented in future like `code` flow. Furthermore, the oAuth2.0 protocol is only implemented for the client side.
 
 An example of a WoT oAuth2.0 enabled client can be found [here](../examples/src/security/oauth/README.md).
 
