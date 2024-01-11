@@ -30,7 +30,7 @@ export default class Servient {
     private things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
     private credentialStore: Map<string, Array<unknown>> = new Map<string, Array<unknown>>();
 
-    #startedWoT?: typeof WoT;
+    #wotInstance?: typeof WoT;
     #shutdown = false;
 
     /** add a new codec to support a mediatype; offered mediatypes are listed in TDs */
@@ -213,9 +213,9 @@ export default class Servient {
 
     // will return WoT object
     public async start(): Promise<typeof WoT> {
-        if (this.#startedWoT != null) {
+        if (this.#wotInstance != null) {
             debug("Servient started already -> nop -> returning previous WoT implementation");
-            return this.#startedWoT;
+            return this.#wotInstance;
         }
         if (this.#shutdown) {
             throw Error("Servient cannot be started (again) since it was already stopped");
@@ -226,11 +226,11 @@ export default class Servient {
         this.clientFactories.forEach((clientFactory) => clientFactory.init());
 
         await Promise.all(serverStatus);
-        return (this.#startedWoT = new WoTImpl(this));
+        return (this.#wotInstance = new WoTImpl(this));
     }
 
     public async shutdown(): Promise<void> {
-        if (this.#startedWoT === undefined) {
+        if (this.#wotInstance === undefined) {
             throw Error("Servient cannot be shutdown, wasn't even started");
         }
         if (this.#shutdown) {
@@ -243,6 +243,6 @@ export default class Servient {
         const promises = this.servers.map((server) => server.stop());
         await Promise.all(promises);
         this.#shutdown = true;
-        this.#startedWoT = undefined; // clean-up reference
+        this.#wotInstance = undefined; // clean-up reference
     }
 }
