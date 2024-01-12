@@ -18,6 +18,7 @@ import { PropertyElement } from "wot-thing-description-types";
 
 const observeOpFilter = ["observeproperty", "unobserveproperty"];
 const readWriteOpFilter = ["readproperty", "writeproperty"];
+const eventOpFilter = ["subscribeevent", "unsubscribeevent"];
 
 function filterOpValues(opValues: string[], filterValues: string[]) {
     return opValues.filter((opValue) => filterValues.includes(opValue));
@@ -41,8 +42,19 @@ export function filterPropertyObserveOperations(opValues: string[]) {
  * @param opValues The `op` values to be filtered.
  * @returns A filtered array that might be empty.
  */
-function filterPropertyReadWriteOperations(opValues: string[]) {
+export function filterPropertyReadWriteOperations(opValues: string[]) {
     return filterOpValues(opValues, readWriteOpFilter);
+}
+
+/**
+ * Convenience function to filter out the `op` values "subscribeevent" and
+ * "unsubscribeevent" from a string array.
+ *
+ * @param opValues The `op` values to be filtered.
+ * @returns A filtered array that might be empty.
+ */
+export function filterEventOperations(opValues: string[]) {
+    return filterOpValues(opValues, eventOpFilter);
 }
 
 /**

@@ -20,12 +20,13 @@ import Servient, { ExposedThing, Content } from "@node-wot/core";
 
 import { suite, test } from "@testdeck/mocha";
 import { expect, should } from "chai";
-import { DataSchemaValue, InteractionInput, InteractionOptions } from "wot-typescript-definitions";
+import { DataSchemaValue, InteractionInput, InteractionOptions, ThingDescription } from "wot-typescript-definitions";
 import * as TD from "@node-wot/td-tools";
 import CoapServer from "../src/coap-server";
 import { CoapClient } from "../src/coap";
 import { Readable } from "stream";
 import { IncomingMessage, registerFormat, request } from "coap";
+import { filterEventOperations, filterPropertyObserveOperations, filterPropertyReadWriteOperations } from "../src/util";
 
 // should must be called to augment all variables
 should();
@@ -627,6 +628,93 @@ class CoapServerTest {
             });
             req.on("response", (res) => {
                 expect(res.code).to.equal("4.05");
+                resolve();
+            });
+            req.end();
+        });
+
+        await coapServer.stop();
+    }
+
+    @test async "should add the cov:observe subprotocol value to obervable properties and events "() {
+        const coapServer = new CoapServer({ port: 5683 });
+        const servient = new Servient();
+        servient.addServer(coapServer);
+
+        await coapServer.start(servient);
+
+        const covObserveThing = new ExposedThing(servient, {
+            title: "Test",
+            properties: {
+                observableProperty: {
+                    observable: true,
+                },
+                nonObservableProperty: {},
+            },
+            events: {
+                testEvent: {},
+            },
+        });
+
+        await coapServer.expose(covObserveThing);
+
+        await new Promise<void>((resolve) => {
+            const req = request({
+                host: "localhost",
+                pathname: "test",
+                port: 5683,
+                method: "GET",
+            });
+            req.on("response", (res: IncomingMessage) => {
+                const payload = res.payload.toString();
+                const td = JSON.parse(payload) as ThingDescription;
+
+                for (const property of Object.values(td.properties!)) {
+                    let observeOpValueFormCount = 0;
+                    for (const form of property.forms) {
+                        const opValues = form.op!;
+                        expect(opValues.length).to.be.greaterThan(0);
+
+                        const observeOpValueCount = filterPropertyObserveOperations(opValues as Array<string>).length;
+                        const observeOpValuePresent = observeOpValueCount > 0;
+
+                        if (observeOpValuePresent) {
+                            observeOpValueFormCount++;
+                            expect(form.subprotocol).to.eql("cov:observe");
+                        }
+
+                        const readWriteOpValueCount = filterPropertyReadWriteOperations(
+                            opValues as Array<string>
+                        ).length;
+                        const readWriteOpValuePresent = readWriteOpValueCount > 0;
+
+                        // eslint-disable-next-line no-unused-expressions
+                        expect(observeOpValuePresent && readWriteOpValuePresent).to.not.be.true;
+
+                        if (property.observable !== true) {
+                            expect(observeOpValueCount).to.eql(0);
+                        }
+                    }
+
+                    if (property.observable === true) {
+                        expect(observeOpValueFormCount).to.be.greaterThan(0);
+                    }
+                }
+
+                for (const event of Object.values(td.events!)) {
+                    for (const form of event.forms) {
+                        const opValues = form.op!;
+                        expect(opValues.length > 0);
+
+                        const eventOpValueCount = filterEventOperations(opValues as Array<string>).length;
+                        const eventOpValueCountPresent = eventOpValueCount > 0;
+
+                        expect(eventOpValueCountPresent);
+
+                        expect(form.subprotocol === "cov:observe");
+                    }
+                }
+
                 resolve();
             });
             req.end();
