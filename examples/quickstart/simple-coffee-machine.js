@@ -1,4 +1,3 @@
-"use strict";
 /********************************************************************************
  * Copyright (c) 2023 Contributors to the Eclipse Foundation
  *
@@ -13,25 +12,39 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
+
+// @ts-check
+
+"use strict";
+
 // This is an example Thing script which is a simple coffee machine.
 // You can order coffee and see the status of the resources
-const core_1 = require("@node-wot/core");
-const binding_http_1 = require("@node-wot/binding-http");
+
+const { Servient, Helpers } = require("@node-wot/core");
+const { HttpServer } = require("@node-wot/binding-http");
+
 // create Servient add HTTP binding with port configuration
-const servient = new core_1.Servient();
+const servient = new Servient();
 // const staticAddress = "plugfest.thingweb.io";
 const staticAddress = "localhost"; // use this for testing locally
 const httpPort = 8081;
 servient.addServer(
-    new binding_http_1.HttpServer({
-        port: httpPort,
+    new HttpServer({
+        port: 8081,
     })
 );
-core_1.Helpers.setStaticAddress(staticAddress);
+
+Helpers.setStaticAddress(staticAddress);
+
 let waterAmount = 1000;
 let beansAmount = 1000;
 let milkAmount = 1000;
-// promisify timeout since it does not return a promise
+
+/**
+ * Function to promisify timeout since it does not return a promise
+ *
+ * @param {number} ms
+ */
 function timeout(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
