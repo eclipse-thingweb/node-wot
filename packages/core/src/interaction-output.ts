@@ -106,7 +106,6 @@ export class InteractionOutput implements WoT.InteractionOutput {
         this.dataUsed = true;
         this.buffer = bytes;
 
-        // call the contentToValue
         const json = ContentSerdes.get().contentToValue({ type: this.content.type, body: bytes }, this.schema);
 
         // validate the schema
@@ -120,6 +119,6 @@ export class InteractionOutput implements WoT.InteractionOutput {
         }
 
         this.#value = json;
-        return this.#value as T;
+        return json;
     }
 }
