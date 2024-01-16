@@ -16,7 +16,7 @@ import * as util from "util";
 import * as WoT from "wot-typescript-definitions";
 import { ContentSerdes } from "./content-serdes";
 import { ProtocolHelpers } from "./core";
-import { DataSchemaError, NotSupportedError } from "./errors";
+import { DataSchemaError, NotReadableError, NotSupportedError } from "./errors";
 import { Content } from "./content";
 import Ajv from "ajv";
 import { createLoggers } from "./logger";
@@ -33,7 +33,7 @@ const ajv = new Ajv({ strict: false });
 
 export class InteractionOutput implements WoT.InteractionOutput {
     private content: Content;
-    private parsedValue: unknown;
+    #value: unknown;
     private buffer?: ArrayBuffer;
     private _stream?: ReadableStream;
     dataUsed: boolean;
@@ -79,43 +79,47 @@ export class InteractionOutput implements WoT.InteractionOutput {
 
     async value<T extends WoT.DataSchemaValue>(): Promise<T> {
         // the value has been already read?
-        if (this.parsedValue !== undefined) {
-            return this.parsedValue as T;
+        if (this.#value !== undefined) {
+            return this.#value as T;
         }
 
         if (this.dataUsed) {
-            throw new Error("Can't read the stream once it has been already used");
+            throw new NotReadableError("Can't read the stream once it has been already used");
+        }
+
+        if (this.form == null) {
+            throw new NotReadableError("No form defined");
+        }
+
+        if (this.schema == null || this.schema.type == null) {
+            throw new NotReadableError("No schema defined");
         }
 
         // is content type valid?
-        if (!this.form || !ContentSerdes.get().isSupported(this.content.type)) {
-            const message = !this.form ? "Missing form" : `Content type ${this.content.type} not supported`;
+        if (!ContentSerdes.get().isSupported(this.content.type)) {
+            const message = `Content type ${this.content.type} not supported`;
             throw new NotSupportedError(message);
         }
 
         // read fully the stream
-        const data = await this.content.toBuffer();
+        const bytes = await this.content.toBuffer();
         this.dataUsed = true;
-        this.buffer = data;
+        this.buffer = bytes;
 
         // call the contentToValue
-        // TODO: should be fixed contentToValue MUST define schema as nullable
-        const value = ContentSerdes.get().contentToValue({ type: this.content.type, body: data }, this.schema ?? {});
+        const json = ContentSerdes.get().contentToValue({ type: this.content.type, body: bytes }, this.schema);
 
-        // any data (schema)?
-        if (this.schema) {
-            // validate the schema
-            const validate = ajv.compile<T>(this.schema);
+        // validate the schema
+        const validate = ajv.compile<T>(this.schema);
 
-            if (!validate(value)) {
-                debug(`schema = ${util.inspect(this.schema, { depth: 10, colors: true })}`);
-                debug(`value: ${value}`);
-                debug(`Errror: ${validate.errors}`);
-                throw new DataSchemaError("Invalid value according to DataSchema", value as WoT.DataSchemaValue);
-            }
+        if (!validate(json)) {
+            debug(`schema = ${util.inspect(this.schema, { depth: 10, colors: true })}`);
+            debug(`value: ${json}`);
+            debug(`Errror: ${validate.errors}`);
+            throw new DataSchemaError("Invalid value according to DataSchema", json as WoT.DataSchemaValue);
         }
 
-        this.parsedValue = value;
-        return this.parsedValue as T;
+        this.#value = json;
+        return this.#value as T;
     }
 }
