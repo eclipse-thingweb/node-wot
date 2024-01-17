@@ -32,17 +32,17 @@ const { debug } = createLoggers("core", "interaction-output");
 const ajv = new Ajv({ strict: false });
 
 export class InteractionOutput implements WoT.InteractionOutput {
-    private content: Content;
+    #content: Content;
     #value: unknown;
-    private buffer?: ArrayBuffer;
-    private _stream?: ReadableStream;
+    #buffer?: ArrayBuffer;
+    #stream?: ReadableStream;
     dataUsed: boolean;
     form?: WoT.Form;
     schema?: WoT.DataSchema;
 
     public get data(): ReadableStream {
-        if (this._stream) {
-            return this._stream;
+        if (this.#stream) {
+            return this.#stream;
         }
 
         if (this.dataUsed) {
@@ -51,28 +51,28 @@ export class InteractionOutput implements WoT.InteractionOutput {
         // Once the stream is created data might be pulled unpredictably
         // therefore we assume that it is going to be used to be safe.
         this.dataUsed = true;
-        return (this._stream = ProtocolHelpers.toWoTStream(this.content.body) as ReadableStream);
+        return (this.#stream = ProtocolHelpers.toWoTStream(this.#content.body) as ReadableStream);
     }
 
     constructor(content: Content, form?: WoT.Form, schema?: WoT.DataSchema) {
-        this.content = content;
+        this.#content = content;
         this.form = form;
         this.schema = schema;
         this.dataUsed = false;
     }
 
     async arrayBuffer(): Promise<ArrayBuffer> {
-        if (this.buffer) {
-            return this.buffer;
+        if (this.#buffer) {
+            return this.#buffer;
         }
 
         if (this.dataUsed) {
             throw new Error("Can't read the stream once it has been already used");
         }
 
-        const data = await this.content.toBuffer();
+        const data = await this.#content.toBuffer();
         this.dataUsed = true;
-        this.buffer = data;
+        this.#buffer = data;
 
         return data;
     }
@@ -96,17 +96,17 @@ export class InteractionOutput implements WoT.InteractionOutput {
         }
 
         // is content type valid?
-        if (!ContentSerdes.get().isSupported(this.content.type)) {
-            const message = `Content type ${this.content.type} not supported`;
+        if (!ContentSerdes.get().isSupported(this.#content.type)) {
+            const message = `Content type ${this.#content.type} not supported`;
             throw new NotSupportedError(message);
         }
 
         // read fully the stream
-        const bytes = await this.content.toBuffer();
+        const bytes = await this.#content.toBuffer();
         this.dataUsed = true;
-        this.buffer = bytes;
+        this.#buffer = bytes;
 
-        const json = ContentSerdes.get().contentToValue({ type: this.content.type, body: bytes }, this.schema);
+        const json = ContentSerdes.get().contentToValue({ type: this.#content.type, body: bytes }, this.schema);
 
         // validate the schema
         const validate = ajv.compile<T>(this.schema);
