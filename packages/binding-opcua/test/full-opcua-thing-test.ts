@@ -371,7 +371,7 @@ describe("Full OPCUA Thing Test", () => {
             const content = await thing.readProperty(propertyName, localOptions);
             if (forceParsing) {
                 // In opcua binding it is possible to return a special response that contains
-                // reacher details than the bare value. However this make the returned value
+                // richer details than the bare value. However this makes the returned value
                 // not complaint with its data schema. Therefore we have to fallback to
                 // custom parsing.
                 const raw = await content.arrayBuffer();
