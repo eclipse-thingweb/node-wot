@@ -36,6 +36,7 @@ function createDirectoryTestTd(title: string, thingsPropertyHref: string) {
         },
         properties: {
             things: {
+                type: "array",
                 forms: [
                     {
                         href: thingsPropertyHref,

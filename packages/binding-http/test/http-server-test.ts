@@ -160,7 +160,7 @@ class HttpServerTest {
         let test: DataSchemaValue;
         testThing.setPropertyReadHandler("test", (_) => Promise.resolve(test));
         testThing.setPropertyWriteHandler("test", async (value) => {
-            test = await value.value();
+            test = Buffer.from(await value.arrayBuffer()).toString("utf-8");
         });
 
         testThing.setActionHandler("try", async (input: WoT.InteractionOutput) => {

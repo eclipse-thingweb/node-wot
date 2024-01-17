@@ -22,19 +22,16 @@ import Helpers from "./helpers";
 import { createLoggers } from "./logger";
 import ContentManager from "./content-serdes";
 import { getLastValidationErrors, isThingDescription } from "./validation";
+import { inspect } from "util";
 
 const { debug } = createLoggers("core", "wot-impl");
 
 class ThingDiscoveryProcess implements WoT.ThingDiscoveryProcess {
-    constructor(rawThingDescriptions: WoT.DataSchemaValue, filter?: WoT.ThingFilter) {
+    constructor(private directory: ConsumedThing, public filter?: WoT.ThingFilter) {
         this.filter = filter;
         this.done = false;
-        this.rawThingDescriptions = rawThingDescriptions;
     }
 
-    rawThingDescriptions: WoT.DataSchemaValue;
-
-    filter?: WoT.ThingFilter | undefined;
     done: boolean;
     error?: Error | undefined;
     async stop(): Promise<void> {
@@ -42,13 +39,17 @@ class ThingDiscoveryProcess implements WoT.ThingDiscoveryProcess {
     }
 
     async *[Symbol.asyncIterator](): AsyncIterator<WoT.ThingDescription> {
-        if (!(this.rawThingDescriptions instanceof Array)) {
-            this.error = new Error("Encountered an invalid output value.");
+        let rawThingDescriptions: WoT.ThingDescription[];
+        try {
+            const thingsPropertyOutput = await this.directory.readProperty("things");
+            rawThingDescriptions = (await thingsPropertyOutput.value()) as WoT.ThingDescription[];
+        } catch (error) {
+            this.error = error instanceof Error ? error : new Error(inspect(error));
             this.done = true;
             return;
         }
 
-        for (const outputValue of this.rawThingDescriptions) {
+        for (const outputValue of rawThingDescriptions) {
             if (this.done) {
                 return;
             }
@@ -81,10 +82,7 @@ export default class WoTImpl {
         const directoyThingDescription = await this.requestThingDescription(url);
         const consumedDirectoy = await this.consume(directoyThingDescription);
 
-        const thingsPropertyOutput = await consumedDirectoy.readProperty("things");
-        const rawThingDescriptions = await thingsPropertyOutput.value();
-
-        return new ThingDiscoveryProcess(rawThingDescriptions, filter);
+        return new ThingDiscoveryProcess(consumedDirectoy, filter);
     }
 
     /** @inheritDoc */

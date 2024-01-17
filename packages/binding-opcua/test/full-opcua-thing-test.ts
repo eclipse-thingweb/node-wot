@@ -49,6 +49,7 @@ const thingDescription: WoT.ThingDescription = {
             observable: true,
             readOnly: true,
             unit: "°C",
+            type: "number",
             "opcua:nodeId": { root: "i=84", path: "/Objects/1:MySensor/2:ParameterSet/1:Temperature" },
             // Don't specifu type here as it could be multi form: type: [ "object", "number" ],
             forms: [
@@ -111,6 +112,7 @@ const thingDescription: WoT.ThingDescription = {
             description: "the temperature set point",
             observable: true,
             unit: "°C",
+            type: "number",
             // dont't
             forms: [
                 {
@@ -358,10 +360,25 @@ describe("Full OPCUA Thing Test", () => {
 
         return { thing, servient };
     }
-    async function doTest(thing: WoT.ConsumedThing, propertyName: string, localOptions: InteractionOptions) {
+    async function doTest(
+        thing: WoT.ConsumedThing,
+        propertyName: string,
+        localOptions: InteractionOptions,
+        forceParsing = false
+    ) {
         debug("------------------------------------------------------");
         try {
             const content = await thing.readProperty(propertyName, localOptions);
+            if (forceParsing) {
+                // In opcua binding it is possible to return a special response that contains
+                // richer details than the bare value. However this makes the returned value
+                // not complaint with its data schema. Therefore we have to fallback to
+                // custom parsing.
+                const raw = await content.arrayBuffer();
+                const json = JSON.parse(Buffer.from(raw).toString("utf-8"));
+                debug(json?.toString());
+                return json;
+            }
             const json = await content.value();
             debug(json?.toString());
             return json;
@@ -395,13 +412,13 @@ describe("Full OPCUA Thing Test", () => {
             const json1 = await doTest(thing, propertyName, { formIndex: 1 });
             expect(json1).to.eql(25);
 
-            const json2 = await doTest(thing, propertyName, { formIndex: 2 });
+            const json2 = await doTest(thing, propertyName, { formIndex: 2 }, true);
             expect(json2).to.eql({ Type: 11, Body: 25 });
 
             expect(thingDescription.properties?.temperature.forms[3].contentType).eql(
                 "application/opcua+json;type=DataValue"
             );
-            const json3 = await doTest(thing, propertyName, { formIndex: 3 });
+            const json3 = await doTest(thing, propertyName, { formIndex: 3 }, true);
             debug(json3?.toString());
             expect((json3 as Record<string, unknown>).Value).to.eql({ Type: 11, Body: 25 });
         } finally {
