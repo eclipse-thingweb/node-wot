@@ -371,11 +371,11 @@ export default class OctetstreamCodec implements ContentCodec {
         const limit = Math.pow(2, signed ? length - 1 : length) - 1;
         // throw error on overflow
         if (signed) {
-            if (value < -limit - 1 || value >= limit) {
+            if (value < -limit - 1 || value > limit) {
                 throw new Error("Integer overflow when representing signed " + value + " in " + length + " bit(s)");
             }
         } else {
-            if (value < 0 || value >= limit) {
+            if (value < 0 || value > limit) {
                 throw new Error("Integer overflow when representing unsigned " + value + " in " + length + " bit(s)");
             }
         }
