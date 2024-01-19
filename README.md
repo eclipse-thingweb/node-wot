@@ -1,10 +1,10 @@
-<picture>
+<h1>
+  <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/eclipse-thingweb/thingweb/master/brand/logos/node-wot_for_dark_bg.svg">
   <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/eclipse-thingweb/thingweb/master/brand/logos/node-wot.svg">
   <img title="ThingWeb node-wot" alt="Thingweb node-wot logo" src="https://raw.githubusercontent.com/eclipse-thingweb/thingweb/master/brand/logos/node-wot.svg" width="300">
 </picture>
-
-##
+</h1>
 
 > A fast and extensible framework to connect any device with your application
 
