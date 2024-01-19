@@ -178,7 +178,7 @@ export class AssetInterfaceDescriptionUtil {
                     },
                     // created, modified, support ?
                     this.createEndpointMetadata(td, protocol, aidID, submodelElementIdShort), // EndpointMetadata like base, security and securityDefinitions
-                    this.createInterfaceMetadata(td, protocol), // InterfaceMetadata like properties, actions and events
+                    this.createInteractionMetadata(td, protocol), // InteractionMetadata like properties, actions and events
                     // Note: "ExternalDescriptor" should contain file values --> not applicable to TD
                     /* {
                         idShort: "ExternalDescriptor",
@@ -532,7 +532,7 @@ export class AssetInterfaceDescriptionUtil {
     }
 
     private processSubmodelElement(smInformation: SubmodelInformation, submodelElement: Record<string, unknown>): void {
-        // EndpointMetadata vs. InterfaceMetadata
+        // EndpointMetadata vs. InteractionMetadata
         if (submodelElement.value instanceof Array) {
             // Note: iterate twice over to collect first EndpointMetadata
             let endpointMetadata: Record<string, unknown> = {};
@@ -543,7 +543,7 @@ export class AssetInterfaceDescriptionUtil {
                         // e.g., idShort: base , contentType, securityDefinitions, alternativeEndpointDescriptor?
                         endpointMetadata = smValue;
                         smInformation.endpointMetadataArray.push(endpointMetadata);
-                    } else if (smValue.idShort === "InterfaceMetadata") {
+                    } else if (smValue.idShort === "InteractionMetadata") {
                         // handled later
                     } else if (smValue.idShort === "externalDescriptor") {
                         // needed?
@@ -552,11 +552,11 @@ export class AssetInterfaceDescriptionUtil {
                     }
                 }
             }
-            // the 2nd time look for InterfaceMetadata that *need* EndpointMetadata
+            // the 2nd time look for InteractionMetadata that *need* EndpointMetadata
             for (const smValue of submodelElement.value) {
                 if (smValue instanceof Object) {
-                    if (smValue.idShort === "InterfaceMetadata") {
-                        logInfo("InterfaceMetadata");
+                    if (smValue.idShort === "InteractionMetadata") {
+                        logInfo("InteractionMetadata");
                         if (smValue.value instanceof Array) {
                             for (const interactionValue of smValue.value) {
                                 if (interactionValue.idShort === "properties") {
@@ -1161,7 +1161,7 @@ export class AssetInterfaceDescriptionUtil {
         }
     }
 
-    private createInterfaceMetadata(td: ThingDescription, protocol: string): Record<string, unknown> {
+    private createInteractionMetadata(td: ThingDescription, protocol: string): Record<string, unknown> {
         const properties: Array<unknown> = [];
         const actions: Array<unknown> = [];
         const events: Array<unknown> = [];
@@ -1497,8 +1497,8 @@ export class AssetInterfaceDescriptionUtil {
             modelType: "SubmodelElementCollection",
         });
 
-        const interfaceMetadata: Record<string, unknown> = {
-            idShort: "InterfaceMetadata",
+        const interactionMetadata: Record<string, unknown> = {
+            idShort: "InteractionMetadata",
             semanticId: this.createSemanticId(
                 "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/InteractionMetadata"
             ),
@@ -1508,7 +1508,7 @@ export class AssetInterfaceDescriptionUtil {
             modelType: "SubmodelElementCollection",
         };
 
-        return interfaceMetadata;
+        return interactionMetadata;
     }
 }
 

@@ -1031,7 +1031,7 @@
                         },
                         "value": {
                             "title": "Interface HTTP submodelElement collection",
-                            "description": "In this collection, EndpointMetadta and InterfaceMetadata should be mandatory and other elements should be optional",
+                            "description": "In this collection, EndpointMetadta and InteractionMetadata should be mandatory and other elements should be optional",
                             "type": "array",
                             "uniqueItems": true,
                             "unevaluatedItems": false,
@@ -1044,7 +1044,7 @@
                                     { "$ref": "#/definitions/supportElement" },
                                     { "$ref": "#/definitions/ExternalDescriptorContainer" },
                                     { "$ref": "#/definitions/HTTPEndpointMetadata" },
-                                    { "$ref": "#/definitions/HTTPInterfaceMetadata" }
+                                    { "$ref": "#/definitions/HTTPInteractionMetadata" }
                                 ]
                             },
                             "if": {
@@ -1058,7 +1058,7 @@
                                 "contains": {
                                     "anyOf": [
                                         { "$ref": "#/definitions/HTTPEndpointMetadata" },
-                                        { "$ref": "#/definitions/HTTPInterfaceMetadata" }
+                                        { "$ref": "#/definitions/HTTPInteractionMetadata" }
                                     ]
                                 },
                                 "minContains": 2,
@@ -1084,7 +1084,7 @@
                         },
                         "value": {
                             "title": "Interface modbus submodelElement collection",
-                            "description": "In this collection, EndpointMetadta and InterfaceMetadata should be mandatory and other elements should be optional",
+                            "description": "In this collection, EndpointMetadta and InteractionMetadata should be mandatory and other elements should be optional",
                             "type": "array",
                             "uniqueItems": true,
                             "unevaluatedItems": false,
@@ -1097,7 +1097,7 @@
                                     { "$ref": "#/definitions/supportElement" },
                                     { "$ref": "#/definitions/ExternalDescriptorContainer" },
                                     { "$ref": "#/definitions/MODBUSEndpointMetadata" },
-                                    { "$ref": "#/definitions/MODBUSInterfaceMetadata" }
+                                    { "$ref": "#/definitions/MODBUSInteractionMetadata" }
                                 ]
                             },
                             "if": {
@@ -1111,7 +1111,7 @@
                                 "contains": {
                                     "anyOf": [
                                         { "$ref": "#/definitions/MODBUSEndpointMetadata" },
-                                        { "$ref": "#/definitions/MODBUSInterfaceMetadata" }
+                                        { "$ref": "#/definitions/MODBUSInteractionMetadata" }
                                     ]
                                 },
                                 "minContains": 2,
@@ -1137,7 +1137,7 @@
                         },
                         "value": {
                             "title": "Interface MQTT submodelElement collection",
-                            "description": "In this collection, EndpointMetadta and InterfaceMetadata should be mandatory and other elements should be optional",
+                            "description": "In this collection, EndpointMetadta and InteractionMetadata should be mandatory and other elements should be optional",
                             "type": "array",
                             "uniqueItems": true,
                             "unevaluatedItems": false,
@@ -1150,7 +1150,7 @@
                                     { "$ref": "#/definitions/supportElement" },
                                     { "$ref": "#/definitions/ExternalDescriptorContainer" },
                                     { "$ref": "#/definitions/MQTTEndpointMetadata" },
-                                    { "$ref": "#/definitions/MQTTInterfaceMetadata" }
+                                    { "$ref": "#/definitions/MQTTInteractionMetadata" }
                                 ]
                             },
                             "if": {
@@ -1164,7 +1164,7 @@
                                 "contains": {
                                     "anyOf": [
                                         { "$ref": "#/definitions/MQTTEndpointMetadata" },
-                                        { "$ref": "#/definitions/MQTTInterfaceMetadata" }
+                                        { "$ref": "#/definitions/MQTTInteractionMetadata" }
                                     ]
                                 },
                                 "minContains": 2,
@@ -1421,7 +1421,7 @@
                 }
             ]
         },
-        "HTTPInterfaceMetadata": {
+        "HTTPInteractionMetadata": {
             "allOf": [
                 {
                     "$ref": "#/definitions/SubmodelElement"
@@ -1430,7 +1430,7 @@
                     "properties": {
                         "idShort": {
                             "type": "string",
-                            "enum": ["InterfaceMetadata"]
+                            "enum": ["InteractionMetadata"]
                         },
                         "value": {
                             "type": "array",
@@ -1440,10 +1440,10 @@
                             "items": {
                                 "anyOf": [
                                     {
-                                        "$ref": "#/definitions/HTTPInterfaceMetadataPropertiesElement"
+                                        "$ref": "#/definitions/HTTPInteractionMetadataPropertiesElement"
                                     },
-                                    { "$ref": "#/definitions/InterfaceMetadataActionsElement" },
-                                    { "$ref": "#/definitions/InterfaceMetadataEventsElement" }
+                                    { "$ref": "#/definitions/InteractionMetadataActionsElement" },
+                                    { "$ref": "#/definitions/InteractionMetadataEventsElement" }
                                 ]
                             }
                         },
@@ -1454,7 +1454,7 @@
                 }
             ]
         },
-        "MODBUSInterfaceMetadata": {
+        "MODBUSInteractionMetadata": {
             "allOf": [
                 {
                     "$ref": "#/definitions/SubmodelElement"
@@ -1463,7 +1463,7 @@
                     "properties": {
                         "idShort": {
                             "type": "string",
-                            "enum": ["InterfaceMetadata"]
+                            "enum": ["InteractionMetadata"]
                         },
                         "value": {
                             "type": "array",
@@ -1473,10 +1473,10 @@
                             "items": {
                                 "anyOf": [
                                     {
-                                        "$ref": "#/definitions/ModbusInterfaceMetadataPropertiesElement"
+                                        "$ref": "#/definitions/ModbusInteractionMetadataPropertiesElement"
                                     },
-                                    { "$ref": "#/definitions/InterfaceMetadataActionsElement" },
-                                    { "$ref": "#/definitions/InterfaceMetadataEventsElement" }
+                                    { "$ref": "#/definitions/InteractionMetadataActionsElement" },
+                                    { "$ref": "#/definitions/InteractionMetadataEventsElement" }
                                 ]
                             }
                         },
@@ -1487,7 +1487,7 @@
                 }
             ]
         },
-        "MQTTInterfaceMetadata": {
+        "MQTTInteractionMetadata": {
             "allOf": [
                 {
                     "$ref": "#/definitions/SubmodelElement"
@@ -1496,7 +1496,7 @@
                     "properties": {
                         "idShort": {
                             "type": "string",
-                            "enum": ["InterfaceMetadata"]
+                            "enum": ["InteractionMetadata"]
                         },
                         "value": {
                             "type": "array",
@@ -1506,10 +1506,10 @@
                             "items": {
                                 "anyOf": [
                                     {
-                                        "$ref": "#/definitions/MQTTInterfaceMetadataPropertiesElement"
+                                        "$ref": "#/definitions/MQTTInteractionMetadataPropertiesElement"
                                     },
-                                    { "$ref": "#/definitions/InterfaceMetadataActionsElement" },
-                                    { "$ref": "#/definitions/InterfaceMetadataEventsElement" }
+                                    { "$ref": "#/definitions/InteractionMetadataActionsElement" },
+                                    { "$ref": "#/definitions/InteractionMetadataEventsElement" }
                                 ]
                             }
                         },
@@ -1520,7 +1520,7 @@
                 }
             ]
         },
-        "HTTPInterfaceMetadataPropertiesElement": {
+        "HTTPInteractionMetadataPropertiesElement": {
             "allOf": [
                 {
                     "$ref": "#/definitions/SubmodelElement"
@@ -1544,7 +1544,7 @@
                 }
             ]
         },
-        "ModbusInterfaceMetadataPropertiesElement": {
+        "ModbusInteractionMetadataPropertiesElement": {
             "allOf": [
                 {
                     "$ref": "#/definitions/SubmodelElement"
@@ -1568,7 +1568,7 @@
                 }
             ]
         },
-        "MQTTInterfaceMetadataPropertiesElement": {
+        "MQTTInteractionMetadataPropertiesElement": {
             "allOf": [
                 {
                     "$ref": "#/definitions/SubmodelElement"
@@ -1592,7 +1592,7 @@
                 }
             ]
         },
-        "InterfaceMetadataActionsElement": {
+        "InteractionMetadataActionsElement": {
             "allOf": [
                 {
                     "$ref": "#/definitions/SubmodelElement"
@@ -1619,7 +1619,7 @@
                 }
             ]
         },
-        "InterfaceMetadataEventsElement": {
+        "InteractionMetadataEventsElement": {
             "allOf": [
                 {
                     "$ref": "#/definitions/SubmodelElement"
