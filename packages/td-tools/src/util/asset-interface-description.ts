@@ -1122,9 +1122,9 @@ export class AssetInterfaceDescriptionUtil {
                 }
             }
         } else if (protocol.startsWith("modbus")) {
-            // Modbus: href, modbus_function
-            // default for modbus:function depending on op, see https://w3c.github.io/wot-binding-templates/bindings/protocols/modbus/index.html#default-mappings
-            const mbKey = "modbus:function";
+            // Modbus: href, modv_function
+            // default for modv:function depending on op, see https://w3c.github.io/wot-binding-templates/bindings/protocols/modbus/index.html#default-mappings
+            const mbKey = "modv:function";
             if (form[mbKey] == null) {
                 if (this.hasOp(form, "writeproperty") || this.hasOp(form, "invokeaction")) {
                     form[mbKey] = "writeSingleCoil";
@@ -1372,17 +1372,17 @@ export class AssetInterfaceDescriptionUtil {
                                 semanticId = "https://www.w3.org/2011/http#fieldName";
                             } else if (formTerm === "htv:fieldValue") {
                                 semanticId = "https://www.w3.org/2011/http#fieldValue";
-                            } else if (formTerm === "modbus:function") {
+                            } else if (formTerm === "modv:function") {
                                 semanticId = "https://www.w3.org/2019/wot/modbus#hasFunction";
-                            } else if (formTerm === "modbus:entity") {
+                            } else if (formTerm === "modv:entity") {
                                 semanticId = "https://www.w3.org/2019/wot/modbus#hasEntity";
-                            } else if (formTerm === "modbus:zeroBasedAddressing") {
+                            } else if (formTerm === "modv:zeroBasedAddressing") {
                                 semanticId = "https://www.w3.org/2019/wot/modbus#hasZeroBasedAddressingFlag";
-                            } else if (formTerm === "modbus:timeout") {
+                            } else if (formTerm === "modv:timeout") {
                                 semanticId = "https://www.w3.org/2019/wot/modbus#hasTimeout";
-                            } else if (formTerm === "modbus:pollingTime") {
+                            } else if (formTerm === "modv:pollingTime") {
                                 semanticId = "https://www.w3.org/2019/wot/modbus#hasPollingTime";
-                            } else if (formTerm === "modbus:type") {
+                            } else if (formTerm === "modv:type") {
                                 semanticId = "https://www.w3.org/2019/wot/modbus#hasPayloadDataType";
                             } else if (formTerm === "mqv:retain") {
                                 semanticId = "https://www.w3.org/2019/wot/mqtt#hasRetainFlag";

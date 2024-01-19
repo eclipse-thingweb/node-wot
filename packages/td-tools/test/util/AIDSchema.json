@@ -3361,7 +3361,7 @@
                     "properties": {
                         "idShort": {
                             "type": "string",
-                            "enum": ["modbus_function"]
+                            "enum": ["modv_function"]
                         },
 
                         "valueType": {
@@ -3391,7 +3391,7 @@
                     "properties": {
                         "idShort": {
                             "type": "string",
-                            "enum": ["modbus_function"]
+                            "enum": ["modv_function"]
                         },
 
                         "valueType": {
@@ -3421,7 +3421,7 @@
                     "properties": {
                         "idShort": {
                             "type": "string",
-                            "enum": ["modbus_entity"]
+                            "enum": ["modv_entity"]
                         },
 
                         "valueType": {
@@ -3450,7 +3450,7 @@
                     "properties": {
                         "idShort": {
                             "type": "string",
-                            "enum": ["modbus_zeroBasedAddressing"]
+                            "enum": ["modv_zeroBasedAddressing"]
                         },
 
                         "valueType": {
@@ -3479,7 +3479,7 @@
                     "properties": {
                         "idShort": {
                             "type": "string",
-                            "enum": ["modbus_pollingTime"]
+                            "enum": ["modv_pollingTime"]
                         },
 
                         "valueType": {
@@ -3508,7 +3508,7 @@
                     "properties": {
                         "idShort": {
                             "type": "string",
-                            "enum": ["modbus_timeout"]
+                            "enum": ["modv_timeout"]
                         },
 
                         "valueType": {
@@ -3537,7 +3537,7 @@
                     "properties": {
                         "idShort": {
                             "type": "string",
-                            "enum": ["modbus_type"]
+                            "enum": ["modv_type"]
                         },
 
                         "valueType": {

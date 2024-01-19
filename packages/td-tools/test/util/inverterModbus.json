@@ -135,13 +135,13 @@
                                                             "modelType": "Property"
                                                         },
                                                         {
-                                                            "idShort": "modbus_function",
+                                                            "idShort": "modv_function",
                                                             "valueType": "xs:string",
                                                             "value": "readHoldingRegisters",
                                                             "modelType": "Property"
                                                         },
                                                         {
-                                                            "idShort": "modbus_type",
+                                                            "idShort": "modv_type",
                                                             "valueType": "xs:string",
                                                             "value": "string",
                                                             "modelType": "Property"
@@ -190,13 +190,13 @@
                                                             "modelType": "Property"
                                                         },
                                                         {
-                                                            "idShort": "modbus_function",
+                                                            "idShort": "modv_function",
                                                             "valueType": "xs:string",
                                                             "value": "readHoldingRegisters",
                                                             "modelType": "Property"
                                                         },
                                                         {
-                                                            "idShort": "modbus_type",
+                                                            "idShort": "modv_type",
                                                             "valueType": "xs:string",
                                                             "value": "uint16be",
                                                             "modelType": "Property"
