@@ -929,7 +929,7 @@ export class AssetInterfaceDescriptionUtil {
             // scheme always
             values.push({
                 idShort: "scheme",
-                semanticId: this.createSemanticId("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+                semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#SecurityScheme"),
                 valueType: "xs:string",
                 value: secValue.scheme,
                 modelType: "Property",
@@ -1373,9 +1373,9 @@ export class AssetInterfaceDescriptionUtil {
                             } else if (formTerm === "htv:fieldValue") {
                                 semanticId = "https://www.w3.org/2011/http#fieldValue";
                             } else if (formTerm === "modbus:function") {
-                                semanticId = "https://www.w3.org/2019/wot/modbus#Function";
+                                semanticId = "https://www.w3.org/2019/wot/modbus#hasFunction";
                             } else if (formTerm === "modbus:entity") {
-                                semanticId = "https://www.w3.org/2019/wot/modbus#Entity";
+                                semanticId = "https://www.w3.org/2019/wot/modbus#hasEntity";
                             } else if (formTerm === "modbus:zeroBasedAddressing") {
                                 semanticId = "https://www.w3.org/2019/wot/modbus#hasZeroBasedAddressingFlag";
                             } else if (formTerm === "modbus:timeout") {
@@ -1383,7 +1383,7 @@ export class AssetInterfaceDescriptionUtil {
                             } else if (formTerm === "modbus:pollingTime") {
                                 semanticId = "https://www.w3.org/2019/wot/modbus#hasPollingTime";
                             } else if (formTerm === "modbus:type") {
-                                semanticId = "https://www.w3.org/2019/wot/modbus#type";
+                                semanticId = "https://www.w3.org/2019/wot/modbus#hasPayloadDataType";
                             } else if (formTerm === "mqv:retain") {
                                 semanticId = "https://www.w3.org/2019/wot/mqtt#hasRetainFlag";
                             } else if (formTerm === "mqv:controlPacket") {
@@ -1500,7 +1500,7 @@ export class AssetInterfaceDescriptionUtil {
         const interfaceMetadata: Record<string, unknown> = {
             idShort: "InterfaceMetadata",
             semanticId: this.createSemanticId(
-                "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/InterfaceMetadata"
+                "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/InteractionMetadata"
             ),
             supplementalSemanticIds: [this.createSemanticId("https://www.w3.org/2019/wot/td#InteractionAffordance")],
             // embeddedDataSpecifications ?
