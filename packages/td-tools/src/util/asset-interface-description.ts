@@ -1384,6 +1384,10 @@ export class AssetInterfaceDescriptionUtil {
                                 semanticId = "https://www.w3.org/2019/wot/modbus#hasPollingTime";
                             } else if (formTerm === "modv:type") {
                                 semanticId = "https://www.w3.org/2019/wot/modbus#hasPayloadDataType";
+                            } else if (formTerm === "modv:mostSignificantByte") {
+                                semanticId = "https://www.w3.org/2019/wot/modbus#hasMostSignificantByte";
+                            } else if (formTerm === "modv:mostSignificantWord") {
+                                semanticId = "https://www.w3.org/2019/wot/modbus#hasMostSignificantWord";
                             } else if (formTerm === "mqv:retain") {
                                 semanticId = "https://www.w3.org/2019/wot/mqtt#hasRetainFlag";
                             } else if (formTerm === "mqv:controlPacket") {
