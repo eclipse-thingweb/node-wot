@@ -1353,14 +1353,16 @@
                         "value": {
                             "uniqueItems": true,
                             "unevaluatedItems": false,
-                            "maxItems": 4,
+                            "maxItems": 6,
                             "type": "array",
                             "items": {
                                 "anyOf": [
                                     { "$ref": "#/definitions/securityDefinitionsElement" },
                                     { "$ref": "#/definitions/contentTypeElement" },
                                     { "$ref": "#/definitions/MODBUSbaseElement" },
-                                    { "$ref": "#/definitions/securityElement" }
+                                    { "$ref": "#/definitions/securityElement" },
+                                    { "$ref": "#/definitions/modbusMostSignificantByteElement" },
+                                    { "$ref": "#/definitions/modbusMostSignificantWordElement" }
                                 ]
                             },
                             "contains": {
@@ -3557,6 +3559,63 @@
                 }
             ]
         },
+        "modbusMostSignificantByteElement": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/DataElement"
+                },
+                {
+                    "properties": {
+                        "idShort": {
+                            "type": "string",
+                            "enum": ["modv_mostSignificantByte"]
+                        },
+
+                        "valueType": {
+                            "type": "string"
+                        },
+                        "value": {
+                            "type": "string"
+                        },
+                        "valueId": {
+                            "$ref": "#/definitions/Reference"
+                        },
+                        "modelType": {
+                            "const": "Property"
+                        }
+                    },
+                    "required": ["valueType"]
+                }
+            ]
+        },
+        "modbusMostSignificantWordElement": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/DataElement"
+                },
+                {
+                    "properties": {
+                        "idShort": {
+                            "type": "string",
+                            "enum": ["modv_mostSignificantWord"]
+                        },
+                        "valueType": {
+                            "type": "string"
+                        },
+                        "value": {
+                            "type": "string"
+                        },
+                        "valueId": {
+                            "$ref": "#/definitions/Reference"
+                        },
+                        "modelType": {
+                            "const": "Property"
+                        }
+                    },
+                    "required": ["valueType"]
+                }
+            ]
+        },
         "httpFormsElement": {
             "allOf": [
                 {
@@ -3641,7 +3700,7 @@
                         "value": {
                             "uniqueItems": true,
                             "unevaluatedItems": false,
-                            "maxItems": 9,
+                            "maxItems": 11,
                             "type": "array",
                             "items": {
                                 "anyOf": [
@@ -3653,7 +3712,9 @@
                                     { "$ref": "#/definitions/modbusPollingTimeElement" },
                                     { "$ref": "#/definitions/modbusTypeElement" },
                                     { "$ref": "#/definitions/modbusZeroBasedAddressingElement" },
-                                    { "$ref": "#/definitions/modbustimeoutElement" }
+                                    { "$ref": "#/definitions/modbustimeoutElement" },
+                                    { "$ref": "#/definitions/modbusMostSignificantByteElement" },
+                                    { "$ref": "#/definitions/modbusMostSignificantWordElement" }
                                 ]
                             },
                             "contains": {
