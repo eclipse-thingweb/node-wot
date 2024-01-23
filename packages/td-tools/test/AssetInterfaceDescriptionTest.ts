@@ -233,10 +233,8 @@ class AssetInterfaceDescriptionUtilTest {
         expect(tdObj.properties.device_name.forms[0])
             .to.have.property("href")
             .to.eql("modbus+tcp://192.168.178.146:502/1/40020?quantity=16");
-        expect(tdObj.properties.device_name.forms[0])
-            .to.have.property("modbus:function")
-            .to.eql("readHoldingRegisters");
-        expect(tdObj.properties.device_name.forms[0]).to.have.property("modbus:type").to.eql("string");
+        expect(tdObj.properties.device_name.forms[0]).to.have.property("modv:function").to.eql("readHoldingRegisters");
+        expect(tdObj.properties.device_name.forms[0]).to.have.property("modv:type").to.eql("string");
         expect(tdObj.properties.device_name.forms[0])
             .to.have.property("contentType")
             .to.eql("application/octet-stream");
@@ -270,8 +268,8 @@ class AssetInterfaceDescriptionUtilTest {
         expect(tdObj.properties.soc.forms[0])
             .to.have.property("href")
             .to.eql("modbus+tcp://192.168.178.146:502/40361?quantity=1");
-        expect(tdObj.properties.soc.forms[0]).to.have.property("modbus:function").to.eql("readHoldingRegisters");
-        expect(tdObj.properties.soc.forms[0]).to.have.property("modbus:type").to.eql("uint16be");
+        expect(tdObj.properties.soc.forms[0]).to.have.property("modv:function").to.eql("readHoldingRegisters");
+        expect(tdObj.properties.soc.forms[0]).to.have.property("modv:type").to.eql("uint16be");
         expect(tdObj.properties.soc.forms[0]).to.have.property("contentType").to.eql("application/octet-stream");
         expect(tdObj.properties.device_name.forms[0]).not.to.have.property("security");
     }
@@ -352,11 +350,11 @@ class AssetInterfaceDescriptionUtilTest {
         expect(hasThingTitle, "No thing title").to.equal(true);
         expect(hasEndpointMetadata, "No EndpointMetadata").to.equal(true);
 
-        // InterfaceMetadata with properties etc
-        let hasInterfaceMetadata = false;
+        // InteractionMetadata with properties etc
+        let hasInteractionMetadata = false;
         for (const smValue of smInterface.value) {
-            if (smValue.idShort === "InterfaceMetadata") {
-                hasInterfaceMetadata = true;
+            if (smValue.idShort === "InteractionMetadata") {
+                hasInteractionMetadata = true;
                 expect(smValue).to.have.property("value").to.be.an("array").to.have.lengthOf.greaterThan(0);
                 let hasProperties = false;
                 for (const interactionValues of smValue.value) {
@@ -410,12 +408,12 @@ class AssetInterfaceDescriptionUtilTest {
                                             } else if (formEntry.idShort === "contentType") {
                                                 hasContentType = true;
                                                 expect(formEntry.value).to.equal("application/octet-stream");
-                                            } else if (formEntry.idShort === "modbus_function") {
-                                                // vs. "modbus:function"
+                                            } else if (formEntry.idShort === "modv_function") {
+                                                // vs. "modv:function"
                                                 hasModbusFunction = true;
                                                 expect(formEntry.value).to.equal("readHoldingRegisters");
-                                            } else if (formEntry.idShort === "modbus_type") {
-                                                // vs. "modbus:type"
+                                            } else if (formEntry.idShort === "modv_type") {
+                                                // vs. "modv:type"
                                                 hasModbusType = true;
                                                 expect(formEntry.value).to.equal("string");
                                             }
@@ -476,12 +474,12 @@ class AssetInterfaceDescriptionUtilTest {
                                             } else if (formEntry.idShort === "contentType") {
                                                 hasContentType = true;
                                                 expect(formEntry.value).to.equal("application/octet-stream");
-                                            } else if (formEntry.idShort === "modbus_function") {
-                                                // vs. "modbus:function"
+                                            } else if (formEntry.idShort === "modv_function") {
+                                                // vs. "modv:function"
                                                 hasModbusFunction = true;
                                                 expect(formEntry.value).to.equal("readHoldingRegisters");
-                                            } else if (formEntry.idShort === "modbus_type") {
-                                                // vs. "modbus:type"
+                                            } else if (formEntry.idShort === "modv_type") {
+                                                // vs. "modv:type"
                                                 hasModbusType = true;
                                                 expect(formEntry.value).to.equal("uint16be");
                                             }
@@ -506,7 +504,7 @@ class AssetInterfaceDescriptionUtilTest {
                 expect(hasProperties).to.equal(true);
             }
         }
-        expect(hasInterfaceMetadata, "No InterfaceMetadata").to.equal(true);
+        expect(hasInteractionMetadata, "No InteractionMetadata").to.equal(true);
     }
 
     td1Base = "https://www.example.com/";
@@ -671,11 +669,11 @@ class AssetInterfaceDescriptionUtilTest {
         expect(hasThingTitle, "No thing title").to.equal(true);
         expect(hasEndpointMetadata, "No EndpointMetadata").to.equal(true);
 
-        // InterfaceMetadata with properties etc
-        let hasInterfaceMetadata = false;
+        // InteractionMetadata with properties etc
+        let hasInteractionMetadata = false;
         for (const smValue of smInterface.value) {
-            if (smValue.idShort === "InterfaceMetadata") {
-                hasInterfaceMetadata = true;
+            if (smValue.idShort === "InteractionMetadata") {
+                hasInteractionMetadata = true;
                 expect(smValue).to.have.property("value").to.be.an("array").to.have.lengthOf.greaterThan(0);
                 let hasProperties = false;
                 for (const interactionValues of smValue.value) {
@@ -806,7 +804,7 @@ class AssetInterfaceDescriptionUtilTest {
                 expect(hasProperties).to.equal(true);
             }
         }
-        expect(hasInterfaceMetadata, "No InterfaceMetadata").to.equal(true);
+        expect(hasInteractionMetadata, "No InteractionMetadata").to.equal(true);
 
         // Test to use all possible prefixes -> in this case it is only https
         // Note: id is autogenerated (if not present) -> needs to be exluded/removed/set in TD
@@ -825,11 +823,11 @@ class AssetInterfaceDescriptionUtilTest {
         const smInterface = smObj.submodelElements[0];
         expect(smInterface).to.have.property("value").to.be.an("array").to.have.lengthOf.greaterThan(0);
 
-        // InterfaceMetadata with *no* properties for this protocol
-        let hasInterfaceMetadata = false;
+        // InteractionMetadata with *no* properties for this protocol
+        let hasInteractionMetadata = false;
         for (const smValue of smInterface.value) {
-            if (smValue.idShort === "InterfaceMetadata") {
-                hasInterfaceMetadata = true;
+            if (smValue.idShort === "InteractionMetadata") {
+                hasInteractionMetadata = true;
                 expect(smValue).to.have.property("value").to.be.an("array").to.have.lengthOf.greaterThan(0);
                 for (const interactionValues of smValue.value) {
                     if (interactionValues.idShort === "properties") {
@@ -838,7 +836,7 @@ class AssetInterfaceDescriptionUtilTest {
                 }
             }
         }
-        expect(hasInterfaceMetadata, "No InterfaceMetadata").to.equal(true);
+        expect(hasInteractionMetadata, "No InteractionMetadata").to.equal(true);
     }
 
     @test async "should correctly transform sample TD1 into JSON AAS"() {
@@ -866,8 +864,8 @@ class AssetInterfaceDescriptionUtilTest {
                     {
                         href: "modbus+tcp://127.0.0.1:60000/1",
                         op: "readproperty",
-                        "modbus:function": "readCoil",
-                        "modbus:pollingTime": 1,
+                        "modv:function": "readCoil",
+                        "modv:pollingTime": 1,
                     },
                 ],
             },
@@ -941,11 +939,11 @@ class AssetInterfaceDescriptionUtilTest {
         expect(hasThingTitle, "No thing title").to.equal(true);
         expect(hasEndpointMetadata, "No EndpointMetadata").to.equal(true);
 
-        // InterfaceMetadata with properties etc
-        let hasInterfaceMetadata = false;
+        // InteractionMetadata with properties etc
+        let hasInteractionMetadata = false;
         for (const smValue of smInterface.value) {
-            if (smValue.idShort === "InterfaceMetadata") {
-                hasInterfaceMetadata = true;
+            if (smValue.idShort === "InteractionMetadata") {
+                hasInteractionMetadata = true;
                 expect(smValue).to.have.property("value").to.be.an("array").to.have.lengthOf.greaterThan(0);
                 let hasProperties = false;
                 for (const interactionValues of smValue.value) {
@@ -995,10 +993,10 @@ class AssetInterfaceDescriptionUtilTest {
                                                 hasOp = true;
                                                 // Note: AID does not know "op"
                                                 // expect(formEntry.value).to.equal("readproperty");
-                                            } else if (formEntry.idShort === "modbus_function") {
+                                            } else if (formEntry.idShort === "modv_function") {
                                                 hasModbusFunction = true;
                                                 expect(formEntry.value).to.equal("readCoil");
-                                            } else if (formEntry.idShort === "modbus_pollingTime") {
+                                            } else if (formEntry.idShort === "modv_pollingTime") {
                                                 hasModbusAddress = true;
                                                 expect(formEntry.value).to.equal("1");
                                                 expect(formEntry.valueType).to.equal("xs:int");
@@ -1023,7 +1021,7 @@ class AssetInterfaceDescriptionUtilTest {
                 expect(hasProperties).to.equal(true);
             }
         }
-        expect(hasInterfaceMetadata, "No InterfaceMetadata").to.equal(true);
+        expect(hasInteractionMetadata, "No InteractionMetadata").to.equal(true);
     }
 
     @test.skip async "should correctly transform counter TD into JSON AAS"() {

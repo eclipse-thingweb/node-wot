@@ -1031,7 +1031,7 @@
                         },
                         "value": {
                             "title": "Interface HTTP submodelElement collection",
-                            "description": "In this collection, EndpointMetadta and InterfaceMetadata should be mandatory and other elements should be optional",
+                            "description": "In this collection, EndpointMetadta and InteractionMetadata should be mandatory and other elements should be optional",
                             "type": "array",
                             "uniqueItems": true,
                             "unevaluatedItems": false,
@@ -1044,7 +1044,7 @@
                                     { "$ref": "#/definitions/supportElement" },
                                     { "$ref": "#/definitions/ExternalDescriptorContainer" },
                                     { "$ref": "#/definitions/HTTPEndpointMetadata" },
-                                    { "$ref": "#/definitions/HTTPInterfaceMetadata" }
+                                    { "$ref": "#/definitions/HTTPInteractionMetadata" }
                                 ]
                             },
                             "if": {
@@ -1058,7 +1058,7 @@
                                 "contains": {
                                     "anyOf": [
                                         { "$ref": "#/definitions/HTTPEndpointMetadata" },
-                                        { "$ref": "#/definitions/HTTPInterfaceMetadata" }
+                                        { "$ref": "#/definitions/HTTPInteractionMetadata" }
                                     ]
                                 },
                                 "minContains": 2,
@@ -1084,7 +1084,7 @@
                         },
                         "value": {
                             "title": "Interface modbus submodelElement collection",
-                            "description": "In this collection, EndpointMetadta and InterfaceMetadata should be mandatory and other elements should be optional",
+                            "description": "In this collection, EndpointMetadta and InteractionMetadata should be mandatory and other elements should be optional",
                             "type": "array",
                             "uniqueItems": true,
                             "unevaluatedItems": false,
@@ -1097,7 +1097,7 @@
                                     { "$ref": "#/definitions/supportElement" },
                                     { "$ref": "#/definitions/ExternalDescriptorContainer" },
                                     { "$ref": "#/definitions/MODBUSEndpointMetadata" },
-                                    { "$ref": "#/definitions/MODBUSInterfaceMetadata" }
+                                    { "$ref": "#/definitions/MODBUSInteractionMetadata" }
                                 ]
                             },
                             "if": {
@@ -1111,7 +1111,7 @@
                                 "contains": {
                                     "anyOf": [
                                         { "$ref": "#/definitions/MODBUSEndpointMetadata" },
-                                        { "$ref": "#/definitions/MODBUSInterfaceMetadata" }
+                                        { "$ref": "#/definitions/MODBUSInteractionMetadata" }
                                     ]
                                 },
                                 "minContains": 2,
@@ -1137,7 +1137,7 @@
                         },
                         "value": {
                             "title": "Interface MQTT submodelElement collection",
-                            "description": "In this collection, EndpointMetadta and InterfaceMetadata should be mandatory and other elements should be optional",
+                            "description": "In this collection, EndpointMetadta and InteractionMetadata should be mandatory and other elements should be optional",
                             "type": "array",
                             "uniqueItems": true,
                             "unevaluatedItems": false,
@@ -1150,7 +1150,7 @@
                                     { "$ref": "#/definitions/supportElement" },
                                     { "$ref": "#/definitions/ExternalDescriptorContainer" },
                                     { "$ref": "#/definitions/MQTTEndpointMetadata" },
-                                    { "$ref": "#/definitions/MQTTInterfaceMetadata" }
+                                    { "$ref": "#/definitions/MQTTInteractionMetadata" }
                                 ]
                             },
                             "if": {
@@ -1164,7 +1164,7 @@
                                 "contains": {
                                     "anyOf": [
                                         { "$ref": "#/definitions/MQTTEndpointMetadata" },
-                                        { "$ref": "#/definitions/MQTTInterfaceMetadata" }
+                                        { "$ref": "#/definitions/MQTTInteractionMetadata" }
                                     ]
                                 },
                                 "minContains": 2,
@@ -1353,14 +1353,16 @@
                         "value": {
                             "uniqueItems": true,
                             "unevaluatedItems": false,
-                            "maxItems": 4,
+                            "maxItems": 6,
                             "type": "array",
                             "items": {
                                 "anyOf": [
                                     { "$ref": "#/definitions/securityDefinitionsElement" },
                                     { "$ref": "#/definitions/contentTypeElement" },
                                     { "$ref": "#/definitions/MODBUSbaseElement" },
-                                    { "$ref": "#/definitions/securityElement" }
+                                    { "$ref": "#/definitions/securityElement" },
+                                    { "$ref": "#/definitions/modbusMostSignificantByteElement" },
+                                    { "$ref": "#/definitions/modbusMostSignificantWordElement" }
                                 ]
                             },
                             "contains": {
@@ -1421,7 +1423,7 @@
                 }
             ]
         },
-        "HTTPInterfaceMetadata": {
+        "HTTPInteractionMetadata": {
             "allOf": [
                 {
                     "$ref": "#/definitions/SubmodelElement"
@@ -1430,7 +1432,7 @@
                     "properties": {
                         "idShort": {
                             "type": "string",
-                            "enum": ["InterfaceMetadata"]
+                            "enum": ["InteractionMetadata"]
                         },
                         "value": {
                             "type": "array",
@@ -1440,10 +1442,10 @@
                             "items": {
                                 "anyOf": [
                                     {
-                                        "$ref": "#/definitions/HTTPInterfaceMetadataPropertiesElement"
+                                        "$ref": "#/definitions/HTTPInteractionMetadataPropertiesElement"
                                     },
-                                    { "$ref": "#/definitions/InterfaceMetadataActionsElement" },
-                                    { "$ref": "#/definitions/InterfaceMetadataEventsElement" }
+                                    { "$ref": "#/definitions/InteractionMetadataActionsElement" },
+                                    { "$ref": "#/definitions/InteractionMetadataEventsElement" }
                                 ]
                             }
                         },
@@ -1454,7 +1456,7 @@
                 }
             ]
         },
-        "MODBUSInterfaceMetadata": {
+        "MODBUSInteractionMetadata": {
             "allOf": [
                 {
                     "$ref": "#/definitions/SubmodelElement"
@@ -1463,7 +1465,7 @@
                     "properties": {
                         "idShort": {
                             "type": "string",
-                            "enum": ["InterfaceMetadata"]
+                            "enum": ["InteractionMetadata"]
                         },
                         "value": {
                             "type": "array",
@@ -1473,10 +1475,10 @@
                             "items": {
                                 "anyOf": [
                                     {
-                                        "$ref": "#/definitions/ModbusInterfaceMetadataPropertiesElement"
+                                        "$ref": "#/definitions/ModbusInteractionMetadataPropertiesElement"
                                     },
-                                    { "$ref": "#/definitions/InterfaceMetadataActionsElement" },
-                                    { "$ref": "#/definitions/InterfaceMetadataEventsElement" }
+                                    { "$ref": "#/definitions/InteractionMetadataActionsElement" },
+                                    { "$ref": "#/definitions/InteractionMetadataEventsElement" }
                                 ]
                             }
                         },
@@ -1487,7 +1489,7 @@
                 }
             ]
         },
-        "MQTTInterfaceMetadata": {
+        "MQTTInteractionMetadata": {
             "allOf": [
                 {
                     "$ref": "#/definitions/SubmodelElement"
@@ -1496,7 +1498,7 @@
                     "properties": {
                         "idShort": {
                             "type": "string",
-                            "enum": ["InterfaceMetadata"]
+                            "enum": ["InteractionMetadata"]
                         },
                         "value": {
                             "type": "array",
@@ -1506,10 +1508,10 @@
                             "items": {
                                 "anyOf": [
                                     {
-                                        "$ref": "#/definitions/MQTTInterfaceMetadataPropertiesElement"
+                                        "$ref": "#/definitions/MQTTInteractionMetadataPropertiesElement"
                                     },
-                                    { "$ref": "#/definitions/InterfaceMetadataActionsElement" },
-                                    { "$ref": "#/definitions/InterfaceMetadataEventsElement" }
+                                    { "$ref": "#/definitions/InteractionMetadataActionsElement" },
+                                    { "$ref": "#/definitions/InteractionMetadataEventsElement" }
                                 ]
                             }
                         },
@@ -1520,7 +1522,7 @@
                 }
             ]
         },
-        "HTTPInterfaceMetadataPropertiesElement": {
+        "HTTPInteractionMetadataPropertiesElement": {
             "allOf": [
                 {
                     "$ref": "#/definitions/SubmodelElement"
@@ -1544,7 +1546,7 @@
                 }
             ]
         },
-        "ModbusInterfaceMetadataPropertiesElement": {
+        "ModbusInteractionMetadataPropertiesElement": {
             "allOf": [
                 {
                     "$ref": "#/definitions/SubmodelElement"
@@ -1568,7 +1570,7 @@
                 }
             ]
         },
-        "MQTTInterfaceMetadataPropertiesElement": {
+        "MQTTInteractionMetadataPropertiesElement": {
             "allOf": [
                 {
                     "$ref": "#/definitions/SubmodelElement"
@@ -1592,7 +1594,7 @@
                 }
             ]
         },
-        "InterfaceMetadataActionsElement": {
+        "InteractionMetadataActionsElement": {
             "allOf": [
                 {
                     "$ref": "#/definitions/SubmodelElement"
@@ -1619,7 +1621,7 @@
                 }
             ]
         },
-        "InterfaceMetadataEventsElement": {
+        "InteractionMetadataEventsElement": {
             "allOf": [
                 {
                     "$ref": "#/definitions/SubmodelElement"
@@ -3361,7 +3363,7 @@
                     "properties": {
                         "idShort": {
                             "type": "string",
-                            "enum": ["modbus_function"]
+                            "enum": ["modv_function"]
                         },
 
                         "valueType": {
@@ -3391,7 +3393,7 @@
                     "properties": {
                         "idShort": {
                             "type": "string",
-                            "enum": ["modbus_function"]
+                            "enum": ["modv_function"]
                         },
 
                         "valueType": {
@@ -3421,7 +3423,7 @@
                     "properties": {
                         "idShort": {
                             "type": "string",
-                            "enum": ["modbus_entity"]
+                            "enum": ["modv_entity"]
                         },
 
                         "valueType": {
@@ -3450,7 +3452,7 @@
                     "properties": {
                         "idShort": {
                             "type": "string",
-                            "enum": ["modbus_zeroBasedAddressing"]
+                            "enum": ["modv_zeroBasedAddressing"]
                         },
 
                         "valueType": {
@@ -3479,7 +3481,7 @@
                     "properties": {
                         "idShort": {
                             "type": "string",
-                            "enum": ["modbus_pollingTime"]
+                            "enum": ["modv_pollingTime"]
                         },
 
                         "valueType": {
@@ -3508,7 +3510,7 @@
                     "properties": {
                         "idShort": {
                             "type": "string",
-                            "enum": ["modbus_timeout"]
+                            "enum": ["modv_timeout"]
                         },
 
                         "valueType": {
@@ -3537,9 +3539,66 @@
                     "properties": {
                         "idShort": {
                             "type": "string",
-                            "enum": ["modbus_type"]
+                            "enum": ["modv_type"]
                         },
 
+                        "valueType": {
+                            "type": "string"
+                        },
+                        "value": {
+                            "type": "string"
+                        },
+                        "valueId": {
+                            "$ref": "#/definitions/Reference"
+                        },
+                        "modelType": {
+                            "const": "Property"
+                        }
+                    },
+                    "required": ["valueType"]
+                }
+            ]
+        },
+        "modbusMostSignificantByteElement": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/DataElement"
+                },
+                {
+                    "properties": {
+                        "idShort": {
+                            "type": "string",
+                            "enum": ["modv_mostSignificantByte"]
+                        },
+
+                        "valueType": {
+                            "type": "string"
+                        },
+                        "value": {
+                            "type": "string"
+                        },
+                        "valueId": {
+                            "$ref": "#/definitions/Reference"
+                        },
+                        "modelType": {
+                            "const": "Property"
+                        }
+                    },
+                    "required": ["valueType"]
+                }
+            ]
+        },
+        "modbusMostSignificantWordElement": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/DataElement"
+                },
+                {
+                    "properties": {
+                        "idShort": {
+                            "type": "string",
+                            "enum": ["modv_mostSignificantWord"]
+                        },
                         "valueType": {
                             "type": "string"
                         },
@@ -3641,7 +3700,7 @@
                         "value": {
                             "uniqueItems": true,
                             "unevaluatedItems": false,
-                            "maxItems": 9,
+                            "maxItems": 11,
                             "type": "array",
                             "items": {
                                 "anyOf": [
@@ -3653,7 +3712,9 @@
                                     { "$ref": "#/definitions/modbusPollingTimeElement" },
                                     { "$ref": "#/definitions/modbusTypeElement" },
                                     { "$ref": "#/definitions/modbusZeroBasedAddressingElement" },
-                                    { "$ref": "#/definitions/modbustimeoutElement" }
+                                    { "$ref": "#/definitions/modbustimeoutElement" },
+                                    { "$ref": "#/definitions/modbusMostSignificantByteElement" },
+                                    { "$ref": "#/definitions/modbusMostSignificantWordElement" }
                                 ]
                             },
                             "contains": {

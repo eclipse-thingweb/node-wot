@@ -178,7 +178,7 @@ export class AssetInterfaceDescriptionUtil {
                     },
                     // created, modified, support ?
                     this.createEndpointMetadata(td, protocol, aidID, submodelElementIdShort), // EndpointMetadata like base, security and securityDefinitions
-                    this.createInterfaceMetadata(td, protocol), // InterfaceMetadata like properties, actions and events
+                    this.createInteractionMetadata(td, protocol), // InteractionMetadata like properties, actions and events
                     // Note: "ExternalDescriptor" should contain file values --> not applicable to TD
                     /* {
                         idShort: "ExternalDescriptor",
@@ -532,7 +532,7 @@ export class AssetInterfaceDescriptionUtil {
     }
 
     private processSubmodelElement(smInformation: SubmodelInformation, submodelElement: Record<string, unknown>): void {
-        // EndpointMetadata vs. InterfaceMetadata
+        // EndpointMetadata vs. InteractionMetadata
         if (submodelElement.value instanceof Array) {
             // Note: iterate twice over to collect first EndpointMetadata
             let endpointMetadata: Record<string, unknown> = {};
@@ -543,7 +543,7 @@ export class AssetInterfaceDescriptionUtil {
                         // e.g., idShort: base , contentType, securityDefinitions, alternativeEndpointDescriptor?
                         endpointMetadata = smValue;
                         smInformation.endpointMetadataArray.push(endpointMetadata);
-                    } else if (smValue.idShort === "InterfaceMetadata") {
+                    } else if (smValue.idShort === "InteractionMetadata") {
                         // handled later
                     } else if (smValue.idShort === "externalDescriptor") {
                         // needed?
@@ -552,11 +552,11 @@ export class AssetInterfaceDescriptionUtil {
                     }
                 }
             }
-            // the 2nd time look for InterfaceMetadata that *need* EndpointMetadata
+            // the 2nd time look for InteractionMetadata that *need* EndpointMetadata
             for (const smValue of submodelElement.value) {
                 if (smValue instanceof Object) {
-                    if (smValue.idShort === "InterfaceMetadata") {
-                        logInfo("InterfaceMetadata");
+                    if (smValue.idShort === "InteractionMetadata") {
+                        logInfo("InteractionMetadata");
                         if (smValue.value instanceof Array) {
                             for (const interactionValue of smValue.value) {
                                 if (interactionValue.idShort === "properties") {
@@ -929,7 +929,7 @@ export class AssetInterfaceDescriptionUtil {
             // scheme always
             values.push({
                 idShort: "scheme",
-                semanticId: this.createSemanticId("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+                semanticId: this.createSemanticId("https://www.w3.org/2019/wot/security#SecurityScheme"),
                 valueType: "xs:string",
                 value: secValue.scheme,
                 modelType: "Property",
@@ -1122,9 +1122,9 @@ export class AssetInterfaceDescriptionUtil {
                 }
             }
         } else if (protocol.startsWith("modbus")) {
-            // Modbus: href, modbus_function
-            // default for modbus:function depending on op, see https://w3c.github.io/wot-binding-templates/bindings/protocols/modbus/index.html#default-mappings
-            const mbKey = "modbus:function";
+            // Modbus: href, modv_function
+            // default for modv:function depending on op, see https://w3c.github.io/wot-binding-templates/bindings/protocols/modbus/index.html#default-mappings
+            const mbKey = "modv:function";
             if (form[mbKey] == null) {
                 if (this.hasOp(form, "writeproperty") || this.hasOp(form, "invokeaction")) {
                     form[mbKey] = "writeSingleCoil";
@@ -1161,7 +1161,7 @@ export class AssetInterfaceDescriptionUtil {
         }
     }
 
-    private createInterfaceMetadata(td: ThingDescription, protocol: string): Record<string, unknown> {
+    private createInteractionMetadata(td: ThingDescription, protocol: string): Record<string, unknown> {
         const properties: Array<unknown> = [];
         const actions: Array<unknown> = [];
         const events: Array<unknown> = [];
@@ -1372,18 +1372,22 @@ export class AssetInterfaceDescriptionUtil {
                                 semanticId = "https://www.w3.org/2011/http#fieldName";
                             } else if (formTerm === "htv:fieldValue") {
                                 semanticId = "https://www.w3.org/2011/http#fieldValue";
-                            } else if (formTerm === "modbus:function") {
-                                semanticId = "https://www.w3.org/2019/wot/modbus#Function";
-                            } else if (formTerm === "modbus:entity") {
-                                semanticId = "https://www.w3.org/2019/wot/modbus#Entity";
-                            } else if (formTerm === "modbus:zeroBasedAddressing") {
+                            } else if (formTerm === "modv:function") {
+                                semanticId = "https://www.w3.org/2019/wot/modbus#hasFunction";
+                            } else if (formTerm === "modv:entity") {
+                                semanticId = "https://www.w3.org/2019/wot/modbus#hasEntity";
+                            } else if (formTerm === "modv:zeroBasedAddressing") {
                                 semanticId = "https://www.w3.org/2019/wot/modbus#hasZeroBasedAddressingFlag";
-                            } else if (formTerm === "modbus:timeout") {
+                            } else if (formTerm === "modv:timeout") {
                                 semanticId = "https://www.w3.org/2019/wot/modbus#hasTimeout";
-                            } else if (formTerm === "modbus:pollingTime") {
+                            } else if (formTerm === "modv:pollingTime") {
                                 semanticId = "https://www.w3.org/2019/wot/modbus#hasPollingTime";
-                            } else if (formTerm === "modbus:type") {
-                                semanticId = "https://www.w3.org/2019/wot/modbus#type";
+                            } else if (formTerm === "modv:type") {
+                                semanticId = "https://www.w3.org/2019/wot/modbus#hasPayloadDataType";
+                            } else if (formTerm === "modv:mostSignificantByte") {
+                                semanticId = "https://www.w3.org/2019/wot/modbus#hasMostSignificantByte";
+                            } else if (formTerm === "modv:mostSignificantWord") {
+                                semanticId = "https://www.w3.org/2019/wot/modbus#hasMostSignificantWord";
                             } else if (formTerm === "mqv:retain") {
                                 semanticId = "https://www.w3.org/2019/wot/mqtt#hasRetainFlag";
                             } else if (formTerm === "mqv:controlPacket") {
@@ -1497,10 +1501,10 @@ export class AssetInterfaceDescriptionUtil {
             modelType: "SubmodelElementCollection",
         });
 
-        const interfaceMetadata: Record<string, unknown> = {
-            idShort: "InterfaceMetadata",
+        const interactionMetadata: Record<string, unknown> = {
+            idShort: "InteractionMetadata",
             semanticId: this.createSemanticId(
-                "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/InterfaceMetadata"
+                "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/InteractionMetadata"
             ),
             supplementalSemanticIds: [this.createSemanticId("https://www.w3.org/2019/wot/td#InteractionAffordance")],
             // embeddedDataSpecifications ?
@@ -1508,7 +1512,7 @@ export class AssetInterfaceDescriptionUtil {
             modelType: "SubmodelElementCollection",
         };
 
-        return interfaceMetadata;
+        return interactionMetadata;
     }
 }
 

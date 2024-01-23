@@ -237,13 +237,13 @@
                             "modelType": "SubmodelElementCollection"
                         },
                         {
-                            "idShort": "InterfaceMetadata",
+                            "idShort": "InteractionMetadata",
                             "semanticId": {
                                 "type": "ExternalReference",
                                 "keys": [
                                     {
                                         "type": "GlobalReference",
-                                        "value": "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/InterfaceMetadata"
+                                        "value": "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/InteractionMetadata"
                                     }
                                 ]
                             },
