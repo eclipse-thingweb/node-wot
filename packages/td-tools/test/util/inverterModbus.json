@@ -40,6 +40,51 @@
                             "modelType": "Property"
                         },
                         {
+                            "idShort": "created",
+                            "semanticId": {
+                                "type": "ExternalReference",
+                                "keys": [
+                                    {
+                                        "type": "GlobalReference",
+                                        "value": "http://purl.org/dc/terms/created"
+                                    }
+                                ]
+                            },
+                            "valueType": "xs:dateTime",
+                            "value": "2020-12-09T16:09:53+00:00",
+                            "modelType": "Property"
+                        },
+                        {
+                            "idShort": "modified",
+                            "semanticId": {
+                                "type": "ExternalReference",
+                                "keys": [
+                                    {
+                                        "type": "GlobalReference",
+                                        "value": "http://purl.org/dc/terms/modified"
+                                    }
+                                ]
+                            },
+                            "valueType": "xs:dateTime",
+                            "value": "2023-01-09T18:09:12+01:01",
+                            "modelType": "Property"
+                        },
+                        {
+                            "idShort": "support",
+                            "semanticId": {
+                                "type": "ExternalReference",
+                                "keys": [
+                                    {
+                                        "type": "GlobalReference",
+                                        "value": "https://www.w3.org/2019/wot/td#supportContact"
+                                    }
+                                ]
+                            },
+                            "valueType": "xs:anyURI",
+                            "value": "mailto:idta@submodel.de",
+                            "modelType": "Property"
+                        },
+                        {
                             "idShort": "EndpointMetadata",
                             "value": [
                                 {

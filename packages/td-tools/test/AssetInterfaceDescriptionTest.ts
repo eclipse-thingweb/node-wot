@@ -205,6 +205,9 @@ class AssetInterfaceDescriptionUtilTest {
         const tdObj = JSON.parse(td);
         expect(tdObj).to.have.property("@context").that.equals("https://www.w3.org/2022/wot/td/v1.1");
         expect(tdObj).to.have.property("title").that.equals("Inverter GEN44"); // should come form AAS
+        expect(tdObj).to.have.property("created").that.equals("2020-12-09T16:09:53+00:00");
+        expect(tdObj).to.have.property("modified").that.equals("2023-01-09T18:09:12+01:01");
+        expect(tdObj).to.have.property("support").that.equals("mailto:idta@submodel.de");
 
         expect(tdObj).to.have.property("securityDefinitions").to.be.an("object");
 
@@ -512,6 +515,9 @@ class AssetInterfaceDescriptionUtilTest {
         "@context": "https://www.w3.org/2022/wot/td/v1.1",
         title: "testTD",
         id: "urn:uuid:0804d572-cce8-422a-bb7c-4412fcd56f03",
+        created: "2021-12-09T16:09:53+00:00",
+        modified: "2024-01-09T18:09:12+01:01",
+        support: "mailto:user@foo.com",
         securityDefinitions: {
             basic_sc: {
                 scheme: "basic",
@@ -581,11 +587,23 @@ class AssetInterfaceDescriptionUtilTest {
             .to.be.an("array")
             .to.have.lengthOf.greaterThan(1); // default WoT-TD and http
         let hasThingTitle = false;
+        let hasThingCreated = false;
+        let hasThingModified = false;
+        let hasThingSupport = false;
         let hasEndpointMetadata = false;
         for (const smValue of smInterface.value) {
             if (smValue.idShort === "title") {
                 hasThingTitle = true;
                 expect(smValue).to.have.property("value").to.equal("testTD");
+            } else if (smValue.idShort === "created") {
+                hasThingCreated = true;
+                expect(smValue).to.have.property("value").to.equal("2021-12-09T16:09:53+00:00");
+            } else if (smValue.idShort === "modified") {
+                hasThingModified = true;
+                expect(smValue).to.have.property("value").to.equal("2024-01-09T18:09:12+01:01");
+            } else if (smValue.idShort === "support") {
+                hasThingSupport = true;
+                expect(smValue).to.have.property("value").to.equal("mailto:user@foo.com");
             } else if (smValue.idShort === "EndpointMetadata") {
                 hasEndpointMetadata = true;
                 const endpointMetadata = smValue;
@@ -667,6 +685,9 @@ class AssetInterfaceDescriptionUtilTest {
             }
         }
         expect(hasThingTitle, "No thing title").to.equal(true);
+        expect(hasThingCreated, "No thing created").to.equal(true);
+        expect(hasThingModified, "No thing modified").to.equal(true);
+        expect(hasThingSupport, "No thing support").to.equal(true);
         expect(hasEndpointMetadata, "No EndpointMetadata").to.equal(true);
 
         // InteractionMetadata with properties etc
