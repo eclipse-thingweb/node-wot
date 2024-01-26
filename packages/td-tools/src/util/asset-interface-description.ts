@@ -161,6 +161,55 @@ export class AssetInterfaceDescriptionUtil {
                 }
             }
 
+            const values = [
+                {
+                    idShort: "title",
+                    valueType: "xs:string",
+                    value: td.title,
+                    modelType: "Property",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/td#title"),
+                },
+                this.createEndpointMetadata(td, protocol, aidID, submodelElementIdShort), // EndpointMetadata like base, security and securityDefinitions
+                this.createInteractionMetadata(td, protocol), // InteractionMetadata like properties, actions and events
+                // Note: "ExternalDescriptor" should contain file values --> not applicable to TD
+                /* {
+                    idShort: "ExternalDescriptor",
+                    semanticId: this.createSemanticId(
+                        "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/ExternalDescriptor"
+                    ),
+                    // embeddedDataSpecifications ?
+                    value: [],
+                    modelType: "SubmodelElementCollection",
+                }, */
+            ];
+            if (td.created != null) {
+                values.push({
+                    idShort: "created",
+                    valueType: "xs:dateTime",
+                    value: td.created,
+                    modelType: "Property",
+                    semanticId: this.createSemanticId("http://purl.org/dc/terms/created"),
+                });
+            }
+            if (td.modified != null) {
+                values.push({
+                    idShort: "modified",
+                    valueType: "xs:dateTime",
+                    value: td.modified,
+                    modelType: "Property",
+                    semanticId: this.createSemanticId("http://purl.org/dc/terms/modified"),
+                });
+            }
+            if (td.support != null) {
+                values.push({
+                    idShort: "support",
+                    valueType: "xs:anyURI",
+                    value: td.support,
+                    modelType: "Property",
+                    semanticId: this.createSemanticId("https://www.w3.org/2019/wot/td#supportContact"),
+                });
+            }
+
             const submdelElement = {
                 idShort: submodelElementIdShort,
                 semanticId: this.createSemanticId(
@@ -168,28 +217,7 @@ export class AssetInterfaceDescriptionUtil {
                 ),
                 supplementalSemanticIds,
                 // embeddedDataSpecifications needed?
-                value: [
-                    {
-                        idShort: "title",
-                        valueType: "xs:string",
-                        value: td.title,
-                        modelType: "Property",
-                        semanticId: this.createSemanticId("https://www.w3.org/2019/wot/td#title"),
-                    },
-                    // created, modified, support ?
-                    this.createEndpointMetadata(td, protocol, aidID, submodelElementIdShort), // EndpointMetadata like base, security and securityDefinitions
-                    this.createInteractionMetadata(td, protocol), // InteractionMetadata like properties, actions and events
-                    // Note: "ExternalDescriptor" should contain file values --> not applicable to TD
-                    /* {
-                        idShort: "ExternalDescriptor",
-                        semanticId: this.createSemanticId(
-                            "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/ExternalDescriptor"
-                        ),
-                        // embeddedDataSpecifications ?
-                        value: [],
-                        modelType: "SubmodelElementCollection",
-                    }, */
-                ],
+                value: values,
                 modelType: "SubmodelElementCollection",
             };
 
