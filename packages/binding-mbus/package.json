@@ -1,6 +1,6 @@
 {
     "name": "@node-wot/binding-mbus",
-    "version": "0.8.12",
+    "version": "0.8.13",
     "description": "M-Bus TCP client protocol binding for node-wot",
     "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
     "license": "EPL-2.0 OR W3C-20150513",
@@ -14,8 +14,8 @@
     "main": "dist/mbus.js",
     "types": "dist/mbus.d.ts",
     "dependencies": {
-        "@node-wot/core": "0.8.12",
-        "@node-wot/td-tools": "0.8.12",
+        "@node-wot/core": "0.8.13",
+        "@node-wot/td-tools": "0.8.13",
         "node-mbus": "^2.1.0",
         "wot-typescript-definitions": "0.8.0-SNAPSHOT.29"
     },
