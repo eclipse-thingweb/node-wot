@@ -19,13 +19,15 @@ import * as TDHelpers from "./td-helpers";
 
 import isAbsoluteUrl = require("is-absolute-url");
 import URLToolkit = require("url-toolkit");
-import { ThingContext } from "wot-thing-description-types";
+import { ThingContext, PropertyElement, ActionElement, EventElement } from "wot-thing-description-types";
 
 // TODO: Refactor and reuse debug solution from core package
 import debug from "debug";
 const namespace = "node-wot:td-tools:td-parser";
 const logDebug = debug(`${namespace}:debug`);
 const logWarn = debug(`${namespace}:warn`);
+
+type AffordanceElement = PropertyElement | ActionElement | EventElement;
 
 /** Parses a TD into a Thing object */
 export function parseTD(td: string, normalize?: boolean): Thing {
@@ -98,15 +100,24 @@ export function parseTD(td: string, normalize?: boolean): Thing {
         thing["@type"] = [TD.DEFAULT_THING_TYPE, semType];
     }
 
+    const adjustBooleanField = (affordance: AffordanceElement, key: string) => {
+        const currentValue = affordance[key];
+
+        if (currentValue === undefined || typeof currentValue !== "boolean") {
+            affordance[key] = false;
+        }
+    };
+
     for (const property of Object.values(thing.properties ?? {})) {
-        property.readOnly ??= false;
-        property.writeOnly ??= false;
-        property.observable ??= false;
+        for (const key of ["readOnly", "writeOnly", "observable"]) {
+            adjustBooleanField(property, key);
+        }
     }
 
     for (const action of Object.values(thing.actions ?? {})) {
-        action.safe ??= false;
-        action.idempotent ??= false;
+        for (const key of ["safe", "idempotent"]) {
+            adjustBooleanField(action, key);
+        }
     }
 
     // avoid errors due to 'undefined'
