@@ -43,38 +43,44 @@ WoT.produce({
     title: "TestThing",
     properties: {
         bool: {
-            title: "true/false",
+            title: "Boolean",
+            description: "Property that can be set to true or false",
             type: "boolean",
         },
         int: {
-            title: "Integer number",
+            title: "Integer",
+            description: "An integer value that can be read and written",
             type: "integer",
         },
         num: {
-            title: "Floating point",
+            title: "Number",
+            description: "A floating point value that can be read and written",
             type: "number",
         },
         string: {
+            title: "String",
+            description: "A string value that can be read and written",
             type: "string",
         },
         array: {
-            title: "Tuple",
+            title: "Array",
+            description: "An Array (List) with no structure that can be read and written",
             type: "array",
             items: {},
         },
         object: {
-            title: "ID-name",
-            description: "Object with ID and name",
+            title: "Object",
+            description: "An object with id and name that can be read and written",
             type: "object",
             properties: {
                 id: {
                     title: "ID",
-                    description: "Internal identifier",
+                    description: "Integer identifier",
                     type: "integer",
                 },
                 name: {
                     title: "Name",
-                    description: "Public name",
+                    description: "Name associated to the identifier",
                     type: "string",
                 },
             },
@@ -137,18 +143,33 @@ WoT.produce({
     },
     events: {
         "on-bool": {
-            title: "on-bool Event",
-            description: "Event with boolean data",
+            title: "Bool Property Change",
+            description: "Event with boolean data that is emitted when the bool property is written to",
             data: { type: "boolean" },
         },
         "on-int": {
-            title: "on-int Event",
-            description: "Event with integer data",
+            title: "Int Property Change",
+            description: "Event with integer data that is emitted when the int property is written to ",
             data: { type: "integer" },
         },
         "on-num": {
-            title: "on-num Event",
-            description: "Event with number data",
+            title: "Num Property Change",
+            description: "Event with number data that is emitted when the num property is written to",
+            data: { type: "number" },
+        },
+        "on-string": {
+            title: "String Property Change",
+            description: "Event with number data that is emitted when the string property is written to",
+            data: { type: "number" },
+        },
+        "on-array": {
+            title: "Array Property Change",
+            description: "Event with number data that is emitted when the array property is written to",
+            data: { type: "number" },
+        },
+        "on-object": {
+            title: "Object Property Change",
+            description: "Event with number data that is emitted when the object property is written to",
             data: { type: "number" },
         },
     },
@@ -187,6 +208,7 @@ WoT.produce({
                 const localString = await value.value();
                 checkPropertyWrite("string", typeof localString);
                 string = localString as string;
+                thing.emitEvent("on-string", string);
             })
             .setPropertyReadHandler("string", async () => string)
             .setPropertyWriteHandler("array", async (value) => {
@@ -197,6 +219,7 @@ WoT.produce({
                     checkPropertyWrite("array", typeof localArray);
                 }
                 array = localArray as unknown[];
+                thing.emitEvent("on-array", array);
             })
             .setPropertyReadHandler("array", async () => array)
             .setPropertyWriteHandler("object", async (value) => {
@@ -207,6 +230,7 @@ WoT.produce({
                     checkPropertyWrite("object", typeof localObject);
                 }
                 object = localObject as Record<string, unknown>;
+                thing.emitEvent("on-object", object);
             })
             .setPropertyReadHandler("object", async () => object);
 
