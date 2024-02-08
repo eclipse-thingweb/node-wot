@@ -115,7 +115,7 @@ servient.start().then((WoT) => {
                         beansAmount = beansAmount - 10;
                         thing.emitPropertyChange("resources");
                         if (waterAmount <= 10) {
-                            thing.emitEvent("resourceEmpty","water")
+                            thing.emitEvent("resourceEmpty", "water");
                             return undefined;
                         }
                         if (beansAmount <= 10) {
