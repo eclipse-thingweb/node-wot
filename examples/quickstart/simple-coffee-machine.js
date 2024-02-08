@@ -25,9 +25,9 @@ servient.addServer(
     })
 );
 core_1.Helpers.setStaticAddress("plugfest.thingweb.io"); // comment this out if you are testing locally
-let waterAmount = 1000;
-let beansAmount = 1000;
-let milkAmount = 1000;
+let waterAmount = 28;
+let beansAmount = 28;
+let milkAmount = 28;
 // promisify timeout since it does not return a promise
 function timeout(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -78,6 +78,13 @@ servient.start().then((WoT) => {
                 },
             },
         },
+        events: {
+            resourceEmpty: {
+                data: {
+                    enum: ["water", "beans", "milk"],
+                },
+            },
+        },
     })
         .then((thing) => {
             console.log("Produced " + thing.getThingDescription().title);
@@ -99,6 +106,14 @@ servient.start().then((WoT) => {
                         waterAmount = waterAmount - 10;
                         beansAmount = beansAmount - 10;
                         thing.emitPropertyChange("resources");
+                        if (waterAmount <= 10) {
+                            thing.emitEvent("resourceEmpty", "water");
+                            return undefined;
+                        }
+                        if (beansAmount <= 10) {
+                            thing.emitEvent("resourceEmpty", "beans");
+                            return undefined;
+                        }
                         return undefined;
                     }
                 } else if (coffeeType === "cappuccino") {
@@ -110,6 +125,17 @@ servient.start().then((WoT) => {
                         beansAmount = beansAmount - 20;
                         milkAmount = milkAmount - 10;
                         thing.emitPropertyChange("resources");
+                        if (waterAmount <= 10) {
+                            thing.emitEvent("resourceEmpty", "water");
+                            return undefined;
+                        }
+                        if (beansAmount <= 10) {
+                            thing.emitEvent("resourceEmpty", "beans");
+                            return undefined;
+                        }
+                        if (milkAmount <= 10) {
+                            thing.emitEvent("resourceEmpty", "milk");
+                        }
                         return undefined;
                     }
                 } else if (coffeeType === "americano") {
@@ -120,6 +146,14 @@ servient.start().then((WoT) => {
                         waterAmount = waterAmount - 30;
                         beansAmount = beansAmount - 10;
                         thing.emitPropertyChange("resources");
+                        if (waterAmount <= 10) {
+                            thing.emitEvent("resourceEmpty", "water");
+                            return undefined;
+                        }
+                        if (beansAmount <= 10) {
+                            thing.emitEvent("resourceEmpty", "beans");
+                            return undefined;
+                        }
                         return undefined;
                     }
                 } else {

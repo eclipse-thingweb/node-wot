@@ -84,6 +84,13 @@ servient.start().then((WoT) => {
                 },
             },
         },
+        events: {
+            resourceEmpty: {
+                data: {
+                    enum: ["water", "beans", "milk"],
+                },
+            },
+        },
     })
         .then((thing) => {
             console.log("Produced " + thing.getThingDescription().title);
@@ -107,6 +114,14 @@ servient.start().then((WoT) => {
                         waterAmount = waterAmount - 10;
                         beansAmount = beansAmount - 10;
                         thing.emitPropertyChange("resources");
+                        if (waterAmount <= 10) {
+                            thing.emitEvent("resourceEmpty","water")
+                            return undefined;
+                        }
+                        if (beansAmount <= 10) {
+                            thing.emitEvent("resourceEmpty", "beans");
+                            return undefined;
+                        }
                         return undefined;
                     }
                 } else if (coffeeType === "cappuccino") {
@@ -118,6 +133,17 @@ servient.start().then((WoT) => {
                         beansAmount = beansAmount - 20;
                         milkAmount = milkAmount - 10;
                         thing.emitPropertyChange("resources");
+                        if (waterAmount <= 10) {
+                            thing.emitEvent("resourceEmpty", "water");
+                            return undefined;
+                        }
+                        if (beansAmount <= 10) {
+                            thing.emitEvent("resourceEmpty", "beans");
+                            return undefined;
+                        }
+                        if (milkAmount <= 10) {
+                            thing.emitEvent("resourceEmpty", "milk");
+                        }
                         return undefined;
                     }
                 } else if (coffeeType === "americano") {
@@ -128,6 +154,14 @@ servient.start().then((WoT) => {
                         waterAmount = waterAmount - 30;
                         beansAmount = beansAmount - 10;
                         thing.emitPropertyChange("resources");
+                        if (waterAmount <= 10) {
+                            thing.emitEvent("resourceEmpty", "water");
+                            return undefined;
+                        }
+                        if (beansAmount <= 10) {
+                            thing.emitEvent("resourceEmpty", "beans");
+                            return undefined;
+                        }
                         return undefined;
                     }
                 } else {
