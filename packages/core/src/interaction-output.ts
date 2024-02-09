@@ -62,6 +62,8 @@ export class InteractionOutput implements WoT.InteractionOutput {
     }
 
     async arrayBuffer(): Promise<ArrayBuffer> {
+        // TODO check for this.schema == null also and return empty array?
+
         if (this.#buffer) {
             return this.#buffer;
         }
@@ -78,6 +80,11 @@ export class InteractionOutput implements WoT.InteractionOutput {
     }
 
     async value<T extends WoT.DataSchemaValue>(): Promise<T> {
+        // is there any value expected at all?
+        if (this.schema == null) {
+            return this.#value as T;
+        }
+
         // the value has been already read?
         if (this.#value !== undefined) {
             return this.#value as T;
@@ -91,8 +98,8 @@ export class InteractionOutput implements WoT.InteractionOutput {
             throw new NotReadableError("No form defined");
         }
 
-        if (this.schema == null || this.schema.type == null) {
-            throw new NotReadableError("No schema defined");
+        if (this.schema.type == null) {
+            throw new NotReadableError("No schema type defined");
         }
 
         // is content type valid?
