@@ -24,7 +24,7 @@ const servient = new Servient();
 
 // const staticAddress = "plugfest.thingweb.io";
 const staticAddress = "localhost"; // use this for testing locally
-const httpPort = 8081
+const httpPort = 8081;
 servient.addServer(
     new HttpServer({
         port: httpPort,
@@ -124,14 +124,14 @@ servient.start().then((WoT) => {
                         waterAmount = waterAmount - 10;
                         beansAmount = beansAmount - 10;
                         thing.emitPropertyChange("resources");
-                        const resourceEvent: Array <string> = [];
+                        const resourceEvent: Array<string> = [];
                         if (waterAmount <= 10) {
-                            resourceEvent.push("water")
+                            resourceEvent.push("water");
                         }
                         if (beansAmount <= 10) {
                             resourceEvent.push("beans");
                         }
-                        if (resourceEvent.length>0){
+                        if (resourceEvent.length > 0) {
                             thing.emitEvent("resourceEmpty", resourceEvent);
                             return undefined;
                         } else {
