@@ -133,10 +133,8 @@ servient.start().then((WoT) => {
                         }
                         if (resourceEvent.length > 0) {
                             thing.emitEvent("resourceEmpty", resourceEvent);
-                            return undefined;
-                        } else {
-                            return undefined;
                         }
+                        return undefined;
                     }
                 } else if (coffeeType === "cappuccino") {
                     if (waterAmount <= 20 || beansAmount <= 25 || milkAmount <= 15) {
@@ -159,10 +157,8 @@ servient.start().then((WoT) => {
                         }
                         if (resourceEvent.length > 0) {
                             thing.emitEvent("resourceEmpty", resourceEvent);
-                            return undefined;
-                        } else {
-                            return undefined;
                         }
+                        return undefined;
                     }
                 } else if (coffeeType === "americano") {
                     if (waterAmount <= 35 || beansAmount <= 10) {
@@ -181,10 +177,8 @@ servient.start().then((WoT) => {
                         }
                         if (resourceEvent.length > 0) {
                             thing.emitEvent("resourceEmpty", resourceEvent);
-                            return undefined;
-                        } else {
-                            return undefined;
                         }
+                        return undefined;
                     }
                 } else {
                     throw new Error("Wrong coffee input");
