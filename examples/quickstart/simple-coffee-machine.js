@@ -19,12 +19,15 @@ const core_1 = require("@node-wot/core");
 const binding_http_1 = require("@node-wot/binding-http");
 // create Servient add HTTP binding with port configuration
 const servient = new core_1.Servient();
+// const staticAddress = "plugfest.thingweb.io";
+const staticAddress = "localhost"; // use this for testing locally
+const httpPort = 8081;
 servient.addServer(
     new binding_http_1.HttpServer({
-        port: 8081,
+        port: httpPort,
     })
 );
-core_1.Helpers.setStaticAddress("plugfest.thingweb.io"); // comment this out if you are testing locally
+core_1.Helpers.setStaticAddress(staticAddress);
 let waterAmount = 1000;
 let beansAmount = 1000;
 let milkAmount = 1000;
@@ -73,8 +76,22 @@ servient.start().then((WoT) => {
             refill: {
                 synchronous: true,
                 input: {
-                    type: "string",
-                    enum: ["water", "beans", "milk"],
+                    type: "array",
+                    items: {
+                        type: "string",
+                        enum: ["water", "beans", "milk"],
+                    },
+                },
+            },
+        },
+        events: {
+            resourceEmpty: {
+                data: {
+                    type: "array",
+                    items: {
+                        type: "string",
+                        enum: ["water", "beans", "milk"],
+                    },
                 },
             },
         },
@@ -99,6 +116,16 @@ servient.start().then((WoT) => {
                         waterAmount = waterAmount - 10;
                         beansAmount = beansAmount - 10;
                         thing.emitPropertyChange("resources");
+                        const resourceEvent = [];
+                        if (waterAmount <= 10) {
+                            resourceEvent.push("water");
+                        }
+                        if (beansAmount <= 10) {
+                            resourceEvent.push("beans");
+                        }
+                        if (resourceEvent.length > 0) {
+                            thing.emitEvent("resourceEmpty", resourceEvent);
+                        }
                         return undefined;
                     }
                 } else if (coffeeType === "cappuccino") {
@@ -110,6 +137,19 @@ servient.start().then((WoT) => {
                         beansAmount = beansAmount - 20;
                         milkAmount = milkAmount - 10;
                         thing.emitPropertyChange("resources");
+                        const resourceEvent = [];
+                        if (waterAmount <= 10) {
+                            resourceEvent.push("water");
+                        }
+                        if (beansAmount <= 10) {
+                            resourceEvent.push("beans");
+                        }
+                        if (milkAmount <= 10) {
+                            resourceEvent.push("milk");
+                        }
+                        if (resourceEvent.length > 0) {
+                            thing.emitEvent("resourceEmpty", resourceEvent);
+                        }
                         return undefined;
                     }
                 } else if (coffeeType === "americano") {
@@ -120,6 +160,16 @@ servient.start().then((WoT) => {
                         waterAmount = waterAmount - 30;
                         beansAmount = beansAmount - 10;
                         thing.emitPropertyChange("resources");
+                        const resourceEvent = [];
+                        if (waterAmount <= 10) {
+                            resourceEvent.push("water");
+                        }
+                        if (beansAmount <= 10) {
+                            resourceEvent.push("beans");
+                        }
+                        if (resourceEvent.length > 0) {
+                            thing.emitEvent("resourceEmpty", resourceEvent);
+                        }
                         return undefined;
                     }
                 } else {
@@ -129,18 +179,14 @@ servient.start().then((WoT) => {
             thing.setActionHandler("refill", async (params, options) => {
                 const selectedResource = await params.value();
                 console.info("received refill order of ", selectedResource);
-                switch (selectedResource) {
-                    case "water":
-                        waterAmount = 1000;
-                        break;
-                    case "beans":
-                        beansAmount = 1000;
-                        break;
-                    case "milk":
-                        milkAmount = 1000;
-                        break;
-                    default:
-                        throw new Error("Wrong refill input");
+                if (selectedResource.indexOf("water") !== -1) {
+                    waterAmount = 1000;
+                }
+                if (selectedResource.indexOf("beans") !== -1) {
+                    beansAmount = 1000;
+                }
+                if (selectedResource.indexOf("milk") !== -1) {
+                    milkAmount = 1000;
                 }
                 thing.emitPropertyChange("resources");
                 return undefined;
@@ -148,6 +194,7 @@ servient.start().then((WoT) => {
             // expose the thing
             thing.expose().then(() => {
                 console.info(thing.getThingDescription().title + " ready");
+                console.info("TD available at http://" + staticAddress + ":" + httpPort);
             });
         })
         .catch((e) => {
