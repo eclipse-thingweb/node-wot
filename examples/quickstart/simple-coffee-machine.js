@@ -179,15 +179,12 @@ servient.start().then((WoT) => {
             thing.setActionHandler("refill", async (params, options) => {
                 const selectedResource = await params.value();
                 console.info("received refill order of ", selectedResource);
-                // @ts-expect-error: Property doesn't exist error
                 if (selectedResource.indexOf("water") !== -1) {
                     waterAmount = 1000;
                 }
-                // @ts-expect-error: Property doesn't exist error
                 if (selectedResource.indexOf("beans") !== -1) {
                     beansAmount = 1000;
                 }
-                // @ts-expect-error: Property doesn't exist error
                 if (selectedResource.indexOf("milk") !== -1) {
                     milkAmount = 1000;
                 }
