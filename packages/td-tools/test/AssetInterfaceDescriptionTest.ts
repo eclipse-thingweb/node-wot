@@ -238,9 +238,7 @@ class AssetInterfaceDescriptionUtilTest {
             .to.eql("modbus+tcp://192.168.178.146:502/1/40020?quantity=16");
         expect(tdObj.properties.device_name.forms[0]).to.have.property("modv:function").to.eql("readHoldingRegisters");
         expect(tdObj.properties.device_name.forms[0]).to.have.property("modv:type").to.eql("string");
-        expect(tdObj.properties.device_name.forms[0])
-            .to.have.property("contentType")
-            .to.eql("application/octet-stream");
+        expect(tdObj.properties.device_name.forms[0]).to.have.property("contentType").to.eql("text/plain");
         expect(tdObj.properties.device_name.forms[0]).not.to.have.property("security");
 
         // check property soc
@@ -400,6 +398,7 @@ class AssetInterfaceDescriptionUtilTest {
                                         let hasContentType = false;
                                         let hasModbusFunction = false;
                                         let hasModbusType = false;
+                                        let hasModbusMostSignificantByte = false;
                                         for (const formEntry of propProperty.value) {
                                             if (formEntry.idShort === "href") {
                                                 hasHref = true;
@@ -410,7 +409,9 @@ class AssetInterfaceDescriptionUtilTest {
                                                 // expect(formEntry.value).to.equal("readproperty");
                                             } else if (formEntry.idShort === "contentType") {
                                                 hasContentType = true;
-                                                expect(formEntry.value).to.equal("application/octet-stream");
+                                                // Note: It uses the global contentType (locally it was not set in the AID)
+                                                expect(formEntry.value).to.equal("text/plain");
+                                                // expect(formEntry.value).to.equal("application/octet-stream");
                                             } else if (formEntry.idShort === "modv_function") {
                                                 // vs. "modv:function"
                                                 hasModbusFunction = true;
@@ -419,6 +420,10 @@ class AssetInterfaceDescriptionUtilTest {
                                                 // vs. "modv:type"
                                                 hasModbusType = true;
                                                 expect(formEntry.value).to.equal("string");
+                                            } else if (formEntry.idShort === "modv_mostSignificantByte") {
+                                                // vs. "modv:mostSignificantByte"
+                                                hasModbusMostSignificantByte = true;
+                                                expect(formEntry.value).to.equal("true");
                                             }
                                         }
                                         expect(hasHref).to.equal(true);
@@ -426,6 +431,7 @@ class AssetInterfaceDescriptionUtilTest {
                                         expect(hasContentType).to.equal(true);
                                         expect(hasModbusFunction).to.equal(true);
                                         expect(hasModbusType).to.equal(true);
+                                        expect(hasModbusMostSignificantByte).to.equal(true); // global
                                     }
                                 }
                                 expect(hasType).to.equal(true);

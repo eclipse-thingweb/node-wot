@@ -383,6 +383,32 @@ export class AssetInterfaceDescriptionUtil {
         return ""; // TODO what is the right value if information cannot be found
     }
 
+    private getModbusMostSignificantByteFromEndpointMetadata(
+        endpointMetadata?: Record<string, unknown>
+    ): string | undefined {
+        if (endpointMetadata?.value instanceof Array) {
+            for (const v of endpointMetadata.value) {
+                if (v.idShort === "modv_mostSignificantByte") {
+                    return v.value;
+                }
+            }
+        }
+        return undefined;
+    }
+
+    private getModbusMostSignificantWordFromEndpointMetadata(
+        endpointMetadata?: Record<string, unknown>
+    ): string | undefined {
+        if (endpointMetadata?.value instanceof Array) {
+            for (const v of endpointMetadata.value) {
+                if (v.idShort === "modv_mostSignificantWord") {
+                    return v.value;
+                }
+            }
+        }
+        return undefined;
+    }
+
     private updateRootMetadata(thing: Thing, endpointMetadata?: Record<string, unknown>) {
         const securityDefinitions: {
             [k: string]: SecurityScheme;
@@ -440,6 +466,17 @@ export class AssetInterfaceDescriptionUtil {
             href: this.getBaseFromEndpointMetadata(vi.endpointMetadata),
             contentType: this.getContentTypeFromEndpointMetadata(vi.endpointMetadata),
         };
+
+        // special treatment for global definitions
+        // besides contentType there is the AID possibility for mostSignificantByte and mostSignificantWord (Modbus)
+        const mostSignificantByte = this.getModbusMostSignificantByteFromEndpointMetadata(vi.endpointMetadata);
+        if (mostSignificantByte != null) {
+            form["modv:mostSignificantByte"] = mostSignificantByte === "true" || mostSignificantByte === "1";
+        }
+        const mostSignificantWord = this.getModbusMostSignificantWordFromEndpointMetadata(vi.endpointMetadata);
+        if (mostSignificantWord != null) {
+            form["modv:mostSignificantWord"] = mostSignificantWord === "true" || mostSignificantWord === "1";
+        }
 
         if (addSecurity) {
             // XXX need to add security at form level at all ?
