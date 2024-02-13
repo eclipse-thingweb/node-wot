@@ -578,6 +578,30 @@ class SerdesOctetTests {
         body = await content.toBuffer();
         expect(body).to.deep.equal(Buffer.from([0x80, 0x44]));
 
+        content = await ContentSerdes.valueToContent(
+            255,
+            { type: "uint8" },
+            `application/octet-stream;byteSeq=${Endianness.LITTLE_ENDIAN};length=1;`
+        );
+        body = await content.toBuffer();
+        expect(body).to.deep.equal(Buffer.from([0xff]));
+
+        content = await ContentSerdes.valueToContent(
+            127,
+            { type: "int8" },
+            `application/octet-stream;signed=true;length=1;`
+        );
+        body = await content.toBuffer();
+        expect(body).to.deep.equal(Buffer.from([0x7f]));
+
+        content = await ContentSerdes.valueToContent(
+            -128,
+            { type: "int8" },
+            `application/octet-stream;signed=true;length=1;`
+        );
+        body = await content.toBuffer();
+        expect(body).to.deep.equal(Buffer.from([0x80]));
+
         content = ContentSerdes.valueToContent(
             2345,
             { type: "integer", "ex:bitLength": 24 },
@@ -742,15 +766,27 @@ class SerdesOctetTests {
     }
 
     @test "value to OctetStream should throw"() {
-        // @ts-ignore new dataschema types are not yet supported in the td type definitions
-        expect(() => ContentSerdes.valueToContent(2345, { type: "int8" }, "application/octet-stream")).to.throw(
+        expect(() => ContentSerdes.valueToContent(256, { type: "uint8" }, "application/octet-stream")).to.throw(
             Error,
-            "Integer overflow when representing signed 2345 in 8 bit(s)"
+            "Integer overflow when representing 256 as an unsigned integer using 8 bit(s)"
         );
+        expect(() => ContentSerdes.valueToContent(-1, { type: "uint8" }, "application/octet-stream")).to.throw(
+            Error,
+            "Integer overflow when representing -1 as an unsigned integer using 8 bit(s)"
+        );
+        expect(() => ContentSerdes.valueToContent(128, { type: "int8" }, "application/octet-stream")).to.throw(
+            Error,
+            "Integer overflow when representing 128 as a signed integer using 8 bit(s)"
+        );
+        expect(() => ContentSerdes.valueToContent(-129, { type: "int8" }, "application/octet-stream")).to.throw(
+            Error,
+            "Integer overflow when representing -129 as a signed integer using 8 bit(s)"
+        );
+
         // @ts-ignore new dataschema types are not yet supported in the td type definitions
         expect(() => ContentSerdes.valueToContent(23450000, { type: "int16" }, "application/octet-stream")).to.throw(
             Error,
-            "Integer overflow when representing signed 23450000 in 16 bit(s)"
+            "Integer overflow when representing 23450000 as a signed integer using 16 bit(s)"
         );
         expect(() => ContentSerdes.valueToContent(2345, { type: "foo" }, "application/octet-stream")).to.throw(
             Error,
@@ -768,14 +804,14 @@ class SerdesOctetTests {
                 { type: "integer", "ex:bitOffset": 0, "ex:bitLength": 10 },
                 "application/octet-stream"
             )
-        ).to.throw(Error, "Integer overflow when representing signed -2345 in 10 bit(s)");
+        ).to.throw(Error, "Integer overflow when representing -2345 as a signed integer using 10 bit(s)");
         expect(() =>
             ContentSerdes.valueToContent(
                 -32769,
                 { type: "integer", "ex:bitOffset": 0, "ex:bitLength": 16 },
                 "application/octet-stream"
             )
-        ).to.throw(Error, "Integer overflow when representing signed -32769 in 16 bit(s)");
+        ).to.throw(Error, "Integer overflow when representing -32769 as a signed integer using 16 bit(s)");
         expect(() =>
             ContentSerdes.valueToContent(
                 { flag1: true, flag2: false, numberProperty: 99, stringProperty: "Web" },
