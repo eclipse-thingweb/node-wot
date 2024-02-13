@@ -1045,6 +1045,201 @@ class AssetInterfaceDescriptionUtilTest {
         expect(hasInteractionMetadata, "No InteractionMetadata").to.equal(true);
     }
 
+    td3: ThingDescription = {
+        "@context": "https://www.w3.org/2022/wot/td/v1.1",
+        title: "ModbusTD",
+        securityDefinitions: {
+            nosec_sc: {
+                scheme: "nosec",
+            },
+        },
+        security: "nosec_sc",
+        base: "modbus+tcp://$$addr$$:502/$$unitid$$/",
+        properties: {
+            voltage: {
+                forms: [
+                    {
+                        href: "40001?quantity=2",
+                        contentType: "application/octet-stream",
+                        op: ["readproperty"],
+                        "modv:function": "readHoldingRegisters",
+                        "modv:type": "xsd:float",
+                        "modv:mostSignificantByte": true,
+                        "modv:mostSignificantWord": true,
+                    },
+                ],
+            },
+        },
+    };
+
+    @test async "should correctly transform sample TD3 into AID submodel"() {
+        const sm = this.assetInterfaceDescriptionUtil.transformTD2SM(JSON.stringify(this.td3));
+
+        const smObj = JSON.parse(sm);
+        // console.log("###\n\n" + JSON.stringify(smObj) + "\n\n###");
+        const isValid = this.validateAID(smObj);
+        expect(isValid.valid, isValid.errors).to.equal(true);
+        expect(smObj).to.have.property("idShort").that.equals("AssetInterfacesDescription");
+        expect(smObj).to.have.property("semanticId");
+        expect(smObj).to.have.property("submodelElements").to.be.an("array").to.have.lengthOf.greaterThan(0);
+        const smInterface = smObj.submodelElements[0];
+        expect(smInterface).to.have.property("idShort").to.equal("InterfaceMODBUS_TCP"); // AID does not allow "+" in idShort, see InterfaceMODBUS+TCP
+        expect(smInterface).to.have.property("value").to.be.an("array").to.have.lengthOf.greaterThan(0);
+        expect(smInterface)
+            .to.have.property("semanticId")
+            .to.be.an("object")
+            .with.property("keys")
+            .to.be.an("array")
+            .to.have.lengthOf.greaterThan(0);
+        expect(smInterface)
+            .to.have.property("supplementalSemanticIds")
+            .to.be.an("array")
+            .to.have.lengthOf.greaterThan(1); // default WoT-TD and http
+        let hasThingTitle = false;
+        let hasEndpointMetadata = false;
+        for (const smValue of smInterface.value) {
+            if (smValue.idShort === "title") {
+                hasThingTitle = true;
+                expect(smValue).to.have.property("value").to.equal("ModbusTD");
+            } else if (smValue.idShort === "EndpointMetadata") {
+                hasEndpointMetadata = true;
+                const endpointMetadata = smValue;
+                expect(endpointMetadata).to.have.property("value").to.be.an("array").to.have.lengthOf.greaterThan(0);
+                let hasBase = false;
+                let hasContentType = false;
+                let hasSecurity = false;
+                let hasSecurityDefinitions = false;
+                for (const endpointMetadataValue of endpointMetadata.value) {
+                    if (endpointMetadataValue.idShort === "base") {
+                        hasBase = true;
+                        expect(endpointMetadataValue.value).to.equal("modbus+tcp://$$addr$$:502/$$unitid$$/");
+                    } else if (endpointMetadataValue.idShort === "contentType") {
+                        hasContentType = true;
+                    } else if (endpointMetadataValue.idShort === "security") {
+                        hasSecurity = true;
+                        expect(endpointMetadataValue)
+                            .to.have.property("value")
+                            .to.be.an("array")
+                            .to.have.lengthOf.greaterThan(0);
+                        expect(endpointMetadataValue.value[0]).to.have.property("value");
+                        const modelReferenceValue = endpointMetadataValue.value[0].value;
+                        expect(modelReferenceValue).to.have.property("type").to.equal("ModelReference");
+                        expect(modelReferenceValue).to.have.property("keys").to.be.an("array").to.have.lengthOf(5);
+                        expect(modelReferenceValue.keys[4]).to.have.property("value").to.equal("nosec_sc");
+                    } else if (endpointMetadataValue.idShort === "securityDefinitions") {
+                        hasSecurityDefinitions = true;
+                    }
+                }
+                expect(hasBase).to.equal(true); // AID requires base to exist
+                expect(hasContentType).to.equal(false);
+                expect(hasSecurity).to.equal(true);
+                expect(hasSecurityDefinitions).to.equal(true);
+            }
+        }
+        expect(hasThingTitle, "No thing title").to.equal(true);
+        expect(hasEndpointMetadata, "No EndpointMetadata").to.equal(true);
+
+        // InteractionMetadata with properties etc
+        let hasInteractionMetadata = false;
+        for (const smValue of smInterface.value) {
+            if (smValue.idShort === "InteractionMetadata") {
+                hasInteractionMetadata = true;
+                expect(smValue).to.have.property("value").to.be.an("array").to.have.lengthOf.greaterThan(0);
+                let hasProperties = false;
+                for (const interactionValues of smValue.value) {
+                    if (interactionValues.idShort === "properties") {
+                        hasProperties = true;
+                        expect(interactionValues)
+                            .to.have.property("value")
+                            .to.be.an("array")
+                            .to.have.lengthOf.greaterThan(0);
+                        let hasPropertyVoltage = false;
+                        for (const propertyValue of interactionValues.value) {
+                            if (propertyValue.idShort === "voltage") {
+                                hasPropertyVoltage = true;
+                                expect(propertyValue)
+                                    .to.have.property("value")
+                                    .to.be.an("array")
+                                    .to.have.lengthOf.greaterThan(0);
+                                let hasType = false;
+                                let hasTitle = false;
+                                let hasObservable = false;
+                                let hasForms = false;
+                                for (const propProperty of propertyValue.value) {
+                                    if (propProperty.idShort === "type") {
+                                        hasType = true;
+                                    } else if (propProperty.idShort === "title") {
+                                        hasTitle = true;
+                                    } else if (propProperty.idShort === "observable") {
+                                        hasObservable = true;
+                                    } else if (propProperty.idShort === "forms") {
+                                        hasForms = true;
+                                        expect(propProperty)
+                                            .to.have.property("value")
+                                            .to.be.an("array")
+                                            .to.have.lengthOf.greaterThan(0);
+                                        let hasHref = false;
+                                        let hasContentType = false;
+                                        let hasOp = false;
+                                        let hasModbusFunction = false;
+                                        let hasModbusType = false;
+                                        let hasModbusMostSignificantByte = false;
+                                        let hasModbusMostSignificantWord = false;
+                                        for (const formEntry of propProperty.value) {
+                                            if (formEntry.idShort === "href") {
+                                                hasHref = true;
+                                                expect(formEntry.value).to.be.oneOf([
+                                                    "40001?quantity=2",
+                                                    "modbus+tcp://$$addr$$:502/$$unitid$$/40001?quantity=2",
+                                                ]); // absolute or relative
+                                            } else if (formEntry.idShort === "contentType") {
+                                                hasContentType = true;
+                                                expect(formEntry.value).to.equal("application/octet-stream");
+                                            } else if (formEntry.idShort === "op") {
+                                                hasOp = true;
+                                                // Note: AID does not know "op"
+                                                // expect(formEntry.value).to.equal("readproperty");
+                                            } else if (formEntry.idShort === "modv_function") {
+                                                hasModbusFunction = true;
+                                                expect(formEntry.value).to.equal("readHoldingRegisters");
+                                            } else if (formEntry.idShort === "modv_type") {
+                                                hasModbusType = true;
+                                                expect(formEntry.value).to.equal("xsd:float");
+                                                expect(formEntry.valueType).to.equal("xs:string");
+                                            } else if (formEntry.idShort === "modv_mostSignificantByte") {
+                                                hasModbusMostSignificantByte = true;
+                                                expect(formEntry.value).to.equal("true");
+                                                expect(formEntry.valueType).to.equal("xs:boolean");
+                                            } else if (formEntry.idShort === "modv_mostSignificantWord") {
+                                                hasModbusMostSignificantWord = true;
+                                                expect(formEntry.value).to.equal("true");
+                                                expect(formEntry.valueType).to.equal("xs:boolean");
+                                            }
+                                        }
+                                        expect(hasHref).to.equal(true);
+                                        expect(hasContentType).to.equal(true);
+                                        expect(hasOp).to.equal(false);
+                                        expect(hasModbusFunction).to.equal(true);
+                                        expect(hasModbusType).to.equal(true);
+                                        expect(hasModbusMostSignificantByte).to.equal(true);
+                                        expect(hasModbusMostSignificantWord).to.equal(true);
+                                    }
+                                }
+                                expect(hasType).to.equal(false);
+                                expect(hasTitle).to.equal(false);
+                                expect(hasObservable).to.equal(false);
+                                expect(hasForms).to.equal(true);
+                            }
+                        }
+                        expect(hasPropertyVoltage).to.equal(true);
+                    }
+                }
+                expect(hasProperties).to.equal(true);
+            }
+        }
+        expect(hasInteractionMetadata, "No InteractionMetadata").to.equal(true);
+    }
+
     @test.skip async "should correctly transform counter TD into JSON AAS"() {
         // built-in fetch requires Node.js 18+
         const response = await fetch("http://plugfest.thingweb.io:8083/counter");

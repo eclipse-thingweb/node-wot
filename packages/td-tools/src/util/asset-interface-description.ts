@@ -467,15 +467,10 @@ export class AssetInterfaceDescriptionUtil {
                                     if (isAbsoluteUrl(hrefValue)) {
                                         form.href = hrefValue;
                                     } else if (form.href && form.href.length > 0) {
-                                        // handle leading/trailing slashes
-                                        if (form.href.endsWith("/") && hrefValue.startsWith("/")) {
-                                            form.href = form.href + hrefValue.substring(1);
-                                        } else if (!form.href.endsWith("/") && !hrefValue.startsWith("/")) {
-                                            form.href = form.href + "/" + hrefValue;
-                                        } else {
-                                            form.href = form.href + hrefValue;
-                                        }
+                                        form.href = URLToolkit.buildAbsoluteURL(form.href, hrefValue);
                                     } else {
+                                        // silently ignore error case
+                                        // (no proper base and relative local href)
                                         form.href = hrefValue;
                                     }
                                 }
