@@ -59,7 +59,7 @@ class InteractionOutputTests {
         const stream = Readable.from([1, 2, 3]);
         const content = new Content("application/json", stream);
 
-        const out = new InteractionOutput(content, {});
+        const out = new InteractionOutput(content, {}, { type: "string" });
         const result = [];
         const reader = out.data.getReader();
         expect(reader).not.to.be.undefined;
