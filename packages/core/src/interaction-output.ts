@@ -82,8 +82,7 @@ export class InteractionOutput implements WoT.InteractionOutput {
     async value<T extends WoT.DataSchemaValue>(): Promise<T> {
         // is there any value expected at all?
         if (this.schema == null) {
-            // #value is undefined at this point
-            return this.#value as T;
+            return undefined as unknown as T;
         }
 
         // the value has been already read?
