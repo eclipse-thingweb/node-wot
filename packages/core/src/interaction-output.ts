@@ -62,8 +62,6 @@ export class InteractionOutput implements WoT.InteractionOutput {
     }
 
     async arrayBuffer(): Promise<ArrayBuffer> {
-        // TODO check for this.schema == null also and return empty array?
-
         if (this.#buffer) {
             return this.#buffer;
         }
