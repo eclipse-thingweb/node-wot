@@ -81,7 +81,7 @@ export class InteractionOutput implements WoT.InteractionOutput {
         // is there any value expected at all?
         if (this.schema == null) {
             warn(
-                `No schema defined. Hence undefined is reported for value() function. If you need more control consider using arrayBuffer().`
+                `No schema defined. Hence undefined is reported for value() function. If you are invoking an action with no output that is on purpose, otherwise consider using arrayBuffer().`
             );
             return undefined as unknown as T;
         }
