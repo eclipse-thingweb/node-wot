@@ -21,7 +21,7 @@ import { Content } from "./content";
 import Ajv from "ajv";
 import { createLoggers } from "./logger";
 
-const { debug } = createLoggers("core", "interaction-output");
+const { debug, warn } = createLoggers("core", "interaction-output");
 
 // Problem: strict mode ajv does not accept unknown keywords in schemas
 // however property affordances could contain all sort of fields
@@ -80,6 +80,9 @@ export class InteractionOutput implements WoT.InteractionOutput {
     async value<T extends WoT.DataSchemaValue>(): Promise<T> {
         // is there any value expected at all?
         if (this.schema == null) {
+            warn(
+                `No schema defined. Hence undefined is reported for value() function. If you need more control consider using arrayBuffer().`
+            );
             return undefined as unknown as T;
         }
 
