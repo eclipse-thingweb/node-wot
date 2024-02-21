@@ -94,6 +94,18 @@
                                     "modelType": "Property"
                                 },
                                 {
+                                    "idShort": "contentType",
+                                    "valueType": "xs:string",
+                                    "value": "text/plain",
+                                    "modelType": "Property"
+                                },
+                                {
+                                    "idShort": "modv_mostSignificantByte",
+                                    "valueType": "xs:boolean",
+                                    "value": "true",
+                                    "modelType": "Property"
+                                },
+                                {
                                     "idShort": "security",
                                     "typeValueListElement": "ReferenceElement",
                                     "value": [
@@ -189,12 +201,6 @@
                                                             "idShort": "modv_type",
                                                             "valueType": "xs:string",
                                                             "value": "string",
-                                                            "modelType": "Property"
-                                                        },
-                                                        {
-                                                            "idShort": "contentType",
-                                                            "valueType": "xs:string",
-                                                            "value": "application/octet-stream",
                                                             "modelType": "Property"
                                                         }
                                                     ],

@@ -1942,15 +1942,7 @@
                             "enum": ["xs:string"]
                         },
                         "value": {
-                            "type": "string",
-                            "enum": [
-                                "application/json",
-                                "application/octet-stream",
-                                "application/pdf",
-                                "application/rdf+xml",
-                                "image/svg+xml",
-                                "image/png;base64"
-                            ]
+                            "type": "string"
                         },
                         "valueId": {
                             "$ref": "#/definitions/Reference"
