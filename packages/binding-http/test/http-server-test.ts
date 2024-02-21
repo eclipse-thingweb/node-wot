@@ -438,6 +438,21 @@ class HttpServerTest {
         expect(testThing.securityDefinitions.bearer).not.eql(undefined);
     }
 
+    @test async "should fill default security scheme even with baseURI defined"() {
+        const httpServer = new HttpServer({
+            port: port2,
+            baseUri: "https://example.com",
+        });
+        await httpServer.start(new Servient());
+        const testThing = new ExposedThing(new Servient());
+        testThing.title = "Test";
+        httpServer.expose(testThing);
+        await httpServer.stop();
+
+        expect(testThing.securityDefinitions.nosec).to.not.eql(undefined);
+        expect(testThing.securityDefinitions.nosec.scheme).to.be.eql("nosec");
+    }
+
     @test async "should not accept an unsupported scheme"() {
         debug("START SHOULD");
         const httpServer = new HttpServer({

@@ -276,6 +276,7 @@ export default class HttpServer implements ProtocolServer {
         if (this.getPort() !== -1) {
             debug(`HttpServer on port ${this.getPort()} exposes '${thing.title}' as unique '/${urlPath}'`);
             this.things.set(urlPath, thing);
+            this.fillSecurityScheme(thing);
 
             if (this.baseUri !== undefined) {
                 const base: string = this.baseUri.concat("/", encodeURIComponent(urlPath));
@@ -294,8 +295,6 @@ export default class HttpServer implements ProtocolServer {
                 if (this.scheme === "http" && Object.keys(thing.securityDefinitions).length !== 0) {
                     warn(`HTTP Server will attempt to use your security schemes even if you are not using HTTPS.`);
                 }
-
-                this.fillSecurityScheme(thing);
             }
         }
     }
