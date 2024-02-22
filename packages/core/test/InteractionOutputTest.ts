@@ -59,7 +59,7 @@ class InteractionOutputTests {
         const stream = Readable.from([1, 2, 3]);
         const content = new Content("application/json", stream);
 
-        const out = new InteractionOutput(content, {});
+        const out = new InteractionOutput(content, {}, { type: "string" });
         const result = [];
         const reader = out.data.getReader();
         expect(reader).not.to.be.undefined;
@@ -71,6 +71,20 @@ class InteractionOutputTests {
         } while (read.done !== true);
 
         return expect(out.value()).to.be.rejected;
+    }
+
+    @test async "should return undefined for value call if no DataSchema is provided"() {
+        const stream = Readable.from([]);
+        const content = new Content("application/json", stream);
+
+        const out = new InteractionOutput(content, {});
+
+        const result1 = await out.value();
+        expect(result1).be.undefined;
+
+        // try a second time also
+        const result2 = await out.value();
+        expect(result2).be.undefined;
     }
 
     @test async "should return the value"() {
