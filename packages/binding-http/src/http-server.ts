@@ -294,8 +294,7 @@ export default class HttpServer implements ProtocolServer {
                         this.scheme + "://" + address + ":" + this.getPort() + "/" + encodeURIComponent(urlPath);
 
                     this.addEndpoint(thing, tdTemplate, base);
-                    // media types
-                } // addresses
+                }
             }
         }
     }
