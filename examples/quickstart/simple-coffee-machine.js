@@ -220,7 +220,7 @@ servient.start().then((WoT) => {
             // expose the thing
             thing.expose().then(() => {
                 console.info(thing.getThingDescription().title + " ready");
-                console.info("TD available at http://" + staticAddress + ":" + port);
+                console.info(`TD available at http://${staticAddress}:${port}/coffee-machine`);
             });
         })
         .catch((e) => {
