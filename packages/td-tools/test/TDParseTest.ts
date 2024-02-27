@@ -509,13 +509,14 @@ class TDParserTest {
         expect(thing).to.have.property("title").that.equals("MyTemperatureThing");
         expect(thing).to.not.have.property("base");
 
-        expect(thing.properties).to.have.property("temperature");
-        expect(thing.properties.temperature).to.have.property("readOnly").that.equals(false);
-        expect(thing.properties.temperature).to.have.property("observable").that.equals(false);
+        const thingProperties = thing.properties!;
+        expect(thingProperties).to.have.property("temperature");
+        expect(thingProperties.temperature).to.have.property("readOnly").that.equals(false);
+        expect(thingProperties.temperature).to.have.property("observable").that.equals(false);
 
-        expect(thing.properties.temperature).to.have.property("forms").to.have.lengthOf(1);
-        expect(thing.properties.temperature.forms[0]).to.have.property("contentType").that.equals("application/json");
-        expect(thing.properties.temperature.forms[0])
+        expect(thingProperties.temperature).to.have.property("forms").to.have.lengthOf(1);
+        expect(thingProperties.temperature.forms[0]).to.have.property("contentType").that.equals("application/json");
+        expect(thingProperties.temperature.forms[0])
             .to.have.property("href")
             .that.equals("coap://mytemp.example.com:5683/temp");
     }
@@ -529,13 +530,14 @@ class TDParserTest {
         expect(thing).to.have.property("title").that.equals("MyTemperatureThing2");
         expect(thing).to.not.have.property("base");
 
-        expect(thing.properties).to.have.property("temperature");
-        expect(thing.properties.temperature).to.have.property("readOnly").that.equals(false);
-        expect(thing.properties.temperature).to.have.property("observable").that.equals(false);
+        const thingProperties = thing.properties!;
+        expect(thingProperties).to.have.property("temperature");
+        expect(thingProperties.temperature).to.have.property("readOnly").that.equals(false);
+        expect(thingProperties.temperature).to.have.property("observable").that.equals(false);
 
-        expect(thing.properties.temperature).to.have.property("forms").to.have.lengthOf(1);
-        expect(thing.properties.temperature.forms[0]).to.have.property("contentType").that.equals("application/json");
-        expect(thing.properties.temperature.forms[0])
+        expect(thingProperties.temperature).to.have.property("forms").to.have.lengthOf(1);
+        expect(thingProperties.temperature.forms[0]).to.have.property("contentType").that.equals("application/json");
+        expect(thingProperties.temperature.forms[0])
             .to.have.property("href")
             .that.equals("coap://mytemp.example.com:5683/temp");
     }
@@ -549,23 +551,24 @@ class TDParserTest {
         expect(thing).to.have.property("title").that.equals("MyTemperatureThing3");
         expect(thing).to.have.property("base").that.equals("coap://mytemp.example.com:5683/interactions/");
 
-        expect(thing.properties).to.have.property("temperature");
-        expect(thing.properties.temperature).to.have.property("readOnly").that.equals(false);
-        expect(thing.properties.temperature).to.have.property("observable").that.equals(false);
-        expect(thing.properties.temperature).to.have.property("forms").to.have.lengthOf(1);
-        expect(thing.properties.temperature.forms[0]).to.have.property("contentType").that.equals("application/json");
+        const thingProperties = thing.properties!;
+        expect(thingProperties).to.have.property("temperature");
+        expect(thingProperties.temperature).to.have.property("readOnly").that.equals(false);
+        expect(thingProperties.temperature).to.have.property("observable").that.equals(false);
+        expect(thingProperties.temperature).to.have.property("forms").to.have.lengthOf(1);
+        expect(thingProperties.temperature.forms[0]).to.have.property("contentType").that.equals("application/json");
 
-        expect(thing.properties).to.have.property("temperature2");
-        expect(thing.properties.temperature2).to.have.property("readOnly").that.equals(true);
-        expect(thing.properties.temperature2).to.have.property("observable").that.equals(false);
-        expect(thing.properties.temperature2).to.have.property("forms").to.have.lengthOf(1);
-        expect(thing.properties.temperature2.forms[0]).to.have.property("contentType").that.equals("application/json");
+        expect(thingProperties).to.have.property("temperature2");
+        expect(thingProperties.temperature2).to.have.property("readOnly").that.equals(true);
+        expect(thingProperties.temperature2).to.have.property("observable").that.equals(false);
+        expect(thingProperties.temperature2).to.have.property("forms").to.have.lengthOf(1);
+        expect(thingProperties.temperature2.forms[0]).to.have.property("contentType").that.equals("application/json");
 
-        expect(thing.properties).to.have.property("humidity");
-        expect(thing.properties.humidity).to.have.property("readOnly").that.equals(false);
-        expect(thing.properties.humidity).to.have.property("observable").that.equals(false);
-        expect(thing.properties.humidity).to.have.property("forms").to.have.lengthOf(1);
-        expect(thing.properties.humidity.forms[0]).to.have.property("contentType").that.equals("application/json");
+        expect(thingProperties).to.have.property("humidity");
+        expect(thingProperties.humidity).to.have.property("readOnly").that.equals(false);
+        expect(thingProperties.humidity).to.have.property("observable").that.equals(false);
+        expect(thingProperties.humidity).to.have.property("forms").to.have.lengthOf(1);
+        expect(thingProperties.humidity.forms[0]).to.have.property("contentType").that.equals("application/json");
     }
 
     // TODO: wait for exclude https://github.com/chaijs/chai/issues/885
@@ -623,17 +626,18 @@ class TDParserTest {
         // thing metadata "reference": "myTempThing" in metadata
         expect(thing).to.have.property("reference").that.equals("myTempThing");
 
-        expect(thing.properties).to.have.property("myTemp");
-        expect(thing.properties.myTemp).to.have.property("readOnly").that.equals(true);
-        expect(thing.properties.myTemp).to.have.property("observable").that.equals(false);
-        expect(thing.properties.myTemp).to.have.property("forms").to.have.lengthOf(1);
-        expect(thing.properties.myTemp.forms[0]).to.have.property("contentType").that.equals("application/json");
+        const thingProperties = thing.properties!;
+        expect(thingProperties).to.have.property("myTemp");
+        expect(thingProperties.myTemp).to.have.property("readOnly").that.equals(true);
+        expect(thingProperties.myTemp).to.have.property("observable").that.equals(false);
+        expect(thingProperties.myTemp).to.have.property("forms").to.have.lengthOf(1);
+        expect(thingProperties.myTemp.forms[0]).to.have.property("contentType").that.equals("application/json");
 
         // metadata
         // metadata "unit": "celsius"
-        expect(thing.properties.myTemp).to.have.property("unit").that.equals("celsius");
+        expect(thingProperties.myTemp).to.have.property("unit").that.equals("celsius");
         // metadata "reference": "threshold"
-        expect(thing.properties.myTemp).to.have.property("reference").that.equals("threshold");
+        expect(thingProperties.myTemp).to.have.property("reference").that.equals("threshold");
 
         // serialize
         // const newJson = TDParser.serializeTD(thing);
@@ -645,21 +649,22 @@ class TDParserTest {
 
         expect(thing).to.have.property("base").that.equals("coap://mytemp.example.com:5683/interactions/");
 
-        expect(thing.properties.temperature.forms[0])
+        const thingProperties = thing.properties!;
+        expect(thingProperties.temperature.forms[0])
             .to.have.property("href")
             .that.equals("coap://mytemp.example.com:5683/interactions/temp");
-        expect(thing.properties.temperature2.forms[0])
+        expect(thingProperties.temperature2.forms[0])
             .to.have.property("href")
             .that.equals("coap://mytemp.example.com:5683/interactions/temp");
-        expect(thing.properties.humidity.forms[0])
+        expect(thingProperties.humidity.forms[0])
             .to.have.property("href")
             .that.equals("coap://mytemp.example.com:5683/humid");
 
-        expect(thing.actions.reset.forms[0])
+        expect(thing.actions!.reset.forms[0])
             .to.have.property("href")
             .that.equals("coap://mytemp.example.com:5683/actions/reset");
 
-        expect(thing.events.update.forms[0])
+        expect(thing.events!.update.forms[0])
             .to.have.property("href")
             .that.equals("coap://mytemp.example.com:5683/interactions/events/update");
     }
@@ -678,9 +683,11 @@ class TDParserTest {
         expect(thing).to.have.property("events");
 
         logDebug(`${thing["@context"]}`);
-        expect(thing.properties).to.have.property("status");
-        expect(thing.properties.status.readOnly).equals(true);
-        expect(thing.properties.status.observable).equals(false);
+
+        const thingProperties = thing.properties!;
+        expect(thingProperties).to.have.property("status");
+        expect(thingProperties.status.readOnly).equals(true);
+        expect(thingProperties.status.observable).equals(false);
     }
 
     @test "simplified TD 1.1"() {
@@ -697,9 +704,11 @@ class TDParserTest {
         expect(thing).to.have.property("events");
 
         logDebug(`${thing["@context"]}`);
-        expect(thing.properties).to.have.property("status");
-        expect(thing.properties.status.readOnly).equals(true);
-        expect(thing.properties.status.observable).equals(false);
+
+        const thingProperties = thing.properties!;
+        expect(thingProperties).to.have.property("status");
+        expect(thingProperties.status.readOnly).equals(true);
+        expect(thingProperties.status.observable).equals(false);
     }
 
     @test "should detect broken TDs"() {
@@ -775,14 +784,16 @@ class TDParserTest {
         // interaction arrays
         expect(thing).to.have.property("properties");
 
-        expect(thing.properties).to.have.property("without");
-        expect(thing.properties.without.forms[0].href).equals("coap://localhost:8080/uv/" + "without{?step}");
+        const thingProperties = thing.properties!;
 
-        expect(thing.properties).to.have.property("with1");
-        expect(thing.properties.with1.forms[0].href).equals("coap://localhost:8080/uv/" + "with1{?step}");
+        expect(thingProperties).to.have.property("without");
+        expect(thingProperties.without.forms[0].href).equals("coap://localhost:8080/uv/" + "without{?step}");
 
-        expect(thing.properties).to.have.property("with2");
-        expect(thing.properties.with2.forms[0].href).equals("coap://localhost:8080/uv/" + "with2{?step,a}");
+        expect(thingProperties).to.have.property("with1");
+        expect(thingProperties.with1.forms[0].href).equals("coap://localhost:8080/uv/" + "with1{?step}");
+
+        expect(thingProperties).to.have.property("with2");
+        expect(thingProperties.with2.forms[0].href).equals("coap://localhost:8080/uv/" + "with2{?step,a}");
     }
 
     @test "uriVarables in combination with and without coap base"() {
@@ -832,13 +843,15 @@ class TDParserTest {
         // interaction arrays
         expect(thing).to.have.property("properties");
 
-        expect(thing.properties).to.have.property("without");
-        expect(thing.properties.without.forms[0].href).equals("http://localhost:8080/uv/" + "without{?step}");
+        const thingProperties = thing.properties!;
 
-        expect(thing.properties).to.have.property("with1");
-        expect(thing.properties.with1.forms[0].href).equals("http://localhost:8080/uv/" + "with1{?step}");
+        expect(thingProperties).to.have.property("without");
+        expect(thingProperties.without.forms[0].href).equals("http://localhost:8080/uv/" + "without{?step}");
 
-        expect(thing.properties).to.have.property("with2");
-        expect(thing.properties.with2.forms[0].href).equals("http://localhost:8080/uv/" + "with2{?step,a}");
+        expect(thingProperties).to.have.property("with1");
+        expect(thingProperties.with1.forms[0].href).equals("http://localhost:8080/uv/" + "with1{?step}");
+
+        expect(thingProperties).to.have.property("with2");
+        expect(thingProperties.with2.forms[0].href).equals("http://localhost:8080/uv/" + "with2{?step,a}");
     }
 }

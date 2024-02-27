@@ -36,6 +36,12 @@ export default class Thing implements TDT.ThingDescription {
     // eslint-disable-next-line  @typescript-eslint/no-explicit-any
     [key: string]: any;
 
+    properties?: { [k: string]: TDT.PropertyElement } | undefined;
+
+    actions?: { [k: string]: TDT.ActionElement } | undefined;
+
+    events?: { [k: string]: TDT.EventElement } | undefined;
+
     constructor() {
         this["@context"] = [DEFAULT_CONTEXT_V1, DEFAULT_CONTEXT_V11];
         this["@type"] = DEFAULT_THING_TYPE;

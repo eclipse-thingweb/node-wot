@@ -73,8 +73,8 @@ export class MdnsIntroducer {
     private determineTarget(): string {
         const interfaces = networkInterfaces();
 
-        for (const iface in interfaces) {
-            for (const entry of interfaces[iface] ?? []) {
+        for (const iface of Object.values(interfaces ?? {})) {
+            for (const entry of iface ?? []) {
                 if (entry.internal === false) {
                     if (entry.family === this.ipAddressFamily) {
                         return entry.address;

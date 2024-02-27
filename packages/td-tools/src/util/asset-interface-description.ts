@@ -28,6 +28,12 @@ const logDebug = debug(`${namespace}:debug`);
 const logInfo = debug(`${namespace}:info`);
 const logError = debug(`${namespace}:error`);
 
+type NotEmptyArray<T> = [T, ...T[]];
+
+function isNotEmptyArray<T>(as: T[]): as is NotEmptyArray<T> {
+    return as.length > 0;
+}
+
 /**
  * Utilities around Asset Interface Description
  * https://github.com/admin-shell-io/submodel-templates/tree/main/development/Asset%20Interface%20Description/1/0
@@ -321,23 +327,14 @@ export class AssetInterfaceDescriptionUtil {
     private getProtocolPrefixes(td: ThingDescription): string[] {
         const protocols: string[] = [];
 
-        if (td.properties) {
-            for (const propertyKey in td.properties) {
-                const property = td.properties[propertyKey];
-                this.updateProtocolPrefixes(property.forms, protocols);
-            }
+        for (const property of Object.values(td.properties ?? {})) {
+            this.updateProtocolPrefixes(property.forms, protocols);
         }
-        if (td.actions) {
-            for (const actionKey in td.actions) {
-                const action = td.actions[actionKey];
-                this.updateProtocolPrefixes(action.forms, protocols);
-            }
+        for (const action of Object.values(td.actions ?? {})) {
+            this.updateProtocolPrefixes(action.forms, protocols);
         }
-        if (td.events) {
-            for (const eventKey in td.events) {
-                const event = td.events[eventKey];
-                this.updateProtocolPrefixes(event.forms, protocols);
-            }
+        for (const event of Object.values(td.events ?? {})) {
+            this.updateProtocolPrefixes(event.forms, protocols);
         }
 
         return protocols;
@@ -742,8 +739,7 @@ export class AssetInterfaceDescriptionUtil {
             for (const [key, value] of smInformation.properties.entries()) {
                 logInfo("Property" + key + " = " + value);
 
-                thing.properties[key] = {};
-                thing.properties[key].forms = [];
+                const forms = [];
 
                 for (const vi of value) {
                     for (const keyInteraction in vi.interaction) {
@@ -844,8 +840,16 @@ export class AssetInterfaceDescriptionUtil {
                         vi.secNamesForEndpoint = secNamesForEndpointMetadata.get(vi.endpointMetadata);
                     }
                     const form = this.createInteractionForm(vi, smInformation.endpointMetadataArray.length > 1);
-                    thing.properties[key].forms.push(form);
+                    forms.push(form);
                 }
+
+                if (!isNotEmptyArray(forms)) {
+                    throw Error(`Mapping to properties produced an empty forms array for property ${key}`);
+                }
+
+                thing.properties[key] = {
+                    forms,
+                };
             }
         }
 
@@ -857,16 +861,23 @@ export class AssetInterfaceDescriptionUtil {
             for (const [key, value] of smInformation.actions.entries()) {
                 logInfo("Action" + key + " = " + value);
 
-                thing.actions[key] = {};
-                thing.actions[key].forms = [];
+                const forms = [];
 
                 for (const vi of value) {
                     if (vi.endpointMetadata) {
                         vi.secNamesForEndpoint = secNamesForEndpointMetadata.get(vi.endpointMetadata);
                     }
                     const form = this.createInteractionForm(vi, smInformation.endpointMetadataArray.length > 1);
-                    thing.properties[key].forms.push(form);
+                    forms.push(form);
                 }
+
+                if (!isNotEmptyArray(forms)) {
+                    throw Error(`Mapping to actions produced an empty forms array for action ${key}`);
+                }
+
+                thing.actions[key] = {
+                    forms,
+                };
             }
         }
 
@@ -878,16 +889,20 @@ export class AssetInterfaceDescriptionUtil {
             for (const [key, value] of smInformation.events.entries()) {
                 logInfo("Event " + key + " = " + value);
 
-                thing.events[key] = {};
-                thing.events[key].forms = [];
+                const forms = [];
 
                 for (const vi of value) {
-                    if (vi.endpointMetadata) {
-                        vi.secNamesForEndpoint = secNamesForEndpointMetadata.get(vi.endpointMetadata);
-                    }
                     const form = this.createInteractionForm(vi, smInformation.endpointMetadataArray.length > 1);
-                    thing.properties[key].forms.push(form);
+                    forms.push(form);
                 }
+
+                if (!isNotEmptyArray(forms)) {
+                    throw Error(`Mapping to events produced an empty forms array for event ${key}`);
+                }
+
+                thing.events[key] = {
+                    forms,
+                };
             }
         }
 
@@ -906,8 +921,7 @@ export class AssetInterfaceDescriptionUtil {
         let base = td.base ?? "NO_BASE";
         if (td.base == null && td.properties) {
             // do best effort if base is not specified by looking at property forms
-            for (const propertyKey in td.properties) {
-                const property: PropertyElement = td.properties[propertyKey];
+            for (const property of Object.values(td.properties)) {
                 // check whether form exists for a given protocol (prefix)
                 const formElementPicked = this.getFormForProtocol(property, protocol);
                 if (formElementPicked?.href !== undefined) {
@@ -983,8 +997,7 @@ export class AssetInterfaceDescriptionUtil {
 
         // securityDefinitions
         const securityDefinitionsValues: Array<unknown> = [];
-        for (const secKey in td.securityDefinitions) {
-            const secValue: SecurityScheme = td.securityDefinitions[secKey];
+        for (const [secKey, secValue] of Object.entries(td.securityDefinitions)) {
             const values = [];
             // scheme always
             values.push({
@@ -1229,9 +1242,7 @@ export class AssetInterfaceDescriptionUtil {
         if (protocol) {
             // Properties
             if (td.properties) {
-                for (const propertyKey in td.properties) {
-                    const property: PropertyElement = td.properties[propertyKey];
-
+                for (const [propertyKey, property] of Object.entries(td.properties)) {
                     // check whether form exists for a given protocol (prefix)
                     const formElementPicked = this.getFormForProtocol(property, protocol);
                     if (formElementPicked === undefined) {
@@ -1404,9 +1415,7 @@ export class AssetInterfaceDescriptionUtil {
                         this.addRequiredAidTermsForForm(formElementPicked, protocol);
 
                         // walk over string values like: "href", "contentType", "htv:methodName", ...
-                        for (let formTerm in formElementPicked) {
-                            let formValue = formElementPicked[formTerm];
-
+                        for (let [formTerm, formValue] of Object.entries(formElementPicked)) {
                             // Note: node-wot uses absolute URIs *almost* everywhere but we want to use "base" in AID
                             // --> try to create relative href's as much as possible
                             if (
@@ -1501,8 +1510,7 @@ export class AssetInterfaceDescriptionUtil {
                     let description;
                     if (property.descriptions) {
                         description = [];
-                        for (const langKey in property.descriptions) {
-                            const langValue = property.descriptions[langKey];
+                        for (const [langKey, langValue] of Object.entries(property.descriptions)) {
                             description.push({
                                 language: langKey,
                                 text: langValue,
