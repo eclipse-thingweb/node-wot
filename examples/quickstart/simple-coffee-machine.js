@@ -192,18 +192,29 @@ servient.start().then((WoT) => {
                 }
             });
             thing.setActionHandler("refill", async (params, options) => {
-                const selectedResource = await params.value();
-                console.info("received refill order of ", selectedResource);
-                if (selectedResource.indexOf("water") !== -1) {
+                const selectedResources = await params.value();
+
+                if (!Array.isArray(selectedResources)) {
+                    console.log(`Received invalid refill order of ${selectedResources}`);
+                    return undefined;
+                }
+
+                console.log(`Received refill order ${selectedResources}`);
+
+                if (!selectedResources.includes("water")) {
                     waterAmount = 1000;
                 }
-                if (selectedResource.indexOf("beans") !== -1) {
+
+                if (!selectedResources.includes("beans")) {
                     beansAmount = 1000;
                 }
-                if (selectedResource.indexOf("milk") !== -1) {
+
+                if (!selectedResources.includes("milk")) {
                     milkAmount = 1000;
                 }
+
                 thing.emitPropertyChange("resources");
+
                 return undefined;
             });
             // expose the thing
