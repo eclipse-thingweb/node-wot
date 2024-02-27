@@ -25,12 +25,14 @@ const { HttpServer } = require("@node-wot/binding-http");
 
 // create Servient add HTTP binding with port configuration
 const servient = new Servient();
+
 // const staticAddress = "plugfest.thingweb.io";
 const staticAddress = "localhost"; // use this for testing locally
-const httpPort = 8081;
+const port = 8081;
+
 servient.addServer(
     new HttpServer({
-        port: 8081,
+        port,
     })
 );
 
@@ -207,7 +209,7 @@ servient.start().then((WoT) => {
             // expose the thing
             thing.expose().then(() => {
                 console.info(thing.getThingDescription().title + " ready");
-                console.info("TD available at http://" + staticAddress + ":" + httpPort);
+                console.info("TD available at http://" + staticAddress + ":" + port);
             });
         })
         .catch((e) => {
