@@ -679,8 +679,12 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
 
         // check if returned media type is the same as expected media type (from TD)
         if (form.response != null) {
-            if (content.type !== form.response.contentType) {
-                throw new Error(`Unexpected type in response`);
+            const indexOfSemicolon = content.type.indexOf(";");
+            const contentType = indexOfSemicolon < 0 ? content.type : content.type.substring(0, indexOfSemicolon);
+            if (contentType !== form.response.contentType) {
+                throw new Error(
+                    `Unexpected type '${content.type}' in response. Should be '${form.response.contentType}'`
+                );
             }
         }
         try {

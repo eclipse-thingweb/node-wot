@@ -99,7 +99,13 @@ const myThingDesc = {
         anAction: {
             input: { type: "integer" },
             output: { type: "integer" },
-            forms: [{ href: "testdata://host/athing/actions/anaction", mediaType: "application/json" }],
+            forms: [
+                {
+                    href: "testdata://host/athing/actions/anaction",
+                    mediaType: "application/json",
+                    response: { contentType: "application/json" },
+                },
+            ],
         },
     },
     events: {
@@ -449,6 +455,25 @@ class WoTClientTest {
             const valueData = await content.toBuffer();
             expect(valueData.toString()).to.equal("23");
             return new Content("application/json", Readable.from(Buffer.from("42")));
+        });
+        const td = (await WoTClientTest.WoTHelpers.fetch("td://foo")) as ThingDescription;
+        const thing = await WoTClientTest.WoT.consume(td);
+
+        expect(thing).to.have.property("title").that.equals("aThing");
+        expect(thing).to.have.property("actions").that.has.property("anAction");
+        const result = await thing.invokeAction("anAction", 23);
+        // eslint-disable-next-line no-unused-expressions
+        expect(result).not.to.be.null;
+        const value = await result?.value();
+        expect(value).to.equal(42);
+    }
+
+    @test async "call an action with enhanced contentType"() {
+        // an action
+        WoTClientTest.clientFactory.setTrap(async (form: Form, content: Content) => {
+            const valueData = await content.toBuffer();
+            expect(valueData.toString()).to.equal("23");
+            return new Content("application/json; charset=utf-8", Readable.from(Buffer.from("42")));
         });
         const td = (await WoTClientTest.WoTHelpers.fetch("td://foo")) as ThingDescription;
         const thing = await WoTClientTest.WoT.consume(td);
