@@ -21,6 +21,7 @@ import Servient from "./servient";
 import Helpers from "./helpers";
 
 import { ProtocolClient } from "./protocol-interfaces";
+import { Content } from "./content";
 
 import ContentManager from "./content-serdes";
 
@@ -555,7 +556,32 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         form = this.handleUriVariables(tp, form, options);
 
         const content = await client.readResource(form);
-        return new InteractionOutput(content, form, tp);
+        return this.handleInteractionOutput(content, form, tp);
+    }
+
+    private handleInteractionOutput(
+        content: Content,
+        form: TD.Form,
+        outputDataSchema: WoT.DataSchema | undefined
+    ): InteractionOutput {
+        // infer media type from form if not in response metadata
+        if (!content.type) content.type = form.contentType ?? "application/json";
+
+        // check if returned media type is the same as expected media type (from TD)
+        if (form.response != null) {
+            const indexOfSemicolon = content.type.indexOf(";");
+            const contentType = indexOfSemicolon < 0 ? content.type : content.type.substring(0, indexOfSemicolon);
+            if (contentType !== form.response.contentType) {
+                throw new Error(
+                    `Unexpected type '${content.type}' in response. Should be '${form.response.contentType}'`
+                );
+            }
+        }
+        try {
+            return new InteractionOutput(content, form, outputDataSchema);
+        } catch {
+            throw new Error(`Received invalid content from Thing`);
+        }
     }
 
     async _readProperties(propertyNames: string[]): Promise<WoT.PropertyReadMap> {
@@ -674,24 +700,8 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         form = this.handleUriVariables(ta, form, options);
 
         const content = await client.invokeResource(form, input);
-        // infer media type from form if not in response metadata
-        if (!content.type) content.type = form.contentType ?? "application/json";
 
-        // check if returned media type is the same as expected media type (from TD)
-        if (form.response != null) {
-            const indexOfSemicolon = content.type.indexOf(";");
-            const contentType = indexOfSemicolon < 0 ? content.type : content.type.substring(0, indexOfSemicolon);
-            if (contentType !== form.response.contentType) {
-                throw new Error(
-                    `Unexpected type '${content.type}' in response. Should be '${form.response.contentType}'`
-                );
-            }
-        }
-        try {
-            return new InteractionOutput(content, form, ta.output);
-        } catch {
-            throw new Error(`Received invalid content from Thing`);
-        }
+        return this.handleInteractionOutput(content, form, ta.output);
     }
 
     /**
