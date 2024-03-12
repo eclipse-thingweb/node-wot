@@ -15,6 +15,8 @@
 
 import { ConsumedThing as IConsumedThing, InteractionInput, Subscription } from "wot-typescript-definitions";
 
+import ContentType from "content-type";
+
 import * as TD from "@node-wot/td-tools";
 
 import Servient from "./servient";
@@ -569,9 +571,9 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
 
         // check if returned media type is the same as expected media type (from TD)
         if (form.response != null) {
-            const indexOfSemicolon = content.type.indexOf(";");
-            const contentType = indexOfSemicolon < 0 ? content.type : content.type.substring(0, indexOfSemicolon);
-            if (contentType !== form.response.contentType) {
+            const parsedMediaTypeContent = ContentType.parse(content.type);
+            const parsedMediaTypeForm = ContentType.parse(form.response.contentType);
+            if (parsedMediaTypeContent.type !== parsedMediaTypeForm.type) {
                 throw new Error(
                     `Unexpected type '${content.type}' in response. Should be '${form.response.contentType}'`
                 );

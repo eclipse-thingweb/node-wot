@@ -15,6 +15,7 @@
     "main": "dist/core.js",
     "types": "dist/core.d.ts",
     "devDependencies": {
+        "@types/content-type": "^1.1.8",
         "@types/debug": "^4.1.7",
         "@types/uritemplate": "^0.3.4",
         "@types/uuid": "^8.3.1"
@@ -24,6 +25,7 @@
         "@petamoriken/float16": "^3.1.1",
         "ajv": "^8.11.0",
         "cbor": "^8.1.0",
+        "content-type": "^1.0.5",
         "debug": "^4.3.4",
         "uritemplate": "0.3.4",
         "uuid": "^7.0.3",
