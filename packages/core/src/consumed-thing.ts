@@ -15,8 +15,6 @@
 
 import { ConsumedThing as IConsumedThing, InteractionInput, Subscription } from "wot-typescript-definitions";
 
-import ContentType from "content-type";
-
 import * as TD from "@node-wot/td-tools";
 
 import Servient from "./servient";
@@ -24,6 +22,7 @@ import Helpers from "./helpers";
 
 import { ProtocolClient } from "./protocol-interfaces";
 import { Content } from "./content";
+import ContentType from "content-type";
 
 import ContentManager from "./content-serdes";
 
