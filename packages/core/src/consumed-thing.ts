@@ -557,7 +557,12 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         form = this.handleUriVariables(tp, form, options);
 
         const content = await client.readResource(form);
-        return this.handleInteractionOutput(content, form, tp);
+        try {
+            return this.handleInteractionOutput(content, form, tp);
+        } catch (e) {
+            const error = e instanceof Error ? e : new Error(JSON.stringify(e));
+            throw new Error(`Error while processing property for ${tp.title}. ${error.message}`);
+        }
     }
 
     private handleInteractionOutput(
@@ -578,11 +583,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                 );
             }
         }
-        try {
-            return new InteractionOutput(content, form, outputDataSchema);
-        } catch {
-            throw new Error(`Received invalid content from Thing`);
-        }
+        return new InteractionOutput(content, form, outputDataSchema);
     }
 
     async _readProperties(propertyNames: string[]): Promise<WoT.PropertyReadMap> {
@@ -701,8 +702,12 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         form = this.handleUriVariables(ta, form, options);
 
         const content = await client.invokeResource(form, input);
-
-        return this.handleInteractionOutput(content, form, ta.output);
+        try {
+            return this.handleInteractionOutput(content, form, ta.output);
+        } catch (e) {
+            const error = e instanceof Error ? e : new Error(JSON.stringify(e));
+            throw new Error(`Error while processing action for ${ta.title}. ${error.message}`);
+        }
     }
 
     /**
@@ -745,7 +750,8 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                 try {
                     listener(new InteractionOutput(content, form, tp));
                 } catch (e) {
-                    warn(`Error while processing observe event for ${tp.title}`);
+                    const error = e instanceof Error ? e : new Error(JSON.stringify(e));
+                    warn(`Error while processing observe property for ${tp.title}. ${error.message}`);
                     warn(e);
                 }
             },
@@ -802,7 +808,8 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                 try {
                     listener(new InteractionOutput(content, form, te.data));
                 } catch (e) {
-                    warn(`Error while processing event for ${te.title}`);
+                    const error = e instanceof Error ? e : new Error(JSON.stringify(e));
+                    warn(`Error while processing event for ${te.title}. ${error.message}`);
                     warn(e);
                 }
             },
