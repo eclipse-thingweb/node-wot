@@ -745,8 +745,6 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
             formWithoutURITemplates,
             // next
             (content) => {
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- tsc get confused when nullables are to listeners lambdas
-                if (!content.type) content.type = form!.contentType ?? "application/json";
                 try {
                     listener(this.handleInteractionOutput(content, form, tp));
                 } catch (e) {
@@ -803,8 +801,6 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         await client.subscribeResource(
             formWithoutURITemplates,
             (content) => {
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- tsc get confused when nullables are to listeners lambdas
-                if (!content.type) content.type = form!.contentType ?? "application/json";
                 try {
                     listener(this.handleInteractionOutput(content, form, te.data));
                 } catch (e) {
