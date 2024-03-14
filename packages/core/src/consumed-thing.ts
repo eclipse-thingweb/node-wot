@@ -566,7 +566,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         outputDataSchema: WoT.DataSchema | undefined
     ): InteractionOutput {
         // infer media type from form if not in response metadata
-        if (!content.type) content.type = form.contentType ?? "application/json";
+        content.type ??= form.contentType ?? "application/json";
 
         // check if returned media type is the same as expected media type (from TD)
         if (form.response != null) {
