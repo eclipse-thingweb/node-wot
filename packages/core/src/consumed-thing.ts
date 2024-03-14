@@ -748,7 +748,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- tsc get confused when nullables are to listeners lambdas
                 if (!content.type) content.type = form!.contentType ?? "application/json";
                 try {
-                    listener(new InteractionOutput(content, form, tp));
+                    listener(this.handleInteractionOutput(content, form, tp));
                 } catch (e) {
                     const error = e instanceof Error ? e : new Error(JSON.stringify(e));
                     warn(`Error while processing observe property for ${tp.title}. ${error.message}`);
@@ -806,7 +806,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- tsc get confused when nullables are to listeners lambdas
                 if (!content.type) content.type = form!.contentType ?? "application/json";
                 try {
-                    listener(new InteractionOutput(content, form, te.data));
+                    listener(this.handleInteractionOutput(content, form, te.data));
                 } catch (e) {
                     const error = e instanceof Error ? e : new Error(JSON.stringify(e));
                     warn(`Error while processing event for ${te.title}. ${error.message}`);
