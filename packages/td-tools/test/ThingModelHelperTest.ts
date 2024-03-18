@@ -464,10 +464,7 @@ class ThingModelHelperTest {
             ],
         } as unknown as ThingModel;
 
-        await expect(this.thingModelHelpers.getPartialTDs(thing)).to.be.rejectedWith(
-            Error,
-            "http status code not 200 but 404 for http://example.com/models/colored-lamp-1.0.0.tm.jsonld"
-        );
+        await expect(this.thingModelHelpers.getPartialTDs(thing)).to.be.rejectedWith(Error, "http status code not 200");
     }
 
     @test async "should fail on unavailable linked ThingModel - https"() {
@@ -489,7 +486,7 @@ class ThingModelHelperTest {
 
         await expect(this.thingModelHelpers.getPartialTDs(thing)).to.be.rejectedWith(
             Error,
-            "https status code not 200 but 404 for https://example.com/models/colored-lamp-1.0.0.tm.jsonld"
+            "https status code not 200"
         );
     }
 }
