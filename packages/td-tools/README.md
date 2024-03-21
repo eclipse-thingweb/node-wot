@@ -6,6 +6,8 @@ Current Maintainer(s): [@danielpeintner](https://github.com/danielpeintner) [@re
 
 In the following example it is shown how td-tools of node-wot can be used.
 
+Note: Some additional tooling (e.g., AAS AID, TD to AsyncAPI Converter) can be found in its own repository (see https://github.com/eclipse-thingweb/td-tools).
+
 ### Prerequisites
 
 -   `npm install @node-wot/td-tools`
