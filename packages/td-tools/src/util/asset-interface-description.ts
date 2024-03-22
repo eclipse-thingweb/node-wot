@@ -1521,7 +1521,7 @@ export class AssetInterfaceDescriptionUtil {
                         idShort: propertyKey,
                         description,
                         semanticId: this.createSemanticId(
-                            "https://admin-shell.io/idta/AssetInterfaceDescription/1/0/PropertyDefinition"
+                            "https://admin-shell.io/idta/AssetInterfacesDescription/1/0/PropertyDefinition"
                         ),
                         supplementalSemanticIds: [this.createSemanticId("https://www.w3.org/2019/wot/td#name")],
                         value: propertyValues,
