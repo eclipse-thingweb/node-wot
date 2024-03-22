@@ -1,4 +1,3 @@
-"use strict";
 /********************************************************************************
  * Copyright (c) 2023 Contributors to the Eclipse Foundation
  *
@@ -13,13 +12,21 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
+
+// @ts-check
+
+"use strict";
+
 // This is an example Thing script which is a simple presence detector
 // It fires an event when it detects a person (mocked as every 5 second)
-const core_1 = require("@node-wot/core");
-const binding_mqtt_1 = require("@node-wot/binding-mqtt");
+
+const { Servient } = require("@node-wot/core");
+const { MqttBrokerServer } = require("@node-wot/binding-mqtt");
+
 // create Servient add MQTT binding with port configuration
-const servient = new core_1.Servient();
-servient.addServer(new binding_mqtt_1.MqttBrokerServer({ uri: "mqtt://test.mosquitto.org" }));
+const servient = new Servient();
+servient.addServer(new MqttBrokerServer({ uri: "mqtt://test.mosquitto.org" }));
+
 servient.start().then((WoT) => {
     WoT.produce({
         title: "PresenceSensor",
