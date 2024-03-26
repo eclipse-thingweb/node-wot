@@ -21,6 +21,7 @@ import { ProtocolClientFactory, ProtocolServer, ProtocolClient } from "./protoco
 import ContentManager, { ContentCodec } from "./content-serdes";
 import { v4 } from "uuid";
 import { createLoggers } from "./logger";
+import { Helpers } from "./core";
 
 const { debug, warn } = createLoggers("core", "servient");
 
@@ -49,7 +50,7 @@ export default class Servient {
         debug(`Servient exposing '${thing.title}'`);
 
         // What is a good way to to convey forms information like contentType et cetera for interactions
-        const tdTemplate: WoT.ThingDescription = JSON.parse(JSON.stringify(thing));
+        const tdTemplate: WoT.ThingDescription = Helpers.structuredClone(thing) as WoT.ThingDescription;
 
         // initializing forms fields
         thing.forms = [];

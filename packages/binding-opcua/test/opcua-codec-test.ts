@@ -16,7 +16,7 @@
 import { exist } from "should";
 import { expect } from "chai";
 
-import { ContentSerdes, createLoggers } from "@node-wot/core";
+import { ContentSerdes, Helpers, createLoggers } from "@node-wot/core";
 import { ObjectSchema } from "@node-wot/td-tools";
 
 import { DataValue } from "node-opcua-data-value";
@@ -49,13 +49,9 @@ const dataValue3 = new DataValue({
     },
 });
 
-function jsonify(a: unknown): unknown {
-    return JSON.parse(JSON.stringify(a));
-}
-
-const dataValue1Json = jsonify(opcuaJsonEncodeDataValue(dataValue1, true));
-const dataValue2Json = jsonify(opcuaJsonEncodeDataValue(dataValue2, true));
-const dataValue3Json = jsonify(opcuaJsonEncodeDataValue(dataValue3, true));
+const dataValue1Json = Helpers.structuredClone(opcuaJsonEncodeDataValue(dataValue1, true));
+const dataValue2Json = Helpers.structuredClone(opcuaJsonEncodeDataValue(dataValue2, true));
+const dataValue3Json = Helpers.structuredClone(opcuaJsonEncodeDataValue(dataValue3, true));
 
 describe("OPCUA Binary Serdes ", () => {
     [dataValue1Json, dataValue2Json, dataValue3Json].forEach((dataValue, index) => {
@@ -65,7 +61,7 @@ describe("OPCUA Binary Serdes ", () => {
         it("should encode and decode a dataValue with application/opcua+binary codec " + index, () => {
             const payload = theOpcuaBinaryCodec.valueToBytes(dataValue as DataValue | DataValueJSON, schema);
             const dataValueReloaded = theOpcuaBinaryCodec.bytesToValue(payload, schema);
-            expect(dataValue).to.eql(jsonify(dataValueReloaded));
+            expect(dataValue).to.eql(Helpers.structuredClone(dataValueReloaded));
         });
     });
 });
@@ -77,7 +73,7 @@ describe("OPCUA JSON Serdes ", () => {
         it("should encode and decode a dataValue with application/opcua+json codec " + index, () => {
             const payload = theOpcuaJSONCodec.valueToBytes(dataValue, schema);
             const dataValueReloaded = theOpcuaJSONCodec.bytesToValue(payload, schema);
-            expect(dataValue).to.eql(jsonify(dataValueReloaded));
+            expect(dataValue).to.eql(Helpers.structuredClone(dataValueReloaded));
         });
     });
     const expected1 = [

@@ -152,6 +152,14 @@ export default class Helpers implements Resolver {
         }
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    static structuredClone<T = any>(value: T): T {
+        // TODO built-in structuredClone() still seems to cause issues
+        // see for example https://github.com/eclipse-thingweb/node-wot/issues/1252
+        // return structuredClone(value); // Note: use in future
+        return JSON.parse(JSON.stringify(value));
+    }
+
     // TODO: specialize fetch to retrieve just thing descriptions
     // see https://github.com/eclipse-thingweb/node-wot/issues/1055
     public fetch(uri: string): Promise<unknown> {
@@ -220,7 +228,7 @@ export default class Helpers implements Resolver {
      * Helper function to remove reserved keywords in required property of TD JSON Schema
      */
     static createExposeThingInitSchema(tdSchema: unknown): SomeJSONSchema {
-        const tdSchemaCopy = structuredClone(tdSchema) as SomeJSONSchema;
+        const tdSchemaCopy = Helpers.structuredClone(tdSchema) as SomeJSONSchema;
 
         if (tdSchemaCopy.required !== undefined) {
             const reservedKeywords: Array<string> = [
