@@ -36,6 +36,7 @@ import { Readable } from "stream";
 import { createLoggers, ProtocolHelpers } from "../src/core";
 import { ThingDescription } from "wot-typescript-definitions";
 import chaiAsPromised from "chai-as-promised";
+import { fail } from "assert";
 
 const { debug } = createLoggers("core", "ClientTest");
 
@@ -99,7 +100,13 @@ const myThingDesc = {
         anAction: {
             input: { type: "integer" },
             output: { type: "integer" },
-            forms: [{ href: "testdata://host/athing/actions/anaction", mediaType: "application/json" }],
+            forms: [
+                {
+                    href: "testdata://host/athing/actions/anaction",
+                    mediaType: "application/json",
+                    response: { contentType: "application/json" },
+                },
+            ],
         },
     },
     events: {
@@ -460,6 +467,47 @@ class WoTClientTest {
         expect(result).not.to.be.null;
         const value = await result?.value();
         expect(value).to.equal(42);
+    }
+
+    @test async "call an action with enhanced contentType"() {
+        // an action
+        WoTClientTest.clientFactory.setTrap(async (form: Form, content: Content) => {
+            const valueData = await content.toBuffer();
+            expect(valueData.toString()).to.equal("23");
+            return new Content("application/json; charset=utf-8", Readable.from(Buffer.from("42")));
+        });
+        const td = (await WoTClientTest.WoTHelpers.fetch("td://foo")) as ThingDescription;
+        const thing = await WoTClientTest.WoT.consume(td);
+
+        expect(thing).to.have.property("title").that.equals("aThing");
+        expect(thing).to.have.property("actions").that.has.property("anAction");
+        const result = await thing.invokeAction("anAction", 23);
+        // eslint-disable-next-line no-unused-expressions
+        expect(result).not.to.be.null;
+        const value = await result?.value();
+        expect(value).to.equal(42);
+    }
+
+    @test async "call an action with wrong contentType based on TD response"() {
+        // an action
+        WoTClientTest.clientFactory.setTrap(async (form: Form, content: Content) => {
+            const valueData = await content.toBuffer();
+            expect(valueData.toString()).to.equal("23");
+            // Note: application/json expected based on TD response
+            return new Content("text/plain", Readable.from(Buffer.from("42")));
+        });
+        const td = (await WoTClientTest.WoTHelpers.fetch("td://foo")) as ThingDescription;
+        const thing = await WoTClientTest.WoT.consume(td);
+
+        expect(thing).to.have.property("title").that.equals("aThing");
+        expect(thing).to.have.property("actions").that.has.property("anAction");
+        try {
+            await thing.invokeAction("anAction", 23);
+            fail("Should report unexpected content type");
+        } catch (e) {
+            const error = e instanceof Error ? e : new Error(JSON.stringify(e));
+            expect(error.message).to.contain("type");
+        }
     }
 
     @test async "subscribe to event"() {

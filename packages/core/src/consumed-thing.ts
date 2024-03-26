@@ -21,6 +21,8 @@ import Servient from "./servient";
 import Helpers from "./helpers";
 
 import { ProtocolClient } from "./protocol-interfaces";
+import { Content } from "./content";
+import ContentType from "content-type";
 
 import ContentManager from "./content-serdes";
 
@@ -555,7 +557,33 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         form = this.handleUriVariables(tp, form, options);
 
         const content = await client.readResource(form);
-        return new InteractionOutput(content, form, tp);
+        try {
+            return this.handleInteractionOutput(content, form, tp);
+        } catch (e) {
+            const error = e instanceof Error ? e : new Error(JSON.stringify(e));
+            throw new Error(`Error while processing property for ${tp.title}. ${error.message}`);
+        }
+    }
+
+    private handleInteractionOutput(
+        content: Content,
+        form: TD.Form,
+        outputDataSchema: WoT.DataSchema | undefined
+    ): InteractionOutput {
+        // infer media type from form if not in response metadata
+        content.type ??= form.contentType ?? "application/json";
+
+        // check if returned media type is the same as expected media type (from TD)
+        if (form.response != null) {
+            const parsedMediaTypeContent = ContentType.parse(content.type);
+            const parsedMediaTypeForm = ContentType.parse(form.response.contentType);
+            if (parsedMediaTypeContent.type !== parsedMediaTypeForm.type) {
+                throw new Error(
+                    `Unexpected type '${content.type}' in response. Should be '${form.response.contentType}'`
+                );
+            }
+        }
+        return new InteractionOutput(content, form, outputDataSchema);
     }
 
     async _readProperties(propertyNames: string[]): Promise<WoT.PropertyReadMap> {
@@ -674,19 +702,11 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         form = this.handleUriVariables(ta, form, options);
 
         const content = await client.invokeResource(form, input);
-        // infer media type from form if not in response metadata
-        if (!content.type) content.type = form.contentType ?? "application/json";
-
-        // check if returned media type is the same as expected media type (from TD)
-        if (form.response != null) {
-            if (content.type !== form.response.contentType) {
-                throw new Error(`Unexpected type in response`);
-            }
-        }
         try {
-            return new InteractionOutput(content, form, ta.output);
-        } catch {
-            throw new Error(`Received invalid content from Thing`);
+            return this.handleInteractionOutput(content, form, ta.output);
+        } catch (e) {
+            const error = e instanceof Error ? e : new Error(JSON.stringify(e));
+            throw new Error(`Error while processing action for ${ta.title}. ${error.message}`);
         }
     }
 
@@ -725,12 +745,11 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
             formWithoutURITemplates,
             // next
             (content) => {
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- tsc get confused when nullables are to listeners lambdas
-                if (!content.type) content.type = form!.contentType ?? "application/json";
                 try {
-                    listener(new InteractionOutput(content, form, tp));
+                    listener(this.handleInteractionOutput(content, form, tp));
                 } catch (e) {
-                    warn(`Error while processing observe event for ${tp.title}`);
+                    const error = e instanceof Error ? e : new Error(JSON.stringify(e));
+                    warn(`Error while processing observe property for ${tp.title}. ${error.message}`);
                     warn(e);
                 }
             },
@@ -782,12 +801,11 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         await client.subscribeResource(
             formWithoutURITemplates,
             (content) => {
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- tsc get confused when nullables are to listeners lambdas
-                if (!content.type) content.type = form!.contentType ?? "application/json";
                 try {
-                    listener(new InteractionOutput(content, form, te.data));
+                    listener(this.handleInteractionOutput(content, form, te.data));
                 } catch (e) {
-                    warn(`Error while processing event for ${te.title}`);
+                    const error = e instanceof Error ? e : new Error(JSON.stringify(e));
+                    warn(`Error while processing event for ${te.title}. ${error.message}`);
                     warn(e);
                 }
             },
