@@ -444,6 +444,59 @@ class SerdesOctetTests {
                 },
             }
         );
+
+        checkStreamToValue(
+            [0x0e, 0x10, 0x10, 0x10, 0x0e],
+            {
+                flags1: { flag1: false, flag2: true },
+                flags2: { flag1: true, flag2: false },
+            },
+            "object",
+            {
+                type: "object",
+                properties: {
+                    flags1: {
+                        type: "object",
+                        "ex:bitOffset": 0,
+                        "ex:bitLength": 8,
+                        properties: {
+                            flag1: {
+                                type: "boolean",
+                                title: "Bit 1",
+                                "ex:bitOffset": 3,
+                                "ex:bitLength": 1,
+                            },
+                            flag2: {
+                                type: "boolean",
+                                title: "Bit 2",
+                                "ex:bitOffset": 4,
+                                "ex:bitLength": 1,
+                            },
+                        },
+                    },
+                    flags2: {
+                        type: "object",
+                        "ex:bitOffset": 8,
+                        "ex:bitLength": 8,
+                        properties: {
+                            flag1: {
+                                type: "boolean",
+                                title: "Bit 1",
+                                "ex:bitOffset": 3,
+                                "ex:bitLength": 1,
+                            },
+                            flag2: {
+                                type: "boolean",
+                                title: "Bit 2",
+                                "ex:bitOffset": 4,
+                                "ex:bitLength": 1,
+                            },
+                        },
+                    },
+                },
+            },
+            { length: "5" }
+        );
     }
 
     @test async "OctetStream to value should throw"() {
@@ -515,7 +568,7 @@ class SerdesOctetTests {
         ).to.throw(Error, "Missing schema for object");
         expect(() =>
             ContentSerdes.contentToValue(
-                { type: "application/octet-stream", body: Buffer.from([0x36, 0x30]) },
+                { type: "application/octet-stream;length=2", body: Buffer.from([0x36, 0x30]) },
                 {
                     type: "object",
                     properties: {
@@ -763,6 +816,39 @@ class SerdesOctetTests {
         );
         body = await content.toBuffer();
         expect(body).to.deep.equal(Buffer.from([0xc0]));
+
+        content = ContentSerdes.valueToContent(
+            {
+                flags1: { flag1: false, flag2: true },
+                flags2: { flag1: true, flag2: false },
+            },
+            {
+                type: "object",
+                properties: {
+                    flags1: {
+                        type: "object",
+                        properties: {
+                            flag1: { type: "boolean", "ex:bitOffset": 3, "ex:bitLength": 1 },
+                            flag2: { type: "boolean", "ex:bitOffset": 4, "ex:bitLength": 1 },
+                        },
+                        "ex:bitLength": 8,
+                    },
+                    flags2: {
+                        type: "object",
+                        properties: {
+                            flag1: { type: "boolean", "ex:bitOffset": 3, "ex:bitLength": 1 },
+                            flag2: { type: "boolean", "ex:bitOffset": 4, "ex:bitLength": 1 },
+                        },
+                        "ex:bitOffset": 8,
+                        "ex:bitLength": 8,
+                    },
+                },
+                "ex:bitLength": 16,
+            },
+            "application/octet-stream;length=2;"
+        );
+        body = await content.toBuffer();
+        expect(body).to.deep.equal(Buffer.from([0x08, 0x10]));
     }
 
     @test "value to OctetStream should throw"() {

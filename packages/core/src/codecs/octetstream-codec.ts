@@ -214,7 +214,20 @@ export default class OctetstreamCodec implements ContentCodec {
         const sortedProperties = Object.getOwnPropertyNames(schema.properties);
         for (const propertyName of sortedProperties) {
             const propertySchema = schema.properties[propertyName];
-            result[propertyName] = this.bytesToValue(bytes, propertySchema, parameters);
+            if (propertySchema.type === "object") {
+                const bitLength = parseInt(propertySchema["ex:bitLength"]);
+                const bitOffset =
+                    propertySchema["ex:bitOffset"] !== undefined ? parseInt(propertySchema["ex:bitOffset"]) : 0;
+                const length = isNaN(bitLength) ? bytes.length : Math.ceil(bitLength / 8);
+                const buf = Buffer.alloc(length);
+                this.copyBits(bytes, bitOffset, buf, 0, length * 8);
+                result[propertyName] = this.objectToValue(buf, propertySchema, {
+                    ...parameters,
+                    length: length.toString(),
+                });
+            } else {
+                result[propertyName] = this.bytesToValue(bytes, propertySchema, parameters);
+            }
         }
         return result;
     }
@@ -542,22 +555,25 @@ export default class OctetstreamCodec implements ContentCodec {
             throw new Error("Missing 'length' parameter necessary for write");
         }
 
+        const offset = schema["ex:bitOffset"] !== undefined ? parseInt(schema["ex:bitOffset"]) : 0;
         result = result ?? Buffer.alloc(parseInt(parameters.length));
         for (const propertyName in schema.properties) {
             if (Object.hasOwnProperty.call(value, propertyName) === false) {
-                throw new Error(`Missing property '${propertyName}'`);
-            }
+                                    throw new Error(`Missing property '${propertyName}'`);
+                            }
             const propertySchema = schema.properties[propertyName];
             const propertyValue = value[propertyName];
             const propertyOffset = parseInt(propertySchema["ex:bitOffset"]);
             const propertyLength = parseInt(propertySchema["ex:bitLength"]);
             let buf: Buffer;
             if (propertySchema.type === "object") {
-                buf = this.valueToObject(propertyValue, propertySchema, parameters, result);
+                const length = Math.ceil(propertyLength / 8).toString();
+
+                buf = this.valueToObject(propertyValue, propertySchema, { ...parameters, length }, result);
             } else {
                 buf = this.valueToBytes(propertyValue, propertySchema, parameters);
             }
-            this.copyBits(buf, propertyOffset, result, propertyOffset, propertyLength);
+            this.copyBits(buf, propertyOffset, result, offset + propertyOffset, propertyLength);
         }
         return result;
     }
