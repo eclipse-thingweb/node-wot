@@ -568,7 +568,7 @@ class SerdesOctetTests {
         ).to.throw(Error, "Missing schema for object");
         expect(() =>
             ContentSerdes.contentToValue(
-                { type: "application/octet-stream;length=2", body: Buffer.from([0x36, 0x30]) },
+                { type: "application/octet-stream", body: Buffer.from([0x36, 0x30]) },
                 {
                     type: "object",
                     properties: {
