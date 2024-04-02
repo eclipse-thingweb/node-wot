@@ -559,8 +559,8 @@ export default class OctetstreamCodec implements ContentCodec {
         result = result ?? Buffer.alloc(parseInt(parameters.length));
         for (const propertyName in schema.properties) {
             if (Object.hasOwnProperty.call(value, propertyName) === false) {
-                                    throw new Error(`Missing property '${propertyName}'`);
-                            }
+                throw new Error(`Missing property '${propertyName}'`);
+            }
             const propertySchema = schema.properties[propertyName];
             const propertyValue = value[propertyName];
             const propertyOffset = parseInt(propertySchema["ex:bitOffset"]);
