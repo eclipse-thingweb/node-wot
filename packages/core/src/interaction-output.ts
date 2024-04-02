@@ -19,6 +19,7 @@ import { ProtocolHelpers } from "./core";
 import { DataSchemaError, NotReadableError, NotSupportedError } from "./errors";
 import { Content } from "./content";
 import Ajv from "ajv";
+import addFormats from "ajv-formats";
 import { createLoggers } from "./logger";
 
 const { debug, warn } = createLoggers("core", "interaction-output");
@@ -30,6 +31,7 @@ const { debug, warn } = createLoggers("core", "interaction-output");
 // Strict mode has a lot of other checks and it prevents runtime unexpected problems
 // TODO: in the future we should use the strict mode
 const ajv = new Ajv({ strict: false });
+addFormats(ajv);
 
 export class InteractionOutput implements WoT.InteractionOutput {
     #content: Content;
