@@ -215,7 +215,7 @@ export default class OctetstreamCodec implements ContentCodec {
         for (const propertyName of sortedProperties) {
             const propertySchema = schema.properties[propertyName];
             const length = bytes.length.toString();
-            result[propertyName] = this.bytesToValue(bytes, propertySchema, {...parameters, length});
+            result[propertyName] = this.bytesToValue(bytes, propertySchema, { ...parameters, length });
         }
         return result;
     }
