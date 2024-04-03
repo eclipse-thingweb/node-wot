@@ -34,7 +34,7 @@ Specifies which Modbus function should be issued in the requested command. The l
 | 16          | writeMultipleHoldingRegisters |
 
 This list is from [the Modbus Binding Template](https://w3c.github.io/wot-binding-templates/bindings/protocols/modbus/#function).
-Function IDs or labels can be either used as values of `modv:function` property.
+Function IDs are used on the wire but the labels should be used in a TD as the values of `modv:function` property.
 
 #### modv:entity
 
@@ -52,11 +52,11 @@ This property defines the starting address of registers or coils that are meant 
 
 #### modv:quantity
 
-This property defines the total amount of registers or coils that should be written, beginning with the register specified with the property 'modv:address'.
+This property defines the total amount of registers or coils that should be written, beginning with the register specified with the property `modv:address`.
 
 #### modv:pollingTime
 
-The polling time used for subscriptions. The client will issue a reading command every modv:pollingTime milliseconds. Note that the reading request timeout can be still controlled using modv:timeout property.
+The polling time used for subscriptions. The client will issue a reading command every `modv:pollingTime` milliseconds. Note that the reading request timeout can be still controlled using `modv:timeout` property.
 
 #### modv:timeout
 
@@ -72,7 +72,7 @@ modbus+tcp:// <host> [ : <port> ] [/ <unitid> [ / <address> ] [&quantity=<quanti
 
 with the following meaning:
 
--   `<host>` is the host name or IP address of the MODBUS slave
+-   `<host>` is the hostname or IP address of the MODBUS slave
 -   `<port>` is the optional TCP port number used to access the MODBUS slave. Default is 502
 -   `<unitid>` is the MODBUS unit id of the MODBUS slave; same as [modv:unitID](#modv:unitID)
 -   `<address>` is the starting address register number; see [modv:address](#modv:address)
@@ -118,7 +118,7 @@ This implementation handles multiple requests to the same slave by serializing a
 
 ### Combination
 
-When two **requests** of the same type are issued and these requests cover neighboured registers, then they are combined into a single **transaction** reading or writing the combined register range. Note that this algorithm is currently rather simple: New **requests** are just checked if they can be prepended or appended to an existing **transaction**. If not, a new **transaction** is created. When a **transaction** completes, all **requests** contained in this **transaction** are completed.
+When two **requests** of the same type are issued and these requests cover neighbored registers, then they are combined into a single **transaction** reading or writing the combined register range. Note that this algorithm is currently rather simple: New **requests** are just checked if they can be prepended or appended to an existing **transaction**. If not, a new **transaction** is created. When a **transaction** completes, all **requests** contained in this **transaction** are completed.
 
 ### Serialization
 
@@ -206,4 +206,4 @@ Polls the 8th holding register of the unit 1 every second.
 
 ## More Details
 
-See <https://github.com/eclipse-thingweb/node-wot/>
+See <https://github.com/eclipse-thingweb/node-wot/>.
