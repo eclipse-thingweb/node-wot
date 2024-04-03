@@ -55,7 +55,7 @@ class ModbusSubscription {
                 }
                 clearInterval(this.interval);
             }
-        }, form["modbus:pollingTime"]);
+        }, form["modv:pollingTime"]); // TODO: Until https://github.com/eclipse-thingweb/node-wot/issues/1236 is clarified, we will use this as the polling rate.
 
         this.complete = complete;
     }
@@ -92,7 +92,7 @@ export default class ModbusClient implements ProtocolClient {
 
     unlinkResource(form: ModbusForm): Promise<void> {
         form = this.validateAndFillDefaultForm(form, 0);
-        const id = `${form.href}/${form["modbus:unitID"]}#${form["modbus:function"]}?${form["modbus:address"]}&${form["modbus:quantity"]}`;
+        const id = `${form.href}/${form["modbus:unitID"]}#${form["modv:function"]}?${form["modbus:address"]}&${form["modbus:quantity"]}`;
 
         const subscription = this._subscriptions.get(id);
         if (!subscription) {
@@ -114,7 +114,7 @@ export default class ModbusClient implements ProtocolClient {
         return new Promise<Subscription>((resolve, reject) => {
             form = this.validateAndFillDefaultForm(form, 0);
 
-            const id = `${form.href}/${form["modbus:unitID"]}#${form["modbus:function"]}?${form["modbus:address"]}&${form["modbus:quantity"]}`;
+            const id = `${form.href}/${form["modbus:unitID"]}#${form["modv:function"]}?${form["modbus:address"]}&${form["modbus:quantity"]}`;
 
             if (this._subscriptions.has(id)) {
                 reject(new Error("Already subscribed for " + id + ". Multiple subscriptions are not supported"));
@@ -178,7 +178,7 @@ export default class ModbusClient implements ProtocolClient {
             debug(`Creating new ModbusConnection for ${hostAndPort}`);
 
             connection = new ModbusConnection(host, port, {
-                connectionTimeout: form["modbus:timeout"] ?? DEFAULT_TIMEOUT,
+                connectionTimeout: form["modv:timeout"] ?? DEFAULT_TIMEOUT,
             });
             this._connections.set(hostAndPort, connection);
         } else {
@@ -226,8 +226,8 @@ export default class ModbusClient implements ProtocolClient {
     }
 
     private validateBufferLength(form: ModbusFormWithDefaults, buffer: Buffer) {
-        const mpy = form["modbus:entity"] === "InputRegister" || form["modbus:entity"] === "HoldingRegister" ? 2 : 1;
-        const quantity = form["modbus:quantity"];
+        const mpy = form["modv:entity"] === "InputRegister" || form["modv:entity"] === "HoldingRegister" ? 2 : 1;
+        const quantity = form["modv:quantity"]; // FIXME: Change to url quantity
         if (buffer.length !== mpy * quantity) {
             throw new Error(
                 "Content length does not match register / coil count, got " +
@@ -248,26 +248,26 @@ export default class ModbusClient implements ProtocolClient {
         // take over latest content of form into a new result set
         const result: ModbusForm = { ...form };
 
-        if (form["modbus:function"] == null && form["modbus:entity"] == null) {
-            throw new Error("Malformed form: modbus:function or modbus:entity must be defined");
+        if (form["modv:function"] == null && form["modv:entity"] == null) {
+            throw new Error("Malformed form: modv:function or modv:entity must be defined");
         }
 
-        if (form["modbus:function"] != null) {
+        if (form["modv:function"] != null) {
             // Convert string function to enums if defined
-            if (typeof form["modbus:function"] === "string") {
-                result["modbus:function"] = ModbusFunction[form["modbus:function"]];
+            if (typeof form["modv:function"] === "string") {
+                result["modv:function"] = ModbusFunction[form["modv:function"]];
             }
 
             // Check if the function is a valid modbus function code
-            if (!Object.keys(ModbusFunction).includes(form["modbus:function"].toString())) {
-                throw new Error("Undefined function number or name: " + form["modbus:function"]);
+            if (!Object.keys(ModbusFunction).includes(form["modv:function"].toString())) {
+                throw new Error("Undefined function number or name: " + form["modv:function"]);
             }
         }
 
-        if (form["modbus:entity"]) {
-            switch (form["modbus:entity"]) {
+        if (form["modv:entity"]) {
+            switch (form["modv:entity"]) {
                 case "Coil":
-                    result["modbus:function"] =
+                    result["modv:function"] =
                         mode === "r"
                             ? ModbusFunction.readCoil
                             : contentLength > 1
@@ -276,7 +276,7 @@ export default class ModbusClient implements ProtocolClient {
                     break;
                 case "HoldingRegister":
                     // the content length must be divided by 2 (holding registers are 16bit)
-                    result["modbus:function"] =
+                    result["modv:function"] =
                         mode === "r"
                             ? ModbusFunction.readHoldingRegisters
                             : contentLength / 2 > 1
@@ -284,35 +284,35 @@ export default class ModbusClient implements ProtocolClient {
                             : ModbusFunction.writeSingleHoldingRegister;
                     break;
                 case "InputRegister":
-                    result["modbus:function"] = ModbusFunction.readInputRegister;
+                    result["modv:function"] = ModbusFunction.readInputRegister;
                     break;
                 case "DiscreteInput":
-                    result["modbus:function"] = ModbusFunction.readDiscreteInput;
+                    result["modv:function"] = ModbusFunction.readDiscreteInput;
                     break;
                 default:
-                    throw new Error("Unknown modbus entity: " + form["modbus:entity"]);
+                    throw new Error("Unknown modbus entity: " + form["modv:entity"]);
             }
         } else {
-            // 'modbus:entity' undefined but modbus:function defined
-            result["modbus:entity"] = modbusFunctionToEntity(result["modbus:function"] as ModbusFunction);
+            // 'modv:entity' undefined but modv:function defined
+            result["modv:entity"] = modbusFunctionToEntity(result["modv:function"] as ModbusFunction);
         }
 
-        if (form["modbus:address"] === undefined || form["modbus:address"] === null) {
+        if (form["modbus:address"] === undefined || form["modbus:address"] === null) { //FIXME: Change to URL
             throw new Error("Malformed form: address must be defined");
         }
 
-        const hasQuantity = form["modbus:quantity"] != null;
+        const hasQuantity = form["modbus:quantity"] != null; //FIXME: Change to URL
 
         if (!hasQuantity && contentLength === 0) {
-            result["modbus:quantity"] = 1;
+            result["modbus:quantity"] = 1; //FIXME: Change to URL
         } else if (!hasQuantity && contentLength > 0) {
             const regSize =
-                result["modbus:entity"] === "InputRegister" || result["modbus:entity"] === "HoldingRegister" ? 2 : 1;
-            result["modbus:quantity"] = contentLength / regSize;
+                result["modv:entity"] === "InputRegister" || result["modv:entity"] === "HoldingRegister" ? 2 : 1;
+            result["modbus:quantity"] = contentLength / regSize; //FIXME: Change to URL
         }
 
-        result["modbus:pollingTime"] ??= DEFAULT_POLLING;
-        result["modbus:timeout"] ??= DEFAULT_TIMEOUT;
+        result["modv:pollingTime"] ??= DEFAULT_POLLING;
+        result["modv:timeout"] ??= DEFAULT_TIMEOUT;
 
         return result as ModbusFormWithDefaults;
     }

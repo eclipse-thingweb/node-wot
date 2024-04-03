@@ -56,16 +56,16 @@ describe("Modbus client test", () => {
     it("use entity alias for coil", () => {
         const form: ModbusForm = {
             href: "modbus://127.0.0.1:8502",
-            "modbus:entity": "Coil",
+            "modv:entity": "Coil",
             "modbus:address": 0,
             "modbus:quantity": 1,
             "modbus:unitID": 1,
         };
 
         /* eslint-disable dot-notation */
-        client["validateAndFillDefaultForm"](form, 0)["modbus:function"].should.be.equal(1, "Wrong default read Coil");
-        client["validateAndFillDefaultForm"](form, 1)["modbus:function"].should.be.equal(5, "Wrong write Coil");
-        client["validateAndFillDefaultForm"](form, 2)["modbus:function"].should.be.equal(
+        client["validateAndFillDefaultForm"](form, 0)["modv:function"].should.be.equal(1, "Wrong default read Coil");
+        client["validateAndFillDefaultForm"](form, 1)["modv:function"].should.be.equal(5, "Wrong write Coil");
+        client["validateAndFillDefaultForm"](form, 2)["modv:function"].should.be.equal(
             15,
             "Wrong write multiple Coil"
         );
@@ -75,18 +75,18 @@ describe("Modbus client test", () => {
     it("use entity alias for holding registries", () => {
         const form: ModbusForm = {
             href: "modbus://127.0.0.1:8502",
-            "modbus:entity": "HoldingRegister",
+            "modv:entity": "HoldingRegister",
             "modbus:address": 0,
             "modbus:quantity": 1,
             "modbus:unitID": 1,
         };
         /* eslint-disable dot-notation */
-        client["validateAndFillDefaultForm"](form)["modbus:function"].should.be.equal(3, "Wrong read Holding register");
-        client["validateAndFillDefaultForm"](form, 2)["modbus:function"].should.be.equal(
+        client["validateAndFillDefaultForm"](form)["modv:function"].should.be.equal(3, "Wrong read Holding register");
+        client["validateAndFillDefaultForm"](form, 2)["modv:function"].should.be.equal(
             6,
             "Wrong write Holding register"
         );
-        client["validateAndFillDefaultForm"](form, 4)["modbus:function"].should.be.equal(
+        client["validateAndFillDefaultForm"](form, 4)["modv:function"].should.be.equal(
             16,
             "Wrong write multiple Holding register"
         );
@@ -96,35 +96,35 @@ describe("Modbus client test", () => {
     it("use entity alias for other entities", () => {
         const form: ModbusForm = {
             href: "modbus://127.0.0.1:8502",
-            "modbus:entity": "DiscreteInput",
+            "modv:entity": "DiscreteInput",
             "modbus:address": 0,
             "modbus:quantity": 1,
             "modbus:unitID": 1,
         };
         /* eslint-disable dot-notation */
-        client["validateAndFillDefaultForm"](form)["modbus:function"].should.be.equal(2, "Wrong read Discrete input");
-        form["modbus:entity"] = "InputRegister";
-        client["validateAndFillDefaultForm"](form)["modbus:function"].should.be.equal(4, "Wrong read Input register");
+        client["validateAndFillDefaultForm"](form)["modv:function"].should.be.equal(2, "Wrong read Discrete input");
+        form["modv:entity"] = "InputRegister";
+        client["validateAndFillDefaultForm"](form)["modv:function"].should.be.equal(4, "Wrong read Input register");
         /* eslint-enable dot-notation */
     });
 
     it("should convert function names", () => {
         const form: ModbusForm = {
             href: "modbus://127.0.0.1:8502",
-            "modbus:function": "readCoil",
+            "modv:function": "readCoil",
             "modbus:address": 0,
             "modbus:quantity": 1,
             "modbus:unitID": 1,
         };
 
         // eslint-disable-next-line dot-notation
-        client["validateAndFillDefaultForm"](form)["modbus:function"].should.be.equal(1, "Wrong substitution");
+        client["validateAndFillDefaultForm"](form)["modv:function"].should.be.equal(1, "Wrong substitution");
     });
 
     it("should accept just URL parameters", () => {
         const form: ModbusForm = {
             href: "modbus://127.0.0.1:8502/2/2?quantity=5",
-            "modbus:function": "readCoil",
+            "modv:function": "readCoil",
         };
 
         // eslint-disable-next-line dot-notation
@@ -137,7 +137,7 @@ describe("Modbus client test", () => {
     it("should accept just URL parameters without quantity", () => {
         const form: ModbusForm = {
             href: "modbus://127.0.0.1:8502/2/2",
-            "modbus:function": "readCoil",
+            "modv:function": "readCoil",
         };
 
         // eslint-disable-next-line dot-notation
@@ -149,7 +149,7 @@ describe("Modbus client test", () => {
     it("should override correctly form values with URL", () => {
         const form: ModbusForm = {
             href: "modbus://127.0.0.1:8502/2/2?quantity=5",
-            "modbus:function": "readCoil",
+            "modv:function": "readCoil",
             "modbus:address": 0,
             "modbus:quantity": 1,
             "modbus:unitID": 1,
@@ -168,7 +168,7 @@ describe("Modbus client test", () => {
 
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
-                "modbus:function": 1,
+                "modv:function": 1,
                 "modbus:address": 0,
                 "modbus:quantity": 1,
                 "modbus:unitID": 1,
@@ -184,11 +184,11 @@ describe("Modbus client test", () => {
         it("should fail for timeout", async () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
-                "modbus:function": 1,
+                "modv:function": 1,
                 "modbus:address": 4444,
                 "modbus:quantity": 1,
                 "modbus:unitID": 1,
-                "modbus:timeout": 100,
+                "modv:timeout": 100,
             };
 
             await client.readResource(form).should.eventually.be.rejectedWith("Timed out");
@@ -200,7 +200,7 @@ describe("Modbus client test", () => {
 
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
-                "modbus:function": 1,
+                "modv:function": 1,
                 "modbus:address": 0,
                 "modbus:quantity": 1,
                 "modbus:unitID": 1,
@@ -216,7 +216,7 @@ describe("Modbus client test", () => {
 
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
-                "modbus:function": 1,
+                "modv:function": 1,
                 "modbus:address": 0,
                 "modbus:quantity": 3,
                 "modbus:unitID": 1,
@@ -232,7 +232,7 @@ describe("Modbus client test", () => {
 
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
-                "modbus:function": 2,
+                "modv:function": 2,
                 "modbus:address": 0,
                 "modbus:quantity": 1,
                 "modbus:unitID": 1,
@@ -248,7 +248,7 @@ describe("Modbus client test", () => {
 
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
-                "modbus:function": 2,
+                "modv:function": 2,
                 "modbus:address": 0,
                 "modbus:quantity": 3,
                 "modbus:unitID": 1,
@@ -265,7 +265,7 @@ describe("Modbus client test", () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 contentType: "application/octet-stream",
-                "modbus:function": 3,
+                "modv:function": 3,
                 "modbus:address": 0,
                 "modbus:quantity": 1,
                 "modbus:unitID": 1,
@@ -283,7 +283,7 @@ describe("Modbus client test", () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 contentType: "application/octet-stream; length=6",
-                "modbus:function": 3,
+                "modv:function": 3,
                 "modbus:address": 0,
                 "modbus:quantity": 3,
                 "modbus:unitID": 1,
@@ -300,7 +300,7 @@ describe("Modbus client test", () => {
 
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
-                "modbus:function": 4,
+                "modv:function": 4,
                 "modbus:address": 0,
                 "modbus:quantity": 1,
                 "modbus:unitID": 1,
@@ -316,7 +316,7 @@ describe("Modbus client test", () => {
 
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
-                "modbus:function": 4,
+                "modv:function": 4,
                 "modbus:address": 0,
                 "modbus:quantity": 3,
                 "modbus:unitID": 1,
@@ -330,7 +330,7 @@ describe("Modbus client test", () => {
         it("should throw exception for unknown function", () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
-                "modbus:function": 255,
+                "modv:function": 255,
                 "modbus:address": 0,
                 "modbus:quantity": 3,
                 "modbus:unitID": 1,
@@ -344,7 +344,7 @@ describe("Modbus client test", () => {
         it("should throw exception for missing address", () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
-                "modbus:function": 1,
+                "modv:function": 1,
                 "modbus:unitID": 1,
             };
 
@@ -358,7 +358,7 @@ describe("Modbus client test", () => {
         it("should write a resource using write coil function", async () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
-                "modbus:function": 5,
+                "modv:function": 5,
                 "modbus:address": 0,
                 "modbus:unitID": 1,
             };
@@ -369,7 +369,7 @@ describe("Modbus client test", () => {
         it("should write a resource using multiple write coil function", async () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
-                "modbus:function": 15,
+                "modv:function": 15,
                 "modbus:address": 0,
                 "modbus:unitID": 1,
             };
@@ -381,7 +381,7 @@ describe("Modbus client test", () => {
         it("should write a resource using write register function", async () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
-                "modbus:function": 6,
+                "modv:function": 6,
                 "modbus:address": 0,
                 "modbus:unitID": 1,
             };
@@ -393,7 +393,7 @@ describe("Modbus client test", () => {
         it("should write a resource using write multiple register function", async () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
-                "modbus:function": 16,
+                "modv:function": 16,
                 "modbus:address": 0,
                 "modbus:unitID": 1,
             };
@@ -406,7 +406,7 @@ describe("Modbus client test", () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 contentType: "application/octet-stream;length=2;byteSeq=BIG_ENDIAN",
-                "modbus:function": 16,
+                "modv:function": 16,
                 "modbus:address": 0,
                 "modbus:unitID": 1,
             };
@@ -419,7 +419,7 @@ describe("Modbus client test", () => {
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
                 contentType: "application/octet-stream;byteSeq=LITTLE_ENDIAN",
-                "modbus:function": 6,
+                "modv:function": 6,
                 "modbus:address": 0,
                 "modbus:unitID": 1,
             };
@@ -434,7 +434,7 @@ describe("Modbus client test", () => {
             testServer.setRegisters([1]);
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
-                "modbus:function": 1,
+                "modv:function": 1,
                 "modbus:address": 0,
                 "modbus:unitID": 1,
             };
@@ -453,10 +453,10 @@ describe("Modbus client test", () => {
             testServer.setRegisters([1]);
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
-                "modbus:function": 1,
+                "modv:function": 1,
                 "modbus:address": 0,
                 "modbus:unitID": 1,
-                "modbus:pollingTime": 250,
+                "modv:pollingTime": 250,
             };
 
             client.subscribeResource(form, async (value) => {
@@ -471,10 +471,10 @@ describe("Modbus client test", () => {
             testServer.setRegisters([1]);
             const form: ModbusForm = {
                 href: "modbus://127.0.0.1:8502",
-                "modbus:function": 1,
+                "modv:function": 1,
                 "modbus:address": 0,
                 "modbus:unitID": 1,
-                "modbus:pollingTime": 125,
+                "modv:pollingTime": 125,
             };
             let count = 0;
             client.subscribeResource(form, async (value) => {

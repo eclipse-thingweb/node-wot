@@ -123,13 +123,13 @@ export type ModbusFormWithDefaults = ModbusForm &
     Required<
         Pick<
             ModbusForm,
-            | "modbus:function"
-            | "modbus:entity"
+            | "modv:function"
+            | "modv:entity"
             | "modbus:unitID"
             | "modbus:address"
             | "modbus:quantity"
-            | "modbus:timeout"
-            | "modbus:pollingTime"
+            | "modv:timeout"
+            | "modv:pollingTime"
         >
     >;
 
@@ -446,10 +446,10 @@ export class PropertyOperation {
 
     constructor(form: ModbusFormWithDefaults, endianness: Endianness, content?: Buffer) {
         this.unitId = form["modbus:unitID"];
-        this.registerType = form["modbus:entity"];
+        this.registerType = form["modv:entity"];
         this.base = form["modbus:address"];
         this.quantity = form["modbus:quantity"];
-        this.function = form["modbus:function"] as ModbusFunction;
+        this.function = form["modv:function"] as ModbusFunction;
         this.endianness = endianness;
         this.contentType = form.contentType ?? ContentSerdes.DEFAULT;
         this.content = content;
