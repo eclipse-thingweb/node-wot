@@ -543,8 +543,18 @@ export default class OctetstreamCodec implements ContentCodec {
             throw new Error("Missing 'length' parameter necessary for write");
         }
 
+        const length = parseInt(parameters.length);
         const offset = schema["ex:bitOffset"] !== undefined ? parseInt(schema["ex:bitOffset"]) : 0;
-        result = result ?? Buffer.alloc(parseInt(parameters.length));
+
+        if (isNaN(offset) || offset < 0) {
+            throw new Error("ex:bitOffset must be a non-negative number");
+        }
+
+        if (offset > length * 8) {
+            throw new Error(`ex:bitOffset ${offset} exceeds length ${length}`);
+        }
+
+        result = result ?? Buffer.alloc(length);
         for (const propertyName in schema.properties) {
             if (Object.hasOwnProperty.call(value, propertyName) === false) {
                 throw new Error(`Missing property '${propertyName}'`);
