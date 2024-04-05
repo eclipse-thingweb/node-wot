@@ -584,6 +584,55 @@ class SerdesOctetTests {
                 { type: "uint8" }
             )
         ).to.throw(Error, "Type is unsigned but 'signed' is true");
+
+        expect(() =>
+            ContentSerdes.contentToValue(
+                { type: `application/octet-stream;length=test`, body: Buffer.from([0x36]) },
+                { type: "integer" }
+            )
+        ).to.throw(Error, "'length' parameter must be a non-negative number");
+
+        expect(() =>
+            ContentSerdes.contentToValue(
+                { type: `application/octet-stream;length=-1`, body: Buffer.from([0x36]) },
+                { type: "integer" }
+            )
+        ).to.throw(Error, "'length' parameter must be a non-negative number");
+
+        expect(() =>
+            ContentSerdes.contentToValue(
+                { type: `application/octet-stream;signed=invalid`, body: Buffer.from([0x36]) },
+                { type: "integer" }
+            )
+        ).to.throw(Error, "'signed' parameter must be 'true' or 'false'");
+
+        expect(() =>
+            ContentSerdes.contentToValue(
+                { type: `application/octet-stream`, body: Buffer.from([0x36]) },
+                { type: "integer", "ex:bitOffset": "invalid" }
+            )
+        ).to.throw(Error, "'ex:bitOffset' must be a non-negative number");
+
+        expect(() =>
+            ContentSerdes.contentToValue(
+                { type: `application/octet-stream`, body: Buffer.from([0x36]) },
+                { type: "integer", "ex:bitOffset": -1 }
+            )
+        ).to.throw(Error, "'ex:bitOffset' must be a non-negative number");
+
+        expect(() =>
+            ContentSerdes.contentToValue(
+                { type: `application/octet-stream`, body: Buffer.from([0x36]) },
+                { type: "integer", "ex:bitLength": "invalid" }
+            )
+        ).to.throw(Error, "'ex:bitLength' must be a non-negative number");
+
+        expect(() =>
+            ContentSerdes.contentToValue(
+                { type: `application/octet-stream`, body: Buffer.from([0x36]) },
+                { type: "integer", "ex:bitLength": -1 }
+            )
+        ).to.throw(Error, "'ex:bitLength' must be a non-negative number");
     }
 
     @test async "value to OctetStream"() {
@@ -937,6 +986,29 @@ class SerdesOctetTests {
             Error,
             "Missing 'type' property in schema"
         );
+        expect(() => ContentSerdes.valueToContent(10, { type: "int8" }, "application/octet-stream;signed=8")).to.throw(
+            Error,
+            "'signed' parameter must be 'true' or 'false'"
+        );
+        expect(() =>
+            ContentSerdes.valueToContent(10, { type: "int8" }, "application/octet-stream;length=-1;")
+        ).to.throw(Error, "'length' parameter must be a non-negative number");
+        expect(() => ContentSerdes.valueToContent(10, { type: "int8" }, "application/octet-stream;length=x;")).to.throw(
+            Error,
+            "'length' parameter must be a non-negative number"
+        );
+        expect(() =>
+            ContentSerdes.valueToContent(10, { type: "integer", "ex:bitOffset": -16 }, "application/octet-stream")
+        ).to.throw(Error, "'ex:bitOffset' must be a non-negative number");
+        expect(() =>
+            ContentSerdes.valueToContent(10, { type: "integer", "ex:bitOffset": "foo" }, "application/octet-stream")
+        ).to.throw(Error, "'ex:bitOffset' must be a non-negative number");
+        expect(() =>
+            ContentSerdes.valueToContent(10, { type: "integer", "ex:bitLength": -8 }, "application/octet-stream")
+        ).to.throw(Error, "'ex:bitLength' must be a non-negative number");
+        expect(() =>
+            ContentSerdes.valueToContent(10, { type: "integer", "ex:bitLength": "foo" }, "application/octet-stream")
+        ).to.throw(Error, "'ex:bitLength' must be a non-negative number");
     }
 }
 
