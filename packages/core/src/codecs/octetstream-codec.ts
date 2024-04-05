@@ -59,14 +59,41 @@ export default class OctetstreamCodec implements ContentCodec {
         debug("OctetstreamCodec parsing", bytes);
         debug("Parameters", parameters);
 
-        const bigEndian = !(parameters.byteSeq?.includes(Endianness.LITTLE_ENDIAN) === true); // default to big endian
-        let signed = parameters.signed !== "false"; // default to signed
-        const offset = schema?.["ex:bitOffset"] !== undefined ? parseInt(schema["ex:bitOffset"]) : 0;
-        if (parameters.length != null && parseInt(parameters.length) !== bytes.length) {
-            throw new Error("Lengths do not match, required: " + parameters.length + " provided: " + bytes.length);
+        const length =
+            parameters.length != null
+                ? parseInt(parameters.length)
+                : (warn("Missing 'length' parameter necessary for write. I'll do my best"), undefined);
+
+        if (length !== undefined) {
+            if (isNaN(length) || length < 0) {
+                throw new Error("'length' parameter must be a non-negative number");
+            }
+            if (length !== bytes.length) {
+                throw new Error(`Lengths do not match, required: ${length} provided: ${bytes.length}`);
+            }
         }
-        let bitLength: number =
-            schema?.["ex:bitLength"] !== undefined ? parseInt(schema["ex:bitLength"]) : bytes.length * 8;
+
+        let signed = true; // default to signed
+        if (parameters.signed !== undefined) {
+            if (parameters.signed !== "true" && parameters.signed !== "false") {
+                throw new Error("'signed' parameter must be 'true' or 'false'");
+            }
+            signed = parameters.signed === "true";
+        }
+
+        let bitLength = schema?.["ex:bitLength"] !== undefined ? parseInt(schema["ex:bitLength"]) : bytes.length * 8;
+
+        if (isNaN(bitLength) || bitLength < 0) {
+            throw new Error("'ex:bitLength' must be a non-negative number");
+        }
+
+        const offset = schema?.["ex:bitOffset"] !== undefined ? parseInt(schema["ex:bitOffset"]) : 0;
+
+        if (isNaN(offset) || offset < 0) {
+            throw new Error("'ex:bitOffset' must be a non-negative number");
+        }
+
+        const bigEndian = !(parameters.byteSeq?.includes(Endianness.LITTLE_ENDIAN) === true); // default to big endian
         let dataType: string = schema?.type;
 
         if (!dataType) {
@@ -214,7 +241,8 @@ export default class OctetstreamCodec implements ContentCodec {
         const sortedProperties = Object.getOwnPropertyNames(schema.properties);
         for (const propertyName of sortedProperties) {
             const propertySchema = schema.properties[propertyName];
-            result[propertyName] = this.bytesToValue(bytes, propertySchema, parameters);
+            const length = bytes.length.toString();
+            result[propertyName] = this.bytesToValue(bytes, propertySchema, { ...parameters, length });
         }
         return result;
     }
@@ -222,16 +250,38 @@ export default class OctetstreamCodec implements ContentCodec {
     valueToBytes(value: unknown, schema?: DataSchema, parameters: { [key: string]: string | undefined } = {}): Buffer {
         debug(`OctetstreamCodec serializing '${value}'`);
 
-        if (parameters.length == null) {
-            warn("Missing 'length' parameter necessary for write. I'll do my best");
+        const bigEndian = !(parameters.byteSeq?.includes(Endianness.LITTLE_ENDIAN) === true); // default to big endian
+
+        let signed = true; // default to true
+
+        if (parameters.signed !== undefined) {
+            if (parameters.signed !== "true" && parameters.signed !== "false") {
+                throw new Error("'signed' parameter must be 'true' or 'false'");
+            }
+            signed = parameters.signed === "true";
         }
 
-        const bigEndian = !(parameters.byteSeq?.includes(Endianness.LITTLE_ENDIAN) === true); // default to big endian
-        let signed = parameters.signed !== "false"; // default to signed
-        // byte length of the buffer to be returned
-        let length = parameters.length != null ? parseInt(parameters.length) : undefined;
+        let length =
+            parameters.length != null
+                ? parseInt(parameters.length)
+                : (warn("Missing 'length' parameter necessary for write. I'll do my best"), undefined);
+
+        if (length !== undefined && (isNaN(length) || length < 0)) {
+            throw new Error("'length' parameter must be a non-negative number");
+        }
+
         let bitLength = schema?.["ex:bitLength"] !== undefined ? parseInt(schema["ex:bitLength"]) : undefined;
+
+        if (bitLength !== undefined && (isNaN(bitLength) || bitLength < 0)) {
+            throw new Error("'ex:bitLength' must be a non-negative number");
+        }
+
         const offset = schema?.["ex:bitOffset"] !== undefined ? parseInt(schema["ex:bitOffset"]) : 0;
+
+        if (isNaN(offset) || offset < 0) {
+            throw new Error("'ex:bitOffset' must be a non-negative number");
+        }
+
         let dataType: string = schema?.type ?? undefined;
 
         if (value === undefined) {
@@ -542,7 +592,18 @@ export default class OctetstreamCodec implements ContentCodec {
             throw new Error("Missing 'length' parameter necessary for write");
         }
 
-        result = result ?? Buffer.alloc(parseInt(parameters.length));
+        const length = parseInt(parameters.length);
+        const offset = schema["ex:bitOffset"] !== undefined ? parseInt(schema["ex:bitOffset"]) : 0;
+
+        if (isNaN(offset) || offset < 0) {
+            throw new Error("'ex:bitOffset' must be a non-negative number");
+        }
+
+        if (offset > length * 8) {
+            throw new Error(`'ex:bitOffset' ${offset} exceeds 'length' ${length}`);
+        }
+
+        result = result ?? Buffer.alloc(length);
         for (const propertyName in schema.properties) {
             if (Object.hasOwnProperty.call(value, propertyName) === false) {
                 throw new Error(`Missing property '${propertyName}'`);
@@ -557,7 +618,7 @@ export default class OctetstreamCodec implements ContentCodec {
             } else {
                 buf = this.valueToBytes(propertyValue, propertySchema, parameters);
             }
-            this.copyBits(buf, propertyOffset, result, propertyOffset, propertyLength);
+            this.copyBits(buf, propertyOffset, result, offset + propertyOffset, propertyLength);
         }
         return result;
     }
