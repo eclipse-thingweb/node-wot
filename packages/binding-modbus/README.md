@@ -22,7 +22,7 @@ let servient = new Servient();
 servient.addClientFactory(new ModbusClientFactory());
 
 async function main() {
-    let td = {} // see https://github.com/eclipse-thingweb/test-things/blob/main/things/elevator/modbus/js/modbus-elevator.td.json
+    let td = {}; // see https://github.com/eclipse-thingweb/test-things/blob/main/things/elevator/modbus/js/modbus-elevator.td.json
 
     const WoT = await servient.start();
     const thing = await WoT.consume(td);
