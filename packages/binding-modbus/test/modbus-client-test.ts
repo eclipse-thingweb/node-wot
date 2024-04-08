@@ -56,23 +56,20 @@ describe("Modbus client test", () => {
     it("use entity alias for coil", () => {
         const form: ModbusForm = {
             href: "modbus+tcp://127.0.0.1:8502/1/0?quantity=1",
-            "modv:entity": "Coil"
+            "modv:entity": "Coil",
         };
 
         /* eslint-disable dot-notation */
         client["validateAndFillDefaultForm"](form, 0)["modv:function"].should.be.equal(1, "Wrong default read Coil");
         client["validateAndFillDefaultForm"](form, 1)["modv:function"].should.be.equal(5, "Wrong write Coil");
-        client["validateAndFillDefaultForm"](form, 2)["modv:function"].should.be.equal(
-            15,
-            "Wrong write multiple Coil"
-        );
+        client["validateAndFillDefaultForm"](form, 2)["modv:function"].should.be.equal(15, "Wrong write multiple Coil");
         /* eslint-enable dot-notation */
     });
 
     it("use entity alias for holding registries", () => {
         const form: ModbusForm = {
             href: "modbus+tcp://127.0.0.1:8502/1/0/?quantity=1",
-            "modv:entity": "HoldingRegister"
+            "modv:entity": "HoldingRegister",
         };
         /* eslint-disable dot-notation */
         client["validateAndFillDefaultForm"](form)["modv:function"].should.be.equal(3, "Wrong read Holding register");
