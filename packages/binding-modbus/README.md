@@ -130,15 +130,15 @@ To help the MODBUS binding to perform combination a user of the API should creat
 
 ```javascript
 console.info("Creating promise vl1n");
-let vl1n = pac3200.properties["Voltage/L1N"].read();
+let vl1n = pac3200Thing.readProperty("Voltage/L1N");
 console.info("Creating promise vl2n");
-let vl2n = pac3200.properties["Voltage/L2N"].read();
+let vl2n = pac3200Thing.readProperty("Voltage/L2N");
 console.info("Creating promise vl3n");
-let vl3n = pac3200.properties["Voltage/L3N"].read();
+let vl3n = pac3200Thing.readProperty("Voltage/L3N");
 
 console.info("Resolving all promises");
 Promise.all([vl1n, vl2n, vl3n])
-    .then((values) => values.forEach((v) => console.info("Voltage = ", v)))
+    .then((values) => values.forEach((v) => console.info("Voltage = ", await v.value())))
     .catch((reason) => console.warn("Failed ", reason));
 ```
 
@@ -152,12 +152,10 @@ Reads the 8th input register of the unit 1
 
 ```json
 {
-    "href": "modbus+tcp://127.0.0.1:60000",
+    "href": "modbus+tcp://127.0.0.1:60000/1/8",
     "contentType": "application/octet-stream;length=2",
     "op": ["readproperty"],
     "modv:function": "readInputRegister",
-    "modv:address": 8,
-    "modv:unitID": 1,
     "modv:timeout": 2000
 }
 ```
@@ -168,12 +166,10 @@ Read and write the 8th holding register of the unit 1
 
 ```json
 {
-    "href": "modbus+tcp://127.0.0.1:60000",
+    "href": "modbus+tcp://127.0.0.1:60000/1/8",
     "contentType": "application/octet-stream;length=2",
     "op": ["readproperty", "writeproperty"],
-    "modv:entity": "HoldingRegister",
-    "modv:address": 8,
-    "modv:unitID": 1
+    "modv:entity": "HoldingRegister"
 }
 ```
 
@@ -183,12 +179,10 @@ Polls the 8th holding register of the unit 1 every second.
 
 ```json
 {
-    "href": "modbus+tcp://127.0.0.1:60000",
+    "href": "modbus+tcp://127.0.0.1:60000/1/8",
     "contentType": "application/octet-stream;length=2",
     "op": ["observeproperty"],
     "modv:entity": "HoldingRegister",
-    "modv:address": 8,
-    "modv:unitID": 1,
     "modv:pollingTime": 1000
 }
 ```
