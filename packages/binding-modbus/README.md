@@ -8,6 +8,38 @@ W3C WoT Binding Template for Modbus can be found [here](https://w3c.github.io/wo
 
 Current Maintainer(s): [@relu91](https://github.com/relu91) [@fillobotto](https://github.com/fillobotto)
 
+## Client Example
+
+You can use a code like the following to use the binding. This specific code is interacting with one of the Eclipse Thingweb Test Things at <https://github.com/eclipse-thingweb/test-things/tree/main/things/elevator>.
+
+```js
+// Protocols and Servient
+Servient = require("@node-wot/core").Servient;
+ModbusClientFactory = require("@node-wot/binding-modbus").ModbusClientFactory;
+
+// create Servient and add Modbus binding
+let servient = new Servient();
+servient.addClientFactory(new ModbusClientFactory());
+
+async function main() {
+    let td = {} // see https://github.com/eclipse-thingweb/test-things/blob/main/things/elevator/modbus/js/modbus-elevator.td.json
+
+    const WoT = await servient.start();
+    const thing = await WoT.consume(td);
+
+    const readData1 = await thing.readProperty("lightSwitch"); // coil
+    const readData2 = await thing.readProperty("floorNumber"); // register
+
+    const readValue1 = await readData1.value();
+    console.log(readValue1);
+
+    const readValue2 = await readData2.value();
+    console.log(readValue2);
+}
+
+main();
+```
+
 ## Binding Information
 
 ### Protocol specifier
