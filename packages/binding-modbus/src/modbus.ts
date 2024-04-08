@@ -53,16 +53,31 @@ export class ModbusForm extends Form {
     public "modv:function"?: ModbusFunction | ModbusFunctionName;
     /**
      * Describe the entity type of the request. This property can be
-     * used instead of 'modbus:fuction' when the form has multiple op. For
-     * example if op = ['readProperty','writeProperty'] and 'modbus:function
+     * used instead of 'modv:function' when the form has multiple op. For
+     * example if op = ['readProperty','writeProperty'] and 'modv:function
      * is 'Coil', the low level modbus function will be mapped to 1 when
      * reading and to 5 when writing.
      */
     public "modv:entity"?: ModbusEntity;
     /**
+     * Physical address of the unit connected to the bus.
+     */
+    public "modv:unitID"?: number;
+    /**
+     * Defines the starting address of registers or coils that are
+     * meant to be written.
+     */
+    public "modv:address"?: number;
+    /**
+     * Defines the total amount of registers or coils that
+     * should be written, beginning with the register specified
+     * with the property 'modbus:address'.
+     */
+    public "modv:quantity"?: number;
+    /**
      * Maximum polling rate that this implementation uses for subscriptions.
      * The client will issue a reading
-     * command every modbus:pollingTime milliseconds. Note that
+     * command every modv:pollingTime milliseconds. Note that
      * the reading request timeout can be still controlled using
      * modv:timeout property.
      */

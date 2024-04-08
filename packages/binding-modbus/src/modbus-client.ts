@@ -86,13 +86,13 @@ export default class ModbusClient implements ProtocolClient {
     async invokeResource(form: ModbusForm, content: Content): Promise<Content> {
         await this.performOperation(form, content);
 
-        // As mqtt there is no response
+        // Same with MQTT, there is no response
         return new DefaultContent(Readable.from(""));
     }
 
     unlinkResource(form: ModbusForm): Promise<void> {
         form = this.validateAndFillDefaultForm(form, 0);
-        const id = `${form.href}/${form["modbus:unitID"]}#${form["modv:function"]}?${form["modbus:address"]}&${form["modbus:quantity"]}`;
+        const id = `${form.href}/${form["modv:unitID"]}#${form["modv:function"]}?${form["modv:address"]}&${form["modv:quantity"]}`;
 
         const subscription = this._subscriptions.get(id);
         if (!subscription) {
@@ -114,7 +114,7 @@ export default class ModbusClient implements ProtocolClient {
         return new Promise<Subscription>((resolve, reject) => {
             form = this.validateAndFillDefaultForm(form, 0);
 
-            const id = `${form.href}/${form["modbus:unitID"]}#${form["modv:function"]}?${form["modbus:address"]}&${form["modbus:quantity"]}`;
+            const id = `${form.href}/${form["modv:unitID"]}#${form["modv:function"]}?${form["modv:address"]}&${form["modv:quantity"]}`;
 
             if (this._subscriptions.has(id)) {
                 reject(new Error("Already subscribed for " + id + ". Multiple subscriptions are not supported"));
@@ -216,18 +216,18 @@ export default class ModbusClient implements ProtocolClient {
         const { pathname, searchParams: query } = new URL(input.href);
         const pathComp = pathname.split("/");
 
-        input["modbus:unitID"] = parseInt(pathComp[1], 10) || input["modbus:unitID"];
-        input["modbus:address"] = parseInt(pathComp[2], 10) || input["modbus:address"];
+        input["modv:unitID"] = parseInt(pathComp[1], 10);
+        input["modv:address"] = parseInt(pathComp[2], 10);
 
         const queryQuantity = query.get("quantity");
         if (queryQuantity != null) {
-            input["modbus:quantity"] = parseInt(queryQuantity, 10);
+            input["modv:quantity"] = parseInt(queryQuantity, 10);
         }
     }
 
     private validateBufferLength(form: ModbusFormWithDefaults, buffer: Buffer) {
         const mpy = form["modv:entity"] === "InputRegister" || form["modv:entity"] === "HoldingRegister" ? 2 : 1;
-        const quantity = form["modv:quantity"]; // FIXME: Change to url quantity
+        const quantity = form["modv:quantity"];
         if (buffer.length !== mpy * quantity) {
             throw new Error(
                 "Content length does not match register / coil count, got " +
@@ -297,18 +297,18 @@ export default class ModbusClient implements ProtocolClient {
             result["modv:entity"] = modbusFunctionToEntity(result["modv:function"] as ModbusFunction);
         }
 
-        if (form["modbus:address"] === undefined || form["modbus:address"] === null) { //FIXME: Change to URL
+        if (form["modv:address"] === undefined || form["modv:address"] === null) {
             throw new Error("Malformed form: address must be defined");
         }
 
-        const hasQuantity = form["modbus:quantity"] != null; //FIXME: Change to URL
+        const hasQuantity = form["modv:quantity"] != null;
 
         if (!hasQuantity && contentLength === 0) {
-            result["modbus:quantity"] = 1; //FIXME: Change to URL
+            result["modv:quantity"] = 1;
         } else if (!hasQuantity && contentLength > 0) {
             const regSize =
                 result["modv:entity"] === "InputRegister" || result["modv:entity"] === "HoldingRegister" ? 2 : 1;
-            result["modbus:quantity"] = contentLength / regSize; //FIXME: Change to URL
+            result["modv:quantity"] = contentLength / regSize;
         }
 
         result["modv:pollingTime"] ??= DEFAULT_POLLING;
