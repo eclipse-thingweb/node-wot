@@ -217,7 +217,7 @@ export default class ModbusClient implements ProtocolClient {
     private generateFormFromURLPath(input: ModbusForm) {
         const { pathname, searchParams: query } = new URL(input.href);
         const pathComp = pathname.split("/");
-        if ((pathComp.length < 3) || pathComp[1] ==='' || pathComp[2]==='') {
+        if (pathComp.length < 3 || pathComp[1] === "" || pathComp[2] === "") {
             throw new Error("Malformed href: unitID and address must be defined");
         }
         input["modv:unitID"] = parseInt(pathComp[1], 10);
