@@ -212,10 +212,14 @@ export default class ModbusClient implements ProtocolClient {
         return endianness;
     }
 
-    private overrideFormFromURLPath(input: ModbusForm) {
+    // This generates a form with url content based on the uri scheme
+    // Ideally, more code should be refactored to use uri only
+    private generateFormFromURLPath(input: ModbusForm) {
         const { pathname, searchParams: query } = new URL(input.href);
         const pathComp = pathname.split("/");
-
+        if ((pathComp.length < 3) || pathComp[1] ==='' || pathComp[2]==='') {
+            throw new Error("Malformed href: unitID and address must be defined");
+        }
         input["modv:unitID"] = parseInt(pathComp[1], 10);
         input["modv:address"] = parseInt(pathComp[2], 10);
 
@@ -243,7 +247,7 @@ export default class ModbusClient implements ProtocolClient {
         const mode = contentLength > 0 ? "w" : "r";
 
         // Use form values if provided, otherwise use form values (we are more merciful then the spec for retro-compatibility)
-        this.overrideFormFromURLPath(form);
+        this.generateFormFromURLPath(form);
 
         // take over latest content of form into a new result set
         const result: ModbusForm = { ...form };

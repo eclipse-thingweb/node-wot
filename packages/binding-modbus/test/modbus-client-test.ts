@@ -269,7 +269,6 @@ describe("Modbus client test", () => {
         it("should throw exception for unknown function", () => {
             const form: ModbusForm = {
                 href: "modbus+tcp://127.0.0.1:8502/1/0?quantity=3",
-                // @ts-expect-error since unknown function
                 "modv:function": 255,
             };
 
@@ -286,7 +285,18 @@ describe("Modbus client test", () => {
 
             const promise = client.readResource(form);
 
-            return promise.should.eventually.rejectedWith("Malformed form: address must be defined");
+            return promise.should.eventually.rejectedWith("Malformed href: unitID and address must be defined");
+        });
+
+        it("should throw exception for missing unitID", () => {
+            const form: ModbusForm = {
+                href: "modbus+tcp://127.0.0.1:8502",
+                "modv:function": 1,
+            };
+
+            const promise = client.readResource(form);
+
+            return promise.should.eventually.rejectedWith("Malformed href: unitID and address must be defined");
         });
     });
 
