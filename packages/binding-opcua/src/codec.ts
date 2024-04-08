@@ -18,7 +18,7 @@ import { DataSchema } from "@node-wot/td-tools";
 import { DataValue } from "node-opcua-data-value";
 import { DataType, Variant } from "node-opcua-variant";
 import Ajv from "ajv";
-import "ajv-formats"; /// to get date again !
+import addFormats from "ajv-formats";
 
 // see https://www.w3.org/Protocols/rfc1341/4_Content-Type.html
 import {
@@ -36,7 +36,7 @@ const { debug } = createLoggers("binding-opcua", "codec");
 // Strict mode has a lot of other checks and it prevents runtime unexpected problems
 // TODO: in the future we should use the strict mode
 const ajv = new Ajv({ strict: false });
-
+addFormats(ajv);
 /**
  * this schema, describe the node-opcua JSON format for a DataValue object
  *
