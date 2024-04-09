@@ -214,8 +214,8 @@ export default class ModbusClient implements ProtocolClient {
 
     // This generates a form used internally with url content based on the uri scheme
     // Ideally, more code should be refactored to use uri only
-    private addFormElementsFromURLPath(input: ModbusForm) : ModbusForm {
-        const returnForm :ModbusForm = {...input}
+    private addFormElementsFromURLPath(input: ModbusForm): ModbusForm {
+        const returnForm: ModbusForm = { ...input };
         const { pathname, searchParams: query } = new URL(input.href);
         const pathComp = pathname.split("/");
         if (pathComp.length < 3 || pathComp[1] === "" || pathComp[2] === "") {
