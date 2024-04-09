@@ -212,21 +212,23 @@ export default class ModbusClient implements ProtocolClient {
         return endianness;
     }
 
-    // This generates a form with url content based on the uri scheme
+    // This generates a form used internally with url content based on the uri scheme
     // Ideally, more code should be refactored to use uri only
-    private generateFormFromURLPath(input: ModbusForm) {
+    private addFormElementsFromURLPath(input: ModbusForm) : ModbusForm {
+        const returnForm :ModbusForm = {...input}
         const { pathname, searchParams: query } = new URL(input.href);
         const pathComp = pathname.split("/");
         if (pathComp.length < 3 || pathComp[1] === "" || pathComp[2] === "") {
             throw new Error("Malformed href: unitID and address must be defined");
         }
-        input["modv:unitID"] = parseInt(pathComp[1], 10);
-        input["modv:address"] = parseInt(pathComp[2], 10);
+        returnForm["modv:unitID"] = parseInt(pathComp[1], 10);
+        returnForm["modv:address"] = parseInt(pathComp[2], 10);
 
         const queryQuantity = query.get("quantity");
         if (queryQuantity != null) {
-            input["modv:quantity"] = parseInt(queryQuantity, 10);
+            returnForm["modv:quantity"] = parseInt(queryQuantity, 10);
         }
+        return returnForm;
     }
 
     private validateBufferLength(form: ModbusFormWithDefaults, buffer: Buffer) {
@@ -243,33 +245,33 @@ export default class ModbusClient implements ProtocolClient {
         }
     }
 
-    private validateAndFillDefaultForm(form: ModbusForm, contentLength = 0): ModbusFormWithDefaults {
+    private validateAndFillDefaultForm(inputForm: ModbusForm, contentLength = 0): ModbusFormWithDefaults {
         const mode = contentLength > 0 ? "w" : "r";
 
         // Use URI values to generate form keys
-        this.generateFormFromURLPath(form);
+        const filledForm: ModbusForm = this.addFormElementsFromURLPath(inputForm);
 
         // take over latest content of form into a new result set
-        const result: ModbusForm = { ...form };
+        const result: ModbusForm = { ...filledForm };
 
-        if (form["modv:function"] == null && form["modv:entity"] == null) {
+        if (filledForm["modv:function"] == null && filledForm["modv:entity"] == null) {
             throw new Error("Malformed form: modv:function or modv:entity must be defined");
         }
 
-        if (form["modv:function"] != null) {
+        if (filledForm["modv:function"] != null) {
             // Convert string function to enums if defined
-            if (typeof form["modv:function"] === "string") {
-                result["modv:function"] = ModbusFunction[form["modv:function"]];
+            if (typeof filledForm["modv:function"] === "string") {
+                result["modv:function"] = ModbusFunction[filledForm["modv:function"]];
             }
 
             // Check if the function is a valid modbus function code
-            if (!Object.keys(ModbusFunction).includes(form["modv:function"].toString())) {
-                throw new Error("Undefined function number or name: " + form["modv:function"]);
+            if (!Object.keys(ModbusFunction).includes(filledForm["modv:function"].toString())) {
+                throw new Error("Undefined function number or name: " + filledForm["modv:function"]);
             }
         }
 
-        if (form["modv:entity"]) {
-            switch (form["modv:entity"]) {
+        if (filledForm["modv:entity"]) {
+            switch (filledForm["modv:entity"]) {
                 case "Coil":
                     result["modv:function"] =
                         mode === "r"
@@ -294,18 +296,18 @@ export default class ModbusClient implements ProtocolClient {
                     result["modv:function"] = ModbusFunction.readDiscreteInput;
                     break;
                 default:
-                    throw new Error("Unknown modbus entity: " + form["modv:entity"]);
+                    throw new Error("Unknown modbus entity: " + filledForm["modv:entity"]);
             }
         } else {
             // 'modv:entity' undefined but modv:function defined
             result["modv:entity"] = modbusFunctionToEntity(result["modv:function"] as ModbusFunction);
         }
 
-        if (form["modv:address"] === undefined || form["modv:address"] === null) {
+        if (filledForm["modv:address"] === undefined || filledForm["modv:address"] === null) {
             throw new Error("Malformed form: address must be defined");
         }
 
-        const hasQuantity = form["modv:quantity"] != null;
+        const hasQuantity = filledForm["modv:quantity"] != null;
 
         if (!hasQuantity && contentLength === 0) {
             result["modv:quantity"] = 1;
