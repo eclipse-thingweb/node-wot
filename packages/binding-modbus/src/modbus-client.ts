@@ -246,7 +246,7 @@ export default class ModbusClient implements ProtocolClient {
     private validateAndFillDefaultForm(form: ModbusForm, contentLength = 0): ModbusFormWithDefaults {
         const mode = contentLength > 0 ? "w" : "r";
 
-        // Use form values if provided, otherwise use form values (we are more merciful then the spec for retro-compatibility)
+        // Use URI values to generate form keys
         this.generateFormFromURLPath(form);
 
         // take over latest content of form into a new result set
