@@ -115,9 +115,9 @@ export type ModbusDataType =
     | "xsd:short"
     | "xsd:int"
     | "xsd:long"
-    | "xsd:unsignedbyte"
-    | "xsd:unsignedshort"
-    | "xsd:unsignedint"
-    | "xsd:unsignedlong"
+    | "xsd:unsignedByte"
+    | "xsd:unsignedShort"
+    | "xsd:unsignedInt"
+    | "xsd:unsignedLong"
     | "xsd:double"
     | "xsd:hexBinary";
