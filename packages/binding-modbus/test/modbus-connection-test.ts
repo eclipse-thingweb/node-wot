@@ -64,14 +64,14 @@ describe("Modbus connection", () => {
     describe("Operation", () => {
         it("should fail for unknown host", async () => {
             const form: ModbusFormWithDefaults = {
-                href: "modbus://127.0.0.2:8502",
-                "modbus:function": 15,
-                "modbus:address": 0,
-                "modbus:quantity": 1,
-                "modbus:unitID": 1,
-                "modbus:entity": "HoldingRegister",
-                "modbus:timeout": 1000,
-                "modbus:pollingTime": 1000,
+                href: "modbus+tcp://127.0.0.2:8502/1/0?quantity=1",
+                "modv:function": "writeMultipleCoils",
+                "modv:address": 0,
+                "modv:quantity": 1,
+                "modv:unitID": 1,
+                "modv:entity": "HoldingRegister",
+                "modv:timeout": 1000,
+                "modv:pollingTime": 1000,
             };
             const connection = new ModbusConnection("127.0.0.2", 8503, {
                 connectionTimeout: 200,
@@ -89,14 +89,14 @@ describe("Modbus connection", () => {
 
         it("should throw with timeout", async () => {
             const form: ModbusFormWithDefaults = {
-                href: "modbus://127.0.0.1:8502",
-                "modbus:function": ModbusFunction.readCoil,
-                "modbus:entity": "Coil",
-                "modbus:address": 4444,
-                "modbus:quantity": 1,
-                "modbus:unitID": 1,
-                "modbus:timeout": 1000,
-                "modbus:pollingTime": 1000,
+                href: "modbus+tcp://127.0.0.1:8502/1/4444?quantity=1",
+                "modv:function": ModbusFunction.readCoil,
+                "modv:entity": "Coil",
+                "modv:address": 4444,
+                "modv:quantity": 1,
+                "modv:unitID": 1,
+                "modv:timeout": 1000,
+                "modv:pollingTime": 1000,
             };
             const connection = new ModbusConnection("127.0.0.1", 8502, {
                 connectionTimeout: 100,

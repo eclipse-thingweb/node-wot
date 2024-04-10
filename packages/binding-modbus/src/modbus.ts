@@ -29,11 +29,12 @@ export enum ModbusFunction {
     "writeSingleHoldingRegister" = 6,
     "writeMultipleCoils" = 15,
     "writeMultipleHoldingRegisters" = 16,
+    "readDeviceIdentification" = 43,
 }
 
 /**
  * Different modbus function names as defined in
- * https://en.wikipedia.org/wiki/Modbus.
+ * https://w3c.github.io/wot-binding-templates/bindings/protocols/modbus/#function.
  */
 export type ModbusFunctionName =
     | "readCoil"
@@ -42,45 +43,81 @@ export type ModbusFunctionName =
     | "writeSingleCoil"
     | "writeSingleHoldingRegister"
     | "writeMultipleCoils"
-    | "writeMultipleHoldingRegisters";
+    | "writeMultipleHoldingRegisters"
+    | "readDeviceIdentification";
 
 export class ModbusForm extends Form {
     /**
      * The modbus function issued in the request.
      */
-    public "modbus:function"?: ModbusFunction | ModbusFunctionName;
+    public "modv:function"?: ModbusFunction | ModbusFunctionName;
     /**
      * Describe the entity type of the request. This property can be
-     * used instead of 'modbus:fuction' when the form has multiple op. For
-     * example if op = ['readProperty','writeProperty'] and 'modbus:function
+     * used instead of 'modv:function' when the form has multiple op. For
+     * example if op = ['readProperty','writeProperty'] and 'modv:function
      * is 'Coil', the low level modbus function will be mapped to 1 when
      * reading and to 5 when writing.
      */
-    public "modbus:entity"?: ModbusEntity;
+    public "modv:entity"?: ModbusEntity;
     /**
      * Physical address of the unit connected to the bus.
      */
-    public "modbus:unitID"?: number;
+    public "modv:unitID"?: number;
     /**
      * Defines the starting address of registers or coils that are
      * meant to be written.
      */
-    public "modbus:address"?: number;
+    public "modv:address"?: number;
     /**
      * Defines the total amount of registers or coils that
      * should be written, beginning with the register specified
      * with the property 'modbus:address'.
      */
-    public "modbus:quantity"?: number;
+    public "modv:quantity"?: number;
+    /**
+     * Maximum polling rate that this implementation uses for subscriptions.
+     * The client will issue a reading
+     * command every modv:pollingTime milliseconds. Note that
+     * the reading request timeout can be still controlled using
+     * modv:timeout property.
+     */
+    public "modv:pollingTime"?: number;
+    /**
+     * When true, it describes that the byte order of the data in the Modbus message is the most significant byte first (i.e., Big-Endian). When false, it describes the least significant byte first (i.e., Little-Endian).
+     */
+    public "modv:mostSignificantByte"?: boolean;
+    /**
+     * When true, it describes that the word order of the data in the Modbus message is the most significant word first (i.e., no word swapping). When false, it describes the least significant word first (i.e. word swapping)
+     */
+    public "modv:mostSignificantWord"?: boolean;
+    /**
+     * Modbus implementations can differ in the way addressing works, as the first coil/register can be either referred to as true or false.
+     */
+    public "modv:zeroBasedAddressing"?: boolean;
+
     /**
      * Timeout in milliseconds of the modbus request. Default to 1000 milliseconds
      */
-    public "modbus:timeout"?: number;
+    public "modv:timeout"?: number;
     /**
-     * Used for subscriptions. The client will issue a reading
-     * command every modbus:pollingTime milliseconds. Note that
-     * the reading request timeout can be still controlled using
-     * modbus:timeout property.
+     * Specifies the data type contained in the request or response payload. Users can define the specific data type using a sub type of xsd:decimal.
      */
-    public "modbus:pollingTime"?: number;
+    public "modv:type"?: ModbusDataType;
 }
+
+export type ModbusDataType =
+    | "xsd:integer"
+    | "xsd:boolean"
+    | "xsd:string"
+    | "xsd:float"
+    | "xsd:decimal"
+    | "xsd:byte"
+    | "xsd:short"
+    | "xsd:int"
+    | "xsd:long"
+    | "xsd:unsignedByte"
+    | "xsd:unsignedShort"
+    | "xsd:unsignedInt"
+    | "xsd:unsignedLong"
+    | "xsd:double"
+    | "xsd:hexBinary";
