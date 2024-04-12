@@ -7,6 +7,10 @@ on:
         branches: [master]
     workflow_dispatch:
 
+# https://docs.github.com/en/actions/learn-github-actions/variables
+env:
+    HUSKY: 0
+
 jobs:
     setup-and-test:
         name: Tests (${{ matrix.os }}, Node ${{ matrix.node-version }})
