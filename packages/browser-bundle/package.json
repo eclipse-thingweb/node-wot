@@ -1,6 +1,6 @@
 {
     "name": "@node-wot/browser-bundle",
-    "version": "0.8.13",
+    "version": "0.8.14",
     "description": "A node-wot bundle that can run in a web browser",
     "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
     "license": "EPL-2.0 OR W3C-20150513",
@@ -13,10 +13,10 @@
     ],
     "main": "dist/wot-bundle.min.js",
     "devDependencies": {
-        "@node-wot/binding-http": "0.8.13",
-        "@node-wot/binding-websockets": "0.8.13",
-        "@node-wot/core": "0.8.13",
-        "@node-wot/td-tools": "0.8.13",
+        "@node-wot/binding-http": "0.8.14",
+        "@node-wot/binding-websockets": "0.8.14",
+        "@node-wot/core": "0.8.14",
+        "@node-wot/td-tools": "0.8.14",
         "browserify": "^17.0.0",
         "readable-stream4": "npm:readable-stream@^4.0.0"
     },
