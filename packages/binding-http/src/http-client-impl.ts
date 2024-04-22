@@ -219,7 +219,8 @@ export default class HttpClient implements ProtocolClient {
         const headers: HeadersInit = {
             Accept: "application/td+json",
         };
-        const response = await fetch(uri, { headers });
+        const request = await this.generateFetchRequest({ href: uri }, "GET", headers);
+        const response = await this.fetch(request);
         const body = ProtocolHelpers.toNodeStream(response.body as Readable);
         return new Content(response.headers.get("content-type") ?? "application/td+json", body);
     }
