@@ -30,7 +30,8 @@ const { debug, warn } = createLoggers("core", "interaction-output");
 
 // Strict mode has a lot of other checks and it prevents runtime unexpected problems
 // TODO: in the future we should use the strict mode
-const ajv = new Ajv({ strict: false });
+// addUsedSchema may cause memory leak in our use-case / environment (see https://github.com/eclipse-thingweb/node-wot/issues/1062)
+const ajv = new Ajv({ strict: false, addUsedSchema: false });
 addFormats(ajv);
 
 export class InteractionOutput implements WoT.InteractionOutput {
