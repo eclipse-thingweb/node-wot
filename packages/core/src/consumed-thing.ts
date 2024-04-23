@@ -367,7 +367,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         this.actions = {};
         this.events = {};
 
-        const deepClonedModel = structuredClone(thingModel);
+        const deepClonedModel = Helpers.structuredClone(thingModel);
         Object.assign(this, deepClonedModel);
         this.extendInteractions();
     }

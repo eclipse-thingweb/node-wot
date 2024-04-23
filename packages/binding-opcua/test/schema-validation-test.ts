@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { createLoggers } from "@node-wot/core";
+import { Helpers, createLoggers } from "@node-wot/core";
 import { expect } from "chai";
 
 import { DataType, DataValue, StatusCodes, VariantArrayType } from "node-opcua-client";
@@ -87,7 +87,7 @@ describe("schemas", () => {
 
         Object.entries(data).forEach(([name, obj1]) => {
             it("DataValue " + name, () => {
-                const dataValueJSON = JSON.parse(JSON.stringify(opcuaJsonEncodeDataValue(obj1, true)));
+                const dataValueJSON = Helpers.structuredClone(opcuaJsonEncodeDataValue(obj1, true));
 
                 const isValid = validate(dataValueJSON);
                 if (!isValid) {
