@@ -16,17 +16,7 @@
                 "scriptAction": {
                     "type": "boolean",
                     "default": false
-                },
-                "serverKey": {
-                    "type": "string"
-                },
-                "serverCert": {
-                    "type": "string"
                 }
-            },
-            "dependencies": {
-                "serverKey": ["serverCert"],
-                "serverCert": ["serverKey"]
             }
         },
         "http": {
@@ -68,6 +58,12 @@
                 },
                 "allowSelfSigned": {
                     "type": "boolean"
+                },
+                "serverKey": {
+                    "type": "string"
+                },
+                "serverCert": {
+                    "type": "string"
                 }
             }
         },
