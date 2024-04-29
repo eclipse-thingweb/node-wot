@@ -42,6 +42,7 @@ export class InteractionOutput implements WoT.InteractionOutput {
     dataUsed: boolean;
     form?: WoT.Form;
     schema?: WoT.DataSchema;
+    enforceValidation: boolean; // by default set to true
 
     public get data(): ReadableStream {
         if (this.#stream) {
@@ -57,10 +58,11 @@ export class InteractionOutput implements WoT.InteractionOutput {
         return (this.#stream = ProtocolHelpers.toWoTStream(this.#content.body) as ReadableStream);
     }
 
-    constructor(content: Content, form?: WoT.Form, schema?: WoT.DataSchema) {
+    constructor(content: Content, form?: WoT.Form, schema?: WoT.DataSchema, ignoreValidation?: boolean) {
         this.#content = content;
         this.form = form;
         this.schema = schema;
+        this.enforceValidation = ignoreValidation === undefined ? true : !ignoreValidation;
         this.dataUsed = false;
     }
 
@@ -123,7 +125,7 @@ export class InteractionOutput implements WoT.InteractionOutput {
         const validate = ajv.compile<T>(this.schema);
 
         // Note: validation for action output should take place only if action is synchronous!
-        if (!validate(json)) {
+        if (this.enforceValidation && !validate(json)) {
             debug(`schema = ${util.inspect(this.schema, { depth: 10, colors: true })}`);
             debug(`value: ${json}`);
             debug(`Errror: ${validate.errors}`);
@@ -131,6 +133,6 @@ export class InteractionOutput implements WoT.InteractionOutput {
         }
 
         this.#value = json;
-        return json;
+        return json as T;
     }
 }

@@ -527,7 +527,7 @@ class WoTClientTest {
         WoTClientTest.clientFactory.setTrap(async (form: Form, content: Content) => {
             const valueData = await content.toBuffer();
             expect(valueData.toString()).to.equal("23");
-            return new Content("application/json", Readable.from(Buffer.from("{'status': 'pending'")));
+            return new Content("application/json", Readable.from(Buffer.from(JSON.stringify({ status: "pending" }))));
         });
         const td = (await WoTClientTest.WoTHelpers.fetch("td://foo")) as ThingDescription;
 
