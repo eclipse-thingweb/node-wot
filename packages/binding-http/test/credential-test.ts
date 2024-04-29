@@ -34,7 +34,7 @@ import { TuyaCustomBearerSecurityScheme } from "../src/http";
 chai.should();
 chai.use(chaiAsPromised);
 
-@suite("Credetials auth test suite")
+@suite("Credentials auth test suite")
 class CredentialTest {
     @test async "should sign in with basic"(): Promise<void> {
         const scheme: BasicSecurityScheme & { name: string } = {
