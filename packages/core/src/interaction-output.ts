@@ -122,6 +122,7 @@ export class InteractionOutput implements WoT.InteractionOutput {
         // validate the schema
         const validate = ajv.compile<T>(this.schema);
 
+        // Note: validation for action output should take place only if action is synchronous!
         if (!validate(json)) {
             debug(`schema = ${util.inspect(this.schema, { depth: 10, colors: true })}`);
             debug(`value: ${json}`);
