@@ -42,7 +42,7 @@ export class InteractionOutput implements WoT.InteractionOutput {
     dataUsed: boolean;
     form?: WoT.Form;
     schema?: WoT.DataSchema;
-    enforceValidation: boolean; // by default set to true
+    ignoreValidation: boolean; // by default set to false
 
     public get data(): ReadableStream {
         if (this.#stream) {
@@ -62,7 +62,7 @@ export class InteractionOutput implements WoT.InteractionOutput {
         this.#content = content;
         this.form = form;
         this.schema = schema;
-        this.enforceValidation = ignoreValidation === undefined ? true : !ignoreValidation;
+        this.ignoreValidation = ignoreValidation ?? false;
         this.dataUsed = false;
     }
 
@@ -124,7 +124,7 @@ export class InteractionOutput implements WoT.InteractionOutput {
         // validate the schema
         const validate = ajv.compile<T>(this.schema);
 
-        if (this.enforceValidation && !validate(json)) {
+        if (!this.ignoreValidation && !validate(json)) {
             debug(`schema = ${util.inspect(this.schema, { depth: 10, colors: true })}`);
             debug(`value: ${json}`);
             debug(`Errror: ${validate.errors}`);
