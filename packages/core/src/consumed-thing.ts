@@ -569,7 +569,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         content: Content,
         form: TD.Form,
         outputDataSchema: WoT.DataSchema | undefined,
-        ignoreValidation: boolean | undefined
+        ignoreValidation: boolean
     ): InteractionOutput {
         // infer media type from form if not in response metadata
         content.type ??= form.contentType ?? "application/json";
@@ -584,7 +584,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                 );
             }
         }
-        return new InteractionOutput(content, form, outputDataSchema, { ignoreValidation: ignoreValidation ?? false });
+        return new InteractionOutput(content, form, outputDataSchema, { ignoreValidation });
     }
 
     async _readProperties(propertyNames: string[]): Promise<WoT.PropertyReadMap> {
