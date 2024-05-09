@@ -112,7 +112,10 @@ export default class HttpClient implements ProtocolClient {
     }
 
     public async readResource(form: HttpForm): Promise<Content> {
-        const request = await this.generateFetchRequest(form, "GET");
+        // See https://www.w3.org/TR/wot-thing-description11/#contentType-usage
+        // Cases: 1B
+        const headers = form.contentType != null ? [["accept", form.contentType]] : [["accept", ContentSerdes.DEFAULT]];
+        const request = await this.generateFetchRequest(form, "GET", { headers });
         debug(`HttpClient (readResource) sending ${request.method} to ${request.url}`);
 
         const result = await this.fetch(request);
@@ -176,6 +179,15 @@ export default class HttpClient implements ProtocolClient {
 
     public async invokeResource(form: HttpForm, content?: Content): Promise<Content> {
         const headers = content != null ? [["content-type", content.type]] : [];
+        // See https://www.w3.org/TR/wot-thing-description11/#contentType-usage
+        // Cases: 1C and 2A
+        if (form.response?.contentType != null) {
+            headers.push(["accept", form.response?.contentType]);
+        } else if (form.contentType != null) {
+            headers.push(["accept", form.contentType]);
+        } else {
+            headers.push(["accept", ContentSerdes.DEFAULT]);
+        }
 
         const request = await this.generateFetchRequest(form, "POST", {
             headers,
@@ -347,12 +359,20 @@ export default class HttpClient implements ProtocolClient {
 
             const headers = form["htv:headers"] as Array<HttpHeader>;
             for (const option of headers) {
+                // override defaults
+                requestInit.headers = requestInit.headers.filter(
+                    (header) => header[0].toLowerCase() !== option["htv:fieldName"].toLowerCase()
+                );
                 requestInit.headers.push([option["htv:fieldName"], option["htv:fieldValue"]]);
             }
         } else if (typeof form["htv:headers"] === "object") {
             debug(`HttpClient got Form SINGLE-ENTRY 'headers' ${form["htv:headers"]}`);
 
             const option = form["htv:headers"] as HttpHeader;
+            // override defaults
+            requestInit.headers = requestInit.headers.filter(
+                (header) => header[0].toLowerCase() !== option["htv:fieldName"].toLowerCase()
+            );
             requestInit.headers.push([option["htv:fieldName"], option["htv:fieldValue"]]);
         }
 
