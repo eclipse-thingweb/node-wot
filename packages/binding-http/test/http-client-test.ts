@@ -283,7 +283,7 @@ class HttpClientTest1 {
         await this.client.writeResource(inputVector2.form, new DefaultContent(Readable.from(inputVector2.payload)));
     }
 
-    @test async "should apply form information - read with PUT instead of GET"() {
+    @test async "should apply form information - invoke with PUT instead of GET"() {
         // invoke with PUT instead of POST
         const inputVector3 = {
             op: ["invokeaction"],
@@ -297,7 +297,7 @@ class HttpClientTest1 {
         await this.client.invokeResource(inputVector3.form, new DefaultContent(Readable.from(inputVector3.payload)));
     }
 
-    @test async "should apply form information - read with DELETE instead of POST"() {
+    @test async "should apply form information - invoke with DELETE instead of POST"() {
         // invoke with DELETE instead of POST
         const inputVector4 = {
             op: ["invokeaction"],
