@@ -58,11 +58,11 @@ export class InteractionOutput implements WoT.InteractionOutput {
         return (this.#stream = ProtocolHelpers.toWoTStream(this.#content.body) as ReadableStream);
     }
 
-    constructor(content: Content, form?: WoT.Form, schema?: WoT.DataSchema, ignoreValidation?: boolean) {
+    constructor(content: Content, form?: WoT.Form, schema?: WoT.DataSchema, options = { ignoreValidation: false }) {
         this.#content = content;
         this.form = form;
         this.schema = schema;
-        this.ignoreValidation = ignoreValidation ?? false;
+        this.ignoreValidation = options.ignoreValidation ?? false;
         this.dataUsed = false;
     }
 

@@ -584,7 +584,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
                 );
             }
         }
-        return new InteractionOutput(content, form, outputDataSchema, ignoreValidation);
+        return new InteractionOutput(content, form, outputDataSchema, { ignoreValidation: ignoreValidation ?? false });
     }
 
     async _readProperties(propertyNames: string[]): Promise<WoT.PropertyReadMap> {
