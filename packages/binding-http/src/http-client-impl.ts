@@ -113,7 +113,7 @@ export default class HttpClient implements ProtocolClient {
 
     public async readResource(form: HttpForm): Promise<Content> {
         // See https://www.w3.org/TR/wot-thing-description11/#contentType-usage
-        // Cases: 1B
+        // Case: 1B
         const headers = form.contentType != null ? [["accept", form.contentType]] : [["accept", ContentSerdes.DEFAULT]];
         const request = await this.generateFetchRequest(form, "GET", { headers });
         debug(`HttpClient (readResource) sending ${request.method} to ${request.url}`);
