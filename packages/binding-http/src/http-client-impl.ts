@@ -158,7 +158,12 @@ export default class HttpClient implements ProtocolClient {
         complete?: () => void
     ): Promise<Subscription> {
         const defaultSubprotocol = "longpoll";
-        const subprotocol = form.subprotocol ?? defaultSubprotocol;
+        let subprotocol = form.subprotocol;
+
+        if (subprotocol == null) {
+            warn(`Subscribing to ${form.href} using long polling for form without subprotocol`);
+            subprotocol = defaultSubprotocol;
+        }
 
         let internalSubscription: InternalSubscription;
         if (subprotocol === defaultSubprotocol) {
