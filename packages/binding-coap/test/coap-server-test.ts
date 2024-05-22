@@ -636,7 +636,7 @@ class CoapServerTest {
         await coapServer.stop();
     }
 
-    @test async "should add the cov:observe subprotocol value to obervable properties and events "() {
+    @test async "should add the cov:observe subprotocol value to observable properties and events "() {
         const coapServer = new CoapServer({ port: 5683 });
         const servient = new Servient();
         servient.addServer(coapServer);
