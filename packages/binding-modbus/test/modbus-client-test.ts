@@ -267,12 +267,12 @@ describe("Modbus client test", () => {
         });
 
         it("should throw exception for unknown function", () => {
-            const form: ModbusForm = {
+            const form = {
                 href: "modbus+tcp://127.0.0.1:8502/1/0?quantity=3",
                 "modv:function": 255,
             };
 
-            const promise = client.readResource(form);
+            const promise = client.readResource(form as ModbusForm);
 
             return promise.should.eventually.rejectedWith("Undefined function number or name: 255");
         });
