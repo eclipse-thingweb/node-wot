@@ -79,10 +79,10 @@ export default class WoTImpl {
 
     /** @inheritDoc */
     async exploreDirectory(url: string, filter?: WoT.ThingFilter): Promise<WoT.ThingDiscoveryProcess> {
-        const directoyThingDescription = await this.requestThingDescription(url);
-        const consumedDirectoy = await this.consume(directoyThingDescription);
+        const directoryThingDescription = await this.requestThingDescription(url);
+        const consumedDirectory = await this.consume(directoryThingDescription);
 
-        return new ThingDiscoveryProcess(consumedDirectoy, filter);
+        return new ThingDiscoveryProcess(consumedDirectory, filter);
     }
 
     /** @inheritDoc */

@@ -109,13 +109,13 @@ class TestProtocolClient implements ProtocolClient {
     async requestThingDescription(uri: string): Promise<Content> {
         switch (uri) {
             case directoryTdUrl1:
-                debug(`Found corrent URL ${uri} to fetch directory TD`);
+                debug(`Found current URL ${uri} to fetch directory TD`);
                 return createDiscoveryContent(directoryThingDescription1, "application/td+json");
             case directoryTdUrl2:
-                debug(`Found corrent URL ${uri} to fetch directory TD`);
+                debug(`Found current URL ${uri} to fetch directory TD`);
                 return createDiscoveryContent(directoryThingDescription2, "application/td+json");
             case directoryTdUrl3:
-                debug(`Found corrent URL ${uri} to fetch directory TD`);
+                debug(`Found current URL ${uri} to fetch directory TD`);
                 return createDiscoveryContent(directoryThingDescription3, "application/td+json");
         }
 

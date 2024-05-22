@@ -110,7 +110,7 @@ export default class ProtocolHelpers {
         uriScheme: string
     ): string | undefined {
         // try to find contentType (How to do this better)
-        // Should interaction methods like readProperty() return an encapsulated value container with value&contenType
+        // Should interaction methods like readProperty() return an encapsulated value container with value&contentType
         // as sketched in https://github.com/w3c/wot-scripting-api/issues/201#issuecomment-573702999
         if (
             propertyName != null &&
