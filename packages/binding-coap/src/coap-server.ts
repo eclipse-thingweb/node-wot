@@ -809,8 +809,8 @@ export default class CoapServer implements ProtocolServer {
             } else {
                 this.sendChangedResponse(res);
             }
-        } catch (error) {
-            const errorMessage = `${error}`;
+        } catch (err) {
+            const errorMessage = `${err}`;
             error(`CoapServer on port ${this.getPort()} got internal error on invoke '${req.url}': ${errorMessage}`);
             this.sendResponse(res, "5.00", errorMessage);
         }
