@@ -351,7 +351,7 @@ export default class MqttBrokerServer implements ProtocolServer {
         }
 
         if (removedThing != null) {
-            info(`MqttBrokerServer succesfully destroyed '${removedThing.title}'`);
+            info(`MqttBrokerServer successfully destroyed '${removedThing.title}'`);
         } else {
             info(`MqttBrokerServer failed to destroy thing with thingId '${thingId}'`);
         }

@@ -309,7 +309,7 @@ export default class WebSocketServer implements ProtocolServer {
                 removedThing = this.thingNames.delete(thingPath);
             }
             if (removedThing) {
-                info(`WebSocketServer succesfully destroyed '${thingId}'`);
+                info(`WebSocketServer successfully destroyed '${thingId}'`);
             } else {
                 info(`WebSocketServer failed to destroy thing with thingId '${thingId}'`);
             }
