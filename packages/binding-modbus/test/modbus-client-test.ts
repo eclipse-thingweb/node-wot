@@ -343,7 +343,7 @@ describe("Modbus client test", () => {
         it("should write a resource with big endian ordering", async () => {
             const form: ModbusForm = {
                 href: "modbus+tcp://127.0.0.1:8502/1/0",
-                contentType: "application/octet-stream;length=2;byteSeq=BIG_ENDIAN", // FIXME: Use mostsignficant etc.
+                contentType: "application/octet-stream;length=2;byteSeq=BIG_ENDIAN", // FIXME: Use most significant etc.
                 "modv:function": 16,
             };
 

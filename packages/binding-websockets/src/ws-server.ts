@@ -84,7 +84,7 @@ export default class WebSocketServer implements ProtocolServer {
     public start(servient: Servient): Promise<void> {
         debug(`WebSocketServer starting on ${this.address !== undefined ? this.address + " " : ""}port ${this.port}`);
         return new Promise<void>((resolve, reject) => {
-            // handle incoming WebScoket connections
+            // handle incoming WebSocket connections
             this.httpServer.on("upgrade", (request, socket, head) => {
                 const pathname = new url.URL(request.url ?? "", `${this.scheme}://${request.headers.host}`).pathname;
 
@@ -309,7 +309,7 @@ export default class WebSocketServer implements ProtocolServer {
                 removedThing = this.thingNames.delete(thingPath);
             }
             if (removedThing) {
-                info(`WebSocketServer succesfully destroyed '${thingId}'`);
+                info(`WebSocketServer successfully destroyed '${thingId}'`);
             } else {
                 info(`WebSocketServer failed to destroy thing with thingId '${thingId}'`);
             }

@@ -30,7 +30,7 @@ export class MBusForm extends Form {
      */
     public "mbus:offset"?: number;
     /**
-     * Timeout in milliseconds of the modbus request. Default to 1000 milliseconds
+     * Timeout in milliseconds of the mbus request. Default to 1000 milliseconds
      */
     public "mbus:timeout"?: number;
 }

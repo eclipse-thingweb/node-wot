@@ -328,7 +328,7 @@ export default class DefaultServient extends Servient {
                                 return undefined;
                             });
                             thing.setPropertyReadHandler("things", async () => {
-                                debug("returnings things");
+                                debug("returning things");
                                 return this.getThings();
                             });
                             thing

@@ -31,7 +31,7 @@ const port2 = 31834;
 /**
  * Helper function for waiting during tests.
  *
- * @param ms The time to wait in miliseconds.
+ * @param ms The time to wait in milliseconds.
  * @returns A Promise that is resolved after the given time period.
  */
 function sleep(ms: number) {

@@ -665,7 +665,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
             await Promise.all(promises);
         } catch (err) {
             throw new Error(
-                `ConsumedThing '${this.title}', failed to write multiple propertes: ${valueMap}\n Error: ${err}`
+                `ConsumedThing '${this.title}', failed to write multiple properties: ${valueMap}\n Error: ${err}`
             );
         }
     }

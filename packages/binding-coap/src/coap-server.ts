@@ -367,7 +367,7 @@ export default class CoapServer implements ProtocolServer {
                 this.coreResources.delete(name);
                 this.mdnsIntroducer?.delete(name);
 
-                info(`CoapServer succesfully destroyed '${exposedThing.title}'`);
+                info(`CoapServer successfully destroyed '${exposedThing.title}'`);
                 return true;
             }
         }
