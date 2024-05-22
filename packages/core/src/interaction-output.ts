@@ -125,7 +125,7 @@ export class InteractionOutput implements WoT.InteractionOutput {
         if (!validate(json)) {
             debug(`schema = ${util.inspect(this.schema, { depth: 10, colors: true })}`);
             debug(`value: ${json}`);
-            debug(`Errror: ${validate.errors}`);
+            debug(`Error: ${validate.errors}`);
             throw new DataSchemaError("Invalid value according to DataSchema", json as WoT.DataSchemaValue);
         }
 
