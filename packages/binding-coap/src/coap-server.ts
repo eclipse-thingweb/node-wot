@@ -367,7 +367,7 @@ export default class CoapServer implements ProtocolServer {
                 this.coreResources.delete(name);
                 this.mdnsIntroducer?.delete(name);
 
-                info(`CoapServer succesfully destroyed '${exposedThing.title}'`);
+                info(`CoapServer successfully destroyed '${exposedThing.title}'`);
                 return true;
             }
         }
@@ -809,8 +809,8 @@ export default class CoapServer implements ProtocolServer {
             } else {
                 this.sendChangedResponse(res);
             }
-        } catch (errror) {
-            const errorMessage = `${error}`;
+        } catch (err) {
+            const errorMessage = `${err}`;
             error(`CoapServer on port ${this.getPort()} got internal error on invoke '${req.url}': ${errorMessage}`);
             this.sendResponse(res, "5.00", errorMessage);
         }

@@ -38,7 +38,7 @@ const schemaValidator = ajv.compile(ConfigSchema) as ValidateFunction;
 const defaultFile = "wot-servient.conf.json";
 const baseDir = ".";
 
-const dotEnvConfigParamters: DotEnvConfigParameter = {};
+const dotEnvConfigParameters: DotEnvConfigParameter = {};
 
 // General commands
 program
@@ -175,7 +175,7 @@ function parseConfigParams(param: string, previous: unknown) {
                 .join("\n")}`
         );
     }
-    // Concatenate validated paramters
+    // Concatenate validated parameters
     let result = previous ?? {};
     result = _.merge(result, obj);
     return result;
@@ -220,7 +220,7 @@ if (errorNoException?.code !== "ENOENT") {
     for (const [key, value] of Object.entries(env.parsed)) {
         // Parse and validate on configfile-related entries
         if (key.startsWith("config.")) {
-            dotEnvConfigParamters[key.replace("config.", "")] = value;
+            dotEnvConfigParameters[key.replace("config.", "")] = value;
         }
     }
 }
@@ -238,7 +238,7 @@ async function buildConfig(): Promise<unknown> {
     }
 
     // .env file
-    for (const [key, value] of Object.entries(dotEnvConfigParamters)) {
+    for (const [key, value] of Object.entries(dotEnvConfigParameters)) {
         const obj = _.set({}, key, value);
         configFileData = _.merge(configFileData, obj);
     }

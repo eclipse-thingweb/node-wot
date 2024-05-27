@@ -50,6 +50,7 @@ interface TestVector {
     method?: string;
     schema?: DataSchema;
     payload?: DataSchemaValue;
+    headers?: Record<string, string>;
     form: Form;
 }
 
@@ -153,6 +154,10 @@ class TestHttpServer implements ProtocolServer {
         expect(req.method).to.equal(this.testVector.method);
         expect(req.url).to.equal(new URL(this.testVector.form.href).pathname);
 
+        if (this.testVector.headers) {
+            expect(req.headers).to.include(this.testVector.headers);
+        }
+
         if (this.testVector.payload !== undefined) {
             // load payload
             const body: Array<Uint8Array> = [];
@@ -211,6 +216,9 @@ class HttpClientTest1 {
             form: <HttpForm>{
                 href: `http://localhost:${port1}/`,
             },
+            headers: {
+                accept: "application/json",
+            },
         };
         HttpClientTest1.httpServer.setTestVector(inputVector1);
         const resource = await this.client.readResource(inputVector1.form);
@@ -225,6 +233,9 @@ class HttpClientTest1 {
             form: <HttpForm>{
                 href: `http://localhost:${port1}/`,
             },
+            headers: {
+                "content-type": "application/json",
+            },
             payload: "test",
         };
         HttpClientTest1.httpServer.setTestVector(inputVector2);
@@ -238,6 +249,10 @@ class HttpClientTest1 {
             op: ["invokeaction"],
             form: <HttpForm>{
                 href: `http://localhost:${port1}/`,
+            },
+            headers: {
+                "content-type": "application/json",
+                accept: "application/json",
             },
             payload: "test",
         };
@@ -269,7 +284,46 @@ class HttpClientTest1 {
         body.toString("ascii").should.eql("");
     }
 
-    @test async "should apply form information - read with POST instead of PUT"() {
+    @test async "should apply form information - read with not default content-type"() {
+        // read with defaults
+        const inputVector1 = {
+            op: ["readproperty"],
+            form: <HttpForm>{
+                href: `http://localhost:${port1}/`,
+                contentType: "text/plain",
+            },
+            headers: {
+                accept: "text/plain",
+            },
+        };
+        HttpClientTest1.httpServer.setTestVector(inputVector1);
+        const resource = await this.client.readResource(inputVector1.form);
+        const body = await resource.toBuffer();
+        body.toString("ascii").should.eql("");
+    }
+
+    @test async "should apply form information - read with header override"() {
+        // read with defaults
+        const inputVector1 = {
+            op: ["readproperty"],
+            form: <HttpForm>{
+                href: `http://localhost:${port1}/`,
+                "htv:headers": {
+                    "htv:fieldName": "accept",
+                    "htv:fieldValue": "text/plain",
+                },
+            },
+            headers: {
+                accept: "text/plain",
+            },
+        };
+        HttpClientTest1.httpServer.setTestVector(inputVector1);
+        const resource = await this.client.readResource(inputVector1.form);
+        const body = await resource.toBuffer();
+        body.toString("ascii").should.eql("");
+    }
+
+    @test async "should apply form information - write with POST instead of PUT"() {
         // write with POST instead of PUT
         const inputVector2 = {
             op: ["writeproperty"],
@@ -283,7 +337,7 @@ class HttpClientTest1 {
         await this.client.writeResource(inputVector2.form, new DefaultContent(Readable.from(inputVector2.payload)));
     }
 
-    @test async "should apply form information - read with PUT instead of GET"() {
+    @test async "should apply form information - invoke with PUT instead of GET"() {
         // invoke with PUT instead of POST
         const inputVector3 = {
             op: ["invokeaction"],
@@ -297,7 +351,7 @@ class HttpClientTest1 {
         await this.client.invokeResource(inputVector3.form, new DefaultContent(Readable.from(inputVector3.payload)));
     }
 
-    @test async "should apply form information - read with DELETE instead of POST"() {
+    @test async "should apply form information - invoke with DELETE instead of POST"() {
         // invoke with DELETE instead of POST
         const inputVector4 = {
             op: ["invokeaction"],
@@ -308,6 +362,63 @@ class HttpClientTest1 {
         };
         HttpClientTest1.httpServer.setTestVector(inputVector4);
         await this.client.invokeResource(inputVector4.form);
+    }
+
+    @test async "should apply form information - invoke with not default content-type and no inputs"() {
+        // invoke with DELETE instead of POST
+        const inputVector4 = {
+            op: ["invokeaction"],
+            form: <HttpForm>{
+                href: `http://localhost:${port1}/`,
+                contentType: "text/plain",
+            },
+            headers: {
+                accept: "text/plain",
+            },
+        };
+        HttpClientTest1.httpServer.setTestVector(inputVector4);
+        await this.client.invokeResource(inputVector4.form);
+    }
+
+    @test async "should apply form information - invoke with not default content-type"() {
+        // invoke with DELETE instead of POST
+        const inputVector4 = {
+            op: ["invokeaction"],
+            form: <HttpForm>{
+                href: `http://localhost:${port1}/`,
+                contentType: "text/plain",
+            },
+            headers: {
+                "content-type": "text/plain",
+                accept: "text/plain",
+            },
+            payload: "test",
+        };
+        HttpClientTest1.httpServer.setTestVector(inputVector4);
+        await this.client.invokeResource(
+            inputVector4.form,
+            new Content("text/plain", Readable.from(inputVector4.payload))
+        );
+    }
+
+    @test async "should apply form information - invoke with default content-type and response content-type"() {
+        // invoke with DELETE instead of POST
+        const inputVector4 = {
+            op: ["invokeaction"],
+            form: <HttpForm>{
+                href: `http://localhost:${port1}/`,
+                response: {
+                    contentType: "text/plain",
+                },
+            },
+            headers: {
+                "content-type": "application/json",
+                accept: "text/plain",
+            },
+            payload: "test",
+        };
+        HttpClientTest1.httpServer.setTestVector(inputVector4);
+        await this.client.invokeResource(inputVector4.form, new DefaultContent(Readable.from(inputVector4.payload)));
     }
 }
 

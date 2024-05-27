@@ -267,12 +267,12 @@ describe("Modbus client test", () => {
         });
 
         it("should throw exception for unknown function", () => {
-            const form: ModbusForm = {
+            const form = {
                 href: "modbus+tcp://127.0.0.1:8502/1/0?quantity=3",
                 "modv:function": 255,
             };
 
-            const promise = client.readResource(form);
+            const promise = client.readResource(form as ModbusForm);
 
             return promise.should.eventually.rejectedWith("Undefined function number or name: 255");
         });
@@ -343,7 +343,7 @@ describe("Modbus client test", () => {
         it("should write a resource with big endian ordering", async () => {
             const form: ModbusForm = {
                 href: "modbus+tcp://127.0.0.1:8502/1/0",
-                contentType: "application/octet-stream;length=2;byteSeq=BIG_ENDIAN", // FIXME: Use mostsignficant etc.
+                contentType: "application/octet-stream;length=2;byteSeq=BIG_ENDIAN", // FIXME: Use most significant etc.
                 "modv:function": 16,
             };
 

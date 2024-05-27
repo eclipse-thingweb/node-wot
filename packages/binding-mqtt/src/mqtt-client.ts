@@ -66,7 +66,7 @@ export default class MqttClient implements ProtocolClient {
 
         await pool.connect(brokerUri, this.config);
 
-        pool.subscribe(
+        await pool.subscribe(
             filter,
             (topic: string, message: Buffer) => {
                 next(new Content(contentType, Readable.from(message)));

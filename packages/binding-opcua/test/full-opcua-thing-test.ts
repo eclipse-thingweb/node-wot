@@ -51,7 +51,7 @@ const thingDescription: WoT.ThingDescription = {
             unit: "°C",
             type: "number",
             "opcua:nodeId": { root: "i=84", path: "/Objects/1:MySensor/2:ParameterSet/1:Temperature" },
-            // Don't specifu type here as it could be multi form: type: [ "object", "number" ],
+            // Don't specify type here as it could be multi form: type: [ "object", "number" ],
             forms: [
                 // 0 -> standard Node WoT form => Raw value
                 {
@@ -113,7 +113,7 @@ const thingDescription: WoT.ThingDescription = {
             observable: true,
             unit: "°C",
             type: "number",
-            // dont't
+            // don't
             forms: [
                 {
                     href: "/",
@@ -209,7 +209,7 @@ const thingDescription: WoT.ThingDescription = {
                 type: "object",
                 properties: {
                     PreviousSetPoint: {
-                        type: "object", // << Note here this is an object reprensenting a JSON OPCUA Variant
+                        type: "object", // << Note here this is an object representing a JSON OPCUA Variant
                         title: "the previous temperature set point",
                         // minimum: 0,
                         // maximum: 100,

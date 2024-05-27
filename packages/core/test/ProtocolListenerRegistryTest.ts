@@ -23,7 +23,7 @@ chaiUse(spies);
 should();
 
 @suite("Protocol Listener Registry test")
-class ProtocolListnerRegistryTest {
+class ProtocolListenerRegistryTest {
     static emptyTestAffordance: ThingInteraction = {
         forms: [{ href: "" }, { href: "" }],
     };
@@ -35,7 +35,7 @@ class ProtocolListnerRegistryTest {
         });
 
         expect(function () {
-            registry.register(ProtocolListnerRegistryTest.emptyTestAffordance, 2, spyListener);
+            registry.register(ProtocolListenerRegistryTest.emptyTestAffordance, 2, spyListener);
         }).to.throw();
     }
 
@@ -45,8 +45,8 @@ class ProtocolListnerRegistryTest {
             /** */
         });
 
-        registry.register(ProtocolListnerRegistryTest.emptyTestAffordance, 0, spyListener);
-        registry.notify(ProtocolListnerRegistryTest.emptyTestAffordance, 0);
+        registry.register(ProtocolListenerRegistryTest.emptyTestAffordance, 0, spyListener);
+        registry.notify(ProtocolListenerRegistryTest.emptyTestAffordance, 0);
 
         spyListener.should.have.been.called();
     }
@@ -60,7 +60,7 @@ class ProtocolListnerRegistryTest {
             /** */
         });
 
-        registry.register(ProtocolListnerRegistryTest.emptyTestAffordance, 0, spyListener);
+        registry.register(ProtocolListenerRegistryTest.emptyTestAffordance, 0, spyListener);
         registry.register(
             {
                 forms: [{ href: "" }],
@@ -69,7 +69,7 @@ class ProtocolListnerRegistryTest {
             spyListener2
         );
 
-        registry.notify(ProtocolListnerRegistryTest.emptyTestAffordance, 0);
+        registry.notify(ProtocolListenerRegistryTest.emptyTestAffordance, 0);
 
         spyListener.should.have.been.called();
         spyListener2.should.not.have.been.called();
@@ -84,10 +84,10 @@ class ProtocolListnerRegistryTest {
             /** */
         });
 
-        registry.register(ProtocolListnerRegistryTest.emptyTestAffordance, 0, spyListener);
-        registry.register(ProtocolListnerRegistryTest.emptyTestAffordance, 1, spyListener2);
+        registry.register(ProtocolListenerRegistryTest.emptyTestAffordance, 0, spyListener);
+        registry.register(ProtocolListenerRegistryTest.emptyTestAffordance, 1, spyListener2);
 
-        registry.notify(ProtocolListnerRegistryTest.emptyTestAffordance, 0, undefined, 0);
+        registry.notify(ProtocolListenerRegistryTest.emptyTestAffordance, 0, undefined, 0);
 
         spyListener.should.have.been.called();
         spyListener2.should.not.have.been.called();
@@ -102,10 +102,10 @@ class ProtocolListnerRegistryTest {
             /** */
         });
 
-        registry.register(ProtocolListnerRegistryTest.emptyTestAffordance, 0, spyListener);
-        registry.register(ProtocolListnerRegistryTest.emptyTestAffordance, 1, spyListener2);
+        registry.register(ProtocolListenerRegistryTest.emptyTestAffordance, 0, spyListener);
+        registry.register(ProtocolListenerRegistryTest.emptyTestAffordance, 1, spyListener2);
 
-        registry.notify(ProtocolListnerRegistryTest.emptyTestAffordance, 0);
+        registry.notify(ProtocolListenerRegistryTest.emptyTestAffordance, 0);
 
         spyListener.should.have.been.called();
         spyListener2.should.have.been.called();
@@ -120,10 +120,10 @@ class ProtocolListnerRegistryTest {
             /** */
         });
 
-        registry.register(ProtocolListnerRegistryTest.emptyTestAffordance, 0, spyListener);
-        registry.register(ProtocolListnerRegistryTest.emptyTestAffordance, 1, spyListener2);
+        registry.register(ProtocolListenerRegistryTest.emptyTestAffordance, 0, spyListener);
+        registry.register(ProtocolListenerRegistryTest.emptyTestAffordance, 1, spyListener2);
 
-        registry.notify(ProtocolListnerRegistryTest.emptyTestAffordance, 0, undefined, 2);
+        registry.notify(ProtocolListenerRegistryTest.emptyTestAffordance, 0, undefined, 2);
 
         spyListener.should.have.been.called();
         spyListener2.should.have.been.called();
@@ -134,10 +134,10 @@ class ProtocolListnerRegistryTest {
         const spyListener = spy(() => {
             /** */
         });
-        registry.register(ProtocolListnerRegistryTest.emptyTestAffordance, 0, spyListener);
+        registry.register(ProtocolListenerRegistryTest.emptyTestAffordance, 0, spyListener);
 
-        registry.unregister(ProtocolListnerRegistryTest.emptyTestAffordance, 0, spyListener);
-        registry.notify(ProtocolListnerRegistryTest.emptyTestAffordance, 0);
+        registry.unregister(ProtocolListenerRegistryTest.emptyTestAffordance, 0, spyListener);
+        registry.notify(ProtocolListenerRegistryTest.emptyTestAffordance, 0);
 
         spyListener.should.not.have.been.called();
     }
@@ -147,7 +147,7 @@ class ProtocolListnerRegistryTest {
         const spyListener = spy(() => {
             /** */
         });
-        registry.register(ProtocolListnerRegistryTest.emptyTestAffordance, 0, spyListener);
+        registry.register(ProtocolListenerRegistryTest.emptyTestAffordance, 0, spyListener);
 
         expect(function () {
             registry.unregister(
@@ -165,10 +165,10 @@ class ProtocolListnerRegistryTest {
         const spyListener = spy(() => {
             /** */
         });
-        registry.register(ProtocolListnerRegistryTest.emptyTestAffordance, 0, spyListener);
+        registry.register(ProtocolListenerRegistryTest.emptyTestAffordance, 0, spyListener);
 
         expect(function () {
-            registry.unregister(ProtocolListnerRegistryTest.emptyTestAffordance, 1, spyListener);
+            registry.unregister(ProtocolListenerRegistryTest.emptyTestAffordance, 1, spyListener);
         }).to.throw();
     }
 
@@ -177,10 +177,10 @@ class ProtocolListnerRegistryTest {
         const spyListener = spy(() => {
             /** */
         });
-        registry.register(ProtocolListnerRegistryTest.emptyTestAffordance, 0, spyListener);
+        registry.register(ProtocolListenerRegistryTest.emptyTestAffordance, 0, spyListener);
 
         expect(function () {
-            registry.unregister(ProtocolListnerRegistryTest.emptyTestAffordance, 0, () => {
+            registry.unregister(ProtocolListenerRegistryTest.emptyTestAffordance, 0, () => {
                 /** */
             });
         }).to.throw();
