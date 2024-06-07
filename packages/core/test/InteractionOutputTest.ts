@@ -20,6 +20,7 @@ import { expect, use } from "chai";
 import { Readable } from "stream";
 import { InteractionOutput } from "../src/interaction-output";
 import { Content } from "..";
+import { fail } from "assert";
 
 use(promised);
 const delay = (ms: number) => {
@@ -104,6 +105,30 @@ class InteractionOutputTests {
         await delay(100);
         const result = await out.value<boolean>();
         expect(result).be.true;
+    }
+
+    @test async "should fail returning unexpected value with no validation"() {
+        const stream = Readable.from(Buffer.from("not boolean", "utf-8"));
+        const content = new Content("application/json", stream);
+
+        const out = new InteractionOutput(content, {}, { type: "boolean" }); // ignoreValidation false by default
+        try {
+            const result = await out.value();
+            expect(result).be.true;
+            fail("Wrongly allows invalid value");
+        } catch {
+            // expected to throw
+        }
+    }
+
+    @test async "should accept returning unexpected value with no validation"() {
+        // type boolean should not throw since we set ignoreValidation to true
+        const stream = Readable.from(Buffer.from("not boolean", "utf-8"));
+        const content = new Content("application/json", stream);
+
+        const out = new InteractionOutput(content, {}, { type: "boolean" }, { ignoreValidation: true });
+        const result = await out.value();
+        expect(result).to.eql("not boolean");
     }
 
     @test async "should data be used after arrayBuffer"() {

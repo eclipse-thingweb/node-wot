@@ -108,6 +108,18 @@ const myThingDesc = {
                 },
             ],
         },
+        anAsyncAction: {
+            input: { type: "integer" },
+            output: { type: "integer" },
+            synchronous: false,
+            forms: [
+                {
+                    href: "testdata://host/athing/actions/anasyncaction",
+                    mediaType: "application/json",
+                    response: { contentType: "application/json" },
+                },
+            ],
+        },
     },
     events: {
         anEvent: {
@@ -508,6 +520,28 @@ class WoTClientTest {
             const error = e instanceof Error ? e : new Error(JSON.stringify(e));
             expect(error.message).to.contain("type");
         }
+    }
+
+    @test async "call an async action"() {
+        // should not throw Error: Invalid value according to DataSchema
+        WoTClientTest.clientFactory.setTrap(async (form: Form, content: Content) => {
+            const valueData = await content.toBuffer();
+            expect(valueData.toString()).to.equal("23");
+            return new Content("application/json", Readable.from(Buffer.from(JSON.stringify({ status: "pending" }))));
+        });
+        const td = (await WoTClientTest.WoTHelpers.fetch("td://foo")) as ThingDescription;
+
+        const thing = await WoTClientTest.WoT.consume(td);
+
+        expect(thing).to.have.property("title").that.equals("aThing");
+        expect(thing).to.have.property("actions").that.has.property("anAction");
+
+        // deal with ActionStatus object
+        const result = await thing.invokeAction("anAsyncAction", 23);
+        // eslint-disable-next-line no-unused-expressions
+        expect(result).not.to.be.null;
+        const value = await result?.value();
+        expect(value).to.have.property("status");
     }
 
     @test async "subscribe to event"() {
