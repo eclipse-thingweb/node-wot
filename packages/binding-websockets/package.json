@@ -19,7 +19,7 @@
         "@node-wot/core": "0.8.15",
         "@node-wot/td-tools": "0.8.15",
         "slugify": "^1.4.5",
-        "ws": "^7.5.4"
+        "ws": "^7.5.10"
     },
     "scripts": {
         "build": "tsc -b",
