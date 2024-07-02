@@ -25,6 +25,7 @@ import * as http from "http";
 import { Content, DefaultContent, ContentSerdes, createLoggers, ProtocolServer } from "@node-wot/core";
 
 import { Readable } from "stream";
+import { text } from "node:stream/consumers";
 
 import HttpClient from "../src/http-client";
 import { HttpForm } from "../src/http";
@@ -463,7 +464,9 @@ class HttpClientTest2 {
         };
 
         client
-            .subscribeResource(form, (data) => {
+            .subscribeResource(form, async (data) => {
+                const str = await text(data.body); // SHOULD be "Test event"
+                str.should.eql("Test event");
                 client.unlinkResource(form);
                 server.close();
                 clock.uninstall();
