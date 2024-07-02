@@ -117,10 +117,7 @@ export class SSESubscription implements InternalSubscription {
             };
             this.eventSource.onmessage = (event) => {
                 debug(`HttpClient received ${JSON.stringify(event)} from ${this.form.href}`);
-                const output = new Content(
-                    this.form.contentType ?? ContentSerdes.DEFAULT,
-                    Readable.from(JSON.stringify(event))
-                );
+                const output = new Content(this.form.contentType ?? ContentSerdes.DEFAULT, Readable.from(event.data));
                 next(output);
             };
             this.eventSource.onerror = function (event) {
