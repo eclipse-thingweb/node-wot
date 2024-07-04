@@ -38,6 +38,7 @@ import FakeTimers from "@sinonjs/fake-timers";
 
 // Add spies
 import spies from "chai-spies";
+import { fail } from "assert";
 
 const { debug } = createLoggers("binding-http", "http-client-test");
 
@@ -426,6 +427,8 @@ class HttpClientTest1 {
 @suite("HTTP client subscriptions")
 class HttpClientTest2 {
     @test "should register to sse server and get server sent event"(done: Mocha.Done) {
+        let dataCheckError: string | undefined;
+
         // create sse server
         const clock = FakeTimers.install();
         const app = express();
@@ -446,6 +449,9 @@ class HttpClientTest2 {
                 clearInterval(pusher);
                 sseStream.unpipe(res);
                 done();
+                if (dataCheckError !== undefined) {
+                    fail(dataCheckError);
+                }
             });
         });
 
@@ -465,8 +471,9 @@ class HttpClientTest2 {
 
         client
             .subscribeResource(form, async (data) => {
-                const str = await text(data.body); // SHOULD be "Test event"
-                str.should.eql("Test event");
+                if ((await text(data.body)) !== "Test event") {
+                    dataCheckError = "Data should report 'Test event'";
+                }
                 client.unlinkResource(form);
                 server.close();
                 clock.uninstall();
