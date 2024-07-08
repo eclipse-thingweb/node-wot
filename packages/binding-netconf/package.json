@@ -24,7 +24,7 @@
     },
     "scripts": {
         "build": "tsc -b",
-        "test": "mocha --require ts-node/register test/netconf-client-test.ts",
+        "test": "mocha --unhandled-rejections=strict --require ts-node/register test/netconf-client-test.ts",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
         "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"**/*.json\""

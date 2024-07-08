@@ -173,7 +173,7 @@ class HttpServerTest {
             "eventTest",
             async (input: Content) => {
                 const data = await input.toBuffer();
-                expect(data.toString()).to.equal("'test''");
+                expect(data.toString()).to.equal('"test"');
             },
             { formIndex: 0 }
         );
