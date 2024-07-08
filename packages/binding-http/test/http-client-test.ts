@@ -25,6 +25,7 @@ import * as http from "http";
 import { Content, DefaultContent, ContentSerdes, createLoggers, ProtocolServer } from "@node-wot/core";
 
 import { Readable } from "stream";
+import { text } from "node:stream/consumers";
 
 import HttpClient from "../src/http-client";
 import { HttpForm } from "../src/http";
@@ -37,6 +38,7 @@ import FakeTimers from "@sinonjs/fake-timers";
 
 // Add spies
 import spies from "chai-spies";
+import { fail } from "assert";
 
 const { debug } = createLoggers("binding-http", "http-client-test");
 
@@ -425,6 +427,8 @@ class HttpClientTest1 {
 @suite("HTTP client subscriptions")
 class HttpClientTest2 {
     @test "should register to sse server and get server sent event"(done: Mocha.Done) {
+        let dataCheckError: string | undefined;
+
         // create sse server
         const clock = FakeTimers.install();
         const app = express();
@@ -445,6 +449,9 @@ class HttpClientTest2 {
                 clearInterval(pusher);
                 sseStream.unpipe(res);
                 done();
+                if (dataCheckError !== undefined) {
+                    fail(dataCheckError);
+                }
             });
         });
 
@@ -463,7 +470,10 @@ class HttpClientTest2 {
         };
 
         client
-            .subscribeResource(form, (data) => {
+            .subscribeResource(form, async (data) => {
+                if ((await text(data.body)) !== "Test event") {
+                    dataCheckError = "Data should report 'Test event'";
+                }
                 client.unlinkResource(form);
                 server.close();
                 clock.uninstall();
