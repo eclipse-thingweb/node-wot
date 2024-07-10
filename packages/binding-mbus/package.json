@@ -16,7 +16,7 @@
     "dependencies": {
         "@node-wot/core": "0.8.15",
         "@node-wot/td-tools": "0.8.15",
-        "node-mbus": "^2.1.0",
+        "node-mbus": "^2.2.4",
         "wot-typescript-definitions": "0.8.0-SNAPSHOT.29"
     },
     "scripts": {
