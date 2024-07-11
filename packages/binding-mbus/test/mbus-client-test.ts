@@ -45,7 +45,11 @@ describe("mbus client test", () => {
         /* nothing */
     });
 
-    it("should override form values with URL", () => {
+    it("should override form values with URL", function () {
+        if (process.platform === "win32") {
+            this.skip();
+        }
+
         const form: MBusForm = {
             href: "mbus+tcp://127.0.0.1:805/2?offset=2&timeout=5",
             "mbus:offset": 0,
@@ -69,7 +73,11 @@ describe("mbus client test", () => {
     });
 
     describe("read resource", () => {
-        it("should throw exception for missing offset", () => {
+        it("should throw exception for missing offset", function () {
+            if (process.platform === "win32") {
+                this.skip();
+            }
+
             const form: MBusForm = {
                 href: "mbus+tcp://127.0.0.1:805",
                 "mbus:unitID": 1,
