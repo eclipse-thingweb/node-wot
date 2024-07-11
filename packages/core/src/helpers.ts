@@ -87,8 +87,8 @@ export default class Helpers implements Resolver {
         } else {
             const interfaces = os.networkInterfaces();
 
-            for (const iface in interfaces) {
-                interfaces[iface]?.forEach((entry) => {
+            for (const iface of Object.values(interfaces)) {
+                iface?.forEach((entry) => {
                     debug(`AddressHelper found ${entry.address}`);
                     if (entry.internal === false) {
                         if (entry.family === "IPv4") {
@@ -197,12 +197,12 @@ export default class Helpers implements Resolver {
      */
     public static extend<T, U>(first: T, second: U): T & U {
         const result = <T & U>{};
-        for (const id in first) {
-            (<Record<string, unknown>>result)[id] = (<Record<string, unknown>>first)[id];
+        for (const [id, value] of Object.entries(first as Record<string, unknown>)) {
+            (<Record<string, unknown>>result)[id] = value;
         }
-        for (const id in second) {
+        for (const [id, value] of Object.entries(second as Record<string, unknown>)) {
             if (!Object.prototype.hasOwnProperty.call(result, id)) {
-                (<Record<string, unknown>>result)[id] = (<Record<string, unknown>>second)[id];
+                (<Record<string, unknown>>result)[id] = value;
             }
         }
         return result;
@@ -242,9 +242,9 @@ export default class Helpers implements Resolver {
             }
         }
 
-        if (tdSchemaCopy.definitions !== undefined) {
-            for (const prop in tdSchemaCopy.definitions) {
-                tdSchemaCopy.definitions[prop] = this.createExposeThingInitSchema(tdSchemaCopy.definitions[prop]);
+        if (tdSchemaCopy.definitions != null) {
+            for (const [prop, propValue] of Object.entries(tdSchemaCopy.definitions) ?? []) {
+                tdSchemaCopy.definitions[prop] = this.createExposeThingInitSchema(propValue);
             }
         }
 
@@ -307,9 +307,7 @@ export default class Helpers implements Resolver {
             options = { uriVariables: {} };
         }
 
-        for (const varKey in thingUriVariables) {
-            const varValue = thingUriVariables[varKey];
-
+        for (const [varKey, varValue] of Object.entries(thingUriVariables)) {
             if (!(varKey in uriVariables) && "default" in varValue) {
                 uriVariables[varKey] = varValue.default;
             }

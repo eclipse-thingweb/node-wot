@@ -108,15 +108,15 @@ export default class MqttBrokerServer implements ProtocolServer {
 
         this.things.set(name, thing);
 
-        for (const propertyName in thing.properties) {
+        for (const propertyName of Object.keys(thing.properties)) {
             this.exposeProperty(name, propertyName, thing);
         }
 
-        for (const actionName in thing.actions) {
+        for (const actionName of Object.keys(thing.actions)) {
             this.exposeAction(name, actionName, thing);
         }
 
-        for (const eventName in thing.events) {
+        for (const eventName of Object.keys(thing.events)) {
             this.exposeEvent(name, eventName, thing);
         }
 
