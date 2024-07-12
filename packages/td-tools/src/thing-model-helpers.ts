@@ -36,24 +36,23 @@ const tmSchema = TMSchema;
 const ajv = new Ajv({ strict: false });
 addFormats(ajv);
 
-
 /**
- * @deprecated This package and therefore its functionality will be removed in the future. Please instead use '@thingweb/thing-model' package.
+ * @deprecated This package and therefore its functionality will be removed in the future. Please use '@thingweb/thing-model' package instead.
  */
 export type LINK_TYPE = "tm:extends" | "tm:submodel";
 
 /**
- * @deprecated This package and therefore its functionality will be removed in the future. Please instead use '@thingweb/thing-model' package.
+ * @deprecated This package and therefore its functionality will be removed in the future. Please use '@thingweb/thing-model' package instead.
  */
 export type AFFORDANCE_TYPE = "properties" | "actions" | "events";
 
 /**
- * @deprecated This package and therefore its functionality will be removed in the future. Please instead use '@thingweb/thing-model' package.
+ * @deprecated This package and therefore its functionality will be removed in the future. Please use '@thingweb/thing-model' package instead.
  */
 export type COMPOSITION_TYPE = "extends" | "imports";
 
 /**
- * @deprecated This package and therefore its functionality will be removed in the future. Please instead use '@thingweb/thing-model' package.
+ * @deprecated This package and therefore its functionality will be removed in the future. Please use '@thingweb/thing-model' package instead.
  */
 export type ModelImportsInput = {
     uri?: string;
@@ -63,7 +62,7 @@ export type ModelImportsInput = {
 
 
 /**
- * @deprecated This package and therefore its functionality will be removed in the future. Please instead use '@thingweb/thing-model' package.
+ * @deprecated This package and therefore its functionality will be removed in the future. Please use '@thingweb/thing-model' package instead.
  */
 export type CompositionOptions = {
     baseUrl?: string;
@@ -72,7 +71,7 @@ export type CompositionOptions = {
 };
 
 /**
- * @deprecated This package and therefore its functionality will be removed in the future. Please instead use '@thingweb/thing-model' package.
+ * @deprecated This package and therefore its functionality will be removed in the future. Please use '@thingweb/thing-model' package instead.
  */
 export type modelComposeInput = {
     extends?: ThingModel[];
@@ -81,7 +80,7 @@ export type modelComposeInput = {
 };
 
 /**
- * @deprecated This package and therefore its functionality will be removed in the future. Please instead use '@thingweb/thing-model' package.
+ * @deprecated This package and therefore its functionality will be removed in the future. Please use '@thingweb/thing-model' package instead.
  */
 export class ThingModelHelpers {
     static tsSchemaValidator = ajv.compile(tmSchema) as ValidateFunction;
