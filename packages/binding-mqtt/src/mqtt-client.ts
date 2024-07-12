@@ -50,7 +50,7 @@ export default class MqttClient implements ProtocolClient {
         error?: (error: Error) => void,
         complete?: () => void
     ): Promise<Subscription> {
-        const contentType = form.contentType ?? ContentSerdes.DEFAULT;
+        const contentType = form.contentType;
         const requestUri = new url.URL(form.href);
         const brokerUri: string = `${this.scheme}://` + requestUri.host;
         // Keeping the path as the topic for compatibility reasons.
