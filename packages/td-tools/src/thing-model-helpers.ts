@@ -60,7 +60,6 @@ export type ModelImportsInput = {
     name: string;
 };
 
-
 /**
  * @deprecated This package and therefore its functionality will be removed in the future. Please use '@thingweb/thing-model' package instead.
  */
