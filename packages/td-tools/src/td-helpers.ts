@@ -23,21 +23,6 @@
 
 import ThingDescription from "./thing-description";
 
-// need two tests
-export function findProtocol(td: ThingDescription): string {
-    const base: string = td.base;
-    const columnLoc: number = base.indexOf(":");
-    return base.substring(0, columnLoc);
-}
-
-export function findPort(td: ThingDescription): number {
-    const base: string = td.base;
-    const columnLoc: number = base.indexOf(":", 6);
-    const divLoc: number = base.indexOf("/", columnLoc);
-    const returnString: string = base.substring(columnLoc + 1, divLoc);
-    return parseInt(returnString);
-}
-
 export function setContextLanguage(thing: ThingDescription, language: string, forceOverride: boolean): void {
     // forceOverride == false -> set @language if no @language set
     // forceOverride == true  -> set/override @language in any case
