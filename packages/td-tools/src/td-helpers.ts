@@ -23,7 +23,6 @@
 
 import ThingDescription from "./thing-description";
 
-
 /**
  * @deprecated This function will be removed in the future. Please use '@thingweb/td-utils' package instead.
  */
@@ -32,7 +31,6 @@ export function findProtocol(td: ThingDescription): string {
     const columnLoc: number = base.indexOf(":");
     return base.substring(0, columnLoc);
 }
-
 
 /**
  * @deprecated This function will be removed in the future. Please use '@thingweb/td-utils' package instead.
