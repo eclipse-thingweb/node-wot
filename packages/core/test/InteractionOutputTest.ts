@@ -216,4 +216,40 @@ class InteractionOutputTests {
         const result = out.value<number>();
         return expect(result).to.eventually.be.rejected;
     }
+
+    @test async "should return null"() {
+        const stream = Readable.from(Buffer.from("null", "utf-8"));
+        const content = new Content("application/json", stream);
+
+        const out = new InteractionOutput(content, {}, { type: "null" });
+        const result = await out.value<null>();
+        expect(result).to.be.eq(null);
+    }
+
+    @test async "should support oneOf"() {
+        const stream = Readable.from(Buffer.from('"hello"', "utf-8"));
+        const content = new Content("application/json", stream);
+
+        const out = new InteractionOutput(content, {}, { oneOf: [{ type: "string" }, { type: "null" }] });
+        const result = await out.value<string | null>();
+        expect(result).to.be.eq("hello");
+    }
+
+    @test async "should support const"() {
+        const stream = Readable.from(Buffer.from("42", "utf-8"));
+        const content = new Content("application/json", stream);
+
+        const out = new InteractionOutput(content, {}, { const: 42 });
+        const result = await out.value<42>();
+        expect(result).to.be.eq(42);
+    }
+
+    @test async "should support enum"() {
+        const stream = Readable.from(Buffer.from('"red"', "utf-8"));
+        const content = new Content("application/json", stream);
+
+        const out = new InteractionOutput(content, {}, { enum: ["red", "amber", "green"] });
+        const result = await out.value<"red" | "amber" | "green">();
+        expect(result).to.be.eq("red");
+    }
 }
