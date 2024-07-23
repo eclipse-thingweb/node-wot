@@ -23,13 +23,18 @@
 
 import ThingDescription from "./thing-description";
 
-// need two tests
+/**
+ * @deprecated This function will be removed in the future. Please use '@thingweb/td-utils' package instead.
+ */
 export function findProtocol(td: ThingDescription): string {
     const base: string = td.base;
     const columnLoc: number = base.indexOf(":");
     return base.substring(0, columnLoc);
 }
 
+/**
+ * @deprecated This function will be removed in the future. Please use '@thingweb/td-utils' package instead.
+ */
 export function findPort(td: ThingDescription): number {
     const base: string = td.base;
     const columnLoc: number = base.indexOf(":", 6);
