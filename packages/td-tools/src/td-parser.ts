@@ -55,7 +55,10 @@ function adjustBooleanField(affordance: AffordanceElement, key: string) {
     }
 }
 
-/** Parses a TD into a Thing object */
+/** Parses a TD into a Thing object
+ *
+ * @deprecated This function will be removed in the future.
+ */
 export function parseTD(td: string, normalize?: boolean): Thing {
     logDebug(`parseTD() parsing\n\`\`\`\n${td}\n\`\`\``);
 
@@ -220,7 +223,10 @@ export function parseTD(td: string, normalize?: boolean): Thing {
     return thing;
 }
 
-/** Serializes a Thing object into a TD */
+/** Serializes a Thing object into a TD
+ *
+ * @deprecated This function will be removed in the future.
+ */
 export function serializeTD(thing: Thing): string {
     const copy: Thing = JSON.parse(JSON.stringify(thing));
 
