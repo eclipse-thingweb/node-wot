@@ -43,6 +43,9 @@ export function findPort(td: ThingDescription): number {
     return parseInt(returnString);
 }
 
+/**
+ * @deprecated This function will be removed in the future.
+ */
 export function setContextLanguage(thing: ThingDescription, language: string, forceOverride: boolean): void {
     // forceOverride == false -> set @language if no @language set
     // forceOverride == true  -> set/override @language in any case
