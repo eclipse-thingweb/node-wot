@@ -104,7 +104,12 @@ export class InteractionOutput implements WoT.InteractionOutput {
             throw new NotReadableError("No form defined");
         }
 
-        if (this.schema.type == null) {
+        if (
+            this.schema.const == null &&
+            this.schema.enum == null &&
+            this.schema.oneOf == null &&
+            this.schema.type == null
+        ) {
             throw new NotReadableError("No schema type defined");
         }
 
