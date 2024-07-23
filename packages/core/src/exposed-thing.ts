@@ -16,7 +16,8 @@
 import * as WoT from "wot-typescript-definitions";
 import * as TDT from "wot-thing-description-types";
 
-import * as TD from "@node-wot/td-tools";
+import * as TD from "./thing-description";
+import { serializeTD, setContextLanguage } from "./serdes";
 
 import Servient from "./servient";
 import Helpers from "./helpers";
@@ -143,11 +144,11 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             }
         } */
         // set @language to "en" if no @language available
-        TD.setContextLanguage(this, TD.DEFAULT_CONTEXT_LANGUAGE, false);
+        setContextLanguage(this as WoT.ThingDescription, TD.DEFAULT_CONTEXT_LANGUAGE, false);
     }
 
     public getThingDescription(): WoT.ThingDescription {
-        return JSON.parse(TD.serializeTD(this));
+        return JSON.parse(serializeTD(this));
     }
 
     public emitEvent(name: string, data: WoT.InteractionInput): void {

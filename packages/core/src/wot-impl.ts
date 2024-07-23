@@ -14,7 +14,7 @@
  ********************************************************************************/
 
 import * as WoT from "wot-typescript-definitions";
-import * as TD from "@node-wot/td-tools";
+import { parseTD } from "./serdes";
 import Servient from "./servient";
 import ExposedThing from "./exposed-thing";
 import ConsumedThing from "./consumed-thing";
@@ -102,7 +102,7 @@ export default class WoTImpl {
     /** @inheritDoc */
     async consume(td: WoT.ThingDescription): Promise<ConsumedThing> {
         try {
-            const thing = TD.parseTD(JSON.stringify(td), true);
+            const thing = parseTD(JSON.stringify(td), true);
             const newThing: ConsumedThing = new ConsumedThing(this.srv, thing);
 
             debug(
