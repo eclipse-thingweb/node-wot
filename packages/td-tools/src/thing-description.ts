@@ -17,12 +17,27 @@
 import * as WoT from "wot-typescript-definitions";
 import * as TDT from "wot-thing-description-types";
 
+/**
+ * @deprecated Will be removed in the future. Please use '@node-wot/core' package instead.
+ */
 export const DEFAULT_CONTEXT_V1 = "https://www.w3.org/2019/wot/td/v1";
+/**
+ * @deprecated Will be removed in the future. Please use '@node-wot/core' package instead.
+ */
 export const DEFAULT_CONTEXT_V11 = "https://www.w3.org/2022/wot/td/v1.1";
+/**
+ * @deprecated Will be removed in the future. Please use '@node-wot/core' package instead.
+ */
 export const DEFAULT_CONTEXT_LANGUAGE = "en";
+/**
+ * @deprecated Will be removed in the future. Please use '@node-wot/core' package instead.
+ */
 export const DEFAULT_THING_TYPE = "Thing";
 
-/** Implements the Thing Description as software object */
+/** Implements the Thing Description as software object
+ *
+ * @deprecated Will be removed in the future. Please use '@node-wot/core' package instead.
+ */
 export default class Thing implements TDT.ThingDescription {
     title: TDT.Title;
     securityDefinitions: {
@@ -55,10 +70,16 @@ export default class Thing implements TDT.ThingDescription {
     }
 }
 
-/** Basis from implementing the Thing Interaction descriptions for Property, Action, and Event */
+/** Basis from implementing the Thing Interaction descriptions for Property, Action, and Event
+ *
+ * @deprecated Will be removed in the future. Please use '@node-wot/core' package instead.
+ */
 export type ThingInteraction = TDT.PropertyElement | TDT.ActionElement | TDT.EventElement;
 
-/** Implements the Interaction Form description */
+/** Implements the Interaction Form description
+ *
+ * @deprecated Will be removed in the future. Please use '@node-wot/core' package instead.
+ */
 export class Form implements TDT.FormElementBase {
     op?: string | string[];
     href: TDT.AnyUri;
@@ -76,13 +97,22 @@ export class Form implements TDT.FormElementBase {
         if (contentType != null) this.contentType = contentType;
     }
 }
+/**
+ * @deprecated Will be removed in the future. Please use '@node-wot/core' package instead.
+ */
 export interface ExpectedResponse {
     contentType?: string;
 }
 
+/**
+ * @deprecated Will be removed in the future. Please use '@node-wot/core' package instead.
+ */
 export type DataSchema = WoT.DataSchema &
     (BooleanSchema | IntegerSchema | NumberSchema | StringSchema | ObjectSchema | ArraySchema | NullSchema);
 
+/**
+ * @deprecated Will be removed in the future. Please use '@node-wot/core' package instead.
+ */
 export class BaseSchema {
     type?: string;
     title?: TDT.Title;
@@ -97,32 +127,50 @@ export class BaseSchema {
     enum?: Array<unknown>;
 }
 
+/**
+ * @deprecated Will be removed in the future. Please use '@node-wot/core' package instead.
+ */
 export interface BooleanSchema extends BaseSchema {
     type: "boolean";
 }
 
+/**
+ * @deprecated Will be removed in the future. Please use '@node-wot/core' package instead.
+ */
 export interface IntegerSchema extends BaseSchema {
     type: "integer";
     minimum?: number;
     maximum?: number;
 }
 
+/**
+ * @deprecated Will be removed in the future. Please use '@node-wot/core' package instead.
+ */
 export interface NumberSchema extends BaseSchema {
     type: "number";
     minimum?: number;
     maximum?: number;
 }
 
+/**
+ * @deprecated Will be removed in the future. Please use '@node-wot/core' package instead.
+ */
 export interface StringSchema extends BaseSchema {
     type: "string";
 }
 
+/**
+ * @deprecated Will be removed in the future. Please use '@node-wot/core' package instead.
+ */
 export interface ObjectSchema extends BaseSchema {
     type: "object";
     properties: { [key: string]: DataSchema };
     required?: Array<string>;
 }
 
+/**
+ * @deprecated Will be removed in the future. Please use '@node-wot/core' package instead.
+ */
 export interface ArraySchema extends BaseSchema {
     type: "array";
     items: DataSchema;
@@ -130,12 +178,19 @@ export interface ArraySchema extends BaseSchema {
     maxItems?: number;
 }
 
+/**
+ * @deprecated Will be removed in the future. Please use '@node-wot/core' package instead.
+ */
 export interface NullSchema extends BaseSchema {
     type: "null";
 }
 
 // TODO AutoSecurityScheme
 // TODO ComboSecurityScheme
+
+/**
+ * @deprecated Will be removed in the future. Please use '@node-wot/core' package instead.
+ */
 export type SecurityType =
     | NoSecurityScheme
     | BasicSecurityScheme
@@ -145,6 +200,9 @@ export type SecurityType =
     | OAuth2SecurityScheme
     | PSKSecurityScheme;
 
+/**
+ * @deprecated Will be removed in the future. Please use '@node-wot/core' package instead.
+ */
 export interface SecurityScheme {
     scheme: string;
     description?: TDT.Description;
@@ -153,35 +211,59 @@ export interface SecurityScheme {
     [k: string]: unknown;
 }
 
+/**
+ * @deprecated Will be removed in the future. Please use '@node-wot/core' package instead.
+ */
 export interface NoSecurityScheme extends SecurityScheme, TDT.NoSecurityScheme {
     scheme: "nosec";
 }
 
+/**
+ * @deprecated Will be removed in the future. Please use '@node-wot/core' package instead.
+ */
 export interface BasicSecurityScheme extends SecurityScheme, TDT.BasicSecurityScheme {
     scheme: "basic";
 }
 
+/**
+ * @deprecated Will be removed in the future. Please use '@node-wot/core' package instead.
+ */
 export interface DigestSecurityScheme extends SecurityScheme, TDT.DigestSecurityScheme {
     scheme: "digest";
 }
 
+/**
+ * @deprecated Will be removed in the future. Please use '@node-wot/core' package instead.
+ */
 export interface APIKeySecurityScheme extends SecurityScheme, TDT.ApiKeySecurityScheme {
     scheme: "apikey";
 }
 
+/**
+ * @deprecated Will be removed in the future. Please use '@node-wot/core' package instead.
+ */
 export interface BearerSecurityScheme extends SecurityScheme, TDT.BearerSecurityScheme {
     scheme: "bearer";
 }
 
+/**
+ * @deprecated Will be removed in the future. Please use '@node-wot/core' package instead.
+ */
 export interface PSKSecurityScheme extends SecurityScheme, TDT.PskSecurityScheme {
     scheme: "psk";
 }
 
+/**
+ * @deprecated Will be removed in the future. Please use '@node-wot/core' package instead.
+ */
 export interface OAuth2SecurityScheme extends SecurityScheme, TDT.OAuth2SecurityScheme {
     scheme: "oauth2";
 }
 
-/** Implements the Thing Property description */
+/** Implements the Thing Property description
+ *
+ * @deprecated Will be removed in the future. Please use '@node-wot/core' package instead.
+ */
 export abstract class ThingProperty extends BaseSchema {
     // writable: boolean;
     observable?: boolean;
@@ -204,7 +286,10 @@ export abstract class ThingProperty extends BaseSchema {
     [key: string]: any;
 }
 
-/** Implements the Thing Action description */
+/** Implements the Thing Action description
+ *
+ * @deprecated Will be removed in the future. Please use '@node-wot/core' package instead.
+ */
 export abstract class ThingAction {
     input?: DataSchema;
     output?: DataSchema;
@@ -227,7 +312,10 @@ export abstract class ThingAction {
     // eslint-disable-next-line  @typescript-eslint/no-explicit-any
     [key: string]: any;
 }
-/** Implements the Thing Event description */
+/** Implements the Thing Event description
+ *
+ * @deprecated Will be removed in the future. Please use '@node-wot/core' package instead.
+ */
 export abstract class ThingEvent {
     subscription?: DataSchema;
     data?: DataSchema;
