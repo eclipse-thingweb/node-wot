@@ -15,7 +15,6 @@
     "types": "dist/coap.d.ts",
     "dependencies": {
         "@node-wot/core": "0.8.15",
-        "@node-wot/td-tools": "0.8.15",
         "@types/node": "16.18.35",
         "coap": "^1.4.0",
         "multicast-dns": "^7.2.5",

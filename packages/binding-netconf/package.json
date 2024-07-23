@@ -15,7 +15,6 @@
     "types": "dist/netconf.d.ts",
     "dependencies": {
         "@node-wot/core": "0.8.15",
-        "@node-wot/td-tools": "0.8.15",
         "@types/node-netconf": "npm:@types/netconf@^2.0.0",
         "@types/url-parse": "^1.4.3",
         "case-1.5.3": "npm:case@^1.5.3",
