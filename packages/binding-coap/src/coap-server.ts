@@ -17,7 +17,6 @@
  * CoAP Server based on coap by mcollina
  */
 
-import * as TD from "@node-wot/td-tools";
 import Servient, {
     ProtocolServer,
     ContentSerdes,
@@ -26,6 +25,7 @@ import Servient, {
     ProtocolHelpers,
     Content,
     createLoggers,
+    Form,
 } from "@node-wot/core";
 import { Socket } from "dgram";
 import { Server, createServer, registerFormat, IncomingMessage, OutgoingMessage } from "coap";
@@ -231,7 +231,7 @@ export default class CoapServer implements ProtocolServer {
         return opValues;
     }
 
-    private addFormToAffordance(form: TD.Form, affordance: AffordanceElement): void {
+    private addFormToAffordance(form: Form, affordance: AffordanceElement): void {
         const affordanceForms = affordance.forms;
         if (affordanceForms == null) {
             affordance.forms = [form];
@@ -317,7 +317,7 @@ export default class CoapServer implements ProtocolServer {
         affordanceName?: string,
         affordanceUriVariables?: PropertyElement["uriVariables"],
         subprotocol?: string
-    ): TD.Form {
+    ): Form {
         const affordanceNamePattern = Helpers.updateInteractionNameWithUriVariablePattern(
             affordanceName ?? "",
             affordanceUriVariables,
@@ -330,14 +330,14 @@ export default class CoapServer implements ProtocolServer {
             href += `/${encodeURIComponent(affordanceNamePattern)}`;
         }
 
-        const form = new TD.Form(href, offeredMediaType);
+        const form = new Form(href, offeredMediaType);
         form.op = opValues;
         form.subprotocol = subprotocol;
 
         return form;
     }
 
-    private logHrefAssignment(form: TD.Form, affordanceType: string, affordanceName: string) {
+    private logHrefAssignment(form: Form, affordanceType: string, affordanceName: string) {
         debug(`CoapServer on port ${this.port} assigns '${form.href}' to ${affordanceType} '${affordanceName}'`);
     }
 
@@ -610,7 +610,7 @@ export default class CoapServer implements ProtocolServer {
     }
 
     private async handleReadMultipleProperties(
-        forms: TD.Form[],
+        forms: Form[],
         req: IncomingMessage,
         contentType: string,
         thing: ExposedThing,
@@ -817,7 +817,7 @@ export default class CoapServer implements ProtocolServer {
     }
 
     private createInteractionOptions(
-        forms: TD.Form[],
+        forms: Form[],
         thing: ExposedThing,
         req: IncomingMessage,
         contentType: string,

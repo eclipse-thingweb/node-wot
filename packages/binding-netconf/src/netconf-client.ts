@@ -16,9 +16,8 @@
 /**
  * Netconf protocol binding
  */
-import { ProtocolClient, Content, createLoggers } from "@node-wot/core";
+import { ProtocolClient, Content, SecurityScheme, createLoggers } from "@node-wot/core";
 import { NetconfForm, NetConfCredentials, RpcMethod, isRpcMethod } from "./netconf";
-import * as TD from "@node-wot/td-tools";
 import * as AsyncNodeNetcon from "./async-node-netconf";
 import Url from "url-parse";
 import { Readable } from "stream";
@@ -170,7 +169,7 @@ export default class NetconfClient implements ProtocolClient {
         // do nothing
     }
 
-    public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: NetConfCredentials): boolean {
+    public setSecurity(metadata: Array<SecurityScheme>, credentials?: NetConfCredentials): boolean {
         if (metadata === undefined || !Array.isArray(metadata) || metadata.length === 0) {
             warn(`NetconfClient without security`);
             return false;

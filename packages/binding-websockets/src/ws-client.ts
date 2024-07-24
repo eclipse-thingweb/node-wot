@@ -17,8 +17,7 @@
  * WebSockets client
  */
 
-import { ProtocolClient, Content, createLoggers } from "@node-wot/core";
-import { Form, SecurityScheme } from "@node-wot/td-tools";
+import { ProtocolClient, Content, Form, SecurityScheme, createLoggers } from "@node-wot/core";
 import { Subscription } from "rxjs/Subscription";
 
 const { debug, warn } = createLoggers("binding-websockets", "ws-client");

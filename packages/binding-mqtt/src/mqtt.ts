@@ -17,7 +17,7 @@
  * Protocol test suite to test protocol implementations
  */
 
-import { Form } from "@node-wot/td-tools";
+import { Form } from "@node-wot/core";
 
 export { default as MqttClient } from "./mqtt-client";
 export { default as MqttClientFactory } from "./mqtt-client-factory";

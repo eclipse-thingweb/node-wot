@@ -21,6 +21,12 @@ import Servient from "./servient";
 export default Servient;
 export { Servient };
 
+// TD definitions
+export * from "./thing-description";
+
+// SerDes functionality
+export * from "./serdes";
+
 // ContentSerdes + built-in codecs
 export * from "./content-serdes";
 export { default as JsonCodec } from "./codecs/json-codec";

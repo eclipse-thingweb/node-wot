@@ -22,6 +22,13 @@ export const DEFAULT_CONTEXT_V11 = "https://www.w3.org/2022/wot/td/v1.1";
 export const DEFAULT_CONTEXT_LANGUAGE = "en";
 export const DEFAULT_THING_TYPE = "Thing";
 
+type DeepPartial<T> = T extends Record<string, unknown>
+    ? {
+          [P in keyof T]?: T[P] extends Array<infer I> ? Array<DeepPartial<I>> : DeepPartial<T[P]>;
+      }
+    : T;
+export type ThingModel = DeepPartial<Thing>;
+
 /** Implements the Thing Description as software object */
 export class Thing implements TDT.ThingDescription {
     title: TDT.Title;

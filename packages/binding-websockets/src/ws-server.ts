@@ -26,8 +26,16 @@ import * as net from "net";
 import * as WebSocket from "ws";
 import { AddressInfo } from "net";
 
-import * as TD from "@node-wot/td-tools";
-import { ProtocolServer, Servient, ExposedThing, ContentSerdes, Helpers, Content, createLoggers } from "@node-wot/core";
+import {
+    ProtocolServer,
+    Servient,
+    ExposedThing,
+    ContentSerdes,
+    Helpers,
+    Content,
+    Form,
+    createLoggers,
+} from "@node-wot/core";
 import { HttpServer, HttpConfig } from "@node-wot/binding-http";
 import slugify from "slugify";
 
@@ -174,7 +182,7 @@ export default class WebSocketServer implements ProtocolServer {
                 // Populate forms related to the property
                 for (const address of Helpers.getAddresses()) {
                     const href = `${this.scheme}://${address}:${this.getPort()}${path}`;
-                    const form = new TD.Form(href, ContentSerdes.DEFAULT);
+                    const form = new Form(href, ContentSerdes.DEFAULT);
                     const ops = [];
 
                     const writeOnly: boolean = property.writeOnly ?? false;
@@ -236,7 +244,7 @@ export default class WebSocketServer implements ProtocolServer {
 
                 for (const address of Helpers.getAddresses()) {
                     const href = `${this.scheme}://${address}:${this.getPort()}${path}`;
-                    const form = new TD.Form(href, ContentSerdes.DEFAULT);
+                    const form = new Form(href, ContentSerdes.DEFAULT);
                     form.op = ["invokeaction"];
                     action.forms.push(form);
                     debug(`WebSocketServer on port ${this.getPort()} assigns '${href}' to Action '${actionName}'`);
@@ -250,7 +258,7 @@ export default class WebSocketServer implements ProtocolServer {
                 // Populate forms related to the event
                 for (const address of Helpers.getAddresses()) {
                     const href = `${this.scheme}://${address}:${this.getPort()}${path}`;
-                    const form = new TD.Form(href, ContentSerdes.DEFAULT);
+                    const form = new Form(href, ContentSerdes.DEFAULT);
                     form.op = "subscribeevent";
                     event.forms.push(form);
                     debug(`WebSocketServer on port ${this.getPort()} assigns '${href}' to Event '${eventName}'`);

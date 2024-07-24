@@ -17,11 +17,9 @@
  * CoAPS client based on node-coap-client by AlCalzone
  */
 
-import * as TD from "@node-wot/td-tools";
-
 import { Subscription } from "rxjs/Subscription";
 
-import { ProtocolClient, Content, createLoggers, ContentSerdes } from "@node-wot/core";
+import { ProtocolClient, Content, createLoggers, ContentSerdes, SecurityScheme } from "@node-wot/core";
 import { CoapForm, CoapMethodName, isValidCoapMethod, isSupportedCoapMethod } from "./coap";
 import { CoapClient as coaps, CoapResponse, RequestMethod, SecurityParameters } from "node-coap-client";
 import { Readable } from "stream";
@@ -164,13 +162,13 @@ export default class CoapsClient implements ProtocolClient {
         // FIXME coap does not provide proper API to close Agent
     }
 
-    public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: pskSecurityParameters): boolean {
+    public setSecurity(metadata: Array<SecurityScheme>, credentials?: pskSecurityParameters): boolean {
         if (metadata === undefined || !Array.isArray(metadata) || metadata.length === 0) {
             warn(`CoapsClient received empty security metadata`);
             return false;
         }
 
-        const security: TD.SecurityScheme = metadata[0];
+        const security: SecurityScheme = metadata[0];
 
         if (security.scheme === "psk" && credentials != null) {
             this.authorization = { psk: {} };

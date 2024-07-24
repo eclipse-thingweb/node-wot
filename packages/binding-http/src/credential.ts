@@ -15,7 +15,7 @@
 
 import { Token } from "client-oauth2";
 import fetch, { Request } from "node-fetch";
-import { BasicSecurityScheme, APIKeySecurityScheme, BearerSecurityScheme } from "@node-wot/td-tools";
+import { BasicSecurityScheme, APIKeySecurityScheme, BearerSecurityScheme } from "@node-wot/core";
 import * as crypto from "crypto";
 import * as queryString from "query-string";
 import { TuyaCustomBearerSecurityScheme } from "./http";

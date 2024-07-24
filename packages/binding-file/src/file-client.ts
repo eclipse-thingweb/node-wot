@@ -16,8 +16,7 @@
 /**
  * File protocol binding
  */
-import { Form, SecurityScheme } from "@node-wot/td-tools";
-import { ProtocolClient, Content, createLoggers, ContentSerdes } from "@node-wot/core";
+import { ProtocolClient, Content, createLoggers, ContentSerdes, Form, SecurityScheme } from "@node-wot/core";
 import { Subscription } from "rxjs/Subscription";
 import { promises as asyncFs } from "fs";
 import { fileURLToPath } from "node:url";

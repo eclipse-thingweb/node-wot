@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { ThingInteraction } from "@node-wot/td-tools";
+import { ThingInteraction } from "../src/thing-description";
 import { suite, test } from "@testdeck/mocha";
 import { expect, should, spy, use as chaiUse } from "chai";
 import spies from "chai-spies";

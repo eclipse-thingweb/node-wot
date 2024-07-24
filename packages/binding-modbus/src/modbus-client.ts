@@ -17,8 +17,7 @@
  */
 import { ModbusForm, ModbusFunction } from "./modbus";
 
-import { ProtocolClient, Content, DefaultContent, createDebugLogger, Endianness } from "@node-wot/core";
-import { SecurityScheme } from "@node-wot/td-tools";
+import { ProtocolClient, Content, DefaultContent, SecurityScheme, createDebugLogger, Endianness } from "@node-wot/core";
 import { modbusFunctionToEntity } from "./utils";
 import { ModbusConnection, ModbusFormWithDefaults, PropertyOperation } from "./modbus-connection";
 import { Readable } from "stream";

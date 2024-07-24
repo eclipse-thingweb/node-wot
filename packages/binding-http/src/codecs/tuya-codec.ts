@@ -13,8 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { ContentCodec } from "@node-wot/core";
-import * as TD from "@node-wot/td-tools";
+import { ContentCodec, DataSchema } from "@node-wot/core";
 import { DataSchemaValue } from "wot-typescript-definitions";
 
 interface TuyaOutput {
@@ -30,7 +29,7 @@ export default class HttpTuyaCodec implements ContentCodec {
         return "application/json+tuya";
     }
 
-    bytesToValue(bytes: Buffer, schema: TD.DataSchema, parameters: { [key: string]: string }): DataSchemaValue {
+    bytesToValue(bytes: Buffer, schema: DataSchema, parameters: { [key: string]: string }): DataSchemaValue {
         const parsedBody: TuyaOutput = JSON.parse(bytes.toString());
         const success = parsedBody.success ?? false;
 
@@ -46,7 +45,7 @@ export default class HttpTuyaCodec implements ContentCodec {
         throw new Error("Property not found");
     }
 
-    valueToBytes(value: unknown, schema: TD.DataSchema, parameters?: { [key: string]: string }): Buffer {
+    valueToBytes(value: unknown, schema: DataSchema, parameters?: { [key: string]: string }): Buffer {
         const obj = {
             commands: [
                 {

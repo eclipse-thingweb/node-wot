@@ -13,8 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { ContentCodec, createLoggers } from "@node-wot/core";
-import { DataSchema } from "@node-wot/td-tools";
+import { ContentCodec, DataSchema, createLoggers } from "@node-wot/core";
 import { DataValue } from "node-opcua-data-value";
 import { DataType, Variant } from "node-opcua-variant";
 import Ajv from "ajv";

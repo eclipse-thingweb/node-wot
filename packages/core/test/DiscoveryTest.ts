@@ -13,8 +13,8 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { Form, SecurityScheme } from "@node-wot/td-tools";
 import { Subscription } from "rxjs/Subscription";
+import { Form, SecurityScheme } from "../src/thing-description";
 import { Content } from "../src/content";
 import { createLoggers } from "../src/logger";
 import { ProtocolClient, ProtocolClientFactory } from "../src/protocol-interfaces";

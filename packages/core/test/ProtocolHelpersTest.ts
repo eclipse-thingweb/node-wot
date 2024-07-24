@@ -21,7 +21,7 @@
  */
 
 import { suite, test } from "@testdeck/mocha";
-import * as TD from "@node-wot/td-tools";
+import { Form } from "../src/thing-description";
 import { expect } from "chai";
 import { ProtocolHelpers } from "..";
 import { ActionElement, EventElement, PropertyElement } from "wot-thing-description-types";
@@ -29,7 +29,7 @@ import { ActionElement, EventElement, PropertyElement } from "wot-thing-descript
 @suite("Protocol Helpers")
 class ProtocolHelpersTest {
     @test "should get form index "() {
-        const forms: TD.Form[] = [
+        const forms: Form[] = [
             {
                 href: "http://example.com/test/properties/test1?param=test",
                 contentType: "text/plain",

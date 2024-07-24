@@ -16,8 +16,7 @@
 import { exist } from "should";
 import { expect } from "chai";
 
-import { ContentSerdes, Helpers, createLoggers } from "@node-wot/core";
-import { ObjectSchema } from "@node-wot/td-tools";
+import { ContentSerdes, Helpers, ObjectSchema, createLoggers } from "@node-wot/core";
 
 import { DataValue } from "node-opcua-data-value";
 import { DataType, VariantArrayType } from "node-opcua-variant";

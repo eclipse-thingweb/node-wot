@@ -15,7 +15,17 @@
 
 import { ConsumedThing as IConsumedThing, InteractionInput, Subscription } from "wot-typescript-definitions";
 
-import * as TD from "@node-wot/td-tools";
+import {
+    Form,
+    Thing,
+    ThingModel,
+    ThingProperty,
+    BaseSchema,
+    ThingInteraction,
+    ThingAction,
+    ThingEvent,
+    SecurityScheme,
+} from "./thing-description";
 
 import Servient from "./servient";
 import Helpers from "./helpers";
@@ -35,7 +45,6 @@ import {
     FormElementProperty,
     PropertyElement,
 } from "wot-thing-description-types";
-import { ThingInteraction } from "@node-wot/td-tools";
 import { createLoggers } from "./logger";
 
 const { debug, warn } = createLoggers("core", "consumed-thing");
@@ -48,10 +57,10 @@ enum Affordance {
 
 export interface ClientAndForm {
     client: ProtocolClient;
-    form?: TD.Form;
+    form?: Form;
 }
 
-class ConsumedThingProperty extends TD.ThingProperty implements TD.ThingProperty, TD.BaseSchema {
+class ConsumedThingProperty extends ThingProperty implements ThingProperty, BaseSchema {
     #name: string;
     #thing: ConsumedThing;
 
@@ -63,7 +72,7 @@ class ConsumedThingProperty extends TD.ThingProperty implements TD.ThingProperty
     }
 }
 
-class ConsumedThingAction extends TD.ThingAction implements TD.ThingAction {
+class ConsumedThingAction extends ThingAction implements ThingAction {
     #name: string;
     #thing: ConsumedThing;
 
@@ -75,7 +84,7 @@ class ConsumedThingAction extends TD.ThingAction implements TD.ThingAction {
     }
 }
 
-class ConsumedThingEvent extends TD.ThingEvent {
+class ConsumedThingEvent extends ThingEvent {
     #name: string;
     #thing: ConsumedThing;
 
@@ -108,9 +117,9 @@ abstract class InternalSubscription implements Subscription {
 function handleUriVariables(
     thing: ConsumedThing,
     ti: ThingInteraction,
-    form: TD.Form,
+    form: Form,
     options?: WoT.InteractionOptions
-): TD.Form {
+): Form {
     const ut = UriTemplate.parse(form.href);
     const uriVariables = Helpers.parseInteractionOptions(thing, ti, options).uriVariables;
     const updatedHref = ut.expand(uriVariables ?? {});
@@ -135,7 +144,7 @@ class InternalPropertySubscription extends InternalSubscription {
         private readonly form: FormElementProperty
     ) {
         super(thing, name, client);
-        const index = this.thing.properties?.[name].forms.indexOf(form as TD.Form);
+        const index = this.thing.properties?.[name].forms.indexOf(form as Form);
         if (index === undefined || index < 0) {
             throw new Error(`Could not find form ${form.href} in property ${name}`);
         }
@@ -191,7 +200,7 @@ class InternalPropertySubscription extends InternalSubscription {
      */
     private findFormIndexWithScoring(
         formIndex: number,
-        forms: TD.Form[],
+        forms: Form[],
         operation: "unsubscribeevent" | "unobserveproperty"
     ): number {
         const refForm = forms[formIndex];
@@ -228,7 +237,7 @@ class InternalPropertySubscription extends InternalSubscription {
  */
 function findFormIndexWithScoring(
     formIndex: number,
-    forms: TD.Form[],
+    forms: Form[],
     operation: "unsubscribeevent" | "unobserveproperty"
 ): number {
     const refForm = forms[formIndex];
@@ -262,7 +271,7 @@ class InternalEventSubscription extends InternalSubscription {
     private formIndex: number;
     constructor(thing: ConsumedThing, name: string, client: ProtocolClient, private readonly form: FormElementEvent) {
         super(thing, name, client);
-        const index = this.thing.events?.[name].forms.indexOf(form as TD.Form);
+        const index = this.thing.events?.[name].forms.indexOf(form as Form);
         if (index === undefined || index < 0) {
             throw new Error(`Could not find form ${form.href} in event ${name}`);
         }
@@ -316,7 +325,7 @@ class InternalEventSubscription extends InternalSubscription {
     }
 }
 
-export default class ConsumedThing extends TD.Thing implements IConsumedThing {
+export default class ConsumedThing extends Thing implements IConsumedThing {
     /** A map of interactable Thing Properties with read()/write()/subscribe() functions */
     properties: {
         [key: string]: PropertyElement;
@@ -357,7 +366,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
     private subscribedEvents: Map<string, Subscription> = new Map<string, Subscription>();
     private observedProperties: Map<string, Subscription> = new Map<string, Subscription>();
 
-    constructor(servient: Servient, thingModel: TD.ThingModel = {}) {
+    constructor(servient: Servient, thingModel: ThingModel = {}) {
         super();
 
         this.#servient = servient;
@@ -395,13 +404,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         }
     }
 
-    findForm(
-        forms: Array<TD.Form>,
-        op: string,
-        affordance: Affordance,
-        schemes: string[],
-        idx: number
-    ): TD.Form | undefined {
+    findForm(forms: Array<Form>, op: string, affordance: Affordance, schemes: string[], idx: number): Form | undefined {
         let form;
 
         // find right operation and corresponding scheme in the array form
@@ -434,8 +437,8 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         return form;
     }
 
-    getSecuritySchemes(security: Array<string>): Array<TD.SecurityScheme> {
-        const scs: Array<TD.SecurityScheme> = [];
+    getSecuritySchemes(security: Array<string>): Array<SecurityScheme> {
+        const scs: Array<SecurityScheme> = [];
         for (const s of security) {
             const ws = this.securityDefinitions[s + ""]; // String vs. string (fix wot-typescript-definitions?)
             // also push nosec in case of proxy
@@ -446,7 +449,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
         return scs;
     }
 
-    ensureClientSecurity(client: ProtocolClient, form: TD.Form | undefined): void {
+    ensureClientSecurity(client: ProtocolClient, form: Form | undefined): void {
         if (this.securityDefinitions != null) {
             const logStatement = () =>
                 debug(`ConsumedThing '${this.title}' setting credentials for ${client} based on thing security`);
@@ -469,7 +472,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
 
     // utility for Property, Action, and Event
     getClientFor(
-        forms: Array<TD.Form>,
+        forms: Array<Form>,
         op: string,
         affordance: Affordance,
         options?: WoT.InteractionOptions
@@ -478,7 +481,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
             throw new Error(`ConsumedThing '${this.title}' has no links for this interaction`);
         }
 
-        let form: TD.Form | undefined;
+        let form: Form | undefined;
         let client: ProtocolClient;
 
         if (options?.formIndex !== undefined) {
@@ -564,7 +567,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
 
     private handleInteractionOutput(
         content: Content,
-        form: TD.Form,
+        form: Form,
         outputDataSchema: WoT.DataSchema | undefined,
         ignoreValidation: boolean
     ): InteractionOutput {
@@ -825,7 +828,7 @@ export default class ConsumedThing extends TD.Thing implements IConsumedThing {
     // creates new form (if needed) for URI Variables
     // http://192.168.178.24:8080/counter/actions/increment{?step} with options {uriVariables: {'step' : 3}} --> http://192.168.178.24:8080/counter/actions/increment?step=3
     // see RFC6570 (https://tools.ietf.org/html/rfc6570) for URI Template syntax
-    handleUriVariables(ti: ThingInteraction, form: TD.Form, options?: WoT.InteractionOptions): TD.Form {
+    handleUriVariables(ti: ThingInteraction, form: Form, options?: WoT.InteractionOptions): Form {
         return handleUriVariables(this, ti, form, options);
     }
 }

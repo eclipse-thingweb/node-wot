@@ -13,8 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { OAuth2SecurityScheme } from "@node-wot/td-tools";
-import { Helpers } from "@node-wot/core";
+import { Helpers, OAuth2SecurityScheme } from "@node-wot/core";
 import ClientOAuth2 from "client-oauth2";
 import { request, RequestOptions } from "https";
 import { OAuthCredential } from "./credential";
