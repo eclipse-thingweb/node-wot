@@ -29,7 +29,7 @@ import * as os from "os";
 
 // imports for fetchTD
 import Servient from "./servient";
-import { ThingModelHelpers } from "@thingweb/thing-model";
+import { ThingModelHelpers, Resolver } from "@thingweb/thing-model";
 import { Form, Thing, ThingInteraction } from "./thing-description";
 import * as TDT from "wot-thing-description-types";
 import { ContentSerdes } from "./content-serdes";
@@ -38,7 +38,6 @@ import addFormats from "ajv-formats";
 import TDSchema from "wot-thing-description-types/schema/td-json-schema-validation.json";
 import { DataSchemaValue, ExposedThingInit } from "wot-typescript-definitions";
 import { SomeJSONSchema } from "ajv/dist/types/json-schema";
-import { Resolver } from "@node-wot/td-tools/src/resolver-interface";
 import { PropertyElement, DataSchema } from "wot-thing-description-types";
 import { createLoggers } from "./logger";
 
