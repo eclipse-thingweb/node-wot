@@ -34,7 +34,7 @@
         "uritemplate": "0.3.4",
         "url-toolkit": "2.1.6",
         "uuid": "^7.0.3",
-        "web-streams-polyfill": "^3.0.1"
+        "web-streams-polyfill": "^4.0.0"
     },
     "scripts": {
         "build": "tsc -b",

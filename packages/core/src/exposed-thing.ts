@@ -24,7 +24,7 @@ import Helpers from "./helpers";
 import { InteractionOutput } from "./interaction-output";
 import { Readable } from "stream";
 import ProtocolHelpers from "./protocol-helpers";
-import { ReadableStream as PolyfillStream } from "web-streams-polyfill/ponyfill/es2018";
+import { ReadableStream as PolyfillStream } from "web-streams-polyfill";
 import { Content, ContentSerdes, PropertyContentMap } from "./core";
 import ContentManager from "./content-serdes";
 import {
