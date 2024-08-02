@@ -16,7 +16,7 @@
 import { suite, test } from "@testdeck/mocha";
 import { expect, should } from "chai";
 import { once, Readable } from "stream";
-import { ReadableStream } from "web-streams-polyfill/ponyfill/es2018";
+import { ReadableStream } from "web-streams-polyfill";
 import ProtocolHelpers from "../src/protocol-helpers";
 
 should();

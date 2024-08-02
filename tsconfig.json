@@ -34,6 +34,7 @@
         { "path": "./packages/binding-websockets" },
         { "path": "./packages/cli" },
         { "path": "./packages/core" },
+        { "path": "./packages/browser-bundle" },
         { "path": "./packages/td-tools" },
         { "path": "./packages/examples" }
     ],

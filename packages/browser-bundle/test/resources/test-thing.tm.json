@@ -1,0 +1,161 @@
+{
+    "title": "TestThing",
+    "properties": {
+        "bool": {
+            "title": "Boolean",
+            "description": "Property that can be set to true or false",
+            "type": "boolean"
+        },
+        "int": {
+            "title": "Integer",
+            "description": "An integer value that can be read and written",
+            "type": "integer"
+        },
+        "num": {
+            "title": "Number",
+            "description": "A floating point value that can be read and written",
+            "type": "number"
+        },
+        "string": {
+            "title": "String",
+            "description": "A string value that can be read and written",
+            "type": "string"
+        },
+        "array": {
+            "title": "Array",
+            "description": "An Array (List) with no structure that can be read and written",
+            "type": "array",
+            "items": {}
+        },
+        "object": {
+            "title": "Object",
+            "description": "An object with id and name that can be read and written",
+            "type": "object",
+            "properties": {
+                "id": {
+                    "title": "ID",
+                    "description": "Integer identifier",
+                    "type": "integer"
+                },
+                "name": {
+                    "title": "Name",
+                    "description": "Name associated to the identifier",
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "actions": {
+        "void-void": {
+            "title": "void-void Action",
+            "description": "Action without input nor output"
+        },
+        "void-int": {
+            "title": "void-int Action",
+            "description": "Action without input, but with integer output"
+        },
+        "int-void": {
+            "title": "int-void Action",
+            "description": "Action with integer input, but without output",
+            "input": {
+                "type": "integer"
+            }
+        },
+        "int-int": {
+            "title": "int-int Action",
+            "description": "Action with integer input and output",
+            "input": {
+                "type": "integer"
+            },
+            "output": {
+                "type": "integer"
+            }
+        },
+        "int-string": {
+            "title": "int-string Action",
+            "description": "Action with integer input and string output",
+            "input": {
+                "type": "integer"
+            },
+            "output": {
+                "type": "string"
+            }
+        },
+        "void-obj": {
+            "title": "void-obj Action",
+            "description": "Action without input, but with object output",
+            "output": {
+                "type": "object",
+                "properties": {
+                    "prop1": {
+                        "type": "integer"
+                    },
+                    "prop2": {
+                        "type": "string"
+                    }
+                },
+                "required": ["prop1", "prop2"]
+            }
+        },
+        "obj-void": {
+            "title": "obj-void Action",
+            "description": "Action with object input, but without output",
+            "input": {
+                "type": "object",
+                "properties": {
+                    "prop1": {
+                        "type": "integer"
+                    },
+                    "prop2": {
+                        "type": "string"
+                    }
+                },
+                "required": ["prop1", "prop2"]
+            }
+        }
+    },
+    "events": {
+        "on-bool": {
+            "title": "Bool Property Change",
+            "description": "Event with boolean data that is emitted when the bool property is written to",
+            "data": {
+                "type": "boolean"
+            }
+        },
+        "on-int": {
+            "title": "Int Property Change",
+            "description": "Event with integer data that is emitted when the int property is written to ",
+            "data": {
+                "type": "integer"
+            }
+        },
+        "on-num": {
+            "title": "Num Property Change",
+            "description": "Event with number data that is emitted when the num property is written to",
+            "data": {
+                "type": "number"
+            }
+        },
+        "on-string": {
+            "title": "String Property Change",
+            "description": "Event with number data that is emitted when the string property is written to",
+            "data": {
+                "type": "number"
+            }
+        },
+        "on-array": {
+            "title": "Array Property Change",
+            "description": "Event with number data that is emitted when the array property is written to",
+            "data": {
+                "type": "number"
+            }
+        },
+        "on-object": {
+            "title": "Object Property Change",
+            "description": "Event with number data that is emitted when the object property is written to",
+            "data": {
+                "type": "number"
+            }
+        }
+    }
+}

@@ -15,7 +15,7 @@
 
 import { Form, ThingInteraction } from "./thing-description";
 import { Readable } from "stream";
-import { ReadableStream as PolyfillStream } from "web-streams-polyfill/ponyfill/es2018";
+import { ReadableStream as PolyfillStream } from "web-streams-polyfill";
 import { ActionElement, EventElement, PropertyElement } from "wot-thing-description-types";
 import { createLoggers } from "./logger";
 
