@@ -1,6 +1,6 @@
 {
     "name": "@node-wot/core",
-    "version": "0.8.15",
+    "version": "0.8.16",
     "description": "W3C Web of Things (WoT) Servient framework",
     "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
     "license": "EPL-2.0 OR W3C-20150513",

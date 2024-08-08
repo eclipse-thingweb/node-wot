@@ -1,6 +1,6 @@
 {
     "name": "@node-wot/binding-websockets",
-    "version": "0.8.15",
+    "version": "0.8.16",
     "description": "WebSockets client & server protocol binding for node-wot",
     "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
     "license": "EPL-2.0 OR W3C-20150513",
@@ -15,8 +15,8 @@
     "types": "dist/ws.d.ts",
     "browser": "dist/ws-browser.js",
     "dependencies": {
-        "@node-wot/binding-http": "0.8.15",
-        "@node-wot/core": "0.8.15",
+        "@node-wot/binding-http": "0.8.16",
+        "@node-wot/core": "0.8.16",
         "slugify": "^1.4.5",
         "ws": "^7.5.10"
     },
