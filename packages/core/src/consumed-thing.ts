@@ -18,7 +18,6 @@ import { ConsumedThing as IConsumedThing, InteractionInput, Subscription } from 
 import {
     Form,
     Thing,
-    ThingModel,
     ThingProperty,
     BaseSchema,
     ThingInteraction,
@@ -26,6 +25,8 @@ import {
     ThingEvent,
     SecurityScheme,
 } from "./thing-description";
+
+import { ThingModel } from "wot-thing-model-types";
 
 import Servient from "./servient";
 import Helpers from "./helpers";
@@ -366,7 +367,7 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
     private subscribedEvents: Map<string, Subscription> = new Map<string, Subscription>();
     private observedProperties: Map<string, Subscription> = new Map<string, Subscription>();
 
-    constructor(servient: Servient, thingModel: ThingModel = {}) {
+    constructor(servient: Servient, thingModel?: ThingModel) {
         super();
 
         this.#servient = servient;
@@ -376,7 +377,7 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
         this.actions = {};
         this.events = {};
 
-        const deepClonedModel = Helpers.structuredClone(thingModel);
+        const deepClonedModel = Helpers.structuredClone(thingModel ?? {});
         Object.assign(this, deepClonedModel);
         this.extendInteractions();
     }

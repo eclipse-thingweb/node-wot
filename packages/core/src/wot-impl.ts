@@ -14,6 +14,7 @@
  ********************************************************************************/
 
 import * as WoT from "wot-typescript-definitions";
+import { ThingModel } from "wot-thing-model-types";
 import { parseTD } from "./serdes";
 import Servient from "./servient";
 import ExposedThing from "./exposed-thing";
@@ -103,7 +104,7 @@ export default class WoTImpl {
     async consume(td: WoT.ThingDescription): Promise<ConsumedThing> {
         try {
             const thing = parseTD(JSON.stringify(td), true);
-            const newThing: ConsumedThing = new ConsumedThing(this.srv, thing);
+            const newThing: ConsumedThing = new ConsumedThing(this.srv, thing as ThingModel);
 
             debug(
                 `WoTImpl consuming TD ${
