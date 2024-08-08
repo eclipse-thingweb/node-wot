@@ -1,6 +1,6 @@
 {
     "name": "@node-wot/cli",
-    "version": "0.8.15",
+    "version": "0.8.16",
     "description": "servient command line interface",
     "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
     "license": "EPL-2.0 OR W3C-20150513",
@@ -20,12 +20,12 @@
         "ts-node": "10.9.1"
     },
     "dependencies": {
-        "@node-wot/binding-coap": "0.8.15",
-        "@node-wot/binding-file": "0.8.15",
-        "@node-wot/binding-http": "0.8.15",
-        "@node-wot/binding-mqtt": "0.8.15",
-        "@node-wot/binding-websockets": "0.8.15",
-        "@node-wot/core": "0.8.15",
+        "@node-wot/binding-coap": "0.8.16",
+        "@node-wot/binding-file": "0.8.16",
+        "@node-wot/binding-http": "0.8.16",
+        "@node-wot/binding-mqtt": "0.8.16",
+        "@node-wot/binding-websockets": "0.8.16",
+        "@node-wot/core": "0.8.16",
         "@thingweb/thing-model": "^1.0.1",
         "@types/lodash": "^4.14.199",
         "ajv": "^8.11.0",
