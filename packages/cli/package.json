@@ -26,7 +26,7 @@
         "@node-wot/binding-mqtt": "0.8.15",
         "@node-wot/binding-websockets": "0.8.15",
         "@node-wot/core": "0.8.15",
-        "@node-wot/td-tools": "0.8.15",
+        "@thingweb/thing-model": "^1.0.1",
         "@types/lodash": "^4.14.199",
         "ajv": "^8.11.0",
         "commander": "^9.1.0",

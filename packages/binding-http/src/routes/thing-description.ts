@@ -13,11 +13,10 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { ContentSerdes, createLoggers } from "@node-wot/core";
+import { ContentSerdes, setContextLanguage, createLoggers } from "@node-wot/core";
 import { IncomingMessage, ServerResponse } from "http";
 import { ExposedThing, ThingDescription } from "wot-typescript-definitions";
 import * as acceptLanguageParser from "accept-language-parser";
-import * as TD from "@node-wot/td-tools";
 import HttpServer from "../http-server";
 
 const { debug } = createLoggers("binding-http", "routes", "thing-description");
@@ -59,7 +58,7 @@ function resetMultiLangThing(thing: ThingDescription, prefLang: string) {
     // TODO can we reset "title" to another name given that title is used in URI creation?
 
     // set @language in @context
-    TD.setContextLanguage(thing, prefLang, true);
+    setContextLanguage(thing, prefLang, true);
 
     // use new language title
     if (thing.titles) {

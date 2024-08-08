@@ -22,18 +22,18 @@ import * as http from "http";
 import * as https from "https";
 import bauth from "basic-auth";
 
-import * as TD from "@node-wot/td-tools";
 import Servient, {
     ProtocolServer,
     ContentSerdes,
     Helpers,
     ExposedThing,
     ProtocolHelpers,
+    Form,
+    OAuth2SecurityScheme,
     createLoggers,
 } from "@node-wot/core";
 import { HttpConfig, HttpForm, OAuth2ServerConfig } from "./http";
 import createValidator, { Validator } from "./oauth-token-validation";
-import { OAuth2SecurityScheme } from "@node-wot/td-tools";
 import slugify from "slugify";
 import { ActionElement, EventElement, PropertyElement } from "wot-thing-description-types";
 import { MiddlewareRequestHandler } from "./http-server-middleware";
@@ -315,7 +315,7 @@ export default class HttpServer implements ProtocolServer {
         return false;
     }
 
-    private addUrlRewriteEndpoints(form: TD.Form, forms: Array<TD.Form>): void {
+    private addUrlRewriteEndpoints(form: Form, forms: Array<Form>): void {
         if (this.urlRewrite != null) {
             for (const [inUri, toUri] of Object.entries(this.urlRewrite)) {
                 const endsWithToUri: boolean = form.href.endsWith(toUri);
@@ -350,7 +350,7 @@ export default class HttpServer implements ProtocolServer {
 
             if (properties.length > 0) {
                 const href = base + "/" + this.PROPERTY_DIR;
-                const form = new TD.Form(href, type);
+                const form = new Form(href, type);
                 if (allReadOnly && !allWriteOnly) {
                     form.op = ["readallproperties", "readmultipleproperties"];
                 } else if (allWriteOnly && !allReadOnly) {
@@ -377,7 +377,7 @@ export default class HttpServer implements ProtocolServer {
                     thing.uriVariables
                 );
                 const href = base + "/" + this.PROPERTY_DIR + "/" + propertyNamePattern;
-                const form = new TD.Form(href, type);
+                const form = new Form(href, type);
                 ProtocolHelpers.updatePropertyFormWithTemplate(
                     form,
                     (tdTemplate.properties?.[propertyName] ?? {}) as PropertyElement
@@ -412,7 +412,7 @@ export default class HttpServer implements ProtocolServer {
                         encodeURIComponent(propertyName) +
                         "/" +
                         this.OBSERVABLE_DIR;
-                    const form = new TD.Form(href, type);
+                    const form = new Form(href, type);
                     form.op = ["observeproperty", "unobserveproperty"];
                     form.subprotocol = "longpoll";
                     property.forms.push(form);
@@ -430,7 +430,7 @@ export default class HttpServer implements ProtocolServer {
                     thing.uriVariables
                 );
                 const href = base + "/" + this.ACTION_DIR + "/" + actionNamePattern;
-                const form = new TD.Form(href, type);
+                const form = new Form(href, type);
                 ProtocolHelpers.updateActionFormWithTemplate(
                     form,
                     (tdTemplate.actions?.[actionName] ?? {}) as ActionElement
@@ -451,7 +451,7 @@ export default class HttpServer implements ProtocolServer {
                     thing.uriVariables
                 );
                 const href = base + "/" + this.EVENT_DIR + "/" + eventNamePattern;
-                const form = new TD.Form(href, type);
+                const form = new Form(href, type);
                 ProtocolHelpers.updateEventFormWithTemplate(
                     form,
                     (tdTemplate.events?.[eventName] ?? {}) as EventElement

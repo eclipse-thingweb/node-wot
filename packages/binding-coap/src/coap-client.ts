@@ -22,10 +22,7 @@ import * as net from "net";
 
 import { Subscription } from "rxjs/Subscription";
 
-// for Security definition
-import * as TD from "@node-wot/td-tools";
-
-import { ProtocolClient, Content, ContentSerdes, createLoggers } from "@node-wot/core";
+import { ProtocolClient, Content, ContentSerdes, SecurityScheme, createLoggers } from "@node-wot/core";
 import { BlockSize, blockSizeToOptionValue, CoapForm, CoapMethodName } from "./coap";
 import CoapServer from "./coap-server";
 import { Readable } from "stream";
@@ -209,7 +206,7 @@ export default class CoapClient implements ProtocolClient {
         this.agent.close();
     }
 
-    public setSecurity = (metadata: Array<TD.SecurityScheme>): boolean => true;
+    public setSecurity = (metadata: Array<SecurityScheme>): boolean => true;
 
     private uriToOptions(uri: string): CoapRequestParams {
         // eslint-disable-next-line n/no-deprecated-api

@@ -9,7 +9,7 @@
 > A fast and extensible framework to connect any device with your application
 
 [![Default CI Pipeline](https://github.com/eclipse-thingweb/node-wot/actions/workflows/ci.yaml/badge.svg)](https://github.com/eclipse-thingweb/node-wot/actions/workflows/ci.yaml)
-[<img alt="npm" src="https://img.shields.io/npm/dw/@node-wot/td-tools">](https://npm-stat.com/charts.html?package=%40node-wot%2Ftd-tools)
+[<img alt="npm" src="https://img.shields.io/npm/dw/@node-wot/core">](https://npm-stat.com/charts.html?package=%40node-wot%2Fcore)
 [![codecov](https://codecov.io/gh/eclipse-thingweb/node-wot/branch/master/graph/badge.svg)](https://codecov.io/gh/eclipse-thingweb/node-wot)
 [![Telegram Group](https://img.shields.io/endpoint?color=neon&url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Fnodewot)](https://t.me/nodewot)
 [![Discord](https://img.shields.io/badge/Discord-7289DA?logo=discord&logoColor=white&label=node-wot)](https://discord.gg/JXY2Jzefz3)
@@ -59,7 +59,7 @@ The framework can be used in two ways: as a library or as a CLI tool. In this se
 
 ### As a library
 
-The framework is composed by different packages that users can use as they please. The core package is `@node-wot/core` and it is the only mandatory package to install. The other packages are bindings that allow the framework to communicate with different protocols and optionally we offer a set of tools in the `@node-wot/td-tools` package.
+The framework is composed by different packages that users can use as they please. The core package is `@node-wot/core` and it is the only mandatory package to install. The other packages are bindings that allow the framework to communicate with different protocols.
 
 #### Node.js
 

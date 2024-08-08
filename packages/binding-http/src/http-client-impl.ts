@@ -22,10 +22,18 @@ import * as https from "https";
 
 import { Subscription } from "rxjs/Subscription";
 
-import * as TD from "@node-wot/td-tools";
-// for Security definition
-
-import { ProtocolClient, Content, ProtocolHelpers, createLoggers, ContentSerdes } from "@node-wot/core";
+import {
+    ProtocolClient,
+    Content,
+    ProtocolHelpers,
+    createLoggers,
+    ContentSerdes,
+    SecurityScheme,
+    BasicSecurityScheme,
+    BearerSecurityScheme,
+    APIKeySecurityScheme,
+    OAuth2SecurityScheme,
+} from "@node-wot/core";
 import { HttpForm, HttpHeader, HttpConfig, HTTPMethodName, TuyaCustomBearerSecurityScheme } from "./http";
 import fetch, { Request, RequestInit, Response } from "node-fetch";
 import { Buffer } from "buffer";
@@ -251,29 +259,29 @@ export default class HttpClient implements ProtocolClient {
         this.agent?.destroy?.();
     }
 
-    public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: unknown): boolean {
+    public setSecurity(metadata: Array<SecurityScheme>, credentials?: unknown): boolean {
         if (metadata === undefined || !Array.isArray(metadata) || metadata.length === 0) {
             warn("HttpClient without security");
             return false;
         }
 
         // TODO support for multiple security schemes
-        const security: TD.SecurityScheme = metadata[0];
+        const security: SecurityScheme = metadata[0];
         switch (security.scheme) {
             case "basic": {
-                const securityBasic: TD.BasicSecurityScheme = <TD.BasicSecurityScheme>security;
+                const securityBasic: BasicSecurityScheme = <BasicSecurityScheme>security;
 
                 this.credential = new BasicCredential(credentials as BasicCredentialConfiguration, securityBasic);
                 break;
             }
             case "bearer": {
-                const securityBearer: TD.BearerSecurityScheme = <TD.BearerSecurityScheme>security;
+                const securityBearer: BearerSecurityScheme = <BearerSecurityScheme>security;
 
                 this.credential = new BearerCredential(credentials as BearerCredentialConfiguration, securityBearer);
                 break;
             }
             case "apikey": {
-                const securityAPIKey: TD.APIKeySecurityScheme = <TD.APIKeySecurityScheme>security;
+                const securityAPIKey: APIKeySecurityScheme = <APIKeySecurityScheme>security;
 
                 this.credential = new BasicKeyCredential(
                     credentials as BasicKeyCredentialConfiguration,
@@ -282,7 +290,7 @@ export default class HttpClient implements ProtocolClient {
                 break;
             }
             case "oauth2": {
-                const securityOAuth: TD.OAuth2SecurityScheme = <TD.OAuth2SecurityScheme>security;
+                const securityOAuth: OAuth2SecurityScheme = <OAuth2SecurityScheme>security;
 
                 if (securityOAuth.flow === "client") {
                     securityOAuth.flow = "client_credentials";

@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { Form } from "@node-wot/td-tools";
+import { Form } from "@node-wot/core";
 
 export { default as CoapServer } from "./coap-server";
 export { default as CoapClientFactory } from "./coap-client-factory";

@@ -27,7 +27,7 @@ import { Subscription } from "rxjs/Subscription";
 
 import Servient from "../src/servient";
 import ConsumedThing from "../src/consumed-thing";
-import { Form, SecurityScheme } from "@node-wot/td-tools";
+import { Form, SecurityScheme } from "../src/thing-description";
 import { ProtocolClient, ProtocolClientFactory } from "../src/protocol-interfaces";
 import { Content } from "../src/content";
 import { ContentSerdes } from "../src/content-serdes";

@@ -1,3 +1,5 @@
+> [!WARNING] > `@node-wot/td-tools` package will be removed in the future. Please use `@node-wot/core` / `@thingweb/thing-model` / `@thingweb/td-utils` package instead.
+
 # TD (Thing Description) tools of node-wot
 
 Current Maintainer(s): [@danielpeintner](https://github.com/danielpeintner) [@relu91](https://github.com/relu91)

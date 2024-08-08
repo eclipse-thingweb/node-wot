@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import * as TD from "@node-wot/td-tools";
+import { SecurityScheme, Form } from "@node-wot/core";
 import { Method } from "./oauth-token-validation";
 import { MiddlewareRequestHandler } from "./http-server-middleware";
 
@@ -44,11 +44,11 @@ export interface HttpConfig {
     allowSelfSigned?: boolean;
     serverKey?: string;
     serverCert?: string;
-    security?: TD.SecurityScheme[];
+    security?: SecurityScheme[];
     middleware?: MiddlewareRequestHandler;
 }
 
-export interface OAuth2ServerConfig extends TD.SecurityScheme {
+export interface OAuth2ServerConfig extends SecurityScheme {
     method: Method;
     /**
      * Regex to select the valid clients ids. Default: .*
@@ -56,7 +56,7 @@ export interface OAuth2ServerConfig extends TD.SecurityScheme {
     allowedClients?: string;
 }
 
-export interface TuyaCustomBearerSecurityScheme extends TD.SecurityScheme {
+export interface TuyaCustomBearerSecurityScheme extends SecurityScheme {
     /**
      * This scheme is necessary because of the Tuya binding.
      * The Tuya Apis are implementing a custom security protocol that needs a custom handling
@@ -72,7 +72,7 @@ export class HttpHeader {
     public "htv:fieldValue": string;
 }
 
-export class HttpForm extends TD.Form {
+export class HttpForm extends Form {
     public "htv:methodName"?: HTTPMethodName;
     public "htv:headers"?: Array<HttpHeader> | HttpHeader;
 }

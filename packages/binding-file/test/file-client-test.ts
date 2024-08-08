@@ -13,10 +13,9 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { Content, ContentSerdes } from "@node-wot/core";
+import { Content, ContentSerdes, Form } from "@node-wot/core";
 
 import FileClient from "../src/file-client";
-import { Form } from "@node-wot/td-tools";
 import { expect } from "chai";
 import { promises as asyncFs } from "fs";
 import { fileURLToPath } from "node:url";

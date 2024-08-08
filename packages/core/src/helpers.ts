@@ -29,7 +29,8 @@ import * as os from "os";
 
 // imports for fetchTD
 import Servient from "./servient";
-import * as TD from "@node-wot/td-tools";
+import { ThingModelHelpers, Resolver } from "@thingweb/thing-model";
+import { Form, Thing, ThingInteraction } from "./thing-description";
 import * as TDT from "wot-thing-description-types";
 import { ContentSerdes } from "./content-serdes";
 import Ajv, { ValidateFunction, ErrorObject } from "ajv";
@@ -37,8 +38,6 @@ import addFormats from "ajv-formats";
 import TDSchema from "wot-thing-description-types/schema/td-json-schema-validation.json";
 import { DataSchemaValue, ExposedThingInit } from "wot-typescript-definitions";
 import { SomeJSONSchema } from "ajv/dist/types/json-schema";
-import { ThingInteraction, ThingModelHelpers } from "@node-wot/td-tools";
-import { Resolver } from "@node-wot/td-tools/src/resolver-interface";
 import { PropertyElement, DataSchema } from "wot-thing-description-types";
 import { createLoggers } from "./logger";
 
@@ -161,7 +160,7 @@ export default class Helpers implements Resolver {
             const client = this.srv.getClientFor(Helpers.extractScheme(uri));
             debug(`WoTImpl fetching TD from '${uri}' with ${client}`);
             client
-                .readResource(new TD.Form(uri, ContentSerdes.TD))
+                .readResource(new Form(uri, ContentSerdes.TD))
                 .then(async (content) => {
                     if (content.type !== ContentSerdes.TD && content.type !== ContentSerdes.JSON_LD) {
                         warn(`WoTImpl received TD with media type '${content.type}' from ${uri}`);
@@ -318,7 +317,7 @@ export default class Helpers implements Resolver {
     }
 
     public static validateInteractionOptions(
-        thing: TD.Thing,
+        thing: Thing,
         ti: ThingInteraction,
         options?: WoT.InteractionOptions
     ): boolean {
@@ -347,7 +346,7 @@ export default class Helpers implements Resolver {
      */
     static parseUrlParameters(
         url: string | undefined,
-        globalUriVariables: { [key: string]: TD.DataSchema } = {},
+        globalUriVariables: { [key: string]: DataSchema } = {},
         uriVariables: { [k: string]: DataSchema } = {}
     ): Record<string, unknown> {
         const params: Record<string, unknown> = {};

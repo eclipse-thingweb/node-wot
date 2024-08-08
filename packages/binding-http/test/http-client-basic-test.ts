@@ -17,7 +17,7 @@ import { suite, test } from "@testdeck/mocha";
 import express from "express";
 import { HttpClient } from "../src/http";
 import * as https from "https";
-import { BasicSecurityScheme } from "@node-wot/td-tools";
+import { BasicSecurityScheme } from "@node-wot/core";
 import * as chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { fail } from "assert";

@@ -29,7 +29,6 @@
     },
     "dependencies": {
         "@node-wot/core": "0.8.15",
-        "@node-wot/td-tools": "0.8.15",
         "@types/eventsource": "1.1.10",
         "accept-language-parser": "1.5.0",
         "basic-auth": "2.0.1",

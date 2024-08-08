@@ -12,7 +12,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-import { Form } from "@node-wot/td-tools";
+import { Form } from "@node-wot/core";
 export { default as ModbusClientFactory } from "./modbus-client-factory";
 export { default as ModbusClient } from "./modbus-client";
 export * from "./modbus-client";

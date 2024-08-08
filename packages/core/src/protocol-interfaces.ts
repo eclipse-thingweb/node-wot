@@ -13,10 +13,9 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import * as TD from "@node-wot/td-tools";
-
 import { Subscription } from "rxjs/Subscription";
 
+import { Form, SecurityScheme } from "./thing-description";
 import Servient from "./servient";
 import ExposedThing from "./exposed-thing";
 import { Content } from "./content";
@@ -48,19 +47,19 @@ export type ListenerMap = Map<string, ListenerItem>;
 
 export interface ProtocolClient {
     /** this client is requested to perform a "read" on the resource with the given URI */
-    readResource(form: TD.Form): Promise<Content>;
+    readResource(form: Form): Promise<Content>;
 
     /** this client is requested to perform a "write" on the resource with the given URI  */
-    writeResource(form: TD.Form, content: Content): Promise<void>;
+    writeResource(form: Form, content: Content): Promise<void>;
 
     /** this client is requested to perform an "invoke" on the resource with the given URI */
-    invokeResource(form: TD.Form, content?: Content): Promise<Content>;
+    invokeResource(form: Form, content?: Content): Promise<Content>;
 
     /** this client is requested to perform an "unlink" on the resource with the given URI */
-    unlinkResource(form: TD.Form): Promise<void>;
+    unlinkResource(form: Form): Promise<void>;
 
     subscribeResource(
-        form: TD.Form,
+        form: Form,
         next: (content: Content) => void,
         error?: (error: Error) => void,
         complete?: () => void
@@ -82,7 +81,7 @@ export interface ProtocolClient {
     stop(): Promise<void>;
 
     /** apply TD security metadata */
-    setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: unknown): boolean;
+    setSecurity(metadata: Array<SecurityScheme>, credentials?: unknown): boolean;
 }
 
 export interface ProtocolClientFactory {

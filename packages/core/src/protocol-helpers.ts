@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import * as TD from "@node-wot/td-tools";
+import { Form, ThingInteraction } from "./thing-description";
 import { Readable } from "stream";
 import { ReadableStream as PolyfillStream } from "web-streams-polyfill/ponyfill/es2018";
 import { ActionElement, EventElement, PropertyElement } from "wot-thing-description-types";
@@ -62,7 +62,7 @@ function isManaged(obj: unknown): obj is IManagedStream {
 }
 export default class ProtocolHelpers {
     // set contentType (extend with more?)
-    public static updatePropertyFormWithTemplate(form: TD.Form, property: PropertyElement): void {
+    public static updatePropertyFormWithTemplate(form: Form, property: PropertyElement): void {
         for (const formTemplate of property.forms ?? []) {
             // 1. Try to find match with correct href scheme
             if (formTemplate.href) {
@@ -76,7 +76,7 @@ export default class ProtocolHelpers {
         }
     }
 
-    public static updateActionFormWithTemplate(form: TD.Form, action: ActionElement): void {
+    public static updateActionFormWithTemplate(form: Form, action: ActionElement): void {
         for (const formTemplate of action.forms ?? []) {
             // 1. Try to find match with correct href scheme
             if (formTemplate.href) {
@@ -90,7 +90,7 @@ export default class ProtocolHelpers {
         }
     }
 
-    public static updateEventFormWithTemplate(form: TD.Form, event: EventElement): void {
+    public static updateEventFormWithTemplate(form: Form, event: EventElement): void {
         for (const formTemplate of event.forms ?? []) {
             // 1. Try to find match with correct href scheme
             if (formTemplate.href) {
@@ -259,7 +259,7 @@ export default class ProtocolHelpers {
     }
 
     public static findRequestMatchingFormIndex(
-        forms: TD.Form[] | undefined,
+        forms: Form[] | undefined,
         uriScheme: string,
         requestUrl: string | undefined,
         contentType?: string
@@ -267,7 +267,7 @@ export default class ProtocolHelpers {
         if (forms === undefined) return 0;
 
         // first find forms with matching url protocol and path
-        let matchingForms: TD.Form[] = forms.filter((form) => {
+        let matchingForms: Form[] = forms.filter((form) => {
             // remove optional uriVariables from href Form
             const formUrl = new URL(form.href.replace(/(\{[\S]*\})/, ""));
 
@@ -283,7 +283,7 @@ export default class ProtocolHelpers {
         });
         // optionally try to match form's content type to the request's one
         if (contentType != null) {
-            const contentTypeMatchingForms: TD.Form[] = matchingForms.filter((form) => {
+            const contentTypeMatchingForms: Form[] = matchingForms.filter((form) => {
                 return form.contentType === contentType;
             });
             if (contentTypeMatchingForms.length > 0) matchingForms = contentTypeMatchingForms;
@@ -292,7 +292,7 @@ export default class ProtocolHelpers {
     }
 
     public static getFormIndexForOperation(
-        interaction: TD.ThingInteraction,
+        interaction: ThingInteraction,
         type: "property" | "action" | "event",
         operationName?:
             | "writeproperty"
@@ -355,7 +355,7 @@ export default class ProtocolHelpers {
         // If no form was found yet, loop through all forms
         if (interaction.forms !== undefined && finalFormIndex === -1) {
             if (operationName !== undefined) {
-                interaction.forms.every((form: TD.Form) => {
+                interaction.forms.every((form: Form) => {
                     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- operationName !== undefined
                     if (form.op?.includes(operationName!) === true) {
                         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- interaction.forms  !== undefined
@@ -364,7 +364,7 @@ export default class ProtocolHelpers {
                     return finalFormIndex === -1;
                 });
             } else {
-                interaction.forms.every((form: TD.Form) => {
+                interaction.forms.every((form: Form) => {
                     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- interaction.forms  !== undefined
                     finalFormIndex = interaction.forms!.indexOf(form);
                     return false;
