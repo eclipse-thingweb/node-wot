@@ -635,7 +635,7 @@ class CoapServerTest {
         await coapServer.stop();
     }
 
-    @test async "should add the cov:observe subprotocol value to observable properties and events "() {
+    @test async "should add the correct operation types to observable properties and events "() {
         const coapServer = new CoapServer({ port: 5683 });
         const servient = new Servient();
         servient.addServer(coapServer);
@@ -702,14 +702,17 @@ class CoapServerTest {
                 for (const event of Object.values(td.events!)) {
                     for (const form of event.forms) {
                         const opValues = form.op!;
-                        expect(opValues.length > 0);
+                        // eslint-disable-next-line no-unused-expressions
+                        expect(opValues.length > 0).to.be.true;
 
                         const eventOpValueCount = filterEventOperations(opValues as Array<string>).length;
                         const eventOpValueCountPresent = eventOpValueCount > 0;
 
-                        expect(eventOpValueCountPresent);
+                        // eslint-disable-next-line no-unused-expressions
+                        expect(eventOpValueCountPresent).to.be.true;
 
-                        expect(form.subprotocol === "cov:observe");
+                        // eslint-disable-next-line no-unused-expressions
+                        expect(form.subprotocol === "cov:observe").to.be.false;
                     }
                 }
 
