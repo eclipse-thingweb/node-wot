@@ -679,7 +679,6 @@ class CoapServerTest {
 
                         if (observeOpValuePresent) {
                             observeOpValueFormCount++;
-                            expect(form.subprotocol).to.eql("cov:observe");
                         }
 
                         const readWriteOpValueCount = filterPropertyReadWriteOperations(

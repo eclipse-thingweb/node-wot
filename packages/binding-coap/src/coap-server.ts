@@ -35,7 +35,7 @@ import { MdnsIntroducer } from "./mdns-introducer";
 import { PropertyElement, DataSchema, ActionElement, EventElement } from "wot-thing-description-types";
 import { CoapServerConfig } from "./coap";
 import { DataSchemaValue } from "wot-typescript-definitions";
-import { filterPropertyObserveOperations, getPropertyOpValues } from "./util";
+import { getPropertyOpValues } from "./util";
 
 const { debug, warn, info, error } = createLoggers("binding-coap", "coap-server");
 
@@ -248,14 +248,6 @@ export default class CoapServer implements ProtocolServer {
                     continue;
                 }
 
-                let subprotocol: string | undefined;
-
-                const observeOpValues = filterPropertyObserveOperations(formOpValues);
-
-                if (observeOpValues.length > 0) {
-                    subprotocol = "cov:observe";
-                }
-
                 const form = this.createAffordanceForm(
                     base,
                     this.PROPERTY_DIR,
@@ -263,8 +255,7 @@ export default class CoapServer implements ProtocolServer {
                     formOpValues,
                     thing.uriVariables,
                     propertyName,
-                    property.uriVariables,
-                    subprotocol
+                    property.uriVariables
                 );
 
                 this.addFormToAffordance(form, property);
@@ -299,8 +290,7 @@ export default class CoapServer implements ProtocolServer {
                 ["subscribeevent", "unsubscribeevent"],
                 thing.uriVariables,
                 eventName,
-                event.uriVariables,
-                "cov:observe"
+                event.uriVariables
             );
 
             this.addFormToAffordance(form, event);
