@@ -60,11 +60,10 @@ export function filterEventOperations(opValues: string[]) {
 /**
  * Function to (potentially) generate two arrays of `op` values: One with the
  * values "readproperty" and "writeproperty", and one with
- * "observerproperty" and "unobserveproperty".
+ * "observeproperty" and "unobserveproperty".
  *
- * This CoAP-specific distinction is made to be able to generate
- * separate forms for the observe-related operations, where the addition
- * of a `subprotocol` field with a value of `cov:observe` has to be added.
+ * This distinction is made to be able to generate separate forms for the
+ * observe-related operations.
  *
  * @param property The property for which the forms are going to be
  *                 generated.
