@@ -17,6 +17,7 @@
     "dependencies": {
         "@node-wot/binding-http": "0.8.16",
         "@node-wot/core": "0.8.16",
+        "rxjs": "^5.5.11",
         "slugify": "^1.4.5",
         "ws": "^7.5.10"
     },
@@ -34,5 +35,9 @@
     "directories": {
         "test": "test"
     },
-    "keywords": []
+    "keywords": [],
+    "devDependencies": {
+        "@testdeck/mocha": "^0.1.2",
+        "chai": "^4.3.4"
+    }
 }

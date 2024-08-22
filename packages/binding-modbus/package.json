@@ -35,5 +35,9 @@
     "homepage": "https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-modbus#readme",
     "directories": {
         "test": "test"
+    },
+    "devDependencies": {
+        "chai": "^4.3.4",
+        "chai-as-promised": "^7.1.1"
     }
 }

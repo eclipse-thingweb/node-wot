@@ -16,6 +16,7 @@
     "dependencies": {
         "@node-wot/core": "0.8.16",
         "node-mbus": "^2.2.4",
+        "rxjs": "^5.5.11",
         "wot-typescript-definitions": "0.8.0-SNAPSHOT.29"
     },
     "scripts": {
@@ -34,5 +35,9 @@
     },
     "eslintConfig": {
         "extends": "../../.eslintrc.js"
+    },
+    "devDependencies": {
+        "chai": "^4.3.4",
+        "chai-as-promised": "^7.1.1"
     }
 }

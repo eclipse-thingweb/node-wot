@@ -47,5 +47,9 @@
         "url": "https://github.com/eclipse-thingweb/node-wot/issues"
     },
     "homepage": "https://github.com/eclipse-thingweb/node-wot/tree/master/packages/cli#readme",
-    "keywords": []
+    "keywords": [],
+    "devDependencies": {
+        "@testdeck/mocha": "^0.1.2",
+        "chai": "^4.3.4"
+    }
 }

@@ -16,6 +16,7 @@
     "types": "dist/td-tools.d.ts",
     "dependencies": {
         "ajv": "^8.11.0",
+        "ajv-formats": "^2.1.1",
         "debug": "^4.3.4",
         "is-absolute-url": "3.0.3",
         "json-placeholder-replacer": "^1.0.35",
@@ -37,5 +38,10 @@
     "directories": {
         "test": "test"
     },
-    "keywords": []
+    "keywords": [],
+    "devDependencies": {
+        "@testdeck/mocha": "^0.1.2",
+        "chai": "^4.3.4",
+        "chai-as-promised": "^7.1.1"
+    }
 }

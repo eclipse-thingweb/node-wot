@@ -15,10 +15,13 @@
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "devDependencies": {
+        "chai": "^4.3.4",
         "should": "^13.2.3"
     },
     "dependencies": {
         "@node-wot/core": "0.8.16",
+        "ajv": "^8.11.0",
+        "ajv-formats": "^2.1.1",
         "node-opcua": "2.113.0",
         "node-opcua-address-space": "2.113.0",
         "node-opcua-basic-types": "2.113.0",

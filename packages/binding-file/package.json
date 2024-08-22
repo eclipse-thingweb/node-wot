@@ -14,7 +14,8 @@
     "main": "dist/file.js",
     "types": "dist/file.d.ts",
     "dependencies": {
-        "@node-wot/core": "0.8.16"
+        "@node-wot/core": "0.8.16",
+        "rxjs": "^5.5.11"
     },
     "scripts": {
         "build": "tsc -b",
@@ -29,5 +30,8 @@
     "homepage": "https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-file#readme",
     "directories": {
         "test": "test"
+    },
+    "devDependencies": {
+        "chai": "^4.3.4"
     }
 }
