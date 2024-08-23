@@ -35,9 +35,5 @@
     "directories": {
         "test": "test"
     },
-    "keywords": [],
-    "devDependencies": {
-        "@testdeck/mocha": "^0.1.2",
-        "chai": "^4.3.4"
-    }
+    "keywords": []
 }

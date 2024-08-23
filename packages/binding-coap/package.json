@@ -15,7 +15,6 @@
     "types": "dist/coap.d.ts",
     "dependencies": {
         "@node-wot/core": "0.8.17",
-        "@types/node": "16.18.35",
         "coap": "^1.4.0",
         "dns-packet": "^5.2.2",
         "multicast-dns": "^7.2.5",
@@ -37,9 +36,5 @@
     "homepage": "https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-coap#readme",
     "directories": {
         "test": "test"
-    },
-    "devDependencies": {
-        "@testdeck/mocha": "^0.1.2",
-        "chai": "^4.3.4"
     }
 }

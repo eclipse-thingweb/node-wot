@@ -15,7 +15,6 @@
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "devDependencies": {
-        "chai": "^4.3.4",
         "should": "^13.2.3"
     },
     "dependencies": {
