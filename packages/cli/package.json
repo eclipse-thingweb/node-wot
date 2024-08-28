@@ -27,7 +27,6 @@
         "@node-wot/binding-websockets": "0.8.17",
         "@node-wot/core": "0.8.17",
         "@thingweb/thing-model": "^1.0.1",
-        "@types/lodash": "^4.14.199",
         "ajv": "^8.11.0",
         "commander": "^9.1.0",
         "dotenv": "^8.6.0",
@@ -47,5 +46,8 @@
         "url": "https://github.com/eclipse-thingweb/node-wot/issues"
     },
     "homepage": "https://github.com/eclipse-thingweb/node-wot/tree/master/packages/cli#readme",
-    "keywords": []
+    "keywords": [],
+    "devDependencies": {
+        "@types/lodash": "^4.14.199"
+    }
 }

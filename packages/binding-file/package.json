@@ -14,7 +14,8 @@
     "main": "dist/file.js",
     "types": "dist/file.d.ts",
     "dependencies": {
-        "@node-wot/core": "0.8.17"
+        "@node-wot/core": "0.8.17",
+        "rxjs": "^5.5.11"
     },
     "scripts": {
         "build": "tsc -b",

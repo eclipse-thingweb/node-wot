@@ -18,7 +18,8 @@
         "@types/content-type": "^1.1.8",
         "@types/debug": "^4.1.7",
         "@types/uritemplate": "^0.3.4",
-        "@types/uuid": "^8.3.1"
+        "@types/uuid": "^8.3.1",
+        "wot-thing-description-types": "^1.1.0-09-November-2023"
     },
     "dependencies": {
         "@petamoriken/float16": "^3.1.1",
@@ -29,6 +30,7 @@
         "content-type": "^1.0.5",
         "debug": "^4.3.4",
         "is-absolute-url": "3.0.3",
+        "rxjs": "^5.5.11",
         "uritemplate": "0.3.4",
         "url-toolkit": "2.1.6",
         "uuid": "^7.0.3",
