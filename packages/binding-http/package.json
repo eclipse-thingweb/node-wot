@@ -38,7 +38,7 @@
         "basic-auth": "2.0.1",
         "client-oauth2": "^4.2.5",
         "eventsource": "^2.0.2",
-        "find-my-way": "^7.6.2",
+        "find-my-way": "^8.2.2",
         "node-fetch": "^2.6.7",
         "query-string": "^7.1.1",
         "rxjs": "5.5.11",
