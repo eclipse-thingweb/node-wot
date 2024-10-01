@@ -13,6 +13,7 @@
 [![codecov](https://codecov.io/gh/eclipse-thingweb/node-wot/branch/master/graph/badge.svg)](https://codecov.io/gh/eclipse-thingweb/node-wot)
 [![Telegram Group](https://img.shields.io/endpoint?color=neon&url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Fnodewot)](https://t.me/nodewot)
 [![Discord](https://img.shields.io/badge/Discord-7289DA?logo=discord&logoColor=white&label=node-wot)](https://discord.gg/JXY2Jzefz3)
+[![Static Badge](https://img.shields.io/badge/Show%20Adopters%20and%20Users-%2331b8a3ff?logoColor=31b8a3ff)](https://github.com/eclipse-thingweb/node-wot#adopters)
 
 The Eclipse Thingweb node-wot is a framework for implementing [Web of Things](https://www.w3.org/WoT/) servers and clients in Node.js. It is written from the ground up with Typescript with the goal of providing a fast and extensible framework for IoT applications. Node-wot wants to give developers the ability to create complex business logic without worrying about protocol and low-level details leveraging on a standard metadata format, the [Thing Description (TD)](https://www.w3.org/TR/wot-thing-description11/). Thanks to the TD abstraction developers can find a set of satellite tools to create their applications in a fast and easy way.
 
@@ -431,6 +432,12 @@ sudo ln -sf /usr/local/n/versions/node/<VERSION>/bin/node /usr/bin/node
 ## Contributing
 
 Please check out our [contributing guidelines](CONTRIBUTING.md) for more details.
+
+## Adopters
+
+If you are using Eclipse Thingweb node-wot within your organization, please support us by adding your logo to the [Eclipse IoT adopters list](https://iot.eclipse.org/adopters/#iot.thingweb).
+To do so, simply open an issue at [the Eclipse Gitlab](https://gitlab.eclipse.org/eclipsefdn/it/api/eclipsefdn-project-adopters/-/issues/new?issuable_template=adopter_request) by providing the name of your organization, its logo, and a link to your organization or team.
+You should be affiliated with that organization for the issue to be implemented.
 
 ## License
 
