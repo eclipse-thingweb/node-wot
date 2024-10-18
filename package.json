@@ -38,7 +38,7 @@
     "workspaces": [
         "./packages/td-tools",
         "./packages/core",
-        "./packages/binding-!()",
+        "./packages/binding-*",
         "./packages/cli",
         "./packages/examples",
         "./packages/browser-bundle"
