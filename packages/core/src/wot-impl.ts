@@ -28,7 +28,7 @@ import { inspect } from "util";
 const { debug } = createLoggers("core", "wot-impl");
 
 class ThingDiscoveryProcess implements WoT.ThingDiscoveryProcess {
-    constructor(private directory: ConsumedThing, public filter?: WoT.ThingFilter) {
+    constructor(private directory: WoT.ConsumedThing, public filter?: WoT.ThingFilter) {
         this.filter = filter;
         this.done = false;
     }
@@ -101,7 +101,7 @@ export default class WoTImpl {
     }
 
     /** @inheritDoc */
-    async consume(td: WoT.ThingDescription): Promise<ConsumedThing> {
+    async consume(td: WoT.ThingDescription): Promise<WoT.ConsumedThing> {
         try {
             const thing = parseTD(JSON.stringify(td), true);
             const newThing: ConsumedThing = new ConsumedThing(this.srv, thing as ThingModel);
