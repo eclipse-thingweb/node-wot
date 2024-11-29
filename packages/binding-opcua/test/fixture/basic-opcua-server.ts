@@ -66,6 +66,19 @@ export async function startServer(): Promise<OPCUAServer> {
         throw new Error("cannot find DI namespace");
     }
 
+    const namespaceSpecial = addressSpace.registerNamespace("http://example.org/SpecialNamespace/");
+    const uaSpecialObject = namespaceSpecial.addObject({
+        browseName: "SpecialObject",
+        organizedBy: addressSpace.rootFolder.objects,
+    });
+    const uaSpecialVariable = namespaceSpecial.addVariable({
+        browseName: "SpecialVariable",
+        nodeId: "s=SpecialVariable",
+        dataType: "Double",
+        componentOf: uaSpecialObject,
+    });
+    uaSpecialVariable.setValueFromSource({ dataType: DataType.Double, value: 42.0 });
+
     const deviceType = addressSpace.findObjectType("DeviceType", nsDI);
     if (!deviceType) {
         throw new Error("cannot find DeviceType");
