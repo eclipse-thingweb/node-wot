@@ -36,7 +36,7 @@ import {
     Variant,
     VariantOptions,
 } from "node-opcua-client";
-import { ArgumentDefinition, getBuiltInDataType } from "node-opcua-pseudo-session";
+import { ArgumentDefinition, getBuiltInDataType, readNamespaceArray } from "node-opcua-pseudo-session";
 
 import { makeNodeId, NodeId, NodeIdLike, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import { AttributeIds, BrowseDirection, makeResultMask } from "node-opcua-data-model";
@@ -81,6 +81,7 @@ interface OPCUAConnection {
     session: ClientSession;
     client: OPCUAClient;
     subscription: ClientSubscription;
+    namespaceArray?: string[];
 }
 
 type Resolver = (...arg: [...unknown[]]) => void;
@@ -211,6 +212,15 @@ export class OPCUAProtocolClient implements ProtocolClient {
         });
     }
 
+    private async _getNamespaceArray(form: OPCUAForm): Promise<string[]> {
+        return this._withConnection(form, async (c: OPCUAConnection) => {
+            if (!c.namespaceArray) {
+                c.namespaceArray = await readNamespaceArray(c.session);
+            }
+            return c.namespaceArray;
+        });
+    }
+
     private async _withSubscription<T>(
         form: OPCUAForm,
         next: (session: ClientSession, subscription: ClientSubscription) => Promise<T>
@@ -220,13 +230,18 @@ export class OPCUAProtocolClient implements ProtocolClient {
         });
     }
 
+    private async _resolveNodeId3(form: OPCUAForm, nodeId: NodeIdLike): Promise<NodeId> {
+        const namespaceArray = await this._getNamespaceArray(form);
+        return resolveNodeId(nodeId, { namespaceArray });
+    }
+
     private async _resolveNodeId2(form: OPCUAForm, fNodeId: NodeIdLike | NodeByBrowsePath): Promise<NodeId> {
         if (fNodeId instanceof NodeId) {
             return fNodeId;
         } else if ((<NodeByBrowsePath>fNodeId).root != null) {
             const f = <NodeByBrowsePath>fNodeId;
             const r: NodeIdLike = f.root;
-            const rootNodeId = resolveNodeId(r);
+            const rootNodeId = await this._resolveNodeId3(form, r);
             const nodeId = this._withSession<NodeId>(form, async (session) => {
                 const path = makeBrowsePath(rootNodeId, f.path);
                 const result = await session.translateBrowsePath(path);
@@ -241,7 +256,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
             });
             return nodeId;
         } else {
-            return resolveNodeId(fNodeId as NodeIdLike);
+            return await this._resolveNodeId3(form, fNodeId as NodeIdLike);
         }
     }
 
@@ -262,10 +277,10 @@ export class OPCUAProtocolClient implements ProtocolClient {
             throw new Error("form must expose a 'opcua:nodeId'");
         }
         const nodeId = await this._resolveNodeId2(form, fNodeId);
-        return await this._withSession<DataType>(form, async (session: IBasicSession) => {
-            const dataTypeOrNull = await promisify(getBuiltInDataType)(session, nodeId);
-            if (dataTypeOrNull !== null) {
-                return dataTypeOrNull as DataType;
+        return await this._withSession<DataType>(form, async (session) => {
+            const dataTypeOrNull = await getBuiltInDataType(session, nodeId);
+            if (dataTypeOrNull !== undefined && dataTypeOrNull !== DataType.Null) {
+                return dataTypeOrNull;
             }
             throw new Error("cannot predict dataType for nodeId " + nodeId.toString());
         });

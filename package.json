@@ -35,7 +35,8 @@
         "build:podman": "podman build -t wot-servient .",
         "clean:dist": "npm exec  --workspaces -- npx rimraf tsconfig.tsbuildinfo dist",
         "update:wot-typescript-definitions": "npx npm-check-updates  -u -f \"wot-typescript-definitions\" --deep",
-        "link": "npm link -ws"
+        "link": "npm link -ws",
+        "ncu:opcua": "npx -y npm-check-updates -u --deep --dep=dev,prod -f \"node-opcua*\" -t newest"
     },
     "workspaces": [
         "./packages/td-tools",
@@ -51,7 +52,7 @@
         "@types/chai-as-promised": "^7.1.4",
         "@types/chai-spies": "^1.0.4",
         "@types/mocha": "^9.0.0",
-        "@types/node": "^18.19.71",
+        "@types/node": "22.13.1",
         "@types/readable-stream": "^4.0.15",
         "@types/sinon": "10.0.2",
         "@typescript-eslint/eslint-plugin": "^6.7.3",
