@@ -1,4 +1,3 @@
-"use strict";
 /********************************************************************************
  * Copyright (c) 2023 Contributors to the Eclipse Foundation
  *
@@ -13,15 +12,28 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
+
+// @ts-check
+
+"use strict";
+
 // This is an example Thing which is a smart clock that runs 60 times faster than real time, where 1 hour happens in 1 minute.
-const core_1 = require("@node-wot/core");
-const binding_coap_1 = require("@node-wot/binding-coap");
+
+const { Servient, Helpers } = require("@node-wot/core");
+const { CoapServer } = require("@node-wot/binding-coap");
+
 // create Servient add CoAP binding with port configuration
-const servient = new core_1.Servient();
-servient.addServer(new binding_coap_1.CoapServer(5686));
-core_1.Helpers.setStaticAddress("plugfest.thingweb.io"); // comment this out if you are testing locally
+const servient = new Servient();
+servient.addServer(new CoapServer({ port: 5686 }));
+
+Helpers.setStaticAddress("plugfest.thingweb.io"); // comment this out if you are testing locally
+
 let minuteCounter = 0;
 let hourCounter = 0;
+
+/**
+ * @param {WoT.ExposedThing} thing
+ */
 async function timeCount(thing) {
     for (minuteCounter = 0; minuteCounter < 59; minuteCounter++) {
         // if we have <60, we can get a 15:60.
@@ -32,11 +44,13 @@ async function timeCount(thing) {
         hour: hourCounter,
         minute: minuteCounter,
     });
+
     hourCounter++;
     if (hourCounter === 24) {
         hourCounter = 0;
     }
 }
+
 servient.start().then((WoT) => {
     WoT.produce({
         title: "Smart Clock",
@@ -71,11 +85,13 @@ servient.start().then((WoT) => {
                     minute: minuteCounter,
                 };
             });
+
             timeCount(thing);
             setInterval(async () => {
                 timeCount(thing);
                 thing.emitPropertyChange("time");
             }, 61000); // if this is 60s, we never leave the for loop
+
             // expose the thing
             thing.expose().then(() => {
                 console.info(thing.getThingDescription().title + " ready");
