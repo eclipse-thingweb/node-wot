@@ -16,7 +16,7 @@
     "dependencies": {
         "@node-wot/core": "0.8.17",
         "node-mbus": "^2.2.4",
-        "rxjs": "^5.5.11"
+        "rxjs": "5.5.11"
     },
     "scripts": {
         "build": "tsc -b",

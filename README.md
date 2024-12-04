@@ -90,12 +90,6 @@ npm i @node-wot/core @node-wot/binding-http --save
 #### Browser
 
 To use node-wot as a browser-side JavaScript Library, the browser needs to support ECMAScript 2015.
-Supported browsers include:
-
--   Microsoft Edge 15 and later
--   Firefox 54 and later
--   Chrome 58 and later
--   Safari 10 and later
 
 Using a browser with only ES5 support (e.g., IE 11) might be possible if you add polyfills. If you want to use node-wot as a library in your browser application, you can install the `@node-wot/browser-bundle` as following:
 
