@@ -19,6 +19,8 @@
         "start": "cd packages/cli && npm run start",
         "debug": "cd packages/cli && npm run debug",
         "test": "npm run test --silent --workspaces --if-present",
+        "test:browser": "npm run test:browser --workspace ./packages/browser-bundle",
+        "test:all": "npm run test && npm run test:browser",
         "test:only": "npm run test --silent --workspaces --if-present",
         "coverage": "c8 --reporter=lcov npm run test",
         "coverage:only": "c8 --reporter=lcov npm run test:only",

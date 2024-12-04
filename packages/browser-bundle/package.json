@@ -27,7 +27,7 @@
     },
     "scripts": {
         "build": "node esbuild.js",
-        "test": "wtr \"test/**/*.js\" --node-resolve",
+        "test:browser": "wtr \"test/**/*.js\" --node-resolve",
         "format": "prettier --write index.js \"**/*.json\""
     },
     "bugs": {
