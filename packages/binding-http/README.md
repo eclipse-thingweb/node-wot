@@ -359,7 +359,7 @@ servient.start().then(async (WoT) => {
 | SubProtocols | HTTP Producer | HTTP Consumer |
 | :----------- | :-----------: | :-----------: |
 | longpoll     |       Y       |       Y       |
-| sse          |       Y       |       Y       |
+| sse <details><summary>Details</summary>Note: `contentType` should target payload in the data field (e.g., `application/json` if sending JSON etc.)</details>          |       N       |       Y       |
 | websub       |       N       |       N       |
 
 | Sec. Schemes | HTTP Producer | HTTP Consumer |
