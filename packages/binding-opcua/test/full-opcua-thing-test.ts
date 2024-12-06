@@ -141,6 +141,23 @@ const thingDescription: WoT.ThingDescription = {
                 },
             ],
         },
+
+        specialVariable: {
+            description: "a special variable",
+            observable: true,
+            readOnly: true,
+            unit: "°C",
+            type: "number",
+            "opcua:nodeId": "nsu=http://example.org/SpecialNamespace/;s=SpecialVariable",
+            forms: [
+                {
+                    href: "/", // endpoint,
+                    op: ["readproperty", "observeproperty"],
+                    "opcua:nodeId": "nsu=http://example.org/SpecialNamespace/;s=SpecialVariable",
+                    contentType: "application/json",
+                },
+            ],
+        },
     },
     actions: {
         setTemperatureSetPoint: {
@@ -613,6 +630,19 @@ describe("Full OPCUA Thing Test", () => {
                     },
                 ],
             });
+        } finally {
+            await servient.shutdown();
+        }
+    });
+
+    it("Z11 - should  read a variable with nodeid containing a NSU namespace", async () => {
+        const { thing, servient } = await makeThing();
+
+        try {
+            const content = await thing.readProperty("specialVariable");
+            const value = await content.value();
+            debug(`specialVariable = ${value}`);
+            expect(value).to.eql(42);
         } finally {
             await servient.shutdown();
         }
