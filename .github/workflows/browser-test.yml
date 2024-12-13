@@ -1,0 +1,32 @@
+# docs https://playwright.dev/docs/ci-intro#setting-up-github-actions
+name: Browser Tests
+
+on:
+    workflow_dispatch:
+    push:
+        branches: [master]
+    pull_request:
+        branches: [master]
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - name: Use Node.js 20.x
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20.x
+                  cache: "npm"
+            - name: Install Dependencies
+              run: npm ci
+            - name: Install linux rollup optional dependencies
+              run: npm i @rollup/rollup-linux-x64-gnu -D
+            - name: Install Playwright Browsers
+              run: npx playwright install --with-deps
+            - name: Build
+              run: npm run build
+            - name: Test with browser bundle
+              timeout-minutes: 2
+              run: |
+                  npm run test:browser

@@ -22,7 +22,7 @@ import OctetstreamCodec from "./codecs/octetstream-codec";
 import { DataSchema, DataSchemaValue } from "wot-typescript-definitions";
 import { Readable } from "stream";
 import { ProtocolHelpers } from "./core";
-import { ReadableStream } from "web-streams-polyfill/ponyfill/es2018";
+import { ReadableStream } from "web-streams-polyfill";
 import { createLoggers } from "./logger";
 
 const { debug, warn } = createLoggers("core", "content-serdes");

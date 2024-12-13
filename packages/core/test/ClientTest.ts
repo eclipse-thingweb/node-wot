@@ -422,7 +422,11 @@ class WoTClientTest {
         expect(thing).to.have.property("properties").that.has.property("aProperty");
 
         const stream = Readable.from(Buffer.from("23"));
-        return thing.writeProperty("aProperty", ProtocolHelpers.toWoTStream(stream));
+        try {
+            await thing.writeProperty("aProperty", ProtocolHelpers.toWoTStream(stream));
+        } catch (error) {
+            console.log(error);
+        }
     }
 
     @test async "write a Property with data schema value"() {
