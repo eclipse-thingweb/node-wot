@@ -45,7 +45,10 @@ export default class MqttClient implements ProtocolClient {
     private scheme: string;
     private pools: Map<string, MQTTMessagePool> = new Map();
 
-    constructor(private config: MqttClientConfig = {}, secure = false) {
+    constructor(
+        private config: MqttClientConfig = {},
+        secure = false
+    ) {
         this.scheme = "mqtt" + (secure ? "s" : "");
     }
 

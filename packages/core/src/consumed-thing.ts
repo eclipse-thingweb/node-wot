@@ -270,7 +270,12 @@ function findFormIndexWithScoring(
 
 class InternalEventSubscription extends InternalSubscription {
     private formIndex: number;
-    constructor(thing: ConsumedThing, name: string, client: ProtocolClient, private readonly form: FormElementEvent) {
+    constructor(
+        thing: ConsumedThing,
+        name: string,
+        client: ProtocolClient,
+        private readonly form: FormElementEvent
+    ) {
         super(thing, name, client);
         const index = this.thing.events?.[name].forms.indexOf(form as Form);
         if (index === undefined || index < 0) {
