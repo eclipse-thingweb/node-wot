@@ -29,7 +29,7 @@
     "scripts": {
         "build": "node esbuild.js",
         "test:browser": "wtr \"test/**/*.js\" --node-resolve",
-        "format": "prettier --write index.js \"**/*.json\""
+        "format": "prettier --write *.js test/*.js *.ts \"**/*.json\""
     },
     "bugs": {
         "url": "https://github.com/eclipse-thingweb/node-wot/issues"
