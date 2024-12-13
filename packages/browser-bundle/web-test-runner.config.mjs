@@ -1,6 +1,7 @@
 import http from "@node-wot/binding-http";
 import core, { Servient } from "@node-wot/core";
 import testTM from "./test/resources/test-thing.tm.json" with { type: "json" };
+import { playwrightLauncher } from "@web/test-runner-playwright";
 
 var httpServer = new http.HttpServer({ port: 4433 });
 /** @type {Servient} */
@@ -191,5 +192,7 @@ function controlTestServient() {
 
 // your web-test-runner.config.js
 export default {
+    browsers: [playwrightLauncher()],
+    playwright: true,
     plugins: [controlTestServient()],
 };
