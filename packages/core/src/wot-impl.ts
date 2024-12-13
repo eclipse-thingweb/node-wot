@@ -28,7 +28,10 @@ import { inspect } from "util";
 const { debug } = createLoggers("core", "wot-impl");
 
 class ThingDiscoveryProcess implements WoT.ThingDiscoveryProcess {
-    constructor(private directory: WoT.ConsumedThing, public filter?: WoT.ThingFilter) {
+    constructor(
+        private directory: WoT.ConsumedThing,
+        public filter?: WoT.ThingFilter
+    ) {
         this.filter = filter;
         this.done = false;
     }

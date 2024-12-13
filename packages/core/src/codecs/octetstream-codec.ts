@@ -183,8 +183,8 @@ export default class OctetstreamCodec implements ContentCodec {
                         ? bytes.readInt16BE(0)
                         : bytes.readUInt16BE(0)
                     : signed
-                    ? bytes.readInt16LE(0)
-                    : bytes.readUInt16LE(0);
+                      ? bytes.readInt16LE(0)
+                      : bytes.readUInt16LE(0);
 
             case 32:
                 return bigEndian
@@ -192,8 +192,8 @@ export default class OctetstreamCodec implements ContentCodec {
                         ? bytes.readInt32BE(0)
                         : bytes.readUInt32BE(0)
                     : signed
-                    ? bytes.readInt32LE(0)
-                    : bytes.readUInt32LE(0);
+                      ? bytes.readInt32LE(0)
+                      : bytes.readUInt32LE(0);
 
             default: {
                 const result = bigEndian
@@ -201,8 +201,8 @@ export default class OctetstreamCodec implements ContentCodec {
                         ? bytes.readIntBE(0, dataLength / 8)
                         : bytes.readUIntBE(0, dataLength / 8)
                     : signed
-                    ? bytes.readIntLE(0, dataLength / 8)
-                    : bytes.readUIntLE(0, dataLength / 8);
+                      ? bytes.readIntLE(0, dataLength / 8)
+                      : bytes.readUIntLE(0, dataLength / 8);
                 // warn about numbers being too big to be represented as safe integers
                 if (!Number.isSafeInteger(result)) {
                     warn("Result is not a safe integer");
@@ -460,8 +460,8 @@ export default class OctetstreamCodec implements ContentCodec {
                         ? buf.writeInt16BE(value, 0)
                         : buf.writeUInt16BE(value, 0)
                     : signed
-                    ? buf.writeInt16LE(value, 0)
-                    : buf.writeUInt16LE(value, 0);
+                      ? buf.writeInt16LE(value, 0)
+                      : buf.writeUInt16LE(value, 0);
                 break;
 
             case 4:
@@ -470,8 +470,8 @@ export default class OctetstreamCodec implements ContentCodec {
                         ? buf.writeInt32BE(value, 0)
                         : buf.writeUInt32BE(value, 0)
                     : signed
-                    ? buf.writeInt32LE(value, 0)
-                    : buf.writeUInt32LE(value, 0);
+                      ? buf.writeInt32LE(value, 0)
+                      : buf.writeUInt32LE(value, 0);
                 break;
 
             default:
