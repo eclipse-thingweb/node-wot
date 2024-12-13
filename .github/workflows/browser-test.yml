@@ -1,3 +1,4 @@
+# docs https://playwright.dev/docs/ci-intro#setting-up-github-actions
 name: Browser Tests
 
 on:
@@ -8,9 +9,8 @@ on:
         branches: [master]
 
 jobs:
-    browser:
+    test:
         runs-on: ubuntu-latest
-        container: mcr.microsoft.com/playwright:v1.39.0 # https://playwright.dev/docs/ci-intro#via-containers
         steps:
             - uses: actions/checkout@v4
             - name: Use Node.js 20.x
@@ -18,11 +18,11 @@ jobs:
               with:
                   node-version: 20.x
                   cache: "npm"
-
             - name: Install Dependencies
               run: npm ci
-
-            - name: Test Browser
+            - name: Install Playwright Browsers
+              run: npx playwright install --with-deps
+            - name: Test with browser bundle
               timeout-minutes: 2
               run: |
                   npm run test:browser
