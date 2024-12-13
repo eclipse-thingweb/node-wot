@@ -3,15 +3,14 @@ name: Browser Tests
 on:
     workflow_dispatch:
     push:
-        branches: [main]
+        branches: [master]
     pull_request:
-        branches: [main]
+        branches: [master]
 
 jobs:
     browser:
         runs-on: ubuntu-latest
         container: mcr.microsoft.com/playwright:v1.39.0 # https://playwright.dev/docs/ci-intro#via-containers
-
         steps:
             - uses: actions/checkout@v4
             - name: Use Node.js 20.x
@@ -24,9 +23,6 @@ jobs:
               run: npm ci
 
             - name: Test Browser
-              # only run on latest node version, no reason to run on all
               timeout-minutes: 2
-              env:
-                  HOME: /root
               run: |
                   npm run test:browser
