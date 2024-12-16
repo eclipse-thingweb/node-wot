@@ -448,6 +448,14 @@ Please also see the additional [notices](NOTICE.md) and [how to contribute](CONT
 <details>
 <summary>details</summary>
 
+### Running tests
+
+We distinguish between the following set of tests.
+
+-   `npm run test` runs the default set of tests (without browser tests)
+-   `npm run test:browser` runs the browser tests only (requires [Playwright](https://playwright.dev/))
+-   `npm run test:all` runs the combination of the afore mentioned tests
+
 ### Publishing on NPM
 
 Run `npm publish --workspaces` in root node-wot folder.
