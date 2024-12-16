@@ -47,7 +47,7 @@ WoT.requestThingDescription("http://127.0.0.1:8080/smart-coffee-machine").then(a
         const makeCoffee = await thing.invokeAction("makeDrink", undefined, {
             uriVariables: { drinkId: "latte", size: "l", quantity: 3 },
         });
-        const makeCoffeep = await (makeCoffee === null || makeCoffee === void 0 ? void 0 : makeCoffee.value());
+        const makeCoffeep = await makeCoffee?.value();
         if (makeCoffeep.result != null) {
             log("Enjoy your drink!", makeCoffeep);
         } else {
@@ -64,9 +64,7 @@ WoT.requestThingDescription("http://127.0.0.1:8080/smart-coffee-machine").then(a
             time: "10:00",
             mode: "everyday",
         });
-        const scheduledTaskp = await (scheduledTask === null || scheduledTask === void 0
-            ? void 0
-            : scheduledTask.value());
+        const scheduledTaskp = await scheduledTask?.value();
         log(scheduledTaskp.message, scheduledTaskp);
         // See how it has been added to the schedules property
         const schedules = await (await thing.readProperty("schedules")).value();

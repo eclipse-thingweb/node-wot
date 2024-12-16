@@ -80,7 +80,7 @@ WoT.produce({
                 const listToDelete = [];
                 for (const id of countdowns.keys()) {
                     const as = countdowns.get(id);
-                    if ((as === null || as === void 0 ? void 0 : as.output) !== undefined) {
+                    if (as?.output !== undefined) {
                         const prev = as.output;
                         as.output--;
                         console.log("\t" + id + ", from " + prev + " to " + as.output);
@@ -111,7 +111,6 @@ WoT.produce({
         });
         // set action handlers (using async-await)
         thing.setActionHandler("startCountdown", async (params, options) => {
-            var _a;
             let initValue = 100;
             if (params != null) {
                 const value = await params.value();
@@ -126,7 +125,7 @@ WoT.produce({
             };
             const ii = resp;
             console.log("init countdown value = " + JSON.stringify(resp));
-            countdowns.set((_a = resp.href) !== null && _a !== void 0 ? _a : "", resp);
+            countdowns.set(resp.href ?? "", resp);
             return ii;
         });
         thing.setActionHandler("stopCountdown", async (params, options) => {

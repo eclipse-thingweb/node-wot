@@ -14,8 +14,7 @@
  ********************************************************************************/
 
 function getFormIndexForDecrementWithCoAP(thing) {
-    var _a;
-    const forms = (_a = thing.getThingDescription().actions) === null || _a === void 0 ? void 0 : _a.decrement.forms;
+    const forms = thing.getThingDescription().actions?.decrement.forms;
     if (forms !== undefined) {
         for (let i = 0; i < forms.length; i++) {
             if (/^coaps?:\/\/.*/.test(forms[i].href)) {
