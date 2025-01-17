@@ -80,7 +80,7 @@ class HttpServerTest {
             actions: {},
         });
 
-        let test: DataSchemaValue = "ok";
+        const test: DataSchemaValue = "ok";
         testThing.setPropertyReadHandler("testMiddleware", () => Promise.resolve(test));
         testThing.setPropertyReadHandler("testPassthrough", () => Promise.resolve(test));
 
@@ -587,7 +587,7 @@ class HttpServerTest {
                 },
             },
         });
-        let test: DataSchemaValue = null;
+        const test: DataSchemaValue = null;
         testThing.setPropertyReadHandler("test", async (options) => {
             expect(options?.uriVariables).to.deep.equal({ id: "testId", globalVarTest: "test1" });
             return test;
