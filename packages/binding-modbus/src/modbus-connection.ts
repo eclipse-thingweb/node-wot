@@ -142,7 +142,7 @@ export class ModbusConnection {
     client: ModbusRTU;
     connecting: boolean;
     connected: boolean;
-    timer: NodeJS.Timer | null; // connection idle timer
+    timer: NodeJS.Timeout | null; // connection idle timer
     currentTransaction: ModbusTransaction | null; // transaction currently in progress or null
     queue: Array<ModbusTransaction>; // queue of further transactions
     config: {
