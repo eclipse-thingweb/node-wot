@@ -1,12 +1,6 @@
 {
     "extends": "../../tsconfig.json",
     "compilerOptions": {
-        /*
-         * coap library is depending to lru-cache 10.2.2
-         * which suffers from a bug that causes error in the compiler.
-         * see https: //github.com/isaacs/node-lru-cache/issues/354
-         */
-        "skipLibCheck": true,
         "outDir": "dist",
         "rootDir": "src"
     },
