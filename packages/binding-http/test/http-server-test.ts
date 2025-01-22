@@ -80,7 +80,7 @@ class HttpServerTest {
             actions: {},
         });
 
-        let test: DataSchemaValue;
+        const test: DataSchemaValue = "ok";
         testThing.setPropertyReadHandler("testMiddleware", () => Promise.resolve(test));
         testThing.setPropertyReadHandler("testPassthrough", () => Promise.resolve(test));
 
@@ -96,6 +96,7 @@ class HttpServerTest {
 
         resp = await fetch(uri + "properties/testPassthrough");
         expect(resp.status).to.equal(200);
+        expect(await resp.text()).to.equal('"ok"');
 
         return httpServer.stop();
     }
@@ -586,7 +587,7 @@ class HttpServerTest {
                 },
             },
         });
-        let test: DataSchemaValue;
+        const test: DataSchemaValue = null;
         testThing.setPropertyReadHandler("test", async (options) => {
             expect(options?.uriVariables).to.deep.equal({ id: "testId", globalVarTest: "test1" });
             return test;
@@ -602,7 +603,7 @@ class HttpServerTest {
         const resp = await (
             await fetch(uri + "properties/test?id=testId&globalVarTest=test1", { method: "GET" })
         ).text();
-        expect(resp).to.equal("");
+        expect(resp).to.equal("null");
 
         return httpServer.stop();
     }

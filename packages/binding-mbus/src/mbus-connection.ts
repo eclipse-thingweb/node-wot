@@ -61,7 +61,7 @@ export class MBusConnection {
     client: any; // MBusClient.IMBusRTU
     connecting: boolean;
     connected: boolean;
-    timer?: NodeJS.Timer; // connection idle timer
+    timer?: NodeJS.Timeout; // connection idle timer
     currentTransaction?: MBusTransaction; // transaction currently in progress or undefined
     queue: Array<MBusTransaction>; // queue of further transactions
     config: {

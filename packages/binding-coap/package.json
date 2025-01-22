@@ -15,7 +15,7 @@
     "types": "dist/coap.d.ts",
     "dependencies": {
         "@node-wot/core": "0.8.17",
-        "coap": "^1.4.0",
+        "coap": "^1.4.1",
         "dns-packet": "^5.2.2",
         "multicast-dns": "^7.2.5",
         "node-coap-client": "1.0.8",
