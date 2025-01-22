@@ -156,7 +156,7 @@ export default class CoapClient implements ProtocolClient {
                 debug(`CoapClient received Content-Format: ${res.headers["Content-Format"]}`);
 
                 // FIXME does not work with blockwise because of node-coap
-                const contentType = res.headers["Content-Format"] ?? form.contentType ?? ContentSerdes.DEFAULT;
+                const contentType = res.headers["Content-Format"] ?? form.contentType;
 
                 res.on("data", (data: Buffer) => {
                     next(new Content(`${contentType}`, Readable.from(res.payload)));
@@ -250,7 +250,7 @@ export default class CoapClient implements ProtocolClient {
         const method = form["cov:method"] ?? defaultMethod;
         debug(`CoapClient got Form "method" ${method}`);
 
-        const contentFormat = form["cov:contentFormat"] ?? form.contentType ?? "application/json";
+        const contentFormat = form["cov:contentFormat"] ?? form.contentType;
         debug(`"CoapClient got Form 'contentType' ${contentFormat} `);
 
         const accept = form["cov:accept"];
