@@ -58,40 +58,40 @@ class WoTRuntimeTest {
     }
 
     @test "should provide cli args"() {
-        const envScript = `module.exports = process.argv[0]`;
+        const envScript = `process.argv[0]`;
 
-        const test = WoTRuntimeTest.servient.runPrivilegedScript(envScript, undefined, { argv: ["myArg"] });
+        const test = WoTRuntimeTest.servient.runScript(envScript, undefined, { argv: ["myArg"] });
         assert.equal(test, "myArg");
     }
 
     @test "should use the compiler function"() {
         const envScript = `this is not js`;
 
-        const test = WoTRuntimeTest.servient.runPrivilegedScript(envScript, undefined, {
+        const test = WoTRuntimeTest.servient.runScript(envScript, undefined, {
             compiler: () => {
-                return "module.exports = 'ok'";
+                return "'ok'";
             },
         });
         assert.equal(test, "ok");
     }
 
     @test "should provide env variables"() {
-        const envScript = `module.exports = process.env.MY_VAR`;
-        const test = WoTRuntimeTest.servient.runPrivilegedScript(envScript, undefined, { env: { MY_VAR: "test" } });
+        const envScript = `process.env.MY_VAR`;
+        const test = WoTRuntimeTest.servient.runScript(envScript, undefined, { env: { MY_VAR: "test" } });
         assert.equal(test, "test");
     }
 
     @test "should hide system env variables"() {
         const envScript = `module.exports = process.env.OS`;
 
-        const test = WoTRuntimeTest.servient.runPrivilegedScript(envScript);
+        const test = WoTRuntimeTest.servient.runScript(envScript);
         assert.equal(test, undefined);
     }
 
     @test "should require node builtin module"() {
-        const envScript = `module.exports = require("fs")`;
+        const envScript = `require("fs")`;
 
-        const test = WoTRuntimeTest.servient.runPrivilegedScript(envScript);
+        const test = WoTRuntimeTest.servient.runScript(envScript);
         assert.equal(test, fs);
     }
 
@@ -101,9 +101,6 @@ class WoTRuntimeTest {
         assert.doesNotThrow(() => {
             WoTRuntimeTest.servient.runScript(failNowScript);
         });
-        assert.doesNotThrow(() => {
-            WoTRuntimeTest.servient.runPrivilegedScript(failNowScript);
-        });
     }
 
     @test "should catch bad errors"() {
@@ -112,12 +109,9 @@ class WoTRuntimeTest {
         assert.doesNotThrow(() => {
             WoTRuntimeTest.servient.runScript(failNowScript);
         });
-        assert.doesNotThrow(() => {
-            WoTRuntimeTest.servient.runPrivilegedScript(failNowScript);
-        });
     }
 
-    @test "should catch bad asynchronous errors for runScript"(done: Mocha.Done) {
+    @test "should catch bad asynchronous errors"(done: Mocha.Done) {
         // Mocha does not like string errors: https://github.com/trufflesuite/ganache-cli/issues/658
         // so here I am removing its listeners for uncaughtException.
         // WARNING:  Remove this line as soon the issue is resolved.
@@ -136,27 +130,6 @@ class WoTRuntimeTest {
 
         assert.doesNotThrow(() => {
             WoTRuntimeTest.servient.runScript(failThenScript);
-        });
-    }
-
-    @test "should catch bad asynchronous errors  for runPrivilegedScript"(done: Mocha.Done) {
-        // Mocha does not like string errors: https://github.com/trufflesuite/ganache-cli/issues/658
-        // so here I am removing its listeners for uncaughtException.
-        // WARNING:  Remove this line as soon the issue is resolved.
-        const listeners = this.clearUncaughtListeners();
-        let called = false;
-
-        this.mockupProcessExitWithFunction(() => {
-            if (!called) {
-                done();
-                this.restoreUncaughtListeners(listeners);
-                called = true;
-            }
-        });
-
-        const failThenScript = `setTimeout( () => { throw "Bad asynchronous error in Servient sandbox"; }, 1);`;
-        assert.doesNotThrow(() => {
-            WoTRuntimeTest.servient.runPrivilegedScript(failThenScript);
         });
     }
 

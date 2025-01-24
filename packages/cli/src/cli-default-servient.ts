@@ -25,8 +25,9 @@ import { HttpServer, HttpClientFactory, HttpsClientFactory } from "@node-wot/bin
 import { CoapServer, CoapClientFactory, CoapsClientFactory } from "@node-wot/binding-coap";
 import { MqttBrokerServer, MqttClientFactory } from "@node-wot/binding-mqtt";
 import { FileClientFactory } from "@node-wot/binding-file";
-import { CompilerFunction, NodeVM } from "vm2";
 import { ThingModelHelpers } from "@thingweb/thing-model";
+import { createContext, Script } from "vm";
+import { CompilerFunction } from "./compiler-function";
 
 const { debug, error, info } = createLoggers("cli", "cli-default-servient");
 
@@ -160,72 +161,33 @@ export default class DefaultServient extends Servient {
     }
 
     /**
-     * Runs the script in a new sandbox
-     * @param {string} code - the script to run
-     * @param {string} filename - the filename of the script
-     */
-    public runScript(code: string, filename = "script"): unknown {
-        if (!this.runtime) {
-            throw new Error("WoT runtime not loaded; have you called start()?");
-        }
-        const helpers = new Helpers(this);
-        const context = {
-            WoT: this.runtime,
-            WoTHelpers: helpers,
-            ModelHelpers: new ThingModelHelpers(helpers),
-        };
-
-        const vm = new NodeVM({
-            sandbox: context,
-        });
-
-        const listener = (err: Error) => {
-            this.logScriptError(`Asynchronous script error '${filename}'`, err);
-            // TODO: clean up script resources
-            process.exit(1);
-        };
-        process.prependListener("uncaughtException", listener);
-        this.uncaughtListeners.push(listener);
-
-        try {
-            return vm.run(code, filename);
-        } catch (err) {
-            if (err instanceof Error) {
-                this.logScriptError(`Servient found error in script '${filename}'`, err);
-            } else {
-                error(`Servient found error in script '${filename}' ${err}`);
-            }
-            return undefined;
-        }
-    }
-
-    /**
      * Runs the script in privileged context (dangerous). In practice, this means that the script can
      * require system modules.
      * @param {string} code - the script to run
      * @param {string} filename - the filename of the script
      * @param {object} options - pass cli variables or envs to the script
      */
-    public runPrivilegedScript(code: string, filename = "script", options: ScriptOptions = {}): unknown {
+    public runScript(code: string, filename = "script", options: ScriptOptions = {}): unknown {
         if (!this.runtime) {
             throw new Error("WoT runtime not loaded; have you called start()?");
         }
         const helpers = new Helpers(this);
-        const context = {
+
+        options.compiler ??= (code) => code;
+
+        const compiledCode = options.compiler(code, filename);
+        const script = new Script(compiledCode, filename);
+        process.argv = options.argv ?? [];
+        process.env = options.env ?? process.env;
+        const context = createContext({
+            ...globalThis,
+            process,
+            require,
+            console,
+            exports: {},
             WoT: this.runtime,
             WoTHelpers: helpers,
             ModelHelpers: new ThingModelHelpers(helpers),
-        };
-
-        const vm = new NodeVM({
-            sandbox: context,
-            require: {
-                external: true,
-                builtin: ["*"],
-            },
-            argv: options.argv,
-            compiler: options.compiler,
-            env: options.env,
         });
 
         const listener = (err: Error) => {
@@ -233,11 +195,12 @@ export default class DefaultServient extends Servient {
             // TODO: clean up script resources
             process.exit(1);
         };
+
         process.prependListener("uncaughtException", listener);
         this.uncaughtListeners.push(listener);
 
         try {
-            return vm.run(code, filename);
+            return script.runInContext(context, { displayErrors: true });
         } catch (err) {
             if (err instanceof Error) {
                 this.logScriptError(`Servient found error in privileged script '${filename}'`, err);
@@ -273,6 +236,7 @@ export default class DefaultServient extends Servient {
                 .then((myWoT) => {
                     info("DefaultServient started");
                     this.runtime = myWoT;
+
                     // TODO think about builder pattern that starts with produce() ends with expose(), which exposes/publishes the Thing
                     myWoT
                         .produce({
@@ -296,11 +260,15 @@ export default class DefaultServient extends Servient {
                                     description: "Stop servient",
                                     output: { type: "string" },
                                 },
-                                runScript: {
-                                    description: "Run script",
-                                    input: { type: "string" },
-                                    output: { type: "string" },
-                                },
+                                ...(this.config.servient.scriptAction === true
+                                    ? {
+                                          runScript: {
+                                              description: "Run script",
+                                              input: { type: "string" },
+                                              output: { type: "string" },
+                                          },
+                                      }
+                                    : {}),
                             },
                         })
                         .then((thing) => {
@@ -321,12 +289,14 @@ export default class DefaultServient extends Servient {
                                 await this.shutdown();
                                 return undefined;
                             });
-                            thing.setActionHandler("runScript", async (script) => {
-                                const scriptv = await Helpers.parseInteractionOutput(script);
-                                debug("running script", scriptv);
-                                this.runScript(scriptv as string);
-                                return undefined;
-                            });
+                            if (this.config.servient.scriptAction === true) {
+                                thing.setActionHandler("runScript", async (script) => {
+                                    const scriptv = await Helpers.parseInteractionOutput(script);
+                                    debug("running script", scriptv);
+                                    this.runScript(scriptv as string);
+                                    return undefined;
+                                });
+                            }
                             thing.setPropertyReadHandler("things", async () => {
                                 debug("returning things");
                                 return this.getThings();

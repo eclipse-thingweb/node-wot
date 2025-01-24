@@ -296,7 +296,7 @@ const runScripts = async function (servient: DefaultServient, scripts: Array<str
                     );
 
                     fname = path.resolve(fname);
-                    servient.runPrivilegedScript(data, fname, {
+                    servient.runScript(data, fname, {
                         argv: args,
                         env: env.parsed,
                         compiler: compile,
