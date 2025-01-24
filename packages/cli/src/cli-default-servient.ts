@@ -229,89 +229,78 @@ export default class DefaultServient extends Servient {
     /**
      * start
      */
-    public start(): Promise<typeof WoT> {
-        return new Promise<typeof WoT>((resolve, reject) => {
-            super
-                .start()
-                .then((myWoT) => {
-                    info("DefaultServient started");
-                    this.runtime = myWoT;
+    public async start(): Promise<typeof WoT> {
+        const superWoT = await super.start();
+        this.runtime = superWoT;
 
-                    // TODO think about builder pattern that starts with produce() ends with expose(), which exposes/publishes the Thing
-                    myWoT
-                        .produce({
-                            title: "servient",
-                            description: "node-wot CLI Servient",
-                            properties: {
-                                things: {
-                                    type: "object",
-                                    description: "Get things",
-                                    observable: false,
-                                    readOnly: true,
-                                },
-                            },
-                            actions: {
-                                setLogLevel: {
-                                    description: "Set log level",
-                                    input: { oneOf: [{ type: "string" }, { type: "number" }] },
-                                    output: { type: "string" },
-                                },
-                                shutdown: {
-                                    description: "Stop servient",
-                                    output: { type: "string" },
-                                },
-                                ...(this.config.servient.scriptAction === true
-                                    ? {
-                                          runScript: {
-                                              description: "Run script",
-                                              input: { type: "string" },
-                                              output: { type: "string" },
-                                          },
-                                      }
-                                    : {}),
-                            },
-                        })
-                        .then((thing) => {
-                            thing.setActionHandler("setLogLevel", async (level) => {
-                                const ll = await Helpers.parseInteractionOutput(level);
-                                if (typeof ll === "number") {
-                                    this.setLogLevel(ll as number);
-                                } else if (typeof ll === "string") {
-                                    this.setLogLevel(ll as string);
-                                } else {
-                                    // try to convert it to strings
-                                    this.setLogLevel(ll + "");
-                                }
-                                return `Log level set to '${this.logLevel}'`;
-                            });
-                            thing.setActionHandler("shutdown", async () => {
-                                debug("shutting down by remote");
-                                await this.shutdown();
-                                return undefined;
-                            });
-                            if (this.config.servient.scriptAction === true) {
-                                thing.setActionHandler("runScript", async (script) => {
-                                    const scriptv = await Helpers.parseInteractionOutput(script);
-                                    debug("running script", scriptv);
-                                    this.runScript(scriptv as string);
-                                    return undefined;
-                                });
-                            }
-                            thing.setPropertyReadHandler("things", async () => {
-                                debug("returning things");
-                                return this.getThings();
-                            });
-                            thing
-                                .expose()
-                                .then(() => {
-                                    // pass on WoTFactory
-                                    resolve(myWoT);
-                                })
-                                .catch((err) => reject(err));
-                        });
-                })
-                .catch((err) => reject(err));
+        info("DefaultServient started");
+
+        const servientProducedThing = await superWoT.produce({
+            title: "servient",
+            description: "node-wot CLI Servient",
+            properties: {
+                things: {
+                    type: "object",
+                    description: "Get things",
+                    observable: false,
+                    readOnly: true,
+                },
+            },
+            actions: {
+                setLogLevel: {
+                    description: "Set log level",
+                    input: { oneOf: [{ type: "string" }, { type: "number" }] },
+                    output: { type: "string" },
+                },
+                shutdown: {
+                    description: "Stop servient",
+                    output: { type: "string" },
+                },
+                ...(this.config.servient.scriptAction === true
+                    ? {
+                          runScript: {
+                              description: "Run script",
+                              input: { type: "string" },
+                              output: { type: "string" },
+                          },
+                      }
+                    : {}),
+            },
         });
+
+        servientProducedThing.setActionHandler("setLogLevel", async (level) => {
+            const ll = await Helpers.parseInteractionOutput(level);
+            if (typeof ll === "number") {
+                this.setLogLevel(ll as number);
+            } else if (typeof ll === "string") {
+                this.setLogLevel(ll as string);
+            } else {
+                // try to convert it to strings
+                this.setLogLevel(ll + "");
+            }
+            return `Log level set to '${this.logLevel}'`;
+        });
+        servientProducedThing.setActionHandler("shutdown", async () => {
+            debug("shutting down by remote");
+            await this.shutdown();
+            return undefined;
+        });
+        if (this.config.servient.scriptAction === true) {
+            servientProducedThing.setActionHandler("runScript", async (script) => {
+                const scriptv = await Helpers.parseInteractionOutput(script);
+                debug("running script", scriptv);
+                this.runScript(scriptv as string);
+                return undefined;
+            });
+        }
+        servientProducedThing.setPropertyReadHandler("things", async () => {
+            debug("returning things");
+            return this.getThings();
+        });
+
+        await servientProducedThing.expose();
+
+        return superWoT;
     }
 
     public async shutdown(): Promise<void> {
