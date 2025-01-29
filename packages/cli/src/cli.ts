@@ -14,30 +14,29 @@
  ********************************************************************************/
 
 // default implementation of W3C WoT Servient (http(s) and file bindings)
-import DefaultServient from "./cli-default-servient";
-import ErrnoException = NodeJS.ErrnoException;
+import DefaultServient, { ScriptOptions } from "./cli-default-servient";
 
 // tools
-import fs = require("fs");
-import * as dotenv from "dotenv";
 import * as path from "path";
-import { Command, InvalidArgumentError, Argument } from "commander";
-import Ajv, { ValidateFunction, ErrorObject } from "ajv";
+import { Command, Argument } from "commander";
+import Ajv, { ValidateFunction } from "ajv";
 import ConfigSchema from "./wot-servient-schema.conf.json";
-import _ from "lodash";
 import { version } from "@node-wot/core/package.json";
 import { createLoggers } from "@node-wot/core";
-import inspector from "inspector";
+import { buildConfig } from "./config-builder";
+import { loadCompiler, loadEnvVariables } from "./utils";
+import { runScripts } from "./script-runner";
+import { readdir } from "fs/promises";
+import * as logger from "debug";
+import { parseConfigFile, parseConfigParams, parseIp } from "./parsers";
 
-const { error, info, warn } = createLoggers("cli", "cli");
+const { error, info, warn, debug } = createLoggers("cli", "cli");
 
 const program = new Command();
 const ajv = new Ajv({ strict: true });
 const schemaValidator = ajv.compile(ConfigSchema) as ValidateFunction;
 const defaultFile = "wot-servient.conf.json";
 const baseDir = ".";
-
-const dotEnvConfigParameters: DotEnvConfigParameter = {};
 
 // General commands
 program
@@ -115,87 +114,19 @@ VAR1=Value1
 VAR2=Value2`
 );
 
-// Typings
-type DotEnvConfigParameter = {
-    [key: string]: unknown;
-};
-interface DebugParams {
-    shouldBreak: boolean;
-    host: string;
-    port: number;
-}
-
-// Parsers & validators
-function parseIp(value: string, previous: string) {
-    if (!/^([a-z]*|[\d.]*)(:[0-9]{2,5})?$/.test(value)) {
-        throw new InvalidArgumentError("Invalid host:port combo");
-    }
-
-    return value;
-}
-function parseConfigFile(filename: string, previous: string) {
-    try {
-        const open = filename || path.join(baseDir, defaultFile);
-        const data = fs.readFileSync(open, "utf-8");
-        if (!schemaValidator(JSON.parse(data))) {
-            throw new InvalidArgumentError(
-                `Config file contains invalid an JSON: ${(schemaValidator.errors ?? [])
-                    .map((o: ErrorObject) => o.message)
-                    .join("\n")}`
-            );
-        }
-        return filename;
-    } catch (err) {
-        throw new InvalidArgumentError(`Error reading config file: ${err}`);
-    }
-}
-function parseConfigParams(param: string, previous: unknown) {
-    // Validate key-value pair
-    if (!/^([a-zA-Z0-9_.]+):=([a-zA-Z0-9_]+)$/.test(param)) {
-        throw new InvalidArgumentError("Invalid key-value pair");
-    }
-    const fieldNamePath = param.split(":=")[0];
-    const fieldNameValue = param.split(":=")[1];
-    let fieldNameValueCast;
-    if (Number(fieldNameValue)) {
-        fieldNameValueCast = +fieldNameValue;
-    } else if (fieldNameValue === "true" || fieldNameValue === "false") {
-        fieldNameValueCast = Boolean(fieldNameValue);
-    } else {
-        fieldNameValueCast = fieldNamePath;
-    }
-
-    // Build object using dot-notation JSON path
-    const obj = _.set({}, fieldNamePath, fieldNameValueCast);
-    if (!schemaValidator(obj)) {
-        throw new InvalidArgumentError(
-            `Config parameter '${param}' is not valid: ${(schemaValidator.errors ?? [])
-                .map((o: ErrorObject) => o.message)
-                .join("\n")}`
-        );
-    }
-    // Concatenate validated parameters
-    let result = previous ?? {};
-    result = _.merge(result, obj);
-    return result;
-}
-
 // CLI options declaration
 program
     .option("-i, --inspect [host]:[port]", "activate inspector on host:port (default: 127.0.0.1:9229)", parseIp)
     .option("-ib, --inspect-brk [host]:[port]", "activate inspector on host:port (default: 127.0.0.1:9229)", parseIp)
     .option("-c, --client-only", "do not start any servers (enables multiple instances without port conflicts)")
     .option("-cp, --compiler <module>", "load module as a compiler")
-    .option(
-        "-f, --config-file <file>",
-        "load configuration from specified file",
-        parseConfigFile,
-        "wot-servient.conf.json"
+    .option("-f, --config-file <file>", "load configuration from specified file", (value, previous) =>
+        parseConfigFile(value, previous, schemaValidator)
     )
     .option(
         "-p, --config-params <param...>",
         "override configuration parameters [key1:=value1 key2:=value2 ...] (e.g. http.port:=8080)",
-        parseConfigParams
+        (value, previous) => parseConfigParams(value, previous, schemaValidator)
     );
 
 // CLI arguments
@@ -206,189 +137,54 @@ program.addArgument(
     )
 );
 
-program.parse(process.argv);
-const options = program.opts();
-const args = program.args;
-
-// .env parsing
-const env: dotenv.DotenvConfigOutput = dotenv.config();
-const errorNoException: ErrnoException | undefined = env.error;
-if (errorNoException?.code !== "ENOENT") {
-    throw env.error;
-} else if (env.parsed) {
-    for (const [key, value] of Object.entries(env.parsed)) {
-        // Parse and validate on configfile-related entries
-        if (key.startsWith("config.")) {
-            dotEnvConfigParameters[key.replace("config.", "")] = value;
-        }
-    }
-}
-
-// Functions
-async function buildConfig(): Promise<unknown> {
-    const fileToOpen = options?.configFile ?? path.join(baseDir, defaultFile);
-    let configFileData = {};
-
-    // JSON config file
-    try {
-        configFileData = JSON.parse(await fs.promises.readFile(fileToOpen, "utf-8"));
-    } catch (err) {
-        error(`WoT-Servient config file error: ${err}`);
+program.action(async function (_, options, cmd) {
+    if (process.env.DEBUG == null) {
+        // by default enable error logs and warnings
+        // user can override it using DEBUG env
+        logger.enable("node-wot:**:error");
+        logger.enable("node-wot:**:warn");
     }
 
-    // .env file
-    for (const [key, value] of Object.entries(dotEnvConfigParameters)) {
-        const obj = _.set({}, key, value);
-        configFileData = _.merge(configFileData, obj);
-    }
-
-    // CLI arguments
-    if (options?.configParams != null) {
-        configFileData = _.merge(configFileData, options.configParams);
-    }
-
-    return configFileData;
-}
-const loadCompilerFunction = function (compilerModule: string | undefined) {
-    if (compilerModule != null) {
-        const compilerMod = require(compilerModule);
-
-        if (compilerMod.create == null) {
-            throw new Error("No create function defined for " + compilerModule);
-        }
-
-        const compilerObject = compilerMod.create();
-
-        if (compilerObject.compile == null) {
-            throw new Error("No compile function defined for create return object");
-        }
-        return compilerObject.compile;
-    }
-    return undefined;
-};
-const loadEnvVariables = function () {
-    const env: dotenv.DotenvConfigOutput = dotenv.config();
-
-    const errorNoException: ErrnoException | undefined = env.error;
-    // ignore file not found but throw otherwise
-    if (errorNoException?.code !== "ENOENT") {
-        throw env.error;
-    }
-    return env;
-};
-
-const runScripts = async function (servient: DefaultServient, scripts: Array<string>, debug?: DebugParams) {
+    const args = cmd.args;
     const env = loadEnvVariables();
+    const defaultFilePath = path.join(baseDir, defaultFile);
+    let servient: DefaultServient;
 
-    const launchScripts = (scripts: Array<string>) => {
-        const compile = loadCompilerFunction(options.compiler);
-        scripts.forEach((fname: string) => {
-            info(`WoT-Servient reading script ${fname}`);
-            fs.readFile(fname, "utf8", (err, data) => {
-                if (err) {
-                    error(`WoT-Servient experienced error while reading script. ${err}`);
-                } else {
-                    // limit printout to first line
-                    info(
-                        `WoT-Servient running script '${data.substr(0, data.indexOf("\n")).replace("\r", "")}'... (${
-                            data.split(/\r\n|\r|\n/).length
-                        } lines)`
-                    );
+    debug("command line options %O", options);
+    debug("command line arguments %O", args);
+    debug("command line environment variables", args);
 
-                    fname = path.resolve(fname);
-                    servient.runScript(data, fname, {
-                        argv: args,
-                        env: env.parsed,
-                        compiler: compile,
-                    });
-                }
-            });
-        });
+    try {
+        const config = await buildConfig(options, defaultFilePath, env);
+        servient = new DefaultServient(options.clientOnly, config);
+    } catch (err) {
+        if ((err as NodeJS.ErrnoException)?.code !== "ENOENT" || options.configFile != null) {
+            error("WoT-Servient config file error. %O", err);
+            process.exit((err as NodeJS.ErrnoException).errno ?? 1);
+        }
+
+        warn(`WoT-Servient using defaults as %s does not exist`, defaultFile);
+        servient = new DefaultServient(options.clientOnly);
+    }
+
+    await servient.start();
+
+    const scriptOptions: ScriptOptions = {
+        env,
+        argv: args,
+        compiler: loadCompiler(options.compiler),
     };
 
-    if (debug && debug.shouldBreak) {
-        // Activate inspector only if is not already opened and wait for the debugger to attach
-        inspector.url() == null && inspector.open(debug.port, debug.host, true);
-
-        // Set a breakpoint at the first line of of first script
-        // the breakpoint gives time to inspector clients to set their breakpoints
-        const session = new inspector.Session();
-        session.connect();
-        session.post("Debugger.enable", (error: Error) => {
-            if (error != null) {
-                warn("Cannot set breakpoint; reason: cannot enable debugger");
-                warn(error.toString());
-            }
-
-            session.post(
-                "Debugger.setBreakpointByUrl",
-                {
-                    lineNumber: 0,
-                    url: "file:///" + path.resolve(scripts[0]).replace(/\\/g, "/"),
-                },
-                (err: Error | null) => {
-                    if (err != null) {
-                        warn("Cannot set breakpoint");
-                        warn(error.toString());
-                    }
-                    launchScripts(scripts);
-                }
-            );
-        });
-    } else {
-        // Activate inspector only if is not already opened and don't wait
-        debug != null && inspector.url() == null && inspector.open(debug.port, debug.host, false);
-        launchScripts(scripts);
+    if (args.length > 0) {
+        return runScripts(servient, args, scriptOptions, options.inspect ?? options.inspectBrk);
     }
-};
 
-const runAllScripts = function (servient: DefaultServient, debug?: DebugParams) {
-    fs.readdir(baseDir, (err, files) => {
-        if (err) {
-            warn(`WoT-Servient experienced error while loading directory. ${err}`);
-            return;
-        }
+    const files = await readdir(baseDir);
+    const scripts = files.filter((file) => !file.startsWith(".") && file.slice(-3) === ".js");
 
-        // unhidden .js files
-        const scripts = files.filter((file) => {
-            return file.substr(0, 1) !== "." && file.slice(-3) === ".js";
-        });
-        info(`WoT-Servient using current directory with ${scripts.length} script${scripts.length > 1 ? "s" : ""}`);
+    info(`WoT-Servient using current directory with %d script${scripts.length > 1 ? "s" : ""}`, scripts.length);
 
-        runScripts(
-            servient,
-            scripts.map((filename) => path.resolve(path.join(baseDir, filename))),
-            debug
-        );
-    });
-};
+    return runScripts(servient, args, scriptOptions, options.inspect ?? options.inspectBrk);
+});
 
-buildConfig()
-    .then((conf) => {
-        return new DefaultServient(options.clientOnly, conf);
-    })
-    .catch((err) => {
-        if (err.code === "ENOENT" && options.configFile == null) {
-            warn(`WoT-Servient using defaults as '${defaultFile}' does not exist`);
-            return new DefaultServient(options.clientOnly);
-        } else {
-            error(`"WoT-Servient config file error. ${err}`);
-            process.exit(err.errno);
-        }
-    })
-    .then((servient) => {
-        servient
-            .start()
-            .then(() => {
-                if (args.length > 0) {
-                    info(`WoT-Servient loading ${args.length} command line script${args.length > 1 ? "s" : ""}`);
-                    return runScripts(servient, args, options.inspect ?? options.inspectBrk);
-                } else {
-                    return runAllScripts(servient, options.inspect ?? options.inspectBrk);
-                }
-            })
-            .catch((err) => {
-                error(`WoT-Servient cannot start. ${err}`);
-            });
-    })
-    .catch((err) => error(`WoT-Servient main error. ${err}`));
+program.parse(process.argv);
