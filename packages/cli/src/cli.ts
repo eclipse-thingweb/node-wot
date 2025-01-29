@@ -18,7 +18,7 @@ import DefaultServient, { ScriptOptions } from "./cli-default-servient";
 
 // tools
 import * as path from "path";
-import { Command, Argument } from "commander";
+import { Command, Argument, Option } from "commander";
 import Ajv, { ValidateFunction } from "ajv";
 import ConfigSchema from "./wot-servient-schema.conf.json";
 import { version } from "@node-wot/core/package.json";
@@ -27,8 +27,8 @@ import { buildConfig } from "./config-builder";
 import { loadCompiler, loadEnvVariables } from "./utils";
 import { runScripts } from "./script-runner";
 import { readdir } from "fs/promises";
-import * as logger from "debug";
 import { parseConfigFile, parseConfigParams, parseIp } from "./parsers";
+import { setLogLevel } from "./utils/set-log-level";
 
 const { error, info, warn, debug } = createLoggers("cli", "cli");
 
@@ -120,6 +120,12 @@ program
     .option("-ib, --inspect-brk [host]:[port]", "activate inspector on host:port (default: 127.0.0.1:9229)", parseIp)
     .option("-c, --client-only", "do not start any servers (enables multiple instances without port conflicts)")
     .option("-cp, --compiler <module>", "load module as a compiler")
+    .addOption(
+        new Option(
+            "-ll, --logLevel <string>",
+            "choose the desired log level. WARNING: if DEBUG env variable is specified this option gets overridden."
+        ).choices(["debug", "info", "warn", "error"])
+    )
     .option("-f, --config-file <file>", "load configuration from specified file", (value, previous) =>
         parseConfigFile(value, previous, schemaValidator)
     )
@@ -138,11 +144,11 @@ program.addArgument(
 );
 
 program.action(async function (_, options, cmd) {
+    // Allow user to personalized the env
     if (process.env.DEBUG == null) {
         // by default enable error logs and warnings
-        // user can override it using DEBUG env
-        logger.enable("node-wot:**:error");
-        logger.enable("node-wot:**:warn");
+        // user can override using command line option
+        setLogLevel(options.logLevel ?? "warn");
     }
 
     const args = cmd.args;
@@ -156,6 +162,8 @@ program.action(async function (_, options, cmd) {
 
     try {
         const config = await buildConfig(options, defaultFilePath, env);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setLogLevel((config.log as any).level ?? options.logLevel ?? "warn");
         servient = new DefaultServient(options.clientOnly, config);
     } catch (err) {
         if ((err as NodeJS.ErrnoException)?.code !== "ENOENT" || options.configFile != null) {

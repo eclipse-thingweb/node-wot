@@ -28,6 +28,7 @@ import { FileClientFactory } from "@node-wot/binding-file";
 import { ThingModelHelpers } from "@thingweb/thing-model";
 import { createContext, Script } from "vm";
 import { CompilerFunction } from "./compiler-function";
+import { LogLevel, setLogLevel } from "./utils/set-log-level";
 
 const { debug, error, info } = createLoggers("cli", "cli-default-servient");
 
@@ -77,9 +78,6 @@ export default class DefaultServient extends Servient {
         coap: {
             port: 5683,
         },
-        log: {
-            level: "info",
-        },
     };
 
     private uncaughtListeners: Array<NodeJS.UncaughtExceptionListener> = [];
@@ -102,9 +100,6 @@ export default class DefaultServient extends Servient {
             this.config.servient ??= {};
             this.config.servient.clientOnly = true;
         }
-
-        // set log level before any output
-        this.setLogLevel(this.config.log.level);
 
         // load credentials from config
         this.addCredentials(this.config.credentials);
@@ -249,7 +244,10 @@ export default class DefaultServient extends Servient {
             actions: {
                 setLogLevel: {
                     description: "Set log level",
-                    input: { oneOf: [{ type: "string" }, { type: "number" }] },
+                    input: {
+                        type: "string",
+                        enum: ["debug", "info", "warn", "error"],
+                    },
                     output: { type: "string" },
                 },
                 shutdown: {
@@ -268,16 +266,10 @@ export default class DefaultServient extends Servient {
             },
         });
 
-        servientProducedThing.setActionHandler("setLogLevel", async (level) => {
-            const ll = await Helpers.parseInteractionOutput(level);
-            if (typeof ll === "number") {
-                this.setLogLevel(ll as number);
-            } else if (typeof ll === "string") {
-                this.setLogLevel(ll as string);
-            } else {
-                // try to convert it to strings
-                this.setLogLevel(ll + "");
-            }
+        servientProducedThing.setActionHandler("setLogLevel", async (payload) => {
+            const level = (await Helpers.parseInteractionOutput(payload)) as LogLevel;
+            setLogLevel(level);
+            this.logLevel = level;
             return `Log level set to '${this.logLevel}'`;
         });
         servientProducedThing.setActionHandler("shutdown", async () => {
@@ -309,61 +301,5 @@ export default class DefaultServient extends Servient {
         this.uncaughtListeners.forEach((listener) => {
             process.removeListener("uncaughtException", listener);
         });
-    }
-
-    // Save default loggers (needed when changing log levels)
-    private readonly loggers: any = {
-        warn: console.warn,
-        info: console.info,
-        debug: console.debug,
-    };
-
-    private setLogLevel(logLevel: string | number): void {
-        if (logLevel === "error" || logLevel === 0) {
-            console.warn = () => {
-                /* nothing */
-            };
-            console.info = () => {
-                /* nothing */
-            };
-            console.debug = () => {
-                /* nothing */
-            };
-
-            this.logLevel = "error";
-        } else if (logLevel === "warn" || logLevel === "warning" || logLevel === 1) {
-            console.warn = this.loggers.warn;
-            console.info = () => {
-                /* nothing */
-            };
-            console.debug = () => {
-                /* nothing */
-            };
-
-            this.logLevel = "warn";
-        } else if (logLevel === "info" || logLevel === 2) {
-            console.warn = this.loggers.warn;
-            console.info = this.loggers.info;
-            console.debug = () => {
-                /* nothing */
-            };
-
-            this.logLevel = "info";
-        } else if (logLevel === "debug" || logLevel === 3) {
-            console.warn = this.loggers.warn;
-            console.info = this.loggers.info;
-            console.debug = this.loggers.debug;
-
-            this.logLevel = "debug";
-        } else {
-            // Fallback to default ("info")
-            console.warn = this.loggers.warn;
-            console.info = this.loggers.info;
-            console.debug = () => {
-                /* nothing */
-            };
-
-            this.logLevel = "info";
-        }
     }
 }
