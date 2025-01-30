@@ -23,13 +23,16 @@ export function parseConfigFile(filename: string, previous: unknown, validator: 
         const data = readFileSync(open, "utf-8");
         if (!validator(JSON.parse(data))) {
             throw new InvalidArgumentError(
-                `Config file contains invalid an JSON: ${(validator.errors ?? [])
-                    .map((o: ErrorObject) => o.message)
+                `\n\nConfig file contains an invalid JSON structure:\n ${(validator.errors ?? [])
+                    .map((o: ErrorObject) => `\tError ${o.instancePath || "root"}: ${o.message}`)
                     .join("\n")}`
             );
         }
         return filename;
     } catch (err) {
-        throw new InvalidArgumentError(`Error reading config file: ${err}`);
+        if (err instanceof InvalidArgumentError) {
+            throw err;
+        }
+        throw new InvalidArgumentError(`\nError reading config file: ${err}`);
     }
 }
