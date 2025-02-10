@@ -1,5 +1,6 @@
+"use strict";
 /********************************************************************************
- * Copyright (c) 2022 Contributors to the Eclipse Foundation
+ * Copyright (c) 2020 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -12,7 +13,6 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-
 // This is an example Thing script.
 // It has a count property that can be incremented or decremented via actions and its changes are reported via events.
 // It also has two properties that return an image. The SVG property is also influenced by the increment and decrement actions.
