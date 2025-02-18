@@ -129,7 +129,7 @@ export default class Helpers implements Resolver {
         if (suffix !== null) {
             return name.slice(0, -suffix[1].length) + (1 + parseInt(suffix[1]));
         } else {
-            return name + "_2";
+            return name + "_";
         }
     }
 
