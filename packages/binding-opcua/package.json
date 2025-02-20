@@ -51,7 +51,7 @@
         "lint:fix": "eslint . --fix",
         "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"**/*.json\"",
         "ncu:opcua": "npx -y npm-check-updates -u -f \"node-opcua*\" -t newest",
-        "test": "mocha"
+        "test": "mocha  --unhandled-rejections=strict"
     },
     "bugs": {
         "url": "https://github.com/eclipse-thingweb/node-wot/issues"
