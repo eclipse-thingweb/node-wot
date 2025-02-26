@@ -278,7 +278,8 @@ Here we use the await functionality of Node.js.
 
 ```javascript
 let read1 = await thing.readProperty("count");
-console.info("count value is", read1);
+let value = await read1.value();
+console.info("count value is", value);
 ```
 
 ##### Set the value of a Property or a set of properties
