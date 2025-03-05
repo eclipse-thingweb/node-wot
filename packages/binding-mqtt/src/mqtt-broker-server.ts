@@ -65,7 +65,7 @@ export default class MqttBrokerServer implements ProtocolServer {
     private port = -1;
     private address?: string = undefined;
 
-    private brokerURI: string;
+    private brokerURI?: string;
 
     private readonly things: Map<string, ExposedThing> = new Map();
 
@@ -77,15 +77,14 @@ export default class MqttBrokerServer implements ProtocolServer {
     private hostedBroker?: net.Server;
 
     constructor(config: MqttBrokerServerConfig) {
-        this.config = config ?? this.defaults;
-        this.config.uri = this.config.uri ?? this.defaults.uri;
-
         // if there is a MQTT protocol indicator missing, add this
-        if (config.uri.indexOf("://") === -1) {
+        if (config.uri?.indexOf("://") === -1) {
             config.uri = this.scheme + "://" + config.uri;
         }
 
         this.brokerURI = config.uri;
+        this.config = config ?? this.defaults;
+        this.config.uri = this.config.uri ?? this.defaults.uri;
     }
 
     public async expose(thing: ExposedThing): Promise<void> {
@@ -446,6 +445,12 @@ export default class MqttBrokerServer implements ProtocolServer {
 
     private async startBroker() {
         return new Promise<void>((resolve, reject) => {
+            console.log("here mf");
+
+            if (this.brokerURI == null) {
+                throw new Error("Unexpected configuration state broker was started even if brokerURI is null");
+            }
+
             this.hostedServer = Server({});
             let server: tls.Server | net.Server;
             if (this.config.key) {
