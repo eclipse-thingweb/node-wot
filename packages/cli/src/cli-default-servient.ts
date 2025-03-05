@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /********************************************************************************
  * Copyright (c) 2018 Contributors to the Eclipse Foundation
  *
@@ -29,89 +28,34 @@ import { ThingModelHelpers } from "@thingweb/thing-model";
 import { createContext, Script } from "vm";
 import { CompilerFunction } from "./compiler-function";
 import { LogLevel, setLogLevel } from "./utils/set-log-level";
+import { ConfigurationAfterDefaults } from "./configuration";
 
 const { debug, error, info } = createLoggers("cli", "cli-default-servient");
 
-// Helper function needed for `mergeConfigs` function
-function isObject(item: unknown) {
-    return item != null && typeof item === "object" && !Array.isArray(item);
-}
-
-/**
- * Helper function merging default parameters into a custom config file.
- *
- * @param {object} target - an object containing default config parameters
- * @param {object} source - an object containing custom config parameters
- *
- * @return {object} The new config file containing both custom and default parameters
- */
-function mergeConfigs(target: any, source: any): any {
-    const output = Object.assign({}, target);
-    Object.keys(source).forEach((key) => {
-        if (!(key in target)) {
-            Object.assign(output, { [key]: source[key] });
-        } else {
-            if (isObject(target[key]) && isObject(source[key])) {
-                output[key] = mergeConfigs(target[key], source[key]);
-            } else {
-                Object.assign(output, { [key]: source[key] });
-            }
-        }
-    });
-    return output;
-}
 export interface ScriptOptions {
     argv?: Array<string>;
     compiler?: CompilerFunction;
     env?: Record<string, string>;
 }
 export default class DefaultServient extends Servient {
-    private static readonly defaultConfig = {
-        servient: {
-            clientOnly: false,
-            scriptAction: false,
-        },
-        http: {
-            port: 8080,
-            allowSelfSigned: false,
-        },
-        coap: {
-            port: 5683,
-        },
-    };
-
     private uncaughtListeners: Array<NodeJS.UncaughtExceptionListener> = [];
     private runtime: typeof WoT | undefined;
-    public readonly config: any;
+    public readonly config: ConfigurationAfterDefaults;
     // current log level
     public logLevel = "info";
 
-    public constructor(clientOnly: boolean, config?: any) {
+    public constructor(config: ConfigurationAfterDefaults) {
         super();
 
-        // init config
-        this.config =
-            typeof config === "object"
-                ? mergeConfigs(DefaultServient.defaultConfig, config)
-                : DefaultServient.defaultConfig;
-
-        // apply flags
-        if (clientOnly) {
-            this.config.servient ??= {};
-            this.config.servient.clientOnly = true;
-        }
+        this.config = config;
 
         // load credentials from config
         this.addCredentials(this.config.credentials);
 
-        // remove secrets from original for displaying config (already added)
-        if (this.config.credentials != null) {
-            delete this.config.credentials;
-        }
-
         // display
         debug("DefaultServient configured with");
-        debug(`${this.config}`);
+        // remove secrets from original for displaying config
+        debug(`%O`, { ...this.config, credentials: null });
 
         // apply config
         if (typeof this.config.servient.staticAddress === "string") {

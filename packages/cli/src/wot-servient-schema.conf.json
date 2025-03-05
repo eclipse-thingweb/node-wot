@@ -3,6 +3,7 @@
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
     "properties": {
+        "$schema": { "type": "string" },
         "servient": {
             "type": "object",
             "properties": {
@@ -17,7 +18,8 @@
                     "type": "boolean",
                     "default": false
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "http": {
             "type": "object",
@@ -54,7 +56,8 @@
                         "password": {
                             "type": "string"
                         }
-                    }
+                    },
+                    "additionalProperties": false
                 },
                 "allowSelfSigned": {
                     "type": "boolean"
@@ -65,7 +68,8 @@
                 "serverCert": {
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "mqtt": {
             "type": "object",
@@ -84,10 +88,11 @@
                 },
                 "protocolVersion": {
                     "type": "integer",
-                    "examples": [3, 4, 5],
+                    "enum": [3, 4, 5],
                     "default": 5
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "coap": {
             "type": "object",
@@ -95,7 +100,8 @@
                 "port": {
                     "type": "integer"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "credentials": {
             "type": "object",
@@ -114,28 +120,12 @@
                         }
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
-        "log": {
-            "type": "object",
-            "oneOf": [
-                {
-                    "properties": {
-                        "level": {
-                            "type": "integer",
-                            "enum": [0, 1, 2, 3]
-                        }
-                    }
-                },
-                {
-                    "properties": {
-                        "level": {
-                            "type": "string",
-                            "enum": ["debug", "info", "warn", "error"]
-                        }
-                    }
-                }
-            ]
+        "logLevel": {
+            "type": "string",
+            "enum": ["debug", "info", "warn", "error"]
         }
     },
     "additionalProperties": false

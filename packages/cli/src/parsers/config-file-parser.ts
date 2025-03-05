@@ -13,21 +13,14 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { ErrorObject, ValidateFunction } from "ajv";
 import { InvalidArgumentError } from "commander";
 import { readFileSync } from "fs";
 
-export function parseConfigFile(filename: string, previous: unknown, validator: ValidateFunction<unknown>) {
+export function parseConfigFile(filename: string, previous: unknown) {
     try {
         const open = filename;
         const data = readFileSync(open, "utf-8");
-        if (!validator(JSON.parse(data))) {
-            throw new InvalidArgumentError(
-                `\n\nConfig file contains an invalid JSON structure:\n ${(validator.errors ?? [])
-                    .map((o: ErrorObject) => `\tError ${o.instancePath || "root"}: ${o.message}`)
-                    .join("\n")}`
-            );
-        }
+        JSON.parse(data);
         return filename;
     } catch (err) {
         if (err instanceof InvalidArgumentError) {

@@ -20,21 +20,22 @@ import DefaultServient, { ScriptOptions } from "./cli-default-servient";
 import * as path from "path";
 import { Command, Argument, Option } from "commander";
 import Ajv, { ValidateFunction } from "ajv";
-import ConfigSchema from "./wot-servient-schema.conf.json";
-import { version } from "@node-wot/core/package.json";
+import ConfigSchema from "./generated/wot-servient-schema.conf";
+import version from "./generated/version";
 import { createLoggers } from "@node-wot/core";
-import { buildConfig } from "./config-builder";
 import { loadCompiler, loadEnvVariables } from "./utils";
 import { runScripts } from "./script-runner";
 import { readdir } from "fs/promises";
 import { parseConfigFile, parseConfigParams, parseIp } from "./parsers";
 import { setLogLevel } from "./utils/set-log-level";
+import { buildConfig, buildConfigFromFile, Configuration, defaultConfiguration } from "./configuration";
+import { cloneDeep } from "lodash";
 
 const { error, info, warn, debug } = createLoggers("cli", "cli");
 
 const program = new Command();
-const ajv = new Ajv({ strict: true });
-const schemaValidator = ajv.compile(ConfigSchema) as ValidateFunction;
+const ajv = new Ajv({ strict: true, allErrors: true });
+const schemaValidator = ajv.compile(ConfigSchema) as ValidateFunction<Configuration>;
 const defaultFile = "wot-servient.conf.json";
 const baseDir = ".";
 
@@ -127,7 +128,7 @@ program
         ).choices(["debug", "info", "warn", "error"])
     )
     .option("-f, --config-file <file>", "load configuration from specified file", (value, previous) =>
-        parseConfigFile(value, previous, schemaValidator)
+        parseConfigFile(value, previous)
     )
     .option(
         "-p, --config-params <param...>",
@@ -148,6 +149,7 @@ program.action(async function (_, options, cmd) {
     if (process.env.DEBUG == null) {
         // by default enable error logs and warnings
         // user can override using command line option
+        // or later by config file.
         setLogLevel(options.logLevel ?? "warn");
     }
 
@@ -161,18 +163,21 @@ program.action(async function (_, options, cmd) {
     debug("command line environment variables", args);
 
     try {
-        const config = await buildConfig(options, defaultFilePath, env);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        setLogLevel((config.log as any).level ?? options.logLevel ?? "warn");
-        servient = new DefaultServient(options.clientOnly, config);
+        const config = await buildConfigFromFile(options, defaultFilePath, env, schemaValidator);
+        setLogLevel(options.logLevel ?? config.logLevel);
+        config.servient.clientOnly = options.clientOnly ?? config.servient.clientOnly;
+        servient = new DefaultServient(config);
     } catch (err) {
         if ((err as NodeJS.ErrnoException)?.code !== "ENOENT" || options.configFile != null) {
-            error("WoT-Servient config file error. %O", err);
+            error("WoT-Servient configuration file error:\n%O\nClose.", err);
             process.exit((err as NodeJS.ErrnoException).errno ?? 1);
         }
 
         warn(`WoT-Servient using defaults as %s does not exist`, defaultFile);
-        servient = new DefaultServient(options.clientOnly);
+
+        const config = await buildConfig(options, cloneDeep(defaultConfiguration), env, schemaValidator);
+        config.servient.clientOnly = options.clientOnly ?? config.servient.clientOnly;
+        servient = new DefaultServient(config);
     }
 
     await servient.start();
