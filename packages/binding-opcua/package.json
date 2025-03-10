@@ -1,6 +1,6 @@
 {
     "name": "@node-wot/binding-opcua",
-    "version": "0.9.0",
+    "version": "0.9.1",
     "description": "opcua client protocol binding for node-wot",
     "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
     "license": "EPL-2.0 OR W3C-20150513",
@@ -18,7 +18,7 @@
         "should": "^13.2.3"
     },
     "dependencies": {
-        "@node-wot/core": "0.9.0",
+        "@node-wot/core": "0.9.1",
         "ajv": "^8.11.0",
         "ajv-formats": "^2.1.1",
         "node-opcua": "2.143.0",
