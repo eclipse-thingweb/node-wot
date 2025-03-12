@@ -1,14 +1,14 @@
 /**
- * In the browser, node wot only works in client mode with limited binding support.
+ * In the browser, node-wot only works in client mode with limited binding support.
  * Supported bindings: HTTP / HTTPS / WebSockets
  *
  * After adding the following <script> tag to your HTML page:
  * <script src="https://cdn.jsdelivr.net/npm/@node-wot/browser-bundle@latest/dist/wot-bundle.min.js" defer></script>
  *
- * you can access all node-wot functionality / supported packages through the "Wot" global object.
+ * you can access all node-wot functionality / supported packages through the "WoT" global object.
  * Examples:
- * var servient = new Wot.Core.Servient();
- * var client = new Wot.Http.HttpClient();
+ * var servient = new WoT.Core.Servient();
+ * var client = new WoT.Http.HttpClient();
  *
  **/
 
@@ -175,9 +175,9 @@ function updateProperties() {
     });
 }
 
-var servient = new Wot.Core.Servient();
-servient.addClientFactory(new Wot.Http.HttpClientFactory());
-var helpers = new Wot.Core.Helpers(servient);
+var servient = new WoT.Core.Servient();
+servient.addClientFactory(new WoT.Http.HttpClientFactory());
+var helpers = new WoT.Core.Helpers(servient);
 window.onload = () => {
     // process passed URL
     let $_GET = location.search
