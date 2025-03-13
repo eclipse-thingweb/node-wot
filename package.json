@@ -39,7 +39,6 @@
         "ncu:opcua": "npx -y npm-check-updates -u --deep --dep=dev,prod -f \"node-opcua*\" -t newest"
     },
     "workspaces": [
-        "./packages/td-tools",
         "./packages/core",
         "./packages/binding-*",
         "./packages/cli",

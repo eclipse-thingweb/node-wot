@@ -9,5 +9,5 @@
         "removeComments": false
     },
     "include": ["src/**/*"],
-    "references": [{ "path": "../td-tools" }]
+    "references": []
 }

@@ -45,7 +45,6 @@ src/**/*.js
 
 # ignore private packages
 packages/*
-!packages/td-tools
 !packages/core
 !packages/binding-file
 !packages/binding-http
