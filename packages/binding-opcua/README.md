@@ -67,9 +67,9 @@ import { thingDescription } from "./demo-opcua-thing-description";
 The `examples/src/opcua` folder contains a set of typescript demo that shows you
 how to define a thing description containing OPCUA Variables and methods.
 
-- `demo-opcua1.ts` shows how to define and read an OPC-UA variable in WoT.
-- `demo-opcua2.ts` shows how to subscribe to an OPC-UA variable in WoT.
-- `opcua-coffee-machine-demo.ts` demonstrates how to define and invoke OPCUA methods as WoT actions.
+-   `demo-opcua1.ts` shows how to define and read an OPC-UA variable in WoT.
+-   `demo-opcua2.ts` shows how to subscribe to an OPC-UA variable in WoT.
+-   `opcua-coffee-machine-demo.ts` demonstrates how to define and invoke OPCUA methods as WoT actions.
 
 ### Form extensions
 
@@ -85,13 +85,13 @@ The form must contain an `opcua:nodeId` property that describes the nodeId of th
 
 The `opcua:nodeId` can have 2 forms:
 
-- a **NodeId** as a string, such as `"ns=1;i=1234"` , for instance:
+-   a **NodeId** as a string, such as `"ns=1;i=1234"` , for instance:
 
 ```javascript
 "opcua:nodeId": "ns=1;s=\"Machine\".\"Component\""
 ```
 
-- or **browsePath**: The browse path will be converted into the corresponding nodeId at runtime when first encountered.
+-   or **browsePath**: The browse path will be converted into the corresponding nodeId at runtime when first encountered.
 
 ```
 "opcua:nodeId": { root: "i=84", path: "/Objects/2:DeviceSet/1:CoffeeMachine" },

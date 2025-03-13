@@ -104,11 +104,11 @@ modbus+tcp:// <host> [ : <port> ] [/ <unitid> [ / <address> ] [&quantity=<quanti
 
 with the following meaning:
 
-- `<host>` is the hostname or IP address of the MODBUS slave
-- `<port>` is the optional TCP port number used to access the MODBUS slave. Default is 502
-- `<unitid>` is the MODBUS unit id of the MODBUS slave; same as [modv:unitID](#modv:unitID)
-- `<address>` is the starting address register number; see [modv:address](#modv:address)
-- `<quantity>` is the optional number of registers to access. Default is 1; see [modv:quantity](#modv:quantity)
+-   `<host>` is the hostname or IP address of the MODBUS slave
+-   `<port>` is the optional TCP port number used to access the MODBUS slave. Default is 502
+-   `<unitid>` is the MODBUS unit id of the MODBUS slave; same as [modv:unitID](#modv:unitID)
+-   `<address>` is the starting address register number; see [modv:address](#modv:address)
+-   `<quantity>` is the optional number of registers to access. Default is 1; see [modv:quantity](#modv:quantity)
 
 When specified URL values override the corresponding `form` parameter.
 
@@ -118,19 +118,19 @@ The MODBUS binding uses and provides plain binary data for reading and writing. 
 
 Along with content type `application/octet-stream`, this protocol binding accepts also an optional `byteSeq` parameter. `byteSeq` specifies the endian-ness of the raw byte data being read/written by the MODBUS binding. It follows the notation `application/octet-stream;byteSeq=value`, where its value can be one of the following:
 
-- `BIG_ENDIAN`, which is the default value
-- `LITTLE_ENDIAN`
-- `BIG_ENDIAN_BYTE_SWAP`
-- `LITTLE_ENDIAN_BYTE_SWAP`
+-   `BIG_ENDIAN`, which is the default value
+-   `LITTLE_ENDIAN`
+-   `BIG_ENDIAN_BYTE_SWAP`
+-   `LITTLE_ENDIAN_BYTE_SWAP`
 
 **Note**: the list above may be extended in the future.
 
 In particular, the decimal numbers `9545` and `22880` will be encoded as follows:
 
-- `BIG_ENDIAN`: `25 49 59 60`
-- `LITTLE_ENDIAN`: `60 59 49 25`
-- `BIG_ENDIAN_BYTE_SWAP`: `49 25 60 59`
-- `LITTLE_ENDIAN_BYTE_SWAP`: `59 60 25 49`
+-   `BIG_ENDIAN`: `25 49 59 60`
+-   `LITTLE_ENDIAN`: `60 59 49 25`
+-   `BIG_ENDIAN_BYTE_SWAP`: `49 25 60 59`
+-   `LITTLE_ENDIAN_BYTE_SWAP`: `59 60 25 49`
 
 For register resources, the payload is just the plain sequence of bytes read from or written to the registers. For coils and discrete inputs, the payload is a sequence of bytes, each corresponding to a single coil or discrete input. Each byte contains the value `0` or `1`. So the encoder and decoder should work on this series of bytes and does not have to take care about handling the individual bits. Mapping each coil or discrete input to a single property of type `boolean` works just fine.
 
@@ -145,8 +145,8 @@ The protocol does not support security.
 
 This implementation handles multiple requests to the same slave by serializing and combining them if possible. In the following, the terms **request** and **transaction** are used as follows to describe this:
 
-- A **request** is a read or write request to a resource as issued by a user of the node-wot API.
-- A **transaction** is a Modbus operation and may cover the data of multiple **requests**.
+-   A **request** is a read or write request to a resource as issued by a user of the node-wot API.
+-   A **transaction** is a Modbus operation and may cover the data of multiple **requests**.
 
 ### Combination
 
@@ -221,14 +221,14 @@ Polls the 8th holding register of the unit 1 every second.
 
 ## TODOs
 
-- [x] TEST
-- [ ] (Modbus Server Protocol Binding)
-- [x] Connection pooling
-- [ ] More sophisticated algorithm for combining requests. Some ideas
-    - Not only append or prepend requests to transactions, but also combine transactions which become neighboured later on
-    - Impose some limit to the overall number of registers. The MODBUS protocol has such a limit and devices may define even lower values
-- [ ] When a connection times out, re-connection does not work (see `connectionTimeout` in modbus-client.ts)
-- [x] When a Modbus device is not reachable, scripts using binding-modbus stop working - corresponding error handling is necessary
+-   [x] TEST
+-   [ ] (Modbus Server Protocol Binding)
+-   [x] Connection pooling
+-   [ ] More sophisticated algorithm for combining requests. Some ideas
+    -   Not only append or prepend requests to transactions, but also combine transactions which become neighboured later on
+    -   Impose some limit to the overall number of registers. The MODBUS protocol has such a limit and devices may define even lower values
+-   [ ] When a connection times out, re-connection does not work (see `connectionTimeout` in modbus-client.ts)
+-   [x] When a Modbus device is not reachable, scripts using binding-modbus stop working - corresponding error handling is necessary
 
 ## More Details
 

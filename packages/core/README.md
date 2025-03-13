@@ -2,9 +2,9 @@
 
 The core of node-wot is the entry point allowing to attach dedicated bindings such as:
 
-- [HTTP](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-http)
-- [CoAP](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-coap)
-- ...
+-   [HTTP](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-http)
+-   [CoAP](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-coap)
+-   ...
 
 or to create user-specific bindings.
 
@@ -12,14 +12,14 @@ Current Maintainer(s): [@danielpeintner](https://github.com/danielpeintner) [@re
 
 ### Prerequisites
 
-- `npm install @node-wot/core`
+-   `npm install @node-wot/core`
 
 ### Examples
 
 see binding examples such as
 
-- https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-http
-- https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-coap
+-   https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-http
+-   https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-coap
 
 ## Codecs
 

@@ -21,9 +21,9 @@ The Eclipse Thingweb node-wot is a framework for implementing [Web of Things](ht
 
 The Web of Things (WoT) tackles IoT fragmentation by extending standardized web technologies. It simplifies IoT application development, promoting flexibility and interoperability. WoT preserves existing IoT standards, ensuring reuse, and provides an adaptable, abstract architecture based on real-world use cases across domains. In essence, WoT paves the way for seamless IoT integration by defining an information model capable of describing Things and Services and how to interact with them. This information model is called the Thing Description (TD) and it is a JSON-LD document that describes the Thing and its capabilities, including its network services (APIs), its network interactions, and security requirements. The TD is the cornerstone of the Web of Things architecture and it is the main abstraction that node-wot uses to implement its functionalities. Every Thing has the following capabilities or "affordances":
 
-- **⚙️ Properties**: a property is a value that can be read, written or observed. For example, a temperature sensor can have a property that represents the current temperature.
-- **🦾 Actions**: an action is an operation that can be invoked. For example, a light bulb can have an action that turns it on or off.
-- **⚡ Events**: an event is a notification. For example, a motion sensor can send an event when it detects motion.
+-   **⚙️ Properties**: a property is a value that can be read, written or observed. For example, a temperature sensor can have a property that represents the current temperature.
+-   **🦾 Actions**: an action is an operation that can be invoked. For example, a light bulb can have an action that turns it on or off.
+-   **⚡ Events**: an event is a notification. For example, a motion sensor can send an event when it detects motion.
 
 For further information please refer to the official [W3C Web of Things](https://www.w3.org/WoT/) website.
 
@@ -31,28 +31,28 @@ For further information please refer to the official [W3C Web of Things](https:/
 
 <!-- https://ecotrust-canada.github.io/markdown-toc/ -->
 
-- [Installation](#installation)
-    - [As a library](#as-a-library)
-        - [Node.js](#nodejs)
-        - [Browser](#browser)
-    - [As a CLI tool](#as-a-cli-tool)
-        - [As a docker image](#as-a-docker-image)
-- [Examples](#examples)
-- [Implemented/supported features](#implementedsupported-features)
-    - [Protocol Support](#protocol-support)
-    - [MediaType Support](#mediatype-support)
-- [No time for explanations - show me a running example!](#no-time-for-explanations---show-me-a-running-example)
-    - [Using Node.js](#using-nodejs)
-    - [Using Docker](#using-docker)
-    - [Using a browser](#using-a-browser)
-- [Online Things](#online-things)
-- [Documentation](#documentation)
-    - [The API](#the-api)
-    - [TD Tooling](#td-tooling)
-    - [Logging](#logging)
-    - [Install new/different versions of Node.js](#install-newdifferent-versions-of-nodejs)
-- [Contributing](#contributing)
-- [License](#license)
+-   [Installation](#installation)
+    -   [As a library](#as-a-library)
+        -   [Node.js](#nodejs)
+        -   [Browser](#browser)
+    -   [As a CLI tool](#as-a-cli-tool)
+        -   [As a docker image](#as-a-docker-image)
+-   [Examples](#examples)
+-   [Implemented/supported features](#implementedsupported-features)
+    -   [Protocol Support](#protocol-support)
+    -   [MediaType Support](#mediatype-support)
+-   [No time for explanations - show me a running example!](#no-time-for-explanations---show-me-a-running-example)
+    -   [Using Node.js](#using-nodejs)
+    -   [Using Docker](#using-docker)
+    -   [Using a browser](#using-a-browser)
+-   [Online Things](#online-things)
+-   [Documentation](#documentation)
+    -   [The API](#the-api)
+    -   [TD Tooling](#td-tooling)
+    -   [Logging](#logging)
+    -   [Install new/different versions of Node.js](#install-newdifferent-versions-of-nodejs)
+-   [Contributing](#contributing)
+-   [License](#license)
 
 ## Installation
 
@@ -67,19 +67,19 @@ The framework is composed by different packages that users can use as they pleas
 > [!WARNING]
 > We no longer actively support Node.js version 16 and lower.
 
-- [Node.js](https://nodejs.org/) version 18+
-- [npm](https://www.npmjs.com/) version 9+
+-   [Node.js](https://nodejs.org/) version 18+
+-   [npm](https://www.npmjs.com/) version 9+
 
 Platforms specific prerequisites:
 
-- Linux: Meet the [node-gyp](https://github.com/nodejs/node-gyp#installation) requirements:
-    - Python v3.6, v3.7, or v3.8
-    - make
-    - A proper C/C++ compiler toolchain, like GCC
-- Windows: Install the Windows build tools through a CMD shell as administrator:
-    - `npm install -g --production windows-build-tools`
-- Mac OS: Meet the [node-gyp](https://github.com/nodejs/node-gyp#installation) requirements:
-    - `xcode-select --install`
+-   Linux: Meet the [node-gyp](https://github.com/nodejs/node-gyp#installation) requirements:
+    -   Python v3.6, v3.7, or v3.8
+    -   make
+    -   A proper C/C++ compiler toolchain, like GCC
+-   Windows: Install the Windows build tools through a CMD shell as administrator:
+    -   `npm install -g --production windows-build-tools`
+-   Mac OS: Meet the [node-gyp](https://github.com/nodejs/node-gyp#installation) requirements:
+    -   `xcode-select --install`
 
 If you want to use node-wot as a library in your Node.js application, you can use npm to install the node-wot packages that you need. To do so, `cd` inside your application folder, and run:
 
@@ -198,17 +198,17 @@ If you execute both scripts you will see `count: ${count}` printed 5 times. We h
 
 ### Protocol Support
 
-- [HTTP](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-http/README.md) :heavy_check_mark:
-- [HTTPS](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-http/README.md) :heavy_check_mark:
-- [CoAP](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-coap/README.md) :heavy_check_mark:
-- [CoAPS](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-coap/README.md) :heavy_check_mark:
-- [MQTT](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-mqtt/README.md) :heavy_check_mark:
-- ~~[Firestore//lastSupportedVersion](https://github.com/eclipse/thingweb.node-wot/blob/v0.8.6/packages/binding-firestore/README.md) :heavy_check_mark:~~
-- [Websocket](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-websockets) :heavy_plus_sign: (Server only)
-- [OPC-UA](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-opcua/README.md) :heavy_plus_sign: (Client only)
-- [NETCONF](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-netconf/README.md) :heavy_plus_sign: (Client only)
-- [Modbus](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-modbus) :heavy_plus_sign: (Client only)
-- [M-Bus](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-mbus) :heavy_plus_sign: (Client only)
+-   [HTTP](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-http/README.md) :heavy_check_mark:
+-   [HTTPS](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-http/README.md) :heavy_check_mark:
+-   [CoAP](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-coap/README.md) :heavy_check_mark:
+-   [CoAPS](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-coap/README.md) :heavy_check_mark:
+-   [MQTT](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-mqtt/README.md) :heavy_check_mark:
+-   ~~[Firestore//lastSupportedVersion](https://github.com/eclipse/thingweb.node-wot/blob/v0.8.6/packages/binding-firestore/README.md) :heavy_check_mark:~~
+-   [Websocket](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-websockets) :heavy_plus_sign: (Server only)
+-   [OPC-UA](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-opcua/README.md) :heavy_plus_sign: (Client only)
+-   [NETCONF](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-netconf/README.md) :heavy_plus_sign: (Client only)
+-   [Modbus](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-modbus) :heavy_plus_sign: (Client only)
+-   [M-Bus](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-mbus) :heavy_plus_sign: (Client only)
 
 > [!NOTE]
 > More protocols can be easily added by implementing `ProtocolClient`, `ProtocolClientFactory`, and `ProtocolServer` interface.
@@ -218,12 +218,12 @@ If you execute both scripts you will see `count: ${count}` printed 5 times. We h
 
 ### MediaType Support
 
-- JSON :heavy_check_mark:
-- Text (HTML, CSS, XML, SVG) :heavy_check_mark:
-- Base64 (PNG, JPEG, GIF) :heavy_check_mark:
-- Octet stream :heavy_check_mark:
-- CBOR :heavy_check_mark:
-- EXI :timer_clock:
+-   JSON :heavy_check_mark:
+-   Text (HTML, CSS, XML, SVG) :heavy_check_mark:
+-   Base64 (PNG, JPEG, GIF) :heavy_check_mark:
+-   Octet stream :heavy_check_mark:
+-   CBOR :heavy_check_mark:
+-   EXI :timer_clock:
 
 Can't find your preferred MediaType? More codecs can be easily added by implementing `ContentCodec` interface. Read more in the [Documentation](#documentation) section.
 
@@ -248,10 +248,10 @@ node packages\cli\dist\cli.js examples\scripts\counter.js
 node packages\cli\dist\cli.js --client-only examples\scripts\counter-client.js
 ```
 
-- Go to http://localhost:8080/counter and you'll find a thing description
-- Query the count by http://localhost:8080/counter/properties/count
-- Modify the count via POST on http://localhost:8080/counter/actions/increment and http://localhost:8080/counter/actions/decrement
-- Application logic is in `examples/scripts/counter.js`
+-   Go to http://localhost:8080/counter and you'll find a thing description
+-   Query the count by http://localhost:8080/counter/properties/count
+-   Modify the count via POST on http://localhost:8080/counter/actions/increment and http://localhost:8080/counter/actions/decrement
+-   Application logic is in `examples/scripts/counter.js`
 
 ### Using Docker
 
@@ -264,10 +264,10 @@ docker run -it --init -p 8080:8080/tcp -p 5683:5683/udp -v "$(pwd)"/examples:/sr
 docker run -it --init -v "$(pwd)"/examples:/srv/examples --rm --net=host wot-servient /srv/examples/scripts/counter-client.js --client-only
 ```
 
-- The counter exposes the HTTP endpoint at 8080/tcp and the CoAP endpoint at 5683/udp and they are bound to the host machine (with `-p 8080:8080/tcp -p 5683:5683/udp`).
-- The counter-client binds the network of the host machine (`--net=host`) so that it can access the counter thing's endpoints.
-- `--init` allows the containers to be killed with SIGINT (e.g., Ctrl+c)
-- `-v "$(pwd)"/examples:/srv/examples` mounts the `examples` directory to `/srv/examples` on the container so that the node inside the container can read the example scripts.
+-   The counter exposes the HTTP endpoint at 8080/tcp and the CoAP endpoint at 5683/udp and they are bound to the host machine (with `-p 8080:8080/tcp -p 5683:5683/udp`).
+-   The counter-client binds the network of the host machine (`--net=host`) so that it can access the counter thing's endpoints.
+-   `--init` allows the containers to be killed with SIGINT (e.g., Ctrl+c)
+-   `-v "$(pwd)"/examples:/srv/examples` mounts the `examples` directory to `/srv/examples` on the container so that the node inside the container can read the example scripts.
 
 ### Using a browser
 
@@ -282,24 +282,24 @@ We offer online simulated Things that are available to be used by anyone.
 
 Their TDs are available at the following links:
 
-- Counter: HTTP at <http://plugfest.thingweb.io:8083/counter> and CoAP at <coap://plugfest.thingweb.io:5683/counter>
-- Smart Coffee Machine: HTTP at <http://plugfest.thingweb.io:8083/smart-coffee-machine> and CoAP at <coap://plugfest.thingweb.io:5683/smart-coffee-machine>
-- TestThing: HTTP at <http://plugfest.thingweb.io:8083/testthing> and CoAP at <coap://plugfest.thingweb.io:5683/testthing>
-- Presence sensor: MQTT at <https://zion.vaimee.com/things/urn:uuid:0a028f8e-8a91-4aaf-a346-9a48d440fd7c>
-- Smart Clock: CoAP at <https://zion.vaimee.com/things/urn:uuid:913cf8cb-3687-4d98-8d2f-f6f27cfc7162>
-- Simple Coffee Machine: HTTP at <https://zion.vaimee.com/things/urn:uuid:7ba2bca0-a7f6-47b3-bdce-498caa33bbaf>
+-   Counter: HTTP at <http://plugfest.thingweb.io:8083/counter> and CoAP at <coap://plugfest.thingweb.io:5683/counter>
+-   Smart Coffee Machine: HTTP at <http://plugfest.thingweb.io:8083/smart-coffee-machine> and CoAP at <coap://plugfest.thingweb.io:5683/smart-coffee-machine>
+-   TestThing: HTTP at <http://plugfest.thingweb.io:8083/testthing> and CoAP at <coap://plugfest.thingweb.io:5683/testthing>
+-   Presence sensor: MQTT at <https://zion.vaimee.com/things/urn:uuid:0a028f8e-8a91-4aaf-a346-9a48d440fd7c>
+-   Smart Clock: CoAP at <https://zion.vaimee.com/things/urn:uuid:913cf8cb-3687-4d98-8d2f-f6f27cfc7162>
+-   Simple Coffee Machine: HTTP at <https://zion.vaimee.com/things/urn:uuid:7ba2bca0-a7f6-47b3-bdce-498caa33bbaf>
 
 All of them require no security mechanism to be communicated with.
 Below are small explanations of what they can be used for:
 
-- Counter: It has a count property that can be read or observed and can be incremented or decremented via separate actions.
-  It is also possible to reset the count value, obtain when the last change occurred, subscribe to a change in the count value or get the count value as an image.
-- TestThing: This Thing exists primarily for testing different data schemas and payload formats. It also has events attached to affordances that notify when a value changes.
-- Smart Coffee Machine: This is a simulation of a coffee machine that also has a [simple user interface](http://plugfest.thingweb.io/examples/smart-coffee-machine.html) that displays the values of properties.
-  In addition to proving a real-life device example, it can be used for testing `uriVariables`. You can ask it to brew different coffees and monitor the available resource level.
-- Presence Sensor: It mocks the detection of a person by firing an event every 5 seconds.
-- Smart Clock: It simply has a property affordance for the time. However, it runs 60 times faster than real-time to allow time-based decisions that can be easily tested.
-- Simple Coffee Machine: This is a simpler simulation of the coffee machine above.
+-   Counter: It has a count property that can be read or observed and can be incremented or decremented via separate actions.
+    It is also possible to reset the count value, obtain when the last change occurred, subscribe to a change in the count value or get the count value as an image.
+-   TestThing: This Thing exists primarily for testing different data schemas and payload formats. It also has events attached to affordances that notify when a value changes.
+-   Smart Coffee Machine: This is a simulation of a coffee machine that also has a [simple user interface](http://plugfest.thingweb.io/examples/smart-coffee-machine.html) that displays the values of properties.
+    In addition to proving a real-life device example, it can be used for testing `uriVariables`. You can ask it to brew different coffees and monitor the available resource level.
+-   Presence Sensor: It mocks the detection of a person by firing an event every 5 seconds.
+-   Smart Clock: It simply has a property affordance for the time. However, it runs 60 times faster than real-time to allow time-based decisions that can be easily tested.
+-   Simple Coffee Machine: This is a simpler simulation of the coffee machine above.
 
 ## Documentation
 
@@ -310,8 +310,8 @@ Below are small explanations of what they can be used for:
 
 This library implements the WoT Scripting API:
 
-- [Editors Draft](w3c.github.io/wot-scripting-api/) in [master](https://github.com/eclipse-thingweb/node-wot)
-- [Working Draft](https://www.w3.org/TR/wot-scripting-api/) corresponding to node-wot [release versions](https://github.com/eclipse-thingweb/node-wot/releases)
+-   [Editors Draft](w3c.github.io/wot-scripting-api/) in [master](https://github.com/eclipse-thingweb/node-wot)
+-   [Working Draft](https://www.w3.org/TR/wot-scripting-api/) corresponding to node-wot [release versions](https://github.com/eclipse-thingweb/node-wot/releases)
 
 Additionally, you can have a look at our [API Documentation](API.md).
 
@@ -347,10 +347,10 @@ cs.addCodec(new MyCodec("application/myType"));
 
 The package [td-tools](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/td-tools) provides utilities around Thing Description (TD) tooling:
 
-- Thing Description (TD) parsing
-- Thing Model (TM) tooling
-- [Asset Interface Description (AID)](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/td-tools/src/util) utility
-- ...
+-   Thing Description (TD) parsing
+-   Thing Model (TM) tooling
+-   [Asset Interface Description (AID)](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/td-tools/src/util) utility
+-   ...
 
 ### Logging
 
@@ -437,8 +437,8 @@ You should be affiliated with that organization for the issue to be implemented.
 
 Dual-licensed under:
 
-- [Eclipse Public License v. 2.0](http://www.eclipse.org/legal/epl-2.0)
-- [W3C Software Notice and Document License (2015-05-13)](https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document)
+-   [Eclipse Public License v. 2.0](http://www.eclipse.org/legal/epl-2.0)
+-   [W3C Software Notice and Document License (2015-05-13)](https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document)
 
 Pick one of these two licenses that fits your needs.
 Please also see the additional [notices](NOTICE.md) and [how to contribute](CONTRIBUTING.md).
@@ -452,9 +452,9 @@ Please also see the additional [notices](NOTICE.md) and [how to contribute](CONT
 
 We distinguish between the following set of tests.
 
-- `npm run test` runs the default set of tests (without browser tests)
-- `npm run test:browser` runs the browser tests only (requires [Playwright](https://playwright.dev/))
-- `npm run test:all` runs the combination of the afore mentioned tests
+-   `npm run test` runs the default set of tests (without browser tests)
+-   `npm run test:browser` runs the browser tests only (requires [Playwright](https://playwright.dev/))
+-   `npm run test:all` runs the combination of the afore mentioned tests
 
 ### Publishing on NPM
 

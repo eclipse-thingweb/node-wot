@@ -14,8 +14,8 @@ In the following examples, how to use the CoAP binding of node-wot is shown.
 
 ### Prerequisites
 
-- `npm install @node-wot/core`
-- `npm install @node-wot/binding-coap`
+-   `npm install @node-wot/core`
+-   `npm install @node-wot/binding-coap`
 
 ### Client Example
 
