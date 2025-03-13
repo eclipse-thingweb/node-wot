@@ -2,7 +2,7 @@
 
 This content is produced and maintained by the Eclipse Thingweb project.
 
--   Project home: https://projects.eclipse.org/projects/iot.thingweb
+- Project home: https://projects.eclipse.org/projects/iot.thingweb
 
 ## Trademarks
 

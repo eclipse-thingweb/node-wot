@@ -43,11 +43,11 @@ mbus+tcp:// <host> [ : <port> ] [/ <unitid> [ ?offset=<offset> [&timeout=<timeou
 
 with the following meaning:
 
--   `<host>` is the host name or IP address of the M-Bus slave
--   `<port>` is the optional TCP port number used to access the M-Bus slave. Default is 805
--   `<unitid>` is the M-Bus unit id of the M-Bus slave; same as [mbus:unitID](#mbus:unitID)
--   `<offset>` is the id of the data; see [mbus:offset](#mbus:offset)
--   `<timeout>` is the optional timeout in milliseconds of the request. Default is 1000; see [mbus:timeout](#mbus:timeout)
+- `<host>` is the host name or IP address of the M-Bus slave
+- `<port>` is the optional TCP port number used to access the M-Bus slave. Default is 805
+- `<unitid>` is the M-Bus unit id of the M-Bus slave; same as [mbus:unitID](#mbus:unitID)
+- `<offset>` is the id of the data; see [mbus:offset](#mbus:offset)
+- `<timeout>` is the optional timeout in milliseconds of the request. Default is 1000; see [mbus:timeout](#mbus:timeout)
 
 When specified URL values override the corresponding `form` parameter.
 
@@ -78,8 +78,8 @@ The protocol does not support security.
 
 This implementation handles multiple requests to the same slave by combining them if possible. In the following, the terms **request** and **transaction** are used as follows to describe this:
 
--   A **request** is a read request to a resource as issued by a user of the node-wot API.
--   A **transaction** is a M-Bus operation and may cover the data of multiple **requests**.
+- A **request** is a read request to a resource as issued by a user of the node-wot API.
+- A **transaction** is a M-Bus operation and may cover the data of multiple **requests**.
 
 ## Combination
 
@@ -108,8 +108,8 @@ Reads the data with the id of 1 of the unit 2
 
 ## TODOs
 
--   [ ] TEST
--   [ ] (M-Bus Server Protocol Binding)
+- [ ] TEST
+- [ ] (M-Bus Server Protocol Binding)
 
 ## More Details
 

@@ -12,7 +12,7 @@ Note: Some additional tooling (e.g., AAS AID, TD to AsyncAPI Converter) can be f
 
 ### Prerequisites
 
--   `npm install @node-wot/td-tools`
+- `npm install @node-wot/td-tools`
 
 ### Example
 

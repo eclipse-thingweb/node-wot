@@ -20,11 +20,12 @@ export * from "./thing-description";
 export * from "./td-parser";
 export * from "./td-helpers";
 export * from "./thing-model-helpers";
-type DeepPartial<T> = T extends Record<string, unknown>
-    ? {
-          [P in keyof T]?: T[P] extends Array<infer I> ? Array<DeepPartial<I>> : DeepPartial<T[P]>;
-      }
-    : T;
+type DeepPartial<T> =
+    T extends Record<string, unknown>
+        ? {
+              [P in keyof T]?: T[P] extends Array<infer I> ? Array<DeepPartial<I>> : DeepPartial<T[P]>;
+          }
+        : T;
 
 /**
  * @deprecated Will be removed in the future. Please use '@node-wot/core' package instead.
