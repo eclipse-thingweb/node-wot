@@ -605,8 +605,8 @@ export class OPCUAProtocolClient implements ProtocolClient {
                 valueRank === -1
                     ? VariantArrayType.Scalar
                     : valueRank === 1
-                    ? VariantArrayType.Array
-                    : VariantArrayType.Matrix;
+                      ? VariantArrayType.Array
+                      : VariantArrayType.Matrix;
 
             const n = (a: unknown) => Buffer.from(JSON.stringify(a));
             const v = await this._contentToVariant(content2.type, n(bodyInput[name ?? "null"]), basicDataType);

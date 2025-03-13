@@ -103,7 +103,7 @@ jobs:
         name: Check coding style
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v2
-            - uses: actionsx/prettier@v3
+            - uses: actions/checkout@v4
+            - uses: Nerixyz/actionsx-prettier@v3-adj
               with:
                   args: --check .
