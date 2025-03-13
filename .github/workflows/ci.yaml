@@ -107,3 +107,13 @@ jobs:
             - uses: Nerixyz/actionsx-prettier@v3-adj
               with:
                   args: --debug-check --check .
+
+    prettier2:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+            - run: |
+                  yarn
+                  yarn prettier . --check
+            - uses: autofix-ci/action@v1
