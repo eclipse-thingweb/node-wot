@@ -6,5 +6,5 @@
         "skipLibCheck": true
     },
     "include": ["./src/**/*"],
-    "references": [{ "path": "../td-tools" }, { "path": "../core" }]
+    "references": [{ "path": "../core" }]
 }

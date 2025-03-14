@@ -8,7 +8,6 @@
     },
     "include": ["src/**/*", "src/*.json"],
     "references": [
-        { "path": "../td-tools" },
         { "path": "../core" },
         { "path": "../binding-http" },
         { "path": "../binding-file" },

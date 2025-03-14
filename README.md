@@ -343,15 +343,6 @@ cs.addCodec(new MyCodec("application/myType"));
 
 ```
 
-### TD Tooling
-
-The package [td-tools](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/td-tools) provides utilities around Thing Description (TD) tooling:
-
--   Thing Description (TD) parsing
--   Thing Model (TM) tooling
--   [Asset Interface Description (AID)](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/td-tools/src/util) utility
--   ...
-
 ### Logging
 
 Logging in node-wot is implemented via the [`debug`](https://www.npmjs.com/package/debug) package.
