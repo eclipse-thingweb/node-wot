@@ -27,7 +27,7 @@ var client = new WoT.Http.HttpClient();
 
 Install browser-bundle in your project by running
 
--   `npm install @node-wot/browser-bundle`
+- `npm install @node-wot/browser-bundle`
 
 ## Example and live demo
 

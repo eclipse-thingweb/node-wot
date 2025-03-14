@@ -14,8 +14,8 @@ In the following examples, how to use the HTTP binding of node-wot is shown.
 
 ### Prerequisites
 
--   `npm install @node-wot/core`
--   `npm install @node-wot/binding-http`
+- `npm install @node-wot/core`
+- `npm install @node-wot/binding-http`
 
 ### Client Example
 
@@ -373,11 +373,11 @@ servient.start().then(async (WoT) => {
 
 **Symbols** :
 
--   Y implemented
--   N not implement and not planned
--   N.A not applicable
--   ? need to be verified
--   P planned
+- Y implemented
+- N not implement and not planned
+- N.A not applicable
+- ? need to be verified
+- P planned
 
 ## More Details
 

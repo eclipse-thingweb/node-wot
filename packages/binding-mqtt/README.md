@@ -16,8 +16,8 @@ In the following examples it is shown how to use the MQTT binding of node-wot.
 
 ### Prerequisites
 
--   `npm install @node-wot/core`
--   `npm install @node-wot/binding-mqtt`
+- `npm install @node-wot/core`
+- `npm install @node-wot/binding-mqtt`
 
 ### MQTT Thing Example I
 
@@ -182,10 +182,10 @@ There are example implementations provided in the [example/scripting folder](htt
 
 Please setup node-wot as described at the [node-wot main page](https://github.com/eclipse-thingweb/node-wot#as-a-standalone-application).
 
--   example-mqtt-publish.js: Shows when node-wot acts as a MQTT Client that publishes data (latest counter value) to a broker.
-    At the same time, another client can invoke an action, such as `resetCounter`, by sending a publication message to the topic of this action.
-    This other client does not have to be node-wot, any MQTT client can interact with this Thing.
-    For node-wot clients, make sure to provide MQTT broker details (`host`, `port`, `username`, `password`, `clientId`) in the wot-servient.conf.json:
+- example-mqtt-publish.js: Shows when node-wot acts as a MQTT Client that publishes data (latest counter value) to a broker.
+  At the same time, another client can invoke an action, such as `resetCounter`, by sending a publication message to the topic of this action.
+  This other client does not have to be node-wot, any MQTT client can interact with this Thing.
+  For node-wot clients, make sure to provide MQTT broker details (`host`, `port`, `username`, `password`, `clientId`) in the wot-servient.conf.json:
 
 ```js
 {
@@ -202,7 +202,7 @@ Please setup node-wot as described at the [node-wot main page](https://github.co
 
 Start the script by the command `wot-servient mqtt-publish.js` or `node ../../packages/cli/dist/cli.js mqtt-publish.js`.
 
--   example-mqtt-subscription.js: Shows how node-wot consumes a Thing Description to do MQTT subscription on the provided event (=latest counter value) as well as initiate the action (reset counter).
+- example-mqtt-subscription.js: Shows how node-wot consumes a Thing Description to do MQTT subscription on the provided event (=latest counter value) as well as initiate the action (reset counter).
 
 Start the script by the command `wot-servient -c mqtt-subscribe.js` or `node ../../packages/cli/dist/cli.js -c mqtt-subscribe.js`.
 
