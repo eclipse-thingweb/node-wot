@@ -929,7 +929,7 @@ export default class CoapServer implements ProtocolServer {
             );
         }
 
-        return contentType ?? ContentSerdes.DEFAULT;
+        return contentType;
     }
 
     private checkContentTypeSupportForInput(method: string, contentType: string): boolean {

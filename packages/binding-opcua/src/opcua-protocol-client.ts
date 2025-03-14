@@ -480,7 +480,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
 
     ///
     private async _dataValueToContent(form: OPCUAForm, dataValue: DataValue): Promise<Content> {
-        const contentType = form.contentType ?? "application/json";
+        const contentType = form.contentType;
 
         // QUESTION: how can we extend the default contentSerDes.valueToContent for application/json,
         const contentSerDes = ContentSerdes.get();
@@ -629,13 +629,11 @@ export class OPCUAProtocolClient implements ProtocolClient {
     ): Promise<Content> {
         const outputArguments = (argumentDefinition.outputArguments ?? []) as unknown as Argument[];
 
-        const contentType = form.contentType ?? "application/json";
-
         const body: Record<string, unknown> = {};
         for (let index = 0; index < outputArguments.length; index++) {
             const argument = outputArguments[index];
             const { name } = argument;
-            const element = _variantToJSON(outputVariants[index], contentType);
+            const element = _variantToJSON(outputVariants[index], form.contentType);
             body[name ?? "null"] = element;
         }
 
