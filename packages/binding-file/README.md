@@ -10,9 +10,9 @@ In the following examples, how to use the File binding of node-wot is shown.
 
 ### Prerequisites
 
-- `npm install @node-wot/core`
-- `npm install @node-wot/binding-file`
-- local test file `test.txt` with content
+-   `npm install @node-wot/core`
+-   `npm install @node-wot/binding-file`
+-   local test file `test.txt` with content
 
 ### Example 1
 
@@ -75,7 +75,7 @@ The example tries to load a locally stored TestThing TD and reads the `fileConte
 
 ### Prerequisites
 
-- local TD file `TD.jsonld` with content as in Example 1
+-   local TD file `TD.jsonld` with content as in Example 1
 
 `node example2.js`
 

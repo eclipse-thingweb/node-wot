@@ -6,9 +6,9 @@ Current Maintainer(s): [@relu91](https://github.com/relu91) [@danielpeintner](ht
 
 ### Installation
 
-- `npm install @node-wot/cli`
-- You can alternatively install the node-wot CLI, either globally (`npm i @node-wot/cli -g`) or as
-  a (dev) dependency (`npm i @node-wot/cli --save` or `npm i @node-wot/cli --save-dev`).
+-   `npm install @node-wot/cli`
+-   You can alternatively install the node-wot CLI, either globally (`npm i @node-wot/cli -g`) or as
+    a (dev) dependency (`npm i @node-wot/cli --save` or `npm i @node-wot/cli --save-dev`).
 
 ### Usage
 
@@ -50,8 +50,8 @@ wot-servient script1.js ./src/script2.js
 
 The `-h` option explains the functionality and also how node-wot can be configured based on `wot-servient.conf.json`.
 
-- `wot-servient -h` _or_
-- `node packages\cli\dist\cli.js`
+-   `wot-servient -h` _or_
+-   `node packages\cli\dist\cli.js`
 
 The `-h` help option shows the following output:
 

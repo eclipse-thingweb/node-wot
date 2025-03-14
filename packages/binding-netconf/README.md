@@ -33,9 +33,9 @@ $ sysrepoctl --install --yang=iana-if-type@2014-05-08.yang --owner=root:root --p
 
 Three YANG files must be loaded by the server in order to be able to run the examples:
 
-- [ietf-interfaces@2014-05-08.yang](https://github.com/YangModels/yang/blob/master/standard/ietf/RFC/ietf-interfaces%402014-05-08.yang)
-- [ietf-ip@2014-06-16.yang](https://github.com/YangModels/yang/blob/master/standard/ietf/RFC/ietf-ip%402014-06-16.yang)
-- [iana-if-type@2014-05-08.yang](https://github.com/YangModels/yang/blob/master/standard/ietf/RFC/ietf-interfaces%402018-02-20.yang)
+-   [ietf-interfaces@2014-05-08.yang](https://github.com/YangModels/yang/blob/master/standard/ietf/RFC/ietf-interfaces%402014-05-08.yang)
+-   [ietf-ip@2014-06-16.yang](https://github.com/YangModels/yang/blob/master/standard/ietf/RFC/ietf-ip%402014-06-16.yang)
+-   [iana-if-type@2014-05-08.yang](https://github.com/YangModels/yang/blob/master/standard/ietf/RFC/ietf-interfaces%402018-02-20.yang)
 
 ### Run the Example App
 
@@ -43,8 +43,8 @@ The Binding example in the `./examples` directory provides a TD (`netconf-thing.
 
 Depending on which NETCONF server is used, the following might have to be changed:
 
-- IP address and port in `examples/netconf-thing.jsonld`
-- credentials for the NETCONF Thing (id `urn:dev:wot:org:eclipse:netconf-example`) have to be changed in `wot-servient.conf.json`.
+-   IP address and port in `examples/netconf-thing.jsonld`
+-   credentials for the NETCONF Thing (id `urn:dev:wot:org:eclipse:netconf-example`) have to be changed in `wot-servient.conf.json`.
 
 ## New Form Fields for the NETCONF Binding
 
@@ -52,9 +52,9 @@ Depending on which NETCONF server is used, the following might have to be change
 
 The href contains: URI schema + IP address + port + XPath
 
-- URI schema: the schema for NETCONF is not registered with IANA; the Binding is using `netconf`.
-- IP address and port: IP address and port of the NETCONF server. The credentials for the SSH connection to the server can be added into the `wot-servient.configuration.json`.
-- XPath: the XPath of the YANG model node addressed by the given InteractionAffordance. The XPath is automatically converted into the corresponding XML needed by the RPC. If an attribute refers to a particular namespace, an alias can be used. The complete URN for the alias should be added to the **nc:NSs** field.
+-   URI schema: the schema for NETCONF is not registered with IANA; the Binding is using `netconf`.
+-   IP address and port: IP address and port of the NETCONF server. The credentials for the SSH connection to the server can be added into the `wot-servient.configuration.json`.
+-   XPath: the XPath of the YANG model node addressed by the given InteractionAffordance. The XPath is automatically converted into the corresponding XML needed by the RPC. If an attribute refers to a particular namespace, an alias can be used. The complete URN for the alias should be added to the **nc:NSs** field.
 
 ### nc:target
 
@@ -86,9 +86,9 @@ requires this `nc:NSs` in the _Form_ field:
 
 The optional attribute _nc:method_ specifies which NETCONF RPC should be used in the request. By default:
 
-- readproperty is mapped to a NETCONF RPC with `GET-CONFIG` method
-- writepropery is mapped to a NETCONF RPC with `EDIT-CONFIG` method
-- invokeaction is mapped to the generic RPC call, and hence, the method must be set explicitly (e.g., `COMMIT`, or whatever RPC is defined in YANG).
+-   readproperty is mapped to a NETCONF RPC with `GET-CONFIG` method
+-   writepropery is mapped to a NETCONF RPC with `EDIT-CONFIG` method
+-   invokeaction is mapped to the generic RPC call, and hence, the method must be set explicitly (e.g., `COMMIT`, or whatever RPC is defined in YANG).
 
 ## New DataSchema Fields for the NETCONF Binding and new ContentSerdes
 
@@ -128,9 +128,9 @@ Please note that, in order to make this binding work, each href should always co
 
 ## TODO
 
-- [ ] Subscriptions implementation (EVENTS)
-- [x] TEST
-- [ ] (NETCONF Server Protocol Binding ?)
+-   [ ] Subscriptions implementation (EVENTS)
+-   [x] TEST
+-   [ ] (NETCONF Server Protocol Binding ?)
 
 ## More Details
 
