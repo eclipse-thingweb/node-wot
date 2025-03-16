@@ -158,7 +158,7 @@ export default class WebSocketServer implements ProtocolServer {
     public expose(thing: ExposedThing): Promise<void> {
         let urlPath = slugify(thing.title, { lower: true });
 
-        if (this.thingNames.has(urlPath)) {
+        while (this.thingNames.has(urlPath)) {
             urlPath = Helpers.generateUniqueName(urlPath);
         }
 
