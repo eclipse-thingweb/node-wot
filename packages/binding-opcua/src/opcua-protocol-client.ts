@@ -16,7 +16,7 @@
 import { Subscription } from "rxjs/Subscription";
 import { promisify } from "util";
 import { Readable } from "stream";
-import URL from "url";
+import { URL } from "url";
 
 import { ProtocolClient, Content, ContentSerdes, Form, SecurityScheme, createLoggers } from "@node-wot/core";
 
@@ -266,7 +266,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
         if (form.href != null && form.href !== "" && form.href !== "/") {
             // parse node id from href
             // Note: href needs to be absolute
-            const url = URL.parse(form.href);
+            const url = new URL(form.href);
             if (url != null && url.search != null && url.search.startsWith("?")) {
                 const searchParams = new URLSearchParams(url.search.substring(1));
                 fNodeId = searchParams.get("id");
