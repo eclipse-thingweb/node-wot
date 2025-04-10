@@ -261,8 +261,8 @@ export class OPCUAProtocolClient implements ProtocolClient {
     }
 
     private _resolveNodeIdFromForm(form: OPCUAForm): NodeIdLike | NodeByBrowsePath {
-        var fNodeId;
-        if (form.href != null && form.href != "" && form.href != "/") {
+        let fNodeId;
+        if (form.href != null && form.href !== "" && form.href !== "/") {
             // parse node id from href
             // Note: href needs to be absolute
             const url = URL.parse(form.href);
