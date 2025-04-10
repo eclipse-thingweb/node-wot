@@ -260,23 +260,37 @@ export class OPCUAProtocolClient implements ProtocolClient {
         }
     }
 
-    private async _resolveNodeId(form: OPCUAForm): Promise<NodeId> {
-        const fNodeId = form["opcua:nodeId"];
-        if (fNodeId == null) {
-            debug(`resolveNodeId: form = ${form}`);
-            throw new Error("form must expose a 'opcua:nodeId'");
+    private _resolveNodeIdFromForm(form: OPCUAForm): NodeIdLike | NodeByBrowsePath {
+        var fNodeId;
+        if (form.href != null && form.href != "" && form.href != "/") {
+            // parse node id from href
+            // Note: href needs to be absolute
+            const url = URL.parse(form.href);
+            if (url != null && url.search != null && url.search.startsWith("?")) {
+                const searchParams = new URLSearchParams(url.search.substring(1));
+                fNodeId = searchParams.get("id");
+            }
         }
+        if (fNodeId == null) {
+            // fallback to *old* way
+            fNodeId = form["opcua:nodeId"];
+            if (fNodeId == null) {
+                debug(`resolveNodeId: form = ${form}`);
+                throw new Error("form must expose nodeId via href or 'opcua:nodeId'");
+            }
+        }
+        return fNodeId;
+    }
+
+    private async _resolveNodeId(form: OPCUAForm): Promise<NodeId> {
+        const fNodeId = this._resolveNodeIdFromForm(form);
         return this._resolveNodeId2(form, fNodeId);
     }
 
     /** extract the dataType of a variable */
     private async _predictDataType(form: OPCUAForm): Promise<DataType> {
-        const fNodeId = form["opcua:nodeId"];
-        if (fNodeId == null) {
-            debug(`resolveNodeId: form = ${form}`);
-            throw new Error("form must expose a 'opcua:nodeId'");
-        }
-        const nodeId = await this._resolveNodeId2(form, fNodeId);
+        const nodeId = await this._resolveNodeId(form);
+
         return await this._withSession<DataType>(form, async (session) => {
             const dataTypeOrNull = await getBuiltInDataType(session, nodeId);
             if (dataTypeOrNull !== undefined && dataTypeOrNull !== DataType.Null) {
@@ -291,7 +305,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
         const fNodeId = form["opcua:method"];
         if (fNodeId == null) {
             debug(`resolveNodeId: form = ${form}`);
-            throw new Error("form must expose a 'opcua:nodeId'");
+            throw new Error("form must expose a 'opcua:method'");
         }
         return this._resolveNodeId2(form, fNodeId);
     }
@@ -362,7 +376,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
         error?: (error: Error) => void,
         complete?: () => void
     ): Promise<Subscription> {
-        debug(`subscribeResource: form ${form["opcua:nodeId"]}`);
+        debug(`subscribeResource: form ${this._resolveNodeIdFromForm(form)}`);
 
         return this._withSubscription<Subscription>(form, async (session, subscription) => {
             const nodeId = await this._resolveNodeId(form);
@@ -437,7 +451,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
     }
 
     async unlinkResource(form: OPCUAForm): Promise<void> {
-        debug(`unlinkResource: form ${form["opcua:nodeId"]}`);
+        debug(`unlinkResource: form ${this._resolveNodeIdFromForm(form)}`);
         this._withSubscription<void>(form, async (session, subscription) => {
             const nodeId = await this._resolveNodeId(form);
             await this._unmonitor(nodeId);
