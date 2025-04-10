@@ -64,7 +64,7 @@ export type NodeIdLike2 = NodeIdLike & {
 };
 
 export interface FormPartialNodeDescription {
-    "opcua:nodeId": NodeIdLike | NodeByBrowsePath;
+    "opcua:nodeId"?: NodeIdLike | NodeByBrowsePath;
 }
 
 export interface OPCUAForm extends Form, FormPartialNodeDescription {}
@@ -72,7 +72,7 @@ export interface OPCUAForm extends Form, FormPartialNodeDescription {}
 export interface OPCUAFormElement extends FormElementProperty, FormPartialNodeDescription {}
 
 export interface OPCUAFormInvoke extends OPCUAForm {
-    "opcua:method": NodeIdLike | NodeByBrowsePath;
+    "opcua:method"?: NodeIdLike | NodeByBrowsePath;
 }
 export interface OPCUAFormSubscribe extends OPCUAForm {
     "opcua:samplingInterval"?: number;
@@ -261,7 +261,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
         }
     }
 
-    private _resolveNodeIdFromForm(form: OPCUAForm): NodeIdLike | NodeByBrowsePath {
+    static getNodeId(form: OPCUAForm): NodeIdLike | NodeByBrowsePath {
         let fNodeId;
         if (form.href != null && form.href !== "" && form.href !== "/") {
             // parse node id from href
@@ -284,7 +284,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
     }
 
     private async _resolveNodeId(form: OPCUAForm): Promise<NodeId> {
-        const fNodeId = this._resolveNodeIdFromForm(form);
+        const fNodeId = OPCUAProtocolClient.getNodeId(form);
         return this._resolveNodeId2(form, fNodeId);
     }
 
@@ -377,7 +377,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
         error?: (error: Error) => void,
         complete?: () => void
     ): Promise<Subscription> {
-        debug(`subscribeResource: form ${this._resolveNodeIdFromForm(form)}`);
+        debug(`subscribeResource: form ${OPCUAProtocolClient.getNodeId(form)}`);
 
         return this._withSubscription<Subscription>(form, async (session, subscription) => {
             const nodeId = await this._resolveNodeId(form);
@@ -452,7 +452,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
     }
 
     async unlinkResource(form: OPCUAForm): Promise<void> {
-        debug(`unlinkResource: form ${this._resolveNodeIdFromForm(form)}`);
+        debug(`unlinkResource: form ${OPCUAProtocolClient.getNodeId(form)}`);
         this._withSubscription<void>(form, async (session, subscription) => {
             const nodeId = await this._resolveNodeId(form);
             await this._unmonitor(nodeId);
