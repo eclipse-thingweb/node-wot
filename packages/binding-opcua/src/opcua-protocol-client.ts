@@ -16,6 +16,7 @@
 import { Subscription } from "rxjs/Subscription";
 import { promisify } from "util";
 import { Readable } from "stream";
+import URL from "url";
 
 import { ProtocolClient, Content, ContentSerdes, Form, SecurityScheme, createLoggers } from "@node-wot/core";
 
