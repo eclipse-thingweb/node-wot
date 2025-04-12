@@ -410,8 +410,12 @@ export default class HttpClient implements ProtocolClient {
         return request;
     }
 
-    private async fetch(request: Request, content?: Content) {
-        const result = await fetch(request, { body: content?.body });
+    private async fetch(request: Request) {
+        // TODO: need investigation. Even if the request has already a body
+        // if we don't pass it again to the fetch as request init the stream is
+        // not correctly consumed
+        // see https://github.com/eclipse-thingweb/node-wot/issues/1366.
+        const result = await fetch(request, { body: request.body });
 
         if (HttpClient.isOAuthTokenExpired(result, this.credential)) {
             this.credential = await (this.credential as OAuthCredential).refreshToken();
