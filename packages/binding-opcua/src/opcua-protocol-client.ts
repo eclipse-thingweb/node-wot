@@ -45,7 +45,6 @@ import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { StatusCodes } from "node-opcua-status-code";
 
 import { schemaDataValue } from "./codec";
-import { FormElementProperty } from "wot-thing-description-types";
 import { opcuaJsonEncodeVariant } from "node-opcua-json";
 import { Argument, BrowseDescription, BrowseResult } from "node-opcua-types";
 import { isGoodish2, ReferenceTypeIds } from "node-opcua";
@@ -64,19 +63,10 @@ export type NodeIdLike2 = NodeIdLike & {
 };
 
 export interface FormPartialNodeDescription {
-    "opcua:nodeId"?: NodeIdLike | NodeByBrowsePath;
+    "opcua:nodeId"?: NodeIdLike | NodeByBrowsePath; // TODO remove in future, kept for backwards compatibility only
 }
 
 export interface OPCUAForm extends Form, FormPartialNodeDescription {}
-
-export interface OPCUAFormElement extends FormElementProperty, FormPartialNodeDescription {}
-
-export interface OPCUAFormInvoke extends OPCUAForm {
-    "opcua:method"?: NodeIdLike | NodeByBrowsePath;
-}
-export interface OPCUAFormSubscribe extends OPCUAForm {
-    "opcua:samplingInterval"?: number;
-}
 
 interface OPCUAConnection {
     session: ClientSession;
@@ -301,14 +291,14 @@ export class OPCUAProtocolClient implements ProtocolClient {
         });
     }
 
-    private async _resolveMethodNodeId(form: OPCUAFormInvoke): Promise<NodeId> {
+    private async _resolveMethodNodeId(form: OPCUAForm): Promise<NodeId> {
         //  const objectNode = this._resolveNodeId(form);
         const fNodeId = form["opcua:method"];
         if (fNodeId == null) {
             debug(`resolveNodeId: form = ${form}`);
             throw new Error("form must expose a 'opcua:method'");
         }
-        return this._resolveNodeId2(form, fNodeId);
+        return this._resolveNodeId2(form, fNodeId as NodeIdLike | NodeByBrowsePath);
     }
 
     public async readResource(form: OPCUAForm): Promise<Content> {
@@ -343,7 +333,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
         }
     }
 
-    public async invokeResource(form: OPCUAFormInvoke, content: Content): Promise<Content> {
+    public async invokeResource(form: OPCUAForm, content: Content): Promise<Content> {
         return await this._withSession(form, async (session) => {
             const objectId = await this._resolveNodeId(form);
             const methodId = await this._resolveMethodNodeId(form);
@@ -590,7 +580,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
 
     private async _resolveInputArguments(
         session: IBasicSession,
-        form: OPCUAFormInvoke,
+        form: OPCUAForm,
         content: Content | undefined | null,
         argumentDefinition: ArgumentDefinition
     ): Promise<VariantOptions[]> {
@@ -638,7 +628,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
 
     private async _resolveOutputArguments(
         session: IBasicSession,
-        form: OPCUAFormInvoke,
+        form: OPCUAForm,
         argumentDefinition: ArgumentDefinition,
         outputVariants: Variant[]
     ): Promise<Content> {

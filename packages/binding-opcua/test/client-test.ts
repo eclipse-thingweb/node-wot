@@ -19,7 +19,7 @@ import { ContentSerdes, createLoggers } from "@node-wot/core";
 
 import { VariableIds, OPCUAServer } from "node-opcua";
 
-import { OPCUAProtocolClient, OPCUAForm, OPCUAFormInvoke } from "../src/opcua-protocol-client";
+import { OPCUAProtocolClient, OPCUAForm } from "../src/opcua-protocol-client";
 import { OpcuaJSONCodec, schemaDataValue } from "../src/codec";
 import { startServer } from "./fixture/basic-opcua-server";
 
@@ -164,7 +164,7 @@ describe("OPCUA Client", function () {
             required: ["TargetTemperature"],
         };
 
-        const form: OPCUAFormInvoke = {
+        const form: OPCUAForm = {
             href: endpoint,
             "opcua:nodeId": { root: "i=84", path: "/Objects/1:MySensor" },
             "opcua:method": { root: "i=84", path: "/Objects/1:MySensor/2:MethodSet/1:SetTemperatureSetPoint" },
