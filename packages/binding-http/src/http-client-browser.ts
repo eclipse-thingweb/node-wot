@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 import { ProtocolHelpers } from "@node-wot/core";
-import { RequestInit, Request } from "node-fetch";
+import fetch, { RequestInit, Request } from "node-fetch";
 import { Readable } from "stream";
 import { HttpForm, HTTPMethodName } from "./http";
 import HttpClient from "./http-client-impl";
@@ -24,10 +24,15 @@ export default class BrowserHttpClient extends HttpClient {
         defaultMethod: HTTPMethodName,
         additionalOptions?: RequestInit
     ): Promise<Request> {
+        // See https://github.com/eclipse-thingweb/node-wot/issues/790
         if (additionalOptions?.body instanceof Readable) {
             const buffer = await ProtocolHelpers.readStreamFully(additionalOptions.body);
             additionalOptions.body = buffer;
         }
         return super.generateFetchRequest(form, defaultMethod, additionalOptions);
+    }
+
+    protected async _fetch(request: Request) {
+        return fetch(request);
     }
 }
