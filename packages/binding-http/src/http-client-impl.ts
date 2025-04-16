@@ -126,7 +126,7 @@ export default class HttpClient implements ProtocolClient {
         const request = await this.generateFetchRequest(form, "GET", { headers });
         debug(`HttpClient (readResource) sending ${request.method} to ${request.url}`);
 
-        const result = await this.fetch(request);
+        const result = await this.doFetch(request);
 
         this.checkFetchResponse(result);
 
@@ -150,7 +150,7 @@ export default class HttpClient implements ProtocolClient {
                 request.url
             }`
         );
-        const result = await this.fetch(request);
+        const result = await this.doFetch(request);
 
         debug(`HttpClient received ${result.status} from ${result.url}`);
 
@@ -213,7 +213,7 @@ export default class HttpClient implements ProtocolClient {
             } to ${request.url}`
         );
 
-        const result = await this.fetch(request);
+        const result = await this.doFetch(request);
 
         debug(`HttpClient received ${result.status} from ${request.url}`);
         debug(`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
@@ -245,7 +245,7 @@ export default class HttpClient implements ProtocolClient {
             Accept: "application/td+json",
         };
         const request = await this.generateFetchRequest({ href: uri }, "GET", headers);
-        const response = await this.fetch(request);
+        const response = await this.doFetch(request);
         const body = ProtocolHelpers.toNodeStream(response.body as Readable);
         return new Content(response.headers.get("content-type") ?? "application/td+json", body);
     }
@@ -427,7 +427,7 @@ export default class HttpClient implements ProtocolClient {
         return fetch(request, { body: request.body });
     }
 
-    private async fetch(request: Request) {
+    private async doFetch(request: Request) {
         const result = await this._fetch(request);
 
         if (HttpClient.isOAuthTokenExpired(result, this.credential)) {
