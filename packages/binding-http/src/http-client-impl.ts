@@ -126,7 +126,7 @@ export default class HttpClient implements ProtocolClient {
         const request = await this.generateFetchRequest(form, "GET", { headers });
         debug(`HttpClient (readResource) sending ${request.method} to ${request.url}`);
 
-        const result = await this.fetch(request);
+        const result = await this.doFetch(request);
 
         this.checkFetchResponse(result);
 
@@ -150,7 +150,7 @@ export default class HttpClient implements ProtocolClient {
                 request.url
             }`
         );
-        const result = await this.fetch(request);
+        const result = await this.doFetch(request);
 
         debug(`HttpClient received ${result.status} from ${result.url}`);
 
@@ -213,7 +213,7 @@ export default class HttpClient implements ProtocolClient {
             } to ${request.url}`
         );
 
-        const result = await this.fetch(request);
+        const result = await this.doFetch(request);
 
         debug(`HttpClient received ${result.status} from ${request.url}`);
         debug(`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
@@ -245,7 +245,7 @@ export default class HttpClient implements ProtocolClient {
             Accept: "application/td+json",
         };
         const request = await this.generateFetchRequest({ href: uri }, "GET", headers);
-        const response = await this.fetch(request);
+        const response = await this.doFetch(request);
         const body = ProtocolHelpers.toNodeStream(response.body as Readable);
         return new Content(response.headers.get("content-type") ?? "application/td+json", body);
     }
@@ -410,12 +410,29 @@ export default class HttpClient implements ProtocolClient {
         return request;
     }
 
-    private async fetch(request: Request, content?: Content) {
-        const result = await fetch(request, { body: content?.body });
+    /**
+     * Performs the fetch operation for the given request.
+     *
+     * This method is intended to be overridden in browser implementations due to differences
+     * in how the fetch operation handles streams in the request body.
+     *
+     * @param request - The HTTP request to be sent.
+     * @returns A promise that resolves to the HTTP response.
+     */
+    protected _fetch(request: Request): Promise<Response> {
+        // TODO: need investigation. Even if the request has already a body
+        // if we don't pass it again to the fetch as request init the stream is
+        // not correctly consumed
+        // see https://github.com/eclipse-thingweb/node-wot/issues/1366.
+        return fetch(request, { body: request.body });
+    }
+
+    private async doFetch(request: Request) {
+        const result = await this._fetch(request);
 
         if (HttpClient.isOAuthTokenExpired(result, this.credential)) {
             this.credential = await (this.credential as OAuthCredential).refreshToken();
-            return await fetch(await this.credential.sign(request));
+            return await this._fetch(await this.credential.sign(request));
         }
 
         return result;

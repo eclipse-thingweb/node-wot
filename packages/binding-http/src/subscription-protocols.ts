@@ -50,7 +50,7 @@ export class LongPollingSubscription implements InternalSubscription {
                             timeout: 1000,
                             signal: this.abortController.signal as AbortSignal,
                         });
-                        const result = await this.client["fetch"](headRequest);
+                        const result = await this.client["doFetch"](headRequest);
                         if (result.ok) resolve();
                     }
 
@@ -61,7 +61,7 @@ export class LongPollingSubscription implements InternalSubscription {
                     });
                     debug(`HttpClient (subscribeResource) sending ${request.method} to ${request.url}`);
 
-                    const result = await this.client["fetch"](request);
+                    const result = await this.client["doFetch"](request);
 
                     this.client["checkFetchResponse"](result);
 
