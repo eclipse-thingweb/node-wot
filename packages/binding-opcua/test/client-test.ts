@@ -139,7 +139,7 @@ describe("OPCUA Client", function () {
         });
     });
 
-    it("Y2a - should subscribe to a topic", async () => {
+    it("Y2 - should subscribe to a topic", async () => {
         const form: OPCUAForm = {
             href: endpoint,
             "opcua:nodeId": VariableIds.Server_ServerStatus_CurrentTime,
@@ -154,45 +154,11 @@ describe("OPCUA Client", function () {
             }
         });
     });
-    it("Y2b - should subscribe to a topic", async () => {
-        const form: OPCUAForm = {
-            href: endpoint + "?id=" + VariableIds.Server_ServerStatus_CurrentTime,
-        };
 
-        let counter = 0;
-        const sub = await client.subscribeResource(form, async () => {
-            counter++;
-            if (counter > 3) {
-                // await client.unlinkResource(form);
-                sub.unsubscribe();
-            }
-        });
-    });
-
-    it("Y3a - should subscribe to many topics but establish the opcua connection once", async () => {
+    it("Y3 - should subscribe to many topics but establish the opcua connection once", async () => {
         const form: OPCUAForm = {
             href: endpoint,
             "opcua:nodeId": VariableIds.Server_ServerStatus_CurrentTime,
-        };
-
-        await new Promise<void>((resolve) => {
-            let counter = 0;
-            const onSubscribedValueChanged = async () => {
-                counter++;
-                if (counter > 3) {
-                    await client.unlinkResource(form);
-                    resolve();
-                }
-            };
-            client.subscribeResource(form, onSubscribedValueChanged);
-            client.subscribeResource(form, onSubscribedValueChanged);
-            client.subscribeResource(form, onSubscribedValueChanged);
-            client.subscribeResource(form, onSubscribedValueChanged);
-        });
-    });
-    it("Y3b - should subscribe to many topics but establish the opcua connection once", async () => {
-        const form: OPCUAForm = {
-            href: endpoint + "?id=" + VariableIds.Server_ServerStatus_CurrentTime,
         };
 
         await new Promise<void>((resolve) => {
