@@ -92,7 +92,7 @@ describe("OPCUA Client", function () {
             expected: new Date("2022-01-31T10:45:00.000Z"),
         },
     ].forEach(({ contentType, expected }, index) => {
-        it(`Y1-${index} should read a topic with contentType= ${contentType}`, async () => {
+        it(`Y1a-${index} should read a topic with contentType= ${contentType}`, async () => {
             const readForm: OPCUAForm = {
                 href: endpoint,
                 "opcua:nodeId": "ns=1;s=ManufacturingDate",
@@ -115,9 +115,31 @@ describe("OPCUA Client", function () {
             debug(`${dataValue}`);
             expect(dataValue).to.eql(expected);
         });
+        it(`Y1b-${index} should read a topic with contentType= ${contentType}`, async () => {
+            const readForm: OPCUAForm = {
+                href: endpoint + "?id=ns=1;s=ManufacturingDate",
+                contentType,
+            };
+
+            const content = await client.readResource(readForm);
+            const content2 = { ...content, body: await content.toBuffer() };
+
+            debug(`readResource returned: ${content2.body.toString("ascii")}`);
+
+            const codecSerDes = ContentSerdes.get();
+            const dataValue = codecSerDes.contentToValue(content2, schemaDataValue) as Record<string, unknown>;
+
+            // (deal with always changing date )
+            if (dataValue.SourceTimestamp != null) {
+                expect(dataValue.SourceTimestamp).to.be.instanceOf(Date);
+                dataValue.SourceTimestamp = "*";
+            }
+            debug(`${dataValue}`);
+            expect(dataValue).to.eql(expected);
+        });
     });
 
-    it("Y2 - should subscribe to a topic", async () => {
+    it("Y2a - should subscribe to a topic", async () => {
         const form: OPCUAForm = {
             href: endpoint,
             "opcua:nodeId": VariableIds.Server_ServerStatus_CurrentTime,
@@ -132,11 +154,45 @@ describe("OPCUA Client", function () {
             }
         });
     });
+    it("Y2b - should subscribe to a topic", async () => {
+        const form: OPCUAForm = {
+            href: endpoint + "?id=" + VariableIds.Server_ServerStatus_CurrentTime,
+        };
 
-    it("Y3 - should subscribe to many topics but establish the opcua connection once", async () => {
+        let counter = 0;
+        const sub = await client.subscribeResource(form, async () => {
+            counter++;
+            if (counter > 3) {
+                // await client.unlinkResource(form);
+                sub.unsubscribe();
+            }
+        });
+    });
+
+    it("Y3a - should subscribe to many topics but establish the opcua connection once", async () => {
         const form: OPCUAForm = {
             href: endpoint,
             "opcua:nodeId": VariableIds.Server_ServerStatus_CurrentTime,
+        };
+
+        await new Promise<void>((resolve) => {
+            let counter = 0;
+            const onSubscribedValueChanged = async () => {
+                counter++;
+                if (counter > 3) {
+                    await client.unlinkResource(form);
+                    resolve();
+                }
+            };
+            client.subscribeResource(form, onSubscribedValueChanged);
+            client.subscribeResource(form, onSubscribedValueChanged);
+            client.subscribeResource(form, onSubscribedValueChanged);
+            client.subscribeResource(form, onSubscribedValueChanged);
+        });
+    });
+    it("Y3b - should subscribe to many topics but establish the opcua connection once", async () => {
+        const form: OPCUAForm = {
+            href: endpoint + "?id=" + VariableIds.Server_ServerStatus_CurrentTime,
         };
 
         await new Promise<void>((resolve) => {
