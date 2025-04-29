@@ -63,7 +63,8 @@ export type NodeIdLike2 = NodeIdLike & {
 };
 
 export interface FormPartialNodeDescription {
-    "opcua:nodeId"?: NodeIdLike | NodeByBrowsePath; // TODO remove in future, kept for backwards compatibility only
+    /** @deprecated use href instead */
+    "opcua:nodeId"?: NodeIdLike | NodeByBrowsePath;
 }
 
 export interface OPCUAForm extends Form, FormPartialNodeDescription {}
