@@ -65,7 +65,7 @@ The framework is composed by different packages that users can use as they pleas
 #### Node.js
 
 > [!WARNING]
-> We no longer actively support Node.js version 20 and lower.
+> We no longer actively support Node.js version 18 and lower.
 
 -   [Node.js](https://nodejs.org/) version 20+
 -   [npm](https://www.npmjs.com/) version 9+
