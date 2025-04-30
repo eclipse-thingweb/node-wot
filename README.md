@@ -213,9 +213,6 @@ If you execute both scripts you will see `count: ${count}` printed 5 times. We h
 > [!NOTE]
 > More protocols can be easily added by implementing `ProtocolClient`, `ProtocolClientFactory`, and `ProtocolServer` interface.
 
-> [!NOTE]
-> The bindings for [binding-fujitsu](https://github.com/eclipse-thingweb/node-wot/tree/v0.7.x/packages/binding-fujitsu) and [binding-oracle](https://github.com/eclipse-thingweb/node-wot/tree/v0.7.x/packages/binding-oracle) were removed after `v0.7.x` due to lack of maintainers.
-
 ### MediaType Support
 
 -   JSON :heavy_check_mark:
