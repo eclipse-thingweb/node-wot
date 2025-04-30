@@ -63,7 +63,7 @@ import { thingDescription } from "./demo-opcua-thing-description";
 
 ### Run the Example App
 
-The `examples/src/bindings/opcua` folder contains a set of typescript demo that shows you
+The `packages/examples/src/bindings/opcua` folder contains a set of typescript demo that shows you
 how to define a thing description containing OPCUA Variables and methods.
 
 -   `demo-opcua1.ts` shows how to define and read an OPC-UA variable in WoT.
