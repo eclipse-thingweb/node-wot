@@ -157,10 +157,7 @@ export default class WebSocketServer implements ProtocolServer {
 
     public expose(thing: ExposedThing): Promise<void> {
         let urlPath = slugify(thing.title, { lower: true });
-
-        while (this.thingNames.has(urlPath)) {
-            urlPath = Helpers.generateUniqueName(urlPath);
-        }
+        urlPath = Helpers.generateUniqueName(urlPath, new Set(this.thingNames.keys()));
 
         if (this.getPort() !== -1) {
             debug(`WebSocketServer on port ${this.getPort()} exposes '${thing.title}' as unique '/${urlPath}/*'`);

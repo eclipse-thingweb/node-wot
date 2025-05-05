@@ -268,10 +268,7 @@ export default class HttpServer implements ProtocolServer {
 
     public async expose(thing: ExposedThing, tdTemplate: WoT.ExposedThingInit = {}): Promise<void> {
         let urlPath = slugify(thing.title, { lower: true });
-
-        while (this.things.has(urlPath)) {
-            urlPath = Helpers.generateUniqueName(urlPath);
-        }
+        urlPath = Helpers.generateUniqueName(urlPath, new Set(this.things.keys()));
 
         if (this.getPort() !== -1) {
             debug(`HttpServer on port ${this.getPort()} exposes '${thing.title}' as unique '/${urlPath}'`);

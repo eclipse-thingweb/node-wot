@@ -124,12 +124,23 @@ export default class Helpers implements Resolver {
         return address;
     }
 
-    public static generateUniqueName(name: string): string {
-        const suffix = name.match(/.+_([0-9]+)$/);
-        if (suffix !== null) {
-            return name.slice(0, -suffix[1].length) + (1 + parseInt(suffix[1]));
+    public static generateUniqueName(name: string, existingNames?: Set<string>): string {
+        if (existingNames == undefined) {
+            // fallback to *old* code, see issue https://github.com/eclipse-thingweb/node-wot/issues/1351
+            // Note: There is no function overloading in TypeScript
+            const suffix = name.match(/.+_([0-9]+)$/);
+            if (suffix !== null) {
+                return name.slice(0, -suffix[1].length) + (1 + parseInt(suffix[1]));
+            } else {
+                return name + "_2";
+            }
         } else {
-            return name + "_";
+            let uniqueName = name;
+            let cnt = 2;
+            while (existingNames.has(uniqueName)) {
+                uniqueName = name + "_" + cnt++;
+            }
+            return uniqueName;
         }
     }
 

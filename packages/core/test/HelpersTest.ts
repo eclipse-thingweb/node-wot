@@ -202,11 +202,17 @@ class HelperTest {
 
     @test "should generate unique names over and over again"() {
         let urlPath = "bla";
-        const paths = [urlPath];
-        for (let i = 0; i < 5; i++) {
-            urlPath = Helpers.generateUniqueName(urlPath);
-            expect(paths.includes(urlPath)).to.equal(false);
-            paths.push(urlPath);
-        }
+        const existingPaths = new Set<string>();
+
+        let uniqueName = Helpers.generateUniqueName(urlPath, existingPaths);
+        expect(uniqueName).to.be.eql("bla");
+        existingPaths.add("bla");
+
+        uniqueName = Helpers.generateUniqueName(urlPath, existingPaths);
+        expect(uniqueName).to.be.eql("bla_2");
+        existingPaths.add("bla_2");
+
+        uniqueName = Helpers.generateUniqueName(urlPath, existingPaths);
+        expect(uniqueName).to.be.eql("bla_3");
     }
 }
