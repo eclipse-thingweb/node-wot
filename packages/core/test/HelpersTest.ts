@@ -201,7 +201,7 @@ class HelperTest {
     }
 
     @test "should generate unique names over and over again"() {
-        let urlPath = "bla";
+        const urlPath = "bla";
         const existingPaths = new Set<string>();
 
         let uniqueName = Helpers.generateUniqueName(urlPath, existingPaths);

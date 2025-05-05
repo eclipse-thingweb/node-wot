@@ -125,7 +125,7 @@ export default class Helpers implements Resolver {
     }
 
     public static generateUniqueName(name: string, existingNames?: Set<string>): string {
-        if (existingNames == undefined) {
+        if (existingNames === undefined) {
             // fallback to *old* code, see issue https://github.com/eclipse-thingweb/node-wot/issues/1351
             // Note: There is no function overloading in TypeScript
             const suffix = name.match(/.+_([0-9]+)$/);
