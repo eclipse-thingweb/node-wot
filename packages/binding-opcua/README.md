@@ -28,9 +28,8 @@ const thingDescription = {
             type: "number",
             forms: [
                 {
-                    href: "opc.tcp://opcuademo.sterfive.com:26543", // endpoint,
+                    href: "opc.tcp://opcuademo.sterfive.com:26543?id=ns=1;s=PumpSpeed",
                     op: ["readproperty", "observeproperty"],
-                    "opcua:nodeId": "ns=1;s=PumpSpeed",
                 },
             ],
         },
@@ -64,60 +63,23 @@ import { thingDescription } from "./demo-opcua-thing-description";
 
 ### Run the Example App
 
-The `examples/src/opcua` folder contains a set of typescript demo that shows you
+The `packages/examples/src/bindings/opcua` folder contains a set of typescript demo that shows you
 how to define a thing description containing OPCUA Variables and methods.
 
 -   `demo-opcua1.ts` shows how to define and read an OPC-UA variable in WoT.
 -   `demo-opcua2.ts` shows how to subscribe to an OPC-UA variable in WoT.
 -   `opcua-coffee-machine-demo.ts` demonstrates how to define and invoke OPCUA methods as WoT actions.
 
-### Form extensions
+### Format for href
 
-#### href
-
-the `href` property must contains a OPCUA endpoint url in the form `opc.tcp://MACHINE:PORT/Application`
+The `href` must contain an OPCUA endpoint url in the form of `opc.tcp://<address>:<port>/?id=<nodeId>`
 such as for instance:
-`opc.tcp://opcuademo.sterfive.com:26543` or `opc.tcp://localhost:48010`
+`opc.tcp://opcuademo.sterfive.com:26543?id=ns=1;s=PumpSpeed`
 
-#### opcua:nodeId
+`<nodeId>` has the following expectations:
 
-The form must contain an `opcua:nodeId` property that describes the nodeId of the OPCUA Variable to read/write/subscribe or the nodeId of the OPCUA Object related to the action.
-
-The `opcua:nodeId` can have 2 forms:
-
--   a **NodeId** as a string, such as `"ns=1;i=1234"` , for instance:
-
-```javascript
-"opcua:nodeId": "ns=1;s=\"Machine\".\"Component\""
-```
-
--   or **browsePath**: The browse path will be converted into the corresponding nodeId at runtime when first encountered.
-
-```
-"opcua:nodeId": { root: "i=84", path: "/Objects/2:DeviceSet/1:CoffeeMachine" },
-```
-
-### opcua:method
-
-for example:
-
-```typescript
-const thingDescription = {
-    // ...
-    actions: {
-        brewCoffee: {
-            forms: [
-                {
-                    href: "opc.tcp://opcuademo.sterfive.com:26543",
-                    op: ["invokeaction"],
-                    "opcua:nodeId": { root: "i=84", path: "/Objects/2:DeviceSet/1:CoffeeMachine" },
-                    "opcua:method": { root: "i=84", path: "/Objects/2:DeviceSet/1:CoffeeMachine/2:MethodSet/9:Start" },
-                },
-            ],
-        },
-    },
-};
-```
+-   any hash character (`#`) must be URL encoded (`%23`)
+-   any ampersand character (`&`) must be URL encoded (`%26`)
 
 ### defining a property
 
@@ -133,9 +95,8 @@ const thingDescription = {
             type: "number",
             forms: [
                 {
-                    href: "opc.tcp://opcuademo.sterfive.com:26543",
+                    href: "opc.tcp://opcuademo.sterfive.com:26543?id=ns=1;s=Temperature",
                     op: ["readproperty", "observeproperty"],
-                    "opcua:nodeId": "ns=1;s=Temperature",
                 },
             ],
         },

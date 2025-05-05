@@ -8,9 +8,6 @@
     "include": ["index.ts"],
     "references": [
         {
-            "path": "../td-tools"
-        },
-        {
             "path": "../core"
         },
         {

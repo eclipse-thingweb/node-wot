@@ -34,9 +34,8 @@ export const thingDescription: WoT.ThingDescription = {
             type: "number",
             forms: [
                 {
-                    href: endpointUrl,
+                    href: endpointUrl + "?id=ns=1;s=PumpSpeed",
                     op: ["readproperty", "observeproperty"],
-                    "opcua:nodeId": "ns=1;s=PumpSpeed",
                 },
             ],
         },
@@ -48,9 +47,8 @@ export const thingDescription: WoT.ThingDescription = {
             type: "number",
             forms: [
                 {
-                    href: endpointUrl,
+                    href: endpointUrl + "?id=ns=1;s=Temperature",
                     op: ["readproperty", "observeproperty"],
-                    "opcua:nodeId": "ns=1;s=Temperature",
                 },
             ],
         },

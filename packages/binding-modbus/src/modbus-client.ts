@@ -276,8 +276,8 @@ export default class ModbusClient implements ProtocolClient {
                         mode === "r"
                             ? ModbusFunction.readCoil
                             : contentLength > 1
-                            ? ModbusFunction.writeMultipleCoils
-                            : ModbusFunction.writeSingleCoil;
+                              ? ModbusFunction.writeMultipleCoils
+                              : ModbusFunction.writeSingleCoil;
                     break;
                 case "HoldingRegister":
                     // the content length must be divided by 2 (holding registers are 16bit)
@@ -285,8 +285,8 @@ export default class ModbusClient implements ProtocolClient {
                         mode === "r"
                             ? ModbusFunction.readHoldingRegisters
                             : contentLength / 2 > 1
-                            ? ModbusFunction.writeMultipleHoldingRegisters
-                            : ModbusFunction.writeSingleHoldingRegister;
+                              ? ModbusFunction.writeMultipleHoldingRegisters
+                              : ModbusFunction.writeSingleHoldingRegister;
                     break;
                 case "InputRegister":
                     result["modv:function"] = ModbusFunction.readInputRegister;

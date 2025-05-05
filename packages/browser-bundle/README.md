@@ -16,11 +16,11 @@ Include the following script tag in your html
 <script src="https://cdn.jsdelivr.net/npm/@node-wot/browser-bundle@latest/dist/wot-bundle.min.js"></script>
 ```
 
-You can access all node-wot functionality through the "Wot" global object:
+You can access all node-wot functionality through the "WoT" global object:
 
 ```js
-var servient = new Wot.Core.Servient();
-var client = new Wot.Http.HttpClient();
+var servient = new WoT.Core.Servient();
+var client = new WoT.Http.HttpClient();
 ```
 
 ## Using node-wot browser bundle library in web frameworks (e.g., Angular)

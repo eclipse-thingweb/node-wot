@@ -65,9 +65,9 @@ The framework is composed by different packages that users can use as they pleas
 #### Node.js
 
 > [!WARNING]
-> We no longer actively support Node.js version 16 and lower.
+> We no longer actively support Node.js version 18 and lower.
 
--   [Node.js](https://nodejs.org/) version 18+
+-   [Node.js](https://nodejs.org/) version 20+
 -   [npm](https://www.npmjs.com/) version 9+
 
 Platforms specific prerequisites:
@@ -213,9 +213,6 @@ If you execute both scripts you will see `count: ${count}` printed 5 times. We h
 > [!NOTE]
 > More protocols can be easily added by implementing `ProtocolClient`, `ProtocolClientFactory`, and `ProtocolServer` interface.
 
-> [!NOTE]
-> The bindings for [binding-fujitsu](https://github.com/eclipse-thingweb/node-wot/tree/v0.7.x/packages/binding-fujitsu) and [binding-oracle](https://github.com/eclipse-thingweb/node-wot/tree/v0.7.x/packages/binding-oracle) were removed after `v0.7.x` due to lack of maintainers.
-
 ### MediaType Support
 
 -   JSON :heavy_check_mark:
@@ -342,15 +339,6 @@ cs.addCodec(new JsonCodec("application/calendar+json"));
 cs.addCodec(new MyCodec("application/myType"));
 
 ```
-
-### TD Tooling
-
-The package [td-tools](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/td-tools) provides utilities around Thing Description (TD) tooling:
-
--   Thing Description (TD) parsing
--   Thing Model (TM) tooling
--   [Asset Interface Description (AID)](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/td-tools/src/util) utility
--   ...
 
 ### Logging
 
