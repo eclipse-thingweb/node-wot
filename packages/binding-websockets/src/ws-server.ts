@@ -158,8 +158,8 @@ export default class WebSocketServer implements ProtocolServer {
     public expose(thing: ExposedThing): Promise<void> {
         let urlPath = slugify(thing.title, { lower: true });
 
-        if (this.thingNames.has(urlPath)) {
-            urlPath = Helpers.generateUniqueName(urlPath);
+        while (this.thingNames.has(urlPath)) {
+            urlPath += "_";
         }
 
         if (this.getPort() !== -1) {

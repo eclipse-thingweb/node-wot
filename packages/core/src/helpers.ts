@@ -124,6 +124,7 @@ export default class Helpers implements Resolver {
         return address;
     }
 
+    /** @deprecated see https://github.com/eclipse-thingweb/node-wot/issues/1351 */
     public static generateUniqueName(name: string): string {
         const suffix = name.match(/.+_([0-9]+)$/);
         if (suffix !== null) {
