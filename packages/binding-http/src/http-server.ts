@@ -269,8 +269,14 @@ export default class HttpServer implements ProtocolServer {
     public async expose(thing: ExposedThing, tdTemplate: WoT.ExposedThingInit = {}): Promise<void> {
         let urlPath = slugify(thing.title, { lower: true });
 
-        while (this.things.has(urlPath)) {
-            urlPath += "_";
+        // avoid URL clashes
+        if (this.things.has(urlPath)) {
+            let uniqueUrlPath;
+            let nameClashCnt = 2;
+            do {
+                uniqueUrlPath = urlPath + "_" + nameClashCnt++;
+            } while (this.things.has(uniqueUrlPath));
+            urlPath = uniqueUrlPath;
         }
 
         if (this.getPort() !== -1) {
