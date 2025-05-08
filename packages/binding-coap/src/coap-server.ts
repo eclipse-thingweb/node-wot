@@ -158,10 +158,16 @@ export default class CoapServer implements ProtocolServer {
     }
 
     private createThingUrlPath(thing: ExposedThing) {
-        const urlPath = slugify(thing.title, { lower: true });
+        let urlPath = slugify(thing.title, { lower: true });
 
+        // avoid URL clashes
         if (this.things.has(urlPath)) {
-            return Helpers.generateUniqueName(urlPath);
+            let uniqueUrlPath;
+            let nameClashCnt = 2;
+            do {
+                uniqueUrlPath = urlPath + "_" + nameClashCnt++;
+            } while (this.things.has(uniqueUrlPath));
+            urlPath = uniqueUrlPath;
         }
 
         return urlPath;
