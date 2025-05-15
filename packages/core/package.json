@@ -19,7 +19,7 @@
         "@types/debug": "^4.1.7",
         "@types/uritemplate": "^0.3.4",
         "@types/uuid": "^8.3.1",
-        "wot-thing-description-types": "^1.1.0-09-November-2023"
+        "wot-thing-description-types": "^1.1.0-12-March-2025"
     },
     "dependencies": {
         "@petamoriken/float16": "^3.1.1",
