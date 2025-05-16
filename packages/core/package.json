@@ -23,7 +23,7 @@
     },
     "dependencies": {
         "@petamoriken/float16": "^3.1.1",
-        "@thingweb/thing-model": "^1.0.3",
+        "@thingweb/thing-model": "^1.0.4",
         "ajv": "^8.11.0",
         "ajv-formats": "^2.1.1",
         "cbor": "^8.1.0",
