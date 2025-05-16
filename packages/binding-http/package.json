@@ -20,7 +20,6 @@
     "devDependencies": {
         "@node-oauth/express-oauth-server": "^3.0.1",
         "@node-oauth/oauth2-server": "^4.3.0",
-        "@sinonjs/fake-timers": "^11.2.2",
         "@types/accept-language-parser": "^1.5.2",
         "@types/basic-auth": "1.1.3",
         "@types/eventsource": "^1.1.15",
@@ -28,7 +27,6 @@
         "@types/node-fetch": "^2.6.12",
         "body-parser": "^1.20.3",
         "express": "^4.20.0",
-        "serve-static": "^1.16.0",
         "ssestream": "^1.1.0",
         "timekeeper": "^2.2.0"
     },
@@ -41,7 +39,6 @@
         "find-my-way": "^8.2.2",
         "node-fetch": "^2.7.0",
         "query-string": "^7.1.1",
-        "rxjs": "5.5.11",
         "slugify": "^1.4.5"
     },
     "scripts": {
