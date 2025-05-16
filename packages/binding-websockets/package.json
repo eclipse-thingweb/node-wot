@@ -15,11 +15,8 @@
     "types": "dist/ws.d.ts",
     "browser": "dist/ws-browser.js",
     "dependencies": {
-        "@node-wot/binding-http": "0.9.2",
         "@node-wot/core": "0.9.2",
-        "rxjs": "^5.5.11",
-        "slugify": "^1.4.5",
-        "ws": "^7.5.10"
+        "rxjs": "^5.5.11"
     },
     "scripts": {
         "build": "tsc -b",
