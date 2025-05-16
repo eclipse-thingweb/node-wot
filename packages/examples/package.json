@@ -8,12 +8,10 @@
     "repository": "https://github.com/eclipse-thingweb/node-wot/tree/master/packages/examples",
     "dependencies": {
         "@node-wot/binding-coap": "0.9.2",
-        "@node-wot/binding-file": "0.9.2",
         "@node-wot/binding-http": "0.9.2",
         "@node-wot/binding-mqtt": "0.9.2",
         "@node-wot/binding-opcua": "0.9.2",
-        "@node-wot/core": "0.9.2",
-        "rxjs": "5.5.11"
+        "@node-wot/core": "0.9.2"
     },
     "scripts": {
         "build": "tsc -b",
