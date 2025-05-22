@@ -13,19 +13,38 @@
  **/
 
 function get_td(addr) {
-    servient.start().then((thingFactory) => {
-        helpers
-            .fetch(addr)
-            .then((td) => {
-                thingFactory.consume(td).then((thing) => {
-                    removeInteractions();
-                    showInteractions(thing);
+    // Clear all loaded content before loading new TD
+    const interactions = document.getElementById("interactions");
+    if (interactions) {
+        interactions.style.display = "none";
+    }
+
+    servient
+        .start()
+        .then((thingFactory) => {
+            helpers
+                .fetch(addr)
+                .then((td) => {
+                    thingFactory
+                        .consume(td)
+                        .then((thing) => {
+                            removeInteractions();
+                            showInteractions(thing);
+                        })
+                        .catch((err) => {
+                            window.alert("Failed to consume TD: " + err);
+                            clearAllInteractions();
+                        });
+                })
+                .catch((err) => {
+                    window.alert("Failed to fetch TD: " + err);
+                    clearAllInteractions();
                 });
-            })
-            .catch((error) => {
-                window.alert("Could not fetch TD.\n" + error);
-            });
-    });
+        })
+        .catch((err) => {
+            window.alert("Failed to start servient: " + err);
+            clearAllInteractions();
+        });
 }
 
 function showInteractions(thing) {
@@ -166,6 +185,90 @@ function removeSchemaEditor() {
 var servient = new WoT.Core.Servient();
 servient.addClientFactory(new WoT.Http.HttpClientFactory());
 var helpers = new WoT.Core.Helpers(servient);
-document.getElementById("fetch").onclick = () => {
-    get_td(document.getElementById("td_addr").value);
+
+// Tab and auto-consume
+const TD_URLS = {
+    counter: "http://plugfest.thingweb.io/counter",
+    testthing: "http://plugfest.thingweb.io/http-data-schema-thing",
+    smartcoffee: "http://plugfest.thingweb.io/http-advanced-coffee-machine",
 };
+
+document.addEventListener("DOMContentLoaded", function () {
+    const tabLinks = [
+        { id: "tab-link-custom", tab: "tab-custom" },
+        { id: "tab-link-counter", tab: "tab-counter" },
+        { id: "tab-link-testthing", tab: "tab-testthing" },
+        { id: "tab-link-smartcoffee", tab: "tab-smartcoffee" },
+    ];
+    const tabContents = tabLinks.map((t) => document.getElementById(t.tab));
+    const tdInput = document.getElementById("td_addr");
+    const fetchBtn = document.getElementById("fetch");
+
+    // Clear all interactions and editor
+    function clearAllInteractions() {
+        // Hide interactions section
+        const interactions = document.getElementById("interactions");
+        if (interactions) {
+            interactions.style.display = "none";
+        }
+        // Clear properties, actions, and events lists
+        ["properties", "actions", "events"].forEach((id) => {
+            const element = document.getElementById(id);
+            if (element) element.innerHTML = "";
+        });
+        // Clear the editor
+        removeSchemaEditor();
+    }
+
+    tabLinks.forEach(({ id, tab }) => {
+        const link = document.getElementById(id);
+        if (link) {
+            link.addEventListener("click", function (e) {
+                e.preventDefault();
+                // Clear any existing content first
+                clearAllInteractions();
+
+                // Switch active tab
+                document.querySelectorAll("#td-tabs .tab-title").forEach((li) => li.classList.remove("active"));
+                link.parentElement.classList.add("active");
+                document.querySelectorAll(".tabs-content .content").forEach((c) => c.classList.remove("active"));
+                document.getElementById(tab).classList.add("active");
+
+                // Auto-fill and consume logic
+                if (tab === "tab-counter") {
+                    tdInput.value = TD_URLS.counter;
+                    get_td(TD_URLS.counter);
+                } else if (tab === "tab-testthing") {
+                    tdInput.value = TD_URLS.testthing;
+                    get_td(TD_URLS.testthing);
+                } else if (tab === "tab-smartcoffee") {
+                    tdInput.value = TD_URLS.smartcoffee;
+                    get_td(TD_URLS.smartcoffee);
+                }
+            });
+        }
+    });
+
+    // Dropdown handle
+    const exampleSelect = document.getElementById("exampleUrls");
+    if (exampleSelect) {
+        exampleSelect.addEventListener("change", function () {
+            if (this.value) {
+                tdInput.value = this.value;
+                // Auto-click
+                if (fetchBtn) fetchBtn.click();
+            }
+        });
+    }
+
+    if (fetchBtn) {
+        fetchBtn.onclick = () => {
+            if (tdInput.value) {
+                get_td(tdInput.value);
+            } else {
+                window.alert("Please enter a valid URL or select an example.");
+            }
+        };
+    }
+    document.getElementById("tab-link-custom").click();
+});
