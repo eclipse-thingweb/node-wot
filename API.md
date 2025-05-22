@@ -8,6 +8,13 @@ These can be combined into a Thing that interacts with other Things.
 Creating a WoT Thing is called exposing a Thing.
 Exposing a Thing creates a Thing Description that can be used to by others to interact with this Thing.
 
+##### Prerequisites
+
+-   `npm install @node-wot/core`
+-   `npm install @node-wot/binding-http`
+-   `npm install @node-wot/binding-coap`
+-   ...
+
 ##### Starting a Servient
 
 ```javascript
