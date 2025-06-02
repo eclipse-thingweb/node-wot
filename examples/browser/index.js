@@ -13,6 +13,8 @@
  **/
 
 function get_td(addr) {
+    hideError();
+
     // Clear all loaded content before loading new TD
     const interactions = document.getElementById("interactions");
     if (interactions) {
@@ -30,20 +32,24 @@ function get_td(addr) {
                         .then((thing) => {
                             removeInteractions();
                             showInteractions(thing);
+                            updateTabDescription(addr, td);
                         })
                         .catch((err) => {
-                            window.alert("Failed to consume TD: " + err);
+                            showError("Failed to consume TD: " + err);
                             clearAllInteractions();
+                            updateTabDescription(addr, null, "Failed to consume TD: " + err);
                         });
                 })
                 .catch((err) => {
-                    window.alert("Failed to fetch TD: " + err);
+                    showError("Failed to fetch TD: " + err);
                     clearAllInteractions();
+                    updateTabDescription(addr, null, "Failed to fetch TD: " + err);
                 });
         })
         .catch((err) => {
-            window.alert("Failed to start servient: " + err);
+            showError("Failed to start servient: " + err);
             clearAllInteractions();
+            updateTabDescription(addr, null, "Failed to start servient: " + err);
         });
 }
 
@@ -182,50 +188,115 @@ function removeSchemaEditor() {
     }
 }
 
+// Error handling functions to show/hide error messages on web page instead of using alert window
+function showError(message) {
+    const errorContainer = document.getElementById("error-container");
+    const errorText = document.getElementById("error-text");
+
+    if (errorContainer && errorText) {
+        errorText.textContent = message;
+        errorContainer.style.display = "block";
+    }
+}
+
+function hideError() {
+    const errorContainer = document.getElementById("error-container");
+    if (errorContainer) {
+        errorContainer.style.display = "none";
+    }
+}
+
+function updateTabDescription(url, td, error) {
+    // Find active tab and update its description
+    const activeTab = document.querySelector(".tabs-content .content.active");
+    if (!activeTab) return;
+
+    // Update URL link
+    const urlElement = activeTab.querySelector(".td-url");
+    if (urlElement && url) {
+        urlElement.href = url;
+        urlElement.textContent = url;
+    }
+
+    // Update description
+    const descriptionElement = activeTab.querySelector(".td-description");
+    if (!descriptionElement) return;
+
+    if (error) {
+        descriptionElement.textContent = error;
+        descriptionElement.style.color = "red";
+    } else if (td && td.description) {
+        descriptionElement.textContent = td.description;
+        descriptionElement.style.color = "";
+    } else {
+        descriptionElement.textContent = "No description available";
+        descriptionElement.style.color = "";
+    }
+}
+
 var servient = new WoT.Core.Servient();
 servient.addClientFactory(new WoT.Http.HttpClientFactory());
 var helpers = new WoT.Core.Helpers(servient);
 
-// Tab and auto-consume
+// Tab configuration
 const TD_URLS = {
-    counter: "http://plugfest.thingweb.io/counter",
     testthing: "http://plugfest.thingweb.io/http-data-schema-thing",
     smartcoffee: "http://plugfest.thingweb.io/http-advanced-coffee-machine",
+    counter: "http://plugfest.thingweb.io/counter",
 };
 
 document.addEventListener("DOMContentLoaded", function () {
+    // Parse URL parameters to pre-fill the input field
+    let $_GET = location.search
+        .substr(1)
+        .split("&")
+        .reduce((o, i) => ((u = decodeURIComponent), ([k, v] = i.split("=")), (o[u(k)] = v && u(v)), o), {});
+
+    // Tab configuration in correct sequence
     const tabLinks = [
-        { id: "tab-link-custom", tab: "tab-custom" },
-        { id: "tab-link-counter", tab: "tab-counter" },
         { id: "tab-link-testthing", tab: "tab-testthing" },
         { id: "tab-link-smartcoffee", tab: "tab-smartcoffee" },
+        { id: "tab-link-counter", tab: "tab-counter" },
+        { id: "tab-link-custom", tab: "tab-custom" },
     ];
-    const tabContents = tabLinks.map((t) => document.getElementById(t.tab));
+
     const tdInput = document.getElementById("td_addr");
     const fetchBtn = document.getElementById("fetch");
+    const closeErrorBtn = document.getElementById("close-error");
+
+    // Error close button handler
+    if (closeErrorBtn) {
+        closeErrorBtn.onclick = (e) => {
+            e.preventDefault();
+            hideError();
+        };
+    }
+
+    // Pre-fill input from URL parameter if provided
+    if ($_GET["url"]) {
+        tdInput.value = $_GET["url"];
+    }
 
     // Clear all interactions and editor
     function clearAllInteractions() {
-        // Hide interactions section
+        hideError();
         const interactions = document.getElementById("interactions");
         if (interactions) {
             interactions.style.display = "none";
         }
-        // Clear properties, actions, and events lists
         ["properties", "actions", "events"].forEach((id) => {
             const element = document.getElementById(id);
             if (element) element.innerHTML = "";
         });
-        // Clear the editor
         removeSchemaEditor();
     }
 
+    // Tab click handlers
     tabLinks.forEach(({ id, tab }) => {
         const link = document.getElementById(id);
         if (link) {
             link.addEventListener("click", function (e) {
                 e.preventDefault();
-                // Clear any existing content first
                 clearAllInteractions();
 
                 // Switch active tab
@@ -234,41 +305,50 @@ document.addEventListener("DOMContentLoaded", function () {
                 document.querySelectorAll(".tabs-content .content").forEach((c) => c.classList.remove("active"));
                 document.getElementById(tab).classList.add("active");
 
-                // Auto-fill and consume logic
-                if (tab === "tab-counter") {
-                    tdInput.value = TD_URLS.counter;
-                    get_td(TD_URLS.counter);
-                } else if (tab === "tab-testthing") {
-                    tdInput.value = TD_URLS.testthing;
+                // Auto-consume TD based on tab
+                if (tab === "tab-testthing") {
                     get_td(TD_URLS.testthing);
                 } else if (tab === "tab-smartcoffee") {
-                    tdInput.value = TD_URLS.smartcoffee;
                     get_td(TD_URLS.smartcoffee);
+                } else if (tab === "tab-counter") {
+                    get_td(TD_URLS.counter);
+                } else if (tab === "tab-custom") {
+                    // Reset custom TD tab
+                    const customDesc = document.querySelector("#tab-custom .td-description");
+                    if (customDesc) {
+                        customDesc.textContent = "Enter a TD URL above to consume it.";
+                        customDesc.style.color = "";
+                    }
+                    const customUrl = document.querySelector("#tab-custom .td-url");
+                    if (customUrl) {
+                        customUrl.href = "";
+                        customUrl.textContent = "";
+                    }
                 }
             });
         }
     });
 
-    // Dropdown handle
-    const exampleSelect = document.getElementById("exampleUrls");
-    if (exampleSelect) {
-        exampleSelect.addEventListener("change", function () {
-            if (this.value) {
-                tdInput.value = this.value;
-                // Auto-click
-                if (fetchBtn) fetchBtn.click();
-            }
-        });
-    }
-
+    // Custom TD fetch button
     if (fetchBtn) {
         fetchBtn.onclick = () => {
             if (tdInput.value) {
                 get_td(tdInput.value);
             } else {
-                window.alert("Please enter a valid URL or select an example.");
+                showError("Please enter a valid URL.");
             }
         };
     }
-    document.getElementById("tab-link-custom").click();
+
+    // Auto-load TD if URL parameter was provided
+    if ($_GET["url"]) {
+        document.querySelectorAll("#td-tabs .tab-title").forEach((li) => li.classList.remove("active"));
+        document.getElementById("tab-link-custom").parentElement.classList.add("active");
+        document.querySelectorAll(".tabs-content .content").forEach((c) => c.classList.remove("active"));
+        document.getElementById("tab-custom").classList.add("active");
+        get_td($_GET["url"]);
+    } else {
+        // Default to Test Thing tab
+        document.getElementById("tab-link-testthing").click();
+    }
 });
