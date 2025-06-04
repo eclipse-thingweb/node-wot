@@ -234,6 +234,21 @@ function updateTabDescription(url, td, error) {
     }
 }
 
+// Clear all interactions and editor
+function clearAllInteractions() {
+    console.log("clearAllInteractions function called");
+    hideError();
+    const interactions = document.getElementById("interactions");
+    if (interactions) {
+        interactions.style.display = "none";
+    }
+    ["properties", "actions", "events"].forEach((id) => {
+        const element = document.getElementById(id);
+        if (element) element.innerHTML = "";
+    });
+    removeSchemaEditor();
+}
+
 var servient = new WoT.Core.Servient();
 servient.addClientFactory(new WoT.Http.HttpClientFactory());
 var helpers = new WoT.Core.Helpers(servient);
@@ -275,20 +290,6 @@ document.addEventListener("DOMContentLoaded", function () {
     // Pre-fill input from URL parameter if provided
     if ($_GET["url"]) {
         tdInput.value = $_GET["url"];
-    }
-
-    // Clear all interactions and editor
-    function clearAllInteractions() {
-        hideError();
-        const interactions = document.getElementById("interactions");
-        if (interactions) {
-            interactions.style.display = "none";
-        }
-        ["properties", "actions", "events"].forEach((id) => {
-            const element = document.getElementById(id);
-            if (element) element.innerHTML = "";
-        });
-        removeSchemaEditor();
     }
 
     // Tab click handlers
