@@ -13,13 +13,7 @@
  **/
 
 function get_td(addr) {
-    hideError();
-
-    // Clear all loaded content before loading new TD
-    const interactions = document.getElementById("interactions");
-    if (interactions) {
-        interactions.style.display = "none";
-    }
+    clearAllInteractions();
 
     servient
         .start()
@@ -30,25 +24,18 @@ function get_td(addr) {
                     thingFactory
                         .consume(td)
                         .then((thing) => {
-                            removeInteractions();
                             showInteractions(thing);
                             updateTabDescription(addr, td);
                         })
                         .catch((err) => {
-                            showError("Failed to consume TD: " + err);
-                            clearAllInteractions();
                             updateTabDescription(addr, null, "Failed to consume TD: " + err);
                         });
                 })
                 .catch((err) => {
-                    showError("Failed to fetch TD: " + err);
-                    clearAllInteractions();
                     updateTabDescription(addr, null, "Failed to fetch TD: " + err);
                 });
         })
         .catch((err) => {
-            showError("Failed to start servient: " + err);
-            clearAllInteractions();
             updateTabDescription(addr, null, "Failed to start servient: " + err);
         });
 }
@@ -135,15 +122,6 @@ function showInteractions(thing) {
     }
 }
 
-function removeInteractions() {
-    for (id of ["properties", "actions", "events"]) {
-        let placeholder = document.getElementById(id);
-        while (placeholder.firstChild) {
-            placeholder.removeChild(placeholder.firstChild);
-        }
-    }
-}
-
 function showSchemaEditor(action, thing) {
     let td = thing.getThingDescription();
     // Remove old editor
@@ -220,23 +198,25 @@ function updateTabDescription(url, td, error) {
 
     // Update description
     const descriptionElement = activeTab.querySelector(".td-description");
-    if (!descriptionElement) return;
+    const descriptionParent = descriptionElement ? descriptionElement.closest("p") : null;
 
     if (error) {
-        descriptionElement.textContent = error;
-        descriptionElement.style.color = "red";
-    } else if (td && td.description) {
-        descriptionElement.textContent = td.description;
-        descriptionElement.style.color = "";
+        // Hide description, show error banner
+        if (descriptionParent) descriptionParent.style.display = "none";
+        showError(error);
     } else {
-        descriptionElement.textContent = "No description available";
-        descriptionElement.style.color = "";
+        // Show description, hide error banner
+        if (descriptionParent) descriptionParent.style.display = "";
+        if (descriptionElement) {
+            descriptionElement.textContent = td?.description || "No description available";
+            descriptionElement.style.color = "";
+        }
+        hideError();
     }
 }
 
 // Clear all interactions and editor
 function clearAllInteractions() {
-    console.log("clearAllInteractions function called");
     hideError();
     const interactions = document.getElementById("interactions");
     if (interactions) {
