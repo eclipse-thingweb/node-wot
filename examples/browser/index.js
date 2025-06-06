@@ -13,19 +13,31 @@
  **/
 
 function get_td(addr) {
-    servient.start().then((thingFactory) => {
-        helpers
-            .fetch(addr)
-            .then((td) => {
-                thingFactory.consume(td).then((thing) => {
-                    removeInteractions();
-                    showInteractions(thing);
+    clearAllInteractions();
+
+    servient
+        .start()
+        .then((thingFactory) => {
+            helpers
+                .fetch(addr)
+                .then((td) => {
+                    thingFactory
+                        .consume(td)
+                        .then((thing) => {
+                            showInteractions(thing);
+                            updateTabDescription(addr, td);
+                        })
+                        .catch((err) => {
+                            updateTabDescription(addr, null, "Failed to consume TD: " + err);
+                        });
+                })
+                .catch((err) => {
+                    updateTabDescription(addr, null, "Failed to fetch TD: " + err);
                 });
-            })
-            .catch((error) => {
-                window.alert("Could not fetch TD.\n" + error);
-            });
-    });
+        })
+        .catch((err) => {
+            updateTabDescription(addr, null, "Failed to start servient: " + err);
+        });
 }
 
 function showInteractions(thing) {
@@ -110,15 +122,6 @@ function showInteractions(thing) {
     }
 }
 
-function removeInteractions() {
-    for (id of ["properties", "actions", "events"]) {
-        let placeholder = document.getElementById(id);
-        while (placeholder.firstChild) {
-            placeholder.removeChild(placeholder.firstChild);
-        }
-    }
-}
-
 function showSchemaEditor(action, thing) {
     let td = thing.getThingDescription();
     // Remove old editor
@@ -163,9 +166,170 @@ function removeSchemaEditor() {
     }
 }
 
+// Error handling functions to show/hide error messages on web page instead of using alert window
+function showError(message) {
+    const errorContainer = document.getElementById("error-container");
+    const errorText = document.getElementById("error-text");
+
+    if (errorContainer && errorText) {
+        errorText.textContent = message;
+        errorContainer.style.display = "block";
+    }
+}
+
+function hideError() {
+    const errorContainer = document.getElementById("error-container");
+    if (errorContainer) {
+        errorContainer.style.display = "none";
+    }
+}
+
+function updateTabDescription(url, td, error) {
+    // Find active tab and update its description
+    const activeTab = document.querySelector(".tabs-content .content.active");
+    if (!activeTab) return;
+
+    // Update URL link
+    const urlElement = activeTab.querySelector(".td-url");
+    if (urlElement && url) {
+        urlElement.href = url;
+        urlElement.textContent = url;
+    }
+
+    // Update description
+    const descriptionElement = activeTab.querySelector(".td-description");
+    const descriptionParent = descriptionElement ? descriptionElement.closest("p") : null;
+
+    if (error) {
+        // Hide description, show error banner
+        if (descriptionParent) descriptionParent.style.display = "none";
+        showError(error);
+    } else {
+        // Show description, hide error banner
+        if (descriptionParent) descriptionParent.style.display = "";
+        if (descriptionElement) {
+            descriptionElement.textContent = td?.description || "No description available";
+            descriptionElement.style.color = "";
+        }
+        hideError();
+    }
+}
+
+// Clear all interactions and editor
+function clearAllInteractions() {
+    hideError();
+    const interactions = document.getElementById("interactions");
+    if (interactions) {
+        interactions.style.display = "none";
+    }
+    ["properties", "actions", "events"].forEach((id) => {
+        const element = document.getElementById(id);
+        if (element) element.innerHTML = "";
+    });
+    removeSchemaEditor();
+}
+
 var servient = new WoT.Core.Servient();
 servient.addClientFactory(new WoT.Http.HttpClientFactory());
 var helpers = new WoT.Core.Helpers(servient);
-document.getElementById("fetch").onclick = () => {
-    get_td(document.getElementById("td_addr").value);
+
+// Tab configuration
+const TD_URLS = {
+    testthing: "http://plugfest.thingweb.io/http-data-schema-thing",
+    smartcoffee: "http://plugfest.thingweb.io/http-advanced-coffee-machine",
+    counter: "http://plugfest.thingweb.io/counter",
 };
+
+document.addEventListener("DOMContentLoaded", function () {
+    // Parse URL parameters to pre-fill the input field
+    let $_GET = location.search
+        .substr(1)
+        .split("&")
+        .reduce((o, i) => ((u = decodeURIComponent), ([k, v] = i.split("=")), (o[u(k)] = v && u(v)), o), {});
+
+    // Tab configuration in correct sequence
+    const tabLinks = [
+        { id: "tab-link-testthing", tab: "tab-testthing" },
+        { id: "tab-link-smartcoffee", tab: "tab-smartcoffee" },
+        { id: "tab-link-counter", tab: "tab-counter" },
+        { id: "tab-link-custom", tab: "tab-custom" },
+    ];
+
+    const tdInput = document.getElementById("td_addr");
+    const fetchBtn = document.getElementById("fetch");
+    const closeErrorBtn = document.getElementById("close-error");
+
+    // Error close button handler
+    if (closeErrorBtn) {
+        closeErrorBtn.onclick = (e) => {
+            e.preventDefault();
+            hideError();
+        };
+    }
+
+    // Pre-fill input from URL parameter if provided
+    if ($_GET["url"]) {
+        tdInput.value = $_GET["url"];
+    }
+
+    // Tab click handlers
+    tabLinks.forEach(({ id, tab }) => {
+        const link = document.getElementById(id);
+        if (link) {
+            link.addEventListener("click", function (e) {
+                e.preventDefault();
+                clearAllInteractions();
+
+                // Switch active tab
+                document.querySelectorAll("#td-tabs .tab-title").forEach((li) => li.classList.remove("active"));
+                link.parentElement.classList.add("active");
+                document.querySelectorAll(".tabs-content .content").forEach((c) => c.classList.remove("active"));
+                document.getElementById(tab).classList.add("active");
+
+                // Auto-consume TD based on tab
+                if (tab === "tab-testthing") {
+                    get_td(TD_URLS.testthing);
+                } else if (tab === "tab-smartcoffee") {
+                    get_td(TD_URLS.smartcoffee);
+                } else if (tab === "tab-counter") {
+                    get_td(TD_URLS.counter);
+                } else if (tab === "tab-custom") {
+                    // Reset custom TD tab
+                    const customDesc = document.querySelector("#tab-custom .td-description");
+                    if (customDesc) {
+                        customDesc.textContent = "Enter a TD URL above to consume it.";
+                        customDesc.style.color = "";
+                    }
+                    const customUrl = document.querySelector("#tab-custom .td-url");
+                    if (customUrl) {
+                        customUrl.href = "";
+                        customUrl.textContent = "";
+                    }
+                }
+            });
+        }
+    });
+
+    // Custom TD fetch button
+    if (fetchBtn) {
+        fetchBtn.onclick = () => {
+            if (tdInput.value) {
+                get_td(tdInput.value);
+            } else {
+                showError("Please enter a valid URL.");
+            }
+        };
+    }
+
+    // Auto-load TD if URL parameter was provided
+    if ($_GET["url"]) {
+        document.querySelectorAll("#td-tabs .tab-title").forEach((li) => li.classList.remove("active"));
+        document.getElementById("tab-link-custom").parentElement.classList.add("active");
+        document.querySelectorAll(".tabs-content .content").forEach((c) => c.classList.remove("active"));
+        document.getElementById("tab-custom").classList.add("active");
+        get_td($_GET["url"]);
+    } else {
+        // Default to Test Thing tab
+        document.getElementById("tab-link-testthing").click();
+    }
+});
