@@ -38,7 +38,7 @@ import ContentType from "content-type";
 import ContentManager from "./content-serdes";
 
 import UriTemplate = require("uritemplate");
-import { InteractionOutput } from "./interaction-output";
+import { InteractionOutput, ActionInteractionOutput } from "./interaction-output";
 import {
     ActionElement,
     EventElement,
@@ -579,8 +579,13 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
     ): InteractionOutput {
         // infer media type from form if not in response metadata
         content.type ??= form.contentType ?? "application/json";
-
         // check if returned media type is the same as expected media type (from TD)
+        this.checkMediaTypeOrThrow(content, form);
+        return new InteractionOutput(content, form, outputDataSchema, { ignoreValidation });
+    }
+
+    // check if returned media type is the same as expected media type (from TD)
+    private checkMediaTypeOrThrow(content: Content, form: Form) {
         if (form.response != null) {
             const parsedMediaTypeContent = ContentType.parse(content.type);
             const parsedMediaTypeForm = ContentType.parse(form.response.contentType);
@@ -590,7 +595,19 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
                 );
             }
         }
-        return new InteractionOutput(content, form, outputDataSchema, { ignoreValidation });
+    }
+
+    private handleActionInteractionOutput(
+        content: Content,
+        form: Form,
+        outputDataSchema: WoT.DataSchema | undefined,
+        ignoreValidation: boolean
+    ): ActionInteractionOutput {
+        // infer media type from form if not in response metadata
+        content.type ??= form.contentType ?? "application/json";
+        // check if returned media type is the same as expected media type (from TD)
+        this.checkMediaTypeOrThrow(content, form);
+        return new ActionInteractionOutput(content, form, outputDataSchema, { ignoreValidation });
     }
 
     async _readProperties(propertyNames: string[]): Promise<WoT.PropertyReadMap> {
@@ -680,7 +697,7 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
         actionName: string,
         parameter?: InteractionInput,
         options?: WoT.InteractionOptions
-    ): Promise<WoT.InteractionOutput> {
+    ): Promise<WoT.ActionInteractionOutput> {
         const ta = this.actions[actionName];
         if (ta == null) {
             throw new Error(`ConsumedThing '${this.title}' does not have action ${actionName}`);
@@ -710,7 +727,7 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
         const content = await client.invokeResource(form, input);
         try {
             const ignoreValidation = ta.synchronous === undefined ? true : !ta.synchronous;
-            return this.handleInteractionOutput(content, form, ta.output, ignoreValidation);
+            return this.handleActionInteractionOutput(content, form, ta.output, ignoreValidation);
         } catch (e) {
             const error = e instanceof Error ? e : new Error(JSON.stringify(e));
             throw new Error(`Error while processing action for ${ta.title}. ${error.message}`);
