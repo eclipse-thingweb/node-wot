@@ -140,3 +140,16 @@ export class InteractionOutput implements WoT.InteractionOutput {
         return json as T;
     }
 }
+
+export class ActionInteractionOutput extends InteractionOutput implements WoT.ActionInteractionOutput {
+    async query<T extends WoT.InteractionOutput>(
+        params?: WoT.InteractionInput,
+        options?: WoT.InteractionOptions
+    ): Promise<T> {
+        throw new Error("Not yet implemented");
+    }
+
+    async cancel(params?: WoT.InteractionInput, options?: WoT.InteractionOptions): Promise<void> {
+        throw new Error("Not yet implemented");
+    }
+}
