@@ -564,7 +564,7 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
 
         const content = await client.readResource(form);
         try {
-            return this.handleInteractionOutput(content, form, tp, false);
+            return this.handleInteractionOutput(content, form, tp);
         } catch (e) {
             const error = e instanceof Error ? e : new Error(JSON.stringify(e));
             throw new Error(`Error while processing property for ${tp.title}. ${error.message}`);
@@ -574,14 +574,13 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
     private handleInteractionOutput(
         content: Content,
         form: Form,
-        outputDataSchema: WoT.DataSchema | undefined,
-        ignoreValidation: boolean
+        outputDataSchema: WoT.DataSchema | undefined
     ): InteractionOutput {
         // infer media type from form if not in response metadata
         content.type ??= form.contentType ?? "application/json";
         // check if returned media type is the same as expected media type (from TD)
         this.checkMediaTypeOrThrow(content, form);
-        return new InteractionOutput(content, form, outputDataSchema, { ignoreValidation });
+        return new InteractionOutput(content, form, outputDataSchema);
     }
 
     // check if returned media type is the same as expected media type (from TD)
@@ -601,13 +600,13 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
         content: Content,
         form: Form,
         outputDataSchema: WoT.DataSchema | undefined,
-        ignoreValidation: boolean
+        synchronous?: boolean
     ): ActionInteractionOutput {
         // infer media type from form if not in response metadata
         content.type ??= form.contentType ?? "application/json";
         // check if returned media type is the same as expected media type (from TD)
         this.checkMediaTypeOrThrow(content, form);
-        return new ActionInteractionOutput(content, form, outputDataSchema, { ignoreValidation });
+        return new ActionInteractionOutput(content, form, outputDataSchema, synchronous);
     }
 
     async _readProperties(propertyNames: string[]): Promise<WoT.PropertyReadMap> {
@@ -726,8 +725,7 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
 
         const content = await client.invokeResource(form, input);
         try {
-            const ignoreValidation = ta.synchronous === undefined ? true : !ta.synchronous;
-            return this.handleActionInteractionOutput(content, form, ta.output, ignoreValidation);
+            return this.handleActionInteractionOutput(content, form, ta.output, ta.synchronous);
         } catch (e) {
             const error = e instanceof Error ? e : new Error(JSON.stringify(e));
             throw new Error(`Error while processing action for ${ta.title}. ${error.message}`);
@@ -770,7 +768,7 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
             // next
             (content) => {
                 try {
-                    listener(this.handleInteractionOutput(content, form, tp, false));
+                    listener(this.handleInteractionOutput(content, form, tp));
                 } catch (e) {
                     const error = e instanceof Error ? e : new Error(JSON.stringify(e));
                     warn(`Error while processing observe property for ${tp.title}. ${error.message}`);
@@ -826,7 +824,7 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
             formWithoutURITemplates,
             (content) => {
                 try {
-                    listener(this.handleInteractionOutput(content, form, te.data, false));
+                    listener(this.handleInteractionOutput(content, form, te.data));
                 } catch (e) {
                     const error = e instanceof Error ? e : new Error(JSON.stringify(e));
                     warn(`Error while processing event for ${te.title}. ${error.message}`);

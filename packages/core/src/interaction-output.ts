@@ -42,7 +42,6 @@ export class InteractionOutput implements WoT.InteractionOutput {
     dataUsed: boolean;
     form?: WoT.Form;
     schema?: WoT.DataSchema;
-    ignoreValidation: boolean; // by default set to false
 
     public get data(): ReadableStream {
         if (this.#stream) {
@@ -58,11 +57,10 @@ export class InteractionOutput implements WoT.InteractionOutput {
         return (this.#stream = ProtocolHelpers.toWoTStream(this.#content.body) as ReadableStream);
     }
 
-    constructor(content: Content, form?: WoT.Form, schema?: WoT.DataSchema, options = { ignoreValidation: false }) {
+    constructor(content: Content, form?: WoT.Form, schema?: WoT.DataSchema) {
         this.#content = content;
         this.form = form;
         this.schema = schema;
-        this.ignoreValidation = options.ignoreValidation ?? false;
         this.dataUsed = false;
     }
 
@@ -129,7 +127,7 @@ export class InteractionOutput implements WoT.InteractionOutput {
         // validate the schema
         const validate = ajv.compile<T>(this.schema);
 
-        if (!this.ignoreValidation && !validate(json)) {
+        if (!this.ignoreValidation() && !validate(json)) {
             debug(`schema = ${util.inspect(this.schema, { depth: 10, colors: true })}`);
             debug(`value: ${json}`);
             debug(`Error: ${validate.errors}`);
@@ -139,9 +137,24 @@ export class InteractionOutput implements WoT.InteractionOutput {
         this.#value = json;
         return json as T;
     }
+
+    protected ignoreValidation(): boolean {
+        return false; // by default set to false
+    }
 }
 
 export class ActionInteractionOutput extends InteractionOutput implements WoT.ActionInteractionOutput {
+    synchronous?: boolean;
+
+    constructor(content: Content, form?: WoT.Form, schema?: WoT.DataSchema, synchronous?: boolean) {
+        super(content, form, schema);
+        this.synchronous = synchronous;
+    }
+
+    protected ignoreValidation(): boolean {
+        return this.synchronous === undefined ? true : !this.synchronous; // validate data for synchronous action only
+    }
+
     async query<T extends WoT.InteractionOutput>(
         params?: WoT.InteractionInput,
         options?: WoT.InteractionOptions
