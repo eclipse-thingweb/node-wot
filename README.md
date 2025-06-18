@@ -279,9 +279,9 @@ We offer online simulated Things that are available to be used by anyone.
 
 Their TDs are available at the following links:
 
--   Counter: HTTP at <http://plugfest.thingweb.io:8083/counter> and CoAP at <coap://plugfest.thingweb.io:5683/counter>
--   Smart Coffee Machine: HTTP at <http://plugfest.thingweb.io:8083/smart-coffee-machine> and CoAP at <coap://plugfest.thingweb.io:5683/smart-coffee-machine>
--   TestThing: HTTP at <http://plugfest.thingweb.io:8083/testthing> and CoAP at <coap://plugfest.thingweb.io:5683/testthing>
+-   Counter: HTTP at <http://plugfest.thingweb.io/counter>
+-   Smart Coffee Machine: HTTP at <http://plugfest.thingweb.io/http-advanced-coffee-machine>
+-   TestThing: HTTP at <http://plugfest.thingweb.io/http-data-schema-thing>
 -   Presence sensor: MQTT at <https://zion.vaimee.com/things/urn:uuid:0a028f8e-8a91-4aaf-a346-9a48d440fd7c>
 -   Smart Clock: CoAP at <https://zion.vaimee.com/things/urn:uuid:913cf8cb-3687-4d98-8d2f-f6f27cfc7162>
 -   Simple Coffee Machine: HTTP at <https://zion.vaimee.com/things/urn:uuid:7ba2bca0-a7f6-47b3-bdce-498caa33bbaf>
