@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  counter1:
+    build:
+      context: ../examples/scripts/counter-thing
+      dockerfile: Dockerfile
+    container_name: counter-thing-1
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+      - LOKI_HOSTNAME=loki
+      - LOKI_PORT=3100
+    networks:
+      - counter-network
+    restart: unless-stopped
+
+  counter2:
+    build:
+      context: ../examples/scripts/counter-thing
+      dockerfile: Dockerfile
+    container_name: counter-thing-2
+    ports:
+      - "3002:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+      - LOKI_HOSTNAME=loki
+      - LOKI_PORT=3100
+    networks:
+      - counter-network
+    restart: unless-stopped
+
+  # Optional: Add Loki for logging (if you want to see logs)
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: counter-loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - counter-network
+    restart: unless-stopped
+
+networks:
+  counter-network:
+    driver: bridge
