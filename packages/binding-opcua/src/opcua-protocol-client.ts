@@ -304,7 +304,9 @@ export class OPCUAProtocolClient implements ProtocolClient {
 
     // node-opcua handles the contentType internally and no further *external* processing should be done
     private vanishContentType(form: OPCUAForm) {
-        form.contentType = undefined;
+        if (!(form.contentType === "application/opcua+json" || form.contentType === "application/opcua+octet-stream")) {
+            form.contentType = undefined;
+        }
     }
 
     public async readResource(form: OPCUAForm): Promise<Content> {
