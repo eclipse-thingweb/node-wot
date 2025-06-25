@@ -302,11 +302,13 @@ export class OPCUAProtocolClient implements ProtocolClient {
         return this._resolveNodeId2(form, fNodeId as NodeIdLike | NodeByBrowsePath);
     }
 
+    // node-opcua handles the contentType internally and no further *external* processing should be done
+    private vanishContentType(form: OPCUAForm) {
+        form.contentType = undefined;
+    }
+
     public async readResource(form: OPCUAForm): Promise<Content> {
         debug(`readResource: reading ${form}`);
-
-        // node-opcua handles the contentType internally and no further external processing should be done
-        form.contentType = undefined;
 
         const content = await this._withSession(form, async (session) => {
             const nodeId = await this._resolveNodeId(form);
@@ -317,6 +319,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
             return this._dataValueToContent(form, dataValue);
         });
         debug(`readResource: contentType ${content.type}`);
+        this.vanishContentType(form);
         return content;
     }
 
