@@ -305,6 +305,9 @@ export class OPCUAProtocolClient implements ProtocolClient {
     public async readResource(form: OPCUAForm): Promise<Content> {
         debug(`readResource: reading ${form}`);
 
+        // node-opcua handles the contentType internally and no further external processing should be done
+        form.contentType = undefined;
+
         const content = await this._withSession(form, async (session) => {
             const nodeId = await this._resolveNodeId(form);
             const dataValue = await session.read({

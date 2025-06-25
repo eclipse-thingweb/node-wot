@@ -258,7 +258,7 @@ export const theOpcuaJSONCodec = new OpcuaJSONCodec();
 
 export class OpcuaBinaryCodec implements ContentCodec {
     getMediaType(): string {
-        return "application/opcua+octet-stream"; // see Ege
+        return "application/opcua+octet-stream";
     }
 
     bytesToValue(bytes: Buffer, schema: DataSchema, parameters?: { [key: string]: string }): DataValueJSON {
