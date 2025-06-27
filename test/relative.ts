@@ -12,4 +12,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-export type CompilerFunction = (code: string, filename: string) => string;
+
+export function hello() {
+    throw new Error("This is an error");
+}

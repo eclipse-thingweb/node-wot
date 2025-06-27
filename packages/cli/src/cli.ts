@@ -14,7 +14,7 @@
  ********************************************************************************/
 
 // default implementation of W3C WoT Servient (http(s) and file bindings)
-import DefaultServient, { ScriptOptions } from "./cli-default-servient";
+import DefaultServient from "./cli-default-servient";
 
 // tools
 import * as path from "path";
@@ -22,8 +22,8 @@ import { Command, Argument, Option } from "commander";
 import Ajv, { ValidateFunction } from "ajv";
 import ConfigSchema from "./generated/wot-servient-schema.conf";
 import version from "./generated/version";
-import { createLoggers } from "@node-wot/core";
-import { loadCompiler, loadEnvVariables } from "./utils";
+import { createLoggers, Helpers } from "@node-wot/core";
+import { loadEnvVariables } from "./utils";
 import { runScripts } from "./script-runner";
 import { readdir } from "fs/promises";
 import { parseConfigFile, parseConfigParams, parseIp } from "./parsers";
@@ -180,16 +180,11 @@ program.action(async function (_, options, cmd) {
         servient = new DefaultServient(config);
     }
 
-    await servient.start();
-
-    const scriptOptions: ScriptOptions = {
-        env,
-        argv: args,
-        compiler: loadCompiler(options.compiler),
-    };
+    const runtime = await servient.start();
+    const helpers = new Helpers(servient);
 
     if (args.length > 0) {
-        return runScripts(servient, args, scriptOptions, options.inspect ?? options.inspectBrk);
+        return runScripts({ runtime, helpers }, args, options.inspect ?? options.inspectBrk);
     }
 
     const files = await readdir(baseDir);
@@ -197,7 +192,7 @@ program.action(async function (_, options, cmd) {
 
     info(`WoT-Servient using current directory with %d script${scripts.length > 1 ? "s" : ""}`, scripts.length);
 
-    return runScripts(servient, args, scriptOptions, options.inspect ?? options.inspectBrk);
+    return runScripts({ runtime, helpers }, scripts, options.inspect ?? options.inspectBrk);
 });
 
 program.parse(process.argv);

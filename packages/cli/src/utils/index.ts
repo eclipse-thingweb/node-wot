@@ -13,4 +13,4 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 export * from "./load-env-variables";
-export * from "./load-compiler";
+export * from "./set-log-level";

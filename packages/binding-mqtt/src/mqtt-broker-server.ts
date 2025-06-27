@@ -445,8 +445,6 @@ export default class MqttBrokerServer implements ProtocolServer {
 
     private async startBroker() {
         return new Promise<void>((resolve, reject) => {
-            console.log("here mf");
-
             if (this.brokerURI == null) {
                 throw new Error("Unexpected configuration state broker was started even if brokerURI is null");
             }

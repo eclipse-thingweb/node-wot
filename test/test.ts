@@ -12,24 +12,10 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-import { CompilerFunction } from "../compiler-function";
+import { hello } from "./relative";
 
-export function loadCompiler(compilerModule?: string): CompilerFunction {
-    if (compilerModule != null) {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const compilerMod = require(compilerModule);
-
-        if (compilerMod.create == null) {
-            throw new Error(`No create function defined for ${compilerModule}`);
-        }
-
-        const compilerObject = compilerMod.create();
-
-        if (compilerObject.compile == null) {
-            throw new Error("No compile function defined for create return object");
-        }
-
-        return compilerObject.compile;
-    }
-    return (code) => code;
+export function world() {
+    console.log(hello());
 }
+
+world();

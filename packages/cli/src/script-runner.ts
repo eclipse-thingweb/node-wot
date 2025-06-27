@@ -13,10 +13,10 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 import { createLoggers } from "@node-wot/core";
-import DefaultServient, { ScriptOptions } from "./cli-default-servient";
 import inspector from "inspector";
 import path from "path";
 import { readFile } from "fs/promises";
+import { Executor, WoTContext } from "./executor";
 
 const { error, info, warn } = createLoggers("cli", "cli", "script-runner");
 
@@ -25,12 +25,8 @@ export interface DebugParams {
     host: string;
     port: number;
 }
-export async function runScripts(
-    servient: DefaultServient,
-    scripts: string[],
-    options: ScriptOptions,
-    debug?: DebugParams
-) {
+export async function runScripts(context: WoTContext, scripts: string[], debug?: DebugParams) {
+    const executor = new Executor();
     const launchScripts = (scripts: Array<string>) => {
         scripts.forEach(async (fname: string) => {
             info(`WoT-Servient reading script ${fname}`);
@@ -44,9 +40,9 @@ export async function runScripts(
                 );
 
                 fname = path.resolve(fname);
-                servient.runScript(data, fname, options);
+                await executor.exec(fname, context);
             } catch (err) {
-                error(`WoT-Servient experienced error while reading script. ${err}`);
+                error(`WoT-Servient experienced error while reading script. %O`, err);
             }
         });
     };
