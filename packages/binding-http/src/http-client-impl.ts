@@ -433,6 +433,8 @@ export default class HttpClient implements ProtocolClient {
         if (HttpClient.isOAuthTokenExpired(result, this.credential)) {
             this.credential = await (this.credential as OAuthCredential).refreshToken();
             return await this._fetch(await this.credential.sign(request));
+        } else if (result.status === 401) {
+            throw new Error("Client error: Unauthorized");
         } else if (result.status >= 400) {
             // report generic error
             throw new Error(`request to ${request.url} failed, reason: HTTP status result ${result.status} `);
