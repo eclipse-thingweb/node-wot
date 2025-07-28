@@ -1,6 +1,6 @@
 {
     "name": "@node-wot/binding-coap",
-    "version": "0.9.1",
+    "version": "0.9.2",
     "description": "CoAP client & server protocol binding for node-wot",
     "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
     "license": "EPL-2.0 OR W3C-20150513",
@@ -14,14 +14,14 @@
     "main": "dist/coap.js",
     "types": "dist/coap.d.ts",
     "dependencies": {
-        "@node-wot/core": "0.9.1",
+        "@node-wot/core": "0.9.2",
         "coap": "^1.4.1",
         "dns-packet": "^5.2.2",
         "multicast-dns": "^7.2.5",
         "node-coap-client": "1.0.8",
         "rxjs": "5.5.11",
         "slugify": "^1.4.5",
-        "wot-typescript-definitions": "0.8.0-SNAPSHOT.29"
+        "wot-typescript-definitions": "0.8.0-SNAPSHOT.31"
     },
     "scripts": {
         "build": "tsc -b",

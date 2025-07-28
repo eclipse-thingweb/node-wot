@@ -18,7 +18,7 @@ import { suite, test } from "@testdeck/mocha";
 import promised from "chai-as-promised";
 import { expect, use } from "chai";
 import { Readable } from "stream";
-import { InteractionOutput } from "../src/interaction-output";
+import { InteractionOutput, ActionInteractionOutput } from "../src/interaction-output";
 import { Content } from "..";
 import { fail } from "assert";
 
@@ -121,12 +121,20 @@ class InteractionOutputTests {
         }
     }
 
-    @test async "should accept returning unexpected value with no validation"() {
-        // type boolean should not throw since we set ignoreValidation to true
+    @test async "should accept returning unexpected value with no validation (synchronous==false)"() {
         const stream = Readable.from(Buffer.from("not boolean", "utf-8"));
         const content = new Content("application/json", stream);
 
-        const out = new InteractionOutput(content, {}, { type: "boolean" }, { ignoreValidation: true });
+        const out = new ActionInteractionOutput(content, {}, { type: "boolean" }, false);
+        const result = await out.value();
+        expect(result).to.eql("not boolean");
+    }
+
+    @test async "should accept returning unexpected value with no validation (synchronous===undefined)"() {
+        const stream = Readable.from(Buffer.from("not boolean", "utf-8"));
+        const content = new Content("application/json", stream);
+
+        const out = new ActionInteractionOutput(content, {}, { type: "boolean" });
         const result = await out.value();
         expect(result).to.eql("not boolean");
     }

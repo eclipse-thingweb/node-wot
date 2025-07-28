@@ -8,23 +8,35 @@ These can be combined into a Thing that interacts with other Things.
 Creating a WoT Thing is called exposing a Thing.
 Exposing a Thing creates a Thing Description that can be used to by others to interact with this Thing.
 
+##### Prerequisites
+
+-   `npm install @node-wot/core`
+-   `npm install @node-wot/binding-http`
+-   `npm install @node-wot/binding-coap`
+-   ...
+
 ##### Starting a Servient
 
 ```javascript
-WotCore = require("@node-wot/core");
-let servient = new WotCore.Servient();
-let WoT = await servient.start();
+const { Servient } = require("@node-wot/core");
+const servient = new Servient();
+servient.start().then(async (WoT) => {
+    // ...
+});
 ```
 
 ##### In Client mode, add factories
 
 ```javascript
-WotCore = require("@node-wot/core");
-BindingHttp = require("@node-wot/binding-http");
-BindingCoap = require("@node-wot/binding-coap");
-let servient = new NodeWoTCore.Servient();
-servient.addClientFactory(new BindingHttp.HttpClientFactory());
-servient.addClientFactory(new BindingCoap.CoapClientFactory());
+const { Servient } = require("@node-wot/core");
+const { HttpClientFactory } = require("@node-wot/binding-http");
+const { CoapClientFactory } = require("@node-wot/binding-coap");
+const servient = new Servient();
+servient.addClientFactory(new HttpClientFactory());
+servient.addClientFactory(new CoapClientFactory());
+servient.start().then(async (WoT) => {
+    // ...
+});
 ```
 
 The different bindings offer client factories.
@@ -35,10 +47,13 @@ For more details on bindings, e.g. configuration options for a specific `*Client
 ##### In Server mode, add servers
 
 ```javascript
-WotCore = require("@node-wot/core");
-CoapServer = require("@node-wot/binding-coap").CoapServer;
-let servient = new WotCore.Servient();
-servient.addServer(new CoapServer());
+const { Servient } = require("@node-wot/core");
+const { HttpServer } = require("@node-wot/binding-http");
+const servient = new Servient();
+servient.addServer(new HttpServer({}));
+servient.start().then(async (WoT) => {
+    // ...
+});
 ```
 
 Same as for clients, bindings offer servers.
@@ -46,13 +61,14 @@ Same as for clients, bindings offer servers.
 ##### Credentials
 
 ```javascript
-let servient = new (require("@node-wot/core")).Servient();
+const { Servient } = require("@node-wot/core");
+const servient = new Servient();
 servient.addCredentials({
     "urn:dev:ops:32473-example-thing": {
-        "username": "admin",
-        "password:" "password"  // if you copy these and don't change them, don't claim you were "hacked"
-    }
-);
+        username: "admin",
+        password: "password", // if you copy these and don't change them, don't claim you were "hacked"
+    },
+});
 ```
 
 You can add credentials like this.
@@ -64,17 +80,22 @@ Authentication data is always mapped to a Thing through its id.
 ##### Expose a Thing
 
 ```javascript
-let thing = WoT.produce({
+WoT.produce({
     title: "counter",
-    description: "counter example Thing",
+    description: "counter example thing",
+}).then((thing) => {
+    console.log(thing.getThingDescription().title + " produced");
+
+    // any other code to develop the thing
+
+    // expose the thing
+    thing.expose().then(() => {
+        console.info(thing.getThingDescription().title + " exposed");
+    });
 });
-
-// any other code to develop the Thing
-
-thing.expose();
 ```
 
-Here, an object named `thing` is produced. At this stage, it has only a name and a description for humans to read.
+Here, an object named `thing` is produced. At this stage, it has only a title and a description for humans to read.
 `thing.expose();` exposes/starts the exposed Thing in order to process external requests. This also creates a Thing Description that describes the interfaces of the `counter` thing.
 
 ##### Add a Property definition to the Thing
@@ -85,20 +106,22 @@ They are added as part of the `WoT.produce` invocation, like so:
 
 ```javascript
 WoT.produce({
-    title: "property",
+    title: "counter",
+    description: "counter example thing",
     properties: {
-        counter: {
+        count: {
             type: "integer",
             description: "current counter value",
-            observable: false,
         },
     },
+}).then((thing) => {
+    // thing.setPropertyReadHandler(...);
+    // thing.setPropertyWriteHandler(...);
+    // thing.expose().then(() => { ...});
 });
 ```
 
-This creates a Property.
-Its value can be initializes by calling `writeProperty`, otherwise it reads as `null`.
-After being written to, the value can be read by other Things.
+This creates a property `count`.
 
 You can create a Property that has a more complex type, such as an object. This is shown in the following:
 
@@ -121,72 +144,86 @@ WoT.produce({
 ##### Add a Property read handler
 
 ```javascript
-thing.setPropertyReadHandler("counter", (propertyName) => {
-    console.log("Handling read request for " + propertyName);
-    return new Promise((resolve, reject) => {
-        resolve(Math.random(100));
+let count = 0;
+servient.start().then(async (WoT) => {
+    WoT.produce({
+        title: "counter",
+        description: "counter example thing",
+        properties: {
+            count: {
+                type: "integer",
+            },
+        },
+    }).then((thing) => {
+        thing.setPropertyReadHandler("count", async () => count);
+        // expose the thing
+        thing.expose().then(() => {
+            // ...
+        });
     });
 });
 ```
 
-You can specify if the Thing needs to do something in case of a property read.
-Here, instead of reading a static value, a new random value is generated on every invocation.
+You can specify if the thing needs to do something in case of a property read.
+Here, a value is reported.
 
 ##### Add a Property write handler
 
 ```javascript
-thing.setPropertyWriteHandler("brightness", (value) => {
-    return new Promise((resolve, reject) => {
-        value %= 2; // only even values are valid in this example
-        setBrightness(value);
-        resolve(value);
+let count = 0;
+servient.start().then(async (WoT) => {
+    WoT.produce({
+        title: "counter",
+        description: "counter example thing",
+        properties: {
+            count: {
+                type: "integer",
+            },
+        },
+    }).then((thing) => {
+        thing.setPropertyWriteHandler("count", async (intOutput, options) => {
+            count = await intOutput.value();
+            return undefined;
+        });
+        // ...
     });
 });
 ```
 
-You can specify if the Thing needs do to something in case of a property write.
-Here, the value written is used to set the brightness of an LED that requires a specific function (`setBrightness()`) to do that.
-The property value becomes the value passed to `resolve()`, which in this case would mean the number modulo 2.
+You can specify if the thing needs do to something in case of a property write.
+Here, the value is used to set the `count` value.
 
 ##### Add an Action definition to the Thing
 
-Actions offer functions of the Thing.
-These functions may manipulate the interal state of a Thing in a way that is not possible through setting Properties.
-Examples are changing internal state that is not exposed as a Property, changing multiple Properties, changing Properties over time or with a process that shall not be disclosed.
+Actions offer functions of the thing.
+These functions may manipulate the interal state of a thing in a way that is not possible through setting properties.
+Examples are changing internal state that is not exposed as a property, changing multiple properties, changing properties over time or with a process that shall not be disclosed.
 Actions may also be pure functions, that is, they do not use any internal state at all, e.g. for processing input data and returning the result directly.
 
-Just like Properties above, adding Actions is done as part of a WoT.produce() call.
+Just like properties above, adding actions is done as part of a WoT.produce() call.
 
 ```javascript
 WoT.produce({
-  title: "action",
-  actions: {
-    echo: {
-      description: "Returns what it gets passed. Subject to SLA. Will probably terminate at null-bytes, because it treats input as strings."
-      input: { type: "string" },
-      output: { type: "string" }
-    }
-  }
-})
-```
-
-As can be seen above, `input` and `output` data types can be specified, similar to how property types are described in TDs.
-
-##### Add an Action invoke handler
-
-You need to write what will happen if an Action is invoked. This is done by setting an Action Handler:
-
-```javascript
-thing.setActionHandler("increment", () => {
-    console.log("Incrementing");
-    return thing.readProperty("counter").then((count) => {
-        let value = count + 1;
-        thing.writeProperty("counter", value);
-    });
+    title: "counter",
+    actions: {
+        increment: {
+            title: "increment",
+        },
+    },
 });
 ```
 
-Here, you see also how to access the properties of a Thing you are creating.
+Note: `input` and `output` data types can be specified, similar to how property types are described in TDs.
+
+##### Add an Action handler
+
+You need to code what will happen if an action is invoked. This is done by setting an action handler:
+
+```javascript
+thing.setActionHandler("increment", () => {
+    count = count + 1;
+});
+```
 
 ##### Add an Event definition to the Thing
 
@@ -213,8 +250,8 @@ WoT.produce({
 
 ```javascript
 setInterval(async () => {
-    ++counter;
-    thing.emitEvent("onchange", counter);
+    ++count;
+    thing.emitEvent("onchange", count);
 }, 5000);
 ```
 
@@ -256,12 +293,12 @@ URLs can have various schemes, including `file://` to read from the local filesy
 
 ```javascript
 WoT.requestThingDescription("http://localhost:8080/counter").then(async (td) => {
-    let thing = WoT.consume(td);
+    const thing = await WoT.consume(td);
     // Do something with the consumed Thing
 });
 ```
 
-Things can be `consume`d no matter if they were fetched with `WoT.requestThingDescription()`, `WoTHelpers.fetch()` or any other mean.
+Things can be `consume`d no matter if they were fetched with `WoT.requestThingDescription()` or any other mean.
 `consume` only requires a TD as an `Object`, so you could also use `fs.readFile` and `JSON.parse` or inline it into your code.
 As long at it results in a TD Object, you can receive it over Fax, Morse it or use smoke signals.
 
@@ -277,8 +314,8 @@ So you should handle it explicitely.
 Here we use the await functionality of Node.js.
 
 ```javascript
-let read1 = await thing.readProperty("count");
-let value = await read1.value();
+let read = await thing.readProperty("count");
+let value = await read.value();
 console.info("count value is", value);
 ```
 
@@ -287,7 +324,7 @@ console.info("count value is", value);
 You can write to a property by using the `writeProperty` function.
 
 ```javascript
-thing.writeProperty("color", { r: 255, g: 255, b: 0 });
+await thing.writeProperty("color", { r: 255, g: 255, b: 0 });
 ```
 
 <!-- * Observe value changes of a Property. -->

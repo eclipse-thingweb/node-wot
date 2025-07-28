@@ -6,15 +6,16 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/foundation/5.5.3/css/foundation.min.css" />
         <!-- Font Awesome icons -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.0.3/css/font-awesome.css" />
+        <link rel="stylesheet" href="styles.css" />
 
         <!-- defer to not block rendering -->
         <script src="https://cdn.jsdelivr.net/npm/@json-editor/json-editor@latest/dist/jsoneditor.min.js"></script>
         <!-- local vs cdn dependency -->
-        <script src="../../packages/browser-bundle/dist/wot-bundle.min.js" defer></script>
-        <!-- <script
+        <!-- <script src="../../packages/browser-bundle/dist/wot-bundle.min.js" defer></script> -->
+        <script
             src="https://cdn.jsdelivr.net/npm/@node-wot/browser-bundle@latest/dist/wot-bundle.min.js"
             defer
-        ></script> -->
+        ></script>
         <script src="index.js" defer></script>
 
         <script>
@@ -27,8 +28,83 @@
         <div id="topbar" class="row">
             <div class="medium-12 columns">
                 <h1>Browsified node-wot</h1>
-                <input id="td_addr" type="url" value="http://plugfest.thingweb.io:8083/testthing" />
-                <button id="fetch" type="button">Consume</button>
+
+                <!-- Tabs for TD selection -->
+                <ul class="tabs" data-tab id="td-tabs">
+                    <li class="tab-title active">
+                        <a href="#tab-testthing" id="tab-link-testthing">Test Thing</a>
+                    </li>
+                    <li class="tab-title">
+                        <a href="#tab-smartcoffee" id="tab-link-smartcoffee">Smart Coffee Machine</a>
+                    </li>
+                    <li class="tab-title">
+                        <a href="#tab-counter" id="tab-link-counter">Counter</a>
+                    </li>
+                    <li class="tab-title">
+                        <a href="#tab-custom" id="tab-link-custom">Custom</a>
+                    </li>
+                </ul>
+                <div class="tabs-content">
+                    <div class="content active" id="tab-testthing">
+                        <p>Consumed TD at <a href="" target="_blank" class="td-url"></a></p>
+                        <p>
+                            <strong>TD Description:</strong>
+                            <span class="td-description">Loading...</span>
+                        </p>
+                    </div>
+                    <div class="content" id="tab-smartcoffee">
+                        <p>
+                            Consumed TD at
+                            <a href="" target="_blank" class="td-url"></a>
+                        </p>
+                        <p>
+                            <strong>TD Description:</strong>
+                            <span class="td-description">Loading...</span>
+                        </p>
+                    </div>
+                    <div class="content" id="tab-counter">
+                        <p>Consumed TD at <a href="" target="_blank" class="td-url"></a></p>
+                        <p>
+                            <strong>TD Description:</strong>
+                            <span class="td-description">Loading...</span>
+                        </p>
+                    </div>
+                    <div class="content" id="tab-custom">
+                        <div class="row">
+                            <div class="medium-12 columns">
+                                <input
+                                    id="td_addr"
+                                    type="url"
+                                    placeholder="Paste the TD URL to start consuming it"
+                                    style="width: 100%"
+                                    onkeydown="if(event.key==='Enter') document.getElementById('fetch').click()"
+                                />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="medium-12 columns" style="margin-top: 10px">
+                                <button id="fetch" type="button" class="button">Consume</button>
+                            </div>
+                        </div>
+                        <div id="custom-td-info" style="margin-top: 10px">
+                            <p>Consumed TD at <a href="" target="_blank" class="td-url"></a></p>
+                            <p>
+                                <strong>TD Description:</strong>
+                                <span class="td-description">Enter a TD URL above to consume it.</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Error message container -->
+                <div id="error-container" class="row" style="display: none; margin-top: 10px">
+                    <div class="medium-12 columns">
+                        <div class="alert-box alert" id="error-message">
+                            <span id="error-text"></span>
+                            <a href="#" class="close" id="close-error">&times;</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         <div id="interactions" class="row" style="display: none">
