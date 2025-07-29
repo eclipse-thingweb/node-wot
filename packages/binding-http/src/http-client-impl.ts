@@ -128,8 +128,6 @@ export default class HttpClient implements ProtocolClient {
 
         const result = await this.doFetch(request);
 
-        this.checkFetchResponse(result);
-
         debug(`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
         debug(`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
 
@@ -153,8 +151,6 @@ export default class HttpClient implements ProtocolClient {
         const result = await this.doFetch(request);
 
         debug(`HttpClient received ${result.status} from ${result.url}`);
-
-        this.checkFetchResponse(result);
 
         debug(`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
     }
@@ -217,8 +213,6 @@ export default class HttpClient implements ProtocolClient {
 
         debug(`HttpClient received ${result.status} from ${request.url}`);
         debug(`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
-
-        this.checkFetchResponse(result);
 
         // in browsers node-fetch uses the native fetch, which returns a ReadableStream
         // not complaint with node. Therefore we have to force the conversion here.
@@ -432,8 +426,12 @@ export default class HttpClient implements ProtocolClient {
 
         if (HttpClient.isOAuthTokenExpired(result, this.credential)) {
             this.credential = await (this.credential as OAuthCredential).refreshToken();
-            return await this._fetch(await this.credential.sign(request));
+            const resultAuth = await this._fetch(await this.credential.sign(request));
+            this.checkFetchResponse(resultAuth);
+            return resultAuth;
         }
+
+        this.checkFetchResponse(result);
 
         return result;
     }
