@@ -54,6 +54,7 @@ export class ContentSerdes {
     public static readonly JSON_LD: string = "application/ld+json";
 
     private codecs: Map<string, ContentCodec> = new Map();
+    private codecsBySchemes: Map<string, ContentCodec> = new Map();
     private offered: Set<string> = new Set<string>();
 
     public static get(): ContentSerdes {
@@ -107,8 +108,17 @@ export class ContentSerdes {
         return params;
     }
 
-    public addCodec(codec: ContentCodec, offered = false): void {
-        ContentSerdes.get().codecs.set(codec.getMediaType(), codec);
+    // function to create id for combining internally mediaType and scheme
+    private getMediaTypeScheme(mt: string, scheme: string): string {
+        return mt + "|" + scheme;
+    }
+
+    public addCodec(codec: ContentCodec, offered = false, scheme?: string): void {
+        if (scheme !== undefined) {
+            ContentSerdes.get().codecsBySchemes.set(this.getMediaTypeScheme(codec.getMediaType(), scheme), codec);
+        } else {
+            ContentSerdes.get().codecs.set(codec.getMediaType(), codec);
+        }
         if (offered) ContentSerdes.get().offered.add(codec.getMediaType());
     }
 
@@ -125,7 +135,7 @@ export class ContentSerdes {
         return this.codecs.has(mt);
     }
 
-    public contentToValue(content: ReadContent, schema: DataSchema): DataSchemaValue | undefined {
+    public contentToValue(content: ReadContent, schema: DataSchema, scheme?: string): DataSchemaValue | undefined {
         if (content.type === undefined) {
             if (content.body.byteLength > 0) {
                 // default to application/json
@@ -142,9 +152,16 @@ export class ContentSerdes {
 
         // choose codec based on mediaType
         if (this.codecs.has(mt)) {
-            debug(`ContentSerdes deserializing from ${content.type}`);
-
-            const codec = this.codecs.get(mt);
+            let codec: ContentCodec | undefined;
+            if (scheme !== undefined) {
+                codec = this.codecsBySchemes.get(this.getMediaTypeScheme(mt, scheme));
+            }
+            if (codec === undefined) {
+                debug(`ContentSerdes deserializing from ${content.type}`);
+                codec = this.codecs.get(mt);
+            } else {
+                debug(`ContentSerdes deserializing from combining ${content.type} and ${mt}`);
+            }
 
             // use codec to deserialize
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- this.codecs.has(mt) is true
@@ -160,7 +177,8 @@ export class ContentSerdes {
     public valueToContent(
         value: DataSchemaValue | ReadableStream,
         schema: DataSchema | undefined,
-        contentType = ContentSerdes.DEFAULT
+        contentType = ContentSerdes.DEFAULT,
+        scheme?: string
     ): Content {
         if (value === undefined) warn("ContentSerdes valueToContent got no value");
 
@@ -175,7 +193,13 @@ export class ContentSerdes {
         const par = ContentSerdes.getMediaTypeParameters(contentType);
 
         // choose codec based on mediaType
-        const codec = this.codecs.get(mt);
+        let codec: ContentCodec | undefined;
+        if (scheme !== undefined) {
+            codec = this.codecsBySchemes.get(this.getMediaTypeScheme(mt, scheme));
+        }
+        if (codec === undefined) {
+            codec = this.codecs.get(mt);
+        }
         if (codec) {
             debug(`ContentSerdes serializing to ${contentType}`);
             bytes = codec.valueToBytes(value, schema, par);
