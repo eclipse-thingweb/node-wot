@@ -52,6 +52,7 @@ import {
 } from "./credential";
 import { LongPollingSubscription, SSESubscription, InternalSubscription } from "./subscription-protocols";
 import { Readable } from "stream";
+import { createGunzip, createBrotliDecompress, createInflate, createInflateRaw } from "zlib";
 
 const { debug, warn, error } = createLoggers("binding-http", "http-client-impl");
 
@@ -133,7 +134,9 @@ export default class HttpClient implements ProtocolClient {
 
         // in browsers node-fetch uses the native fetch, which returns a ReadableStream
         // not complaint with node. Therefore we have to force the conversion here.
-        const body = ProtocolHelpers.toNodeStream(result.body as Readable);
+        let body = ProtocolHelpers.toNodeStream(result.body as Readable);
+        const enc = result.headers.get("content-encoding") ?? undefined;
+        body = HttpClient.decodeByContentEncoding(body, enc);
         return new Content(result.headers.get("content-type") ?? ContentSerdes.DEFAULT, body);
     }
 
@@ -216,7 +219,9 @@ export default class HttpClient implements ProtocolClient {
 
         // in browsers node-fetch uses the native fetch, which returns a ReadableStream
         // not complaint with node. Therefore we have to force the conversion here.
-        const body = ProtocolHelpers.toNodeStream(result.body as Readable);
+        let body = ProtocolHelpers.toNodeStream(result.body as Readable);
+        const enc = result.headers.get("content-encoding") ?? undefined;
+        body = HttpClient.decodeByContentEncoding(body, enc);
         return new Content(result.headers.get("content-type") ?? ContentSerdes.DEFAULT, body);
     }
 
@@ -240,7 +245,9 @@ export default class HttpClient implements ProtocolClient {
         };
         const request = await this.generateFetchRequest({ href: uri }, "GET", headers);
         const response = await this.doFetch(request);
-        const body = ProtocolHelpers.toNodeStream(response.body as Readable);
+        let body = ProtocolHelpers.toNodeStream(response.body as Readable);
+        const enc = response.headers.get("content-encoding") ?? undefined;
+        body = HttpClient.decodeByContentEncoding(body, enc);
         return new Content(response.headers.get("content-type") ?? "application/td+json", body);
     }
 
@@ -469,5 +476,45 @@ export default class HttpClient implements ProtocolClient {
         }
 
         return url;
+    }
+
+    private static decodeByContentEncoding(body: Readable, encHeader?: string): Readable {
+        if (encHeader == null || encHeader.trim() === "") return body;
+
+        // Split encodings ("gzip, gzip" or "br, gzip")
+        const codings = encHeader
+            .split(",")
+            .map((s) => s.trim().toLowerCase())
+            .filter(Boolean)
+            .reverse();
+
+        let stream: Readable = body;
+
+        for (const coding of codings) {
+            if (coding === "identity") {
+                continue;
+            } else if (coding === "gzip" || coding === "x-gzip") {
+                stream = stream.pipe(createGunzip());
+            } else if (coding === "br") {
+                stream = stream.pipe(createBrotliDecompress());
+            } else if (coding === "deflate") {
+                // Try inflate first
+                const tryInflate = createInflate();
+                // If inflate errors, swap to raw
+                let swapped = false;
+                tryInflate.once("error", () => {
+                    if (swapped) return;
+                    swapped = true;
+                    const retry = stream.pipe(createInflateRaw());
+                    stream = retry;
+                });
+                stream = stream.pipe(tryInflate);
+            } else {
+                // Unknown coding, pass through
+                warn(`HttpClient: unsupported content-encoding '${coding}', passing through as-is`);
+            }
+        }
+
+        return stream;
     }
 }
