@@ -33,8 +33,9 @@ import {
     VariantArrayType,
     CallbackT,
     CallMethodResultOptions,
+    WellKnownRoles,
 } from "node-opcua";
-import { KeyValuePair } from "node-opcua-types";
+import { KeyValuePair, PermissionType } from "node-opcua-types";
 import { createLoggers } from "@node-wot/core";
 
 const { info } = createLoggers("binding-opcua", "basic-opcua-server");
@@ -52,6 +53,18 @@ export async function startServer(): Promise<OPCUAServer> {
     const server = new OPCUAServer({
         port: 7890,
         nodeset_filename: [nodesets.standard, nodesets.di],
+
+        userManager: {
+            isValidUser(userName: string, password: string): boolean {
+                if (userName === "joe" && password === "password_for_joe") {
+                    return true;
+                }
+                if (userName === "admin" && password === "password_for_admin") {
+                    return true;
+                }
+                return false;
+            },
+        },
     });
 
     await server.initialize();
@@ -207,6 +220,25 @@ export async function startServer(): Promise<OPCUAServer> {
             callback(null, callMethodResult);
         }
     );
+
+    const onlyForAuthenticated = namespace.addVariable({
+        browseName: "OnlyForAuthenticated",
+        nodeId: "s=OnlyForAuthenticated",
+        description: "returns the secret value only if user is authenticated (not anonymous)",
+        componentOf: addressSpace.rootFolder.objects.server,
+        dataType: "String",
+        rolePermissions: [
+            {
+                roleId: WellKnownRoles.AuthenticatedUser,
+                permissions: PermissionType.Read | PermissionType.Browse,
+            },
+            {
+                roleId: WellKnownRoles.Anonymous,
+                permissions: PermissionType.Read | PermissionType.Browse,
+            },
+        ],
+    });
+    onlyForAuthenticated.setValueFromSource({ dataType: "String", value: "Secret" });
 
     await server.start();
     info(`Server started: ${server.getEndpointUrl()}`);
