@@ -805,4 +805,72 @@ class WoTClientTest {
         // eslint-disable-next-line no-unused-expressions
         expect(WoTClientTest.servient.hasClientFor(tcf2.scheme)).to.be.not.true;
     }
+
+    @test "ensure combo security "(done: Mocha.Done) {
+        try {
+            const ct = new ConsumedThing(WoTClientTest.servient);
+            ct.securityDefinitions = {
+                basic_sc: {
+                    scheme: "basic",
+                },
+                opcua_secure_channel_sc: {
+                    scheme: "opcua-channel-security",
+                },
+                opcua_authetication_sc: {
+                    scheme: "opcua-authentication",
+                },
+                combo_sc: {
+                    scheme: "combo",
+                    allOf: ["opcua_secure_channel_sc", "opcua_authetication_sc"],
+                },
+            };
+            ct.security = ["combo_sc"];
+            const pc = new TestProtocolClient();
+            const form: Form = {
+                href: "https://example.com/",
+                // security: ["apikey_sc"],
+            };
+            ct.ensureClientSecurity(pc, form);
+            expect(pc.securitySchemes.length).equals(2);
+            expect(pc.securitySchemes[0].scheme).equals("opcua-channel-security");
+            expect(pc.securitySchemes[1].scheme).equals("opcua-authentication");
+            done();
+        } catch (err) {
+            done(err);
+        }
+    }
+
+    @test "ensure combo security in form"(done: Mocha.Done) {
+        try {
+            const ct = new ConsumedThing(WoTClientTest.servient);
+            ct.securityDefinitions = {
+                basic_sc: {
+                    scheme: "basic",
+                },
+                opcua_secure_channel_sc: {
+                    scheme: "opcua-channel-security",
+                },
+                opcua_authetication_sc: {
+                    scheme: "opcua-authentication",
+                },
+                combo_sc: {
+                    scheme: "combo",
+                    allOf: ["opcua_secure_channel_sc", "opcua_authetication_sc"],
+                },
+            };
+            ct.security = "basic";
+            const pc = new TestProtocolClient();
+            const form: Form = {
+                href: "https://example.com/",
+                security: ["combo_sc"],
+            };
+            ct.ensureClientSecurity(pc, form);
+            expect(pc.securitySchemes.length).equals(2);
+            expect(pc.securitySchemes[0].scheme).equals("opcua-channel-security");
+            expect(pc.securitySchemes[1].scheme).equals("opcua-authentication");
+            done();
+        } catch (err) {
+            done(err);
+        }
+    }
 }

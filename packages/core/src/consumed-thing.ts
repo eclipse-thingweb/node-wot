@@ -41,6 +41,7 @@ import UriTemplate = require("uritemplate");
 import { InteractionOutput, ActionInteractionOutput } from "./interaction-output";
 import {
     ActionElement,
+    ComboSecurityScheme,
     EventElement,
     FormElementEvent,
     FormElementProperty,
@@ -449,7 +450,13 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
             const ws = this.securityDefinitions[s + ""]; // String vs. string (fix wot-typescript-definitions?)
             // also push nosec in case of proxy
             if (ws != null) {
-                scs.push(ws);
+                if (ws.scheme === "combo") {
+                    const combo = ws as ComboSecurityScheme;
+                    const schemes = this.getSecuritySchemes(combo.allOf as string[]);
+                    scs.push(...schemes);
+                } else {
+                    scs.push(ws);
+                }
             }
         }
         return scs;
