@@ -445,20 +445,29 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
     }
 
     getSecuritySchemes(security: Array<string>): Array<SecurityScheme> {
+        const visited = new Set<string>();
+
         const scs: Array<SecurityScheme> = [];
-        for (const s of security) {
-            const ws = this.securityDefinitions[s + ""]; // String vs. string (fix wot-typescript-definitions?)
-            // also push nosec in case of proxy
-            if (ws != null) {
-                if (ws.scheme === "combo") {
-                    const combo = ws as ComboSecurityScheme;
-                    const schemes = this.getSecuritySchemes(combo.allOf as string[]);
-                    scs.push(...schemes);
-                } else {
-                    scs.push(ws);
+        const visitSchemes = (security: Array<string>) => {
+            for (const s of security) {
+                if (visited.has(s)) {
+                    continue;
+                }
+                visited.add(s);
+
+                const ws = this.securityDefinitions[s + ""]; // String vs. string (fix wot-typescript-definitions?)
+                // also push nosec in case of proxy
+                if (ws != null) {
+                    if (ws.scheme === "combo") {
+                        const combo = ws as ComboSecurityScheme;
+                        visitSchemes(combo.allOf as string[]);
+                    } else {
+                        scs.push(ws);
+                    }
                 }
             }
-        }
+        };
+        visitSchemes(security);
         return scs;
     }
 
