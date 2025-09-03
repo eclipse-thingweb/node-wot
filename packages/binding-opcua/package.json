@@ -43,7 +43,7 @@
         "node-opcua-status-code": "2.139.0",
         "node-opcua-types": "2.143.0",
         "node-opcua-variant": "2.142.0",
-        "rxjs": "5.5.11",
+        "rxjs": "^5.5.11",
         "url": "^0.11.4"
     },
     "scripts": {
