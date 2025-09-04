@@ -24,6 +24,8 @@ import {
     ThingAction,
     ThingEvent,
     SecurityScheme,
+    AllOfSecurityScheme,
+    OneOfSecurityScheme,
 } from "./thing-description";
 
 import { ThingModel } from "wot-thing-model-types";
@@ -445,30 +447,50 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
     }
 
     getSecuritySchemes(security: Array<string>): Array<SecurityScheme> {
-        const visited = new Set<string>();
+        const alreadyProcessed = new Map<string, SecurityScheme | null>();
 
-        const scs: Array<SecurityScheme> = [];
         const visitSchemes = (security: Array<string>) => {
+            const resolveComboScheme = (
+                combo: ComboSecurityScheme
+            ): AllOfSecurityScheme | OneOfSecurityScheme | undefined => {
+                if (combo.allOf instanceof Array) {
+                    const allOf = visitSchemes(combo.allOf as string[]);
+                    return <AllOfSecurityScheme>{
+                        scheme: "combo",
+                        allOf,
+                    };
+                }
+                if (combo.oneOf instanceof Array) {
+                    const oneOf = visitSchemes(combo.oneOf as string[]);
+                    return <OneOfSecurityScheme>{
+                        scheme: "combo",
+                        oneOf,
+                    };
+                }
+                return undefined; // not supported , but handled gracefully
+            };
+            const scs: SecurityScheme[] = [];
             for (const s of security) {
-                if (visited.has(s)) {
+                if (alreadyProcessed.has(s)) {
+                    scs.push(alreadyProcessed.get(s)!);
                     continue;
                 }
-                visited.add(s);
+                alreadyProcessed.set(s, null);
 
-                const ws = this.securityDefinitions[s + ""]; // String vs. string (fix wot-typescript-definitions?)
+                let ws: SecurityScheme | undefined = this.securityDefinitions[s];
                 // also push nosec in case of proxy
+                if (ws?.scheme === "combo") {
+                    ws = resolveComboScheme(ws as ComboSecurityScheme);
+                }
                 if (ws != null) {
-                    if (ws.scheme === "combo") {
-                        const combo = ws as ComboSecurityScheme;
-                        visitSchemes(combo.allOf as string[]);
-                    } else {
-                        scs.push(ws);
-                    }
+                    scs.push(ws);
+                    // remember in case we came accross the same again
+                    alreadyProcessed.set(s, ws);
                 }
             }
+            return scs;
         };
-        visitSchemes(security);
-        return scs;
+        return visitSchemes(security);
     }
 
     ensureClientSecurity(client: ProtocolClient, form: Form | undefined): void {
