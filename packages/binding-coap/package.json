@@ -19,7 +19,7 @@
         "dns-packet": "^5.2.2",
         "multicast-dns": "^7.2.5",
         "node-coap-client": "1.0.8",
-        "rxjs": "5.5.11",
+        "rxjs": "^5.5.11",
         "slugify": "^1.4.5",
         "wot-typescript-definitions": "0.8.0-SNAPSHOT.31"
     },

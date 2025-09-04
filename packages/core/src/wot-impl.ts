@@ -100,7 +100,7 @@ export default class WoTImpl {
             return value;
         }
 
-        throw getLastValidationErrors();
+        throw new Error("TD validation error: " + getLastValidationErrors().message);
     }
 
     /** @inheritDoc */
