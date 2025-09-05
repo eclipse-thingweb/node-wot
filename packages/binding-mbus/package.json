@@ -15,7 +15,7 @@
     "types": "dist/mbus.d.ts",
     "dependencies": {
         "@node-wot/core": "0.9.2",
-        "node-mbus": "^2.2.4",
+        "node-mbus": "^2.2.6",
         "rxjs": "^5.5.11"
     },
     "scripts": {
