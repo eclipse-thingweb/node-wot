@@ -135,7 +135,6 @@ export interface NullSchema extends BaseSchema {
 }
 
 // TODO AutoSecurityScheme
-// TODO ComboSecurityScheme
 export type SecurityType =
     | NoSecurityScheme
     | BasicSecurityScheme
@@ -143,7 +142,9 @@ export type SecurityType =
     | BearerSecurityScheme
     | APIKeySecurityScheme
     | OAuth2SecurityScheme
-    | PSKSecurityScheme;
+    | PSKSecurityScheme
+    | AllOfSecurityScheme
+    | OneOfSecurityScheme;
 
 export interface SecurityScheme {
     scheme: string;
@@ -180,6 +181,17 @@ export interface PSKSecurityScheme extends SecurityScheme, TDT.PskSecurityScheme
 export interface OAuth2SecurityScheme extends SecurityScheme, TDT.OAuth2SecurityScheme {
     scheme: "oauth2";
 }
+export interface OneOfSecurityScheme extends SecurityScheme {
+    scheme: "combo";
+    oneOf: SecurityScheme[];
+    allOf: never;
+}
+export interface AllOfSecurityScheme extends SecurityScheme {
+    scheme: "combo";
+    allOf: SecurityScheme[];
+    oneOf: never;
+}
+export type ComboSecurityScheme = AllOfSecurityScheme | OneOfSecurityScheme;
 
 /** Implements the Thing Property description */
 export abstract class ThingProperty extends BaseSchema {
