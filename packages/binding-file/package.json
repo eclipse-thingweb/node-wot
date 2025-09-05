@@ -15,7 +15,7 @@
     "types": "dist/file.d.ts",
     "dependencies": {
         "@node-wot/core": "0.9.2",
-        "rxjs": "5.5.11"
+        "rxjs": "^5.5.11"
     },
     "scripts": {
         "build": "tsc -b",
