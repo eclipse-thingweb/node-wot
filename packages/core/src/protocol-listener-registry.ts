@@ -14,7 +14,7 @@
  ********************************************************************************/
 import { DataSchema, InteractionInput } from "wot-typescript-definitions";
 import { ContentListener } from "./protocol-interfaces";
-import { ThingInteraction } from "@node-wot/td-tools";
+import { ThingInteraction } from "./thing-description";
 import contentSerdes from "./content-serdes";
 
 export default class ProtocolListenerRegistry {

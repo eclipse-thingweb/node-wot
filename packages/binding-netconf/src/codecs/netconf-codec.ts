@@ -13,8 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { createDebugLogger } from "@node-wot/core";
-import * as TD from "@node-wot/td-tools";
+import { DataSchema, createDebugLogger } from "@node-wot/core";
 import Url from "url-parse";
 import { DataSchemaValue } from "wot-typescript-definitions";
 
@@ -31,7 +30,7 @@ export default class NetconfCodec {
         return "application/yang-data+xml";
     }
 
-    bytesToValue(bytes: Buffer, schema: TD.DataSchema, parameters: { [key: string]: string }): DataSchemaValue {
+    bytesToValue(bytes: Buffer, schema: DataSchema, parameters: { [key: string]: string }): DataSchemaValue {
         debug(`NetconfCodec parsing '${bytes.toString()}'`);
 
         try {
@@ -91,7 +90,7 @@ export default class NetconfCodec {
         }
     }
 
-    valueToBytes(value: unknown, schema: TD.DataSchema, parameters?: { [key: string]: string }): Buffer {
+    valueToBytes(value: unknown, schema: DataSchema, parameters?: { [key: string]: string }): Buffer {
         debug(`NetconfCodec serializing ${value}`);
         let body = "";
         if (value !== undefined) {
@@ -126,8 +125,9 @@ export default class NetconfCodec {
             let nsFound = false;
             let aliasNs = "";
             let value;
-            for (const key in properties) {
-                const el = properties[key];
+            // TODO: Use correct type for el
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            for (const [key, el] of Object.entries(properties) as [string, any]) {
                 const payloadField = payload[key];
                 if (payloadField == null) {
                     throw new Error(`Payload is missing '${key}' field specified in TD`);

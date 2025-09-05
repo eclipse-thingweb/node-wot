@@ -1,9 +1,9 @@
 {
     "compilerOptions": {
-        "target": "es6",
-        "lib": ["dom"],
+        "target": "ES2021",
         "skipLibCheck": false,
-        "module": "commonjs",
+        "module": "Node16",
+        "moduleResolution": "Node16",
         "outDir": "dist",
         "strict": true,
         "composite": true,
@@ -16,7 +16,6 @@
         "experimentalDecorators": true,
         "declaration": true,
         "esModuleInterop": true,
-        "moduleResolution": "node" /* Specify module resolution strategy: 'node' (Node.js) or 'classic' (TypeScript pre-1.6). */,
         "resolveJsonModule": false,
         "skipDefaultLibCheck": false,
         "allowJs": false,
@@ -34,7 +33,7 @@
         { "path": "./packages/binding-websockets" },
         { "path": "./packages/cli" },
         { "path": "./packages/core" },
-        { "path": "./packages/td-tools" },
+        { "path": "./packages/browser-bundle" },
         { "path": "./packages/examples" }
     ],
     "include": [

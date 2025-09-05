@@ -25,7 +25,7 @@ import { CoapServer, CoapClientFactory, CoapsClientFactory } from "@node-wot/bin
 import { MqttBrokerServer, MqttClientFactory } from "@node-wot/binding-mqtt";
 import { FileClientFactory } from "@node-wot/binding-file";
 import { CompilerFunction, NodeVM } from "vm2";
-import { ThingModelHelpers } from "@node-wot/td-tools";
+import { ThingModelHelpers } from "@thingweb/thing-model";
 
 const { debug, error, info } = createLoggers("cli", "cli-default-servient");
 

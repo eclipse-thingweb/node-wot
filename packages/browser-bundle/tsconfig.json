@@ -1,0 +1,20 @@
+{
+    "extends": "../../tsconfig.json",
+    "compilerOptions": {
+        "resolveJsonModule": true,
+        "outDir": "types",
+        "emitDeclarationOnly": true
+    },
+    "include": ["index.ts"],
+    "references": [
+        {
+            "path": "../core"
+        },
+        {
+            "path": "../binding-http"
+        },
+        {
+            "path": "../binding-websockets"
+        }
+    ]
+}

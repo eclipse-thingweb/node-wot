@@ -54,20 +54,20 @@ export default class Servient {
 
         // initializing forms fields
         thing.forms = [];
-        for (const name in thing.properties) {
+        for (const property of Object.values(thing.properties)) {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
-            thing.properties[name].forms = [];
+            property.forms = [];
         }
-        for (const name in thing.actions) {
+        for (const action of Object.values(thing.actions)) {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
-            thing.actions[name].forms = [];
+            action.forms = [];
         }
-        for (const name in thing.events) {
+        for (const event of Object.values(thing.events)) {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
-            thing.events[name].forms = [];
+            event.forms = [];
         }
 
         const serverPromises: Promise<void>[] = [];
@@ -178,16 +178,13 @@ export default class Servient {
     }
 
     public addCredentials(credentials: Record<string, unknown>): void {
-        if (typeof credentials === "object") {
-            for (const i in credentials) {
-                debug(`Servient storing credentials for '${i}'`);
-                let currentCredentials = this.credentialStore.get(i);
-                if (!currentCredentials) {
-                    currentCredentials = [];
-                    this.credentialStore.set(i, currentCredentials);
-                }
-                currentCredentials.push(credentials[i]);
+        for (const [credentialKey, credentialValue] of Object.entries(credentials ?? {})) {
+            debug(`Servient storing credentials for '${credentialKey}'`);
+            const currentCredentials = this.credentialStore.get(credentialKey) ?? [];
+            if (currentCredentials.length === 0) {
+                this.credentialStore.set(credentialKey, currentCredentials);
             }
+            currentCredentials.push(credentialValue);
         }
     }
 

@@ -17,7 +17,6 @@
  * CoAP Server based on coap by mcollina
  */
 
-import * as TD from "@node-wot/td-tools";
 import Servient, {
     ProtocolServer,
     ContentSerdes,
@@ -26,6 +25,7 @@ import Servient, {
     ProtocolHelpers,
     Content,
     createLoggers,
+    Form,
 } from "@node-wot/core";
 import { Socket } from "dgram";
 import { Server, createServer, registerFormat, IncomingMessage, OutgoingMessage } from "coap";
@@ -35,7 +35,7 @@ import { MdnsIntroducer } from "./mdns-introducer";
 import { PropertyElement, DataSchema, ActionElement, EventElement } from "wot-thing-description-types";
 import { CoapServerConfig } from "./coap";
 import { DataSchemaValue } from "wot-typescript-definitions";
-import { filterPropertyObserveOperations, getPropertyOpValues } from "./util";
+import { getPropertyOpValues } from "./util";
 
 const { debug, warn, info, error } = createLoggers("binding-coap", "coap-server");
 
@@ -158,10 +158,16 @@ export default class CoapServer implements ProtocolServer {
     }
 
     private createThingUrlPath(thing: ExposedThing) {
-        const urlPath = slugify(thing.title, { lower: true });
+        let urlPath = slugify(thing.title, { lower: true });
 
+        // avoid URL clashes
         if (this.things.has(urlPath)) {
-            return Helpers.generateUniqueName(urlPath);
+            let uniqueUrlPath;
+            let nameClashCnt = 2;
+            do {
+                uniqueUrlPath = urlPath + "_" + nameClashCnt++;
+            } while (this.things.has(uniqueUrlPath));
+            urlPath = uniqueUrlPath;
         }
 
         return urlPath;
@@ -231,7 +237,7 @@ export default class CoapServer implements ProtocolServer {
         return opValues;
     }
 
-    private addFormToAffordance(form: TD.Form, affordance: AffordanceElement): void {
+    private addFormToAffordance(form: Form, affordance: AffordanceElement): void {
         const affordanceForms = affordance.forms;
         if (affordanceForms == null) {
             affordance.forms = [form];
@@ -248,14 +254,6 @@ export default class CoapServer implements ProtocolServer {
                     continue;
                 }
 
-                let subprotocol: string | undefined;
-
-                const observeOpValues = filterPropertyObserveOperations(formOpValues);
-
-                if (observeOpValues.length > 0) {
-                    subprotocol = "cov:observe";
-                }
-
                 const form = this.createAffordanceForm(
                     base,
                     this.PROPERTY_DIR,
@@ -263,8 +261,7 @@ export default class CoapServer implements ProtocolServer {
                     formOpValues,
                     thing.uriVariables,
                     propertyName,
-                    property.uriVariables,
-                    subprotocol
+                    property.uriVariables
                 );
 
                 this.addFormToAffordance(form, property);
@@ -299,8 +296,7 @@ export default class CoapServer implements ProtocolServer {
                 ["subscribeevent", "unsubscribeevent"],
                 thing.uriVariables,
                 eventName,
-                event.uriVariables,
-                "cov:observe"
+                event.uriVariables
             );
 
             this.addFormToAffordance(form, event);
@@ -317,7 +313,7 @@ export default class CoapServer implements ProtocolServer {
         affordanceName?: string,
         affordanceUriVariables?: PropertyElement["uriVariables"],
         subprotocol?: string
-    ): TD.Form {
+    ): Form {
         const affordanceNamePattern = Helpers.updateInteractionNameWithUriVariablePattern(
             affordanceName ?? "",
             affordanceUriVariables,
@@ -330,14 +326,14 @@ export default class CoapServer implements ProtocolServer {
             href += `/${encodeURIComponent(affordanceNamePattern)}`;
         }
 
-        const form = new TD.Form(href, offeredMediaType);
+        const form = new Form(href, offeredMediaType);
         form.op = opValues;
         form.subprotocol = subprotocol;
 
         return form;
     }
 
-    private logHrefAssignment(form: TD.Form, affordanceType: string, affordanceName: string) {
+    private logHrefAssignment(form: Form, affordanceType: string, affordanceName: string) {
         debug(`CoapServer on port ${this.port} assigns '${form.href}' to ${affordanceType} '${affordanceName}'`);
     }
 
@@ -610,7 +606,7 @@ export default class CoapServer implements ProtocolServer {
     }
 
     private async handleReadMultipleProperties(
-        forms: TD.Form[],
+        forms: Form[],
         req: IncomingMessage,
         contentType: string,
         thing: ExposedThing,
@@ -817,7 +813,7 @@ export default class CoapServer implements ProtocolServer {
     }
 
     private createInteractionOptions(
-        forms: TD.Form[],
+        forms: Form[],
         thing: ExposedThing,
         req: IncomingMessage,
         contentType: string,

@@ -31,7 +31,11 @@ describe("mbus connection test", () => {
         /* nothing */
     });
 
-    it("should throw for timeout", () => {
+    it("should throw for timeout", function () {
+        if (process.platform === "win32") {
+            this.skip();
+        }
+
         const connection = new MBusConnection("127.0.0.1", 806, {
             connectionTimeout: 200,
             connectionRetryTime: 10,
@@ -41,7 +45,11 @@ describe("mbus connection test", () => {
     }).timeout(10000);
 
     describe("Operation", () => {
-        it("should throw with timeout", async () => {
+        it("should throw with timeout", async function () {
+            if (process.platform === "win32") {
+                this.skip();
+            }
+
             const form: MBusForm = {
                 href: "mbus+tcp://127.0.0.1:806",
                 "mbus:offset": 0,

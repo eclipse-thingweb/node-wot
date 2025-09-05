@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import * as TD from "@node-wot/td-tools";
+import { Form, SecurityScheme } from "@node-wot/core";
 
 import { Headers, Response } from "node-fetch";
 
@@ -39,7 +39,7 @@ export interface HttpConfig {
     allowSelfSigned?: boolean;
     serverKey?: string;
     serverCert?: string;
-    security?: TD.SecurityScheme;
+    security?: SecurityScheme;
 }
 
 export class HttpHeader {
@@ -47,15 +47,15 @@ export class HttpHeader {
     public "http:fieldValue": unknown;
 }
 
-export class HttpForm extends TD.Form {
+export class HttpForm extends Form {
     public "http:methodName"?: string; // "GET", "PUT", "POST", "DELETE"
     public "http:headers"?: Array<HttpHeader> | HttpHeader;
 }
 
 Headers.prototype.raw = function () {
     const result: { [key: string]: string[] } = {};
-    for (const h in this.entries()) {
-        result[h[0]] = h[1].split(",");
+    for (const [headerKey, headerValue] of this.entries()) {
+        result[headerKey] = headerValue.split(",");
     }
     return result;
 };

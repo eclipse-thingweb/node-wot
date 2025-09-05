@@ -1,6 +1,6 @@
 {
     "name": "@node-wot/cli",
-    "version": "0.8.15",
+    "version": "0.9.2",
     "description": "servient command line interface",
     "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
     "license": "EPL-2.0 OR W3C-20150513",
@@ -20,17 +20,15 @@
         "ts-node": "10.9.1"
     },
     "dependencies": {
-        "@node-wot/binding-coap": "0.8.15",
-        "@node-wot/binding-file": "0.8.15",
-        "@node-wot/binding-http": "0.8.15",
-        "@node-wot/binding-mqtt": "0.8.15",
-        "@node-wot/binding-websockets": "0.8.15",
-        "@node-wot/core": "0.8.15",
-        "@node-wot/td-tools": "0.8.15",
-        "@types/lodash": "^4.14.199",
+        "@node-wot/binding-coap": "0.9.2",
+        "@node-wot/binding-file": "0.9.2",
+        "@node-wot/binding-http": "0.9.2",
+        "@node-wot/binding-mqtt": "0.9.2",
+        "@node-wot/core": "0.9.2",
+        "@thingweb/thing-model": "^1.0.4",
         "ajv": "^8.11.0",
         "commander": "^9.1.0",
-        "dotenv": "^8.6.0",
+        "dotenv": "^16.4.7",
         "lodash": "^4.17.21",
         "vm2": "3.9.18"
     },
@@ -47,5 +45,8 @@
         "url": "https://github.com/eclipse-thingweb/node-wot/issues"
     },
     "homepage": "https://github.com/eclipse-thingweb/node-wot/tree/master/packages/cli#readme",
-    "keywords": []
+    "keywords": [],
+    "devDependencies": {
+        "@types/lodash": "^4.14.199"
+    }
 }

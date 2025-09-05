@@ -14,7 +14,7 @@
  ********************************************************************************/
 
 import { suite, test } from "@testdeck/mocha";
-import { APIKeySecurityScheme, BasicSecurityScheme, BearerSecurityScheme } from "@node-wot/td-tools";
+import { APIKeySecurityScheme, BasicSecurityScheme, BearerSecurityScheme } from "@node-wot/core";
 import * as chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { Request } from "node-fetch";

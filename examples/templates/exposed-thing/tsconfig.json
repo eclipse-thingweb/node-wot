@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
-        "target": "ES2016",
-        "lib": ["ES2016", "dom"],
+        "target": "ES2021",
+        "lib": ["ES2021", "dom"],
         "module": "commonjs",
         "outDir": "dist",
         "alwaysStrict": true,

@@ -9,10 +9,11 @@
 > A fast and extensible framework to connect any device with your application
 
 [![Default CI Pipeline](https://github.com/eclipse-thingweb/node-wot/actions/workflows/ci.yaml/badge.svg)](https://github.com/eclipse-thingweb/node-wot/actions/workflows/ci.yaml)
-[<img alt="npm" src="https://img.shields.io/npm/dw/@node-wot/td-tools">](https://npm-stat.com/charts.html?package=%40node-wot%2Ftd-tools)
+[<img alt="npm" src="https://img.shields.io/npm/dw/@node-wot/core">](https://npm-stat.com/charts.html?package=%40node-wot%2Fcore)
 [![codecov](https://codecov.io/gh/eclipse-thingweb/node-wot/branch/master/graph/badge.svg)](https://codecov.io/gh/eclipse-thingweb/node-wot)
 [![Telegram Group](https://img.shields.io/endpoint?color=neon&url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Fnodewot)](https://t.me/nodewot)
 [![Discord](https://img.shields.io/badge/Discord-7289DA?logo=discord&logoColor=white&label=node-wot)](https://discord.gg/JXY2Jzefz3)
+[![Static Badge](https://img.shields.io/badge/Show%20Adopters%20and%20Users-%2331b8a3ff?logoColor=31b8a3ff)](https://github.com/eclipse-thingweb/node-wot#adopters)
 
 The Eclipse Thingweb node-wot is a framework for implementing [Web of Things](https://www.w3.org/WoT/) servers and clients in Node.js. It is written from the ground up with Typescript with the goal of providing a fast and extensible framework for IoT applications. Node-wot wants to give developers the ability to create complex business logic without worrying about protocol and low-level details leveraging on a standard metadata format, the [Thing Description (TD)](https://www.w3.org/TR/wot-thing-description11/). Thanks to the TD abstraction developers can find a set of satellite tools to create their applications in a fast and easy way.
 
@@ -59,14 +60,14 @@ The framework can be used in two ways: as a library or as a CLI tool. In this se
 
 ### As a library
 
-The framework is composed by different packages that users can use as they please. The core package is `@node-wot/core` and it is the only mandatory package to install. The other packages are bindings that allow the framework to communicate with different protocols and optionally we offer a set of tools in the `@node-wot/td-tools` package.
+The framework is composed by different packages that users can use as they please. The core package is `@node-wot/core` and it is the only mandatory package to install. The other packages are bindings that allow the framework to communicate with different protocols.
 
 #### Node.js
 
 > [!WARNING]
-> We no longer actively support Node.js version 16 and lower.
+> We no longer actively support Node.js version 18 and lower.
 
--   [Node.js](https://nodejs.org/) version 18+
+-   [Node.js](https://nodejs.org/) version 20+
 -   [npm](https://www.npmjs.com/) version 9+
 
 Platforms specific prerequisites:
@@ -89,12 +90,6 @@ npm i @node-wot/core @node-wot/binding-http --save
 #### Browser
 
 To use node-wot as a browser-side JavaScript Library, the browser needs to support ECMAScript 2015.
-Supported browsers include:
-
--   Microsoft Edge 15 and later
--   Firefox 54 and later
--   Chrome 58 and later
--   Safari 10 and later
 
 Using a browser with only ES5 support (e.g., IE 11) might be possible if you add polyfills. If you want to use node-wot as a library in your browser application, you can install the `@node-wot/browser-bundle` as following:
 
@@ -218,9 +213,6 @@ If you execute both scripts you will see `count: ${count}` printed 5 times. We h
 > [!NOTE]
 > More protocols can be easily added by implementing `ProtocolClient`, `ProtocolClientFactory`, and `ProtocolServer` interface.
 
-> [!NOTE]
-> The bindings for [binding-fujitsu](https://github.com/eclipse-thingweb/node-wot/tree/v0.7.x/packages/binding-fujitsu) and [binding-oracle](https://github.com/eclipse-thingweb/node-wot/tree/v0.7.x/packages/binding-oracle) were removed after `v0.7.x` due to lack of maintainers.
-
 ### MediaType Support
 
 -   JSON :heavy_check_mark:
@@ -287,9 +279,9 @@ We offer online simulated Things that are available to be used by anyone.
 
 Their TDs are available at the following links:
 
--   Counter: HTTP at <http://plugfest.thingweb.io:8083/counter> and CoAP at <coap://plugfest.thingweb.io:5683/counter>
--   Smart Coffee Machine: HTTP at <http://plugfest.thingweb.io:8083/smart-coffee-machine> and CoAP at <coap://plugfest.thingweb.io:5683/smart-coffee-machine>
--   TestThing: HTTP at <http://plugfest.thingweb.io:8083/testthing> and CoAP at <coap://plugfest.thingweb.io:5683/testthing>
+-   Counter: HTTP at <http://plugfest.thingweb.io/counter>
+-   Smart Coffee Machine: HTTP at <http://plugfest.thingweb.io/http-advanced-coffee-machine>
+-   TestThing: HTTP at <http://plugfest.thingweb.io/http-data-schema-thing>
 -   Presence sensor: MQTT at <https://zion.vaimee.com/things/urn:uuid:0a028f8e-8a91-4aaf-a346-9a48d440fd7c>
 -   Smart Clock: CoAP at <https://zion.vaimee.com/things/urn:uuid:913cf8cb-3687-4d98-8d2f-f6f27cfc7162>
 -   Simple Coffee Machine: HTTP at <https://zion.vaimee.com/things/urn:uuid:7ba2bca0-a7f6-47b3-bdce-498caa33bbaf>
@@ -347,15 +339,6 @@ cs.addCodec(new JsonCodec("application/calendar+json"));
 cs.addCodec(new MyCodec("application/myType"));
 
 ```
-
-### TD Tooling
-
-The package [td-tools](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/td-tools) provides utilities around Thing Description (TD) tooling:
-
--   Thing Description (TD) parsing
--   Thing Model (TM) tooling
--   [Asset Interface Description (AID)](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/td-tools/src/util) utility
--   ...
 
 ### Logging
 
@@ -432,6 +415,12 @@ sudo ln -sf /usr/local/n/versions/node/<VERSION>/bin/node /usr/bin/node
 
 Please check out our [contributing guidelines](CONTRIBUTING.md) for more details.
 
+## Adopters
+
+If you are using Eclipse Thingweb node-wot within your organization, please support us by adding your logo to the [Eclipse IoT adopters list](https://iot.eclipse.org/adopters/#iot.thingweb).
+To do so, simply open an issue at [the Eclipse Gitlab](https://gitlab.eclipse.org/eclipsefdn/it/api/eclipsefdn-project-adopters/-/issues/new?issuable_template=adopter_request) by providing the name of your organization, its logo, and a link to your organization or team.
+You should be affiliated with that organization for the issue to be implemented.
+
 ## License
 
 Dual-licensed under:
@@ -446,6 +435,14 @@ Please also see the additional [notices](NOTICE.md) and [how to contribute](CONT
 
 <details>
 <summary>details</summary>
+
+### Running tests
+
+We distinguish between the following set of tests.
+
+-   `npm run test` runs the default set of tests (without browser tests)
+-   `npm run test:browser` runs the browser tests only (requires [Playwright](https://playwright.dev/))
+-   `npm run test:all` runs the combination of the afore mentioned tests
 
 ### Publishing on NPM
 

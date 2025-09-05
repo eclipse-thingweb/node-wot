@@ -26,8 +26,16 @@ import * as net from "net";
 import * as WebSocket from "ws";
 import { AddressInfo } from "net";
 
-import * as TD from "@node-wot/td-tools";
-import { ProtocolServer, Servient, ExposedThing, ContentSerdes, Helpers, Content, createLoggers } from "@node-wot/core";
+import {
+    ProtocolServer,
+    Servient,
+    ExposedThing,
+    ContentSerdes,
+    Helpers,
+    Content,
+    Form,
+    createLoggers,
+} from "@node-wot/core";
 import { HttpServer, HttpConfig } from "@node-wot/binding-http";
 import slugify from "slugify";
 
@@ -120,8 +128,8 @@ export default class WebSocketServer implements ProtocolServer {
     public stop(): Promise<void> {
         debug(`WebSocketServer stopping on port ${this.port}`);
         return new Promise<void>((resolve, reject) => {
-            for (const pathSocket in this.socketServers) {
-                this.socketServers[pathSocket].close();
+            for (const socketServer of Object.values(this.socketServers)) {
+                socketServer.close();
             }
 
             // stop promise handles all errors from now on
@@ -150,8 +158,14 @@ export default class WebSocketServer implements ProtocolServer {
     public expose(thing: ExposedThing): Promise<void> {
         let urlPath = slugify(thing.title, { lower: true });
 
+        // avoid name clashes
         if (this.thingNames.has(urlPath)) {
-            urlPath = Helpers.generateUniqueName(urlPath);
+            let uniqueUrlPath;
+            let nameClashCnt = 2;
+            do {
+                uniqueUrlPath = urlPath + "_" + nameClashCnt++;
+            } while (this.thingNames.has(uniqueUrlPath));
+            urlPath = uniqueUrlPath;
         }
 
         if (this.getPort() !== -1) {
@@ -162,7 +176,7 @@ export default class WebSocketServer implements ProtocolServer {
 
             // TODO more efficient routing to ExposedThing without ResourceListeners in each server
 
-            for (const propertyName in thing.properties) {
+            for (const [propertyName, property] of Object.entries(thing.properties)) {
                 const path =
                     "/" +
                     encodeURIComponent(urlPath) +
@@ -170,12 +184,11 @@ export default class WebSocketServer implements ProtocolServer {
                     this.PROPERTY_DIR +
                     "/" +
                     encodeURIComponent(propertyName);
-                const property = thing.properties[propertyName];
 
                 // Populate forms related to the property
                 for (const address of Helpers.getAddresses()) {
                     const href = `${this.scheme}://${address}:${this.getPort()}${path}`;
-                    const form = new TD.Form(href, ContentSerdes.DEFAULT);
+                    const form = new Form(href, ContentSerdes.DEFAULT);
                     const ops = [];
 
                     const writeOnly: boolean = property.writeOnly ?? false;
@@ -231,31 +244,27 @@ export default class WebSocketServer implements ProtocolServer {
                 });
             }
 
-            for (const actionName in thing.actions) {
+            for (const [actionName, action] of Object.entries(thing.actions)) {
                 const path =
                     "/" + encodeURIComponent(urlPath) + "/" + this.ACTION_DIR + "/" + encodeURIComponent(actionName);
-                // eslint-disable-next-line unused-imports/no-unused-vars
-                const action = thing.actions[actionName];
 
                 for (const address of Helpers.getAddresses()) {
                     const href = `${this.scheme}://${address}:${this.getPort()}${path}`;
-                    const form = new TD.Form(href, ContentSerdes.DEFAULT);
+                    const form = new Form(href, ContentSerdes.DEFAULT);
                     form.op = ["invokeaction"];
-                    thing.actions[actionName].forms.push(form);
+                    action.forms.push(form);
                     debug(`WebSocketServer on port ${this.getPort()} assigns '${href}' to Action '${actionName}'`);
                 }
             }
 
-            for (const eventName in thing.events) {
+            for (const [eventName, event] of Object.entries(thing.events)) {
                 const path =
                     "/" + encodeURIComponent(urlPath) + "/" + this.EVENT_DIR + "/" + encodeURIComponent(eventName);
-                // eslint-disable-next-line unused-imports/no-unused-vars
-                const event = thing.events[eventName];
 
                 // Populate forms related to the event
                 for (const address of Helpers.getAddresses()) {
                     const href = `${this.scheme}://${address}:${this.getPort()}${path}`;
-                    const form = new TD.Form(href, ContentSerdes.DEFAULT);
+                    const form = new Form(href, ContentSerdes.DEFAULT);
                     form.op = "subscribeevent";
                     event.forms.push(form);
                     debug(`WebSocketServer on port ${this.getPort()} assigns '${href}' to Event '${eventName}'`);

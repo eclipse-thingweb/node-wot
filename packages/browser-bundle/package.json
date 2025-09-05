@@ -1,6 +1,6 @@
 {
     "name": "@node-wot/browser-bundle",
-    "version": "0.8.15",
+    "version": "0.9.2",
     "description": "A node-wot bundle that can run in a web browser",
     "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
     "license": "EPL-2.0 OR W3C-20150513",
@@ -8,21 +8,28 @@
     "publishConfig": {
         "access": "public"
     },
+    "module": "./dist/esm/browser-bundle/index.js",
+    "types": "types/index.d.ts",
     "files": [
         "dist/"
     ],
     "main": "dist/wot-bundle.min.js",
     "devDependencies": {
-        "@node-wot/binding-http": "0.8.15",
-        "@node-wot/binding-websockets": "0.8.15",
-        "@node-wot/core": "0.8.15",
-        "@node-wot/td-tools": "0.8.15",
-        "browserify": "^17.0.0",
-        "readable-stream4": "npm:readable-stream@^4.0.0"
+        "@esm-bundle/chai": "^4.3.4-fix.0",
+        "@esm-bundle/chai-as-promised": "^7.1.1",
+        "@jspm/core": "^2.1.0",
+        "@web/test-runner": "^0.19.0",
+        "@web/test-runner-commands": "^0.9.0",
+        "@web/test-runner-playwright": "^0.11.0",
+        "esbuild": "^0.25.0",
+        "esbuild-plugin-polyfill-node": "^0.3.0",
+        "json-schema-faker": "^0.5.6",
+        "rimraf": "^6.0.1"
     },
     "scripts": {
-        "build": "node build.js",
-        "format": "prettier --write index.js \"**/*.json\""
+        "build": "node esbuild.js",
+        "test:browser": "wtr \"test/**/*.js\" --node-resolve",
+        "format": "prettier --write *.js test/*.js *.ts \"**/*.json\""
     },
     "bugs": {
         "url": "https://github.com/eclipse-thingweb/node-wot/issues"
@@ -30,8 +37,8 @@
     "homepage": "https://github.com/eclipse-thingweb/node-wot/tree/master/packages/browser-bundle#readme",
     "keywords": [],
     "dependencies": {
-        "events": "^2.1.0",
-        "inherits": "^2.0.3",
-        "resolve": "^1.1.7"
+        "@node-wot/binding-http": "0.9.2",
+        "@node-wot/binding-websockets": "0.9.2",
+        "@node-wot/core": "0.9.2"
     }
 }

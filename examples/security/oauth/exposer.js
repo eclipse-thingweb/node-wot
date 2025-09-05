@@ -29,6 +29,7 @@ const td = {
         sayOk: {
             description: "A simple action protected with oauth",
             idempotent: true,
+            output: { type: "string" },
         },
     },
 };

@@ -1,20 +1,17 @@
 {
     "name": "@node-wot/examples",
-    "version": "0.8.15",
+    "version": "0.9.2",
     "private": true,
     "description": "Examples for node-wot (not published)",
     "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
     "license": "EPL-2.0 OR W3C-20150513",
     "repository": "https://github.com/eclipse-thingweb/node-wot/tree/master/packages/examples",
     "dependencies": {
-        "@node-wot/binding-coap": "0.8.15",
-        "@node-wot/binding-file": "0.8.15",
-        "@node-wot/binding-http": "0.8.15",
-        "@node-wot/binding-mqtt": "0.8.15",
-        "@node-wot/binding-opcua": "0.8.15",
-        "@node-wot/core": "0.8.15",
-        "@node-wot/td-tools": "0.8.15",
-        "rxjs": "5.5.11"
+        "@node-wot/binding-coap": "0.9.2",
+        "@node-wot/binding-http": "0.9.2",
+        "@node-wot/binding-mqtt": "0.9.2",
+        "@node-wot/binding-opcua": "0.9.2",
+        "@node-wot/core": "0.9.2"
     },
     "scripts": {
         "build": "tsc -b",

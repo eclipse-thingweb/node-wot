@@ -17,6 +17,7 @@ import { HttpClient, HttpForm } from "./http";
 import EventSource from "eventsource";
 import { Content, ContentSerdes, ProtocolHelpers, createLoggers } from "@node-wot/core";
 import { Readable } from "stream";
+import { AbortSignal } from "node-fetch/externals";
 
 const { debug } = createLoggers("binding-http", "subscription-protocols");
 
@@ -47,20 +48,20 @@ export class LongPollingSubscription implements InternalSubscription {
                     if (handshake) {
                         const headRequest = await this.client["generateFetchRequest"](this.form, "HEAD", {
                             timeout: 1000,
-                            signal: this.abortController.signal,
+                            signal: this.abortController.signal as AbortSignal,
                         });
-                        const result = await this.client["fetch"](headRequest);
+                        const result = await this.client["doFetch"](headRequest);
                         if (result.ok) resolve();
                     }
 
                     // long timeout for long polling
                     const request = await this.client["generateFetchRequest"](this.form, "GET", {
                         timeout: 60 * 60 * 1000,
-                        signal: this.abortController.signal,
+                        signal: this.abortController.signal as AbortSignal,
                     });
                     debug(`HttpClient (subscribeResource) sending ${request.method} to ${request.url}`);
 
-                    const result = await this.client["fetch"](request);
+                    const result = await this.client["doFetch"](request);
 
                     this.client["checkFetchResponse"](result);
 

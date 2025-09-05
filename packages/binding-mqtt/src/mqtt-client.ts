@@ -17,8 +17,15 @@
  * Protocol test suite to test protocol implementations
  */
 
-import { ProtocolClient, Content, DefaultContent, createLoggers, ContentSerdes } from "@node-wot/core";
-import * as TD from "@node-wot/td-tools";
+import {
+    ProtocolClient,
+    Content,
+    DefaultContent,
+    createLoggers,
+    ContentSerdes,
+    Form,
+    SecurityScheme,
+} from "@node-wot/core";
 import * as mqtt from "mqtt";
 import { MqttClientConfig, MqttForm } from "./mqtt";
 import * as url from "url";
@@ -38,7 +45,10 @@ export default class MqttClient implements ProtocolClient {
     private scheme: string;
     private pools: Map<string, MQTTMessagePool> = new Map();
 
-    constructor(private config: MqttClientConfig = {}, secure = false) {
+    constructor(
+        private config: MqttClientConfig = {},
+        secure = false
+    ) {
         this.scheme = "mqtt" + (secure ? "s" : "");
     }
 
@@ -158,7 +168,7 @@ export default class MqttClient implements ProtocolClient {
         return new DefaultContent(Readable.from([]));
     }
 
-    public async unlinkResource(form: TD.Form): Promise<void> {
+    public async unlinkResource(form: Form): Promise<void> {
         const requestUri = new url.URL(form.href);
         const brokerUri: string = `${this.scheme}://` + requestUri.host;
         const topic = requestUri.pathname.slice(1);
@@ -188,12 +198,12 @@ export default class MqttClient implements ProtocolClient {
         if (this.client) return this.client.endAsync();
     }
 
-    public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: MqttClientSecurityParameters): boolean {
+    public setSecurity(metadata: Array<SecurityScheme>, credentials?: MqttClientSecurityParameters): boolean {
         if (metadata === undefined || !Array.isArray(metadata) || metadata.length === 0) {
             warn(`MqttClient received empty security metadata`);
             return false;
         }
-        const security: TD.SecurityScheme = metadata[0];
+        const security: SecurityScheme = metadata[0];
 
         if (security.scheme === "basic") {
             if (credentials === undefined) {

@@ -1,4 +1,3 @@
-import Servient, { ExposedThing, Content } from "@node-wot/core";
 /********************************************************************************
  * Copyright (c) 2018 Contributors to the Eclipse Foundation
  *
@@ -18,10 +17,10 @@ import Servient, { ExposedThing, Content } from "@node-wot/core";
  * Protocol test suite to test protocol implementations
  */
 
+import Servient, { ExposedThing, Content, Form } from "@node-wot/core";
 import { suite, test } from "@testdeck/mocha";
 import { expect, should } from "chai";
 import { DataSchemaValue, InteractionInput, InteractionOptions, ThingDescription } from "wot-typescript-definitions";
-import * as TD from "@node-wot/td-tools";
 import CoapServer from "../src/coap-server";
 import { CoapClient } from "../src/coap";
 import { Readable } from "stream";
@@ -69,7 +68,7 @@ class CoapServerTest {
         const uri = `coap://localhost:${coapServer.getPort()}/test/`;
 
         const coapClient = new CoapClient(coapServer);
-        const resp = await coapClient.readResource(new TD.Form(uri + "properties/test"));
+        const resp = await coapClient.readResource(new Form(uri + "properties/test"));
         expect((await resp.toBuffer()).toString()).to.equal('"testValue"');
 
         await coapServer.stop();
@@ -104,10 +103,10 @@ class CoapServerTest {
 
         const coapClient = new CoapClient(coapServer);
         await coapClient.writeResource(
-            new TD.Form(uri + "properties/test"),
+            new Form(uri + "properties/test"),
             new Content("text/plain", Readable.from(Buffer.from("testValue1", "utf-8")))
         );
-        const resp = await coapClient.readResource(new TD.Form(uri + "properties/test"));
+        const resp = await coapClient.readResource(new Form(uri + "properties/test"));
         const data = (await resp.toBuffer()).toString();
         expect(data).to.equal('"testValue1"');
 
@@ -141,7 +140,7 @@ class CoapServerTest {
 
         const coapClient = new CoapClient(coapServer);
         const resp = await coapClient.invokeResource(
-            new TD.Form(uri + "actions/try"),
+            new Form(uri + "actions/try"),
             new Content("text/plain", Readable.from(Buffer.from("testValue1", "utf-8")))
         );
         expect((await resp.toBuffer()).toString()).to.equal('"TEST"');
@@ -173,7 +172,7 @@ class CoapServerTest {
         const uri = `coap://localhost:${coapServer.getPort()}/test/`;
 
         const coapClient = new CoapClient(coapServer);
-        const form = new TD.Form(uri + "events/eventTest");
+        const form = new Form(uri + "events/eventTest");
         const subscription = await coapClient.subscribeResource(form, (value) => {
             /**  */
         });
@@ -223,7 +222,7 @@ class CoapServerTest {
         const uri = `coap://[::1]:${coapServer.getPort()}/test/`;
 
         const coapClient = new CoapClient(coapServer);
-        const resp = await coapClient.readResource(new TD.Form(uri + "properties/test"));
+        const resp = await coapClient.readResource(new Form(uri + "properties/test"));
         expect((await resp.toBuffer()).toString()).to.equal('"testValue"');
 
         await coapClient.stop();
@@ -276,7 +275,7 @@ class CoapServerTest {
         const uri = `coap://localhost:${coapServer.getPort()}/test/`;
 
         const coapClient = new CoapClient(coapServer);
-        const resp = await coapClient.readResource(new TD.Form(uri + "properties/test?id=testId&globalVarTest=test1"));
+        const resp = await coapClient.readResource(new Form(uri + "properties/test?id=testId&globalVarTest=test1"));
         expect((await resp.toBuffer()).toString()).to.equal('"testValue"');
 
         await coapServer.stop();
@@ -301,7 +300,7 @@ class CoapServerTest {
         const uri = `coap://localhost:${coapServer.getPort()}/.well-known/core`;
 
         const coapClient = new CoapClient(coapServer);
-        const resp = await coapClient.readResource(new TD.Form(uri));
+        const resp = await coapClient.readResource(new Form(uri));
         expect((await resp.toBuffer()).toString()).to.equal(
             '</test1>;rt="wot.thing";ct="50 432",</test2>;rt="wot.thing";ct="50 432"'
         );
@@ -457,12 +456,12 @@ class CoapServerTest {
 
         const propertyUri = `${baseUri}/properties/test?id=testId`;
 
-        await coapClient.writeResource(new TD.Form(propertyUri), new Content("text/plain", Readable.from("on")));
+        await coapClient.writeResource(new Form(propertyUri), new Content("text/plain", Readable.from("on")));
 
-        const response1 = await coapClient.readResource(new TD.Form(propertyUri));
+        const response1 = await coapClient.readResource(new Form(propertyUri));
         expect((await response1.toBuffer()).toString()).to.equal('"on"');
 
-        const response2 = await coapClient.invokeResource(new TD.Form(`${baseUri}/actions/try?step=5`));
+        const response2 = await coapClient.invokeResource(new Form(`${baseUri}/actions/try?step=5`));
         expect((await response2.toBuffer()).toString()).to.equal('"TEST"');
 
         await coapClient.stop();
@@ -546,19 +545,19 @@ class CoapServerTest {
         const baseUri = `coap://localhost:${port}/testa/properties`;
 
         // check values one by one first
-        const responseInteger = await coapClient.readResource(new TD.Form(`${baseUri}/testInteger`));
+        const responseInteger = await coapClient.readResource(new Form(`${baseUri}/testInteger`));
         expect(await decodeContent(responseInteger)).to.equal(integer);
-        const responseBoolean = await coapClient.readResource(new TD.Form(`${baseUri}/testBoolean`));
+        const responseBoolean = await coapClient.readResource(new Form(`${baseUri}/testBoolean`));
         expect(await decodeContent(responseBoolean)).to.equal(boolean);
-        const responseString = await coapClient.readResource(new TD.Form(`${baseUri}/testString`));
+        const responseString = await coapClient.readResource(new Form(`${baseUri}/testString`));
         expect(await decodeContent(responseString)).to.equal(string);
-        const responseObject = await coapClient.readResource(new TD.Form(`${baseUri}/testObject`));
+        const responseObject = await coapClient.readResource(new Form(`${baseUri}/testObject`));
         expect(await decodeContent(responseObject)).to.deep.equal(object);
-        const responseArray = await coapClient.readResource(new TD.Form(`${baseUri}/testArray`));
+        const responseArray = await coapClient.readResource(new Form(`${baseUri}/testArray`));
         expect(await decodeContent(responseArray)).to.deep.equal(array);
 
         // check values of readallproperties
-        const responseAll = await coapClient.readResource(new TD.Form(baseUri));
+        const responseAll = await coapClient.readResource(new Form(baseUri));
         expect(await decodeContent(responseAll)).to.deep.equal({
             image,
             testInteger: integer,
@@ -636,7 +635,7 @@ class CoapServerTest {
         await coapServer.stop();
     }
 
-    @test async "should add the cov:observe subprotocol value to observable properties and events "() {
+    @test async "should add the correct operation types to observable properties and events "() {
         const coapServer = new CoapServer({ port: 5683 });
         const servient = new Servient();
         servient.addServer(coapServer);
@@ -680,7 +679,6 @@ class CoapServerTest {
 
                         if (observeOpValuePresent) {
                             observeOpValueFormCount++;
-                            expect(form.subprotocol).to.eql("cov:observe");
                         }
 
                         const readWriteOpValueCount = filterPropertyReadWriteOperations(
@@ -704,14 +702,17 @@ class CoapServerTest {
                 for (const event of Object.values(td.events!)) {
                     for (const form of event.forms) {
                         const opValues = form.op!;
-                        expect(opValues.length > 0);
+                        // eslint-disable-next-line no-unused-expressions
+                        expect(opValues.length > 0).to.be.true;
 
                         const eventOpValueCount = filterEventOperations(opValues as Array<string>).length;
                         const eventOpValueCountPresent = eventOpValueCount > 0;
 
-                        expect(eventOpValueCountPresent);
+                        // eslint-disable-next-line no-unused-expressions
+                        expect(eventOpValueCountPresent).to.be.true;
 
-                        expect(form.subprotocol === "cov:observe");
+                        // eslint-disable-next-line no-unused-expressions
+                        expect(form.subprotocol === "cov:observe").to.be.false;
                     }
                 }
 

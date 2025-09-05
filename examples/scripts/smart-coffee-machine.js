@@ -359,10 +359,8 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
             // Check if the amount of available resources is sufficient to make a drink
             for (const resource in newResources) {
                 if (newResources[resource] <= 0) {
-                    return new Promise((resolve, reject) => {
-                        thing.emitEvent("outOfResource", `Low level of ${resource}: ${newResources[resource]}%`);
-                        return { result: false, message: `${resource} level is not sufficient` };
-                    });
+                    thing.emitEvent("outOfResource", `Low level of ${resource}: ${newResources[resource]}%`);
+                    return { result: false, message: `${resource} level is not sufficient` };
                 }
             }
             // Now store the new level of allAvailableResources
@@ -384,9 +382,7 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
                 schedules.push(paramsp);
                 return { result: true, message: `Your schedule has been set!` };
             }
-            return new Promise((resolve, reject) => {
-                resolve({ result: false, message: `Please provide all the required parameters: time and mode.` });
-            });
+            return { result: false, message: `Please provide all the required parameters: time and mode.` };
         });
         // Finally expose the thing
         thing.expose().then(() => {

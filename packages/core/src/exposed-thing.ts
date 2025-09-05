@@ -16,14 +16,15 @@
 import * as WoT from "wot-typescript-definitions";
 import * as TDT from "wot-thing-description-types";
 
-import * as TD from "@node-wot/td-tools";
+import * as TD from "./thing-description";
+import { serializeTD, setContextLanguage } from "./serdes";
 
 import Servient from "./servient";
 import Helpers from "./helpers";
 import { InteractionOutput } from "./interaction-output";
 import { Readable } from "stream";
 import ProtocolHelpers from "./protocol-helpers";
-import { ReadableStream as PolyfillStream } from "web-streams-polyfill/ponyfill/es2018";
+import { ReadableStream as PolyfillStream } from "web-streams-polyfill";
 import { Content, ContentSerdes, PropertyContentMap } from "./core";
 import ContentManager from "./content-serdes";
 import {
@@ -143,11 +144,11 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             }
         } */
         // set @language to "en" if no @language available
-        TD.setContextLanguage(this, TD.DEFAULT_CONTEXT_LANGUAGE, false);
+        setContextLanguage(this as WoT.ThingDescription, TD.DEFAULT_CONTEXT_LANGUAGE, false);
     }
 
     public getThingDescription(): WoT.ThingDescription {
-        return JSON.parse(TD.serializeTD(this));
+        return JSON.parse(serializeTD(this));
     }
 
     public emitEvent(name: string, data: WoT.InteractionInput): void {
@@ -458,10 +459,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     public async handleReadAllProperties(
         options: WoT.InteractionOptions & { formIndex: number }
     ): Promise<PropertyContentMap> {
-        const propertyNames: string[] = [];
-        for (const propertyName in this.properties) {
-            propertyNames.push(propertyName);
-        }
+        const propertyNames = Object.keys(this.properties);
         return await this._handleReadProperties(propertyNames, options);
     }
 
@@ -513,16 +511,15 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
     ): Promise<void> {
         // collect all single promises into array
         const promises: Promise<void>[] = [];
-        for (const propertyName in valueMap) {
+        for (const [propertyName, property] of Object.entries(valueMap)) {
             // Note: currently only DataSchema properties are supported
             const form = this.properties[propertyName].forms.find(
                 (form) => form.contentType === "application/json" || form.contentType == null
             );
-            if (!form) {
+            if (form == null) {
                 continue;
             }
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- we know that the property exists
-            promises.push(this.handleWriteProperty(propertyName, valueMap.get(propertyName)!, options));
+            promises.push(this.handleWriteProperty(propertyName, property, options));
         }
         try {
             await Promise.all(promises);

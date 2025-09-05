@@ -13,11 +13,10 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { ContentSerdes, createLoggers } from "@node-wot/core";
+import { ContentSerdes, setContextLanguage, createLoggers } from "@node-wot/core";
 import { IncomingMessage, ServerResponse } from "http";
 import { ExposedThing, ThingDescription } from "wot-typescript-definitions";
 import * as acceptLanguageParser from "accept-language-parser";
-import * as TD from "@node-wot/td-tools";
 import HttpServer from "../http-server";
 
 const { debug } = createLoggers("binding-http", "routes", "thing-description");
@@ -26,35 +25,31 @@ function resetMultiLangInteraction(
     interactions: ThingDescription["properties"] | ThingDescription["actions"] | ThingDescription["events"],
     prefLang: string
 ) {
-    if (interactions) {
-        for (const interName in interactions) {
+    if (interactions != null) {
+        for (const interaction of Object.values(interactions)) {
             // unset any current title and/or description
-            delete interactions[interName].title;
-            delete interactions[interName].description;
+            delete interaction.title;
+            delete interaction.description;
 
             // use new language title
-            const titles = interactions[interName].titles;
-            if (titles) {
-                for (const titleLang in titles) {
-                    if (titleLang.startsWith(prefLang)) {
-                        interactions[interName].title = titles[titleLang];
-                    }
+            for (const [titleLang, titleValue] of Object.entries(interaction.titles ?? {})) {
+                if (titleLang.startsWith(prefLang)) {
+                    interaction.title = titleValue;
+                    break;
                 }
             }
 
             // use new language description
-            const descriptions = interactions[interName].descriptions;
-            if (descriptions) {
-                for (const descLang in descriptions) {
-                    if (descLang.startsWith(prefLang)) {
-                        interactions[interName].description = descriptions[descLang];
-                    }
+            for (const [descLang, descriptionValue] of Object.entries(interaction.descriptions ?? {})) {
+                if (descLang.startsWith(prefLang)) {
+                    interaction.description = descriptionValue;
+                    break;
                 }
             }
 
             // unset any multilanguage titles and/or descriptions
-            delete interactions[interName].titles;
-            delete interactions[interName].descriptions;
+            delete interaction.titles;
+            delete interaction.descriptions;
         }
     }
 }
@@ -63,7 +58,7 @@ function resetMultiLangThing(thing: ThingDescription, prefLang: string) {
     // TODO can we reset "title" to another name given that title is used in URI creation?
 
     // set @language in @context
-    TD.setContextLanguage(thing, prefLang, true);
+    setContextLanguage(thing, prefLang, true);
 
     // use new language title
     if (thing.titles) {

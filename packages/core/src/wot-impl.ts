@@ -14,7 +14,8 @@
  ********************************************************************************/
 
 import * as WoT from "wot-typescript-definitions";
-import * as TD from "@node-wot/td-tools";
+import { ThingModel } from "wot-thing-model-types";
+import { parseTD } from "./serdes";
 import Servient from "./servient";
 import ExposedThing from "./exposed-thing";
 import ConsumedThing from "./consumed-thing";
@@ -27,7 +28,10 @@ import { inspect } from "util";
 const { debug } = createLoggers("core", "wot-impl");
 
 class ThingDiscoveryProcess implements WoT.ThingDiscoveryProcess {
-    constructor(private directory: ConsumedThing, public filter?: WoT.ThingFilter) {
+    constructor(
+        private directory: WoT.ConsumedThing,
+        public filter?: WoT.ThingFilter
+    ) {
         this.filter = filter;
         this.done = false;
     }
@@ -96,14 +100,14 @@ export default class WoTImpl {
             return value;
         }
 
-        throw getLastValidationErrors();
+        throw new Error("TD validation error: " + getLastValidationErrors().message);
     }
 
     /** @inheritDoc */
-    async consume(td: WoT.ThingDescription): Promise<ConsumedThing> {
+    async consume(td: WoT.ThingDescription): Promise<WoT.ConsumedThing> {
         try {
-            const thing = TD.parseTD(JSON.stringify(td), true);
-            const newThing: ConsumedThing = new ConsumedThing(this.srv, thing);
+            const thing = parseTD(JSON.stringify(td), true);
+            const newThing: ConsumedThing = new ConsumedThing(this.srv, thing as ThingModel);
 
             debug(
                 `WoTImpl consuming TD ${

@@ -23,7 +23,6 @@ import * as url from "url";
 import { AuthenticateError, Client, Server, Aedes } from "aedes";
 import * as net from "net";
 import * as tls from "tls";
-import * as TD from "@node-wot/td-tools";
 import { MqttBrokerServerConfig, MqttForm } from "./mqtt";
 import {
     ProtocolServer,
@@ -32,6 +31,7 @@ import {
     ContentSerdes,
     ProtocolHelpers,
     Content,
+    Form,
     createLoggers,
 } from "@node-wot/core";
 import { InteractionOptions } from "wot-typescript-definitions";
@@ -108,15 +108,15 @@ export default class MqttBrokerServer implements ProtocolServer {
 
         this.things.set(name, thing);
 
-        for (const propertyName in thing.properties) {
+        for (const propertyName of Object.keys(thing.properties)) {
             this.exposeProperty(name, propertyName, thing);
         }
 
-        for (const actionName in thing.actions) {
+        for (const actionName of Object.keys(thing.actions)) {
             this.exposeAction(name, actionName, thing);
         }
 
-        for (const eventName in thing.events) {
+        for (const eventName of Object.keys(thing.events)) {
             this.exposeEvent(name, eventName, thing);
         }
 
@@ -134,7 +134,7 @@ export default class MqttBrokerServer implements ProtocolServer {
         const writeOnly: boolean = property.writeOnly ?? false;
         if (!writeOnly) {
             const href = this.brokerURI + "/" + topic;
-            const form = new TD.Form(href, ContentSerdes.DEFAULT);
+            const form = new Form(href, ContentSerdes.DEFAULT);
             form.op = ["readproperty", "observeproperty", "unobserveproperty"];
             property.forms.push(form);
             debug(`MqttBrokerServer at ${this.brokerURI} assigns '${href}' to property '${propertyName}'`);
@@ -156,7 +156,7 @@ export default class MqttBrokerServer implements ProtocolServer {
         if (!readOnly) {
             const href = this.brokerURI + "/" + topic + "/writeproperty";
             this.broker.subscribe(topic + "/writeproperty");
-            const form = new TD.Form(href, ContentSerdes.DEFAULT);
+            const form = new Form(href, ContentSerdes.DEFAULT);
             form.op = ["writeproperty"];
             thing.properties[propertyName].forms.push(form);
             debug(`MqttBrokerServer at ${this.brokerURI} assigns '${href}' to property '${propertyName}'`);
@@ -170,7 +170,7 @@ export default class MqttBrokerServer implements ProtocolServer {
         this.broker.subscribe(topic);
 
         const href = this.brokerURI + "/" + topic;
-        const form = new TD.Form(href, ContentSerdes.DEFAULT);
+        const form = new Form(href, ContentSerdes.DEFAULT);
         form.op = ["invokeaction"];
         thing.actions[actionName].forms.push(form);
         debug(`MqttBrokerServer at ${this.brokerURI} assigns '${href}' to Action '${actionName}'`);

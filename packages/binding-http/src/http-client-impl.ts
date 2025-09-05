@@ -22,10 +22,18 @@ import * as https from "https";
 
 import { Subscription } from "rxjs/Subscription";
 
-import * as TD from "@node-wot/td-tools";
-// for Security definition
-
-import { ProtocolClient, Content, ProtocolHelpers, createLoggers, ContentSerdes } from "@node-wot/core";
+import {
+    ProtocolClient,
+    Content,
+    ProtocolHelpers,
+    createLoggers,
+    ContentSerdes,
+    SecurityScheme,
+    BasicSecurityScheme,
+    BearerSecurityScheme,
+    APIKeySecurityScheme,
+    OAuth2SecurityScheme,
+} from "@node-wot/core";
 import { HttpForm, HttpHeader, HttpConfig, HTTPMethodName, TuyaCustomBearerSecurityScheme } from "./http";
 import fetch, { Request, RequestInit, Response } from "node-fetch";
 import { Buffer } from "buffer";
@@ -118,9 +126,7 @@ export default class HttpClient implements ProtocolClient {
         const request = await this.generateFetchRequest(form, "GET", { headers });
         debug(`HttpClient (readResource) sending ${request.method} to ${request.url}`);
 
-        const result = await this.fetch(request);
-
-        this.checkFetchResponse(result);
+        const result = await this.doFetch(request);
 
         debug(`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
         debug(`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
@@ -142,11 +148,9 @@ export default class HttpClient implements ProtocolClient {
                 request.url
             }`
         );
-        const result = await this.fetch(request);
+        const result = await this.doFetch(request);
 
         debug(`HttpClient received ${result.status} from ${result.url}`);
-
-        this.checkFetchResponse(result);
 
         debug(`HttpClient received headers: ${JSON.stringify(result.headers.raw())}`);
     }
@@ -205,12 +209,10 @@ export default class HttpClient implements ProtocolClient {
             } to ${request.url}`
         );
 
-        const result = await this.fetch(request);
+        const result = await this.doFetch(request);
 
         debug(`HttpClient received ${result.status} from ${request.url}`);
         debug(`HttpClient received Content-Type: ${result.headers.get("content-type")}`);
-
-        this.checkFetchResponse(result);
 
         // in browsers node-fetch uses the native fetch, which returns a ReadableStream
         // not complaint with node. Therefore we have to force the conversion here.
@@ -237,7 +239,7 @@ export default class HttpClient implements ProtocolClient {
             Accept: "application/td+json",
         };
         const request = await this.generateFetchRequest({ href: uri }, "GET", headers);
-        const response = await this.fetch(request);
+        const response = await this.doFetch(request);
         const body = ProtocolHelpers.toNodeStream(response.body as Readable);
         return new Content(response.headers.get("content-type") ?? "application/td+json", body);
     }
@@ -251,29 +253,29 @@ export default class HttpClient implements ProtocolClient {
         this.agent?.destroy?.();
     }
 
-    public setSecurity(metadata: Array<TD.SecurityScheme>, credentials?: unknown): boolean {
+    public setSecurity(metadata: Array<SecurityScheme>, credentials?: unknown): boolean {
         if (metadata === undefined || !Array.isArray(metadata) || metadata.length === 0) {
             warn("HttpClient without security");
             return false;
         }
 
         // TODO support for multiple security schemes
-        const security: TD.SecurityScheme = metadata[0];
+        const security: SecurityScheme = metadata[0];
         switch (security.scheme) {
             case "basic": {
-                const securityBasic: TD.BasicSecurityScheme = <TD.BasicSecurityScheme>security;
+                const securityBasic: BasicSecurityScheme = <BasicSecurityScheme>security;
 
                 this.credential = new BasicCredential(credentials as BasicCredentialConfiguration, securityBasic);
                 break;
             }
             case "bearer": {
-                const securityBearer: TD.BearerSecurityScheme = <TD.BearerSecurityScheme>security;
+                const securityBearer: BearerSecurityScheme = <BearerSecurityScheme>security;
 
                 this.credential = new BearerCredential(credentials as BearerCredentialConfiguration, securityBearer);
                 break;
             }
             case "apikey": {
-                const securityAPIKey: TD.APIKeySecurityScheme = <TD.APIKeySecurityScheme>security;
+                const securityAPIKey: APIKeySecurityScheme = <APIKeySecurityScheme>security;
 
                 this.credential = new BasicKeyCredential(
                     credentials as BasicKeyCredentialConfiguration,
@@ -282,7 +284,7 @@ export default class HttpClient implements ProtocolClient {
                 break;
             }
             case "oauth2": {
-                const securityOAuth: TD.OAuth2SecurityScheme = <TD.OAuth2SecurityScheme>security;
+                const securityOAuth: OAuth2SecurityScheme = <OAuth2SecurityScheme>security;
 
                 if (securityOAuth.flow === "client") {
                     securityOAuth.flow = "client_credentials";
@@ -402,13 +404,34 @@ export default class HttpClient implements ProtocolClient {
         return request;
     }
 
-    private async fetch(request: Request, content?: Content) {
-        const result = await fetch(request, { body: content?.body });
+    /**
+     * Performs the fetch operation for the given request.
+     *
+     * This method is intended to be overridden in browser implementations due to differences
+     * in how the fetch operation handles streams in the request body.
+     *
+     * @param request - The HTTP request to be sent.
+     * @returns A promise that resolves to the HTTP response.
+     */
+    protected _fetch(request: Request): Promise<Response> {
+        // TODO: need investigation. Even if the request has already a body
+        // if we don't pass it again to the fetch as request init the stream is
+        // not correctly consumed
+        // see https://github.com/eclipse-thingweb/node-wot/issues/1366.
+        return fetch(request, { body: request.body });
+    }
+
+    private async doFetch(request: Request) {
+        const result = await this._fetch(request);
 
         if (HttpClient.isOAuthTokenExpired(result, this.credential)) {
             this.credential = await (this.credential as OAuthCredential).refreshToken();
-            return await fetch(await this.credential.sign(request));
+            const resultAuth = await this._fetch(await this.credential.sign(request));
+            this.checkFetchResponse(resultAuth);
+            return resultAuth;
         }
+
+        this.checkFetchResponse(result);
 
         return result;
     }

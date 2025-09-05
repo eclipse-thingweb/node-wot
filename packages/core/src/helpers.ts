@@ -29,7 +29,8 @@ import * as os from "os";
 
 // imports for fetchTD
 import Servient from "./servient";
-import * as TD from "@node-wot/td-tools";
+import { ThingModelHelpers, Resolver } from "@thingweb/thing-model";
+import { Form, Thing, ThingInteraction } from "./thing-description";
 import * as TDT from "wot-thing-description-types";
 import { ContentSerdes } from "./content-serdes";
 import Ajv, { ValidateFunction, ErrorObject } from "ajv";
@@ -37,8 +38,6 @@ import addFormats from "ajv-formats";
 import TDSchema from "wot-thing-description-types/schema/td-json-schema-validation.json";
 import { DataSchemaValue, ExposedThingInit } from "wot-typescript-definitions";
 import { SomeJSONSchema } from "ajv/dist/types/json-schema";
-import { ThingInteraction, ThingModelHelpers } from "@node-wot/td-tools";
-import { Resolver } from "@node-wot/td-tools/src/resolver-interface";
 import { PropertyElement, DataSchema } from "wot-thing-description-types";
 import { createLoggers } from "./logger";
 
@@ -87,8 +86,8 @@ export default class Helpers implements Resolver {
         } else {
             const interfaces = os.networkInterfaces();
 
-            for (const iface in interfaces) {
-                interfaces[iface]?.forEach((entry) => {
+            for (const iface of Object.values(interfaces)) {
+                iface?.forEach((entry) => {
                     debug(`AddressHelper found ${entry.address}`);
                     if (entry.internal === false) {
                         if (entry.family === "IPv4") {
@@ -125,6 +124,7 @@ export default class Helpers implements Resolver {
         return address;
     }
 
+    /** @deprecated see https://github.com/eclipse-thingweb/node-wot/issues/1351 */
     public static generateUniqueName(name: string): string {
         const suffix = name.match(/.+_([0-9]+)$/);
         if (suffix !== null) {
@@ -161,7 +161,7 @@ export default class Helpers implements Resolver {
             const client = this.srv.getClientFor(Helpers.extractScheme(uri));
             debug(`WoTImpl fetching TD from '${uri}' with ${client}`);
             client
-                .readResource(new TD.Form(uri, ContentSerdes.TD))
+                .readResource(new Form(uri, ContentSerdes.TD))
                 .then(async (content) => {
                     if (content.type !== ContentSerdes.TD && content.type !== ContentSerdes.JSON_LD) {
                         warn(`WoTImpl received TD with media type '${content.type}' from ${uri}`);
@@ -197,12 +197,12 @@ export default class Helpers implements Resolver {
      */
     public static extend<T, U>(first: T, second: U): T & U {
         const result = <T & U>{};
-        for (const id in first) {
-            (<Record<string, unknown>>result)[id] = (<Record<string, unknown>>first)[id];
+        for (const [id, value] of Object.entries(first as Record<string, unknown>)) {
+            (<Record<string, unknown>>result)[id] = value;
         }
-        for (const id in second) {
+        for (const [id, value] of Object.entries(second as Record<string, unknown>)) {
             if (!Object.prototype.hasOwnProperty.call(result, id)) {
-                (<Record<string, unknown>>result)[id] = (<Record<string, unknown>>second)[id];
+                (<Record<string, unknown>>result)[id] = value;
             }
         }
         return result;
@@ -242,9 +242,9 @@ export default class Helpers implements Resolver {
             }
         }
 
-        if (tdSchemaCopy.definitions !== undefined) {
-            for (const prop in tdSchemaCopy.definitions) {
-                tdSchemaCopy.definitions[prop] = this.createExposeThingInitSchema(tdSchemaCopy.definitions[prop]);
+        if (tdSchemaCopy.definitions != null) {
+            for (const [prop, propValue] of Object.entries(tdSchemaCopy.definitions) ?? []) {
+                tdSchemaCopy.definitions[prop] = this.createExposeThingInitSchema(propValue);
             }
         }
 
@@ -307,9 +307,7 @@ export default class Helpers implements Resolver {
             options = { uriVariables: {} };
         }
 
-        for (const varKey in thingUriVariables) {
-            const varValue = thingUriVariables[varKey];
-
+        for (const [varKey, varValue] of Object.entries(thingUriVariables)) {
             if (!(varKey in uriVariables) && "default" in varValue) {
                 uriVariables[varKey] = varValue.default;
             }
@@ -320,7 +318,7 @@ export default class Helpers implements Resolver {
     }
 
     public static validateInteractionOptions(
-        thing: TD.Thing,
+        thing: Thing,
         ti: ThingInteraction,
         options?: WoT.InteractionOptions
     ): boolean {
@@ -349,7 +347,7 @@ export default class Helpers implements Resolver {
      */
     static parseUrlParameters(
         url: string | undefined,
-        globalUriVariables: { [key: string]: TD.DataSchema } = {},
+        globalUriVariables: { [key: string]: DataSchema } = {},
         uriVariables: { [k: string]: DataSchema } = {}
     ): Record<string, unknown> {
         const params: Record<string, unknown> = {};

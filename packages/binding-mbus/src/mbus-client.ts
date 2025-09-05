@@ -18,8 +18,7 @@
  */
 import { MBusForm } from "./mbus";
 
-import { ProtocolClient, Content, createDebugLogger } from "@node-wot/core";
-import { SecurityScheme } from "@node-wot/td-tools";
+import { ProtocolClient, Content, SecurityScheme, createDebugLogger } from "@node-wot/core";
 import { MBusConnection, PropertyOperation } from "./mbus-connection";
 
 import { Subscription } from "rxjs/Subscription";

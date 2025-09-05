@@ -17,7 +17,7 @@ import * as https from "https";
 import { suite, test } from "@testdeck/mocha";
 import express from "express";
 import { HttpClient } from "../src/http";
-import { OAuth2SecurityScheme } from "@node-wot/td-tools";
+import { OAuth2SecurityScheme } from "@node-wot/core";
 
 import InMemoryModel from "./memory-model";
 import { promisify } from "util";

@@ -19,7 +19,7 @@ import { ContentSerdes, createLoggers } from "@node-wot/core";
 
 import { VariableIds, OPCUAServer } from "node-opcua";
 
-import { OPCUAProtocolClient, OPCUAForm, OPCUAFormInvoke } from "../src/opcua-protocol-client";
+import { OPCUAProtocolClient, OPCUAForm } from "../src/opcua-protocol-client";
 import { OpcuaJSONCodec, schemaDataValue } from "../src/codec";
 import { startServer } from "./fixture/basic-opcua-server";
 
@@ -92,10 +92,32 @@ describe("OPCUA Client", function () {
             expected: new Date("2022-01-31T10:45:00.000Z"),
         },
     ].forEach(({ contentType, expected }, index) => {
-        it(`Y1-${index} should read a topic with contentType= ${contentType}`, async () => {
+        it(`Y1a-${index} should read a topic with contentType= ${contentType}`, async () => {
             const readForm: OPCUAForm = {
                 href: endpoint,
                 "opcua:nodeId": "ns=1;s=ManufacturingDate",
+                contentType,
+            };
+
+            const content = await client.readResource(readForm);
+            const content2 = { ...content, body: await content.toBuffer() };
+
+            debug(`readResource returned: ${content2.body.toString("ascii")}`);
+
+            const codecSerDes = ContentSerdes.get();
+            const dataValue = codecSerDes.contentToValue(content2, schemaDataValue) as Record<string, unknown>;
+
+            // (deal with always changing date )
+            if (dataValue.SourceTimestamp != null) {
+                expect(dataValue.SourceTimestamp).to.be.instanceOf(Date);
+                dataValue.SourceTimestamp = "*";
+            }
+            debug(`${dataValue}`);
+            expect(dataValue).to.eql(expected);
+        });
+        it(`Y1b-${index} should read a topic with contentType= ${contentType}`, async () => {
+            const readForm: OPCUAForm = {
+                href: endpoint + "?id=ns=1;s=ManufacturingDate",
                 contentType,
             };
 
@@ -164,7 +186,7 @@ describe("OPCUA Client", function () {
             required: ["TargetTemperature"],
         };
 
-        const form: OPCUAFormInvoke = {
+        const form: OPCUAForm = {
             href: endpoint,
             "opcua:nodeId": { root: "i=84", path: "/Objects/1:MySensor" },
             "opcua:method": { root: "i=84", path: "/Objects/1:MySensor/2:MethodSet/1:SetTemperatureSetPoint" },
