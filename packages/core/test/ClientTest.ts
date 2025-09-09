@@ -21,7 +21,7 @@
  */
 
 import { suite, test } from "@testdeck/mocha";
-import { expect, should, use as chaiUse } from "chai";
+import { expect, should, use as chaiUse, assert } from "chai";
 
 import { Subscription } from "rxjs/Subscription";
 
@@ -999,5 +999,50 @@ class WoTClientTest {
         const a1 = first.allOf[0];
         const a2 = second.allOf[0];
         expect(a1).equals(a2);
+    }
+
+    @test "invalid combo with allOf AND onOf should be detected and throw"() {
+        const ct = new ConsumedThing(WoTClientTest.servient);
+        ct.securityDefinitions = {
+            // a badly designed combo has allOf and oneOf
+            a: {
+                scheme: "a",
+            },
+            b: {
+                scheme: "b",
+            },
+            combo_oneOf_and_allof: {
+                scheme: "combo",
+                allOf: ["a", "b"],
+                oneOf: ["a", "b"],
+            },
+        };
+        ct.security = ["combo_oneOf_and_allof"];
+        const pc = new TestProtocolClient();
+        const form: Form = {
+            href: "https://example.com/",
+        };
+        assert.throws(() => {
+            ct.ensureClientSecurity(pc, form);
+        }, /Combo SecurityScheme 'combo_oneOf_and_allof' is invalid/);
+    }
+
+    @test "invalid combo with missing allOf and oneOf should be detected and throw"() {
+        const ct = new ConsumedThing(WoTClientTest.servient);
+        ct.securityDefinitions = {
+            // a badly designed combo has NO allOf and NO oneOf
+
+            combo_without_oneOf_and_without_allof: {
+                scheme: "combo",
+            },
+        };
+        ct.security = ["combo_without_oneOf_and_without_allof"];
+        const pc = new TestProtocolClient();
+        const form: Form = {
+            href: "https://example.com/",
+        };
+        assert.throws(() => {
+            ct.ensureClientSecurity(pc, form);
+        }, /Combo SecurityScheme 'combo_without_oneOf_and_without_allof' is invalid/);
     }
 }

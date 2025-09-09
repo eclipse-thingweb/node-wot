@@ -451,23 +451,25 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
 
         const visitSchemes = (security: Array<string>) => {
             const resolveComboScheme = (
-                combo: ComboSecurityScheme
+                combo: ComboSecurityScheme,
+                name: string
             ): AllOfSecurityScheme | OneOfSecurityScheme | undefined => {
-                if (combo.allOf instanceof Array) {
+                if (combo.allOf instanceof Array && combo.oneOf === undefined) {
                     const allOf = visitSchemes(combo.allOf as string[]);
                     return <AllOfSecurityScheme>{
                         scheme: "combo",
                         allOf,
                     };
-                }
-                if (combo.oneOf instanceof Array) {
+                } else if (combo.oneOf instanceof Array && combo.allOf === undefined) {
                     const oneOf = visitSchemes(combo.oneOf as string[]);
                     return <OneOfSecurityScheme>{
                         scheme: "combo",
                         oneOf,
                     };
+                } else {
+                    // invalid combination that should be spotted by the TD schema verificator
+                    throw new Error(`Combo SecurityScheme '${name}' is invalid`);
                 }
-                return undefined; // not supported , but handled gracefully
             };
             const scs: SecurityScheme[] = [];
             for (const s of security) {
@@ -480,7 +482,7 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
                 let ws: SecurityScheme | undefined = this.securityDefinitions[s];
                 // also push nosec in case of proxy
                 if (ws?.scheme === "combo") {
-                    ws = resolveComboScheme(ws as ComboSecurityScheme);
+                    ws = resolveComboScheme(ws as ComboSecurityScheme, s);
                 }
                 if (ws != null) {
                     scs.push(ws);
