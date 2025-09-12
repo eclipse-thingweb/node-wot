@@ -3,6 +3,8 @@ require:
     - ts-node/register
 timeout: 100000
 enable-source-maps: true
+extensions:
+    - .ts
 spec: "test/*-test.ts"
 bail: true
 parallel: false
