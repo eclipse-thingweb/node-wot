@@ -24,6 +24,8 @@ import {
     ThingAction,
     ThingEvent,
     SecurityScheme,
+    AllOfSecurityScheme,
+    OneOfSecurityScheme,
 } from "./thing-description";
 
 import { ThingModel } from "wot-thing-model-types";
@@ -41,6 +43,7 @@ import UriTemplate = require("uritemplate");
 import { InteractionOutput, ActionInteractionOutput } from "./interaction-output";
 import {
     ActionElement,
+    ComboSecurityScheme,
     EventElement,
     FormElementEvent,
     FormElementProperty,
@@ -444,15 +447,52 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
     }
 
     getSecuritySchemes(security: Array<string>): Array<SecurityScheme> {
-        const scs: Array<SecurityScheme> = [];
-        for (const s of security) {
-            const ws = this.securityDefinitions[s + ""]; // String vs. string (fix wot-typescript-definitions?)
-            // also push nosec in case of proxy
-            if (ws != null) {
-                scs.push(ws);
+        const alreadyProcessed = new Map<string, SecurityScheme | null>();
+
+        const visitSchemes = (security: Array<string>) => {
+            const resolveComboScheme = (
+                combo: ComboSecurityScheme,
+                name: string
+            ): AllOfSecurityScheme | OneOfSecurityScheme | undefined => {
+                if (combo.allOf instanceof Array && combo.oneOf === undefined) {
+                    const allOf = visitSchemes(combo.allOf as string[]);
+                    return <AllOfSecurityScheme>{
+                        scheme: "combo",
+                        allOf,
+                    };
+                } else if (combo.oneOf instanceof Array && combo.allOf === undefined) {
+                    const oneOf = visitSchemes(combo.oneOf as string[]);
+                    return <OneOfSecurityScheme>{
+                        scheme: "combo",
+                        oneOf,
+                    };
+                } else {
+                    // invalid combination that should be spotted by the TD schema verificator
+                    throw new Error(`Combo SecurityScheme '${name}' is invalid`);
+                }
+            };
+            const scs: SecurityScheme[] = [];
+            for (const s of security) {
+                if (alreadyProcessed.has(s)) {
+                    scs.push(alreadyProcessed.get(s)!);
+                    continue;
+                }
+                alreadyProcessed.set(s, null);
+
+                let ws: SecurityScheme | undefined = this.securityDefinitions[s];
+                // also push nosec in case of proxy
+                if (ws?.scheme === "combo") {
+                    ws = resolveComboScheme(ws as ComboSecurityScheme, s);
+                }
+                if (ws != null) {
+                    scs.push(ws);
+                    // remember in case we came accross the same again
+                    alreadyProcessed.set(s, ws);
+                }
             }
-        }
-        return scs;
+            return scs;
+        };
+        return visitSchemes(security);
     }
 
     ensureClientSecurity(client: ProtocolClient, form: Form | undefined): void {

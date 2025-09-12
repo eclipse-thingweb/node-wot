@@ -21,13 +21,13 @@
  */
 
 import { suite, test } from "@testdeck/mocha";
-import { expect, should, use as chaiUse } from "chai";
+import { expect, should, use as chaiUse, assert } from "chai";
 
 import { Subscription } from "rxjs/Subscription";
 
 import Servient from "../src/servient";
 import ConsumedThing from "../src/consumed-thing";
-import { Form, SecurityScheme } from "../src/thing-description";
+import { AllOfSecurityScheme, Form, OneOfSecurityScheme, SecurityScheme } from "../src/thing-description";
 import { ProtocolClient, ProtocolClientFactory } from "../src/protocol-interfaces";
 import { Content } from "../src/content";
 import { ContentSerdes } from "../src/content-serdes";
@@ -804,5 +804,245 @@ class WoTClientTest {
         expect(result);
         // eslint-disable-next-line no-unused-expressions
         expect(WoTClientTest.servient.hasClientFor(tcf2.scheme)).to.be.not.true;
+    }
+
+    @test "ensure combo security - allOf"() {
+        const ct = new ConsumedThing(WoTClientTest.servient);
+        ct.securityDefinitions = {
+            basic_sc: {
+                scheme: "basic",
+            },
+            opcua_secure_channel_sc: {
+                scheme: "opcua-channel-security",
+            },
+            opcua_authetication_sc: {
+                scheme: "opcua-authentication",
+            },
+            combo_sc: {
+                scheme: "combo",
+                allOf: ["opcua_secure_channel_sc", "opcua_authetication_sc"],
+            },
+        };
+        ct.security = ["combo_sc"];
+        const pc = new TestProtocolClient();
+        const form: Form = {
+            href: "https://example.com/",
+        };
+        ct.ensureClientSecurity(pc, form);
+        expect(pc.securitySchemes.length).equals(1);
+        expect(pc.securitySchemes[0].scheme).equals("combo");
+
+        const comboScheme = pc.securitySchemes[0] as AllOfSecurityScheme;
+        expect(comboScheme.allOf).instanceOf(Array);
+        expect(comboScheme.allOf.length).equal(2);
+        expect(comboScheme.allOf[0].scheme).equals("opcua-channel-security");
+        expect(comboScheme.allOf[1].scheme).equals("opcua-authentication");
+    }
+
+    @test "ensure combo security - oneOf"() {
+        const ct = new ConsumedThing(WoTClientTest.servient);
+        ct.securityDefinitions = {
+            basic_sc: {
+                scheme: "basic",
+            },
+            opcua_secure_channel_encrypt_sc: {
+                scheme: "opcua-channel-security",
+                mode: "encrypt",
+            },
+            opcua_secure_channel_sign_sc: {
+                scheme: "opcua-channel-security",
+                mode: "sign",
+            },
+            opcua_authetication_sc: {
+                scheme: "opcua-authentication",
+            },
+            comob_opcua_secure_channel: {
+                scheme: "combo",
+                oneOf: ["opcua_secure_channel_encrypt_sc", "opcua_secure_channel_sign_sc"],
+            },
+            combo_sc: {
+                scheme: "combo",
+                allOf: ["comob_opcua_secure_channel", "opcua_authetication_sc"],
+            },
+        };
+        ct.security = ["combo_sc"];
+        const pc = new TestProtocolClient();
+        const form: Form = {
+            href: "https://example.com/",
+        };
+        ct.ensureClientSecurity(pc, form);
+        expect(pc.securitySchemes.length).equals(1);
+        expect(pc.securitySchemes[0].scheme).equals("combo");
+
+        const comboScheme = pc.securitySchemes[0] as AllOfSecurityScheme;
+
+        expect(comboScheme.allOf).instanceOf(Array);
+        expect(comboScheme.allOf.length).equal(2);
+        expect(comboScheme.allOf[0].scheme).equals("combo");
+        expect(comboScheme.allOf[1].scheme).equals("opcua-authentication");
+
+        //
+        const firstScheme = comboScheme.allOf[0] as OneOfSecurityScheme;
+        expect(firstScheme.scheme).equal("combo");
+        expect(firstScheme.oneOf).instanceOf(Array);
+
+        expect(firstScheme.oneOf.length).equal(2);
+        expect(firstScheme.oneOf[0].scheme).equal("opcua-channel-security");
+        expect(firstScheme.oneOf[0].scheme).equal("opcua-channel-security");
+    }
+
+    @test "ensure combo security in form - allOf"() {
+        const ct = new ConsumedThing(WoTClientTest.servient);
+        ct.securityDefinitions = {
+            basic_sc: {
+                scheme: "basic",
+            },
+            opcua_secure_channel_sc: {
+                scheme: "opcua-channel-security",
+            },
+            opcua_authetication_sc: {
+                scheme: "opcua-authentication",
+            },
+            combo_sc: {
+                scheme: "combo",
+                allOf: ["opcua_secure_channel_sc", "opcua_authetication_sc"],
+            },
+        };
+        ct.security = "basic";
+        const pc = new TestProtocolClient();
+        const form: Form = {
+            href: "https://example.com/",
+            security: ["combo_sc"],
+        };
+        ct.ensureClientSecurity(pc, form);
+        expect(pc.securitySchemes.length).equals(1);
+        const comboScheme = pc.securitySchemes[0] as AllOfSecurityScheme;
+
+        expect(comboScheme.allOf[0].scheme).equals("opcua-channel-security");
+        expect(comboScheme.allOf[1].scheme).equals("opcua-authentication");
+    }
+
+    @test "ensure no infinite loop with recursive combo security"() {
+        const ct = new ConsumedThing(WoTClientTest.servient);
+        ct.securityDefinitions = {
+            // a badly designed combo that goes into infinite loop
+            combo_sc: {
+                scheme: "combo",
+                allOf: ["combo_sc", "combo_sc"],
+            },
+        };
+        ct.security = "basic";
+        const pc = new TestProtocolClient();
+        const form: Form = {
+            href: "https://example.com/",
+            security: ["combo_sc"],
+        };
+        ct.ensureClientSecurity(pc, form);
+        expect(pc.securitySchemes.length).equals(1);
+    }
+
+    @test "complex combo security with repeated elements"() {
+        const ct = new ConsumedThing(WoTClientTest.servient);
+        ct.securityDefinitions = {
+            // a badly designed combo that goes into infinite loop
+            a: {
+                scheme: "a",
+            },
+            b: {
+                scheme: "b",
+            },
+            c: {
+                scheme: "c",
+            },
+            combo_a_and_b: {
+                scheme: "combo",
+                allOf: ["a", "b"],
+            },
+            combo_a_and_c: {
+                scheme: "combo",
+                allOf: ["a", "c"],
+            },
+            combo_a_or_b: {
+                scheme: "combo",
+                oneOf: ["a", "b"],
+            },
+            combo_of_combo: {
+                scheme: "combo",
+                oneOf: ["combo_a_and_b", "combo_a_and_c"],
+            },
+        };
+        ct.security = ["combo_of_combo"];
+        const pc = new TestProtocolClient();
+        const form: Form = {
+            href: "https://example.com/",
+        };
+        ct.ensureClientSecurity(pc, form);
+        expect(pc.securitySchemes.length).equals(1);
+        expect(pc.securitySchemes[0].scheme).equal("combo");
+        const comboOfCombo = pc.securitySchemes[0] as OneOfSecurityScheme;
+        expect(comboOfCombo.oneOf).instanceOf(Array);
+        expect(comboOfCombo.oneOf.length).equal(2);
+        expect(comboOfCombo.oneOf[0].scheme).equal("combo");
+        expect(comboOfCombo.oneOf[1].scheme).equal("combo");
+
+        const first = comboOfCombo.oneOf[0] as AllOfSecurityScheme;
+        expect(first.allOf).instanceOf(Array);
+        expect(first.allOf[0].scheme).equal("a");
+        expect(first.allOf[1].scheme).equal("b");
+
+        const second = comboOfCombo.oneOf[1] as AllOfSecurityScheme;
+        expect(second.allOf).instanceOf(Array);
+        expect(second.allOf[0].scheme).equal("a");
+        expect(second.allOf[1].scheme).equal("c");
+
+        // Verfy that a has been processed once - with strict equality
+        const a1 = first.allOf[0];
+        const a2 = second.allOf[0];
+        expect(a1).equals(a2);
+    }
+
+    @test "invalid combo with allOf AND onOf should be detected and throw"() {
+        const ct = new ConsumedThing(WoTClientTest.servient);
+        ct.securityDefinitions = {
+            // a badly designed combo has allOf and oneOf
+            a: {
+                scheme: "a",
+            },
+            b: {
+                scheme: "b",
+            },
+            combo_oneOf_and_allof: {
+                scheme: "combo",
+                allOf: ["a", "b"],
+                oneOf: ["a", "b"],
+            },
+        };
+        ct.security = ["combo_oneOf_and_allof"];
+        const pc = new TestProtocolClient();
+        const form: Form = {
+            href: "https://example.com/",
+        };
+        assert.throws(() => {
+            ct.ensureClientSecurity(pc, form);
+        }, /Combo SecurityScheme 'combo_oneOf_and_allof' is invalid/);
+    }
+
+    @test "invalid combo with missing allOf and oneOf should be detected and throw"() {
+        const ct = new ConsumedThing(WoTClientTest.servient);
+        ct.securityDefinitions = {
+            // a badly designed combo has NO allOf and NO oneOf
+
+            combo_without_oneOf_and_without_allof: {
+                scheme: "combo",
+            },
+        };
+        ct.security = ["combo_without_oneOf_and_without_allof"];
+        const pc = new TestProtocolClient();
+        const form: Form = {
+            href: "https://example.com/",
+        };
+        assert.throws(() => {
+            ct.ensureClientSecurity(pc, form);
+        }, /Combo SecurityScheme 'combo_without_oneOf_and_without_allof' is invalid/);
     }
 }
