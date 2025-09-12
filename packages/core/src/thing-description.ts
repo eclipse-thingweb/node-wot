@@ -197,7 +197,7 @@ export interface AllOfSecurityScheme extends SecurityScheme {
 export type ComboSecurityScheme = AllOfSecurityScheme | OneOfSecurityScheme;
 
 export interface OPCUASecuritySchemeBase extends SecurityScheme, TDT.AdditionalSecurityScheme {
-    scheme: "opcua-channel-security" | "opcua-authentication";
+    scheme: "uav:channel-security" | "uav:authentication";
 }
 
 export type ValidOPCUASecurityPolicy =
@@ -226,30 +226,30 @@ export type ValidOPCUASecurityPolicy =
  *
  */
 export interface OPCUASecureSecurityScheme extends OPCUASecuritySchemeBase {
-    scheme: "opcua-channel-security";
+    scheme: "uav:channel-security";
     policy: ValidOPCUASecurityPolicy;
     messageMode: "sign" | "sign_encrypt";
 }
 export interface OPCUAUnsecureChannelScheme extends OPCUASecuritySchemeBase {
-    scheme: "opcua-channel-security";
+    scheme: "uav:channel-security";
     policy: never;
     messageMode: "none";
 }
 
 export type OPCUAChannelSecurityScheme = OPCUASecureSecurityScheme | OPCUAUnsecureChannelScheme;
 export interface OPCUACAuthenticationSchemeBase extends OPCUASecuritySchemeBase {
-    scheme: "opcua-authentication";
+    scheme: "uav:authentication";
     tokenType: "username" | "certificate" | "anonymous";
 }
 
 export interface OPCUACUserNameAuthenticationScheme extends OPCUACAuthenticationSchemeBase {
-    scheme: "opcua-authentication";
+    scheme: "uav:authentication";
     tokenType: "username";
     userName: string;
     password?: string;
 }
 export interface OPCUACertificateAuthenticationScheme extends OPCUACAuthenticationSchemeBase {
-    scheme: "opcua-authentication";
+    scheme: "uav:authentication";
     tokenType: "certificate";
     // the certificate in PEM format
     //  -----BEGIN CERTIFICATE----
@@ -264,7 +264,7 @@ export interface OPCUACertificateAuthenticationScheme extends OPCUACAuthenticati
     privateKey?: string;
 }
 export interface OPCUAAnonymousAuthenticationScheme extends OPCUACAuthenticationSchemeBase {
-    scheme: "opcua-authentication";
+    scheme: "uav:authentication";
     tokenType: "anonymous";
 }
 export type OPCUACAuthenticationScheme =

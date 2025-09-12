@@ -813,14 +813,14 @@ class WoTClientTest {
                 scheme: "basic",
             },
             opcua_secure_channel_sc: {
-                scheme: "opcua-channel-security",
+                scheme: "uav:channel-security",
             },
-            opcua_authetication_sc: {
-                scheme: "opcua-authentication",
+            opcua_authentication_sc: {
+                scheme: "uav:authentication",
             },
             combo_sc: {
                 scheme: "combo",
-                allOf: ["opcua_secure_channel_sc", "opcua_authetication_sc"],
+                allOf: ["opcua_secure_channel_sc", "opcua_authentication_sc"],
             },
         };
         ct.security = ["combo_sc"];
@@ -835,8 +835,8 @@ class WoTClientTest {
         const comboScheme = pc.securitySchemes[0] as AllOfSecurityScheme;
         expect(comboScheme.allOf).instanceOf(Array);
         expect(comboScheme.allOf.length).equal(2);
-        expect(comboScheme.allOf[0].scheme).equals("opcua-channel-security");
-        expect(comboScheme.allOf[1].scheme).equals("opcua-authentication");
+        expect(comboScheme.allOf[0].scheme).equals("uav:channel-security");
+        expect(comboScheme.allOf[1].scheme).equals("uav:authentication");
     }
 
     @test "ensure combo security - oneOf"() {
@@ -846,15 +846,15 @@ class WoTClientTest {
                 scheme: "basic",
             },
             opcua_secure_channel_encrypt_sc: {
-                scheme: "opcua-channel-security",
+                scheme: "uav:channel-security",
                 mode: "encrypt",
             },
             opcua_secure_channel_sign_sc: {
-                scheme: "opcua-channel-security",
+                scheme: "uav:channel-security",
                 mode: "sign",
             },
-            opcua_authetication_sc: {
-                scheme: "opcua-authentication",
+            opcua_authentication_sc: {
+                scheme: "uav:authentication",
             },
             comob_opcua_secure_channel: {
                 scheme: "combo",
@@ -862,7 +862,7 @@ class WoTClientTest {
             },
             combo_sc: {
                 scheme: "combo",
-                allOf: ["comob_opcua_secure_channel", "opcua_authetication_sc"],
+                allOf: ["comob_opcua_secure_channel", "opcua_authentication_sc"],
             },
         };
         ct.security = ["combo_sc"];
@@ -879,7 +879,7 @@ class WoTClientTest {
         expect(comboScheme.allOf).instanceOf(Array);
         expect(comboScheme.allOf.length).equal(2);
         expect(comboScheme.allOf[0].scheme).equals("combo");
-        expect(comboScheme.allOf[1].scheme).equals("opcua-authentication");
+        expect(comboScheme.allOf[1].scheme).equals("uav:authentication");
 
         //
         const firstScheme = comboScheme.allOf[0] as OneOfSecurityScheme;
@@ -887,8 +887,8 @@ class WoTClientTest {
         expect(firstScheme.oneOf).instanceOf(Array);
 
         expect(firstScheme.oneOf.length).equal(2);
-        expect(firstScheme.oneOf[0].scheme).equal("opcua-channel-security");
-        expect(firstScheme.oneOf[0].scheme).equal("opcua-channel-security");
+        expect(firstScheme.oneOf[0].scheme).equal("uav:channel-security");
+        expect(firstScheme.oneOf[1].scheme).equal("uav:channel-security");
     }
 
     @test "ensure combo security in form - allOf"() {
@@ -898,14 +898,14 @@ class WoTClientTest {
                 scheme: "basic",
             },
             opcua_secure_channel_sc: {
-                scheme: "opcua-channel-security",
+                scheme: "uav:channel-security",
             },
-            opcua_authetication_sc: {
-                scheme: "opcua-authentication",
+            opcua_authentication_sc: {
+                scheme: "uav:authentication",
             },
             combo_sc: {
                 scheme: "combo",
-                allOf: ["opcua_secure_channel_sc", "opcua_authetication_sc"],
+                allOf: ["opcua_secure_channel_sc", "opcua_authentication_sc"],
             },
         };
         ct.security = "basic";
@@ -918,8 +918,8 @@ class WoTClientTest {
         expect(pc.securitySchemes.length).equals(1);
         const comboScheme = pc.securitySchemes[0] as AllOfSecurityScheme;
 
-        expect(comboScheme.allOf[0].scheme).equals("opcua-channel-security");
-        expect(comboScheme.allOf[1].scheme).equals("opcua-authentication");
+        expect(comboScheme.allOf[0].scheme).equals("uav:channel-security");
+        expect(comboScheme.allOf[1].scheme).equals("uav:authentication");
     }
 
     @test "ensure no infinite loop with recursive combo security"() {
