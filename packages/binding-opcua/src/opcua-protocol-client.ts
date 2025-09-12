@@ -599,23 +599,24 @@ export class OPCUAProtocolClient implements ProtocolClient {
         for (const securityScheme of securitySchemes) {
             let success = true;
             switch (securityScheme.scheme) {
-                case "opcua-channel-security":
+                case "uav:channel-security":
                     success = this.setChannelSecurity(securityScheme as OPCUAChannelSecurityScheme);
                     break;
-                case "opcua-authentication":
+                case "uav:authentication":
                     success = this.setAuthentication(securityScheme as OPCUACAuthenticationScheme);
                     break;
                 case "combo": {
                     const combo = securityScheme as AllOfSecurityScheme | OneOfSecurityScheme;
-                    if (combo.allOf) {
+                    if (combo.allOf !== undefined) {
                         success = this.setSecurity(combo.allOf, credentials);
-                    } else if (combo.oneOf) {
+                    } else if (combo.oneOf !== undefined) {
                         // pick the first one for now
                         // later we might use credentials to select the most appropriate one
                         success = this.setSecurity([combo.oneOf[0]], credentials);
                     } else {
                         success = false;
                     }
+                    break;
                 }
                 default:
                     // not for us , ignored

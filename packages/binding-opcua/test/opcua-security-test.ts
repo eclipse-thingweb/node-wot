@@ -16,7 +16,7 @@
 // node-wot implementation of W3C WoT Servient
 
 import { expect } from "chai";
-import path, { resolve } from "path";
+import path from "path";
 import {
     OPCUACUserNameAuthenticationScheme,
     OPCUACertificateAuthenticationScheme,
@@ -26,14 +26,7 @@ import {
 } from "@node-wot/core";
 import { InteractionOptions } from "wot-typescript-definitions";
 
-import {
-    IBasicSessionCallAsync,
-    MessageSecurityMode,
-    ObjectIds,
-    OPCUAClient,
-    OPCUAServer,
-    SecurityPolicy,
-} from "node-opcua";
+import { MessageSecurityMode, OPCUAClient, OPCUAServer, SecurityPolicy } from "node-opcua";
 import { coercePrivateKeyPem, readCertificate, readCertificatePEM, readPrivateKey } from "node-opcua-crypto";
 import { OPCUAClientFactory, OPCUAProtocolClient } from "../src";
 import { startServer } from "./fixture/basic-opcua-server";
@@ -57,52 +50,52 @@ const thingDescription: WoT.ThingDescription = {
         },
         // OPCUAChannelSecurityScheme
         "c:sign-encrypt_basic256Sha256": <OPCUAChannelSecurityScheme>{
-            scheme: "opcua-channel-security",
+            scheme: "uav:channel-security",
             messageMode: "sign_encrypt",
             policy: "Basic256Sha256", // deprecated
         },
         // Aes128_Sha256_RsaOaep
         "c:sign-encrypt_aes128Sha256RsaOaep": <OPCUAChannelSecurityScheme>{
-            scheme: "opcua-channel-security",
+            scheme: "uav:channel-security",
             messageMode: "sign_encrypt",
             policy: "Aes128_Sha256_RsaOaep",
         },
 
         "c:sign_basic256Sha256": <OPCUAChannelSecurityScheme>{
-            scheme: "opcua-channel-security",
+            scheme: "uav:channel-security",
             messageMode: "sign",
             policy: "Basic256Sha256",
         },
         "c:invalid-sign": <OPCUAChannelSecurityScheme>{
-            scheme: "opcua-channel-security",
+            scheme: "uav:channel-security",
             messageMode: "sign",
             policy: "Basic192Rsa15", // Basic192Rsa15 valid policy but unsupported by server
         },
         "c:no_security": <OPCUAChannelSecurityScheme>{
-            scheme: "opcua-channel-security",
+            scheme: "uav:channel-security",
             messageMode: "none",
         },
         //
         "a:username-password": <OPCUACUserNameAuthenticationScheme>{
-            scheme: "opcua-authentication",
+            scheme: "uav:authentication",
             tokenType: "username",
             userName: "joe",
             password: "password_for_joe",
         },
         "a:username-invalid-password": <OPCUACUserNameAuthenticationScheme>{
-            scheme: "opcua-authentication",
+            scheme: "uav:authentication",
             tokenType: "username",
             userName: "joe",
             password: "**INVALID**password_for_joe",
         },
         "a:x509-certificate": <OPCUACertificateAuthenticationScheme>{
-            scheme: "opcua-authentication",
+            scheme: "uav:authentication",
             tokenType: "certificate",
             certificate: "....",
             privateKey: "....",
         },
         "a:x509-certificate-no-private-key": <OPCUACertificateAuthenticationScheme>{
-            scheme: "opcua-authentication",
+            scheme: "uav:authentication",
             tokenType: "certificate",
             certificate: "....",
             privateKey: undefined,
@@ -297,12 +290,12 @@ describe("verify test securityDefinitions", () => {
                 for (const subKey of comboDef.allOf) {
                     expect(definitions).to.have.property(subKey);
                 }
-            } else if (def.scheme === "opcua-channel-security") {
+            } else if (def.scheme === "uav:channel-security") {
                 const channelDef = def as OPCUAChannelSecurityScheme;
                 expect(channelDef).to.have.property("messageMode");
                 expect(["none", "sign", "sign_encrypt"]).to.include(channelDef.messageMode);
                 // policy is optional
-            } else if (def.scheme === "opcua-authentication") {
+            } else if (def.scheme === "uav:authentication") {
                 const authDef = def as OPCUACertificateAuthenticationScheme | OPCUACUserNameAuthenticationScheme;
                 expect(authDef).to.have.property("tokenType");
                 if (authDef.tokenType === "username") {
