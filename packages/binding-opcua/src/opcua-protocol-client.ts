@@ -28,6 +28,8 @@ import {
     createLoggers,
     OPCUACAuthenticationScheme,
     OPCUAChannelSecurityScheme,
+    AllOfSecurityScheme,
+    OneOfSecurityScheme,
 } from "@node-wot/core";
 
 import {
@@ -603,6 +605,18 @@ export class OPCUAProtocolClient implements ProtocolClient {
                 case "opcua-authentication":
                     success = this.setAuthentication(securityScheme as OPCUACAuthenticationScheme);
                     break;
+                case "combo": {
+                    const combo = securityScheme as AllOfSecurityScheme | OneOfSecurityScheme;
+                    if (combo.allOf) {
+                        success = this.setSecurity(combo.allOf, credentials);
+                    } else if (combo.oneOf) {
+                        // pick the first one for now
+                        // later we might use credentials to select the most appropriate one
+                        success = this.setSecurity([combo.oneOf[0]], credentials);
+                    } else {
+                        success = false;
+                    }
+                }
                 default:
                     // not for us , ignored
                     break;

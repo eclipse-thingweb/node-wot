@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2022 Contributors to the Eclipse Foundation
+ * Copyright (c) 2025 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -16,7 +16,7 @@
 // node-wot implementation of W3C WoT Servient
 
 import { expect } from "chai";
-import path from "path";
+import path, { resolve } from "path";
 import {
     OPCUACUserNameAuthenticationScheme,
     OPCUACertificateAuthenticationScheme,
@@ -26,7 +26,14 @@ import {
 } from "@node-wot/core";
 import { InteractionOptions } from "wot-typescript-definitions";
 
-import { OPCUAClient, OPCUAServer } from "node-opcua";
+import {
+    IBasicSessionCallAsync,
+    MessageSecurityMode,
+    ObjectIds,
+    OPCUAClient,
+    OPCUAServer,
+    SecurityPolicy,
+} from "node-opcua";
 import { coercePrivateKeyPem, readCertificate, readCertificatePEM, readPrivateKey } from "node-opcua-crypto";
 import { OPCUAClientFactory, OPCUAProtocolClient } from "../src";
 import { startServer } from "./fixture/basic-opcua-server";
@@ -34,6 +41,12 @@ const endpoint = "opc.tcp://localhost:7890";
 
 const { debug } = createLoggers("binding-opcua", "full-opcua-thing-test");
 
+interface WhoAmI {
+    UserName: string | null;
+    UserIdentityTokenType: string | null;
+    ChannelSecurityMode: string | null;
+    ChannelSecurityPolicyUri: string | null;
+}
 const thingDescription: WoT.ThingDescription = {
     "@context": "https://www.w3.org/2019/wot/td/v1",
     "@type": ["Thing"],
@@ -48,8 +61,14 @@ const thingDescription: WoT.ThingDescription = {
             messageMode: "sign_encrypt",
             policy: "Basic256Sha256", // deprecated
         },
+        // Aes128_Sha256_RsaOaep
+        "c:sign-encrypt_aes128Sha256RsaOaep": <OPCUAChannelSecurityScheme>{
+            scheme: "opcua-channel-security",
+            messageMode: "sign_encrypt",
+            policy: "Aes128_Sha256_RsaOaep",
+        },
 
-        "c:sign": <OPCUAChannelSecurityScheme>{
+        "c:sign_basic256Sha256": <OPCUAChannelSecurityScheme>{
             scheme: "opcua-channel-security",
             messageMode: "sign",
             policy: "Basic256Sha256",
@@ -89,13 +108,13 @@ const thingDescription: WoT.ThingDescription = {
             privateKey: undefined,
         },
         // compbo
-        "c:sign-a:username-password": {
+        "c:sign_basic256Sha256-a:username-password": {
             scheme: "combo",
-            allOf: ["c:sign", "a:username-password"],
+            allOf: ["c:sign_basic256Sha256", "a:username-password"],
         },
-        "c:sign-a:username-invalid-password": {
+        "c:sign_basic256Sha256-a:username-invalid-password": {
             scheme: "combo",
-            allOf: ["c:sign", "a:username-invalid-password"],
+            allOf: ["c:sign_basic256Sha256", "a:username-invalid-password"],
         },
         "c:sign-encrypt_basic256Sha256-a:username-password": {
             scheme: "combo",
@@ -146,10 +165,157 @@ const thingDescription: WoT.ThingDescription = {
             ],
         },
     },
+    actions: {
+        whoAmI: {
+            forms: [
+                {
+                    type: "object",
+                    href: "/",
+                    op: ["invokeaction"],
+                    "opcua:nodeId": { root: "i=84", path: "/Objects/Server" },
+                    "opcua:method": { root: "i=84", path: "/Objects/Server/1:WhoAmI" },
+                },
+            ],
+            description: "query information about the log in user and current channel security mode",
+            // see https://www.w3.org/TR/wot-thing-description11/#action-serialization-sample
+            input: {
+                type: "object",
+                properties: {},
+                required: [],
+            },
+            output: {
+                type: "object",
+                properties: {
+                    UserName: {
+                        type: "string",
+                        title: "the current user name",
+                    },
+                    UserIdentityTokenType: {
+                        type: "string",
+                        title: "the current user identity token type",
+                    },
+                    ChannelSecurityMode: {
+                        type: "string",
+                        title: "the current security mode",
+                    },
+                    ChannelSecurityPolicyUri: {
+                        type: "string",
+                        title: "the current security policy",
+                    },
+                },
+                required: ["UserName", "UserIdentityTokenType", "ChannelSecurityMode", "ChannelSecurityPolicyUri"],
+            },
+        },
+    },
 };
+
+function inferExpectedSecurityMode(security: string): WhoAmI {
+    const expected: WhoAmI = {
+        UserName: null,
+        UserIdentityTokenType: "AnonymousIdentityToken",
+        ChannelSecurityMode: MessageSecurityMode[MessageSecurityMode.None],
+        ChannelSecurityPolicyUri: SecurityPolicy.None,
+    };
+
+    if (security.match(/a:username-password/)) {
+        expected.UserName = "joe";
+        expected.UserIdentityTokenType = "UserNameIdentityToken";
+    } else if (security.match(/certificate/)) {
+        expected.UserName = null;
+        expected.UserIdentityTokenType = "X509IdentityToken";
+    } else {
+        expected.UserName = null;
+        expected.UserIdentityTokenType = "AnonymousIdentityToken";
+    }
+
+    //
+    if (security.match(/c:sign-encrypt/)) {
+        expected.ChannelSecurityMode = "SignAndEncrypt";
+    } else if (security.match(/c:sign/)) {
+        expected.ChannelSecurityMode = "Sign";
+    } else if (security.match(/c:no_security/)) {
+        expected.ChannelSecurityMode = "None";
+        expected.ChannelSecurityPolicyUri = "http://opcfoundation.org/UA/SecurityPolicy#None";
+    }
+
+    if (security.match(/basic256Sha256/)) {
+        expected.ChannelSecurityPolicyUri = "http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256";
+    } else if (security.match(/aes128Sha256RsaOaep/)) {
+        expected.ChannelSecurityPolicyUri = "http://opcfoundation.org/UA/SecurityPolicy#Aes128_Sha256_RsaOaep";
+    }
+    return expected;
+}
+
+describe("Testing OPCUA Expected Value inference", () => {
+    it("should infer expected values from security string", () => {
+        let expected = inferExpectedSecurityMode("c:sign-encrypt_basic256Sha256-a:username-password");
+        expect(expected.UserName).to.eql("joe");
+        expect(expected.UserIdentityTokenType).to.eql("UserNameIdentityToken");
+        expect(expected.ChannelSecurityMode).to.eql("SignAndEncrypt");
+        expect(expected.ChannelSecurityPolicyUri).to.eql("http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256");
+
+        expected = inferExpectedSecurityMode("c:sign_basic256Sha256-a:username-password");
+        expect(expected.UserName).to.eql("joe");
+        expect(expected.UserIdentityTokenType).to.eql("UserNameIdentityToken");
+        expect(expected.ChannelSecurityMode).to.eql("Sign");
+        expect(expected.ChannelSecurityPolicyUri).to.eql("http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256");
+
+        expected = inferExpectedSecurityMode("c:no_security");
+        expect(expected.UserName).to.eql(null);
+        expect(expected.UserIdentityTokenType).to.eql("AnonymousIdentityToken");
+        expect(expected.ChannelSecurityMode).to.eql("None");
+        expect(expected.ChannelSecurityPolicyUri).to.eql("http://opcfoundation.org/UA/SecurityPolicy#None");
+
+        expected = inferExpectedSecurityMode("c:sign-encrypt_aes128Sha256RsaOaep-a:x509-certificate");
+        expect(expected.UserName).to.eql(null);
+        expect(expected.UserIdentityTokenType).to.eql("X509IdentityToken");
+        expect(expected.ChannelSecurityMode).to.eql("SignAndEncrypt");
+        expect(expected.ChannelSecurityPolicyUri).to.eql(
+            "http://opcfoundation.org/UA/SecurityPolicy#Aes128_Sha256_RsaOaep"
+        );
+    });
+});
 
 const possibleSecurityMode = Object.keys(thingDescription.securityDefinitions).filter((s) => !s.match(/invalid/));
 const possibleInvalidSecurityMode = Object.keys(thingDescription.securityDefinitions).filter((s) => s.match(/invalid/));
+describe("verify test securityDefinitions", () => {
+    it("should have a coherent security definitions", () => {
+        expect(thingDescription).to.be.an("object");
+        const definitions = thingDescription.securityDefinitions;
+        expect(definitions).to.be.an("object");
+        expect(Object.keys(definitions).length).to.be.greaterThan(0);
+        for (const key of Object.keys(definitions)) {
+            const def = definitions[key];
+            expect(def).to.have.property("scheme");
+            if (def.scheme === "nosec") {
+                continue;
+            }
+            if (def.scheme === "combo") {
+                const comboDef = def as { scheme: string; allOf: string[] };
+                expect(comboDef.allOf).to.be.an("array");
+                expect(comboDef.allOf.length).to.be.greaterThan(0);
+                for (const subKey of comboDef.allOf) {
+                    expect(definitions).to.have.property(subKey);
+                }
+            } else if (def.scheme === "opcua-channel-security") {
+                const channelDef = def as OPCUAChannelSecurityScheme;
+                expect(channelDef).to.have.property("messageMode");
+                expect(["none", "sign", "sign_encrypt"]).to.include(channelDef.messageMode);
+                // policy is optional
+            } else if (def.scheme === "opcua-authentication") {
+                const authDef = def as OPCUACertificateAuthenticationScheme | OPCUACUserNameAuthenticationScheme;
+                expect(authDef).to.have.property("tokenType");
+                if (authDef.tokenType === "username") {
+                    expect(authDef).to.have.property("userName");
+                    expect(authDef).to.have.property("password");
+                } else if (authDef.tokenType === "certificate") {
+                    expect(authDef).to.have.property("certificate");
+                    expect(authDef).to.have.property("privateKey");
+                }
+            }
+        }
+    });
+});
 
 describe("Testing OPCUA Security Combination", () => {
     let opcuaServer: OPCUAServer;
@@ -238,15 +404,20 @@ describe("Testing OPCUA Security Combination", () => {
 
     async function doTest(
         thing: WoT.ConsumedThing,
-        propertyName: string,
         localOptions: InteractionOptions
-    ): Promise<{ value?: number; err?: Error }> {
+    ): Promise<{ value?: number; whoAmI?: WhoAmI; err?: Error }> {
         debug("------------------------------------------------------");
         try {
-            const content = await thing.readProperty(propertyName, localOptions);
+            const propertyName = "temperature";
 
+            const content = await thing.readProperty(propertyName, localOptions);
             const value = (await content.value()) as number;
-            return { value };
+
+            const result = await thing.invokeAction("whoAmI", {}, localOptions);
+            const whoAmI = (await result?.value()) as WhoAmI;
+
+            debug(`whoAmI = ${JSON.stringify(whoAmI)}`);
+            return { value, whoAmI };
         } catch (e) {
             debug(`${e}`);
             return { err: e as Error };
@@ -258,10 +429,13 @@ describe("Testing OPCUA Security Combination", () => {
             const localOptions = {};
             const { thing, servient } = await makeThing(security);
             try {
-                const propertyName = "temperature";
-                const { value, err } = await doTest(thing, propertyName, localOptions);
+                const { value, whoAmI, err } = await doTest(thing, localOptions);
                 expect(err).to.eql(undefined);
                 expect(value).to.eql(25);
+
+                const expected = inferExpectedSecurityMode(security);
+                expect(whoAmI).to.eql(expected);
+                // infer expected result from security string
             } finally {
                 await servient.shutdown();
             }
@@ -273,8 +447,7 @@ describe("Testing OPCUA Security Combination", () => {
             const localOptions = {};
             const { thing, servient } = await makeThing(security);
             try {
-                const propertyName = "temperature";
-                const { err } = await doTest(thing, propertyName, localOptions);
+                const { err } = await doTest(thing, localOptions);
                 expect(err).to.not.eql(undefined);
             } finally {
                 await servient.shutdown();
