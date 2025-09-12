@@ -34,8 +34,9 @@ import {
     CallbackT,
     CallMethodResultOptions,
     WellKnownRoles,
+    SecurityPolicy,
 } from "node-opcua";
-import { KeyValuePair, PermissionType } from "node-opcua-types";
+import { KeyValuePair, MessageSecurityMode, PermissionType } from "node-opcua-types";
 import { createLoggers } from "@node-wot/core";
 
 const { info } = createLoggers("binding-opcua", "basic-opcua-server");
@@ -240,6 +241,54 @@ export async function startServer(): Promise<OPCUAServer> {
     });
     onlyForAuthenticated.setValueFromSource({ dataType: "String", value: "Secret" });
 
+    const whoAmIMethod = namespace.addMethod(addressSpace.rootFolder.objects.server, {
+        browseName: "WhoAmI",
+        nodeId: "s=WhoAmI",
+        inputArguments: [],
+        outputArguments: [
+            {
+                name: "UserName",
+                description: { text: "The name of the user that called the method" },
+                dataType: DataType.String,
+            },
+            {
+                name: "UserIdentityTokenType",
+                description: { text: "The token type of the user that called the method" },
+                dataType: DataType.String,
+            },
+            {
+                name: "ChannelSecurityMode",
+                description: { text: "The security mode used on the channel that called the method" },
+                dataType: DataType.String,
+            },
+            {
+                name: "ChannelSecurityPolicyUri",
+                description: { text: "The security policy used on the channel that called the method" },
+                dataType: DataType.String,
+            },
+        ],
+    });
+    whoAmIMethod.bindMethod(
+        (inputArguments: Variant[], context: ISessionContext, callback: CallbackT<CallMethodResultOptions>) => {
+            const userIdentityToken = context.session?.userIdentityToken?.constructor.name ?? "Anonymous";
+            const userName =
+                context.session?.userIdentityToken &&
+                (context.session.userIdentityToken as { userName?: string }).userName;
+            const securityMode =
+                MessageSecurityMode[context.session?.channel?.securityMode ?? MessageSecurityMode.None];
+            const securityPolicy = context.session?.channel?.securityPolicy ?? SecurityPolicy.None;
+            const callMethodResult = {
+                statusCode: StatusCodes.Good,
+                outputArguments: [
+                    { dataType: DataType.String, value: userName },
+                    { dataType: DataType.String, value: userIdentityToken },
+                    { dataType: DataType.String, value: securityMode },
+                    { dataType: DataType.String, value: securityPolicy },
+                ],
+            };
+            callback(null, callMethodResult);
+        }
+    );
     await server.start();
     info(`Server started: ${server.getEndpointUrl()}`);
     return server;
