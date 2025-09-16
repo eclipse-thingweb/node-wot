@@ -8,7 +8,20 @@ W3C WoT Binding Template for Modbus can be found [here](https://w3c.github.io/wo
 
 Current Maintainer(s): [@relu91](https://github.com/relu91) [@fillobotto](https://github.com/fillobotto)
 
-## Client Example
+## Protocol specifier
+
+The protocol prefix handled by this binding is `modbus+tcp://`.
+
+## Getting Started
+
+In the following examples it is shown how to use the Modbus binding of node-wot.
+
+### Prerequisites
+
+-   `npm install @node-wot/core`
+-   `npm install @node-wot/binding-modbus`
+
+### Client Example
 
 You can use a code like the following to use the binding. This specific code is interacting with one of the Eclipse Thingweb Test Things at <https://github.com/eclipse-thingweb/test-things/tree/main/things/elevator>.
 
@@ -41,10 +54,6 @@ main();
 ```
 
 ## Binding Information
-
-### Protocol specifier
-
-The protocol prefix handled by this binding is `modbus+tcp://`.
 
 ### New Form Fields for the Modbus Binding
 
