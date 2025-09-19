@@ -134,18 +134,6 @@ export interface NullSchema extends BaseSchema {
     type: "null";
 }
 
-// TODO AutoSecurityScheme
-export type SecurityType =
-    | NoSecurityScheme
-    | BasicSecurityScheme
-    | DigestSecurityScheme
-    | BearerSecurityScheme
-    | APIKeySecurityScheme
-    | OAuth2SecurityScheme
-    | PSKSecurityScheme
-    | AllOfSecurityScheme
-    | OneOfSecurityScheme;
-
 export interface SecurityScheme {
     scheme: string;
     description?: TDT.Description;
