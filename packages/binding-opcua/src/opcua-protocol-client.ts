@@ -26,8 +26,6 @@ import {
     Form,
     SecurityScheme,
     createLoggers,
-    OPCUACAuthenticationScheme,
-    OPCUAChannelSecurityScheme,
     AllOfSecurityScheme,
     OneOfSecurityScheme,
 } from "@node-wot/core";
@@ -64,11 +62,12 @@ import { AttributeIds, BrowseDirection, makeResultMask } from "node-opcua-data-m
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { StatusCodes } from "node-opcua-status-code";
 import { coercePrivateKeyPem, convertPEMtoDER, readPrivateKey } from "node-opcua-crypto";
-
-import { schemaDataValue } from "./codec";
 import { opcuaJsonEncodeVariant } from "node-opcua-json";
 import { Argument, BrowseDescription, BrowseResult, MessageSecurityMode, UserTokenType } from "node-opcua-types";
 import { isGoodish2, OPCUACertificateManager, ReferenceTypeIds } from "node-opcua";
+
+import { schemaDataValue } from "./codec";
+import { OPCUACAuthenticationScheme, OPCUAChannelSecurityScheme } from "./security_scheme";
 
 const { debug } = createLoggers("binding-opcua", "opcua-protocol-client");
 

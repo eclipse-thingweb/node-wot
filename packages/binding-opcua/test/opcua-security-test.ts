@@ -17,18 +17,19 @@
 
 import { expect } from "chai";
 import path from "path";
-import {
-    OPCUACUserNameAuthenticationScheme,
-    OPCUACertificateAuthenticationScheme,
-    OPCUAChannelSecurityScheme,
-    Servient,
-    createLoggers,
-} from "@node-wot/core";
+import { Servient, createLoggers } from "@node-wot/core";
 import { InteractionOptions } from "wot-typescript-definitions";
 
 import { MessageSecurityMode, OPCUAClient, OPCUAServer, SecurityPolicy } from "node-opcua";
 import { coercePrivateKeyPem, readCertificate, readCertificatePEM, readPrivateKey } from "node-opcua-crypto";
-import { OPCUAClientFactory, OPCUAProtocolClient } from "../src";
+import {
+    OPCUAClientFactory,
+    OPCUAProtocolClient,
+    OPCUACUserNameAuthenticationScheme,
+    OPCUACertificateAuthenticationScheme,
+    OPCUAChannelSecurityScheme,
+} from "../src";
+
 import { startServer } from "./fixture/basic-opcua-server";
 const endpoint = "opc.tcp://localhost:7890";
 
@@ -428,7 +429,6 @@ describe("Testing OPCUA Security Combination", () => {
 
                 const expected = inferExpectedSecurityMode(security);
                 expect(whoAmI).to.eql(expected);
-                // infer expected result from security string
             } finally {
                 await servient.shutdown();
             }
