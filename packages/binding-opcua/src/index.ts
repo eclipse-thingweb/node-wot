@@ -16,4 +16,5 @@
 export * from "./factory";
 export * from "./codec";
 export * from "./opcua-protocol-client";
+export * from "./security_scheme";
 // no protocol_client here => get access from factor
