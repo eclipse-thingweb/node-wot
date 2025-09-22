@@ -17,8 +17,16 @@ import { Subscription } from "rxjs/Subscription";
 import { promisify } from "util";
 import { Readable } from "stream";
 import { URL } from "url";
-
-import { ProtocolClient, Content, ContentSerdes, Form, SecurityScheme, createLoggers } from "@node-wot/core";
+import {
+    ProtocolClient,
+    Content,
+    ContentSerdes,
+    Form,
+    SecurityScheme,
+    createLoggers,
+    AllOfSecurityScheme,
+    OneOfSecurityScheme,
+} from "@node-wot/core";
 
 import {
     ClientSession,
@@ -36,18 +44,28 @@ import {
     VariantArrayType,
     Variant,
     VariantOptions,
+    SecurityPolicy,
 } from "node-opcua-client";
-import { ArgumentDefinition, getBuiltInDataType, readNamespaceArray } from "node-opcua-pseudo-session";
-
+import {
+    AnonymousIdentity,
+    ArgumentDefinition,
+    getBuiltInDataType,
+    readNamespaceArray,
+    UserIdentityInfo,
+} from "node-opcua-pseudo-session";
 import { makeNodeId, NodeId, NodeIdLike, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import { AttributeIds, BrowseDirection, makeResultMask } from "node-opcua-data-model";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { StatusCodes } from "node-opcua-status-code";
+import { coercePrivateKeyPem, readPrivateKey } from "node-opcua-crypto";
+import { opcuaJsonEncodeVariant } from "node-opcua-json";
+import { Argument, BrowseDescription, BrowseResult, MessageSecurityMode, UserTokenType } from "node-opcua-types";
+import { isGoodish2, ReferenceTypeIds } from "node-opcua";
 
 import { schemaDataValue } from "./codec";
-import { opcuaJsonEncodeVariant } from "node-opcua-json";
-import { Argument, BrowseDescription, BrowseResult } from "node-opcua-types";
-import { isGoodish2, ReferenceTypeIds } from "node-opcua";
+import { OPCUACAuthenticationScheme, OPCUAChannelSecurityScheme } from "./security_scheme";
+import { CertificateManagerSingleton } from "./certificate-manager-singleton";
+import { resolveChannelSecurity, resolvedUserIdentity } from "./opcua-security-resolver";
 
 const { debug } = createLoggers("binding-opcua", "opcua-protocol-client");
 
@@ -141,6 +159,10 @@ function _variantToJSON(variant: Variant, contentType: string) {
 export class OPCUAProtocolClient implements ProtocolClient {
     private _connections: Map<string, OPCUAConnectionEx> = new Map<string, OPCUAConnectionEx>();
 
+    private _securityMode: MessageSecurityMode = MessageSecurityMode.None;
+    private _securityPolicy: SecurityPolicy = SecurityPolicy.None;
+    private _userIdentity: UserIdentityInfo = <AnonymousIdentity>{ type: UserTokenType.Anonymous };
+
     private async _withConnection<T>(form: OPCUAForm, next: (connection: OPCUAConnection) => Promise<T>): Promise<T> {
         const endpoint = form.href;
         const matchesScheme: boolean = endpoint?.match(/^opc.tcp:\/\//) != null;
@@ -150,11 +172,15 @@ export class OPCUAProtocolClient implements ProtocolClient {
         }
         let c: OPCUAConnectionEx | undefined = this._connections.get(endpoint);
         if (!c) {
+            const clientCertificateManager = await CertificateManagerSingleton.getCertificateManager();
             const client = OPCUAClient.create({
                 endpointMustExist: false,
                 connectionStrategy: {
                     maxRetry: 1,
                 },
+                securityMode: this._securityMode,
+                securityPolicy: this._securityPolicy,
+                clientCertificateManager,
             });
             client.on("backoff", () => {
                 debug(`connection:backoff: cannot connection to  ${endpoint}`);
@@ -168,7 +194,19 @@ export class OPCUAProtocolClient implements ProtocolClient {
             this._connections.set(endpoint, c);
             try {
                 await client.connect(endpoint);
-                const session = await client.createSession();
+            } catch (err) {
+                const errMessage = "Cannot connected to endpoint " + endpoint + "\nmsg = " + (<Error>err).message;
+                debug(errMessage);
+                throw new Error(errMessage);
+            }
+            try {
+                // adjust with private key
+                if (this._userIdentity.type === UserTokenType.Certificate && !this._userIdentity.privateKey) {
+                    const internalKey = readPrivateKey(client.clientCertificateManager.privateKey);
+                    const privateKeyPem = coercePrivateKeyPem(internalKey);
+                    this._userIdentity.privateKey = privateKeyPem;
+                }
+                const session = await client.createSession(this._userIdentity);
                 c.session = session;
 
                 const subscription = await session.createSubscription2({
@@ -187,7 +225,10 @@ export class OPCUAProtocolClient implements ProtocolClient {
 
                 this._connections.set(endpoint, c);
             } catch (err) {
-                throw new Error("Cannot connected to endpoint " + endpoint + "\nmsg = " + (<Error>err).message);
+                await client.disconnect();
+                const errMessage = "Cannot handle session on " + endpoint + "\nmsg = " + (<Error>err).message;
+                debug(errMessage);
+                throw new Error(errMessage);
             }
         }
         if (c.pending) {
@@ -464,16 +505,56 @@ export class OPCUAProtocolClient implements ProtocolClient {
 
     async stop(): Promise<void> {
         debug("stop");
-        for (const c of this._connections.values()) {
-            await c.subscription.terminate();
-            await c.session.close();
-            await c.client.disconnect();
+        for (const connection of this._connections.values()) {
+            await connection.subscription.terminate();
+            await connection.session.close();
+            await connection.client.disconnect();
         }
+        CertificateManagerSingleton.releaseCertificateManager();
     }
 
-    setSecurity(metadata: SecurityScheme[], credentials?: unknown): boolean {
+    #setChannelSecurity(security: OPCUAChannelSecurityScheme): boolean {
+        const { messageSecurityMode, securityPolicy } = resolveChannelSecurity(security);
+        this._securityMode = messageSecurityMode;
+        this._securityPolicy = securityPolicy;
         return true;
-        // throw new Error("Method not implemented.");
+    }
+
+    #setAuthentication(security: OPCUACAuthenticationScheme): boolean {
+        this._userIdentity = resolvedUserIdentity(security);
+        return true;
+    }
+
+    setSecurity(securitySchemes: SecurityScheme[], credentials?: unknown): boolean {
+        for (const securityScheme of securitySchemes) {
+            let success = true;
+            switch (securityScheme.scheme) {
+                case "uav:channel-security":
+                    success = this.#setChannelSecurity(securityScheme as OPCUAChannelSecurityScheme);
+                    break;
+                case "uav:authentication":
+                    success = this.#setAuthentication(securityScheme as OPCUACAuthenticationScheme);
+                    break;
+                case "combo": {
+                    const combo = securityScheme as AllOfSecurityScheme | OneOfSecurityScheme;
+                    if (combo.allOf !== undefined) {
+                        success = this.setSecurity(combo.allOf, credentials);
+                    } else if (combo.oneOf !== undefined) {
+                        // pick the first one for now
+                        // later we might use credentials to select the most appropriate one
+                        success = this.setSecurity([combo.oneOf[0]], credentials);
+                    } else {
+                        success = false;
+                    }
+                    break;
+                }
+                default:
+                    // not for us , ignored
+                    break;
+            }
+            if (!success) return false;
+        }
+        return true;
     }
 
     private _monitoredItems: Map<
