@@ -134,13 +134,13 @@ export interface NullSchema extends BaseSchema {
     type: "null";
 }
 
-// TODO AutoSecurityScheme
 /**
  * @deprecated This type is deprecated and will be removed in a future release.
  */
 export type SecurityType =
     | NoSecurityScheme
     | BasicSecurityScheme
+    | AutoSecurityScheme
     | DigestSecurityScheme
     | BearerSecurityScheme
     | APIKeySecurityScheme
@@ -163,6 +163,10 @@ export interface NoSecurityScheme extends SecurityScheme, TDT.NoSecurityScheme {
 
 export interface BasicSecurityScheme extends SecurityScheme, TDT.BasicSecurityScheme {
     scheme: "basic";
+}
+
+export interface AutoSecurityScheme extends SecurityScheme, TDT.AutoSecurityScheme {
+    scheme: "auto";
 }
 
 export interface DigestSecurityScheme extends SecurityScheme, TDT.DigestSecurityScheme {

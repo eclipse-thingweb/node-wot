@@ -27,7 +27,13 @@ import { Subscription } from "rxjs/Subscription";
 
 import Servient from "../src/servient";
 import ConsumedThing from "../src/consumed-thing";
-import { AllOfSecurityScheme, Form, OneOfSecurityScheme, SecurityScheme } from "../src/thing-description";
+import {
+    AllOfSecurityScheme,
+    AutoSecurityScheme,
+    Form,
+    OneOfSecurityScheme,
+    SecurityScheme,
+} from "../src/thing-description";
 import { ProtocolClient, ProtocolClientFactory } from "../src/protocol-interfaces";
 import { Content } from "../src/content";
 import { ContentSerdes } from "../src/content-serdes";
@@ -1044,5 +1050,28 @@ class WoTClientTest {
         assert.throws(() => {
             ct.ensureClientSecurity(pc, form);
         }, /Combo SecurityScheme 'combo_without_oneOf_and_without_allof' is invalid/);
+    }
+
+    @test "with auto security scheme selection"() {
+        const ct = new ConsumedThing(WoTClientTest.servient);
+        ct.securityDefinitions = {
+            auto_sc: {
+                scheme: "auto",
+            },
+        };
+        ct.security = ["auto_sc"];
+        const pc = new TestProtocolClient();
+        const form: Form = {
+            href: "https://example.com/",
+        };
+        ct.ensureClientSecurity(pc, form);
+        expect(pc.securitySchemes.length).equals(1);
+        expect(pc.securitySchemes[0].scheme).equal("auto");
+
+        if (pc.securitySchemes[0].scheme === "auto") {
+            // casting to AutoSecurityScheme should not bother the IDE.
+            const autoScheme = pc.securitySchemes[0] as AutoSecurityScheme;
+            expect(autoScheme.scheme).to.equal("auto");
+        }
     }
 }
