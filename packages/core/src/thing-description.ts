@@ -135,6 +135,9 @@ export interface NullSchema extends BaseSchema {
 }
 
 // TODO AutoSecurityScheme
+/**
+ * @deprecated This type is deprecated and will be removed in a future release.
+ */
 export type SecurityType =
     | NoSecurityScheme
     | BasicSecurityScheme
