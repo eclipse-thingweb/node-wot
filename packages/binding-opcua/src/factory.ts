@@ -16,7 +16,6 @@
 import { ProtocolClientFactory, ProtocolClient, ContentSerdes, createLoggers } from "@node-wot/core";
 import { OpcuaJSONCodec, OpcuaBinaryCodec } from "./codec";
 import { OPCUAProtocolClient } from "./opcua-protocol-client";
-import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 
 const { debug } = createLoggers("binding-opcua", "factory");
 
@@ -56,12 +55,6 @@ export class OPCUAClientFactory implements ProtocolClientFactory {
                 await client.stop();
             }
         })();
-
-        OPCUAProtocolClient.releaseCertificateManager();
         return true;
-    }
-
-    async getCertificateManager(): Promise<OPCUACertificateManager> {
-        return await OPCUAProtocolClient.getCertificateManager();
     }
 }

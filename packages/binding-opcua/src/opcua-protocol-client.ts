@@ -17,8 +17,6 @@ import { Subscription } from "rxjs/Subscription";
 import { promisify } from "util";
 import { Readable } from "stream";
 import { URL } from "url";
-import path from "path";
-import envPath from "env-paths";
 import {
     ProtocolClient,
     Content,
@@ -54,24 +52,22 @@ import {
     getBuiltInDataType,
     readNamespaceArray,
     UserIdentityInfo,
-    UserIdentityInfoUserName,
-    UserIdentityInfoX509,
 } from "node-opcua-pseudo-session";
 import { makeNodeId, NodeId, NodeIdLike, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import { AttributeIds, BrowseDirection, makeResultMask } from "node-opcua-data-model";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { StatusCodes } from "node-opcua-status-code";
-import { coercePrivateKeyPem, convertPEMtoDER, readPrivateKey } from "node-opcua-crypto";
+import { coercePrivateKeyPem, readPrivateKey } from "node-opcua-crypto";
 import { opcuaJsonEncodeVariant } from "node-opcua-json";
 import { Argument, BrowseDescription, BrowseResult, MessageSecurityMode, UserTokenType } from "node-opcua-types";
-import { isGoodish2, OPCUACertificateManager, ReferenceTypeIds } from "node-opcua";
+import { isGoodish2, ReferenceTypeIds } from "node-opcua";
 
 import { schemaDataValue } from "./codec";
 import { OPCUACAuthenticationScheme, OPCUAChannelSecurityScheme } from "./security_scheme";
+import { CertificateManagerSingleton } from "./certificate-manager-singleton";
+import { resolveChannelSecurity, resolvedUserIdentity } from "./opcua-security-resolver";
 
 const { debug } = createLoggers("binding-opcua", "opcua-protocol-client");
-
-const env = envPath("binding-opcua", { suffix: "node-wot" });
 
 export type Command = "Read" | "Write" | "Subscribe";
 
@@ -167,32 +163,6 @@ export class OPCUAProtocolClient implements ProtocolClient {
     private _securityPolicy: SecurityPolicy = SecurityPolicy.None;
     private _userIdentity: UserIdentityInfo = <AnonymousIdentity>{ type: UserTokenType.Anonymous };
 
-    private static _certificateManager: OPCUACertificateManager | null = null;
-
-    public static async getCertificateManager(): Promise<OPCUACertificateManager> {
-        if (OPCUAProtocolClient._certificateManager) {
-            return OPCUAProtocolClient._certificateManager;
-        }
-        const rootFolder = path.join(env.config, "PKI");
-        debug("OPCUA PKI folder", rootFolder);
-        const certificateManager = new OPCUACertificateManager({
-            rootFolder,
-        });
-        await certificateManager.initialize();
-        certificateManager.referenceCounter++;
-        OPCUAProtocolClient._certificateManager = certificateManager;
-        return certificateManager;
-    }
-
-    public static releaseCertificateManager(): void {
-        if (OPCUAProtocolClient._certificateManager) {
-            OPCUAProtocolClient._certificateManager.referenceCounter--;
-            // dispose is degined to free resources if referenceCounter==0;
-            OPCUAProtocolClient._certificateManager.dispose();
-            OPCUAProtocolClient._certificateManager = null;
-        }
-    }
-
     private async _withConnection<T>(form: OPCUAForm, next: (connection: OPCUAConnection) => Promise<T>): Promise<T> {
         const endpoint = form.href;
         const matchesScheme: boolean = endpoint?.match(/^opc.tcp:\/\//) != null;
@@ -202,7 +172,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
         }
         let c: OPCUAConnectionEx | undefined = this._connections.get(endpoint);
         if (!c) {
-            const clientCertificateManager = await OPCUAProtocolClient.getCertificateManager();
+            const clientCertificateManager = await CertificateManagerSingleton.getCertificateManager();
             const client = OPCUAClient.create({
                 endpointMustExist: false,
                 connectionStrategy: {
@@ -540,57 +510,18 @@ export class OPCUAProtocolClient implements ProtocolClient {
             await connection.session.close();
             await connection.client.disconnect();
         }
-        await OPCUAProtocolClient._certificateManager?.dispose();
+        CertificateManagerSingleton.releaseCertificateManager();
     }
 
-    private setChannelSecurity(security: OPCUAChannelSecurityScheme): boolean {
-        const foundSecurity = SecurityPolicy[security.policy as keyof typeof SecurityPolicy];
-
-        if (foundSecurity === undefined) {
-            return false;
-        }
-
-        this._securityPolicy = foundSecurity;
-
-        switch (security.messageMode) {
-            case "sign":
-                this._securityMode = MessageSecurityMode.Sign;
-                break;
-            case "sign_encrypt":
-                this._securityMode = MessageSecurityMode.SignAndEncrypt;
-                break;
-            default:
-                this._securityMode = MessageSecurityMode.None;
-                break;
-        }
-
+    #setChannelSecurity(security: OPCUAChannelSecurityScheme): boolean {
+        const { messageSecurityMode, securityPolicy } = resolveChannelSecurity(security);
+        this._securityMode = messageSecurityMode;
+        this._securityPolicy = securityPolicy;
         return true;
     }
 
-    private setAuthentication(security: OPCUACAuthenticationScheme): boolean {
-        switch (security.tokenType) {
-            case "username":
-                this._userIdentity = <UserIdentityInfoUserName>{
-                    type: UserTokenType.UserName,
-                    password: security.password,
-                    userName: security.userName,
-                };
-                break;
-            case "certificate":
-                this._userIdentity = <UserIdentityInfoX509>{
-                    type: UserTokenType.Certificate,
-                    certificateData: convertPEMtoDER(security.certificate),
-                    privateKey: security.privateKey,
-                };
-                break;
-            case "anonymous":
-                this._userIdentity = <UserIdentityInfo>{
-                    type: UserTokenType.Anonymous,
-                };
-                break;
-            default:
-                return false;
-        }
+    #setAuthentication(security: OPCUACAuthenticationScheme): boolean {
+        this._userIdentity = resolvedUserIdentity(security);
         return true;
     }
 
@@ -599,10 +530,10 @@ export class OPCUAProtocolClient implements ProtocolClient {
             let success = true;
             switch (securityScheme.scheme) {
                 case "uav:channel-security":
-                    success = this.setChannelSecurity(securityScheme as OPCUAChannelSecurityScheme);
+                    success = this.#setChannelSecurity(securityScheme as OPCUAChannelSecurityScheme);
                     break;
                 case "uav:authentication":
-                    success = this.setAuthentication(securityScheme as OPCUACAuthenticationScheme);
+                    success = this.#setAuthentication(securityScheme as OPCUACAuthenticationScheme);
                     break;
                 case "combo": {
                     const combo = securityScheme as AllOfSecurityScheme | OneOfSecurityScheme;

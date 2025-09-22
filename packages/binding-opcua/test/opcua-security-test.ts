@@ -24,13 +24,13 @@ import { MessageSecurityMode, OPCUAClient, OPCUAServer, SecurityPolicy } from "n
 import { coercePrivateKeyPem, readCertificate, readCertificatePEM, readPrivateKey } from "node-opcua-crypto";
 import {
     OPCUAClientFactory,
-    OPCUAProtocolClient,
     OPCUACUserNameAuthenticationScheme,
     OPCUACertificateAuthenticationScheme,
     OPCUAChannelSecurityScheme,
 } from "../src";
 
 import { startServer } from "./fixture/basic-opcua-server";
+import { CertificateManagerSingleton } from "../src/certificate-manager-singleton";
 const endpoint = "opc.tcp://localhost:7890";
 
 const { debug } = createLoggers("binding-opcua", "full-opcua-thing-test");
@@ -325,7 +325,7 @@ describe("Testing OPCUA Security Combination", () => {
 
         // exchnage certificate
         const serverCertificateManager = opcuaServer.serverCertificateManager;
-        const clientCertificateManager = await OPCUAProtocolClient.getCertificateManager();
+        const clientCertificateManager = await CertificateManagerSingleton.getCertificateManager();
 
         // Client should trust client certificate
         const serverCertificate = opcuaServer.getCertificate();
