@@ -66,6 +66,7 @@ import { schemaDataValue } from "./codec";
 import { OPCUACAuthenticationScheme, OPCUAChannelSecurityScheme } from "./security_scheme";
 import { CertificateManagerSingleton } from "./certificate-manager-singleton";
 import { resolveChannelSecurity, resolvedUserIdentity } from "./opcua-security-resolver";
+import { findMostSecureChannel } from "./find-most-secure-channel";
 
 const { debug } = createLoggers("binding-opcua", "opcua-protocol-client");
 
@@ -161,6 +162,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
 
     private _securityMode: MessageSecurityMode = MessageSecurityMode.None;
     private _securityPolicy: SecurityPolicy = SecurityPolicy.None;
+    private _useAutoChannel: boolean = false;
     private _userIdentity: UserIdentityInfo = <AnonymousIdentity>{ type: UserTokenType.Anonymous };
 
     private async _withConnection<T>(form: OPCUAForm, next: (connection: OPCUAConnection) => Promise<T>): Promise<T> {
@@ -173,6 +175,14 @@ export class OPCUAProtocolClient implements ProtocolClient {
         let c: OPCUAConnectionEx | undefined = this._connections.get(endpoint);
         if (!c) {
             const clientCertificateManager = await CertificateManagerSingleton.getCertificateManager();
+
+            if (this._useAutoChannel) {
+                if (this._securityMode === MessageSecurityMode.Invalid) {
+                    const { messageSecurityMode, securityPolicy } = await findMostSecureChannel(endpoint);
+                    this._securityMode = messageSecurityMode;
+                    this._securityPolicy = securityPolicy;
+                }
+            }
             const client = OPCUAClient.create({
                 endpointMustExist: false,
                 connectionStrategy: {
@@ -517,6 +527,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
         const { messageSecurityMode, securityPolicy } = resolveChannelSecurity(security);
         this._securityMode = messageSecurityMode;
         this._securityPolicy = securityPolicy;
+        this._useAutoChannel = false;
         return true;
     }
 
@@ -529,6 +540,20 @@ export class OPCUAProtocolClient implements ProtocolClient {
         for (const securityScheme of securitySchemes) {
             let success = true;
             switch (securityScheme.scheme) {
+                case "auto": {
+                    //
+                    // Security scheme = auto instruct the client to automatically
+                    // determine the most secure channel to use based on server Endpoints.
+                    //
+                    this._useAutoChannel = true;
+                    // Invalid + _useAutoChannel=true indicates that the
+                    // Channel Security Settings need to be resolved at runtime
+                    // based on server Endpoints.
+                    this._securityMode = MessageSecurityMode.Invalid;
+                    this._securityPolicy = SecurityPolicy.None;
+                    success = true;
+                    break;
+                }
                 case "uav:channel-security":
                     success = this.#setChannelSecurity(securityScheme as OPCUAChannelSecurityScheme);
                     break;
