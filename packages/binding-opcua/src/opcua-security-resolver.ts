@@ -21,7 +21,7 @@ import {
     UserTokenType,
 } from "node-opcua-client";
 import { convertPEMtoDER } from "node-opcua-crypto";
-import { OPCUACAuthenticationScheme, OPCUAChannelSecurityScheme } from "./security_scheme";
+import { OPCUACAuthenticationScheme, OPCUAChannelSecurityScheme } from "./security-scheme";
 
 export interface OPCUAChannelSecuritySettings {
     securityPolicy: SecurityPolicy;

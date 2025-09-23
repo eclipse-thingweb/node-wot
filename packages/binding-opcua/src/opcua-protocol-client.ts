@@ -63,7 +63,7 @@ import { Argument, BrowseDescription, BrowseResult, MessageSecurityMode, UserTok
 import { isGoodish2, ReferenceTypeIds } from "node-opcua";
 
 import { schemaDataValue } from "./codec";
-import { OPCUACAuthenticationScheme, OPCUAChannelSecurityScheme } from "./security_scheme";
+import { OPCUACAuthenticationScheme, OPCUAChannelSecurityScheme } from "./security-scheme";
 import { CertificateManagerSingleton } from "./certificate-manager-singleton";
 import { resolveChannelSecurity, resolvedUserIdentity } from "./opcua-security-resolver";
 import { findMostSecureChannel } from "./find-most-secure-channel";

@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-import { coerceSecurityPolicy, MessageSecurityMode, OPCUAClient, s, SecurityPolicy } from "node-opcua-client";
+import { MessageSecurityMode, OPCUAClient, SecurityPolicy } from "node-opcua-client";
 
 function getPriority(securityPolicy: string | null, securityMode: MessageSecurityMode): number {
     const encryptWeight = securityMode === MessageSecurityMode.SignAndEncrypt ? 100 : 0;
@@ -77,6 +77,12 @@ interface EndpointDescriptionMini {
     securityPolicyUri: string | null;
 }
 
+const defaultEndpoint: EndpointDescriptionMini = {
+    endpointUrl: null,
+    securityMode: MessageSecurityMode.None,
+    securityPolicyUri: SecurityPolicy.None,
+};
+
 async function findMostSecureChannelInternal(client: OPCUAClient): Promise<EndpointDescriptionMini> {
     let endpoints = await client.getEndpoints();
 
@@ -84,19 +90,9 @@ async function findMostSecureChannelInternal(client: OPCUAClient): Promise<Endpo
     endpoints = endpoints.sort((a, b) => {
         const securityLevelA = getPriority(a.securityPolicyUri, a.securityMode);
         const securityLevelB = getPriority(b.securityPolicyUri, b.securityMode);
-        if (securityLevelA !== securityLevelB) {
-            return securityLevelB - securityLevelA;
-        }
-        // keep original order
-        return 0;
+        return securityLevelB - securityLevelA;
     });
-    return (
-        endpoints[0]! || {
-            endpointUrl: null,
-            securityMode: MessageSecurityMode.None,
-            securityPolicyUri: SecurityPolicy.None,
-        }
-    );
+    return endpoints.length > 0 ? endpoints[0] : defaultEndpoint;
 }
 
 export async function findMostSecureChannel(
