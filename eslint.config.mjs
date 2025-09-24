@@ -102,7 +102,7 @@ export default defineConfig([
 
             // **************** enforece kebab-case for filenames ****************
             "react-naming-convention/filename": [
-                "warn",
+                "error",
                 {
                     rule: "kebab-case",
                 },
