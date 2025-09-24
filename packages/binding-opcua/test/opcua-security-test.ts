@@ -126,6 +126,9 @@ const thingDescription: WoT.ThingDescription = {
             scheme: "combo",
             allOf: ["c:sign-encrypt_basic256Sha256"],
         },
+        "c:auto_a:anonymous": {
+            scheme: "auto",
+        },
     },
 
     security: "no_security", // by default,
@@ -230,6 +233,11 @@ function inferExpectedSecurityMode(security: string): WhoAmI {
     } else if (security.match(/c:no_security/)) {
         expected.ChannelSecurityMode = "None";
         expected.ChannelSecurityPolicyUri = "http://opcfoundation.org/UA/SecurityPolicy#None";
+    } else if (security.match(/c:auto/)) {
+        // the most secure that the server supports, by client looking-up at the server endpoints
+        expected.ChannelSecurityMode = "SignAndEncrypt";
+        expected.ChannelSecurityPolicyUri = "http://opcfoundation.org/UA/SecurityPolicy#Aes256_Sha256_RsaPss";
+        return expected;
     }
 
     if (security.match(/basic256Sha256/)) {
