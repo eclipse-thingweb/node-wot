@@ -209,7 +209,6 @@ export default class CoapClient implements ProtocolClient {
     public setSecurity = (metadata: Array<SecurityScheme>): boolean => true;
 
     private uriToOptions(uri: string): CoapRequestParams {
-        // eslint-disable-next-line n/no-deprecated-api
         const requestUri = url.parse(uri);
         const agentOptions = this.agentOptions;
         agentOptions.type = net.isIPv6(requestUri.hostname ?? "") ? "udp6" : "udp4";
