@@ -91,6 +91,16 @@ class HodorCodec implements ContentCodec {
     }
 }
 
+class HodorHttpCodec extends HodorCodec {
+    bytesToValue(): string {
+        return "HodorHttp";
+    }
+
+    valueToBytes(): Buffer {
+        return Buffer.from("HodorHttp");
+    }
+}
+
 @suite("testing OctectStream codec")
 class SerdesOctetTests {
     @test "OctetStream to value"() {
@@ -1058,6 +1068,7 @@ class CborSerdesTests {
 class SerdesCodecTests {
     static before() {
         ContentSerdes.addCodec(new HodorCodec());
+        ContentSerdes.addCodec(new HodorHttpCodec(), false, "http");
     }
 
     @test async "new codec should serialize"() {
@@ -1071,5 +1082,18 @@ class SerdesCodecTests {
         expect(ContentSerdes.contentToValue({ type: "text/hodor", body: buffer }, { type: "string" })).to.be.deep.equal(
             "Hodor"
         );
+    }
+
+    @test async "new codec based on scheme should serialize"() {
+        const content = ContentSerdes.valueToContent("The meaning of Life", { type: "string" }, "text/hodor", "http");
+        const body = await content.toBuffer();
+        body.toString().should.equal("HodorHttp");
+    }
+
+    @test "new codec based on scheme should deserialize"() {
+        const buffer = Buffer.from("Some actual meaningful stuff");
+        expect(
+            ContentSerdes.contentToValue({ type: "text/hodor", body: buffer }, { type: "string" }, "http")
+        ).to.be.deep.equal("HodorHttp");
     }
 }
