@@ -130,6 +130,7 @@ export default defineConfig([
             "no-prototype-builtins": "off",
             "no-case-declarations": "off",
 
+            "no-console": "error",
             // ***************** Enforce that for-in loops include an if statement to filter properties from the prototype chain
             "guard-for-in": "error",
         },
