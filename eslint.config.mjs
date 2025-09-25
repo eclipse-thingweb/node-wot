@@ -10,7 +10,8 @@ import workspaces from "eslint-plugin-workspaces";
 import notice from "eslint-plugin-notice";
 import globals from "globals";
 import js from "@eslint/js";
-import reactNamingConvention from "eslint-plugin-react-naming-convention";
+import checkFile from "eslint-plugin-check-file";
+
 import extraneousDependencies from "eslint-plugin-import";
 import { FlatCompat } from "@eslint/eslintrc";
 import nodePlugin from "eslint-plugin-n";
@@ -50,9 +51,9 @@ export default defineConfig([
             "unused-imports": unusedImports,
             workspaces,
             notice,
-            "react-naming-convention": reactNamingConvention,
             "extraneous-dependencies": extraneousDependencies,
             n: nodePlugin,
+            "check-file": checkFile,
         },
 
         rules: {
@@ -101,13 +102,21 @@ export default defineConfig([
             ],
 
             // **************** enforece kebab-case for filenames ****************
-            "react-naming-convention/filename": [
+            "check-file/filename-naming-convention": [
                 "error",
                 {
-                    rule: "kebab-case",
+                    "**/*.{js,ts}": "KEBAB_CASE",
+                },
+                {
+                    ignoreMiddleExtensions: true,
                 },
             ],
-
+            "check-file/folder-naming-convention": [
+                "error",
+                {
+                    "**/*": "KEBAB_CASE",
+                },
+            ],
             // *************** Customization of other typescript rules ***************
             "@typescript-eslint/no-use-before-define": "error",
             "@typescript-eslint/no-unused-vars": "off",
