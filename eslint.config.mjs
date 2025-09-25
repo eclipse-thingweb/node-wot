@@ -115,6 +115,7 @@ export default defineConfig([
             "@typescript-eslint/no-require-imports": "warn",
             "@typescript-eslint/prefer-nullish-coalescing": "warn",
             "@typescript-eslint/no-empty-object-type": "warn",
+            "@typescript-eslint/no-floating-promises": "warn",
 
             // ****************  Enforce usage of `const` over `let` wherever possible, to prevent accidental reassignments
             "prefer-const": "warn",
