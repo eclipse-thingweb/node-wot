@@ -12,6 +12,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
+/* eslint  no-console: "off" */
 
 import { ExposedThingInit } from "wot-typescript-definitions";
 
@@ -35,11 +36,13 @@ const td: ExposedThingInit = {
         },
     },
 };
-try {
-    WoT.produce(td).then((thing) => {
-        thing.setActionHandler("sayOk", async () => "Ok!");
-        thing.expose();
-    });
-} catch (err) {
-    console.error("Script error: " + err);
+
+async function main() {
+    const thing = await WoT.produce(td);
+    thing.setActionHandler("sayOk", async () => "Ok!");
+    await thing.expose();
+    console.log(`Exposed ${thing.getThingDescription().title}`);
 }
+main().catch((err) => {
+    console.error("Script error: " + err);
+});

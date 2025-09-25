@@ -13,14 +13,16 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
-WoT.requestThingDescription("https://localhost:8080/oauth").then((td) => {
-    WoT.consume(td).then(async (thing) => {
-        try {
-            const resp = await thing.invokeAction("sayOk");
-            const result = await resp?.value();
-            console.log("oAuth token was", result);
-        } catch (error) {
-            console.log("It seems that I couldn't access the resource");
-        }
-    });
+/* eslint  no-console: "off" */
+
+async function main() {
+    const td = await WoT.requestThingDescription("https://localhost:8080/oauth");
+    const thing = await WoT.consume(td);
+    const resp = await thing.invokeAction("sayOk");
+    const result = await resp?.value();
+    console.log("oAuth token was", result);
+}
+main().catch((err) => {
+    console.log("It seems that I couldn't access the resource");
+    console.error("Script error:", err);
 });

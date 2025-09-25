@@ -12,6 +12,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
+/* eslint  no-console: "off" */
 
 // This is an example Thing which is a smart clock that runs 60 times faster than real time, where 1 hour happens in 1 minute.
 

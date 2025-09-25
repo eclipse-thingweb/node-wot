@@ -12,6 +12,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
+/* eslint  no-console: "off" */
 
 import { Servient } from "@node-wot/core";
 import { OPCUAClientFactory } from "@node-wot/binding-opcua";
@@ -32,4 +33,6 @@ import { thingDescription } from "./demo-opcua-thing-description";
     console.log("------------------------------");
 
     await servient.shutdown();
-})();
+})().catch((err) => {
+    console.error("Script error:", err);
+});

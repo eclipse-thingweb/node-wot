@@ -12,6 +12,9 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
+
+/* eslint  no-console: "off" */
+
 import { Servient } from "@node-wot/core";
 import { OPCUAClientFactory } from "@node-wot/binding-opcua";
 import { thingDescription } from "./opcua-coffee-machine-thing-description";
@@ -25,18 +28,27 @@ const pause = async (ms: number) => new Promise((resolve) => setTimeout(resolve,
     const thing = await wot.consume(thingDescription);
 
     try {
-        thing.observeProperty("waterTankLevel", async (data) => {
-            const waterTankLevel = await data.value();
-            console.log("------------------------------");
-            console.log("tankLevel : ", waterTankLevel, "ml");
-            console.log("------------------------------");
-        });
-        thing.observeProperty("coffeeBeanLevel", async (data) => {
-            const coffeBeanLevel = await data.value();
-            console.log("------------------------------");
-            console.log("bean level : ", coffeBeanLevel, "g");
-            console.log("------------------------------");
-        });
+        thing
+            .observeProperty("waterTankLevel", async (data) => {
+                const waterTankLevel = await data.value();
+                console.log("------------------------------");
+                console.log("tankLevel : ", waterTankLevel, "ml");
+                console.log("------------------------------");
+            })
+            .catch((err) => {
+                console.error("Error observing waterTankLevel property:", err);
+            });
+        thing
+            .observeProperty("coffeeBeanLevel", async (data) => {
+                const coffeBeanLevel = await data.value();
+                console.log("------------------------------");
+                console.log("bean level : ", coffeBeanLevel, "g");
+                console.log("------------------------------");
+            })
+            .catch((err) => {
+                console.error("Error observing coffeeBeanLevel property:", err);
+            });
+
         await thing.invokeAction("brewCoffee", { CoffeeType: 1 });
         await pause(5000);
         await thing.invokeAction("brewCoffee", { CoffeeType: 0 });
@@ -47,4 +59,6 @@ const pause = async (ms: number) => new Promise((resolve) => setTimeout(resolve,
     } finally {
         await servient.shutdown();
     }
-})();
+})().catch((err) => {
+    console.error("Script error:", err);
+});
