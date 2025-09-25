@@ -26,13 +26,6 @@ should();
 class OAuthServerTests {
     private server!: HttpServer;
     async before() {
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        console.debug = () => {};
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        console.warn = () => {};
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        console.info = () => {};
-
         const method: IntrospectionEndpoint = {
             name: "introspection_endpoint",
             endpoint: "http://localhost:4242",
