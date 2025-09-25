@@ -13,7 +13,6 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 import { expect } from "chai";
-import debug from "debug";
 import { OPCUAServer } from "node-opcua";
 
 import {
@@ -26,6 +25,9 @@ import {
     UserTokenType,
 } from "node-opcua-client";
 import { startServer } from "./fixture/basic-opcua-server";
+import { createLoggers } from "@node-wot/core";
+
+const { debug } = createLoggers("binding-opcua", "who-am-i-test");
 
 interface WhoAmIResult {
     userName?: string;

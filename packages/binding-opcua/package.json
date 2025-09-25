@@ -15,7 +15,8 @@
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "devDependencies": {
-        "should": "^13.2.3"
+        "should": "^13.2.3",
+        "chai": "^4.3.4"
     },
     "dependencies": {
         "@node-wot/core": "0.9.2",

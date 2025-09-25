@@ -495,7 +495,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
 
     async unlinkResource(form: OPCUAForm): Promise<void> {
         debug(`unlinkResource: form ${OPCUAProtocolClient.getNodeId(form)}`);
-        this._withSubscription<void>(form, async (session, subscription) => {
+        await this._withSubscription<void>(form, async (session, subscription) => {
             const nodeId = await this._resolveNodeId(form);
             await this._unmonitor(nodeId);
         });
@@ -520,7 +520,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
             await connection.session.close();
             await connection.client.disconnect();
         }
-        CertificateManagerSingleton.releaseCertificateManager();
+        await CertificateManagerSingleton.releaseCertificateManager();
     }
 
     #setChannelSecurity(security: OPCUAChannelSecurityScheme): boolean {

@@ -337,13 +337,13 @@ describe("Testing OPCUA Security Combination", () => {
 
         // Client should trust client certificate
         const serverCertificate = opcuaServer.getCertificate();
-        clientCertificateManager.trustCertificate(serverCertificate);
+        await clientCertificateManager.trustCertificate(serverCertificate);
 
         // Server should trust application client certificate
         const client = OPCUAClient.create({ clientCertificateManager });
         await client.createDefaultCertificate();
         const clientCertificate = client.getCertificateChain();
-        serverCertificateManager.trustCertificate(clientCertificate);
+        await serverCertificateManager.trustCertificate(clientCertificate);
 
         // let's create the x509 Certificate for User JoeDoe
         const joedoeX509CertificateFilename = path.join(
@@ -363,7 +363,7 @@ describe("Testing OPCUA Security Combination", () => {
 
         // server should trust x509 User certificate
         const userCertificateManager = opcuaServer.userCertificateManager;
-        userCertificateManager.trustCertificate(joedoeX509Cerficate);
+        await userCertificateManager.trustCertificate(joedoeX509Cerficate);
 
         // adjust thingDescription x509 parameters with generated certficate info
         const joedoeX509CertificatePem = readCertificatePEM(joedoeX509CertificateFilename);

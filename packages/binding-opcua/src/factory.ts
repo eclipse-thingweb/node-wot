@@ -17,7 +17,7 @@ import { ProtocolClientFactory, ProtocolClient, ContentSerdes, createLoggers } f
 import { OpcuaJSONCodec, OpcuaBinaryCodec } from "./codec";
 import { OPCUAProtocolClient } from "./opcua-protocol-client";
 
-const { debug } = createLoggers("binding-opcua", "factory");
+const { debug, error } = createLoggers("binding-opcua", "factory");
 
 export class OPCUAClientFactory implements ProtocolClientFactory {
     readonly scheme: string = "opc.tcp";
@@ -54,7 +54,9 @@ export class OPCUAClientFactory implements ProtocolClientFactory {
             for (const client of clients) {
                 await client.stop();
             }
-        })();
+        })().catch((err) => {
+            error("Error destroying clients", err);
+        });
         return true;
     }
 }
