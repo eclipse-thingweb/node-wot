@@ -25,24 +25,11 @@ chai.use(chaiAsPromised);
 describe("mbus client test", () => {
     let client: MBusClient;
 
-    before(() => {
-        // Turn off logging to have a clean test log
-        console.debug = () => {
-            /* nothing */
-        };
-        console.warn = () => {
-            /* nothing */
-        };
-    });
-
     beforeEach(() => {
         client = new MBusClient();
     });
     afterEach(() => {
         client.stop();
-    });
-    after(() => {
-        /* nothing */
     });
 
     it("should override form values with URL", function () {
