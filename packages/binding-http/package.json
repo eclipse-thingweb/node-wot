@@ -44,7 +44,7 @@
     },
     "scripts": {
         "build": "tsc -b",
-        "test": "mocha --require ts-node/register --extension ts",
+        "test": "mocha --unhandled-rejections=strict --require ts-node/register --extension ts",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
         "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"**/*.json\""
