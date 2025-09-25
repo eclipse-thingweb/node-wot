@@ -44,13 +44,6 @@ describe("OAuth2.0 Validator tests", () => {
         private validator!: Validator;
         static server: http.Server;
         static before() {
-            // eslint-disable-next-line @typescript-eslint/no-empty-function
-            console.debug = () => {};
-            // eslint-disable-next-line @typescript-eslint/no-empty-function
-            console.warn = () => {};
-            // eslint-disable-next-line @typescript-eslint/no-empty-function
-            console.info = () => {};
-
             const tokens = ["active", "noScopes", "notActive"];
 
             const introspectEndpoint: express.Express = express();
