@@ -12,6 +12,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
+/* eslint  no-console: "off" */
 
 // This is an example of Web of Things producer ("server" mode) Thing script.
 // It considers a fictional smart coffee machine in order to demonstrate the capabilities of Web of Things.
@@ -410,9 +411,14 @@ Assumes one medium americano if not specified, but time and mode are mandatory f
         });
 
         // Finally expose the thing
-        thing.expose().then(() => {
-            console.info(`${thing.getThingDescription().title} ready`);
-        });
+        thing
+            .expose()
+            .then(() => {
+                console.info(`${thing.getThingDescription().title} ready`);
+            })
+            .catch((err) => {
+                console.error(`Failed to expose thing: ${err}`);
+            });
         console.log(`Produced ${thing.getThingDescription().title}`);
     })
     .catch((e) => {

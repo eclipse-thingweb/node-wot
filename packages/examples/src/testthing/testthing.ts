@@ -12,6 +12,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
+/* eslint  no-console: "off" */
 
 function checkPropertyWrite(expected: string, actual: unknown) {
     const output = "Property " + expected + " written with " + actual;
@@ -298,9 +299,14 @@ WoT.produce({
             });
 
         // expose the thing
-        thing.expose().then(() => {
-            console.info(thing.getThingDescription().title + " ready");
-        });
+        thing
+            .expose()
+            .then(() => {
+                console.info(thing.getThingDescription().title + " ready");
+            })
+            .catch((err) => {
+                console.error("Error exposing thing: " + err);
+            });
     })
     .catch((e) => {
         console.log(e);

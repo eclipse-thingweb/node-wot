@@ -12,6 +12,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
+/* eslint  no-console: "off" */
 
 // This is an example Thing script.
 // It has a count property that can be incremented or decremented via actions and its changes are reported via events.

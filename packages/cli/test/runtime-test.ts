@@ -25,6 +25,7 @@ import { should, assert } from "chai";
 import DefaultServient from "../src/cli-default-servient";
 
 import fs from "fs";
+import { EventEmitter } from "stream";
 // should must be called to augment all variables
 should();
 
@@ -39,13 +40,7 @@ class WoTRuntimeTest {
     };
 
     static async before() {
-        // We need to disable this check for killing servient logs
-        /* eslint-disable @typescript-eslint/no-empty-function */
-        console.error = () => {};
-        console.debug = () => {};
-        console.warn = () => {};
-        console.info = () => {};
-        /* eslint-enable @typescript-eslint/no-empty-function */
+        EventEmitter.setMaxListeners(20);
         this.servient = new DefaultServient(true);
         await this.servient.start();
     }

@@ -23,7 +23,7 @@
 import { suite, test } from "@testdeck/mocha";
 import { Form } from "../src/thing-description";
 import { expect } from "chai";
-import { ProtocolHelpers } from "..";
+import { ProtocolHelpers } from "../dist/core";
 import { ActionElement, EventElement, PropertyElement } from "wot-thing-description-types";
 
 @suite("Protocol Helpers")

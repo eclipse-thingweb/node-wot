@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018 Contributors to the Eclipse Foundation
+ * Copyright (c) 2025 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -12,17 +12,3 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-
-/* eslint  no-console: "off" */
-
-async function main() {
-    const td = await WoT.requestThingDescription("https://localhost:8080/oauth");
-    const thing = await WoT.consume(td);
-    const resp = await thing.invokeAction("sayOk");
-    const result = await resp?.value();
-    console.log("oAuth token was", result);
-}
-main().catch((err) => {
-    console.log("It seems that I couldn't access the resource");
-    console.error("Script error:", err);
-});

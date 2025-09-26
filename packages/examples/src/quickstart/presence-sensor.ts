@@ -12,6 +12,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
+/* eslint  no-console: "off" */
 
 // This is an example Thing script which is a simple presence detector
 // It fires an event when it detects a person (mocked as every 5 second)

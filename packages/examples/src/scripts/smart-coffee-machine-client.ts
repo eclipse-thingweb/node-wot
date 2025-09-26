@@ -12,6 +12,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
+/* eslint  no-console: "off" */
 
 // This is an example of Web of Things consumer ("client" mode) Thing script.
 // It considers a fictional smart coffee machine in order to demonstrate the capabilities of Web of Things.
@@ -25,73 +26,85 @@ function log(msg: string, data: unknown) {
     console.info("======================");
 }
 
-WoT.requestThingDescription("http://127.0.0.1:8080/smart-coffee-machine").then(async (td) => {
-    try {
-        const thing = await WoT.consume(td);
-        log("Thing Description:", td);
+WoT.requestThingDescription("http://127.0.0.1:8080/smart-coffee-machine")
+    .then(async (td) => {
+        try {
+            const thing = await WoT.consume(td);
+            log("Thing Description:", td);
 
-        // Read property allAvailableResources
-        let allAvailableResources = await (await thing.readProperty("allAvailableResources")).value();
-        log("allAvailableResources value is:", allAvailableResources);
+            // Read property allAvailableResources
+            let allAvailableResources = await (await thing.readProperty("allAvailableResources")).value();
+            log("allAvailableResources value is:", allAvailableResources);
 
-        // Now let's change water level to 80
-        await thing.writeProperty("availableResourceLevel", 80, { uriVariables: { id: "water" } });
+            // Now let's change water level to 80
+            await thing.writeProperty("availableResourceLevel", 80, { uriVariables: { id: "water" } });
 
-        // And see that the water level has changed
-        const waterLevel = await (
-            await thing.readProperty("availableResourceLevel", { uriVariables: { id: "water" } })
-        ).value();
-        log("waterLevel value after change is:", waterLevel);
+            // And see that the water level has changed
+            const waterLevel = await (
+                await thing.readProperty("availableResourceLevel", { uriVariables: { id: "water" } })
+            ).value();
+            log("waterLevel value after change is:", waterLevel);
 
-        // This can also be seen in allAvailableResources property
-        allAvailableResources = await (await thing.readProperty("allAvailableResources")).value();
-        log("allAvailableResources value after change is:", allAvailableResources);
+            // This can also be seen in allAvailableResources property
+            allAvailableResources = await (await thing.readProperty("allAvailableResources")).value();
+            log("allAvailableResources value after change is:", allAvailableResources);
 
-        // It's also possible to set a client-side handler for observable properties
-        thing.observeProperty("maintenanceNeeded", async (data) => {
-            log("maintenanceNeeded property has changed! New value is:", await data.value());
-        });
+            // It's also possible to set a client-side handler for observable properties
+            thing
+                .observeProperty("maintenanceNeeded", async (data) => {
+                    log("maintenanceNeeded property has changed! New value is:", await data.value());
+                })
+                .catch((err) => {
+                    console.error("Error observing maintenanceNeeded property:", err);
+                });
 
-        // Now let's make 3 cups of latte!
-        const makeCoffee = await thing.invokeAction("makeDrink", undefined, {
-            uriVariables: { drinkId: "latte", size: "l", quantity: 3 },
-        });
-        const makeCoffeep = (await makeCoffee?.value()) as Record<string, unknown>;
-        if (makeCoffeep.result != null) {
-            log("Enjoy your drink!", makeCoffeep);
-        } else {
-            log("Failed making your drink:", makeCoffeep);
+            // Now let's make 3 cups of latte!
+            const makeCoffee = await thing.invokeAction("makeDrink", undefined, {
+                uriVariables: { drinkId: "latte", size: "l", quantity: 3 },
+            });
+            const makeCoffeep = (await makeCoffee?.value()) as Record<string, unknown>;
+            if (makeCoffeep.result != null) {
+                log("Enjoy your drink!", makeCoffeep);
+            } else {
+                log("Failed making your drink:", makeCoffeep);
+            }
+
+            // See how allAvailableResources property value has changed
+            allAvailableResources = await (await thing.readProperty("allAvailableResources")).value();
+            log("allAvailableResources value is:", allAvailableResources);
+
+            // Let's add a scheduled task
+            const scheduledTask = await thing.invokeAction("setSchedule", {
+                drinkId: "espresso",
+                size: "m",
+                quantity: 2,
+                time: "10:00",
+                mode: "everyday",
+            });
+            const scheduledTaskp = (await scheduledTask?.value()) as Record<string, string>;
+            log(scheduledTaskp.message, scheduledTaskp);
+
+            // See how it has been added to the schedules property
+            const schedules = await (await thing.readProperty("schedules")).value();
+            log("schedules value: ", schedules);
+
+            // Let's set up a handler for outOfResource event
+            thing
+                .subscribeEvent("outOfResource", async (data) => {
+                    // Here we are simply logging the message when the event is emitted
+                    // But, of course, could have a much more sophisticated handler
+                    log("outOfResource event:", await data.value());
+                })
+                .catch((err) => {
+                    console.error("Error subscribing to outOfResource event:", err);
+                });
+
+            // fire property change for maintenanceNeeded
+            await thing.writeProperty("servedCounter", 1001);
+        } catch (err) {
+            console.error("Script error:", err);
         }
-
-        // See how allAvailableResources property value has changed
-        allAvailableResources = await (await thing.readProperty("allAvailableResources")).value();
-        log("allAvailableResources value is:", allAvailableResources);
-
-        // Let's add a scheduled task
-        const scheduledTask = await thing.invokeAction("setSchedule", {
-            drinkId: "espresso",
-            size: "m",
-            quantity: 2,
-            time: "10:00",
-            mode: "everyday",
-        });
-        const scheduledTaskp = (await scheduledTask?.value()) as Record<string, string>;
-        log(scheduledTaskp.message, scheduledTaskp);
-
-        // See how it has been added to the schedules property
-        const schedules = await (await thing.readProperty("schedules")).value();
-        log("schedules value: ", schedules);
-
-        // Let's set up a handler for outOfResource event
-        thing.subscribeEvent("outOfResource", async (data) => {
-            // Here we are simply logging the message when the event is emitted
-            // But, of course, could have a much more sophisticated handler
-            log("outOfResource event:", await data.value());
-        });
-
-        // fire property change for maintenanceNeeded
-        await thing.writeProperty("servedCounter", 1001);
-    } catch (err) {
-        console.error("Script error:", err);
-    }
-});
+    })
+    .catch((err) => {
+        console.error("Could not get TD:", err);
+    });

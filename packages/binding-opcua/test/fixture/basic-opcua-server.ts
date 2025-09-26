@@ -295,10 +295,12 @@ export async function startServer(): Promise<OPCUAServer> {
 }
 
 if (require.main === module) {
-    (async () => {
+    const main = async () => {
         const server = await startServer();
-        process.once("SIGINT", () => {
-            server.shutdown();
-        });
-    })();
+        await new Promise<void>((resolve) => process.once("SIGINT", resolve));
+        await server.shutdown();
+    };
+    main().catch((err) => {
+        info("Error = ", err);
+    });
 }

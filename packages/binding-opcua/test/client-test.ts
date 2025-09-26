@@ -170,10 +170,18 @@ describe("OPCUA Client", function () {
                     resolve();
                 }
             };
-            client.subscribeResource(form, onSubscribedValueChanged);
-            client.subscribeResource(form, onSubscribedValueChanged);
-            client.subscribeResource(form, onSubscribedValueChanged);
-            client.subscribeResource(form, onSubscribedValueChanged);
+            client.subscribeResource(form, onSubscribedValueChanged).catch((err) => {
+                debug("Error in subscribeResource 1:", err);
+            });
+            client.subscribeResource(form, onSubscribedValueChanged).catch((err) => {
+                debug("Error in subscribeResource 2:", err);
+            });
+            client.subscribeResource(form, onSubscribedValueChanged).catch((err) => {
+                debug("Error in subscribeResource 3:", err);
+            });
+            client.subscribeResource(form, onSubscribedValueChanged).catch((err) => {
+                debug("Error in subscribeResource 4:", err);
+            });
         });
     });
 

@@ -12,6 +12,8 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
+/* eslint  no-console: "off" */
+
 import { Servient } from "@node-wot/core";
 import { OPCUAClientFactory } from "@node-wot/binding-opcua";
 import { thingDescription } from "./demo-opcua-thing-description";
@@ -23,14 +25,20 @@ import { thingDescription } from "./demo-opcua-thing-description";
     const wot = await servient.start();
     const thing = await wot.consume(thingDescription);
 
-    thing.observeProperty("temperature", async (data) => {
-        const temperature = await data.value();
-        console.log("------------------------------");
-        console.log("temperature : ", temperature, "m/s");
-        console.log("------------------------------");
-    });
+    thing
+        .observeProperty("temperature", async (data) => {
+            const temperature = await data.value();
+            console.log("------------------------------");
+            console.log("temperature : ", temperature, "m/s");
+            console.log("------------------------------");
+        })
+        .catch((err) => {
+            console.error("Error observing temperature property:", err);
+        });
 
     await new Promise((resolve) => setTimeout(resolve, 10000));
 
     await servient.shutdown();
-})();
+})().catch((err) => {
+    console.error("Script error:", err);
+});

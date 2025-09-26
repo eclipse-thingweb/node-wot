@@ -44,7 +44,7 @@ import { ThingDescription } from "wot-typescript-definitions";
 import chaiAsPromised from "chai-as-promised";
 import { fail } from "assert";
 
-const { debug } = createLoggers("core", "ClientTest");
+const { debug, info } = createLoggers("core", "ClientTest");
 
 chaiUse(chaiAsPromised);
 
@@ -431,7 +431,7 @@ class WoTClientTest {
         try {
             await thing.writeProperty("aProperty", ProtocolHelpers.toWoTStream(stream));
         } catch (error) {
-            console.log(error);
+            info("Error writing property: " + error);
         }
     }
 

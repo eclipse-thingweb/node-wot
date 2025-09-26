@@ -43,11 +43,11 @@ export class CertificateManagerSingleton {
         return certificateManager;
     }
 
-    public static releaseCertificateManager(): void {
+    public static async releaseCertificateManager(): Promise<void> {
         if (CertificateManagerSingleton._certificateManager) {
             CertificateManagerSingleton._certificateManager.referenceCounter--;
             // dispose is degined to free resources if referenceCounter==0;
-            CertificateManagerSingleton._certificateManager.dispose();
+            await CertificateManagerSingleton._certificateManager.dispose();
             CertificateManagerSingleton._certificateManager = null;
         }
     }

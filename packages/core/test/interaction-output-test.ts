@@ -19,7 +19,7 @@ import promised from "chai-as-promised";
 import { expect, use } from "chai";
 import { Readable } from "stream";
 import { InteractionOutput, ActionInteractionOutput } from "../src/interaction-output";
-import { Content } from "..";
+import { Content } from "../dist/core";
 import { fail } from "assert";
 
 use(promised);

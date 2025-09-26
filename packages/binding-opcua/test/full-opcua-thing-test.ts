@@ -25,7 +25,7 @@ import { OPCUAClientFactory } from "../src";
 import { startServer } from "./fixture/basic-opcua-server";
 const endpoint = "opc.tcp://localhost:7890";
 
-const { debug } = createLoggers("binding-opcua", "full-opcua-thing-test");
+const { debug, info } = createLoggers("binding-opcua", "full-opcua-thing-test");
 
 const thingDescription: WoT.ThingDescription = {
     "@context": "https://www.w3.org/2019/wot/td/v1",
@@ -345,7 +345,9 @@ describe("Full OPCUA Thing Test", () => {
         const wot = await servient.start();
         const thing = await wot.produce(thingDescription);
 
-        thing.expose();
+        thing.expose().catch((err) => {
+            info(`Cannot expose thing: ${err.message}`);
+        });
 
         let temperature = 10;
         const readHandler = async () => temperature;

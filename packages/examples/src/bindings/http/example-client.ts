@@ -12,6 +12,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
+/* eslint  no-console: "off" */
 
 import { Servient } from "@node-wot/core";
 import { HttpClientFactory } from "@node-wot/binding-http";
