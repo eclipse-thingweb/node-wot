@@ -147,7 +147,7 @@ export class ContentSerdes {
             const codec = this.codecs.get(mt);
 
             // use codec to deserialize
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- this.codecs.has(mt) is true
+            // this.codecs.has(mt) is true
             const res = codec!.bytesToValue(content.body, schema, par);
 
             return res;

@@ -382,7 +382,6 @@ class WoTClientTest {
         expect(thing.getThingDescription()).to.have.property("properties").to.have.property("aProperty");
 
         const result = await thing.readProperty("aProperty");
-        // eslint-disable-next-line no-unused-expressions
         expect(result).not.to.be.null;
 
         const value = await result.value();
@@ -402,11 +401,8 @@ class WoTClientTest {
         expect(thing.getThingDescription()).to.have.property("properties").to.have.property("aProperty");
 
         const result: WoT.PropertyReadMap = await thing.readAllProperties();
-        // eslint-disable-next-line no-unused-expressions
         expect(result).not.to.be.null;
-        // eslint-disable-next-line no-unused-expressions
         expect(result.get("aProperty")).not.to.be.null;
-        // eslint-disable-next-line no-unused-expressions
         expect(result.get("aPropertyToObserve")).to.be.undefined;
 
         const io = result.get("aProperty");
@@ -485,7 +481,6 @@ class WoTClientTest {
         expect(thing).to.have.property("title").that.equals("aThing");
         expect(thing).to.have.property("actions").that.has.property("anAction");
         const result = await thing.invokeAction("anAction", 23);
-        // eslint-disable-next-line no-unused-expressions
         expect(result).not.to.be.null;
         const value = await result?.value();
         expect(value).to.equal(42);
@@ -504,7 +499,6 @@ class WoTClientTest {
         expect(thing).to.have.property("title").that.equals("aThing");
         expect(thing).to.have.property("actions").that.has.property("anAction");
         const result = await thing.invokeAction("anAction", 23);
-        // eslint-disable-next-line no-unused-expressions
         expect(result).not.to.be.null;
         const value = await result?.value();
         expect(value).to.equal(42);
@@ -548,7 +542,6 @@ class WoTClientTest {
 
         // deal with ActionStatus object
         const result = await thing.invokeAction("anAsyncAction", 23);
-        // eslint-disable-next-line no-unused-expressions
         expect(result).not.to.be.null;
         const value = await result?.value();
         expect(value).to.have.property("status");
@@ -784,7 +777,6 @@ class WoTClientTest {
         const thing = await WoTClientTest.WoT.consume(td);
 
         const result = await thing.readProperty("aProperty", { uriVariables: { idTest: "test" } });
-        // eslint-disable-next-line no-unused-expressions
         expect(result).not.to.be.null;
 
         const value = await result.value();
@@ -801,14 +793,11 @@ class WoTClientTest {
 
     @test async "adding and removing client factory"() {
         const tcf2 = new TrapClientFactory2();
-        // eslint-disable-next-line no-unused-expressions
         expect(WoTClientTest.servient.hasClientFor(tcf2.scheme)).to.be.not.true;
         WoTClientTest.servient.addClientFactory(new TrapClientFactory2());
-        // eslint-disable-next-line no-unused-expressions
         expect(WoTClientTest.servient.hasClientFor(tcf2.scheme)).to.be.true;
         const result = WoTClientTest.servient.removeClientFactory(tcf2.scheme);
         expect(result);
-        // eslint-disable-next-line no-unused-expressions
         expect(WoTClientTest.servient.hasClientFor(tcf2.scheme)).to.be.not.true;
     }
 

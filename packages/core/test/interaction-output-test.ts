@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-expressions */
 /********************************************************************************
  * Copyright (c) 2021 Contributors to the Eclipse Foundation
  *
@@ -48,7 +47,7 @@ class InteractionOutputTests {
         expect(reader).not.to.be.undefined;
         let read;
         do {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- we know it's defined: expect(reader).not.to.be.undefined
+            // we know it's defined: expect(reader).not.to.be.undefined
             read = await reader!.read();
             !read.done && result.push(read.value);
         } while (read.done !== true);
@@ -66,7 +65,7 @@ class InteractionOutputTests {
         expect(reader).not.to.be.undefined;
         let read;
         do {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- we know it's defined: expect(reader).not.to.be.undefined
+            // we know it's defined: expect(reader).not.to.be.undefined
             read = await reader!.read();
             !read.done && result.push(read.value);
         } while (read.done !== true);
