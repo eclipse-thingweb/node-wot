@@ -22,7 +22,6 @@ import { ProtocolClientFactory, ProtocolClient } from "@node-wot/core";
 export default class WssClientFactory implements ProtocolClientFactory {
     public readonly scheme: string = "wss";
 
-    // eslint-disable-next-line no-useless-constructor
     constructor() {
         // TODO: implement and remove eslint-ignore-useless-constructor
     }

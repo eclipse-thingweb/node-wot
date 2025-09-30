@@ -44,7 +44,6 @@ describe("mbus client test", () => {
             "mbus:unitID": 1,
         };
 
-        // eslint-disable-next-line dot-notation
         client["overrideFormFromURLPath"](form);
         form["mbus:unitID"].should.be.equal(2, "Form value not overridden");
         if (form["mbus:offset"] != null) {

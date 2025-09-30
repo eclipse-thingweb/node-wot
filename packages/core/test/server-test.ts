@@ -89,7 +89,6 @@ class WoTServerTest {
             },
         });
 
-        // eslint-disable-next-line no-unused-expressions
         expect(thing).to.exist;
         // round-trip
         expect(thing.getThingDescription()).to.have.property("title").that.equals("myFragmentThing");
@@ -881,9 +880,7 @@ class WoTServerTest {
         });
 
         const protocolListener = spy(async (content: Content) => {
-            // eslint-disable-next-line no-unused-expressions
             expect(content.type).not.to.be.undefined;
-            // eslint-disable-next-line no-unused-expressions
             expect(content.body).not.to.be.undefined;
 
             const body = await content.toBuffer();

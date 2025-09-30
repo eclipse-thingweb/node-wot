@@ -79,22 +79,22 @@ export default defineConfig([
             // relax missing import rule to warning, as we sometimes have optional dependencies
             // import "../foo" will braise a warning ,
             // import "../foo.js" is the correct way to import a file that may not exist
-            "n/no-missing-import": "warn",
+            "n/no-missing-import": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1428
 
-            "n/no-unsupported-features/node-builtins": "warn",
-            "n/no-extraneous-import": "warn",
-            "n/no-deprecated-api": "warn",
-            "n/no-unpublished-import": "warn",
-            "n/no-process-exit": "warn",
+            "n/no-unsupported-features/node-builtins": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
+            "n/no-extraneous-import": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
+            "n/no-deprecated-api": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
+            "n/no-unpublished-import": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
+            "n/no-process-exit": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
             "n/hashbang": "warn",
 
             // *************** Ensure that only used dependencies are imported ***************
-            "extraneous-dependencies/no-extraneous-dependencies": "warn",
+            "extraneous-dependencies/no-extraneous-dependencies": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
 
             // *************** Code style and best practices ***************
             "unused-imports/no-unused-imports": "error",
             "unused-imports/no-unused-vars": [
-                "warn",
+                "off", // // https://github.com/eclipse-thingweb/node-wot/issues/1430
                 {
                     args: "none",
                     varsIgnorePattern: "Test",
@@ -121,13 +121,13 @@ export default defineConfig([
             "@typescript-eslint/no-use-before-define": "error",
             "@typescript-eslint/no-unused-vars": "off",
             "@typescript-eslint/no-unused-expressions": "off",
-            "@typescript-eslint/no-require-imports": "warn",
-            "@typescript-eslint/prefer-nullish-coalescing": "warn",
-            "@typescript-eslint/no-empty-object-type": "warn",
-            "@typescript-eslint/no-floating-promises": "warn",
+            "@typescript-eslint/no-require-imports": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
+            "@typescript-eslint/prefer-nullish-coalescing": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
+            "@typescript-eslint/no-empty-object-type": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
+            "@typescript-eslint/no-floating-promises": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
 
             // ****************  Enforce usage of `const` over `let` wherever possible, to prevent accidental reassignments
-            "prefer-const": "warn",
+            "prefer-const": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
 
             // *************** Other rules ***************
             "no-restricted-globals": "error",
@@ -135,7 +135,7 @@ export default defineConfig([
 
             "no-use-before-define": "error",
 
-            "no-unused-private-class-members": "warn",
+            "no-unused-private-class-members": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
             "no-prototype-builtins": "off",
             "no-case-declarations": "off",
 

@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-expressions */
 /********************************************************************************
  * Copyright (c) 2018 Contributors to the Eclipse Foundation
  *

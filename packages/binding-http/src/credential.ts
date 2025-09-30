@@ -166,11 +166,8 @@ export interface TuyaCustomBearerCredentialConfiguration {
 interface TokenResponse {
     success?: boolean;
     result?: {
-        // eslint-disable-next-line camelcase
         access_token?: string;
-        // eslint-disable-next-line camelcase
         refresh_token?: string;
-        // eslint-disable-next-line camelcase
         expire_time?: number;
     };
 }

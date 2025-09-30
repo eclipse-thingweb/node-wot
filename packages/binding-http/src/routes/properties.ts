@@ -64,7 +64,7 @@ export default async function propertiesRoute(
             res.writeHead(200);
             const recordResponse: Record<string, unknown> = {};
             for (const key of propMap.keys()) {
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- map key is always present as checked above
+                // map key is always present as checked above
                 const content = propMap.get(key)!;
                 const value = ContentSerdes.get().contentToValue(
                     { type: ContentSerdes.DEFAULT, body: await content.toBuffer() },

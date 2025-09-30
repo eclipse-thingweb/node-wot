@@ -71,23 +71,18 @@ class OAuthServerTests {
     }
 
     @test async "should configure oauth"() {
-        /* eslint-disable dot-notation */
         this.server["supportedSecuritySchemes"].should.contain("oauth2");
         expect(this.server["oAuthValidator"]).to.be.instanceOf(EndpointValidator);
-        /* eslint-enable dot-notation */
     }
 
     @test async "should call oauth validation"() {
         let called = false;
 
-        /* eslint-disable dot-notation */
         expect(this.server["oAuthValidator"]).to.not.be.equal(undefined, "OAuth validator not set");
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         this.server["oAuthValidator"]!.validate = async (token, scopes, clients) => {
             called = true;
             return true;
         };
-        /* eslint-enable dot-notation */
         await fetch("http://localhost:8080/testoauth/properties/test");
 
         called.should.eql(true);
@@ -96,14 +91,11 @@ class OAuthServerTests {
     @test async "should send unauthorized if oauth validation fails"() {
         let called = false;
 
-        /* eslint-disable dot-notation */
         expect(this.server["oAuthValidator"]).to.not.be.equal(undefined, "OAuth validator not set");
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         this.server["oAuthValidator"]!.validate = async (token, scopes, clients) => {
             called = true;
             return false;
         };
-        /* eslint-enable dot-notation */
         const response = await fetch("http://localhost:8080/testoauth/properties/test");
 
         called.should.eql(true);
@@ -114,14 +106,11 @@ class OAuthServerTests {
     @test async "should send error if oauth validation throws"() {
         let called = false;
 
-        /* eslint-disable dot-notation */
         expect(this.server["oAuthValidator"]).to.not.be.equal(undefined, "OAuth validator not set");
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         this.server["oAuthValidator"]!.validate = async (token, scopes, clients) => {
             called = true;
             return false;
         };
-        /* eslint-enable dot-notation */
         const response = await fetch("http://localhost:8080/testoauth/properties/test");
 
         called.should.eql(true);

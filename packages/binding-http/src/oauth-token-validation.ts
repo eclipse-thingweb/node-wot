@@ -47,7 +47,7 @@ interface TokenInformation {
      * Client identifier for the OAuth 2.0 client that
      * requested this token
      */
-    // eslint-disable-next-line camelcase -- the name is defined in the spec
+    // the name is defined in the spec
     client_id?: string;
 }
 

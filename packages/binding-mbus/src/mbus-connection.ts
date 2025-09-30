@@ -16,7 +16,6 @@
 import { MBusForm } from "./mbus";
 import { Content, createLoggers } from "@node-wot/core";
 import { Readable } from "stream";
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const MbusMaster = require("node-mbus");
 
 const { debug, warn, error } = createLoggers("binding-mbus", "mbus-connection");
@@ -298,7 +297,7 @@ export class PropertyOperation {
      */
     done(
         base?: number,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         result?: any
     ): void {
         debug("Operation done");

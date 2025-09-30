@@ -686,7 +686,6 @@ class CoapServerTest {
                         ).length;
                         const readWriteOpValuePresent = readWriteOpValueCount > 0;
 
-                        // eslint-disable-next-line no-unused-expressions
                         expect(observeOpValuePresent && readWriteOpValuePresent).to.not.be.true;
 
                         if (property.observable !== true) {
@@ -702,16 +701,12 @@ class CoapServerTest {
                 for (const event of Object.values(td.events!)) {
                     for (const form of event.forms) {
                         const opValues = form.op!;
-                        // eslint-disable-next-line no-unused-expressions
                         expect(opValues.length > 0).to.be.true;
 
                         const eventOpValueCount = filterEventOperations(opValues as Array<string>).length;
                         const eventOpValueCountPresent = eventOpValueCount > 0;
 
-                        // eslint-disable-next-line no-unused-expressions
                         expect(eventOpValueCountPresent).to.be.true;
-
-                        // eslint-disable-next-line no-unused-expressions
                         expect(form.subprotocol === "cov:observe").to.be.false;
                     }
                 }

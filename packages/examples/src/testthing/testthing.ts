@@ -273,7 +273,6 @@ WoT.produce({
                 }
 
                 if (inputtype === "number") {
-                    // eslint-disable-next-line no-new-wrappers
                     return new String(localParameters)
                         .replace(/0/g, "zero-")
                         .replace(/1/g, "one-")

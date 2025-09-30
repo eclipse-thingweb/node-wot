@@ -51,11 +51,9 @@ describe("Modbus client test", () => {
             "modv:entity": "Coil",
         };
 
-        /* eslint-disable dot-notation */
         client["validateAndFillDefaultForm"](form, 0)["modv:function"].should.be.equal(1, "Wrong default read Coil");
         client["validateAndFillDefaultForm"](form, 1)["modv:function"].should.be.equal(5, "Wrong write Coil");
         client["validateAndFillDefaultForm"](form, 2)["modv:function"].should.be.equal(15, "Wrong write multiple Coil");
-        /* eslint-enable dot-notation */
     });
 
     it("use entity alias for holding registries", () => {
@@ -63,7 +61,6 @@ describe("Modbus client test", () => {
             href: "modbus+tcp://127.0.0.1:8502/1/0/?quantity=1",
             "modv:entity": "HoldingRegister",
         };
-        /* eslint-disable dot-notation */
         client["validateAndFillDefaultForm"](form)["modv:function"].should.be.equal(3, "Wrong read Holding register");
         client["validateAndFillDefaultForm"](form, 2)["modv:function"].should.be.equal(
             6,
@@ -73,7 +70,6 @@ describe("Modbus client test", () => {
             16,
             "Wrong write multiple Holding register"
         );
-        /* eslint-enable dot-notation */
     });
 
     it("use entity alias for other entities", () => {
@@ -81,11 +77,9 @@ describe("Modbus client test", () => {
             href: "modbus+tcp://127.0.0.1:8502/1/0?quantity=1",
             "modv:entity": "DiscreteInput",
         };
-        /* eslint-disable dot-notation */
         client["validateAndFillDefaultForm"](form)["modv:function"].should.be.equal(2, "Wrong read Discrete input");
         form["modv:entity"] = "InputRegister";
         client["validateAndFillDefaultForm"](form)["modv:function"].should.be.equal(4, "Wrong read Input register");
-        /* eslint-enable dot-notation */
     });
 
     it("should convert function names", () => {
@@ -94,7 +88,6 @@ describe("Modbus client test", () => {
             "modv:function": "readCoil",
         };
 
-        // eslint-disable-next-line dot-notation
         client["validateAndFillDefaultForm"](form)["modv:function"].should.be.equal(1, "Wrong substitution");
     });
 
@@ -104,7 +97,6 @@ describe("Modbus client test", () => {
             "modv:function": "readCoil",
         };
 
-        // eslint-disable-next-line dot-notation
         const result = client["validateAndFillDefaultForm"](form);
         result["modv:unitID"].should.be.equal(2, "unitID  value not set");
         result["modv:address"].should.be.equal(2, "address value not set");
@@ -117,7 +109,6 @@ describe("Modbus client test", () => {
             "modv:function": "readCoil",
         };
 
-        // eslint-disable-next-line dot-notation
         const result = client["validateAndFillDefaultForm"](form);
         result["modv:unitID"].should.be.equal(2, "unitID  value not set");
         result["modv:address"].should.be.equal(2, "address value not set");

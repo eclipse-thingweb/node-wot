@@ -157,7 +157,6 @@ class InternalPropertySubscription extends InternalSubscription {
 
     async stop(options?: WoT.InteractionOptions): Promise<void> {
         await this.unobserveProperty(options);
-        // eslint-disable-next-line dot-notation
         this.thing["observedProperties"].delete(this.name);
     }
 
@@ -289,7 +288,6 @@ class InternalEventSubscription extends InternalSubscription {
 
     async stop(options?: WoT.InteractionOptions): Promise<void> {
         await this.unsubscribeEvent(options);
-        // eslint-disable-next-line dot-notation
         this.thing["subscribedEvents"].delete(this.name);
     }
 
@@ -559,7 +557,7 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
             if (cacheIdx !== -1) {
                 // from cache
                 debug(`ConsumedThing '${this.title}' chose cached client for '${schemes[cacheIdx]}'`);
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- if cacheIdx is valid, then clients *contains* schemes[cacheIdx]
+                // if cacheIdx is valid, then clients *contains* schemes[cacheIdx]
                 client = this.#clients.get(schemes[cacheIdx])!;
                 form = this.findForm(forms, op, affordance, schemes, cacheIdx);
             } else {
