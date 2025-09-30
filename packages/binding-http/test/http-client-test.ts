@@ -495,9 +495,7 @@ class HttpClientTest2 {
 
         const errorSpy = chai.spy();
         const completeSpy = chai.spy(() => {
-            // eslint-disable-next-line no-unused-expressions
             errorSpy.should.have.been.called.once;
-            // eslint-disable-next-line no-unused-expressions
             completeSpy.should.have.been.called.once;
             done();
         });
@@ -528,9 +526,7 @@ class HttpClientTest2 {
 
         const errorSpy = chai.spy();
         const completeSpy = chai.spy(function () {
-            // eslint-disable-next-line no-unused-expressions
             errorSpy.should.have.been.called.once;
-            // eslint-disable-next-line no-unused-expressions
             completeSpy.should.have.been.called.once;
             done();
             server.close();
@@ -566,9 +562,7 @@ class HttpClientTest2 {
         const subscribeSpy = chai.spy();
 
         const eventSpy = chai.spy(async function (data: Content) {
-            // eslint-disable-next-line no-unused-expressions
             eventSpy.should.have.been.called.once;
-            // eslint-disable-next-line no-unused-expressions
             subscribeSpy.should.have.been.called.once;
             server.close();
             done();
@@ -621,7 +615,6 @@ class HttpClientTest2 {
                         sub.unsubscribe();
                         // wait 100 ms, so that tests fail if unsubscribe didn't work
                         await new Promise((resolve) => setTimeout(resolve, 100));
-                        // eslint-disable-next-line no-unused-expressions
                         eventSpy.should.have.been.called.twice;
                         server.close();
                         done();

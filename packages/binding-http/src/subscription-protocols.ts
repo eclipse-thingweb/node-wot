@@ -1,4 +1,3 @@
-/* eslint-disable dot-notation -- we are using private functions from HttpClient */
 /********************************************************************************
  * Copyright (c) 2020 Contributors to the Eclipse Foundation
  *
