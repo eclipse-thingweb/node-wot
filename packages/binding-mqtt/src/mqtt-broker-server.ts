@@ -405,9 +405,7 @@ export default class MqttBrokerServer implements ProtocolServer {
         if (this.hostedBroker !== undefined) {
             // When the broker is hosted, we need to close it.
             // Both this.hostedBroker and this.hostedServer are defined at the same time.
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             await new Promise<void>((resolve) => this.hostedServer!.close(() => resolve()));
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             await new Promise<void>((resolve) => this.hostedBroker!.close(() => resolve()));
         }
     }
