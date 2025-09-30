@@ -23,7 +23,6 @@ import { Subscription } from "rxjs/Subscription";
 const { debug, warn } = createLoggers("binding-websockets", "ws-client");
 
 export default class WebSocketClient implements ProtocolClient {
-    // eslint-disable-next-line no-useless-constructor
     constructor() {
         // TODO: implement and remove eslint-ignore-useless-constructor
     }
