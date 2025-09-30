@@ -87,7 +87,6 @@ export default class DefaultServient extends Servient {
     // current log level
     public logLevel = "info";
 
-    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     public constructor(clientOnly: boolean, config?: any) {
         super();
 

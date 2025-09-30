@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /********************************************************************************
  * Copyright (c) 2018 Contributors to the Eclipse Foundation
  *
@@ -252,7 +251,6 @@ async function buildConfig(): Promise<unknown> {
 }
 const loadCompilerFunction = function (compilerModule: string | undefined) {
     if (compilerModule != null) {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
         const compilerMod = require(compilerModule);
 
         if (compilerMod.create == null) {
@@ -308,7 +306,6 @@ const runScripts = async function (servient: DefaultServient, scripts: Array<str
         });
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     if (debug && debug.shouldBreak) {
         // Activate inspector only if is not already opened and wait for the debugger to attach
         inspector.url() == null && inspector.open(debug.port, debug.host, true);
