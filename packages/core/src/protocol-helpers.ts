@@ -356,16 +356,16 @@ export default class ProtocolHelpers {
         if (interaction.forms !== undefined && finalFormIndex === -1) {
             if (operationName !== undefined) {
                 interaction.forms.every((form: Form) => {
-                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- operationName !== undefined
+                    // operationName !== undefined
                     if (form.op?.includes(operationName!) === true) {
-                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- interaction.forms  !== undefined
+                        // interaction.forms  !== undefined
                         finalFormIndex = interaction.forms!.indexOf(form);
                     }
                     return finalFormIndex === -1;
                 });
             } else {
                 interaction.forms.every((form: Form) => {
-                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- interaction.forms  !== undefined
+                    // interaction.forms  !== undefined
                     finalFormIndex = interaction.forms!.indexOf(form);
                     return false;
                 });

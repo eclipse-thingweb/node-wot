@@ -17,7 +17,7 @@ export function isPlainObject(a: unknown): boolean {
     return typeof a === "object" && a !== null && !Array.isArray(a) && !(a instanceof Date);
 }
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function json2xpath(json: any, index: number, str: Array<string>): string[] {
     if (!isPlainObject(json)) {
         return str;

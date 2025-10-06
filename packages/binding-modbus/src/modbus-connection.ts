@@ -285,7 +285,7 @@ export class ModbusConnection {
                 // inform and clean up all the operations that the connection cannot be recovered
                 while (this.queue.length > 0) {
                     const transaction = this.queue.shift();
-                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- queue.length > 0
+                    // queue.length > 0
                     transaction!.operations.forEach((operation) => {
                         operation.failed(error instanceof Error ? error : new Error(JSON.stringify(error)));
                     });
@@ -293,7 +293,7 @@ export class ModbusConnection {
             }
         } else if (this.client.isOpen && this.currentTransaction == null && this.queue.length > 0) {
             // take next transaction from queue and execute
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- queue.length > 0
+            // queue.length > 0
             this.currentTransaction = this.queue.shift()!;
             try {
                 await this.currentTransaction.execute();

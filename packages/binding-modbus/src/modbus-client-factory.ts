@@ -25,7 +25,7 @@ export default class ModbusClientFactory implements ProtocolClientFactory {
     public getClient(): ProtocolClient {
         debug(`Get client for '${this.scheme}'`);
         this.init();
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- singleton is initialized in init()
+        // singleton is initialized in init()
         return this.singleton!;
     }
 
