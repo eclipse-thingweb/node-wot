@@ -182,6 +182,7 @@ export default class DefaultServient extends Servient {
         const listener = (err: Error) => {
             this.logScriptError(`Asynchronous script error '${filename}'`, err);
             // TODO: clean up script resources
+            // eslint-disable-next-line n/no-process-exit
             process.exit(1);
         };
         process.prependListener("uncaughtException", listener);
@@ -231,6 +232,7 @@ export default class DefaultServient extends Servient {
         const listener = (err: Error) => {
             this.logScriptError(`Asynchronous script error '${filename}'`, err);
             // TODO: clean up script resources
+            // eslint-disable-next-line n/no-process-exit
             process.exit(1);
         };
         process.prependListener("uncaughtException", listener);

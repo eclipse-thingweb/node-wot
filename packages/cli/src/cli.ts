@@ -373,6 +373,7 @@ buildConfig()
             return new DefaultServient(options.clientOnly);
         } else {
             error(`"WoT-Servient config file error. ${err}`);
+            // eslint-disable-next-line n/no-process-exit
             process.exit(err.errno);
         }
     })
