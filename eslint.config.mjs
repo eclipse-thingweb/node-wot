@@ -135,7 +135,7 @@ export default defineConfig([
 
             "no-use-before-define": "error",
 
-            "no-unused-private-class-members": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
+            "no-unused-private-class-members": "error",
             "no-prototype-builtins": "off",
             "no-case-declarations": "off",
 
