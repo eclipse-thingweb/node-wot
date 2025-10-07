@@ -85,7 +85,7 @@ export default defineConfig([
             "n/no-extraneous-import": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
             "n/no-deprecated-api": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
             "n/no-unpublished-import": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
-            "n/no-process-exit": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
+            "n/no-process-exit": "error",
             "n/hashbang": "warn",
 
             // *************** Ensure that only used dependencies are imported ***************
