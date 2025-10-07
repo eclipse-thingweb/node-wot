@@ -16,7 +16,8 @@
 import { MBusForm } from "./mbus";
 import { Content, createLoggers } from "@node-wot/core";
 import { Readable } from "stream";
-import * as MbusMaster from "node-mbus";
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const MbusMaster = require("node-mbus");
 
 const { debug, warn, error } = createLoggers("binding-mbus", "mbus-connection");
 
