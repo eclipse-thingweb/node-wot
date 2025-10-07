@@ -176,7 +176,7 @@ class TestHttpServer implements ProtocolServer {
                         { type: ContentSerdes.DEFAULT, body: Buffer.concat(body) },
                         this.testVector.schema ?? { type: "string" }
                     );
-                } catch (err) {
+                } catch {
                     throw new Error("Cannot deserialize client payload");
                 }
                 expect(value).to.equal(this.testVector?.payload);

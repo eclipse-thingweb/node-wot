@@ -265,7 +265,7 @@ describe("OAuth2.0 Validator tests", () => {
             try {
                 await this.validator.validate(req as http.IncomingMessage, [], /.*/g);
                 assert(false, "method did not throw");
-            } catch (error) {
+            } catch {
                 assert(true);
             }
         }
@@ -287,7 +287,7 @@ describe("OAuth2.0 Validator tests", () => {
             try {
                 await this.validator.validate(req as http.IncomingMessage, [], /.*/g);
                 assert(false, "method did not throw");
-            } catch (error) {
+            } catch {
                 assert(true);
             }
         }
@@ -309,7 +309,7 @@ describe("OAuth2.0 Validator tests", () => {
             try {
                 await this.validator.validate(req as http.IncomingMessage, [], /.*/g);
                 assert(false, "method did not throw");
-            } catch (error) {
+            } catch {
                 assert(true);
             }
         }
@@ -331,7 +331,7 @@ describe("OAuth2.0 Validator tests", () => {
             try {
                 await this.validator.validate(req as http.IncomingMessage, [], /.*/g);
                 assert(false, "method did not throw");
-            } catch (error) {
+            } catch {
                 assert(true);
             }
         }
