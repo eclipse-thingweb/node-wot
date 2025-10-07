@@ -18,7 +18,7 @@ import DefaultServient from "./cli-default-servient";
 import ErrnoException = NodeJS.ErrnoException;
 
 // tools
-import fs = require("fs");
+import * as fs from "fs";
 import * as dotenv from "dotenv";
 import * as path from "path";
 import { Command, InvalidArgumentError, Argument } from "commander";
@@ -251,6 +251,7 @@ async function buildConfig(): Promise<unknown> {
 }
 const loadCompilerFunction = function (compilerModule: string | undefined) {
     if (compilerModule != null) {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         const compilerMod = require(compilerModule);
 
         if (compilerMod.create == null) {

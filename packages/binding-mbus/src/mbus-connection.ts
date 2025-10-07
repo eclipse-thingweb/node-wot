@@ -16,7 +16,7 @@
 import { MBusForm } from "./mbus";
 import { Content, createLoggers } from "@node-wot/core";
 import { Readable } from "stream";
-const MbusMaster = require("node-mbus");
+import * as MbusMaster from "node-mbus";
 
 const { debug, warn, error } = createLoggers("binding-mbus", "mbus-connection");
 

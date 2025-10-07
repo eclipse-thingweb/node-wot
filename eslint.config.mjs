@@ -121,7 +121,7 @@ export default defineConfig([
             "@typescript-eslint/no-use-before-define": "error",
             "@typescript-eslint/no-unused-vars": "off",
             "@typescript-eslint/no-unused-expressions": "off",
-            "@typescript-eslint/no-require-imports": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
+            "@typescript-eslint/no-require-imports": "error",
             "@typescript-eslint/prefer-nullish-coalescing": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
             "@typescript-eslint/no-empty-object-type": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
             "@typescript-eslint/no-floating-promises": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430

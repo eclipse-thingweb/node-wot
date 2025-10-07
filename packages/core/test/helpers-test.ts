@@ -27,7 +27,7 @@ import * as TDT from "wot-thing-description-types";
 
 import Helpers from "../src/helpers";
 
-import UriTemplate = require("uritemplate");
+import * as UriTemplate from "uritemplate";
 
 @suite("tests to verify the helpers")
 class HelperTest {

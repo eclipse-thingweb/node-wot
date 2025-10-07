@@ -13,6 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 import makeMdns = require("multicast-dns");
 import { networkInterfaces } from "os";
 import { MulticastDNS } from "multicast-dns";
