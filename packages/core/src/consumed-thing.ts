@@ -39,7 +39,7 @@ import ContentType from "content-type";
 
 import ContentManager from "./content-serdes";
 
-import UriTemplate = require("uritemplate");
+import * as UriTemplate from "uritemplate";
 import { InteractionOutput, ActionInteractionOutput } from "./interaction-output";
 import {
     ActionElement,
