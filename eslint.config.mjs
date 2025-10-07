@@ -94,7 +94,7 @@ export default defineConfig([
             // *************** Code style and best practices ***************
             "unused-imports/no-unused-imports": "error",
             "unused-imports/no-unused-vars": [
-                "off", // // https://github.com/eclipse-thingweb/node-wot/issues/1430
+                "error",
                 {
                     args: "none",
                     varsIgnorePattern: "Test",

@@ -48,7 +48,7 @@ export default async function actionRoute(
     let contentType: string = Array.isArray(contentTypeHeader) ? contentTypeHeader[0] : contentTypeHeader;
     try {
         contentType = validOrDefaultRequestContentType(req, res, contentType);
-    } catch (error) {
+    } catch {
         warn(
             `HttpServer received unsupported Content-Type from ${Helpers.toUriLiteral(req.socket.remoteAddress)}:${
                 req.socket.remotePort
