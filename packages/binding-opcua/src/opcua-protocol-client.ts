@@ -257,9 +257,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
 
     private async _getNamespaceArray(form: OPCUAForm): Promise<string[]> {
         return this._withConnection(form, async (c: OPCUAConnection) => {
-            if (!c.namespaceArray) {
-                c.namespaceArray = await readNamespaceArray(c.session);
-            }
+            c.namespaceArray ??= await readNamespaceArray(c.session);
             return c.namespaceArray;
         });
     }

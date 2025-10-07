@@ -201,9 +201,7 @@ export default class CoapServer implements ProtocolServer {
             return;
         }
 
-        if (thing.forms == null) {
-            thing.forms = [];
-        }
+        thing.forms ??= [];
 
         const form = this.createAffordanceForm(base, this.PROPERTY_DIR, offeredMediaType, opValues, thing.uriVariables);
 
