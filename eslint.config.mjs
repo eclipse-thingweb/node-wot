@@ -127,7 +127,7 @@ export default defineConfig([
             "@typescript-eslint/no-floating-promises": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
 
             // ****************  Enforce usage of `const` over `let` wherever possible, to prevent accidental reassignments
-            "prefer-const": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
+            "prefer-const": "error",
 
             // *************** Other rules ***************
             "no-restricted-globals": "error",

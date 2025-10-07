@@ -588,7 +588,7 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
             throw new Error(`ConsumedThing '${this.title}' does not have property ${propertyName}`);
         }
 
-        let { client, form } = this.getClientFor(tp.forms, "readproperty", Affordance.PropertyAffordance, options);
+        const { client, form } = this.getClientFor(tp.forms, "readproperty", Affordance.PropertyAffordance, options);
         if (form == null) {
             throw new Error(`ConsumedThing '${this.title}' did not get suitable form`);
         }
@@ -598,11 +598,11 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
         debug(`ConsumedThing '${this.title}' reading ${form.href}`);
 
         // uriVariables ?
-        form = this.handleUriVariables(tp, form, options);
+        const formWithUriVariables = this.handleUriVariables(tp, form, options);
 
-        const content = await client.readResource(form);
+        const content = await client.readResource(formWithUriVariables);
         try {
-            return this.handleInteractionOutput(content, form, tp);
+            return this.handleInteractionOutput(content, formWithUriVariables, tp);
         } catch (e) {
             const error = e instanceof Error ? e : new Error(JSON.stringify(e));
             throw new Error(`Error while processing property for ${tp.title}. ${error.message}`);
@@ -698,7 +698,7 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
         if (tp == null) {
             throw new Error(`ConsumedThing '${this.title}' does not have property ${propertyName}`);
         }
-        let { client, form } = this.getClientFor(tp.forms, "writeproperty", Affordance.PropertyAffordance, options);
+        const { client, form } = this.getClientFor(tp.forms, "writeproperty", Affordance.PropertyAffordance, options);
         if (form == null) {
             throw new Error(`ConsumedThing '${this.title}' did not get suitable form`);
         }
@@ -710,8 +710,8 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
         const content = ContentManager.valueToContent(value, tp, form.contentType);
 
         // uriVariables ?
-        form = this.handleUriVariables(tp, form, options);
-        await client.writeResource(form, content);
+        const formWithUriVariables = this.handleUriVariables(tp, form, options);
+        await client.writeResource(formWithUriVariables, content);
     }
 
     async writeMultipleProperties(valueMap: WoT.PropertyWriteMap, options?: WoT.InteractionOptions): Promise<void> {
@@ -739,7 +739,7 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
         if (ta == null) {
             throw new Error(`ConsumedThing '${this.title}' does not have action ${actionName}`);
         }
-        let { client, form } = this.getClientFor(ta.forms, "invokeaction", Affordance.ActionAffordance, options);
+        const { client, form } = this.getClientFor(ta.forms, "invokeaction", Affordance.ActionAffordance, options);
         if (form == null) {
             throw new Error(`ConsumedThing '${this.title}' did not get suitable form`);
         }
@@ -759,11 +759,11 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
         }
 
         // uriVariables ?
-        form = this.handleUriVariables(ta, form, options);
+        const formWithUriVariables = this.handleUriVariables(ta, form, options);
 
-        const content = await client.invokeResource(form, input);
+        const content = await client.invokeResource(formWithUriVariables, input);
         try {
-            return this.handleActionInteractionOutput(content, form, ta.output, ta.synchronous);
+            return this.handleActionInteractionOutput(content, formWithUriVariables, ta.output, ta.synchronous);
         } catch (e) {
             const error = e instanceof Error ? e : new Error(JSON.stringify(e));
             throw new Error(`Error while processing action for ${ta.title}. ${error.message}`);
