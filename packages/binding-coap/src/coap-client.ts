@@ -209,7 +209,7 @@ export default class CoapClient implements ProtocolClient {
     public setSecurity = (metadata: Array<SecurityScheme>): boolean => true;
 
     private uriToOptions(uri: string): CoapRequestParams {
-        const requestUri = url.parse(uri);
+        const requestUri = new url.URL(uri);
         const agentOptions = this.agentOptions;
         agentOptions.type = net.isIPv6(requestUri.hostname ?? "") ? "udp6" : "udp4";
         this.agent = new Agent(agentOptions);
@@ -219,7 +219,10 @@ export default class CoapClient implements ProtocolClient {
             hostname: requestUri.hostname ?? "",
             port: requestUri.port != null ? parseInt(requestUri.port, 10) : 5683,
             pathname: requestUri.pathname ?? "",
-            query: requestUri.query ?? "",
+            query:
+                requestUri.search && requestUri.search.length > 0 && requestUri.search[0] === "?"
+                    ? requestUri.search.substring(1)
+                    : "",
             observe: false,
             multicast: false,
             confirmable: true,

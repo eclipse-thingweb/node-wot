@@ -83,7 +83,7 @@ export default defineConfig([
 
             "n/no-unsupported-features/node-builtins": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
             "n/no-extraneous-import": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
-            "n/no-deprecated-api": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
+            "n/no-deprecated-api": "error",
             "n/no-unpublished-import": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
             "n/no-process-exit": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
             "n/hashbang": "warn",
