@@ -211,7 +211,7 @@ export default class Helpers implements Resolver {
     public static async parseInteractionOutput(response: WoT.InteractionOutput): Promise<DataSchemaValue> {
         try {
             return await response.value();
-        } catch (err) {
+        } catch {
             // TODO if response.value() fails, try low-level stream read
             error("parseInteractionOutput low-level stream not implemented");
             throw new Error("parseInteractionOutput low-level stream not implemented");
