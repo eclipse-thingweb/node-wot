@@ -306,7 +306,7 @@ class InternalEventSubscription extends InternalSubscription {
 
         const formWithoutURIvariables = handleUriVariables(this.thing, te, form, options);
         debug(`ConsumedThing '${this.thing.title}' unsubscribing to ${form.href}`);
-        this.client.unlinkResource(formWithoutURIvariables);
+        await this.client.unlinkResource(formWithoutURIvariables);
         this.active = false;
     }
 
