@@ -572,11 +572,11 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
      *
      * @experimental
      */
-    public async handleUnsubscribeEvent(
+    public handleUnsubscribeEvent(
         name: string,
         listener: ContentListener,
         options: WoT.InteractionOptions & { formIndex: number }
-    ): Promise<void> {
+    ): void {
         if (this.events[name] != null) {
             Helpers.validateInteractionOptions(this, this.events[name], options);
 
@@ -595,7 +595,9 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             }
             const unsubscribe = this.#eventHandlers.get(name)?.unsubscribe;
             if (unsubscribe) {
-                await unsubscribe(options);
+                unsubscribe(options).catch((error) => {
+                    throw error;
+                });
             }
             debug(`ExposedThing '${this.title}' unsubscribes from event '${name}'`);
         } else {
@@ -639,11 +641,11 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         }
     }
 
-    public async handleUnobserveProperty(
+    public handleUnobserveProperty(
         name: string,
         listener: ContentListener,
         options: WoT.InteractionOptions & { formIndex: number }
-    ): Promise<void> {
+    ): void {
         if (this.properties[name] != null) {
             Helpers.validateInteractionOptions(this, this.properties[name], options);
             const formIndex = ProtocolHelpers.getFormIndexForOperation(
@@ -663,7 +665,9 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 
             const unobserveHandler = this.#propertyHandlers.get(name)?.unobserveHandler;
             if (unobserveHandler) {
-                await unobserveHandler(options);
+                unobserveHandler(options).catch((error) => {
+                    throw error;
+                });
             }
         } else {
             throw new Error(`ExposedThing '${this.title}', no property found for '${name}'`);
