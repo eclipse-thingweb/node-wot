@@ -219,7 +219,7 @@ class CoapServerTest {
 
         await coapServer.expose(testThing);
 
-        const uri = `coap://[::1]:${coapServer.getPort()}/test/`;
+        const uri = `coap://[::]:${coapServer.getPort()}/test/`;
 
         const coapClient = new CoapClient(coapServer);
         const resp = await coapClient.readResource(new Form(uri + "properties/test"));
