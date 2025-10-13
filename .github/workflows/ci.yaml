@@ -51,6 +51,11 @@ jobs:
               run: |
                   sudo echo "127.0.0.1" `hostname` | sudo tee -a /etc/hosts
 
+            - name: Add missing ipv6 hostname to /etc/hosts
+              if: matrix.os == 'macos-latest'
+              run: |
+                  sudo echo "::1" `hostname` | sudo tee -a /etc/hosts
+
             # Enables the output of log messages from the Node.js debug module
             # for workflow runs that are being retried with "debug logging"
             # enabled.

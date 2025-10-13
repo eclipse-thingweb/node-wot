@@ -201,7 +201,7 @@ class CoapServerTest {
     }
 
     @test async "should support IPv6"() {
-        const coapServer = new CoapServer({ port: PORT, address: "::" });
+        const coapServer = new CoapServer({ port: PORT, address: "::1" });
         await coapServer.start(new Servient());
 
         const testThing = new ExposedThing(new Servient(), {
