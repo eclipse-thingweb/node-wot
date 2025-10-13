@@ -201,7 +201,7 @@ class CoapServerTest {
     }
 
     @test async "should support IPv6"() {
-        const coapServer = new CoapServer({ port: PORT, address: "::" });
+        const coapServer = new CoapServer({ port: PORT, address: "::1" });
         await coapServer.start(new Servient());
 
         const testThing = new ExposedThing(new Servient(), {
@@ -219,7 +219,7 @@ class CoapServerTest {
 
         await coapServer.expose(testThing);
 
-        const uri = `coap://[::]:${coapServer.getPort()}/test/`;
+        const uri = `coap://[::1]:${coapServer.getPort()}/test/`;
 
         const coapClient = new CoapClient(coapServer);
         const resp = await coapClient.readResource(new Form(uri + "properties/test"));
