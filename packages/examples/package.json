@@ -17,7 +17,18 @@
         "build": "tsc -b",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
-        "format": "prettier --write \"src/**/*.ts\" \"**/*.json\""
+        "format": "prettier --write \"src/**/*.ts\" \"**/*.json\"",
+        "bindings:coap:server": "node dist/bindings/coap/example-server.js",
+        "bindings:coap:client": "node dist/bindings/coap/example-client.js",
+        "bindings:http:server": "node dist/bindings/http/example-server.js",
+        "bindings:http:server-secure": "node dist/bindings/http/example-server-secure.js",
+        "bindings:http:client": "node dist/bindings/http/example-client.js",
+        "bindings:opcua:1": "node dist/bindings/opcua/opcua-demo1.js",
+        "bindings:opcua:2": "node dist/bindings/opcua/opcua-demo2.js",
+        "bindings:opcua:coffee-machine": "node dist/bindings/opcua/opcua-coffee-machine-demo.js",
+        "quickstart:smart-clock": "node dist/quickstart/smart-clock.js",
+        "quickstart:simple-coffee-machine": "node dist/quickstart/simple-coffee-machine.js",
+        "quickstart:presence-sensor": "node dist/quickstart/presence-sensor.js"
     },
     "bugs": {
         "url": "https://github.com/eclipse-thingweb/node-wot/issues"
