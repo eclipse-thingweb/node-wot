@@ -18,8 +18,7 @@
         "@types/content-type": "^1.1.8",
         "@types/debug": "^4.1.7",
         "@types/uritemplate": "^0.3.4",
-        "@types/uuid": "^8.3.1",
-        "wot-thing-description-types": "^1.1.0-12-March-2025"
+        "@types/uuid": "^8.3.1"
     },
     "dependencies": {
         "@petamoriken/float16": "^3.1.1",
@@ -34,7 +33,8 @@
         "uritemplate": "0.3.4",
         "url-toolkit": "2.1.6",
         "uuid": "^7.0.3",
-        "web-streams-polyfill": "^4.0.0"
+        "web-streams-polyfill": "^4.0.0",
+        "wot-thing-description-types": "^1.1.0-12-March-2025"
     },
     "scripts": {
         "build": "tsc -b",
