@@ -369,9 +369,7 @@ export default class HttpServer implements ProtocolServer {
                         "writemultipleproperties",
                     ];
                 }
-                if (thing.forms == null) {
-                    thing.forms = [];
-                }
+                thing.forms ??= [];
                 thing.forms.push(form);
                 this.addUrlRewriteEndpoints(form, thing.forms);
             }
