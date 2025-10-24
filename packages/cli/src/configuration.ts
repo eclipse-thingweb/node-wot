@@ -19,6 +19,10 @@ import { DotenvParseOutput } from "dotenv";
 import _ from "lodash";
 import { readFile } from "fs/promises";
 import { ValidateFunction, ValidationError } from "ajv";
+import { stringToJSValue } from "./utils";
+import { createLoggers } from "@node-wot/core";
+
+const { debug } = createLoggers("cli", "cli-default-servient");
 
 type Merge<T, U> = { [K in keyof T as K extends keyof U ? never : K]: T[K] } & {
     [L in keyof U & keyof T]: Merge<T[L], U[L]>;
@@ -41,7 +45,6 @@ export type Configuration = FromSchema<typeof schema>;
 export const defaultConfiguration = Object.freeze({
     servient: {
         clientOnly: false,
-        scriptAction: false,
     },
     http: {
         port: 8080,
@@ -56,6 +59,32 @@ export const defaultConfiguration = Object.freeze({
 
 export type ConfigurationAfterDefaults = Merge<Configuration, Generalize<Mutable<typeof defaultConfiguration>>>;
 
+/**
+ * Helper function to convert an ENV key to a camelCased path
+ * using the schema as reference (e.g., SERVIENT_STATICADDRESS -> servient.staticAddress)
+ */
+function envKeyToConfigPath(envKey: string): string {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let properties: { [x: string]: any } = schema.properties;
+    const pathParts = envKey.toLowerCase().replace(/__/g, ".").replace(/_/g, ".").split(".");
+    let path = "";
+    for (const part of pathParts) {
+        const matchedProperty = Object.keys(properties).find((prop) => prop.toLowerCase() === part);
+        if (matchedProperty != null) {
+            path += (path.length > 0 ? "." : "") + matchedProperty;
+            const nextProperty = properties[matchedProperty as keyof typeof properties];
+            if ("properties" in nextProperty) {
+                properties = nextProperty.properties;
+            }
+        } else {
+            // If no matching property is found, append the original part we are going to catch
+            // errors in the validation phase later
+            path += (path.length > 0 ? "." : "") + part;
+        }
+    }
+    return path;
+}
+
 export async function buildConfig(
     options: Record<string, unknown>,
     configuration: Configuration,
@@ -65,7 +94,10 @@ export async function buildConfig(
     let config = configuration;
 
     for (const [key, value] of Object.entries(dotEnvConfigParameters)) {
-        const obj = _.set({}, key, value);
+        debug("Applying env variable %s=%s", key, value);
+        const path = envKeyToConfigPath(key);
+        debug("Mapped to config path %s", path);
+        const obj = _.set({}, path, stringToJSValue(value));
         config = _.merge(config, obj);
     }
 

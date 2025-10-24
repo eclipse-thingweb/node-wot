@@ -15,12 +15,20 @@
 import * as dotenv from "dotenv";
 import ErrnoException = NodeJS.ErrnoException;
 
-export function loadEnvVariables() {
+export function loadEnvVariables(prefix: string = "WOT_SERVIENT_"): { [key: string]: string } {
     const env: dotenv.DotenvConfigOutput = dotenv.config();
-    const errorNoException: ErrnoException | undefined = env.error;
+    const errornoException: ErrnoException | undefined = env.error;
     // ignore file not found but throw otherwise
-    if (errorNoException?.code !== "ENOENT") {
+    if (errornoException != null && errornoException.code !== "ENOENT") {
         throw env.error;
     }
-    return env.parsed ?? {};
+
+    // Filter out not node-wot related variables
+    return Object.keys(process.env)
+        .filter((key) => key.startsWith(prefix))
+        .reduce((obj: { [key: string]: string }, key: string) => {
+            const shortKey = key.substring(prefix.length);
+            obj[shortKey] = process.env[key] as string;
+            return obj;
+        }, {});
 }

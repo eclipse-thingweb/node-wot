@@ -54,65 +54,25 @@ Run a WoT Servient in the current directory.
 program.addHelpText(
     "after",
     `
-wot-servient.conf.json syntax:
+Configuration
+
+Settings can be applied through three methods, in order of precedence (highest to lowest):
+
+1.  Command-Line Parameters (-p path.to.set=value)
+2.  Environment Variables (NODE_WOT_PATH_TO_SET=value) (supports .env files too)
+3.  Configuration File
+
+For the complete list of available configuration fields and their data types, run:
+
+wot-servient schema
+
+In your configuration files you can the following to enable IDE config validation:
+
 {
-    "servient": {
-        "clientOnly": CLIENTONLY,
-        "staticAddress": STATIC,
-        "scriptAction": RUNSCRIPT
-    },
-    "http": {
-        "port": HPORT,
-        "address": HADDRESS,
-        "baseUri": HBASEURI,
-        "urlRewrite": HURLREWRITE,
-        "proxy": PROXY,
-        "allowSelfSigned": ALLOW
-    },
-    "mqtt" : {
-        "broker": BROKER-URL,
-        "username": BROKER-USERNAME,
-        "password": BROKER-PASSWORD,
-        "clientId": BROKER-UNIQUEID,
-        "protocolVersion": MQTT_VERSION
-    },
-    "credentials": {
-        THING_ID1: {
-            "token": TOKEN
-        },
-        THING_ID2: {
-            "username": USERNAME,
-            "password": PASSWORD
-        }
-    }
+    "$schema": "./node_modules/@node-wot/cli/dist/wot-servient-schema.conf.json"
+    ...
 }
-
-wot-servient.conf.json fields:
-  CLIENTONLY      : boolean setting if no servers shall be started (default=false)
-  STATIC          : string with hostname or IP literal for static address config
-  RUNSCRIPT       : boolean to activate the 'runScript' Action (default=false)
-  HPORT           : integer defining the HTTP listening port
-  HADDRESS        : string defining HTTP address
-  HBASEURI        : string defining HTTP base URI
-  HURLREWRITE     : map (from URL -> to URL) defining HTTP URL rewrites
-  PROXY           : object with "href" field for the proxy URI,
-                                "scheme" field for either "basic" or "bearer", and
-                                corresponding credential fields as defined below
-  ALLOW           : boolean whether self-signed certificates should be allowed
-  BROKER-URL      : URL to an MQTT broker that publisher and subscribers will use
-  BROKER-UNIQUEID : unique id set by MQTT client while connecting to the broker
-  MQTT_VERSION    : number indicating the MQTT protocol version to be used (3, 4, or 5)
-  THING_IDx       : string with TD "id" for which credentials should be configured
-  TOKEN           : string for providing a Bearer token
-  USERNAME        : string for providing a Basic Auth username
-  PASSWORD        : string for providing a Basic Auth password
-  ---------------------------------------------------------------------------
-
-Environment variables must be provided in a .env file in the current working directory.
-
-Example:
-VAR1=Value1
-VAR2=Value2`
+    `
 );
 
 // CLI options declaration
@@ -127,8 +87,10 @@ program
             "choose the desired log level. WARNING: if DEBUG env variable is specified this option gets overridden."
         ).choices(["debug", "info", "warn", "error"])
     )
-    .option("-f, --config-file <file>", "load configuration from specified file", (value, previous) =>
-        parseConfigFile(value, previous)
+    .option(
+        "-f, --config-file <file>",
+        "load configuration from specified file (default: $(pwd)/wot-servient.conf.json",
+        (value, previous) => parseConfigFile(value, previous)
     )
     .option(
         "-p, --config-params <param...>",
@@ -143,6 +105,13 @@ program.addArgument(
         "script files to execute. If no script is given, all .js files in the current directory are loaded. If one or more script is given, these files are loaded instead of the directory."
     )
 );
+
+program
+    .command("schema")
+    .description("prints the json schema for the configuration file")
+    .action(() => {
+        console.log(JSON.stringify(ConfigSchema, null, 2));
+    });
 
 program.action(async function (_, options, cmd) {
     // Allow user to personalized the env

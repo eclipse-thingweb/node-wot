@@ -12,6 +12,20 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-export * from "./load-env-variables";
-export * from "./set-log-level";
-export * from "./string-to-js-value";
+
+/**
+ * Converts a string to a Number, Boolean, or return the original string.
+ * Useful for parsing envs or CLI arguments.
+ *
+ * @param value - The string value to convert.
+ * @returns The converted value as Number, Boolean, or String.
+ */
+export function stringToJSValue(value: string) {
+    if (Number(value)) {
+        return +value;
+    } else if (value === "true" || value === "false") {
+        return Boolean(value);
+    } else {
+        return value;
+    }
+}

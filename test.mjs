@@ -12,6 +12,28 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-export * from "./load-env-variables";
-export * from "./set-log-level";
-export * from "./string-to-js-value";
+import { gg } from "./ggg.mjs";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import Ajv from "ajv";
+const ajv = new Ajv();
+const schema = {
+    type: "object",
+    properties: {
+        foo: { type: "string" },
+        bar: { type: "number" },
+    },
+    required: ["foo", "bar"],
+    additionalProperties: false,
+};
+
+const validate = ajv.compile(schema);
+
+const validData = { foo: "hello", bar: 42 };
+const invalidData = { foo: "hello", bar: "not a number" };
+
+console.log("validData is valid:", validate(validData));
+console.log("invalidData is valid:", validate(invalidData));
+if (!validate(invalidData)) {
+    console.log("Validation errors:", validate.errors);
+}
+console.log("gg", gg);

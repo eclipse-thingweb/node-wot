@@ -15,6 +15,7 @@
 import { ErrorObject, ValidateFunction } from "ajv";
 import { InvalidArgumentError } from "commander";
 import _ from "lodash";
+import { stringToJSValue } from "../utils";
 
 export function parseConfigParams(param: string, previous: unknown, validator: ValidateFunction<unknown>) {
     // Validate key-value pair
@@ -22,18 +23,10 @@ export function parseConfigParams(param: string, previous: unknown, validator: V
         throw new InvalidArgumentError("Invalid key-value pair");
     }
     const fieldNamePath = param.split(":=")[0];
-    const fieldNameValue = param.split(":=")[1];
-    let fieldNameValueCast;
-    if (Number(fieldNameValue)) {
-        fieldNameValueCast = +fieldNameValue;
-    } else if (fieldNameValue === "true" || fieldNameValue === "false") {
-        fieldNameValueCast = Boolean(fieldNameValue);
-    } else {
-        fieldNameValueCast = fieldNamePath;
-    }
+    const fieldNameValue = stringToJSValue(param.split(":=")[1]);
 
     // Build object using dot-notation JSON path
-    const obj = _.set({}, fieldNamePath, fieldNameValueCast);
+    const obj = _.set({}, fieldNamePath, fieldNameValue);
     if (!validator(obj)) {
         throw new InvalidArgumentError(
             `Config parameter '${param}' is not valid: ${(validator.errors ?? [])
