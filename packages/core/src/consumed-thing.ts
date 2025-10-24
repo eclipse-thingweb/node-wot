@@ -65,7 +65,9 @@ export interface ClientAndForm {
 }
 
 class ConsumedThingProperty extends ThingProperty implements ThingProperty, BaseSchema {
+    // eslint-disable-next-line no-unused-private-class-members
     #name: string;
+    // eslint-disable-next-line no-unused-private-class-members
     #thing: ConsumedThing;
 
     constructor(name: string, thing: ConsumedThing) {
@@ -77,7 +79,9 @@ class ConsumedThingProperty extends ThingProperty implements ThingProperty, Base
 }
 
 class ConsumedThingAction extends ThingAction implements ThingAction {
+    // eslint-disable-next-line no-unused-private-class-members
     #name: string;
+    // eslint-disable-next-line no-unused-private-class-members
     #thing: ConsumedThing;
 
     constructor(name: string, thing: ConsumedThing) {
@@ -89,7 +93,9 @@ class ConsumedThingAction extends ThingAction implements ThingAction {
 }
 
 class ConsumedThingEvent extends ThingEvent {
+    // eslint-disable-next-line no-unused-private-class-members
     #name: string;
+    // eslint-disable-next-line no-unused-private-class-members
     #thing: ConsumedThing;
 
     constructor(name: string, thing: ConsumedThing) {
