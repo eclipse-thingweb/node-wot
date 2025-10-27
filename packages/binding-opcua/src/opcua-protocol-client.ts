@@ -14,7 +14,6 @@
  ********************************************************************************/
 
 import { Subscription } from "rxjs/Subscription";
-import { promisify } from "util";
 import { Readable } from "stream";
 import { URL } from "url";
 import {
@@ -49,18 +48,19 @@ import {
 import {
     AnonymousIdentity,
     ArgumentDefinition,
+    findBasicDataType,
     getBuiltInDataType,
     readNamespaceArray,
     UserIdentityInfo,
 } from "node-opcua-pseudo-session";
-import { makeNodeId, NodeId, NodeIdLike, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
-import { AttributeIds, BrowseDirection, makeResultMask } from "node-opcua-data-model";
+import { NodeId, NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
+import { AttributeIds } from "node-opcua-data-model";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { StatusCodes } from "node-opcua-status-code";
 import { coercePrivateKeyPem, readPrivateKey } from "node-opcua-crypto";
 import { opcuaJsonEncodeVariant } from "node-opcua-json";
-import { Argument, BrowseDescription, BrowseResult, MessageSecurityMode, UserTokenType } from "node-opcua-types";
-import { isGoodish2, ReferenceTypeIds } from "node-opcua";
+import { Argument, MessageSecurityMode, UserTokenType } from "node-opcua-types";
+import { isGoodish2 } from "node-opcua";
 
 import { schemaDataValue } from "./codec";
 import { OPCUACAuthenticationScheme, OPCUAChannelSecurityScheme } from "./security-scheme";
@@ -100,46 +100,6 @@ type Resolver = (...arg: [...unknown[]]) => void;
 interface OPCUAConnectionEx extends OPCUAConnection {
     pending?: Resolver[];
 }
-
-export function findBasicDataTypeC(
-    session: IBasicSession,
-    dataTypeId: NodeId,
-    callback: (err: Error | null, dataType?: DataType) => void
-): void {
-    const resultMask = makeResultMask("ReferenceType");
-
-    if (dataTypeId.identifierType === NodeIdType.NUMERIC && Number(dataTypeId.value) <= 25) {
-        // we have a well-known DataType
-        callback(null, dataTypeId.value as DataType);
-    } else {
-        // let's browse for the SuperType of this object
-        const nodeToBrowse = new BrowseDescription({
-            browseDirection: BrowseDirection.Inverse,
-            includeSubtypes: false,
-            nodeId: dataTypeId,
-            referenceTypeId: makeNodeId(ReferenceTypeIds.HasSubtype),
-            resultMask,
-        });
-
-        session.browse(nodeToBrowse, (err: Error | null, browseResult?: BrowseResult) => {
-            /* istanbul ignore next */
-            if (err) {
-                return callback(err);
-            }
-
-            /* istanbul ignore next */
-            if (!browseResult) {
-                return callback(new Error("Internal Error"));
-            }
-
-            browseResult.references = browseResult.references ?? /* istanbul ignore next */ [];
-            const baseDataType = browseResult.references[0].nodeId;
-            return findBasicDataTypeC(session, baseDataType, callback);
-        });
-    }
-}
-const findBasicDataType: (session: IBasicSession, dataTypeId: NodeId) => Promise<DataType | undefined> =
-    promisify(findBasicDataTypeC);
 
 function _variantToJSON(variant: Variant, contentType: string) {
     contentType = contentType.split(";")[0];
