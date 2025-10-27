@@ -62,7 +62,7 @@ import { opcuaJsonEncodeVariant } from "node-opcua-json";
 import { Argument, MessageSecurityMode, UserTokenType } from "node-opcua-types";
 import { isGoodish2 } from "node-opcua";
 
-import { schemaDataValue } from "./codec";
+import { schemaDataValue } from "./codecs/opcua-data-schemas";
 import { OPCUACAuthenticationScheme, OPCUAChannelSecurityScheme } from "./security-scheme";
 import { CertificateManagerSingleton } from "./certificate-manager-singleton";
 import { resolveChannelSecurity, resolvedUserIdentity } from "./opcua-security-resolver";
