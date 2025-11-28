@@ -32,14 +32,14 @@ type Mutable<T> = { -readonly [K in keyof T]: Mutable<T[K]> };
 type Generalize<T> = T extends number
     ? number
     : T extends string
-    ? string
-    : T extends boolean
-    ? boolean
-    : T extends Array<infer U>
-    ? Array<Generalize<U>>
-    : T extends object
-    ? { [K in keyof T]: Generalize<T[K]> }
-    : T;
+      ? string
+      : T extends boolean
+        ? boolean
+        : T extends Array<infer U>
+          ? Array<Generalize<U>>
+          : T extends object
+            ? { [K in keyof T]: Generalize<T[K]> }
+            : T;
 export type Configuration = FromSchema<typeof schema>;
 
 export const defaultConfiguration = Object.freeze({
