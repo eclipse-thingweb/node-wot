@@ -21,10 +21,10 @@
  * @returns The converted value as Number, Boolean, or String.
  */
 export function stringToJSValue(value: string) {
-    if (Number(value)) {
+    if (!isNaN(Number(value))) {
         return +value;
     } else if (value === "true" || value === "false") {
-        return Boolean(value);
+        return value === "true";
     } else {
         return value;
     }

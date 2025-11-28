@@ -40,7 +40,7 @@
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
         "format": "prettier --write \"src/**/*.ts\" \"**/*.json\"",
-        "test": "mocha --require ts-node/register --extension ts"
+        "test": "mocha --recursive --require ts-node/register --extension ts"
     },
     "bugs": {
         "url": "https://github.com/eclipse-thingweb/node-wot/issues"
