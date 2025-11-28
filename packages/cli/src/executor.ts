@@ -43,6 +43,7 @@ export class Executor {
                 return require(file);
             }
         } catch (error) {
+            // eslint-disable-next-line no-console
             console.error("Error running WoT script:", error);
             process.exit(1);
         }

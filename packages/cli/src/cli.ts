@@ -110,6 +110,7 @@ program
     .command("schema")
     .description("prints the json schema for the configuration file")
     .action(() => {
+        // eslint-disable-next-line no-console
         console.log(JSON.stringify(ConfigSchema, null, 2));
     });
 
