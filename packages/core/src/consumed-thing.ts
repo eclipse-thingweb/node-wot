@@ -65,44 +65,20 @@ export interface ClientAndForm {
 }
 
 class ConsumedThingProperty extends ThingProperty implements ThingProperty, BaseSchema {
-    // eslint-disable-next-line no-unused-private-class-members
-    #name: string;
-    // eslint-disable-next-line no-unused-private-class-members
-    #thing: ConsumedThing;
-
-    constructor(name: string, thing: ConsumedThing) {
+    constructor() {
         super();
-
-        this.#name = name;
-        this.#thing = thing;
     }
 }
 
 class ConsumedThingAction extends ThingAction implements ThingAction {
-    // eslint-disable-next-line no-unused-private-class-members
-    #name: string;
-    // eslint-disable-next-line no-unused-private-class-members
-    #thing: ConsumedThing;
-
-    constructor(name: string, thing: ConsumedThing) {
+    constructor() {
         super();
-
-        this.#name = name;
-        this.#thing = thing;
     }
 }
 
 class ConsumedThingEvent extends ThingEvent {
-    // eslint-disable-next-line no-unused-private-class-members
-    #name: string;
-    // eslint-disable-next-line no-unused-private-class-members
-    #thing: ConsumedThing;
-
-    constructor(name: string, thing: ConsumedThing) {
+    constructor() {
         super();
-
-        this.#name = name;
-        this.#thing = thing;
     }
 }
 
@@ -404,15 +380,15 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
 
     extendInteractions(): void {
         for (const [propertyName, property] of Object.entries(this.properties)) {
-            const newProp = Helpers.extend(property, new ConsumedThingProperty(propertyName, this));
+            const newProp = Helpers.extend(property, new ConsumedThingProperty());
             this.properties[propertyName] = newProp;
         }
         for (const [actionName, action] of Object.entries(this.actions)) {
-            const newAction = Helpers.extend(action, new ConsumedThingAction(actionName, this));
+            const newAction = Helpers.extend(action, new ConsumedThingAction());
             this.actions[actionName] = newAction;
         }
         for (const [eventName, event] of Object.entries(this.events)) {
-            const newEvent = Helpers.extend(event, new ConsumedThingEvent(eventName, this));
+            const newEvent = Helpers.extend(event, new ConsumedThingEvent());
             this.events[eventName] = newEvent;
         }
     }
