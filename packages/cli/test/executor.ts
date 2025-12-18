@@ -16,21 +16,21 @@
 import { suite, test } from "@testdeck/mocha";
 import { should, expect } from "chai";
 import { Executor, WoTContext } from "../src/executor";
-import { writeFileSync, unlinkSync } from "fs";
-import { join } from "path";
+import { writeFileSync } from "fs";
 import { Helpers } from "@node-wot/core";
+import tmp from "tmp";
 
 should();
 
 @suite("Executor")
 class ExecutorTest {
     private executor!: Executor;
-    private testFilePath!: string;
+    private basetTestFilePath!: string;
     private mockWoTContext!: WoTContext;
 
     before() {
+        tmp.setGracefulCleanup();
         this.executor = new Executor();
-        this.testFilePath = join(__dirname, "./resources", "test-script-" + Date.now());
         this.mockWoTContext = {
             // We are not using WoT inside this testing scripts
             runtime: {} as typeof WoT,
@@ -38,61 +38,44 @@ class ExecutorTest {
         };
     }
 
-    after() {
-        try {
-            unlinkSync(this.testFilePath + ".js");
-        } catch {
-            // File may not exist
-        }
-        try {
-            unlinkSync(this.testFilePath + ".mjs");
-        } catch {
-            // File may not exist
-        }
-        try {
-            unlinkSync(this.testFilePath + ".ts");
-        } catch {
-            // File may not exist
-        }
-        try {
-            unlinkSync(this.testFilePath + ".tsx");
-        } catch {
-            // File may not exist
-        }
-    }
+    after() {}
 
     @test async "should execute JavaScript file"() {
         const scriptContent = "module.exports = 'test result';";
-        writeFileSync(this.testFilePath + ".js", scriptContent);
+        const testFile = tmp.fileSync({ postfix: ".js" }).name;
+        writeFileSync(testFile, scriptContent);
 
-        const result = await this.executor.exec(this.testFilePath + ".js", this.mockWoTContext);
+        const result = await this.executor.exec(testFile, this.mockWoTContext);
 
         expect(result).to.equal("test result");
     }
 
     @test async "should have WoT defined"() {
         const scriptContent = "module.exports = typeof global.WoT !== 'undefined';";
-        writeFileSync(this.testFilePath + ".js", scriptContent);
+        const testFile = tmp.fileSync({ postfix: ".js" }).name;
+        writeFileSync(testFile, scriptContent);
 
-        const result = await this.executor.exec(this.testFilePath + ".js", this.mockWoTContext);
+        const result = await this.executor.exec(testFile, this.mockWoTContext);
 
         expect(result).to.be.true;
     }
 
     @test async "should handle module exports"() {
         const scriptContent = "module.exports = { message: 'hello' };";
-        writeFileSync(this.testFilePath + ".js", scriptContent);
+        const testFile = tmp.fileSync({ postfix: ".js" }).name;
+        writeFileSync(testFile, scriptContent);
 
-        const result = await this.executor.exec(this.testFilePath + ".js", this.mockWoTContext);
+        const result = await this.executor.exec(testFile, this.mockWoTContext);
 
         expect(result).to.have.property("message", "hello");
     }
 
     @test async "should detect TypeScript files by .ts extension"() {
         const scriptContent = "export const value: number = 42;";
-        writeFileSync(this.testFilePath + ".ts", scriptContent);
+        const testFile = tmp.fileSync({ postfix: ".ts" }).name;
+        writeFileSync(testFile, scriptContent);
 
-        const { value } = (await this.executor.exec(this.testFilePath + ".ts", this.mockWoTContext)) as {
+        const { value } = (await this.executor.exec(testFile, this.mockWoTContext)) as {
             value: number;
         };
 
@@ -100,7 +83,7 @@ class ExecutorTest {
     }
 
     @test async "should handle .mjs files as ES modules"() {
-        const filePath = this.testFilePath + ".mjs";
+        const filePath = tmp.fileSync({ postfix: ".mjs" }).name;
         const scriptContent = "export const value = 'es module';";
         writeFileSync(filePath, scriptContent);
 
