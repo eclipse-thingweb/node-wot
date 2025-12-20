@@ -8,6 +8,6 @@
         "sourceMap": false,
         "removeComments": false
     },
-    "include": ["src/**/*"],
+    "include": ["src/**/*", "../../node_modules/wot-typescript-definitions/**/*.d.ts"],
     "references": []
 }
