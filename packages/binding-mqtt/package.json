@@ -15,7 +15,7 @@
     "types": "dist/mqtt.d.ts",
     "dependencies": {
         "@node-wot/core": "0.9.2",
-        "aedes": "^0.46.2",
+        "aedes": "^0.51.3",
         "mqtt": "^5.3.2",
         "rxjs": "^5.5.11"
     },

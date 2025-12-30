@@ -21,7 +21,7 @@ import * as chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { MqttClient, MqttForm } from "../src/mqtt";
 import { expect, should } from "chai";
-import { Aedes, Server } from "aedes";
+import Aedes, { createBroker } from "aedes";
 import * as net from "net";
 import { Content } from "@node-wot/core";
 import { Readable } from "stream";
@@ -40,7 +40,7 @@ describe("MQTT client implementation - unit", () => {
     const brokerUri = `mqtt://${brokerAddress}:${brokerPort}`;
 
     before(() => {
-        aedes = Server({});
+        aedes = createBroker({});
     });
 
     after(() => {
@@ -70,6 +70,7 @@ describe("MQTT client implementation - unit", () => {
                     try {
                         const data = await value.toBuffer();
                         expect(data.toString()).to.be.equal("test");
+                        await mqttClient.stop();
                         done();
                     } catch (err) {
                         done(err);
@@ -77,7 +78,6 @@ describe("MQTT client implementation - unit", () => {
                 })
                 .then(async (sub) => {
                     await mqttClient.invokeResource(form, new Content("", Readable.from(Buffer.from("test"))));
-                    await mqttClient.stop();
                 })
                 .catch((err) => done(err));
         }).timeout(10000);
@@ -116,9 +116,9 @@ describe("MQTT client implementation - unit", () => {
 
     describe("tests with authorization", () => {
         beforeEach(() => {
-            aedes.authenticate = function (_client, username: Readonly<string>, password: Readonly<Buffer>, done) {
+            aedes.authenticate = function (_client, username: Readonly<string | undefined>, password: Readonly<Buffer | undefined>, done) {
                 if (username !== undefined) {
-                    done(null, username === "user" && password.equals(Buffer.from("pass")));
+                    done(null, username === "user" && !!password && password.equals(Buffer.from("pass")));
                     return;
                 }
                 done(null, true);

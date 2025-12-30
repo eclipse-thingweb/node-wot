@@ -20,7 +20,8 @@
 import { IPublishPacket } from "mqtt";
 import * as mqtt from "mqtt";
 import * as url from "url";
-import { AuthenticateError, Client, Server, Aedes } from "aedes";
+import Aedes from "aedes";
+import { AuthenticateError, Client } from "aedes";
 import * as net from "net";
 import * as tls from "tls";
 import { MqttBrokerServerConfig, MqttForm } from "./mqtt";
@@ -424,14 +425,15 @@ export default class MqttBrokerServer implements ProtocolServer {
 
     private selfHostAuthentication(
         _client: Client,
-        username: Readonly<string>,
-        password: Readonly<Buffer>,
+        username: Readonly<string | undefined>,
+        password: Readonly<Buffer | undefined>,
         done: (error: AuthenticateError | null, success: boolean | null) => void
     ) {
         if (this.config.selfHostAuthentication && username !== undefined) {
             for (let i = 0; i < this.config.selfHostAuthentication.length; i++) {
                 if (
                     username === this.config.selfHostAuthentication[i].username &&
+                    password !== undefined &&
                     password.equals(Buffer.from(this.config.selfHostAuthentication[i].password ?? ""))
                 ) {
                     done(null, true);
@@ -446,7 +448,7 @@ export default class MqttBrokerServer implements ProtocolServer {
 
     private async startBroker() {
         return new Promise<void>((resolve, reject) => {
-            this.hostedServer = Server({});
+            this.hostedServer = new Aedes({});
             let server: tls.Server | net.Server;
             if (this.config.key) {
                 server = tls.createServer({ key: this.config.key, cert: this.config.cert }, this.hostedServer.handle);
