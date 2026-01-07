@@ -69,7 +69,7 @@ Options:
   -v, --version                   display node-wot version
   -c, --client-only               do not start any servers (enables multiple instances without port conflicts)
   -ll, --logLevel <string>        choose the desired log level. WARNING: if DEBUG env variable is specified this option gets overridden. (choices: "debug", "info", "warn", "error")
-  -f, --config-file <file>        load configuration from specified file (default: $(pwd)/wot-servient.conf.json
+  -f, --config-file <file>        load configuration from specified file (default: $(pwd)/wot-servient.conf.json)
   -p, --config-params <param...>  override configuration parameters [key1:=value1 key2:=value2 ...] (e.g. http.port:=8080)
   -h, --help                      show this help
 
