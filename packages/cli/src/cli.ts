@@ -78,7 +78,6 @@ In your configuration files you can the following to enable IDE config validatio
 // CLI options declaration
 program
     .option("-c, --client-only", "do not start any servers (enables multiple instances without port conflicts)")
-    .option("-cp, --compiler <module>", "load module as a compiler")
     .addOption(
         new Option(
             "-ll, --logLevel <string>",
