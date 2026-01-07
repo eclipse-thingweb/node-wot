@@ -86,7 +86,7 @@ program
     )
     .option(
         "-f, --config-file <file>",
-        "load configuration from specified file (default: $(pwd)/wot-servient.conf.json",
+        "load configuration from specified file (default: $(pwd)/wot-servient.conf.json)",
         (value, previous) => parseConfigFile(value, previous)
     )
     .option(
