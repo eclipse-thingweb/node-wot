@@ -26,6 +26,6 @@ export function parseConfigFile(filename: string, previous: unknown) {
         if (err instanceof InvalidArgumentError) {
             throw err;
         }
-        throw new InvalidArgumentError(`\nError reading config file: ${err}`);
+        throw new InvalidArgumentError(`Error reading config file: ${err}`);
     }
 }
