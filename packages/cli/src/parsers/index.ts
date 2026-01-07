@@ -14,4 +14,3 @@
  ********************************************************************************/
 export * from "./config-file-parser";
 export * from "./config-params-parser";
-export * from "./ip-parser";

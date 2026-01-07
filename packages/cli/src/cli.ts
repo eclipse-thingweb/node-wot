@@ -26,7 +26,7 @@ import { createLoggers, Helpers } from "@node-wot/core";
 import { loadEnvVariables } from "./utils";
 import { runScripts } from "./script-runner";
 import { readdir } from "fs/promises";
-import { parseConfigFile, parseConfigParams, parseIp } from "./parsers";
+import { parseConfigFile, parseConfigParams } from "./parsers";
 import { setLogLevel } from "./utils/set-log-level";
 import { buildConfig, buildConfigFromFile, Configuration, defaultConfiguration } from "./configuration";
 import { cloneDeep } from "lodash";
@@ -77,8 +77,6 @@ In your configuration files you can the following to enable IDE config validatio
 
 // CLI options declaration
 program
-    .option("-i, --inspect [host]:[port]", "activate inspector on host:port (default: 127.0.0.1:9229)", parseIp)
-    .option("-ib, --inspect-brk [host]:[port]", "activate inspector on host:port (default: 127.0.0.1:9229)", parseIp)
     .option("-c, --client-only", "do not start any servers (enables multiple instances without port conflicts)")
     .option("-cp, --compiler <module>", "load module as a compiler")
     .addOption(
