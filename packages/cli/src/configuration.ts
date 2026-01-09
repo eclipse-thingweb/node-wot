@@ -54,7 +54,7 @@ export const defaultConfiguration = Object.freeze({
         port: 5683,
     },
     credentials: {},
-    logLevel: "warn",
+    log: { level: "warn" },
 } as const satisfies Configuration);
 
 export type ConfigurationAfterDefaults = Merge<Configuration, Generalize<Mutable<typeof defaultConfiguration>>>;

@@ -124,9 +124,14 @@
             },
             "additionalProperties": false
         },
-        "logLevel": {
-            "type": "string",
-            "enum": ["debug", "info", "warn", "error"]
+        "log": {
+            "type": "object",
+            "properties": {
+                "level": {
+                    "type": "string",
+                    "enum": ["debug", "info", "warn", "error"]
+                }
+            }
         }
     },
     "additionalProperties": false

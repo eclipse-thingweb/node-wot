@@ -131,7 +131,7 @@ program.action(async function (_, options, cmd) {
 
     try {
         const config = await buildConfigFromFile(options, defaultFilePath, env, schemaValidator);
-        setLogLevel(options.logLevel ?? config.logLevel);
+        setLogLevel(options.logLevel ?? config.log.level);
         config.servient.clientOnly = options.clientOnly ?? config.servient.clientOnly;
         servient = new DefaultServient(config);
     } catch (err) {

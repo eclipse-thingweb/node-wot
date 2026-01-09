@@ -54,7 +54,7 @@ class ConfigurationTest {
         expect(result).to.have.property("http");
         expect(result.http.port).to.equal(8080);
         expect(result.coap.port).to.equal(5683);
-        expect(result.logLevel).to.equal("warn");
+        expect(result.log.level).to.equal("warn");
     }
 
     @test async "should handle credentials in config"() {
@@ -101,7 +101,7 @@ class ConfigurationTest {
 
         expect(result.http.port).to.equal(8888);
         expect(result.coap.port).to.equal(defaultConfiguration.coap.port);
-        expect(result.logLevel).to.equal(defaultConfiguration.logLevel);
+        expect(result.log.level).to.equal(defaultConfiguration.log.level);
     }
 
     @test async "should read and build config from file"() {
