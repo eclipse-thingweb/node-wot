@@ -41,7 +41,7 @@ const baseDir = ".";
 
 // General commands
 program
-    .name("wot-servient")
+    .name("node-wot")
     .description(
         `
 Run a WoT Servient in the current directory.
@@ -64,7 +64,7 @@ Settings can be applied through three methods, in order of precedence (highest t
 
 For the complete list of available configuration fields and their data types, run:
 
-wot-servient schema
+node-wot schema
 
 In your configuration files you can the following to enable IDE config validation:
 
@@ -136,11 +136,11 @@ program.action(async function (_, options, cmd) {
         servient = new DefaultServient(config);
     } catch (err) {
         if ((err as NodeJS.ErrnoException)?.code !== "ENOENT" || options.configFile != null) {
-            error("WoT-Servient configuration file error:\n%O\nClose.", err);
+            error("node-wot configuration file error:\n%O\nClose.", err);
             process.exit((err as NodeJS.ErrnoException).errno ?? 1);
         }
 
-        warn(`WoT-Servient using defaults as %s does not exist`, defaultFile);
+        warn(`node-wot using defaults as %s does not exist`, defaultFile);
 
         const config = await buildConfig(options, cloneDeep(defaultConfiguration), env, schemaValidator);
         config.servient.clientOnly = options.clientOnly ?? config.servient.clientOnly;
@@ -157,7 +157,7 @@ program.action(async function (_, options, cmd) {
     const files = await readdir(baseDir);
     const scripts = files.filter((file) => !file.startsWith(".") && file.slice(-3) === ".js");
 
-    info(`WoT-Servient using current directory with %d script${scripts.length > 1 ? "s" : ""}`, scripts.length);
+    info(`node-wot using current directory with %d script${scripts.length > 1 ? "s" : ""}`, scripts.length);
 
     return runScripts({ runtime, helpers }, scripts, options.inspect ?? options.inspectBrk);
 });

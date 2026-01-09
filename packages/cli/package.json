@@ -14,7 +14,7 @@
     "main": "bin/index.js",
     "types": "dist/cli.d.ts",
     "bin": {
-        "wot-servient": "bin/index.js"
+        "node-wot": "bin/index.js"
     },
     "optionalDependencies": {
         "ts-node": "10.9.1"

@@ -27,36 +27,36 @@ If you do so, anyway, you can specify the entry point as follows:
 
 ```JavaScript
 "scripts":{
-   "start": "wot-servient main.js"
+   "start": "node-wot main.js"
 }
 ```
 
 There are several ways to start the application:
 
 a. Execute `npm start`.
-b. Execute `./node_modules/.bin/wot-servient main.js`.
+b. Execute `./node_modules/.bin/node-wot main.js`.
 c. Execute `node ./node_modules/@node-wot/cli/dist/cli.js main.js`.
 d. If you have installed `@node-wot/cli` globally you can even start the application right
-away using this command `wot-servient main.js`. However, in the current implementation, the
+away using this command `node-wot main.js`. However, in the current implementation, the
 import of local dependencies is not supported in this case.
 
-wot-servient can execute multiple files at once, for example as follows:
+node-wot can execute multiple files at once, for example as follows:
 
 ```
-wot-servient script1.js ./src/script2.js
+node-wot script1.js ./src/script2.js
 ```
 
 ### Configuration
 
 The `-h` option explains the functionality and also how node-wot can be configured based on `wot-servient.conf.json`.
 
--   `wot-servient -h` _or_
--   `node packages\cli\dist\cli.js`
+-   `node-wot -h` _or_
+-   `node packages\cli\dist\cli.js -h`
 
 The `-h` help option shows the following output:
 
 ```
-Usage: wot-servient [options] [command] [files...]
+Usage: node-wot [options] [command] [files...]
 
 
 Run a WoT Servient in the current directory.
@@ -86,7 +86,7 @@ Settings can be applied through three methods, in order of precedence (highest t
 
 For the complete list of available configuration fields and their data types, run:
 
-wot-servient schema
+node-wot schema
 
 In your configuration files you can the following to enable IDE config validation:
 
@@ -113,7 +113,7 @@ ADDRESS=http://hello.com
 
 To debug, use the option `--inspect` or `--inspect-brk` if you want to hang until your debug client is connected. Then start [Chrome Dev Tools](chrome://inspect) or [vscode debugger](https://code.visualstudio.com/docs/nodejs/nodejs-debugging#_attaching-to-nodejs) or your preferred v8 inspector to debug your code.
 
-For further details check: `wot-servient --help`
+For further details check: `node-wot --help`
 
 ### Examples
 

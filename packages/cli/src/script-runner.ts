@@ -29,12 +29,12 @@ export async function runScripts(context: WoTContext, scripts: string[], debug?:
     const executor = new Executor();
     const launchScripts = (scripts: Array<string>) => {
         scripts.forEach(async (fname: string) => {
-            info(`WoT-Servient reading script ${fname}`);
+            info(`node-wot reading script ${fname}`);
             try {
                 const data = await readFile(fname, "utf-8");
                 // limit printout to first line
                 info(
-                    `WoT-Servient running script '${data.substr(0, data.indexOf("\n")).replace("\r", "")}'... (${
+                    `node-wot running script '${data.substr(0, data.indexOf("\n")).replace("\r", "")}'... (${
                         data.split(/\r\n|\r|\n/).length
                     } lines)`
                 );
@@ -42,7 +42,7 @@ export async function runScripts(context: WoTContext, scripts: string[], debug?:
                 fname = path.resolve(fname);
                 await executor.exec(fname, context);
             } catch (err) {
-                error(`WoT-Servient experienced error while reading script. %O`, err);
+                error(`node-wot experienced error while reading script. %O`, err);
             }
         });
     };
