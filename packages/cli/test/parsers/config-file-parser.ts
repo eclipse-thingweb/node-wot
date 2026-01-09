@@ -18,7 +18,7 @@ import { should, expect } from "chai";
 import { parseConfigFile } from "../../src/parsers/config-file-parser";
 import { InvalidArgumentError } from "commander";
 import { writeFileSync, unlinkSync } from "fs";
-import { join } from "path";
+import tmp from "tmp";
 
 should();
 
@@ -26,8 +26,12 @@ should();
 class ConfigFileParserTest {
     private testFilePath!: string;
 
+    static before() {
+        tmp.setGracefulCleanup();
+    }
+
     before() {
-        this.testFilePath = join(__dirname, "../resources", "test-config-" + Date.now() + ".json");
+        this.testFilePath = tmp.fileSync({ postfix: ".json" }).name;
     }
 
     after() {

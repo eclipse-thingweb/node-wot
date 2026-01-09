@@ -20,8 +20,8 @@ import Ajv, { ValidateFunction } from "ajv";
 import ConfigSchema from "../src/generated/wot-servient-schema.conf";
 import chaiAsPromised from "chai-as-promised";
 import { writeFileSync, unlinkSync } from "fs";
-import { join } from "path";
 import { ValidationError } from "ajv";
+import tmp from "tmp";
 
 should();
 chaiUse(chaiAsPromised);
@@ -32,12 +32,13 @@ class ConfigurationTest {
     private testFilePath!: string;
 
     static before() {
+        tmp.setGracefulCleanup();
         const ajv = new Ajv({ strict: true, allErrors: true });
         ConfigurationTest.validator = ajv.compile(ConfigSchema) as ValidateFunction<Configuration>;
     }
 
     before() {
-        this.testFilePath = join(__dirname, "./resources", "test-config-" + Date.now() + ".json");
+        this.testFilePath = tmp.fileSync({ postfix: ".json" }).name;
     }
 
     after() {

@@ -28,8 +28,11 @@ class ExecutorTest {
     private basetTestFilePath!: string;
     private mockWoTContext!: WoTContext;
 
-    before() {
+    static before() {
         tmp.setGracefulCleanup();
+    }
+
+    before() {
         this.executor = new Executor();
         this.mockWoTContext = {
             // We are not using WoT inside this testing scripts
