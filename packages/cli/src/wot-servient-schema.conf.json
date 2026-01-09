@@ -3,21 +3,21 @@
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
     "properties": {
+        "$schema": { "type": "string" },
         "servient": {
             "type": "object",
             "properties": {
                 "clientOnly": {
+                    "description": "setting if no servers shall be started",
                     "type": "boolean",
                     "default": false
                 },
                 "staticAddress": {
-                    "type": "string"
-                },
-                "scriptAction": {
-                    "type": "boolean",
-                    "default": false
+                    "type": "string",
+                    "description": "hostname or IP literal for static address config"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "http": {
             "type": "object",
@@ -33,10 +33,12 @@
                 },
                 "urlRewrite": {
                     "type": "object",
+                    "description": "map (from URL -> to URL) defining HTTP URL rewrites",
                     "additionalProperties": { "type": "string" }
                 },
                 "proxy": {
                     "type": "object",
+                    "description": "object with 'href' field for the proxy URI, scheme field for either 'basic' or 'bearer', and corresponding credential fields as defined below",
                     "required": ["href"],
                     "properties": {
                         "href": {
@@ -54,9 +56,11 @@
                         "password": {
                             "type": "string"
                         }
-                    }
+                    },
+                    "additionalProperties": false
                 },
                 "allowSelfSigned": {
+                    "description": "whether self-signed certificates should be allowed",
                     "type": "boolean"
                 },
                 "serverKey": {
@@ -65,7 +69,8 @@
                 "serverCert": {
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "mqtt": {
             "type": "object",
@@ -84,10 +89,11 @@
                 },
                 "protocolVersion": {
                     "type": "integer",
-                    "examples": [3, 4, 5],
+                    "enum": [3, 4, 5],
                     "default": 5
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "coap": {
             "type": "object",
@@ -95,7 +101,8 @@
                 "port": {
                     "type": "integer"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "credentials": {
             "type": "object",
@@ -114,28 +121,17 @@
                         }
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "log": {
             "type": "object",
-            "oneOf": [
-                {
-                    "properties": {
-                        "level": {
-                            "type": "integer",
-                            "enum": [0, 1, 2, 3]
-                        }
-                    }
-                },
-                {
-                    "properties": {
-                        "level": {
-                            "type": "string",
-                            "enum": ["debug", "info", "warn", "error"]
-                        }
-                    }
+            "properties": {
+                "level": {
+                    "type": "string",
+                    "enum": ["debug", "info", "warn", "error"]
                 }
-            ]
+            }
         }
     },
     "additionalProperties": false
