@@ -18,7 +18,15 @@
         "@types/content-type": "^1.1.8",
         "@types/debug": "^4.1.7",
         "@types/uritemplate": "^0.3.4",
-        "@types/uuid": "^8.3.1"
+        "@types/uuid": "^8.3.1",
+        "@testdeck/mocha": "^0.1.2",
+        "@types/chai": "^4.2.18",
+        "@types/chai-as-promised": "^7.1.4",
+        "@types/chai-spies": "^1.0.4",
+        "@types/mocha": "^10.0.10",
+        "chai": "^4.3.4",
+        "chai-as-promised": "^7.1.1",
+        "chai-spies": "^1.0.0"
     },
     "dependencies": {
         "@petamoriken/float16": "^3.1.1",

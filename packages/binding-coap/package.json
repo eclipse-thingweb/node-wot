@@ -23,6 +23,10 @@
         "slugify": "^1.4.5",
         "wot-typescript-definitions": "0.8.0-SNAPSHOT.31"
     },
+    "devDependencies": {
+        "@testdeck/mocha": "^0.1.2",
+        "chai": "^4.3.4"
+    },
     "scripts": {
         "build": "tsc -b",
         "test": "mocha --require ts-node/register  --extension ts",

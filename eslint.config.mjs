@@ -89,7 +89,7 @@ export default defineConfig([
             "n/hashbang": "warn",
 
             // *************** Ensure that only used dependencies are imported ***************
-            "extraneous-dependencies/no-extraneous-dependencies": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
+            "extraneous-dependencies/no-extraneous-dependencies": "warn", // https://github.com/eclipse-thingweb/node-wot/issues/1430
 
             // *************** Code style and best practices ***************
             "unused-imports/no-unused-imports": "error",
