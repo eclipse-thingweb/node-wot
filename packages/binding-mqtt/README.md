@@ -204,7 +204,7 @@ Start the script by the command `node-wot mqtt-publish.js` or `node ../../packag
 
 -   example-mqtt-subscription.js: Shows how node-wot consumes a Thing Description to do MQTT subscription on the provided event (=latest counter value) as well as initiate the action (reset counter).
 
-Start the script by the command `node-wotù -c mqtt-subscribe.js` or `node ../../packages/cli/dist/cli.js -c mqtt-subscribe.js`.
+Start the script by the command `node-wot -c mqtt-subscribe.js` or `node ../../packages/cli/dist/cli.js -c mqtt-subscribe.js`.
 
 ### More Details
 
