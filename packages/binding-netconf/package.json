@@ -36,8 +36,6 @@
     },
     "keywords": [],
     "devDependencies": {
-        "chai": "^4.3.4",
-        "chai-spies": "^1.0.0",
         "@types/node-netconf": "npm:@types/netconf@^2.0.0",
         "@types/url-parse": "^1.4.3"
     }

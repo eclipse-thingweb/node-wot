@@ -29,10 +29,6 @@
         "express": "^4.20.0",
         "ssestream": "^1.1.0",
         "timekeeper": "^2.2.0",
-        "@testdeck/mocha": "^0.1.2",
-        "chai": "^4.3.4",
-        "chai-as-promised": "^7.1.1",
-        "chai-spies": "^1.0.0",
         "serve-static": "^1.16.2",
         "@sinonjs/fake-timers": "^7.1.2"
     },
