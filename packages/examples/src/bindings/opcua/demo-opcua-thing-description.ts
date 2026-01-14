@@ -25,6 +25,7 @@ export const thingDescription: WoT.ThingDescription = {
     security: "nosec_sc",
     title: "servient",
     description: "node-wot CLI Servient",
+    base: endpointUrl,
     properties: {
         pumpSpeed: {
             description: "the pump speed",
@@ -34,7 +35,7 @@ export const thingDescription: WoT.ThingDescription = {
             type: "number",
             forms: [
                 {
-                    href: endpointUrl + "?id=ns=1;s=PumpSpeed",
+                    href: "?id=ns=1;s=PumpSpeed",
                     op: ["readproperty", "observeproperty"],
                 },
             ],
@@ -47,7 +48,7 @@ export const thingDescription: WoT.ThingDescription = {
             type: "number",
             forms: [
                 {
-                    href: endpointUrl + "?id=ns=1;s=Temperature",
+                    href: "?id=ns=1;s=Temperature",
                     op: ["readproperty", "observeproperty"],
                 },
             ],
