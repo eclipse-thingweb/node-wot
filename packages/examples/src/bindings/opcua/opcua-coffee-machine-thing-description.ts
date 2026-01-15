@@ -14,9 +14,21 @@
  ********************************************************************************/
 
 const endpointUrl = "opc.tcp://opcuademo.sterfive.com:26543";
+const coffeeMachine = "1:CoffeeMachineA";
+
 export const thingDescription: WoT.ThingDescription = {
-    "@context": "https://www.w3.org/2019/wot/td/v1",
+    "@context": [
+        "https://www.w3.org/2019/wot/td/v1",
+        {
+            uav: "http://opcfoundation.org/UA/WoT-Binding/",
+            "1": "http://example.namespace.com/demo/pump",
+            "2": "http://opcfoundation.org/UA/DI/",
+            "7": "http://opcfoundation.org/UA/CommercialKitchenEquipment/",
+            "17": "http://sterfive.com/UA/CoffeeMachine/",
+        },
+    ],
     "@type": ["Thing"],
+    base: endpointUrl,
     securityDefinitions: {
         nosec_sc: {
             scheme: "nosec",
@@ -27,12 +39,11 @@ export const thingDescription: WoT.ThingDescription = {
     description: "node-wot CLI Servient",
     properties: {
         deviceHealth: {
-            // type: "number",
             observable: true,
             readOnly: true,
             forms: [
                 {
-                    href: endpointUrl,
+                    href: "/",
                     op: ["readproperty", "observeproperty"],
                     "opcua:nodeId": {
                         root: "i=84",
@@ -42,34 +53,139 @@ export const thingDescription: WoT.ThingDescription = {
             ],
         },
         waterTankLevel: {
-            // type: "number",
             observable: true,
             readOnly: true,
             forms: [
                 {
-                    href: endpointUrl,
+                    href: "/",
                     op: ["readproperty", "observeproperty"],
                     "opcua:nodeId": {
                         root: "i=84",
-                        path: "/Objects/2:DeviceSet/1:CoffeeMachine/2:ParameterSet/9:WaterTankLevel",
+                        path: `/Objects/2:DeviceSet/${coffeeMachine}/7:Parameters/17:WaterTankLevel`,
                     },
                 },
             ],
+            type: "number",
         },
         coffeeBeanLevel: {
-            // type: "number",
             observable: true,
             readOnly: true,
             forms: [
                 {
-                    href: endpointUrl,
+                    href: "/",
                     op: ["readproperty", "observeproperty"],
                     "opcua:nodeId": {
                         root: "i=84",
-                        path: "/Objects/2:DeviceSet/1:CoffeeMachine/2:ParameterSet/9:CoffeeBeanLevel",
+                        path: `/Objects/2:DeviceSet/${coffeeMachine}/7:Parameters/17:CoffeeBeanLevel`,
                     },
                 },
             ],
+            type: "number",
+        },
+        temperature: {
+            observable: true,
+            readOnly: true,
+            forms: [
+                {
+                    href: "/",
+                    op: ["readproperty", "observeproperty"],
+                    "opcua:nodeId": {
+                        root: "i=84",
+                        path: `/Objects/2:DeviceSet/${coffeeMachine}/7:Parameters/7:BoilerTempWater`,
+                    },
+                },
+            ],
+            type: "number",
+        },
+        currentState: {
+            observable: true,
+            readOnly: true,
+            forms: [
+                {
+                    href: "/",
+                    op: ["readproperty", "observeproperty"],
+                    "opcua:nodeId": {
+                        root: "i=84",
+                        path: `/Objects/2:DeviceSet/${coffeeMachine}/7:Parameters/7:CurrentState`,
+                    },
+                },
+            ],
+            type: "number",
+        },
+        grinderStatus: {
+            observable: true,
+            readOnly: true,
+            forms: [
+                {
+                    href: "/",
+                    op: ["readproperty", "observeproperty"],
+                    "opcua:nodeId": {
+                        root: "i=84",
+                        path: `/Objects/2:DeviceSet/${coffeeMachine}/7:Parameters/17:GrinderStatus`,
+                    },
+                },
+            ],
+            type: "number",
+        },
+        heaterStatus: {
+            observable: true,
+            readOnly: true,
+            forms: [
+                {
+                    href: "/",
+                    op: ["readproperty", "observeproperty"],
+                    "opcua:nodeId": {
+                        root: "i=84",
+                        path: `/Objects/2:DeviceSet/${coffeeMachine}/7:Parameters/17:HeaterStatus`,
+                    },
+                },
+            ],
+            type: "number",
+        },
+        pumpStatus: {
+            observable: true,
+            readOnly: true,
+            forms: [
+                {
+                    href: "/",
+                    op: ["readproperty", "observeproperty"],
+                    "opcua:nodeId": {
+                        root: "i=84",
+                        path: `/Objects/2:DeviceSet/${coffeeMachine}/7:Parameters/17:PumpStatus`,
+                    },
+                },
+            ],
+            type: "number",
+        },
+        valveStatus: {
+            observable: true,
+            readOnly: true,
+            forms: [
+                {
+                    href: "/",
+                    op: ["readproperty", "observeproperty"],
+                    "opcua:nodeId": {
+                        root: "i=84",
+                        path: `/Objects/2:DeviceSet/${coffeeMachine}/7:Parameters/17:ValveStatus`,
+                    },
+                },
+            ],
+            type: "number",
+        },
+        grindingDuration: {
+            observable: true,
+            readOnly: true,
+            forms: [
+                {
+                    href: "/",
+                    op: ["readproperty", "observeproperty"],
+                    "opcua:nodeId": {
+                        root: "i=84",
+                        path: `/Objects/2:DeviceSet/${coffeeMachine}/7:Parameters/17:GrindingDuration`,
+                    },
+                },
+            ],
+            type: "number",
         },
     },
     actions: {
@@ -77,33 +193,36 @@ export const thingDescription: WoT.ThingDescription = {
             forms: [
                 {
                     type: "object",
-                    href: endpointUrl,
+                    href: "/",
                     op: ["invokeaction"],
-                    "opcua:nodeId": { root: "i=84", path: "/Objects/2:DeviceSet/1:CoffeeMachine" },
-                    "opcua:method": { root: "i=84", path: "/Objects/2:DeviceSet/1:CoffeeMachine/2:MethodSet/9:Start" },
+                    "opcua:nodeId": { root: "i=84", path: `/Objects/2:DeviceSet/${coffeeMachine}` },
+                    "opcua:method": {
+                        root: "i=84",
+                        path: `/Objects/2:DeviceSet/${coffeeMachine}/2:MethodSet/17:MakeCoffee`,
+                    },
                 },
             ],
             input: {
                 type: "object",
                 properties: {
-                    CoffeeType: {
-                        title: "1 for Americano, 2 for Expressp",
-                        type: "number",
+                    RecipeName: {
+                        title: "Americano or Espresso or Mocha (see available Recipes in OPCUA server)",
+                        type: "string",
                     },
                 },
-                required: ["CoffeeType"],
+                required: ["RecipeName"],
             },
         },
         fillTank: {
             forms: [
                 {
                     type: "object",
-                    href: endpointUrl,
+                    href: "/",
                     op: ["invokeaction"],
-                    "opcua:nodeId": { root: "i=84", path: "/Objects/2:DeviceSet/1:CoffeeMachine" },
+                    "opcua:nodeId": { root: "i=84", path: `/Objects/2:DeviceSet/${coffeeMachine}` },
                     "opcua:method": {
                         root: "i=84",
-                        path: "/Objects/2:DeviceSet/1:CoffeeMachine/2:MethodSet/9:FillTank",
+                        path: `/Objects/2:DeviceSet/${coffeeMachine}/2:MethodSet/17:FillTank`,
                     },
                 },
             ],
