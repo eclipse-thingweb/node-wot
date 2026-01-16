@@ -64,6 +64,7 @@ export default class HttpServer implements ProtocolServer {
     private readonly address?: string;
     private readonly baseUri?: string;
     private readonly urlRewrite?: Record<string, string>;
+    private readonly devFriendlyUri: boolean;
     private readonly supportedSecuritySchemes: string[] = ["nosec"];
     private readonly validOAuthClients: RegExp = /.*/g;
     private readonly server: http.Server | https.Server;
@@ -83,6 +84,7 @@ export default class HttpServer implements ProtocolServer {
         this.baseUri = config.baseUri;
         this.urlRewrite = config.urlRewrite;
         this.middleware = config.middleware;
+        this.devFriendlyUri = config.devFriendlyUri ?? true;
 
         const router = Router({
             ignoreTrailingSlash: true,
@@ -267,21 +269,32 @@ export default class HttpServer implements ProtocolServer {
     }
 
     public async expose(thing: ExposedThing, tdTemplate: WoT.ExposedThingInit = {}): Promise<void> {
-        let urlPath = slugify(thing.title, { lower: true });
-
-        // avoid URL clashes
-        if (this.things.has(urlPath)) {
-            let uniqueUrlPath;
-            let nameClashCnt = 2;
-            do {
-                uniqueUrlPath = urlPath + "_" + nameClashCnt++;
-            } while (this.things.has(uniqueUrlPath));
-            urlPath = uniqueUrlPath;
-        }
-
         if (this.getPort() !== -1) {
-            debug(`HttpServer on port ${this.getPort()} exposes '${thing.title}' as unique '/${urlPath}'`);
-            this.things.set(urlPath, thing);
+            const paths: string[] = [];
+            // If not id is given we create the path using the title even if devFriendlyUri is false.
+            // in Thing Description 1.1 id is optional
+            if (this.devFriendlyUri || thing.id == null) {
+                let urlPath = slugify(thing.title, { lower: true });
+
+                // avoid URL clashes
+                if (this.things.has(urlPath)) {
+                    let uniqueUrlPath;
+                    let nameClashCnt = 2;
+                    do {
+                        uniqueUrlPath = urlPath + "_" + nameClashCnt++;
+                    } while (this.things.has(uniqueUrlPath));
+                    urlPath = uniqueUrlPath;
+                }
+                this.things.set(urlPath, thing);
+                paths.push(urlPath);
+                debug("HttpServer on port %d exposes %s as unique '/%s'", this.getPort(), thing.name, urlPath);
+            }
+
+            if (thing.id != null) {
+                this.things.set(thing.id, thing);
+                paths.push(thing.id);
+                debug("HttpServer on port %d exposes %s as unique '/%s'", this.getPort(), thing.name, thing.id);
+            }
 
             if (this.scheme === "http" && Object.keys(thing.securityDefinitions).length !== 0) {
                 warn(`HTTP Server will attempt to use your security schemes even if you are not using HTTPS.`);
@@ -290,16 +303,20 @@ export default class HttpServer implements ProtocolServer {
             this.fillSecurityScheme(thing);
 
             if (this.baseUri !== undefined) {
-                const base: string = this.baseUri.concat("/", encodeURIComponent(urlPath));
-                info("HttpServer TD hrefs using baseUri " + this.baseUri);
-                this.addEndpoint(thing, tdTemplate, base);
+                for (const path of paths) {
+                    info("HttpServer TD hrefs using baseUri %s and path %s", this.baseUri, path);
+                    const base: string = this.baseUri.concat("/", encodeURIComponent(path));
+                    this.addEndpoint(thing, tdTemplate, base);
+                }
             } else {
                 // fill in binding data
                 for (const address of Helpers.getAddresses()) {
-                    const base: string =
-                        this.scheme + "://" + address + ":" + this.getPort() + "/" + encodeURIComponent(urlPath);
-
-                    this.addEndpoint(thing, tdTemplate, base);
+                    for (const path of paths) {
+                        const base: string =
+                            this.scheme + "://" + address + ":" + this.getPort() + "/" + encodeURIComponent(path);
+                        info("HttpServer TD hrefs using address %s and path %s", address, path);
+                        this.addEndpoint(thing, tdTemplate, base);
+                    }
                 }
             }
         }
@@ -311,6 +328,7 @@ export default class HttpServer implements ProtocolServer {
         for (const [name, thing] of this.things.entries()) {
             if (thing.id === thingId) {
                 this.things.delete(name);
+                this.things.delete(thingId);
                 info(`HttpServer successfully destroyed '${thing.title}'`);
 
                 return true;
