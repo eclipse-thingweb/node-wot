@@ -351,6 +351,13 @@ export class OPCUAProtocolClient implements ProtocolClient {
         return this._resolveNodeId2(form, fNodeId as NodeIdLike | NodeByBrowsePath);
     }
 
+    // node-opcua handles the contentType internally and no further *external* processing should be done
+    private vanishContentType(form: OPCUAForm) {
+        if (!(form.contentType === "application/opcua+json" || form.contentType === "application/opcua+octet-stream")) {
+            form.contentType = undefined;
+        }
+    }
+
     public async readResource(form: OPCUAForm): Promise<Content> {
         debug(`readResource: reading ${form}`);
 
@@ -363,6 +370,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
             return this._dataValueToContent(form, dataValue);
         });
         debug(`readResource: contentType ${content.type}`);
+        this.vanishContentType(form);
         return content;
     }
 
