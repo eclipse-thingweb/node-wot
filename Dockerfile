@@ -35,4 +35,4 @@ STOPSIGNAL SIGINT
 ENTRYPOINT [ "node", "dist/cli.js" ]
 CMD [ "-h" ]
 
-##  docker build -t wot-servient ./docker/Dockerfile
+##  docker build -t node-wot ./docker/Dockerfile
