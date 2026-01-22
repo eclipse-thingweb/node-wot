@@ -124,7 +124,7 @@ export default defineConfig([
             "@typescript-eslint/no-require-imports": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
             "@typescript-eslint/prefer-nullish-coalescing": "error",
             "@typescript-eslint/no-empty-object-type": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
-            "@typescript-eslint/no-floating-promises": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
+            "@typescript-eslint/no-floating-promises": "error",
 
             // ****************  Enforce usage of `const` over `let` wherever possible, to prevent accidental reassignments
             "prefer-const": "error",
