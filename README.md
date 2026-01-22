@@ -114,7 +114,7 @@ You can find more (non-)installation options in the specific [package README](./
 
 ### As a CLI tool
 
-You can alternatively use node-wot via its command line interface (CLI). Please visit the [CLI tool README](./packages/cli/README.md) to find out more.
+You can alternatively use node-wot via its command line interface (CLI). Please visit the [CLI tool README](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/cli) to find out more.
 
 #### As global tool
 
