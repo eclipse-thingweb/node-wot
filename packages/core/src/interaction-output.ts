@@ -75,9 +75,10 @@ export class InteractionOutput implements WoT.InteractionOutput {
 
         const data = await this.#content.toBuffer();
         this.dataUsed = true;
-        this.#buffer = data;
+        // this.#buffer = new Uint8Array(data).buffer
+        this.#buffer = data as unknown as ArrayBuffer;
 
-        return data;
+        return this.#buffer;
     }
 
     async value<T extends WoT.DataSchemaValue>(): Promise<T> {
@@ -120,7 +121,8 @@ export class InteractionOutput implements WoT.InteractionOutput {
         // read fully the stream
         const bytes = await this.#content.toBuffer();
         this.dataUsed = true;
-        this.#buffer = bytes;
+        // this.#buffer = new Uint8Array(bytes).buffer;
+        this.#buffer = bytes as unknown as ArrayBuffer;
 
         const json = ContentSerdes.get().contentToValue({ type: this.#content.type, body: bytes }, this.schema);
 
