@@ -37,6 +37,7 @@ addFormats(ajv);
 export class InteractionOutput implements WoT.InteractionOutput {
     #content: Content;
     #value: unknown;
+    #valueBuffer?: Buffer<ArrayBuffer>;
     #buffer?: ArrayBuffer;
     #stream?: ReadableStream;
     dataUsed: boolean;
@@ -73,11 +74,16 @@ export class InteractionOutput implements WoT.InteractionOutput {
             throw new Error("Can't read the stream once it has been already used");
         }
 
-        const data = await this.#content.toBuffer();
+        const data = this.#valueBuffer ?? (await this.#content.toBuffer());
         this.dataUsed = true;
-        // this.#buffer = new Uint8Array(data).buffer
-        this.#buffer = data as unknown as ArrayBuffer;
+        const isPooled = data.byteLength < 4096 && data.buffer.byteLength > data.byteLength;
 
+        if (isPooled) {
+            this.#buffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
+        } else {
+            this.#buffer = data.buffer;
+        }
+        //this.#buffer = data as unknown as ArrayBuffer
         return this.#buffer;
     }
 
@@ -121,8 +127,7 @@ export class InteractionOutput implements WoT.InteractionOutput {
         // read fully the stream
         const bytes = await this.#content.toBuffer();
         this.dataUsed = true;
-        // this.#buffer = new Uint8Array(bytes).buffer;
-        this.#buffer = bytes as unknown as ArrayBuffer;
+        this.#valueBuffer = bytes;
 
         const json = ContentSerdes.get().contentToValue({ type: this.#content.type, body: bytes }, this.schema);
 

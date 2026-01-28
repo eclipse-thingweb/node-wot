@@ -34,7 +34,9 @@ class InteractionOutputTests {
 
         const out = new InteractionOutput(content, {});
         const result = await out.arrayBuffer();
-        expect(result).be.deep.equals(Buffer.from([1, 2, 3]));
+
+        expect(result).instanceOf(ArrayBuffer);
+        expect(Buffer.from(result)).be.deep.equals(Buffer.from([1, 2, 3]));
     }
 
     @test async "should be readable with Streams"() {
