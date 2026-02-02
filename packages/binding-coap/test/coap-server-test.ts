@@ -468,7 +468,7 @@ class CoapServerTest {
         await coapServer.stop();
     }
 
-    @test.skip async "should report allproperties excluding non-JSON properties"() {
+    @test async "should report allproperties excluding non-JSON properties"() {
         const port = 5683;
         const coapServer = new CoapServer({ port });
         const servient = new Servient();
