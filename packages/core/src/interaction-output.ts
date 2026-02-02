@@ -83,7 +83,6 @@ export class InteractionOutput implements WoT.InteractionOutput {
         } else {
             this.#buffer = data.buffer;
         }
-        //this.#buffer = data as unknown as ArrayBuffer
         return this.#buffer;
     }
 
