@@ -76,7 +76,7 @@ export class InteractionOutput implements WoT.InteractionOutput {
 
         const data = this.#valueBuffer ?? (await this.#content.toBuffer());
         this.dataUsed = true;
-        const isPooled = data.byteLength < 4096 && data.buffer.byteLength > data.byteLength;
+        const isPooled = data.buffer.byteLength > data.byteLength;
 
         if (isPooled) {
             this.#buffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
