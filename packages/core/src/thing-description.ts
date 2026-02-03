@@ -134,21 +134,6 @@ export interface NullSchema extends BaseSchema {
     type: "null";
 }
 
-/**
- * @deprecated This type is deprecated and will be removed in a future release.
- */
-export type SecurityType =
-    | NoSecurityScheme
-    | BasicSecurityScheme
-    | AutoSecurityScheme
-    | DigestSecurityScheme
-    | BearerSecurityScheme
-    | APIKeySecurityScheme
-    | OAuth2SecurityScheme
-    | PSKSecurityScheme
-    | AllOfSecurityScheme
-    | OneOfSecurityScheme;
-
 export interface SecurityScheme {
     scheme: string;
     description?: TDT.Description;
