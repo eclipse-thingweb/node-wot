@@ -65,6 +65,7 @@ export default class WebSocketClient implements ProtocolClient {
     private subscriptions: Map<string, Set<SubscriptionHandlers>> = new Map();
     private credentials: Map<string, StoredCredentials> = new Map();
     private protocolMode: Map<string, ProtocolMode> = new Map();
+    private subscriptionTypes: Map<string, "property" | "event"> = new Map();
     private isStarted = false;
 
     // Configuration
@@ -83,7 +84,7 @@ export default class WebSocketClient implements ProtocolClient {
 
         const ws = await this.getOrCreateConnection(form);
         const baseUrl = this.extractBaseUrl(form.href);
-        const mode = this.protocolMode.get(baseUrl) ?? "generic";
+        const mode = this.protocolMode.get(form.href) ?? this.protocolMode.get(baseUrl) ?? "generic";
 
         let response: unknown;
 
@@ -120,7 +121,7 @@ export default class WebSocketClient implements ProtocolClient {
 
         const ws = await this.getOrCreateConnection(form);
         const baseUrl = this.extractBaseUrl(form.href);
-        const mode = this.protocolMode.get(baseUrl) ?? "generic";
+        const mode = this.protocolMode.get(form.href) ?? this.protocolMode.get(baseUrl) ?? "generic";
 
         // Parse content body
         const buffer = await content.toBuffer();
@@ -149,7 +150,7 @@ export default class WebSocketClient implements ProtocolClient {
 
         const ws = await this.getOrCreateConnection(form);
         const baseUrl = this.extractBaseUrl(form.href);
-        const mode = this.protocolMode.get(baseUrl) ?? "generic";
+        const mode = this.protocolMode.get(form.href) ?? this.protocolMode.get(baseUrl) ?? "generic";
 
         // Parse input parameters if provided
         let inputData: unknown;
@@ -195,21 +196,26 @@ export default class WebSocketClient implements ProtocolClient {
         const baseUrl = this.extractBaseUrl(form.href);
         const resourceKey = `${baseUrl}:${this.extractResourceName(form.href)}`;
 
+        // Get subscription type to send correct unsubscribe verb
+        const subscriptionType = this.subscriptionTypes.get(resourceKey);
+
         // Remove subscription handlers
         this.subscriptions.delete(resourceKey);
+        this.subscriptionTypes.delete(resourceKey);
 
         const ws = await this.getOrCreateConnection(form);
-        const mode = this.protocolMode.get(baseUrl) ?? "generic";
+        const mode = this.protocolMode.get(form.href) ?? this.protocolMode.get(baseUrl) ?? "generic";
 
-        if (mode === "wot") {
-            // Send unsubscribe request
+        if (mode === "wot" && subscriptionType != null) {
+            // Send unsubscribe request with correct WoT verb
             const thingId = this.extractThingId(form.href);
             const resourceName = this.extractResourceName(form.href);
+            const operation = subscriptionType === "event" ? "unsubscribeevent" : "unsubscribeproperty";
             const request = {
                 messageType: "request",
                 thingID: thingId,
                 messageID: this.generateMessageId(),
-                operation: "unsubscribe",
+                operation: operation,
                 name: resourceName,
             };
 
@@ -245,6 +251,10 @@ export default class WebSocketClient implements ProtocolClient {
 
         // Determine if this is an event or property subscription
         const isEvent = form.op?.includes("subscribeevent") ?? form.op === "subscribeevent";
+        const subscriptionType: "property" | "event" = isEvent ? "event" : "property";
+
+        // Store subscription type for later unsubscribe
+        this.subscriptionTypes.set(resourceKey, subscriptionType);
 
         if (mode === "wot") {
             // Send W3C Web Thing Protocol subscribe request
@@ -263,6 +273,7 @@ export default class WebSocketClient implements ProtocolClient {
             } catch (err) {
                 // Remove handler if subscription failed
                 this.subscriptions.get(resourceKey)?.delete(handlers);
+                this.subscriptionTypes.delete(resourceKey);
                 throw err;
             }
         }
@@ -500,18 +511,20 @@ export default class WebSocketClient implements ProtocolClient {
      * Get or create WebSocket connection for the given form
      */
     private async getOrCreateConnection(form: Form): Promise<WebSocket> {
+        // Use full href as connection key to support multiple endpoints on same host
+        const connectionKey = form.href;
         const baseUrl = this.extractBaseUrl(form.href);
 
         // Check if connection already exists and is open
-        const existing = this.connections.get(baseUrl);
+        const existing = this.connections.get(connectionKey);
         if (existing != null && existing.readyState === WebSocket.OPEN) {
             return existing;
         }
 
         // Detect protocol mode
         const mode = this.detectProtocolMode(form);
-        this.protocolMode.set(baseUrl, mode);
-        debug(`Using protocol mode '${mode}' for ${baseUrl}`);
+        this.protocolMode.set(connectionKey, mode);
+        debug(`Using protocol mode '${mode}' for ${connectionKey}`);
 
         // Create new WebSocket connection
         return new Promise((resolve, reject) => {
@@ -536,52 +549,55 @@ export default class WebSocketClient implements ProtocolClient {
             const subprotocol = this.extractSubprotocol(form);
             const protocols = subprotocol ? [subprotocol] : undefined;
 
-            debug(`Creating WebSocket connection to ${baseUrl}${protocols ? ` with subprotocol ${subprotocol}` : ""}`);
+            debug(`Creating WebSocket connection to ${form.href}${protocols ? ` with subprotocol ${subprotocol}` : ""}`);
 
-            const ws = new WebSocket(baseUrl, protocols, wsOptions);
+            // Connect to the full href, not just baseUrl
+            const ws = new WebSocket(form.href, protocols, wsOptions);
 
             ws.on("open", () => {
-                info(`WebSocket connection established to ${baseUrl}`);
-                this.connections.set(baseUrl, ws);
+                info(`WebSocket connection established to ${connectionKey}`);
+                this.connections.set(connectionKey, ws);
                 resolve(ws);
             });
 
             ws.on("message", (data: WebSocket.Data) => {
-                this.handleWebSocketMessage(baseUrl, data);
+                this.handleWebSocketMessage(connectionKey, data);
             });
 
             ws.on("error", (err: Error) => {
-                error(`WebSocket error for ${baseUrl}: ${err.message}`);
+                error(`WebSocket error for ${connectionKey}: ${err.message}`);
                 // Reject pending requests
                 for (const [messageId, handler] of this.pendingRequests.entries()) {
                     handler.reject(err);
                     clearTimeout(handler.timeoutId);
                     this.pendingRequests.delete(messageId);
                 }
-                // Notify subscriptions
-                const subs = this.subscriptions.get(baseUrl);
-                if (subs != null) {
-                    subs.forEach((handlers) => {
-                        if (handlers.error != null) {
-                            handlers.error(err);
-                        }
-                    });
+                // Notify subscriptions based on baseUrl prefix
+                for (const [key, subs] of this.subscriptions.entries()) {
+                    if (key.startsWith(baseUrl + ":")) {
+                        subs.forEach((handlers) => {
+                            if (handlers.error != null) {
+                                handlers.error(err);
+                            }
+                        });
+                    }
                 }
                 reject(err);
             });
 
             ws.on("close", (code: number, reason: string) => {
-                info(`WebSocket connection closed for ${baseUrl}: ${code} ${reason}`);
-                this.connections.delete(baseUrl);
-                // Complete subscriptions
-                const subs = this.subscriptions.get(baseUrl);
-                if (subs != null) {
-                    subs.forEach((handlers) => {
-                        if (handlers.complete != null) {
-                            handlers.complete();
-                        }
-                    });
-                    this.subscriptions.delete(baseUrl);
+                info(`WebSocket connection closed for ${connectionKey}: ${code} ${reason}`);
+                this.connections.delete(connectionKey);
+                // Complete subscriptions based on baseUrl prefix
+                for (const [key, subs] of this.subscriptions.entries()) {
+                    if (key.startsWith(baseUrl + ":")) {
+                        subs.forEach((handlers) => {
+                            if (handlers.complete != null) {
+                                handlers.complete();
+                            }
+                        });
+                        this.subscriptions.delete(key);
+                    }
                 }
             });
 
@@ -589,7 +605,7 @@ export default class WebSocketClient implements ProtocolClient {
             setTimeout(() => {
                 if (ws.readyState === WebSocket.CONNECTING) {
                     ws.close();
-                    reject(new Error(`WebSocket connection timeout for ${baseUrl}`));
+                    reject(new Error(`WebSocket connection timeout for ${connectionKey}`));
                 }
             }, this.defaultTimeout);
         });
@@ -598,10 +614,12 @@ export default class WebSocketClient implements ProtocolClient {
     /**
      * Handle incoming WebSocket message
      */
-    private handleWebSocketMessage(baseUrl: string, data: WebSocket.Data): void {
+    private handleWebSocketMessage(connectionKey: string, data: WebSocket.Data): void {
         try {
             const message = JSON.parse(data.toString());
-            const mode = this.protocolMode.get(baseUrl) ?? "generic";
+            const mode = this.protocolMode.get(connectionKey) ?? "generic";
+            // Extract baseUrl from connectionKey for subscription lookup
+            const baseUrl = this.extractBaseUrl(connectionKey);
 
             if (mode === "wot") {
                 this.handleWoTMessage(baseUrl, message);
@@ -674,20 +692,44 @@ export default class WebSocketClient implements ProtocolClient {
         }
 
         // If no correlation found, might be a subscription update
-        // Notify all subscriptions for this base URL
-        const subs = this.subscriptions.get(baseUrl);
-        if (subs != null) {
-            const content = new Content(
-                "application/json",
-                this.bufferToStream(Buffer.from(JSON.stringify(message)))
-            );
-            subs.forEach((handlers) => {
-                try {
-                    handlers.next(content);
-                } catch (err) {
-                    error(`Error in subscription handler: ${err}`);
+        // For generic websockets, try to extract resource name from message
+        // or dispatch to all subscriptions for this baseUrl
+        const resourceName = message.resource as string | undefined;
+
+        if (resourceName) {
+            // If message has resource name, use specific key
+            const resourceKey = `${baseUrl}:${resourceName}`;
+            const subs = this.subscriptions.get(resourceKey);
+            if (subs != null) {
+                const content = new Content(
+                    "application/json",
+                    this.bufferToStream(Buffer.from(JSON.stringify(message)))
+                );
+                subs.forEach((handlers) => {
+                    try {
+                        handlers.next(content);
+                    } catch (err) {
+                        error(`Error in subscription handler: ${err}`);
+                    }
+                });
+            }
+        } else {
+            // Otherwise, broadcast to all subscriptions for this baseUrl
+            for (const [key, subs] of this.subscriptions.entries()) {
+                if (key.startsWith(baseUrl + ":")) {
+                    const content = new Content(
+                        "application/json",
+                        this.bufferToStream(Buffer.from(JSON.stringify(message)))
+                    );
+                    subs.forEach((handlers) => {
+                        try {
+                            handlers.next(content);
+                        } catch (err) {
+                            error(`Error in subscription handler: ${err}`);
+                        }
+                    });
                 }
-            });
+            }
         }
     }
 
