@@ -96,7 +96,10 @@ export default class WebSocketClient implements ProtocolClient {
             response = await this.sendRequest(ws, request);
 
             // Extract value from W3C response
-            const value = (response as Record<string, unknown>).value !== undefined ? (response as Record<string, unknown>).value : response;
+            const value =
+                (response as Record<string, unknown>).value !== undefined
+                    ? (response as Record<string, unknown>).value
+                    : response;
             return new Content(
                 form.contentType ?? "application/json",
                 this.bufferToStream(Buffer.from(JSON.stringify(value)))
@@ -169,7 +172,10 @@ export default class WebSocketClient implements ProtocolClient {
             response = await this.sendRequest(ws, request);
 
             // Extract output from W3C response
-            const output = (response as Record<string, unknown>).output !== undefined ? (response as Record<string, unknown>).output : response;
+            const output =
+                (response as Record<string, unknown>).output !== undefined
+                    ? (response as Record<string, unknown>).output
+                    : response;
             return new Content(
                 form.response?.contentType ?? form.contentType ?? "application/json",
                 this.bufferToStream(Buffer.from(JSON.stringify(output)))
@@ -549,7 +555,9 @@ export default class WebSocketClient implements ProtocolClient {
             const subprotocol = this.extractSubprotocol(form);
             const protocols = subprotocol ? [subprotocol] : undefined;
 
-            debug(`Creating WebSocket connection to ${form.href}${protocols ? ` with subprotocol ${subprotocol}` : ""}`);
+            debug(
+                `Creating WebSocket connection to ${form.href}${protocols ? ` with subprotocol ${subprotocol}` : ""}`
+            );
 
             // Connect to the full href, not just baseUrl
             const ws = new WebSocket(form.href, protocols, wsOptions);

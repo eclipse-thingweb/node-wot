@@ -17,7 +17,7 @@
  * Protocol test suite to test protocol implementations
  */
 
-import Servient, { createLoggers, ExposedThing } from "@node-wot/core";
+import Servient, { createLoggers } from "@node-wot/core";
 import { suite, test } from "@testdeck/mocha";
 import { expect, should } from "chai";
 import WebSocketServer from "../src/ws-server";
@@ -54,7 +54,7 @@ class WebSocketsTest {
         const receivedConnections: string[] = [];
 
         mockServer.on("connection", (ws, req) => {
-            receivedConnections.push(req.url || "/");
+            receivedConnections.push(req.url ?? "/");
             ws.on("message", (msg) => {
                 const data = JSON.parse(msg.toString());
                 // Echo back with id
@@ -77,8 +77,8 @@ class WebSocketsTest {
             };
 
             // Both should succeed and connect to different paths
-            const result1 = await client.readResource(form1);
-            const result2 = await client.readResource(form2);
+            await client.readResource(form1);
+            await client.readResource(form2);
 
             expect(receivedConnections).to.include("/endpoint1");
             expect(receivedConnections).to.include("/endpoint2");
@@ -181,12 +181,7 @@ class WebSocketsTest {
                 op: "subscribeproperty",
             };
 
-            const subscription = await client.subscribeResource(
-                form,
-                () => {},
-                undefined,
-                undefined
-            );
+            await client.subscribeResource(form, () => {}, undefined, undefined);
 
             // Unsubscribe should trigger the correct operation
             await client.unlinkResource(form);
@@ -247,12 +242,7 @@ class WebSocketsTest {
                 op: "subscribeevent",
             };
 
-            const subscription = await client.subscribeResource(
-                form,
-                () => {},
-                undefined,
-                undefined
-            );
+            await client.subscribeResource(form, () => {}, undefined, undefined);
 
             // Unsubscribe should trigger the correct operation
             await client.unlinkResource(form);
