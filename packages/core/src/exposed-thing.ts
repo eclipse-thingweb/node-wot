@@ -595,7 +595,9 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             }
             const unsubscribe = this.#eventHandlers.get(name)?.unsubscribe;
             if (unsubscribe) {
-                unsubscribe(options);
+                unsubscribe(options).catch((error) => {
+                    throw error;
+                });
             }
             debug(`ExposedThing '${this.title}' unsubscribes from event '${name}'`);
         } else {
@@ -663,7 +665,9 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 
             const unobserveHandler = this.#propertyHandlers.get(name)?.unobserveHandler;
             if (unobserveHandler) {
-                unobserveHandler(options);
+                unobserveHandler(options).catch((error) => {
+                    throw error;
+                });
             }
         } else {
             throw new Error(`ExposedThing '${this.title}', no property found for '${name}'`);
