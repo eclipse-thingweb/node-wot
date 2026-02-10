@@ -26,6 +26,14 @@ export default class MqttClientFactory implements ProtocolClientFactory {
     public readonly scheme: string = "mqtt";
     private readonly clients: Array<ProtocolClient> = [];
 
+    getSchemes(): string[] {
+        return ["mqtt", "mqtts", "mqtt+ws", "mqtt+wss"];
+    }
+
+    supportsSubprotocol(scheme: string, subprotocol: string): boolean {
+        return (scheme === "ws" || scheme === "wss") && subprotocol === "mqtt";
+    }
+
     getClient(): ProtocolClient {
         const client = new MqttClient();
         this.clients.push(client);

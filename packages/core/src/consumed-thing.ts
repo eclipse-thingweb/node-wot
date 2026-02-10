@@ -517,14 +517,15 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
             if (options.formIndex >= 0 && options.formIndex < forms.length) {
                 form = forms[options.formIndex];
                 const scheme = Helpers.extractScheme(form.href);
+                const cacheKey = this.getClientCacheKey(scheme, form.subprotocol);
+
                 if (this.#servient.hasClientFor(scheme)) {
                     debug(`ConsumedThing '${this.title}' got client for '${scheme}'`);
-                    client = this.#servient.getClientFor(scheme);
+                    client = this.#servient.getClientFor(scheme, form.subprotocol);
 
-                    if (!this.#clients.get(scheme)) {
-                        // new client
+                    if (!this.#clients.get(cacheKey)) {
                         this.ensureClientSecurity(client, form);
-                        this.#clients.set(scheme, client);
+                        this.#clients.set(cacheKey, client);
                     }
                 } else {
                     throw new Error(`ConsumedThing '${this.title}' missing ClientFactory for '${scheme}'`);
@@ -534,33 +535,40 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
             }
         } else {
             const schemes = forms.map((link) => Helpers.extractScheme(link.href));
-            const cacheIdx = schemes.findIndex((scheme) => this.#clients.has(scheme));
+            const cacheIdx = schemes.findIndex((scheme, idx) => {
+                const cacheKey = this.getClientCacheKey(scheme, forms[idx].subprotocol);
+                return this.#clients.has(cacheKey);
+            });
 
             if (cacheIdx !== -1) {
-                // from cache
                 debug(`ConsumedThing '${this.title}' chose cached client for '${schemes[cacheIdx]}'`);
-                // if cacheIdx is valid, then clients *contains* schemes[cacheIdx]
-                client = this.#clients.get(schemes[cacheIdx])!;
+                const cacheKey = this.getClientCacheKey(schemes[cacheIdx], forms[cacheIdx].subprotocol);
+                client = this.#clients.get(cacheKey)!;
                 form = this.findForm(forms, op, affordance, schemes, cacheIdx);
             } else {
-                // new client
                 debug(`ConsumedThing '${this.title}' has no client in cache (${cacheIdx})`);
                 const srvIdx = schemes.findIndex((scheme) => this.#servient.hasClientFor(scheme));
 
                 if (srvIdx === -1)
                     throw new Error(`ConsumedThing '${this.title}' missing ClientFactory for '${schemes}'`);
 
-                client = this.#servient.getClientFor(schemes[srvIdx]);
+                form = this.findForm(forms, op, affordance, schemes, srvIdx);
+                client = this.#servient.getClientFor(schemes[srvIdx], form?.subprotocol);
 
                 debug(`ConsumedThing '${this.title}' got new client for '${schemes[srvIdx]}'`);
 
-                this.#clients.set(schemes[srvIdx], client);
+                const cacheKey = this.getClientCacheKey(schemes[srvIdx], form?.subprotocol);
+                this.#clients.set(cacheKey, client);
 
-                form = this.findForm(forms, op, affordance, schemes, srvIdx);
                 this.ensureClientSecurity(client, form);
             }
         }
         return { client, form };
+    }
+
+    private getClientCacheKey(scheme: string, subprotocol?: string): string {
+        const normalizedSubprotocol = subprotocol?.trim().toLowerCase();
+        return normalizedSubprotocol ? `${scheme}+${normalizedSubprotocol}` : scheme;
     }
 
     async readProperty(propertyName: string, options?: WoT.InteractionOptions): Promise<WoT.InteractionOutput> {

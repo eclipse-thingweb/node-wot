@@ -161,16 +161,41 @@ export default class Servient {
         return this.clientFactories.has(scheme);
     }
 
-    public getClientFor(scheme: string): ProtocolClient {
-        const clientFactory = this.clientFactories.get(scheme);
-        if (clientFactory) {
-            debug(`Servient creating client for scheme '${scheme}'`);
-            return clientFactory.getClient();
-        } else {
-            // FIXME returning null was bad - Error or Promise?
-            // h0ru5: caller cannot react gracefully - I'd throw Error
-            throw new Error(`Servient has no ClientFactory for scheme '${scheme}'`);
+    public getClientFor(scheme: string, subprotocol?: string): ProtocolClient {
+        const normalizedScheme = scheme.toLowerCase();
+        const normalizedSubprotocol = subprotocol?.trim().toLowerCase();
+
+        if (normalizedSubprotocol) {
+            debug(
+                `Servient looking for client supporting scheme '${normalizedScheme}' with subprotocol '${normalizedSubprotocol}'`
+            );
+            for (const clientFactory of this.clientFactories.values()) {
+                if (clientFactory.supportsSubprotocol?.(normalizedScheme, normalizedSubprotocol)) {
+                    debug(
+                        `Servient found client factory '${clientFactory.scheme}' supporting '${normalizedScheme}' + '${normalizedSubprotocol}'`
+                    );
+                    return clientFactory.getClient();
+                }
+            }
         }
+
+        const clientFactory = this.clientFactories.get(normalizedScheme);
+        if (clientFactory) {
+            debug(`Servient creating client for scheme '${normalizedScheme}'`);
+            return clientFactory.getClient();
+        }
+
+        for (const factory of this.clientFactories.values()) {
+            const schemes = factory.getSchemes?.();
+            if (schemes && schemes.includes(normalizedScheme)) {
+                debug(
+                    `Servient found client factory '${factory.scheme}' supporting extended scheme '${normalizedScheme}'`
+                );
+                return factory.getClient();
+            }
+        }
+
+        throw new Error(`Servient has no ClientFactory for scheme '${normalizedScheme}'`);
     }
 
     public getClientSchemes(): string[] {

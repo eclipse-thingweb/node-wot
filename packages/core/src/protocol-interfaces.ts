@@ -89,6 +89,12 @@ export interface ProtocolClientFactory {
     getClient(): ProtocolClient;
     init(): boolean;
     destroy(): boolean;
+
+    /** @returns all schemes supported by this factory (e.g., mqtt, mqtt+ws, mqtts) */
+    getSchemes?(): string[];
+
+    /** @returns true if this factory can handle the scheme + subprotocol combination */
+    supportsSubprotocol?(scheme: string, subprotocol: string): boolean;
 }
 
 export interface ProtocolServer {
