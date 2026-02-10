@@ -27,7 +27,9 @@ const { debug, warn } = createLoggers("core", "servient");
 
 export default class Servient {
     private servers: Array<ProtocolServer> = [];
-    private clientFactories: Map<string, ProtocolClientFactory> = new Map<string, ProtocolClientFactory>();
+    // Two-level map: Map<scheme, Map<subprotocol, factory>>
+    // Empty string "" is used for subprotocol when none specified
+    private clientFactories: Map<string, Map<string, ProtocolClientFactory>> = new Map();
     private things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
     private credentialStore: Map<string, Array<unknown>> = new Map<string, Array<unknown>>();
 
@@ -147,30 +149,124 @@ export default class Servient {
 
     public addClientFactory(clientFactory: ProtocolClientFactory): void {
         debug(`Servient adding client factory for '${clientFactory.scheme}'`);
-        this.clientFactories.set(clientFactory.scheme, clientFactory);
+
+        // Get all supported protocol combinations
+        const protocols = clientFactory.getSupportedProtocols?.() || [[clientFactory.scheme]];
+
+        if (!Array.isArray(protocols) || protocols.length === 0) {
+            warn(
+                `Servient client factory '${clientFactory.scheme}' returned invalid protocols, falling back to scheme`
+            );
+            this.registerProtocolCombination(clientFactory, clientFactory.scheme, undefined);
+            return;
+        }
+
+        for (const tuple of protocols) {
+            if (!Array.isArray(tuple)) {
+                warn(`Servient skipping invalid protocol tuple from '${clientFactory.scheme}'`);
+                continue;
+            }
+
+            const [scheme, subprotocol] = tuple;
+
+            if (!scheme || typeof scheme !== "string" || scheme.trim() === "") {
+                warn(`Servient skipping empty or invalid scheme from '${clientFactory.scheme}'`);
+                continue;
+            }
+
+            this.registerProtocolCombination(clientFactory, scheme, subprotocol);
+        }
+    }
+
+    private registerProtocolCombination(
+        clientFactory: ProtocolClientFactory,
+        scheme: string,
+        subprotocol?: string
+    ): void {
+        const normalizedScheme = scheme.toLowerCase().trim();
+        const normalizedSubprotocol = subprotocol?.trim().toLowerCase() || "";
+
+        // Get or create inner map for this scheme
+        if (!this.clientFactories.has(normalizedScheme)) {
+            this.clientFactories.set(normalizedScheme, new Map());
+        }
+
+        const subprotocolMap = this.clientFactories.get(normalizedScheme)!;
+
+        // Register factory for this scheme+subprotocol combination
+        if (subprotocolMap.has(normalizedSubprotocol)) {
+            warn(
+                `Servient replacing client factory for '${normalizedScheme}' + '${normalizedSubprotocol || "(none)"}'`
+            );
+        }
+
+        subprotocolMap.set(normalizedSubprotocol, clientFactory);
+        debug(
+            `Servient registered '${normalizedScheme}'${normalizedSubprotocol ? ` + subprotocol '${normalizedSubprotocol}'` : ""}`
+        );
     }
 
     public removeClientFactory(scheme: string): boolean {
-        debug(`Servient removing client factory for '${scheme}'`);
-        this.clientFactories.get(scheme)?.destroy();
-        return this.clientFactories.delete(scheme);
-    }
-
-    public hasClientFor(scheme: string): boolean {
-        debug(`Servient checking for '${scheme}' scheme in ${this.clientFactories.size} ClientFactories`);
-        return this.clientFactories.has(scheme);
-    }
-
-    public getClientFor(scheme: string): ProtocolClient {
-        const clientFactory = this.clientFactories.get(scheme);
-        if (clientFactory) {
-            debug(`Servient creating client for scheme '${scheme}'`);
-            return clientFactory.getClient();
-        } else {
-            // FIXME returning null was bad - Error or Promise?
-            // h0ru5: caller cannot react gracefully - I'd throw Error
-            throw new Error(`Servient has no ClientFactory for scheme '${scheme}'`);
+        if (!scheme || typeof scheme !== "string" || scheme.trim() === "") {
+            warn("Servient removeClientFactory called with invalid scheme");
+            return false;
         }
+
+        debug(`Servient removing client factory for '${scheme}'`);
+        const normalizedScheme = scheme.toLowerCase().trim();
+
+        const subprotocolMap = this.clientFactories.get(normalizedScheme);
+        if (subprotocolMap) {
+            // Destroy all factories for this scheme
+            for (const factory of subprotocolMap.values()) {
+                factory.destroy();
+            }
+            return this.clientFactories.delete(normalizedScheme);
+        }
+
+        return false;
+    }
+
+    public hasClientFor(scheme: string, subprotocol?: string): boolean {
+        if (!scheme || typeof scheme !== "string" || scheme.trim() === "") {
+            warn("Servient hasClientFor called with invalid scheme");
+            return false;
+        }
+
+        const normalizedScheme = scheme.toLowerCase().trim();
+        const normalizedSubprotocol = subprotocol?.trim().toLowerCase() || "";
+
+        debug(`Servient checking for '${normalizedScheme}'${normalizedSubprotocol ? ` + '${normalizedSubprotocol}'` : ""}`);
+
+        const subprotocolMap = this.clientFactories.get(normalizedScheme);
+        return subprotocolMap?.has(normalizedSubprotocol) ?? false;
+    }
+
+    public getClientFor(scheme: string, subprotocol?: string): ProtocolClient {
+        if (!scheme || typeof scheme !== "string" || scheme.trim() === "") {
+            throw new Error("Servient getClientFor called with invalid scheme");
+        }
+
+        const normalizedScheme = scheme.toLowerCase().trim();
+        const normalizedSubprotocol = subprotocol?.trim().toLowerCase() || "";
+
+        debug(
+            `Servient getting client for '${normalizedScheme}'${normalizedSubprotocol ? ` + subprotocol '${normalizedSubprotocol}'` : ""}`
+        );
+
+        // O(1) lookup in two-level map
+        const subprotocolMap = this.clientFactories.get(normalizedScheme);
+        if (subprotocolMap) {
+            const factory = subprotocolMap.get(normalizedSubprotocol);
+            if (factory) {
+                debug(`Servient found client factory for '${normalizedScheme}' + '${normalizedSubprotocol || "(none)"}'`);
+                return factory.getClient();
+            }
+        }
+
+        throw new Error(
+            `Servient has no ClientFactory for scheme '${normalizedScheme}'${normalizedSubprotocol ? ` with subprotocol '${normalizedSubprotocol}'` : ""}`
+        );
     }
 
     public getClientSchemes(): string[] {
@@ -221,7 +317,9 @@ export default class Servient {
 
         const serverStatus: Array<Promise<void>> = [];
         this.servers.forEach((server) => serverStatus.push(server.start(this)));
-        this.clientFactories.forEach((clientFactory) => clientFactory.init());
+        this.clientFactories.forEach((subprotocolMap) => {
+            subprotocolMap.forEach((clientFactory) => clientFactory.init());
+        });
 
         await Promise.all(serverStatus);
         return (this.#wotInstance = new WoTImpl(this));
@@ -236,7 +334,9 @@ export default class Servient {
             return;
         }
 
-        this.clientFactories.forEach((clientFactory) => clientFactory.destroy());
+        this.clientFactories.forEach((subprotocolMap) => {
+            subprotocolMap.forEach((clientFactory) => clientFactory.destroy());
+        });
 
         const promises = this.servers.map((server) => server.stop());
         await Promise.all(promises);

@@ -24,6 +24,10 @@ const { debug } = createLoggers("binding-file", "file-client-factory");
 export default class FileClientFactory implements ProtocolClientFactory {
     public readonly scheme: string = "file";
 
+    public getSupportedProtocols(): Array<[string, string?]> {
+        return [["file"]];
+    }
+
     public getClient(): ProtocolClient {
         debug(`FileClientFactory creating client for '${this.scheme}'`);
         return new FileClient();

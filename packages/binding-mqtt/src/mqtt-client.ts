@@ -54,6 +54,22 @@ export default class MqttClient implements ProtocolClient {
 
     private client?: mqtt.MqttClient;
 
+    private getBrokerUri(href: string): string {
+        const requestUri = new URL(href);
+
+        if (href.startsWith("ws://") || href.startsWith("wss://")) {
+            return `${requestUri.protocol}//${requestUri.host}`;
+        }
+
+        const compositeMatch = href.match(/^([a-z]+)\+([a-z]+):\/\//i);
+        if (compositeMatch) {
+            const transportScheme = compositeMatch[2];
+            return `${transportScheme}://${requestUri.host}`;
+        }
+
+        return `${this.scheme}://${requestUri.host}`;
+    }
+
     public async subscribeResource(
         form: MqttForm,
         next: (value: Content) => void,
@@ -62,7 +78,7 @@ export default class MqttClient implements ProtocolClient {
     ): Promise<Subscription> {
         const contentType = form.contentType ?? ContentSerdes.DEFAULT;
         const requestUri = new url.URL(form.href);
-        const brokerUri: string = `${this.scheme}://` + requestUri.host;
+        const brokerUri: string = this.getBrokerUri(form.href);
         // Keeping the path as the topic for compatibility reasons.
         // Current specification allows only form["mqv:filter"]
         const filter = requestUri.pathname.slice(1) ?? form["mqv:filter"];
@@ -92,7 +108,7 @@ export default class MqttClient implements ProtocolClient {
     public async readResource(form: MqttForm): Promise<Content> {
         const contentType = form.contentType ?? ContentSerdes.DEFAULT;
         const requestUri = new url.URL(form.href);
-        const brokerUri: string = `${this.scheme}://` + requestUri.host;
+        const brokerUri: string = this.getBrokerUri(form.href);
         // Keeping the path as the topic for compatibility reasons.
         // Current specification allows only form["mqv:filter"]
         const filter = requestUri.pathname.slice(1) ?? form["mqv:filter"];
@@ -124,7 +140,7 @@ export default class MqttClient implements ProtocolClient {
 
     public async writeResource(form: MqttForm, content: Content): Promise<void> {
         const requestUri = new url.URL(form.href);
-        const brokerUri = `${this.scheme}://${requestUri.host}`;
+        const brokerUri = this.getBrokerUri(form.href);
         const topic = requestUri.pathname.slice(1) ?? form["mqv:topic"];
 
         let pool = this.pools.get(brokerUri);
@@ -147,7 +163,7 @@ export default class MqttClient implements ProtocolClient {
     public async invokeResource(form: MqttForm, content: Content): Promise<Content> {
         const requestUri = new url.URL(form.href);
         const topic = requestUri.pathname.slice(1);
-        const brokerUri = `${this.scheme}://${requestUri.host}`;
+        const brokerUri = this.getBrokerUri(form.href);
 
         let pool = this.pools.get(brokerUri);
 
@@ -170,7 +186,7 @@ export default class MqttClient implements ProtocolClient {
 
     public async unlinkResource(form: Form): Promise<void> {
         const requestUri = new url.URL(form.href);
-        const brokerUri: string = `${this.scheme}://` + requestUri.host;
+        const brokerUri: string = this.getBrokerUri(form.href);
         const topic = requestUri.pathname.slice(1);
 
         const pool = this.pools.get(brokerUri);
