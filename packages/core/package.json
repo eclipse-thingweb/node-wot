@@ -16,13 +16,13 @@
     "types": "dist/core.d.ts",
     "devDependencies": {
         "@types/content-type": "^1.1.8",
-        "@types/debug": "^4.1.7",
         "@types/uritemplate": "^0.3.4",
         "@types/uuid": "^8.3.1"
     },
     "dependencies": {
         "@petamoriken/float16": "^3.1.1",
         "@thingweb/thing-model": "^1.0.4",
+        "@types/debug": "^4.1.7",
         "ajv": "^8.11.0",
         "ajv-formats": "^2.1.1",
         "cbor": "^8.1.0",
