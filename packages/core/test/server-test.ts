@@ -68,9 +68,14 @@ class WoTServerTest {
         this.servient = new Servient();
         this.server = new TestProtocolServer();
         this.servient.addServer(this.server);
-        this.servient.start().then((WoTruntime) => {
-            this.WoT = WoTruntime;
-        });
+        this.servient
+            .start()
+            .then((WoTruntime) => {
+                this.WoT = WoTruntime;
+            })
+            .catch((error) => {
+                throw error;
+            });
         debug("started test suite");
     }
 
@@ -889,7 +894,9 @@ class WoTServerTest {
 
         thing.setPropertyReadHandler("test", callback);
 
-        (thing as ExposedThing).handleObserveProperty("test", protocolListener, { formIndex: 0 });
+        (thing as ExposedThing).handleObserveProperty("test", protocolListener, { formIndex: 0 }).catch((error) => {
+            throw error;
+        });
 
         await (<ExposedThing>thing).emitPropertyChange("test");
 
