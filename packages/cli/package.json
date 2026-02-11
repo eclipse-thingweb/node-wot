@@ -30,7 +30,7 @@
         "commander": "^9.1.0",
         "dotenv": "^16.4.7",
         "lodash": "^4.17.23",
-        "vm2": "3.10.0"
+        "vm2": "3.10.2"
     },
     "scripts": {
         "build": "tsc -b",
