@@ -94,6 +94,65 @@ servient.start().then((WoT) => {
 });
 ```
 
+## Using CoAPs with PSK
+
+The CoAP binding also supports secure CoAP (`coaps://`) using DTLS with the
+`psk` (Pre-Shared Key) security scheme.
+
+Currently, PSK support is implemented in the `CoapsClient` and can be
+configured via the Thing Description and client credentials.
+
+### Thing Description Example
+
+To use PSK, the Thing Description must define a `psk` security scheme:
+
+```json
+{
+    "securityDefinitions": {
+        "psk_sc": {
+            "scheme": "psk"
+        }
+    },
+    "security": ["psk_sc"]
+}
+```
+
+### Client Configuration Example
+
+On the client side, credentials must be provided via the Servient
+using `addCredentials()`. The credentials are associated with the
+Thing's `id` and are automatically applied based on the TD security
+configuration.
+
+```js
+const { Servient } = require("@node-wot/core");
+const { CoapsClientFactory } = require("@node-wot/binding-coap");
+
+const servient = new Servient();
+servient.addClientFactory(new CoapsClientFactory());
+
+servient.start().then(async (WoT) => {
+    const td = await WoT.requestThingDescription("coaps://example.com/secure-thing");
+
+    // Configure PSK credentials for this Thing
+    servient.addCredentials({
+        [td.id]: {
+            identity: "Client_identity",
+            psk: "secretPSK",
+        },
+    });
+
+    const thing = await WoT.consume(td);
+
+    await thing.invokeAction("someAction");
+});
+```
+
+The `identity` and `psk` values must match the configuration of the
+CoAPs server.
+
+> **Note:** Only the psk security scheme is currently supported for CoAPs.
+
 ### More Details
 
 See <https://github.com/eclipse-thingweb/node-wot/>
