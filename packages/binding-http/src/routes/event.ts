@@ -86,7 +86,7 @@ export default async function eventRoute(
             } catch (err) {
                 // Safe cast to NodeJS.ErrnoException we are checking if it is equal to ERR_HTTP_HEADERS_SENT
                 if ((err as NodeJS.ErrnoException)?.code === "ERR_HTTP_HEADERS_SENT") {
-                    thing.handleUnsubscribeEvent(eventName, listener, options);
+                    void thing.handleUnsubscribeEvent(eventName, listener, options);
                     return;
                 }
                 const message = err instanceof Error ? err.message : JSON.stringify(err);
@@ -99,9 +99,9 @@ export default async function eventRoute(
         await thing.handleSubscribeEvent(eventName, listener, options);
         res.on("close", () => {
             debug(`HttpServer on port ${this.getPort()} closed Event connection`);
-            thing.handleUnsubscribeEvent(eventName, listener, options);
+            void thing.handleUnsubscribeEvent(eventName, listener, options);
         });
-        res.setTimeout(60 * 60 * 1000, () => thing.handleUnsubscribeEvent(eventName, listener, options));
+        res.setTimeout(60 * 60 * 1000, () => void thing.handleUnsubscribeEvent(eventName, listener, options));
     } else if (req.method === "HEAD") {
         // HEAD support for long polling subscription
         res.writeHead(202);
