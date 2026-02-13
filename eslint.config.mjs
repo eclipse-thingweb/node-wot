@@ -1,3 +1,4 @@
+import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -24,6 +25,17 @@ const compat = new FlatCompat({
     recommendedConfig: js.configs.recommended,
     allConfig: js.configs.all,
 });
+
+const packageDirs = [__dirname];
+const packagesRoot = path.join(__dirname, "packages");
+if (fs.existsSync(packagesRoot)) {
+    fs.readdirSync(packagesRoot).forEach((dir) => {
+        const pkgPath = path.join(packagesRoot, dir, "package.json");
+        if (fs.existsSync(pkgPath)) {
+            packageDirs.push(path.join(packagesRoot, dir));
+        }
+    });
+}
 
 export default defineConfig([
     ...compat.extends(
@@ -89,7 +101,13 @@ export default defineConfig([
             "n/hashbang": "warn",
 
             // *************** Ensure that only used dependencies are imported ***************
-            "extraneous-dependencies/no-extraneous-dependencies": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
+            // Default rule for root files
+            "extraneous-dependencies/no-extraneous-dependencies": [
+                "warn",
+                {
+                    packageDir: [__dirname],
+                },
+            ],
 
             // *************** Code style and best practices ***************
             "unused-imports/no-unused-imports": "error",
@@ -157,4 +175,17 @@ export default defineConfig([
         "**/bin",
         "**/*.js",
     ]),
+    ...packageDirs
+        .filter((dir) => dir !== __dirname)
+        .map((dir) => ({
+            files: [path.relative(__dirname, dir) + "/**/*.{ts,js}"],
+            rules: {
+                "extraneous-dependencies/no-extraneous-dependencies": [
+                    "warn",
+                    {
+                        packageDir: [__dirname, dir],
+                    },
+                ],
+            },
+        })),
 ]);
