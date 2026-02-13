@@ -53,6 +53,7 @@
     - If you do not find a solution to the problem, do not bypass it by typecasting, ignoring the tests etc.
 
 6. **Commit Requirements**:
+
     - **All commits MUST be signed** using the contributor's Eclipse Foundation account email
     - Configure git: `git config user.email "<eclipse-account-email>"`
     - Commit with `-s` flag: `git commit -s -m "<message>"`
