@@ -52,6 +52,78 @@ servient
     });
 ```
 
+## Using PSK with CoAPs (DTLS)
+
+The CoAP binding also supports secure communication over `coaps://` using DTLS with Pre-Shared Keys (PSK).
+
+To use PSK security, define a `psk` security scheme in the Thing Description and provide the credentials when consuming the Thing.
+
+### Thing Description Example (PSK)
+
+```json
+{
+  "title": "SecureThing",
+  "securityDefinitions": {
+    "psk_sc": {
+      "scheme": "psk"
+    }
+  },
+  "security": ["psk_sc"],
+  "properties": {
+    "count": {
+      "type": "integer",
+      "forms": [
+        {
+          "href": "coaps://localhost:5684/count"
+        }
+      ]
+    }
+  }
+}
+```
+
+### Client Example with PSK
+
+```js
+const { Servient } = require("@node-wot/core");
+const { CoapClientFactory } = require("@node-wot/binding-coap");
+
+const servient = new Servient();
+servient.addClientFactory(new CoapClientFactory());
+
+servient
+    .start()
+    .then(async (WoT) => {
+        try {
+            const td = await WoT.requestThingDescription("coaps://localhost:5684/secureThing");
+            const thing = await WoT.consume(td);
+
+            // configure PSK security
+            thing.setSecurity(
+                td.securityDefinitions,
+                {
+                    identity: "Client_identity",
+                    psk: "secretPSK"
+                }
+            );
+
+            const value = await thing.readProperty("count");
+            console.log("count value is:", await value.value());
+        } catch (err) {
+            console.error("Script error:", err);
+        }
+    })
+    .catch((err) => {
+        console.error("Start error:", err);
+    });
+```
+
+### Notes
+
+- The `identity` must match the server configuration.
+- The `psk` must match the server's configured secret.
+- Currently, only the `psk` security scheme is supported for `coaps://` in this binding.
+
 ### Server Example
 
 The server example produces a thing that allows for setting a property `count`. The thing is reachable through CoAP.
@@ -93,65 +165,6 @@ servient.start().then((WoT) => {
     });
 });
 ```
-
-## Using CoAPs with PSK
-
-The CoAP binding also supports secure CoAP (`coaps://`) using DTLS with the
-`psk` (Pre-Shared Key) security scheme.
-
-Currently, PSK support is implemented in the `CoapsClient` and can be
-configured via the Thing Description and client credentials.
-
-### Thing Description Example
-
-To use PSK, the Thing Description must define a `psk` security scheme:
-
-```json
-{
-    "securityDefinitions": {
-        "psk_sc": {
-            "scheme": "psk"
-        }
-    },
-    "security": ["psk_sc"]
-}
-```
-
-### Client Configuration Example
-
-On the client side, credentials must be provided via the Servient
-using `addCredentials()`. The credentials are associated with the
-Thing's `id` and are automatically applied based on the TD security
-configuration.
-
-```js
-const { Servient } = require("@node-wot/core");
-const { CoapsClientFactory } = require("@node-wot/binding-coap");
-
-const servient = new Servient();
-servient.addClientFactory(new CoapsClientFactory());
-
-servient.start().then(async (WoT) => {
-    const td = await WoT.requestThingDescription("coaps://example.com/secure-thing");
-
-    // Configure PSK credentials for this Thing
-    servient.addCredentials({
-        [td.id]: {
-            identity: "Client_identity",
-            psk: "secretPSK",
-        },
-    });
-
-    const thing = await WoT.consume(td);
-
-    await thing.invokeAction("someAction");
-});
-```
-
-The `identity` and `psk` values must match the configuration of the
-CoAPs server.
-
-> **Note:** Only the psk security scheme is currently supported for CoAPs.
 
 ### More Details
 
