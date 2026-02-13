@@ -21,11 +21,6 @@ export default class ProtocolListenerRegistry {
     private static EMPTY_MAP = new Map();
     private listeners: Map<ThingInteraction, Map<number, ContentListener[]>> = new Map();
     register(affordance: ThingInteraction, formIndex: number, listener: ContentListener): void {
-        if (affordance.forms[formIndex] == null) {
-            throw new Error(
-                "Can't register the listener for affordance with formIndex. The affordance does not contain the form"
-            );
-        }
 
         let formMap = this.listeners.get(affordance);
 

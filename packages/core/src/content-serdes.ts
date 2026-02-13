@@ -57,29 +57,28 @@ export class ContentSerdes {
     private offered: Set<string> = new Set<string>();
 
     public static get(): ContentSerdes {
-        if (this.instance == null) {
-            this.instance = new ContentSerdes();
-            // JSON
-            this.instance.addCodec(new JsonCodec(), true);
-            this.instance.addCodec(new JsonCodec("application/senml+json"));
-            this.instance.addCodec(new JsonCodec("application/td+json"));
-            this.instance.addCodec(new JsonCodec("application/ld+json"));
-            // CBOR
-            this.instance.addCodec(new CborCodec(), true);
-            // Text
-            this.instance.addCodec(new TextCodec());
-            this.instance.addCodec(new TextCodec("text/html"));
-            this.instance.addCodec(new TextCodec("text/css"));
-            this.instance.addCodec(new TextCodec("application/xml"));
-            this.instance.addCodec(new TextCodec("application/xhtml+xml"));
-            this.instance.addCodec(new TextCodec("image/svg+xml"));
-            // Base64
-            this.instance.addCodec(new Base64Codec("image/png"));
-            this.instance.addCodec(new Base64Codec("image/gif"));
-            this.instance.addCodec(new Base64Codec("image/jpeg"));
-            // OctetStream
-            this.instance.addCodec(new OctetstreamCodec());
-        }
+        this.instance = new ContentSerdes();
+        // JSON
+        this.instance.addCodec(new JsonCodec(), true);
+        this.instance.addCodec(new JsonCodec("application/senml+json"));
+        this.instance.addCodec(new JsonCodec("application/td+json"));
+        this.instance.addCodec(new JsonCodec("application/ld+json"));
+        // CBOR
+        this.instance.addCodec(new CborCodec(), true);
+        // Text
+        this.instance.addCodec(new TextCodec());
+        this.instance.addCodec(new TextCodec("text/html"));
+        this.instance.addCodec(new TextCodec("text/css"));
+        this.instance.addCodec(new TextCodec("application/xml"));
+        this.instance.addCodec(new TextCodec("application/xhtml+xml"));
+        this.instance.addCodec(new TextCodec("image/svg+xml"));
+        // Base64
+        this.instance.addCodec(new Base64Codec("image/png"));
+        this.instance.addCodec(new Base64Codec("image/gif"));
+        this.instance.addCodec(new Base64Codec("image/jpeg"));
+        // OctetStream
+        this.instance.addCodec(new OctetstreamCodec());
+
         return this.instance;
     }
 
@@ -126,7 +125,6 @@ export class ContentSerdes {
     }
 
     public contentToValue(content: ReadContent, schema: DataSchema): DataSchemaValue | undefined {
-        if (content.type === undefined) {
             if (content.body.byteLength > 0) {
                 // default to application/json
                 content.type = ContentSerdes.DEFAULT;
@@ -134,7 +132,6 @@ export class ContentSerdes {
                 // empty payload without media type -> void/undefined (note: e.g., empty payload with text/plain -> "")
                 return undefined;
             }
-        }
 
         // split into media type and parameters
         const mt = ContentSerdes.getMediaType(content.type);
@@ -162,8 +159,6 @@ export class ContentSerdes {
         schema: DataSchema | undefined,
         contentType = ContentSerdes.DEFAULT
     ): Content {
-        if (value === undefined) warn("ContentSerdes valueToContent got no value");
-
         if (value instanceof ReadableStream) {
             return new Content(contentType, ProtocolHelpers.toNodeStream(value));
         }

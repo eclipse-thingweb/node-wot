@@ -50,8 +50,5 @@
     "directories": {
         "test": "test"
     },
-    "keywords": [],
-    "eslintConfig": {
-        "extends": "../../.eslintrc.js"
-    }
+    "keywords": []
 }

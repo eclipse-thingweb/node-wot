@@ -108,7 +108,7 @@ export default class OctetstreamCodec implements ContentCodec {
             if (typeSem) {
                 if (typeSem[1] === "u") {
                     // compare with schema information
-                    if (parameters?.signed === "true") {
+                    if (parameters.signed === "true") {
                         throw new Error("Type is unsigned but 'signed' is true");
                     }
                     // no schema, but type is unsigned
@@ -117,7 +117,7 @@ export default class OctetstreamCodec implements ContentCodec {
                 dataType = typeSem[2];
                 if (parseInt(typeSem[3]) !== bitLength) {
                     throw new Error(
-                        `Type is '${(typeSem[1] ?? "") + typeSem[2] + typeSem[3]}' but 'ex:bitLength' is ` + bitLength
+                        `Type is '${(typeSem[1] || "") + typeSem[2] + typeSem[3]}' but 'ex:bitLength' is ` + bitLength
                     );
                 }
             }
@@ -130,11 +130,11 @@ export default class OctetstreamCodec implements ContentCodec {
         }
 
         // Handle byte swapping
-        if (parameters?.byteSeq?.includes("BYTE_SWAP") === true && bytes.length > 1) {
+        if (parameters.byteSeq?.includes("BYTE_SWAP") === true && bytes.length > 1) {
             bytes.swap16();
         }
 
-        if (offset !== undefined && bitLength < bytes.length * 8) {
+        if (bitLength < bytes.length * 8) {
             bytes = this.readBits(bytes, offset, bitLength);
             bitLength = bytes.length * 8;
         }
@@ -183,8 +183,8 @@ export default class OctetstreamCodec implements ContentCodec {
                         ? bytes.readInt16BE(0)
                         : bytes.readUInt16BE(0)
                     : signed
-                      ? bytes.readInt16LE(0)
-                      : bytes.readUInt16LE(0);
+                        ? bytes.readInt16LE(0)
+                        : bytes.readUInt16LE(0);
 
             case 32:
                 return bigEndian
@@ -192,8 +192,8 @@ export default class OctetstreamCodec implements ContentCodec {
                         ? bytes.readInt32BE(0)
                         : bytes.readUInt32BE(0)
                     : signed
-                      ? bytes.readInt32LE(0)
-                      : bytes.readUInt32LE(0);
+                        ? bytes.readInt32LE(0)
+                        : bytes.readUInt32LE(0);
 
             default: {
                 const result = bigEndian
@@ -201,8 +201,8 @@ export default class OctetstreamCodec implements ContentCodec {
                         ? bytes.readIntBE(0, dataLength / 8)
                         : bytes.readUIntBE(0, dataLength / 8)
                     : signed
-                      ? bytes.readIntLE(0, dataLength / 8)
-                      : bytes.readUIntLE(0, dataLength / 8);
+                        ? bytes.readIntLE(0, dataLength / 8)
+                        : bytes.readUIntLE(0, dataLength / 8);
                 // warn about numbers being too big to be represented as safe integers
                 if (!Number.isSafeInteger(result)) {
                     warn("Result is not a safe integer");
@@ -282,7 +282,7 @@ export default class OctetstreamCodec implements ContentCodec {
             throw new Error("'ex:bitOffset' must be a non-negative number");
         }
 
-        let dataType: string = schema?.type ?? undefined;
+        let dataType: string | undefined = schema?.type;
 
         if (value === undefined) {
             throw new Error("Undefined value");
@@ -300,7 +300,7 @@ export default class OctetstreamCodec implements ContentCodec {
             if (typeSem) {
                 if (typeSem[1] === "u") {
                     // compare with schema information
-                    if (parameters?.signed === "true") {
+                    if (parameters.signed === "true") {
                         throw new Error("Type is unsigned but 'signed' is true");
                     }
                     // no schema, but type is unsigned
@@ -310,8 +310,8 @@ export default class OctetstreamCodec implements ContentCodec {
                 if (bitLength !== undefined) {
                     if (parseInt(typeSem[3]) !== bitLength) {
                         throw new Error(
-                            `Type is '${(typeSem[1] ?? "") + typeSem[2] + typeSem[3]}' but 'ex:bitLength' is ` +
-                                bitLength
+                            `Type is '${(typeSem[1] || "") + typeSem[2] + typeSem[3]}' but 'ex:bitLength' is ` +
+                            bitLength
                         );
                     }
                 } else {
@@ -430,10 +430,10 @@ export default class OctetstreamCodec implements ContentCodec {
             if (value < 0 || value > limit) {
                 throw new Error(
                     "Integer overflow when representing " +
-                        value +
-                        " as an unsigned integer using " +
-                        length +
-                        " bit(s)"
+                    value +
+                    " as an unsigned integer using " +
+                    length +
+                    " bit(s)"
                 );
             }
         }
@@ -446,7 +446,7 @@ export default class OctetstreamCodec implements ContentCodec {
         }
         // Handle byte swapping
 
-        if (byteSeq?.includes("BYTE_SwAP") && byteLength > 1) {
+        if (byteSeq.includes("BYTE_SwAP") && byteLength > 1) {
             buf.swap16();
         }
         switch (byteLength) {
@@ -460,8 +460,8 @@ export default class OctetstreamCodec implements ContentCodec {
                         ? buf.writeInt16BE(value, 0)
                         : buf.writeUInt16BE(value, 0)
                     : signed
-                      ? buf.writeInt16LE(value, 0)
-                      : buf.writeUInt16LE(value, 0);
+                        ? buf.writeInt16LE(value, 0)
+                        : buf.writeUInt16LE(value, 0);
                 break;
 
             case 4:
@@ -470,8 +470,8 @@ export default class OctetstreamCodec implements ContentCodec {
                         ? buf.writeInt32BE(value, 0)
                         : buf.writeUInt32BE(value, 0)
                     : signed
-                      ? buf.writeInt32LE(value, 0)
-                      : buf.writeUInt32LE(value, 0);
+                        ? buf.writeInt32LE(value, 0)
+                        : buf.writeUInt32LE(value, 0);
                 break;
 
             default:
@@ -584,7 +584,7 @@ export default class OctetstreamCodec implements ContentCodec {
         parameters: { [key: string]: string | undefined } = {},
         result?: Buffer | undefined
     ): Buffer {
-        if (typeof value !== "object" || value === null) {
+        if (typeof value !== "object") {
             throw new Error("Value is not an object");
         }
 

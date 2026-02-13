@@ -19,7 +19,7 @@ import { ReadableStream as PolyfillStream } from "web-streams-polyfill";
 import { ActionElement, EventElement, PropertyElement } from "wot-thing-description-types";
 import { createLoggers } from "./logger";
 
-const { debug, warn } = createLoggers("core", "protocol-helpers");
+const { warn } = createLoggers("core", "protocol-helpers");
 
 export interface IManagedStream {
     nodeStream: Readable;
@@ -63,7 +63,7 @@ function isManaged(obj: unknown): obj is IManagedStream {
 export default class ProtocolHelpers {
     // set contentType (extend with more?)
     public static updatePropertyFormWithTemplate(form: Form, property: PropertyElement): void {
-        for (const formTemplate of property.forms ?? []) {
+        for (const formTemplate of property.forms) {
             // 1. Try to find match with correct href scheme
             if (formTemplate.href) {
                 // TODO match for example http only?
@@ -77,7 +77,7 @@ export default class ProtocolHelpers {
     }
 
     public static updateActionFormWithTemplate(form: Form, action: ActionElement): void {
-        for (const formTemplate of action.forms ?? []) {
+        for (const formTemplate of action.forms) {
             // 1. Try to find match with correct href scheme
             if (formTemplate.href) {
                 // TODO match for example http only?
@@ -91,7 +91,7 @@ export default class ProtocolHelpers {
     }
 
     public static updateEventFormWithTemplate(form: Form, event: EventElement): void {
-        for (const formTemplate of event.forms ?? []) {
+        for (const formTemplate of event.forms) {
             // 1. Try to find match with correct href scheme
             if (formTemplate.href) {
                 // TODO match for example http only?
@@ -112,16 +112,9 @@ export default class ProtocolHelpers {
         // try to find contentType (How to do this better)
         // Should interaction methods like readProperty() return an encapsulated value container with value&contentType
         // as sketched in https://github.com/w3c/wot-scripting-api/issues/201#issuecomment-573702999
-        if (
-            propertyName != null &&
-            uriScheme != null &&
-            td?.properties != null &&
-            td.properties[propertyName] != null &&
-            td.properties[propertyName].forms != null &&
-            Array.isArray(td.properties[propertyName].forms)
-        ) {
+        if (td.properties != null && Array.isArray(td.properties[propertyName].forms)) {
             for (const form of td.properties[propertyName].forms) {
-                if (form.href?.startsWith(uriScheme) && form.contentType != null) {
+                if (form.href.startsWith(uriScheme) && form.contentType != null) {
                     return form.contentType; // abort loop
                 }
             }
@@ -136,15 +129,9 @@ export default class ProtocolHelpers {
         uriScheme: string
     ): string | undefined {
         // try to find contentType
-        if (
-            actionName != null &&
-            uriScheme != null &&
-            td?.actions &&
-            td.actions != null &&
-            Array.isArray(td.actions[actionName]?.forms)
-        ) {
+        if (td.actions && Array.isArray(td.actions[actionName].forms)) {
             for (const form of td.actions[actionName].forms) {
-                if (form.href && form.href.startsWith(uriScheme) && form.contentType != null) {
+                if (form.href.startsWith(uriScheme) && form.contentType != null) {
                     return form.contentType; // abort loop
                 }
             }
@@ -159,13 +146,7 @@ export default class ProtocolHelpers {
         uriScheme: string
     ): string | undefined {
         // try to find contentType
-        if (
-            eventName != null &&
-            uriScheme != null &&
-            td?.events &&
-            td?.events[eventName]?.forms != null &&
-            Array.isArray(td.events[eventName].forms)
-        ) {
+        if (td.events && Array.isArray(td.events[eventName].forms)) {
             for (const form of td.events[eventName].forms) {
                 if (form.href && form.href.startsWith(uriScheme) && form.contentType != null) {
                     return form.contentType; // abort loop
@@ -235,26 +216,21 @@ export default class ProtocolHelpers {
 
     static readStreamFully(stream: NodeJS.ReadableStream): Promise<Buffer<ArrayBuffer>> {
         return new Promise((resolve, reject) => {
-            if (stream != null) {
-                const chunks: Array<unknown> = [];
-                stream.on("data", (data) => chunks.push(data));
-                stream.on("error", reject);
-                stream.on("end", () => {
-                    if (
-                        chunks[0] != null &&
-                        (chunks[0] instanceof Array || chunks[0] instanceof Buffer || chunks[0] instanceof Uint8Array)
-                    ) {
-                        resolve(Buffer.concat(chunks as Array<Buffer | Uint8Array>));
-                    } else if (chunks[0] != null && typeof chunks[0] === "string") {
-                        resolve(Buffer.from(chunks.join()));
-                    } else {
-                        resolve(Buffer.from(chunks as Array<number>));
-                    }
-                });
-            } else {
-                debug(`Protocol-Helper returns empty buffer for readStreamFully due to undefined stream`);
-                resolve(Buffer.alloc(0));
-            }
+            const chunks: Array<unknown> = [];
+            stream.on("data", (data) => chunks.push(data));
+            stream.on("error", reject);
+            stream.on("end", () => {
+                if (
+                    chunks[0] != null &&
+                    (chunks[0] instanceof Array || chunks[0] instanceof Buffer || chunks[0] instanceof Uint8Array)
+                ) {
+                    resolve(Buffer.concat(chunks as Array<Buffer | Uint8Array>));
+                } else if (chunks[0] != null && typeof chunks[0] === "string") {
+                    resolve(Buffer.from(chunks.join()));
+                } else {
+                    resolve(Buffer.from(chunks as Array<number>));
+                }
+            });
         });
     }
 
@@ -345,15 +321,15 @@ export default class ProtocolHelpers {
         }
 
         // If a form index hint is gived, you it. Just check the form actually supports the op
-        if (interaction.forms !== undefined && formIndex !== undefined && interaction.forms.length > formIndex) {
+        if (formIndex !== undefined && interaction.forms.length > formIndex) {
             const form = interaction.forms[formIndex];
-            if (form != null && (operationName == null || form.op?.includes(operationName) === true)) {
+            if (operationName == null || form.op?.includes(operationName) === true) {
                 finalFormIndex = formIndex;
             }
         }
 
         // If no form was found yet, loop through all forms
-        if (interaction.forms !== undefined && finalFormIndex === -1) {
+        if (finalFormIndex === -1) {
             if (operationName !== undefined) {
                 interaction.forms.every((form: Form) => {
                     // operationName !== undefined
@@ -363,12 +339,9 @@ export default class ProtocolHelpers {
                     }
                     return finalFormIndex === -1;
                 });
-            } else {
-                interaction.forms.every((form: Form) => {
-                    // interaction.forms  !== undefined
-                    finalFormIndex = interaction.forms!.indexOf(form);
-                    return false;
-                });
+            } else if (interaction.forms.length > 0) {
+                // interaction.forms  !== undefined
+                finalFormIndex = 0;
             }
         }
 
