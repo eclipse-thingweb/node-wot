@@ -178,7 +178,7 @@ export default class Servient {
     }
 
     public addCredentials(credentials: Record<string, unknown>): void {
-        for (const [credentialKey, credentialValue] of Object.entries(credentials ?? {})) {
+        for (const [credentialKey, credentialValue] of Object.entries(credentials)) {
             debug(`Servient storing credentials for '${credentialKey}'`);
             const currentCredentials = this.credentialStore.get(credentialKey) ?? [];
             if (currentCredentials.length === 0) {
