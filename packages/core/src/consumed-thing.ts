@@ -704,7 +704,8 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
             throw new Error(`ConsumedThing '${this.title}' did not get suitable form`);
         }
         debug(
-            `ConsumedThing '${this.title}' invoking ${form.href}${parameter !== undefined ? " with '" + parameter + "'" : ""
+            `ConsumedThing '${this.title}' invoking ${form.href}${
+                parameter !== undefined ? " with '" + parameter + "'" : ""
             }`
         );
 

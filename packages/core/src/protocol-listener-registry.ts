@@ -21,7 +21,6 @@ export default class ProtocolListenerRegistry {
     private static EMPTY_MAP = new Map();
     private listeners: Map<ThingInteraction, Map<number, ContentListener[]>> = new Map();
     register(affordance: ThingInteraction, formIndex: number, listener: ContentListener): void {
-
         let formMap = this.listeners.get(affordance);
 
         if (!formMap) {

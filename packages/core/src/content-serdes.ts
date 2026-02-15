@@ -125,13 +125,13 @@ export class ContentSerdes {
     }
 
     public contentToValue(content: ReadContent, schema: DataSchema): DataSchemaValue | undefined {
-            if (content.body.byteLength > 0) {
-                // default to application/json
-                content.type = ContentSerdes.DEFAULT;
-            } else {
-                // empty payload without media type -> void/undefined (note: e.g., empty payload with text/plain -> "")
-                return undefined;
-            }
+        if (content.body.byteLength > 0) {
+            // default to application/json
+            content.type = ContentSerdes.DEFAULT;
+        } else {
+            // empty payload without media type -> void/undefined (note: e.g., empty payload with text/plain -> "")
+            return undefined;
+        }
 
         // split into media type and parameters
         const mt = ContentSerdes.getMediaType(content.type);
