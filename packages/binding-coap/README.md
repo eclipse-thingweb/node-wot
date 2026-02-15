@@ -62,23 +62,23 @@ To use PSK security, define a `psk` security scheme in the Thing Description and
 
 ```json
 {
-  "title": "SecureThing",
-  "securityDefinitions": {
-    "psk_sc": {
-      "scheme": "psk"
-    }
-  },
-  "security": ["psk_sc"],
-  "properties": {
-    "count": {
-      "type": "integer",
-      "forms": [
-        {
-          "href": "coaps://localhost:5684/count"
+    "title": "SecureThing",
+    "securityDefinitions": {
+        "psk_sc": {
+            "scheme": "psk"
         }
-      ]
+    },
+    "security": ["psk_sc"],
+    "properties": {
+        "count": {
+            "type": "integer",
+            "forms": [
+                {
+                    "href": "coaps://localhost:5684/count"
+                }
+            ]
+        }
     }
-  }
 }
 ```
 
@@ -99,13 +99,10 @@ servient
             const thing = await WoT.consume(td);
 
             // configure PSK security
-            thing.setSecurity(
-                td.securityDefinitions,
-                {
-                    identity: "Client_identity",
-                    psk: "secretPSK"
-                }
-            );
+            thing.setSecurity(td.securityDefinitions, {
+                identity: "Client_identity",
+                psk: "secretPSK",
+            });
 
             const value = await thing.readProperty("count");
             console.log("count value is:", await value.value());
@@ -120,9 +117,9 @@ servient
 
 ### Notes
 
-- The `identity` must match the server configuration.
-- The `psk` must match the server's configured secret.
-- Currently, only the `psk` security scheme is supported for `coaps://` in this binding.
+-   The `identity` must match the server configuration.
+-   The `psk` must match the server's configured secret.
+-   Currently, only the `psk` security scheme is supported for `coaps://` in this binding.
 
 ### Server Example
 

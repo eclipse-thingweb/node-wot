@@ -110,13 +110,13 @@ export default class CoapsClient implements ProtocolClient {
     ): Promise<Subscription> {
         return new Promise<Subscription>((resolve, reject) => {
             const requestUri = new URL(form.href.replace(/$coaps/, "https"));
-            if (this.authorization != null) {
+            if (this.authorization !== undefined) {
                 coaps.setSecurityParams(requestUri.hostname, this.authorization);
             }
 
             const callback = (resp: CoapResponse) => {
                 if (resp.payload != null) {
-                    next(new Content(form?.contentType ?? ContentSerdes.DEFAULT, Readable.from(resp.payload)));
+                    next(new Content(form.contentType ?? ContentSerdes.DEFAULT, Readable.from(resp.payload)));
                 }
             };
 
@@ -163,14 +163,14 @@ export default class CoapsClient implements ProtocolClient {
     }
 
     public setSecurity(metadata: Array<SecurityScheme>, credentials?: pskSecurityParameters): boolean {
-        if (metadata === undefined || !Array.isArray(metadata) || metadata.length === 0) {
+        if (!Array.isArray(metadata) || metadata.length === 0) {
             warn(`CoapsClient received empty security metadata`);
             return false;
         }
 
         const security: SecurityScheme = metadata[0];
 
-        if (security.scheme === "psk" && credentials != null) {
+        if (security.scheme === "psk" && credentials !== undefined) {
             this.authorization = { psk: {} };
             this.authorization.psk[credentials.identity] = credentials.psk;
         } else if (security.scheme === "apikey") {
@@ -224,7 +224,7 @@ export default class CoapsClient implements ProtocolClient {
     ): Promise<CoapResponse> {
         // url only works with http*
         const requestUri = new URL(form.href.replace(/$coaps/, "https"));
-        if (this.authorization != null) {
+        if (this.authorization !== undefined) {
             coaps.setSecurityParams(requestUri.hostname, this.authorization);
         }
 
