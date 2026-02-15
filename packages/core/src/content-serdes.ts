@@ -47,7 +47,7 @@ interface ReadContent {
  * it can accept multiple serializers and decoders
  */
 export class ContentSerdes {
-    private static instance: ContentSerdes;
+    private static instance: ContentSerdes | undefined;
 
     public static readonly DEFAULT: string = "application/json";
     public static readonly TD: string = "application/td+json";
