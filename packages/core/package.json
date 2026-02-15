@@ -40,7 +40,7 @@
         "build": "tsc -b",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
-        "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"**/*.json\"",
+        "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"**/*.json\" \"*.mjs\"",
         "test": "mocha --require ts-node/register --extension ts"
     },
     "bugs": {
