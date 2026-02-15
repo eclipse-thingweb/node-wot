@@ -4,7 +4,7 @@ export default [
     ...rootConfig,
     {
         rules: {
-            " @typescript-eslint/no-unnecessary-condition": "warn",
+            "@typescript-eslint/no-unnecessary-condition": "error",
         },
     },
 ];
