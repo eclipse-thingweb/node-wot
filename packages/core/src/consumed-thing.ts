@@ -546,32 +546,35 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
             }
         } else {
             const schemes = forms.map((link) => {
+                return Helpers.extractScheme(link.href);
+            });
+
+            const resolvedSchemes = forms.map((link) => {
                 const scheme = Helpers.extractScheme(link.href);
                 const subprotocol = link.subprotocol;
                 const composite = subprotocol ? `${scheme}+${subprotocol}` : scheme;
                 return this.#servient.hasClientFor(composite) ? composite : scheme;
             });
-            const cacheIdx = schemes.findIndex((scheme) => this.#clients.has(scheme));
+            const cacheIdx = resolvedSchemes.findIndex((scheme) => this.#clients.has(scheme));
 
             if (cacheIdx !== -1) {
                 // from cache
-                debug(`ConsumedThing '${this.title}' chose cached client for '${schemes[cacheIdx]}'`);
-                // if cacheIdx is valid, then clients *contains* schemes[cacheIdx]
-                client = this.#clients.get(schemes[cacheIdx])!;
+                debug(`ConsumedThing '${this.title}' chose cached client for '${resolvedSchemes[cacheIdx]}'`);
+                client = this.#clients.get(resolvedSchemes[cacheIdx])!;
                 form = this.findForm(forms, op, affordance, schemes, cacheIdx);
             } else {
                 // new client
                 debug(`ConsumedThing '${this.title}' has no client in cache (${cacheIdx})`);
-                const srvIdx = schemes.findIndex((scheme) => this.#servient.hasClientFor(scheme));
+                const srvIdx = resolvedSchemes.findIndex((scheme) => this.#servient.hasClientFor(scheme));
 
                 if (srvIdx === -1)
                     throw new Error(`ConsumedThing '${this.title}' missing ClientFactory for '${schemes}'`);
 
-                client = this.#servient.getClientFor(schemes[srvIdx]);
+                client = this.#servient.getClientFor(resolvedSchemes[srvIdx]);
 
                 debug(`ConsumedThing '${this.title}' got new client for '${schemes[srvIdx]}'`);
 
-                this.#clients.set(schemes[srvIdx], client);
+                this.#clients.set(resolvedSchemes[srvIdx], client);
 
                 form = this.findForm(forms, op, affordance, schemes, srvIdx);
                 this.ensureClientSecurity(client, form);
