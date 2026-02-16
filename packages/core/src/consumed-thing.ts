@@ -516,24 +516,41 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
 
             if (options.formIndex >= 0 && options.formIndex < forms.length) {
                 form = forms[options.formIndex];
-                const scheme = Helpers.extractScheme(form.href);
-                if (this.#servient.hasClientFor(scheme)) {
-                    debug(`ConsumedThing '${this.title}' got client for '${scheme}'`);
-                    client = this.#servient.getClientFor(scheme);
 
-                    if (!this.#clients.get(scheme)) {
-                        // new client
-                        this.ensureClientSecurity(client, form);
-                        this.#clients.set(scheme, client);
-                    }
+                const scheme = Helpers.extractScheme(form.href);
+                const subprotocol = form.subprotocol;
+                const composite = subprotocol ? `${scheme}+${subprotocol}` : scheme;
+
+                // Determine which scheme to use
+                let resolvedScheme: string;
+
+                if (this.#servient.hasClientFor(composite)) {
+                    resolvedScheme = composite;
+                } else if (this.#servient.hasClientFor(scheme)) {
+                    resolvedScheme = scheme;
                 } else {
                     throw new Error(`ConsumedThing '${this.title}' missing ClientFactory for '${scheme}'`);
+                }
+                debug(`ConsumedThing '${this.title}' using client for '${resolvedScheme}'`);
+
+                // Reuse client if already cached
+                if (this.#clients.has(resolvedScheme)) {
+                    client = this.#clients.get(resolvedScheme)!;
+                } else {
+                    client = this.#servient.getClientFor(resolvedScheme);
+                    this.ensureClientSecurity(client, form);
+                    this.#clients.set(resolvedScheme, client);
                 }
             } else {
                 throw new Error(`ConsumedThing '${this.title}' missing formIndex '${options.formIndex}'`);
             }
         } else {
-            const schemes = forms.map((link) => Helpers.extractScheme(link.href));
+            const schemes = forms.map((link) => {
+                const scheme = Helpers.extractScheme(link.href);
+                const subprotocol = link.subprotocol;
+                const composite = subprotocol ? `${scheme}+${subprotocol}` : scheme;
+                return this.#servient.hasClientFor(composite) ? composite : scheme;
+            });
             const cacheIdx = schemes.findIndex((scheme) => this.#clients.has(scheme));
 
             if (cacheIdx !== -1) {
