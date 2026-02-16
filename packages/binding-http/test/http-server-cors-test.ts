@@ -194,4 +194,59 @@ class HttpServerCorsTest {
         expect(methods).to.contain("GET");
         expect(methods).to.contain("OPTIONS");
     }
+
+    @test async "should handle CORS for write property (PUT)"() {
+        this.thing = new ExposedThing(this.servient, {
+            title: "TestThingWrite",
+            properties: {
+                test: {
+                    type: "string",
+                    forms: [],
+                },
+            },
+        });
+
+        this.thing.setPropertyWriteHandler("test", () => Promise.resolve(undefined));
+
+        await this.httpServer.expose(this.thing);
+
+        const uri = `http://localhost:${this.httpServer.getPort()}/testthingwrite/properties/test`;
+        const response = await fetch(uri, {
+            method: "PUT",
+            body: JSON.stringify("new-value"),
+            headers: {
+                Origin: "http://example.com",
+                "Content-Type": "application/json",
+            },
+        });
+
+        expect(response.status).to.equal(204);
+        expect(response.headers.get("Access-Control-Allow-Origin")).to.equal("*");
+    }
+
+    @test async "should handle CORS for invoke action (POST)"() {
+        this.thing = new ExposedThing(this.servient, {
+            title: "TestThingAction",
+            actions: {
+                test: {
+                    forms: [],
+                },
+            },
+        });
+
+        this.thing.setActionHandler("test", () => Promise.resolve(undefined));
+
+        await this.httpServer.expose(this.thing);
+
+        const uri = `http://localhost:${this.httpServer.getPort()}/testthingaction/actions/test`;
+        const response = await fetch(uri, {
+            method: "POST",
+            headers: {
+                Origin: "http://example.com",
+            },
+        });
+
+        expect(response.status).to.equal(204); // Action without output returns 204
+        expect(response.headers.get("Access-Control-Allow-Origin")).to.equal("*");
+    }
 }
