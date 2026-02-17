@@ -73,6 +73,42 @@ class CoapServerTest {
 
         await coapServer.stop();
     }
+    @test async "should expose Thing with id and title and be reachable from both"() {
+        const coapServer = new CoapServer({ port: PORT });
+        await coapServer.start(new Servient());
+
+        const testThing = new ExposedThing(new Servient(), {
+            title: "TestThing",
+            id: "urn:dev:wot:test-thing-1234",
+            properties: {
+                test: {
+                    type: "string",
+                },
+            },
+        });
+
+        testThing.setPropertyReadHandler("test", async () => "OK");
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.test.forms = [];
+
+        await coapServer.expose(testThing);
+
+        const uriByTitle = `coap://localhost:${coapServer.getPort()}/testthing/properties/test`;
+        const uriById = `coap://localhost:${coapServer.getPort()}/urn:dev:wot:test-thing-1234/properties/test`;
+
+        const coapClient = new CoapClient(coapServer);
+
+        const resp1 = await coapClient.readResource(new Form(uriByTitle));
+        expect((await resp1.toBuffer()).toString()).to.equal('"OK"');
+
+        const resp2 = await coapClient.readResource(new Form(uriById));
+        expect((await resp2.toBuffer()).toString()).to.equal('"OK"');
+
+        await coapClient.stop();
+        await coapServer.stop();
+    }
 
     @test async "should write property"() {
         const coapServer = new CoapServer({ port: PORT });

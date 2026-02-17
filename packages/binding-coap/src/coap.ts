@@ -30,6 +30,7 @@ export * from "./coaps-client";
 export interface CoapServerConfig {
     port?: number;
     address?: string;
+    devFriendlyUri?: boolean;
 }
 
 export type CoapMethodName = "GET" | "POST" | "PUT" | "DELETE" | "FETCH" | "PATCH" | "iPATCH";
