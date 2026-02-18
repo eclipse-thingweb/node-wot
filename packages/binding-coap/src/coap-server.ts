@@ -145,14 +145,14 @@ export default class CoapServer implements ProtocolServer {
 
     public async expose(thing: ExposedThing, tdTemplate?: WoT.ExposedThingInit): Promise<void> {
         const port = this.getPort();
-        const paths = this.createThingUrlPaths(thing);
+        const urlPaths = this.createThingUrlPaths(thing);
 
         if (port === -1) {
             warn("CoapServer is assigned an invalid port, aborting expose process.");
             return;
         }
 
-        for (const urlPath of paths) {
+        for (const urlPath of urlPaths) {
             this.fillInBindingData(thing, port, urlPath);
 
             debug(`CoapServer on port ${port} exposes '${thing.title}' as unique '/${urlPath}'`);
@@ -161,10 +161,19 @@ export default class CoapServer implements ProtocolServer {
         }
     }
 
+    /**
+     * Creates the URL paths under which a Thing is exposed.
+     * If devFriendlyUri is enabled, a slugified title-based path is created.
+     * If the Thing has a non-empty ID, an additional ID-based path is created.
+     *
+     * If devFriendlyUri is disabled and the Thing has no ID,
+     * a title-based path is still created to ensure the Thing remains accessible.
+     */
     private createThingUrlPaths(thing: ExposedThing): string[] {
-        const paths: string[] = [];
+        const urlPaths: string[] = [];
+
         // Title-based path
-        if (this.devFriendlyUri || thing.id == null) {
+        if (this.devFriendlyUri || !thing.id) {
             let urlPath = slugify(thing.title, { lower: true });
 
             if (this.things.has(urlPath)) {
@@ -176,13 +185,19 @@ export default class CoapServer implements ProtocolServer {
                 urlPath = uniqueUrlPath;
             }
 
-            paths.push(urlPath);
+            urlPaths.push(urlPath);
         }
+
         // ID-based path
         if (typeof thing.id === "string" && thing.id.length > 0) {
-            paths.push(thing.id);
+            if (this.things.has(thing.id)) {
+                warn(`CoapServer path collision detected for id '${thing.id}'.`);
+            }
+
+            urlPaths.push(thing.id);
         }
-        return paths;
+
+        return urlPaths;
     }
 
     private fillInBindingData(thing: ExposedThing, port: number, urlPath: string) {

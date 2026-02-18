@@ -109,6 +109,50 @@ class CoapServerTest {
         await coapClient.stop();
         await coapServer.stop();
     }
+    @test async "should expose Thing only by id when devFriendlyUri is false"() {
+        const coapServer = new CoapServer({ port: PORT, devFriendlyUri: false });
+        await coapServer.start(new Servient());
+
+        const testThing = new ExposedThing(new Servient(), {
+            title: "TestThing",
+            id: "urn:dev:wot:test-thing-5678",
+            properties: {
+                test: {
+                    type: "string",
+                },
+            },
+        });
+
+        testThing.setPropertyReadHandler("test", async () => "OK");
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        testThing.properties.test.forms = [];
+
+        await coapServer.expose(testThing);
+
+        const uriByTitle = `coap://localhost:${coapServer.getPort()}/testthing/properties/test`;
+        const uriById = `coap://localhost:${coapServer.getPort()}/urn:dev:wot:test-thing-5678/properties/test`;
+
+        const coapClient = new CoapClient(coapServer);
+
+        // ID path works
+        const respById = await coapClient.readResource(new Form(uriById));
+        expect((await respById.toBuffer()).toString()).to.equal('"OK"');
+
+        // Title path should not exist
+        await new Promise<void>((resolve) => {
+            const req = request(uriByTitle);
+            req.on("response", (res: IncomingMessage) => {
+                expect(res.code).to.equal("4.04");
+                resolve();
+            });
+            req.end();
+        });
+
+        await coapClient.stop();
+        await coapServer.stop();
+    }
 
     @test async "should write property"() {
         const coapServer = new CoapServer({ port: PORT });

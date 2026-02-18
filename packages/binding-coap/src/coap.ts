@@ -28,8 +28,27 @@ export * from "./coaps-client-factory";
 export * from "./coaps-client";
 
 export interface CoapServerConfig {
+    /**
+     * Port on which the CoAP server listens.
+     * Defaults to 5683.
+     */
     port?: number;
+
+    /**
+     * Network address to bind to.
+     * If undefined, binds to all interfaces.
+     */
     address?: string;
+
+    /**
+     * Controls how Thing resource paths are generated.
+     *
+     * If `true` (default), a slugified title-based path is created.
+     * If the Thing has an ID, an additional ID-based path is created.
+     *
+     * If `false` and the Thing has an ID, only the ID-based path is created.
+     * If no ID is provided, a title-based path is still created.
+     */
     devFriendlyUri?: boolean;
 }
 
