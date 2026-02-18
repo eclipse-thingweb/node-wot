@@ -14,7 +14,6 @@
  ********************************************************************************/
 
 import { Subscription } from "rxjs/Subscription";
-import { promisify } from "util";
 import { Readable } from "stream";
 import { URL } from "url";
 import {
@@ -49,20 +48,21 @@ import {
 import {
     AnonymousIdentity,
     ArgumentDefinition,
+    findBasicDataType,
     getBuiltInDataType,
     readNamespaceArray,
     UserIdentityInfo,
 } from "node-opcua-pseudo-session";
-import { makeNodeId, NodeId, NodeIdLike, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
-import { AttributeIds, BrowseDirection, makeResultMask } from "node-opcua-data-model";
+import { NodeId, NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
+import { AttributeIds } from "node-opcua-data-model";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { StatusCodes } from "node-opcua-status-code";
 import { coercePrivateKeyPem, readPrivateKey } from "node-opcua-crypto";
 import { opcuaJsonEncodeVariant } from "node-opcua-json";
-import { Argument, BrowseDescription, BrowseResult, MessageSecurityMode, UserTokenType } from "node-opcua-types";
-import { isGoodish2, ReferenceTypeIds } from "node-opcua";
+import { Argument, MessageSecurityMode, UserTokenType } from "node-opcua-types";
+import { isGoodish2 } from "node-opcua";
 
-import { schemaDataValue } from "./codec";
+import { schemaDataValue } from "./codecs/opcua-data-schemas";
 import { OPCUACAuthenticationScheme, OPCUAChannelSecurityScheme } from "./security-scheme";
 import { CertificateManagerSingleton } from "./certificate-manager-singleton";
 import { resolveChannelSecurity, resolvedUserIdentity } from "./opcua-security-resolver";
@@ -95,52 +95,6 @@ interface OPCUAConnection {
     namespaceArray?: string[];
 }
 
-type Resolver = (...arg: [...unknown[]]) => void;
-
-interface OPCUAConnectionEx extends OPCUAConnection {
-    pending?: Resolver[];
-}
-
-export function findBasicDataTypeC(
-    session: IBasicSession,
-    dataTypeId: NodeId,
-    callback: (err: Error | null, dataType?: DataType) => void
-): void {
-    const resultMask = makeResultMask("ReferenceType");
-
-    if (dataTypeId.identifierType === NodeIdType.NUMERIC && Number(dataTypeId.value) <= 25) {
-        // we have a well-known DataType
-        callback(null, dataTypeId.value as DataType);
-    } else {
-        // let's browse for the SuperType of this object
-        const nodeToBrowse = new BrowseDescription({
-            browseDirection: BrowseDirection.Inverse,
-            includeSubtypes: false,
-            nodeId: dataTypeId,
-            referenceTypeId: makeNodeId(ReferenceTypeIds.HasSubtype),
-            resultMask,
-        });
-
-        session.browse(nodeToBrowse, (err: Error | null, browseResult?: BrowseResult) => {
-            /* istanbul ignore next */
-            if (err) {
-                return callback(err);
-            }
-
-            /* istanbul ignore next */
-            if (!browseResult) {
-                return callback(new Error("Internal Error"));
-            }
-
-            browseResult.references = browseResult.references ?? /* istanbul ignore next */ [];
-            const baseDataType = browseResult.references[0].nodeId;
-            return findBasicDataTypeC(session, baseDataType, callback);
-        });
-    }
-}
-const findBasicDataType: (session: IBasicSession, dataTypeId: NodeId) => Promise<DataType | undefined> =
-    promisify(findBasicDataTypeC);
-
 function _variantToJSON(variant: Variant, contentType: string) {
     contentType = contentType.split(";")[0];
 
@@ -158,95 +112,130 @@ function _variantToJSON(variant: Variant, contentType: string) {
 }
 
 export class OPCUAProtocolClient implements ProtocolClient {
-    private _connections: Map<string, OPCUAConnectionEx> = new Map<string, OPCUAConnectionEx>();
+    private _connections = new Map<string, Promise<OPCUAConnection>>();
 
     private _securityMode: MessageSecurityMode = MessageSecurityMode.None;
     private _securityPolicy: SecurityPolicy = SecurityPolicy.None;
     private _useAutoChannel: boolean = false;
     private _userIdentity: UserIdentityInfo = <AnonymousIdentity>{ type: UserTokenType.Anonymous };
 
+    /**
+     * return the number of active connections to an OPCUA Server
+     */
+    public get connectionCount() {
+        return this._connections.size;
+    }
+    private async _createConnection(endpoint: string): Promise<OPCUAConnection> {
+        debug(`_createConnection: creating new connection to ${endpoint}`);
+
+        const clientCertificateManager = await CertificateManagerSingleton.getCertificateManager();
+
+        let securityMode = this._securityMode;
+        let securityPolicy = this._securityPolicy;
+
+        if (this._useAutoChannel) {
+            if (securityMode === MessageSecurityMode.Invalid) {
+                const mostSecure = await findMostSecureChannel(endpoint);
+                securityMode = mostSecure.messageSecurityMode;
+                securityPolicy = mostSecure.securityPolicy;
+                debug(
+                    `_createConnection: auto-selected security mode ${MessageSecurityMode[securityMode]} with policy ${securityPolicy}`
+                );
+            }
+        }
+
+        const client = OPCUAClient.create({
+            endpointMustExist: false,
+            connectionStrategy: {
+                maxRetry: 1,
+            },
+            securityMode,
+            securityPolicy,
+            clientCertificateManager,
+        });
+
+        client.on("backoff", () => {
+            debug(`connection:backoff: cannot connect to ${endpoint}`);
+        });
+
+        try {
+            await client.connect(endpoint);
+            debug(`_createConnection: client connected to ${endpoint}`);
+
+            // adjust with private key
+            if (this._userIdentity.type === UserTokenType.Certificate && !this._userIdentity.privateKey) {
+                const internalKey = readPrivateKey(client.clientCertificateManager.privateKey);
+                const privateKeyPem = coercePrivateKeyPem(internalKey);
+                this._userIdentity.privateKey = privateKeyPem;
+            }
+            const session = await client.createSession(this._userIdentity);
+            debug(`_createConnection: session created for ${endpoint}`);
+
+            const subscription = await session.createSubscription2({
+                maxNotificationsPerPublish: 100,
+                publishingEnabled: true,
+                requestedLifetimeCount: 100,
+                requestedPublishingInterval: 250,
+                requestedMaxKeepAliveCount: 10,
+                priority: 1,
+            });
+            debug(`_createConnection: subscription created for ${endpoint}`);
+
+            return { client, session, subscription };
+        } catch (err) {
+            // Make sure to disconnect if any post-connection step fails
+            await client.disconnect();
+            const errMessage = `Failed to establish a full connection to ${endpoint}: ${(err as Error).message}`;
+            debug(errMessage);
+            throw new Error(errMessage);
+        }
+    }
+
     private async _withConnection<T>(form: OPCUAForm, next: (connection: OPCUAConnection) => Promise<T>): Promise<T> {
-        const endpoint = form.href;
-        const matchesScheme: boolean = endpoint?.match(/^opc.tcp:\/\//) != null;
-        if (!matchesScheme) {
-            debug(`invalid opcua:endpoint ${endpoint} specified`);
-            throw new Error("Invalid OPCUA endpoint " + endpoint);
+        const href = form.href;
+        if (!href) {
+            const err = new Error("Invalid OPCUA endpoint: href is missing in form");
+            debug(err.message);
+            throw err;
         }
-        let c: OPCUAConnectionEx | undefined = this._connections.get(endpoint);
-        if (!c) {
-            const clientCertificateManager = await CertificateManagerSingleton.getCertificateManager();
 
-            if (this._useAutoChannel) {
-                if (this._securityMode === MessageSecurityMode.Invalid) {
-                    const { messageSecurityMode, securityPolicy } = await findMostSecureChannel(endpoint);
-                    this._securityMode = messageSecurityMode;
-                    this._securityPolicy = securityPolicy;
+        // Use modern URL API and ensure path is included for endpoint uniqueness
+        let endpoint: string;
+        try {
+            const parsedUrl = new URL(href);
+            if (parsedUrl.protocol !== "opc.tcp:") {
+                throw new Error(`Unsupported protocol: ${parsedUrl.protocol}`);
+            }
+            // We use the full href as the canonical endpoint identifier, without the query and fragment
+            parsedUrl.hash = "";
+            parsedUrl.search = "";
+            endpoint = parsedUrl.href;
+        } catch (err) {
+            debug(`Invalid OPCUA endpoint href: ${href}. Error: ${(err as Error).message}`);
+            throw new Error(`Invalid OPCUA endpoint: ${href}`);
+        }
+
+        let connectionPromise = this._connections.get(endpoint);
+
+        if (!connectionPromise) {
+            debug(`_withConnection: no cached connection for ${endpoint}. Creating a new one.`);
+            connectionPromise = this._createConnection(endpoint);
+            this._connections.set(endpoint, connectionPromise);
+
+            // If the connection fails, remove the rejected promise from the cache
+            // to allow future retries.
+            connectionPromise.catch((err) => {
+                debug(`_withConnection: connection to ${endpoint} failed. Evicting from cache. Error: ${err.message}`);
+                if (this._connections.get(endpoint) === connectionPromise) {
+                    this._connections.delete(endpoint);
                 }
-            }
-            const client = OPCUAClient.create({
-                endpointMustExist: false,
-                connectionStrategy: {
-                    maxRetry: 1,
-                },
-                securityMode: this._securityMode,
-                securityPolicy: this._securityPolicy,
-                clientCertificateManager,
             });
-            client.on("backoff", () => {
-                debug(`connection:backoff: cannot connection to  ${endpoint}`);
-            });
-
-            c = {
-                client,
-                pending: [] as Resolver[],
-            } as OPCUAConnectionEx; // but incomplete still
-
-            this._connections.set(endpoint, c);
-            try {
-                await client.connect(endpoint);
-            } catch (err) {
-                const errMessage = "Cannot connected to endpoint " + endpoint + "\nmsg = " + (<Error>err).message;
-                debug(errMessage);
-                throw new Error(errMessage);
-            }
-            try {
-                // adjust with private key
-                if (this._userIdentity.type === UserTokenType.Certificate && !this._userIdentity.privateKey) {
-                    const internalKey = readPrivateKey(client.clientCertificateManager.privateKey);
-                    const privateKeyPem = coercePrivateKeyPem(internalKey);
-                    this._userIdentity.privateKey = privateKeyPem;
-                }
-                const session = await client.createSession(this._userIdentity);
-                c.session = session;
-
-                const subscription = await session.createSubscription2({
-                    maxNotificationsPerPublish: 100,
-                    publishingEnabled: true,
-                    requestedLifetimeCount: 100,
-                    requestedPublishingInterval: 250,
-                    requestedMaxKeepAliveCount: 10,
-                    priority: 1,
-                });
-                c.subscription = subscription;
-
-                const p = c.pending;
-                c.pending = undefined;
-                p && p.forEach((t) => t());
-
-                this._connections.set(endpoint, c);
-            } catch (err) {
-                await client.disconnect();
-                const errMessage = "Cannot handle session on " + endpoint + "\nmsg = " + (<Error>err).message;
-                debug(errMessage);
-                throw new Error(errMessage);
-            }
+        } else {
+            debug(`_withConnection: using cached connection promise for ${endpoint}`);
         }
-        if (c.pending) {
-            await new Promise((resolve) => {
-                c?.pending?.push(resolve);
-            });
-        }
-        return next(c);
+
+        const connection = await connectionPromise;
+        return next(connection);
     }
 
     private async _withSession<T>(form: OPCUAForm, next: (session: ClientSession) => Promise<T>): Promise<T> {
@@ -513,11 +502,18 @@ export class OPCUAProtocolClient implements ProtocolClient {
 
     async stop(): Promise<void> {
         debug("stop");
-        for (const connection of this._connections.values()) {
-            await connection.subscription.terminate();
-            await connection.session.close();
-            await connection.client.disconnect();
+        // Wait for all connection promises to resolve before trying to close them.
+        const connections = await Promise.all(this._connections.values());
+        for (const connection of connections) {
+            try {
+                await connection.subscription.terminate();
+                await connection.session.close();
+                await connection.client.disconnect();
+            } catch (err) {
+                debug(`Error while stopping a connection: ${(err as Error).message}`);
+            }
         }
+        this._connections.clear();
         await CertificateManagerSingleton.releaseCertificateManager();
     }
 

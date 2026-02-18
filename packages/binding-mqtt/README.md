@@ -176,6 +176,65 @@ try {
 }
 ```
 
+### Hosting your own MQTT Broker
+
+Instead of connecting to an external MQTT broker, you can host your own MQTT broker within your node-wot application by setting the `selfHost` option to `true`. This is useful for testing, development, or when you want to run a self-contained application.
+
+```js
+const { Servient } = require("@node-wot/core");
+const { MqttBrokerServer } = require("@node-wot/binding-mqtt");
+
+// create Servient with self-hosted MQTT broker
+const servient = new Servient();
+servient.addServer(new MqttBrokerServer({ uri: "mqtt://localhost:1883", selfHost: true }));
+
+servient.start().then((WoT) => {
+    // Your Things will now use the self-hosted broker
+    WoT.produce({
+        title: "My Thing",
+        // ... rest of Thing Description
+    }).then((thing) => {
+        thing.expose();
+    });
+});
+```
+
+#### Self-Hosted Broker with Authentication
+
+You can also add authentication to your self-hosted broker by providing credentials:
+
+```js
+const servient = new Servient();
+servient.addServer(
+    new MqttBrokerServer({
+        uri: "mqtt://localhost:1883",
+        selfHost: true,
+        selfHostAuthentication: [
+            { username: "user1", password: "password1" },
+            { username: "user2", password: "password2" },
+        ],
+    })
+);
+```
+
+#### Self-Hosted Broker with TLS
+
+For secure communication, you can enable TLS on your self-hosted broker:
+
+```js
+const fs = require("fs");
+
+const servient = new Servient();
+servient.addServer(
+    new MqttBrokerServer({
+        uri: "mqtts://localhost:8883",
+        selfHost: true,
+        key: fs.readFileSync("path/to/private-key.pem"),
+        cert: fs.readFileSync("path/to/certificate.pem"),
+    })
+);
+```
+
 ### More Examples
 
 There are example implementations provided in the [example/scripting folder](https://github.com/eclipse-thingweb/node-wot/tree/master/examples/scripts).

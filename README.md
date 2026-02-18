@@ -56,13 +56,9 @@ For further information please refer to the official [W3C Web of Things](https:/
 
 ## Installation
 
-The framework can be used in two ways: as a library or as a CLI tool. In this section we will explain how to install the framework in both ways.
+The framework is composed by different packages that users can use as they please. The core package is @node-wot/core and it is the only mandatory package to install. The other packages are bindings that allow the framework to communicate with different protocols.
 
-### As a library
-
-The framework is composed by different packages that users can use as they please. The core package is `@node-wot/core` and it is the only mandatory package to install. The other packages are bindings that allow the framework to communicate with different protocols.
-
-#### Node.js
+### Prerequisite: Node.js with build tools
 
 > [!WARNING]
 > We no longer actively support Node.js version 18 and lower.
@@ -81,27 +77,52 @@ Platforms specific prerequisites:
 -   Mac OS: Meet the [node-gyp](https://github.com/nodejs/node-gyp#installation) requirements:
     -   `xcode-select --install`
 
-If you want to use node-wot as a library in your Node.js application, you can use npm to install the node-wot packages that you need. To do so, `cd` inside your application folder, and run:
+### As a library
+
+If you want to use node-wot as a library in your Node.js application, you can use npm to install the node-wot packages that you need.
+Todo so, `cd` inside your application folder and install at least the mandatory core package:
 
 ```
-npm i @node-wot/core @node-wot/binding-http --save
+npm i @node-wot/core
 ```
 
-#### Browser
-
-To use node-wot as a browser-side JavaScript Library, the browser needs to support ECMAScript 2015.
-
-Using a browser with only ES5 support (e.g., IE 11) might be possible if you add polyfills. If you want to use node-wot as a library in your browser application, you can install the `@node-wot/browser-bundle` as following:
+Usually, your application needs at least one protocol binding to commmunicate, e.g.,:
 
 ```
-npm i @node-wot/browser-bundle --save
+npm i @node-wot/binding-http
 ```
 
-you can find more installation options in the specific [package README](./packages/browser-bundle/README.md).
+In case the application shall consume Thing Descriptions that are stored locally, you would also need the `file` binding:
+
+```
+npm i @node-wot/binding-file
+```
+
+You see other available bindings in the [packages folder](./packages), which you can install via `npm i @node-wot/<package-name>`.
+
+### In the browser
+
+To use node-wot as JavaScript library insde the Web browser, it needs to support ECMAScript 2015+. Using a browser with only ES5 support (e.g., IE 11) might be possible if you add polyfills.
+
+If you want to use node-wot as a library in your browser application,`cd` inside your application folder and install the browser bundle:
+
+```
+npm i @node-wot/browser-bundle
+```
+
+You can find more (non-)installation options in the specific [package README](./packages/browser-bundle/README.md).
 
 ### As a CLI tool
 
-You can alternatively use node-wot via its command line interface (CLI). Please visit the [CLI tool's Readme](<[url](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/cli)>) to find out more.
+You can alternatively use node-wot via its command line interface (CLI). Please visit the [CLI tool README](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/cli) to find out more.
+
+#### As global tool
+
+To make the `wot-servient` command available on your machine, install the CLI tool in the global scope:
+
+```
+npm i @node-wot/cli -g
+```
 
 #### As a docker image
 
