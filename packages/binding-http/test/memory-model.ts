@@ -14,16 +14,8 @@
  ********************************************************************************/
 
 import { createDebugLogger } from "@node-wot/core";
-import {
-    PasswordModel,
-    ClientCredentialsModel,
-    Callback,
-    Token,
-    Falsey,
-    Client,
-    User,
-} from "@node-oauth/oauth2-server";
 
+import { Client, Token, User, Falsey, ClientCredentialsModel, PasswordModel } from "@node-oauth/oauth2-server";
 const debug = createDebugLogger("binding-http", "memory-model");
 
 /**
@@ -50,35 +42,15 @@ export default class InMemoryModel implements ClientCredentialsModel, PasswordMo
         this.users = [{ id: "123", username: "thomseddon", password: "nightworld" }];
     }
 
-    async validateScope?(
-        user: User,
-        client: Client,
-        scope: string | string[],
-        callback?: Callback<string | false | 0>
-    ): Promise<string | false | 0 | string[]> {
-        if (callback) {
-            callback(null, scope.toString());
-        }
-
+    async validateScope?(user: User, client: Client, scope: string[]): Promise<string[] | Falsey> {
         return scope;
     }
 
-    async generateAccessToken?(
-        client: Client,
-        user: User,
-        scope: string | string[],
-        callback?: Callback<string>
-    ): Promise<string> {
-        if (callback) {
-            callback(null, Buffer.from(Math.random().toString()).toString("base64").substr(10, 5));
-        }
+    async generateAccessToken?(client: Client, user: User, scope: string[]): Promise<string> {
         return Buffer.from(Math.random().toString()).toString("base64").substr(10, 5);
     }
 
-    async verifyScope(token: Token, scope: string | string[], callback?: Callback<boolean>): Promise<boolean> {
-        if (callback) {
-            callback(null, true);
-        }
+    async verifyScope(token: Token, scope: string | string[]): Promise<boolean> {
         return true;
     }
 
@@ -92,14 +64,10 @@ export default class InMemoryModel implements ClientCredentialsModel, PasswordMo
      * Get access token.
      */
 
-    async getAccessToken(bearerToken: string, callback?: Callback<Token>): Promise<Token | Falsey> {
+    async getAccessToken(bearerToken: string): Promise<Token | Falsey> {
         const tokens = this.tokens.filter(function (token) {
             return token.accessToken === bearerToken;
         });
-        if (callback != null) {
-            callback(null, tokens[0]);
-        }
-
         return tokens.length ? tokens[0] : false;
     }
 
@@ -119,17 +87,10 @@ export default class InMemoryModel implements ClientCredentialsModel, PasswordMo
      * Get client.
      */
 
-    async getClient(
-        clientId: string,
-        clientSecret: string,
-        callback?: Callback<Falsey | Client>
-    ): Promise<Client | Falsey> {
+    async getClient(clientId: string, clientSecret: string): Promise<Client | Falsey> {
         const clients = this.clients.filter(function (client) {
             return client.id === clientId && (!clientSecret || client.clientSecret === clientSecret);
         });
-        if (callback) {
-            callback(null, clients.length ? clients[0] : false);
-        }
         return clients.length ? clients[0] : false;
     }
 
@@ -137,7 +98,7 @@ export default class InMemoryModel implements ClientCredentialsModel, PasswordMo
      * Save token.
      */
 
-    async saveToken(token: Token, client: Client, user: User, callback?: Callback<Token>): Promise<Token> {
+    async saveToken(token: Token, client: Client, user: User): Promise<Token> {
         const { accessToken, accessTokenExpiresAt, refreshTokenExpiresAt, refreshToken } = token;
         this.tokens.push({
             accessToken,
@@ -147,9 +108,6 @@ export default class InMemoryModel implements ClientCredentialsModel, PasswordMo
             refreshTokenExpiresAt,
             user,
         });
-        if (callback) {
-            callback(null, this.tokens[this.tokens.length - 1]);
-        }
         return this.tokens[this.tokens.length - 1];
     }
 
@@ -165,10 +123,7 @@ export default class InMemoryModel implements ClientCredentialsModel, PasswordMo
         return users.length ? users[0] : false;
     }
 
-    async getUserFromClient(client: Client, callback?: Callback<Falsey | User>): Promise<Falsey | User> {
-        if (callback) {
-            callback(null, this.users[0]);
-        }
+    async getUserFromClient(client: Client): Promise<Falsey | User> {
         return this.users[0];
     }
 
