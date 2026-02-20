@@ -42,9 +42,9 @@ class HttpClientOAuthTest {
         });
 
         app.use(bodyParser.json());
-        app.use("/resource", oauth.authenticate());
+        app.use("/resource", oauth.authenticate() as unknown as express.RequestHandler);
         app.use("/token", bodyParser.urlencoded({ extended: false }));
-        app.use("/token", oauth.token());
+        app.use("/token", oauth.token() as unknown as express.RequestHandler);
 
         app.use("/resource", (req: express.Request, res: express.Response) => {
             res.send("Ok!");

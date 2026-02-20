@@ -3,9 +3,9 @@
     "compilerOptions": {
         "outDir": "dist",
         "rootDir": "src",
-        "resolveJsonModule": true,
         "esModuleInterop": true
     },
+    "exclude": ["eslint.config.mjs"],
     "include": ["src/**/*", "src/*.json"],
     "references": [
         { "path": "../core" },

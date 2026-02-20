@@ -23,7 +23,6 @@
 // * multi-language
 // * image contentTypes for properties (Note: the contentType applies to all forms of the property)
 // * links with entry containing rel and sizes
-
 let count: number;
 let lastChange: string;
 
