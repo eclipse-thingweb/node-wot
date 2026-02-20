@@ -41,10 +41,7 @@ const { debug, warn, info, error } = createLoggers("binding-coap", "coap-server"
 
 type CoreLinkFormatParameters = Map<string, string[] | number[]>;
 
-type AffordanceElement =
-    Omit<PropertyElement, "forms"> |
-    Omit<ActionElement, "forms"> |
-    Omit<EventElement, "forms">;
+type AffordanceElement = Omit<PropertyElement, "forms"> | Omit<ActionElement, "forms"> | Omit<EventElement, "forms">;
 
 // TODO: Move to core?
 type AugmentedInteractionOptions = WoT.InteractionOptions & { formIndex: number };
@@ -618,10 +615,7 @@ export default class CoapServer implements ProtocolServer {
             const recordResponse: Record<string, DataSchemaValue> = {};
             for (const [key, content] of contentMap.entries()) {
                 try {
-                    if (
-                        content.type !== ContentSerdes.DEFAULT &&
-                        content.type !== "application/json"
-                    ) {
+                    if (content.type !== ContentSerdes.DEFAULT && content.type !== "application/json") {
                         continue;
                     }
                     const buffer = await content.toBuffer();
@@ -634,7 +628,7 @@ export default class CoapServer implements ProtocolServer {
                 }
             }
 
-            const responseContent = ContentSerdes.get().valueToContent(recordResponse,undefined,contentType);
+            const responseContent = ContentSerdes.get().valueToContent(recordResponse, undefined, contentType);
 
             this.streamContentResponse(res, responseContent);
         } catch (err) {
