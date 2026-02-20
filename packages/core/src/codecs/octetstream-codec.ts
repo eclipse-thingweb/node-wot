@@ -97,6 +97,18 @@ export default class OctetstreamCodec implements ContentCodec {
         let dataType: string = schema?.type;
 
         if (!dataType) {
+            // try to find a type in oneOf
+            if (schema?.oneOf !== undefined && Array.isArray(schema.oneOf)) {
+                for (const sch of schema.oneOf) {
+                    if (typeof sch.type === "string") {
+                        dataType = sch.type;
+                        schema = sch;
+                        break;
+                    }
+                }
+            }
+        }
+        if (!dataType) {
             throw new Error("Missing 'type' property in schema");
         }
 
