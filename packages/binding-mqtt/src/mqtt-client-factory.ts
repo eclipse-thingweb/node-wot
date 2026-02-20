@@ -23,8 +23,11 @@ import MqttClient from "./mqtt-client";
 const debug = createDebugLogger("binding-mqtt", "mqtt-client-factory");
 
 export default class MqttClientFactory implements ProtocolClientFactory {
-    public readonly scheme: string = "mqtt";
+    public readonly scheme: string;
     private readonly clients: Array<ProtocolClient> = [];
+    constructor(scheme: string = "mqtt") {
+        this.scheme = scheme;
+    }
 
     getClient(): ProtocolClient {
         const client = new MqttClient();
