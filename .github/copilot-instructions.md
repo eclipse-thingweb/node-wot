@@ -3,7 +3,7 @@
 ### **Repository Context**
 
 -   **Project**: Eclipse Thingweb Node-WoT
--   **Language**: TypeScript (97.5%), JavaScript (2.4%)
+-   **Language**: TypeScript, JavaScript
 -   **Purpose**: A fast and extensible framework to connect any device with your browser and backend applications
 -   **Standards**: W3C Web of Things (WoT) specifications
 
