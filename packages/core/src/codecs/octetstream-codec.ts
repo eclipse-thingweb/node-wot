@@ -584,7 +584,8 @@ export default class OctetstreamCodec implements ContentCodec {
         parameters: { [key: string]: string | undefined } = {},
         result?: Buffer | undefined
     ): Buffer {
-        if (typeof value !== "object") {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        if (typeof value !== "object" || value === null) {
             throw new Error("Value is not an object");
         }
 
