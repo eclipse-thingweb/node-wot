@@ -103,6 +103,12 @@ export default class HttpServer implements ProtocolServer {
                 }
 
                 // No url-rewrite mapping found -> resource not found
+                const origin = req.headers.origin;
+                if (origin != null) {
+                    res.setHeader("Access-Control-Allow-Origin", origin);
+                    res.setHeader("Vary", "Origin");
+                }
+
                 res.writeHead(404);
                 res.end("Not Found");
             },
