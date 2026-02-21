@@ -51,6 +51,31 @@ class HelperTest {
         expect(scheme).to.eq("coap+ws");
     }
 
+    @test "should extract mqtt+ws composite scheme"() {
+        const scheme = Helpers.extractScheme("mqtt+ws://broker.example.com:8080");
+        expect(scheme).to.eq("mqtt+ws");
+    }
+
+    @test "should extract mqtt+wss composite scheme"() {
+        const scheme = Helpers.extractScheme("mqtt+wss://broker.example.com:8883");
+        expect(scheme).to.eq("mqtt+wss");
+    }
+
+    @test "should extract modbus+tcp composite scheme"() {
+        const scheme = Helpers.extractScheme("modbus+tcp://device.local:502");
+        expect(scheme).to.eq("modbus+tcp");
+    }
+
+    @test "should extract ws scheme"() {
+        const scheme = Helpers.extractScheme("ws://broker.example.com:8080/mqtt");
+        expect(scheme).to.eq("ws");
+    }
+
+    @test "should extract wss scheme"() {
+        const scheme = Helpers.extractScheme("wss://broker.example.com:8883/mqtt");
+        expect(scheme).to.eq("wss");
+    }
+
     @test "should correctly validate schema"() {
         const thing: ExposedThingInit = {
             title: "thingTest",

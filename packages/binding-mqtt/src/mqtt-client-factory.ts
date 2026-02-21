@@ -18,6 +18,7 @@
  */
 
 import { ProtocolClientFactory, ProtocolClient, createDebugLogger } from "@node-wot/core";
+import { MqttClientConfig } from "./mqtt";
 import MqttClient from "./mqtt-client";
 
 const debug = createDebugLogger("binding-mqtt", "mqtt-client-factory");
@@ -26,8 +27,19 @@ export default class MqttClientFactory implements ProtocolClientFactory {
     public readonly scheme: string = "mqtt";
     private readonly clients: Array<ProtocolClient> = [];
 
+    constructor(private readonly config: MqttClientConfig = {}) {}
+
+    getSupportedProtocols(): Array<[string, string?]> {
+        return [
+            ["mqtt"],        // mqtt://
+            ["mqtts"],       // mqtts://
+            ["ws", "mqtt"],  // ws:// + subprotocol:mqtt
+            ["wss", "mqtt"], // wss:// + subprotocol:mqtt
+        ];
+    }
+
     getClient(): ProtocolClient {
-        const client = new MqttClient();
+        const client = new MqttClient(this.config);
         this.clients.push(client);
         return client;
     }
