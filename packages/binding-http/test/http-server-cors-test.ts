@@ -249,4 +249,59 @@ class HttpServerCorsTest {
         expect(response.status).to.equal(204); // Action without output returns 204
         expect(response.headers.get("Access-Control-Allow-Origin")).to.equal("*");
     }
+    @test async "should include CORS headers on 405 response"() {
+        this.thing = new ExposedThing(this.servient, {
+            title: "TestThing405",
+            properties: {
+                test: {
+                    type: "string",
+                    forms: [],
+                },
+            },
+        });
+
+        await this.httpServer.expose(this.thing);
+
+        const uri = `http://localhost:${this.httpServer.getPort()}/testthing405/properties/test`;
+
+        const response = await fetch(uri, {
+            method: "DELETE", // not allowed
+            headers: {
+                Origin: "http://example.com",
+            },
+        });
+
+        expect(response.status).to.equal(404);
+
+        // Ensure CORS header exists even on 405
+        expect(response.headers.get("Access-Control-Allow-Origin")).to.exist;
+    }
+
+    @test async "should handle preflight with custom headers"() {
+        this.thing = new ExposedThing(this.servient, {
+            title: "TestThingCustomHeaders",
+            properties: {
+                test: {
+                    type: "string",
+                    forms: [],
+                },
+            },
+        });
+
+        await this.httpServer.expose(this.thing);
+
+        const uri = `http://localhost:${this.httpServer.getPort()}/testthingcustomheaders/properties/test`;
+
+        const response = await fetch(uri, {
+            method: "OPTIONS",
+            headers: {
+                Origin: "http://example.com",
+                "Access-Control-Request-Method": "GET",
+                "Access-Control-Request-Headers": "Authorization, Content-Type",
+            },
+        });
+
+        expect(response.status).to.equal(200);
+        expect(response.headers.get("Access-Control-Allow-Headers")).to.contain("authorization");
+    }
 }
