@@ -130,6 +130,10 @@ class InternalPropertySubscription extends InternalSubscription {
         private readonly form: FormElementProperty
     ) {
         super(thing, name, client);
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        if (!this.thing.properties[name].forms) {
+            throw new Error(`Property '${name}' has no forms`);
+        }
         const index = this.thing.properties[name].forms.indexOf(form as Form);
         if (index < 0) {
             throw new Error(`Could not find form ${form.href} in property ${name}`);
@@ -258,6 +262,10 @@ class InternalEventSubscription extends InternalSubscription {
         private readonly form: FormElementEvent
     ) {
         super(thing, name, client);
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        if (!this.thing.events[name].forms) {
+            throw new Error(`Event '${name}' has no forms`);
+        }
         const index = this.thing.events[name].forms.indexOf(form as Form);
         if (index < 0) {
             throw new Error(`Could not find form ${form.href} in event ${name}`);

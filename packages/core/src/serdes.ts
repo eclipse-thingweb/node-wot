@@ -176,6 +176,10 @@ export function parseTD(td: string, normalize?: boolean): Thing {
     const allForms = [];
     // properties
     for (const [propName, prop] of Object.entries(thing.properties ?? {})) {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        if (!prop.forms || !Array.isArray(prop.forms)) {
+            throw new Error(`Property '${propName}' has no forms field`);
+        }
         // ensure forms mandatory forms field
         for (const form of prop.forms) {
             if (!form.href) {
@@ -190,6 +194,10 @@ export function parseTD(td: string, normalize?: boolean): Thing {
     }
     // actions
     for (const [actName, act] of Object.entries(thing.actions ?? {})) {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        if (!act.forms || !Array.isArray(act.forms)) {
+            throw new Error(`Action '${actName}' has no forms field`);
+        }
         // ensure forms mandatory forms field
         for (const form of act.forms) {
             if (!form.href) {
@@ -204,6 +212,10 @@ export function parseTD(td: string, normalize?: boolean): Thing {
     }
     // events
     for (const [evtName, evt] of Object.entries(thing.events ?? {})) {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        if (!evt.forms || !Array.isArray(evt.forms)) {
+            throw new Error(`Event '${evtName}' has no forms field`);
+        }
         // ensure forms mandatory forms field
         for (const form of evt.forms) {
             if (!form.href) {
