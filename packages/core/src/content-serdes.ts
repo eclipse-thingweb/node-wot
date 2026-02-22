@@ -47,7 +47,7 @@ interface ReadContent {
  * it can accept multiple serializers and decoders
  */
 export class ContentSerdes {
-    private static instance: ContentSerdes;
+    private static instance: ContentSerdes | undefined;
 
     public static readonly DEFAULT: string = "application/json";
     public static readonly TD: string = "application/td+json";
@@ -57,7 +57,7 @@ export class ContentSerdes {
     private offered: Set<string> = new Set<string>();
 
     public static get(): ContentSerdes {
-        if (this.instance == null) {
+        if (!this.instance) {
             this.instance = new ContentSerdes();
             // JSON
             this.instance.addCodec(new JsonCodec(), true);
@@ -126,14 +126,12 @@ export class ContentSerdes {
     }
 
     public contentToValue(content: ReadContent, schema: DataSchema): DataSchemaValue | undefined {
-        if (content.type === undefined) {
-            if (content.body.byteLength > 0) {
-                // default to application/json
-                content.type = ContentSerdes.DEFAULT;
-            } else {
-                // empty payload without media type -> void/undefined (note: e.g., empty payload with text/plain -> "")
-                return undefined;
-            }
+        if (content.body.byteLength > 0) {
+            // default to application/json
+            content.type = ContentSerdes.DEFAULT;
+        } else {
+            // empty payload without media type -> void/undefined (note: e.g., empty payload with text/plain -> "")
+            return undefined;
         }
 
         // split into media type and parameters
@@ -162,8 +160,6 @@ export class ContentSerdes {
         schema: DataSchema | undefined,
         contentType = ContentSerdes.DEFAULT
     ): Content {
-        if (value === undefined) warn("ContentSerdes valueToContent got no value");
-
         if (value instanceof ReadableStream) {
             return new Content(contentType, ProtocolHelpers.toNodeStream(value));
         }

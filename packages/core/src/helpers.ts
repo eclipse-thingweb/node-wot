@@ -63,9 +63,6 @@ export default class Helpers implements Resolver {
         const parsed = new URL(uri);
         debug(parsed);
         // remove trailing ':'
-        if (parsed.protocol === null) {
-            throw new Error(`Protocol in url "${uri}" must be valid`);
-        }
         const scheme = parsed.protocol.slice(0, -1);
         debug(`Helpers found scheme '${scheme}'`);
         return scheme;
@@ -243,7 +240,7 @@ export default class Helpers implements Resolver {
         }
 
         if (tdSchemaCopy.definitions != null) {
-            for (const [prop, propValue] of Object.entries(tdSchemaCopy.definitions) ?? []) {
+            for (const [prop, propValue] of Object.entries(tdSchemaCopy.definitions)) {
                 tdSchemaCopy.definitions[prop] = this.createExposeThingInitSchema(propValue);
             }
         }
@@ -351,12 +348,12 @@ export default class Helpers implements Resolver {
         uriVariables: { [k: string]: DataSchema } = {}
     ): Record<string, unknown> {
         const params: Record<string, unknown> = {};
-        if (url == null || (uriVariables == null && globalUriVariables == null)) {
+        if (url == null) {
             return params;
         }
 
-        const queryparams = url.split("?")[1];
-        if (queryparams == null) {
+        const queryparams = url.split("?")[1] as string | undefined;
+        if (queryparams === undefined) {
             return params;
         }
         const queries = queryparams.indexOf("&") !== -1 ? queryparams.split("&") : [queryparams];
@@ -367,14 +364,14 @@ export default class Helpers implements Resolver {
             const queryKey: string = decodeURIComponent(indexPair[0]);
             const queryValue: string = decodeURIComponent(indexPair.length > 1 ? indexPair[1] : "");
 
-            if (uriVariables != null && uriVariables[queryKey] != null) {
+            if (Object.prototype.hasOwnProperty.call(uriVariables, queryKey)) {
                 if (uriVariables[queryKey].type === "integer" || uriVariables[queryKey].type === "number") {
                     // *cast* it to number
                     params[queryKey] = +queryValue;
                 } else {
                     params[queryKey] = queryValue;
                 }
-            } else if (globalUriVariables != null && globalUriVariables[queryKey] != null) {
+            } else if (Object.prototype.hasOwnProperty.call(globalUriVariables, queryKey)) {
                 if (globalUriVariables[queryKey].type === "integer" || globalUriVariables[queryKey].type === "number") {
                     // *cast* it to number
                     params[queryKey] = +queryValue;
