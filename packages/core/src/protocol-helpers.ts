@@ -63,6 +63,8 @@ function isManaged(obj: unknown): obj is IManagedStream {
 export default class ProtocolHelpers {
     // set contentType (extend with more?)
     public static updatePropertyFormWithTemplate(form: Form, property: PropertyElement): void {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        if (property.forms == null) return;
         for (const formTemplate of property.forms) {
             // 1. Try to find match with correct href scheme
             if (formTemplate.href) {
@@ -77,6 +79,8 @@ export default class ProtocolHelpers {
     }
 
     public static updateActionFormWithTemplate(form: Form, action: ActionElement): void {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        if (action.forms == null) return;
         for (const formTemplate of action.forms) {
             // 1. Try to find match with correct href scheme
             if (formTemplate.href) {
@@ -91,6 +95,8 @@ export default class ProtocolHelpers {
     }
 
     public static updateEventFormWithTemplate(form: Form, event: EventElement): void {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        if (event.forms == null) return;
         for (const formTemplate of event.forms) {
             // 1. Try to find match with correct href scheme
             if (formTemplate.href) {

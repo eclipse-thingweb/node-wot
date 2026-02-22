@@ -91,8 +91,10 @@ export function parseTD(td: string, normalize?: boolean): Thing {
 
     // apply defaults as per WoT Thing Description spec
 
-    thing["@context"] = [TD.DEFAULT_CONTEXT_V1, TD.DEFAULT_CONTEXT_V11];
-    if (Array.isArray(thing["@context"])) {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (thing["@context"] === undefined) {
+        thing["@context"] = [TD.DEFAULT_CONTEXT_V1, TD.DEFAULT_CONTEXT_V11];
+    } else if (Array.isArray(thing["@context"])) {
         let semContext = thing["@context"] as Array<string>;
         const indexV1 = semContext.indexOf(TD.DEFAULT_CONTEXT_V1);
         const indexV11 = semContext.indexOf(TD.DEFAULT_CONTEXT_V11);
@@ -130,6 +132,7 @@ export function parseTD(td: string, normalize?: boolean): Thing {
             }
             thing["@context"] = semContext as ThingContext;
         }
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     } else if (thing["@context"] !== TD.DEFAULT_CONTEXT_V1 && thing["@context"] !== TD.DEFAULT_CONTEXT_V11) {
         const semContext = thing["@context"];
         // insert default contexts as first entries

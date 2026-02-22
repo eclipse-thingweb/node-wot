@@ -47,7 +47,7 @@ interface ReadContent {
  * it can accept multiple serializers and decoders
  */
 export class ContentSerdes {
-    private static instance: ContentSerdes | undefined;
+    private static instance: ContentSerdes;
 
     public static readonly DEFAULT: string = "application/json";
     public static readonly TD: string = "application/td+json";
@@ -57,7 +57,8 @@ export class ContentSerdes {
     private offered: Set<string> = new Set<string>();
 
     public static get(): ContentSerdes {
-        if (!this.instance) {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        if (this.instance == null) {
             this.instance = new ContentSerdes();
             // JSON
             this.instance.addCodec(new JsonCodec(), true);
@@ -126,12 +127,15 @@ export class ContentSerdes {
     }
 
     public contentToValue(content: ReadContent, schema: DataSchema): DataSchemaValue | undefined {
-        if (content.body.byteLength > 0) {
-            // default to application/json
-            content.type = ContentSerdes.DEFAULT;
-        } else {
-            // empty payload without media type -> void/undefined (note: e.g., empty payload with text/plain -> "")
-            return undefined;
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        if (content.type === undefined) {
+            if (content.body.byteLength > 0) {
+                // default to application/json
+                content.type = ContentSerdes.DEFAULT;
+            } else {
+                // empty payload without media type -> void/undefined (note: e.g., empty payload with text/plain -> "")
+                return undefined;
+            }
         }
 
         // split into media type and parameters

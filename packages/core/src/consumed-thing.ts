@@ -463,7 +463,8 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
 
                 let ws: SecurityScheme | undefined = this.securityDefinitions[s];
                 // also push nosec in case of proxy
-                if (ws.scheme === "combo") {
+                // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+                if (ws?.scheme === "combo") {
                     ws = resolveComboScheme(ws as ComboSecurityScheme, s);
                 }
                 if (ws != null) {
@@ -592,7 +593,8 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
         outputDataSchema: WoT.DataSchema | undefined
     ): InteractionOutput {
         // infer media type from form if not in response metadata
-        content.type = form.contentType ?? "application/json";
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        content.type ??= form.contentType ?? "application/json";
         // check if returned media type is the same as expected media type (from TD)
         this.checkMediaTypeOrThrow(content, form);
         return new InteractionOutput(content, form, outputDataSchema);
@@ -618,7 +620,8 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
         synchronous?: boolean
     ): ActionInteractionOutput {
         // infer media type from form if not in response metadata
-        content.type = form.contentType ?? "application/json";
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        content.type ??= form.contentType ?? "application/json";
         // check if returned media type is the same as expected media type (from TD)
         this.checkMediaTypeOrThrow(content, form);
         return new ActionInteractionOutput(content, form, outputDataSchema, synchronous);
